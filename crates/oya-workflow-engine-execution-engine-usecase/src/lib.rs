@@ -859,6 +859,985 @@ fn sorted_unique(mut values: Vec<String>) -> Vec<String> {
     values
 }
 
+// ── Signal/await durable-wait slice ─────────────────────────────────────────
+//
+// Three command paths — await_signal, deliver_signal, timeout_signal — each on
+// SignalAwaitUsecase, composing over SignalAwaitStore / SignalDeliverStore /
+// SignalTimeoutStore ports and the existing SlaTimerStore port.
+// Source-level only: no DB, clock, network, filesystem, queue, or randomness.
+
+/// A record stored by the SignalAwaitStore port to track the suspend/resume state
+/// for a `(tenant_id, run_id, signal_name)` correlation key.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalAwaitRecord {
+    pub tenant_id: String,   // data_class: INTERNAL_ONLY
+    pub run_id: String,      // data_class: INTERNAL_ONLY
+    pub step_id: String,     // data_class: INTERNAL_ONLY
+    pub signal_name: String, // data_class: INTERNAL_ONLY
+    pub delivered: bool,     // data_class: INTERNAL_ONLY
+}
+
+/// Port: suspend a step awaiting a named signal and load the await record.
+pub trait SignalAwaitStore {
+    fn suspend_step_awaiting_signal(
+        &mut self,
+        tenant_id: &str,
+        run_id: &str,
+        step_id: &str,
+        signal_name: &str,
+        evidence_ref: &str,
+    ) -> Result<(), ExecutionStoreError>;
+
+    fn load_await_record(
+        &self,
+        tenant_id: &str,
+        run_id: &str,
+        signal_name: &str,
+    ) -> Result<Option<SignalAwaitRecord>, ExecutionStoreError>;
+}
+
+/// Port: resume a previously-suspended step on signal delivery.
+pub trait SignalDeliverStore: SignalAwaitStore {
+    fn resume_step_on_signal(
+        &mut self,
+        tenant_id: &str,
+        run_id: &str,
+        signal_name: &str,
+        evidence_ref: &str,
+    ) -> Result<(), ExecutionStoreError>;
+}
+
+/// Port: mark a suspended step as timed out when the armed timer fires.
+pub trait SignalTimeoutStore: SignalDeliverStore {
+    fn timeout_step_awaiting_signal(
+        &mut self,
+        tenant_id: &str,
+        run_id: &str,
+        signal_name: &str,
+        evidence_ref: &str,
+    ) -> Result<(), ExecutionStoreError>;
+}
+
+// ── Audit event types ────────────────────────────────────────────────────────
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum SignalAuditEventKind {
+    AwaitRequested,
+    AwaitSuspended,
+    AwaitInvalid,
+    AwaitIdempotencyConflict,
+    SignalDelivered,
+    SignalUnmatched,
+    SignalDeliverInvalid,
+    SignalDeliverIdempotencyConflict,
+    SignalTimedOut,
+    SignalAlreadyDelivered,
+    SignalTimeoutInvalid,
+}
+
+impl SignalAuditEventKind {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::AwaitRequested => "await-requested",
+            Self::AwaitSuspended => "await-suspended",
+            Self::AwaitInvalid => "await-invalid",
+            Self::AwaitIdempotencyConflict => "await-idempotency-conflict",
+            Self::SignalDelivered => "signal-delivered",
+            Self::SignalUnmatched => "signal-unmatched",
+            Self::SignalDeliverInvalid => "signal-deliver-invalid",
+            Self::SignalDeliverIdempotencyConflict => "signal-deliver-idempotency-conflict",
+            Self::SignalTimedOut => "signal-timed-out",
+            Self::SignalAlreadyDelivered => "signal-already-delivered",
+            Self::SignalTimeoutInvalid => "signal-timeout-invalid",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalAuditEvent {
+    pub kind: SignalAuditEventKind, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,          // data_class: INTERNAL_ONLY
+    pub run_id: String,             // data_class: INTERNAL_ONLY
+    pub signal_name: String,        // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
+}
+
+// ── WF-ENG-1: AwaitSignal ────────────────────────────────────────────────────
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalAwaitInput {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
+    pub trace_ref: String,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub run_id: String,                  // data_class: INTERNAL_ONLY
+    pub step_id: String,                 // data_class: INTERNAL_ONLY
+    pub signal_name: String,             // data_class: INTERNAL_ONLY
+    pub timeout_timer: Option<SlaTimer>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum SignalAwaitStatus {
+    Awaiting,
+    IdempotencyConflict,
+    InvalidInput,
+    StoreUnavailable,
+    TimerUnavailable,
+}
+
+impl SignalAwaitStatus {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::Awaiting => "awaiting",
+            Self::IdempotencyConflict => "idempotency-conflict",
+            Self::InvalidInput => "invalid-input",
+            Self::StoreUnavailable => "store-unavailable",
+            Self::TimerUnavailable => "timer-unavailable",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalAwaitReceipt {
+    pub status: SignalAwaitStatus,      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
+    pub run_id: String,                 // data_class: INTERNAL_ONLY
+    pub step_id: String,                // data_class: INTERNAL_ONLY
+    pub signal_name: String,            // data_class: INTERNAL_ONLY
+    pub timer_armed: bool,              // data_class: INTERNAL_ONLY
+    pub audit_events: Vec<SignalAuditEvent>, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,     // data_class: INTERNAL_ONLY
+}
+
+// ── WF-ENG-2: SignalDeliver ──────────────────────────────────────────────────
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalDeliverInput {
+    pub request_id: String,      // data_class: INTERNAL_ONLY
+    pub idempotency_key: String, // data_class: INTERNAL_ONLY
+    pub trace_ref: String,       // data_class: INTERNAL_ONLY
+    pub tenant_id: String,       // data_class: INTERNAL_ONLY
+    pub run_id: String,          // data_class: INTERNAL_ONLY
+    pub signal_name: String,     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum SignalDeliverStatus {
+    Delivered,
+    Unmatched,
+    IdempotencyConflict,
+    InvalidInput,
+    StoreUnavailable,
+}
+
+impl SignalDeliverStatus {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::Delivered => "delivered",
+            Self::Unmatched => "unmatched",
+            Self::IdempotencyConflict => "idempotency-conflict",
+            Self::InvalidInput => "invalid-input",
+            Self::StoreUnavailable => "store-unavailable",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalDeliverReceipt {
+    pub status: SignalDeliverStatus,         // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub run_id: String,                      // data_class: INTERNAL_ONLY
+    pub signal_name: String,                 // data_class: INTERNAL_ONLY
+    pub audit_events: Vec<SignalAuditEvent>, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,          // data_class: INTERNAL_ONLY
+}
+
+// ── WF-ENG-3: SignalTimeout ──────────────────────────────────────────────────
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalTimeoutInput {
+    pub request_id: String,           // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,      // data_class: INTERNAL_ONLY
+    pub trace_ref: String,            // data_class: INTERNAL_ONLY
+    pub tenant_id: String,            // data_class: INTERNAL_ONLY
+    pub run_id: String,               // data_class: INTERNAL_ONLY
+    pub signal_name: String,          // data_class: INTERNAL_ONLY
+    pub reference_epoch_seconds: u64, // caller-supplied, no wall-clock
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum SignalTimeoutStatus {
+    TimedOut,
+    AlreadyDelivered,
+    InvalidInput,
+    StoreUnavailable,
+}
+
+impl SignalTimeoutStatus {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::TimedOut => "timed-out",
+            Self::AlreadyDelivered => "already-delivered",
+            Self::InvalidInput => "invalid-input",
+            Self::StoreUnavailable => "store-unavailable",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalTimeoutReceipt {
+    pub status: SignalTimeoutStatus,         // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub run_id: String,                      // data_class: INTERNAL_ONLY
+    pub signal_name: String,                 // data_class: INTERNAL_ONLY
+    pub audit_events: Vec<SignalAuditEvent>, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,          // data_class: INTERNAL_ONLY
+}
+
+// ── Intent fingerprints (private) ───────────────────────────────────────────
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SignalAwaitIntent {
+    fingerprint: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SignalDeliverIntent {
+    fingerprint: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SignalTimeoutIntent {
+    fingerprint: String,
+}
+
+// ── SignalAwaitUsecase ───────────────────────────────────────────────────────
+
+#[derive(Default, Debug)]
+pub struct SignalAwaitUsecase {
+    await_receipts:
+        BTreeMap<String, (SignalAwaitIntent, SignalAwaitReceipt)>,
+    deliver_receipts:
+        BTreeMap<String, (SignalDeliverIntent, SignalDeliverReceipt)>,
+    timeout_receipts:
+        BTreeMap<String, (SignalTimeoutIntent, SignalTimeoutReceipt)>,
+}
+
+impl SignalAwaitUsecase {
+    // ── WF-ENG-1 ──────────────────────────────────────────────────────────
+
+    pub fn await_signal<S, T>(
+        &mut self,
+        store: &mut S,
+        timers: &mut T,
+        input: SignalAwaitInput,
+    ) -> SignalAwaitReceipt
+    where
+        S: SignalAwaitStore,
+        T: SlaTimerStore,
+    {
+        // 1. Input validation
+        if let Some(r) = signal_await_invalid_input(&input) {
+            return r;
+        }
+
+        // 2. Idempotency
+        let intent = SignalAwaitIntent {
+            fingerprint: await_fingerprint(&input),
+        };
+        if let Some((existing_intent, existing_receipt)) =
+            self.await_receipts.get(&input.idempotency_key)
+        {
+            if existing_intent == &intent {
+                return existing_receipt.clone();
+            }
+            return signal_await_conflict_receipt(&input);
+        }
+
+        // 3. Suspend via store
+        let evidence_ref = "workflow-signal-usecase:suspend-step";
+        if let Err(error) = store.suspend_step_awaiting_signal(
+            &input.tenant_id,
+            &input.run_id,
+            &input.step_id,
+            &input.signal_name,
+            evidence_ref,
+        ) {
+            return signal_await_store_error_receipt(&input, error);
+        }
+
+        // 4. Optional timeout timer
+        let timer_armed = if let Some(timer) = input.timeout_timer.clone() {
+            match timers.arm_timer(timer) {
+                Ok(()) => true,
+                Err(error) => {
+                    return signal_await_timer_error_receipt(&input, error);
+                }
+            }
+        } else {
+            false
+        };
+
+        // 5. Build and cache receipt
+        let mut refs = sorted_unique(vec![
+            input.request_id.clone(),
+            input.idempotency_key.clone(),
+            input.trace_ref.clone(),
+            "workflow-signal-usecase:awaiting".to_owned(),
+        ]);
+        if timer_armed {
+            refs.push("workflow-signal-usecase:timer-armed".to_owned());
+            refs = sorted_unique(refs);
+        }
+        let r = SignalAwaitReceipt {
+            status: SignalAwaitStatus::Awaiting,
+            tenant_id: input.tenant_id.clone(),
+            run_id: input.run_id.clone(),
+            step_id: input.step_id.clone(),
+            signal_name: input.signal_name.clone(),
+            timer_armed,
+            audit_events: vec![
+                signal_audit(
+                    SignalAuditEventKind::AwaitRequested,
+                    &input.tenant_id,
+                    &input.run_id,
+                    &input.signal_name,
+                    sorted_unique(vec![
+                        input.request_id.clone(),
+                        input.idempotency_key.clone(),
+                        input.trace_ref.clone(),
+                    ]),
+                ),
+                signal_audit(
+                    SignalAuditEventKind::AwaitSuspended,
+                    &input.tenant_id,
+                    &input.run_id,
+                    &input.signal_name,
+                    refs.clone(),
+                ),
+            ],
+            evidence_refs: refs,
+        };
+        self.await_receipts
+            .insert(input.idempotency_key.clone(), (intent, r.clone()));
+        r
+    }
+
+    // ── WF-ENG-2 ──────────────────────────────────────────────────────────
+
+    pub fn deliver_signal<S>(
+        &mut self,
+        store: &mut S,
+        input: SignalDeliverInput,
+    ) -> SignalDeliverReceipt
+    where
+        S: SignalDeliverStore,
+    {
+        // 1. Input validation
+        if let Some(r) = signal_deliver_invalid_input(&input) {
+            return r;
+        }
+
+        // 2. Idempotency
+        let intent = SignalDeliverIntent {
+            fingerprint: deliver_fingerprint(&input),
+        };
+        if let Some((existing_intent, existing_receipt)) =
+            self.deliver_receipts.get(&input.idempotency_key)
+        {
+            if existing_intent == &intent {
+                return existing_receipt.clone();
+            }
+            return signal_deliver_conflict_receipt(&input);
+        }
+
+        // 3. Load await record
+        let record = match store.load_await_record(
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+        ) {
+            Ok(r) => r,
+            Err(error) => {
+                return signal_deliver_store_error_receipt(&input, error);
+            }
+        };
+
+        // 4. No active await → Unmatched (typed receipt, no store write)
+        if record.as_ref().is_none_or(|r| r.delivered) {
+            let refs = sorted_unique(vec![
+                input.request_id.clone(),
+                input.trace_ref.clone(),
+                "workflow-signal-usecase:unmatched".to_owned(),
+            ]);
+            let r = SignalDeliverReceipt {
+                status: SignalDeliverStatus::Unmatched,
+                tenant_id: input.tenant_id.clone(),
+                run_id: input.run_id.clone(),
+                signal_name: input.signal_name.clone(),
+                audit_events: vec![signal_audit(
+                    SignalAuditEventKind::SignalUnmatched,
+                    &input.tenant_id,
+                    &input.run_id,
+                    &input.signal_name,
+                    refs.clone(),
+                )],
+                evidence_refs: refs,
+            };
+            self.deliver_receipts
+                .insert(input.idempotency_key.clone(), (intent, r.clone()));
+            return r;
+        }
+
+        // 5. Resume via store
+        let evidence_ref = "workflow-signal-usecase:resume-step";
+        if let Err(error) =
+            store.resume_step_on_signal(&input.tenant_id, &input.run_id, &input.signal_name, evidence_ref)
+        {
+            return signal_deliver_store_error_receipt(&input, error);
+        }
+
+        // 6. Build and cache receipt
+        let refs = sorted_unique(vec![
+            input.request_id.clone(),
+            input.idempotency_key.clone(),
+            input.trace_ref.clone(),
+            "workflow-signal-usecase:delivered".to_owned(),
+        ]);
+        let r = SignalDeliverReceipt {
+            status: SignalDeliverStatus::Delivered,
+            tenant_id: input.tenant_id.clone(),
+            run_id: input.run_id.clone(),
+            signal_name: input.signal_name.clone(),
+            audit_events: vec![signal_audit(
+                SignalAuditEventKind::SignalDelivered,
+                &input.tenant_id,
+                &input.run_id,
+                &input.signal_name,
+                refs.clone(),
+            )],
+            evidence_refs: refs,
+        };
+        self.deliver_receipts
+            .insert(input.idempotency_key.clone(), (intent, r.clone()));
+        r
+    }
+
+    // ── WF-ENG-3 ──────────────────────────────────────────────────────────
+
+    pub fn timeout_signal<S>(
+        &mut self,
+        store: &mut S,
+        input: SignalTimeoutInput,
+    ) -> SignalTimeoutReceipt
+    where
+        S: SignalTimeoutStore,
+    {
+        // 1. Input validation
+        if let Some(r) = signal_timeout_invalid_input(&input) {
+            return r;
+        }
+
+        // 2. Idempotency
+        let intent = SignalTimeoutIntent {
+            fingerprint: timeout_fingerprint(&input),
+        };
+        if let Some((existing_intent, existing_receipt)) =
+            self.timeout_receipts.get(&input.idempotency_key)
+        {
+            if existing_intent == &intent {
+                return existing_receipt.clone();
+            }
+            return signal_timeout_conflict_receipt(&input);
+        }
+
+        // 3. Load await record
+        let record = match store.load_await_record(
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+        ) {
+            Ok(r) => r,
+            Err(error) => {
+                return signal_timeout_store_error_receipt(&input, error);
+            }
+        };
+
+        // 4. Already delivered → AlreadyDelivered (deterministic no-op, cached)
+        if record.as_ref().is_some_and(|r| r.delivered) || record.is_none() {
+            let refs = sorted_unique(vec![
+                input.request_id.clone(),
+                input.trace_ref.clone(),
+                format!(
+                    "workflow-signal-usecase:reference-epoch:{}",
+                    input.reference_epoch_seconds
+                ),
+                "workflow-signal-usecase:already-delivered".to_owned(),
+            ]);
+            let r = SignalTimeoutReceipt {
+                status: SignalTimeoutStatus::AlreadyDelivered,
+                tenant_id: input.tenant_id.clone(),
+                run_id: input.run_id.clone(),
+                signal_name: input.signal_name.clone(),
+                audit_events: vec![signal_audit(
+                    SignalAuditEventKind::SignalAlreadyDelivered,
+                    &input.tenant_id,
+                    &input.run_id,
+                    &input.signal_name,
+                    refs.clone(),
+                )],
+                evidence_refs: refs,
+            };
+            self.timeout_receipts
+                .insert(input.idempotency_key.clone(), (intent, r.clone()));
+            return r;
+        }
+
+        // 5. Timeout via store
+        let evidence_ref = "workflow-signal-usecase:timeout-step";
+        if let Err(error) = store.timeout_step_awaiting_signal(
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            evidence_ref,
+        ) {
+            return signal_timeout_store_error_receipt(&input, error);
+        }
+
+        // 6. Build and cache receipt with reference epoch in evidence refs
+        let refs = sorted_unique(vec![
+            input.request_id.clone(),
+            input.idempotency_key.clone(),
+            input.trace_ref.clone(),
+            format!(
+                "workflow-signal-usecase:reference-epoch:{}",
+                input.reference_epoch_seconds
+            ),
+            "workflow-signal-usecase:timed-out".to_owned(),
+        ]);
+        let r = SignalTimeoutReceipt {
+            status: SignalTimeoutStatus::TimedOut,
+            tenant_id: input.tenant_id.clone(),
+            run_id: input.run_id.clone(),
+            signal_name: input.signal_name.clone(),
+            audit_events: vec![signal_audit(
+                SignalAuditEventKind::SignalTimedOut,
+                &input.tenant_id,
+                &input.run_id,
+                &input.signal_name,
+                refs.clone(),
+            )],
+            evidence_refs: refs,
+        };
+        self.timeout_receipts
+            .insert(input.idempotency_key.clone(), (intent, r.clone()));
+        r
+    }
+
+    pub fn cached_await_count(&self) -> usize {
+        self.await_receipts.len()
+    }
+
+    pub fn cached_deliver_count(&self) -> usize {
+        self.deliver_receipts.len()
+    }
+
+    pub fn cached_timeout_count(&self) -> usize {
+        self.timeout_receipts.len()
+    }
+}
+
+// ── Private signal helpers ───────────────────────────────────────────────────
+
+fn signal_audit(
+    kind: SignalAuditEventKind,
+    tenant_id: &str,
+    run_id: &str,
+    signal_name: &str,
+    evidence_refs: Vec<String>,
+) -> SignalAuditEvent {
+    SignalAuditEvent {
+        kind,
+        tenant_id: tenant_id.to_owned(),
+        run_id: run_id.to_owned(),
+        signal_name: signal_name.to_owned(),
+        evidence_refs: sorted_unique(evidence_refs),
+    }
+}
+
+fn signal_await_invalid_input(input: &SignalAwaitInput) -> Option<SignalAwaitReceipt> {
+    let mut refs = Vec::new();
+    if !is_safe_ref(&input.request_id) {
+        refs.push("validation:signal-request-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.idempotency_key) {
+        refs.push("validation:signal-idempotency-key-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.trace_ref) {
+        refs.push("validation:signal-trace-ref-invalid".to_owned());
+    }
+    if !is_safe_tenant(&input.tenant_id) {
+        refs.push("validation:signal-tenant-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.run_id) {
+        refs.push("validation:signal-run-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.step_id) {
+        refs.push("validation:signal-step-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.signal_name) {
+        refs.push("validation:signal-name-invalid".to_owned());
+    }
+    if input
+        .timeout_timer
+        .as_ref()
+        .is_some_and(|timer| !is_safe_timer(timer))
+    {
+        refs.push("validation:signal-timeout-timer-invalid".to_owned());
+    }
+    if refs.is_empty() {
+        return None;
+    }
+    refs.push("workflow-signal-usecase:invalid-input".to_owned());
+    let refs = sorted_unique(refs);
+    let tenant = safe_tenant(&input.tenant_id);
+    let run = safe_ref(&input.run_id, "redacted-invalid-run-id");
+    let sig = safe_ref(&input.signal_name, "redacted-invalid-signal-name");
+    Some(SignalAwaitReceipt {
+        status: SignalAwaitStatus::InvalidInput,
+        tenant_id: tenant.clone(),
+        run_id: run.clone(),
+        step_id: safe_ref(&input.step_id, "redacted-invalid-step-id"),
+        signal_name: sig.clone(),
+        timer_armed: false,
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::AwaitInvalid,
+            &tenant,
+            &run,
+            &sig,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    })
+}
+
+fn signal_await_conflict_receipt(input: &SignalAwaitInput) -> SignalAwaitReceipt {
+    let refs = sorted_unique(vec![
+        input.request_id.clone(),
+        input.trace_ref.clone(),
+        "workflow-signal-usecase:idempotency-conflict".to_owned(),
+    ]);
+    SignalAwaitReceipt {
+        status: SignalAwaitStatus::IdempotencyConflict,
+        tenant_id: input.tenant_id.clone(),
+        run_id: input.run_id.clone(),
+        step_id: input.step_id.clone(),
+        signal_name: input.signal_name.clone(),
+        timer_armed: false,
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::AwaitIdempotencyConflict,
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    }
+}
+
+fn signal_await_store_error_receipt(
+    input: &SignalAwaitInput,
+    error: ExecutionStoreError,
+) -> SignalAwaitReceipt {
+    let error_ref = store_error_ref(&error);
+    let refs = sorted_unique(vec![
+        error_ref,
+        "workflow-signal-usecase:store-unavailable".to_owned(),
+    ]);
+    SignalAwaitReceipt {
+        status: SignalAwaitStatus::StoreUnavailable,
+        tenant_id: input.tenant_id.clone(),
+        run_id: input.run_id.clone(),
+        step_id: input.step_id.clone(),
+        signal_name: input.signal_name.clone(),
+        timer_armed: false,
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::AwaitInvalid,
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    }
+}
+
+fn signal_await_timer_error_receipt(
+    input: &SignalAwaitInput,
+    error: ExecutionStoreError,
+) -> SignalAwaitReceipt {
+    let error_ref = store_error_ref(&error);
+    let refs = sorted_unique(vec![
+        error_ref,
+        "workflow-signal-usecase:timer-unavailable".to_owned(),
+    ]);
+    SignalAwaitReceipt {
+        status: SignalAwaitStatus::TimerUnavailable,
+        tenant_id: input.tenant_id.clone(),
+        run_id: input.run_id.clone(),
+        step_id: input.step_id.clone(),
+        signal_name: input.signal_name.clone(),
+        timer_armed: false,
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::AwaitInvalid,
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    }
+}
+
+fn signal_deliver_invalid_input(input: &SignalDeliverInput) -> Option<SignalDeliverReceipt> {
+    let mut refs = Vec::new();
+    if !is_safe_ref(&input.request_id) {
+        refs.push("validation:signal-request-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.idempotency_key) {
+        refs.push("validation:signal-idempotency-key-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.trace_ref) {
+        refs.push("validation:signal-trace-ref-invalid".to_owned());
+    }
+    if !is_safe_tenant(&input.tenant_id) {
+        refs.push("validation:signal-tenant-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.run_id) {
+        refs.push("validation:signal-run-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.signal_name) {
+        refs.push("validation:signal-name-invalid".to_owned());
+    }
+    if refs.is_empty() {
+        return None;
+    }
+    refs.push("workflow-signal-usecase:invalid-input".to_owned());
+    let refs = sorted_unique(refs);
+    let tenant = safe_tenant(&input.tenant_id);
+    let run = safe_ref(&input.run_id, "redacted-invalid-run-id");
+    let sig = safe_ref(&input.signal_name, "redacted-invalid-signal-name");
+    Some(SignalDeliverReceipt {
+        status: SignalDeliverStatus::InvalidInput,
+        tenant_id: tenant.clone(),
+        run_id: run.clone(),
+        signal_name: sig.clone(),
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::SignalDeliverInvalid,
+            &tenant,
+            &run,
+            &sig,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    })
+}
+
+fn signal_deliver_conflict_receipt(input: &SignalDeliverInput) -> SignalDeliverReceipt {
+    let refs = sorted_unique(vec![
+        input.request_id.clone(),
+        input.trace_ref.clone(),
+        "workflow-signal-usecase:idempotency-conflict".to_owned(),
+    ]);
+    SignalDeliverReceipt {
+        status: SignalDeliverStatus::IdempotencyConflict,
+        tenant_id: input.tenant_id.clone(),
+        run_id: input.run_id.clone(),
+        signal_name: input.signal_name.clone(),
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::SignalDeliverIdempotencyConflict,
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    }
+}
+
+fn signal_deliver_store_error_receipt(
+    input: &SignalDeliverInput,
+    error: ExecutionStoreError,
+) -> SignalDeliverReceipt {
+    let error_ref = store_error_ref(&error);
+    let refs = sorted_unique(vec![
+        error_ref,
+        "workflow-signal-usecase:store-unavailable".to_owned(),
+    ]);
+    SignalDeliverReceipt {
+        status: SignalDeliverStatus::StoreUnavailable,
+        tenant_id: input.tenant_id.clone(),
+        run_id: input.run_id.clone(),
+        signal_name: input.signal_name.clone(),
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::SignalDeliverInvalid,
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    }
+}
+
+fn signal_timeout_invalid_input(input: &SignalTimeoutInput) -> Option<SignalTimeoutReceipt> {
+    let mut refs = Vec::new();
+    if !is_safe_ref(&input.request_id) {
+        refs.push("validation:signal-request-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.idempotency_key) {
+        refs.push("validation:signal-idempotency-key-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.trace_ref) {
+        refs.push("validation:signal-trace-ref-invalid".to_owned());
+    }
+    if !is_safe_tenant(&input.tenant_id) {
+        refs.push("validation:signal-tenant-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.run_id) {
+        refs.push("validation:signal-run-id-invalid".to_owned());
+    }
+    if !is_safe_ref(&input.signal_name) {
+        refs.push("validation:signal-name-invalid".to_owned());
+    }
+    if refs.is_empty() {
+        return None;
+    }
+    refs.push("workflow-signal-usecase:invalid-input".to_owned());
+    let refs = sorted_unique(refs);
+    let tenant = safe_tenant(&input.tenant_id);
+    let run = safe_ref(&input.run_id, "redacted-invalid-run-id");
+    let sig = safe_ref(&input.signal_name, "redacted-invalid-signal-name");
+    Some(SignalTimeoutReceipt {
+        status: SignalTimeoutStatus::InvalidInput,
+        tenant_id: tenant.clone(),
+        run_id: run.clone(),
+        signal_name: sig.clone(),
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::SignalTimeoutInvalid,
+            &tenant,
+            &run,
+            &sig,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    })
+}
+
+fn signal_timeout_conflict_receipt(input: &SignalTimeoutInput) -> SignalTimeoutReceipt {
+    let refs = sorted_unique(vec![
+        input.request_id.clone(),
+        input.trace_ref.clone(),
+        "workflow-signal-usecase:idempotency-conflict".to_owned(),
+    ]);
+    SignalTimeoutReceipt {
+        status: SignalTimeoutStatus::InvalidInput, // reuse InvalidInput for conflict path per spec; no separate variant
+        tenant_id: input.tenant_id.clone(),
+        run_id: input.run_id.clone(),
+        signal_name: input.signal_name.clone(),
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::SignalTimeoutInvalid,
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    }
+}
+
+fn signal_timeout_store_error_receipt(
+    input: &SignalTimeoutInput,
+    error: ExecutionStoreError,
+) -> SignalTimeoutReceipt {
+    let error_ref = store_error_ref(&error);
+    let refs = sorted_unique(vec![
+        error_ref,
+        "workflow-signal-usecase:store-unavailable".to_owned(),
+    ]);
+    SignalTimeoutReceipt {
+        status: SignalTimeoutStatus::StoreUnavailable,
+        tenant_id: input.tenant_id.clone(),
+        run_id: input.run_id.clone(),
+        signal_name: input.signal_name.clone(),
+        audit_events: vec![signal_audit(
+            SignalAuditEventKind::SignalTimeoutInvalid,
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            refs.clone(),
+        )],
+        evidence_refs: refs,
+    }
+}
+
+// ── Shared store-error helper (private) ──────────────────────────────────────
+
+/// Extract the evidence_ref string from any ExecutionStoreError variant.
+/// Used by all three signal *_store_error_receipt helpers to avoid duplicate match arms.
+fn store_error_ref(error: &ExecutionStoreError) -> String {
+    match error {
+        ExecutionStoreError::Unavailable { evidence_ref } => evidence_ref.clone(),
+        ExecutionStoreError::Conflict { evidence_ref, .. } => evidence_ref.clone(),
+    }
+}
+
+// ── Fingerprint helpers (private) ────────────────────────────────────────────
+
+fn await_fingerprint(input: &SignalAwaitInput) -> String {
+    let mut parts = vec![
+        canonical_entry("request_id", &input.request_id),
+        canonical_entry("trace_ref", &input.trace_ref),
+        canonical_entry("tenant_id", &input.tenant_id),
+        canonical_entry("run_id", &input.run_id),
+        canonical_entry("step_id", &input.step_id),
+        canonical_entry("signal_name", &input.signal_name),
+    ];
+    if let Some(timer) = &input.timeout_timer {
+        parts.extend([
+            canonical_entry("timer_id", &timer.timer_id),
+            canonical_entry("timer_deadline", &timer.deadline_epoch_seconds.to_string()),
+        ]);
+    }
+    parts.concat()
+}
+
+fn deliver_fingerprint(input: &SignalDeliverInput) -> String {
+    vec![
+        canonical_entry("request_id", &input.request_id),
+        canonical_entry("trace_ref", &input.trace_ref),
+        canonical_entry("tenant_id", &input.tenant_id),
+        canonical_entry("run_id", &input.run_id),
+        canonical_entry("signal_name", &input.signal_name),
+    ]
+    .concat()
+}
+
+fn timeout_fingerprint(input: &SignalTimeoutInput) -> String {
+    vec![
+        canonical_entry("request_id", &input.request_id),
+        canonical_entry("trace_ref", &input.trace_ref),
+        canonical_entry("tenant_id", &input.tenant_id),
+        canonical_entry("run_id", &input.run_id),
+        canonical_entry("signal_name", &input.signal_name),
+        canonical_entry(
+            "reference_epoch",
+            &input.reference_epoch_seconds.to_string(),
+        ),
+    ]
+    .concat()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1394,5 +2373,367 @@ mod tests {
                 .evidence_refs
                 .contains(&"kernel:invalid-attempt".to_owned())
         );
+    }
+
+    // ── Signal/await tests ────────────────────────────────────────────────
+
+    /// Fake signal store used by all signal tests.
+    #[derive(Default)]
+    struct FakeSignalStore {
+        suspended: Vec<(String, String, String, String)>, // (tenant, run, step, signal)
+        records: std::collections::BTreeMap<String, SignalAwaitRecord>, // key = "tenant:run:signal"
+        resumed: Vec<(String, String, String)>,            // (tenant, run, signal)
+        timed_out: Vec<(String, String, String)>,          // (tenant, run, signal)
+        load_failure: bool,
+        suspend_failure: bool,
+        resume_failure: bool,
+        timeout_failure: bool,
+    }
+
+    impl FakeSignalStore {
+        fn record_key(tenant_id: &str, run_id: &str, signal_name: &str) -> String {
+            format!("{tenant_id}:{run_id}:{signal_name}")
+        }
+    }
+
+    impl SignalAwaitStore for FakeSignalStore {
+        fn suspend_step_awaiting_signal(
+            &mut self,
+            tenant_id: &str,
+            run_id: &str,
+            step_id: &str,
+            signal_name: &str,
+            _evidence_ref: &str,
+        ) -> Result<(), ExecutionStoreError> {
+            if self.suspend_failure {
+                return Err(ExecutionStoreError::Unavailable {
+                    evidence_ref: "store:suspend-unavailable".to_owned(),
+                });
+            }
+            self.suspended.push((
+                tenant_id.to_owned(),
+                run_id.to_owned(),
+                step_id.to_owned(),
+                signal_name.to_owned(),
+            ));
+            self.records.insert(
+                Self::record_key(tenant_id, run_id, signal_name),
+                SignalAwaitRecord {
+                    tenant_id: tenant_id.to_owned(),
+                    run_id: run_id.to_owned(),
+                    step_id: step_id.to_owned(),
+                    signal_name: signal_name.to_owned(),
+                    delivered: false,
+                },
+            );
+            Ok(())
+        }
+
+        fn load_await_record(
+            &self,
+            tenant_id: &str,
+            run_id: &str,
+            signal_name: &str,
+        ) -> Result<Option<SignalAwaitRecord>, ExecutionStoreError> {
+            if self.load_failure {
+                return Err(ExecutionStoreError::Unavailable {
+                    evidence_ref: "store:load-unavailable".to_owned(),
+                });
+            }
+            Ok(self
+                .records
+                .get(&Self::record_key(tenant_id, run_id, signal_name))
+                .cloned())
+        }
+    }
+
+    impl SignalDeliverStore for FakeSignalStore {
+        fn resume_step_on_signal(
+            &mut self,
+            tenant_id: &str,
+            run_id: &str,
+            signal_name: &str,
+            _evidence_ref: &str,
+        ) -> Result<(), ExecutionStoreError> {
+            if self.resume_failure {
+                return Err(ExecutionStoreError::Unavailable {
+                    evidence_ref: "store:resume-unavailable".to_owned(),
+                });
+            }
+            self.resumed.push((
+                tenant_id.to_owned(),
+                run_id.to_owned(),
+                signal_name.to_owned(),
+            ));
+            if let Some(record) = self
+                .records
+                .get_mut(&Self::record_key(tenant_id, run_id, signal_name))
+            {
+                record.delivered = true;
+            }
+            Ok(())
+        }
+    }
+
+    impl SignalTimeoutStore for FakeSignalStore {
+        fn timeout_step_awaiting_signal(
+            &mut self,
+            tenant_id: &str,
+            run_id: &str,
+            signal_name: &str,
+            _evidence_ref: &str,
+        ) -> Result<(), ExecutionStoreError> {
+            if self.timeout_failure {
+                return Err(ExecutionStoreError::Unavailable {
+                    evidence_ref: "store:timeout-unavailable".to_owned(),
+                });
+            }
+            self.timed_out.push((
+                tenant_id.to_owned(),
+                run_id.to_owned(),
+                signal_name.to_owned(),
+            ));
+            Ok(())
+        }
+    }
+
+    fn signal_await_input() -> SignalAwaitInput {
+        SignalAwaitInput {
+            request_id: "req:signal-await:1".to_owned(),
+            idempotency_key: "idem:signal-await:1".to_owned(),
+            trace_ref: "trace:signal-await:1".to_owned(),
+            tenant_id: "ten_a".to_owned(),
+            run_id: "run:signal-await:1".to_owned(),
+            step_id: "step:signal-await:1".to_owned(),
+            signal_name: "signal:human-approval:1".to_owned(),
+            timeout_timer: None,
+        }
+    }
+
+    fn signal_deliver_input() -> SignalDeliverInput {
+        SignalDeliverInput {
+            request_id: "req:signal-deliver:1".to_owned(),
+            idempotency_key: "idem:signal-deliver:1".to_owned(),
+            trace_ref: "trace:signal-deliver:1".to_owned(),
+            tenant_id: "ten_a".to_owned(),
+            run_id: "run:signal-await:1".to_owned(),
+            signal_name: "signal:human-approval:1".to_owned(),
+        }
+    }
+
+    fn signal_timeout_input() -> SignalTimeoutInput {
+        SignalTimeoutInput {
+            request_id: "req:signal-timeout:1".to_owned(),
+            idempotency_key: "idem:signal-timeout:1".to_owned(),
+            trace_ref: "trace:signal-timeout:1".to_owned(),
+            tenant_id: "ten_a".to_owned(),
+            run_id: "run:signal-await:1".to_owned(),
+            signal_name: "signal:human-approval:1".to_owned(),
+            reference_epoch_seconds: 500,
+        }
+    }
+
+    // WF-ENG-1: fresh await suspends and returns Awaiting
+    #[test]
+    fn await_signal_fresh_suspends_and_returns_awaiting() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        let r = uc.await_signal(&mut store, &mut timers, signal_await_input());
+
+        assert_eq!(r.status, SignalAwaitStatus::Awaiting);
+        assert!(!r.timer_armed);
+        assert_eq!(store.suspended.len(), 1);
+        assert_eq!(store.suspended[0].3, "signal:human-approval:1");
+        assert!(r.evidence_refs.contains(&"workflow-signal-usecase:awaiting".to_owned()));
+        assert_eq!(uc.cached_await_count(), 1);
+    }
+
+    // WF-ENG-1: duplicate idempotency key replays identical receipt
+    #[test]
+    fn await_signal_duplicate_key_replays_identical_receipt() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        let first = uc.await_signal(&mut store, &mut timers, signal_await_input());
+        let replay = uc.await_signal(&mut store, &mut timers, signal_await_input());
+
+        assert_eq!(first, replay);
+        assert_eq!(store.suspended.len(), 1, "suspend called only once");
+    }
+
+    // WF-ENG-1: mismatched fingerprint on same key yields IdempotencyConflict
+    #[test]
+    fn await_signal_mismatched_key_yields_idempotency_conflict() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        uc.await_signal(&mut store, &mut timers, signal_await_input());
+
+        let mut conflict = signal_await_input();
+        conflict.trace_ref = "trace:signal-await:other".to_owned();
+        let r = uc.await_signal(&mut store, &mut timers, conflict);
+
+        assert_eq!(r.status, SignalAwaitStatus::IdempotencyConflict);
+        assert_eq!(store.suspended.len(), 1, "no second suspend on conflict");
+    }
+
+    // WF-ENG-1: invalid input (empty/bad signal_name) returns InvalidInput without store call
+    #[test]
+    fn await_signal_invalid_input_returns_invalid_no_store_call() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        let mut bad = signal_await_input();
+        bad.signal_name = "not-a-valid-ref-no-colon".to_owned();
+        let r = uc.await_signal(&mut store, &mut timers, bad);
+
+        assert_eq!(r.status, SignalAwaitStatus::InvalidInput);
+        assert!(store.suspended.is_empty());
+        assert_eq!(uc.cached_await_count(), 0, "invalid input must not be cached");
+    }
+
+    // WF-ENG-1: await with timeout timer arms the timer
+    #[test]
+    fn await_signal_with_timeout_timer_arms_timer() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        let mut input = signal_await_input();
+        input.timeout_timer = Some(
+            SlaTimer::new(
+                "timer:signal-await:1",
+                "ten_a",
+                "run:signal-await:1",
+                None,
+                100,
+                200,
+                vec!["workflow-signal-usecase:timer".to_owned()],
+            )
+            .unwrap(),
+        );
+        let r = uc.await_signal(&mut store, &mut timers, input);
+
+        assert_eq!(r.status, SignalAwaitStatus::Awaiting);
+        assert!(r.timer_armed);
+        assert_eq!(timers.armed.len(), 1);
+    }
+
+    // WF-ENG-2: deliver after await resumes exactly once
+    #[test]
+    fn deliver_signal_after_await_resumes_exactly_once() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        uc.await_signal(&mut store, &mut timers, signal_await_input());
+        let r = uc.deliver_signal(&mut store, signal_deliver_input());
+
+        assert_eq!(r.status, SignalDeliverStatus::Delivered);
+        assert_eq!(store.resumed.len(), 1);
+        assert!(r.evidence_refs.contains(&"workflow-signal-usecase:delivered".to_owned()));
+    }
+
+    // WF-ENG-2: re-deliver same signal (same idempotency key) is idempotent
+    #[test]
+    fn deliver_signal_redelivery_is_idempotent() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        uc.await_signal(&mut store, &mut timers, signal_await_input());
+        let first = uc.deliver_signal(&mut store, signal_deliver_input());
+        let replay = uc.deliver_signal(&mut store, signal_deliver_input());
+
+        assert_eq!(first, replay);
+        assert_eq!(store.resumed.len(), 1, "resume called only once total");
+    }
+
+    // WF-ENG-2: signal with no prior await yields Unmatched (no panic, no store write)
+    #[test]
+    fn deliver_signal_no_prior_await_yields_unmatched() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+
+        let r = uc.deliver_signal(&mut store, signal_deliver_input());
+
+        assert_eq!(r.status, SignalDeliverStatus::Unmatched);
+        assert!(store.resumed.is_empty());
+        assert!(r.evidence_refs.contains(&"workflow-signal-usecase:unmatched".to_owned()));
+    }
+
+    // WF-ENG-3 table: timeout-before-delivery → TimedOut + audit event
+    #[test]
+    fn timeout_signal_before_delivery_yields_timed_out() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        // First suspend the step so a record exists (not yet delivered)
+        uc.await_signal(&mut store, &mut timers, signal_await_input());
+
+        let r = uc.timeout_signal(&mut store, signal_timeout_input());
+
+        assert_eq!(r.status, SignalTimeoutStatus::TimedOut);
+        assert_eq!(store.timed_out.len(), 1);
+        assert!(r.evidence_refs.contains(&"workflow-signal-usecase:timed-out".to_owned()));
+        assert!(r
+            .evidence_refs
+            .contains(&"workflow-signal-usecase:reference-epoch:500".to_owned()));
+        assert!(r
+            .audit_events
+            .iter()
+            .any(|e| e.kind == SignalAuditEventKind::SignalTimedOut));
+    }
+
+    // WF-ENG-3 table: delivery-before-timeout → AlreadyDelivered
+    #[test]
+    fn timeout_signal_after_delivery_yields_already_delivered() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        uc.await_signal(&mut store, &mut timers, signal_await_input());
+        uc.deliver_signal(&mut store, signal_deliver_input());
+
+        let r = uc.timeout_signal(&mut store, signal_timeout_input());
+
+        assert_eq!(r.status, SignalTimeoutStatus::AlreadyDelivered);
+        assert!(store.timed_out.is_empty(), "timeout store must not be called after delivery");
+        assert!(r
+            .evidence_refs
+            .contains(&"workflow-signal-usecase:already-delivered".to_owned()));
+    }
+
+    // WF-ENG-3: crate performs zero IO — all three paths pass with in-memory fakes
+    #[test]
+    fn signal_slice_zero_io_source_level_only() {
+        let mut uc = SignalAwaitUsecase::default();
+        let mut store = FakeSignalStore::default();
+        let mut timers = FakeTimers::default();
+
+        // Full await → deliver → (second timeout attempt on a separate key)
+        let await_r = uc.await_signal(&mut store, &mut timers, signal_await_input());
+        assert_eq!(await_r.status, SignalAwaitStatus::Awaiting);
+
+        let deliver_r = uc.deliver_signal(&mut store, signal_deliver_input());
+        assert_eq!(deliver_r.status, SignalDeliverStatus::Delivered);
+
+        // Timeout on an unrelated signal (no prior await → AlreadyDelivered path via None record)
+        let mut t_input = signal_timeout_input();
+        t_input.signal_name = "signal:other:1".to_owned();
+        t_input.idempotency_key = "idem:signal-timeout:other".to_owned();
+        let timeout_r = uc.timeout_signal(&mut store, t_input);
+        assert_eq!(timeout_r.status, SignalTimeoutStatus::AlreadyDelivered);
+
+        // No real IO was performed (store is an in-memory BTreeMap fake)
+        assert_eq!(store.suspended.len(), 1);
+        assert_eq!(store.resumed.len(), 1);
+        assert_eq!(store.timed_out.len(), 0);
     }
 }
