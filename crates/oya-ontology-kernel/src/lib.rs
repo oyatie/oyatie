@@ -411,6 +411,15 @@ pub enum OntologyEngineError {
     /// isolation. Both endpoints must share the same [`OntologyPillar`], or at
     /// least one must be pillar-agnostic (`pillar: None`).
     CrossPillarLink,
+    /// The candidate revision is not strictly greater than the stored revision.
+    /// [`OntologyEngine::evolve_entity_type`] requires
+    /// `candidate.revision > stored.revision`.
+    NonMonotonicRevision,
+    /// The candidate definition removes or mutates an existing property.
+    /// [`OntologyEngine::evolve_entity_type`] only allows additive changes:
+    /// every prior property must remain with unchanged `tier`, `data_class`,
+    /// and `required` flag. New properties may be introduced freely.
+    IncompatibleSchemaEvolution,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -565,6 +574,54 @@ impl OntologyEngine {
         self.entity_types.insert(key, definition);
         Ok(id)
     }
+
+    /// Register or evolve an entity type definition.
+    ///
+    /// - **First registration** (id unknown for the tenant): behaves identically
+    ///   to [`register_entity_type`](Self::register_entity_type) — inserts the
+    ///   definition and returns `Ok(id)`. `DuplicateEntityType` is never
+    ///   returned by this method.
+    /// - **Evolution** (id already registered): requires
+    ///   `definition.revision > stored.revision` (strict monotonicity) and that
+    ///   every prior property is retained with unchanged `tier`, `data_class`,
+    ///   and `required` flag. New properties may be introduced freely. On
+    ///   success the stored definition is replaced with `definition`.
+    ///
+    /// # Errors
+    ///
+    /// | Error | Condition |
+    /// |-------|-----------|
+    /// | [`OntologyEngineError::InvalidTenantId`] | Tenant id fails prefix check. |
+    /// | [`OntologyEngineError::EmptyDisplayName`] | `display_name` is blank. |
+    /// | [`OntologyEngineError::EmptyProperties`] | `properties` is empty. |
+    /// | [`OntologyEngineError::EmptyPropertyName`] | A property name is blank. |
+    /// | [`OntologyEngineError::NonMonotonicRevision`] | `definition.revision <= stored.revision`. |
+    /// | [`OntologyEngineError::IncompatibleSchemaEvolution`] | A prior property was removed or mutated. |
+    pub fn evolve_entity_type(
+        &mut self,
+        definition: EntityTypeDefinition,
+    ) -> Result<EntityTypeId, OntologyEngineError> {
+        let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
+        match self.entity_types.get(&key) {
+            None => {
+                // First registration: identical to register_entity_type.
+                let id = definition.id.clone();
+                self.entity_types.insert(key, definition);
+                Ok(id)
+            }
+            Some(stored) => {
+                // Revision monotonicity check.
+                if definition.revision <= stored.revision {
+                    return Err(OntologyEngineError::NonMonotonicRevision);
+                }
+                // Backward-compatibility check.
+                check_schema_compatibility(stored, &definition)?;
+                let id = definition.id.clone();
+                self.entity_types.insert(key, definition);
+                Ok(id)
+            }
+        }
+    }
     pub fn register_link_type(
         &mut self,
         definition: LinkTypeDefinition,
@@ -688,6 +745,40 @@ impl OntologyEngine {
             .contains_key(&ontology_scoped_key(tenant_id, &id.value))
     }
 }
+/// Check that `candidate` is a backward-compatible evolution of `prior`.
+///
+/// Rules:
+/// - Every property in `prior` must exist in `candidate` with identical
+///   `tier`, `data_class`, and `required` flag.
+/// - New properties in `candidate` that are absent from `prior` are permitted.
+/// - Revision monotonicity is **not** checked here; the caller is responsible.
+fn check_schema_compatibility(
+    prior: &EntityTypeDefinition,
+    candidate: &EntityTypeDefinition,
+) -> Result<(), OntologyEngineError> {
+    // Build a lookup map from the candidate's property list.
+    let candidate_map: std::collections::BTreeMap<&str, &EntityTypePropertyDefinition> = candidate
+        .properties
+        .iter()
+        .map(|p| (p.name.as_str(), p))
+        .collect();
+
+    for prior_prop in &prior.properties {
+        match candidate_map.get(prior_prop.name.as_str()) {
+            None => return Err(OntologyEngineError::IncompatibleSchemaEvolution),
+            Some(cand_prop) => {
+                if cand_prop.tier != prior_prop.tier
+                    || cand_prop.data_class != prior_prop.data_class
+                    || cand_prop.required != prior_prop.required
+                {
+                    return Err(OntologyEngineError::IncompatibleSchemaEvolution);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 fn prefixed_ontology_id(
     value: String,
     prefix: &str,
@@ -1419,5 +1510,180 @@ mod backbone_tests {
                 cardinality
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod schema_evolution_tests {
+    use super::*;
+    use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+
+    fn internal() -> PrivacyDataClass {
+        PrivacyDataClass::try_from(DataClass::InternalOnly).unwrap()
+    }
+
+    fn pii() -> PrivacyDataClass {
+        PrivacyDataClass::try_from(DataClass::PiiIdentifying).unwrap()
+    }
+
+    fn prop(name: &str, tier: PropertyTier, data_class: PrivacyDataClass, required: bool) -> EntityTypePropertyDefinition {
+        EntityTypePropertyDefinition::new(name, tier, data_class, required).unwrap()
+    }
+
+    fn base_def(revision: u32, extra_props: Vec<EntityTypePropertyDefinition>) -> EntityTypeDefinition {
+        let mut props = vec![prop("name", PropertyTier::Scalar, internal(), true)];
+        props.extend(extra_props);
+        EntityTypeDefinition::new(
+            "ten_test",
+            EntityTypeId::new("ety_thing").unwrap(),
+            "Thing",
+            props,
+            revision,
+        )
+        .unwrap()
+    }
+
+    // --- check_schema_compatibility unit tests ---
+
+    #[test]
+    fn additive_property_is_accepted() {
+        let prior = base_def(1, vec![]);
+        let candidate = base_def(2, vec![prop("email", PropertyTier::Scalar, pii(), false)]);
+        assert_eq!(check_schema_compatibility(&prior, &candidate), Ok(()));
+    }
+
+    #[test]
+    fn tier_mutation_rejected() {
+        let prior = base_def(1, vec![]);
+        // Change "name" from Scalar → Vector.
+        let candidate = EntityTypeDefinition::new(
+            "ten_test",
+            EntityTypeId::new("ety_thing").unwrap(),
+            "Thing",
+            vec![prop("name", PropertyTier::Vector, internal(), true)],
+            2,
+        )
+        .unwrap();
+        assert_eq!(
+            check_schema_compatibility(&prior, &candidate),
+            Err(OntologyEngineError::IncompatibleSchemaEvolution)
+        );
+    }
+
+    #[test]
+    fn data_class_mutation_rejected() {
+        let prior = base_def(1, vec![]);
+        // Change "name" from InternalOnly → PiiIdentifying.
+        let candidate = EntityTypeDefinition::new(
+            "ten_test",
+            EntityTypeId::new("ety_thing").unwrap(),
+            "Thing",
+            vec![prop("name", PropertyTier::Scalar, pii(), true)],
+            2,
+        )
+        .unwrap();
+        assert_eq!(
+            check_schema_compatibility(&prior, &candidate),
+            Err(OntologyEngineError::IncompatibleSchemaEvolution)
+        );
+    }
+
+    #[test]
+    fn required_flip_rejected() {
+        let prior = base_def(1, vec![]);
+        // Flip "name" required: true → false.
+        let candidate = EntityTypeDefinition::new(
+            "ten_test",
+            EntityTypeId::new("ety_thing").unwrap(),
+            "Thing",
+            vec![prop("name", PropertyTier::Scalar, internal(), false)],
+            2,
+        )
+        .unwrap();
+        assert_eq!(
+            check_schema_compatibility(&prior, &candidate),
+            Err(OntologyEngineError::IncompatibleSchemaEvolution)
+        );
+    }
+
+    #[test]
+    fn property_removal_rejected() {
+        let prior = base_def(1, vec![prop("code", PropertyTier::Scalar, internal(), true)]);
+        // candidate drops "code".
+        let candidate = base_def(2, vec![]);
+        assert_eq!(
+            check_schema_compatibility(&prior, &candidate),
+            Err(OntologyEngineError::IncompatibleSchemaEvolution)
+        );
+    }
+
+    // --- OntologyEngine::evolve_entity_type tests ---
+
+    #[test]
+    fn first_registration_via_evolve_succeeds() {
+        let mut engine = OntologyEngine::default();
+        let def = base_def(1, vec![]);
+        let id = engine.evolve_entity_type(def).unwrap();
+        assert_eq!(id.value, "ety_thing");
+        assert!(engine.entity_type("ten_test", &id).is_some());
+    }
+
+    #[test]
+    fn monotonic_additive_evolution_accepted_and_stored() {
+        let mut engine = OntologyEngine::default();
+        engine.evolve_entity_type(base_def(1, vec![])).unwrap();
+
+        let v2 = base_def(2, vec![prop("email", PropertyTier::Scalar, pii(), false)]);
+        let id = engine.evolve_entity_type(v2).unwrap();
+        assert_eq!(id.value, "ety_thing");
+
+        let stored = engine.entity_type("ten_test", &id).unwrap();
+        assert_eq!(stored.revision, 2);
+        assert_eq!(stored.properties.len(), 2);
+        assert!(stored.properties.iter().any(|p| p.name == "email"));
+    }
+
+    #[test]
+    fn equal_revision_rejected_with_non_monotonic() {
+        let mut engine = OntologyEngine::default();
+        engine.evolve_entity_type(base_def(1, vec![])).unwrap();
+        assert_eq!(
+            engine.evolve_entity_type(base_def(1, vec![])),
+            Err(OntologyEngineError::NonMonotonicRevision)
+        );
+    }
+
+    #[test]
+    fn lower_revision_rejected_with_non_monotonic() {
+        let mut engine = OntologyEngine::default();
+        engine.evolve_entity_type(base_def(5, vec![])).unwrap();
+        assert_eq!(
+            engine.evolve_entity_type(base_def(3, vec![])),
+            Err(OntologyEngineError::NonMonotonicRevision)
+        );
+    }
+
+    #[test]
+    fn breaking_change_higher_revision_rejected() {
+        let mut engine = OntologyEngine::default();
+        engine.evolve_entity_type(base_def(1, vec![])).unwrap();
+
+        // revision 1 → 2 but "name" tier is mutated.
+        let breaking = EntityTypeDefinition::new(
+            "ten_test",
+            EntityTypeId::new("ety_thing").unwrap(),
+            "Thing",
+            vec![prop("name", PropertyTier::Vector, internal(), true)],
+            2,
+        )
+        .unwrap();
+        assert_eq!(
+            engine.evolve_entity_type(breaking),
+            Err(OntologyEngineError::IncompatibleSchemaEvolution)
+        );
+        // Stored definition must be unchanged after the rejection.
+        let id = EntityTypeId::new("ety_thing").unwrap();
+        let stored = engine.entity_type("ten_test", &id).unwrap();
+        assert_eq!(stored.revision, 1);
     }
 }

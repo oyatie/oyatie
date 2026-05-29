@@ -25,6 +25,9 @@ use crate::signature::{self, WebhookSecret};
 pub struct ReceiverState {
     pub config: Arc<GatewayConfig>,
     pub secret: Arc<WebhookSecret>,
+    /// Optional ed25519 public key for `X-Forgejo-Signature` verification.
+    /// `None` means the HMAC path is the only accepted signature scheme.
+    pub ed25519_key: Option<Arc<signature::WebhookEd25519Key>>,
     pub dispatcher: Arc<dyn PipelineDispatcher>,
 }
 
@@ -74,10 +77,15 @@ async fn handle_webhook(
 ) -> Response {
     let delivery = delivery_id(&headers).unwrap_or("unknown").to_owned();
 
-    // 1. Verify HMAC on the RAW body FIRST (fail-closed before any parsing).
+    // 1. Verify signature on the RAW body FIRST (fail-closed before any parsing).
+    //    Accepts HMAC-SHA256 (preferred) or ed25519 (when a public key is configured).
     let prefixed = header(&headers, signature::SIGNATURE_HEADER);
     let legacy = header(&headers, signature::LEGACY_SIGNATURE_HEADER);
-    if let Err(err) = signature::verify_any(&state.secret, &body, prefixed, legacy) {
+    let ed25519_hdr = header(&headers, signature::ED25519_SIGNATURE_HEADER);
+    let ed25519_key = state.ed25519_key.as_deref();
+    if let Err(err) =
+        signature::verify_any(&state.secret, &body, prefixed, legacy, ed25519_hdr, ed25519_key)
+    {
         tracing::warn!(delivery = %delivery, error = %err, "webhook signature rejected");
         return error_response(&err);
     }
@@ -249,6 +257,7 @@ mod tests {
                 secret_present: true,
             }),
             secret: Arc::new(WebhookSecret::new(SECRET.as_bytes().to_vec())),
+            ed25519_key: None,
             dispatcher: Arc::new(FakeDispatcher {
                 boundary: Some(PipelineStage::ReviewerGate),
             }),

@@ -492,6 +492,12 @@ pub enum PayrollDomainError {
     /// verdict is aborted so the caller can decide whether to onboard the
     /// payee explicitly or relax the baseline requirement.
     MissingBaselineForPayee,
+    /// Returned when `build_group_gl_posting` receives an empty `entries` vec.
+    /// At least one per-entity journal entry is required to form a group batch.
+    GroupPostingEntitiesRequired,
+    /// Returned when `build_group_gl_posting` detects the same `legal_entity_id`
+    /// appearing in more than one entry of the same group batch.
+    DuplicateLegalEntityInGroup,
 }
 
 // ── Variance gate types ────────────────────────────────────────────────────
@@ -971,6 +977,78 @@ pub fn build_payroll_journal(
         reversal_required_ref: internal(EvidenceRef {
             value: reversal_required_ref,
         }),
+    })
+}
+
+// ── Group GL posting dispatch types ───────────────────────────────────────
+
+/// Input to `build_group_gl_posting`.  Carries one `PayrollJournalInput` per
+/// closed legal entity in the rollup; each entry is independently validated
+/// and balanced by the delegate `build_payroll_journal`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GroupGlPostingInput {
+    pub rollup_id: String,                    // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
+    pub entries: Vec<PayrollJournalInput>,    // data_class: INTERNAL_ONLY
+    pub group_idempotency_key: String,        // data_class: INTERNAL_ONLY
+}
+
+/// Output of `build_group_gl_posting`.  Holds one balanced `PayrollJournalDraft`
+/// per entity, plus aggregated group-level totals and the idempotency key.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GroupGlPostingBatch {
+    pub rollup_id: Classified<GroupPayrollRollupId>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,              // data_class: INTERNAL_ONLY
+    pub drafts: Classified<Vec<PayrollJournalDraft>>, // data_class: INTERNAL_ONLY
+    pub total_debit_minor: Classified<i64>,           // data_class: INTERNAL_ONLY
+    pub total_credit_minor: Classified<i64>,          // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>,          // data_class: INTERNAL_ONLY
+}
+
+pub fn build_group_gl_posting(
+    input: GroupGlPostingInput,
+) -> Result<GroupGlPostingBatch, PayrollDomainError> {
+    validate_identifier(
+        &input.rollup_id,
+        GROUP_ROLLUP_ID_PREFIX,
+        PayrollDomainError::InvalidGroupRollupId,
+    )?;
+    validate_identifier(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        PayrollDomainError::InvalidTenantId,
+    )?;
+    validate_idempotency_key(&input.group_idempotency_key)?;
+    if input.entries.is_empty() {
+        return Err(PayrollDomainError::GroupPostingEntitiesRequired);
+    }
+    // Detect duplicate legal_entity_id values before any expensive work.
+    let mut seen = std::collections::HashSet::new();
+    for entry in &input.entries {
+        if !seen.insert(entry.legal_entity_id.as_str()) {
+            return Err(PayrollDomainError::DuplicateLegalEntityInGroup);
+        }
+    }
+    let mut drafts: Vec<PayrollJournalDraft> = Vec::with_capacity(input.entries.len());
+    let mut total_debit: i64 = 0;
+    let mut total_credit: i64 = 0;
+    for entry in input.entries {
+        let draft = build_payroll_journal(entry)?;
+        total_debit = total_debit.saturating_add(draft.total_debit_minor.value);
+        total_credit = total_credit.saturating_add(draft.total_credit_minor.value);
+        drafts.push(draft);
+    }
+    Ok(GroupGlPostingBatch {
+        rollup_id: internal(GroupPayrollRollupId {
+            value: input.rollup_id,
+        }),
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        drafts: internal(drafts),
+        total_debit_minor: internal(total_debit),
+        total_credit_minor: internal(total_credit),
+        idempotency_key: internal(input.group_idempotency_key),
     })
 }
 

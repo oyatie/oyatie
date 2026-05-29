@@ -229,6 +229,17 @@
         "oya-shared-scim-server-kernel"
       ]
     },
+    "hyper-rustls": {
+      "version_pin": "0.27",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "Outbound TLS connector for the hyper-util legacy Client on the pooling-gateway upstream path (.omc/pooling-convergence.json slice 1). aws-lc-rs backend per ADR-0506 (ring is FORBIDDEN — default-features pull ring, so this is declared default-features=false with aws-lc-rs explicit); webpki-tokio trust anchors (webpki-roots) keep the trust store self-hostable with no OS native-certs dependency. h1+h2. The real provider-pool transport adapter consuming this lands in a LATER campaign slice; declared at the workspace seam now so the dep-seam + Cargo.lock land in one reviewed PR.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-intelligence-provider-pool-app",
+      "allowed_crates": [
+        "oya-intelligence-provider-pool-app"
+      ]
+    },
     "hyper-util": {
       "version_pin": "0.1",
       "layer_seam": "adapter-only",

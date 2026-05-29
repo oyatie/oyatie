@@ -25,7 +25,7 @@ fn linear_spec() -> WorkflowSpec {
         vec![
             WorkflowSpecNode::new("wfn_a", WorkflowSpecNodeKind::Http, "A"),
             WorkflowSpecNode::new("wfn_b", WorkflowSpecNodeKind::Transform, "B"),
-            WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Join, "C"),
+            WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Transform, "C"),
         ],
         vec![
             WorkflowSpecEdge::new("wfn_a", "wfn_b", None),
@@ -210,5 +210,79 @@ fn unreachable_node_error_has_human_readable_display() {
     assert!(
         msg.contains("wfn_c"),
         "Display for UnreachableNode must include the node id, got: {msg:?}",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// WF-STU-2: edge-condition determinism — emit_canonical_json contract
+// ---------------------------------------------------------------------------
+
+#[test]
+fn emit_rejects_duplicate_edge_condition_spec() {
+    // wfn_branch has two outgoing edges both with condition "approved".
+    // emit_canonical_json must propagate DuplicateEdgeCondition.
+    let spec = WorkflowSpec::new(
+        "ten_acme",
+        "wfd_dupcond_emit",
+        "1.0.0",
+        vec![
+            WorkflowSpecNode::new("wfn_branch", WorkflowSpecNodeKind::Branch, "Branch"),
+            WorkflowSpecNode::new("wfn_x", WorkflowSpecNodeKind::Transform, "X"),
+            WorkflowSpecNode::new("wfn_y", WorkflowSpecNodeKind::Transform, "Y"),
+        ],
+        vec![
+            WorkflowSpecEdge::new("wfn_branch", "wfn_x", Some("approved".to_string())),
+            WorkflowSpecEdge::new("wfn_branch", "wfn_y", Some("approved".to_string())),
+        ],
+    );
+    let result = emit_canonical_json(&spec);
+    assert!(
+        matches!(result, Err(WorkflowSpecEmitError::DuplicateEdgeCondition(_))),
+        "emit_canonical_json must return DuplicateEdgeCondition for duplicate-condition siblings, got {result:?}",
+    );
+}
+
+#[test]
+fn emit_rejects_ambiguous_default_edge_spec() {
+    // wfn_split has two unconditional outgoing edges.
+    // emit_canonical_json must propagate AmbiguousDefaultEdge.
+    let spec = WorkflowSpec::new(
+        "ten_acme",
+        "wfd_ambiguous_emit",
+        "1.0.0",
+        vec![
+            WorkflowSpecNode::new("wfn_split", WorkflowSpecNodeKind::Branch, "Split"),
+            WorkflowSpecNode::new("wfn_x", WorkflowSpecNodeKind::Transform, "X"),
+            WorkflowSpecNode::new("wfn_y", WorkflowSpecNodeKind::Transform, "Y"),
+        ],
+        vec![
+            WorkflowSpecEdge::new("wfn_split", "wfn_x", None),
+            WorkflowSpecEdge::new("wfn_split", "wfn_y", None),
+        ],
+    );
+    let result = emit_canonical_json(&spec);
+    assert!(
+        matches!(result, Err(WorkflowSpecEmitError::AmbiguousDefaultEdge(_))),
+        "emit_canonical_json must return AmbiguousDefaultEdge for two unconditional siblings, got {result:?}",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// WF-STU-3: canonical JSON regression — byte-identical for valid spec
+// ---------------------------------------------------------------------------
+
+#[test]
+fn canonical_json_of_valid_spec_is_stable() {
+    // Pinned expected output captured from the initial passing state.
+    // Any change to serialisation format would break this test intentionally.
+    const EXPECTED: &str = concat!(
+        r#"{"schema_version":"workflow_spec.v1","tenant_id":"ten_acme","definition_id":"wfd_linear","version":"1.0.0","#,
+        r#""nodes":[{"id":"wfn_a","kind":"http","label":"A"},{"id":"wfn_b","kind":"transform","label":"B"},{"id":"wfn_c","kind":"transform","label":"C"}],"#,
+        r#""edges":[{"from":"wfn_a","to":"wfn_b"},{"from":"wfn_b","to":"wfn_c"}]}"#,
+    );
+    let json = emit_canonical_json(&linear_spec()).expect("valid spec must emit");
+    assert_eq!(
+        json, EXPECTED,
+        "canonical JSON must be byte-identical to pinned expected output",
     );
 }

@@ -246,6 +246,65 @@ pub fn meter_data_class_from_legacy(
     public_data_class(data_class)
 }
 
+// ---------------------------------------------------------------------------
+// Window rollup kernel
+// ---------------------------------------------------------------------------
+
+/// Composite key for a metering rollup bucket.
+///
+/// Ordered by `(tenant_id, capability_id, unit_kind)` so `BTreeMap` output is
+/// stable and deterministic across runs.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct RollupKey {
+    pub tenant_id: String,
+    pub capability_id: String,
+    pub unit_kind: MeterUnitKind,
+}
+
+/// Result of a window rollup.
+///
+/// `totals` maps each `RollupKey` to the sum of `quantity_microunits` for all
+/// events within the window.  Accumulation uses saturating addition so u64
+/// overflow never panics; the value is capped at `u64::MAX`.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct MeterRollup {
+    pub totals: BTreeMap<RollupKey, u64>,
+}
+
+/// Aggregate all events in `meter` whose `recorded_at_epoch_seconds` falls
+/// within the closed interval `[window_start_epoch_s, window_end_epoch_s]`.
+///
+/// Events are grouped by `(tenant_id, capability_id, MeterUnitKind)` and their
+/// `quantity_microunits` values are summed with saturating arithmetic.
+///
+/// Returns an empty `MeterRollup` if no events fall in the window (including
+/// when `window_end_epoch_s < window_start_epoch_s`).
+pub fn rollup_window(
+    meter: &Meter,
+    window_start_epoch_s: u64,
+    window_end_epoch_s: u64,
+) -> MeterRollup {
+    let mut totals: BTreeMap<RollupKey, u64> = BTreeMap::new();
+    for event in meter.events() {
+        let ts = event.recorded_at_epoch_seconds.value;
+        if ts < window_start_epoch_s || ts > window_end_epoch_s {
+            continue;
+        }
+        let tenant_id = event.tenant_id.value.clone();
+        let capability_id = event.capability_id.value.value.clone();
+        for unit in &event.units.value.units {
+            let key = RollupKey {
+                tenant_id: tenant_id.clone(),
+                capability_id: capability_id.clone(),
+                unit_kind: unit.kind,
+            };
+            let entry = totals.entry(key).or_insert(0);
+            *entry = entry.saturating_add(unit.quantity_microunits);
+        }
+    }
+    MeterRollup { totals }
+}
+
 fn public_data_class(data_class: DataClass) -> Result<PrivacyDataClass, MeteringError> {
     let data_class =
         PrivacyDataClass::new(data_class).map_err(|_| MeteringError::InvalidDataClass)?;
@@ -386,5 +445,311 @@ mod tests {
         })
         .expect_err("capability id must use canonical capability prefix");
         assert_eq!(capability_error, MeteringError::InvalidCapabilityId);
+    }
+
+    // -----------------------------------------------------------------------
+    // Window rollup kernel tests
+    // -----------------------------------------------------------------------
+
+    /// Helper: record an event with explicit id, tenant, cap, ts, idem key, and units.
+    fn record_event(
+        meter: &mut Meter,
+        id: &str,
+        tenant_id: &str,
+        capability_id: &str,
+        ts: u64,
+        idem: &str,
+        units: Vec<MeterUnit>,
+    ) {
+        meter
+            .record(MeterEventCreate {
+                id: id.to_string(),
+                tenant_id: tenant_id.to_string(),
+                capability_id: capability_id.to_string(),
+                plane: PlaneTag::Data,
+                units,
+                source_axis: AxisId::Cloud,
+                recorded_at_epoch_seconds: ts,
+                idempotency_key: idem.to_string(),
+                data_class: DataClass::Public,
+            })
+            .expect("test event must record successfully");
+    }
+
+    #[test]
+    fn rollup_window_includes_only_events_within_window() {
+        let mut meter = Meter::default();
+        let cap = "cap.cloud.compute.request";
+        let tenant = "ten_alpha";
+
+        // ts=100 inside [100, 200]
+        record_event(
+            &mut meter,
+            "mtr_w001",
+            tenant,
+            cap,
+            100,
+            "idem_w001",
+            vec![MeterUnit::new(MeterUnitKind::Request, 10).unwrap()],
+        );
+        // ts=200 inside [100, 200] (inclusive upper bound)
+        record_event(
+            &mut meter,
+            "mtr_w002",
+            tenant,
+            cap,
+            200,
+            "idem_w002",
+            vec![MeterUnit::new(MeterUnitKind::Request, 20).unwrap()],
+        );
+        // ts=99 outside (before window)
+        record_event(
+            &mut meter,
+            "mtr_w003",
+            tenant,
+            cap,
+            99,
+            "idem_w003",
+            vec![MeterUnit::new(MeterUnitKind::Request, 999).unwrap()],
+        );
+        // ts=201 outside (after window)
+        record_event(
+            &mut meter,
+            "mtr_w004",
+            tenant,
+            cap,
+            201,
+            "idem_w004",
+            vec![MeterUnit::new(MeterUnitKind::Request, 999).unwrap()],
+        );
+
+        let rollup = rollup_window(&meter, 100, 200);
+        assert_eq!(rollup.totals.len(), 1);
+        let key = RollupKey {
+            tenant_id: tenant.to_string(),
+            capability_id: cap.to_string(),
+            unit_kind: MeterUnitKind::Request,
+        };
+        assert_eq!(rollup.totals[&key], 30, "only events at ts=100 and ts=200 count");
+    }
+
+    #[test]
+    fn rollup_window_sums_correctly_per_tenant_capability_unit_kind() {
+        let mut meter = Meter::default();
+        let cap = "cap.cloud.compute.bytes";
+        let tenant = "ten_beta";
+        let ts = 1_000;
+
+        record_event(
+            &mut meter,
+            "mtr_s001",
+            tenant,
+            cap,
+            ts,
+            "idem_s001",
+            vec![MeterUnit::new(MeterUnitKind::ByteOut, 100).unwrap()],
+        );
+        record_event(
+            &mut meter,
+            "mtr_s002",
+            tenant,
+            cap,
+            ts,
+            "idem_s002",
+            vec![MeterUnit::new(MeterUnitKind::ByteOut, 200).unwrap()],
+        );
+        record_event(
+            &mut meter,
+            "mtr_s003",
+            tenant,
+            cap,
+            ts,
+            "idem_s003",
+            vec![MeterUnit::new(MeterUnitKind::ByteOut, 300).unwrap()],
+        );
+
+        let rollup = rollup_window(&meter, 0, u64::MAX);
+        let key = RollupKey {
+            tenant_id: tenant.to_string(),
+            capability_id: cap.to_string(),
+            unit_kind: MeterUnitKind::ByteOut,
+        };
+        assert_eq!(rollup.totals[&key], 600, "three ByteOut events sum to 600");
+    }
+
+    #[test]
+    fn rollup_window_keeps_distinct_unit_kinds_separate() {
+        let mut meter = Meter::default();
+        let cap = "cap.cloud.compute.mixed";
+        let tenant = "ten_gamma";
+        let ts = 500;
+
+        record_event(
+            &mut meter,
+            "mtr_d001",
+            tenant,
+            cap,
+            ts,
+            "idem_d001",
+            vec![
+                MeterUnit::new(MeterUnitKind::Request, 5).unwrap(),
+                MeterUnit::new(MeterUnitKind::ByteIn, 1024).unwrap(),
+            ],
+        );
+        record_event(
+            &mut meter,
+            "mtr_d002",
+            tenant,
+            cap,
+            ts,
+            "idem_d002",
+            vec![MeterUnit::new(MeterUnitKind::Request, 3).unwrap()],
+        );
+
+        let rollup = rollup_window(&meter, 0, u64::MAX);
+        let req_key = RollupKey {
+            tenant_id: tenant.to_string(),
+            capability_id: cap.to_string(),
+            unit_kind: MeterUnitKind::Request,
+        };
+        let byte_key = RollupKey {
+            tenant_id: tenant.to_string(),
+            capability_id: cap.to_string(),
+            unit_kind: MeterUnitKind::ByteIn,
+        };
+        assert_eq!(rollup.totals[&req_key], 8, "Request: 5+3");
+        assert_eq!(rollup.totals[&byte_key], 1024, "ByteIn: 1024 only");
+        assert_eq!(rollup.totals.len(), 2, "exactly two distinct unit kind keys");
+    }
+
+    #[test]
+    fn rollup_window_idempotent_replay_does_not_double_count() {
+        let mut meter = Meter::default();
+        let cap = "cap.cloud.compute.idem";
+        let tenant = "ten_delta";
+        let ts = 300;
+
+        // First record
+        record_event(
+            &mut meter,
+            "mtr_i001",
+            tenant,
+            cap,
+            ts,
+            "idem_i001",
+            vec![MeterUnit::new(MeterUnitKind::Request, 50).unwrap()],
+        );
+        // Replay with different event id but same idempotency key — Meter deduplicates
+        record_event(
+            &mut meter,
+            "mtr_i002",
+            tenant,
+            cap,
+            ts,
+            "idem_i001", // same key
+            vec![MeterUnit::new(MeterUnitKind::Request, 50).unwrap()],
+        );
+
+        let rollup = rollup_window(&meter, 0, u64::MAX);
+        let key = RollupKey {
+            tenant_id: tenant.to_string(),
+            capability_id: cap.to_string(),
+            unit_kind: MeterUnitKind::Request,
+        };
+        assert_eq!(rollup.totals[&key], 50, "replay does not double-count");
+        assert_eq!(meter.events().count(), 1, "meter holds only one deduplicated event");
+    }
+
+    #[test]
+    fn rollup_window_saturates_on_overflow() {
+        let mut meter = Meter::default();
+        let cap = "cap.cloud.compute.overflow";
+        let tenant = "ten_epsilon";
+        let ts = 1;
+
+        // Record two events whose quantities sum beyond u64::MAX
+        record_event(
+            &mut meter,
+            "mtr_o001",
+            tenant,
+            cap,
+            ts,
+            "idem_o001",
+            vec![MeterUnit::new(MeterUnitKind::LlmToken, u64::MAX).unwrap()],
+        );
+        record_event(
+            &mut meter,
+            "mtr_o002",
+            tenant,
+            cap,
+            ts,
+            "idem_o002",
+            vec![MeterUnit::new(MeterUnitKind::LlmToken, 1).unwrap()],
+        );
+
+        let rollup = rollup_window(&meter, 0, u64::MAX);
+        let key = RollupKey {
+            tenant_id: tenant.to_string(),
+            capability_id: cap.to_string(),
+            unit_kind: MeterUnitKind::LlmToken,
+        };
+        assert_eq!(
+            rollup.totals[&key],
+            u64::MAX,
+            "overflow saturates at u64::MAX, does not panic"
+        );
+    }
+
+    #[test]
+    fn rollup_window_empty_and_inverted_window_return_empty() {
+        let mut meter = Meter::default();
+        record_event(
+            &mut meter,
+            "mtr_e001",
+            "ten_zeta",
+            "cap.cloud.compute.empty",
+            500,
+            "idem_e001",
+            vec![MeterUnit::new(MeterUnitKind::Request, 1).unwrap()],
+        );
+
+        // Empty window: no events in [600, 700]
+        let rollup_no_match = rollup_window(&meter, 600, 700);
+        assert!(rollup_no_match.totals.is_empty(), "no events in window → empty rollup");
+
+        // Inverted window: end < start
+        let rollup_inverted = rollup_window(&meter, 700, 100);
+        assert!(rollup_inverted.totals.is_empty(), "inverted window → empty rollup");
+    }
+
+    #[test]
+    fn rollup_window_output_is_stable_ordered() {
+        let mut meter = Meter::default();
+        // Insert events for two tenants and two capabilities, in non-sorted order
+        for (id, tenant, cap, idem) in [
+            ("mtr_ord001", "ten_zz", "cap.cloud.b", "idem_ord001"),
+            ("mtr_ord002", "ten_aa", "cap.cloud.b", "idem_ord002"),
+            ("mtr_ord003", "ten_aa", "cap.cloud.a", "idem_ord003"),
+        ] {
+            record_event(
+                &mut meter,
+                id,
+                tenant,
+                cap,
+                1000,
+                idem,
+                vec![MeterUnit::new(MeterUnitKind::Request, 1).unwrap()],
+            );
+        }
+
+        let rollup = rollup_window(&meter, 0, u64::MAX);
+        let keys: Vec<_> = rollup.totals.keys().collect();
+        // BTreeMap guarantees ascending order; verify it matches what we expect
+        assert_eq!(keys[0].tenant_id, "ten_aa");
+        assert_eq!(keys[0].capability_id, "cap.cloud.a");
+        assert_eq!(keys[1].tenant_id, "ten_aa");
+        assert_eq!(keys[1].capability_id, "cap.cloud.b");
+        assert_eq!(keys[2].tenant_id, "ten_zz");
+        assert_eq!(keys[2].capability_id, "cap.cloud.b");
     }
 }

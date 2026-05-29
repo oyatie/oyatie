@@ -196,6 +196,18 @@ pub struct Invoice {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CreditNoteCreate {
+    pub invoice_id: String,        // data_class: INTERNAL_ONLY
+    pub line_item_id: String,      // data_class: INTERNAL_ONLY
+    pub resource_id: String,       // data_class: INTERNAL_ONLY
+    pub description: String,       // data_class: INTERNAL_ONLY
+    pub units: Vec<MeterUnit>,     // data_class: INTERNAL_ONLY
+    pub credit_minor_units: u64,   // data_class: INTERNAL_ONLY
+    pub currency: String,          // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BillingAccountCreate {
     pub id: String,                    // data_class: INTERNAL_ONLY
     pub tenant_id: String,             // data_class: INTERNAL_ONLY
@@ -322,6 +334,13 @@ pub enum CloudBillingError {
     DuplicateBillingEvent,
     DuplicateInvoice,
     MeteringRejected(MeteringError),
+    InvoiceNotFound,
+    IllegalInvoiceTransition {
+        from: InvoiceState,
+        to: InvoiceState,
+    },
+    CreditNoteOverCredit,
+    CreditNoteTargetVoid,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -462,6 +481,16 @@ impl Money {
             minor_units: self
                 .minor_units
                 .checked_add(other.minor_units)
+                .ok_or(CloudBillingError::InvalidInvoiceTotal)?,
+        })
+    }
+
+    fn checked_sub(&self, amount: u64) -> Result<Self, CloudBillingError> {
+        Ok(Self {
+            currency: self.currency.clone(),
+            minor_units: self
+                .minor_units
+                .checked_sub(amount)
                 .ok_or(CloudBillingError::InvalidInvoiceTotal)?,
         })
     }
@@ -840,6 +869,85 @@ impl CloudBillingLedger {
 
     pub fn invoices(&self) -> impl Iterator<Item = &Invoice> {
         self.invoices_by_id.values()
+    }
+
+    pub fn get_invoice(&self, id: &InvoiceId) -> Option<&Invoice> {
+        self.invoices_by_id.get(id)
+    }
+
+    pub fn transition_invoice(
+        &mut self,
+        id: &InvoiceId,
+        target: InvoiceState,
+    ) -> Result<&Invoice, CloudBillingError> {
+        let invoice = self
+            .invoices_by_id
+            .get_mut(id)
+            .ok_or(CloudBillingError::InvoiceNotFound)?;
+        let from = invoice.state.value;
+        // Same-state re-transition is idempotent (billing de-dup doctrine).
+        if from == target {
+            return Ok(self.invoices_by_id.get(id).expect("just checked"));
+        }
+        let legal = matches!(
+            (from, target),
+            (InvoiceState::Issued, InvoiceState::Paid)
+                | (InvoiceState::Issued, InvoiceState::Overdue)
+                | (InvoiceState::Issued, InvoiceState::Void)
+                | (InvoiceState::Overdue, InvoiceState::Paid)
+                | (InvoiceState::Overdue, InvoiceState::Void)
+        );
+        if !legal {
+            return Err(CloudBillingError::IllegalInvoiceTransition { from, to: target });
+        }
+        invoice.state = internal(target);
+        Ok(self.invoices_by_id.get(id).expect("just inserted"))
+    }
+
+    pub fn apply_credit_note(
+        &mut self,
+        tenant_id: &str,
+        input: CreditNoteCreate,
+    ) -> Result<&Invoice, CloudBillingError> {
+        let invoice_id = InvoiceId::new(input.invoice_id.clone())?;
+        {
+            let invoice = self
+                .invoices_by_id
+                .get(&invoice_id)
+                .ok_or(CloudBillingError::InvoiceNotFound)?;
+            if invoice.state.value == InvoiceState::Void {
+                return Err(CloudBillingError::CreditNoteTargetVoid);
+            }
+            if invoice.subtotal.value.currency.value != input.currency {
+                return Err(CloudBillingError::InvalidInvoiceTotal);
+            }
+            if input.credit_minor_units == 0 {
+                return Err(CloudBillingError::InvalidInvoiceLineItem);
+            }
+            if input.credit_minor_units > invoice.subtotal.value.minor_units {
+                return Err(CloudBillingError::CreditNoteOverCredit);
+            }
+        }
+        let description = format!("[CREDIT] {}", input.description);
+        let line_item = InvoiceLineItem::new(
+            tenant_id,
+            InvoiceLineItemCreate {
+                id: input.line_item_id,
+                resource_id: input.resource_id,
+                description,
+                units: input.units,
+                subtotal: Money::new(input.currency.clone(), input.credit_minor_units)?,
+                data_class: input.data_class,
+            },
+        )?;
+        let invoice = self
+            .invoices_by_id
+            .get_mut(&invoice_id)
+            .expect("checked above");
+        let new_subtotal = invoice.subtotal.value.checked_sub(input.credit_minor_units)?;
+        invoice.line_items.value.push(line_item);
+        invoice.subtotal = internal(new_subtotal);
+        Ok(self.invoices_by_id.get(&invoice_id).expect("just modified"))
     }
 }
 
@@ -1339,5 +1447,210 @@ mod tests {
         })
         .expect_err("billing account data class must be financial");
         assert_eq!(account_error, CloudBillingError::InvalidDataClass);
+    }
+
+    // --- ST1: transition_invoice ---
+
+    fn ledger_with_invoice() -> (CloudBillingLedger, InvoiceId) {
+        let account = BillingAccount::new(account_create()).expect("account fixture valid");
+        let mut ledger = CloudBillingLedger::default();
+        let invoice = ledger
+            .generate_invoice(&account, invoice_generate())
+            .expect("invoice fixture valid");
+        let id = invoice.id.value.clone();
+        (ledger, id)
+    }
+
+    #[test]
+    fn transition_issued_to_paid() {
+        let (mut ledger, id) = ledger_with_invoice();
+        let inv = ledger
+            .transition_invoice(&id, InvoiceState::Paid)
+            .expect("Issued -> Paid is legal");
+        assert_eq!(inv.state.value, InvoiceState::Paid);
+    }
+
+    #[test]
+    fn transition_issued_to_overdue() {
+        let (mut ledger, id) = ledger_with_invoice();
+        let inv = ledger
+            .transition_invoice(&id, InvoiceState::Overdue)
+            .expect("Issued -> Overdue is legal");
+        assert_eq!(inv.state.value, InvoiceState::Overdue);
+    }
+
+    #[test]
+    fn transition_issued_to_void() {
+        let (mut ledger, id) = ledger_with_invoice();
+        let inv = ledger
+            .transition_invoice(&id, InvoiceState::Void)
+            .expect("Issued -> Void is legal");
+        assert_eq!(inv.state.value, InvoiceState::Void);
+    }
+
+    #[test]
+    fn transition_overdue_to_paid() {
+        let (mut ledger, id) = ledger_with_invoice();
+        ledger
+            .transition_invoice(&id, InvoiceState::Overdue)
+            .expect("Issued -> Overdue is legal");
+        let inv = ledger
+            .transition_invoice(&id, InvoiceState::Paid)
+            .expect("Overdue -> Paid is legal");
+        assert_eq!(inv.state.value, InvoiceState::Paid);
+    }
+
+    #[test]
+    fn transition_overdue_to_void() {
+        let (mut ledger, id) = ledger_with_invoice();
+        ledger
+            .transition_invoice(&id, InvoiceState::Overdue)
+            .expect("Issued -> Overdue is legal");
+        let inv = ledger
+            .transition_invoice(&id, InvoiceState::Void)
+            .expect("Overdue -> Void is legal");
+        assert_eq!(inv.state.value, InvoiceState::Void);
+    }
+
+    #[test]
+    fn transition_paid_rejects_all() {
+        let (mut ledger, id) = ledger_with_invoice();
+        ledger
+            .transition_invoice(&id, InvoiceState::Paid)
+            .expect("Issued -> Paid first");
+        for target in [InvoiceState::Issued, InvoiceState::Overdue, InvoiceState::Void] {
+            let err = ledger
+                .transition_invoice(&id, target)
+                .expect_err("Paid is terminal");
+            assert_eq!(
+                err,
+                CloudBillingError::IllegalInvoiceTransition {
+                    from: InvoiceState::Paid,
+                    to: target,
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn transition_void_rejects_all() {
+        let (mut ledger, id) = ledger_with_invoice();
+        ledger
+            .transition_invoice(&id, InvoiceState::Void)
+            .expect("Issued -> Void first");
+        for target in [InvoiceState::Issued, InvoiceState::Paid, InvoiceState::Overdue] {
+            let err = ledger
+                .transition_invoice(&id, target)
+                .expect_err("Void is terminal");
+            assert_eq!(
+                err,
+                CloudBillingError::IllegalInvoiceTransition {
+                    from: InvoiceState::Void,
+                    to: target,
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn transition_same_state_is_idempotent() {
+        let (mut ledger, id) = ledger_with_invoice();
+        // Same-state re-transition must succeed and return the unchanged invoice.
+        let inv = ledger
+            .transition_invoice(&id, InvoiceState::Issued)
+            .expect("same-state transition is idempotent");
+        assert_eq!(inv.state.value, InvoiceState::Issued);
+    }
+
+    #[test]
+    fn transition_invoice_not_found() {
+        let mut ledger = CloudBillingLedger::default();
+        let id = InvoiceId::new("inv_nonexistent_001").expect("id fixture valid");
+        let err = ledger
+            .transition_invoice(&id, InvoiceState::Paid)
+            .expect_err("unknown invoice returns InvoiceNotFound");
+        assert_eq!(err, CloudBillingError::InvoiceNotFound);
+    }
+
+    // --- ST2: apply_credit_note ---
+
+    fn credit_note_create(credit_minor_units: u64) -> CreditNoteCreate {
+        CreditNoteCreate {
+            invoice_id: "inv_alpha_202605_001".to_string(),
+            line_item_id: "ili_credit_001".to_string(),
+            resource_id: "oya:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
+            description: "compute overage correction".to_string(),
+            units: units(),
+            credit_minor_units,
+            currency: "OYC".to_string(),
+            data_class: DataClass::Financial,
+        }
+    }
+
+    #[test]
+    fn credit_note_reduces_subtotal() {
+        let account = BillingAccount::new(account_create()).expect("account fixture valid");
+        let mut ledger = CloudBillingLedger::default();
+        ledger
+            .generate_invoice(&account, invoice_generate())
+            .expect("invoice fixture valid");
+        let inv = ledger
+            .apply_credit_note("ten_alpha", credit_note_create(10_000))
+            .expect("valid credit note reduces subtotal");
+        assert_eq!(inv.subtotal.value.minor_units, 90_000);
+        assert_eq!(inv.line_items.value.len(), 2);
+        assert!(inv.line_items.value[1]
+            .description
+            .value
+            .starts_with("[CREDIT] "));
+    }
+
+    #[test]
+    fn credit_note_over_credit_rejected() {
+        let account = BillingAccount::new(account_create()).expect("account fixture valid");
+        let mut ledger = CloudBillingLedger::default();
+        ledger
+            .generate_invoice(&account, invoice_generate())
+            .expect("invoice fixture valid");
+        let err = ledger
+            .apply_credit_note("ten_alpha", credit_note_create(100_001))
+            .expect_err("credit exceeding subtotal is rejected");
+        assert_eq!(err, CloudBillingError::CreditNoteOverCredit);
+    }
+
+    #[test]
+    fn credit_note_against_void_rejected() {
+        let account = BillingAccount::new(account_create()).expect("account fixture valid");
+        let mut ledger = CloudBillingLedger::default();
+        let invoice = ledger
+            .generate_invoice(&account, invoice_generate())
+            .expect("invoice fixture valid");
+        let id = invoice.id.value.clone();
+        ledger
+            .transition_invoice(&id, InvoiceState::Void)
+            .expect("Issued -> Void is legal");
+        let err = ledger
+            .apply_credit_note("ten_alpha", credit_note_create(10_000))
+            .expect_err("credit note against Void invoice is rejected");
+        assert_eq!(err, CloudBillingError::CreditNoteTargetVoid);
+    }
+
+    #[test]
+    fn credit_note_currency_mismatch_rejected() {
+        let account = BillingAccount::new(account_create()).expect("account fixture valid");
+        let mut ledger = CloudBillingLedger::default();
+        ledger
+            .generate_invoice(&account, invoice_generate())
+            .expect("invoice fixture valid");
+        let err = ledger
+            .apply_credit_note(
+                "ten_alpha",
+                CreditNoteCreate {
+                    currency: "USD".to_string(),
+                    ..credit_note_create(10_000)
+                },
+            )
+            .expect_err("currency mismatch is rejected");
+        assert_eq!(err, CloudBillingError::InvalidInvoiceTotal);
     }
 }

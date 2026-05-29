@@ -1,5 +1,11 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod delivery_receipt;
+pub use delivery_receipt::{
+    ChannelDeliveryAggregate, DeliveryStatus, RecipientDeliveryState, acknowledge_delivery,
+    aggregate_channel_delivery,
+};
+
 use oya_messenger_domain::{
     MessageAuditAction, MessageAuditRecord, MessageEnvelope, MessageGovernance,
     MessageGovernanceCreate, MessengerContextKind, MessengerGovernanceError,
@@ -15,6 +21,10 @@ pub enum MessengerUsecaseError {
     Api(MessengerApiError),
     Domain(MessengerGovernanceError),
     PrincipalMismatch,
+    IllegalDeliveryTransition {
+        from: DeliveryStatus,
+        to: DeliveryStatus,
+    },
 }
 
 pub fn send_message(

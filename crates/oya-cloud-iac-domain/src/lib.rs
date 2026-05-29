@@ -57,6 +57,12 @@ pub enum CloudIacError {
     CatalogPathOutsideRoot,
     CatalogMainFileInvalid,
     CatalogSkeletonOverclaim,
+    /// Resource address is empty, contains whitespace/control chars, or looks secret-like.
+    InvalidResourceAddress,
+    /// Two entries in the same `PlanChangeset` share the same resource address.
+    DuplicateResourceAddress,
+    /// Plan ID is empty or contains characters outside `[a-z0-9-]`.
+    InvalidPlanId,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -812,6 +818,217 @@ pub fn reconcile_gitops_drift(
     }
 }
 
+// ---------------------------------------------------------------------------
+// IaC plan-diff model
+// ---------------------------------------------------------------------------
+
+/// The action to take on a single `(module_ref, cell_id)` resource pair.
+///
+/// Ord rank (natural declaration order): `NoChange < Create < Update < Destroy`.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum PlanAction {
+    /// The resource is present in both desired and observed with an identical
+    /// `OpenTofuModuleRef` — no change required.
+    NoChange,
+    /// The resource exists in the desired topology but not in the observed one —
+    /// it must be created.
+    Create,
+    /// The resource exists in both topologies but the `OpenTofuModuleRef`
+    /// (namespace / name / system / version) differs — it must be updated.
+    Update,
+    /// The resource exists in the observed topology but not in the desired one —
+    /// it must be destroyed.
+    Destroy,
+}
+
+/// A single entry in an [`IacPlanDiffReport`].
+///
+/// Keyed by `(module_ref, cell_id)`; carries the [`PlanAction`] for that pair.
+/// Natural sort order: `module_ref` → `cell_id` → `action`.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PlanDiffEntry {
+    /// The OpenTofu module reference this entry describes.
+    pub module_ref: OpenTofuModuleRef,
+    /// The cell this entry applies to.
+    pub cell_id: String,
+    /// The action required for this `(module_ref, cell_id)` pair.
+    pub action: PlanAction,
+}
+
+/// Aggregate verdict of an [`IacPlanDiffReport`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum IacPlanDiffVerdict {
+    /// All entries are `NoChange` — topologies are fully converged.
+    Converged,
+    /// At least one `Create`, `Update`, or `Destroy` entry exists.
+    HasChanges,
+    /// The identity tuple `(topology_id, region)` or a cell `tenant_id` differs
+    /// between desired and observed.  Fail-closed: never silently `NoChange`.
+    IdentityMismatch,
+}
+
+/// Report returned by [`compute_iac_plan_diff`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IacPlanDiffReport {
+    /// The aggregate verdict.
+    pub verdict: IacPlanDiffVerdict,
+    /// Per-resource diff entries, sorted by natural `Ord` of [`PlanDiffEntry`].
+    /// Empty when `verdict` is [`IacPlanDiffVerdict::IdentityMismatch`].
+    pub entries: Vec<PlanDiffEntry>,
+}
+
+/// Compare a desired [`CellTopologyPlan`] against an observed one and return a
+/// deterministic, sorted [`IacPlanDiffReport`].
+///
+/// # Identity contract
+///
+/// `desired` and `observed` must share the same `topology_id` and `region`, and
+/// every cell present in either topology must have the same `tenant_id` for the
+/// same `cell_id`.  Any mismatch returns
+/// [`IacPlanDiffVerdict::IdentityMismatch`] with an empty `entries` vec — the
+/// function never silently treats an identity mismatch as `NoChange`.
+///
+/// # Diff algorithm
+///
+/// For each `(module_ref, cell_id)` pair appearing in either topology:
+///
+/// | Desired | Observed | Action |
+/// |---------|----------|--------|
+/// | present | absent   | `Create` |
+/// | absent  | present  | `Destroy` |
+/// | present | same ref | `NoChange` |
+/// | present | different ref | `Update` |
+///
+/// # Determinism
+///
+/// The function has no I/O, no clocks, no randomness, and no `HashMap`.
+/// `entries` is sorted via [`Vec::sort`] on the natural `Ord` of
+/// [`PlanDiffEntry`].  Identical inputs always produce identical output.
+pub fn compute_iac_plan_diff(
+    desired: &CellTopologyPlan,
+    observed: &CellTopologyPlan,
+) -> IacPlanDiffReport {
+    // --- identity check (fail-closed) ----------------------------------------
+    if desired.topology_id() != observed.topology_id()
+        || desired.region() != observed.region()
+    {
+        return IacPlanDiffReport {
+            verdict: IacPlanDiffVerdict::IdentityMismatch,
+            entries: vec![],
+        };
+    }
+    // Build cell_id → tenant_id maps for both sides and cross-check.
+    let desired_tenants: std::collections::BTreeMap<&str, &str> = desired
+        .cells()
+        .iter()
+        .map(|c| (c.cell_id(), c.tenant_id()))
+        .collect();
+    let observed_tenants: std::collections::BTreeMap<&str, &str> = observed
+        .cells()
+        .iter()
+        .map(|c| (c.cell_id(), c.tenant_id()))
+        .collect();
+    // Any cell present in both must agree on tenant_id.
+    for (cell_id, desired_tenant) in &desired_tenants {
+        if observed_tenants
+            .get(cell_id)
+            .is_some_and(|observed_tenant| desired_tenant != observed_tenant)
+        {
+            return IacPlanDiffReport {
+                verdict: IacPlanDiffVerdict::IdentityMismatch,
+                entries: vec![],
+            };
+        }
+    }
+
+    // --- diff ----------------------------------------------------------------
+    // Collect all unique (namespace+name+system, cell_id) keys to detect Update.
+    // Two refs with the same (namespace, name, system) but different version on
+    // the same cell_id constitute an Update.
+    // Key without version: (namespace, name, system, cell_id).
+    type UnversionedKey = (String, String, String, String);
+    let mut desired_unversioned: std::collections::BTreeMap<UnversionedKey, OpenTofuModuleRef> =
+        std::collections::BTreeMap::new();
+    for cell in desired.cells() {
+        for r in cell.module_refs() {
+            let k = (
+                r.namespace().to_string(),
+                r.name().to_string(),
+                r.system().to_string(),
+                cell.cell_id().to_string(),
+            );
+            desired_unversioned.insert(k, r.clone());
+        }
+    }
+    let mut observed_unversioned: std::collections::BTreeMap<UnversionedKey, OpenTofuModuleRef> =
+        std::collections::BTreeMap::new();
+    for cell in observed.cells() {
+        for r in cell.module_refs() {
+            let k = (
+                r.namespace().to_string(),
+                r.name().to_string(),
+                r.system().to_string(),
+                cell.cell_id().to_string(),
+            );
+            observed_unversioned.insert(k, r.clone());
+        }
+    }
+
+    let mut entries: Vec<PlanDiffEntry> = Vec::new();
+
+    // Entries present in desired (Create / NoChange / Update).
+    for ((ns, name, sys, cell_id), desired_ref) in &desired_unversioned {
+        let k = (ns.clone(), name.clone(), sys.clone(), cell_id.clone());
+        if let Some(observed_ref) = observed_unversioned.get(&k) {
+            if desired_ref == observed_ref {
+                entries.push(PlanDiffEntry {
+                    module_ref: desired_ref.clone(),
+                    cell_id: cell_id.clone(),
+                    action: PlanAction::NoChange,
+                });
+            } else {
+                // Version (or other field) changed — emit Update with the desired ref.
+                entries.push(PlanDiffEntry {
+                    module_ref: desired_ref.clone(),
+                    cell_id: cell_id.clone(),
+                    action: PlanAction::Update,
+                });
+            }
+        } else {
+            entries.push(PlanDiffEntry {
+                module_ref: desired_ref.clone(),
+                cell_id: cell_id.clone(),
+                action: PlanAction::Create,
+            });
+        }
+    }
+
+    // Entries present in observed but not desired (Destroy).
+    for ((ns, name, sys, cell_id), observed_ref) in &observed_unversioned {
+        let k = (ns.clone(), name.clone(), sys.clone(), cell_id.clone());
+        if !desired_unversioned.contains_key(&k) {
+            entries.push(PlanDiffEntry {
+                module_ref: observed_ref.clone(),
+                cell_id: cell_id.clone(),
+                action: PlanAction::Destroy,
+            });
+        }
+    }
+
+    entries.sort();
+
+    let verdict = if entries
+        .iter()
+        .all(|e| e.action == PlanAction::NoChange)
+    {
+        IacPlanDiffVerdict::Converged
+    } else {
+        IacPlanDiffVerdict::HasChanges
+    };
+
+    IacPlanDiffReport { verdict, entries }
+}
+
 fn validate_slug(value: &str) -> Result<(), ()> {
     if value.trim().is_empty() {
         return Err(());
@@ -1062,4 +1279,518 @@ fn looks_secret_like(value: &str) -> bool {
         || lower.contains("-----begin")
         || lower.contains("sk-live")
         || lower.contains("sk-")
+}
+
+// ---------------------------------------------------------------------------
+// OpenTofu plan-changeset model
+// ---------------------------------------------------------------------------
+
+/// The action OpenTofu will take on a single resource during `tofu apply`.
+///
+/// This models the five-action taxonomy emitted by `tofu plan` / `tofu show -json`,
+/// distinct from [`PlanAction`] (which models desired-vs-observed topology diff).
+///
+/// Destructive actions: [`ResourceChangeAction::Delete`] and
+/// [`ResourceChangeAction::Replace`].
+///
+/// Ord rank (natural declaration order):
+/// `Create < Update < Delete < Replace < NoOp`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum ResourceChangeAction {
+    /// Resource will be created (absent from current state).
+    Create,
+    /// Resource exists; an in-place attribute update is sufficient.
+    Update,
+    /// Resource will be permanently removed from state and infrastructure.
+    Delete,
+    /// Resource must be destroyed and re-created (implies destructive).
+    Replace,
+    /// Resource is in-state and unchanged; no plan action required.
+    NoOp,
+}
+
+/// A single entry in a [`PlanChangeset`], keyed by fully-qualified resource address.
+///
+/// The resource address matches the format produced by `tofu plan`, e.g.
+/// `module.cell_vpc.aws_vpc.main`.
+///
+/// Constructed via [`ResourceChange::new`].
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct ResourceChange {
+    resource_address: String,
+    action: ResourceChangeAction,
+}
+
+/// Per-action counts summarising a [`PlanChangeset`].
+///
+/// `total` always equals the sum of all per-action counts.
+/// Intended to be emitted directly as OTel histogram/counter attributes by
+/// upstream telemetry adapters without re-iterating the changeset.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PlanChangesetSummary {
+    pub create_count: usize,
+    pub update_count: usize,
+    pub delete_count: usize,
+    pub replace_count: usize,
+    pub no_op_count: usize,
+    pub total: usize,
+}
+
+/// Aggregate of all [`ResourceChange`] entries produced by a single OpenTofu plan run.
+///
+/// Constructed via [`PlanChangeset::new`].
+///
+/// # Safety gate
+///
+/// Call [`PlanChangeset::has_destructive_changes`] before applying a plan.
+/// Returns `true` when any entry carries [`ResourceChangeAction::Delete`] or
+/// [`ResourceChangeAction::Replace`].
+///
+/// # Determinism
+///
+/// All methods are pure: no I/O, no clocks, no randomness.
+/// [`PlanChangeset::summarize`] always returns the same output for the same input.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PlanChangeset {
+    plan_id: String,
+    changes: Vec<ResourceChange>,
+}
+
+impl ResourceChange {
+    /// Construct a validated `ResourceChange`.
+    ///
+    /// # Errors
+    ///
+    /// - [`CloudIacError::InvalidResourceAddress`] if `resource_address` is empty,
+    ///   contains ASCII whitespace, contains control characters, or looks secret-like.
+    pub fn new(
+        resource_address: impl Into<String>,
+        action: ResourceChangeAction,
+    ) -> Result<Self, CloudIacError> {
+        let resource_address = resource_address.into();
+        validate_resource_address(&resource_address)?;
+        Ok(Self {
+            resource_address,
+            action,
+        })
+    }
+
+    /// The fully-qualified resource address, e.g. `module.cell_vpc.aws_vpc.main`.
+    pub fn resource_address(&self) -> &str {
+        &self.resource_address
+    }
+
+    /// The planned action for this resource.
+    pub const fn action(&self) -> ResourceChangeAction {
+        self.action
+    }
+}
+
+impl PlanChangeset {
+    /// Construct a validated `PlanChangeset`.
+    ///
+    /// # Errors
+    ///
+    /// - [`CloudIacError::InvalidPlanId`] if `plan_id` is empty or contains
+    ///   characters outside `[a-z0-9-]`.
+    /// - [`CloudIacError::DuplicateResourceAddress`] if any two entries in
+    ///   `changes` share the same `resource_address`.
+    pub fn new(
+        plan_id: impl Into<String>,
+        changes: Vec<ResourceChange>,
+    ) -> Result<Self, CloudIacError> {
+        let plan_id = plan_id.into();
+        validate_slug(&plan_id).map_err(|()| CloudIacError::InvalidPlanId)?;
+
+        // Detect duplicate resource addresses using a sorted scan (no HashMap).
+        let mut addresses: Vec<&str> = changes.iter().map(|c| c.resource_address()).collect();
+        addresses.sort_unstable();
+        for window in addresses.windows(2) {
+            if window[0] == window[1] {
+                return Err(CloudIacError::DuplicateResourceAddress);
+            }
+        }
+
+        Ok(Self { plan_id, changes })
+    }
+
+    /// The plan identifier.
+    pub fn plan_id(&self) -> &str {
+        &self.plan_id
+    }
+
+    /// All resource changes in this plan.
+    pub fn changes(&self) -> &[ResourceChange] {
+        &self.changes
+    }
+
+    /// Returns `true` if any entry has action [`ResourceChangeAction::Delete`]
+    /// or [`ResourceChangeAction::Replace`].
+    ///
+    /// This is the safety gate that upstream callers check before applying a plan.
+    pub fn has_destructive_changes(&self) -> bool {
+        self.changes.iter().any(|c| {
+            matches!(
+                c.action(),
+                ResourceChangeAction::Delete | ResourceChangeAction::Replace
+            )
+        })
+    }
+
+    /// Compute per-action counts and a total.
+    ///
+    /// Pure function: no I/O, no side effects. Identical inputs always produce
+    /// identical output.
+    pub fn summarize(&self) -> PlanChangesetSummary {
+        let mut create_count = 0usize;
+        let mut update_count = 0usize;
+        let mut delete_count = 0usize;
+        let mut replace_count = 0usize;
+        let mut no_op_count = 0usize;
+
+        for change in &self.changes {
+            match change.action() {
+                ResourceChangeAction::Create => create_count += 1,
+                ResourceChangeAction::Update => update_count += 1,
+                ResourceChangeAction::Delete => delete_count += 1,
+                ResourceChangeAction::Replace => replace_count += 1,
+                ResourceChangeAction::NoOp => no_op_count += 1,
+            }
+        }
+
+        PlanChangesetSummary {
+            create_count,
+            update_count,
+            delete_count,
+            replace_count,
+            no_op_count,
+            total: create_count + update_count + delete_count + replace_count + no_op_count,
+        }
+    }
+}
+
+fn validate_resource_address(address: &str) -> Result<(), CloudIacError> {
+    if address.trim().is_empty() {
+        return Err(CloudIacError::InvalidResourceAddress);
+    }
+    if address
+        .chars()
+        .any(|ch| ch.is_ascii_whitespace() || ch.is_control())
+    {
+        return Err(CloudIacError::InvalidResourceAddress);
+    }
+    if looks_secret_like(address) {
+        return Err(CloudIacError::InvalidResourceAddress);
+    }
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Apply-approval gating kernel
+// ---------------------------------------------------------------------------
+
+/// Minimum combined create+update count that escalates a non-destructive
+/// changeset from `AutoApprove` to `RequiresReview { required_approvals: 1 }`.
+const NON_DESTRUCTIVE_THRESHOLD: usize = 50;
+
+/// Tiered apply-approval verdict for a [`PlanChangeset`].
+///
+/// Returned by [`PlanChangeset::approval_gate`].
+///
+/// Ord rank (natural declaration order):
+/// `AutoApprove < RequiresReview < Blocked`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum ApplyApprovalVerdict {
+    /// No human review required — proceed automatically.
+    AutoApprove,
+    /// At least one human reviewer must approve before apply.
+    /// `required_approvals` scales monotonically on the destructive blast
+    /// radius (`delete_count + replace_count`).
+    RequiresReview { required_approvals: u32 },
+    /// Apply is explicitly blocked regardless of approvals (policy hook).
+    /// Reserved for future policy enforcement; not returned by the current
+    /// kernel implementation.
+    Blocked,
+}
+
+impl PlanChangeset {
+    /// Pure tiered apply-approval gate derived from the changeset summary.
+    ///
+    /// # Verdict rules (evaluated in order)
+    ///
+    /// 1. `AutoApprove` — changeset is empty or all entries are `NoOp`.
+    /// 2. `AutoApprove` — only `Create`/`Update` entries AND
+    ///    `create_count + update_count < NON_DESTRUCTIVE_THRESHOLD` (50).
+    /// 3. `RequiresReview { required_approvals: 1 }` — only `Create`/`Update`
+    ///    AND `create_count + update_count >= NON_DESTRUCTIVE_THRESHOLD`.
+    /// 4. `RequiresReview { required_approvals }` — any `Delete` or `Replace`
+    ///    present; `required_approvals` scales monotonically on
+    ///    `delete_count + replace_count`:
+    ///    - 1–5   → 1
+    ///    - 6–20  → 2
+    ///    - 21+   → 3
+    ///
+    /// Pure function: no I/O, no clocks, no randomness.
+    /// Identical inputs always produce identical output.
+    pub fn approval_gate(&self) -> ApplyApprovalVerdict {
+        let summary = self.summarize();
+
+        // Rule 1: empty or all no-ops.
+        if summary.delete_count == 0
+            && summary.replace_count == 0
+            && summary.create_count == 0
+            && summary.update_count == 0
+        {
+            return ApplyApprovalVerdict::AutoApprove;
+        }
+
+        let destructive_count = summary.delete_count + summary.replace_count;
+
+        // Rules 4: any destructive → RequiresReview scaled on blast radius.
+        if destructive_count > 0 {
+            let required_approvals = if destructive_count <= 5 {
+                1
+            } else if destructive_count <= 20 {
+                2
+            } else {
+                3
+            };
+            return ApplyApprovalVerdict::RequiresReview { required_approvals };
+        }
+
+        // Rules 2 + 3: non-destructive only.
+        let non_destructive_count = summary.create_count + summary.update_count;
+        if non_destructive_count < NON_DESTRUCTIVE_THRESHOLD {
+            ApplyApprovalVerdict::AutoApprove
+        } else {
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1,
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Helper: build a PlanChangeset with N entries of a given action.
+    fn changeset_with(plan_id: &str, actions: &[ResourceChangeAction]) -> PlanChangeset {
+        let changes: Vec<ResourceChange> = actions
+            .iter()
+            .enumerate()
+            .map(|(i, &action)| {
+                ResourceChange::new(format!("module.res_{i}.aws_instance.x"), action).unwrap()
+            })
+            .collect();
+        PlanChangeset::new(plan_id, changes).unwrap()
+    }
+
+    fn repeated(action: ResourceChangeAction, n: usize) -> Vec<ResourceChangeAction> {
+        vec![action; n]
+    }
+
+    // (a) empty changeset → AutoApprove
+    #[test]
+    fn empty_changeset_auto_approves() {
+        let cs = PlanChangeset::new("plan-empty", vec![]).unwrap();
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // (a) no-op-only changeset → AutoApprove
+    #[test]
+    fn noop_only_auto_approves() {
+        let cs = changeset_with("plan-noop", &repeated(ResourceChangeAction::NoOp, 10));
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // (b) creates-only under threshold → AutoApprove
+    #[test]
+    fn creates_only_under_threshold_auto_approves() {
+        let cs = changeset_with("plan-creates", &repeated(ResourceChangeAction::Create, 5));
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // (b) updates-only under threshold → AutoApprove
+    #[test]
+    fn updates_only_under_threshold_auto_approves() {
+        let cs = changeset_with("plan-updates", &repeated(ResourceChangeAction::Update, 49));
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // creates+updates at threshold → RequiresReview(1)
+    #[test]
+    fn creates_updates_at_threshold_requires_review() {
+        let mut actions = repeated(ResourceChangeAction::Create, 25);
+        actions.extend(repeated(ResourceChangeAction::Update, 25));
+        let cs = changeset_with("plan-at-threshold", &actions);
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
+
+    // creates+updates over threshold → RequiresReview(1)
+    #[test]
+    fn creates_updates_over_threshold_requires_review() {
+        let cs = changeset_with("plan-over-threshold", &repeated(ResourceChangeAction::Create, 60));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
+
+    // (c) single delete → RequiresReview(required_approvals >= 1)
+    #[test]
+    fn single_delete_requires_review() {
+        let cs = changeset_with("plan-del1", &[ResourceChangeAction::Delete]);
+        match cs.approval_gate() {
+            ApplyApprovalVerdict::RequiresReview { required_approvals } => {
+                assert!(required_approvals >= 1, "expected >= 1, got {required_approvals}");
+            }
+            other => panic!("expected RequiresReview, got {other:?}"),
+        }
+    }
+
+    // single delete → exactly RequiresReview(1)
+    #[test]
+    fn single_delete_requires_exactly_one_approval() {
+        let cs = changeset_with("plan-del1b", &[ResourceChangeAction::Delete]);
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
+
+    // 5 destructive → RequiresReview(1)
+    #[test]
+    fn five_destructive_requires_one_approval() {
+        let cs = changeset_with("plan-del5", &repeated(ResourceChangeAction::Delete, 5));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
+
+    // (d) 6 destructive → RequiresReview(2) — higher than 1–5 range
+    #[test]
+    fn six_destructive_requires_two_approvals() {
+        let cs = changeset_with("plan-del6", &repeated(ResourceChangeAction::Delete, 6));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 2
+            }
+        );
+    }
+
+    // (d) 20 destructive → RequiresReview(2)
+    #[test]
+    fn twenty_destructive_requires_two_approvals() {
+        let cs = changeset_with("plan-del20", &repeated(ResourceChangeAction::Replace, 20));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 2
+            }
+        );
+    }
+
+    // (d) 21 destructive → RequiresReview(3)
+    #[test]
+    fn twentyone_destructive_requires_three_approvals() {
+        let cs = changeset_with("plan-del21", &repeated(ResourceChangeAction::Delete, 21));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 3
+            }
+        );
+    }
+
+    // (d) mixed delete+replace blast radius is monotonic
+    #[test]
+    fn mixed_delete_replace_monotonic() {
+        let cs5 = changeset_with("plan-mix5", &{
+            let mut v = repeated(ResourceChangeAction::Delete, 3);
+            v.extend(repeated(ResourceChangeAction::Replace, 2));
+            v
+        });
+        let cs6 = changeset_with("plan-mix6", &{
+            let mut v = repeated(ResourceChangeAction::Delete, 3);
+            v.extend(repeated(ResourceChangeAction::Replace, 3));
+            v
+        });
+        let cs21 = changeset_with("plan-mix21", &{
+            let mut v = repeated(ResourceChangeAction::Delete, 11);
+            v.extend(repeated(ResourceChangeAction::Replace, 10));
+            v
+        });
+
+        let ApplyApprovalVerdict::RequiresReview { required_approvals: a5 } = cs5.approval_gate()
+        else {
+            panic!("expected RequiresReview");
+        };
+        let ApplyApprovalVerdict::RequiresReview { required_approvals: a6 } = cs6.approval_gate()
+        else {
+            panic!("expected RequiresReview");
+        };
+        let ApplyApprovalVerdict::RequiresReview { required_approvals: a21 } = cs21.approval_gate()
+        else {
+            panic!("expected RequiresReview");
+        };
+
+        assert!(a5 <= a6, "monotonic: 5 destructive ({a5}) <= 6 ({a6})");
+        assert!(a6 <= a21, "monotonic: 6 destructive ({a6}) <= 21 ({a21})");
+        assert_eq!(a5, 1);
+        assert_eq!(a6, 2);
+        assert_eq!(a21, 3);
+    }
+
+    // (e) determinism: same input → same output
+    #[test]
+    fn deterministic_same_input_same_output() {
+        let actions = {
+            let mut v = repeated(ResourceChangeAction::Create, 3);
+            v.push(ResourceChangeAction::Delete);
+            v
+        };
+        let cs = changeset_with("plan-determ", &actions);
+        let v1 = cs.approval_gate();
+        let v2 = cs.approval_gate();
+        assert_eq!(v1, v2, "approval_gate must be deterministic");
+    }
+
+    // NoOp entries mixed with creates don't count toward destructive blast
+    #[test]
+    fn noop_mixed_with_creates_does_not_escalate() {
+        let mut actions = repeated(ResourceChangeAction::NoOp, 100);
+        actions.extend(repeated(ResourceChangeAction::Create, 10));
+        let cs = changeset_with("plan-noop-creates", &actions);
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // single replace → RequiresReview(1)
+    #[test]
+    fn single_replace_requires_review() {
+        let cs = changeset_with("plan-rep1", &[ResourceChangeAction::Replace]);
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
 }

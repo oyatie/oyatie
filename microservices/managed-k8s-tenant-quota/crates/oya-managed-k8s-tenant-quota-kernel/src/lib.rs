@@ -482,6 +482,214 @@ pub fn evaluate(
 }
 
 // ============================================================
+// Usage aggregation and headroom projection (ADR-0376 lifecycle pre-check)
+// ============================================================
+
+/// Per-cluster resource usage snapshot.
+///
+/// Mirrors K8s `ResourceQuota.status.used` fields for one cluster.
+/// Used as input to [`aggregate_usage`].
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ClusterResourceUsage {
+    /// Cluster identifier (opaque string; must be non-empty).
+    pub cluster_id: String, // data_class: INTERNAL_ONLY
+    /// Number of worker nodes currently in this cluster.
+    pub node_count: u32, // data_class: INTERNAL_ONLY
+    /// Total vCPU across all nodes in this cluster.
+    pub vcpu_total: u32, // data_class: INTERNAL_ONLY
+    /// Total RAM in GiB across all nodes in this cluster.
+    pub ram_gib_total: u32, // data_class: INTERNAL_ONLY
+}
+
+/// Aggregated resource summary across all clusters for one tenant.
+///
+/// Produced by [`aggregate_usage`]; consumed by [`project_headroom`].
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct TenantResourceSummary {
+    /// Owning tenant id.
+    pub tenant_id: TenantId, // data_class: INTERNAL_ONLY
+    /// Number of clusters counted in this summary.
+    pub total_clusters: u32, // data_class: INTERNAL_ONLY
+    /// Sum of `node_count` across all clusters.
+    pub total_nodes: u32, // data_class: INTERNAL_ONLY
+    /// Sum of `vcpu_total` across all clusters.
+    pub total_vcpu: u32, // data_class: INTERNAL_ONLY
+    /// Sum of `ram_gib_total` across all clusters.
+    pub total_ram_gib: u32, // data_class: INTERNAL_ONLY
+    /// Maximum `node_count` observed in any single cluster.
+    pub max_nodes_per_cluster: u32, // data_class: INTERNAL_ONLY
+    /// Maximum `vcpu_total` observed in any single cluster.
+    pub max_vcpu_per_cluster: u32, // data_class: INTERNAL_ONLY
+    /// Maximum `ram_gib_total` observed in any single cluster.
+    pub max_ram_gib_per_cluster: u32, // data_class: INTERNAL_ONLY
+}
+
+/// Remaining quota headroom and percent-utilization for a tenant.
+///
+/// Produced by [`project_headroom`]. Used as a lifecycle pre-check signal
+/// and as an input to future billing/alerting pipelines.
+///
+/// All `remaining_*` fields use saturating subtraction (never underflow).
+/// All `*_utilized_pct` fields are clamped to `[0, 100]`.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct QuotaHeadroom {
+    /// Owning tenant id.
+    pub tenant_id: TenantId, // data_class: INTERNAL_ONLY
+    /// Clusters that can still be provisioned.
+    pub remaining_clusters: u32, // data_class: INTERNAL_ONLY
+    /// Additional nodes per new cluster that are still within quota.
+    pub remaining_nodes_per_cluster: u32, // data_class: INTERNAL_ONLY
+    /// Additional vCPU per new cluster that are still within quota.
+    pub remaining_vcpu_per_cluster: u32, // data_class: INTERNAL_ONLY
+    /// Additional RAM (GiB) per new cluster that are still within quota.
+    pub remaining_ram_gib_per_cluster: u32, // data_class: INTERNAL_ONLY
+    /// Cluster-count utilization: `total_clusters * 100 / max_clusters`, clamped to 100.
+    pub clusters_utilized_pct: u8, // data_class: INTERNAL_ONLY
+    /// Node utilization vs `max_nodes_per_cluster` ceiling, clamped to 100.
+    pub nodes_utilized_pct: u8, // data_class: INTERNAL_ONLY
+    /// vCPU utilization vs `max_vcpu_per_cluster` ceiling, clamped to 100.
+    pub vcpu_utilized_pct: u8, // data_class: INTERNAL_ONLY
+    /// RAM utilization vs `max_ram_gib_per_cluster` ceiling, clamped to 100.
+    pub ram_utilized_pct: u8, // data_class: INTERNAL_ONLY
+}
+
+/// Errors produced by [`project_headroom`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum HeadroomError {
+    /// The quota and summary belong to different tenants.
+    TenantMismatch {
+        /// Tenant from the quota record.
+        quota_tenant: String,
+        /// Tenant from the summary record.
+        summary_tenant: String,
+    },
+}
+
+impl std::fmt::Display for HeadroomError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TenantMismatch {
+                quota_tenant,
+                summary_tenant,
+            } => write!(
+                f,
+                "headroom tenant mismatch: quota belongs to {quota_tenant} but summary is from {summary_tenant}"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for HeadroomError {}
+
+/// Fold a slice of per-cluster usage records into a single [`TenantResourceSummary`].
+///
+/// - Returns a zero-valued summary when `usages` is empty (valid; tenant has no clusters).
+/// - All arithmetic is saturating; no overflow, no panic.
+/// - O(n) in `usages.len()`.
+#[must_use]
+pub fn aggregate_usage(tenant_id: TenantId, usages: &[ClusterResourceUsage]) -> TenantResourceSummary {
+    let mut total_clusters: u32 = 0;
+    let mut total_nodes: u32 = 0;
+    let mut total_vcpu: u32 = 0;
+    let mut total_ram_gib: u32 = 0;
+    let mut max_nodes_per_cluster: u32 = 0;
+    let mut max_vcpu_per_cluster: u32 = 0;
+    let mut max_ram_gib_per_cluster: u32 = 0;
+
+    for u in usages {
+        total_clusters = total_clusters.saturating_add(1);
+        total_nodes = total_nodes.saturating_add(u.node_count);
+        total_vcpu = total_vcpu.saturating_add(u.vcpu_total);
+        total_ram_gib = total_ram_gib.saturating_add(u.ram_gib_total);
+        if u.node_count > max_nodes_per_cluster {
+            max_nodes_per_cluster = u.node_count;
+        }
+        if u.vcpu_total > max_vcpu_per_cluster {
+            max_vcpu_per_cluster = u.vcpu_total;
+        }
+        if u.ram_gib_total > max_ram_gib_per_cluster {
+            max_ram_gib_per_cluster = u.ram_gib_total;
+        }
+    }
+
+    TenantResourceSummary {
+        tenant_id,
+        total_clusters,
+        total_nodes,
+        total_vcpu,
+        total_ram_gib,
+        max_nodes_per_cluster,
+        max_vcpu_per_cluster,
+        max_ram_gib_per_cluster,
+    }
+}
+
+/// Compute [`QuotaHeadroom`] for a tenant given their quota and aggregated usage summary.
+///
+/// Returns `Err(HeadroomError::TenantMismatch)` when `quota.tenant_id != summary.tenant_id`.
+///
+/// All `remaining_*` use saturating subtraction; all `*_utilized_pct` are clamped to `[0, 100]`.
+/// No floating-point arithmetic; no allocations; O(1).
+///
+/// # Errors
+/// Returns [`HeadroomError::TenantMismatch`] on cross-tenant input.
+pub fn project_headroom(
+    quota: &TenantQuota,
+    summary: &TenantResourceSummary,
+) -> Result<QuotaHeadroom, HeadroomError> {
+    if quota.tenant_id != summary.tenant_id {
+        return Err(HeadroomError::TenantMismatch {
+            quota_tenant: quota.tenant_id.as_str().to_string(),
+            summary_tenant: summary.tenant_id.as_str().to_string(),
+        });
+    }
+
+    let remaining_clusters = quota.max_clusters.saturating_sub(summary.total_clusters);
+    let remaining_nodes_per_cluster =
+        quota.max_nodes_per_cluster.saturating_sub(summary.max_nodes_per_cluster);
+    let remaining_vcpu_per_cluster =
+        quota.max_vcpu_per_cluster.saturating_sub(summary.max_vcpu_per_cluster);
+    let remaining_ram_gib_per_cluster =
+        quota.max_ram_gib_per_cluster.saturating_sub(summary.max_ram_gib_per_cluster);
+
+    let clusters_utilized_pct =
+        utilized_pct(summary.total_clusters, quota.max_clusters);
+    let nodes_utilized_pct =
+        utilized_pct(summary.max_nodes_per_cluster, quota.max_nodes_per_cluster);
+    let vcpu_utilized_pct =
+        utilized_pct(summary.max_vcpu_per_cluster, quota.max_vcpu_per_cluster);
+    let ram_utilized_pct =
+        utilized_pct(summary.max_ram_gib_per_cluster, quota.max_ram_gib_per_cluster);
+
+    Ok(QuotaHeadroom {
+        tenant_id: quota.tenant_id.clone(),
+        remaining_clusters,
+        remaining_nodes_per_cluster,
+        remaining_vcpu_per_cluster,
+        remaining_ram_gib_per_cluster,
+        clusters_utilized_pct,
+        nodes_utilized_pct,
+        vcpu_utilized_pct,
+        ram_utilized_pct,
+    })
+}
+
+/// Compute integer percent utilization, clamped to `[0, 100]`.
+///
+/// Uses integer arithmetic only (no float). When `ceiling` is zero this
+/// function returns 100 (fully utilized by convention), but in practice
+/// `TenantQuota::new()` already rejects zero ceilings.
+#[inline]
+fn utilized_pct(used: u32, ceiling: u32) -> u8 {
+    if ceiling == 0 {
+        return 100;
+    }
+    // used * 100 / ceiling, saturating at u8::MAX then clamping to 100.
+    let pct = (used as u64).saturating_mul(100) / (ceiling as u64);
+    pct.min(100) as u8
+}
+
+// ============================================================
 // Tests
 // ============================================================
 
@@ -598,5 +806,174 @@ mod tests {
         let b = RbacBinding::new("ten_acme", "wl_admin_01", RbacRole::TenantAdmin).unwrap();
         assert_eq!(b.tenant_id.as_str(), "ten_acme");
         assert!(b.role.can_write_quota());
+    }
+
+    // ---- usage_projection tests (AC-1 through AC-8) ----
+
+    fn cluster(id: &str, nodes: u32, vcpu: u32, ram: u32) -> ClusterResourceUsage {
+        ClusterResourceUsage {
+            cluster_id: id.to_string(),
+            node_count: nodes,
+            vcpu_total: vcpu,
+            ram_gib_total: ram,
+        }
+    }
+
+    fn tid(s: &str) -> TenantId {
+        TenantId::new(s).unwrap()
+    }
+
+    /// AC-1: empty cluster list produces zero-valued summary.
+    #[test]
+    fn aggregate_empty_is_zero() {
+        let summary = aggregate_usage(tid("ten_acme"), &[]);
+        assert_eq!(summary.total_clusters, 0);
+        assert_eq!(summary.total_nodes, 0);
+        assert_eq!(summary.total_vcpu, 0);
+        assert_eq!(summary.total_ram_gib, 0);
+        assert_eq!(summary.max_nodes_per_cluster, 0);
+        assert_eq!(summary.max_vcpu_per_cluster, 0);
+        assert_eq!(summary.max_ram_gib_per_cluster, 0);
+    }
+
+    /// AC-2: multiple clusters are aggregated correctly.
+    #[test]
+    fn aggregate_multiple_clusters() {
+        let usages = vec![
+            cluster("cl-1", 3, 12, 48),
+            cluster("cl-2", 5, 20, 80),
+        ];
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        assert_eq!(summary.total_clusters, 2);
+        assert_eq!(summary.total_nodes, 8);
+        assert_eq!(summary.total_vcpu, 32);
+        assert_eq!(summary.total_ram_gib, 128);
+        assert_eq!(summary.max_nodes_per_cluster, 5);
+        assert_eq!(summary.max_vcpu_per_cluster, 20);
+        assert_eq!(summary.max_ram_gib_per_cluster, 80);
+    }
+
+    /// AC-3: headroom within quota returns correct remaining and utilization.
+    #[test]
+    fn headroom_within_quota() {
+        // quota: 5 clusters, 10 nodes/cl, 32 vcpu/cl, 128 ram/cl
+        let q = quota("ten_acme");
+        // summary: 2 clusters, max 5 nodes/cl, max 16 vcpu/cl, max 64 ram/cl
+        let usages = vec![
+            cluster("cl-1", 5, 16, 64),
+            cluster("cl-2", 3, 8, 32),
+        ];
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        let h = project_headroom(&q, &summary).unwrap();
+
+        assert_eq!(h.remaining_clusters, 3);      // 5 - 2
+        assert_eq!(h.remaining_nodes_per_cluster, 5); // 10 - 5
+        assert_eq!(h.remaining_vcpu_per_cluster, 16); // 32 - 16
+        assert_eq!(h.remaining_ram_gib_per_cluster, 64); // 128 - 64
+        assert_eq!(h.clusters_utilized_pct, 40);    // 2*100/5
+        assert_eq!(h.nodes_utilized_pct, 50);       // 5*100/10
+        assert_eq!(h.vcpu_utilized_pct, 50);        // 16*100/32
+        assert_eq!(h.ram_utilized_pct, 50);         // 64*100/128
+    }
+
+    /// AC-4: headroom at the exact quota limit returns remaining=0, utilized=100.
+    #[test]
+    fn headroom_at_limit() {
+        let q = quota("ten_acme"); // 5 cl, 10 nodes, 32 vcpu, 128 ram
+        let usages = vec![
+            cluster("cl-1", 10, 32, 128),
+            cluster("cl-2", 10, 32, 128),
+            cluster("cl-3", 10, 32, 128),
+            cluster("cl-4", 10, 32, 128),
+            cluster("cl-5", 10, 32, 128),
+        ];
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        let h = project_headroom(&q, &summary).unwrap();
+
+        assert_eq!(h.remaining_clusters, 0);
+        assert_eq!(h.remaining_nodes_per_cluster, 0);
+        assert_eq!(h.remaining_vcpu_per_cluster, 0);
+        assert_eq!(h.remaining_ram_gib_per_cluster, 0);
+        assert_eq!(h.clusters_utilized_pct, 100);
+        assert_eq!(h.nodes_utilized_pct, 100);
+        assert_eq!(h.vcpu_utilized_pct, 100);
+        assert_eq!(h.ram_utilized_pct, 100);
+    }
+
+    /// AC-5: over-limit summary (legacy over-provisioned) saturates to 0 remaining, 100%.
+    #[test]
+    fn headroom_over_limit_saturates() {
+        let q = quota("ten_acme"); // 5 cl, 10 nodes, 32 vcpu, 128 ram
+        // Simulate 7 clusters each over every per-cluster ceiling.
+        let usages: Vec<_> = (0..7)
+            .map(|i| cluster(&format!("cl-{i}"), 15, 50, 200))
+            .collect();
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        let h = project_headroom(&q, &summary).unwrap();
+
+        assert_eq!(h.remaining_clusters, 0);            // saturating_sub
+        assert_eq!(h.remaining_nodes_per_cluster, 0);
+        assert_eq!(h.remaining_vcpu_per_cluster, 0);
+        assert_eq!(h.remaining_ram_gib_per_cluster, 0);
+        assert_eq!(h.clusters_utilized_pct, 100);
+        assert_eq!(h.nodes_utilized_pct, 100);
+        assert_eq!(h.vcpu_utilized_pct, 100);
+        assert_eq!(h.ram_utilized_pct, 100);
+    }
+
+    /// AC-6: tenant mismatch returns HeadroomError.
+    #[test]
+    fn headroom_tenant_mismatch() {
+        let q = quota("ten_acme");
+        let summary = aggregate_usage(tid("ten_globex"), &[]);
+        let err = project_headroom(&q, &summary).unwrap_err();
+        assert!(matches!(err, HeadroomError::TenantMismatch { .. }));
+        let msg = err.to_string();
+        assert!(msg.contains("ten_acme"));
+        assert!(msg.contains("ten_globex"));
+    }
+
+    /// AC-7: all new types round-trip through serde_json.
+    #[test]
+    fn headroom_types_serde_roundtrip() {
+        let q = quota("ten_acme");
+        let usages = vec![cluster("cl-1", 4, 12, 48)];
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        let h = project_headroom(&q, &summary).unwrap();
+
+        let json = serde_json::to_string(&h).unwrap();
+        let h2: QuotaHeadroom = serde_json::from_str(&json).unwrap();
+        assert_eq!(h, h2);
+
+        let json_s = serde_json::to_string(&summary).unwrap();
+        let s2: TenantResourceSummary = serde_json::from_str(&json_s).unwrap();
+        assert_eq!(summary, s2);
+
+        let c = cluster("cl-x", 1, 4, 16);
+        let json_c = serde_json::to_string(&c).unwrap();
+        let c2: ClusterResourceUsage = serde_json::from_str(&json_c).unwrap();
+        assert_eq!(c, c2);
+    }
+
+    /// AC-8: QuotaHeadroom composes with evaluate() as a lifecycle pre-check.
+    ///
+    /// If headroom shows remaining_clusters == 0 then evaluate() must Deny.
+    #[test]
+    fn headroom_compose_with_evaluate() {
+        let q = quota("ten_acme"); // max 5 clusters
+        // Fill all 5 cluster slots.
+        let usages: Vec<_> = (0..5).map(|i| cluster(&format!("cl-{i}"), 1, 1, 1)).collect();
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        let h = project_headroom(&q, &summary).unwrap();
+        assert_eq!(h.remaining_clusters, 0, "headroom must show 0 remaining");
+
+        // evaluate() using existing TenantUsage: current_clusters matches total.
+        let u = TenantUsage::new("ten_acme", summary.total_clusters, 0, 0, 0).unwrap();
+        let r = ProvisionRequest::new("ten_acme", 1, 1, 1, 1).unwrap();
+        let decision = evaluate(&q, &u, &r);
+        assert!(
+            decision.is_deny(),
+            "evaluate must deny when headroom is zero"
+        );
     }
 }

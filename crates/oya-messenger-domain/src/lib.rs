@@ -11,9 +11,13 @@
 pub mod delivery_class;
 pub mod governance;
 pub mod reaction;
+pub mod reaction_tally;
+pub mod thread_lifecycle;
 pub use delivery_class::{MessageDeliveryClass, MessengerChannelKind};
 pub use governance::*;
 pub use reaction::*;
+pub use reaction_tally::*;
+pub use thread_lifecycle::*;
 
 use std::collections::BTreeSet;
 
@@ -48,6 +52,8 @@ pub enum ChatError {
     InvalidAttachmentMimeType,
     EmptyAttachment,
     InvalidDataClass,
+    InvalidThreadStateTransition,
+    CrossPillarSubscriptionDenied,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
