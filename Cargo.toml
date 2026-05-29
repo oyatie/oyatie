@@ -1081,11 +1081,24 @@ opentelemetry_sdk = { version = "0.32.0", default-features = false, features = [
 # Hyper canonical HTTP backbone per ADR-0090 (user-issued 2026-05-14).
 # Only oya-http-runtime-hyper-adapter (Layer 5) consumes these directly;
 # Layers 1-4 remain std-only.
-hyper = { version = "1", default-features = false, features = ["server", "http1"] }
-hyper-util = { version = "0.1", default-features = false, features = ["tokio", "server", "server-auto", "http1"] }
+#
+# Pooling-convergence campaign (slice 1, 2026-05-29, .omc/pooling-convergence.json):
+# the intelligence/ provider-pool runtime needs an OUTBOUND HTTPS client, not just
+# the inbound server. `client` + `http2` are added to hyper, and `client-legacy`
+# (the hyper-util pooled legacy Client) + `http2` to hyper-util. hyper-rustls is
+# added on the aws-lc-rs backend (NEVER default-features — default pulls ring) with
+# webpki-tokio trust roots (webpki-roots), no native-certs. Doctrine: hyper client,
+# not reqwest. Consumed by the provider-pool transport in a LATER slice; declared at
+# the workspace seam here so the dep-seam + Cargo.lock land in one reviewed PR.
+hyper = { version = "1", default-features = false, features = ["server", "client", "http1", "http2"] }
+hyper-util = { version = "0.1", default-features = false, features = ["tokio", "server", "server-auto", "client", "client-legacy", "http1", "http2"] }
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros"] }
 http-body-util = { version = "0.1", default-features = false }
 bytes = { version = "1", default-features = false }
+# Outbound TLS for the hyper-util legacy Client. aws-lc-rs backend (Phase-1 crypto
+# per ADR-0506; ring is FORBIDDEN); webpki-tokio = webpki-roots trust anchors (no
+# OS native-certs dependency for a self-hostable hyperscaler posture). h1 + h2.
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "http2", "tls12", "aws-lc-rs", "webpki-tokio"] }
 
 # Dedup baseline added 2026-05-15 (audit item #6: "workspace.dependencies has
 # 7 entries total; the dedup table you wrote a workspace for is empty for all
