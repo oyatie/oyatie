@@ -129,6 +129,43 @@
       "plan_refs": [
         "docs/decisions/ADR-0086-microservice-application-scaffold.md"
       ]
+    },
+    {
+      "microservice_id": "cloud-intelligence",
+      "purpose": "Agent-dispatch gateway: clean-room reverse-proxy multiplexing an AI-agent fleet over pooled Codex/Claude/OpenAI/Gemini API keys per ADR-0373. Pure key-pool state machine (kernel crate), axum reverse-proxy with SSE streaming passthrough, per-provider channel adapters, configurable failover/retry with next-key rotation, two constant-time auth realms (admin + ingress proxy-key), OTel-aligned metrics, hash-only structured logging, and OpenBao-sourced pooled keys.",
+      "status": "operational-partial (kernel + rest + app crates green; OpenBao periodic-refresh + per-tenant rate-limit deferred per placeholder-debt)",
+      "canonical_base_only": false,
+      "owner_team": "council-foundry",
+      "consumer_facing_surface": "internal AI-agent fleet via ingress proxy-key auth",
+      "perf_authority": "ADR-0373 §SLO (TTFT p99 ≤2s, availability ≥99.9%, error-rate ≤0.1%)",
+      "crates": [
+        "oya-cloud-intelligence-kernel",
+        "oya-cloud-intelligence-rest",
+        "oya-cloud-intelligence-authz-cedar-adapter",
+        "oya-cloud-intelligence-app"
+      ],
+      "contracts": {
+        "openapi": "microservices/cloud-intelligence/contracts/cloud-intelligence.openapi.yaml",
+        "asyncapi": "microservices/cloud-intelligence/contracts/cloud-intelligence.asyncapi.yaml"
+      },
+      "slos": [
+        "microservices/cloud-intelligence/slos/availability.openslo.yaml",
+        "microservices/cloud-intelligence/slos/ttft.openslo.yaml",
+        "microservices/cloud-intelligence/slos/error-rate.openslo.yaml",
+        "microservices/cloud-intelligence/slos/end-to-end-latency.openslo.yaml",
+        "microservices/cloud-intelligence/slos/completeness.openslo.yaml"
+      ],
+      "placeholder_debt": [
+        "adr-0373-cloud-intelligence-openbao-wire-in",
+        "adr-0373-cloud-intelligence-bedrock-audit-emission",
+        "adr-0373-cloud-intelligence-per-tenant-rate-limit"
+      ],
+      "owned_bounded_contexts_ref": "/registry/bounded-contexts.json (filter microservice_id=cloud-intelligence)",
+      "plan_refs": [
+        "docs/decisions/ADR-0373-llm-gateway-production-design.md",
+        "microservices/cloud-intelligence/PRD.md",
+        "microservices/cloud-intelligence/manifest.json"
+      ]
     }
   ],
   "planned_backlog_microservices": [
@@ -157,7 +194,7 @@
     "vertical-pack-kr"
   ],
   "honest_gaps": [
-    "Only 4 of ~27 microservices populated this slice (ops + foundry + messenger + mail + community + connector + application). Remaining ~23 follow PHASE-6 migration when docs/microservices/<name>.md retire.",
+    "Only 8 of ~27+ microservices populated this slice (ops + foundry + messenger + mail + community + connector + application + cloud-intelligence). Remaining ~20 follow PHASE-6 migration when docs/microservices/<name>.md retire.",
     "owned_bounded_contexts_ref is a SELECTOR (filter by microservice_id) — bounded-contexts.json registry must be queryable at validator runtime; today this is informational only.",
     "Markdown retirement: docs/microservices/intelligence.md / connector.md / application.md / others still exist in HEAD; PHASE-6 batches their migration with paired oya-check-doc-coverage check-crate refactor."
   ],
