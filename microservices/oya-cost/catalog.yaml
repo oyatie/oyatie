@@ -10,6 +10,9 @@ spec:
   role: tenant-service
   context: cost-allocation-substrate
   governing_adr: ADR-0480
+  pattern: single-crate-per-service
+  binding_adrs:
+    - ADR-0509
   data_classes_owned:
     - USAGE_METRICS
   operational_classes_owned:

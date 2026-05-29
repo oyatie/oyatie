@@ -703,10 +703,8 @@ members = [
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter",
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app",
-  # oya-cost — K8s cost allocation µservice (ADR-0480).
-  "microservices/oya-cost/crates/oya-cost-app",
-  "microservices/oya-cost/crates/oya-cost-kernel",
-  "microservices/oya-cost/crates/oya-cost-rest",
+  # oya-cost — K8s cost allocation µservice (ADR-0480, single-crate per ADR-0509).
+  "microservices/oya-cost",
 ]
 resolver = "2"
 
