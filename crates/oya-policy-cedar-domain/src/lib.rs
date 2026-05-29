@@ -23,6 +23,9 @@ use serde::{Deserialize, Serialize};
 pub mod obligations;
 pub use obligations::{AnnotationKind, PolicyAnnotation};
 
+pub mod policy_diff;
+pub use policy_diff::{diff_policy_versions, ImpactReport, RuleDelta};
+
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum PolicyScope {
     Global,
