@@ -15,11 +15,11 @@ defaultContentType: application/json
 
 servers:
   kafka-pack-kr:
-    host: kr-kafka.ontology.oyatie.dev:9093
+    host: kr-kafka.ontology.oyatie.com:9093
     protocol: kafka-secure
     description: pack-kr Kafka outbox broker
   kafka-pack-eu:
-    host: eu-kafka.ontology.oyatie.dev:9093
+    host: eu-kafka.ontology.oyatie.com:9093
     protocol: kafka-secure
     description: pack-eu Kafka outbox broker
 

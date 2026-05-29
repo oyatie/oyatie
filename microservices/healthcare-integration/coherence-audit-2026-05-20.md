@@ -116,7 +116,7 @@ Redox is the modern API-gateway integration-as-a-service play (single-API
 model; cloud-hosted; FHIR + HL7v2 broker for B2B SaaS that needs EHR
 connectivity without building integration in-house).
 
-Mirth Connect (NextGen Connect) is the open-source / on-prem HL7v2 + FHIR
+Mirth (NextGen Connect) is the open-source / on-prem HL7v2 + FHIR
 integration engine (message transformation, routing, parsing).
 
 Health Gorilla is the clinical-data-network play (longitudinal patient
@@ -787,7 +787,7 @@ Findings:
 Legacy HL7 v2 coverage:
 
 tenant_class adoption record declares HL7v2 versions 2.3, 2.3.1, 2.4, 2.5, 2.5.1, 2.6,
-2.7 with extensions, using Mirth Connect 4.5 (NextGen Connect).
+2.7 with extensions, using Mirth 4.5 (NextGen Connect).
 
 Message types covered (per ARCHITECTURE.md and tenant_class adoption record):
 - ADT (Admission, Discharge, Transfer)
@@ -862,10 +862,10 @@ Redox — single-API broker model:
 - Out-of-scope intentional: Redox-proprietary monitoring dashboard
   (covered by oyatie observability substrate)
 
-Mirth Connect — open-source HL7v2 engine:
+Mirth — open-source HL7v2 engine:
 - Covered: HL7v2.x routing, transformation (Camel / JavaScript filters),
   PostgreSQL / SeaweedFS storage, multi-channel listener (MLLP / TCP /
-  HTTP / FTP / SFTP), Mirth Connect 4.5 declared as the underlying
+  HTTP / FTP / SFTP), Mirth 4.5 declared as the underlying
   engine
 - Partial: Mirth's visual channel editor — oyatie ships Workflow Studio
   (per Phase 2) but no Mirth-style channel editor UI

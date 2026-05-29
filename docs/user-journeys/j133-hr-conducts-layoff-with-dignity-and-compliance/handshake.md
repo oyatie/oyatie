@@ -392,7 +392,7 @@ permit (
 | Disparate-impact analysis YELLOW/RED | Per-jurisdiction verdict | Re-balance selections; works-council re-consult | Re-run with adjusted list |
 | Works-council declines proposed selections | §111 BetrVG objection event | Negotiate per §1 KSchG social-selection | Adjust list; re-notify |
 | Payments rail down at disbursement time | rail-health-probe FAIL | Defer + retry with exponential backoff | EmployeeFinalPayDeferred event |
-| Outplacement vendor unreachable | Connect cross-tenant fail | Queue retry; manual fallback if persistent | OutplacementEnrollmentDeferred |
+| Outplacement vendor unreachable | cross-tenant fail | Queue retry; manual fallback if persistent | OutplacementEnrollmentDeferred |
 | Identity revocation fails for personal-tenant (should NEVER happen) | forbid clause triggers | Alarm + ops review; default-deny held | PersonalTenantRevokeAttempted (alert-only) |
 | Cohort channel provisioning fails | provision RPC fail | Retry; if persistent, manual provisioning | CohortChannelProvisioningDeferred |
 | Audit-chain degraded mid-cascade | seal-latency P99 spike | Local WAL per ADR-0028; flush on recovery | AuditEventDeferredLocal |

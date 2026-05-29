@@ -96,7 +96,7 @@ forbid (
 
 1. Marcus-tenant calls `/calendar/cross-tenant/book` with candidate pseudo_id.
 2. Calendar resolves pseudo_id to candidate's personal-tenant principal (via identity).
-3. Calendar sends cross-tenant invite event to candidate's personal Calendar (via cross-tenant Connect channel).
+3. Calendar sends cross-tenant invite event to candidate's personal Calendar (via cross-tenant channel).
 4. Candidate's personal Calendar shows: "[Marcus's Tenant — Job Interview]" with accept/decline buttons.
 5. On accept, candidate's Calendar adds event; marcus-tenant Calendar receives confirmation.
 6. On decline, marcus-tenant Calendar emits InterviewProposalDeclined and proposes alternates.
@@ -134,13 +134,13 @@ forbid (
 |---|---|
 | Candidate tenant unreachable | Eventual delivery via cross-tenant queue; fall back to ICS after 2 retries |
 | Hiring-manager calendar conflict | Suggest 5 alternate slots from free-time |
-| Cross-tenant Connect channel down | ICS fallback; mark CalendarInviteFallbackICS |
+| Cross-tenant channel down | ICS fallback; mark CalendarInviteFallbackICS |
 | Identity pseudo_id resolve failure | Halt booking; retry with refreshed pseudo_id |
 
 ## Migration / rollout
 
 - Lane: calendar-rollout-j132
-- Pre-roll: register cross-tenant Connect channels per partner tenant
+- Pre-roll: register cross-tenant channels per partner tenant
 - Roll: enable feature flag `calendar.cross_tenant_book_v1`
 - Validate: 1 week, ICS-fallback rate < 5%
 - Promote: enable for all B2B tenants

@@ -21,7 +21,7 @@ doc_status: published
 
 The `foundry-eval` microservice is oyatie's eval-harness substrate. It runs per-capability eval sets, computes pass/fail verdicts, produces parity reports against provider baselines, replays past production traces with deterministic divergence assertions, and gates capability publish + in-house-model cutover decisions (ADR-0024 + ADR-0026). It is the canonical eval substrate referenced by every capability owner and every model-routing decision in `foundry-runtime` / `foundry-providers`.
 
-Per ADR-0131 (per-microservice flat layout) + ADR-0132 (product-suite dissolution), `foundry-eval` ships as a flat µservice — the former `foundry` product bundle split into `foundry-providers`, `foundry-runtime`, `foundry-supervisor`, `foundry-evidence`, `foundry-guardrails`, and `foundry-eval`. This PRD scaffolds the eval split.
+Per ADR-0131 (per-microservice flat layout) + ADR-0132 (product-platform dissolution), `foundry-eval` ships as a flat µservice — the former `foundry` product bundle split into `foundry-providers`, `foundry-runtime`, `foundry-supervisor`, `foundry-evidence`, `foundry-guardrails`, and `foundry-eval`. This PRD scaffolds the eval split.
 
 This µservice is **shared substrate**, not a hero product. Tenants do not author eval-sets directly; capability owners do, and tenants consume the resulting publish-gate verdicts and the public parity report. It is consumed by `foundry-runtime` (capability publish gate), `foundry-providers` (A/B routing decision), every capability owner team (nightly eval), and `foundry-evidence` (audit emission of eval evidence).
 
@@ -407,7 +407,7 @@ Sharding:
 | ADR-0106 | application → usecase rename | new crates use `usecase` |
 | ADR-0139 | Agentic SLO-gated promotion | foundry-eval inherits the SLO gate model |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
-| ADR-0132 | Product-suite-and-bundle dissolution | foundry-eval split from foundry product bundle |
+| ADR-0132 | Product-platform-and-bundle dissolution | foundry-eval split from foundry product bundle |
 | ADR-0133 | Industry best-practice conformance program | HG-FE bar |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-FE registers here |
 | ADR-0116 | Retire external agent-coordination tooling | oya vcs primitives used throughout |

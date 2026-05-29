@@ -8,7 +8,7 @@ info:
     OIDC + Cedar authorisation (per `microservices/messenger/policy/*.cedar`)
     and are tenant-scoped via `X-Scope-OrgID` header.
 
-    Real-time path is via WebSocket at `wss://messenger-{pack}.oyatie.dev/ws/v1`
+    Real-time path is via WebSocket at `wss://messenger-{pack}.oyatie.com/ws/v1`
     documented in `contracts/asyncapi/messenger-events.yaml`.
 
     Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.
@@ -16,11 +16,11 @@ info:
     MUST match the claim; mismatch returns 401.
   contact:
     name: axis-messenger
-    url: https://oyatie.dev/teams/axis-messenger
+    url: https://oyatie.com/teams/axis-messenger
   license:
     name: Internal
 servers:
-  - url: https://messenger-{pack}.oyatie.dev/api/v1
+  - url: https://messenger-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -81,7 +81,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
   parameters:
     XScopeOrgID:
       in: header

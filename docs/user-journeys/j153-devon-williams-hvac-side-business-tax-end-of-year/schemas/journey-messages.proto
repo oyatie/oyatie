@@ -27,7 +27,7 @@ message TenantSwitchResponse {
 }
 
 // ----------------------------------------------------------------------------
-// Stripe Connect batch reconcile
+// Stripe batch reconcile
 // ----------------------------------------------------------------------------
 
 message StripeBatchReconcileRequest {
@@ -150,7 +150,7 @@ message Form1099KSummary {
 }
 
 // ----------------------------------------------------------------------------
-// Connect tax-preparer share
+// tax-preparer share
 // ----------------------------------------------------------------------------
 
 message TaxPreparerShareRequest {

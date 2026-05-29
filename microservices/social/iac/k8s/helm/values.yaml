@@ -45,7 +45,9 @@ image:
   registry: registry.oyatie.dev
   repository: oya-social
   tag: "0.1.0"
-  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  # Release automation must inject a real signed image digest. Keep the
+  # pre-release default empty so local checks do not carry fake digests.
+  digest: ""
   pullPolicy: IfNotPresent
   cosign:
     required: true
@@ -67,7 +69,7 @@ gateway:
     namespace: oya-gateway
     sectionName: https
   hostnames:
-    - social-kr.oyatie.dev
+    - social-kr.oyatie.com
   pathPrefix: /api/v1
   tlsTermination: parent-gateway-tls13-ech-pqc
   openapiContract: microservices/social/contracts/openapi/social.yaml
@@ -82,7 +84,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-social-cedar
+  policyConfigMapName: oya-community-social-cedar
 
 otel:
   enabled: true

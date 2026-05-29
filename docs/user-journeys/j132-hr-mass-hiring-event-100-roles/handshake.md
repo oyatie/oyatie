@@ -107,7 +107,7 @@ Priya  api-gw  community  connect  payments  audit-chain  mail
 |---|---:|---|---|---|---|---|---|---|---|
 | 2.1 | 0 | Priya | api-gateway | POST /community/posts (40 Handshake-mode) | community-post-batch-req | b2b.community.handshake_publish | (route) | oya_community_publish_total | n/a |
 | 2.2 | 40 | api-gateway | community | gRPC PublishHandshakeBatch | handshake-batch | b2b.community.handshake_publish | HandshakeModePostPublished ×40 | oya_community_handshake_publish_ms | community degraded → queue+retry |
-| 2.3 | 120 | community | connect | gRPC NotifyTrustPartner ×12 unis | connect-trust-notify | connect.cross_tenant_notify | TrustPartnerNotified ×12 | oya_connect_cross_tenant_notify_ms | partner-tenant timeout → eventual delivery |
+| 2.3 | 120 | community | connector | gRPC NotifyTrustPartner ×12 unis | connect-trust-notify | connect.cross_tenant_notify | TrustPartnerNotified ×12 | oya_connect_cross_tenant_notify_ms | partner-tenant timeout → eventual delivery |
 | 2.4 | 240 | community | payments | gRPC DebitTenantBilling | payments-debit-tenant-req | b2b.payments.tenant_debit | TenantBillingDebited ($168) | oya_payments_tenant_debit_ms | payments degraded → defer-balance per ADR-0028 |
 | 2.5 | 320 | community | audit-chain | gRPC EmitSealed ×40 | audit-event-sealed | (internal) | HandshakeModePostPublished ×40 | oya_audit_chain_seal_latency_ms | audit degraded → local WAL |
 | 2.6 | 400 | community | mail | gRPC SendBatchNotify | mail-notify-template | b2b.mail.send_internal_notify | UniversityCareerServiceNotified ×12 | oya_mail_send_total{template=hr-handshake-uni} | mail degraded → retry async |
@@ -401,7 +401,7 @@ j132 emits the following audit-event classes (per ADR-0263):
 | OverlayResolved | compliance | audit-chain |
 | HandshakeModePostPublished | community | audit-chain |
 | LinkedInModePostPublished | community | audit-chain |
-| TrustPartnerNotified | connect | audit-chain |
+| TrustPartnerNotified | connector | audit-chain |
 | TenantBillingDebited | payments | audit-chain |
 | UniversityCareerServiceNotified | mail | audit-chain |
 | JobApplicationReceived | workflow-engine | audit-chain |

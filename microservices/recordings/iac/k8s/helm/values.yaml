@@ -15,7 +15,9 @@ image:
   registry: registry.oyatie.dev
   repository: oya-recordings
   tag: "0.1.0"
-  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  # Release automation must inject a real signed image digest. Keep the
+  # pre-release default empty so local checks do not carry fake digests.
+  digest: ""
   pullPolicy: IfNotPresent
   cosign:
     required: true

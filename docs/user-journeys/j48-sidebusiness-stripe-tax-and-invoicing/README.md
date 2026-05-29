@@ -58,7 +58,7 @@ Purpose: Index and build contract for Side-business Stripe tax and invoicing at 
 - ../../microservices/finops-portal/IP-journey-j48-tax-filing-console.md: finops-portal implementation slice.
 - ../../microservices/mail/IP-journey-j48-tax-notice-delivery.md: mail implementation slice.
 - ../../microservices/compliance/IP-journey-j48-kr-fss-overlay.md: compliance implementation slice.
-- ../../microservices/connect/IP-journey-j48-adp-kr-export.md: connect implementation slice.
+- ../../microservices/connector/IP-journey-j48-adp-kr-export.md: connect implementation slice.
 ## Integration points
 - payments: kr-fss-threshold-ledger; emits audit, metrics, logs, and traces per ADR-0263.
 - finops-portal: tax-filing-console; emits audit, metrics, logs, and traces per ADR-0263.

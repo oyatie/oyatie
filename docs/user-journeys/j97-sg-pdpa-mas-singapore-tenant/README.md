@@ -38,7 +38,7 @@ A Singapore fintech tenant activates SG-PDPA and MAS cybersecurity overlays with
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -78,7 +78,7 @@ A Singapore fintech tenant activates SG-PDPA and MAS cybersecurity overlays with
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -144,7 +144,7 @@ A Singapore fintech tenant activates SG-PDPA and MAS cybersecurity overlays with
 | README-AC-010 | comms-email | MTCS-L3 cell proof | MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | cross-border home-jurisdiction review | Singapore PDPA section 11 accountability | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | incident drill export | Singapore PDPA sections 13 to 17 consent, purpose, and withdrawal duties | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | fintech tenant activation | Singapore PDPA section 20 notification of purposes | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | fintech tenant activation | Singapore PDPA section 20 notification of purposes | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | PDPA consent catalog | Singapore PDPA section 21 access and correction | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | MAS critical-system tagging | Singapore PDPA section 24 protection obligation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | MTCS-L3 cell proof | Singapore PDPA section 25 retention limitation | Cedar deny-wins; ADR-0263 event sealed |
@@ -189,7 +189,7 @@ A Singapore fintech tenant activates SG-PDPA and MAS cybersecurity overlays with
 | README-AC-055 | comms-email | fintech tenant activation | Singapore PDPA section 24 protection obligation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | PDPA consent catalog | Singapore PDPA section 25 retention limitation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | MAS critical-system tagging | Singapore PDPA section 26 transfer limitation | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | MTCS-L3 cell proof | Singapore PDPA section 26A data breach notification | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | MTCS-L3 cell proof | Singapore PDPA section 26A data breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | cross-border home-jurisdiction review | MAS Notice on Technology Risk Management incident reporting provisions for relevant incidents | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | incident drill export | MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | fintech tenant activation | Singapore PDPA section 11 accountability | Cedar deny-wins; ADR-0263 event sealed |
@@ -234,7 +234,7 @@ A Singapore fintech tenant activates SG-PDPA and MAS cybersecurity overlays with
 | README-AC-100 | comms-email | MTCS-L3 cell proof | MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | cross-border home-jurisdiction review | Singapore PDPA section 11 accountability | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | incident drill export | Singapore PDPA sections 13 to 17 consent, purpose, and withdrawal duties | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | fintech tenant activation | Singapore PDPA section 20 notification of purposes | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | fintech tenant activation | Singapore PDPA section 20 notification of purposes | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | PDPA consent catalog | Singapore PDPA section 21 access and correction | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | MAS critical-system tagging | Singapore PDPA section 24 protection obligation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | MTCS-L3 cell proof | Singapore PDPA section 25 retention limitation | Cedar deny-wins; ADR-0263 event sealed |
@@ -279,7 +279,7 @@ A Singapore fintech tenant activates SG-PDPA and MAS cybersecurity overlays with
 | README-AC-145 | comms-email | fintech tenant activation | Singapore PDPA section 24 protection obligation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | PDPA consent catalog | Singapore PDPA section 25 retention limitation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | MAS critical-system tagging | Singapore PDPA section 26 transfer limitation | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | MTCS-L3 cell proof | Singapore PDPA section 26A data breach notification | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | MTCS-L3 cell proof | Singapore PDPA section 26A data breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | cross-border home-jurisdiction review | MAS Notice on Technology Risk Management incident reporting provisions for relevant incidents | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | incident drill export | MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | fintech tenant activation | Singapore PDPA section 11 accountability | Cedar deny-wins; ADR-0263 event sealed |

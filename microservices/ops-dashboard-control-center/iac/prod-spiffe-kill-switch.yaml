@@ -42,5 +42,5 @@ data:
     4. Re-issue: kubectl apply -f iac/prod-spiffe-kill-switch.yaml after root cause resolved
     5. Audit event: SpiffeKillSwitchTriggered emitted per ADR-0263
   rotation_ttl: "24h"
-  crl_distribution_point: "https://pki.internal.oyatie.dev/crl/ops-dashboard.crl"
-  ocsp_responder: "https://pki.internal.oyatie.dev/ocsp/ops-dashboard"
+  crl_distribution_point: "https://pki.internal.oyatie.com/crl/ops-dashboard.crl"
+  ocsp_responder: "https://pki.internal.oyatie.com/ocsp/ops-dashboard"

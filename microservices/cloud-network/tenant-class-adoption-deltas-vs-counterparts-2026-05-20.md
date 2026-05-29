@@ -61,7 +61,7 @@
 - AWS base/free-equivalent tenant_class is default VPC networking, subnets, route tables, security groups, NACLs, internet gateway, and basic quotas.
 - AWS paid baseline tenant_class maps to NAT Gateway, interface endpoints, gateway endpoints, load balancers, flow-log storage, and ordinary Site-to-Site VPN.
 - AWS production tenant_class maps to Transit Gateway, Network Firewall, PrivateLink producer/consumer, centralized monitoring, and larger quotas.
-- AWS dedicated/enterprise tenant_class maps to Direct Connect at 10/100/400 Gbps, Cloud WAN, Network Manager, IPAM, high-scale peering, and dedicated account/network patterns.
+- AWS dedicated/enterprise tenant_class maps to Direct at 10/100/400 Gbps, Cloud WAN, Network Manager, IPAM, high-scale peering, and dedicated account/network patterns.
 - AWS emphasizes quota-managed scale, native provider integration, and broad managed feature coverage.
 - AWS does not expose Cedar-native network authorization.
 - AWS does not expose Oyatie-style tenant packet tags.
@@ -131,7 +131,7 @@
 | Supported contexts | undocumented | AWS only | GCP only | Azure only | canonical gap |
 | Tenant packet tags | yes in tenant_class matrix | tags not packet semantics | tags not packet semantics | tags not packet semantics | additive |
 | BGP | no | Direct Connect/VPN extras | Cloud Router extra | Gateway/ExpressRoute extra | acceptable defer |
-| Interconnect | no | Direct Connect paid | Interconnect paid | ExpressRoute paid | acceptable defer |
+| Interconnect | no | Direct paid | Interconnect paid | ExpressRoute paid | acceptable defer |
 | Private DNS | partial via DNS API | endpoint private DNS | private zones | private DNS zone | ownership split |
 | Onboarding | 181-line doc | official docs | official docs | official docs | below rigor floor |
 | Incident runbooks | strong | managed docs | managed docs | managed docs | Oyatie strength |

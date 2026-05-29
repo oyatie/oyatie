@@ -24,11 +24,11 @@ Java SDK implementing the OpenFeature `Provider` interface. Phase 2 SDK targetin
 | 3 | `ConcurrentHashMap` cache | Key: `TenantFlagKey(tenantId, flagKey)`; TTL 30s via `ScheduledExecutorService`; LKG: Jackson JSON to `System.getProperty("user.home")/.cache/oya-ff/lkg.json` |
 | 4 | SSE stream | `okhttp3-sse` `EventSource`; per-tenant; exponential backoff reconnect |
 | 5 | Android support | `minSdk 26`; ProGuard/R8 keep rules included |
-| 6 | Tests | JUnit 5 + Mockito; `OkHttp MockWebServer` for transport tests; OpenFeature Java conformance suite |
+| 6 | Tests | JUnit 5 + Mockito; `OkHttp MockWebServer` for transport tests; OpenFeature Java conformance set |
 
 ## Definition of Done
 
 - `./gradlew test` green
 - Android lint clean
-- OpenFeature Java conformance suite passes
+- OpenFeature Java conformance set passes
 - Published to Maven Central as `io.oyatie:feature-flags-sdk:1.x`

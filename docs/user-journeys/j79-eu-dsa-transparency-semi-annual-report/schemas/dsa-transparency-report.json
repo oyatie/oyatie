@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j79-dsa-transparency-report.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j79-dsa-transparency-report.schema.json",
   "title": "J79 EU DSA transparency semi-annual report Journey Object",
   "version": "1.0.0",
   "_meta": {

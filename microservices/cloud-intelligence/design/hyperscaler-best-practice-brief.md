@@ -1,4 +1,4 @@
-# LLM Gateway — Hyperscaler Best-Practice Research Brief (2025–2026)
+# Cloud Intelligence — Hyperscaler Best-Practice Research Brief (2025–2026)
 
 > Source-grounded design foundation for `microservices/cloud-intelligence` (Rust hyper + hyper-rustls/ring key-pool reverse proxy fronting OpenAI/Anthropic/Gemini with SSE streaming, failure→blacklist→jittered-cooldown→restore key rotation, admin+ingress auth realms, vault-sourced secrets, OTel metrics). Contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenSLO. Evidence: [OFFICIAL] vendor docs / [SUPPLEMENTAL] practitioner. Produced 2026-05-26 via `/best-practice-research`.
 

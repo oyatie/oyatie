@@ -12,9 +12,19 @@
       "label": "application"
     },
     {
-      "id": "connect",
+      "id": "mail",
       "kind": "microservice",
-      "label": "connect"
+      "label": "mail"
+    },
+    {
+      "id": "messenger",
+      "kind": "microservice",
+      "label": "messenger"
+    },
+    {
+      "id": "community",
+      "kind": "microservice",
+      "label": "community"
     },
     {
       "id": "contracts/application-v1.openapi.yaml",
@@ -697,134 +707,134 @@
       "label": "oya-codeview-cli"
     },
     {
-      "id": "crates/oya-connect-address-book-domain",
+      "id": "crates/oya-address-book-domain",
       "kind": "crate",
-      "label": "oya-connect-address-book-domain"
+      "label": "oya-address-book-domain"
     },
     {
-      "id": "crates/oya-connect-calendar-domain",
+      "id": "crates/oya-calendar-domain",
       "kind": "crate",
-      "label": "oya-connect-calendar-domain"
+      "label": "oya-calendar-domain"
     },
     {
-      "id": "crates/oya-connect-collab-runtime-domain",
+      "id": "crates/oya-collab-runtime-domain",
       "kind": "crate",
-      "label": "oya-connect-collab-runtime-domain"
+      "label": "oya-collab-runtime-domain"
     },
     {
-      "id": "crates/oya-connect-dlp-domain",
+      "id": "crates/oya-dlp-domain",
       "kind": "crate",
-      "label": "oya-connect-dlp-domain"
+      "label": "oya-dlp-domain"
     },
     {
-      "id": "crates/oya-connect-docs-domain",
+      "id": "crates/oya-docs-domain",
       "kind": "crate",
-      "label": "oya-connect-docs-domain"
+      "label": "oya-docs-domain"
     },
     {
-      "id": "crates/oya-connect-document-format-domain",
+      "id": "crates/oya-document-format-domain",
       "kind": "crate",
-      "label": "oya-connect-document-format-domain"
+      "label": "oya-document-format-domain"
     },
     {
-      "id": "crates/oya-connect-drive-domain",
+      "id": "crates/oya-drive-domain",
       "kind": "crate",
-      "label": "oya-connect-drive-domain"
+      "label": "oya-drive-domain"
     },
     {
-      "id": "crates/oya-connect-drive-rest",
+      "id": "crates/oya-drive-rest",
       "kind": "crate",
-      "label": "oya-connect-drive-rest"
+      "label": "oya-drive-rest"
     },
     {
-      "id": "crates/oya-connect-dsr-domain",
+      "id": "crates/oya-dsr-domain",
       "kind": "crate",
-      "label": "oya-connect-dsr-domain"
+      "label": "oya-dsr-domain"
     },
     {
-      "id": "crates/oya-connect-ediscovery-domain",
+      "id": "crates/oya-ediscovery-domain",
       "kind": "crate",
-      "label": "oya-connect-ediscovery-domain"
+      "label": "oya-ediscovery-domain"
     },
     {
-      "id": "crates/oya-connect-forms-domain",
+      "id": "crates/oya-forms-domain",
       "kind": "crate",
-      "label": "oya-connect-forms-domain"
+      "label": "oya-forms-domain"
     },
     {
-      "id": "crates/oya-connect-forms-rest",
+      "id": "crates/oya-forms-rest",
       "kind": "crate",
-      "label": "oya-connect-forms-rest"
+      "label": "oya-forms-rest"
     },
     {
-      "id": "crates/oya-connect-mail-domain",
+      "id": "crates/oya-mail-domain",
       "kind": "crate",
-      "label": "oya-connect-mail-domain"
+      "label": "oya-mail-domain"
     },
     {
-      "id": "crates/oya-connect-meet-domain",
+      "id": "crates/oya-meet-domain",
       "kind": "crate",
-      "label": "oya-connect-meet-domain"
+      "label": "oya-meet-domain"
     },
     {
-      "id": "crates/oya-connect-meet-rest",
+      "id": "crates/oya-meet-rest",
       "kind": "crate",
-      "label": "oya-connect-meet-rest"
+      "label": "oya-meet-rest"
     },
     {
-      "id": "crates/oya-connect-messenger-domain",
+      "id": "crates/oya-messenger-domain",
       "kind": "crate",
-      "label": "oya-connect-messenger-domain"
+      "label": "oya-messenger-domain"
     },
     {
-      "id": "crates/oya-connect-messenger-rest",
+      "id": "crates/oya-messenger-rest",
       "kind": "crate",
-      "label": "oya-connect-messenger-rest"
+      "label": "oya-messenger-rest"
     },
     {
-      "id": "crates/oya-connect-notes-domain",
+      "id": "crates/oya-notes-domain",
       "kind": "crate",
-      "label": "oya-connect-notes-domain"
+      "label": "oya-notes-domain"
     },
     {
-      "id": "crates/oya-connect-recordings-domain",
+      "id": "crates/oya-recordings-domain",
       "kind": "crate",
-      "label": "oya-connect-recordings-domain"
+      "label": "oya-recordings-domain"
     },
     {
-      "id": "crates/oya-connect-retention-domain",
+      "id": "crates/oya-retention-domain",
       "kind": "crate",
-      "label": "oya-connect-retention-domain"
+      "label": "oya-retention-domain"
     },
     {
-      "id": "crates/oya-connect-sheets-domain",
+      "id": "crates/oya-sheets-domain",
       "kind": "crate",
-      "label": "oya-connect-sheets-domain"
+      "label": "oya-sheets-domain"
     },
     {
-      "id": "crates/oya-connect-sites-domain",
+      "id": "crates/oya-sites-domain",
       "kind": "crate",
-      "label": "oya-connect-sites-domain"
+      "label": "oya-sites-domain"
     },
     {
-      "id": "crates/oya-connect-slides-domain",
+      "id": "crates/oya-slides-domain",
       "kind": "crate",
-      "label": "oya-connect-slides-domain"
+      "label": "oya-slides-domain"
     },
     {
-      "id": "crates/oya-connect-tasks-domain",
+      "id": "crates/oya-tasks-domain",
       "kind": "crate",
-      "label": "oya-connect-tasks-domain"
+      "label": "oya-tasks-domain"
     },
     {
-      "id": "crates/oya-connect-translate-domain",
+      "id": "crates/oya-translate-domain",
       "kind": "crate",
-      "label": "oya-connect-translate-domain"
+      "label": "oya-translate-domain"
     },
     {
-      "id": "crates/oya-connect-trust-portal-domain",
+      "id": "crates/oya-trust-portal-domain",
       "kind": "crate",
-      "label": "oya-connect-trust-portal-domain"
+      "label": "oya-trust-portal-domain"
     },
     {
       "id": "crates/oya-data-boundary-classification-adapter",

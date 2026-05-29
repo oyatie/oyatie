@@ -206,7 +206,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 001: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -215,7 +215,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 005: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 007: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -225,7 +225,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 009: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: payments keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
@@ -234,7 +234,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 013: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -253,7 +253,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 021: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: payments keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 023: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -263,7 +263,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 025: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -272,7 +272,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 029: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 031: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -291,7 +291,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 037: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -300,7 +300,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 041: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 043: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -310,7 +310,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 045: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: payments keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
@@ -319,7 +319,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 049: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -338,7 +338,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 057: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: payments keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 059: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -348,7 +348,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 061: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -357,7 +357,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 065: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 067: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -376,7 +376,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 073: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -385,7 +385,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 077: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 079: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -395,7 +395,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 081: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: payments keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
@@ -404,7 +404,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 085: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -423,7 +423,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 093: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: payments keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 095: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -433,7 +433,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 097: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -442,7 +442,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 101: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 103: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -461,7 +461,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 109: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -470,7 +470,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 113: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 115: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -480,7 +480,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 117: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: payments keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
@@ -489,7 +489,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 121: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -508,7 +508,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 129: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: payments keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 131: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -518,7 +518,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 133: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: identity keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: workplace-integration keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -527,7 +527,7 @@ weekly timesheets, stipend, and mentor DM channel.
 - readme-buildability 137: messenger keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 138: calendar keeps Aiyana Brooks and university career center tenant inside tenant-scoped
-  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 139: community keeps Aiyana Brooks and KrampusCorp Seoul inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.

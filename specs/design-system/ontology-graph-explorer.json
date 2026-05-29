@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/ontology-graph-explorer.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/ontology-graph-explorer.schema.json",
   "title": "DesignSystemComponent:OntologyGraphExplorer",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",

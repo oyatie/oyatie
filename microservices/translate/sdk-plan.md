@@ -39,7 +39,7 @@ doc_status: published
 ```rust
 use oya_translate_router_sdk::{TranslateClient, TranslateRequest, ContentClass, PackId};
 
-let client = TranslateClient::new("https://translate.kr.oyatie.dev/v1")
+let client = TranslateClient::new("https://translate.kr.oyatie.com/v1")
     .with_oidc_token(token)
     .with_tenant("acme-corp")
     .with_pack(PackId::Kr);
@@ -66,7 +66,7 @@ Generated entity types from `oya-translate-router-api` crate (the canonical type
 import { TranslateClient } from '@oyatie/translate-client';
 
 const client = new TranslateClient({
-  baseUrl: 'https://translate.kr.oyatie.dev/v1',
+  baseUrl: 'https://translate.kr.oyatie.com/v1',
   oidcToken: token,
   tenantId: 'acme-corp',
   pack: 'kr',
@@ -92,7 +92,7 @@ Promise-based; ESM + CJS published.
 from oyatie_translate_client import TranslateClient, ContentClass
 
 client = TranslateClient(
-    base_url="https://translate.kr.oyatie.dev/v1",
+    base_url="https://translate.kr.oyatie.com/v1",
     oidc_token=token,
     tenant_id="acme-corp",
     pack="kr",

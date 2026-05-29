@@ -121,7 +121,7 @@ You may request a full audit-chain export of every access to this secret
 during the at-risk window <T-MIN, T-DETECTED> by replying to this email.
 
 Regards,
-oyatie Security Response (ops-security@oyatie.dev)
+oyatie Security Response (ops-security@oyatie.com)
 Incident ID: <ULID>
 ```
 

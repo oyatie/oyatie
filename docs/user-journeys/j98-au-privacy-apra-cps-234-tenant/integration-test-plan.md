@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J98-T001 | analytics AU tenant eligibility | Cedar decision and audit event cite Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information; data remains tenant-scoped |
 | J98-T002 | api-gateway APP notice and consent bind | Cedar decision and audit event cite APP 3 collection of solicited personal information; data remains tenant-scoped |

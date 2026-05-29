@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j70/ai-drafted-contract-human-finalized-handoff.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j70/ai-drafted-contract-human-finalized-handoff.json",
   "title": "J70AiDraftedContractHumanFinalizedHandoff",
   "description": "Shared ai-drafted-contract-human-finalized-handoff schema for j70-ai-drafted-contract-human-finalized. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

@@ -396,7 +396,7 @@ substrate, not six rows that fan-out to one capability.
 - ADR-0123: Hyperscaler maturity claim gate.
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward policy.
+- ADR-0132: No-grouping forward policy.
 - ADR-0133: Industry best-practice conformance.
 - ADR-0134: Connect-dissolution Strangler (analogous migration pattern).
 - ADR-0137: Foundry bounded contexts (companion ADR — names the six BCs +

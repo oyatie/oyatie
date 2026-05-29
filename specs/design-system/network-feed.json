@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/network-feed.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/network-feed.schema.json",
   "title": "DesignSystem:Network Feed",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "network-feed",

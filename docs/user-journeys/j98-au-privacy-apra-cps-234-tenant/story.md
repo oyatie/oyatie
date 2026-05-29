@@ -93,7 +93,7 @@ Failure mode: if the OAIC breach packet rehearsal lane cannot prove compliance, 
 | 10 | Marcus Chen | comms-email | CPS 234 asset classification; APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Receipt EVT-J98-010 shown with pack AU-PRIVACY-ACT |
 | 11 | Marcus Chen | community | APRA notification drill; Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Receipt EVT-J98-011 shown with pack APRA-CPS-234 |
 | 12 | Marcus Chen | compliance | OAIC breach packet rehearsal; APP 3 collection of solicited personal information | Receipt EVT-J98-012 shown with pack AU-IRAP-PROTECTED |
-| 13 | Marcus Chen | connect | AU tenant eligibility; APP 5 notification of collection | Receipt EVT-J98-013 shown with pack AU-PRIVACY-ACT |
+| 13 | Marcus Chen | connector | AU tenant eligibility; APP 5 notification of collection | Receipt EVT-J98-013 shown with pack AU-PRIVACY-ACT |
 | 14 | Marcus Chen | consent-graph | APP notice and consent bind; APP 6 use or disclosure | Receipt EVT-J98-014 shown with pack APRA-CPS-234 |
 | 15 | Marcus Chen | developer-sdk | IRAP PROTECTED cell placement; APP 8 cross-border disclosure | Receipt EVT-J98-015 shown with pack AU-IRAP-PROTECTED |
 | 16 | Marcus Chen | docs | CPS 234 asset classification; APP 11 security of personal information | Receipt EVT-J98-016 shown with pack AU-PRIVACY-ACT |
@@ -138,7 +138,7 @@ Failure mode: if the OAIC breach packet rehearsal lane cannot prove compliance, 
 | 55 | Marcus Chen | comms-email | AU tenant eligibility; APP 8 cross-border disclosure | Receipt EVT-J98-055 shown with pack AU-PRIVACY-ACT |
 | 56 | Marcus Chen | community | APP notice and consent bind; APP 11 security of personal information | Receipt EVT-J98-056 shown with pack APRA-CPS-234 |
 | 57 | Marcus Chen | compliance | IRAP PROTECTED cell placement; APP 12 access and APP 13 correction | Receipt EVT-J98-057 shown with pack AU-IRAP-PROTECTED |
-| 58 | Marcus Chen | connect | CPS 234 asset classification; Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Receipt EVT-J98-058 shown with pack AU-PRIVACY-ACT |
+| 58 | Marcus Chen | connector | CPS 234 asset classification; Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Receipt EVT-J98-058 shown with pack AU-PRIVACY-ACT |
 | 59 | Marcus Chen | consent-graph | APRA notification drill; APRA CPS 234 paragraphs 13 to 21 governance, capability, policy, classification, and controls | Receipt EVT-J98-059 shown with pack APRA-CPS-234 |
 | 60 | Marcus Chen | developer-sdk | OAIC breach packet rehearsal; APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Receipt EVT-J98-060 shown with pack AU-IRAP-PROTECTED |
 | 61 | Marcus Chen | docs | AU tenant eligibility; Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Receipt EVT-J98-061 shown with pack AU-PRIVACY-ACT |
@@ -183,7 +183,7 @@ Failure mode: if the OAIC breach packet rehearsal lane cannot prove compliance, 
 | 100 | Marcus Chen | comms-email | CPS 234 asset classification; APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Receipt EVT-J98-100 shown with pack AU-PRIVACY-ACT |
 | 101 | Marcus Chen | community | APRA notification drill; Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Receipt EVT-J98-101 shown with pack APRA-CPS-234 |
 | 102 | Marcus Chen | compliance | OAIC breach packet rehearsal; APP 3 collection of solicited personal information | Receipt EVT-J98-102 shown with pack AU-IRAP-PROTECTED |
-| 103 | Marcus Chen | connect | AU tenant eligibility; APP 5 notification of collection | Receipt EVT-J98-103 shown with pack AU-PRIVACY-ACT |
+| 103 | Marcus Chen | connector | AU tenant eligibility; APP 5 notification of collection | Receipt EVT-J98-103 shown with pack AU-PRIVACY-ACT |
 | 104 | Marcus Chen | consent-graph | APP notice and consent bind; APP 6 use or disclosure | Receipt EVT-J98-104 shown with pack APRA-CPS-234 |
 | 105 | Marcus Chen | developer-sdk | IRAP PROTECTED cell placement; APP 8 cross-border disclosure | Receipt EVT-J98-105 shown with pack AU-IRAP-PROTECTED |
 | 106 | Marcus Chen | docs | CPS 234 asset classification; APP 11 security of personal information | Receipt EVT-J98-106 shown with pack AU-PRIVACY-ACT |
@@ -228,7 +228,7 @@ Failure mode: if the OAIC breach packet rehearsal lane cannot prove compliance, 
 | 145 | Marcus Chen | comms-email | AU tenant eligibility; APP 8 cross-border disclosure | Receipt EVT-J98-145 shown with pack AU-PRIVACY-ACT |
 | 146 | Marcus Chen | community | APP notice and consent bind; APP 11 security of personal information | Receipt EVT-J98-146 shown with pack APRA-CPS-234 |
 | 147 | Marcus Chen | compliance | IRAP PROTECTED cell placement; APP 12 access and APP 13 correction | Receipt EVT-J98-147 shown with pack AU-IRAP-PROTECTED |
-| 148 | Marcus Chen | connect | CPS 234 asset classification; Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Receipt EVT-J98-148 shown with pack AU-PRIVACY-ACT |
+| 148 | Marcus Chen | connector | CPS 234 asset classification; Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Receipt EVT-J98-148 shown with pack AU-PRIVACY-ACT |
 | 149 | Marcus Chen | consent-graph | APRA notification drill; APRA CPS 234 paragraphs 13 to 21 governance, capability, policy, classification, and controls | Receipt EVT-J98-149 shown with pack APRA-CPS-234 |
 | 150 | Marcus Chen | developer-sdk | OAIC breach packet rehearsal; APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Receipt EVT-J98-150 shown with pack AU-IRAP-PROTECTED |
 | 151 | Marcus Chen | docs | AU tenant eligibility; Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Receipt EVT-J98-151 shown with pack AU-PRIVACY-ACT |

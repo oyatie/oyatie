@@ -14,11 +14,11 @@ info:
     All paths bound to the authenticated tenant; client cannot override tenant_id.
   contact:
     name: axis-workflow
-    email: axis-workflow@oyatie.dev
+    email: axis-workflow@oyatie.com
   license:
     name: Internal
 servers:
-  - url: https://workflow-engine.<pack>.oyatie.dev/v1
+  - url: https://workflow-engine.<pack>.oyatie.com/v1
     description: Per-pack engine endpoint (pack = kr | eu | us | us-hc | jp | sg | au | in | br | ae | ksa)
 
 security:
@@ -491,7 +491,7 @@ components:
   securitySchemes:
     oidcAuth:
       type: openIdConnect
-      openIdConnectUrl: https://auth.<pack>.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.<pack>.oyatie.com/.well-known/openid-configuration
 
   schemas:
     WorkflowSpec:

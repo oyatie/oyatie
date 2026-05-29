@@ -5,8 +5,8 @@
   "owner": "axis-pharmacy",
   "authority_adr": "docs/decisions/ADR-0332-pharmacy-substrate.md",
   "layout_authority": "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
-  "suite_policy": "docs/decisions/ADR-0132-no-suite-microservices.md",
-  "summary": "Pharmacy clinical and operational substrate \u2014 medication catalog (NDC + RxNorm + GPI + ATC + UNII), formulary, ePrescribe (Surescripts + NCPDP SCRIPT + EPCS), drug interactions (DDI/DAI/DCI/DPI/DDxI/DLI/DFI/DDoseI), allergy + dose checking, pharmacist verification, compounding (USP 795/797/800), inventory, auto-dispensing cabinets (Pyxis/Omnicell/Carousel), BCMA, IV admixture + smart pump (Alaris/Plum/Hospira), controlled substances (DEA CII\u2013CV + Form 222 + EPCS), reimbursement (340B + PBM NCPDP D.0), operations, interventions, medication reconciliation, outpatient retail/drive-through/mail/specialty, MTM (CMR/TMR/MAP/PML), DSCSA (SGTIN-198 + T1/T2/T3 + saleable returns + suspect product).",
+  "grouping_policy": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md",
+  "summary": "Pharmacy clinical and operational substrate — medication catalog (NDC + RxNorm + GPI + ATC + UNII), formulary, ePrescribe (Surescripts + NCPDP SCRIPT + EPCS), drug interactions (DDI/DAI/DCI/DPI/DDxI/DLI/DFI/DDoseI), allergy + dose checking, pharmacist verification, compounding (USP 795/797/800), inventory, auto-dispensing cabinets (Pyxis/Omnicell/Carousel), BCMA, IV admixture + smart pump (Alaris/Plum/Hospira), controlled substances (DEA CII–CV + Form 222 + EPCS), reimbursement (340B + PBM NCPDP D.0), operations, interventions, medication reconciliation, outpatient retail/drive-through/mail/specialty, MTM (CMR/TMR/MAP/PML), DSCSA (SGTIN-198 + T1/T2/T3 + saleable returns + suspect product).",
   "bounded_contexts": [
     {
       "name": "medication-catalog",
@@ -370,9 +370,9 @@
     },
     {
       "id": "ADR-0132",
-      "title": "No-Suite Microservices",
+      "title": "No-Grouping Microservices",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-no-suite-microservices.md"
+      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0145",

@@ -151,7 +151,7 @@ Repo references: microservices/healthcare-integration/PRD.md; microservices/heal
 - IP-009-122: Rhapsody is displaced by sidecar-scoped leases rather than route-engine credential stores.
 - IP-009-123: InterSystems IRIS for Health is displaced by externalized secret governance rather than platform database credential centrality.
 - IP-009-124: Lyniate/Corepoint is displaced by revocable, policy-scoped leases rather than channel credentials.
-- IP-009-125: Mirth Connect is displaced by removing secret access from transform scripts and local channel state.
+- IP-009-125: Mirth is displaced by removing secret access from transform scripts and local channel state.
 - IP-009-126: NextGate is displaced by patient-match credentials that stay bound to review jobs and human decisions.
 - IP-009-127: Health Catalyst is displaced by export credentials tied to evidence bundles and pack overlays before analytics flows.
 - IP-009-128: Epic parity pressure is handled by scoped FHIR OAuth and mTLS credential handling.

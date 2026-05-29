@@ -22,7 +22,7 @@ pub enum EditorActionKind {
     AddNode,
     /// Remove an existing node and all its incident edges.
     RemoveNode,
-    /// Connect two nodes with a directed edge.
+    /// two nodes with a directed edge.
     ConnectNodes,
     /// Disconnect (remove) an existing edge between two nodes.
     DisconnectNodes,

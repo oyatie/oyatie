@@ -188,12 +188,12 @@ LEAN check `oya-governance-sheets-import-sandboxed-and-avscan-required` validate
 
 ```text
 Content-Security-Policy:
-  default-src 'self' https://cdn-<pack>.oyatie.dev;
-  script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>' https://cdn-<pack>.oyatie.dev;
-  style-src 'self' 'unsafe-inline' https://cdn-<pack>.oyatie.dev;
-  img-src 'self' data: https://cdn-<pack>.oyatie.dev;
-  connect-src 'self' wss://sheets-<pack>.oyatie.dev https://sheets-<pack>.oyatie.dev;
-  font-src 'self' https://cdn-<pack>.oyatie.dev;
+  default-src 'self' https://cdn-<pack>.oyatie.com;
+  script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>' https://cdn-<pack>.oyatie.com;
+  style-src 'self' 'unsafe-inline' https://cdn-<pack>.oyatie.com;
+  img-src 'self' data: https://cdn-<pack>.oyatie.com;
+  connect-src 'self' wss://sheets-<pack>.oyatie.com https://sheets-<pack>.oyatie.com;
+  font-src 'self' https://cdn-<pack>.oyatie.com;
   object-src 'none';
   frame-ancestors 'none';
   base-uri 'self';

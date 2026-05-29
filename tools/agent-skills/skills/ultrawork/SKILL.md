@@ -75,7 +75,7 @@ Sequential task execution wastes time when tasks are independent. Ultrawork keep
 - Use THOROUGH-tier delegation for complex analysis, architectural review, or risky multi-file changes.
 - Prefer a direct-tool lane when the immediate next step is blocked on local context.
 - Prefer background evidence lanes when you can learn something useful in parallel with implementation.
-- Use `run_in_background: true` for package installs, builds, and test suites.
+- Use `run_in_background: true` for package installs, builds, and test sets.
 - Use foreground execution for quick status checks and file operations.
 </Tool_Usage>
 

@@ -25,12 +25,12 @@ Swift SDK implementing the OpenFeature `FeatureProvider` protocol. Phase 2 SDK t
 | 4 | SSE `AsyncSequence` | `URLSessionDataDelegate`-based `AsyncStream<FlagStateChangedEvent>`; per-tenant actor |
 | 5 | Swift concurrency | All public APIs `async`; actor-isolated cache; Sendable conformance |
 | 6 | Privacy manifest | `PrivacyInfo.xcprivacy` declaring no data collection; required for App Store submission |
-| 7 | Tests | XCTest + swift-testing; network mocking via `URLProtocol`; OpenFeature Swift conformance suite |
+| 7 | Tests | XCTest + swift-testing; network mocking via `URLProtocol`; OpenFeature Swift conformance set |
 
 ## Definition of Done
 
 - `swift test` green
 - Privacy manifest present and valid
-- OpenFeature Swift conformance suite passes
+- OpenFeature Swift conformance set passes
 - Swift Package Index listing at `https://swiftpackageindex.com/oyatie/feature-flags-swift-sdk`
 - iOS 16+ / macOS 13+ deployment target

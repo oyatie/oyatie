@@ -10,7 +10,7 @@ related_adrs:
 companion_docs:
   - microservices/ops-dashboard-control-center/PRD.md
   - microservices/ops-dashboard-control-center/ARCHITECTURE.md
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # Competitor Parity Matrix — ops-dashboard-control-center
@@ -22,7 +22,7 @@ Internal ops dashboard surface. Hyperscaler and industry precedents.
 | Per-action IAM/Cedar gate | ✓ IAM | ✓ (RBAC + audit) | ✗ (plugin-based) | ✗ | ✗ | ✓ Cedar v4.2 LTS default-deny | Advantage: Cedar is more expressive than IAM; contextual attributes (step-up class, audit_emission_confirmed) |
 | Step-up auth on mutations | ✓ (MFA re-auth) | ✓ (MFA step-up) | ✗ | ✗ | ✗ | ✓ T2/T3 classes + hardware key quorum-2 | Parity + advantage on quorum-2 Cedar publish |
 | Audit chain seal | ✓ CloudTrail | ✓ Stripe audit log | ✗ | ✗ | ✗ | ✓ Merkle seal per ADR-0028 + ADR-0263 | Parity |
-| Tenant scope enforcement | ✓ (Org Units) | ✓ (Connect accounts) | ✗ | Partial | ✗ | ✓ RLS + Cedar + partner-agency sub-tenant | Advantage: Cedar cross-tenant FORBID + RLS defence-in-depth |
+| Tenant scope enforcement | ✓ (Org Units) | ✓ (accounts) | ✗ | Partial | ✗ | ✓ RLS + Cedar + partner-agency sub-tenant | Advantage: Cedar cross-tenant FORBID + RLS defence-in-depth |
 | UEBA / insider risk PRIMARY | ✓ AWS GuardDuty | Partial | ✗ | ✗ | ✗ | ✓ PRIMARY surface; UEBA baseline 90d; session recording | Parity with AWS; advantage over all others |
 | Dark-mode default | ✓ (opt-in) | Partial | ✓ | ✓ | ✓ | ✓ default; high-contrast WCAG 2.2 AA | Parity + WCAG 2.2 AA advantage |
 | Keyboard-driven (⌘K palette) | Partial | Partial | ✓ | Partial | ✓ | ✓ G→X shortcuts + ⌘K palette | Parity with Backstage/Port |

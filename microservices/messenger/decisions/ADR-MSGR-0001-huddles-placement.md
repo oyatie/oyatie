@@ -32,7 +32,7 @@ Three considerations frame the choice:
 
 1. **Operational coupling**: huddles share substrate with text messaging — the same WebSocket gateway, the same presence engine, the same channel-level RBAC (Cedar `channel-scope.cedar`), the same audit-chain, the same per-tenant cluster. Voice/video signaling (call invite, accept, decline, hangup, screen-share token issuance) flows over the same WebSocket frames as text. The media plane (the actual RTP/SRTP voice/video bytes) is handled by LiveKit SFU — a third-party substrate adapter — not by oyatie code.
 2. **Domain coupling**: huddles are operationally a real-time channel. They're scoped to a channel or DM, inherit the channel's membership ACL, are subject to the channel's retention policy (recording retention follows channel-level retention), and produce events (`HuddleStarted`, `HuddleEnded`, `RecordingProduced`) that consume the messenger audit chain.
-3. **Forward-policy constraint (ADR-0132)**: ADR-0132 forbids new bundle/suite µservices. A `voice-video` µservice that absorbed huddles + future calling features (PSTN dial-in, video meetings, broadcast streams) would in effect be a new suite, which ADR-0132 explicitly forbids. The only way "voice-video" works as a sibling µservice is if it stays narrowly scoped to huddles specifically, but then the name + scope is misleading.
+3. **Forward-policy constraint (ADR-0132)**: ADR-0132 forbids new bundle/grouping µservices. A `voice-video` µservice that absorbed huddles + future calling features (PSTN dial-in, video meetings, broadcast streams) would in effect be a new suite, which ADR-0132 explicitly forbids. The only way "voice-video" works as a sibling µservice is if it stays narrowly scoped to huddles specifically, but then the name + scope is misleading.
 
 The PRD phase already imports LiveKit (`livekit-server 1.6.2 LTS pin`) as the SFU substrate adapter; LiveKit handles the media plane regardless of which µservice owns the signaling plane.
 
@@ -58,7 +58,7 @@ oyatie ships **huddles as a bounded context inside the `messenger` µservice**, 
 
 ### A. Sibling `voice-video` µservice (huddles + future calling features bundled)
 - Pros: clean separation of "real-time media" from "asynchronous messaging"; allows independent release pointer + SLO; signaling protocol could evolve without coupling to messenger.
-- Cons: violates ADR-0132 no-suite forward policy if it absorbs future calling features (the suite shape recurs); splits the messaging substrate unnaturally because huddles share so much with text (gateway, presence, ACL, audit-chain, retention); doubles the operator surface (two µservices coupled at the substrate level); creates a cross-µservice import problem (huddles need channel data + presence data; either huddles re-implements them or imports messenger crates, which LEAN-A2 forbids).
+- Cons: violates ADR-0132 no-grouping forward policy if it absorbs future calling features (the suite shape recurs); splits the messaging substrate unnaturally because huddles share so much with text (gateway, presence, ACL, audit-chain, retention); doubles the operator surface (two µservices coupled at the substrate level); creates a cross-µservice import problem (huddles need channel data + presence data; either huddles re-implements them or imports messenger crates, which LEAN-A2 forbids).
 - Rejected: bundle-shape recurrence + cross-µservice import problem.
 
 ### B. Sibling `voice-video` µservice narrowly scoped to huddles only (no future calling features)
@@ -86,7 +86,7 @@ oyatie ships **huddles as a bounded context inside the `messenger` µservice**, 
 
 - Huddles BC inherits messenger's WebSocket gateway + presence + ACL + audit-chain + retention for free; no re-implementation; one operator surface; one SLO; one release pointer.
 - LiveKit SFU as substrate adapter cleanly separates the media plane (SRTP bytes) from the signaling plane (WebSocket frames + tokens) without spinning up a new µservice for the boundary.
-- ADR-0132 no-suite forward policy honoured: messenger stays scoped to "team-channels + DM + threads + presence + huddles" — all real-time messaging concerns of one product surface.
+- ADR-0132 no-grouping forward policy honoured: messenger stays scoped to "team-channels + DM + threads + presence + huddles" — all real-time messaging concerns of one product surface.
 - Recordings inherit channel retention; eDiscovery hold engages recordings the same way as text messages; the cross-channel-coordinator owned by `audit-chain` reaches recordings without a new integration.
 - Phase plan IP-014 (`huddles-livekit-signaling`) becomes the canonical scoped IP rather than a pre-spinoff scaffold.
 
@@ -125,7 +125,7 @@ oyatie ships **huddles as a bounded context inside the `messenger` µservice**, 
 - Slack Huddles UX precedent (signaling within channel)
 - Discord voice channel precedent (long-lived voice rooms scoped to channel)
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution (no-suite forward policy)
+- ADR-0132 — Product-platform-and-bundle dissolution (no-grouping forward policy)
 - ADR-0133 — Industry best-practice conformance program
 - `microservices/messenger/PRD.md` Open Question 2
 - `microservices/messenger/PHASE-01-TEAM-CHANNELS-DM-THREADS.md` IP-014

@@ -73,7 +73,7 @@ Source note 5: This matrix compares union capability coverage, not brand-by-bran
 46. CI Visibility: getting-started docs list CI Visibility.
 47. Continuous Testing: getting-started docs list continuous testing and synthetic tests in CI/IDE.
 48. Feature Flags: getting-started docs list feature delivery with built-in observability.
-49. Test Optimization and Test Impact Analysis: getting-started docs list test suite optimization.
+49. Test Optimization and Test Impact Analysis: getting-started docs list test set optimization.
 50. Data retention matrix: Datadog retention docs define retention windows for metrics, profiles, logs, errors, events, incidents, and LLM traces.
 
 ## §2 Counterpart 2 - New Relic Capability Surface

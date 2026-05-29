@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/cis-k8s-benchmark.json",
+  "$schema": "https://oyatie.com/schemas/cis-k8s-benchmark.json",
   "canonical_base": true,
   "framework": "CIS Kubernetes Benchmark",
   "framework_version": "v1.10.0",

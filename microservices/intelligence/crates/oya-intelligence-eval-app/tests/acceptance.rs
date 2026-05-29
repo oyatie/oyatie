@@ -28,9 +28,9 @@
 use std::sync::Arc;
 
 use oya_intelligence_eval_app::{
-    DispatchError, DomainEvalSuiteRequest, EvalAuditEventKind, EvalCaseKind, EvalCaseOutcome,
+    DispatchError, DomainEvalSetRequest, EvalAuditEventKind, EvalCaseKind, EvalCaseOutcome,
     EvalCaseResult, EvalPolicyDecision, EvalRunnerAdapterConfig, EvalRunnerDispatchStatus,
-    EvalRunnerHttpMethod, EvalRunnerStatus, EvalRunnerStatusSource, EvalSuite, EvalSuiteThresholds,
+    EvalRunnerHttpMethod, EvalRunnerStatus, EvalRunnerStatusSource, EvalSet, EvalSetThresholds,
     EvalUsecaseInput, EvalUsecaseStatus, EvalWorkerDenialKind, EvalWorkerEventKind, EvalWorkerJob,
     EvalWorkerStatus, HyperEvalRunnerStatusSource, InMemoryEvalAuditEventSink,
     InMemoryEvalJobRepository, InMemoryEvalReceiptSink, InMemoryEvalRunnerStatusSource, JobId,
@@ -85,14 +85,14 @@ fn sample_policy() -> EvalPolicyDecision {
     }
 }
 
-fn sample_suite(suite_id: &str) -> EvalSuite {
-    EvalSuite {
-        suite_id: suite_id.to_owned(),
+fn sample_eval_set(eval_set_id: &str) -> EvalSet {
+    EvalSet {
+        eval_set_id: eval_set_id.to_owned(),
         model_ref: "modelref://openai/gpt-preview".to_owned(),
         route_evidence_ref: "route:evidence:eval-acceptance:1".to_owned(),
         guardrail_evidence_ref: "guardrail:evidence:eval-acceptance:1".to_owned(),
         dataset_snapshot_ref: "dataset://evals/acceptance/2026-05-26".to_owned(),
-        thresholds: EvalSuiteThresholds {
+        thresholds: EvalSetThresholds {
             min_pass_rate_bps: 8_000,
             max_safety_violation_rate_bps: 0,
             require_golden: true,
@@ -125,8 +125,8 @@ fn sample_suite(suite_id: &str) -> EvalSuite {
     }
 }
 
-fn sample_request(suite_id: &str) -> DomainEvalSuiteRequest {
-    DomainEvalSuiteRequest {
+fn sample_request(eval_set_id: &str) -> DomainEvalSetRequest {
+    DomainEvalSetRequest {
         tenant_id: "tenant:alpha".to_owned(),
         principal_id: "principal:eval-acceptance".to_owned(),
         eval_surface: "surface:release-gate".to_owned(),
@@ -134,11 +134,11 @@ fn sample_request(suite_id: &str) -> DomainEvalSuiteRequest {
         trace_context_ref: "trace:eval-acceptance:1".to_owned(),
         policy_decision_ref: "policy:evidence:eval-acceptance:1".to_owned(),
         policy_decision: sample_policy(),
-        suite: sample_suite(suite_id),
+        eval_set: sample_eval_set(eval_set_id),
     }
 }
 
-fn sample_job(suite_id: &str, idempotency_key: &str) -> EvalWorkerJob {
+fn sample_job(eval_set_id: &str, idempotency_key: &str) -> EvalWorkerJob {
     EvalWorkerJob {
         job_id: "job:eval-acceptance:1".to_owned(),
         lease_id: "lease:eval-acceptance:1".to_owned(),
@@ -149,7 +149,7 @@ fn sample_job(suite_id: &str, idempotency_key: &str) -> EvalWorkerJob {
         not_before_epoch_seconds: 900,
         input: EvalUsecaseInput {
             idempotency_key: idempotency_key.to_owned(),
-            request: sample_request(suite_id),
+            request: sample_request(eval_set_id),
         },
     }
 }
@@ -172,7 +172,7 @@ async fn happy_path_accepted_runner_dispatches_and_sinks_receipt() {
     let repo = InMemoryEvalJobRepository::new().with_job(
         tenant.clone(),
         job_id.clone(),
-        sample_job("suite:acceptance-release-gate", "idem:acceptance:1"),
+        sample_job("eval_set:acceptance-release-gate", "idem:acceptance:1"),
     );
     let source = InMemoryEvalRunnerStatusSource::always(EvalRunnerStatus::Accepted {
         runner_request_ref: "eval-runner://requests/req-1".to_owned(),
@@ -244,7 +244,7 @@ async fn runner_queued_outcome_maps_through_worker() {
     let repo = InMemoryEvalJobRepository::new().with_job(
         tenant.clone(),
         job_id.clone(),
-        sample_job("suite:acceptance-queued", "idem:acceptance:queued"),
+        sample_job("eval_set:acceptance-queued", "idem:acceptance:queued"),
     );
     let source = InMemoryEvalRunnerStatusSource::always(EvalRunnerStatus::Queued {
         runner_request_ref: "eval-runner://requests/req-q".to_owned(),
@@ -286,7 +286,7 @@ async fn runner_completed_outcome_maps_through_worker() {
     let repo = InMemoryEvalJobRepository::new().with_job(
         tenant.clone(),
         job_id.clone(),
-        sample_job("suite:acceptance-completed", "idem:acceptance:completed"),
+        sample_job("eval_set:acceptance-completed", "idem:acceptance:completed"),
     );
     let source = InMemoryEvalRunnerStatusSource::always(EvalRunnerStatus::Completed {
         runner_request_ref: "eval-runner://requests/req-c".to_owned(),
@@ -323,9 +323,9 @@ async fn runner_completed_outcome_maps_through_worker() {
 async fn usecase_denied_short_circuits_runner_and_sinks_denied_receipt() {
     let tenant = ten("tenant:alpha");
     let job_id = jid("job:eval-acceptance:1");
-    let mut job = sample_job("suite:acceptance-denied", "idem:acceptance:denied");
+    let mut job = sample_job("eval_set:acceptance-denied", "idem:acceptance:denied");
     // Trigger a domain-side denial: model not in the policy allowlist.
-    job.input.request.suite.model_ref = "modelref://openai/forbidden".to_owned();
+    job.input.request.eval_set.model_ref = "modelref://openai/forbidden".to_owned();
     let repo = InMemoryEvalJobRepository::new().with_job(tenant.clone(), job_id.clone(), job);
     let source = InMemoryEvalRunnerStatusSource::always(EvalRunnerStatus::Accepted {
         runner_request_ref: "eval-runner://requests/req-1".to_owned(),
@@ -380,7 +380,7 @@ async fn retryable_runner_failure_schedules_backoff() {
     let repo = InMemoryEvalJobRepository::new().with_job(
         tenant.clone(),
         job_id.clone(),
-        sample_job("suite:acceptance-retry", "idem:acceptance:retry"),
+        sample_job("eval_set:acceptance-retry", "idem:acceptance:retry"),
     );
     let source = InMemoryEvalRunnerStatusSource::always(EvalRunnerStatus::RateLimited {
         evidence_ref: "eval-runner:error:429".to_owned(),
@@ -422,7 +422,7 @@ async fn retryable_runner_failure_schedules_backoff() {
 async fn retry_exhausted_at_max_attempts_denies() {
     let tenant = ten("tenant:alpha");
     let job_id = jid("job:eval-acceptance:1");
-    let mut job = sample_job("suite:acceptance-exhausted", "idem:acceptance:exhausted");
+    let mut job = sample_job("eval_set:acceptance-exhausted", "idem:acceptance:exhausted");
     job.attempt_number = 3;
     job.max_attempts = 3;
     let repo = InMemoryEvalJobRepository::new().with_job(tenant.clone(), job_id.clone(), job);
@@ -459,7 +459,7 @@ async fn nonretryable_runner_invalid_request_denies_without_retry() {
     let repo = InMemoryEvalJobRepository::new().with_job(
         tenant.clone(),
         job_id.clone(),
-        sample_job("suite:acceptance-invalid", "idem:acceptance:invalid"),
+        sample_job("eval_set:acceptance-invalid", "idem:acceptance:invalid"),
     );
     let source = InMemoryEvalRunnerStatusSource::always(EvalRunnerStatus::InvalidRequest {
         evidence_ref: "eval-runner:error:invalid".to_owned(),
@@ -493,7 +493,7 @@ async fn nonretryable_runner_invalid_request_denies_without_retry() {
 async fn deferred_not_before_skips_usecase_and_adapter_calls() {
     let tenant = ten("tenant:alpha");
     let job_id = jid("job:eval-acceptance:1");
-    let mut job = sample_job("suite:acceptance-deferred", "idem:acceptance:deferred");
+    let mut job = sample_job("eval_set:acceptance-deferred", "idem:acceptance:deferred");
     job.now_epoch_seconds = 100;
     job.not_before_epoch_seconds = 130;
     let repo = InMemoryEvalJobRepository::new().with_job(tenant.clone(), job_id.clone(), job);
@@ -533,12 +533,13 @@ async fn invalid_job_metadata_denies_before_runner_call() {
     let tenant = ten("tenant:alpha");
     let job_id = jid("job:eval-acceptance:1");
     let mut job = sample_job(
-        "suite:acceptance-invalid-meta",
+        "eval_set:acceptance-invalid-meta",
         "idem:acceptance:invalid-meta",
     );
     // Inject raw-secret-like material that the worker's metadata validator
     // must reject before any other side effect.
-    job.input.request.suite.cases[0].evaluator_evidence_ref = "raw output model answer".to_owned();
+    job.input.request.eval_set.cases[0].evaluator_evidence_ref =
+        "raw output model answer".to_owned();
     let repo = InMemoryEvalJobRepository::new().with_job(tenant.clone(), job_id.clone(), job);
     let source = InMemoryEvalRunnerStatusSource::always(EvalRunnerStatus::Accepted {
         runner_request_ref: "eval-runner://requests/req-1".to_owned(),
@@ -577,9 +578,9 @@ async fn cross_tenant_jobs_are_isolated() {
     let tenant_a = ten("tenant:alpha");
     let tenant_b = ten("tenant:initech");
     let job_id = jid("job:shared-id");
-    let mut job_a = sample_job("suite:acceptance-tenant-a", "idem:acceptance:tenant-a");
+    let mut job_a = sample_job("eval_set:acceptance-tenant-a", "idem:acceptance:tenant-a");
     job_a.input.request.tenant_id = "tenant:alpha".to_owned();
-    let mut job_b = sample_job("suite:acceptance-tenant-b", "idem:acceptance:tenant-b");
+    let mut job_b = sample_job("eval_set:acceptance-tenant-b", "idem:acceptance:tenant-b");
     job_b.input.request.tenant_id = "tenant:initech".to_owned();
     job_b.input.request.policy_decision.tenant_id = "tenant:initech".to_owned();
 
@@ -693,7 +694,7 @@ async fn hyper_source_surfaces_unimplemented_via_dispatch_error() {
     let repo = InMemoryEvalJobRepository::new().with_job(
         tenant.clone(),
         job_id.clone(),
-        sample_job("suite:acceptance-hyper", "idem:acceptance:hyper"),
+        sample_job("eval_set:acceptance-hyper", "idem:acceptance:hyper"),
     );
     let source = HyperEvalRunnerStatusSource::new("https://eval-runner.oyatie.internal");
     let mut receipt_sink = InMemoryEvalReceiptSink::new();
@@ -765,7 +766,10 @@ async fn in_memory_source_error_short_circuits_dispatch() {
     let repo = InMemoryEvalJobRepository::new().with_job(
         tenant.clone(),
         job_id.clone(),
-        sample_job("suite:acceptance-status-err", "idem:acceptance:status-err"),
+        sample_job(
+            "eval_set:acceptance-status-err",
+            "idem:acceptance:status-err",
+        ),
     );
     let source = InMemoryEvalRunnerStatusSource::new(Arc::new(|_, _| {
         Err(RunnerStatusError::new("scripted source outage"))
@@ -807,7 +811,7 @@ async fn envelope_metadata_only_no_raw_secrets_or_prompts() {
     let repo = InMemoryEvalJobRepository::new().with_job(
         tenant.clone(),
         job_id.clone(),
-        sample_job("suite:acceptance-redaction", "idem:acceptance:redaction"),
+        sample_job("eval_set:acceptance-redaction", "idem:acceptance:redaction"),
     );
     let source = InMemoryEvalRunnerStatusSource::always(EvalRunnerStatus::Accepted {
         runner_request_ref: "eval-runner://requests/req-1".to_owned(),

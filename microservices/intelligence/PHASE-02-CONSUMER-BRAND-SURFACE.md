@@ -104,11 +104,11 @@ flutter test packages/brand_ux_surface
 cargo nextest run -p oya-intelligence-brand-ux-surface-adapter
 
 # Accessibility
-npx axe-pa11y-runner --target https://storybook-staging.oyatie.dev/intelligence-brand-ux-surface
+npx axe-pa11y-runner --target https://storybook-staging.oyatie.com/intelligence-brand-ux-surface
                     --wcag 2.2 --level AAA --threshold 100
 
 # Visual regression
-npx percy storybook https://storybook-staging.oyatie.dev/intelligence-brand-ux-surface
+npx percy storybook https://storybook-staging.oyatie.com/intelligence-brand-ux-surface
 ```
 
 ### Brand-fidelity gate

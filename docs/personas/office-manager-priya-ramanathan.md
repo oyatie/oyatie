@@ -210,7 +210,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Office Manager Priya Ramanathan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Office Manager Priya Ramanathan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Office Manager Priya Ramanathan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Office Manager Priya Ramanathan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Office Manager Priya Ramanathan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Office Manager Priya Ramanathan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Office Manager Priya Ramanathan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Office Manager Priya Ramanathan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

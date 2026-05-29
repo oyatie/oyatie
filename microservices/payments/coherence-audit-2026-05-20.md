@@ -91,7 +91,7 @@
 | `IP-journey-j123-split-settlement.md` | 430 lines | journey implementation plan | yes; split settlement aligns |
 | `IP-journey-j128-irs-direct-pay.md` | 425 lines | journey implementation plan | yes; direct pay aligns |
 | `IP-journey-j133-severance-disbursement.md` | 425 lines | journey implementation plan | yes; disbursement aligns |
-| `IP-journey-j134-stripe-connect-facilitator-placement-fee.md` | 425 lines | journey implementation plan | yes; Stripe Connect scenario aligns |
+| `IP-journey-j134-stripe-connect-facilitator-placement-fee.md` | 425 lines | journey implementation plan | yes; Stripe scenario aligns |
 | `IP-journey-j136-payroll-deduction-and-per-period-execution.md` | 425 lines | journey implementation plan | partial; payroll dependency needs boundary clarity |
 | `IP-journey-j137-corporate-internal-audit-sox-controls-test-approval-chain-exporter.md` | 425 lines | journey implementation plan | partial; corporate audit scenario is adjacent but plausible |
 | `IP-journey-j138-corporate-audit-vendor-payment-graph-reader.md` | 425 lines | journey implementation plan | yes; vendor payment graph aligns |
@@ -323,7 +323,7 @@
 | D2-12: Manifest consumer `messenger`. | `manifest.json:286-295` | `microservices/messenger/` exists | resolves |
 | D2-13: Manifest consumer `shorts`. | `manifest.json:286-295` | `microservices/shorts/` exists | resolves |
 | D2-14: Manifest consumer `community`. | `manifest.json:286-295` | `microservices/community/` exists | resolves |
-| D2-15: Manifest consumer `connect`. | `manifest.json:286-295` | `microservices/connect/` exists | resolves |
+| D2-15: Manifest consumer `connector`. | `manifest.json:286-295` | `microservices/connector/` exists | resolves |
 | D2-16: Manifest consumer `cloud-billing`. | `manifest.json:286-295` | `microservices/cloud-billing/` exists | resolves |
 | D2-17: Manifest consumer `plugin-app-store`. | `manifest.json:286-295` | `microservices/plugin-app-store/` exists | resolves |
 | D2-18: Manifest consumer `marketplace`. | `manifest.json:286-295` | `microservices/marketplace/` exists | resolves |
@@ -491,7 +491,7 @@
 | D5-18: Usage-based billing | Stripe Meter Events | partial | partial | no metering API | gap |
 | D5-19: Tax calculation | Stripe Tax; Adyen tax partners; Braintree less central | partial | PRD tax/ledger only | partial |
 | D5-20: Marketplace/platform onboarding | Stripe Connect; Adyen Platforms; Braintree Marketplace | yes | `contracts/openapi-v1.yaml:301-321` | partial |
-| D5-21: Connected account capabilities | Stripe Connect capabilities; Adyen account holders | Braintree sub-merchants | no capability API | gap |
+| D5-21: Connected account capabilities | Stripe capabilities; Adyen account holders | Braintree sub-merchants | no capability API | gap |
 | D5-22: Split payments | Stripe Connect; Adyen split transactions; Braintree marketplace | yes | settlement journey docs | partial |
 | D5-23: Payouts | Stripe payouts; Adyen payouts; Braintree disbursements | yes | `contracts/openapi-v1.yaml:204-242` | present |
 | D5-24: Instant payouts | Stripe; Adyen instant card payouts | limited | no instant payout contract | gap |
@@ -510,7 +510,7 @@
 | D5-37: Client/server SDK ecosystem | all three | yes | `sdk-plan.md:1-213` with language-policy caveat | partial |
 | D5-38: Dashboard/admin tools | all three | yes | dashboards exist; no product UI contract | partial |
 | D5-39: Compliance and PCI scope tooling | all three | yes | `compliance.md:159-184`; runbooks | present |
-| D5-40: KYC/KYB onboarding | Stripe Connect and Adyen Platforms strong; Braintree Marketplace | yes | bounded context and OpenAPI sub-merchants | partial |
+| D5-40: KYC/KYB onboarding | Stripe and Adyen Platforms strong; Braintree Marketplace | yes | bounded context and OpenAPI sub-merchants | partial |
 | D5-41: Sanctions/AML screening | platform counterparts support risk/compliance | partial | runbooks and compliance docs | partial |
 | D5-42: Multi-region resilience | counterpart opaque; Oyatie explicit | `multi-region.md:1-210` | additive |
 | D5-43: Tenant-isolated cells | counterparts abstract; Oyatie explicit | `ARCHITECTURE.md:1597-1657` | additive |

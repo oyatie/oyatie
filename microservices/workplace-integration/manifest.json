@@ -17,7 +17,7 @@
   ],
   "artifact_bar": {
     "pr_143_operating_bar_minimum": 100,
-    "generated_suite_target": "at-or-above-operating-bar"
+    "generated_doc_set_target": "at-or-above-operating-bar"
   },
   "naming_justifications": {
     "bnf_v4": "<service>.<bounded_context>.<action>.<resource> using workplace-integration",

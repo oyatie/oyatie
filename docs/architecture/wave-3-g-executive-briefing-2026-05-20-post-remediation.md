@@ -10,7 +10,7 @@ audience: board-director / venture-capital / sales-leader / marketing-lead / GTM
 line_floor: 2500
 purpose: >
   Post-remediation executive briefing that updates the prior Wave-3-G briefing
-  after ADR-0321 dossier backfill, journey deepening, microservice doc-suite
+  after ADR-0321 dossier backfill, journey deepening, microservice doc-set
   remediation, persona substance passes, compliance/localization pack expansion,
   capability-tier registry authoring, observability artifacts, risk controls,
   migration playbooks, and Wave-3 retrospective learning landed.
@@ -80,7 +80,7 @@ The remaining risk is explicit: runtime code, CI gates, remaining ADR-0321 tail 
 ## §1 Updated Thesis In 3 Sentences
 
 1. Oyatie is a unified operating substrate for enterprise and personal work: one tenant model, one identity boundary, one policy engine, one workflow engine, one ontology, one audit chain, one marketplace settlement layer, one UX shell, and one capability-tier surface over many familiar product labels.
-2. The post-remediation evidence shows that the thesis is no longer only narrative: ADR-0321 vendor dossiers, j01-j175 substantive journeys, 62-plus seven-surface microservice doc suites, 90-plus persona Substance Anchors, eight compliance packs, eight localization packs, and a four-tier capability registry now bind the story to buildable artifacts.
+2. The post-remediation evidence shows that the thesis is no longer only narrative: ADR-0321 vendor dossiers, j01-j175 substantive journeys, 62-plus seven-surface microservice doc sets, 90-plus persona Substance Anchors, eight compliance packs, eight localization packs, and a four-tier capability registry now bind the story to buildable artifacts.
 3. Wave 4 must convert this documented operating system into executable proof: Rust source scaffolds, real CI gates, migration journeys j181-plus, the remaining ADR-0321 D-141..D-165 coverage, and tenant onboarding pilots must prove that the corpus can run, not merely describe.
 
 ### §1.1 What Changed In Remediation
@@ -101,7 +101,7 @@ The substance bar required vendor-specific Cedar actions.
 The substance bar required ontology projection details.
 The substance bar required migration steps beyond the shared seven-step macro.
 The substance bar required failure modes that could actually break a migration.
-The substance bar required capability-tier mapping that does not create suite-shaped service boundaries.
+The substance bar required capability-tier mapping that does not create grouping-shaped service boundaries.
 The second named gap was journey scaffolding.
 The j151-j175 journey set was empty scaffold at Wave-3-G time.
 The remediation wave turned those 25 journeys into substantive bundles.
@@ -120,7 +120,7 @@ j180 covers Atlassian Jira and Confluence to Oyatie workspace migration.
 Those five journeys are not a complete migration program.
 They are the first evidence that the displacement thesis is being translated into incumbent-to-Oyatie motion.
 The fourth named gap was microservice suite thinness.
-More than 60 microservices now have seven-surface documentation suites at the substance bar.
+More than 60 microservices now have seven-surface documentation sets at the substance bar.
 The seven surfaces are not decorative.
 They are the architecture surface.
 They are the contract surface.
@@ -322,8 +322,8 @@ The microservice roster stands at 79 in the remediation brief.
 The live top-level microservice directory inspection shows 78 directories in this checkout.
 The capability-tier registry source count records 70 mapped microservice rows.
 The executive interpretation is therefore "79 roster-level service concepts, 78 live top-level directories, 70 registry-mapped rows, and 62-plus full seven-surface suites."
-The board should care about the 62-plus full-suite substance bar more than the exact roster/directory delta.
-The current microservice substance claim is 62-plus services with the full seven-surface doc suite.
+The board should care about the 62-plus full-platform substance bar more than the exact roster/directory delta.
+The current microservice substance claim is 62-plus services with the full seven-surface doc set.
 Per-microservice ADR coverage is roughly 40 ADRs across batches A-F.
 Persona dossiers stand at roughly 120.
 More than 90 persona dossiers have the Substance Anchors pass.
@@ -377,8 +377,8 @@ The transformed state is "documentation corpus crossed from aspirational map to 
 | ADR-0321 remaining tail | Unnamed future work | D-141..D-165 named for Wave 4 | The tail is visible and bounded. |
 | Journeys j01-j175 | Early sections uneven | 175 substantive | The human-use story is now broad enough to test the thesis. |
 | Migration journeys | Missing | j176-j180 in flight | Displacement now has migration motion. |
-| Microservice roster | Broad but uneven | 79 roster concepts / 78 live dirs / 62-plus full suites | Substance matters more than directory arithmetic. |
-| Microservice doc suites | Thin and scattered | 62-plus seven-surface suites | Engineering has a build runway. |
+| Microservice roster | Broad but uneven | 79 roster concepts / 78 live dirs / 62-plus full platforms | Substance matters more than directory arithmetic. |
+| Microservice doc sets | Thin and scattered | 62-plus seven-surface suites | Engineering has a build runway. |
 | Per-service ADRs | Sparse | Roughly 40 | Service-level decisions are now visible. |
 | Persona dossiers | Broad but shallow | Roughly 120 / 90-plus anchored | Role diversity is now evidence-bearing. |
 | Compliance packs | Incomplete GTM posture | Eight active | Regulated-market story is now pack-shaped. |
@@ -435,7 +435,7 @@ Runtime product readiness has a lower percentage until Wave 4 code and CI gates 
 | j176-j180 migration journeys | Begin incumbent migration corpus | Five in flight | 100% scaffold / 40% substance |
 | Journey bundle surfaces | Story, UX, handshake, test plan, schema | Present across remediation journeys | 95% |
 | Microservice roster | Broad service inventory | 79 roster concepts, 78 live directories | 98% roster |
-| Seven-surface service suites | Full suite per service | 62-plus at bar | 78% minimum |
+| Seven-surface service suites | Full platform per service | 62-plus at bar | 78% minimum |
 | ERP IP deepening | Nine ERP service anchors | Nine deepened | 100% |
 | Per-service ADRs | Decision visibility | Roughly 40 across batches A-F | 50% of roster |
 | Persona dossiers | Role realism at scale | Roughly 120 | 100% breadth |
@@ -575,7 +575,7 @@ The suite bar helps product identify which services are ready for runtime slices
 The suite bar helps compliance locate evidence.
 The suite bar helps operations locate SLOs and runbooks.
 Risk: directory count, registry count, and roster count still differ.
-Risk: a full documentation suite is not executable code.
+Risk: a full documentation set is not executable code.
 Risk: some suites may still need cross-link repair after the six-hop audit.
 Stop condition: all roster services have seven surfaces and CI checks enforce the surface contract.
 
@@ -1127,7 +1127,7 @@ Each tail dossier must name at least three workflow templates.
 Each tail dossier must name at least three failure modes.
 Each tail dossier must name a migration step beyond inventory, dry-run, preflight, projection, replay, seal, and sunset.
 Each tail dossier must say whether the outcome is existing service, composed capability, new flat service, or partner/plugin path.
-Each tail dossier must reject suite-shaped services where the benchmark is only a product label.
+Each tail dossier must reject grouping-shaped services where the benchmark is only a product label.
 Each tail dossier must cite destination microservices.
 Each tail dossier must preserve benchmark aliases without turning aliases into architecture.
 Each tail dossier must feed the vendor-tier mapping.
@@ -1832,7 +1832,7 @@ Acceptance criterion 071: at least one ADR-0321 tail dossier is completed at sub
 Acceptance criterion 072: each completed tail dossier feeds vendor-tier mapping.
 Acceptance criterion 073: each completed tail dossier feeds migration backlog.
 Acceptance criterion 074: each completed tail dossier names failure modes.
-Acceptance criterion 075: each completed tail dossier rejects suite-shaped service cloning.
+Acceptance criterion 075: each completed tail dossier rejects grouping-shaped service cloning.
 Acceptance criterion 076: at least one governance crate moves from scaffold to tested implementation.
 Acceptance criterion 077: the governance crate has positive fixtures.
 Acceptance criterion 078: the governance crate has negative fixtures.
@@ -1885,7 +1885,7 @@ Safe claim 011: Oyatie has six-hop reachability audit evidence.
 Unsafe claim 011: the corpus is fully reachable from docs/README.md.
 Safe claim 012: Oyatie has migration playbooks and first migration journeys.
 Unsafe claim 012: Oyatie has automated migration tools for every incumbent.
-Safe claim 013: Oyatie has microservice documentation suites at scale.
+Safe claim 013: Oyatie has microservice documentation sets at scale.
 Unsafe claim 013: all documented microservices are implemented.
 Safe claim 014: Oyatie has governance crates scaffolded.
 Unsafe claim 014: all governance gates are live.
@@ -2015,7 +2015,7 @@ ADR-0321 checklist 050: dossier must feed migration backlog.
 ADR-0321 checklist 051: dossier must be reviewable by sales.
 ADR-0321 checklist 052: dossier must be reviewable by engineering.
 ADR-0321 checklist 053: dossier must be reviewable by compliance.
-ADR-0321 checklist 054: dossier must avoid suite-shaped microservice creation.
+ADR-0321 checklist 054: dossier must avoid grouping-shaped microservice creation.
 ADR-0321 checklist 055: dossier must avoid shallow repeated text.
 ADR-0321 checklist 056: dossier must avoid exact-length filler.
 ADR-0321 checklist 057: dossier must state what is covered by existing services.
@@ -2029,7 +2029,7 @@ j181 candidate: Microsoft 365 tenant to Oyatie mail, calendar, drive, docs, meet
 j182 candidate: Microsoft Dynamics 365 to Oyatie CRM, finance, workflow, and marketplace migration.
 j183 candidate: Snowflake warehouse to Oyatie data-warehouse and governance migration.
 j184 candidate: Databricks workspace to Oyatie data-pipeline, intelligence, and warehouse migration.
-j185 candidate: Stripe Billing and Connect to Oyatie payments, marketplace, and billing migration.
+j185 candidate: Stripe Billing and to Oyatie payments, marketplace, and billing migration.
 j186 candidate: Adobe Marketo Engage to Oyatie marketing-automation and consent migration.
 j187 candidate: HubSpot Marketing/Sales/Service hubs to Oyatie CRM and contact-center migration.
 j188 candidate: Zendesk Support and Talk to Oyatie contact-center and ITSM migration.
@@ -2241,7 +2241,7 @@ Investor line 013: "The corpus is now specific enough to build from."
 Investor line 014: "The corpus is now specific enough to diligence."
 Investor line 015: "The corpus is now specific enough to expose its own remaining risk."
 Investor line 016: "The TAM remains enterprise SaaS fragmentation and regulated workflow consolidation."
-Investor line 017: "The differentiation remains unification without suite-shaped internal sprawl."
+Investor line 017: "The differentiation remains unification without grouping-shaped internal sprawl."
 Investor line 018: "The immediate risk remains conversion from docs to working gates."
 Investor line 019: "The immediate opportunity is demonstrating one tenant pilot."
 Investor line 020: "The board should measure the next quarter by executable evidence, not document volume."

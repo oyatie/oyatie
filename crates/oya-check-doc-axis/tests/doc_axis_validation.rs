@@ -190,6 +190,35 @@ fn rule3_unknown_subdir_under_docs_blocks() {
 }
 
 #[test]
+fn rule3_legacy_root_allowlist_passes_but_new_root_docs_block() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write_file(root, "docs/AGENTS.md", "# existing contract\n");
+    write_file(
+        root,
+        "docs/architecture/overview.md",
+        "# legacy directory\n",
+    );
+
+    let result = validate(root, false);
+    assert!(
+        result.is_ok(),
+        "legacy docs allowlist should keep existing corpus green: {result:?}"
+    );
+
+    write_file(root, "docs/NEW-ROOT-DOC.md", "# new root doc\n");
+    let result = validate(root, false);
+    assert!(result.is_err(), "new root docs should still block");
+    let findings = result.unwrap_err();
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.rule_violated == DocAxisRule::DocsProliferation),
+        "new root doc should have a DocsProliferation finding"
+    );
+}
+
+#[test]
 fn rule3_canonical_subdirs_pass() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();

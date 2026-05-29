@@ -37,7 +37,7 @@ related:
   - ADR-0123-hyperscaler-maturity-claim-gate.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0139-agentic-slo-gated-promotion.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
@@ -188,7 +188,7 @@ framing that does not survive the foundational doctrine bundle:
   6-into-1 claim.
 - **ADR-0131 (Per-microservice flat layout).** Layout shape for any
   µservice including foundry.
-- **ADR-0132 (No-suite forward policy).** Foundry was not a suite;
+- **ADR-0132 (No-grouping forward policy).** Foundry was not a suite;
   the 6-way split that preceded ADR-0136 was already non-suite.
 - **ADR-0136 (Foundry as a single µservice, 2026-05-18).** Consolidates
   six prior foundry µservices into one `microservices/foundry/` with
@@ -495,7 +495,7 @@ Workflows in the library (initial set; per ADR-0249 versioning):
 | `oyatie.foundry.ci-build-and-test` | cargo build + cargo test + cargo clippy + cargo fmt --check across the workspace | `oyatie.foundry.ci-agent` |
 | `oyatie.foundry.merge-queue-fix-loop` | per ADR-0111, rebases queued PRs; runs CI; merges if green | `oyatie.foundry.merge-queue-controller` |
 | `oyatie.foundry.adr-drafter` | Drafts ADR text from a brief; emits to docs/decisions/ | `oyatie.foundry.adr-drafter` |
-| `oyatie.foundry.eval-runner` | Runs eval suites against current Intelligence configuration; emits parity reports | `oyatie.foundry.eval-runner` |
+| `oyatie.foundry.eval-runner` | Runs eval sets against current Intelligence configuration; emits parity reports | `oyatie.foundry.eval-runner` |
 | `oyatie.foundry.evidence-emitter` | Wraps callers per ADR-0145 invariant 1; emits sealed audit rows | `oyatie.foundry.evidence-emitter` |
 | `oyatie.foundry.release-deploy` | cosign-verifies artifacts; canary deploys via per-cell Helm releases; auto-rollback on SLO breach | `oyatie.foundry.release-controller` |
 | `oyatie.foundry.dependency-update` | Renovate-style; opens PRs for dep bumps; chains to pr-review | `oyatie.foundry.dependency-bot` |
@@ -737,7 +737,7 @@ production. This requires three environments:
 | Cell | Role | Tier-2 / Tier-3 | Self-modification policy |
 |---|---|---|---|
 | `dev-tools-cell-dev` | Engineers develop new workflows / fragments / substrate versions; arbitrary modifications permitted by an `oyatie.dev.<engineer-id>` principal | Tier-2 dev | Cedar permits broad; no production data; auto-teardown unused workflows after 72h |
-| `dev-tools-cell-staging` | Promotion target from -dev; runs full eval suite + multispectrum review v2.4.0 against the candidate modifications | Tier-2 staging | Cedar permits narrower; some production-shape data via golden corpora; auto-rollback on SLO breach |
+| `dev-tools-cell-staging` | Promotion target from -dev; runs full eval set + multispectrum review v2.4.0 against the candidate modifications | Tier-2 staging | Cedar permits narrower; some production-shape data via golden corpora; auto-rollback on SLO breach |
 | `dev-tools-cell-prod` | Production self-modification execution; modifications must have passed -staging | Tier-2 prod | Cedar permits production-tight; SLO breaches trigger immediate auto-rollback + SEV-2 alert |
 
 **Promotion gates between environments:**
@@ -1243,7 +1243,7 @@ Workflow Engine, Intelligence, audit-chain, policy-engine.
   primitives are subsets of Workflow Engine + Intelligence +
   audit-chain + policy-engine primitives. Substrate rank without
   unique primitives is incoherent.
-- **No-suite policy violation.** ADR-0132 forbids new bundle/suite
+- **No-grouping policy violation.** ADR-0132 forbids new bundle/grouping
   µservices. A substrate that just bundles other substrates'
   primitives is a suite by another name.
 - **Worse than Alt-1.** Substrate rank would expand foundry's
@@ -1716,7 +1716,7 @@ partial acceptance has been explicitly rejected per ADR-0242 §Status.
 - **ADR-0123 — Hyperscaler maturity claim gate.** HG-FOUNDRY retires; per-substrate HG gates inherit.
 - **ADR-0128 — Hyperscaler architecture invariants.** Self-hosting is a hyperscaler invariant.
 - **ADR-0131 — Per-microservice flat layout.** Receiving substrates retain flat layout.
-- **ADR-0132 — No-suite forward policy.** Foundry-as-µservice dissolution complies (no new bundle).
+- **ADR-0132 — No-grouping forward policy.** Foundry-as-µservice dissolution complies (no new bundle).
 - **ADR-0136 — Foundry as single µservice.** Superseded by this ADR.
 - **ADR-0136-amendment — Foundry internal-only.** Superseded by ADR-0242 + this ADR.
 - **ADR-0137 — Foundry bounded contexts.** Amended; BCs redistribute per §D-1.

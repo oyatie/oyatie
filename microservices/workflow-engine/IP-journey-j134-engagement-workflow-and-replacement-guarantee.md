@@ -21,7 +21,7 @@ Per ADR-0246 durable execution, the 90-day check fires reliably regardless of en
 1. Workflow definitions registered: `staffing-engagement-v1`, `cross-tenant-candidate-triage-v1`, `placement-fee-90d-check-v1`, `replacement-guarantee-invoke-v1`.
 2. Per-engagement durable state.
 3. 90-day check trigger reliability > 99.99%.
-4. Replacement-guarantee invokes reverse Stripe Connect refund.
+4. Replacement-guarantee invokes reverse Stripe refund.
 5. SLO: P95 phase-advance ≤ 600ms.
 
 ## Atomic deliverables
@@ -83,7 +83,7 @@ permit (
 
 - **community** (cross-tenant posting)
 - **identity** (audience-type transition + cross-tenant principal)
-- **payments** (Stripe Connect escrow + refund)
+- **payments** (Stripe escrow + refund)
 - **workplace-integration** (offer letter)
 - **tenancy** (engagement scope)
 - **audit-chain** (EmitSealed)

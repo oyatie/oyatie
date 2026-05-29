@@ -105,10 +105,10 @@ decision_owner: axis-ecosystem + council-compliance + ops-security
 
 ### Stripe Identity
 
-- Pro: close pairing with payouts if Stripe Connect were used.
+- Pro: close pairing with payouts if Stripe were used.
 - Pro: established fraud tooling.
 - Pro: simple integration.
-- Con: payout ADR rejects Stripe Connect as canonical.
+- Con: payout ADR rejects Stripe as canonical.
 - Con: KYC evidence remains in Stripe's domain.
 - Con: self-hosting and sovereign cells lose equivalence.
 - Tradeoff: convenient if hosted payments are accepted, but this platform does not choose that path.

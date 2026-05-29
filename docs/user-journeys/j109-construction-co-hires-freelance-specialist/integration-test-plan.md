@@ -46,7 +46,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
 - Test data: synthetic, non-production, no secrets, no live rails.
 - Test contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, JSON Schema 2020-12.
 
-## Suite 1: tenant admission
+## Test Set 1: tenant admission
 
 ### IT-109-001: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -114,7 +114,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 2: identity binding
+## Test Set 2: identity binding
 
 ### IT-109-007: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -182,7 +182,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 3: Cedar permit evaluation
+## Test Set 3: Cedar permit evaluation
 
 ### IT-109-013: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -250,7 +250,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 4: marketplace settlement
+## Test Set 4: marketplace settlement
 
 ### IT-109-019: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -318,7 +318,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 5: workflow orchestration
+## Test Set 5: workflow orchestration
 
 ### IT-109-025: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -386,7 +386,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 6: payment escrow
+## Test Set 6: payment escrow
 
 ### IT-109-031: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -454,7 +454,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 7: ontology projection
+## Test Set 7: ontology projection
 
 ### IT-109-037: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -522,7 +522,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 8: audit dual seal
+## Test Set 8: audit dual seal
 
 ### IT-109-043: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -590,7 +590,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 9: compliance overlay
+## Test Set 9: compliance overlay
 
 ### IT-109-049: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.
@@ -658,7 +658,7 @@ interview and e-sign through workflow-engine, verifies insurance, and pays miles
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 10: human review
+## Test Set 10: human review
 
 ### IT-109-055: community handles freelance structural specialist personal tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j109.

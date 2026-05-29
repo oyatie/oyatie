@@ -51,7 +51,7 @@ Approved devices include:
 
 - **Thales Luna 7 A790** (Common Criteria EAL4+ certified, FIPS 140-3 Level 3).
 - **Utimaco SecurityServer Se Gen2** (Common Criteria EAL4+, FIPS 140-3 Level 3).
-- **Entrust nShield Connect XC** (Common Criteria EAL4+, FIPS 140-3 Level 3).
+- **Entrust nShield XC** (Common Criteria EAL4+, FIPS 140-3 Level 3).
 - **AWS CloudHSM** (FIPS 140-2 Level 3; eIDAS QSCD-equivalence subject to per-jurisdiction QTSP attestation).
 - **OCI Vault HSM** (FIPS 140-2 Level 3; eIDAS QSCD-equivalence subject to per-jurisdiction QTSP attestation).
 - **Azure Key Vault Managed HSM** (FIPS 140-2 Level 3; same caveat as AWS/OCI).

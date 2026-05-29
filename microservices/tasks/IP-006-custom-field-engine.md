@@ -34,7 +34,7 @@ membership check).
 
 Code lives across `project-list-domain`, `project-list-usecase`,
 `task-store-domain`, `task-store-usecase` — this IP adds the cross-
-cutting custom-field test suite + the strict-coercion gate.
+cutting custom-field test set + the strict-coercion gate.
 
 ## Crate Naming
 
@@ -47,7 +47,7 @@ the `type-coercion-strictness` lane.
 |---|---|---|
 | `microservices/tasks/src/oya-tasks-project-list-domain/src/custom_field.rs` | created | typed validators |
 | `microservices/tasks/src/oya-tasks-task-store-domain/src/custom_field_coercion.rs` | created | refusal logic |
-| `microservices/tasks/src/oya-tasks-project-list-domain/tests/custom_field_property.rs` | created | proptest suite |
+| `microservices/tasks/src/oya-tasks-project-list-domain/tests/custom_field_property.rs` | created | proptest set |
 | `microservices/tasks/tests/integration/custom-field-strictness.rs` | created | E2E refusal path |
 
 ## Acceptance Gates

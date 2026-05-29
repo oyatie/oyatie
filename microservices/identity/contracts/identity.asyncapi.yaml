@@ -123,7 +123,7 @@ components:
         subjectId:
           type: string
           description: Immutable, never-reused WorkloadPrincipal id.
-        trustDomain: { type: string, example: "acme.oyatie.dev" }
+        trustDomain: { type: string, example: "acme.oyatie.com" }
         tenantId: { type: string, example: tenant_acme }
         oldState:
           type: string

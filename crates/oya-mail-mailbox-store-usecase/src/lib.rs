@@ -1,6 +1,6 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_connect_mail_domain::{
+use oya_mail_domain::{
     DmarcAction, DmarcPolicy, DmarcVerdict, MailAiAssistRequest, MailContextKind, MailEnvelope,
     MailGovernanceError, MailMessageGovernance, MailMessageGovernanceCreate, MailWorkflowHandoff,
     OwnershipPillar as MailOwnershipPillar,

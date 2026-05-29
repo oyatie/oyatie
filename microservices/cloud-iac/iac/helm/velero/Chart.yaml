@@ -11,7 +11,7 @@ version: 0.1.0
 appVersion: "1.18.0"  # Velero stable per docs/standards/backup-canonical.md (verified 2026-05-18)
 maintainers:
   - name: axis-cloud-iac
-    email: axis-cloud-iac@oyatie.dev
+    email: axis-cloud-iac@oyatie.com
 dependencies:
   - name: velero
     version: "^9.0.0"

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/root-hub-pointers.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/root-hub-pointers.schema.json",
   "title": "RootHubPointers",
   "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file. Agents read this JSON to discover canonical entry points; humans read the README/CLAUDE/AGENTS summaries that mirror this.",
   "_meta": {
@@ -64,7 +64,7 @@
       "current_path": "docs/AGENTS.md",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, Oya VCS state transitions, multispectrum evidence, legacy-tool compatibility notes)."
+      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git PR/Jenkins governance transitions, multispectrum evidence, legacy-tool retirement notes)."
     },
     "agent_durable_goal": {
       "kind": "goal_prompt",
@@ -73,7 +73,7 @@
       "archive_manifest": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
       "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Current long-running goal prompt for planning closure and FD-001 implementation. It supersedes the older 2026-05-16 durable-goal spec and old implement-masterplan prompts by making /specs/masterplan.json, /specs/planning-closure-contract.json, Oya VCS, vertical delivery ordering, Enterprise Generic + SMB Generic first delivery, canonical base, Korea localization pack, and stale-document archival the live execution contract."
+      "purpose": "Current long-running goal prompt for planning closure and FD-001 implementation. It supersedes the older 2026-05-16 durable-goal spec and old implement-masterplan prompts by making /specs/masterplan.json, /specs/planning-closure-contract.json, plain-git PR/Jenkins governance, vertical delivery ordering, Tenant RBAC view + Tenant RBAC view first delivery, canonical base, Korea localization pack, and stale-document archival the live execution contract."
     },
     "score_cards": {
       "kind": "spec",
@@ -158,7 +158,7 @@
       "human_compatibility_projection": "docs/MASTERPLAN.md",
       "target_path_after_md_retirement": "same (machine-readable authority; docs/MASTERPLAN.md is compatibility projection only)",
       "migration_phase": "accelerated-machine-readable-authority-for-planning-closure",
-      "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Enterprise Generic + SMB Generic with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Flat microservices, clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin."
+      "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Tenant RBAC view + Tenant RBAC view with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Flat microservices, clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin."
     },
     "active_artifact_contract": {
       "kind": "spec",
@@ -262,7 +262,7 @@
       "current_path": "/specs/master-plan-sequencing.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Forbidden-primitive list (git/gh) + Oya VCS protocol + ledger-required-fields + execution sequence. Also carries Wave 15-ZF doctrine propagation pointers for ADR-0346, ADR-0347, ADR-0348, and ADR-0349, including the canonical purpose excerpts and enforced_by lane lists consumed by downstream artifact slots."
+      "purpose": "Forbidden-primitive list + plain-git PR/Jenkins governance protocol + ledger-required-fields + execution sequence. Also carries Wave 15-ZF doctrine propagation pointers for ADR-0346, ADR-0347, ADR-0348, and ADR-0349, including the canonical purpose excerpts and enforced_by lane lists consumed by downstream artifact slots."
     },
     "hyperscaler_gates": {
       "kind": "spec",
@@ -311,7 +311,7 @@
       "current_path": "/specs/gitops-vcs-replacement.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "M01-P07 Oya VCS replacement contract: semantic symbol locks + ChangeBundle/GitOps promotion/controller integration for CI/CD-safe agent work."
+      "purpose": "M01-P07 historical VCS replacement contract: semantic symbol locks + ChangeBundle/GitOps promotion/controller integration for CI/CD-safe agent work."
     },
     "test_standard": {
       "kind": "spec",
@@ -320,9 +320,9 @@
       "migration_phase": "complete",
       "purpose": "Machine-readable unit/integration/e2e/property/fuzz test standard enforced by GitOps VCS admission and CI/CD gates."
     },
-    "test_suite_registry": {
+    "test_set_registry": {
       "kind": "registry",
-      "current_path": "/registry/test-suite-registry.json",
+      "current_path": "/registry/test-set-registry.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Registry-driven polyglot test commands and evidence outputs by language/surface."
@@ -367,70 +367,70 @@
       "migration_phase": "scaffold (F-EVIDENCE-AUDIT-CHAIN-WIRE pending for ADR-0069 cryptographic-immutability integration)",
       "purpose": "Append-only JSONL stream of changeset evidence emissions, lane runs, spec-version bumps, ADR acceptances, IP status flips, seam audit baselines. Schema: {event_type, change_id?, session_id, timestamp_unix, payload}."
     },
-    "prd_connect_suite": {
+    "prd_tenant_rbac_packaging": {
       "kind": "prd",
-      "current_path": "/specs/microservices/connect-suite.json",
+      "current_path": "/specs/tenant-rbac-packaging.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "deprecated",
       "retirement_ref": "ADR-0362",
-      "purpose": "[RETIRED per ADR-0362 — grouping artifact, flat-only doctrine] Former Connect suite wrapper. The canonical flat µservices are prd_connect_mail / prd_connect_messenger / prd_connect_calendar; full decomposition is owned by ADR-0238 via the ADR-0237 strangler. This wrapper is a tombstone, not a live architecture artifact."
+      "purpose": "Tenant/RBAC packaging policy for flat microservices. No former product-grouping wrapper, suite, platform, module, bundle, or vertical product grouping is active; packaging is computed from tenant entitlements, RBAC scopes, regulatory packs, residency, and feature flags over concrete services such as messenger, community, and mail."
     },
-    "prd_connect_mail": {
+    "prd_mail": {
       "kind": "prd",
       "current_path": "/specs/microservices/mail.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Mail sub-PRD — work/personal mail, retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries."
+      "purpose": "Mail microservice PRD — personal and professional mail with strict tenant/RBAC separation, retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries."
     },
-    "prd_connect_messenger": {
+    "prd_messenger": {
       "kind": "prd",
       "current_path": "/specs/microservices/messenger.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Messenger sub-PRD — personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict dual-context boundaries."
+      "purpose": "Messenger microservice PRD — personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict personal/professional tenant/RBAC boundaries."
     },
-    "prd_connect_calendar": {
+    "prd_calendar": {
       "kind": "prd",
       "current_path": "/specs/microservices/calendar.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Calendar sub-PRD — personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-pillar-safe availability projections."
+      "purpose": "Calendar microservice PRD — personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-context-safe availability projections without a product-group wrapper."
     },
-    "prd_enterprise_suite": {
+    "prd_tenant_rbac": {
       "kind": "prd",
-      "current_path": "/specs/microservices/enterprise-suite.json",
+      "current_path": "/specs/microservices/tenant-rbac.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "deprecated",
       "retirement_ref": "ADR-0362",
-      "purpose": "[RETIRED per ADR-0362 — grouping artifact, flat-only doctrine] Former Enterprise suite wrapper. The canonical flat µservices are prd_enterprise_hr / prd_enterprise_payroll / prd_enterprise_accounting; full decomposition is owned by a future enterprise-product-council dissolution ADR. This wrapper is a tombstone, not a live architecture artifact."
+      "purpose": "Tenant/RBAC microservice PRD and packaging-control authority. It replaces former grouping wrappers; HR, payroll, accounting, messenger, community, and mail remain concrete flat services packaged later by tenant entitlements and RBAC scopes."
     },
-    "prd_enterprise_hr": {
+    "prd_hr": {
       "kind": "prd",
       "current_path": "/specs/microservices/hr.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Enterprise HR sub-PRD — employee lifecycle, org hierarchy, attendance, leave, recruiting/performance shells, sensitive-data policy, and KR/US/EU labor-compliance evidence."
+      "purpose": "HR microservice PRD — employee lifecycle, org hierarchy, attendance, leave, recruiting/performance shells, sensitive-data policy, and KR/US/EU labor-compliance evidence."
     },
-    "prd_enterprise_payroll": {
+    "prd_payroll": {
       "kind": "prd",
       "current_path": "/specs/microservices/payroll.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Enterprise Payroll sub-PRD — KR-first payroll close, payee classes, statutory taxes/4대보험, year-end settlement, payroll-to-accounting bridge, and group close evidence."
+      "purpose": "Payroll microservice PRD — KR-first payroll close, payee classes, statutory taxes/4대보험, year-end settlement, payroll-to-accounting bridge, and group close evidence."
     },
-    "prd_enterprise_accounting": {
+    "prd_accounting": {
       "kind": "prd",
       "current_path": "/specs/microservices/accounting.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Enterprise Accounting sub-PRD — double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, financial close workflow, and audit-ready controls."
+      "purpose": "Accounting microservice PRD — double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, financial close workflow, and audit-ready controls."
     },
-    "design_connect_shell_persona_switcher": {
+    "design_tenant_context_switcher": {
       "kind": "design-system-component",
-      "current_path": "/specs/design-system/connect-shell-persona-switcher.json",
+      "current_path": "/specs/design-system/tenant-context-switcher.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect shell persona-switcher design-system component row: personal/work/admin-audit switching with pillar-safe cache and policy re-evaluation invariants."
+      "purpose": "Tenant context switcher design-system component row: personal/work/admin-audit switching with tenant/RBAC scope, cache isolation, and policy re-evaluation invariants."
     },
     "design_communication_thread_list": {
       "kind": "design-system-component",
@@ -533,40 +533,40 @@
       "migration_phase": "complete",
       "purpose": "Deployment status surface for OpenTofu plans, oya ops actions, canary phases, rollback state, and operator-safe remediation links."
     },
-    "prd_connect_anonymous": {
+    "prd_community_anonymous": {
       "kind": "prd",
       "current_path": "/specs/microservices/anonymous.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Anonymous sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Intelligence contracts (Intelligence replaces Foundry per ADR-0335 Wave 15I), regional packs, UX components, risks, goals, and deterministic validation hooks.",
+      "purpose": "Community anonymous mode PRD — machine-readable community surface with context isolation, Workflow/Ontology/Intelligence contracts, regional packs, UX components, risks, goals, and deterministic validation hooks.",
       "path_correction_2026_05_20": {
-        "previous_path": "/specs/products/connect/anonymous.json",
+        "previous_path": "retired specs/products communications/anonymous JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       }
     },
-    "prd_connect_network": {
+    "prd_community_network_retired": {
       "kind": "prd",
       "current_path": "/microservices/community/PRD.md",
       "target_path_after_md_retirement": "/microservices/community/PRD.md until a community machine-readable successor projection is authored",
       "migration_phase": "retired-by-wave-15k-network-into-community-merge",
       "retired_on": "2026-05-21",
       "successor_path": "/microservices/community/PRD.md",
-      "purpose": "Retired Connect Network sub-PRD pointer. Professional profile, connections, InMail, endorsements, recommendations, jobs, recruiter, skill assessments, pages, and events are now community scope.",
+      "purpose": "Retired network PRD pointer. Professional profile, connections, InMail, endorsements, recommendations, jobs, recruiter, skill assessments, pages, and events are now community scope.",
       "path_correction_2026_05_20": {
-        "previous_path": "legacy Connect network JSON projection",
+        "previous_path": "legacy network JSON projection",
         "reason": "Wave 15K retires network as standalone product and redirects its professional content into community."
       }
     },
-    "prd_connect_shorts": {
+    "prd_community_shorts_retired": {
       "kind": "prd",
       "current_path": "/microservices/social/PRD.md",
       "target_path_after_md_retirement": "/microservices/social/PRD.md (short-video flavor section)",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
       "retired_on": "2026-05-21",
       "successor_path": "/microservices/social/PRD.md",
-      "purpose": "Retired Connect Shorts sub-PRD pointer. Short-form video (TikTok/Reels/YouTube-Shorts-class) is absorbed into social as the TikTok-style media flavor per ADR-0334.",
+      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper.",
       "path_correction_2026_05_20": {
-        "previous_path": "/specs/products/connect/shorts.json",
+        "previous_path": "retired specs/products communications/shorts JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       },
       "retirement_correction_2026_05_21": {
@@ -574,14 +574,14 @@
         "reason": "Wave 15O retires shorts as a standalone µservice and absorbs its short-form video capabilities into social per ADR-0334."
       }
     },
-    "prd_connect_social": {
+    "prd_community_social": {
       "kind": "prd",
       "current_path": "/specs/microservices/social.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Social sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Intelligence contracts (Intelligence replaces Foundry per ADR-0335 Wave 15I), regional packs, UX components, risks, goals, and deterministic validation hooks.",
+      "purpose": "Community social mode PRD — machine-readable community surface with context isolation, Workflow/Ontology/Intelligence contracts, regional packs, UX components, risks, goals, and deterministic validation hooks.",
       "path_correction_2026_05_20": {
-        "previous_path": "/specs/products/connect/social.json",
+        "previous_path": "retired specs/products communications/social JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       }
     },
@@ -590,7 +590,7 @@
       "current_path": "/specs/microservices/anonymous.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Anonymous µservice PRD — Sidechat / YikYak / Blind-class pseudonymous platform with cryptographic blinding. Per ADR-0126/0135 Connect dissolution."
+      "purpose": "Anonymous µservice PRD — Sidechat / YikYak / Blind-class pseudonymous platform with cryptographic blinding. Per ADR-0126/0135 dissolution."
     },
     "prd_foundry": {
       "kind": "prd",
@@ -646,7 +646,7 @@
       "current_path": "/specs/microservices/social.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Social µservice PRD — Twitter / X / Bluesky-class general social platform. Per ADR-0126/0135 Connect dissolution."
+      "purpose": "Social µservice PRD — Twitter / X / Bluesky-class general social platform. Per ADR-0126/0135 dissolution."
     },
     "planning_closure_status_ledger": {
       "kind": "ledger",
@@ -662,14 +662,14 @@
       "status_ledger": "/specs/planning-closure-status-closure-ledger.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Machine-readable closure contract for FD-001 planning: Enterprise Generic + SMB Generic full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, Oya VCS sequencing, and no false planning-green claims."
+      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant RBAC view + Tenant RBAC view full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, plain-git PR/Jenkins governance sequencing, and no false planning-green claims."
     },
     "adr_0217_vertical_rollout_order": {
       "kind": "decision",
       "current_path": "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
       "target_path_after_md_retirement": "same until ADR projection retirement",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Enterprise Generic + SMB Generic first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection."
+      "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Tenant RBAC view + Tenant RBAC view first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection."
     },
     "adr_0346_oya_verify_ci_mirror": {
       "kind": "decision",
@@ -1095,7 +1095,7 @@
   },
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
-    "step_2_context_recall": "Prefer Oya VCS / intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
+    "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
     "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + Jenkins CI + `oya gate` (ADR-0363): work on an isolated worktree branch, push, open a PR against dev; Jenkins + `oya gate run-all` + reviewer APPROVE gate merge. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
     "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate (`oya gate run-all`, locally and in Jenkins CI). The legacy 'ChangeBundle promotion / Oya VCS admission' framing is provenance-only per ADR-0363.",
@@ -1112,10 +1112,10 @@
     ],
     "root_hub_path_corrections": [
       "knowledge_graph_semantic",
-      "prd_connect_anonymous",
-      "prd_connect_network",
-      "prd_connect_shorts",
-      "prd_connect_social"
+      "prd_community_anonymous",
+      "prd_community_network_retired",
+      "prd_community_shorts_retired",
+      "prd_community_social"
     ],
     "audit_note": "Root hub now has a direct discoverability row for every top-level specs/*.json file. docs/AGENTS.md remains current authority for the agent operating contract until PHASE-5."
   }

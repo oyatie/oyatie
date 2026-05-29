@@ -36,7 +36,7 @@ This audit grades every microservice against six axes:
 - < 50 files → 10 % (critically thin)
 
 **Axis B (ADR Adherence — 28-row keystone matrix):**  
-28-row matrix covers: ADR-0242 (oyatie-is-a-tenant), ADR-0243 (Cedar gate), ADR-0244 (tenant scoping DDL), ADR-0245 (substrate vs product), ADR-0246 (policy engine), ADR-0247 (self-modification), ADR-0248 (cellular architecture), ADR-0249 (marketplace), ADR-0250 (build ahead), ADR-0251 (compliance packs; encryption-key BYOK §D-10), ADR-0252 (HLC/TrueTime), ADR-0253 (HTTP/3 + network), ADR-0254 (K8s+CloudHypervisor), ADR-0255 (provider-credential BYOK §D-4), ADR-0256 (MLS E2EE), ADR-0257 (library-first), ADR-0258 (PQC), ADR-0293 (meta-trust-root), ADR-0294 (soak), ADR-0295 (SPIFFE), ADR-0296 (credential sidecar), ADR-0131 (flat layout), ADR-0132 (no-suite), ADR-0145 (inter-µservice comms), ADR-0148 (Cilium mesh), ADR-0211 (in-house stack), ADR-0212 (buildability), ADR-0221 (agentic hardening).
+28-row matrix covers: ADR-0242 (oyatie-is-a-tenant), ADR-0243 (Cedar gate), ADR-0244 (tenant scoping DDL), ADR-0245 (substrate vs product), ADR-0246 (policy engine), ADR-0247 (self-modification), ADR-0248 (cellular architecture), ADR-0249 (marketplace), ADR-0250 (build ahead), ADR-0251 (compliance packs; encryption-key BYOK §D-10), ADR-0252 (HLC/TrueTime), ADR-0253 (HTTP/3 + network), ADR-0254 (K8s+CloudHypervisor), ADR-0255 (provider-credential BYOK §D-4), ADR-0256 (MLS E2EE), ADR-0257 (library-first), ADR-0258 (PQC), ADR-0293 (meta-trust-root), ADR-0294 (soak), ADR-0295 (SPIFFE), ADR-0296 (credential sidecar), ADR-0131 (flat layout), ADR-0132 (no-grouping), ADR-0145 (inter-µservice comms), ADR-0148 (Cilium mesh), ADR-0211 (in-house stack), ADR-0212 (buildability), ADR-0221 (agentic hardening).
 
 Scoring: (files referencing keystone ADRs / total ADR-referencing files) × coverage coefficient, normalised to 0-100.
 
@@ -474,7 +474,7 @@ Note: The compliance µservice carries the compliance-pack evaluation surface. T
 
 ---
 
-#### 2.3.3 `connect`
+#### 2.3.3 `connector`
 
 | Metric | Value |
 |--------|-------|
@@ -490,7 +490,7 @@ Note: The compliance µservice carries the compliance-pack evaluation surface. T
 **Composite:** 2.0 + 21.6 + 9.2 + 4.4 + 5.5 + 3.2 = **45.9 — BELOW-BAR**
 
 **Priority findings:**
-- A-CON-01 (CRITICAL): 25 files — 75% below floor. Connect implements MLS RFC 9420 E2EE (ADR-0256); it needs: MLS spec, WebRTC contract, ECH endpoint declaration, PQC TLS spec, SLO, Cedar auth spec.
+- A-CON-01 (CRITICAL): 25 files — 75% below floor. implements MLS RFC 9420 E2EE (ADR-0256); it needs: MLS spec, WebRTC contract, ECH endpoint declaration, PQC TLS spec, SLO, Cedar auth spec.
 - D-CON-01 (HIGH): 44% ADR density — lowest in the consumer tier. Many connect spec files have no ADR backlinks.
 - B-CON-01 (MEDIUM): Despite good keystone ratio (8/11 = 73%), the total file count means absolute coverage is thin.
 
@@ -511,7 +511,7 @@ Note: The compliance µservice carries the compliance-pack evaluation surface. T
 
 **Composite:** 2.0 + 30 + 10.0 + 10.0 + 7.2 + 6.2 = **65.4 — GOOD**
 
-**Note:** payments has an in-flight background agent (`payments full doc-suite buildout`). The 13-file count will expand significantly; this grade reflects the pre-buildout snapshot.
+**Note:** payments has an in-flight background agent (`payments full doc-set buildout`). The 13-file count will expand significantly; this grade reflects the pre-buildout snapshot.
 
 **Priority findings:**
 - A-PAY-01 (CRITICAL): 13 files — critically thin pre-buildout. PCI DSS scope requires: PCI compliance pack spec, SecretReference spec for payment credentials (ADR-0255), audit-chain emission spec, Cedar payment-authorization policy, SLO.
@@ -1168,7 +1168,7 @@ Note: The compliance µservice carries the compliance-pack evaluation surface. T
 | 11 | comms-email | 81 | 0 | 48.1 | BELOW-BAR |
 | 12 | community | 129 | 1 | 66.1 | GOOD |
 | 13 | compliance | 120 | 39 | 78.8 | GOOD |
-| 14 | connect | 25 | 8 | 45.9 | BELOW-BAR |
+| 14 | connector | 25 | 8 | 45.9 | BELOW-BAR |
 | 15 | consent-graph | 108 | 0 | 51.9 | ADEQUATE |
 | 16 | developer-sdk | 117 | 0 | 50.8 | ADEQUATE |
 | 17 | docs | 109 | 0 | 56.8 | ADEQUATE |
@@ -1331,7 +1331,7 @@ The following fixuptasks are filed as a result of this audit. HIGH and CRITICAL 
 |----|----------|-------------|-------|
 | F-KS-KEYSTONE-BACKLINK-SWEEP | HIGH | all 38 without keystone refs | Add keystone ADR backlinks to µservice spec files — Week-1 substrate, Week-2 product tier, Week-3 remainder |
 | F-KS-ARTIFACT-FLOOR-BUILDOUT-APIGATEWAY | CRITICAL | api-gateway | api-gateway only has 34 files; dedicated buildout PR needed (target: ≥100) |
-| F-KS-ARTIFACT-FLOOR-BUILDOUT-CONNECT | CRITICAL | connect | connect only has 25 files; MLS spec + ECH + WebRTC contract + SLO needed |
+| F-KS-ARTIFACT-FLOOR-BUILDOUT-CONNECT | CRITICAL | connector | connect only has 25 files; MLS spec + ECH + WebRTC contract + SLO needed |
 | F-KS-ARTIFACT-FLOOR-BUILDOUT-FEATUREFLAGS | CRITICAL | feature-flags | feature-flags only has 16 files; Cedar flag spec + rate-limit + tenant isolation needed |
 | F-KS-OPS-DASHBOARD-ELEVATE | CRITICAL | ops-dashboard-control-center | Ops dashboard is CRITICAL grade; elevate to first-class buildout with Cedar gating + 100-artifact target |
 | F-KS-CLOUD-SECRETS-ABUSE-DEFENCE | CRITICAL | cloud-secrets | Credential store has only 7 abuse-defence files; brute-force + rate-limit + anomaly-detection required |
@@ -1367,7 +1367,7 @@ The following heatmap summarises per-axis scores across all 46 µservices. Score
 | comms-email | M | L | M | H | M | M | 48.1 |
 | community | H | L | M | H | M | H | 66.1 |
 | compliance | M | H | M | M | M | M | 78.8 |
-| connect | L | H | M | L | M | L | 45.9 |
+| connector | L | H | M | L | M | L | 45.9 |
 | consent-graph | M | L | M | L | M | L | 51.9 |
 | developer-sdk | M | L | M | M | M | L | 50.8 |
 | docs | M | L | M | H | M | M | 56.8 |

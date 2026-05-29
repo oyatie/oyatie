@@ -23,7 +23,7 @@ fn provisioned_workload_walks_to_active_then_serves_authz_requests() {
         .expect("provisioned -> active is legal");
 
     let principal = principal
-        .with_claim("iss", ClaimValue::Text("https://idp.oyatie.dev".into()))
+        .with_claim("iss", ClaimValue::Text("https://idp.oyatie.com".into()))
         .expect("claim ok")
         .with_claim("trust_tier", ClaimValue::Int(2))
         .expect("claim ok")
@@ -34,7 +34,7 @@ fn provisioned_workload_walks_to_active_then_serves_authz_requests() {
     assert!(principal.has_scope("payments.ledger.read"));
     assert_eq!(
         principal.claim("iss").and_then(ClaimValue::as_text),
-        Some("https://idp.oyatie.dev")
+        Some("https://idp.oyatie.com")
     );
 
     let request = AuthorizationRequest::new(

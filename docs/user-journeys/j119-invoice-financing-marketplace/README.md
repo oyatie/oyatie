@@ -72,7 +72,7 @@ Required ADR citation set: ADR-0244, ADR-0297, ADR-0299, ADR-0292, ADR-0263, ADR
 ADR-0311, ADR-0312, ADR-0313.
 
 KrampusCorp lists unpaid receivables on the financing marketplace, financiers bid as other tenants, and
-Stripe Connect style settlement clears proceeds, fees, and audit evidence.
+Stripe style settlement clears proceeds, fees, and audit evidence.
 
 ## Artifact index
 

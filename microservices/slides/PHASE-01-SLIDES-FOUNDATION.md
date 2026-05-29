@@ -5,7 +5,7 @@ milestone: M03-workspace-preview
 phase: P01-slides-foundation
 status: Active
 entry_gate: |
-  PRD-slides accepted; ADR-0135 (Connect dissolution) accepted; ADR-0131 per-microservice flat layout in
+  PRD-slides accepted; ADR-0135 (dissolution) accepted; ADR-0131 per-microservice flat layout in
   force; sibling docs + sheets µservices co-authored under same Loro CRDT family; messenger µservice
   LiveKit infra available for broadcast-mode signaling reuse; foundry-runtime SDK available for T0/T1/T2
   AI capabilities; tenancy + audit-chain + ontology + observability SDKs available; Layer-A IaC available
@@ -44,7 +44,7 @@ Ship the slides µservice — presentation authoring + collab + present + broadc
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (CDN-cached WASM + per-tenant CRDT collab + Cedar per-slide ACL + gVisor sandbox for import/export).
-- Nothing scheduled-for-distinct-tracked-work (every legacy connect-slides-* trail is structurally absent per ADR-0135; no compat seam authored).
+- Nothing scheduled-for-distinct-tracked-work (every legacy slides-* trail is structurally absent per ADR-0135; no compat seam authored).
 - No silent regression (slides-pptx-roundtrip-subset + ai-act-risk-class-stamp + reduced-motion-fallback-mandatory CI lanes are BLOCKER day 1).
 - Per-microservice flat layout (ships natively under ADR-0131).
 
@@ -138,5 +138,5 @@ oya gate validate authority-cohesion
 
 - PRD `microservices/slides/PRD.md`.
 - ADR-SLIDES-0001 through ADR-SLIDES-0008.
-- ADR-0135 Connect dissolution.
+- ADR-0135 dissolution.
 - ADR-0131 per-microservice flat layout.

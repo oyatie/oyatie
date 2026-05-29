@@ -25,21 +25,21 @@ For every benchmark dimension below:
 - Deployment-context overlay = how the target changes per deployment-context (oyatie-public / aws-guest / oci-guest / on-prem / colo / oyatie-as-cloud-provider). Targets degrade for high-latency contexts (e.g., OCI Always Free has CPU-only ASR vs paid which has GPU ASR).
 - Tenant-class overlay = how the target changes per tenant-class (demo_trial / paid). demo_trial typically has best-effort SLO (no contractual commitment); paid has contractual SLO.
 
-Sources for industry-leader numbers: vendor public benchmark whitepapers (Genesys Cloud State of CX Report 2024, Five9 platform performance disclosures, AWS Connect Service Level Agreement, Twilio Programmable Voice latency disclosures, NICE CXone uptime SLA, Talkdesk performance reports), prior corpus benchmark file `benchmarks/genesys-vs-five9-vs-aws-connect-vs-oyatie.md`, and CCaaS industry benchmark consortium aggregated numbers as cited in 2024-2026 Gartner Magic Quadrant + Forrester Wave reports.
+Sources for industry-leader numbers: vendor public benchmark whitepapers (Genesys Cloud State of CX Report 2024, Five9 platform performance disclosures, AWS Service Level Agreement, Twilio Programmable Voice latency disclosures, NICE CXone uptime SLA, Talkdesk performance reports), prior corpus benchmark file `benchmarks/genesys-vs-five9-vs-aws-connect-vs-oyatie.md`, and CCaaS industry benchmark consortium aggregated numbers as cited in 2024-2026 Gartner Magic Quadrant + Forrester Wave reports.
 
 ## 1. Call-routing decision latency
 
 Definition: time from SIP INVITE arriving at SBC → routing decision returned → call dispatched to assigned queue / agent. Excludes SIP signalling RTT and media setup.
 
-Industry-leader target (Amazon Connect Contact Lens routing service):
+Industry-leader target (Amazon Contact Lens routing service):
 - p50: 35 ms
 - p95: 75 ms
 - p99: 120 ms
 - p99.9: 250 ms
 
-Why Amazon Connect leads: AWS's massive PoP density + cell architecture pre-warming + per-account cell-isolated routing engine.
+Why Amazon leads: AWS's massive PoP density + cell architecture pre-warming + per-account cell-isolated routing engine.
 
-Oyatie target = match Amazon Connect at p95 + p99 + p99.9.
+Oyatie target = match Amazon at p95 + p99 + p99.9.
 
 Per ADR-MS-001, routing decisions must include channel + entry_point + queue_id + skill_tags + agent_presence_version + SLA_tier + emergency_bypass_flag. This is more attributes than AWS Connect's routing engine evaluates; Cedar policy evaluation MUST stay sub-30 ms to keep the routing-decision p99 ≤ 120 ms.
 
@@ -124,13 +124,13 @@ Push-notification delivery budget within mobile pickup p95: ≤ 1.0 s (APNs p95 
 
 Definition: time from DTMF key press OR ASR speech-end → IVR engine plays next prompt.
 
-Industry-leader (Amazon Connect Lex bot path):
+Industry-leader (Amazon Lex bot path):
 - p50: 200 ms
 - p95: 450 ms
 - p99: 800 ms
 - p99.9: 1500 ms
 
-Why Amazon Connect leads: Lex bot inference is co-located in same AWS region as Connect instance; intra-region < 5 ms.
+Why Amazon leads: Lex bot inference is co-located in same AWS region as instance; intra-region < 5 ms.
 
 Oyatie target = match for DTMF; ASR-path is intelligence-µservice-dependent (see § 5).
 
@@ -142,7 +142,7 @@ Oyatie target = match for DTMF; ASR-path is intelligence-µservice-dependent (se
 
 | Metric (speech / ASR-driven IVR) | p50 | p95 | p99 | p99.9 |
 |---|---:|---:|---:|---:|
-| Industry-leader (Amazon Connect Lex) | 600 ms | 1200 ms | 2000 ms | 3500 ms |
+| Industry-leader (Amazon Lex) | 600 ms | 1200 ms | 2000 ms | 3500 ms |
 | Oyatie target (paid, ASR) | 600 ms | 1300 ms | 2200 ms | 4000 ms |
 | Oyatie target (demo_trial, ASR, Whisper.cpp CPU) | 1500 ms | 3000 ms | 5500 ms | 9000 ms |
 
@@ -171,7 +171,7 @@ ASR-driven IVR adds ~ 600 ms ASR inference budget (Whisper large-v3 on L40S GPU 
 
 Definition: time from policy-eval-allows-recording → first audio sample written to recordings µservice backing store.
 
-Industry-leader (AWS Connect S3 sink):
+Industry-leader (AWS S3 sink):
 - p50: 80 ms
 - p95: 180 ms
 - p99: 350 ms
@@ -183,7 +183,7 @@ Oyatie target = match.
 
 | Metric | p50 | p95 | p99 | p99.9 |
 |---|---:|---:|---:|---:|
-| Industry-leader (AWS Connect S3) | 80 ms | 180 ms | 350 ms | 800 ms |
+| Industry-leader (AWS S3) | 80 ms | 180 ms | 350 ms | 800 ms |
 | Oyatie target (paid → recordings µservice) | 80 ms | 200 ms | 400 ms | 900 ms |
 | Oyatie target (demo_trial → recordings µservice on OCI Object Storage Always Free) | 200 ms | 600 ms | 1500 ms | 4000 ms |
 
@@ -209,7 +209,7 @@ Recording-storage-write throughput target (per tenant):
 
 Definition: ratio of audio-duration to transcription-latency. RTF = 1.0 means real-time; RTF < 1.0 means transcription is FASTER than real-time (low RTF = better).
 
-Industry-leader (Amazon Connect Contact Lens real-time):
+Industry-leader (Amazon Contact Lens real-time):
 - 30-second utterance RTF p50: 0.04 (so 30 s audio → 1.2 s transcript)
 - 30-second utterance RTF p95: 0.06
 - 30-second utterance RTF p99: 0.10
@@ -249,7 +249,7 @@ The intelligence µservice gRPC contract for streaming ASR is MISSING per audit 
 
 Definition: time from utterance-end (transcript available) → sentiment classification returned (positive / negative / neutral + confidence + per-emotion scores).
 
-Industry-leader (Amazon Connect Contact Lens sentiment):
+Industry-leader (Amazon Contact Lens sentiment):
 - p50: 200 ms
 - p95: 450 ms
 - p99: 800 ms
@@ -320,7 +320,7 @@ The KPI freshness budget feeds the agent-presence-freshness SLO (`slos/local-age
 
 Definition: SIP INVITE arrival at SBC → 200 OK returned to caller (call media path established end-to-end).
 
-Industry-leader (AWS Connect via Kinesis Voice Streams + Chime SDK):
+Industry-leader (AWS via Kinesis Voice Streams + Chime SDK):
 - p50: 140 ms
 - p95: 280 ms
 - p99: 480 ms
@@ -328,7 +328,7 @@ Industry-leader (AWS Connect via Kinesis Voice Streams + Chime SDK):
 
 Per the prior corpus benchmark `benchmarks/genesys-vs-five9-vs-aws-connect-vs-oyatie.md`, AWS Connect's tight peering with PSTN trunk providers gives this edge.
 
-Oyatie target = match AWS Connect at p99 + p99.9 (this is the call-setup latency budget).
+Oyatie target = match AWS at p99 + p99.9 (this is the call-setup latency budget).
 
 | Metric | p50 | p95 | p99 | p99.9 |
 |---|---:|---:|---:|---:|
@@ -377,7 +377,7 @@ TCPA abandonment-rate compliance: ≤ 3 % per 47 CFR § 64.1200(a)(7) per 30-day
 
 Definition: time from recording-stop → transcoded blob (Opus → WAV / WAV → MP4) available for retrieval; time from API GET request → audio bytes streaming.
 
-Industry-leader (AWS Connect S3 retrieval via CloudFront edge):
+Industry-leader (AWS S3 retrieval via CloudFront edge):
 - Transcode latency (60-min call): p99 = 45 s
 - Retrieval first-byte: p99 = 80 ms (edge cached)
 - Retrieval first-byte: p99 = 350 ms (cold)
@@ -429,7 +429,7 @@ Oyatie target = match for paid + on-prem (E911 sovereign requirement).
 
 | Metric | p50 | p95 | p99 | p99.9 |
 |---|---:|---:|---:|---:|
-| Industry-leader (AWS Connect via Bandwidth) | 800 ms | 1.5 s | 2.5 s | 5.0 s |
+| Industry-leader (AWS via Bandwidth) | 800 ms | 1.5 s | 2.5 s | 5.0 s |
 | Oyatie target (paid, Bandwidth.com + Inteliquent E911 path) | 800 ms | 1.5 s | 2.5 s | 5.0 s |
 | Oyatie target (demo_trial) | E911 NOT AVAILABLE for demo_trial tenants (no provisioned DIDs) | n/a | n/a | n/a |
 
@@ -439,7 +439,7 @@ E911 routing MUST bypass tenant-isolation per `policies/local-emergency-caller-b
 
 Definition: time from audit-emitting action (route decision, transfer, consent change, recording-start, recording-stop, emergency-bypass) → audit event written to audit-chain µservice (per ADR-0003 audit-chain).
 
-Industry-leader (AWS Connect EventBridge → Kinesis):
+Industry-leader (AWS EventBridge → Kinesis):
 - p50: 200 ms
 - p95: 500 ms
 - p99: 1.5 s
@@ -459,7 +459,7 @@ SLO file binding: `slos/audit-emission-lag.openslo.yaml` declares 0.999 audit-em
 
 Definition: time from audit-event-emission → event available in replay-stream for downstream consumers (per ADR-MS-001 replay freshness target 0.999).
 
-Industry-leader (AWS Connect via Kinesis Data Streams):
+Industry-leader (AWS via Kinesis Data Streams):
 - p95 replay-lag: 2 s
 - p99 replay-lag: 8 s
 - p99.9 replay-lag: 30 s
@@ -476,7 +476,7 @@ Oyatie target = match.
 
 Definition: one-way audio latency (mouth-to-ear) + MOS (Mean Opinion Score, per ITU-T P.800).
 
-Industry-leader (AWS Connect anycast + WebRTC):
+Industry-leader (AWS anycast + WebRTC):
 - One-way p99: 95 ms
 - MOS (G.711): 4.2
 - MOS (Opus 64 kbps): 4.3
@@ -485,7 +485,7 @@ Oyatie target = match for paid.
 
 | Metric | One-way p99 | MOS G.711 | MOS Opus |
 |---|---:|---:|---:|
-| Industry-leader (AWS Connect anycast) | 95 ms | 4.2 | 4.3 |
+| Industry-leader (AWS anycast) | 95 ms | 4.2 | 4.3 |
 | Oyatie target (paid, anycast SRTP via janus-gateway) | 95 ms | 4.2 | 4.3 |
 | Oyatie target (demo_trial, single-AZ FreeSWITCH) | 200 ms | 3.8 | 4.0 |
 
@@ -528,7 +528,7 @@ The 30-concurrent-call cap for OCI Always Free demo_trial is derived from the 4 
 
 Definition: Recovery Time Objective (time to restore service) + Recovery Point Objective (max data loss in seconds).
 
-Industry-leader (AWS Connect multi-region failover):
+Industry-leader (AWS multi-region failover):
 - Same-region cell failover RTO: 30 s
 - Cross-region failover RTO: 4 h (RPO 4 h per docs)
 
@@ -580,7 +580,7 @@ Predictive dialer pacing must consult `policies/local-tcpa-pacing.cedar` (file d
 
 Definition: peak sentiment-evaluations per second per cell.
 
-Industry-leader (Amazon Connect Contact Lens):
+Industry-leader (Amazon Contact Lens):
 - Peak per-cell: 5000 sentiment evaluations/second
 
 Oyatie target = match for paid via intelligence µservice GPU pool.
@@ -611,34 +611,34 @@ Oyatie target cost per call (paid):
 | colo | $0.05 (cage + cross-connect) | $0.00 |
 | oyatie-as-cloud-provider | $0.07 | n/a (Oyatie-as-provider doesn't have demo_trial; demo_trial is on Oyatie public) |
 
-Oyatie cost-per-call leads industry on OCI-paid + on-prem + colo contexts. AWS Connect remains cheaper than Oyatie on aws-guest context due to AWS PrivateLink + Connect-native VoIP pricing.
+Oyatie cost-per-call leads industry on OCI-paid + on-prem + colo contexts. AWS remains cheaper than Oyatie on aws-guest context due to AWS PrivateLink + Connect-native VoIP pricing.
 
 ## 22. Summary scoreboard
 
 | Dimension | Industry-leader name | Industry-leader value | Oyatie target (paid) | Oyatie target (demo_trial) |
 |---|---|---:|---:|---:|
-| Call-routing decision latency (p99) | Amazon Connect | 120 ms | 120 ms | 280 ms |
+| Call-routing decision latency (p99) | Amazon | 120 ms | 120 ms | 280 ms |
 | Agent-pickup latency (p95) | NICE CXone | 2.0 s | 2.0 s | 5.0 s |
-| IVR menu response (DTMF, p99) | Amazon Connect | 800 ms | 800 ms | 1800 ms |
-| IVR menu response (ASR, p99) | Amazon Connect | 2000 ms | 2200 ms | 5500 ms |
-| Recording-start latency (p99) | AWS Connect | 350 ms | 400 ms | 1500 ms |
+| IVR menu response (DTMF, p99) | Amazon | 800 ms | 800 ms | 1800 ms |
+| IVR menu response (ASR, p99) | Amazon | 2000 ms | 2200 ms | 5500 ms |
+| Recording-start latency (p99) | AWS | 350 ms | 400 ms | 1500 ms |
 | Transcription RTF (p99) | AWS Contact Lens | 0.10 | 0.10 | 0.90 |
 | Sentiment-scoring latency (p99) | Contact Lens | 800 ms | 900 ms | best-effort |
 | Dashboard p99 latency | Genesys Cloud | 3.5 s | 3.5 s | 8.0 s |
-| SBC call-setup (p99) | AWS Connect | 480 ms | 480 ms | 960 ms |
+| SBC call-setup (p99) | AWS | 480 ms | 480 ms | 960 ms |
 | Outbound peak dial rate | Five9 | 1500 cps | 1500 cps | 5 cps |
 | AMD detection (p95) | Five9 | 1.0 s | 1.0 s | 3.0 s |
-| Recording transcode (60-min, p99) | AWS Connect | 45 s | 50 s | 180 s |
+| Recording transcode (60-min, p99) | AWS | 45 s | 50 s | 180 s |
 | STIR/SHAKEN attestation (p99) | Twilio | 35 ms | 40 ms (on-prem HSM) / 75 ms (cloud-kms) | n/a |
-| E911 / NENA i3 latency (p99) | AWS Connect via Bandwidth | 2.5 s | 2.5 s | n/a |
-| Audit-emission lag (p99) | AWS Connect | 1.5 s | 1.5 s | 4.0 s |
+| E911 / NENA i3 latency (p99) | AWS via Bandwidth | 2.5 s | 2.5 s | n/a |
+| Audit-emission lag (p99) | AWS | 1.5 s | 1.5 s | 4.0 s |
 | Replay freshness lag (p99) | AWS Kinesis | 8 s | 8 s | 60 s |
-| WebRTC media one-way (p99) | AWS Connect | 95 ms | 95 ms | 200 ms |
-| MOS (Opus) | AWS Connect | 4.3 | 4.3 | 4.0 |
-| Concurrent calls / cell (sustained) | Amazon Connect | 100 000+ | 10 000 per cell × multi-cell aggregate | 30 |
-| Same-region failover RTO | AWS Connect | 30 s | 30 s | n/a |
+| WebRTC media one-way (p99) | AWS | 95 ms | 95 ms | 200 ms |
+| MOS (Opus) | AWS | 4.3 | 4.3 | 4.0 |
+| Concurrent calls / cell (sustained) | Amazon | 100 000+ | 10 000 per cell × multi-cell aggregate | 30 |
+| Same-region failover RTO | AWS | 30 s | 30 s | n/a |
 | Sentiment events / second / cell | Contact Lens | 5000 | 5000 | 5 |
-| Cost / 5-min call (oyatie-public, paid) | AWS Connect | $0.09 | $0.07 | $0.00 (Always Free) |
+| Cost / 5-min call (oyatie-public, paid) | AWS | $0.09 | $0.07 | $0.00 (Always Free) |
 
 ## 23. SLO file binding requirements
 

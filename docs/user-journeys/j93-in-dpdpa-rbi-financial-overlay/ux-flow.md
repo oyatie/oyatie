@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | quarterly RBI evidence run | RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | consent withdrawal propagation | Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | cross-border processing review | DPDPA section 5 notice | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | creator consent notice | DPDPA section 6 consent | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | creator consent notice | DPDPA section 6 consent | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | merchant KYC tiering | DPDPA section 7 certain legitimate uses | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | per-transaction RBI threshold check | DPDPA section 8 general obligations of Data Fiduciary | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | quarterly RBI evidence run | DPDPA section 10 Significant Data Fiduciary obligations | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | creator consent notice | DPDPA section 8 general obligations of Data Fiduciary | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | merchant KYC tiering | DPDPA section 10 Significant Data Fiduciary obligations | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | per-transaction RBI threshold check | DPDPA sections 11 to 14 data principal access, correction, erasure, grievance redressal, and nomination rights | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | quarterly RBI evidence run | DPDPA section 16 processing personal data outside India | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | quarterly RBI evidence run | DPDPA section 16 processing personal data outside India | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | consent withdrawal propagation | RBI Master Directions on Prepaid Payment Instruments 2021 paragraphs 9 and 10 for PPI type/limit controls | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | cross-border processing review | RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | creator consent notice | Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | quarterly RBI evidence run | RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | consent withdrawal propagation | Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | cross-border processing review | DPDPA section 5 notice | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | creator consent notice | DPDPA section 6 consent | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | creator consent notice | DPDPA section 6 consent | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | merchant KYC tiering | DPDPA section 7 certain legitimate uses | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | per-transaction RBI threshold check | DPDPA section 8 general obligations of Data Fiduciary | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | quarterly RBI evidence run | DPDPA section 10 Significant Data Fiduciary obligations | Cedar deny-wins; ADR-0263 event sealed |

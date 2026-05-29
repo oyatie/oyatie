@@ -372,7 +372,7 @@ graph LR
 - Service: [microservices/comms-email/](../../../microservices/comms-email/)
 - Service: [microservices/community/](../../../microservices/community/)
 - Service: [microservices/compliance/](../../../microservices/compliance/)
-- Service: [microservices/connect/](../../../microservices/connect/)
+- Service: [microservices/connector/](../../../microservices/connector/)
 - Service: [microservices/consent-graph/](../../../microservices/consent-graph/)
 - Service: [microservices/contact-center/](../../../microservices/contact-center/)
 - Service: [microservices/contract-lifecycle-management/](../../../microservices/contract-lifecycle-management/)

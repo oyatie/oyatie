@@ -118,7 +118,7 @@ Repo references: microservices/healthcare-integration/policies/local-phi-deliver
 - Rhapsody displacement: Rhapsody routes messages through channels; Oyatie denies route execution unless tenant, pack, audit, and credential context are complete.
 - InterSystems IRIS for Health displacement: IRIS can embed rules near data; Oyatie keeps authorization as a shared Cedar gate outside source-specific storage.
 - Lyniate/Corepoint displacement: Corepoint interface logic is not enough; Oyatie requires policy evidence for every transform and replay.
-- Mirth Connect displacement: Mirth channel filters do not replace tenant policy; Oyatie treats channel success as post-policy adapter behavior.
+- Mirth displacement: Mirth channel filters do not replace tenant policy; Oyatie treats channel success as post-policy adapter behavior.
 - NextGate displacement: NextGate match permissions become Cedar-gated review actions, not implicit authority to merge identities.
 - Health Catalyst displacement: Health Catalyst analytics extracts require policy-cleared evidence before aggregation, not after dashboard publication.
 - Epic displacement: Epic app authorization remains source-system evidence and cannot authorize cross-Oyatie tenant action by itself.

@@ -43,26 +43,26 @@ Identify, classify, and mitigate threats to social's confidentiality, integrity,
 
 ### In-scope
 
-All components introduced by parallel ADR-0238 (Connect dissolution → social µservice) and ADR-0132 (suite dissolution into social surface) for the social µservice. Deployed in the dedicated social Kubernetes cluster.
+All components introduced by parallel ADR-0238 (dissolution → social µservice) and ADR-0132 (suite dissolution into social surface) for the social µservice. Deployed in the dedicated social Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
-| Postgres 16 LTS (profile + post + follow-graph + reactions + bookmarks store) | `oya-social-user-profile-*` (9 crates) |
-| Valkey 8.1 (RESP3 wire-compatible) (feed cache + reaction counters + trending + notification fanout) | `oya-social-follow-graph-*` (8 crates) |
-| Meilisearch 0.10.0 (people + content + hashtag search) | `oya-social-post-composition-*` (13 crates) |
-| S3-compatible (media blobs + previews + quarantine) | `oya-social-feed-timeline-*` (10 crates) |
-| ImageMagick 7.1 (image transcode) | `oya-social-reactions-*` (8 crates) |
-| ffmpeg 7.x (video HLS transcode) | `oya-social-mentions-*` (7 crates) |
-| OPSWAT MetaDefender / ClamAV 1.x (media scan) | `oya-social-hashtags-*` (8 crates) |
-| ActivityPub gateway (optional federation) | `oya-social-trending-topics-*` (9 crates) |
-| Cedar policy evaluator | `oya-social-notifications-*` (10 crates) |
-| WebSocket gateway (Envoy + Cloudflare termination) | `oya-social-content-moderation-*` (9 crates) |
-| | `oya-social-bookmarks-*` (7 crates) |
-| | `oya-social-lists-*` (7 crates) |
-| | `oya-social-search-*` (8 crates) |
-| | `oya-social-profile-verification-*` (7 crates) |
-| | `oya-social-age-verification-*` (7 crates) |
-| | `oya-social-federation-gateway-*` (8 crates; M02-onward1) |
+| Postgres 16 LTS (profile + post + follow-graph + reactions + bookmarks store) | `oya-community-social-user-profile-*` (9 crates) |
+| Valkey 8.1 (RESP3 wire-compatible) (feed cache + reaction counters + trending + notification fanout) | `oya-community-social-follow-graph-*` (8 crates) |
+| Meilisearch 0.10.0 (people + content + hashtag search) | `oya-community-social-post-composition-*` (13 crates) |
+| S3-compatible (media blobs + previews + quarantine) | `oya-community-social-feed-timeline-*` (10 crates) |
+| ImageMagick 7.1 (image transcode) | `oya-community-social-reactions-*` (8 crates) |
+| ffmpeg 7.x (video HLS transcode) | `oya-community-social-mentions-*` (7 crates) |
+| OPSWAT MetaDefender / ClamAV 1.x (media scan) | `oya-community-social-hashtags-*` (8 crates) |
+| ActivityPub gateway (optional federation) | `oya-community-social-trending-topics-*` (9 crates) |
+| Cedar policy evaluator | `oya-community-social-notifications-*` (10 crates) |
+| WebSocket gateway (Envoy + Cloudflare termination) | `oya-community-social-content-moderation-*` (9 crates) |
+| | `oya-community-social-bookmarks-*` (7 crates) |
+| | `oya-community-social-lists-*` (7 crates) |
+| | `oya-community-social-search-*` (8 crates) |
+| | `oya-community-social-profile-verification-*` (7 crates) |
+| | `oya-community-social-age-verification-*` (7 crates) |
+| | `oya-community-social-federation-gateway-*` (8 crates; M02-onward1) |
 
 ### Out-of-scope
 
@@ -508,7 +508,7 @@ Per pack overlay at `regional-packs/<pack>/social-overlay.md`; cross-mapped via 
 
 ## References
 
-- Parallel ADR-0135 (Connect dissolution; social as a sibling µservice).
+- Parallel ADR-0135 (dissolution; social as a sibling µservice).
 - Bominal ADR-0028, ADR-0111, ADR-0208, ADR-0215.
 - ADR-0008 Data Use Boundary.
 - `microservices/social/PRD.md`.

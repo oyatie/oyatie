@@ -40,7 +40,7 @@ companion_docs:
   - microservices/contract-lifecycle-management/manifest.json
   - microservices/contract-lifecycle-management/decisions/ADR-CLM-001-clause-obligation-ledger-and-redline-provenance.md
   - microservices/contract-lifecycle-management/REMEDIATION-NOTES-2026-05-21.md
-planned_enforcement_ref: oya-governance-contract-lifecycle-management-doc-suite
+planned_enforcement_ref: oya-governance-contract-lifecycle-management-doc-set
 ---
 
 # PRD-contract-lifecycle-management: Contract Lifecycle Management
@@ -301,7 +301,7 @@ Per audit § 5:
 
 ## J. Out of Scope
 
-- Recreating an Ironclad / DocuSign CLM / Conga CLM suite boundary (ADR-0132 no-suite-policy).
+- Recreating an Ironclad / DocuSign CLM / Conga CLM suite boundary (ADR-0132 no-grouping-policy).
 - Sharing database tables with adjacent µservices (ADR-0145 direct gRPC).
 - Treating vendor labels as canonical object names (ADR-0329).
 - Bypassing marketplace DealSet settlement for commercial obligations (ADR-0314).

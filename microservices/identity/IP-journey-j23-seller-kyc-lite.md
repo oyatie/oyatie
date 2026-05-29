@@ -23,7 +23,7 @@ related_adrs:
 ## A. Intent
 Implement `seller-kyc-lite` for `marketplace-listing-and-first-sale` without modifying PRDs, ADRs, standards, or ARCHITECTURE.md. The slice stays in ADR-0131 flat layout and ADR-0105 layer ownership.
 
-Journey summary: Yejin lists a vintage jacket, completes the first sale, and receives a Stripe Connect payout to a Korean bank after marketplace settlement.
+Journey summary: Yejin lists a vintage jacket, completes the first sale, and receives a Stripe payout to a Korean bank after marketplace settlement.
 
 ## B. Boundaries
 - Owns: `identity` responsibility only.

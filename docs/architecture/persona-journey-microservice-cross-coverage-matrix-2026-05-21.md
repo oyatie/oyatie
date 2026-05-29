@@ -3770,7 +3770,7 @@ Cross-reference: `microservices/<svc>/PRD.md` for each µservice; enterprise-sof
 - **Per-µservice IP-journey-* slice count (derived from README microservices_touched lists):** 18.
 - **Per-pack overlays applicable:** per-tenant per-pack via compliance overlay.
 - **Critical-path responsibilities (per documentation-rigor.md §3.2.5):** row 1 (default-deny), row 8 (cross-tenant exfil), row 24 (audit-chain seal); plus role-specific rows.
-- **PRD citation:** `microservices/connect/PRD.md`.
+- **PRD citation:** `microservices/connector/PRD.md`.
 
 ### §4.25 data-pipeline — substrate (Tier-3; cell-tier T1)
 

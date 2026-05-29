@@ -40,7 +40,7 @@ spec:
         oyatie.com/product-goal: fd-001
       annotations:
         cosign.sigstore.dev/required: "true"
-        oyatie.com/image-digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+        oyatie.com/image-digest: ""
         oyatie.com/image-promotion-policy: ADR-0181
         oyatie.com/audit-chain-event: microservice-deployment
     spec:
@@ -66,7 +66,8 @@ spec:
               app.kubernetes.io/name: messenger
       containers:
         - name: app
-          image: registry.oyatie.dev/oya-messenger@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          # Intentionally blank: static evidence snapshots are not deployable without release automation.
+          image: ""
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

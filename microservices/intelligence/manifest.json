@@ -105,7 +105,7 @@
     },
     {
       "name": "eval",
-      "description": "Preview metadata-only evaluation foundation for release gates, guardrail calibration, and output-quality evidence. Kernel/domain/usecase source-level crates score, policy-validate, and idempotently orchestrate eval suite metadata with audit event records; the adapter source-level crate builds hosted-runner envelopes and maps runner outcome metadata without network execution; the worker source-level crate validates leased eval jobs, runs the usecase, dispatches metadata-only adapter envelopes, and computes deterministic retry/deferred receipts without queue or runner I/O; binary/queue/runtime eval execution remains future work.",
+      "description": "Preview metadata-only evaluation foundation for release gates, guardrail calibration, and output-quality evidence. Kernel/domain/usecase source-level crates score, policy-validate, and idempotently orchestrate eval set metadata with audit event records; the adapter source-level crate builds hosted-runner envelopes and maps runner outcome metadata without network execution; the worker source-level crate validates leased eval jobs, runs the usecase, dispatches metadata-only adapter envelopes, and computes deterministic retry/deferred receipts without queue or runner I/O; binary/queue/runtime eval execution remains future work.",
       "crates": [
         "oya-intelligence-eval-kernel",
         "oya-intelligence-eval-domain",
@@ -415,7 +415,7 @@
     },
     {
       "id": "IP-021",
-      "title": "Eval \u2014 canonicalen-set regression suite",
+      "title": "Eval \u2014 canonicalen-set regression set",
       "status": "pending",
       "file": "microservices/intelligence/IP-021-eval-canonicalen-set.md"
     },

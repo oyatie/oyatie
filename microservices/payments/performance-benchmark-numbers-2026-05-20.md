@@ -63,8 +63,8 @@
 | ST-10 | 200 quantity updates/subscription/hour. | Official Stripe rate-limit docs. | Billing update cap. |
 | ST-11 | 15 Create Payout API requests/second. | Official Stripe rate-limit docs. | Payout endpoint cap. |
 | ST-12 | 30 concurrent payout requests/business. | Official Stripe rate-limit docs. | Payout concurrency cap. |
-| ST-13 | 30 Connect accounts/second live mode. | Official Stripe rate-limit docs. | Platform onboarding cap. |
-| ST-14 | 5 Connect accounts/second sandbox. | Official Stripe rate-limit docs. | Sandbox onboarding cap. |
+| ST-13 | 30 accounts/second live mode. | Official Stripe rate-limit docs. | Platform onboarding cap. |
+| ST-14 | 5 accounts/second sandbox. | Official Stripe rate-limit docs. | Sandbox onboarding cap. |
 | ST-15 | 1,000 meter events/second/account live mode. | Official Stripe rate-limit docs. | Usage billing ingestion cap. |
 | ST-16 | 500 read API requests per transaction average over rolling 30 days. | Official Stripe rate-limit docs. | Read allocation planning. |
 | ST-17 | Minimum 10,000 read requests/month/account. | Official Stripe rate-limit docs. | Low-volume read allocation. |

@@ -55,7 +55,7 @@ This IP closes observable product readiness for post creation, feed rendering, v
 Use existing OpenSLO manifests in `microservices/community/slos/` as the source of truth and Grafana dashboards in `dashboards/` as operator evidence.
 Route SLO evaluation through the observability µservice's `slo-engine` contract rather than bespoke community code.
 Dashboards must group by tenant class, space mode, region, cell, operation, and bounded context without exposing raw tenant identifiers in shared views.
-Alerts link to community runbooks and feed the `oya-vcs` promotion-readiness gate.
+Alerts link to community runbooks and feed the `oya-governance` promotion-readiness gate.
 
 ### C. Deliverables
 

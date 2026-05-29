@@ -121,4 +121,4 @@ cargo run -p oya-dev-cli -- gate validate retention-floor-conformance --microser
 - ISO 27001:2022 A.5.33 (retention)
 - ePrivacy Directive Art. 5
 - ADR-0117 (residency)
-- Bominal ADR-0215 (Connect retention/legal-hold dual-context)
+- Bominal ADR-0215 (retention/legal-hold dual-context)

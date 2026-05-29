@@ -112,7 +112,7 @@ No reachable file is more than 6 hops from `docs/README.md`.
 | `comms-email` | 0 | 0 | 0 | 78 | 78 |
 | `community` | 0 | 0 | 0 | 104 | 104 |
 | `compliance` | 0 | 0 | 0 | 128 | 128 |
-| `connect` | 0 | 0 | 0 | 92 | 92 |
+| `connector` | 0 | 0 | 0 | 92 | 92 |
 | `consent-graph` | 0 | 0 | 0 | 71 | 71 |
 | `contact-center` | 0 | 0 | 0 | 68 | 68 |
 | `contract-lifecycle-management` | 0 | 0 | 0 | 68 | 68 |
@@ -2661,98 +2661,98 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/compliance/runbooks/seaweedfs-evidence-bucket-loss.md` | C1906 | 1 | 0 | 0 | weak component C1906 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/compliance/sdk-plan.md` | C1907 | 1 | 0 | 0 | weak component C1907 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/compliance/threat-model.md` | C1908 | 1 | 0 | 0 | weak component C1908 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/ARCHITECTURE.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/CHANGELOG.md` | C1910 | 1 | 0 | 0 | weak component C1910 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-001-connect-retirement-design-readiness.md` | C1911 | 1 | 0 | 0 | weak component C1911 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-002-connector-catalog-domain-kernel.md` | C1912 | 1 | 0 | 0 | weak component C1912 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-003-oauth-broker-domain-kernel.md` | C1913 | 1 | 0 | 0 | weak component C1913 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-004-webhook-receiver-domain.md` | C1914 | 1 | 0 | 0 | weak component C1914 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-005-connector-adapter-domain.md` | C1915 | 1 | 0 | 0 | weak component C1915 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-006-data-mapping-domain.md` | C1916 | 1 | 0 | 0 | weak component C1916 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-007-retry-dlq-domain.md` | C1917 | 1 | 0 | 0 | weak component C1917 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-008-rest-surfaces.md` | C1918 | 1 | 0 | 0 | weak component C1918 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-009-connector-catalog-seed.md` | C1919 | 1 | 0 | 0 | weak component C1919 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-010-iac-postgres-openbao.md` | C1920 | 1 | 0 | 0 | weak component C1920 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-011-slos-dashboards-observability.md` | C1921 | 1 | 0 | 0 | weak component C1921 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-012-wave2-connectors.md` | C1922 | 1 | 0 | 0 | weak component C1922 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-013-connector-adapter-trait.md` | C1923 | 1 | 0 | 0 | weak component C1923 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-014-compliance-critical-path.md` | C1924 | 1 | 0 | 0 | weak component C1924 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-015-connector-adapter-trait-doc.md` | C1925 | 1 | 0 | 0 | weak component C1925 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j100-pack-rollout-first-action.md` | C1926 | 1 | 0 | 0 | weak component C1926 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j102-external-rail-adapter.md` | C1927 | 1 | 0 | 0 | weak component C1927 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j103-external-rail-adapter.md` | C1928 | 1 | 0 | 0 | weak component C1928 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j104-external-rail-adapter.md` | C1929 | 1 | 0 | 0 | weak component C1929 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j106-external-rail-adapter.md` | C1930 | 1 | 0 | 0 | weak component C1930 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j107-external-rail-adapter.md` | C1931 | 1 | 0 | 0 | weak component C1931 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j11-offline-shell-state.md` | C1932 | 1 | 0 | 0 | weak component C1932 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j120-bank-liquidity-provider-adapter.md` | C496 | 10 | 1 | 0 | weak component C496 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/IP-journey-j121-bank-core-adapter.md` | C497 | 12 | 1 | 0 | weak component C497 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/IP-journey-j122-bank-rail-payout-adapter.md` | C498 | 11 | 1 | 0 | weak component C498 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/IP-journey-j128-irs-mef-state-adapters.md` | C370 | 108 | 1 | 0 | weak component C370 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/IP-journey-j136-benefits-provider-bulk-push-and-reconcile.md` | C1933 | 1 | 0 | 0 | weak component C1933 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j144-job-board-adapters.md` | C1934 | 1 | 0 | 0 | weak component C1934 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j148-carrier-and-recycler-adapters.md` | C562 | 12 | 1 | 0 | weak component C562 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/IP-journey-j149-platform-adapter-roster.md` | C563 | 12 | 1 | 0 | weak component C563 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/IP-journey-j26-device-ingest.md` | C702 | 5 | 1 | 0 | weak component C702 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/IP-journey-j29-shipping-label-ingest.md` | C717 | 5 | 1 | 0 | weak component C717 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/IP-journey-j37-adp-payroll-export.md` | C1935 | 1 | 0 | 0 | weak component C1935 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j44-ehr-export.md` | C1936 | 1 | 0 | 0 | weak component C1936 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j46-pharmacy-adapter.md` | C1937 | 1 | 0 | 0 | weak component C1937 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j47-insurance-claim-submit.md` | C1938 | 1 | 0 | 0 | weak component C1938 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j48-adp-kr-export.md` | C1939 | 1 | 0 | 0 | weak component C1939 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j49-external-marketplace-adapter.md` | C1940 | 1 | 0 | 0 | weak component C1940 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j52-kr-postal-api.md` | C1941 | 1 | 0 | 0 | weak component C1941 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j56-scim-provisioning.md` | C1942 | 1 | 0 | 0 | weak component C1942 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j62-pharmacy-and-insurance-api.md` | C1943 | 1 | 0 | 0 | weak component C1943 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j66-regulator-api.md` | C1944 | 1 | 0 | 0 | weak component C1944 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j91-us-msb-mtl-overlay.md` | C1945 | 1 | 0 | 0 | weak component C1945 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j92-br-lgpd-us-parent-dsar.md` | C1946 | 1 | 0 | 0 | weak component C1946 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j93-in-dpdpa-rbi-overlay.md` | C1947 | 1 | 0 | 0 | weak component C1947 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j94-sox404-public-company-controls.md` | C1948 | 1 | 0 | 0 | weak component C1948 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j95-iso27001-soc2-annual-audit.md` | C1949 | 1 | 0 | 0 | weak component C1949 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j96-ksa-uae-mena-onboarding.md` | C1950 | 1 | 0 | 0 | weak component C1950 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j97-sg-pdpa-mas-tenant.md` | C1951 | 1 | 0 | 0 | weak component C1951 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j98-au-privacy-apra-cps234.md` | C1952 | 1 | 0 | 0 | weak component C1952 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/IP-journey-j99-multi-pack-conflict-resolution.md` | C1953 | 1 | 0 | 0 | weak component C1953 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/PHASE-01-INTEGRATION-SUBSTRATE-FOUNDATION.md` | C1954 | 1 | 0 | 0 | weak component C1954 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/PRD.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/README.md` | C1909 | 6 | 0 | 5 | weak component C1909 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/RETIREMENT-PLAN.md` | C1955 | 1 | 0 | 0 | weak component C1955 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/backfill-replay.md` | C1956 | 1 | 0 | 0 | weak component C1956 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/benchmarks/connect-vs-slack-connect-vs-teams-external-vs-discord.md` | C1957 | 1 | 0 | 0 | weak component C1957 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/capability-tiers/tier-matrix.md` | C1958 | 1 | 0 | 0 | weak component C1958 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/capacity-model.md` | C1959 | 1 | 0 | 0 | weak component C1959 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/competitor-parity-matrix.md` | C1960 | 1 | 0 | 0 | weak component C1960 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/compliance.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/contracts/connector-adapter-trait.md` | C1961 | 1 | 0 | 0 | weak component C1961 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/contracts/metric-naming-convention.md` | C1962 | 1 | 0 | 0 | weak component C1962 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/cost-budget.md` | C1963 | 1 | 0 | 0 | weak component C1963 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/dashboards/oauth-token-health.md` | C1964 | 1 | 0 | 0 | weak component C1964 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/decisions/ADR-MS-001-connector-broker-webhook-and-dlq-contract.md` | C1965 | 1 | 0 | 0 | weak component C1965 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/dpia.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/failure-modes.md` | C1966 | 1 | 0 | 0 | weak component C1966 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/faqs/federation-engineer-faq.md` | C1967 | 1 | 0 | 0 | weak component C1967 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/incident-response.md` | C1968 | 1 | 0 | 0 | weak component C1968 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/migration-playbooks/from-slack-connect-and-teams-external.md` | C1969 | 1 | 0 | 0 | weak component C1969 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/multi-region.md` | C1970 | 1 | 0 | 0 | weak component C1970 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/onboarding/federation-engineer-first-week.md` | C1971 | 1 | 0 | 0 | weak component C1971 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/operational-boundaries.md` | C1972 | 1 | 0 | 0 | weak component C1972 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/policy/data-residency.md` | C1973 | 1 | 0 | 0 | weak component C1973 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/policy/tenant-isolation.md` | C1974 | 1 | 0 | 0 | weak component C1974 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/reference-implementations/cross-tenant-message-rust-sdk.md` | C1975 | 1 | 0 | 0 | weak component C1975 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/connector-attestation-revoked.md` | C1976 | 1 | 0 | 0 | weak component C1976 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/connector-cascade-failure.md` | C1977 | 1 | 0 | 0 | weak component C1977 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/connector-onboarding.md` | C1978 | 1 | 0 | 0 | weak component C1978 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/connector-rate-limit-saturation.md` | C1979 | 1 | 0 | 0 | weak component C1979 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/dlq-overflow.md` | C1980 | 1 | 0 | 0 | weak component C1980 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/oauth-token-revocation-cascade.md` | C1981 | 1 | 0 | 0 | weak component C1981 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/pii-leak-via-connector.md` | C1982 | 1 | 0 | 0 | weak component C1982 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/retirement-status-drift.md` | C1983 | 1 | 0 | 0 | weak component C1983 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/signature-verification-cascade-failure.md` | C1984 | 1 | 0 | 0 | weak component C1984 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/runbooks/webhook-replay-attack-detected.md` | C1985 | 1 | 0 | 0 | weak component C1985 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/sdk-plan.md` | C1986 | 1 | 0 | 0 | weak component C1986 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/connect/threat-model.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/connect/tutorials/establish-cross-tenant-channel-with-mls-and-cedar.md` | C1987 | 1 | 0 | 0 | weak component C1987 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/ARCHITECTURE.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/CHANGELOG.md` | C1910 | 1 | 0 | 0 | weak component C1910 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-001-connect-retirement-design-readiness.md` | C1911 | 1 | 0 | 0 | weak component C1911 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-002-connector-catalog-domain-kernel.md` | C1912 | 1 | 0 | 0 | weak component C1912 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-003-oauth-broker-domain-kernel.md` | C1913 | 1 | 0 | 0 | weak component C1913 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-004-webhook-receiver-domain.md` | C1914 | 1 | 0 | 0 | weak component C1914 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-005-connector-adapter-domain.md` | C1915 | 1 | 0 | 0 | weak component C1915 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-006-data-mapping-domain.md` | C1916 | 1 | 0 | 0 | weak component C1916 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-007-retry-dlq-domain.md` | C1917 | 1 | 0 | 0 | weak component C1917 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-008-rest-surfaces.md` | C1918 | 1 | 0 | 0 | weak component C1918 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-009-connector-catalog-seed.md` | C1919 | 1 | 0 | 0 | weak component C1919 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-010-iac-postgres-openbao.md` | C1920 | 1 | 0 | 0 | weak component C1920 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-011-slos-dashboards-observability.md` | C1921 | 1 | 0 | 0 | weak component C1921 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-012-wave2-connectors.md` | C1922 | 1 | 0 | 0 | weak component C1922 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-013-connector-adapter-trait.md` | C1923 | 1 | 0 | 0 | weak component C1923 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-014-compliance-critical-path.md` | C1924 | 1 | 0 | 0 | weak component C1924 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-015-connector-adapter-trait-doc.md` | C1925 | 1 | 0 | 0 | weak component C1925 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j100-pack-rollout-first-action.md` | C1926 | 1 | 0 | 0 | weak component C1926 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j102-external-rail-adapter.md` | C1927 | 1 | 0 | 0 | weak component C1927 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j103-external-rail-adapter.md` | C1928 | 1 | 0 | 0 | weak component C1928 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j104-external-rail-adapter.md` | C1929 | 1 | 0 | 0 | weak component C1929 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j106-external-rail-adapter.md` | C1930 | 1 | 0 | 0 | weak component C1930 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j107-external-rail-adapter.md` | C1931 | 1 | 0 | 0 | weak component C1931 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j11-offline-shell-state.md` | C1932 | 1 | 0 | 0 | weak component C1932 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j120-bank-liquidity-provider-adapter.md` | C496 | 10 | 1 | 0 | weak component C496 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/IP-journey-j121-bank-core-adapter.md` | C497 | 12 | 1 | 0 | weak component C497 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/IP-journey-j122-bank-rail-payout-adapter.md` | C498 | 11 | 1 | 0 | weak component C498 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/IP-journey-j128-irs-mef-state-adapters.md` | C370 | 108 | 1 | 0 | weak component C370 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/IP-journey-j136-benefits-provider-bulk-push-and-reconcile.md` | C1933 | 1 | 0 | 0 | weak component C1933 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j144-job-board-adapters.md` | C1934 | 1 | 0 | 0 | weak component C1934 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j148-carrier-and-recycler-adapters.md` | C562 | 12 | 1 | 0 | weak component C562 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/IP-journey-j149-platform-adapter-roster.md` | C563 | 12 | 1 | 0 | weak component C563 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/IP-journey-j26-device-ingest.md` | C702 | 5 | 1 | 0 | weak component C702 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/IP-journey-j29-shipping-label-ingest.md` | C717 | 5 | 1 | 0 | weak component C717 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/IP-journey-j37-adp-payroll-export.md` | C1935 | 1 | 0 | 0 | weak component C1935 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j44-ehr-export.md` | C1936 | 1 | 0 | 0 | weak component C1936 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j46-pharmacy-adapter.md` | C1937 | 1 | 0 | 0 | weak component C1937 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j47-insurance-claim-submit.md` | C1938 | 1 | 0 | 0 | weak component C1938 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j48-adp-kr-export.md` | C1939 | 1 | 0 | 0 | weak component C1939 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j49-external-marketplace-adapter.md` | C1940 | 1 | 0 | 0 | weak component C1940 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j52-kr-postal-api.md` | C1941 | 1 | 0 | 0 | weak component C1941 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j56-scim-provisioning.md` | C1942 | 1 | 0 | 0 | weak component C1942 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j62-pharmacy-and-insurance-api.md` | C1943 | 1 | 0 | 0 | weak component C1943 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j66-regulator-api.md` | C1944 | 1 | 0 | 0 | weak component C1944 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j91-us-msb-mtl-overlay.md` | C1945 | 1 | 0 | 0 | weak component C1945 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j92-br-lgpd-us-parent-dsar.md` | C1946 | 1 | 0 | 0 | weak component C1946 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j93-in-dpdpa-rbi-overlay.md` | C1947 | 1 | 0 | 0 | weak component C1947 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j94-sox404-public-company-controls.md` | C1948 | 1 | 0 | 0 | weak component C1948 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j95-iso27001-soc2-annual-audit.md` | C1949 | 1 | 0 | 0 | weak component C1949 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j96-ksa-uae-mena-onboarding.md` | C1950 | 1 | 0 | 0 | weak component C1950 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j97-sg-pdpa-mas-tenant.md` | C1951 | 1 | 0 | 0 | weak component C1951 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j98-au-privacy-apra-cps234.md` | C1952 | 1 | 0 | 0 | weak component C1952 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/IP-journey-j99-multi-pack-conflict-resolution.md` | C1953 | 1 | 0 | 0 | weak component C1953 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/PHASE-01-INTEGRATION-SUBSTRATE-FOUNDATION.md` | C1954 | 1 | 0 | 0 | weak component C1954 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/PRD.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/README.md` | C1909 | 6 | 0 | 5 | weak component C1909 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/RETIREMENT-PLAN.md` | C1955 | 1 | 0 | 0 | weak component C1955 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/backfill-replay.md` | C1956 | 1 | 0 | 0 | weak component C1956 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/benchmarks/connect-vs-slack-connect-vs-teams-external-vs-discord.md` | C1957 | 1 | 0 | 0 | weak component C1957 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/capability-tiers/tier-matrix.md` | C1958 | 1 | 0 | 0 | weak component C1958 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/capacity-model.md` | C1959 | 1 | 0 | 0 | weak component C1959 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/competitor-parity-matrix.md` | C1960 | 1 | 0 | 0 | weak component C1960 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/compliance.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/contracts/connector-adapter-trait.md` | C1961 | 1 | 0 | 0 | weak component C1961 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/contracts/metric-naming-convention.md` | C1962 | 1 | 0 | 0 | weak component C1962 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/cost-budget.md` | C1963 | 1 | 0 | 0 | weak component C1963 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/dashboards/oauth-token-health.md` | C1964 | 1 | 0 | 0 | weak component C1964 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/decisions/ADR-MS-001-connector-broker-webhook-and-dlq-contract.md` | C1965 | 1 | 0 | 0 | weak component C1965 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/dpia.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/failure-modes.md` | C1966 | 1 | 0 | 0 | weak component C1966 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/faqs/federation-engineer-faq.md` | C1967 | 1 | 0 | 0 | weak component C1967 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/incident-response.md` | C1968 | 1 | 0 | 0 | weak component C1968 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/migration-playbooks/from-slack-connect-and-teams-external.md` | C1969 | 1 | 0 | 0 | weak component C1969 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/multi-region.md` | C1970 | 1 | 0 | 0 | weak component C1970 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/onboarding/federation-engineer-first-week.md` | C1971 | 1 | 0 | 0 | weak component C1971 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/operational-boundaries.md` | C1972 | 1 | 0 | 0 | weak component C1972 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/policy/data-residency.md` | C1973 | 1 | 0 | 0 | weak component C1973 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/policy/tenant-isolation.md` | C1974 | 1 | 0 | 0 | weak component C1974 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/reference-implementations/cross-tenant-message-rust-sdk.md` | C1975 | 1 | 0 | 0 | weak component C1975 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/connector-attestation-revoked.md` | C1976 | 1 | 0 | 0 | weak component C1976 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/connector-cascade-failure.md` | C1977 | 1 | 0 | 0 | weak component C1977 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/connector-onboarding.md` | C1978 | 1 | 0 | 0 | weak component C1978 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/connector-rate-limit-saturation.md` | C1979 | 1 | 0 | 0 | weak component C1979 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/dlq-overflow.md` | C1980 | 1 | 0 | 0 | weak component C1980 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/oauth-token-revocation-cascade.md` | C1981 | 1 | 0 | 0 | weak component C1981 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/pii-leak-via-connector.md` | C1982 | 1 | 0 | 0 | weak component C1982 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/retirement-status-drift.md` | C1983 | 1 | 0 | 0 | weak component C1983 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/signature-verification-cascade-failure.md` | C1984 | 1 | 0 | 0 | weak component C1984 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/runbooks/webhook-replay-attack-detected.md` | C1985 | 1 | 0 | 0 | weak component C1985 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/sdk-plan.md` | C1986 | 1 | 0 | 0 | weak component C1986 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/connector/threat-model.md` | C1909 | 6 | 1 | 0 | weak component C1909 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/connector/tutorials/establish-cross-tenant-channel-with-mls-and-cedar.md` | C1987 | 1 | 0 | 0 | weak component C1987 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/consent-graph/ARCHITECTURE.md` | C1988 | 1 | 0 | 0 | weak component C1988 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/consent-graph/IP-001-agreement-kernel.md` | C1989 | 1 | 0 | 0 | weak component C1989 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/consent-graph/IP-002-agreement-domain.md` | C1990 | 1 | 0 | 0 | weak component C1990 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
@@ -4977,7 +4977,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/marketplace/IP-journey-j65-order-export.md` | C4039 | 1 | 0 | 0 | weak component C4039 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/marketplace/IP-journey-j69-appointment-and-service-commitments.md` | C4040 | 1 | 0 | 0 | weak component C4040 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/marketplace/IP-journey-j73-revenue-share.md` | C4041 | 1 | 0 | 0 | weak component C4041 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/marketplace/PHASE-01-DOC-SUITE-CLOSURE.md` | C4042 | 1 | 0 | 0 | weak component C4042 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/marketplace/PHASE-01-DOC-SET-CLOSURE.md` | C4042 | 1 | 0 | 0 | weak component C4042 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/marketplace/PRD.md` | C4043 | 1 | 0 | 0 | weak component C4043 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/marketplace/README.md` | C4044 | 1 | 0 | 0 | weak component C4044 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/marketplace/backfill-replay.md` | C4045 | 1 | 0 | 0 | weak component C4045 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
@@ -7251,7 +7251,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/workplace-integration/IP-journey-j56-offer-e-sign.md` | C5862 | 1 | 0 | 0 | weak component C5862 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workplace-integration/IP-journey-j63-informed-consent.md` | C5863 | 1 | 0 | 0 | weak component C5863 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workplace-integration/IP-journey-j70-e-sign.md` | C5864 | 1 | 0 | 0 | weak component C5864 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workplace-integration/PHASE-01-DOC-SUITE-CLOSURE.md` | C5865 | 1 | 0 | 0 | weak component C5865 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workplace-integration/PHASE-01-DOC-SET-CLOSURE.md` | C5865 | 1 | 0 | 0 | weak component C5865 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workplace-integration/PRD.md` | C5866 | 1 | 0 | 0 | weak component C5866 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workplace-integration/README.md` | C5867 | 1 | 0 | 0 | weak component C5867 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workplace-integration/backfill-replay.md` | C5868 | 1 | 0 | 0 | weak component C5868 has no directed path from docs/README.md; file has zero resolved inbound corpus links |

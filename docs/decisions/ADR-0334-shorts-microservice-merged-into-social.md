@@ -19,7 +19,7 @@ amends:
   - ADR-0238
   - ADR-0132
 related:
-  - ADR-0132-product-suite-and-bundle-dissolution.md
+  - ADR-0132-product-platform-and-bundle-dissolution.md
   - ADR-0138-foundry-six-path-deprecation.md
   - ADR-0238-connect-super-app-expansion.md
   - ADR-0245-substrate-vs-product-layering.md
@@ -39,7 +39,7 @@ doc_class: Architecture-Decision-Record
 purpose: >
   Retire the standalone shorts microservice and absorb its short-form video
   capabilities into the social microservice as the TikTok-style short-video
-  flavor of the social product, consistent with ADR-0132 no-suite policy.
+  flavor of the social product, consistent with ADR-0132 no-grouping policy.
 ---
 
 # ADR-0334: shorts µservice retired; absorbed into social as short-video flavor
@@ -131,7 +131,7 @@ TikTok exists as a standalone product, but TikTok is itself a unified social
 product, not a multi-service decomposition of social into "feed + shorts +
 profile + DM".
 
-ADR-0132 forbids new bundle and suite µservices. Each new µservice is
+ADR-0132 forbids new bundle and grouping µservices. Each new µservice is
 single-concern and flat. A `shorts` µservice alongside `social` violates the
 single-concern bar: both produce posts, both rank feeds, both carry follow
 graphs, both moderate, both serve creators. The bounded contexts are the same;
@@ -264,8 +264,8 @@ D-42. Existing `oya-shorts-*` crate references are transition debt unless
 explicitly retained as historical evidence.
 
 D-43. Media-specific kernels (transcode, copyright-claim, feed-timeline for
-video) live under the social workspace under `oya-social-*-kernel` and
-`oya-social-*-adapter-*` names.
+video) live under the social workspace under `oya-community-social-*-kernel` and
+`oya-community-social-*-adapter-*` names.
 
 D-44. The old shorts contracts (OpenAPI, AsyncAPI, proto) are historical
 after this ADR.
@@ -467,7 +467,7 @@ O-13. Short-video assignment drift is a tenancy issue.
 
 P-1. ADR-0132 remains active.
 
-P-2. ADR-0132 forbids new bundle and suite µservices.
+P-2. ADR-0132 forbids new bundle and grouping µservices.
 
 P-3. Social as a hero product is single-concern; short-video is one media
 flavor within social, not a sibling product.
@@ -597,6 +597,6 @@ absorption_map_owner: microservices/social/ARCHITECTURE.md
 prd_owner: microservices/social/PRD.md
 manifest_owner: microservices/social/manifest.json
 precedent_waves: Wave 15K network→community; Wave 15L cell retire
-authority_adrs: ADR-0132 no-suite policy; ADR-0238 Connect dissolution; ADR-0330 tenant-class entitlement
+authority_adrs: ADR-0132 no-grouping policy; ADR-0238 dissolution; ADR-0330 tenant-class entitlement
 commits: none
 -->

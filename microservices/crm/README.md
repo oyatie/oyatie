@@ -62,7 +62,7 @@ This microservice does NOT own: ERP master data (`erp`), tenant identity (`cloud
 
 The Big-8 priority decision in ADR-0328 §D-2 makes CRM the third in sequence after HR/Workday and ERP/SAP because revenue and service motion depend on workforce, account, product, inventory, contract, financial, and fulfillment data. CRM ships immediately after ERP and immediately before ITSM (Phase 4A.4 / ServiceNow) because case management interlocks with both. ADR-0328 §D-20.111-115 declares every CRM constraint violation P0 (not P1) because CRM is the user-journey on-ramp for every revenue, service, and marketing flow.
 
-The decision to own CRM as a microservice (rather than a product family of microservices) follows ADR-0132 (no-suite policy) + ADR-0131 (per-microservice flat layout). A single `crm` µservice with first-class bounded contexts is preferred over multiple "crm-*" suite microservices because Salesforce, HubSpot, and Dynamics all converge on a unified relationship-management surface and the substrate dependencies (workflow, ontology, audit-chain, marketplace, intelligence) are identical across the CRM aggregates. Splitting into `crm-sales` / `crm-service` / `crm-marketing` would create three duplicate manifest files, three duplicate Cedar policy bundles, three duplicate OpenAPI surfaces, and zero capability differentiation; the resulting deduplication burden is exactly the suite-bloat anti-pattern that ADR-0132 retires.
+The decision to own CRM as a microservice (rather than a product family of microservices) follows ADR-0132 (no-grouping policy) + ADR-0131 (per-microservice flat layout). A single `crm` µservice with first-class bounded contexts is preferred over multiple "crm-*" grouping microservices because Salesforce, HubSpot, and Dynamics all converge on a unified relationship-management surface and the substrate dependencies (workflow, ontology, audit-chain, marketplace, intelligence) are identical across the CRM aggregates. Splitting into `crm-sales` / `crm-service` / `crm-marketing` would create three duplicate manifest files, three duplicate Cedar policy bundles, three duplicate OpenAPI surfaces, and zero capability differentiation; the resulting deduplication burden is exactly the suite-bloat anti-pattern that ADR-0132 retires.
 
 Oyatie's CRM departs from Salesforce / HubSpot / Dynamics on five architectural axes:
 
@@ -550,7 +550,7 @@ Canonical anchors:
 
 - ADR-0105 — 13-layer enum (canonical layer map).
 - ADR-0131 — per-microservice flat layout.
-- ADR-0132 — no-suite policy.
+- ADR-0132 — no-grouping policy.
 - ADR-0145 — inter-microservice direct gRPC + 3 invariants (supersedes the Workflow+Ontology forced-adapter rule).
 - ADR-0244 — tenant scoping as universal primitive.
 - ADR-0245 — substrate vs product layering.
@@ -560,7 +560,7 @@ Canonical anchors:
 - ADR-0253 — HTTP/3 + QUIC default transport.
 - ADR-0254 — K8s + Cloud Hypervisor + Kata pods.
 - ADR-0263 — observability emission contract.
-- ADR-0297 — per-µservice doc-suite floor.
+- ADR-0297 — per-µservice doc-set floor.
 - ADR-0314 — marketplace DealSet settlement.
 - ADR-0328 — substance bar as canonical sequence and batch discipline (Big-8 ordering).
 - ADR-0329 — capability-tier retirement (in flight).

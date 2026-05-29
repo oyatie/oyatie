@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j38/esign-contract-envelope.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j38/esign-contract-envelope.json",
   "title": "EsignContractEnvelope",
   "version": "1.0.0",
   "description": "Shared journey object for j38-b2b-e-signing-contract. It lets Marcus Chen sign a B2B contract, collect the counterparty signature through an external session, and seal the record while preserving tenant scope, auditability, and cross-service status.",

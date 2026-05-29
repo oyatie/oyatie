@@ -1,9 +1,0 @@
-id: cap.connect.umbrella_retirement_readiness
-tier: T3
-owner_team: council-architecture
-summary: Track retirement evidence for the dissolved Connect umbrella.
-policy_refs:
-  - microservices/connect/policy/no-new-runtime-scope.cedar
-contracts:
-  - microservices/connect/contracts/connect-retirement.openapi.yaml
-  - microservices/connect/contracts/connect_retirement.proto

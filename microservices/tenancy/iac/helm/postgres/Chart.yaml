@@ -7,7 +7,7 @@ version: 0.1.0
 appVersion: "16.3"  # Postgres LTS line per docs/standards/observability-slo.md
 maintainers:
   - name: axis-tenancy
-    email: axis-tenancy@oyatie.dev
+    email: axis-tenancy@oyatie.com
 dependencies:
   - name: postgresql
     version: "^15.5.0"

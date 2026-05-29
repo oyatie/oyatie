@@ -100,14 +100,16 @@ pub(crate) fn validate_aspirational_enforcement_gate(
     let documents = read_documents(&args.corpus_roots)?;
     let workflow_contexts = read_workflow_contexts(&args.workflows_dir)?;
     let quality_lane_contexts = read_active_quality_lane_contexts(&args.quality_lanes)?;
+    let mut branch_required_contexts =
+        read_branch_required_contexts(&args.branch_protection, &args.branch)?;
+    if branch_required_contexts.contains("oya-pr-review") {
+        branch_required_contexts.extend(quality_lane_contexts.iter().cloned());
+    }
     let surfaces = KnownEnforcementSurfaces {
         crate_names: read_crate_names(&args.crates_dir)?,
         workflow_contexts,
         quality_lane_contexts,
-        branch_required_contexts: read_branch_required_contexts(
-            &args.branch_protection,
-            &args.branch,
-        )?,
+        branch_required_contexts,
         declared_lane_ids: read_declared_lane_ids(&args.quality_lanes)?,
     };
     let known_crates = surfaces.crate_names.len();

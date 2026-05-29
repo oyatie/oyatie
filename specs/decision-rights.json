@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/decision-rights.json",
+  "$id": "https://docs.oyatie.com/specs/decision-rights.json",
   "title": "DecisionRights",
   "description": "Machine-readable decision-class table. Each decision class names a single owner and a documented escalation path. Migrated from docs/CONSTITUTION.md §Decision rights during the 2026-05-15 CONSTITUTION strike per root-hub-pointers.json _retired_constitutional_authority migration map. Per-team RACI detail (atomic responsibility allocation) lives in docs/RACI-OWNERSHIP.md; this file is the top-level class table.",
   "_meta": {

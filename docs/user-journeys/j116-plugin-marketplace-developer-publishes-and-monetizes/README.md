@@ -71,7 +71,7 @@ Required ADR citation set: ADR-0244, ADR-0297, ADR-0299, ADR-0292, ADR-0263, ADR
 ADR-0311, ADR-0312, ADR-0313.
 
 Nadia publishes a Foundry-vetted plugin into plugin-app-store; 50 tenants install it; every subscription
-and usage charge cascades developer to oyatie to tenant through Stripe Connect style settlement.
+and usage charge cascades developer to oyatie to tenant through Stripe style settlement.
 
 ## Artifact index
 

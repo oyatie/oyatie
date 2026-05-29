@@ -44,9 +44,9 @@ The flow tracks Chris through the layoff conversation, the data-boundary moment,
 |---|---|---|---|---|---|
 | C.1 | Personal-Mail: open separation packet PDF | mail (personal) | `b2c.mail.attachment.open` | `MailAttachmentOpened` | PDF rendered in mail; no download forced |
 | C.2 | COBRA election form (PDF interactive fields) | mail rendering | none (rendering local) | none | |
-| C.3 | Click "Elect COBRA" → routes to Connect adapter to vendor | connect | `b2c.connect.cobra_admin.submit` | `COBRAElectionSubmitted` | Confirmation screen "Premiums begin 2026-06-01" |
+| C.3 | Click "Elect COBRA" → routes to adapter to vendor | connector | `b2c.connect.cobra_admin.submit` | `COBRAElectionSubmitted` | Confirmation screen "Premiums begin 2026-06-01" |
 | C.4 | Back to Personal-Mail: open ERISA notice | mail (personal) | (same) | (same) | |
-| C.5 | Click "Rollover to IRA" → trustee-to-trustee flow | connect | `b2c.connect.ira_provider.rollover_init` | `ERISARolloverInitiated` | "Funds arrive in 5 business days" |
+| C.5 | Click "Rollover to IRA" → trustee-to-trustee flow | connector | `b2c.connect.ira_provider.rollover_init` | `ERISARolloverInitiated` | "Funds arrive in 5 business days" |
 | C.6 | Personal-Drive: 0 changes (verification surface) | drive (personal) | none | none | Chris just looks; UX shows no banner — it didn't change |
 | C.7 | Work-Drive: read-only; "Export portfolio" CTA visible | drive (work-tenant) | `b2b.drive.export.preview` | `DriveExportPreviewed` | Sub-label "DLP scrub applies" |
 

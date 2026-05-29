@@ -49,7 +49,7 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 
 ### Hypothesis 2 — Contradiction / stale-premise
 - `CONTRADICTION-LEDGER.md` carries 77 contradictions across BLOCKER/HIGH/MED/LOW with explicit owners and resolution batches. `MISTAKES-LEDGER.md` carries 13 active mistakes each backed by a CI fitness lane.
-- Known OPEN BLOCKER/HIGH entries: LEDG-008 (5-6 vs 7 axis history), LEDG-017 (lifestyle/consumer scope), LEDG-021 (Connect "no ads, ever" vs ads microservice), LEDG-024 (Korea regulatory gaps).
+- Known OPEN BLOCKER/HIGH entries: LEDG-008 (5-6 vs 7 axis history), LEDG-017 (lifestyle/consumer scope), LEDG-021 ("no ads, ever" vs ads microservice), LEDG-024 (Korea regulatory gaps).
 - Newly-discovered (not in existing ledger):
   - `SPEC.md §4` enumerates only 10 of the 14 Workspace surfaces declared in `DESIGN.md §1` (forms, sites, tasks, notes, translate, recordings missing).
   - `PRD.md §1 line 31/39` says owning datacenters is in-scope at W-DataCenter-Operations (updated 2026-05-09), but `PRD.md §3.3` anti-scope table still says "Hardware / data-center construction (always — leased always)" — same document contradicts itself.

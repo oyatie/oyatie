@@ -4,8 +4,19 @@
   "spec_kind": "target-architecture-canonical",
   "authoring_adr": "ADR-0358",
   "roadmap_phase": "P-TOOLCHAIN (masterplan.ideal_production_roadmap)",
-  "related_adrs": ["ADR-0346 (oya verify CI mirror)", "ADR-0349 (Jenkins+ArgoCD substrate)", "ADR-0359 (Jenkins replaces GitHub Actions)", "ADR-0111 (merge queue)", "ADR-0181 (cosign)", "ADR-0358 (ideal roadmap)"],
-  "related_specs": ["specs/ci-farm-substrate-canonical.json", "specs/api-contract-ssot-canonical.json", "specs/cloud-observability-slo-target.json"],
+  "related_adrs": [
+    "ADR-0346 (oya verify CI mirror)",
+    "ADR-0349 (Jenkins+ArgoCD substrate)",
+    "ADR-0359 (Jenkins replaces GitHub Actions)",
+    "ADR-0111 (merge queue)",
+    "ADR-0181 (cosign)",
+    "ADR-0358 (ideal roadmap)"
+  ],
+  "related_specs": [
+    "specs/ci-farm-substrate-canonical.json",
+    "specs/api-contract-ssot-canonical.json",
+    "specs/cloud-observability-slo-target.json"
+  ],
   "status": "Proposed-target",
   "date": "2026-05-25",
   "title": "Cloud toolchain target — Bazel rules_rust build graph + Jenkins-sole CI + RBE/affected-targets + oya governance overlay",
@@ -22,7 +33,11 @@
     "config": "JCasC-only controller; ephemeral Kata K8s agents (Karpenter-elastic); RBAC + OpenBao credentials",
     "pr_gating": "Jenkins GitHub App reports commit statuses; branch-protection required checks = Jenkins status contexts",
     "test_runner": "cargo-nextest (process-per-test, --partition count:m/n sharding across agents, retries+flaky detection, fail-fast=false, JUnit)",
-    "hygiene_lanes": ["cargo-machete (unused deps)", "cargo-deny (license+advisory+bans)", "cargo fmt/clippy -D warnings"],
+    "hygiene_lanes": [
+      "cargo-machete (unused deps)",
+      "cargo-deny (license+advisory+bans)",
+      "cargo fmt/clippy -D warnings"
+    ],
     "local_dev": "bacon for the local watch loop (shift-left); oya verify mirror (ADR-0346) for pre-push parity"
   },
   "oya_overlay": {

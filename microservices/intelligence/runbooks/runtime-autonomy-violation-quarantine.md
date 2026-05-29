@@ -62,7 +62,7 @@ Per ADR-0022 + threat-model T-E-01 + runtime-isolation.md TI-08: every capabilit
 | 2 | Compare with tenancy µservice source-of-truth ceiling | ≤5min |
 | 3 | If ceiling cache is stale / corrupted: force refresh via `cargo run -p oya-foundry-runtime-capability-executor-app -- refresh-ceilings --tenant <id>` | ≤10min |
 | 4 | If AutonomyGate logic is buggy: emergency hotfix PR (review by ops-security + axis-foundry-runtime + ExecSponsor); deploy via Helm | ≤2h |
-| 5 | Re-run autonomy gate test suite | ≤30min |
+| 5 | Re-run autonomy gate test set | ≤30min |
 
 ## Verification
 

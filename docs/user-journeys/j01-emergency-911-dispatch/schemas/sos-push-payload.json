@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j01/sos-push-payload.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j01/sos-push-payload.json",
   "title": "SosPushPayload",
   "description": "Messenger push payload sent to each opted-in emergency contact when SOS fires.",
   "_meta": {

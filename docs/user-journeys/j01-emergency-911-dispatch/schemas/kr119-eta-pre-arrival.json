@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j01/kr119-eta-pre-arrival.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j01/kr119-eta-pre-arrival.json",
   "title": "Kr119EtaPreArrival",
   "description": "AsyncAPI event published by SeoulMFD dispatch backbone to oyatie's SNUH tenant when an ambulance ETA is committed. Triggers ER intake workflow.",
   "_meta": {

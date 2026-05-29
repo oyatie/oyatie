@@ -45,7 +45,7 @@ block-store data model is portable-text per ADR-SITES-0005; the CRDT
 library must support tree-shaped op-logs over portable-text node
 structure.
 
-Per ADR-0132 (no-suite forward-policy) AND the cross-µservice
+Per ADR-0132 (no-grouping forward-policy) AND the cross-µservice
 collab-substrate consistency principle (`feedback_workflow_is_shared.md`
 + `feedback_flat_product_catalog.md`), the CRDT library choice MUST be
 consistent across `sites` + `docs` + `sheets` + `slides` +
@@ -62,7 +62,7 @@ The four production-grade CRDT libraries are:
    Rust binding (`yrs`) exists but lags Yjs JS feature set.
 3. **Automerge** (Rust + JS; MIT). Mature; document-oriented; less
    tree-flexible than Loro/Yjs; v2.x stable.
-4. **In-house Operational-Transform engine** (legacy `oya-connect-sites-*`
+4. **In-house Operational-Transform engine** (legacy `oya-sites-*`
    used this; eventually-consistent with merge-conflict prompts).
 
 Decision criteria per `feedback_quality_performance_scalability_bar.md`:
@@ -123,12 +123,12 @@ Concrete bindings:
   - Document-oriented vs tree-oriented; block-list reordering +
     portable-text node mutation is awkward to model.
   - Slower convergence than Loro on tree-shaped workloads (per
-    Loro benchmark suite published 2025-12).
+    Loro benchmark set published 2025-12).
   - Same cross-µservice alignment issue as Yjs.
 - **Rejected** because document-orientation does not match the block-
   tree shape, and the Loro alignment wins.
 
-### C. In-house Operational-Transform engine (legacy `oya-connect-sites-*` path)
+### C. In-house Operational-Transform engine (legacy `oya-sites-*` path)
 
 - **Pros**:
   - Already implemented in the legacy stack.

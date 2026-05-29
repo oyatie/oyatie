@@ -7,7 +7,7 @@ global:
   region: "us-east-1"
   microservice: "ops-dashboard-control-center"
   owner_team: "ops-sre-reliability"
-  image_registry: "registry.oyatie.dev"
+  image_registry: "registry.oyatie.com"
 
 image:
   repository: ops-dashboard-control-center
@@ -57,7 +57,7 @@ openbao:
 
 cedar:
   sidecarEnabled: true
-  image: "registry.oyatie.dev/cedar-eval-sidecar:4.2.0"
+  image: "registry.oyatie.com/cedar-eval-sidecar:4.2.0"
   policyBundlePath: "/etc/cedar/policy-bundle"
   evaluationMode: "library_first"
 

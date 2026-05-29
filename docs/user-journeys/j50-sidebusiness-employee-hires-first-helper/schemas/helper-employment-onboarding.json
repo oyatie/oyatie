@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j50/helper-employment-onboarding.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j50/helper-employment-onboarding.json",
   "title": "HelperEmploymentOnboarding",
   "version": "1.0.0",
   "description": "Shared journey object for j50-sidebusiness-employee-hires-first-helper. It lets Yejin Park hire a part-time helper, provision a sub-tenant, set role-scoped access, and prepare payroll while preserving tenant scope, auditability, and cross-service status.",

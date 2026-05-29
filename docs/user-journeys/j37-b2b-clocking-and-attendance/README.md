@@ -55,7 +55,7 @@ Purpose: Index and build contract for B2B clocking and attendance with geofence 
 - schemas/attendance-clock-event.json: shared JSON Schema object.
 - integration-test-plan.md: end-to-end and failure-injection plan.
 - ../../microservices/workplace-integration/IP-journey-j37-clock-in-geofence.md: workplace-integration implementation slice.
-- ../../microservices/connect/IP-journey-j37-adp-payroll-export.md: connect implementation slice.
+- ../../microservices/connector/IP-journey-j37-adp-payroll-export.md: connect implementation slice.
 - ../../microservices/payments/IP-journey-j37-payroll-ledger-hold.md: payments implementation slice.
 - ../../microservices/identity/IP-journey-j37-worker-shift-principal.md: identity implementation slice.
 - ../../microservices/observability/IP-journey-j37-attendance-slo-traces.md: observability implementation slice.

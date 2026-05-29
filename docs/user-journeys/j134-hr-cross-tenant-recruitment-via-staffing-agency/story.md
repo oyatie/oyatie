@@ -30,7 +30,7 @@ After j132 closed with 10 unfilled reqs (Q3 carry-over), Marcus authorizes Priya
 
 Priya picks **HireForce Inc.** (tenant ID `tenanth.hireforce`), a 200-person staffing-agency tenant that oyatie has Connect-trust with since 2024. HireForce specializes in mid-senior tech placements. Their relationship with marcus-tenant: marcus-tenant has hired through HireForce before (8 prior placements over 18 months). The Connect-trust relationship is well-established.
 
-The financial mechanic: HireForce takes a per-placement fee = 22% of placed candidate's annual salary, paid by marcus-tenant on candidate's start date. Stripe Connect handles the payment as a facilitator-flow (marcus-tenant is the facilitator-merchant, HireForce is the recipient).
+The financial mechanic: HireForce takes a per-placement fee = 22% of placed candidate's annual salary, paid by marcus-tenant on candidate's start date. Stripe handles the payment as a facilitator-flow (marcus-tenant is the facilitator-merchant, HireForce is the recipient).
 
 This journey shows the **3-tenant ecosystem**: marcus-tenant (employer) + tenanth.hireforce (staffing agency) + the candidate's personal-tenant (her own).
 
@@ -160,7 +160,7 @@ Per ADR-0244 amendment, `B2B_STAFFING_AGENCY_CANDIDATE` is a sub-tier audience-t
 - Round 2 (tech/case): 22 → 14 passed
 - Round 3 (final): 14 → 9 finalists across 7 reqs (2 reqs have backup finalists)
 
-## Chapter 4 — Offers + Stripe Connect facilitator flow (T+35 to T+50 days)
+## Chapter 4 — Offers + Stripe facilitator flow (T+35 to T+50 days)
 
 ### 4.1 marcus-tenant extends 7 offers
 
@@ -184,18 +184,18 @@ permit (
 
 7 offers → 6 signed within 7 days (1 declined; backup finalist invited; ultimately signed).
 
-### 4.3 Stripe Connect facilitator-flow
+### 4.3 Stripe facilitator-flow
 
 For each signed offer:
 1. Candidate's start date is recorded.
-2. On start date - 14 days, Payments µservice creates a Stripe Connect facilitator-payment.
+2. On start date - 14 days, Payments µservice creates a Stripe facilitator-payment.
 3. Marcus's tenant is the facilitator-merchant (holding the placement-fee in escrow).
 4. On start date, the placement-fee unlocks and disburses to HireForce.
 5. If the candidate doesn't make it to T+90 days, the replacement-guarantee kicks in (refund 75%).
 
 ### 4.4 Per-placement disbursement
 
-7 placements × 22% × varied salaries = $260,800 total in placement fees. Disbursements happen on individual start dates over T+50 to T+80 days. Stripe Connect facilitator fee: 0.4% of total ($1,043). Marcus's tenant nets the fee-pay-out.
+7 placements × 22% × varied salaries = $260,800 total in placement fees. Disbursements happen on individual start dates over T+50 to T+80 days. Stripe facilitator fee: 0.4% of total ($1,043). Marcus's tenant nets the fee-pay-out.
 
 Cedar fragment:
 
@@ -294,7 +294,7 @@ j134 demonstrates:
 
 1. **The platform supports 3-tenant ecosystems natively.** No bespoke integration was needed for HireForce to engage. Connect-trust + Cedar permits handle the data sharing without leaking either tenant's internals.
 
-2. **Stripe Connect facilitator-flow is a first-class primitive.** marcus-tenant holds the placement-fee in escrow until candidate's start date, with replacement-guarantee logic built into the workflow.
+2. **Stripe facilitator-flow is a first-class primitive.** marcus-tenant holds the placement-fee in escrow until candidate's start date, with replacement-guarantee logic built into the workflow.
 
 3. **Per-engagement Cedar permits are scoped + auditable.** HireForce's read-access to offer.salary is narrowly scoped to engagement and purpose (fee-calculation), audit-logged on every access.
 

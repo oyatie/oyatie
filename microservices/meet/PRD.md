@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-The `meet` microservice is oyatie's dedicated video-meeting product. It is net-new per ADR-0135 — there is no legacy `oya-connect-meet-*` predecessor. It owns **named meeting rooms with lobby/registration + calendar-bound meeting instances + breakout rooms + screen-share with presenter-control + cloud recording + live transcription with multi-language captions + post-meeting AI summary + interpretation channels + webinar mode + RTMP live-stream egress + large-audience broadcast (10k+)**.
+The `meet` microservice is oyatie's dedicated video-meeting product. It is net-new per ADR-0135 — there is no legacy `oya-meet-*` predecessor. It owns **named meeting rooms with lobby/registration + calendar-bound meeting instances + breakout rooms + screen-share with presenter-control + cloud recording + live transcription with multi-language captions + post-meeting AI summary + interpretation channels + webinar mode + RTMP live-stream egress + large-audience broadcast (10k+)**.
 
 `meet` is **distinct from the `messenger` huddles BC** (per ADR-MSGR-0001):
 
@@ -373,7 +373,7 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0135 | Connect dual-context (parallel) | net-new µservice authorisation |
+| ADR-0135 | dual-context (parallel) | net-new µservice authorisation |
 | ADR-0139 | Agentic SLO-gated promotion | gates meet releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | new µservices are single-concern + flat |

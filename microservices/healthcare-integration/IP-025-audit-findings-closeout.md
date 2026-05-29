@@ -12,7 +12,7 @@ Capability references: capabilities/fhir-read.yaml; capabilities/hl7-route.yaml;
 Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Corepoint, Mirth Connect, NextGate, Health Catalyst
 
 ## Objective
-- Close the documented audit suite findings without editing ADR-0321 or widening scope outside this IP.
+- Close the documented audit set findings without editing ADR-0321 or widening scope outside this IP.
 - Replace thin checklist prose with buildable closeout mechanics for healthcare-integration artifact promotion.
 - Bind every closeout row to tenant scope, Cedar default-deny, audit-chain evidence, DealSet settlement, and ADR-0321 operating-bar evidence.
 - Treat the current audit JSON as evidence input, not as a blanket pass.
@@ -21,7 +21,7 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - Exclude code generation, schema generation, migrations, runtime code, and ADR edits from this implementation plan.
 
 ## Finding inventory
-- Finding healthcare-integration-doc-suite-001 is closed only when the artifact roster is reachable and each artifact cites local evidence.
+- Finding healthcare-integration-doc-set-001 is closed only when the artifact roster is reachable and each artifact cites local evidence.
 - Finding healthcare-integration-transport-001 is closed only when contract and IaC references prove HTTP/3, ECH, PQC, and downgrade behavior.
 - Finding healthcare-integration-marketplace-001 is closed only when DealSet settlement evidence is attached to every vendor-facing flow.
 - The audit JSON status `closed-by-additive-artifacts` requires this IP to name the additive evidence set and rejection conditions.
@@ -67,7 +67,7 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - Evidence source 014: capabilities/*.yaml supplies capability binding ADRs and tenant required fields.
 - Evidence source 015: runbooks/*.md supplies operational response references.
 
-## Closeout workstream A - doc suite closure
+## Closeout workstream A - doc set closure
 - A01: Confirm each required healthcare artifact remains in microservices/healthcare-integration, not a suite root.
 - A02: Link closeout rows to PRD.md, ARCHITECTURE.md, compliance.md, threat-model.md, and dpia.md.
 - A03: Require every cited artifact to include tenant scope or explicitly explain why it is not tenant-scoped.
@@ -80,7 +80,7 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - A10: Require a rollback route for each closeout claim.
 - A11: Require the current audit finding id in each closeout packet.
 - A12: Require ADR-0321 mention as authority without editing ADR-0321.
-- A13: Require line-item review for healthcare-integration-doc-suite-001.
+- A13: Require line-item review for healthcare-integration-doc-set-001.
 - A14: Require line-item review for healthcare-integration-transport-001.
 - A15: Require line-item review for healthcare-integration-marketplace-001.
 - A16: Require final evidence packet export to include path, hash, reviewer, and timestamp fields.
@@ -144,8 +144,8 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - InterSystems IRIS for Health proof: require PRD, architecture, manifest, and contract cross-reference.
 - Lyniate/Corepoint displacement: operator remediation is runbook and audit-chain driven instead of channel console driven.
 - Lyniate/Corepoint proof: require local runbook, dashboard, and incident-response references.
-- Mirth Connect displacement: no channel script is the source of truth; contracts, Cedar, and replay evidence are.
-- Mirth Connect proof: require OpenAPI, AsyncAPI, proto, Cedar, and replay references.
+- Mirth displacement: no channel script is the source of truth; contracts, Cedar, and replay evidence are.
+- Mirth proof: require OpenAPI, AsyncAPI, proto, Cedar, and replay references.
 - NextGate displacement: MPI duplicate closeout requires adjudication, match score rationale, and provenance.
 - NextGate proof: require patient-match-review capability, runbook, and IP-029 reference.
 - Health Catalyst displacement: analytics quality is not enough; operational custody and audit-chain closeout are mandatory.
@@ -197,7 +197,7 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - Step 005: Attach benchmark displacement paragraph to each packet.
 - Step 006: Attach transport evidence for healthcare-integration-transport-001.
 - Step 007: Attach DealSet evidence for healthcare-integration-marketplace-001.
-- Step 008: Attach doc roster evidence for healthcare-integration-doc-suite-001.
+- Step 008: Attach doc roster evidence for healthcare-integration-doc-set-001.
 - Step 009: Run link-resolution verification for referenced local paths.
 - Step 010: Run scope, benchmark, citation-reference, and healthcare evidence verification for this IP.
 - Step 011: Reject rows that rely on external vendor consoles.

@@ -4,7 +4,7 @@
 //! verification + OpenBao BYOK secret retrieval in IP-004.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-/// StripeAdapter implements PspAdapter for the Stripe Connect platform-
+/// StripeAdapter implements PspAdapter for the Stripe platform-
 /// facilitator pattern. Concrete HTTP wiring lands in IP-004.
 #[allow(dead_code)]
 pub struct StripeAdapter {

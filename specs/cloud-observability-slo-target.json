@@ -4,8 +4,18 @@
   "spec_kind": "target-architecture-canonical",
   "authoring_adr": "ADR-0340",
   "roadmap_phase": "P-TARGET (masterplan.ideal_production_roadmap)",
-  "related_adrs": ["ADR-0340 (per-microservice capacity/SLO)", "ADR-0130 (agentic SLO-gated promotion)", "ADR-0343 (DR + RTO/RPO matrix)", "ADR-0344 (FinOps/sustainability)", "ADR-0358 (ideal roadmap)"],
-  "related_specs": ["specs/agentic-slo-gated-promotion.json", "specs/brownout-degradation-signal.json", "specs/cloud-control-plane-canonical.json"],
+  "related_adrs": [
+    "ADR-0340 (per-microservice capacity/SLO)",
+    "ADR-0130 (agentic SLO-gated promotion)",
+    "ADR-0343 (DR + RTO/RPO matrix)",
+    "ADR-0344 (FinOps/sustainability)",
+    "ADR-0358 (ideal roadmap)"
+  ],
+  "related_specs": [
+    "specs/agentic-slo-gated-promotion.json",
+    "specs/brownout-degradation-signal.json",
+    "specs/cloud-control-plane-canonical.json"
+  ],
   "status": "Proposed-target",
   "date": "2026-05-25",
   "title": "Cloud observability + SLO target — measured SLOs, OpenTelemetry, burn-rate gating for the cloud-* substrate",

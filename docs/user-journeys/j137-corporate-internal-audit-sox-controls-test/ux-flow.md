@@ -20,7 +20,7 @@ variant of each surface. Cross-reference to `story.md` §3-§11.
 
 ### 1.1 Sam's MacBook Pro M4 — ops-dashboard "Internal Audit" pane
 
-Sam navigates to `https://ops.marcus-corp.tenant.oyatie.dev` and
+Sam navigates to `https://ops.marcus-corp.tenant.oyatie.com` and
 authenticates via passkey (Touch ID + Yubikey 5C NFC fallback).
 The dashboard chrome:
 

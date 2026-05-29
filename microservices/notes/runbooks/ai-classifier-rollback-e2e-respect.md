@@ -106,7 +106,7 @@ oya foundry-runtime disable \
 
 ## E2E Invariant Verification (After Every Rollback)
 
-Run the regression suite that exercises Personal-tier AI calls; each MUST be refused at:
+Run the regression set that exercises Personal-tier AI calls; each MUST be refused at:
 
 1. Type-system level (compile-time test).
 2. Cedar level (runtime test).

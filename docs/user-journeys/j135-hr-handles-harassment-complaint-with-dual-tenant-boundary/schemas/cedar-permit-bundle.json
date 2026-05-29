@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j135/cedar-permit-bundle.json",
+  "$id": "https://oyatie.com/schemas/j135/cedar-permit-bundle.json",
   "title": "CedarPermitBundle-j135",
   "type": "object",
   "_meta": {

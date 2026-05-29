@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/audit-event-class-registry.schema.json",
+  "$id": "https://docs.oyatie.com/specs/audit-event-class-registry.schema.json",
   "title": "Oyatie Audit Event Class Registry Schema",
   "description": "Canonical JSON Schema 2020-12 contract and known-class registry for audit-event classes governed by ADR-0263. The registry binds emitted event classes from ADR-0297 abuse defence, ADR-0313 conglomerate tenant hierarchy, and ADR-0319 front/middle/back-office information barrier into one machine-readable surface. Every new doctrine ADR that introduces audit events must extend this registry and keep ADR-0263 reverse references current.",
   "version": "1.0.0",
@@ -52,22 +52,30 @@
     "mandatory_envelope_fields": {
       "type": "array",
       "description": "ADR-0263 mandatory event envelope fields inherited by every registered class.",
-      "items": {"$ref": "#/definitions/fieldName"},
-      "contains": {"const": "tenant_id"},
+      "items": {
+        "$ref": "#/definitions/fieldName"
+      },
+      "contains": {
+        "const": "tenant_id"
+      },
       "minItems": 10,
       "uniqueItems": true
     },
     "cedar_decision_fields": {
       "type": "array",
       "description": "Additional fields required when an event class is produced by a Cedar decision.",
-      "items": {"$ref": "#/definitions/fieldName"},
+      "items": {
+        "$ref": "#/definitions/fieldName"
+      },
       "minItems": 6,
       "uniqueItems": true
     },
     "classes": {
       "type": "array",
       "description": "Registered audit-event classes. Every emitted class must appear here with origin, severity, payload, cardinality, and retention metadata.",
-      "items": {"$ref": "#/definitions/eventClassEntry"},
+      "items": {
+        "$ref": "#/definitions/eventClassEntry"
+      },
       "minItems": 1,
       "uniqueItems": true
     },
@@ -84,11 +92,26 @@
         "requires_validator_lane"
       ],
       "properties": {
-        "requires_originating_adr": {"type": "boolean", "const": true},
-        "requires_reverse_reference_to_adr_0263": {"type": "boolean", "const": true},
-        "requires_payload_schema": {"type": "boolean", "const": true},
-        "requires_cardinality_budget": {"type": "boolean", "const": true},
-        "requires_retention_class": {"type": "boolean", "const": true},
+        "requires_originating_adr": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_reverse_reference_to_adr_0263": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_payload_schema": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_cardinality_budget": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_retention_class": {
+          "type": "boolean",
+          "const": true
+        },
         "requires_validator_lane": {
           "type": "string",
           "const": "oya gate validate audit-event-class-registered"
@@ -100,19 +123,33 @@
     "semver": {
       "type": "string",
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
-      "examples": ["1.0.0", "1.1.0", "2.0.0-rc.1"]
+      "examples": [
+        "1.0.0",
+        "1.1.0",
+        "2.0.0-rc.1"
+      ]
     },
     "fieldName": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*$",
       "minLength": 2,
       "maxLength": 80,
-      "examples": ["tenant_id", "audit_id", "schema_version", "jurisdiction_code"]
+      "examples": [
+        "tenant_id",
+        "audit_id",
+        "schema_version",
+        "jurisdiction_code"
+      ]
     },
     "adrId": {
       "type": "string",
       "pattern": "^ADR-[0-9]{4}$",
-      "examples": ["ADR-0263", "ADR-0297", "ADR-0313", "ADR-0319"]
+      "examples": [
+        "ADR-0263",
+        "ADR-0297",
+        "ADR-0313",
+        "ADR-0319"
+      ]
     },
     "eventClassName": {
       "type": "string",
@@ -167,27 +204,65 @@
     },
     "severity": {
       "type": "string",
-      "enum": ["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"],
-      "examples": ["INFO", "WARN", "CRITICAL"]
+      "enum": [
+        "DEBUG",
+        "INFO",
+        "WARN",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "examples": [
+        "INFO",
+        "WARN",
+        "CRITICAL"
+      ]
     },
     "retentionClass": {
       "type": "string",
-      "enum": ["standard", "security", "regulated", "legal_hold_capable", "financial_control", "information_barrier"],
-      "examples": ["standard", "security", "information_barrier"]
+      "enum": [
+        "standard",
+        "security",
+        "regulated",
+        "legal_hold_capable",
+        "financial_control",
+        "information_barrier"
+      ],
+      "examples": [
+        "standard",
+        "security",
+        "information_barrier"
+      ]
     },
     "emissionTarget": {
       "type": "string",
-      "enum": ["audit-chain", "loki-log", "otel-trace", "prometheus-metric", "security-alert", "compliance-evidence-bundle"],
-      "examples": ["audit-chain", "otel-trace", "security-alert"]
+      "enum": [
+        "audit-chain",
+        "loki-log",
+        "otel-trace",
+        "prometheus-metric",
+        "security-alert",
+        "compliance-evidence-bundle"
+      ],
+      "examples": [
+        "audit-chain",
+        "otel-trace",
+        "security-alert"
+      ]
     },
     "cardinalityBudget": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["dimension_keys", "max_distinct_per_cell_per_day", "high_cardinality_allowed"],
+      "required": [
+        "dimension_keys",
+        "max_distinct_per_cell_per_day",
+        "high_cardinality_allowed"
+      ],
       "properties": {
         "dimension_keys": {
           "type": "array",
-          "items": {"$ref": "#/definitions/fieldName"},
+          "items": {
+            "$ref": "#/definitions/fieldName"
+          },
           "minItems": 1,
           "uniqueItems": true
         },
@@ -205,17 +280,42 @@
     "payloadField": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "type", "required", "pii_handling"],
+      "required": [
+        "name",
+        "type",
+        "required",
+        "pii_handling"
+      ],
       "properties": {
-        "name": {"$ref": "#/definitions/fieldName"},
+        "name": {
+          "$ref": "#/definitions/fieldName"
+        },
         "type": {
           "type": "string",
-          "enum": ["string", "integer", "number", "boolean", "array", "object", "uuid", "date-time", "enum"]
+          "enum": [
+            "string",
+            "integer",
+            "number",
+            "boolean",
+            "array",
+            "object",
+            "uuid",
+            "date-time",
+            "enum"
+          ]
         },
-        "required": {"type": "boolean"},
+        "required": {
+          "type": "boolean"
+        },
         "pii_handling": {
           "type": "string",
-          "enum": ["none", "hashed", "redacted", "stable_identifier_only", "forbidden"]
+          "enum": [
+            "none",
+            "hashed",
+            "redacted",
+            "stable_identifier_only",
+            "forbidden"
+          ]
         },
         "description": {
           "type": "string",
@@ -240,16 +340,47 @@
         "schema_version"
       ],
       "properties": {
-        "event_class": {"$ref": "#/definitions/eventClassName"},
-        "originating_adr": {"$ref": "#/definitions/adrId"},
-        "description": {"type": "string", "minLength": 40, "maxLength": 1200},
-        "severity": {"$ref": "#/definitions/severity"},
-        "retention_class": {"$ref": "#/definitions/retentionClass"},
-        "emission_targets": {"type": "array", "items": {"$ref": "#/definitions/emissionTarget"}, "minItems": 1, "uniqueItems": true},
-        "payload_fields": {"type": "array", "items": {"$ref": "#/definitions/payloadField"}, "minItems": 1},
-        "cardinality_budget": {"$ref": "#/definitions/cardinalityBudget"},
-        "cedar_decision_event": {"type": "boolean"},
-        "schema_version": {"$ref": "#/definitions/semver"}
+        "event_class": {
+          "$ref": "#/definitions/eventClassName"
+        },
+        "originating_adr": {
+          "$ref": "#/definitions/adrId"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 40,
+          "maxLength": 1200
+        },
+        "severity": {
+          "$ref": "#/definitions/severity"
+        },
+        "retention_class": {
+          "$ref": "#/definitions/retentionClass"
+        },
+        "emission_targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/emissionTarget"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "payload_fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/payloadField"
+          },
+          "minItems": 1
+        },
+        "cardinality_budget": {
+          "$ref": "#/definitions/cardinalityBudget"
+        },
+        "cedar_decision_event": {
+          "type": "boolean"
+        },
+        "schema_version": {
+          "$ref": "#/definitions/semver"
+        }
       }
     }
   },
@@ -536,8 +667,26 @@
       "example_name": "abuse defence bot block class",
       "registry_id": "audit-event-class-registry",
       "version": "1.0.0",
-      "mandatory_envelope_fields": ["tenant_id", "sub_scope_path", "event_id", "trace_id", "span_id", "audit_id", "schema_version", "source_microservice", "cell_id", "jurisdiction_code"],
-      "cedar_decision_fields": ["cedar_policy_version", "policy_fragment_id", "evaluation_id", "action", "resource_ref", "decision"],
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "sub_scope_path",
+        "event_id",
+        "trace_id",
+        "span_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
       "classes": [
         {
           "event_class": "AbuseDefenceBotBlocked",
@@ -545,24 +694,72 @@
           "description": "Tier-0 edge or service Cedar gate blocks a request because the bot score exceeds the tenant or route threshold.",
           "severity": "INFO",
           "retention_class": "security",
-          "emission_targets": ["audit-chain", "otel-trace", "prometheus-metric"],
-          "payload_fields": [
-            {"name": "principal_id", "type": "string", "required": true, "pii_handling": "stable_identifier_only", "description": "Stable principal identifier for the blocked actor."},
-            {"name": "bot_score", "type": "number", "required": true, "pii_handling": "none", "description": "Normalized bot score used by the decision."}
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "prometheus-metric"
           ],
-          "cardinality_budget": {"dimension_keys": ["tenant_id", "source_microservice"], "max_distinct_per_cell_per_day": 1000000, "high_cardinality_allowed": true},
+          "payload_fields": [
+            {
+              "name": "principal_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable principal identifier for the blocked actor."
+            },
+            {
+              "name": "bot_score",
+              "type": "number",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Normalized bot score used by the decision."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": true
+          },
           "cedar_decision_event": true,
           "schema_version": "1.0.0"
         }
       ],
-      "update_policy": {"requires_originating_adr": true, "requires_reverse_reference_to_adr_0263": true, "requires_payload_schema": true, "requires_cardinality_budget": true, "requires_retention_class": true, "requires_validator_lane": "oya gate validate audit-event-class-registered"}
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+      }
     },
     {
       "example_name": "conglomerate parent read class",
       "registry_id": "audit-event-class-registry",
       "version": "1.0.0",
-      "mandatory_envelope_fields": ["tenant_id", "sub_scope_path", "event_id", "trace_id", "span_id", "audit_id", "schema_version", "source_microservice", "cell_id", "jurisdiction_code"],
-      "cedar_decision_fields": ["cedar_policy_version", "policy_fragment_id", "evaluation_id", "action", "resource_ref", "decision"],
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "sub_scope_path",
+        "event_id",
+        "trace_id",
+        "span_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
       "classes": [
         {
           "event_class": "ConglomerateParentReadAction",
@@ -570,24 +767,73 @@
           "description": "Parent tenant reads child tenant data under a valid source-of-truth conglomerate grant and dual-seal audit path.",
           "severity": "INFO",
           "retention_class": "regulated",
-          "emission_targets": ["audit-chain", "otel-trace", "compliance-evidence-bundle"],
-          "payload_fields": [
-            {"name": "parent_tenant_id", "type": "string", "required": true, "pii_handling": "stable_identifier_only", "description": "Parent tenant exercising the grant."},
-            {"name": "child_tenant_id", "type": "string", "required": true, "pii_handling": "stable_identifier_only", "description": "Child tenant whose data is read."}
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
           ],
-          "cardinality_budget": {"dimension_keys": ["tenant_id", "source_microservice", "child_tenant_id"], "max_distinct_per_cell_per_day": 10000000, "high_cardinality_allowed": true},
+          "payload_fields": [
+            {
+              "name": "parent_tenant_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Parent tenant exercising the grant."
+            },
+            {
+              "name": "child_tenant_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Child tenant whose data is read."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "child_tenant_id"
+            ],
+            "max_distinct_per_cell_per_day": 10000000,
+            "high_cardinality_allowed": true
+          },
           "cedar_decision_event": true,
           "schema_version": "1.0.0"
         }
       ],
-      "update_policy": {"requires_originating_adr": true, "requires_reverse_reference_to_adr_0263": true, "requires_payload_schema": true, "requires_cardinality_budget": true, "requires_retention_class": true, "requires_validator_lane": "oya gate validate audit-event-class-registered"}
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+      }
     },
     {
       "example_name": "information barrier taint class",
       "registry_id": "audit-event-class-registry",
       "version": "1.0.0",
-      "mandatory_envelope_fields": ["tenant_id", "sub_scope_path", "event_id", "trace_id", "span_id", "audit_id", "schema_version", "source_microservice", "cell_id", "jurisdiction_code"],
-      "cedar_decision_fields": ["cedar_policy_version", "policy_fragment_id", "evaluation_id", "action", "resource_ref", "decision"],
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "sub_scope_path",
+        "event_id",
+        "trace_id",
+        "span_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
       "classes": [
         {
           "event_class": "InformationBarrierTaintAttached",
@@ -595,17 +841,48 @@
           "description": "Information barrier taint is attached to a record, derived artifact, report, embedding, index, or workflow event and must propagate.",
           "severity": "WARN",
           "retention_class": "information_barrier",
-          "emission_targets": ["audit-chain", "security-alert", "compliance-evidence-bundle"],
-          "payload_fields": [
-            {"name": "taint_id", "type": "string", "required": true, "pii_handling": "stable_identifier_only", "description": "Stable taint identifier."},
-            {"name": "resource_ref", "type": "string", "required": true, "pii_handling": "stable_identifier_only", "description": "Resource receiving the taint."}
+          "emission_targets": [
+            "audit-chain",
+            "security-alert",
+            "compliance-evidence-bundle"
           ],
-          "cardinality_budget": {"dimension_keys": ["tenant_id", "source_microservice", "taint_id"], "max_distinct_per_cell_per_day": 5000000, "high_cardinality_allowed": true},
+          "payload_fields": [
+            {
+              "name": "taint_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable taint identifier."
+            },
+            {
+              "name": "resource_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Resource receiving the taint."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "taint_id"
+            ],
+            "max_distinct_per_cell_per_day": 5000000,
+            "high_cardinality_allowed": true
+          },
           "cedar_decision_event": false,
           "schema_version": "1.0.0"
         }
       ],
-      "update_policy": {"requires_originating_adr": true, "requires_reverse_reference_to_adr_0263": true, "requires_payload_schema": true, "requires_cardinality_budget": true, "requires_retention_class": true, "requires_validator_lane": "oya gate validate audit-event-class-registered"}
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+      }
     }
   ]
 }

@@ -702,7 +702,7 @@ invariants:
   semantic-versioning per ADR-0258; major version bumps require
   legal-council axis sign-off per ADR-0294.
 - **Pack-conflict regression CI.** The substrate's per-pack
-  conflict-resolution test suite includes >1000 worked examples
+  conflict-resolution test set includes >1000 worked examples
   across canonical pack-pair conflicts; the CI lane
   `oya-governance-pack-precedence-regression` blocks any
   PR that breaks an existing conflict resolution.

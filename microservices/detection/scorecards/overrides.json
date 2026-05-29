@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "detection",
   "summary": "ADR-0307 detection substrate scaffold with model lifecycle, fairness, investigation, and ADR-0263 audit events.",
   "canonical_base_path": "specs/microservices/scorecards/canonical/",

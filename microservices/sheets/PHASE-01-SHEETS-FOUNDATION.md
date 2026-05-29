@@ -294,7 +294,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0110: ChangeSet state machine.
 - ADR-0116: Retire external agent-coordination tooling.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0135: Sheets net-new µservice (no legacy connect-sheets).
+- ADR-0135: Sheets net-new µservice (no legacy sheets).
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.

@@ -38,7 +38,7 @@ Tomás files an LGPD DSAR in Brazil while a US parent company also holds overlap
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -78,7 +78,7 @@ Tomás files an LGPD DSAR in Brazil while a US parent company also holds overlap
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -144,7 +144,7 @@ Tomás files an LGPD DSAR in Brazil while a US parent company also holds overlap
 | README-AC-010 | comms-email | portability bundle build | GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | ANPD-ready incident audit | LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | Portuguese response delivery | LGPD Article 7 lawful bases for personal data processing | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | LGPD request intake | LGPD Article 11 sensitive personal data processing | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | LGPD request intake | LGPD Article 11 sensitive personal data processing | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | US parent inventory discovery | LGPD Article 18 data-subject rights including access, correction, anonymization, portability, deletion, and revocation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | higher-restriction floor calculation | LGPD Article 33 international transfer conditions | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | portability bundle build | LGPD Article 38 data protection impact report authority | Cedar deny-wins; ADR-0263 event sealed |
@@ -189,7 +189,7 @@ Tomás files an LGPD DSAR in Brazil while a US parent company also holds overlap
 | README-AC-055 | comms-email | LGPD request intake | LGPD Article 33 international transfer conditions | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | US parent inventory discovery | LGPD Article 38 data protection impact report authority | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | higher-restriction floor calculation | LGPD Article 46 security measures | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | portability bundle build | LGPD Article 48 security incident communication | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | portability bundle build | LGPD Article 48 security incident communication | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | ANPD-ready incident audit | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | Portuguese response delivery | GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | LGPD request intake | LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Cedar deny-wins; ADR-0263 event sealed |
@@ -234,7 +234,7 @@ Tomás files an LGPD DSAR in Brazil while a US parent company also holds overlap
 | README-AC-100 | comms-email | portability bundle build | GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | ANPD-ready incident audit | LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | Portuguese response delivery | LGPD Article 7 lawful bases for personal data processing | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | LGPD request intake | LGPD Article 11 sensitive personal data processing | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | LGPD request intake | LGPD Article 11 sensitive personal data processing | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | US parent inventory discovery | LGPD Article 18 data-subject rights including access, correction, anonymization, portability, deletion, and revocation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | higher-restriction floor calculation | LGPD Article 33 international transfer conditions | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | portability bundle build | LGPD Article 38 data protection impact report authority | Cedar deny-wins; ADR-0263 event sealed |
@@ -279,7 +279,7 @@ Tomás files an LGPD DSAR in Brazil while a US parent company also holds overlap
 | README-AC-145 | comms-email | LGPD request intake | LGPD Article 33 international transfer conditions | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | US parent inventory discovery | LGPD Article 38 data protection impact report authority | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | higher-restriction floor calculation | LGPD Article 46 security measures | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | portability bundle build | LGPD Article 48 security incident communication | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | portability bundle build | LGPD Article 48 security incident communication | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | ANPD-ready incident audit | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | Portuguese response delivery | GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | LGPD request intake | LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Cedar deny-wins; ADR-0263 event sealed |

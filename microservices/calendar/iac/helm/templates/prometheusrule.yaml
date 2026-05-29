@@ -28,7 +28,7 @@ spec:
           labels: {severity: page, slo: agenda-render-latency, burn: fast-1h-14x}
           annotations:
             summary: "Agenda-render latency burning 14x over 1h"
-            runbook_url: "https://oyatie.dev/microservices/calendar/runbooks/availability-cache-rebuild.md"
+            runbook_url: "https://oyatie.com/microservices/calendar/runbooks/availability-cache-rebuild.md"
         - alert: calendar-agenda-render-slow-burn-6h-6x
           expr: |
             (1 - (
@@ -53,7 +53,7 @@ spec:
           labels: {severity: page, slo: caldav-availability, burn: fast-1h-14x}
           annotations:
             summary: "CalDAV availability burning 14x over 1h"
-            runbook_url: "https://oyatie.dev/microservices/calendar/runbooks/caldav-sync-loop.md"
+            runbook_url: "https://oyatie.com/microservices/calendar/runbooks/caldav-sync-loop.md"
 
     - name: calendar-room-conflict-correctness
       interval: 30s
@@ -65,7 +65,7 @@ spec:
           labels: {severity: page, slo: room-conflict-detection-correctness, slo_target: 1.0}
           annotations:
             summary: "Room double-booking ADMITTED — Sev-1; PRD AC-09 broken"
-            runbook_url: "https://oyatie.dev/microservices/calendar/runbooks/room-booking-conflict.md"
+            runbook_url: "https://oyatie.com/microservices/calendar/runbooks/room-booking-conflict.md"
 
     - name: calendar-tzdb-staleness
       interval: 5m
@@ -77,7 +77,7 @@ spec:
           labels: {severity: page, slo: tzdb-staleness-bound}
           annotations:
             summary: "IANA tzdb cluster-default >30d stale; ADR-CAL-0004 30d bound exceeded"
-            runbook_url: "https://oyatie.dev/microservices/calendar/runbooks/timezone-db-refresh.md"
+            runbook_url: "https://oyatie.com/microservices/calendar/runbooks/timezone-db-refresh.md"
 
     - name: calendar-rsvp-fanout-latency
       interval: 30s
@@ -93,5 +93,5 @@ spec:
           labels: {severity: page, slo: rsvp-fanout-latency, burn: fast-1h-14x}
           annotations:
             summary: "RSVP fanout latency burning 14x over 1h"
-            runbook_url: "https://oyatie.dev/microservices/calendar/runbooks/rsvp-storm-throttle.md"
+            runbook_url: "https://oyatie.com/microservices/calendar/runbooks/rsvp-storm-throttle.md"
 {{- end }}

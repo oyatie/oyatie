@@ -14,7 +14,7 @@ info:
 defaultContentType: application/json
 servers:
   cloud-billing-event-bus:
-    host: cloud-billing.internal.oyatie.dev:50051
+    host: cloud-billing.internal.oyatie.com:50051
     protocol: grpc
     description: gRPC event substrate
 channels:

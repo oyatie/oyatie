@@ -10,7 +10,7 @@ persona: priya-singh (plant manager), maya-okafor (reliability), darren-chen (pl
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-analytics
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-023: Maintenance KPI scorecard — OEE / availability / MTTR / first-time-fix-rate / PM compliance

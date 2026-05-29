@@ -198,10 +198,10 @@ pub enum RealEstateIntegrationTestError { FixtureMissing, PolicyFixtureInvalid, 
 | ADR-0263 pack binding | Fixture pack activation emits `OfficePackOverlayChanged`. |
 | ADR-0263 security binding | CI abuse throttles emit `AbuseDefenceRateLimitHit`. |
 | Audit payload | Include `tenant_id`, `audit_id`, `trace_id`, test run id, fixture id, expected event id, and policy bundle version. |
-| Metric | `oya_real_estate_integration_test_runs_total{tenant_id,cell_id,suite,status}` caps suite/status cardinality. |
-| Latency histogram | `oya_real_estate_integration_test_duration_seconds` tracks suite and scenario runtime. |
+| Metric | `oya_real_estate_integration_test_runs_total{tenant_id,cell_id,test_set,status}` caps test_set/status cardinality. |
+| Latency histogram | `oya_real_estate_integration_test_duration_seconds` tracks test set and scenario runtime. |
 | Trace span | `real_estate.integration_test.run_scenario` links CI, APIs, downstream services, and audit-chain spans. |
-| Log schema | Structured logs include `tenant_id`, `principal_id`, `suite_id`, `fixture_id`, `scenario_id`, and failure class. |
+| Log schema | Structured logs include `tenant_id`, `principal_id`, `test_set_id`, `fixture_id`, `scenario_id`, and failure class. |
 | Capacity math | CI shard count uses scenarios / target_minutes; long-running fixtures move to nightly when queue risk exceeds cutoff. |
 | Multi-region | Blocking tests run in home-cell and DR read-only replay modes before promotion. |
 | Sovereign cells | Fixture data remains synthetic or in-region for regulated compliance-pack overlays. |

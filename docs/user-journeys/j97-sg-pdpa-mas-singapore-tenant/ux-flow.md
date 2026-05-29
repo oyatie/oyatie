@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | MTCS-L3 cell proof | MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | cross-border home-jurisdiction review | Singapore PDPA section 11 accountability | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | incident drill export | Singapore PDPA sections 13 to 17 consent, purpose, and withdrawal duties | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | fintech tenant activation | Singapore PDPA section 20 notification of purposes | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | fintech tenant activation | Singapore PDPA section 20 notification of purposes | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | PDPA consent catalog | Singapore PDPA section 21 access and correction | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | MAS critical-system tagging | Singapore PDPA section 24 protection obligation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | MTCS-L3 cell proof | Singapore PDPA section 25 retention limitation | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | fintech tenant activation | Singapore PDPA section 24 protection obligation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | PDPA consent catalog | Singapore PDPA section 25 retention limitation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | MAS critical-system tagging | Singapore PDPA section 26 transfer limitation | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | MTCS-L3 cell proof | Singapore PDPA section 26A data breach notification | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | MTCS-L3 cell proof | Singapore PDPA section 26A data breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | cross-border home-jurisdiction review | MAS Notice on Technology Risk Management incident reporting provisions for relevant incidents | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | incident drill export | MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | fintech tenant activation | Singapore PDPA section 11 accountability | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | MTCS-L3 cell proof | MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | cross-border home-jurisdiction review | Singapore PDPA section 11 accountability | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | incident drill export | Singapore PDPA sections 13 to 17 consent, purpose, and withdrawal duties | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | fintech tenant activation | Singapore PDPA section 20 notification of purposes | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | fintech tenant activation | Singapore PDPA section 20 notification of purposes | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | PDPA consent catalog | Singapore PDPA section 21 access and correction | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | MAS critical-system tagging | Singapore PDPA section 24 protection obligation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | MTCS-L3 cell proof | Singapore PDPA section 25 retention limitation | Cedar deny-wins; ADR-0263 event sealed |

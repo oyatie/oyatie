@@ -170,7 +170,7 @@ decision_owner: axis-financial-planning
 ### Follow-up work
 
 - Add `ScenarioGraph` schema and cycle rejection fixtures.
-- Add deterministic formula evaluator conformance suite.
+- Add deterministic formula evaluator conformance set.
 - Add async recalculation progress contract.
 - Add FX backfill snapshot test corpus.
 - Add board report seal export manifest.

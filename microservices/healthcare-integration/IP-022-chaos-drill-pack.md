@@ -153,7 +153,7 @@ Benchmark displacement set: Redox, Rhapsody, InterSystems IRIS for Health, Lynia
 - Rhapsody displacement: drills expose route, ACK, replay, and operator remediation without relying on engine-console screenshots.
 - InterSystems IRIS for Health displacement: drills separate platform health from FHIR, HL7, consent, provenance, and audit control health.
 - Lyniate/Corepoint displacement: drills test interface behavior against ADR-bound contracts rather than point-to-point configuration alone.
-- Mirth Connect displacement: drills replace channel-script checks with typed failure injectors and audit evidence.
+- Mirth displacement: drills replace channel-script checks with typed failure injectors and audit evidence.
 - NextGate displacement: drills treat patient identity ambiguity as a governed workflow failure with SLO and rollback evidence.
 - Health Catalyst displacement: drills prove analytics ingestion cannot override clinical consent or provenance failures.
 - Redox-like incident summaries are insufficient unless local audit-chain ids exist.

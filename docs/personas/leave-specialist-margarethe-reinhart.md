@@ -215,7 +215,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Leave Specialist Margarethe Reinhart must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Leave Specialist Margarethe Reinhart must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Leave Specialist Margarethe Reinhart must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Leave Specialist Margarethe Reinhart must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Leave Specialist Margarethe Reinhart must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Leave Specialist Margarethe Reinhart must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Leave Specialist Margarethe Reinhart must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Leave Specialist Margarethe Reinhart must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

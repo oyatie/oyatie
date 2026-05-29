@@ -770,7 +770,7 @@
       ],
       "tier": "cross-cutting",
       "update_trigger": [
-        "documentation-suite coverage snapshot regeneration"
+        "documentation-set coverage snapshot regeneration"
       ],
       "update_cadence": "per-change",
       "dependent_docs": [

@@ -39,7 +39,7 @@ Failure mode: `403` with `{"reason": "step_up_failed"}` — emits `EVT-J153-IDEN
 
 ## §2 Payments — reconcile multiple rails
 
-### 2.1 Stripe Connect deposits batch approval
+### 2.1 Stripe deposits batch approval
 
 `→ payments` — `POST /v1/tenants/{tenant_id}/payments/reconcile/batch-approve`
 
@@ -308,7 +308,7 @@ Response (`201`):
 }
 ```
 
-## §7 Connect — tax-preparer share
+## §7 — tax-preparer share
 
 `→ connect` — `POST /v1/tenants/{tenant_id}/connect/tax-preparer-share`
 
@@ -390,7 +390,7 @@ Per j152 §9 — same seal contract. Every event sealed with merkle proof.
 | Edge | p50 | p95 | p99 |
 |---|---|---|---|
 | tenant switch → role projection | 110ms | 280ms | 520ms |
-| Stripe Connect batch (47) → reconcile ack | 380ms | 1.1s | 2.4s |
+| Stripe batch (47) → reconcile ack | 380ms | 1.1s | 2.4s |
 | Venmo import job → final result | 11s | 38s | 92s |
 | Receipt batch (187) categorize | 4.2s | 12s | 28s |
 | Schedule-C compute → PDF | 720ms | 2.4s | 5.1s |

@@ -97,7 +97,7 @@ This plan is intern-buildable: a new engineer stands up the seeded trinity-tenan
 
 **Pass criteria:**
 
-- Connect returns `409 Conflict`
+- returns `409 Conflict`
 - DPA not stored in any tenant's audit trail (failure prevents replication)
 - `context.dpa_signed` remains `false`
 

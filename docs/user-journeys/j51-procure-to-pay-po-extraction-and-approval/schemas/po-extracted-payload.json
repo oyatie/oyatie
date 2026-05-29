@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j51/po-extracted-payload.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j51/po-extracted-payload.json",
   "title": "J51PoExtractedPayload",
   "description": "Shared po-extracted-payload schema for j51-procure-to-pay-po-extraction-and-approval. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

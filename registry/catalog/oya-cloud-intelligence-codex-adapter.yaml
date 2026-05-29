@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  changeset: CS-LLM-GATEWAY-CODEX-ADAPTER-001
+  changeset: CS-CLOUD-INTELLIGENCE-CODEX-ADAPTER-001
   source_adrs: [ADR-0105, ADR-0131, ADR-0384]
 non_claims:
   - cli_version is hard-coded as cli/0.27.0; operator must update the constant on every Codex CLI release that changes the User-Agent contract with chatgpt.com

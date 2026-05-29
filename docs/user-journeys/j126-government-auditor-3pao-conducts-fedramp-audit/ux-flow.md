@@ -179,7 +179,7 @@ established at OS level.
 ### 2.3 Browser open → oyatie work-tenant URL
 
 Diana opens Edge (FIPS-mode). She navigates to
-`https://gao.gov.oyatie.dev`. Page loads. WebAuthn challenge fires
+`https://gao.gov.oyatie.com`. Page loads. WebAuthn challenge fires
 because she has not authenticated to oyatie today.
 
 ### 2.4 WebAuthn challenge
@@ -362,7 +362,7 @@ Cancellation emits `AuditPullCancelled` to both tenants' audit logs.
 │  │ ├── ...                                                 │ │
 │  │                                                         │ │
 │  │ ⚠ Anomaly: PaymentRiskScoreEmitted cardinality          │ │
-│  │   inconsistent with declared B2B-only Connect surface   │ │
+│  │   inconsistent with declared B2B-only surface   │ │
 │  │   [Drill down]  [File finding]                          │ │
 │  └────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
@@ -386,7 +386,7 @@ per WCAG 2.2 AA).
 │  ┌────────────────────────────────────────────────────┐  │
 │  │ PaymentRiskScoreEmitted cardinality (847,231) over │  │
 │  │ audit period inconsistent with declared B2B-only   │  │
-│  │ Stripe Connect surface. Request CSP explanation of │  │
+│  │ Stripe surface. Request CSP explanation of │  │
 │  │ consumer-facing payment surface or correction of   │  │
 │  │ event-class emission scope.                        │  │
 │  └────────────────────────────────────────────────────┘  │

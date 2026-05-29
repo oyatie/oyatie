@@ -7,7 +7,7 @@ appVersion: "0.1.0"
 type: application
 maintainers:
   - name: axis-ecosystem
-    email: axis-ecosystem@oyatie.dev
+    email: axis-ecosystem@oyatie.com
 keywords:
   - developer-sdk
   - package-registry-pypi

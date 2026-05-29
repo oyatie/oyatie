@@ -16,7 +16,7 @@ companion_docs:
 PHASE-01 landed the evidence pipeline + DSAR automation. PHASE-02 closes the substrate by
 adding pack-overlay registry, breach-notification workflow, DPIA orchestration,
 cell-certification attestation, and compliance-control mapping. Hyperscaler precedent:
-OneTrust + AuditBoard + Vanta full-suite.
+OneTrust + AuditBoard + Vanta full-platform.
 
 ## B. Scope (in)
 

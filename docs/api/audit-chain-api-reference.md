@@ -45,7 +45,7 @@ Example:
 
 ```http
 POST /emit HTTP/2
-Host: audit-chain.oyatie.dev
+Host: audit-chain.oyatie.com
 Authorization: Bearer eyJ...
 X-Tenant-Id: 018f7a54-3ef5-7c42-a111-a2c4ad7f88f0
 Idempotency-Key: 01HYAUDITEMIT0000000000

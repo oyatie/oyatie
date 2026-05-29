@@ -7,7 +7,7 @@ version: 0.1.0
 appVersion: "v1.4.0"  # Flux kustomize-controller LTS pin
 maintainers:
   - name: axis-cloud-iac
-    email: axis-cloud-iac@oyatie.dev
+    email: axis-cloud-iac@oyatie.com
 dependencies:
   - name: kustomize-controller
     version: "^1.4.0"

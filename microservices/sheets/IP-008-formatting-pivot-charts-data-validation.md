@@ -67,7 +67,7 @@ cargo build --target wasm32-unknown-unknown -p oya-sheets-charts-adapter-leptos-
 
 ## Test Plan
 
-Per Phase-01 thresholds; chart-render benchmark suite asserts AC-13 budget.
+Per Phase-01 thresholds; chart-render benchmark set asserts AC-13 budget.
 
 ## Halt Conditions
 

@@ -126,7 +126,7 @@ architecture team promotes one alternate adapter to primary by:
 1. Switching the composition-root wiring in workflow-studio (and the
    four other µservice consumers) from `LoroDoc` to the chosen
    alternate.
-2. Running the existing canvas / docs / sheets test suites against
+2. Running the existing canvas / docs / sheets test sets against
    the new adapter.
 3. Authoring ADR-XXXX promoting the alternate to primary.
 4. Demoting Loro to CI-compile status.

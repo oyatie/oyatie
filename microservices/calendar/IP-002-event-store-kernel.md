@@ -50,7 +50,7 @@ Build the zero-I/O `oya-calendar-event-store-kernel` crate named in `manifest.js
 - SLO pressure: `slos/agenda-render-latency.openslo.yaml` and `slos/notification-delivery-freshness.openslo.yaml`.
 
 ## G. Counterpart comparison
-Google Calendar and Outlook expose rich event resources, but their tenant isolation and legal-hold semantics are suite-level. This kernel makes Oyatie's counterpart claim concrete by putting tenant id, context, retention, legal hold, and data class into the event type system before storage exists.
+Google Calendar and Outlook expose rich event resources, but their tenant isolation and legal-hold semantics are platform-level. This kernel makes Oyatie's counterpart claim concrete by putting tenant id, context, retention, legal hold, and data class into the event type system before storage exists.
 
 ## H. Foundation delivery expansion
 - Deliverable detail: define `CalendarEventId`, `TenantId`, `CalendarId`, `EventContext`, and `AuditCorrelationId` as separate value objects.

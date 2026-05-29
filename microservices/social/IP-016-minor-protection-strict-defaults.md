@@ -20,7 +20,7 @@ Bind ADR-0292 behavior to `policy/minor-protection.cedar`, age verification, not
 | Artifact | Role |
 |---|---|
 | `policy/minor-protection.cedar` | Strict-default policy. |
-| `catalog/oya-social-sock-puppet-detector-kernel.yaml` | Existing abuse/minor-adjacent detector anchor. |
+| `catalog/oya-community-social-sock-puppet-detector-kernel.yaml` | Existing abuse/minor-adjacent detector anchor. |
 | `slos/minor-protection-engagement-correctness.openslo.yaml` | Minor-protection correctness SLO. |
 | `dashboards/minor-protection-health.json` | Operating dashboard. |
 | `runbooks/social-bot-score-recalibration.md` | False-positive tuning runbook. |

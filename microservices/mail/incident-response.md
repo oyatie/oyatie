@@ -122,7 +122,7 @@ Templates at `legal/breach-notification-templates/`:
 | Channel | Use |
 |---|---|
 | `#inc-mail-<id>` Slack | Per-incident war room |
-| `incidents@oyatie.dev` email | Inbound incident reports |
+| `incidents@oyatie.com` email | Inbound incident reports |
 | `status.oyatie.dev` | Tenant-facing incident status |
 | PagerDuty / Grafana OnCall | Initial paging |
 | Tenant DPA-listed contact | Per-tenant breach notification |
@@ -165,7 +165,7 @@ This document reviewed annually + after every Sev-1 event affecting mail. Change
 
 - ADR-0028 (Bominal): audit-chain.
 - ADR-0117: residency.
-- ADR-0135: Connect dissolution.
+- ADR-0135: dissolution.
 - ADR-0139: SLO gate.
 - ADR-0131: per-microservice flat layout.
 - `microservices/mail/threat-model.md`.

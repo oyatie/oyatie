@@ -231,7 +231,7 @@ This µservice operates at the **application** layer of the 12-layer Workflow + 
 - ADR-0213 (Ecosystem-as-a-Service architecture — Plugin/App Store substrate).
 - ADR-0037 (Bominal plugin substrate — superseded for new work).
 - ADR-0131 (per-microservice flat layout).
-- ADR-0132 (no-suite policy).
+- ADR-0132 (no-grouping policy).
 - Memory: `feedback_quality_performance_scalability_bar.md`; `feedback_workflow_objectgraph_adapter_layer.md`; `feedback_canonical_base_localization.md`.
 
 ## Doctrine refs (ADR-0346..0349)

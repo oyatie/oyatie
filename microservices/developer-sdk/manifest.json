@@ -11,10 +11,10 @@
     "canonical_authority": "ADR-0213",
     "in_house_roadmap_phase": "phase-3-target",
     "inheritance": [
-      "Stripe Connect \u2014 third-party developer onboarding + KYC/AML + revenue share + payout",
-      "Apple Developer Program \u2014 signing keys + sandbox + dev portal",
-      "Backstage \u2014 developer portal substrate (per ADR-0170)",
-      "OpenAPI 3.2 codegen \u2014 SDK families per ADR-0185"
+      "Stripe — third-party developer onboarding + KYC/AML + revenue share + payout",
+      "Apple Developer Program — signing keys + sandbox + dev portal",
+      "Backstage — developer portal substrate (per ADR-0170)",
+      "OpenAPI 3.2 codegen — SDK families per ADR-0185"
     ]
   },
   "bounded_contexts": [
@@ -309,9 +309,9 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Product suite and bundle dissolution",
+      "title": "Product platform and bundle dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0170",

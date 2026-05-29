@@ -31,7 +31,7 @@ Complex tasks often fail silently: partial implementations get declared "done", 
 
 <Execution_Policy>
 - Fire independent agent calls simultaneously -- never wait sequentially for independent work
-- Use `run_in_background: true` for long operations (installs, builds, test suites)
+- Use `run_in_background: true` for long operations (installs, builds, test sets)
 - Always pass the `model` parameter explicitly when delegating to agents
 - Read `docs/shared/agent-tiers.md` before first delegation to select correct agent tiers
 - Deliver the full implementation: no scope reduction, no partial completion, no deleting tests to make them pass
@@ -59,7 +59,7 @@ Complex tasks often fail silently: partial implementations get declared "done", 
    - Standard work: STANDARD tier -- "Add error handling to this module"
    - Complex analysis: THOROUGH tier -- "Debug this race condition"
    - When Ralph is entered as a ralplan follow-up, start from the approved **available-agent-types roster** and make the delegation plan explicit: implementation lane, evidence/regression lane, and final sign-off lane using only known agent types
-4. **Run long operations in background**: Builds, installs, test suites use `run_in_background: true`
+4. **Run long operations in background**: Builds, installs, test sets use `run_in_background: true`
 5. **Visual task gate (when screenshot/reference images are present)**:
    - Run the Visual Ralph verdict step **before every next edit**.
    - Require structured JSON output: `score`, `verdict`, `category_match`, `differences[]`, `suggestions[]`, `reasoning`.
@@ -281,7 +281,7 @@ Workflow: Detect flag, extract task, create `.omx/plans/prd-{slug}.md`, create `
 **Run in background** (`run_in_background: true`):
 - Package installation (npm install, pip install, cargo build)
 - Build processes (make, project build commands)
-- Test suites
+- Test sets
 - Docker operations (docker build, docker pull)
 
 **Run blocking** (foreground):

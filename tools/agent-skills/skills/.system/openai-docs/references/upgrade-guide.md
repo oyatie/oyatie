@@ -80,7 +80,7 @@ Default action:
 - replace the model string with `gpt-5.5`
 - preserve the current reasoning effort
 - keep prompts unchanged
-- validate behavior with existing tests, realistic spot checks, or an existing eval suite when one is already available
+- validate behavior with existing tests, realistic spot checks, or an existing eval set when one is already available
 
 ### `model string + light prompt rewrite`
 
@@ -134,7 +134,7 @@ Before applying or recommending a model-and-prompt-only upgrade, check:
 5. Is the prompt surface close enough to the model usage that you can make a targeted change instead of a broad cleanup?
 6. Do strict structured outputs, schemas, or downstream parsers still have an explicit contract?
 7. For long-running Responses or tool-heavy agents, is `phase` already preserved if the host relies on preambles, replayed assistant items, or multiple assistant messages?
-8. Are latency, token, or price assumptions validated by tests, realistic spot checks, or an existing eval suite rather than inferred from general model positioning?
+8. Are latency, token, or price assumptions validated by tests, realistic spot checks, or an existing eval set rather than inferred from general model positioning?
 
 If item 1 is no, items 3 through 4 point to implementation work, or item 7 is no and the fix needs code changes, return `blocked`.
 
@@ -156,7 +156,7 @@ This guide may:
 - inspect code and prompt files to understand where those changes belong
 - inspect whether existing Responses flows already preserve `phase`
 - flag compatibility blockers
-- propose validation with existing tests, realistic spot checks, or existing eval suites
+- propose validation with existing tests, realistic spot checks, or existing eval sets
 
 This guide may not:
 
@@ -173,7 +173,7 @@ If a safe GPT-5.5 upgrade requires any of those changes, mark the path as blocke
 
 ## Validation plan
 
-- Validate each upgraded usage site with existing tests, realistic spot checks, or an existing eval suite when one is already available.
+- Validate each upgraded usage site with existing tests, realistic spot checks, or an existing eval set when one is already available.
 - Compare against the current GPT-5.4 baseline when available.
 - Check task success, retry count, tool-call count, total tokens, latency, output shape, and user-visible quality.
 - For specialized workflows, validate the contract that matters most instead of judging only general output quality.

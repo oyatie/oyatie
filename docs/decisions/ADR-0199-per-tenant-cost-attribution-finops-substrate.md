@@ -240,7 +240,7 @@ build for the tenant-billing UX layer.
 
 #### Phase 1 — adapter hardening (M02-M03 horizon)
 
-- Conformance suite for `oya-cloud-finops-kernel`'s cost-aggregator
+- Conformance set for `oya-cloud-finops-kernel`'s cost-aggregator
   trait.
 - FOCUS-export pipeline graduated to strict mode.
 - Anomaly detector tuning per workload class.

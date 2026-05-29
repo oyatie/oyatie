@@ -664,7 +664,7 @@ Pack-overlay sections at `regional-packs/<pack>/foundry-eval-overlay.md` (when a
 - ADR-0117 (Cloud-native infrastructure; data residency).
 - ADR-0139 (Agentic SLO-gated promotion).
 - ADR-0131 (Per-microservice flat layout).
-- ADR-0132 (Product-suite-and-bundle dissolution).
+- ADR-0132 (Product-platform-and-bundle dissolution).
 - ADR-0133 (Industry best-practice conformance program).
 - ADR-0140 (Cedar policy enforcement).
 - `microservices/intelligence-eval/PRD.md`.

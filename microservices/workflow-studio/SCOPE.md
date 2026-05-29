@@ -360,7 +360,7 @@ source_authorities:
 310. Studio cannot perform raw database reads against other microservices.
 311. Substrate consumer: HR uses Studio for onboarding workflows.
 312. Substrate consumer: Payroll uses Studio for pay-run workflows.
-313. Substrate consumer: Connect uses Studio for adapter orchestration workflows.
+313. Substrate consumer: uses Studio for adapter orchestration workflows.
 314. Substrate consumer: Marketplace uses Studio for deal-settlement workflows.
 315. Substrate consumer: Healthcare packs use Studio for patient-flow workflows.
 316. Substrate consumer: Supply-chain packs use Studio for supplier workflows.
@@ -1235,7 +1235,7 @@ source_authorities:
 1161. Studio receives auth scope descriptors.
 1162. Studio receives migration connector mapping.
 1163. Studio never stores connector secrets.
-1164. Connect owns external system adapters.
+1164. owns external system adapters.
 1165. Handoff: messenger.
 1166. Studio configures notification nodes.
 1167. Studio previews message data class.

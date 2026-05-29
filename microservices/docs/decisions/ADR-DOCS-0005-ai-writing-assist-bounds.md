@@ -158,7 +158,7 @@ If a tenant later toggles `hr_document_workflow=true`, AI-assist outputs generat
 - ADR-MAIL-0004 — mail spam/phishing classifier EU AI Act scope (sibling pattern).
 - ADR-WS-0005 — workflow-studio AI copilot EU AI Act scope (sibling pattern).
 - ADR-0131 — per-microservice flat layout.
-- ADR-0132 — product-suite + bundle dissolution.
+- ADR-0132 — product-platform + bundle dissolution.
 - ADR-0133 — industry best-practice conformance program.
 - `microservices/docs/PRD.md` FR-14.
 - `microservices/docs/capabilities/{T0-suggest,T1-assist,T2-auto}.yaml`.

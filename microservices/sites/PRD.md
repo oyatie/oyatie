@@ -21,7 +21,7 @@ doc_status: published
 
 The `sites` µservice is oyatie's native published-web + intranet substrate — a Google-Sites + WordPress + Squarespace + Webflow + Notion-Sites + Carrd + Framer + Ghost + Hugo-class competitor unified under a single tenant-facing surface. It owns: site (named published space) authoring; URL-routed page rendering (static + dynamic); block-based composition (paragraph, heading, image, video, embed, form, cms-collection); theme + design-token system; navigation (header/footer/sidebar; per-page or global); custom domain binding with ACME-automated TLS (RFC 8555 + DNS-01); SEO surface (meta + Open Graph + Twitter Cards + schema.org JSON-LD + sitemap.xml + robots.txt + canonical); CMS-collection model (structured-content type + entries + relationships); site-wide search (Meilisearch); forms-integration (cross-µservice to `forms`); e-commerce-stub (T-G fintech bridge); privacy-preserving analytics (Plausible-class); WCAG 2.2 AA accessibility; social-share metadata; preview-mode (draft vs published); versioning (publish + rollback); multi-language (i18n + hreflang); comments (cross-µservice to `community`); CDN-delivery (signed cache invalidation); AI-page-build (T2 — generate page from prompt); site-collaboration (Loro CRDT per ADR-SITES-0001).
 
-Per ADR-0132 (no-suite forward-policy) and parallel-session ADR-0135 (Connect unbundle), `sites` is a standalone tenant-facing µservice — no longer part of a Connect suite. The legacy `oya-connect-sites-*` family is deprecated and migrates per ADR-0134 Strangler timeline (see `migration-from-connect.md`).
+Per ADR-0132 (no-grouping forward-policy) and parallel-session ADR-0135 (unbundle), `sites` is a standalone tenant-facing µservice — no longer part of a platform. The legacy `oya-sites-*` family is deprecated and migrates per ADR-0134 Strangler timeline (see `migration-from-connect.md`).
 
 `sites` is differentiated from sibling µservices as follows: `docs` is for PRIVATE document editing (Word/Notion-class); `community` is for moderated FORUM-style discussion; `sites` is for PUBLISHED websites (intranet + public) with theme + nav + URL routing + CDN delivery. The three share the Loro CRDT collab substrate but cover non-overlapping product surfaces.
 
@@ -395,7 +395,7 @@ Sharding: sites partitioned by `tenant_id`; pages partitioned by `(site_id, vers
 | AC-12 | `oya gate validate per-microservice-layout --microservice sites` exit 0 | ADR-0131 lane |
 | AC-13 | T2 AI-page-build refuses HR/legal/medical-context prompts pending ADR-SITES-XXXX conformity | `cargo nextest -p oya-sites-page-usecase -- ai_page_build_refusal_hr` |
 | AC-14 | CDN cache invalidation on publish completes p95 ≤ 2s | `cargo bench -p oya-sites-cdn-delivery-adapter-cloudflare-cdn-stub -- invalidate` |
-| AC-15 | URL signature stability: 301/302/410 redirect map preserves Hyrum's-Law surfaces from legacy `oya-connect-sites-*` | `cargo nextest -p oya-sites-url-routing-domain -- redirect_signature_stability` |
+| AC-15 | URL signature stability: 301/302/410 redirect map preserves Hyrum's-Law surfaces from legacy `oya-sites-*` | `cargo nextest -p oya-sites-url-routing-domain -- redirect_signature_stability` |
 
 ## Open Questions
 
@@ -414,12 +414,12 @@ Sharding: sites partitioned by `tenant_id`; pages partitioned by `(site_id, vers
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0135 | Connect unbundle (parallel session) | sites independence |
+| ADR-0135 | unbundle (parallel session) | sites independence |
 | ADR-0139 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
-| ADR-0132 | Product-suite + bundle dissolution | µservice independence |
+| ADR-0132 | Product-platform + bundle dissolution | µservice independence |
 | ADR-0133 | Industry-best-practice conformance | hyperscaler-grade bar |
-| ADR-0134 | Connect dissolution Strangler migration | migration policy |
+| ADR-0134 | dissolution Strangler migration | migration policy |
 | ADR-0140 | Cedar policy enforcement | policy substrate |
 | ADR-SITES-0001 | CRDT library selection (Loro 1.x) | collab substrate |
 | ADR-SITES-0002 | Static vs dynamic rendering (SSG/ISR hybrid) | rendering architecture |

@@ -403,7 +403,7 @@ const microservices = [
     kr_pack: { material_scope: true, lead: 'M04', bindings: ['HIRA DUR realtime ≤200ms p99','KFDA recall/dispatch'] } },
   { id: 'patient', cluster: 'healthcare', status: 'future', lead: 'M04-P04',
     desc: 'B2C portal (separate from clinician surface).',
-    kr_pack: { material_scope: true, lead: 'M04', bindings: ['의료법 환자 권리','appointment booking','Connect Personal link'] } },
+    kr_pack: { material_scope: true, lead: 'M04', bindings: ['의료법 환자 권리','appointment booking','Personal link'] } },
   { id: 'emergency', cluster: 'healthcare', status: 'future', lead: 'M04-P05',
     desc: 'Routing / Handoff / Dispatch.',
     kr_pack: { material_scope: true, lead: 'M04', bindings: ['119 응급의료','응급의료법'] } },
@@ -442,7 +442,7 @@ const microservices = [
   { id: 'security', cluster: 'industrial', status: 'future', lead: 'M07-P05',
     desc: 'Physical security + audit + access logs.' },
 
-  // Connect cluster
+  // cluster
   { id: 'connect', cluster: 'connect', status: 'planned', lead: 'M03-P04', registered: true,
     desc: 'Mail + Messenger + Calendar + Drive + Docs + Meet + Tasks + Notes (dual-context Pro/Personal per ADR-0208).',
     bcs: ['mail','messenger','calendar','drive','docs','sheets','slides','meet','tasks','notes','legal-hold','retention','ediscovery'],

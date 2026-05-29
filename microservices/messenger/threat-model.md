@@ -39,7 +39,7 @@ Identify, classify, and mitigate threats to messenger's confidentiality, integri
 
 ### In-scope
 
-All components introduced by parallel ADR-0238 (Connect dual-context inherited) and ADR-0132 (suite dissolution into messenger surface) for the messenger µservice. Deployed in the dedicated messenger Kubernetes cluster.
+All components introduced by parallel ADR-0238 (dual-context inherited) and ADR-0132 (suite dissolution into messenger surface) for the messenger µservice. Deployed in the dedicated messenger Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -414,7 +414,7 @@ Per pack overlay at `regional-packs/<pack>/messenger-overlay.md`; cross-mapped v
 
 ## References
 
-- Parallel ADR-0135 (Connect dual-context inherited).
+- Parallel ADR-0135 (dual-context inherited).
 - Bominal ADR-0028, ADR-0111, ADR-0208, ADR-0215.
 - ADR-0008 Data Use Boundary.
 - `microservices/messenger/PRD.md`.

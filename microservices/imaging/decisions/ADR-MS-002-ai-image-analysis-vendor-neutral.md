@@ -57,7 +57,7 @@ Implementation:
 ### Negative
 
 - More adapter crates to maintain. Mitigated by adapter-template scaffolding.
-- Vendor-API drift requires per-vendor regression suites.
+- Vendor-API drift requires per-vendor regression sets.
 - Drift detection adds telemetry surface area.
 
 ### Neutral

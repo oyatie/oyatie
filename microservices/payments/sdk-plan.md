@@ -50,7 +50,7 @@ use rust_decimal::Decimal;
 
 let client = PaymentsClient::builder()
     .tenant_id("tenant_acme")
-    .api_base("https://payments.oyatie.dev")
+    .api_base("https://payments.oyatie.com")
     .auth(BearerToken::from_oidc())
     .build()?;
 
@@ -80,7 +80,7 @@ import { PaymentsClient, Money, Currency } from '@oyatie/payments-sdk';
 
 const client = new PaymentsClient({
   tenantId: 'tenant_acme',
-  apiBase: 'https://payments.oyatie.dev',
+  apiBase: 'https://payments.oyatie.com',
   auth: { type: 'oidc', token: getOidcToken() },
 });
 
@@ -106,7 +106,7 @@ import OyatiePaymentsSDK
 
 let client = PaymentsClient(
     tenantId: "tenant_acme",
-    apiBase: URL(string: "https://payments.oyatie.dev")!,
+    apiBase: URL(string: "https://payments.oyatie.com")!,
     auth: .oidc(token: oidcToken)
 )
 
@@ -130,7 +130,7 @@ let charge = try await client.charges.create(
 ```kotlin
 val client = PaymentsClient.builder()
     .tenantId("tenant_acme")
-    .apiBase("https://payments.oyatie.dev")
+    .apiBase("https://payments.oyatie.com")
     .auth(Auth.oidc(getOidcToken()))
     .build()
 
@@ -156,7 +156,7 @@ from oyatie_payments import PaymentsClient, Money, Currency
 
 client = PaymentsClient(
     tenant_id="tenant_acme",
-    api_base="https://payments.oyatie.dev",
+    api_base="https://payments.oyatie.com",
     auth=OidcAuth(token=oidc_token),
 )
 

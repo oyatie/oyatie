@@ -86,7 +86,7 @@ The plan uses named tenant fixtures from `registry/sample-tenants/` and explicit
 - Isolation rule: every test creates a tenant namespace and drops it.
 - Isolation rule: every test emits to an isolated audit topic suffix.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module: `identity_integration::fixtures`.
 - Fixture catalog: `identity_fixture_acme_saml_scim`.

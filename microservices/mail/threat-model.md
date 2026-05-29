@@ -39,7 +39,7 @@ Identify, classify, and mitigate threats to the mail µservice's confidentiality
 
 ### In-scope
 
-All components introduced by ADR-0135 (Connect dissolution) and ADR-0131 (per-microservice flat layout) for the mail µservice, deployed in a dedicated mail Kubernetes namespace (per `iac/kustomize/base`).
+All components introduced by ADR-0135 (dissolution) and ADR-0131 (per-microservice flat layout) for the mail µservice, deployed in a dedicated mail Kubernetes namespace (per `iac/kustomize/base`).
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -60,7 +60,7 @@ All components introduced by ADR-0135 (Connect dissolution) and ADR-0131 (per-mi
 - Threats to `audit-chain` µservice (mail emits to audit-chain; audit-chain owns its own threats).
 - Threats to OpenBao secret-manager (owned by `cloud-secrets`).
 - Threats to GitHub Actions (owned by `governance`).
-- Threats to messenger / calendar / community sub-products of dissolved Connect (each owns its own threat model).
+- Threats to messenger / calendar / community sub-products of dissolved (each owns its own threat model).
 - Threats to the workflow-engine itself (owned by `workflow-engine`).
 - Threats to upstream Postfix / Dovecot / Rspamd CVE pipeline — tracked by `cloud-secrets` supply-chain lane; this document inherits.
 
@@ -729,10 +729,10 @@ This threat model re-reviews on:
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (data residency).
-- ADR-0135: Connect dissolution + dual-context invariant.
+- ADR-0135: dissolution + dual-context invariant.
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward policy.
+- ADR-0132: No-grouping forward policy.
 - ADR-0140: Cedar policy enforcement.
 - Bominal ADR-0208 / 0210 / 0215: inherited.
 - `microservices/mail/PRD.md`.

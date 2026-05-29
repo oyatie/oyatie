@@ -38,7 +38,7 @@ A Saudi enterprise tenant onboards into a sovereign KSA cell with Arabic UX whil
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -78,7 +78,7 @@ A Saudi enterprise tenant onboards into a sovereign KSA cell with Arabic UX whil
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -144,7 +144,7 @@ A Saudi enterprise tenant onboards into a sovereign KSA cell with Arabic UX whil
 | README-AC-010 | comms-email | UAE branch transfer review | UAE PDPL Article 24 personal data security and breach notification obligations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | SDAIA-ready evidence packet | KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | right-to-access bilingual response | KSA PDPL Article 6 processing without consent exceptions | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | Arabic tenant signup | KSA PDPL Article 18 data subject rights and controller response duties | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | Arabic tenant signup | KSA PDPL Article 18 data subject rights and controller response duties | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | KSA sovereign cell placement | KSA PDPL Article 20 personal data breach notification to the competent authority | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | NDMO classification mapping | KSA PDPL Article 29 transfer or disclosure of personal data outside the Kingdom | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | UAE branch transfer review | SDAIA Regulation on Personal Data Transfer Outside the Kingdom implementing PDPL Article 29 | Cedar deny-wins; ADR-0263 event sealed |
@@ -189,7 +189,7 @@ A Saudi enterprise tenant onboards into a sovereign KSA cell with Arabic UX whil
 | README-AC-055 | comms-email | Arabic tenant signup | KSA PDPL Article 29 transfer or disclosure of personal data outside the Kingdom | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | KSA sovereign cell placement | SDAIA Regulation on Personal Data Transfer Outside the Kingdom implementing PDPL Article 29 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | NDMO classification mapping | NDMO National Data Governance Interim Regulations data classification and data sharing controls | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | UAE branch transfer review | UAE Federal Decree-Law No. 45 of 2021 Article 4 data subject rights | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | UAE branch transfer review | UAE Federal Decree-Law No. 45 of 2021 Article 4 data subject rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | SDAIA-ready evidence packet | UAE PDPL Articles 22 and 23 cross-border transfer controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | right-to-access bilingual response | UAE PDPL Article 24 personal data security and breach notification obligations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | Arabic tenant signup | KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles | Cedar deny-wins; ADR-0263 event sealed |
@@ -234,7 +234,7 @@ A Saudi enterprise tenant onboards into a sovereign KSA cell with Arabic UX whil
 | README-AC-100 | comms-email | UAE branch transfer review | UAE PDPL Article 24 personal data security and breach notification obligations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | SDAIA-ready evidence packet | KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | right-to-access bilingual response | KSA PDPL Article 6 processing without consent exceptions | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | Arabic tenant signup | KSA PDPL Article 18 data subject rights and controller response duties | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | Arabic tenant signup | KSA PDPL Article 18 data subject rights and controller response duties | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | KSA sovereign cell placement | KSA PDPL Article 20 personal data breach notification to the competent authority | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | NDMO classification mapping | KSA PDPL Article 29 transfer or disclosure of personal data outside the Kingdom | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | UAE branch transfer review | SDAIA Regulation on Personal Data Transfer Outside the Kingdom implementing PDPL Article 29 | Cedar deny-wins; ADR-0263 event sealed |
@@ -279,7 +279,7 @@ A Saudi enterprise tenant onboards into a sovereign KSA cell with Arabic UX whil
 | README-AC-145 | comms-email | Arabic tenant signup | KSA PDPL Article 29 transfer or disclosure of personal data outside the Kingdom | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | KSA sovereign cell placement | SDAIA Regulation on Personal Data Transfer Outside the Kingdom implementing PDPL Article 29 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | NDMO classification mapping | NDMO National Data Governance Interim Regulations data classification and data sharing controls | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | UAE branch transfer review | UAE Federal Decree-Law No. 45 of 2021 Article 4 data subject rights | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | UAE branch transfer review | UAE Federal Decree-Law No. 45 of 2021 Article 4 data subject rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | SDAIA-ready evidence packet | UAE PDPL Articles 22 and 23 cross-border transfer controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | right-to-access bilingual response | UAE PDPL Article 24 personal data security and breach notification obligations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | Arabic tenant signup | KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles | Cedar deny-wins; ADR-0263 event sealed |

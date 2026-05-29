@@ -23,7 +23,7 @@ defaultContentType: application/cloudevents+json
 
 servers:
   workflow-event-bus:
-    host: workflow.{pack}.oyatie.dev
+    host: workflow.{pack}.oyatie.com
     protocol: nats
     description: per-pack Workflow event bus
     variables:

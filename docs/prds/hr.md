@@ -116,10 +116,10 @@ JUSTIFICATION:
 
 | Event type | Trigger | Consumed by | State machine |
 |---|---|---|---|
-| `EmployeeHired` | `Employment` record created + active | `payroll`, `connect`, `audit-chain` | `employee-lifecycle-sm` |
+| `EmployeeHired` | `Employment` record created + active | `payroll`, `connector`, `audit-chain` | `employee-lifecycle-sm` |
 | `EmploymentClassChanged` | Classification updated | `payroll` | `payroll-recalc-sm` |
-| `OffboardingInitiated` | HR admin triggers offboarding | `payroll`, `connect`, `accounting` | `offboarding-sm` |
-| `EmployeeTerminated` | Offboarding complete + final day reached | `payroll`, `connect`, `accounting` | `offboarding-sm` |
+| `OffboardingInitiated` | HR admin triggers offboarding | `payroll`, `connector`, `accounting` | `offboarding-sm` |
+| `EmployeeTerminated` | Offboarding complete + final day reached | `payroll`, `connector`, `accounting` | `offboarding-sm` |
 
 ### Workflow events consumed
 
@@ -139,7 +139,7 @@ JUSTIFICATION:
 
 | Object Type | Read by | Query shape |
 |---|---|---|
-| `Employee` | `payroll`, `connect`, `accounting` | `filter(tenant_id).where(active=true)` |
+| `Employee` | `payroll`, `connector`, `accounting` | `filter(tenant_id).where(active=true)` |
 | `Department` | `accounting` | `filter(tenant_id).costCenter(id)` |
 
 ---

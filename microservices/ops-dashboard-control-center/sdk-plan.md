@@ -10,7 +10,7 @@ related_adrs:
 companion_docs:
   - microservices/ops-dashboard-control-center/contracts/openapi/ops-dashboard-control-center.yaml
   - microservices/ops-dashboard-control-center/contracts/proto/ops_dashboard_control_center.proto
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # SDK Plan — ops-dashboard-control-center

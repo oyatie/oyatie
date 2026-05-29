@@ -53,13 +53,13 @@ Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models 
 - `microservices/tenancy/PRD.md` requires sub-5-minute self-serve activation and identifies tenant lifecycle as the authority every µservice trusts.
 - `microservices/tenancy/manifest.json` lists `kyb-kyc-complete.yaml` and the `oya-tenancy-kyb-kyc-verifier-domain` catalog row.
 - `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md` already exists as the operational path for stuck cases.
-- `microservices/payments/competitor-parity-matrix.md` shows Stripe Identity/Connect pressure on verified account onboarding; tenancy must supply the tenant-side proof before payments handles sub-merchants.
+- `microservices/payments/competitor-parity-matrix.md` shows Stripe Identity/pressure on verified account onboarding; tenancy must supply the tenant-side proof before payments handles sub-merchants.
 
 ## G. Counterparts
 
 | Counterpart | Relevant capability | Gap this IP closes |
 |---|---|---|
-| Stripe Identity / Stripe Connect | Account identity and business verification before money movement | Gives Oyatie a tenant-side approval decision before payments creates PSP sub-merchant state. |
+| Stripe Identity / Stripe | Account identity and business verification before money movement | Gives Oyatie a tenant-side approval decision before payments creates PSP sub-merchant state. |
 | WorkOS | Enterprise organization onboarding evidence | Adds B2B tenant verification before organization activation. |
 | Auth0 Organizations | Organization lifecycle metadata | Adds compliance-grade KYB/KYC state beyond identity-provider org metadata. |
 

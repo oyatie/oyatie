@@ -91,7 +91,7 @@ The contract surface must protect customer content, permission semantics, quaran
 - Proto target: every public RPC has JSON and binary reference samples.
 - Governance target: no contract diff can bypass ACL and content-protection review.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `contract::openapi_conformance`.
 - Test `openapi_document_declares_version_3_2_0`.

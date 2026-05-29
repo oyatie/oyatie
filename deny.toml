@@ -28,8 +28,10 @@ unused-allowed-license = "allow"
 # bumps or broader license use re-open policy review.
 exceptions = [
   { allow = ["Zlib"], crate = "foldhash@0.1.5" },
-  # 2026-05-28 hyperscaler review: exact transitive license exceptions.
-  # Keep these per-crate instead of broad global allows so new uses re-open review.
+  # 2026-05-28 hyperscaler review: additional exact transitive
+  # exceptions discovered outside the SQLx-specific review above. Keep
+  # these per-crate instead of broad global allows so new uses re-open
+  # review.
   { allow = ["Apache-2.0 WITH LLVM-exception"], crate = "ar_archive_writer@0.5.1" },
   { allow = ["CC0-1.0"], crate = "base16@0.2.1" },
   { allow = ["Zlib"], crate = "const_format@0.2.36" },

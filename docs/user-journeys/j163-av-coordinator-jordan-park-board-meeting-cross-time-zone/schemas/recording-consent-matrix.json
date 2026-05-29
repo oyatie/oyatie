@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j163/recording-consent-matrix.json",
+  "$id": "https://oyatie.com/schemas/j163/recording-consent-matrix.json",
   "title": "Hartwell-Renshaw Q1-2027 Board Recording Consent Matrix",
   "description": "Per-participant × per-jurisdiction recording consent evidence pointer matrix. Each row links to durable evidence in the audit-chain spine.",
   "type": "object",

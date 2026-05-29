@@ -1368,7 +1368,7 @@ brown-outs.
 - ADR-0105 — Thirteen-layer canonical enum.
 - ADR-0106 — Layer rename (`application` → `usecase`).
 - ADR-0131 — Per-microservice flat layout.
-- ADR-0132 — Product-suite-and-bundle dissolution.
+- ADR-0132 — Product-platform-and-bundle dissolution.
 - ADR-0135 — Connect-unbundle (community + messenger sibling split).
 - ADR-0139 — Agentic-SLO-gated promotion.
 - ADR-0145 — Inter-microservice communication reform.

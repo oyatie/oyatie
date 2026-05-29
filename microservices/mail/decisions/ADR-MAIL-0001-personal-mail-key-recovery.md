@@ -229,10 +229,10 @@ Both modes share three invariants:
 - ePrivacy Directive 2002/58/EC Art. 5 — confidentiality of communications
 - ProtonMail recovery model — `https://proton.me/support/recover-encrypted-messages-files` (industry precedent — user-held + recovery file + emergency access)
 - Apple iCloud Advanced Data Protection — recovery contact + recovery key (Shamir-style precedent at consumer scale)
-- ADR-0135 — Connect full social network super-app (parallel dual-context source)
+- ADR-0135 — full social network super-app (parallel dual-context source)
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
-- Bominal ADR-0208 — Connect dual-context unified channel hub
+- ADR-0132 — Product-platform-and-bundle dissolution
+- Bominal ADR-0208 — dual-context unified channel hub
 - `microservices/mail/PRD.md` Open Question 4
 - `microservices/mail/policy/dual-context-isolation.md` Invariant DCI-03
 - `microservices/mail/runbooks/e2e-encryption-key-recovery.md` Paths A-E

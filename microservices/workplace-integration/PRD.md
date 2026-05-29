@@ -7,7 +7,7 @@ owner_team: axis-workplace-integration
 primary_adr: ADR-0320
 related_adrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0263, ADR-0319, ADR-0320, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 companion_docs: [microservices/workplace-integration/README.md, docs/standards/documentation-rigor.md]
-planned_enforcement_ref: oya-governance-workplace-integration-doc-suite
+planned_enforcement_ref: oya-governance-workplace-integration-doc-set
 naming_justifications: BNF v4 service_action_resource grammar and 13-layer-enum conformance are declared inline in this document
 line_floor: 1500
 ---
@@ -30,7 +30,7 @@ The binding decision record is ADR-0320; tenant scope comes from ADR-0244; Cedar
 - Agent implementer: lands single-PR implementation slices from the `ip/` directory.
 
 ## C. Journey IP cross-reference map
-The suite cross-references 16 existing journey IP files and treats them as product anchors, not as isolated notes.
+The doc set cross-references 16 existing journey IP files and treats them as product anchors, not as isolated notes.
 
 | Journey | Concept | Existing file | Product concept woven into this PRD |
 |---|---|---|---|
@@ -116,26 +116,26 @@ The suite cross-references 16 existing journey IP files and treats them as produ
 - Reliability: route-level availability targets in `slos/` remain green for two consecutive release trains.
 - Evidence quality: 100 percent of mutating actions include tenant_id, sub_scope_path, principal_hash, cell_id, audit_event_class, and evidence_ref.
 - Supportability: every alert routes to a runbook in `runbooks/` and a dashboard in `dashboards/`.
-- Contract stability: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 are the only public contract formats in this suite.
+- Contract stability: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 are the only public contract formats in this doc set.
 
 ## H. Compliance impact
 The service processes tenant-scoped operational data and emits audit-chain records. It never bypasses ADR-0244 tenant scope, never grants raw cross-tenant visibility, and never stores provider credentials outside approved secret bindings.
 Sovereign packs cover KR-CSAP, EU-sovereign, CN-PIPL, IL5/6, FedRAMP High, SOC 2, ISO 27001, LGPD, DPDPA, MAS, APRA CPS 234, and SOX 404 control evidence where active.
 
 ## I. Open question posture
-No product-blocking ambiguity remains for this documentation suite. Implementation teams still choose concrete storage migrations per IP after they claim the relevant ChangeSet.
+No product-blocking ambiguity remains for this documentation set. Implementation teams still choose concrete storage migrations per IP after they claim the relevant ChangeSet.
 
 ## J. Out of scope
 - Replacing payments, treasury, identity, audit-chain, workflow-engine, mail, drive, or compliance ownership.
 - Adding runtime production credentials.
 - Changing global ADR doctrine.
-- Collapsing flat microservice ownership into a suite.
+- Collapsing flat microservice ownership into a platform wrapper.
 
 ## Naming justifications: BNF v4 and 12-layer enum conformance
 
 Every new artifact uses the BNF v4 grammar `<service>.<bounded_context>.<action>.<resource>` for actions and `oya-workplace-integration-<bounded-context>-<layer>` for crate and catalog names.
-The ADR-0105 canonical 13-layer enum used by this suite is kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api.
-The suite keeps ADR-0105 compatibility by mapping the 12 deployable layers into the larger canonical enum without inventing a new layer name.
+The ADR-0105 canonical 13-layer enum used by this doc set is kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api.
+The doc set keeps ADR-0105 compatibility by mapping the 12 deployable layers into the larger canonical enum without inventing a new layer name.
 The service slug `workplace-integration` is retained because it is already the microservice directory name, policy prefix, catalog prefix, and endpoint namespace.
 The primitive name `WorkplaceAgreement` is retained because it is the smallest stable object that lets the journey IP slices share one contract without leaking unrelated service ownership.
 The secondary primitive `ESignSession` is retained because it names the audit-backed record that downstream services consume without taking direct table ownership.

@@ -21,7 +21,7 @@ canonical_anchors:
 related_adrs:
   - ADR-0105 13-layer enum
   - ADR-0131 per-microservice flat layout
-  - ADR-0132 no-suite microservices
+  - ADR-0132 no-grouping microservices
   - ADR-0145 inter-microservice direct gRPC
   - ADR-0243 Cedar universal gate
   - ADR-0244 tenant universal scoping primitive
@@ -69,11 +69,11 @@ Phase 4 of the master plan ships ERP-parity. Production planning is the single h
 
 This audit uses the canonical nine-dimension framework (Wave 4 spec) plus the three augmentation gates §3.4.T (tenant), §3.4.C (context), §3.4.M (MRP/MPS/finite-scheduling). Each dimension carries: scope, evidence inspected, finding, severity (P0/P1/P2/N/A), and remediation pointer.
 
-The nine dimensions are: D1 Doc-suite coverage, D2 Architectural coherence with ADR roster, D3 Substance (no template-stamping), D4 Industry parity with top-3 counterparts, D5 Performance posture, D6 Compliance + pack overlays, D7 Observability + audit emission, D8 Deployment-context multi-context matrix, D9 Code-substrate alignment (Rust strictness + Cargo + layer enum).
+The nine dimensions are: D1 Doc-set coverage, D2 Architectural coherence with ADR roster, D3 Substance (no template-stamping), D4 Industry parity with top-3 counterparts, D5 Performance posture, D6 Compliance + pack overlays, D7 Observability + audit emission, D8 Deployment-context multi-context matrix, D9 Code-substrate alignment (Rust strictness + Cargo + layer enum).
 
 Severity calibration: **P0** blocks ERP-parity claim; **P1** blocks Wave-4 phase exit; **P2** documentation gap that does not block runtime substance.
 
-### §2.1 D1 — Doc-suite coverage
+### §2.1 D1 — Doc-set coverage
 **Evidence inspected**: file listing returns **152 files** under the microservice tree. Mandatory artifact roster (per manifest `wave_3_g_follow_up.required_artifacts_not_in_anchor`): PHASE-NN, IP-NNN, README, CHANGELOG, threat-model, dpia, capacity-model, cost-budget, failure-modes, multi-region, incident-response, backfill-replay, competitor-parity-matrix, sdk-plan, policy/*.cedar, contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto, capabilities/*.yaml, dashboards/*.json, slos/*.openslo.yaml, catalog/*.yaml, iac/*, AUDIT-FINDINGS-<date>.json, scorecards/overrides.json.
 
 **Presence verification**:
@@ -95,12 +95,12 @@ Severity calibration: **P0** blocks ERP-parity claim; **P1** blocks Wave-4 phase
 - contracts/openapi-v1.yaml: present. PASS-shape.
 - contracts/asyncapi-v1.yaml: present. PASS-shape.
 - contracts/*.proto: declared in Cargo.toml as `production-planning-v1.proto` — **FINDING P1** — file not visible in the contracts/ directory listing (only openapi-v1.yaml + asyncapi-v1.yaml present). Cargo metadata references a file the listing does not show. See §3.7.
-- capabilities/*.yaml: 3 present (bom-revision-command, capacity-calendar-export, mrp-run-reconcile). FINDING P2 — three more bounded contexts (routing-step, production-order, shop-floor-release) have no `capabilities/*.yaml` evidence. The manifest's `second_pass_doc_suite.categories.capabilities = 3` accepts this gap but the doctrine should require one capability per bounded context (six).
+- capabilities/*.yaml: 3 present (bom-revision-command, capacity-calendar-export, mrp-run-reconcile). FINDING P2 — three more bounded contexts (routing-step, production-order, shop-floor-release) have no `capabilities/*.yaml` evidence. The manifest's `second_pass_doc_set.categories.capabilities = 3` accepts this gap but the doctrine should require one capability per bounded context (six).
 - dashboards/*.json: 2 present (bom-revision-health, production-planning-overview) plus 1 markdown (mrp-run-residency.md). FINDING P2 — should be JSON only; markdown dashboards are a code-smell.
 - slos/*.openslo.yaml: 4 present (availability, latency-p99, throughput, bom-revision-success-rate). FINDING P1 — SLO file count covers cross-cutting metrics but does not name MRP-run-completion or schedule-recalc-latency SLOs; these are the headline APS user-visible SLOs and should appear by name. See §3.5.
 - catalog/*.yaml: 54 present (9 layers × 6 bounded contexts). PASS-shape.
 - iac/: present with k8s-deployment, helm-values, network-policy, ech-config, edge-waf, openbao-policy, pqc-cert, secret-bindings, terraform-module. FINDING P1 — no per-context `iac/oyatie-public-cloud/`, `iac/guest-on-aws/`, `iac/guest-on-oci/`, `iac/on-prem/`, `iac/colo/`, or `iac/oyatie-as-cloud-provider/` subdirectories. The directory uses generic Helm/k8s flat shape instead of the six-context shape required by ADR-0328 §D-15. See §3.8.
-- AUDIT-FINDINGS-2026-05-21.json: present. PASS-shape; verdict claims `second-pass-authored` for six bounded-context doc-suite findings.
+- AUDIT-FINDINGS-2026-05-21.json: present. PASS-shape; verdict claims `second-pass-authored` for six bounded-context doc-set findings.
 - scorecards/overrides.json: present. PASS-shape.
 
 **D1 verdict**: PASS-shape (all artifacts present) with three FINDING flags carried to D3/D4/D8.
@@ -110,7 +110,7 @@ Severity calibration: **P0** blocks ERP-parity claim; **P1** blocks Wave-4 phase
 
 **Coherence checks**:
 - ADR-0131 (per-microservice flat layout): `src/` exposes `domain/`, `usecase/`, `adapter/` — flat. PASS.
-- ADR-0132 (no-suite µservices): production-planning is single-concern APS, not a suite. PASS.
+- ADR-0132 (no-grouping µservices): production-planning is single-concern APS, not a suite. PASS.
 - ADR-0145 (direct gRPC): IP-024 declares AsyncAPI-over-Kafka for MES handshake; the integration topology in ARCHITECTURE.md §D names "API/event based" but does not specify gRPC for sibling Oyatie services. FINDING P2 — ARCHITECTURE.md §D should name the gRPC/AsyncAPI split per integration partner explicitly.
 - ADR-0244 (tenant universal scoping): every bounded-context invariant in ARCHITECTURE.md §C declares "tenant scope required". Cedar policies all gate on tenant. PASS.
 - ADR-0245 (substrate vs product): production-planning is correctly classified as `product` in manifest `keystone_adr_field_roster.substrate_or_product`. PASS.
@@ -502,7 +502,7 @@ Per ADR-0328 §D-15.81..§D-15.99, every Phase-4 product running on Oyatie's Iaa
 | Substance bar | ADR-0322 + ADR-0328 §D-1..§D-2 | **P0 DRIFT** — 4 strategic docs template-stamped |
 | Anti-template/anti-script | ADR-0324 | **P0 DRIFT** — same 4 docs |
 | Per-microservice flat layout | ADR-0131 | PASS |
-| No-suite microservices | ADR-0132 | PASS |
+| No-grouping microservices | ADR-0132 | PASS |
 | 13-layer enum | ADR-0105 | **P1 DRIFT** — Cargo metadata uses `app` not `application` |
 | Direct gRPC inter-microservice | ADR-0145 | **P1 DRIFT** — proto file missing or unlisted |
 | Amazon cellular | ADR-0248 | PASS |

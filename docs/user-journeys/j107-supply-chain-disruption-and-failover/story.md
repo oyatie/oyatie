@@ -101,7 +101,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 003 - observability moves the relationship forward
@@ -178,7 +178,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 007 - workflow-engine moves the relationship forward
@@ -258,7 +258,7 @@ backup supplier, and audit-chain captures the recovery decision.
   per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 011 - audit-chain moves the relationship forward
@@ -336,7 +336,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 015 - observability moves the relationship forward
@@ -415,7 +415,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 019 - workflow-engine moves the relationship forward
@@ -493,7 +493,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 023 - audit-chain moves the relationship forward
@@ -573,7 +573,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 027 - observability moves the relationship forward
@@ -650,7 +650,7 @@ backup supplier, and audit-chain captures the recovery decision.
   per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 031 - workflow-engine moves the relationship forward
@@ -730,7 +730,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 035 - audit-chain moves the relationship forward
@@ -808,7 +808,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 039 - observability moves the relationship forward
@@ -887,7 +887,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 043 - workflow-engine moves the relationship forward
@@ -965,7 +965,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 047 - audit-chain moves the relationship forward
@@ -1045,7 +1045,7 @@ backup supplier, and audit-chain captures the recovery decision.
   per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 051 - observability moves the relationship forward
@@ -1122,7 +1122,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 055 - workflow-engine moves the relationship forward
@@ -1202,7 +1202,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 059 - audit-chain moves the relationship forward
@@ -1280,7 +1280,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 063 - observability moves the relationship forward
@@ -1359,7 +1359,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 067 - workflow-engine moves the relationship forward
@@ -1437,7 +1437,7 @@ backup supplier, and audit-chain captures the recovery decision.
   per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 071 - audit-chain moves the relationship forward
@@ -1517,7 +1517,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 075 - observability moves the relationship forward
@@ -1594,7 +1594,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 079 - workflow-engine moves the relationship forward
@@ -1674,7 +1674,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 083 - audit-chain moves the relationship forward
@@ -1752,7 +1752,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 087 - observability moves the relationship forward
@@ -1831,7 +1831,7 @@ backup supplier, and audit-chain captures the recovery decision.
   per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 091 - workflow-engine moves the relationship forward
@@ -1909,7 +1909,7 @@ backup supplier, and audit-chain captures the recovery decision.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if GlobalLogistics Singapore is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 095 - audit-chain moves the relationship forward

@@ -349,12 +349,12 @@ at the policy layer. The pattern is:
   administrators see only the enterprise-workspace surfaces, not the
   personal-workspace ones. (Source: Slack Help Center 2024 "Sign in
   to multiple workspaces"; Slack Enterprise Grid documentation 2024.)
-- **Stripe Connect — Personal Stripe Account vs Connected Account
+- **Stripe — Personal Stripe Account vs Connected Account
   Owner.** A Stripe individual user may own a personal Stripe account
   AND act as the owner of a Connected Account under a platform
   (e.g., Lyft driver with personal Stripe wallet); the platform's
   capability-list cannot bleed into personal-account data. (Source:
-  Stripe Connect Documentation 2024-2025 "Account Owner Boundary".)
+  Stripe Documentation 2024-2025 "Account Owner Boundary".)
 
 The pattern is **dual identity, single human, per-tenant Cedar-
 equivalent permits, hard boundary at the personal/work edge,
@@ -1015,7 +1015,7 @@ table (also published as `specs/dual-tenant-ownership-map.json`):
 | `community` | Both — per-channel declared | Work-org channels = WORK_TENANT; consumer communities (TeamBlind-mode, Handshake-mode, LinkedIn-mode) = PERSONAL_TENANT. |
 | `meet` | Both — per-meeting declared | Work meeting = WORK_TENANT (host is work-principal); personal meeting = PERSONAL_TENANT. |
 | `comms-email` | Mirror of mail; per-mailbox declared | |
-| `connect` | Both — per-integration declared | Work integrations = WORK_TENANT; personal integrations = PERSONAL_TENANT. |
+| `connector` | Both — per-integration declared | Work integrations = WORK_TENANT; personal integrations = PERSONAL_TENANT. |
 | `identity` | PLATFORM_OWNED with per-binding scope | Principal-in-tenant bindings carry the tenant scope; identity µservice owns the substrate but each binding is tenant-scoped. |
 | `tenancy` | PLATFORM_OWNED | The tenant directory itself is platform-owned. |
 | `policy-engine` | PLATFORM_OWNED | Cedar fragment evaluator. |
@@ -1655,7 +1655,7 @@ Apply to all 45 µservices in the following ordered waves:
 
 **Wave 3 (consumer-bearing µservices; t+30d to t+60d):**
 - `notes`, `payments`, `marketplace`, `community`, `meet`,
-  `comms-email`, `connect`, `shorts`, `social`, `forms`, `finops-portal`.
+  `comms-email`, `connector`, `shorts`, `social`, `forms`, `finops-portal`.
 
 **Wave 4 (platform-owned + scoped µservices; t+60d to t+90d):**
 - `compliance`, `governance`, `intelligence`, `ontology`,
@@ -1763,7 +1763,7 @@ sunset on 2026-09-15. Until then, both behaviors coexist:
   personal account" 2024.
 - Slack Help Center 2024 "Sign in to multiple workspaces".
 - Slack Enterprise Grid documentation 2024.
-- Stripe Connect Documentation 2024-2025 "Account Owner Boundary".
+- Stripe Documentation 2024-2025 "Account Owner Boundary".
 
 ### §G.3. Internal references
 

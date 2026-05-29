@@ -37,7 +37,7 @@ when { resource has context_kind && resource.context_kind == "Personal" };
 
 `crates/oya-check-e2e-ai-refusal/`: AST + control-flow analysis verifying no path from `PersonalNoteRef` → `AssistInvoker::invoke`.
 
-## Regression Suite
+## Regression Set
 
 `tests/regression/e2e-ai-refusal/`:
 - type-system: `compile_fail` test attempting to construct `PersonalNoteRef → AssistInvoker::invoke`.

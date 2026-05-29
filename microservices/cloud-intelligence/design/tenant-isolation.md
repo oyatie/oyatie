@@ -1,4 +1,4 @@
-# LLM Gateway µservice — Tenant Isolation
+# Cloud Intelligence service — Tenant Isolation
 
 **Authority:** ADR-0373 (per-tenant key pools + isolation), ADR-0007 Cedar
 **Research grounding:** `design/hyperscaler-best-practice-brief.md` §6 (multi-tenant isolation + quotas — per-consumer keys, token-aware limits on an arbitrary counter-key, multi-level limits, reserved headroom).
@@ -81,7 +81,7 @@ the rest of the fleet), and per-tenant pools move with the tenant.
 ## Non-claims
 
 - Per-tenant token-bucket rate limiting is **not** implemented by the current foundation
-  (`CS-LLM-GATEWAY-AGENT-DISPATCH-001`). This document specs the production posture (IP-001 T4); the
+  (`CS-CLOUD-INTELLIGENCE-AGENT-DISPATCH-001`). This document specs the production posture (IP-001 T4); the
   manifest's `tenant_rate_limit: not_claimed_runtime` non-claim stands until that lands.
 
 ## References

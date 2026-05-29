@@ -391,7 +391,7 @@
       "steward": "Anthropic PBC",
       "adoption_rationale": "Frontier-class LLM access for foundry providers; in-house substrate (ADR-0026) not at parity yet. ADR-0020 multi-provider adapter model.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
-      "replacement_readiness_gate": "human-eval >= 95% on internal benchmark suite + tool-use parity + per-second-token throughput parity at target cost",
+      "replacement_readiness_gate": "human-eval >= 95% on internal benchmark set + tool-use parity + per-second-token throughput parity at target cost",
       "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-kernel",
       "seam_adapter_impls": [
         "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-adapter",

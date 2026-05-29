@@ -1,4 +1,4 @@
-# LLM Gateway µservice — Audit Evidence Emission
+# Cloud Intelligence service — Audit Evidence Emission
 
 **Authority:** ADR-0373 (Bedrock-shaped audit + default-off body logging), ADR-0003 audit chain
 **Research grounding:** `design/hyperscaler-best-practice-brief.md` §9 (audit evidence — Bedrock `ModelInvocationLog` reference schema; logging mandated, tamper-alert if disabled, IAM-restricted, SIEM-integrated), §3 (async/events), §7 (residency).
@@ -100,7 +100,7 @@ OTel trace.
 
 ## Non-claims
 
-- The current foundation (`CS-LLM-GATEWAY-AGENT-DISPATCH-001`) does **not** implement runtime
+- The current foundation (`CS-CLOUD-INTELLIGENCE-AGENT-DISPATCH-001`) does **not** implement runtime
   audit-chain persistence (manifest `audit_chain.enabled` was `false`); this document + the manifest
   update spec the production posture. Live emission lands with the rest-crate wiring (IP-001 T6).
 

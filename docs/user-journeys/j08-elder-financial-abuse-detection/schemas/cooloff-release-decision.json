@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j08/cooloff-release-decision.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j08/cooloff-release-decision.json",
   "title": "CooloffReleaseDecision",
   "version": "1.0.0",
   "description": "CooloffReleaseDecision shared object for j08 Elder financial abuse detection. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

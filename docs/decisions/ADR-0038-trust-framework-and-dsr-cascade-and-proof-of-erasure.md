@@ -169,7 +169,7 @@ Trust framework does not own per-class data definition (per ADR-0008 DUBO). Does
 - Trust portal SLA: 99.99% (it is the regulator-facing surface).
 - Per-DSR cascade SLA dashboard; per-microservice breakdown of latency contribution.
 - Per-quarter DSR completion audit by external auditor (per ISO 27701 / SOC 2 alignment).
-- Per-axis erase regression test suite runs nightly with synthetic DSRs.
+- Per-axis erase regression test set runs nightly with synthetic DSRs.
 - Sub-processor list change notification ships via Workspace mail per ADR-0029.
 - Per-region regulator-facing report (KR PIPA, EU GDPR, CA CCPA) generated quarterly from trust portal.
 

@@ -267,6 +267,6 @@ permit (
 - To `ontology`: resolve entry object identifiers and node object references.
 - To `audit-chain`: seal template lifecycle and embedded runtime classes.
 - To `policy-cedar`: validate every declared template action.
-- To `connect`: ingest vendor workflow metadata from migration adapters.
+- To `connector`: ingest vendor workflow metadata from migration adapters.
 - To `financial-planning` IP-005 and IP-006: expose REST and AsyncAPI surfaces for template lifecycle.
 - To `ops-dashboard-control-center`: display template publish failures and retired-version drift.

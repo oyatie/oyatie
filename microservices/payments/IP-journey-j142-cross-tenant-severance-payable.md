@@ -78,7 +78,7 @@ enum PayableStatus {
 ### T3 — ACH batch queue + submit
 
 - Bucket payables by source-tenant bank-account; assemble NACHA batch.
-- Submit via Connect adapter to ACH-vendor.
+- Submit via adapter to ACH-vendor.
 - Audit: `ACHBatchSubmitted{batch_id, payable_count, total_amount}`.
 
 ### T4 — Settlement + cross-tenant double-seal
@@ -128,9 +128,9 @@ enum PayableStatus {
 
 ## Out of scope
 
-- ACH-vendor adapter (Connect µservice).
+- ACH-vendor adapter (µservice).
 - finops-portal tax-year tracking UI (finops-portal µservice).
-- ERISA 401(k) rollover (Connect → IRA provider).
+- ERISA 401(k) rollover (→ IRA provider).
 
 ## Completion expansion — j142 payments IP rigor pass
 

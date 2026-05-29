@@ -245,7 +245,7 @@ ADR-0244 answer: every dispatch carries `tenant_id` + `audience_tag`.
 - Runbook/IaC evidence: `microservices/intelligence/runbooks/assist-draft-policy-refusal.md`, `microservices/intelligence/runbooks/audit-row-forgery-detected.md`, `microservices/intelligence/runbooks/byok-rotation-tenant-cascade.md`, `microservices/intelligence/runbooks/eu-ai-act-incident-notification.md`, `microservices/intelligence/runbooks/prompt-injection-detected.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `us-federal`; +3 more; data classes: `PII_IDENTIFYING`, `PII_QUASI_IDENTIFYING`, `PII_SENSITIVE`, `FINANCIAL`, `HEALTH`; +2 more.
 - Cross-service dependencies: `observability`, `tenancy`, `policy-engine`.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `intelligence` `dispatch` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -1003,7 +1003,7 @@ ADR-0249 answer: intelligence does NOT expose marketplace surfaces.
 - Runbook/IaC evidence: `microservices/intelligence/runbooks/assist-draft-policy-refusal.md`, `microservices/intelligence/runbooks/audit-row-forgery-detected.md`, `microservices/intelligence/runbooks/byok-rotation-tenant-cascade.md`, `microservices/intelligence/runbooks/eu-ai-act-incident-notification.md`, `microservices/intelligence/runbooks/prompt-injection-detected.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `us-federal`; +3 more; data classes: `PII_IDENTIFYING`, `PII_QUASI_IDENTIFYING`, `PII_SENSITIVE`, `FINANCIAL`, `HEALTH`; +2 more.
 - Cross-service dependencies: `observability`, `tenancy`, `policy-engine`.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `intelligence` `dispatch` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

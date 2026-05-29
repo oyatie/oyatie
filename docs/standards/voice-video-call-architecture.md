@@ -126,7 +126,7 @@ This standard cites:
 - ADR-0105 (13-layer enum).
 - ADR-0117 (Per-tenant pack pinning).
 - ADR-0131 (Per-microservice flat layout).
-- ADR-0132 (Product-suite-and-bundle dissolution).
+- ADR-0132 (Product-platform-and-bundle dissolution).
 - ADR-0139 (Agentic SLO-gated promotion).
 - ADR-0241 (DR posture and tiers).
 - IP-005 (meeting-instance + LiveKit).
@@ -1741,7 +1741,7 @@ This section is the authoritative source list for this standard. Each reference 
 - **ADR-0105** — 13-layer enum (canonical layer set).
 - **ADR-0117** — Per-tenant pack pinning.
 - **ADR-0131** — Per-microservice flat layout.
-- **ADR-0132** — Product-suite-and-bundle dissolution.
+- **ADR-0132** — Product-platform-and-bundle dissolution.
 - **ADR-0139** — Agentic SLO-gated promotion.
 - **ADR-0241** — DR posture and tiers.
 - **Meet PRD** — `microservices/meet/PRD.md`.

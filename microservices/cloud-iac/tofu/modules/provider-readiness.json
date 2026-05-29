@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/cloud-iac-provider-readiness.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/cloud-iac-provider-readiness.schema.json",
   "schema_version": "1.0",
   "readiness_id": "cloud-iac-provider-readiness-local-inventory",
   "generated_by_changeset": "CS-CLOUD-IAC-MODULE-PROVIDER-REQUIREMENTS-GATE-001",

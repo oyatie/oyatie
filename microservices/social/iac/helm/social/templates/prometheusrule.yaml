@@ -46,7 +46,7 @@ spec:
             microservice: social
           annotations:
             summary: "social post-create fast-burn (14.4x) for 5m"
-            runbook_url: "https://oyatie.dev/microservices/social/runbooks/feed-cache-rebuild"
+            runbook_url: "https://oyatie.com/microservices/social/runbooks/feed-cache-rebuild"
 
         - alert: SocialPostCreateSlowBurn6h
           expr: |
@@ -78,7 +78,7 @@ spec:
             microservice: social
           annotations:
             summary: "social context-isolation invariant violation attempt detected"
-            runbook_url: "https://oyatie.dev/microservices/social/policy/dual-context-isolation"
+            runbook_url: "https://oyatie.com/microservices/social/policy/dual-context-isolation"
 
         - alert: SocialPersonalTierFederationAttempt
           expr: |
@@ -91,7 +91,7 @@ spec:
             microservice: social
           annotations:
             summary: "social Personal-tier federation attempt detected — compile-time invariant breach"
-            runbook_url: "https://oyatie.dev/microservices/social/runbooks/federation-bridge-degraded"
+            runbook_url: "https://oyatie.com/microservices/social/runbooks/federation-bridge-degraded"
 
         - alert: SocialFeedCacheHitRatioLow
           expr: |
@@ -103,7 +103,7 @@ spec:
             microservice: social
             bc: feed-timeline
           annotations:
-            runbook_url: "https://oyatie.dev/microservices/social/runbooks/feed-cache-rebuild"
+            runbook_url: "https://oyatie.com/microservices/social/runbooks/feed-cache-rebuild"
 
         - alert: SocialModerationClassifierDrift
           expr: |
@@ -118,4 +118,4 @@ spec:
             risk_class: high-risk
           annotations:
             summary: "social moderation classifier drift detected (≥5x baseline rate)"
-            runbook_url: "https://oyatie.dev/microservices/social/runbooks/content-moderation-rollback"
+            runbook_url: "https://oyatie.com/microservices/social/runbooks/content-moderation-rollback"

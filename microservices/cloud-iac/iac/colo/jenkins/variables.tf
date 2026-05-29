@@ -43,7 +43,11 @@ variable "jenkins_image" {
 variable "jenkins_image_digest" {
   description = "Cosign-verified Jenkins controller image digest promoted by ADR-0181."
   type        = string
-  default     = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  nullable    = false
+  validation {
+    condition     = can(regex("^sha256:[0-9a-f]{64}$", var.jenkins_image_digest)) && !can(regex("^sha256:0+$", var.jenkins_image_digest))
+    error_message = "jenkins_image_digest must be a real non-zero sha256 digest promoted by ADR-0181."
+  }
 }
 
 variable "agent_image" {
@@ -55,7 +59,11 @@ variable "agent_image" {
 variable "agent_image_digest" {
   description = "Cosign-verified Jenkins agent image digest promoted by ADR-0181."
   type        = string
-  default     = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  nullable    = false
+  validation {
+    condition     = can(regex("^sha256:[0-9a-f]{64}$", var.agent_image_digest)) && !can(regex("^sha256:0+$", var.agent_image_digest))
+    error_message = "agent_image_digest must be a real non-zero sha256 digest promoted by ADR-0181."
+  }
 }
 
 variable "storage_class_name" {

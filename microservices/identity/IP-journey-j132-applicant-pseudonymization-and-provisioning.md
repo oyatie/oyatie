@@ -185,7 +185,7 @@ Per IP-008 Zitadel adapter, new-hire SCIM payload:
 | Pseudo-key rotation in flight | Halt new pseudo-id generation for ≤ 5min; queue retries |
 | SCIM downstream tool unavailable | Eventual consistency; ops dashboard surfaces partial-provision |
 | Passkey enrollment link delivery failure | Mail retry; if persistent, ops surfaces unenrolled-new-hire |
-| Cross-tenant resolution stale | Refresh via Connect channel; if persistent, mark for human-investigation |
+| Cross-tenant resolution stale | Refresh via channel; if persistent, mark for human-investigation |
 
 ## Test gates
 

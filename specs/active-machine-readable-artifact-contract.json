@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/active-machine-readable-artifact-contract.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/active-machine-readable-artifact-contract.schema.json",
   "title": "ActiveMachineReadableArtifactContract",
   "description": "Registry-row schema for the central artifact capabilities control-plane. Format-agnostic: applies to JSON, TOML, YAML, Cedar, SQL migrations, Cargo.toml, OpenAPI, GitHub-Actions YAML, and any other serialized canonical artifact in this repo. Per ADR-0015 registry pattern, capability state lives in `/registry/artifact-capabilities-registry.json`, NOT embedded in each artifact. One Rust crate validates the entire data plane.",
   "_meta": {

@@ -8,12 +8,40 @@
       "name": "social",
       "description": "Bounded context 'social' within social (data plane); includes short-form video flavor absorbed from retired shorts per ADR-0334",
       "crates": [
-        "oya-connect-social-domain",
-        "oya-social-app",
-        "oya-social-post-composition-adapter-postgres",
-        "oya-social-post-composition-api",
-        "oya-social-post-composition-usecase",
-        "oya-social-post-composition-rest"
+        "oya-community-social-domain",
+        "oya-community-social-app",
+        "oya-community-social-content-moderation-adapter-clamav",
+        "oya-community-social-content-moderation-adapter-opswat",
+        "oya-community-social-content-moderation-kernel",
+        "oya-community-social-federation-gateway-adapter-activitypub",
+        "oya-community-social-feed-timeline-adapter-valkey",
+        "oya-community-social-feed-timeline-kernel",
+        "oya-community-social-follow-graph-adapter-postgres",
+        "oya-community-social-follow-graph-kernel",
+        "oya-community-social-post-composition-adapter-ffmpeg",
+        "oya-community-social-post-composition-adapter-imagemagick",
+        "oya-community-social-post-composition-adapter-postgres",
+        "oya-community-social-post-composition-adapter-s3",
+        "oya-community-social-post-composition-kernel",
+        "oya-community-social-post-composition-api",
+        "oya-community-social-post-composition-usecase",
+        "oya-community-social-post-composition-rest",
+        "oya-community-social-search-adapter-meilisearch",
+        "oya-community-social-user-profile-adapter-postgres",
+        "oya-community-social-user-profile-domain",
+        "oya-community-social-user-profile-kernel",
+        "oya-community-social-user-profile-rest",
+        "oya-community-social-short-video-upload-kernel",
+        "oya-community-social-short-video-transcode-kernel",
+        "oya-community-social-short-video-transcode-adapter-ffmpeg",
+        "oya-community-social-short-video-storage-adapter-s3",
+        "oya-community-social-short-video-storage-adapter-cloudfront",
+        "oya-community-social-audio-track-library-adapter-meilisearch",
+        "oya-community-social-copyright-claim-kernel",
+        "oya-community-social-copyright-claim-adapter-postgres",
+        "oya-community-social-drm-adapter-widevine",
+        "oya-community-social-drm-adapter-fairplay",
+        "oya-community-social-drm-adapter-playready"
       ]
     }
   ],
@@ -292,15 +320,15 @@
     },
     {
       "id": "ADR-0234",
-      "title": "Connect Social Expansion Planning Contract",
+      "title": "Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"
+      "file": "docs/decisions/ADR-0234-community-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0132",
-      "title": "Product Suite And Bundle Dissolution",
+      "title": "Product Platform And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0236",
@@ -310,7 +338,7 @@
     },
     {
       "id": "ADR-0238",
-      "title": "Connect Super App Expansion",
+      "title": "Super App Expansion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0238-connect-super-app-expansion.md"
     },
@@ -374,7 +402,7 @@
     "ambient_waypoint": false,
     "north_south_only": false
   },
-  "naming_justifications": "social is a BNF v4.1 kebab-case microservice slug; generated names follow oya-social-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum. Connect-social domain foundation crate is present as the spec-bound Connect suite social domain surface; oya-social-* runtime slices remain planned adapter/kernel surfaces. Post-composition api/usecase foundation crates are present to bridge the Connect social domain model toward the standalone social microservice contract surface. Post-composition REST boundary crate is framework-free and OpenAPI-route-aligned until runtime Hyper bindings land.",
+  "naming_justifications": "social is a BNF v4.1 kebab-case microservice slug; generated names follow oya-community-social-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum. Connect-social domain foundation crate is present as the spec-bound platform social domain surface; oya-community-social-* runtime slices remain planned adapter/kernel surfaces. Post-composition api/usecase foundation crates are present to bridge the social domain model toward the standalone social microservice contract surface. Post-composition REST boundary crate is framework-free and OpenAPI-route-aligned until runtime Hyper bindings land.",
   "capability_profiles": [
     "T0",
     "T1",

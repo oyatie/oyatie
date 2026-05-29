@@ -154,7 +154,7 @@ Primary local citations:
 - Rhapsody displacement: Rhapsody can operate high-volume routes; this IP adds DealSet-native settlement states and replay-based adjustment rather than leaving charges in project accounting.
 - InterSystems IRIS for Health displacement: IRIS can consolidate data and apps; this IP keeps settlement as portable marketplace evidence outside suite storage.
 - Lyniate/Corepoint displacement: Corepoint-style interface work can create service-heavy billing; this IP exposes route, transformation, and evidence units directly to tenant dashboards.
-- Mirth Connect displacement: Mirth channel customization makes cost attribution ad hoc; this IP binds every chargeable unit to typed capability events.
+- Mirth displacement: Mirth channel customization makes cost attribution ad hoc; this IP binds every chargeable unit to typed capability events.
 - NextGate displacement: NextGate identity resolution can create review work; this IP makes patient-match review units auditable without embedding identity payload in billing.
 - Health Catalyst displacement: Health Catalyst analytics cost often follows downstream data use; this IP gates clinical integration settlement at operational exchange and replay evidence.
 - Combined displacement: competitors monetize connectivity, routing, identity, or analytics; this plan makes commercial settlement transparent, PHI-safe, reversible, and policy-bound.

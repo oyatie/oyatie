@@ -2,7 +2,7 @@
 doc_class: DeprecationNotice
 template_id: TPL-DEPRECATION-NOTICE
 microservice: messenger
-deprecated_artifact: oya-connect-messenger-* crate family
+deprecated_artifact: oya-messenger-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-MESSENGER accepts at p99 SLOs sustained 30d
@@ -13,7 +13,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Deprecation Notice: `oya-connect-messenger-*` crate family
+# Deprecation Notice: `oya-messenger-*` crate family
 
 > Formal deprecation notice in the format prescribed by the agent-skills
 > `deprecation-and-migration` skill SKILL.md §"Step 2: Announce and Document".
@@ -40,7 +40,7 @@ gated on the SLO trigger.
 
 ## Reason
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer.
 2. **ADR-0139 — agentic SLO-gated promotion.** Messenger needs independent
    SLO targets per surface (persistent-connection-count, message-stream
@@ -67,14 +67,14 @@ checklist.
 
 ## Affected packages enumerated
 
-Per `find crates -maxdepth 1 -type d -name 'oya-connect-messenger-*'`
+Per `find crates -maxdepth 1 -type d -name 'oya-messenger-*'`
 (2026-05-17 workspace state):
 
 | Currently extant in `crates/` | Mapped replacement |
 |---|---|
-| `oya-connect-messenger-domain` | split per BC → `oya-messenger-{channel-store,message-stream,presence,file-attachment,thread-tree,mention-router,read-receipt-tracker,rest-api-surface,websocket-frame-protocol,search-and-cedar-filter,huddles-livekit-signaling}-domain` |
+| `oya-messenger-domain` | split per BC → `oya-messenger-{channel-store,message-stream,presence,file-attachment,thread-tree,mention-router,read-receipt-tracker,rest-api-surface,websocket-frame-protocol,search-and-cedar-filter,huddles-livekit-signaling}-domain` |
 
-Plus all `oya-connect-messenger-{kernel,usecase,api,adapter*,rest,worker,
+Plus all `oya-messenger-{kernel,usecase,api,adapter*,rest,worker,
 sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 
 ## Breaking changes flagged per `feedback_no_silent_regression`
@@ -83,11 +83,11 @@ sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 |---|---|---|---|
 | New `oya-messenger-*` crates ship in parallel | 1 | No (additive) | — |
 | New `oya-messenger-e2e-mls-*` MLS RFC 9420 crates | 1 | No (net-new; no legacy counterpart) | — |
-| `oya-connect-messenger-migration-adapter` shim authored | 2 | No (preserves legacy surface) | — |
+| `oya-messenger-migration-adapter` shim authored | 2 | No (preserves legacy surface) | — |
 | Feature-flagged canary 10→50→100% | 3 | No (additive, gated) | — |
 | Zero-usage verification | 4 | No (observability only) | — |
-| **`oya-connect-messenger-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
-| `microservices/connect/` umbrella folder removed | 6 | No | — |
+| **`oya-messenger-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
+| `microservices/connector/` umbrella folder removed | 6 | No | — |
 
 Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 

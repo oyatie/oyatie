@@ -38,7 +38,7 @@ Marcus runs a combined annual audit and expects Vanta-class evidence directly fr
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -76,7 +76,7 @@ Marcus runs a combined annual audit and expects Vanta-class evidence directly fr
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -142,7 +142,7 @@ Marcus runs a combined annual audit and expects Vanta-class evidence directly fr
 | README-AC-010 | comms-email | business continuity exercise proof | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | auditor portal freeze | ISO 22301:2019 clauses 8.4 incident response, 8.5 business continuity plans, and 8.6 exercise program | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | findings remediation loop | AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | scope confirmation | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | scope confirmation | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | evidence collector mapping | SOC 2 confidentiality criteria C1.1 through C1.2 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | control owner attestation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | business continuity exercise proof | SOC 2 privacy criteria P1.1 through P8.1 | Cedar deny-wins; ADR-0263 event sealed |
@@ -187,7 +187,7 @@ Marcus runs a combined annual audit and expects Vanta-class evidence directly fr
 | README-AC-055 | comms-email | scope confirmation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | evidence collector mapping | SOC 2 privacy criteria P1.1 through P8.1 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | control owner attestation | ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8 | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | business continuity exercise proof | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | business continuity exercise proof | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | auditor portal freeze | ISO 22301:2019 clauses 8.4 incident response, 8.5 business continuity plans, and 8.6 exercise program | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | findings remediation loop | AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | scope confirmation | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
@@ -232,7 +232,7 @@ Marcus runs a combined annual audit and expects Vanta-class evidence directly fr
 | README-AC-100 | comms-email | business continuity exercise proof | AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | auditor portal freeze | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | findings remediation loop | SOC 2 confidentiality criteria C1.1 through C1.2 | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | scope confirmation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | scope confirmation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | evidence collector mapping | SOC 2 privacy criteria P1.1 through P8.1 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | control owner attestation | ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | business continuity exercise proof | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |
@@ -277,7 +277,7 @@ Marcus runs a combined annual audit and expects Vanta-class evidence directly fr
 | README-AC-145 | comms-email | scope confirmation | ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | evidence collector mapping | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | control owner attestation | ISO 22301:2019 clauses 8.4 incident response, 8.5 business continuity plans, and 8.6 exercise program | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | business continuity exercise proof | AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | business continuity exercise proof | AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | auditor portal freeze | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | findings remediation loop | SOC 2 confidentiality criteria C1.1 through C1.2 | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | scope confirmation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |

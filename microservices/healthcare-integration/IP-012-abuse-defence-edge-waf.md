@@ -151,7 +151,7 @@ Repo references: microservices/healthcare-integration/PRD.md; microservices/heal
 - IP-012-122: Rhapsody is displaced by WAF and Cedar integration rather than route-engine rate rules alone.
 - IP-012-123: InterSystems IRIS for Health is displaced by flat service edge controls decoupled from a central integration database.
 - IP-012-124: Lyniate/Corepoint is displaced by spoof/replay protections tied to policy and evidence instead of channel trust alone.
-- IP-012-125: Mirth Connect is displaced by governed edge controls rather than script or channel-specific abuse handling.
+- IP-012-125: Mirth is displaced by governed edge controls rather than script or channel-specific abuse handling.
 - IP-012-126: NextGate is displaced by patient-match anti-enumeration and candidate review protections.
 - IP-012-127: Health Catalyst is displaced by abuse controls before clinical data reaches analytics or evidence projection.
 - IP-012-128: Epic parity pressure is handled through FHIR enumeration and export protection.

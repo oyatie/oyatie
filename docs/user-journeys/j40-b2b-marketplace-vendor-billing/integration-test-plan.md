@@ -40,7 +40,7 @@ microservices_touched:
   - tenancy
   - mail
 journey_number: j40
-benchmark: AWS Marketplace SaaS contract plus Stripe Connect subscription pattern
+benchmark: AWS Marketplace SaaS contract plus Stripe subscription pattern
 ---
 
 # j40-b2b-marketplace-vendor-billing integration test plan

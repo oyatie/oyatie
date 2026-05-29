@@ -13,7 +13,7 @@ complete -c oya -n '__fish_use_subcommand' -a git                  -d 'Drop-in g
 complete -c oya -n '__fish_use_subcommand' -a vcs                  -d 'Coordination ratchet compatibility surface'
 complete -c oya -n '__fish_use_subcommand' -a gate                 -d 'Run foundry quality gates'
 complete -c oya -n '__fish_use_subcommand' -a governance-gates     -d 'Governance-layer gate checks'
-complete -c oya -n '__fish_use_subcommand' -a foundation-audit-gates -d 'Foundation audit gate suite'
+complete -c oya -n '__fish_use_subcommand' -a foundation-audit-gates -d 'Foundation audit gate set'
 complete -c oya -n '__fish_use_subcommand' -a catalog              -d 'Crate and product catalog operations'
 complete -c oya -n '__fish_use_subcommand' -a check                -d 'Run individual check validators'
 complete -c oya -n '__fish_use_subcommand' -a demo                 -d 'Demo scaffolding helpers'

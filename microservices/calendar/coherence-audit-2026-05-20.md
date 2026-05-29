@@ -257,7 +257,7 @@ Evidence:
 - `microservices/calendar/dashboards/` contains three dashboard JSON files.
 
 Assessment:
-- The documentation suite is broad and service-specific.
+- The documentation set is broad and service-specific.
 - The artifact suite is not yet executable in the sense implied by the PRD acceptance criteria.
 - The architecture file contains useful domain sections, but its own header warns that stub expansion remains.
 - The runbook and dashboard surfaces show operational seriousness.

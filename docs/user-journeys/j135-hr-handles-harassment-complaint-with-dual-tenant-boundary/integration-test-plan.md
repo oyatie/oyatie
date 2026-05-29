@@ -23,9 +23,9 @@ Tier 3 on `j135-integration-lane`.
 - Work-Messenger seed: 9 weeks of DMs between Maya + Daniel (test fixture)
 - Personal-Messenger seed (BOTH Maya + Daniel): test fixtures (should NEVER be read by marcus-tenant)
 
-## Test suites
+## Test sets
 
-### Suite 1 — Whistleblower complaint submit
+### Test Set 1 — Whistleblower complaint submit
 
 **T-001 Submit harassment complaint with share-toggle**
 - Then: WhistleblowerComplaintSubmitted + WhistleblowerPerpPseudonymized; routing bypasses Maya's direct manager.
@@ -36,7 +36,7 @@ Tier 3 on `j135-integration-lane`.
 **T-003 Submit with personal-Messenger share-toggle ON (Maya voluntarily shares)**
 - Then: Maya's personal Messenger included in scope; explicit consent recorded.
 
-### Suite 2 — Routing + unpseudonymize
+### Test Set 2 — Routing + unpseudonymize
 
 **T-101 Routing to Priya + Naomi, NOT to Maya's direct manager**
 - Then: only Priya and Naomi receive notifications.
@@ -48,7 +48,7 @@ Tier 3 on `j135-integration-lane`.
 - Given: Daniel queries inbox for complaints against him
 - Then: Cedar DENY (Daniel is not Priya/Naomi); audit-logged.
 
-### Suite 3 — Work-Messenger investigation read
+### Test Set 3 — Work-Messenger investigation read
 
 **T-201 Priya reads work-Messenger DMs (PERMIT)**
 - Then: WorkMessengerInvestigationRead events for each page-view; full text accessible.
@@ -65,7 +65,7 @@ Tier 3 on `j135-integration-lane`.
 **T-205 Tamika reads work-Messenger DMs after engagement closed DENIED**
 - Then: Cedar DENY.
 
-### Suite 4 — Personal-Messenger boundary (THE critical test)
+### Test Set 4 — Personal-Messenger boundary (THE critical test)
 
 **T-301 Priya attempts to read Daniel's personal-Messenger DENIED**
 - Then: Cedar forbid DENY; UnauthorizedCrossTenantPersonalMessengerReadAttempt event.
@@ -83,7 +83,7 @@ Tier 3 on `j135-integration-lane`.
 - Given: court warrant active in test context
 - Then: PERMIT scoped to warrant; CohortChannelLitigationPiercePermitted-style audit.
 
-### Suite 5 — 3rd-party engagement
+### Test Set 5 — 3rd-party engagement
 
 **T-401 Engage WorkRights as investigator**
 - Then: ThirdPartyInvestigatorEngaged event; Cedar permit chain activated for Tamika.
@@ -91,7 +91,7 @@ Tier 3 on `j135-integration-lane`.
 **T-402 Engagement closure revokes Tamika's access**
 - Then: Cedar DENY post-closure; audit-logged.
 
-### Suite 6 — Findings + remedy
+### Test Set 6 — Findings + remedy
 
 **T-501 WorkRights submits findings**
 - Then: InvestigationReportFinalized event; Priya + Naomi + Marcus can read.
@@ -102,7 +102,7 @@ Tier 3 on `j135-integration-lane`.
 **T-503 Investigation close + Merkle seal**
 - Then: InvestigationClosed + InvestigationFinalSeal events; immutable audit summary.
 
-### Suite 7 — Per-jurisdiction overlays
+### Test Set 7 — Per-jurisdiction overlays
 
 **T-601 IN-POSH 2013 ICC composition**
 - Given: jurisdiction=IN-BLR
@@ -116,7 +116,7 @@ Tier 3 on `j135-integration-lane`.
 - Given: jurisdiction=KR-SEO
 - Then: routes through KR Internal Prevention Committee.
 
-### Suite 8 — Failure modes
+### Test Set 8 — Failure modes
 
 **T-701 Pseudonymization key rotation in-flight**
 - Then: Halt new unpseudonymize 5 min; recover.

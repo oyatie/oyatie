@@ -238,13 +238,13 @@ Comparison 13: OS benchmark breadth is wider than public SaaS counterparts becau
 Comparison 14: OpenTofu context benchmarks are blocked until `iac/<context>/` modules exist.
 Comparison 15: Rust build benchmarks are blocked until Rust source and canonical cargo invocation exist in service-local artifacts.
 Comparison 16: Existing benchmark prose should be retained as comparative intent, not as performance proof.
-Comparison 17: The benchmark suite must include negative cases such as missing upstream data, stale allocations, and export retries.
-Comparison 18: The benchmark suite must include tenant isolation checks because multi-tenant cost data has confidentiality impact.
-Comparison 19: The benchmark suite must include audit-chain write overhead because compliance evidence is part of the product surface.
-Comparison 20: The benchmark suite must include low-resource OCI Always Free runs because ADR-0328 treats this as a first-class profile.
-Comparison 21: The benchmark suite must include p99 and error-rate evidence, not only median latency.
-Comparison 22: The benchmark suite must store raw data, workload generator version, environment manifest, and result summaries.
-Comparison 23: The benchmark suite must distinguish measured values from target values in filenames and document headers.
+Comparison 17: The benchmark set must include negative cases such as missing upstream data, stale allocations, and export retries.
+Comparison 18: The benchmark set must include tenant isolation checks because multi-tenant cost data has confidentiality impact.
+Comparison 19: The benchmark set must include audit-chain write overhead because compliance evidence is part of the product surface.
+Comparison 20: The benchmark set must include low-resource OCI Always Free runs because ADR-0328 treats this as a first-class profile.
+Comparison 21: The benchmark set must include p99 and error-rate evidence, not only median latency.
+Comparison 22: The benchmark set must store raw data, workload generator version, environment manifest, and result summaries.
+Comparison 23: The benchmark set must distinguish measured values from target values in filenames and document headers.
 Comparison 24: The service cannot honestly claim counterpart performance parity yet because there is no executable service or benchmark harness.
 Comparison 25: The service can claim a defined target envelope for future implementation because this report gives context, tenant_class, and workload-specific targets.
 

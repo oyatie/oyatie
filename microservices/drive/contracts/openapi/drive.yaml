@@ -7,7 +7,7 @@ info:
     sync, share-link, permissions, search-index, preview, dlp-virus-scan, and
     immutability-tier bounded contexts.
 
-    Per ADR-0135 (Connect unbundle) + ADR-0132 (no-suite forward policy): drive is a
+    Per ADR-0135 (unbundle) + ADR-0132 (no-grouping forward policy): drive is a
     standalone tenant-facing µservice. Dual-context (Personal / Professional) isolation
     enforced structurally per `policy/dual-context-isolation.md`.
 
@@ -22,11 +22,11 @@ info:
     `public-read.cedar`, `ci-scope.cedar`).
   contact:
     name: axis-drive
-    email: drive@oyatie.dev
+    email: drive@oyatie.com
   license:
     name: Internal-Use
 servers:
-  - url: https://drive.{pack}.oyatie.dev/v1
+  - url: https://drive.{pack}.oyatie.com/v1
     description: per-pack production endpoint
     variables:
       pack:

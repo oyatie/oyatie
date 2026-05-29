@@ -183,8 +183,8 @@ In addition to compile-time + LEAN-lane enforcement, runtime guards:
 ## References
 
 - Parallel ADR-0135.
-- Bominal ADR-0208 (Connect dual-context unified channel hub; inherited).
-- Bominal ADR-0215 (Connect retention legal-hold dual-context; inherited).
+- Bominal ADR-0208 (dual-context unified channel hub; inherited).
+- Bominal ADR-0215 (retention legal-hold dual-context; inherited).
 - ADR-NOTES-0001 (E2E-default Personal-tier).
 - ADR-NOTES-0003 (Loro collab refused on Personal).
 - ADR-NOTES-0005 (AI refused on Personal).

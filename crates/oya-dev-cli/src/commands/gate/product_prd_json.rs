@@ -550,7 +550,7 @@ fn expected_product_id(repo_root: &Path, path: &Path) -> Option<String> {
             match components[index + 1] {
                 // Per ADR-0131 per-µservice flat layout: under specs/microservices/
                 // every spec is a single-concern flat file; the product_id matches
-                // the filename stem (suite/bundle nesting is retired by ADR-0132).
+                // the filename stem (platform/bundle nesting is retired by ADR-0132).
                 "microservices" => return Some(stem.to_string()),
                 "products" => {
                     return match components.get(index + 2..) {
@@ -650,24 +650,21 @@ mod tests {
     }
 
     #[test]
-    fn path_product_id_for_nested_suite_product() {
+    fn path_product_id_for_microservice_product() {
         assert_eq!(
-            expected_product_id(
-                Path::new("."),
-                Path::new("specs/products/connect/mail.json")
-            ),
-            Some("connect-mail".to_string())
+            expected_product_id(Path::new("."), Path::new("specs/microservices/mail.json")),
+            Some("mail".to_string())
         );
     }
 
     #[test]
-    fn path_product_id_for_absolute_nested_suite_product() {
+    fn path_product_id_for_absolute_microservice_product() {
         assert_eq!(
             expected_product_id(
                 Path::new("."),
-                Path::new("/workspace/oyatie/specs/products/connect/mail.json")
+                Path::new("/workspace/oyatie/specs/microservices/mail.json")
             ),
-            Some("connect-mail".to_string())
+            Some("mail".to_string())
         );
     }
 

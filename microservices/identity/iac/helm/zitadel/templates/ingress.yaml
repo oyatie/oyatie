@@ -12,7 +12,7 @@ spec:
       namespace: istio-ingress
       sectionName: https
   hostnames:
-    - identity-{{ .Values.packLabel }}.oyatie.dev
+    - identity-{{ .Values.packLabel }}.oyatie.com
   rules:
     - matches:
         - path: { type: PathPrefix, value: /oauth/v2 }

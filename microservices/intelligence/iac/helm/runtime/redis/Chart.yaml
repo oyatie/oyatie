@@ -6,7 +6,7 @@ version: 0.1.0
 appVersion: "7.4.0"   # Valkey LTS pin per docs/standards
 maintainers:
   - name: axis-foundry-runtime
-    email: axis-foundry-runtime@oyatie.dev
+    email: axis-foundry-runtime@oyatie.com
 dependencies:
   - name: redis-cluster
     version: "^11.0.0"  # valkey/valkey-cluster chart version pin

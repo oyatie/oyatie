@@ -76,7 +76,7 @@ ADR-0311, ADR-0312, ADR-0313.
 - `finops-portal`: personal-earnings-aggregation.
 - `identity`: cedar-limited-task-count-principal.
 - `tenancy`: platform-to-personal-boundary.
-- `connect`: platform-adapter-roster.
+- `connector`: platform-adapter-roster.
 - `community`: worker-reputation-and-support.
 - `workflow-engine`: tax-and-availability-automation.
 
@@ -92,8 +92,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> identity -> tenancy 
 | 1.2 | `payments` | `finops-portal` | `GigPlatformEarningsAggregationCommand` | `journey.j149.preflight.finops_portal` | `GigPlatformEarningsSettled` | `oya_j149_finops_portal_preflight_ms` | compensating command before finality |
 | 1.3 | `finops-portal` | `identity` | `GigPlatformEarningsAggregationCommand` | `journey.j149.preflight.identity` | `GigPlatformEarningsSettled` | `oya_j149_identity_preflight_ms` | compensating command before finality |
 | 1.4 | `identity` | `tenancy` | `GigPlatformEarningsAggregationCommand` | `journey.j149.preflight.tenancy` | `GigPlatformEarningsSettled` | `oya_j149_tenancy_preflight_ms` | compensating command before finality |
-| 1.5 | `tenancy` | `connect` | `GigPlatformEarningsAggregationCommand` | `journey.j149.preflight.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_preflight_ms` | compensating command before finality |
-| 1.6 | `connect` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.preflight.community` | `GigPlatformEarningsSettled` | `oya_j149_community_preflight_ms` | compensating command before finality |
+| 1.5 | `tenancy` | `connector` | `GigPlatformEarningsAggregationCommand` | `journey.j149.preflight.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_preflight_ms` | compensating command before finality |
+| 1.6 | `connector` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.preflight.community` | `GigPlatformEarningsSettled` | `oya_j149_community_preflight_ms` | compensating command before finality |
 | 1.7 | `community` | `workflow-engine` | `GigPlatformEarningsAggregationCommand` | `journey.j149.preflight.workflow_engine` | `GigPlatformEarningsSettled` | `oya_j149_workflow_engine_preflight_ms` | compensating command before finality |
 
 ## Phase 2: authorize
@@ -108,8 +108,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> identity -> tenancy 
 | 2.2 | `payments` | `finops-portal` | `GigPlatformEarningsAggregationCommand` | `journey.j149.authorize.finops_portal` | `GigPlatformEarningsSettled` | `oya_j149_finops_portal_authorize_ms` | compensating command before finality |
 | 2.3 | `finops-portal` | `identity` | `GigPlatformEarningsAggregationCommand` | `journey.j149.authorize.identity` | `GigPlatformEarningsSettled` | `oya_j149_identity_authorize_ms` | compensating command before finality |
 | 2.4 | `identity` | `tenancy` | `GigPlatformEarningsAggregationCommand` | `journey.j149.authorize.tenancy` | `GigPlatformEarningsSettled` | `oya_j149_tenancy_authorize_ms` | compensating command before finality |
-| 2.5 | `tenancy` | `connect` | `GigPlatformEarningsAggregationCommand` | `journey.j149.authorize.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_authorize_ms` | compensating command before finality |
-| 2.6 | `connect` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.authorize.community` | `GigPlatformEarningsSettled` | `oya_j149_community_authorize_ms` | compensating command before finality |
+| 2.5 | `tenancy` | `connector` | `GigPlatformEarningsAggregationCommand` | `journey.j149.authorize.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_authorize_ms` | compensating command before finality |
+| 2.6 | `connector` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.authorize.community` | `GigPlatformEarningsSettled` | `oya_j149_community_authorize_ms` | compensating command before finality |
 | 2.7 | `community` | `workflow-engine` | `GigPlatformEarningsAggregationCommand` | `journey.j149.authorize.workflow_engine` | `GigPlatformEarningsSettled` | `oya_j149_workflow_engine_authorize_ms` | compensating command before finality |
 
 ## Phase 3: compose
@@ -124,8 +124,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> identity -> tenancy 
 | 3.2 | `payments` | `finops-portal` | `GigPlatformEarningsAggregationCommand` | `journey.j149.compose.finops_portal` | `GigPlatformEarningsSettled` | `oya_j149_finops_portal_compose_ms` | compensating command before finality |
 | 3.3 | `finops-portal` | `identity` | `GigPlatformEarningsAggregationCommand` | `journey.j149.compose.identity` | `GigPlatformEarningsSettled` | `oya_j149_identity_compose_ms` | compensating command before finality |
 | 3.4 | `identity` | `tenancy` | `GigPlatformEarningsAggregationCommand` | `journey.j149.compose.tenancy` | `GigPlatformEarningsSettled` | `oya_j149_tenancy_compose_ms` | compensating command before finality |
-| 3.5 | `tenancy` | `connect` | `GigPlatformEarningsAggregationCommand` | `journey.j149.compose.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_compose_ms` | compensating command before finality |
-| 3.6 | `connect` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.compose.community` | `GigPlatformEarningsSettled` | `oya_j149_community_compose_ms` | compensating command before finality |
+| 3.5 | `tenancy` | `connector` | `GigPlatformEarningsAggregationCommand` | `journey.j149.compose.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_compose_ms` | compensating command before finality |
+| 3.6 | `connector` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.compose.community` | `GigPlatformEarningsSettled` | `oya_j149_community_compose_ms` | compensating command before finality |
 | 3.7 | `community` | `workflow-engine` | `GigPlatformEarningsAggregationCommand` | `journey.j149.compose.workflow_engine` | `GigPlatformEarningsSettled` | `oya_j149_workflow_engine_compose_ms` | compensating command before finality |
 
 ## Phase 4: counterparty_accept
@@ -140,8 +140,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> identity -> tenancy 
 | 4.2 | `payments` | `finops-portal` | `GigPlatformEarningsAggregationCommand` | `journey.j149.counterparty_accept.finops_portal` | `GigPlatformEarningsSettled` | `oya_j149_finops_portal_counterparty_accept_ms` | compensating command before finality |
 | 4.3 | `finops-portal` | `identity` | `GigPlatformEarningsAggregationCommand` | `journey.j149.counterparty_accept.identity` | `GigPlatformEarningsSettled` | `oya_j149_identity_counterparty_accept_ms` | compensating command before finality |
 | 4.4 | `identity` | `tenancy` | `GigPlatformEarningsAggregationCommand` | `journey.j149.counterparty_accept.tenancy` | `GigPlatformEarningsSettled` | `oya_j149_tenancy_counterparty_accept_ms` | compensating command before finality |
-| 4.5 | `tenancy` | `connect` | `GigPlatformEarningsAggregationCommand` | `journey.j149.counterparty_accept.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_counterparty_accept_ms` | compensating command before finality |
-| 4.6 | `connect` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.counterparty_accept.community` | `GigPlatformEarningsSettled` | `oya_j149_community_counterparty_accept_ms` | compensating command before finality |
+| 4.5 | `tenancy` | `connector` | `GigPlatformEarningsAggregationCommand` | `journey.j149.counterparty_accept.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_counterparty_accept_ms` | compensating command before finality |
+| 4.6 | `connector` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.counterparty_accept.community` | `GigPlatformEarningsSettled` | `oya_j149_community_counterparty_accept_ms` | compensating command before finality |
 | 4.7 | `community` | `workflow-engine` | `GigPlatformEarningsAggregationCommand` | `journey.j149.counterparty_accept.workflow_engine` | `GigPlatformEarningsSettled` | `oya_j149_workflow_engine_counterparty_accept_ms` | compensating command before finality |
 
 ## Phase 5: settlement_intent
@@ -156,8 +156,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> identity -> tenancy 
 | 5.2 | `payments` | `finops-portal` | `GigPlatformEarningsAggregationCommand` | `journey.j149.settlement_intent.finops_portal` | `GigPlatformEarningsSettled` | `oya_j149_finops_portal_settlement_intent_ms` | compensating command before finality |
 | 5.3 | `finops-portal` | `identity` | `GigPlatformEarningsAggregationCommand` | `journey.j149.settlement_intent.identity` | `GigPlatformEarningsSettled` | `oya_j149_identity_settlement_intent_ms` | compensating command before finality |
 | 5.4 | `identity` | `tenancy` | `GigPlatformEarningsAggregationCommand` | `journey.j149.settlement_intent.tenancy` | `GigPlatformEarningsSettled` | `oya_j149_tenancy_settlement_intent_ms` | compensating command before finality |
-| 5.5 | `tenancy` | `connect` | `GigPlatformEarningsAggregationCommand` | `journey.j149.settlement_intent.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_settlement_intent_ms` | compensating command before finality |
-| 5.6 | `connect` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.settlement_intent.community` | `GigPlatformEarningsSettled` | `oya_j149_community_settlement_intent_ms` | compensating command before finality |
+| 5.5 | `tenancy` | `connector` | `GigPlatformEarningsAggregationCommand` | `journey.j149.settlement_intent.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_settlement_intent_ms` | compensating command before finality |
+| 5.6 | `connector` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.settlement_intent.community` | `GigPlatformEarningsSettled` | `oya_j149_community_settlement_intent_ms` | compensating command before finality |
 | 5.7 | `community` | `workflow-engine` | `GigPlatformEarningsAggregationCommand` | `journey.j149.settlement_intent.workflow_engine` | `GigPlatformEarningsSettled` | `oya_j149_workflow_engine_settlement_intent_ms` | compensating command before finality |
 
 ## Phase 6: finalize
@@ -172,8 +172,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> identity -> tenancy 
 | 6.2 | `payments` | `finops-portal` | `GigPlatformEarningsAggregationCommand` | `journey.j149.finalize.finops_portal` | `GigPlatformEarningsSettled` | `oya_j149_finops_portal_finalize_ms` | compensating command before finality |
 | 6.3 | `finops-portal` | `identity` | `GigPlatformEarningsAggregationCommand` | `journey.j149.finalize.identity` | `GigPlatformEarningsSettled` | `oya_j149_identity_finalize_ms` | compensating command before finality |
 | 6.4 | `identity` | `tenancy` | `GigPlatformEarningsAggregationCommand` | `journey.j149.finalize.tenancy` | `GigPlatformEarningsSettled` | `oya_j149_tenancy_finalize_ms` | compensating command before finality |
-| 6.5 | `tenancy` | `connect` | `GigPlatformEarningsAggregationCommand` | `journey.j149.finalize.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_finalize_ms` | compensating command before finality |
-| 6.6 | `connect` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.finalize.community` | `GigPlatformEarningsSettled` | `oya_j149_community_finalize_ms` | compensating command before finality |
+| 6.5 | `tenancy` | `connector` | `GigPlatformEarningsAggregationCommand` | `journey.j149.finalize.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_finalize_ms` | compensating command before finality |
+| 6.6 | `connector` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.finalize.community` | `GigPlatformEarningsSettled` | `oya_j149_community_finalize_ms` | compensating command before finality |
 | 6.7 | `community` | `workflow-engine` | `GigPlatformEarningsAggregationCommand` | `journey.j149.finalize.workflow_engine` | `GigPlatformEarningsSettled` | `oya_j149_workflow_engine_finalize_ms` | compensating command before finality |
 
 ## Phase 7: observe
@@ -188,8 +188,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> identity -> tenancy 
 | 7.2 | `payments` | `finops-portal` | `GigPlatformEarningsAggregationCommand` | `journey.j149.observe.finops_portal` | `GigPlatformEarningsSettled` | `oya_j149_finops_portal_observe_ms` | compensating command before finality |
 | 7.3 | `finops-portal` | `identity` | `GigPlatformEarningsAggregationCommand` | `journey.j149.observe.identity` | `GigPlatformEarningsSettled` | `oya_j149_identity_observe_ms` | compensating command before finality |
 | 7.4 | `identity` | `tenancy` | `GigPlatformEarningsAggregationCommand` | `journey.j149.observe.tenancy` | `GigPlatformEarningsSettled` | `oya_j149_tenancy_observe_ms` | compensating command before finality |
-| 7.5 | `tenancy` | `connect` | `GigPlatformEarningsAggregationCommand` | `journey.j149.observe.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_observe_ms` | compensating command before finality |
-| 7.6 | `connect` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.observe.community` | `GigPlatformEarningsSettled` | `oya_j149_community_observe_ms` | compensating command before finality |
+| 7.5 | `tenancy` | `connector` | `GigPlatformEarningsAggregationCommand` | `journey.j149.observe.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_observe_ms` | compensating command before finality |
+| 7.6 | `connector` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.observe.community` | `GigPlatformEarningsSettled` | `oya_j149_community_observe_ms` | compensating command before finality |
 | 7.7 | `community` | `workflow-engine` | `GigPlatformEarningsAggregationCommand` | `journey.j149.observe.workflow_engine` | `GigPlatformEarningsSettled` | `oya_j149_workflow_engine_observe_ms` | compensating command before finality |
 
 ## Phase 8: reconcile
@@ -204,8 +204,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> identity -> tenancy 
 | 8.2 | `payments` | `finops-portal` | `GigPlatformEarningsAggregationCommand` | `journey.j149.reconcile.finops_portal` | `GigPlatformEarningsSettled` | `oya_j149_finops_portal_reconcile_ms` | compensating command before finality |
 | 8.3 | `finops-portal` | `identity` | `GigPlatformEarningsAggregationCommand` | `journey.j149.reconcile.identity` | `GigPlatformEarningsSettled` | `oya_j149_identity_reconcile_ms` | compensating command before finality |
 | 8.4 | `identity` | `tenancy` | `GigPlatformEarningsAggregationCommand` | `journey.j149.reconcile.tenancy` | `GigPlatformEarningsSettled` | `oya_j149_tenancy_reconcile_ms` | compensating command before finality |
-| 8.5 | `tenancy` | `connect` | `GigPlatformEarningsAggregationCommand` | `journey.j149.reconcile.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_reconcile_ms` | compensating command before finality |
-| 8.6 | `connect` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.reconcile.community` | `GigPlatformEarningsSettled` | `oya_j149_community_reconcile_ms` | compensating command before finality |
+| 8.5 | `tenancy` | `connector` | `GigPlatformEarningsAggregationCommand` | `journey.j149.reconcile.connect` | `GigPlatformEarningsSettled` | `oya_j149_connect_reconcile_ms` | compensating command before finality |
+| 8.6 | `connector` | `community` | `GigPlatformEarningsAggregationCommand` | `journey.j149.reconcile.community` | `GigPlatformEarningsSettled` | `oya_j149_community_reconcile_ms` | compensating command before finality |
 | 8.7 | `community` | `workflow-engine` | `GigPlatformEarningsAggregationCommand` | `journey.j149.reconcile.workflow_engine` | `GigPlatformEarningsSettled` | `oya_j149_workflow_engine_reconcile_ms` | compensating command before finality |
 
 ## Cedar permit grammar

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j89-uk-aadc-minor-ux.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j89-uk-aadc-minor-ux.schema.json",
   "title": "J89 UK AADC minor UX adaptation Journey Object",
   "version": "1.0.0",
   "_meta": {

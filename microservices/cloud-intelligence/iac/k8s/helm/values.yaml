@@ -19,7 +19,7 @@ image:
   tag: "0.1.0"
   # Replaced by scripts/build/build-and-push-cloud-intelligence.sh after image publish.
   # Operator action item per microservices/cloud-intelligence/runbooks/enroll-first-subscription.md step 0.
-  digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  digest: ""
   pullPolicy: IfNotPresent
   cosign:
     required: true
@@ -48,7 +48,7 @@ gateway:
     namespace: istio-ingress
     sectionName: https
   hostnames:
-    - intelligence.oya.cloud
+    - cloud-intelligence.oyatie.com
   pathPrefixes:
     - /anthropic
     - /openai

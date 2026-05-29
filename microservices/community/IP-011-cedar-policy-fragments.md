@@ -39,7 +39,7 @@ Land Cedar fragments at `policy/*.cedar` and the supporting `schema.cedarschema`
 - Cedar compile green.
 - Every action declared in `community.proto` has either a `permit` or explicit `forbid` clause.
 - Coverage CI lane green.
-- Negative-test suite green (cross-tenant attempt → deny + audit event).
+- Negative-test set green (cross-tenant attempt → deny + audit event).
 
 ## Owner
 

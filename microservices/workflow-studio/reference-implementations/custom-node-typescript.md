@@ -361,7 +361,7 @@ npm run publish-nodes
    - **Email**: `{{webhook.body.lead_email}}`
    - **Enrichment depth**: `standard`
    - **API key**: select from secrets namespace `acme_enrichment_api_key`
-3. Connect the output to downstream nodes (e.g., a Slack alert if confidence is low; a Salesforce upsert if confidence is high).
+3. the output to downstream nodes (e.g., a Slack alert if confidence is low; a Salesforce upsert if confidence is high).
 
 The studio enforces:
 

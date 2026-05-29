@@ -28,7 +28,7 @@ OpenSLO manifests + Grafana dashboard refs + alert routing.
 | Path | Action | Description |
 |---|---|---|
 | `microservices/governance/slos/lane-runtime-availability.openslo.yaml` | create | 99.95% monthly for per-PR gate decision |
-| `microservices/governance/slos/lane-runtime-latency.openslo.yaml` | create | p99 ≤ 60s for full ~50-lane suite |
+| `microservices/governance/slos/lane-runtime-latency.openslo.yaml` | create | p99 ≤ 60s for full ~50-lane set |
 | `microservices/governance/slos/evidence-emitter-seal-latency.openslo.yaml` | create | p99 ≤ 1s for seal |
 | `microservices/governance/slos/aggregation-indexer-regen-latency.openslo.yaml` | create | p99 ≤ 5min for full repo |
 | `microservices/governance/slos/finding-emit-availability.openslo.yaml` | create | 99.95% monthly for finding write path |

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/cloud-iac-module-provenance.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/cloud-iac-module-provenance.schema.json",
   "schema_version": "1.0",
   "provenance_id": "cloud-iac-opentofu-modules-local-sha256-provenance",
   "generated_by_changeset": "CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001",

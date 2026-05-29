@@ -57,7 +57,7 @@ O(N) for the serialized group + O(1) for parallel groups.
 The lean-architecture CI lanes enforce structural invariants:
 - `lean-a3-tenant-trace` — every code path carries `tenant_id` in logs + traces.
 - `lean-a4-secret-cleartext` — no cleartext secret material in logs.
-- `lean-a5-doc-coverage` — every µservice ships full doc suite.
+- `lean-a5-doc-coverage` — every µservice ships full doc set.
 - `lean-a7-rotator-substance` — secret rotators mutate backend, not just metadata.
 - `lean-a8-module-attestation` — `cloud-iac` modules are cosign-signed.
 - `lean-a9-template-substance` — `developer-sdk` templates produce substantive output.

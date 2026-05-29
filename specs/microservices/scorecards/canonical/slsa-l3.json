@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/slsa-l3.json",
+  "$schema": "https://oyatie.com/schemas/slsa-l3.json",
   "canonical_base": true,
   "framework": "SLSA (Supply-chain Levels for Software Artifacts)",
   "framework_version": "v1.0",

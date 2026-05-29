@@ -7,7 +7,7 @@
   "artifact_target": 100,
   "findings": [
     {
-      "id": "plant-maintenance-equipment-master-doc-suite",
+      "id": "plant-maintenance-equipment-master-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/equipment-master-authorization.cedar",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "plant-maintenance-maintenance-plan-doc-suite",
+      "id": "plant-maintenance-maintenance-plan-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/maintenance-plan-authorization.cedar",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "plant-maintenance-work-order-doc-suite",
+      "id": "plant-maintenance-work-order-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/work-order-authorization.cedar",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "plant-maintenance-spare-part-reservation-doc-suite",
+      "id": "plant-maintenance-spare-part-reservation-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/spare-part-reservation-authorization.cedar",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "id": "plant-maintenance-technician-dispatch-doc-suite",
+      "id": "plant-maintenance-technician-dispatch-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/technician-dispatch-authorization.cedar",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "plant-maintenance-downtime-window-doc-suite",
+      "id": "plant-maintenance-downtime-window-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/downtime-window-authorization.cedar",

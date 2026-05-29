@@ -63,7 +63,7 @@ spec:
             p0: "true"
           annotations:
             summary: "translate P0: data-residency invariant violation (HARD)"
-            runbook_url: "https://oyatie.dev/microservices/translate/runbooks/sovereign-tenant-cross-region-leak-incident-p0"
+            runbook_url: "https://oyatie.com/microservices/translate/runbooks/sovereign-tenant-cross-region-leak-incident-p0"
 
         - alert: TranslateQeBoundViolation
           expr: |
@@ -75,7 +75,7 @@ spec:
             microservice: translate
           annotations:
             summary: "translate QE bound-violation (score outside 0..100 envelope)"
-            runbook_url: "https://oyatie.dev/microservices/translate/runbooks/quality-estimation-rollback"
+            runbook_url: "https://oyatie.com/microservices/translate/runbooks/quality-estimation-rollback"
 
         - alert: TranslateCaptionStreamP99Burn
           expr: |
@@ -87,7 +87,7 @@ spec:
             microservice: translate
           annotations:
             summary: "translate caption stream p99 > 400 ms"
-            runbook_url: "https://oyatie.dev/microservices/translate/runbooks/real-time-caption-stream-stall"
+            runbook_url: "https://oyatie.com/microservices/translate/runbooks/real-time-caption-stream-stall"
 
         - alert: TranslateDocumentSandboxPanic
           expr: |
@@ -98,4 +98,4 @@ spec:
             microservice: translate
           annotations:
             summary: "translate document sandbox panic — possible CVE / escape attempt"
-            runbook_url: "https://oyatie.dev/microservices/translate/runbooks/document-round-trip-corruption"
+            runbook_url: "https://oyatie.com/microservices/translate/runbooks/document-round-trip-corruption"

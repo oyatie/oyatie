@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "workflow-studio",
   "summary": "visual canvas + DSL emitter/loader + collab + node library registry",
   "chart_name": "workflow-studio",

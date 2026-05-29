@@ -54,7 +54,7 @@ The journey closes:
 - **Critical-path row 20** (Permit-to-work as a Cedar-enforced cross-tenant grant)
 - **Critical-path row 23** (Refrigerant-recovery EPA disclosure with per-pound provenance)
 
-Hyperscaler benchmark: ServiceMax + Salesforce Field Service + Microsoft Dynamics Field Service + IBM Maximo + IFS Field Service Management + Trane Connect + Johnson Controls OpenBlue. The unique part of oyatie is that **the incident-management → tasks → workflow-engine → audit-chain pipeline is single-tenant by default but lights up cross-tenant grants surgically** under Cedar (ADR-0311), so Carlos's Cascade-tenant principal can act inside MeridianStack's tenant for exactly the 6h18m he's needed and not one minute longer.
+Hyperscaler benchmark: ServiceMax + Salesforce Field Service + Microsoft Dynamics Field Service + IBM Maximo + IFS Field Service Management + Trane + Johnson Controls OpenBlue. The unique part of oyatie is that **the incident-management → tasks → workflow-engine → audit-chain pipeline is single-tenant by default but lights up cross-tenant grants surgically** under Cedar (ADR-0311), so Carlos's Cascade-tenant principal can act inside MeridianStack's tenant for exactly the 6h18m he's needed and not one minute longer.
 
 ## Artifact inventory
 

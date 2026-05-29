@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/cloud-cell-topology-map.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/cloud-cell-topology-map.schema.json",
   "title": "DesignSystemComponent:CloudCellTopologyMap",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",

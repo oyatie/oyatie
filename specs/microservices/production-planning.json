@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/microservices/production-planning.json",
+  "$id": "https://docs.oyatie.com/specs/microservices/production-planning.json",
   "title": "Production Planning Microservice",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
@@ -24,7 +24,7 @@
     "scalability": "Independent horizontal scaling per ADR-0348 (autosharding/auto-rebalance); tenant- and cell-scoped writes with no shared mutable global state. Foundation scope: metadata-only, no measured scaling evidence.",
     "security": "Default-deny tenant isolation via Cedar (ADR-0243) and tenant-as-scope (ADR-0244); no raw credential/PII/secret bytes in the domain. Foundation scope: no runtime authentication.",
     "performance": "Per-manifest SLO and capacity targets (ADR-0340) required before any GA claim; async-first eventing on Pulsar. Foundation scope: no measured SLO.",
-    "efficiency": "FinOps cost attribution (ADR-0344) and flat single-concern crates (ADR-0131/0132) that avoid suite bloat. Foundation scope: no runtime cost telemetry.",
+    "efficiency": "FinOps cost attribution (ADR-0344) and flat single-concern crates (ADR-0131/0132) that avoid platform bloat. Foundation scope: no runtime cost telemetry.",
     "reliability": "Idempotent metadata operations and rollback-first promotion. Foundation scope: no DR drill evidence."
   },
   "non_goals": [
@@ -74,7 +74,7 @@
   "decision_log": [
     {
       "id": "D-01",
-      "decision": "Production Planning enters the enterprise microservice set as a flat plan-to-produce domain crate rather than a monolithic ERP/PP module; SAP PP and manufacturing coverage is mapped through Enterprise Suite parity composition while MRP runtime, shop-floor execution, inventory mutation, procurement POs, accounting posting, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims.",
+      "decision": "Production Planning enters the enterprise microservice set as a flat plan-to-produce domain crate rather than a monolithic ERP/PP module; SAP PP and manufacturing coverage is mapped through Tenant RBAC parity composition while MRP runtime, shop-floor execution, inventory mutation, procurement POs, accounting posting, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims.",
       "date": "2026-05-23"
     }
   ],
@@ -86,7 +86,7 @@
       "$ref:specs/hyperscaler-gates.json"
     ],
     "user_decisions": [
-      "Production Planning enters the enterprise microservice set as a flat plan-to-produce domain crate rather than a monolithic ERP/PP module; SAP PP and manufacturing coverage is mapped through Enterprise Suite parity composition while MRP runtime, shop-floor execution, inventory mutation, procurement POs, accounting posting, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims."
+      "Production Planning enters the enterprise microservice set as a flat plan-to-produce domain crate rather than a monolithic ERP/PP module; SAP PP and manufacturing coverage is mapped through Tenant RBAC parity composition while MRP runtime, shop-floor execution, inventory mutation, procurement POs, accounting posting, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims."
     ]
   },
   "scope": {
@@ -147,8 +147,8 @@
     ],
     "external_rejected": [
       {
-        "name": "vendor ERP/CRM suite SDKs",
-        "reason": "no proprietary suite lock-in; flat single-concern crates only"
+        "name": "vendor ERP/CRM platform SDKs",
+        "reason": "no proprietary platform lock-in; flat single-concern crates only"
       }
     ]
   },
@@ -189,7 +189,7 @@
   "competitive": [
     {
       "competitor": "SAP",
-      "note": "parity metadata only; no proprietary suite lock-in"
+      "note": "parity metadata only; no proprietary platform lock-in"
     },
     {
       "competitor": "Oracle/Microsoft Dynamics",
@@ -208,7 +208,7 @@
     "integration via Workflow/Ontology adapter layer"
   ],
   "anti_patterns": [
-    "suite/bundle monolith (retired by ADR-0132)",
+    "bundle monolith (retired by ADR-0132)",
     "runtime/SLO/DR claims without measured evidence",
     "direct cross-microservice calls bypassing Workflow/Ontology"
   ],

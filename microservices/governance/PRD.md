@@ -36,7 +36,7 @@ doc_status: published
 
 ## Purpose
 
-The `governance` microservice is oyatie's substrate for **CI-fitness checks, policy enforcement, evidence emission, and continuous industry-best-practice conformance auditing**. It bundles all ~50 historical `oya-check-*` crates per ADR-0131 §"governance" + ADR-0132 (product-suite-and-bundle dissolution) into a single µservice with four bounded contexts (`lane-runtime`, `policy-engine`, `evidence-emitter`, `aggregation-indexer`).
+The `governance` microservice is oyatie's substrate for **CI-fitness checks, policy enforcement, evidence emission, and continuous industry-best-practice conformance auditing**. It bundles all ~50 historical `oya-check-*` crates per ADR-0131 §"governance" + ADR-0132 (product-platform-and-bundle dissolution) into a single µservice with four bounded contexts (`lane-runtime`, `policy-engine`, `evidence-emitter`, `aggregation-indexer`).
 
 This µservice is the **enforcement origin** of the 6-axis program defined by ADR-0133 (industry-best-practice + hyperscaler-grade conformance) and the **execution origin** of every CI fitness lane that gates every other oyatie µservice's pull requests. A compromise here cascades to every µservice; a regression here weakens every other µservice's quality bar.
 
@@ -55,7 +55,7 @@ This µservice has no Bominal equivalent and originates in oyatie. The historica
 
 | ID | As a… | I want… | So that… | BC | Priority |
 |---|---|---|---|---|---|
-| FR-01 | PR author (agent or human) | every PR to run the full ~50 fitness lane suite | regressions on any axis are blocked at PR-time | lane-runtime | Must |
+| FR-01 | PR author (agent or human) | every PR to run the full ~50 fitness lane set | regressions on any axis are blocked at PR-time | lane-runtime | Must |
 | FR-02 | governance lane | to read the canonical industry-baseline pin in `/specs/industry-best-practice-conformance.json` | findings cite a named source per ADR-0133 | policy-engine | Must |
 | FR-03 | governance lane | to emit a signed Finding for every violation | each violation is auditable and replayable | evidence-emitter | Must |
 | FR-04 | governance lane | to read every µservice's `microservices/<ms>/{PRD.md,catalog/**,slos/**,policy/**,contracts/**,specs/**}` | per-µservice authority is honoured | lane-runtime | Must |
@@ -214,7 +214,7 @@ Plus the **~50 historical `oya-check-*` crates** (bundled per ADR-0131 IP-M01-MI
 | `oya-check-composition-root-only` | composition-root-only | BLOCKER | M01-A |
 | `oya-check-sdk-kernel-only` | sdk-kernel-only | BLOCKER | M01-A |
 | `oya-check-naming-bnf-v41` | naming-bnf-v41 | BLOCKER | M01-A |
-| `oya-check-no-suite` (per ADR-0132) | no-suite | BLOCKER | M01-A |
+| `oya-check-no-grouping` (per ADR-0132) | no-grouping | BLOCKER | M01-A |
 
 Total bundled lane crates at the M01 launch tier: **~50** (37 existing in `crates/oya-check-*` + ~13 planned per related ADRs).
 
@@ -338,7 +338,7 @@ CI lanes that `governance` must run against itself (the self-application rule; t
 |---|---|---|---|
 | `LaneFailed` | any lane verdict transitions to fail | `pr-review.yml`, audit-chain | admission-gate state machine |
 | `FindingEmitted` | new Finding signed + persisted | audit-chain, `grafana-oncall` (if severity=BLOCKER) | — |
-| `AuditCompleted` | full ~50-lane suite finishes for a PR | merge-queue admission gate | — |
+| `AuditCompleted` | full ~50-lane set finishes for a PR | merge-queue admission gate | — |
 | `BaselinePinUpdated` | quarterly refresh promotes new baseline pin | per-axis remediation IP generator | — |
 | `AggregationIndexRegenerated` | aggregation-indexer rewrites central indices | downstream doc-publish pipeline | — |
 
@@ -346,7 +346,7 @@ CI lanes that `governance` must run against itself (the self-application rule; t
 
 | Event type | Produced by | Handler BC | Action |
 |---|---|---|---|
-| `PullRequestOpened` | GitHub webhook → `tenancy` event bus | `lane-runtime` | enqueue full ~50-lane suite |
+| `PullRequestOpened` | GitHub webhook → `tenancy` event bus | `lane-runtime` | enqueue full ~50-lane set |
 | `PushedToDefaultBranch` | GitHub webhook | `aggregation-indexer` | re-run aggregation; refuse if hand-edits detected |
 | `MicroserviceRegistered` | `tenancy` (when a new µservice scaffolds) | `lane-runtime` | register µservice for per-PR fitness-lane execution |
 | `OpenSLOManifestUpdated` | `observability` (manifest hot-reload) | `policy-engine` | trigger `slo-coverage` lane re-run |
@@ -475,7 +475,7 @@ Sharding:
 | ADR-0123 | Hyperscaler maturity claim gate | HG-GOV registers here |
 | ADR-0139 | Agentic SLO-gated promotion | governance lanes gate the SLO gate |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it; IP-M01-MIGR-014 governs the ~50 crate migration |
-| ADR-0132 | Product-suite-and-bundle dissolution | governance bundle decision |
+| ADR-0132 | Product-platform-and-bundle dissolution | governance bundle decision |
 | ADR-0133 | Industry-best-practice + hyperscaler-grade conformance | this µservice IMPLEMENTS the 6-axis program |
 
 ## Doctrine refs (ADR-0346..0349)

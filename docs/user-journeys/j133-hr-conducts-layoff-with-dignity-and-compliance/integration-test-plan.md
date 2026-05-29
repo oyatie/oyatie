@@ -32,9 +32,9 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
   - pack-in-industrial-disputes-act
 - Workflow definitions: rif-event-v3, rif-employee-cascade-v3, severance-disbursement-v3, outplacement-enroll-v2, cohort-channel-provision-v1, access-revocation-v3.
 
-## Test suites
+## Test sets
 
-### Suite 1 — Pre-announcement planning
+### Test Set 1 — Pre-announcement planning
 
 **T-001 Plan RIF + disparate-impact GREEN**
 - Given: proposed 200 selections balanced
@@ -60,7 +60,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - When: scoring algorithm runs
 - Then: final list complies with §1 KSchG criteria.
 
-### Suite 2 — Execution day cascade
+### Test Set 2 — Execution day cascade
 
 **T-101 Activate rif-execute (Cedar PERMIT path)**
 - Given: all clearances + DEI green + Marcus approval
@@ -87,7 +87,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - Given: 3,400 expected events in 24h
 - Then: seal rate ≥ 60 events/sec sustained; no events dropped.
 
-### Suite 3 — Severance computation + disbursement
+### Test Set 3 — Severance computation + disbursement
 
 **T-201 Per-jurisdiction severance formula correctness**
 - Given: 200 employees with varied tenure
@@ -114,7 +114,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - When: disburse
 - Then: defer + retry per ADR-0028; EmployeeFinalPayDeferred event; ops dashboard surfaces.
 
-### Suite 4 — Outplacement
+### Test Set 4 — Outplacement
 
 **T-301 Outplacement enrollment cross-tenant**
 - Given: outplacement-vendor-x Connect-trust active
@@ -131,7 +131,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - When: employee declines
 - Then: OutplacementDeclined event; status updated; no further nudges.
 
-### Suite 5 — Cohort channel
+### Test Set 5 — Cohort channel
 
 **T-401 Provision cohort channel**
 - Given: rif-event executed
@@ -153,7 +153,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - When: community-moderator action
 - Then: moderation event; Marcus's tenant NOT notified (moderation is Community-internal).
 
-### Suite 6 — Access revocation + boundary
+### Test Set 6 — Access revocation + boundary
 
 **T-501 Revoke work-tenant session**
 - Given: T+last-working-day
@@ -185,7 +185,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - When: archival triggered
 - Then: work-Mail + work-Messenger sealed to audit-chain; retention pack determines visibility.
 
-### Suite 7 — Reference letter + cohort cross-tenant
+### Test Set 7 — Reference letter + cohort cross-tenant
 
 **T-601 Reference letter on request**
 - Given: former employee request
@@ -197,7 +197,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - When: cohort member shares job-search lead
 - Then: leads visible to channel; not exposed to marcus-tenant.
 
-### Suite 8 — Litigation hold
+### Test Set 8 — Litigation hold
 
 **T-701 Apply litigation hold to 3 employees**
 - Given: Naomi flags 3
@@ -214,7 +214,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - When: hold lifted
 - Then: LitigationHoldLifted event; retention scheduling re-enabled.
 
-### Suite 9 — Failure modes
+### Test Set 9 — Failure modes
 
 **T-801 Workflow-engine restart mid-cascade**
 - Given: 100 cascades in flight
@@ -231,12 +231,12 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 - When: 200 termination mails sent
 - Then: retry with exp backoff; banner shows degraded.
 
-**T-804 Connect channel down to outplacement vendor**
+**T-804 channel down to outplacement vendor**
 - Given: vendor unreachable
 - When: enrollment
 - Then: queue retry; manual fallback after 2 retries.
 
-### Suite 10 — Compliance
+### Test Set 10 — Compliance
 
 **T-901 Per-jurisdiction labor-law citation in mail**
 - Given: per-jurisdiction templates
@@ -258,7 +258,7 @@ j133 integration tests live at Tier 3 — cross-µservice journey tests on `j133
 
 **T-905 Employment Insurance auto-enrollment (KR)**
 - Given: 20 Seoul
-- Then: auto-enrollment triggered via Connect to KR EI system.
+- Then: auto-enrollment triggered via to KR EI system.
 
 ## Performance acceptance
 

@@ -92,7 +92,7 @@ This matrix enumerates ≥ 120 capabilities drawn from the UNION of Epic, Oracle
 | 70 | Claim submission (X12 837) | ✓ | ✓ | ✓ | ✓ | ✓ | → cloud-billing µservice |
 | 71 | Eligibility check (X12 270/271) | ✓ | ✓ | ✓ | ✓ | ✓ | → cloud-billing µservice |
 | 72 | Patient statement generation | ✓ | ✓ | ✓ | ✓ | ✓ | → cloud-billing µservice |
-| 73 | Patient portal (web) | ✓ MyChart | ✓ HealtheLife | ✓ athenaCommunicator | ✓ FollowMyHealth | ✓ Patient Connect | ✓✓ portal-session BC |
+| 73 | Patient portal (web) | ✓ MyChart | ✓ HealtheLife | ✓ athenaCommunicator | ✓ FollowMyHealth | ✓ Patient | ✓✓ portal-session BC |
 | 74 | Patient portal (mobile iOS) | ✓ MyChart iOS | ✓ HealtheLife | ✓ athenaCommunicator | ✓ FollowMyHealth | ✓ | ✓✓ Swift + SwiftUI per ADR-MS-003 |
 | 75 | Patient portal (mobile Android) | ✓ MyChart Android | ✓ | ✓ | ✓ | ✓ | ✓✓ Kotlin + Compose per ADR-MS-003 |
 | 76 | Portal biometric login | ✓ Face ID | ✓ | ✓ | ✓ | ◇ | ✓✓ passkey + biometric per ADR-0188 |

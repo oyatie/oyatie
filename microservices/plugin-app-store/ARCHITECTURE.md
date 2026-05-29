@@ -172,7 +172,7 @@ This anchor is closed for `plugin-app-store` against ADR-0244 §D-3: tenant_id, 
 - `cell` and `cloud-iac` enforce the runtime cell, ingress, ECH/PQC, and facility posture for `plugin-app-store`.
 
 ### Hyperscaler precedents
-- Precedent 1: Stripe Connect connected-account isolation is the reference pattern for the control shape described here.
+- Precedent 1: Stripe connected-account isolation is the reference pattern for the control shape described here.
 - Precedent 2: AWS Organizations account-boundary pattern is the second reference pattern used to avoid a single-vendor cargo-cult design.
 - The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
@@ -417,7 +417,7 @@ This anchor is closed for `plugin-app-store` against ADR-0249 §D-1: marketplace
 - `cell` and `cloud-iac` enforce the runtime cell, ingress, ECH/PQC, and facility posture for `plugin-app-store`.
 
 ### Hyperscaler precedents
-- Precedent 1: Stripe Connect platform-facilitator model is the reference pattern for the control shape described here.
+- Precedent 1: Stripe platform-facilitator model is the reference pattern for the control shape described here.
 - Precedent 2: AWS Marketplace seller-of-record controls is the second reference pattern used to avoid a single-vendor cargo-cult design.
 - The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
@@ -449,7 +449,7 @@ This anchor is closed for `plugin-app-store` against ADR-0249 §D-1: marketplace
 - Runbook/IaC evidence: `microservices/plugin-app-store/runbooks/audit-chain-seal-gap-detected.md`, `microservices/plugin-app-store/runbooks/catalog-search-latency-regression.md`, `microservices/plugin-app-store/runbooks/install-failure-spike.md`, `microservices/plugin-app-store/runbooks/per-plugin-rate-limit-bypass-suspected.md`, `microservices/plugin-app-store/runbooks/plugin-revoke-propagation-slow.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `us-financial`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `plugin-app-store` `plugin-install` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

@@ -2,12 +2,12 @@
 packLabel: eu
 zitadel:
   zitadelConfig:
-    externalDomain: identity-eu.oyatie.dev
+    externalDomain: identity-eu.oyatie.com
     Telemetry:
       Endpoint: otel-collector.observability-eu.svc.cluster.local:4317
 webauthn:
   attestation: indirect  # tightened to direct for pack-eu-regulated tenants
-  rpId: identity-eu.oyatie.dev
+  rpId: identity-eu.oyatie.com
 openbao:
   hsm:
     type: aws-cloudhsm

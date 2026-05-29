@@ -25,11 +25,11 @@ info:
     `workload.token-validation.v1`).
   contact:
     name: axis-identity
-    url: https://oyatie.dev/teams/axis-identity
+    url: https://oyatie.com/teams/axis-identity
   license:
     name: Apache-2.0
 servers:
-  - url: https://identity-{pack}.oyatie.dev
+  - url: https://identity-{pack}.oyatie.com
     description: Per-pack workload-identity endpoint
     variables:
       pack:

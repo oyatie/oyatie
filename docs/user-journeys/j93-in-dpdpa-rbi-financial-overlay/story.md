@@ -93,7 +93,7 @@ Failure mode: if the cross-border processing review lane cannot prove compliance
 | 10 | Aiyana Rao | comms-email | quarterly RBI evidence run; RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Receipt EVT-J93-010 shown with pack IN-RBI-PAYMENTS |
 | 11 | Aiyana Rao | community | consent withdrawal propagation; Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Receipt EVT-J93-011 shown with pack IN-DPDPA-2023 |
 | 12 | Aiyana Rao | compliance | cross-border processing review; DPDPA section 5 notice | Receipt EVT-J93-012 shown with pack IN-RBI-PAYMENTS |
-| 13 | Aiyana Rao | connect | creator consent notice; DPDPA section 6 consent | Receipt EVT-J93-013 shown with pack IN-DPDPA-2023 |
+| 13 | Aiyana Rao | connector | creator consent notice; DPDPA section 6 consent | Receipt EVT-J93-013 shown with pack IN-DPDPA-2023 |
 | 14 | Aiyana Rao | consent-graph | merchant KYC tiering; DPDPA section 7 certain legitimate uses | Receipt EVT-J93-014 shown with pack IN-RBI-PAYMENTS |
 | 15 | Aiyana Rao | developer-sdk | per-transaction RBI threshold check; DPDPA section 8 general obligations of Data Fiduciary | Receipt EVT-J93-015 shown with pack IN-DPDPA-2023 |
 | 16 | Aiyana Rao | docs | quarterly RBI evidence run; DPDPA section 10 Significant Data Fiduciary obligations | Receipt EVT-J93-016 shown with pack IN-RBI-PAYMENTS |
@@ -138,7 +138,7 @@ Failure mode: if the cross-border processing review lane cannot prove compliance
 | 55 | Aiyana Rao | comms-email | creator consent notice; DPDPA section 8 general obligations of Data Fiduciary | Receipt EVT-J93-055 shown with pack IN-DPDPA-2023 |
 | 56 | Aiyana Rao | community | merchant KYC tiering; DPDPA section 10 Significant Data Fiduciary obligations | Receipt EVT-J93-056 shown with pack IN-RBI-PAYMENTS |
 | 57 | Aiyana Rao | compliance | per-transaction RBI threshold check; DPDPA sections 11 to 14 data principal access, correction, erasure, grievance redressal, and nomination rights | Receipt EVT-J93-057 shown with pack IN-DPDPA-2023 |
-| 58 | Aiyana Rao | connect | quarterly RBI evidence run; DPDPA section 16 processing personal data outside India | Receipt EVT-J93-058 shown with pack IN-RBI-PAYMENTS |
+| 58 | Aiyana Rao | connector | quarterly RBI evidence run; DPDPA section 16 processing personal data outside India | Receipt EVT-J93-058 shown with pack IN-RBI-PAYMENTS |
 | 59 | Aiyana Rao | consent-graph | consent withdrawal propagation; RBI Master Directions on Prepaid Payment Instruments 2021 paragraphs 9 and 10 for PPI type/limit controls | Receipt EVT-J93-059 shown with pack IN-DPDPA-2023 |
 | 60 | Aiyana Rao | developer-sdk | cross-border processing review; RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Receipt EVT-J93-060 shown with pack IN-RBI-PAYMENTS |
 | 61 | Aiyana Rao | docs | creator consent notice; Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Receipt EVT-J93-061 shown with pack IN-DPDPA-2023 |
@@ -183,7 +183,7 @@ Failure mode: if the cross-border processing review lane cannot prove compliance
 | 100 | Aiyana Rao | comms-email | quarterly RBI evidence run; RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Receipt EVT-J93-100 shown with pack IN-RBI-PAYMENTS |
 | 101 | Aiyana Rao | community | consent withdrawal propagation; Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Receipt EVT-J93-101 shown with pack IN-DPDPA-2023 |
 | 102 | Aiyana Rao | compliance | cross-border processing review; DPDPA section 5 notice | Receipt EVT-J93-102 shown with pack IN-RBI-PAYMENTS |
-| 103 | Aiyana Rao | connect | creator consent notice; DPDPA section 6 consent | Receipt EVT-J93-103 shown with pack IN-DPDPA-2023 |
+| 103 | Aiyana Rao | connector | creator consent notice; DPDPA section 6 consent | Receipt EVT-J93-103 shown with pack IN-DPDPA-2023 |
 | 104 | Aiyana Rao | consent-graph | merchant KYC tiering; DPDPA section 7 certain legitimate uses | Receipt EVT-J93-104 shown with pack IN-RBI-PAYMENTS |
 | 105 | Aiyana Rao | developer-sdk | per-transaction RBI threshold check; DPDPA section 8 general obligations of Data Fiduciary | Receipt EVT-J93-105 shown with pack IN-DPDPA-2023 |
 | 106 | Aiyana Rao | docs | quarterly RBI evidence run; DPDPA section 10 Significant Data Fiduciary obligations | Receipt EVT-J93-106 shown with pack IN-RBI-PAYMENTS |
@@ -228,7 +228,7 @@ Failure mode: if the cross-border processing review lane cannot prove compliance
 | 145 | Aiyana Rao | comms-email | creator consent notice; DPDPA section 8 general obligations of Data Fiduciary | Receipt EVT-J93-145 shown with pack IN-DPDPA-2023 |
 | 146 | Aiyana Rao | community | merchant KYC tiering; DPDPA section 10 Significant Data Fiduciary obligations | Receipt EVT-J93-146 shown with pack IN-RBI-PAYMENTS |
 | 147 | Aiyana Rao | compliance | per-transaction RBI threshold check; DPDPA sections 11 to 14 data principal access, correction, erasure, grievance redressal, and nomination rights | Receipt EVT-J93-147 shown with pack IN-DPDPA-2023 |
-| 148 | Aiyana Rao | connect | quarterly RBI evidence run; DPDPA section 16 processing personal data outside India | Receipt EVT-J93-148 shown with pack IN-RBI-PAYMENTS |
+| 148 | Aiyana Rao | connector | quarterly RBI evidence run; DPDPA section 16 processing personal data outside India | Receipt EVT-J93-148 shown with pack IN-RBI-PAYMENTS |
 | 149 | Aiyana Rao | consent-graph | consent withdrawal propagation; RBI Master Directions on Prepaid Payment Instruments 2021 paragraphs 9 and 10 for PPI type/limit controls | Receipt EVT-J93-149 shown with pack IN-DPDPA-2023 |
 | 150 | Aiyana Rao | developer-sdk | cross-border processing review; RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Receipt EVT-J93-150 shown with pack IN-RBI-PAYMENTS |
 | 151 | Aiyana Rao | docs | creator consent notice; Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Receipt EVT-J93-151 shown with pack IN-DPDPA-2023 |

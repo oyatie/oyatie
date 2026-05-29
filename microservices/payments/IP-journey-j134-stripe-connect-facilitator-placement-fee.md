@@ -8,11 +8,11 @@ microservice: payments
 related_adrs: [ADR-0244, ADR-0249, ADR-0263]
 ---
 
-# IP — Payments' role in j134 Stripe Connect facilitator placement-fee
+# IP — Payments' role in j134 Stripe facilitator placement-fee
 
 ## Scope
 
-Payments implements the Stripe Connect facilitator-flow for staffing engagement:
+Payments implements the Stripe facilitator-flow for staffing engagement:
 - Pre-escrow placement fee on offer-extend
 - Disburse on candidate start-date (T+0 for placement)
 - Hold escrow open for 90-day replacement-guarantee window
@@ -30,7 +30,7 @@ Payments implements the Stripe Connect facilitator-flow for staffing engagement:
 
 | Step | Change | Verification |
 |---|---|---|
-| 1 | Implement Stripe Connect adapter (facilitator-merchant pattern) | T-301 passes |
+| 1 | Implement Stripe adapter (facilitator-merchant pattern) | T-301 passes |
 | 2 | Implement `POST /payments/stripe-connect/escrow/create` | T-301 passes |
 | 3 | Implement `POST /payments/stripe-connect/facilitator/disburse` | T-302 passes |
 | 4 | Implement `POST /payments/stripe-connect/refund` | T-402 passes |
@@ -124,7 +124,7 @@ permit (
 
 ## Notes
 
-- Per ADR-0249, Stripe Connect facilitator-flow is the canonical money primitive for multi-tenant marketplaces.
+- Per ADR-0249, Stripe facilitator-flow is the canonical money primitive for multi-tenant marketplaces.
 - Per ADR-0244, B2B_STAFFING_AGENCY is the recipient audience-type.
 
 — end of IP —

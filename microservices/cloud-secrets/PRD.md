@@ -273,7 +273,7 @@ CI lanes that must green:
 | GCP | Secret Manager + Cloud KMS + Cloud HSM | per-region; replication policy; CMEK; HSM-protected keys | `cloud.google.com/secret-manager/docs` |
 | Microsoft | Azure Key Vault (Standard + Premium + Managed HSM) | secret vault; CMK; FIPS 140-3 Managed HSM | `learn.microsoft.com/en-us/azure/key-vault` |
 | Oracle | OCI Vault + Cloud HSM | per-region vault; HSM-backed master encryption keys | `docs.oracle.com/en-us/iaas/Content/KeyManagement` |
-| 1Password | Secrets Automation + Connect | developer-secret distribution; per-service tokens; SCIM | `developer.1password.com/docs/connect` |
+| 1Password | Secrets Automation + | developer-secret distribution; per-service tokens; SCIM | `developer.1password.com/docs/connect` |
 | Doppler | Doppler workplace + service tokens | per-environment secret config; CLI + SDK; webhook rotation | `docs.doppler.com` |
 | Infisical | Infisical OSS | open-source KV; per-environment; integrations | `infisical.com/docs` |
 | Akeyless | Akeyless Vault + DFC | DFC (Distributed Fragments Cryptography); zero-knowledge | `docs.akeyless.io` |

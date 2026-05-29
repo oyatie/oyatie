@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j78-nis2-breach-cadence.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j78-nis2-breach-cadence.schema.json",
   "title": "J78 EU NIS2 breach three-stage cadence Journey Object",
   "version": "1.0.0",
   "_meta": {

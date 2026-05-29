@@ -22,7 +22,7 @@ Implement the planned reactions kernel/domain/usecase/adapters/worker/sdk family
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `src/crates/oya-social-reactions-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,worker,sdk}/` | Planned family named by PRD/IP. |
+| `src/crates/oya-community-social-reactions-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,worker,sdk}/` | Planned family named by PRD/IP. |
 | `contracts/asyncapi/social-events.yaml` | `ReactionAdded` event source. |
 | `policy/content-policy.cedar` | Visibility and moderation guard. |
 | `runbooks/feed-cache-rebuild.md` | Counter/feed repair closure. |
@@ -37,8 +37,8 @@ Implement the planned reactions kernel/domain/usecase/adapters/worker/sdk family
 7. Wire metrics used by feed and moderation dashboards.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-reactions-kernel` passes.
-- `cargo nextest run -p oya-social-reactions-adapter-valkey` passes.
+- `cargo nextest run -p oya-community-social-reactions-kernel` passes.
+- `cargo nextest run -p oya-community-social-reactions-adapter-valkey` passes.
 - Reaction writes respect `policy/content-policy.cedar`.
 - AsyncAPI event validation passes for reaction events.
 - Counter repair evidence links to `runbooks/feed-cache-rebuild.md`.

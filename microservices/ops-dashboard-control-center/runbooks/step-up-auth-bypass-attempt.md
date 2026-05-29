@@ -12,7 +12,7 @@ companion_docs:
   - microservices/ops-dashboard-control-center/compliance.md
   - microservices/ops-dashboard-control-center/runbooks/admin-mfa-cascade.md
   - microservices/ops-dashboard-control-center/runbooks/forensic-investigation-handoff.md
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # Runbook: Step-Up Auth Bypass Attempt

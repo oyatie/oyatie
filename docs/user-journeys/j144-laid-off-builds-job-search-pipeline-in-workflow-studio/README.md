@@ -29,7 +29,7 @@ This journey demonstrates that **the personal tenant has workflow capability equ
 |---|---|
 | workflow-studio | Visual editor for blocks; configuration drawers |
 | workflow-engine | Compiled pipeline runtime; scheduler; cross-tenant submission router |
-| connect | OAuth + polling adapters for LinkedIn, Otta, RemoteOK |
+| connector | OAuth + polling adapters for LinkedIn, Otta, RemoteOK |
 | intelligence | Filter + drafter; closed-schema FilterSpec; transparency floor |
 | notes | Applications-2026 database; row state machine for `draft_ready → apply → submitted → screened` |
 | calendar | Interview slot suggestion + ICS round-trip |
@@ -64,7 +64,7 @@ This journey demonstrates that **the personal tenant has workflow capability equ
 Per-µservice IPs:
 - `microservices/workflow-studio/IP-journey-j144-job-search-template-and-canvas.md`
 - `microservices/workflow-engine/IP-journey-j144-personal-pipeline-runtime.md`
-- `microservices/connect/IP-journey-j144-job-board-adapters.md`
+- `microservices/connector/IP-journey-j144-job-board-adapters.md`
 - `microservices/intelligence/IP-journey-j144-filter-and-drafter-consumer-tier.md`
 - `microservices/notes/IP-journey-j144-applications-database.md`
 - `microservices/calendar/IP-journey-j144-interview-slot-scheduling.md`

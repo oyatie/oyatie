@@ -173,7 +173,7 @@ workflow-engine  connect  TenantU.medshield (cross-tenant)  audit-chain
        │            │              │                              │
        │ bulk push  │              │                              │
        ├───────────►│              │                              │
-       │            │ Connect      │                              │
+       │            │      │                              │
        │            │ trust-verify │                              │
        │            │ + cross-tenant push                         │
        │            ├─────────────►│                              │
@@ -283,8 +283,8 @@ workflow-engine  mail  audit-chain
 | BenefitsEnrollmentConfirmationMailSent | mail |
 | OpenEnrollmentLateReminderSent | mail |
 | BenefitsEnrollmentDefaultedPassive | workflow-engine |
-| BenefitsProviderBulkPushed | connect |
-| BenefitsProviderAckReceived | connect |
+| BenefitsProviderBulkPushed | connector |
+| BenefitsProviderAckReceived | connector |
 | BenefitsReconciliationResolved | workflow-engine |
 | PayrollDeductionSetup | payments |
 | PayrollDeductionExecuted | payments |

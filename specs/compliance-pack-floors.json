@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/compliance-pack-floors.schema.json",
+  "$id": "https://docs.oyatie.com/specs/compliance-pack-floors.schema.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-COMPLIANCE-PACK-DR-FLOORS",
@@ -35,10 +35,26 @@
     ],
     "purpose": "Canonical machine-readable per-compliance-pack DR floor table. Consumed by the pack-activation gate Cedar fragments and the auditor dashboard auto-generation tooling. Effective tenant RTO/RPO per (tenant, microservice) pair = MIN over microservice-declared and all-applicable-pack floors (stringency partial order; smaller seconds = stricter). Multi-region requirement = OR over microservice-declared and all-applicable-pack mr_required flags. Drill cadence = SHORTEST cadence across microservice tier-default and all-applicable-pack drill_cadence_required. Per ADR-0343 §D-4 algorithm.",
     "industry_citations": [
-      {"vendor": "AWS", "source": "AWS Audit Manager + Resilience Hub", "convention": "per-pack control evidence + per-application DR posture"},
-      {"vendor": "Google Cloud", "source": "Compliance Reports Manager + Assured Workloads", "convention": "per-product DR posture + perimeter enforcement"},
-      {"vendor": "Microsoft", "source": "Purview Compliance Manager + Site Recovery", "convention": "per-control assessment + per-VM DR contract"},
-      {"vendor": "HashiCorp", "source": "Sentinel policy bundles", "convention": "versioned framework-mapped policies"}
+      {
+        "vendor": "AWS",
+        "source": "AWS Audit Manager + Resilience Hub",
+        "convention": "per-pack control evidence + per-application DR posture"
+      },
+      {
+        "vendor": "Google Cloud",
+        "source": "Compliance Reports Manager + Assured Workloads",
+        "convention": "per-product DR posture + perimeter enforcement"
+      },
+      {
+        "vendor": "Microsoft",
+        "source": "Purview Compliance Manager + Site Recovery",
+        "convention": "per-control assessment + per-VM DR contract"
+      },
+      {
+        "vendor": "HashiCorp",
+        "source": "Sentinel policy bundles",
+        "convention": "versioned framework-mapped policies"
+      }
     ],
     "backup_substrate_allowlist": [
       "valkey",
@@ -63,7 +79,13 @@
   },
   "title": "Compliance Pack DR Floor Table",
   "type": "object",
-  "required": ["version", "signed_by", "signature", "effective_at", "packs"],
+  "required": [
+    "version",
+    "signed_by",
+    "signature",
+    "effective_at",
+    "packs"
+  ],
   "properties": {
     "version": {
       "type": "string",
@@ -80,15 +102,29 @@
       "description": "Ed25519 signature over the canonical CBOR-encoded table body (excluding the signature field). Lowercase hex; 128 chars = 64 bytes.",
       "pattern": "^[0-9a-f]{128}$"
     },
-    "effective_at": {"type": "string", "format": "date-time"},
-    "sunset_at": {"type": ["string", "null"], "format": "date-time"},
+    "effective_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sunset_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
     "supersedes": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["version"],
+        "required": [
+          "version"
+        ],
         "properties": {
-          "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"}
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          }
         }
       },
       "default": []
@@ -98,35 +134,95 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["pack_id", "version", "dr_floor", "_meta"],
+        "required": [
+          "pack_id",
+          "version",
+          "dr_floor",
+          "_meta"
+        ],
         "properties": {
           "pack_id": {
             "type": "string",
             "description": "Matches /specs/compliance-pack-schema.json#pack_id.",
             "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9.]+)*$"
           },
-          "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
           "dr_floor": {
             "type": "object",
-            "required": ["rto_p99_seconds", "rpo_p99_seconds", "multi_region_required", "drill_cadence_required"],
+            "required": [
+              "rto_p99_seconds",
+              "rpo_p99_seconds",
+              "multi_region_required",
+              "drill_cadence_required"
+            ],
             "properties": {
-              "rto_p99_seconds": {"type": "integer", "minimum": 0, "description": "Upper bound on p99 recovery-time-objective in whole seconds."},
-              "rpo_p99_seconds": {"type": "integer", "minimum": 0, "description": "Upper bound on p99 recovery-point-objective in whole seconds. 0 = no data loss tolerated (active-active or synchronous replication)."},
-              "multi_region_required": {"type": "boolean", "description": "Pack-mandated multi-region active-active or active-passive cross-region topology."},
-              "drill_cadence_required": {"type": "string", "enum": ["quarterly-plus-ad-hoc", "quarterly", "semi-annual", "annual", "annual-tabletop"]},
+              "rto_p99_seconds": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Upper bound on p99 recovery-time-objective in whole seconds."
+              },
+              "rpo_p99_seconds": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Upper bound on p99 recovery-point-objective in whole seconds. 0 = no data loss tolerated (active-active or synchronous replication)."
+              },
+              "multi_region_required": {
+                "type": "boolean",
+                "description": "Pack-mandated multi-region active-active or active-passive cross-region topology."
+              },
+              "drill_cadence_required": {
+                "type": "string",
+                "enum": [
+                  "quarterly-plus-ad-hoc",
+                  "quarterly",
+                  "semi-annual",
+                  "annual",
+                  "annual-tabletop"
+                ]
+              },
               "process_floors": {
                 "type": "object",
                 "description": "SOX-404 per-process refinement. Keyed by canonical SOX in-scope process name. Each value is a dr_floor sub-block.",
                 "additionalProperties": {
                   "type": "object",
-                  "required": ["rto_p99_seconds", "rpo_p99_seconds", "multi_region_required", "drill_cadence_required"],
+                  "required": [
+                    "rto_p99_seconds",
+                    "rpo_p99_seconds",
+                    "multi_region_required",
+                    "drill_cadence_required"
+                  ],
                   "properties": {
-                    "rto_p99_seconds": {"type": "integer", "minimum": 0},
-                    "rpo_p99_seconds": {"type": "integer", "minimum": 0},
-                    "multi_region_required": {"type": "boolean"},
-                    "drill_cadence_required": {"type": "string", "enum": ["quarterly-plus-ad-hoc", "quarterly", "semi-annual", "annual", "annual-tabletop"]},
-                    "retention_min_iso8601": {"type": "string", "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"},
-                    "rationale": {"type": "string"}
+                    "rto_p99_seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "rpo_p99_seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "multi_region_required": {
+                      "type": "boolean"
+                    },
+                    "drill_cadence_required": {
+                      "type": "string",
+                      "enum": [
+                        "quarterly-plus-ad-hoc",
+                        "quarterly",
+                        "semi-annual",
+                        "annual",
+                        "annual-tabletop"
+                      ]
+                    },
+                    "retention_min_iso8601": {
+                      "type": "string",
+                      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+                    },
+                    "rationale": {
+                      "type": "string"
+                    }
                   }
                 }
               },
@@ -135,13 +231,37 @@
                 "description": "KR-PIPA per-data-class refinement. Keyed by data-class identifier from ADR-0099 registry. Each value is a dr_floor sub-block.",
                 "additionalProperties": {
                   "type": "object",
-                  "required": ["rto_p99_seconds", "rpo_p99_seconds", "multi_region_required", "drill_cadence_required"],
+                  "required": [
+                    "rto_p99_seconds",
+                    "rpo_p99_seconds",
+                    "multi_region_required",
+                    "drill_cadence_required"
+                  ],
                   "properties": {
-                    "rto_p99_seconds": {"type": "integer", "minimum": 0},
-                    "rpo_p99_seconds": {"type": "integer", "minimum": 0},
-                    "multi_region_required": {"type": "boolean"},
-                    "drill_cadence_required": {"type": "string", "enum": ["quarterly-plus-ad-hoc", "quarterly", "semi-annual", "annual", "annual-tabletop"]},
-                    "rationale": {"type": "string"}
+                    "rto_p99_seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "rpo_p99_seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "multi_region_required": {
+                      "type": "boolean"
+                    },
+                    "drill_cadence_required": {
+                      "type": "string",
+                      "enum": [
+                        "quarterly-plus-ad-hoc",
+                        "quarterly",
+                        "semi-annual",
+                        "annual",
+                        "annual-tabletop"
+                      ]
+                    },
+                    "rationale": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -149,14 +269,42 @@
           },
           "_meta": {
             "type": "object",
-            "required": ["regulator_citations", "rationale", "effective_at"],
+            "required": [
+              "regulator_citations",
+              "rationale",
+              "effective_at"
+            ],
             "properties": {
-              "regulator_citations": {"type": "array", "items": {"type": "string", "minLength": 5}, "minItems": 1},
-              "rationale": {"type": "string"},
-              "effective_at": {"type": "string", "format": "date-time"},
-              "sunset_at": {"type": ["string", "null"], "format": "date-time"},
-              "cedar_fragment_id": {"type": "string", "pattern": "^pack-[a-z0-9-]+-dr-floor-satisfaction$"},
-              "cedar_fragment_attestation": {"type": "string", "pattern": "^(rekor|seaweed)://[A-Za-z0-9._/-]+@[0-9a-f]{64}$"}
+              "regulator_citations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 5
+                },
+                "minItems": 1
+              },
+              "rationale": {
+                "type": "string"
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sunset_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "cedar_fragment_id": {
+                "type": "string",
+                "pattern": "^pack-[a-z0-9-]+-dr-floor-satisfaction$"
+              },
+              "cedar_fragment_attestation": {
+                "type": "string",
+                "pattern": "^(rekor|seaweed)://[A-Za-z0-9._/-]+@[0-9a-f]{64}$"
+              }
             }
           }
         }

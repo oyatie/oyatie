@@ -152,7 +152,7 @@ Benchmark displacement set: Redox, Rhapsody, InterSystems IRIS for Health, Lynia
 - Rhapsody displacement: privacy evidence covers route behavior, replay, and operator action rather than engine configuration alone.
 - InterSystems IRIS for Health displacement: privacy evidence is not bound to a database/runtime posture; it follows each capability and data class.
 - Lyniate/Corepoint displacement: interface privacy risk is controlled through ADR-bound contracts and local policies, not point-to-point interface documentation.
-- Mirth Connect displacement: script/channel privacy behavior is replaced by typed controls, redaction tests, and audit-chain evidence.
+- Mirth displacement: script/channel privacy behavior is replaced by typed controls, redaction tests, and audit-chain evidence.
 - NextGate displacement: patient identity privacy is explicitly governed through review, ambiguity, and rollback evidence.
 - Health Catalyst displacement: analytics privacy evidence is downstream; clinical consent and provenance remain the control source.
 - Redox parity is insufficient unless Oyatie can export Cedar, tenant, consent, and audit evidence per request.

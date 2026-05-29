@@ -146,7 +146,7 @@ The deal goes through. Marketplace creates a structured contract. Marcin pays $7
 
 Chris delivers the small service. Marcin reviews. Releases escrow. $7,500 - 5% = $7,125 to Chris.
 
-Cross-tenant payable: `<marketplace-µservice-tenant>` → `<chris-personal-tenant>`. Cross-currency: Marketplace handles USD/EUR FX (Marcin paid in EUR; settled to Chris in USD via mid-market rate from Connect FX-adapter; ~0.6% FX spread to cover hedging).
+Cross-tenant payable: `<marketplace-µservice-tenant>` → `<chris-personal-tenant>`. Cross-currency: Marketplace handles USD/EUR FX (Marcin paid in EUR; settled to Chris in USD via mid-market rate from FX-adapter; ~0.6% FX spread to cover hedging).
 
 finops-portal categorizes: `marketplace_consulting_2026`. Year-end this hits Schedule C as foreign-derived income; Chris needs to file Form 1116 for foreign-tax-credit if Marcin's company withholds (they don't — reverse-charge means no withholding).
 

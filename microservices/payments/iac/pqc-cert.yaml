@@ -36,9 +36,9 @@ spec:
     algorithm: ed25519+ml-dsa-65-hybrid
     encoding: PKCS8
   dnsNames:
-    - payments.oyatie.dev
-    - payments.cell-${CELL_ID}.oyatie.dev
-    - "*.payments.oyatie.dev"
+    - payments.oyatie.com
+    - payments.cell-${CELL_ID}.oyatie.com
+    - "*.payments.oyatie.com"
   uris:
     - spiffe://oyatie.dev/ns/payments/sa/payments-app
   usages:
@@ -73,8 +73,8 @@ spec:
         # ALPN: HTTP/3 + HTTP/2 + HTTP/1.1 per ADR-0253 amendment fallback chain.
         # h3 advertised via Alt-Svc header at edge.
       hosts:
-        - "payments.oyatie.dev"
-        - "payments.cell-*.oyatie.dev"
+        - "payments.oyatie.com"
+        - "payments.cell-*.oyatie.com"
 ---
 # Cilium L7 envoy filter to enforce HTTP/3 negotiation order
 apiVersion: cilium.io/v2alpha1

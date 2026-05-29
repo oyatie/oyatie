@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/quality-lane.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/quality-lane.schema.json",
   "lane_id": "lean-settings-drift",
   "status": "planned",
   "owner_team": "axis-foundry",

@@ -40,7 +40,7 @@ channels:
     messages:
       auditCompleted:
         $ref: '#/components/messages/AuditCompleted'
-    description: Full ~50-lane suite finished for a PR.
+    description: Full ~50-lane set finished for a PR.
 
   baseline-pin-updated:
     address: oyatie.governance.baseline-pin-updated.v1
@@ -63,7 +63,7 @@ channels:
         $ref: '#/components/messages/PullRequestOpened'
     description: |
       Consumed event: a PR was opened. Governance's lane-runtime enqueues
-      the full ~50-lane suite.
+      the full ~50-lane set.
 
   microservice-registered:
     address: oyatie.tenancy.microservice-registered.v1
@@ -129,7 +129,7 @@ components:
 
     AuditCompleted:
       name: AuditCompleted
-      title: Full ~50-lane suite completed for a PR
+      title: Full ~50-lane set completed for a PR
       contentType: application/json
       payload:
         $ref: '#/components/schemas/AuditCompleted'

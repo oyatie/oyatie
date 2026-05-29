@@ -72,7 +72,7 @@ microservices/api-gateway/
 
 ## CI lanes that gate this µservice
 
-- `oya-governance-microservice-doc-suite` — artifact-count floor.
+- `oya-governance-microservice-doc-set` — artifact-count floor.
 - `oya-governance-doc-rigor` — per-doc-class density signals.
 - `oya-governance-doc-graph-6hops` — six-hops graph traversability.
 - `oya-governance-cross-consistency` — field naming + audit-class consistency.

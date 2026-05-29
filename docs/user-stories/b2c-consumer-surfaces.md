@@ -1170,7 +1170,7 @@ the patterns generalize.
 - **Context:** Sending a client deliverable for tomorrow 9 AM.
 - **Precondition:**
   1. Alice has a Personal-pillar mailbox at her chosen address (e.g.,
-     `alice@oyatie.dev` or her custom domain).
+     `alice@oyatie.com` or her custom domain).
   2. Drive substrate has files ready.
 - **Step-by-step actions:**
   1. Open Mail → tap pencil (compose).
@@ -1232,7 +1232,7 @@ the patterns generalize.
 ### Story Mail-03: Carol sets up sub-addressing for Facebook
 
 - **Persona:** Carol.
-- **Context:** Carol wants `carol+facebook@oyatie.dev` to land in a folder
+- **Context:** Carol wants `carol+facebook@oyatie.com` to land in a folder
   she can purge if FB sells her email.
 - **Precondition:** Carol's mailbox supports RFC 5233 sub-addressing
   (mail PRD's IMAP/JMAP/REST contract).
@@ -1240,7 +1240,7 @@ the patterns generalize.
   1. Settings → "Sub-addresses & aliases" → "Add rule".
   2. Pattern: `+facebook` → Folder: "Facebook" → Auto-archive after 30d.
   3. Save.
-  4. Carol uses `carol+facebook@oyatie.dev` when signing up for FB.
+  4. Carol uses `carol+facebook@oyatie.com` when signing up for FB.
 - **Expected behaviors:** Inbound mail to that address routed
   automatically.
 - **Edge cases:** Tracker-blocking enabled (strips pixel + 1x1 images);
@@ -2251,7 +2251,7 @@ stories below are **forward-looking** and marked post-certification
 - **ADR-0242 (oyatie-is-a-tenant doctrine, 2026-05-20).**
 - **ADR-0244 (tenant-as-universal-scoping-primitive, 2026-05-20).**
 - **ADR-0245 (substrate-vs-product layering, 2026-05-20).**
-- **ADR-0238 (Connect dual-context dissolution; parallel-session).**
+- **ADR-0238 (dual-context dissolution; parallel-session).**
 - **ADR-0220 / ADR-0255 (Intelligence substrate two-layer model).**
 - **Mail PRD, Messenger PRD, Community PRD, Calendar PRD, Meet PRD,
   Drive PRD, Notes SDK plan, Plugin App Store PRD (this repo).**

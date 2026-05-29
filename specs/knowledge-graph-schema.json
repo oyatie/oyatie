@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/knowledge-graph.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/knowledge-graph.schema.json",
   "title": "OyatieKnowledgeGraphSchema",
-  "description": "Canonical knowledge-graph substrate for the entire Oyatie project. Every relationship, capability, feature, schema, crate, BC, microservice, ADR, plan, lane, hook, generator, healer, owner, block \u2014 modeled as nodes + typed edges. Registries are VIEWS into this graph filtered by node_type. Single validator (oya check knowledge-graph) traverses for DRY violations, orphans, cycles, broken refs, supersession chains, ownership coverage. Hyperscaler precedent: AWS Resource Explorer + Resource Graph; GCP Asset Inventory + Cloud Asset Graph; Azure Resource Graph + Service Map; K8s API discovery + OwnerReferences; Linkerd Service Mesh topology. Per user directive 2026-05-13: 'every relationship, every capability, every feature, every schema, everything mapped graphed and tracked for automation is ideal' + 'DRY enforcement is key'.",
+  "description": "Canonical knowledge-graph substrate for the entire Oyatie project. Every relationship, capability, feature, schema, crate, BC, microservice, ADR, plan, lane, hook, generator, healer, owner, block — modeled as nodes + typed edges. Registries are VIEWS into this graph filtered by node_type. Single validator (oya check knowledge-graph) traverses for DRY violations, orphans, cycles, broken refs, supersession chains, ownership coverage. Hyperscaler precedent: AWS Resource Explorer + Resource Graph; GCP Asset Inventory + Cloud Asset Graph; Azure Resource Graph + Service Map; K8s API discovery + OwnerReferences; Linkerd Service Mesh topology. Per user directive 2026-05-13: 'every relationship, every capability, every feature, every schema, everything mapped graphed and tracked for automation is ideal' + 'DRY enforcement is key'.",
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-KNOWLEDGE-GRAPH",

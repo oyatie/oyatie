@@ -10,7 +10,7 @@ persona: darren-chen (planner), carlos-reyes-ii (tech), tony-li (supervisor), ma
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-009: Use-case layer for `work-order` — 11-state orchestration + sagas

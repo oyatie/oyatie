@@ -10,7 +10,7 @@ persona: maya-okafor (reliability), darren-chen (planner), priya-singh (plant ma
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-024: Maintenance strategy + cycle generation (time-based + performance-based) — due-date calculator

@@ -33,7 +33,7 @@ audit_emit: TemplateInstantiated
 
 ## Phase 2 — Block configuration (T+5m to T+15m)
 
-### Step 2.1 — Sources block (Connect OAuth)
+### Step 2.1 — Sources block (OAuth)
 
 ```
 caller: workflow-studio
@@ -105,7 +105,7 @@ audit_emit: JobSearchPipelineActivated
 
 ## Phase 3 — Steady-state operation (per polling cycle)
 
-### Step 3.1 — Connect poll
+### Step 3.1 — poll
 
 ```
 caller: workflow-engine (scheduled)
@@ -177,7 +177,7 @@ audit_emit: ApplicationStatusUpdated
 
 ### Step 4.2 — Workflow-engine routes submission
 
-For each `apply`-marked row, workflow-engine calls the appropriate Connect adapter to submit (LinkedIn `Application.Submit` / Community `JobApplication.Submit` / etc.).
+For each `apply`-marked row, workflow-engine calls the appropriate adapter to submit (LinkedIn `Application.Submit` / Community `JobApplication.Submit` / etc.).
 
 ```
 caller: workflow-engine

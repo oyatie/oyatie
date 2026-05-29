@@ -63,9 +63,9 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let trace = TraceContext::new_root();
 
-    // 1. Connect — tenant pack drives default engine ordering, residency, and minor-protection refusals
+    // 1. — tenant pack drives default engine ordering, residency, and minor-protection refusals
     let cfg = RouterConfig::builder()
-        .endpoint("https://translate.kr.oyatie.dev/v1".parse()?)
+        .endpoint("https://translate.kr.oyatie.com/v1".parse()?)
         .tenant(Tenant::parse("oyatie.b2b.smb.acme-software")?)
         .pack(PackId::Kr) // tenant pack — drives PIPA + RR PIIPP minor-protection defaults
         .service_account_credentials_path("/etc/oya/translate/sa-creds.json")

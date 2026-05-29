@@ -281,7 +281,7 @@ OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 4. Treating microservices/intelligence/ as a live µservice (ADR-0335 absorbed it into microservices/intelligence/)
 5. Conflating plugin-app-store / marketplace / community
 6. Creating µservices with <100 artifacts (buildability bar)
-7. Bundling multiple concerns into one µservice (ADR-0132 no-suite policy)
+7. Bundling multiple concerns into one µservice (ADR-0132 no-grouping policy)
 8. ADR references in docs without corresponding docs/decisions/ADR-NNNN-*.md files
 9. Vacuous-green gates: test passes on empty input (M-08 per ADR-0221)
 10. Scope creep: creating new µservices outside the current PR's declared vertical slice

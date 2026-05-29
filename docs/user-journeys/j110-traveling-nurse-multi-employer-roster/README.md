@@ -196,7 +196,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 001: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -205,7 +205,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 005: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: community keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 007: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -216,7 +216,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 009: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
-  cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
@@ -225,7 +225,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 013: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: payments keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -236,7 +236,7 @@ per-hospital identity binding, and payroll cascade.
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: workplace-integration keeps Nora Ellis and three hospital subsidiary tenants inside
   tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 019: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 020: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
@@ -244,7 +244,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 021: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 023: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement
@@ -255,7 +255,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 025: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: community keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -265,7 +265,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 029: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
-  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 032: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
@@ -283,7 +283,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 037: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: workplace-integration keeps Nora Ellis and three hospital subsidiary tenants inside
-  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 039: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
@@ -293,7 +293,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 041: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 043: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal
@@ -303,7 +303,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 045: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: community keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: workplace-integration keeps Nora Ellis and three hospital subsidiary tenants inside
@@ -312,7 +312,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 049: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
-  cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -340,7 +340,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 061: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -349,7 +349,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 065: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: community keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 067: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -359,7 +359,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 069: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 070: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
-  cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform
+  cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 071: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -369,7 +369,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 073: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: payments keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -379,7 +379,7 @@ per-hospital identity binding, and payroll cascade.
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: workplace-integration keeps Nora Ellis and three hospital subsidiary tenants inside
   tenant-scoped evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 079: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -388,7 +388,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 081: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: payments keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
@@ -397,7 +397,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 085: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: community keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -407,7 +407,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 089: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
-  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform
+  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 091: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -416,7 +416,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 093: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: payments keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 095: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -426,7 +426,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 097: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: workplace-integration keeps Nora Ellis and three hospital subsidiary tenants inside
-  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 099: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
@@ -436,7 +436,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 101: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 103: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement
@@ -456,7 +456,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 109: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
-  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -465,7 +465,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 113: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: payments keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 115: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -475,7 +475,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 117: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: workplace-integration keeps Nora Ellis and three hospital subsidiary tenants inside
-  tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 119: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -484,7 +484,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 121: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -504,7 +504,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 129: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
-  cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 131: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 132: identity keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
@@ -513,7 +513,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 133: workplace-integration keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: payments keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -542,7 +542,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 145: tenancy keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 146: community keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 147: identity keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -552,7 +552,7 @@ per-hospital identity binding, and payroll cascade.
 - readme-buildability 149: payments keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 150: tenancy keeps Nora Ellis and three hospital subsidiary tenants inside tenant-scoped evidence,
-  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 151: community keeps Nora Ellis and HealthcareSystem-Megacorp US inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement

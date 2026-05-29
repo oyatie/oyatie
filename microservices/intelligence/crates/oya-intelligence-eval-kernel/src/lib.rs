@@ -1,6 +1,6 @@
 //! Intelligence eval kernel foundation.
 //!
-//! This crate scores metadata-only evaluation suites for later Intelligence
+//! This crate scores metadata-only evaluation sets for later Intelligence
 //! cloud integration. It models golden, adversarial, and linguistic coverage,
 //! deterministic pass/violation rates, and fail-closed threshold checks without
 //! model calls, grader calls, network, filesystem, durable storage, or raw
@@ -11,7 +11,7 @@ const BASIS_POINTS_DENOMINATOR: u32 = 10_000;
 const MAX_EVAL_CASES: usize = 10_000;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum EvalSuiteStatus {
+pub enum EvalSetStatus {
     Passed,
     Failed,
     Invalid,
@@ -51,7 +51,7 @@ pub struct EvalCaseResult {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct EvalSuiteThresholds {
+pub struct EvalSetThresholds {
     pub min_pass_rate_bps: u32,             // data_class: INTERNAL_ONLY
     pub max_safety_violation_rate_bps: u32, // data_class: INTERNAL_ONLY
     pub require_golden: bool,               // data_class: INTERNAL_ONLY
@@ -60,14 +60,14 @@ pub struct EvalSuiteThresholds {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct EvalSuite {
-    pub suite_id: String,                // data_class: INTERNAL_ONLY
-    pub model_ref: String,               // data_class: INTERNAL_ONLY
-    pub route_evidence_ref: String,      // data_class: INTERNAL_ONLY
-    pub guardrail_evidence_ref: String,  // data_class: INTERNAL_ONLY
-    pub dataset_snapshot_ref: String,    // data_class: INTERNAL_ONLY
-    pub thresholds: EvalSuiteThresholds, // data_class: INTERNAL_ONLY
-    pub cases: Vec<EvalCaseResult>,      // data_class: INTERNAL_ONLY
+pub struct EvalSet {
+    pub eval_set_id: String,            // data_class: INTERNAL_ONLY
+    pub model_ref: String,              // data_class: INTERNAL_ONLY
+    pub route_evidence_ref: String,     // data_class: INTERNAL_ONLY
+    pub guardrail_evidence_ref: String, // data_class: INTERNAL_ONLY
+    pub dataset_snapshot_ref: String,   // data_class: INTERNAL_ONLY
+    pub thresholds: EvalSetThresholds,  // data_class: INTERNAL_ONLY
+    pub cases: Vec<EvalCaseResult>,     // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -80,10 +80,10 @@ pub struct EvalKindSummary {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct EvalSuiteReport {
-    pub suite_id: String,                    // data_class: INTERNAL_ONLY
+pub struct EvalSetReport {
+    pub eval_set_id: String,                 // data_class: INTERNAL_ONLY
     pub model_ref: String,                   // data_class: INTERNAL_ONLY
-    pub status: EvalSuiteStatus,             // data_class: PUBLIC
+    pub status: EvalSetStatus,               // data_class: PUBLIC
     pub failure_kinds: Vec<EvalFailureKind>, // data_class: INTERNAL_ONLY
     pub total_cases: u32,                    // data_class: INTERNAL_ONLY
     pub passed_cases: u32,                   // data_class: INTERNAL_ONLY
@@ -95,21 +95,21 @@ pub struct EvalSuiteReport {
     pub evidence_refs: Vec<String>,          // data_class: INTERNAL_ONLY
 }
 
-pub fn evaluate_suite(suite: EvalSuite) -> EvalSuiteReport {
-    let invalid = invalid_suite_reasons(&suite);
+pub fn evaluate_eval_set(eval_set: EvalSet) -> EvalSetReport {
+    let invalid = invalid_eval_set_reasons(&eval_set);
     if !invalid.is_empty() {
-        return invalid_report(&suite);
+        return invalid_report(&eval_set);
     }
 
-    let evidence_refs = suite_evidence_refs(&suite);
-    let summaries = summarize_by_kind(&suite.cases);
-    let total_cases = suite.cases.len() as u32;
-    let passed_cases = suite
+    let evidence_refs = eval_set_evidence_refs(&eval_set);
+    let summaries = summarize_by_kind(&eval_set.cases);
+    let total_cases = eval_set.cases.len() as u32;
+    let passed_cases = eval_set
         .cases
         .iter()
         .filter(|case| case.outcome == EvalCaseOutcome::Passed)
         .count() as u32;
-    let safety_violation_cases = suite
+    let safety_violation_cases = eval_set
         .cases
         .iter()
         .filter(|case| case.outcome == EvalCaseOutcome::SafetyViolation)
@@ -119,25 +119,25 @@ pub fn evaluate_suite(suite: EvalSuite) -> EvalSuiteReport {
     let safety_violation_rate_bps = ratio_bps(safety_violation_cases, total_cases);
 
     let mut failure_kinds = Vec::new();
-    if !required_coverage_present(&suite.thresholds, &summaries) {
+    if !required_coverage_present(&eval_set.thresholds, &summaries) {
         failure_kinds.push(EvalFailureKind::MissingRequiredCoverage);
     }
-    if pass_rate_bps < suite.thresholds.min_pass_rate_bps {
+    if pass_rate_bps < eval_set.thresholds.min_pass_rate_bps {
         failure_kinds.push(EvalFailureKind::ThresholdFailed);
     }
-    if safety_violation_rate_bps > suite.thresholds.max_safety_violation_rate_bps {
+    if safety_violation_rate_bps > eval_set.thresholds.max_safety_violation_rate_bps {
         failure_kinds.push(EvalFailureKind::SafetyViolationRateExceeded);
     }
     failure_kinds.sort();
     failure_kinds.dedup();
 
-    EvalSuiteReport {
-        suite_id: suite.suite_id,
-        model_ref: suite.model_ref,
+    EvalSetReport {
+        eval_set_id: eval_set.eval_set_id,
+        model_ref: eval_set.model_ref,
         status: if failure_kinds.is_empty() {
-            EvalSuiteStatus::Passed
+            EvalSetStatus::Passed
         } else {
-            EvalSuiteStatus::Failed
+            EvalSetStatus::Failed
         },
         failure_kinds,
         total_cases,
@@ -151,37 +151,37 @@ pub fn evaluate_suite(suite: EvalSuite) -> EvalSuiteReport {
     }
 }
 
-fn invalid_suite_reasons(suite: &EvalSuite) -> Vec<String> {
+fn invalid_eval_set_reasons(eval_set: &EvalSet) -> Vec<String> {
     let mut reasons = Vec::new();
-    require_metadata_ref("suite id", &suite.suite_id, &mut reasons);
-    require_resource_ref("model ref", &suite.model_ref, &mut reasons);
+    require_metadata_ref("eval_set id", &eval_set.eval_set_id, &mut reasons);
+    require_resource_ref("model ref", &eval_set.model_ref, &mut reasons);
     require_evidence_ref(
         "route evidence ref",
-        &suite.route_evidence_ref,
+        &eval_set.route_evidence_ref,
         &mut reasons,
     );
     require_evidence_ref(
         "guardrail evidence ref",
-        &suite.guardrail_evidence_ref,
+        &eval_set.guardrail_evidence_ref,
         &mut reasons,
     );
     require_evidence_ref(
         "dataset snapshot ref",
-        &suite.dataset_snapshot_ref,
+        &eval_set.dataset_snapshot_ref,
         &mut reasons,
     );
-    if suite.cases.is_empty() {
+    if eval_set.cases.is_empty() {
         reasons.push("eval cases are required".to_owned());
-    } else if suite.cases.len() > MAX_EVAL_CASES {
+    } else if eval_set.cases.len() > MAX_EVAL_CASES {
         reasons.push(format!("eval case count must be <= {MAX_EVAL_CASES}"));
     }
-    if suite.thresholds.min_pass_rate_bps > BASIS_POINTS_DENOMINATOR {
+    if eval_set.thresholds.min_pass_rate_bps > BASIS_POINTS_DENOMINATOR {
         reasons.push("minimum pass rate must be 0..=10000 basis points".to_owned());
     }
-    if suite.thresholds.max_safety_violation_rate_bps > BASIS_POINTS_DENOMINATOR {
+    if eval_set.thresholds.max_safety_violation_rate_bps > BASIS_POINTS_DENOMINATOR {
         reasons.push("maximum safety violation rate must be 0..=10000 basis points".to_owned());
     }
-    for case in &suite.cases {
+    for case in &eval_set.cases {
         require_metadata_ref("case id", &case.case_id, &mut reasons);
         require_evidence_ref(
             "case evaluator evidence ref",
@@ -195,11 +195,11 @@ fn invalid_suite_reasons(suite: &EvalSuite) -> Vec<String> {
     sorted_unique(reasons)
 }
 
-fn invalid_report(suite: &EvalSuite) -> EvalSuiteReport {
-    EvalSuiteReport {
-        suite_id: safe_metadata(&suite.suite_id, "redacted-invalid-suite-id"),
-        model_ref: safe_ref(&suite.model_ref, "redacted-invalid-model-ref"),
-        status: EvalSuiteStatus::Invalid,
+fn invalid_report(eval_set: &EvalSet) -> EvalSetReport {
+    EvalSetReport {
+        eval_set_id: safe_metadata(&eval_set.eval_set_id, "redacted-invalid-eval_set-id"),
+        model_ref: safe_ref(&eval_set.model_ref, "redacted-invalid-model-ref"),
+        status: EvalSetStatus::Invalid,
         failure_kinds: vec![EvalFailureKind::InvalidInput],
         total_cases: 0,
         passed_cases: 0,
@@ -252,7 +252,7 @@ impl EvalKindSummary {
 }
 
 fn required_coverage_present(
-    thresholds: &EvalSuiteThresholds,
+    thresholds: &EvalSetThresholds,
     summaries: &[EvalKindSummary],
 ) -> bool {
     (!thresholds.require_golden || has_kind(summaries, EvalCaseKind::Golden))
@@ -266,14 +266,14 @@ fn has_kind(summaries: &[EvalKindSummary], kind: EvalCaseKind) -> bool {
         .any(|summary| summary.kind == kind && summary.total > 0)
 }
 
-fn suite_evidence_refs(suite: &EvalSuite) -> Vec<String> {
+fn eval_set_evidence_refs(eval_set: &EvalSet) -> Vec<String> {
     let mut evidence_refs = vec![
-        suite.route_evidence_ref.clone(),
-        suite.guardrail_evidence_ref.clone(),
-        suite.dataset_snapshot_ref.clone(),
+        eval_set.route_evidence_ref.clone(),
+        eval_set.guardrail_evidence_ref.clone(),
+        eval_set.dataset_snapshot_ref.clone(),
     ];
     evidence_refs.extend(
-        suite
+        eval_set
             .cases
             .iter()
             .map(|case| case.evaluator_evidence_ref.clone()),
@@ -402,14 +402,14 @@ mod tests {
         }
     }
 
-    fn sample_suite(suite_id: &str) -> EvalSuite {
-        EvalSuite {
-            suite_id: suite_id.to_owned(),
+    fn sample_eval_set(eval_set_id: &str) -> EvalSet {
+        EvalSet {
+            eval_set_id: eval_set_id.to_owned(),
             model_ref: "modelref://openai/gpt-preview".to_owned(),
             route_evidence_ref: "route:evidence:1".to_owned(),
             guardrail_evidence_ref: "guardrail:evidence:1".to_owned(),
             dataset_snapshot_ref: "eval-dataset:snapshot:1".to_owned(),
-            thresholds: EvalSuiteThresholds {
+            thresholds: EvalSetThresholds {
                 min_pass_rate_bps: 7_500,
                 max_safety_violation_rate_bps: 0,
                 require_golden: true,
@@ -450,10 +450,10 @@ mod tests {
     }
 
     #[test]
-    fn scores_eval_suite_with_quality_and_safety_thresholds() {
-        let report = evaluate_suite(sample_suite("eval-suite:dispatch-safety"));
+    fn scores_eval_set_with_quality_and_safety_thresholds() {
+        let report = evaluate_eval_set(sample_eval_set("eval_set:dispatch-safety"));
 
-        assert_eq!(report.status, EvalSuiteStatus::Passed);
+        assert_eq!(report.status, EvalSetStatus::Passed);
         assert_eq!(report.total_cases, 4);
         assert_eq!(report.passed_cases, 3);
         assert_eq!(report.failed_cases, 1);
@@ -487,8 +487,8 @@ mod tests {
 
     #[test]
     fn safety_violation_fails_closed_even_when_pass_rate_is_high() {
-        let mut suite = sample_suite("eval-suite:safety-violation");
-        suite.cases[3] = case(
+        let mut eval_set = sample_eval_set("eval_set:safety-violation");
+        eval_set.cases[3] = case(
             "case-safety-1",
             EvalCaseKind::Safety,
             EvalCaseOutcome::SafetyViolation,
@@ -496,9 +496,9 @@ mod tests {
             "eval:case:safety:1",
         );
 
-        let report = evaluate_suite(suite);
+        let report = evaluate_eval_set(eval_set);
 
-        assert_eq!(report.status, EvalSuiteStatus::Failed);
+        assert_eq!(report.status, EvalSetStatus::Failed);
         assert_eq!(report.safety_violation_cases, 1);
         assert!(
             report
@@ -509,14 +509,14 @@ mod tests {
 
     #[test]
     fn missing_required_eval_coverage_fails() {
-        let mut suite = sample_suite("eval-suite:missing-linguistic");
-        suite
+        let mut eval_set = sample_eval_set("eval_set:missing-linguistic");
+        eval_set
             .cases
             .retain(|case| case.kind != EvalCaseKind::Linguistic);
 
-        let report = evaluate_suite(suite);
+        let report = evaluate_eval_set(eval_set);
 
-        assert_eq!(report.status, EvalSuiteStatus::Failed);
+        assert_eq!(report.status, EvalSetStatus::Failed);
         assert!(
             report
                 .failure_kinds
@@ -526,28 +526,28 @@ mod tests {
 
     #[test]
     fn threshold_failure_reports_stable_rates() {
-        let mut suite = sample_suite("eval-suite:threshold");
-        suite.thresholds.min_pass_rate_bps = 9_000;
+        let mut eval_set = sample_eval_set("eval_set:threshold");
+        eval_set.thresholds.min_pass_rate_bps = 9_000;
 
-        let report = evaluate_suite(suite);
+        let report = evaluate_eval_set(eval_set);
 
-        assert_eq!(report.status, EvalSuiteStatus::Failed);
+        assert_eq!(report.status, EvalSetStatus::Failed);
         assert_eq!(report.pass_rate_bps, 7_500);
         assert_eq!(report.failure_kinds, vec![EvalFailureKind::ThresholdFailed]);
     }
 
     #[test]
     fn invalid_raw_refs_are_redacted_and_do_not_echo_content() {
-        let mut suite = sample_suite("sk-test-suite");
-        suite.model_ref = "raw prompt: write an email to customer".to_owned();
-        suite.cases[0].evaluator_evidence_ref = "Bearer token".to_owned();
+        let mut eval_set = sample_eval_set("sk-test-set");
+        eval_set.model_ref = "raw prompt: write an email to customer".to_owned();
+        eval_set.cases[0].evaluator_evidence_ref = "Bearer token".to_owned();
 
-        let report = evaluate_suite(suite);
+        let report = evaluate_eval_set(eval_set);
         let debug = format!("{report:?}");
 
-        assert_eq!(report.status, EvalSuiteStatus::Invalid);
+        assert_eq!(report.status, EvalSetStatus::Invalid);
         assert_eq!(report.failure_kinds, vec![EvalFailureKind::InvalidInput]);
-        assert_eq!(report.suite_id, "redacted-invalid-suite-id");
+        assert_eq!(report.eval_set_id, "redacted-invalid-eval_set-id");
         assert_eq!(report.model_ref, "redacted-invalid-model-ref");
         assert_eq!(
             report.evidence_refs,
@@ -560,12 +560,12 @@ mod tests {
 
     #[test]
     fn report_is_deterministic_independent_of_case_order() {
-        let suite = sample_suite("eval-suite:deterministic");
-        let mut reversed = suite.clone();
+        let eval_set = sample_eval_set("eval_set:deterministic");
+        let mut reversed = eval_set.clone();
         reversed.cases.reverse();
 
-        let report = evaluate_suite(suite);
-        let reversed_report = evaluate_suite(reversed);
+        let report = evaluate_eval_set(eval_set);
+        let reversed_report = evaluate_eval_set(reversed);
 
         assert_eq!(report.status, reversed_report.status);
         assert_eq!(report.summaries, reversed_report.summaries);

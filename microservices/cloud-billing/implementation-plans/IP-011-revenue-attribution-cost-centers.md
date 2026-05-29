@@ -8,7 +8,7 @@ owner: axis-cloud-billing
 status: drafted
 priority: P0
 binding_adrs: [ADR-0242, ADR-0330, ADR-0244, ADR-0263, ADR-0145]
-counterpart_parity: [Stripe Connect platform fees, Recurly revenue recognition, AWS Billing Conductor, FinOps Framework]
+counterpart_parity: [Stripe platform fees, Recurly revenue recognition, AWS Billing Conductor, FinOps Framework]
 capabilities_touched:
   - cap.cloud.billing.compute_settlement
   - cap.cloud.billing.initiate_payout
@@ -240,8 +240,8 @@ Per `settlement-gates.cedar` lines 116–126:
 
 | Counterpart | Their concept | Oyatie equivalent | Delta |
 |---|---|---|---|
-| Stripe Connect | `application_fee_amount` per Charge; payouts to connected_account | revenue_share commission_rate × gross_amount = commission_amount | Stripe deducts at charge time; oyatie aggregates monthly. |
-| Stripe Connect | Standard/Express/Custom account types | Single `revenue_share` component on paid tenant_class | Oyatie collapses Stripe's three account types into one component with direction enum. |
+| Stripe | `application_fee_amount` per Charge; payouts to connected_account | revenue_share commission_rate × gross_amount = commission_amount | Stripe deducts at charge time; oyatie aggregates monthly. |
+| Stripe | Standard/Express/Custom account types | Single `revenue_share` component on paid tenant_class | Oyatie collapses Stripe's three account types into one component with direction enum. |
 | AWS Billing Conductor | Per-linked-account allocation rules with custom rates | Cost-center hierarchy + attribution-engine | AWS Conductor is for chargeback within an org; oyatie's attribution is the same shape per tenant. |
 | FinOps Framework | "Showback" + "Chargeback" cost allocation patterns | finops-portal reads cost-center attribution; cloud-billing enforces the binding | Direct parity. |
 | Recurly revenue recognition | ASC 606 module computing recognized revenue per period | Recognition computed at FOCUS / ERP export (IP-015) | Oyatie separates recognition from settlement; Recurly bundles. |

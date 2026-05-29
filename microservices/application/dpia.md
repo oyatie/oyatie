@@ -48,7 +48,7 @@ Shell triggers two of the three Art. 35(3) automatic triggers:
 | Trigger | Engaged? | Reasoning |
 |---|---|---|
 | Art. 35(3)(a): Systematic + extensive evaluation including profiling | **YES** | Per-request Cedar policy evaluation is quasi-automated; the route-resolve decision affects which surfaces an employee may access. |
-| Art. 35(3)(b): Large-scale processing of special-category data | **YES (conditional)** | Pack-us-healthcare modules can render PHI in the shell; pack-kr KR PIPA Art. 23 sensitive data may appear in module-rendered content. Conditional ⇒ pack-activated. |
+| Art. 35(3)(b): Large-scale processing of special-category data | **YES (conditional)** | Pack-us-healthcare-regulated surfaces can render PHI in the shell; pack-kr KR PIPA Art. 23 sensitive data may appear in module-rendered content. Conditional ⇒ pack-activated. |
 | Art. 35(3)(c): Systematic monitoring of publicly accessible area | NO | Application Shell does not monitor public-area cameras / IoT. |
 
 KR PIPC Notice 2020-7 also mandates a DPIA for systems processing sensitive
@@ -90,7 +90,7 @@ operators; CI runners; module publishers; external auditors.
 | `PII_QUASI_IDENTIFIER` | IP address; user-agent; route history | Art. 6(1)(f) legitimate interest (security operations) | per request |
 | `BEHAVIORAL_TENANT_PRODUCT` | Module access counts; admin action timestamps | Art. 6(1)(b) + Art. 6(1)(f) | per click |
 | `SENSITIVE_PIPA_ART23` | Hashed customer-id + auxiliary data combos | KR PIPA Art. 15 + 23 (explicit consent at tenant onboarding) | 1 per session |
-| `SENSITIVE_HIPAA_PHI` (conditional) | Possible when a healthcare module renders PHI in shell-iframe | HIPAA §164.502(b) minimum-necessary; BAA-required tenant only | varies |
+| `SENSITIVE_HIPAA_PHI` (conditional) | Possible when a healthcare-regulated surface renders PHI in shell-iframe | HIPAA §164.502(b) minimum-necessary; BAA-required tenant only | varies |
 | `AUDIT` | Admin actions, route denials, session lifecycle events | Art. 6(1)(c) legal obligation (audit) | per admin action |
 
 **Sub-processors:**

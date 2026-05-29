@@ -134,7 +134,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Show `accounting`, `payments`, `finops-portal`, and `treasury`.
 - Dialogue: "ADR-0315 says no monolithic ERP microservice. Financial accounting composes across ownership boundaries."
 - Click module group `MM`.
-- Show `marketplace`, `workflow-engine`, `connect`, and `warehouse`.
+- Show `marketplace`, `workflow-engine`, `connector`, and `warehouse`.
 - Click module group `PP`.
 - Show `production-planning`.
 - Click module group `QM`.
@@ -206,7 +206,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Click `Plant Incident CAPA`.
 - Select incident `bearing-defect-monterrey-042`.
 - Click `Replay From Intake`.
-- Dialogue: "Now we move beyond finance into operations, where ERP suites often need heavy customization."
+- Dialogue: "Now we move beyond finance into operations, where ERP platforms often need heavy customization."
 - Click `Inspect Quality Notification`.
 - Show lot, line, material, supplier, and customer packet impact.
 - Click `Inventory Hold`.
@@ -520,7 +520,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Hi {{first_name}},
 - Thank you for the time today.
 - We walked through a Fortune 500 ERP replacement path using the fictional Helios Industries tenant fixture.
-- The key thesis was module-first replacement rather than another monolithic ERP suite.
+- The key thesis was module-first replacement rather than another monolithic ERP platform.
 - The demo covered tenant posture, SAP-class parity mapping, supplier lineage, purchase-to-pay workflow, quality hold CAPA, Cedar denial, compliance pack overlays, migration dry run, and FinOps modeling.
 - The strongest candidate assessment scope we discussed was:
 - Plant: {{plant_or_region}}
@@ -568,6 +568,6 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Microsoft Dynamics 365 documentation: https://learn.microsoft.com/en-us/dynamics365/
 - Workday Financial Management product page: https://www.workday.com/en-us/products/financial-management.html
 - NetSuite ERP product page: https://www.netsuite.com/portal/products/erp.shtml
-- Stripe Connect documentation: https://docs.stripe.com/connect
+- Stripe documentation: https://docs.stripe.com/connect
 - EU GDPR Regulation 2016/679: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679
 - EU AI Act Regulation 2024/1689: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689

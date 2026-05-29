@@ -15,7 +15,7 @@ doc_status: published
 
 Define the structural invariant that **Personal-context** and **Professional-context** file data are isolated at code-level and policy-level, never co-mingled or cross-referenced.
 
-This artifact carries Bominal ADR-0208 inheritance (Connect dual-context unified-channel hub) forward to the drive µservice per `feedback_bominal_inheritance_precedence.md`. Per ADR-0135 + ADR-0140 the invariant is preserved + strengthened in the new flat layout.
+This artifact carries Bominal ADR-0208 inheritance (dual-context unified-channel hub) forward to the drive µservice per `feedback_bominal_inheritance_precedence.md`. Per ADR-0135 + ADR-0140 the invariant is preserved + strengthened in the new flat layout.
 
 ## Invariant (binding contract)
 
@@ -86,7 +86,7 @@ The user MAY explicitly grant Personal → Professional file read for a specific
 
 ## Hyrum's-Law surface preservation
 
-Per the Strangler migration in ADR-0134, the legacy `oya-connect-drive-domain` dual-context invariant is preserved in the new layout verbatim. The `FileContextBoundaryGuard` port trait signature is identical; the refusal error variant `DriveCrossContextRefused` is identical. Consumers wrapping the boundary guard via the legacy import path see identical refusal behaviour after migration.
+Per the Strangler migration in ADR-0134, the legacy `oya-drive-domain` dual-context invariant is preserved in the new layout verbatim. The `FileContextBoundaryGuard` port trait signature is identical; the refusal error variant `DriveCrossContextRefused` is identical. Consumers wrapping the boundary guard via the legacy import path see identical refusal behaviour after migration.
 
 ## CI lanes
 
@@ -112,9 +112,9 @@ cargo nextest run --test e2e_dual_context_isolation
 - ADR-0028 (Bominal): audit chain.
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.
-- ADR-0135: Connect unbundle dual-context inheritance.
+- ADR-0135: unbundle dual-context inheritance.
 - ADR-0140: Cedar policy enforcement.
-- Bominal ADR-0208: Connect dual-context unified-channel hub.
+- Bominal ADR-0208: dual-context unified-channel hub.
 - `policy/tenant-scope.cedar`.
 - `microservices/drive/threat-model.md` (T-I-02).
 - `microservices/drive/PRD.md` (AC-07).

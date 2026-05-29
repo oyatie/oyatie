@@ -3,31 +3,31 @@
   "_artifact_id": "bominal-inheritance-overrides-registry",
   "_meta": {
     "doc_class": "Registry",
-    "purpose": "Machine-readable mirror of docs/MASTERPLAN.md \u00a73 9-row inheritance-override table per ADR-0060. Default posture: oyatie inherits Bominal ADR decisions 1:1 with glossary translation. Each row here is an EXPLICIT override where oyatie diverges from Bominal canonical. Consumed by future `oya-check-architecture --bominal-inheritance` sub-check (per masterplan \u00a7Follow-up #6 + ADR-0064 \u00a77/\u00a78 lane family). Any oyatie ADR/ralplan picking a choice differing from Bominal's same-scope ADR MUST appear here OR cite supersession of the Bominal ADR.",
+    "purpose": "Machine-readable mirror of docs/MASTERPLAN.md §3 9-row inheritance-override table per ADR-0060. Default posture: oyatie inherits Bominal ADR decisions 1:1 with glossary translation. Each row here is an EXPLICIT override where oyatie diverges from Bominal canonical. Consumed by future `oya-check-architecture --bominal-inheritance` sub-check (per masterplan §Follow-up #6 + ADR-0064 §7/§8 lane family). Any oyatie ADR/ralplan picking a choice differing from Bominal's same-scope ADR MUST appear here OR cite supersession of the Bominal ADR.",
     "owner_team": "council-architecture",
     "version": "1.0.0",
     "created_at": "2026-05-14T00:00:00Z",
-    "authority_anchor": "docs/MASTERPLAN.md \u00a73 + ADR-0060 + .omc/plans/ralplan-freelance-prevention-controls-2026-05-14.md \u00a76(c)",
+    "authority_anchor": "docs/MASTERPLAN.md §3 + ADR-0060 + .omc/plans/ralplan-freelance-prevention-controls-2026-05-14.md §6(c)",
     "consumer_lanes": [
       "oya-check-architecture --bominal-inheritance (M02-P20 IP-005 expansion; co-located with canonical-base-neutrality + cross-pack-refusal sub-checks per ADR-0064)"
     ],
-    "parity_source": "docs/MASTERPLAN.md \u00a73 inheritance posture table (single source of truth; this registry MUST round-trip-equal that table parsed)"
+    "parity_source": "docs/MASTERPLAN.md §3 inheritance posture table (single source of truth; this registry MUST round-trip-equal that table parsed)"
   },
   "overrides": [
     {
       "override_id": "workflow-placement",
-      "scope": "\u00b5service-placement",
-      "oyatie_decision": "shared \u00b5service; `oya-workflow-*`",
+      "scope": "µservice-placement",
+      "oyatie_decision": "shared µservice; `oya-workflow-*`",
       "bominal_canonical_ref": "Bominal Workflow vertical-placement (legacy)",
       "adr_cite_oyatie": "ADR-0059 (Workflow + Ontology = adapter layer)",
-      "rationale": "Workflow is the inter-\u00b5service action/orchestration adapter; pack-isolation + flat-catalog mandate this be shared, not verticalized."
+      "rationale": "Workflow is the inter-µservice action/orchestration adapter; pack-isolation + flat-catalog mandate this be shared, not verticalized."
     },
     {
       "override_id": "ontology-naming",
       "scope": "glossary",
       "oyatie_decision": "Ontology (Palantir term)",
       "bominal_canonical_ref": "Bominal `object-graph` glossary",
-      "adr_cite_oyatie": "(no dedicated ADR; recorded in MASTERPLAN \u00a72.4 glossary table)",
+      "adr_cite_oyatie": "(no dedicated ADR; recorded in MASTERPLAN §2.4 glossary table)",
       "rationale": "Palantir-equivalent term; clearer industry alignment."
     },
     {
@@ -35,21 +35,21 @@
       "scope": "glossary",
       "oyatie_decision": "`platform` retired; `shared` canonical",
       "bominal_canonical_ref": "Bominal `platform` terminology",
-      "adr_cite_oyatie": "(MASTERPLAN \u00a72.4)",
+      "adr_cite_oyatie": "(MASTERPLAN §2.4)",
       "rationale": "Reduces ambiguity with cloud-platform-as-product terminology."
     },
     {
       "override_id": "vertical-arm-grouping",
       "scope": "catalog-shape",
-      "oyatie_decision": "Flat \u00b5service catalog; Arms retired",
+      "oyatie_decision": "Flat µservice catalog; Arms retired",
       "bominal_canonical_ref": "Bominal Vertical/Arm/Product-Group grouping",
       "adr_cite_oyatie": "ADR-0056 + ADR-0058",
-      "rationale": "Flat catalog enables \u00e0-la-carte tenant enablement (AWS-console model); per pillar #3 of consensus-masterplan."
+      "rationale": "Flat catalog enables à-la-carte tenant enablement (AWS-console model); per pillar #3 of consensus-masterplan."
     },
     {
       "override_id": "bnf-shared-vertical-slot",
       "scope": "naming-grammar",
-      "oyatie_decision": "\u00b5service name (open kebab) \u2014 retired binary",
+      "oyatie_decision": "µservice name (open kebab) — retired binary",
       "bominal_canonical_ref": "Bominal BNF slot2 = `shared|vertical` enum",
       "adr_cite_oyatie": "ADR-0056 BNF v4.1",
       "rationale": "Composes with flat catalog override; binary slot was a vertical-grouping artifact."
@@ -57,10 +57,10 @@
     {
       "override_id": "workspace-product-rename",
       "scope": "product-naming",
-      "oyatie_decision": "Workspace \u2192 Connect dual-context",
-      "bominal_canonical_ref": "Bominal Workspace \u00b5service naming",
+      "oyatie_decision": "Workspace → dual-context",
+      "bominal_canonical_ref": "Bominal Workspace µservice naming",
       "adr_cite_oyatie": "ADR-0087 (microservice connect)",
-      "rationale": "Connect dual-context (Professional B2B + Personal B2C) per oyatie GTM split."
+      "rationale": "dual-context (Professional B2B + Personal B2C) per oyatie GTM split."
     },
     {
       "override_id": "shell-terminology",
@@ -73,9 +73,9 @@
     {
       "override_id": "sales-segmentation-non-architectural",
       "scope": "architecture-scope",
-      "oyatie_decision": "GTM only \u2014 NOT architecture",
+      "oyatie_decision": "GTM only — NOT architecture",
       "bominal_canonical_ref": "Bominal Healthcare / Enterprise / FinTech / Social vertical labels",
-      "adr_cite_oyatie": "(MASTERPLAN \u00a72.4 trailer)",
+      "adr_cite_oyatie": "(MASTERPLAN §2.4 trailer)",
       "rationale": "Sales segmentation labels do not appear in crate names, directory names, or architectural docs."
     },
     {
@@ -84,7 +84,7 @@
       "oyatie_decision": "Workflow + Ontology = THE ecosystem adapter layer",
       "bominal_canonical_ref": "(Bominal: implicit cross-product integration; no centrality rule)",
       "adr_cite_oyatie": "ADR-0059",
-      "rationale": "LEAN-A2 cross-\u00b5service-refusal check enforces this invariant; central to oyatie architecture."
+      "rationale": "LEAN-A2 cross-µservice-refusal check enforces this invariant; central to oyatie architecture."
     }
   ],
   "known_inheritance_violations": [
@@ -97,11 +97,11 @@
       "override_registered": false,
       "supersession_registered": false,
       "verdict": "Inheritance violation by omission; freelance failed to either inherit ADR-0209 or write an override ADR.",
-      "remediation": ".omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md \u00a76(a) reclassifies the 4 oya-ops-docs-portal-* crates + 2 OpenAPI contracts as prototype/learning artifacts; Wave 1 substrate rebuilds against Leptos SSR per docs sub-plan \u00a76(a) at M03-P04 IP-X1 dispatch."
+      "remediation": ".omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md §6(a) reclassifies the 4 oya-ops-docs-portal-* crates + 2 OpenAPI contracts as prototype/learning artifacts; Wave 1 substrate rebuilds against Leptos SSR per docs sub-plan §6(a) at M03-P04 IP-X1 dispatch."
     }
   ],
   "honest_gaps": [
-    "MASTERPLAN \u00a73 has 9 override rows; this registry mirrors all 9. Parity sub-check (per ralplan \u00a74 Scenario 3) is the load-bearing guard against drift between the markdown table and this JSON.",
+    "MASTERPLAN §3 has 9 override rows; this registry mirrors all 9. Parity sub-check (per ralplan §4 Scenario 3) is the load-bearing guard against drift between the markdown table and this JSON.",
     "known_inheritance_violations[] is a NEW field for retrospective lane fixtures; consumed by `oya-check-architecture --bominal-inheritance` as known-violation golden fixtures (freelance-hyper-direct-rest-vs-leptos-ssr row is the seed regression test)."
   ],
   "purpose": "Auto-backfilled purpose for bominal-inheritance-overrides.json"

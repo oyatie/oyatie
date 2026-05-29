@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/catalog.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/catalog.schema.json",
   "title": "DesignSystemCatalog",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
@@ -18,7 +18,7 @@
     "$ref:specs/design-system/audit-evidence-timeline.json",
     "$ref:specs/design-system/cloud-cell-topology-map.json",
     "$ref:specs/design-system/communication-thread-list.json",
-    "$ref:specs/design-system/connect-shell-persona-switcher.json",
+    "$ref:specs/design-system/tenant-context-switcher.json",
     "$ref:specs/design-system/entity-action-policy-preview.json",
     "$ref:specs/design-system/foundry-agent-run-timeline.json",
     "$ref:specs/design-system/hr-aggregate-insights-dashboard.json",
@@ -88,7 +88,7 @@
   ],
   "reuse_audit_2026_05_17_connect_social_expansion": {
     "status": "complete",
-    "scope": "PR #130 Connect social/shorts/anonymous design-system additions plus community successor components for retired network content",
+    "scope": "PR #130 social/shorts/anonymous design-system additions plus community successor components for retired network content",
     "new_component_refs": [
       "$ref:specs/design-system/anon-channel-feed.json",
       "$ref:specs/design-system/anon-post-composer.json",
@@ -109,7 +109,7 @@
       "$ref:specs/design-system/stories-ring-bar.json"
     ],
     "reused_existing_components": [
-      "$ref:specs/design-system/connect-shell-persona-switcher.json",
+      "$ref:specs/design-system/tenant-context-switcher.json",
       "$ref:specs/design-system/communication-thread-list.json",
       "$ref:specs/design-system/policy-disclosure-banner.json",
       "$ref:specs/design-system/ontology-graph-explorer.json",
@@ -139,14 +139,14 @@
       {
         "component": "hr-aggregate-insights-dashboard",
         "decision": "new-with-co-owner-review",
-        "rationale": "Connect anonymous aggregate dashboard touches HR semantics but remains a Connect product surface"
+        "rationale": "anonymous aggregate dashboard touches HR semantics but remains a product surface"
       },
       {
         "component": "salary-benchmark-widget",
         "decision": "new-with-co-owner-review",
-        "rationale": "Salary benchmark UI is Connect anonymous UX with HR/corporate review required before implementation"
+        "rationale": "Salary benchmark UI is anonymous UX with HR/corporate review required before implementation"
       }
     ],
-    "owner_collision_resolution": "HR-named anonymous components stay in Connect product scope but require vertical-corporate HR review before implementation."
+    "owner_collision_resolution": "HR-named anonymous components stay in product scope but require vertical-corporate HR review before implementation."
   }
 }

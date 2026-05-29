@@ -45,9 +45,10 @@ fn main() -> ExitCode {
             );
             return ExitCode::SUCCESS;
         }
-        ("git", [cmd, name_only, range, sep, pathspec])
+        ("git", [cmd, name_only, diff_filter, range, sep, pathspec])
             if cmd == "diff"
                 && name_only == "--name-only"
+                && diff_filter == "--diff-filter=A"
                 && range == "origin/dev...HEAD"
                 && sep == "--"
                 && pathspec == "docs/decisions/ADR-*.md" =>

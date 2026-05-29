@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  changeset: CS-LLM-GATEWAY-AGENT-DISPATCH-001
+  changeset: CS-CLOUD-INTELLIGENCE-AGENT-DISPATCH-001
   source_adrs: [ADR-0105, ADR-0131, ADR-0384]
 non_claims:
   - composition root for the OAuth subscription-pool µservice — wires kernel + Cedar adapter + REST adapter + real OpenBao Transit (D8) + ClickHouse + Valkey Stream EventSink adapters (D6) into a runnable axum binary

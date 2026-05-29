@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j164/kakutei-shinkoku-form.json",
+  "$id": "https://oyatie.com/schemas/j164/kakutei-shinkoku-form.json",
   "title": "Japan 確定申告書B (Kakutei-Shinkoku Form B) — Individual Pensioner Subset",
   "description": "JSON schema for Japan's annual individual income tax filing form (Form B), scoped to the subset of fields applicable to a retired individual (pensioner) profile such as Hiroshi Tanaka. Schema covers income, deductions, withholding, computed tax, refund. Full form has more sections; this subset is the operational projection for j164.",
   "type": "object",

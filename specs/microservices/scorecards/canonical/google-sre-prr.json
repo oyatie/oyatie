@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/google-sre-prr.json",
+  "$schema": "https://oyatie.com/schemas/google-sre-prr.json",
   "canonical_base": true,
   "framework": "Google SRE Production Readiness Review",
   "framework_version": "2024",

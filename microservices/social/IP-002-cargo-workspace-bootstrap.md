@@ -23,9 +23,9 @@ Create the per-microservice flat Cargo workspace and only the crate paths alread
 | Artifact | Role |
 |---|---|
 | `manifest.json` | Machine-readable crate and contract source. |
-| `catalog/oya-social-*.yaml` | Existing crate inventory anchors. |
-| `src/crates/oya-social-app/` | Planned composition root named by catalog. |
-| `src/crates/oya-social-{user-profile,follow-graph,post-composition,feed-timeline,content-moderation,search}-*/` | Planned crate families already named by PRD/catalog/IPs. |
+| `catalog/oya-community-social-*.yaml` | Existing crate inventory anchors. |
+| `src/crates/oya-community-social-app/` | Planned composition root named by catalog. |
+| `src/crates/oya-community-social-{user-profile,follow-graph,post-composition,feed-timeline,content-moderation,search}-*/` | Planned crate families already named by PRD/catalog/IPs. |
 
 ## D. Ordered implementation steps
 1. Create workspace manifests with one package per named catalog crate.

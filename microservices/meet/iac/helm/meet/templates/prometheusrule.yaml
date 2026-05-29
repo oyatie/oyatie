@@ -36,7 +36,7 @@ spec:
             microservice: meet
           annotations:
             summary: "meet participant-join fast-burn (14.4x) for 5m"
-            runbook_url: "https://oyatie.dev/microservices/meet/runbooks/sfu-degraded"
+            runbook_url: "https://oyatie.com/microservices/meet/runbooks/sfu-degraded"
 
         - alert: MeetMediaG2GLatencyP99High
           expr: |

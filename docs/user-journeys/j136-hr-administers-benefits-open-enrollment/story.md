@@ -216,7 +216,7 @@ Each form submission triggers `benefits-enrollment-v3` workflow per employee. Th
 1. Validates per-jurisdiction overlay (plan eligibility, contribution limits)
 2. Stores election in canonical store (Forms)
 3. Confirms via Mail to employee
-4. Notifies relevant benefits-provider tenant(s) via Connect cross-tenant
+4. Notifies relevant benefits-provider tenant(s) via cross-tenant
 5. Sets up payroll deduction (in Payments + payroll system; payroll runs January 2027)
 6. Seals to audit-chain
 
@@ -246,7 +246,7 @@ Workflow-Engine generates per-provider bulk export packages:
 - TenantJ.kr (KR Retirement Pension): 1,200-employee push with DB vs DC choices
 - TenantI.in (IN EPF + medical): 1,000-employee push with EPF nominations + medical dependents
 
-Each push uses Connect cross-tenant gRPC. Per ADR-0244, B2B_BENEFITS_PROVIDER audience-type. Per-push Cedar permit.
+Each push uses cross-tenant gRPC. Per ADR-0244, B2B_BENEFITS_PROVIDER audience-type. Per-push Cedar permit.
 
 ```cedar
 permit (

@@ -90,7 +90,7 @@ when {
 };
 
 // =====================================================================================
-// CI: rate-limit on share-link mint to prevent test-suite share-link enumeration.
+// CI: rate-limit on share-link mint to prevent test-set share-link enumeration.
 // =====================================================================================
 
 forbid (

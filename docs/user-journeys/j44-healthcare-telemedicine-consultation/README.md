@@ -58,7 +58,7 @@ Purpose: Index and build contract for Healthcare telemedicine consultation with 
 - ../../microservices/meet/IP-journey-j44-telemedicine-room.md: meet implementation slice.
 - ../../microservices/intelligence/IP-journey-j44-clinical-transcription.md: intelligence implementation slice.
 - ../../microservices/notes/IP-journey-j44-consult-note.md: notes implementation slice.
-- ../../microservices/connect/IP-journey-j44-ehr-export.md: connect implementation slice.
+- ../../microservices/connector/IP-journey-j44-ehr-export.md: connect implementation slice.
 - ../../microservices/compliance/IP-journey-j44-hipaa-consult-overlay.md: compliance implementation slice.
 - ../../microservices/audit-chain/IP-journey-j44-consult-seal.md: audit-chain implementation slice.
 ## Integration points

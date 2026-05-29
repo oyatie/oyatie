@@ -33,14 +33,14 @@ bominal_source: |
   (HR/payroll vs. Connect-dissolution) so the two IDs never coexist in a
   single artifact.
 purpose: |
-  Decompose the legacy Connect super-app into 8 first-class, flat, single-concern
+  Decompose the legacy super-app into 8 first-class, flat, single-concern
   µservices per ADR-0131 + ADR-0132. Establish the new µservice topology,
   per-µservice SLO authority, per-µservice ChangeSet lane, and the umbrella
   retirement trigger that ADR-0237 then operationalises as a Strangler-pattern
   migration.
 ---
 
-# ADR-0238: Connect super-app expansion into 8 flat µservices
+# ADR-0238: super-app expansion into 8 flat µservices
 
 ## Status
 
@@ -52,16 +52,16 @@ Accepted — 2026-05-17.
 
 ## Context
 
-The legacy `Connect` super-app — inherited as a Bominal-shaped suite wrapper —
+The legacy `Connect` super-app — inherited as a Bominal-shaped grouping wrapper —
 bundled mail, messenger, calendar, community, social, shorts (short-form video),
 network (professional graph) and anonymous (zero-knowledge messaging) into a
 single product line with shared release cadence, shared SLOs, shared deployment
 topology, and shared identity surface. The wrapper materialised in oyatie as:
 
-- `crates/oya-connect-mail-domain` (extant) and the planned `oya-connect-mail-*`
+- `crates/oya-mail-domain` (extant) and the planned `oya-mail-*`
   layer fan-out (kernel, usecase, api, adapter, rest, worker, sdk, app).
-- `crates/oya-connect-messenger-domain` (extant) and its planned layer fan-out.
-- `crates/oya-connect-calendar-domain` (extant) and its planned layer fan-out.
+- `crates/oya-messenger-domain` (extant) and its planned layer fan-out.
+- `crates/oya-calendar-domain` (extant) and its planned layer fan-out.
 - Speculative crates for community / social / shorts / network / anonymous that
   were *scoped but never landed* (zero crates of those names exist in the
   current workspace — verified 2026-05-17 via `find crates -maxdepth 1 -type d
@@ -91,14 +91,14 @@ Three structural pressures forced the unbundling:
    a single `Connect` µservice forces the strictest overlay onto all eight,
    pricing every surface at the cost of the most-regulated one.
 
-ADR-0132 establishes the universal no-suite forward-policy and explicitly
+ADR-0132 establishes the universal no-grouping forward-policy and explicitly
 delegates Connect-specific topology to this ADR. ADR-0131 establishes the
 per-µservice flat layout each new µservice must adopt. This ADR is the
 Connect-specific decomposition decision body that completes the triple.
 
 ## Decision
 
-The legacy Connect super-app is **dissolved** into first-class flat
+The legacy super-app is **dissolved** into first-class flat
 µservices and community-hosted posting modes, each owning one user-facing
 concern per ADR-0131:
 
@@ -108,7 +108,7 @@ concern per ADR-0131:
 | `messenger` | Real-time messaging (channels, DMs, threads, MLS E2E, huddles, presence) | `microservices/messenger/` | `oya-messenger-*` |
 | `calendar` | Scheduling (events, invitations, recurring, CalDAV, time-zones, rooms) | `microservices/calendar/` | `oya-calendar-*` |
 | `community` | Forum-class post store, thread trees, voting, moderation, KB articles, Teamblind-style anonymous workplace discussion, Handshake-style jobs/recruitment, and LinkedIn jobs/profile/recruiter subset absorbed from retired network | `microservices/community/` | `oya-community-*` |
-| `social` | Personal-context feed, interactions, follow graph | `microservices/social/` | `oya-social-*` |
+| `social` | Personal-context feed, interactions, follow graph | `microservices/social/` | `oya-community-social-*` |
 | `shorts` | Short-form video (ingest, transcode, feed, CDN) | `microservices/shorts/` | `oya-shorts-*` |
 | `community` (anonymity-mode) | Anonymity posting-mode capability tier within community: persona-anchored (TeamBlind-class), pseudonymous (Reddit-class), fully-anonymous (whistleblower/press-source/bug-bounty per ADR-0300) | `microservices/community/` (see `community/policy/anonymity-mode-*.cedar`) | `oya-community-*` |
 
@@ -139,9 +139,9 @@ concern per ADR-0131:
    (mail, messenger, calendar, social, anonymous). Details never cross context
    boundaries except via explicit invitation or policy-bound projection.
 
-### Connect umbrella µservice retirement trigger
+### umbrella µservice retirement trigger
 
-The Connect umbrella µservice (currently materialised only as the
+The umbrella µservice (currently materialised only as the
 `crates/oya-connect-{mail,messenger,calendar}-domain` legacy stubs plus three
 `/specs/microservices/*.json` reference pointers) **retires** when **all 8**
 of the following conditions hold simultaneously:
@@ -155,13 +155,13 @@ of the following conditions hold simultaneously:
 7. HG-NETWORK accepts at p99 SLOs sustained 30d.
 8. HG-ANONYMOUS accepts at p99 SLOs sustained 30d.
 
-Until all 8 trigger, the Connect umbrella stubs remain in place and the
+Until all 8 trigger, the umbrella stubs remain in place and the
 Strangler-pattern migration owned by ADR-0237 governs traffic-shifting,
 deprecation notices, and the eventual code-removal sweep.
 
 ## Alternatives Considered
 
-### (a) Keep the Connect umbrella µservice
+### (a) Keep the umbrella µservice
 
 - **Pros**:
   - Zero migration cost — current state preserved.
@@ -188,7 +188,7 @@ deprecation notices, and the eventual code-removal sweep.
     materialised as crates).
   - Mail + messenger have the most distinct scaling dimensions (mailbox-count
     vs. persistent-connection-count); biggest win for least disruption.
-  - Calendar can stay bundled with Connect because CalDAV scaling is closer to
+  - Calendar can stay bundled with because CalDAV scaling is closer to
     mail's pattern.
 - **Cons**:
   - Leaves calendar / community / social / shorts / network / anonymous in a
@@ -224,12 +224,12 @@ deprecation notices, and the eventual code-removal sweep.
   - 8 HG gates to author, 8 OpenSLO files to author, 8 PRDs to author, 8 IaC
     slices to author.
   - Brand-layer concept of "Connect" persists only in marketing copy; some
-    end-user-facing surfaces must rename (e.g., "Connect Mail" → "Mail").
+    end-user-facing surfaces must rename (e.g., "Mail" → "Mail").
 - **Accepted** despite higher one-time cost because (i) the terminal-state
   shape matches the rest of oyatie's flat catalog, (ii) the Strangler
   migration in ADR-0237 spreads the cost over 6–12 months, and (iii) ADR-0132
   forward-policy already constrains every new µservice to this shape — making
-  Connect the only legacy exception would be a unique-snowflake violation.
+  the only legacy exception would be a unique-snowflake violation.
 
 ## Consequences
 
@@ -252,8 +252,8 @@ deprecation notices, and the eventual code-removal sweep.
 
 ### Negative
 
-- **3 legacy crate families need explicit deprecation.** `oya-connect-mail-*`,
-  `oya-connect-messenger-*`, `oya-connect-calendar-*` exist today; ADR-0237
+- **3 legacy crate families need explicit deprecation.** `oya-mail-*`,
+  `oya-messenger-*`, `oya-calendar-*` exist today; ADR-0237
   owns their Strangler migration to `oya-{mail,messenger,calendar}-*`.
 - **5 net-new µservices to stand up.** `community` (PRD authored, 126 files populated as of 2026-05-17 scaffold), `social` (96 files populated), `shorts` (97 files populated), `network` (100 files populated), `anonymous`
   (102 files populated). Each needs PRD + threat-model + dpia + compliance + capacity-model
@@ -282,9 +282,9 @@ deprecation notices, and the eventual code-removal sweep.
   (REPORT-ONLY on dev until HG-MAIL, HG-MESSENGER, HG-CALENDAR all green;
   then BLOCKER for the umbrella-retirement ChangeSet).
 - **Per-µservice CI lanes** already covered by `per-microservice-layout`
-  (ADR-0131) and `no-new-suite-bundles` (ADR-0132). No additional lane needed.
+  (ADR-0131) and `no-grouping` (ADR-0132). No additional lane needed.
 - **Deprecation surface:** `microservices/{mail,messenger,calendar}/deprecation-notice.md`
-  (authored per ADR-0237); `microservices/connect/RETIREMENT-PLAN.md` (this
+  (authored per ADR-0237); `microservices/connector/RETIREMENT-PLAN.md` (this
   ADR cycle).
 
 ## Clean Architecture Impact
@@ -293,8 +293,8 @@ deprecation notices, and the eventual code-removal sweep.
 |---|---|---|
 | `dependency-direction` (LEAN-A1) | Reinforced — no cross-µservice direct imports | per-µservice owners ensure no `use oya_<other-ms>_*` in their crates |
 | `per-microservice-layout` (ADR-0131) | Reinforced — 8 new conforming layouts | each new µservice ships flat per ADR-0131 |
-| `no-new-suite-bundles` (ADR-0132) | Reinforced — Connect dissolution is the terminal-state proof | this ADR proves the policy at concrete scale |
-| `connect-umbrella-retirement-readiness` (NEW, lane authored under ADR-0237) | New REPORT-ONLY→BLOCKER | gates the eventual `microservices/connect/` folder removal |
+| `no-grouping` (ADR-0132) | Reinforced — dissolution is the terminal-state proof | this ADR proves the policy at concrete scale |
+| `connect-umbrella-retirement-readiness` (NEW, lane authored under ADR-0237) | New REPORT-ONLY→BLOCKER | gates the eventual `microservices/connector/` folder removal |
 
 ## Verification
 
@@ -317,8 +317,8 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
 # Per-µservice flat layout
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout
 
-# No-suite forward-policy holds
-cargo run -p oya-dev-cli -- gate validate no-new-suite-bundles
+# No-grouping forward-policy holds
+cargo run -p oya-dev-cli -- gate validate no-grouping
 
 # Cross-µservice import refusal
 cargo run -p oya-dev-cli -- gate validate authority-cohesion
@@ -333,9 +333,9 @@ cargo run -p oya-dev-cli -- gate validate authority-cohesion
 - ADR-0123: Hyperscaler maturity claim gate.
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0133: Industry best-practice conformance program.
-- ADR-0237: Connect dissolution Strangler migration (operational companion).
+- ADR-0237: dissolution Strangler migration (operational companion).
 - `/specs/per-microservice-flat-layout.json`.
 - `/specs/microservices/{mail,messenger,calendar}.json` (flat per-µservice specs; legacy `/specs/microservices/*.json` retired via the specs/products → specs/microservices flatten — see `specs/microservices/RETIREMENT.md`).
 - `feedback_workflow_objectgraph_adapter_layer.md`.

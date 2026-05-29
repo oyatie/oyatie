@@ -120,7 +120,7 @@ Where two Korean laws conflict, legal counsel escalation is mandatory before pro
 `emergency` activates KR emergency care lawful-basis capture and emergency disclosure audit controls.
 `clinical` activates KR clinical trial consent and sensitive health-data controls.
 `healthcare-portal` activates KR patient identity assurance and healthcare document retention controls.
-`connect` activates Korean communications metadata, message privacy, user consent, and youth safety controls.
+`connector` activates Korean communications metadata, message privacy, user consent, and youth safety controls.
 `community` activates youth-protected content gating, takedown workflows, and Korean community moderation audit controls.
 `payments` activates KR payment personal data, transaction retention, and breach criteria controls.
 `insurance` activates KR claims health data, sensitive information consent, and lawful disclosure controls.

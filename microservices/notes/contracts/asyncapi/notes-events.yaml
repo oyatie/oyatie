@@ -11,7 +11,7 @@ defaultContentType: application/json
 
 servers:
   ws-per-pack:
-    host: notes-{pack}.oyatie.dev
+    host: notes-{pack}.oyatie.com
     pathname: /ws/v1
     protocol: wss
     description: Per-pack realtime stream

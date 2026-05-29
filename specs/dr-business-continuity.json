@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/dr-business-continuity.schema.json",
+  "$id": "https://docs.oyatie.com/specs/dr-business-continuity.schema.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-DR-BUSINESS-CONTINUITY",
@@ -14,7 +14,12 @@
   },
   "title": "DR + business-continuity canonical schema",
   "type": "object",
-  "required": ["tiers", "manifest_block", "drill_audit_class", "regulator_evidence_class"],
+  "required": [
+    "tiers",
+    "manifest_block",
+    "drill_audit_class",
+    "regulator_evidence_class"
+  ],
   "properties": {
     "tiers": {
       "type": "array",
@@ -22,41 +27,146 @@
       "maxItems": 4,
       "items": {
         "type": "object",
-        "required": ["tier", "rto_minutes", "rpo_seconds", "replication_shape", "drill_cadence"],
+        "required": [
+          "tier",
+          "rto_minutes",
+          "rpo_seconds",
+          "replication_shape",
+          "drill_cadence"
+        ],
         "properties": {
-          "tier": {"type": "string", "enum": ["T1", "T2", "T3", "T4"]},
-          "rto_minutes": {"type": "integer", "minimum": 0},
-          "rpo_seconds": {"type": "integer", "minimum": 0},
-          "replication_shape": {"type": "string", "enum": ["active-active-multi-az-cross-region-warm", "active-passive-cross-region-continuous", "backup-restore-cross-region-warm", "backup-restore-cold"]},
-          "drill_cadence": {"type": "string", "enum": ["quarterly-plus-ad-hoc", "quarterly", "semi-annual", "annual-tabletop"]}
+          "tier": {
+            "type": "string",
+            "enum": [
+              "T1",
+              "T2",
+              "T3",
+              "T4"
+            ]
+          },
+          "rto_minutes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rpo_seconds": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "replication_shape": {
+            "type": "string",
+            "enum": [
+              "active-active-multi-az-cross-region-warm",
+              "active-passive-cross-region-continuous",
+              "backup-restore-cross-region-warm",
+              "backup-restore-cold"
+            ]
+          },
+          "drill_cadence": {
+            "type": "string",
+            "enum": [
+              "quarterly-plus-ad-hoc",
+              "quarterly",
+              "semi-annual",
+              "annual-tabletop"
+            ]
+          }
         }
       },
       "default": [
-        {"tier": "T1", "rto_minutes": 5, "rpo_seconds": 0, "replication_shape": "active-active-multi-az-cross-region-warm", "drill_cadence": "quarterly-plus-ad-hoc"},
-        {"tier": "T2", "rto_minutes": 60, "rpo_seconds": 60, "replication_shape": "active-passive-cross-region-continuous", "drill_cadence": "quarterly"},
-        {"tier": "T3", "rto_minutes": 240, "rpo_seconds": 900, "replication_shape": "backup-restore-cross-region-warm", "drill_cadence": "semi-annual"},
-        {"tier": "T4", "rto_minutes": 1440, "rpo_seconds": 3600, "replication_shape": "backup-restore-cold", "drill_cadence": "semi-annual"}
+        {
+          "tier": "T1",
+          "rto_minutes": 5,
+          "rpo_seconds": 0,
+          "replication_shape": "active-active-multi-az-cross-region-warm",
+          "drill_cadence": "quarterly-plus-ad-hoc"
+        },
+        {
+          "tier": "T2",
+          "rto_minutes": 60,
+          "rpo_seconds": 60,
+          "replication_shape": "active-passive-cross-region-continuous",
+          "drill_cadence": "quarterly"
+        },
+        {
+          "tier": "T3",
+          "rto_minutes": 240,
+          "rpo_seconds": 900,
+          "replication_shape": "backup-restore-cross-region-warm",
+          "drill_cadence": "semi-annual"
+        },
+        {
+          "tier": "T4",
+          "rto_minutes": 1440,
+          "rpo_seconds": 3600,
+          "replication_shape": "backup-restore-cold",
+          "drill_cadence": "semi-annual"
+        }
       ]
     },
     "manifest_block": {
       "type": "object",
-      "required": ["dr_tier", "dr_owner_team", "rto_minutes", "rpo_seconds", "replication_shape", "last_drill_evidence_id", "next_drill_due_at"],
+      "required": [
+        "dr_tier",
+        "dr_owner_team",
+        "rto_minutes",
+        "rpo_seconds",
+        "replication_shape",
+        "last_drill_evidence_id",
+        "next_drill_due_at"
+      ],
       "properties": {
-        "dr_tier": {"type": "string", "enum": ["T1", "T2", "T3", "T4"]},
-        "dr_owner_team": {"type": "string"},
-        "rto_minutes": {"type": "integer", "minimum": 0},
-        "rpo_seconds": {"type": "integer", "minimum": 0},
-        "replication_shape": {"type": "string"},
-        "last_drill_evidence_id": {"type": "string"},
-        "next_drill_due_at": {"type": "string", "format": "date"}
+        "dr_tier": {
+          "type": "string",
+          "enum": [
+            "T1",
+            "T2",
+            "T3",
+            "T4"
+          ]
+        },
+        "dr_owner_team": {
+          "type": "string"
+        },
+        "rto_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rpo_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "replication_shape": {
+          "type": "string"
+        },
+        "last_drill_evidence_id": {
+          "type": "string"
+        },
+        "next_drill_due_at": {
+          "type": "string",
+          "format": "date"
+        }
       }
     },
-    "drill_audit_class": {"const": "DrDrillReceipt"},
-    "regulator_evidence_class": {"const": "DrBcQuarterlyEvidence"},
+    "drill_audit_class": {
+      "const": "DrDrillReceipt"
+    },
+    "regulator_evidence_class": {
+      "const": "DrBcQuarterlyEvidence"
+    },
     "tabletop_scenarios": {
       "type": "array",
-      "default": ["single-az-failure", "region-failure", "provider-failure", "sovereign-pack-regulator-suspension", "cyber-attack-ransomware", "pandemic-staff-unavailability", "multi-cell-catastrophic-loss"]
+      "default": [
+        "single-az-failure",
+        "region-failure",
+        "provider-failure",
+        "sovereign-pack-regulator-suspension",
+        "cyber-attack-ransomware",
+        "pandemic-staff-unavailability",
+        "multi-cell-catastrophic-loss"
+      ]
     },
-    "degraded_dependency_signal": {"const": "ADR-0176 brown-out class transitions to `degraded` when a required T2 dependency is in DR"}
+    "degraded_dependency_signal": {
+      "const": "ADR-0176 brown-out class transitions to `degraded` when a required T2 dependency is in DR"
+    }
   }
 }

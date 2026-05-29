@@ -159,7 +159,7 @@ treated as PII per dpia.md.
 - Runbook/IaC evidence: `microservices/finops-portal/runbooks/budget-alert-runaway-firings.md`, `microservices/finops-portal/runbooks/cost-allocation-policy-rollback.md`, `microservices/finops-portal/runbooks/credit-application-reconciliation.md`, `microservices/finops-portal/runbooks/focus-export-failure.md`, `microservices/finops-portal/runbooks/quarterly-regulator-emit-miss.md`; +11 more.
 - Compliance packs: `soc2-type2`, `iso27001-2022`, `gdpr`, `kr-pipa`; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `finops-portal` `tenant-billing-presentation` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

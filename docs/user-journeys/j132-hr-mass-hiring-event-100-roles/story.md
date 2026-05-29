@@ -87,7 +87,7 @@ Priya navigates to the Community µservice. She has TWO posting modes available:
 
 ### 2.1 Handshake-mode (university recruit channel)
 
-She selects the 40 campus-hire reqs. The Community surface offers `oyatie-handshake-mode`, which posts to verified university talent pools. Marcus's tenant has pre-existing Handshake-mode trust relationships with 60 universities globally (signed via Connect µservice). Priya picks 12 universities for this batch:
+She selects the 40 campus-hire reqs. The Community surface offers `oyatie-handshake-mode`, which posts to verified university talent pools. Marcus's tenant has pre-existing Handshake-mode trust relationships with 60 universities globally (signed via µservice). Priya picks 12 universities for this batch:
 
 - IIT Bangalore (10 SWE-II)
 - IIT Madras (5 SWE-II + 5 Data-Sci-II)
@@ -348,7 +348,7 @@ Per IP-007 SCIM kernel + IP-008 Zitadel adapter, the 80 new principals sync to:
 By each new hire's start date, the Workflow Engine has triggered:
 
 - `day-zero-onboarding-cascade-v2` per hire
-- Hardware shipment via Connect (Apple Business Manager-equiv. for laptops in Bangalore/Berlin; Lenovo channel for Austin/Seoul)
+- Hardware shipment via (Apple Business Manager-equiv. for laptops in Bangalore/Berlin; Lenovo channel for Austin/Seoul)
 - Day-1 calendar (Calendar µservice auto-blocks orientation, manager 1:1, IT setup)
 - Welcome packet via Mail (DKIM-signed; with company values, compliance-pack training, security tips)
 

@@ -51,4 +51,4 @@ let enabled: bool = provider.resolve_boolean_value("my-flag", false, &ctx).await
 - `cargo test -p oya-feature-flags-rust-sdk` green
 - Benchmark: in-cache resolution ≤5µs
 - WASM feature builds with `cargo build --target wasm32-unknown-unknown --features wasm`
-- OpenFeature conformance suite passes (Rust target)
+- OpenFeature conformance set passes (Rust target)

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j77-ai-act-credit-appeal.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j77-ai-act-credit-appeal.schema.json",
   "title": "J77 EU AI Act high-risk credit decision Journey Object",
   "version": "1.0.0",
   "_meta": {

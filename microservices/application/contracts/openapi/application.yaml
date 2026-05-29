@@ -11,18 +11,18 @@ info:
 
     Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.
     The JWT carries the principal's tenant_id claim. The host header
-    `<tenant-hash>.app.oyatie.dev` MUST resolve to the same tenant; mismatch
+    `<tenant-hash>.app.oyatie.com` MUST resolve to the same tenant; mismatch
     returns 401.
 
     Anonymous endpoints (login page, status, asset fetch) are governed by
     `policy/public-read.cedar`.
   contact:
     name: axis-application
-    url: https://oyatie.dev/teams/axis-application
+    url: https://oyatie.com/teams/axis-application
   license:
     name: Internal
 servers:
-  - url: https://{tenant}.app-{pack}.oyatie.dev/api/v1
+  - url: https://{tenant}.app-{pack}.oyatie.com/api/v1
     description: Per-pack tenant endpoint
     variables:
       tenant:
@@ -85,7 +85,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
     SessionCookie:
       type: apiKey
       in: cookie

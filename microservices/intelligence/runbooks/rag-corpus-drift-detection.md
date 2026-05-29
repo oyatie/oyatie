@@ -263,7 +263,7 @@ evidence_hash: <sha256>
 
 ## Runbook Maintenance
 - Add new corpus source drift signatures after every incident.
-- Keep eval suite names aligned with CI.
+- Keep eval set names aligned with CI.
 - Keep redaction and evidence-storage boundaries explicit.
 - Review this runbook after every embedding model change.
 - Add every new source connector to Diagnostic Steps.

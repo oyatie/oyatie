@@ -538,7 +538,7 @@ add geographic-residency overlays and sovereign-cloud pack engagement.
 
 This matrix supersedes the existing `competitor-parity-matrix.md` (which is template-
 stamped per coherence-audit §3.2.A). The existing file should be rewritten with this
-matrix's substance plus updated formatting for the rest of the doc-suite (header
+matrix's substance plus updated formatting for the rest of the doc-set (header
 references, mandatory sections per microservice-template).
 
 Total industry-counterpart primitives in scope: 154.

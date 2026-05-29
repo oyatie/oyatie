@@ -65,7 +65,7 @@ fn target(
         proof_id: Some(format!("proof-{dispatch_id}")),
         proof_method: Some(proof_method.to_string()),
         evidence_hash: Some(format!("sha256:{dispatch_id:0<64}")),
-        witness_ref: Some("workspace-dsr-worker".to_string()),
+        witness_ref: Some("retention-dsr-worker".to_string()),
         signer_ref: Some("sigstore:privacy".to_string()),
         signature_ref: Some(format!("sig-{dispatch_id}")),
         rekor_log_index: Some(17),

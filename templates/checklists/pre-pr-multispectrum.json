@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/specs/multispectrum-review.json#evidence_schema",
+  "$schema": "https://docs.oyatie.com/specs/multispectrum-review.json#evidence_schema",
   "title": "PrePrMultispectrumChecklist",
   "description": "Machine-readable pre-PR gate. Every changeset / session declaring 'done' MUST fill this template and submit it to the seam lane at /evidence/multispectrum/<change_id>-<unix_ts>.json. Lane sub-check `multispectrum-evidence-attached` refuses promotion unless this template is fully filled per the rigor matrix for the declared change_class.",
   "_meta": {

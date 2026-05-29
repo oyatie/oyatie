@@ -143,4 +143,4 @@ On successful `oya vcs done`, this IP emits to `microservices/developer-sdk/evid
 
 ## References
 
-- Stripe Connect end-to-end docs
+- Stripe end-to-end docs

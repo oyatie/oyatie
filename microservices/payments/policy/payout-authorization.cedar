@@ -47,7 +47,7 @@ when {
 };
 
 // =============================================================================
-// PERMIT 2 — sub-merchant payout (Stripe Connect Express equivalent)
+// PERMIT 2 — sub-merchant payout (Stripe Express equivalent)
 // =============================================================================
 
 permit (

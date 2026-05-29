@@ -37,7 +37,7 @@
       "source_path": "registry/quality/lanes.yaml",
       "shape": "lanes[].status (active|planned)",
       "freshness": "per-commit",
-      "consumer": "all PR checks + ADR-0069 \u00a711 lifecycle rule (b)"
+      "consumer": "all PR checks + ADR-0069 §11 lifecycle rule (b)"
     },
     "Plan-current-version": {
       "source_path": ".omc/plans/ralplan-ops-wave-{N}-2026-05-13.json (instances of plan-schema.json)",
@@ -67,7 +67,7 @@
     "Audit-chain-event-stream": {
       "source_path": "(foundation prerequisite; M01/M02 audit-chain runtime)",
       "shape": "per-tenant per-cell EVT-... events emitted from kinetic actions",
-      "freshness": "real-time (target \u22642s ingestion)",
+      "freshness": "real-time (target ≤2s ingestion)",
       "consumer": "EmitEvidenceBundle action target + audit-view BC (Wave 7)",
       "status": "blocked-by-foundation"
     },
@@ -124,11 +124,11 @@
       "predicate": "enforces",
       "object_id": "foundry-supervisor-template-claude",
       "object_type": "Artifact",
-      "object_description": "foundry-supervisor-template-{claude,codex,gemini} \u2014 all three templates enforced by this lane",
+      "object_description": "foundry-supervisor-template-{claude,codex,gemini} — all three templates enforced by this lane",
       "added_at": "2026-05-15T00:00:00Z",
       "added_by": "worker-registry",
       "source_amendment": "v6-PRE-4",
-      "rationale": "lean-settings-drift CI lane runs SettingsRenderer::verify against all provider templates. Feature-flagged off until N>=10 account rows per v5 \u00a7A.1.2.",
+      "rationale": "lean-settings-drift CI lane runs SettingsRenderer::verify against all provider templates. Feature-flagged off until N>=10 account rows per v5 §A.1.2.",
       "also_enforces": [
         "foundry-supervisor-template-codex",
         "foundry-supervisor-template-gemini"

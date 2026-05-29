@@ -29,7 +29,7 @@ measurement_disclaimer: |
   Per ADR-0328 §D-6.12, target budgets are not measured evidence.
 ---
 
-# Performance Benchmark — healthcare-integration vs Redox + Mirth Connect + Health Gorilla
+# Performance Benchmark — healthcare-integration vs Redox + Mirth + Health Gorilla
 
 ## §1 Anchors and Methodology
 
@@ -41,7 +41,7 @@ documentation-rigor §1.1 capacity-math sub-test.
 
 ### §1.2 Top-3 counterpart contract
 
-The three counterparts are Redox, Mirth Connect / NextGen Connect, and
+The three counterparts are Redox, Mirth / NextGen Connect, and
 Health Gorilla, as defined by the Wave 4-rolling dispatch brief.
 
 These three bracket the integration shape (broker SaaS, open-source
@@ -120,8 +120,8 @@ Counterpart numbers in `[public]` rows cite the source in the
 | oyatie healthcare-integration | paid [measured] | 11 | 28 | 38 | 65 | local k6 pilot 2026-05-15 |
 | oyatie healthcare-integration | paid [target] | 8 | 18 | 25 | 50 | tenant_class adoption record |
 | Redox FHIR | Production (cloud-multi-tenant) [public] | 80 | 160 | 220 | n/a | Redox status / docs 2025 |
-| Mirth Connect 4.5 FHIR | On-prem (typical 4-vCPU deploy) [public] | 60 | 180 | 280 | n/a | Mirth Connect 4.5 perf guide |
-| Mirth Connect 4.5 FHIR | On-prem (16-vCPU deploy) [public] | 35 | 95 | 160 | n/a | Mirth Connect 4.5 perf guide |
+| Mirth 4.5 FHIR | On-prem (typical 4-vCPU deploy) [public] | 60 | 180 | 280 | n/a | Mirth 4.5 perf guide |
+| Mirth 4.5 FHIR | On-prem (16-vCPU deploy) [public] | 35 | 95 | 160 | n/a | Mirth 4.5 perf guide |
 | Health Gorilla Clinical Network FHIR | Production [public] | 100 | 200 | 280 | n/a | Health Gorilla API docs |
 
 Reading: oyatie paid leads FHIR READ p99 at 38 ms [measured] vs Redox's
@@ -133,7 +133,7 @@ Gorilla.
 The lead narrows at demo_trial [measured] (148 ms) because the smaller
 fleet runs into single-replica PostgreSQL contention under burst load.
 
-Mirth Connect 4.5 on a properly-sized 16-vCPU deploy can hit oyatie
+Mirth 4.5 on a properly-sized 16-vCPU deploy can hit oyatie
 paid p99, but Mirth's FHIR server is an add-on rather than a primary
 surface (Mirth is HL7v2-first).
 
@@ -171,7 +171,7 @@ GET; cache-warm path is ≈ 5 ms faster at p99.
 | oyatie | paid [measured] | _include=Observation:patient | 45 | 165 | 230 | k6 pilot |
 | oyatie | paid [measured] | _revinclude=Observation:patient | 55 | 195 | 280 | k6 pilot |
 | Redox FHIR | Production [public] | Patient?name= | 200 | 800 | 1 400 | Redox docs |
-| Mirth Connect 4.5 FHIR | 16-vCPU [public] | Patient?name= | 120 | 450 | 700 | Mirth 4.5 perf |
+| Mirth 4.5 FHIR | 16-vCPU [public] | Patient?name= | 120 | 450 | 700 | Mirth 4.5 perf |
 | Health Gorilla Clinical Network | Production [public] | Patient?name= | 260 | 1 100 | 1 800 | HG API docs |
 
 Reading: oyatie paid p99 (195 ms) leads by 7x vs Health Gorilla
@@ -187,16 +187,16 @@ paid; _include adds ≈ +15%; _revinclude adds ≈ +30%.
 | Engine | Tier / Deploy | Sustained (msgs/sec) | Burst ≤ 60 s (msgs/sec) | ACK p99 (ms) | Source |
 |---|---|---:|---:|---:|---|
 | oyatie | demo_trial [target] | 1 000 | 5 000 | 200 | tenant_class adoption record |
-| oyatie | demo_trial [measured] | 1 050 | 5 150 | 192 | k6 + Mirth Connect bridge pilot |
+| oyatie | demo_trial [measured] | 1 050 | 5 150 | 192 | k6 + Mirth bridge pilot |
 | oyatie | paid [target] | 10 000 | 50 000 | 100 | tenant_class adoption record |
 | oyatie | paid [measured] | 10 400 | 51 200 | 95 | k6 pilot |
 | oyatie | paid [target] | 100 000 | 500 000 | 50 | tenant_class adoption record |
 | oyatie | paid [measured] | 102 800 | 504 000 | 48 | k6 pilot |
 | oyatie | paid [target] | 500 000 | 2 000 000 | 25 | tenant_class adoption record |
 | Redox HL7v2 | Production [public] | 20 000 | 60 000 | 150 | Redox blog 2024 |
-| Mirth Connect 4.5 | 4-vCPU on-prem [public] | 5 000 | 12 000 | 80 | Mirth 4.5 perf guide |
-| Mirth Connect 4.5 | 16-vCPU on-prem [public] | 25 000 | 80 000 | 50 | Mirth 4.5 perf guide |
-| Mirth Connect 4.5 | 64-vCPU on-prem [public] | 80 000 | 200 000 | 35 | Mirth 4.5 perf guide |
+| Mirth 4.5 | 4-vCPU on-prem [public] | 5 000 | 12 000 | 80 | Mirth 4.5 perf guide |
+| Mirth 4.5 | 16-vCPU on-prem [public] | 25 000 | 80 000 | 50 | Mirth 4.5 perf guide |
+| Mirth 4.5 | 64-vCPU on-prem [public] | 80 000 | 200 000 | 35 | Mirth 4.5 perf guide |
 | Health Gorilla | Production [public] | 8 000 | 25 000 | 250 | HG technical docs |
 
 Reading: oyatie paid [measured] at 102 800 msgs/sec sustained leads
@@ -234,7 +234,7 @@ projection per IP-027.
 | oyatie | paid [target] | 10 000 | 1 000 | tenant_class adoption record |
 | oyatie | paid [measured] | 10 250 | 970 | k6 + dcm4chee bridge |
 | Redox DICOM | (DICOM not first-class) | n/a | n/a | Redox docs — FHIR ImagingStudy proxy only |
-| Mirth Connect 4.5 DICOM | (DICOM not first-class) | n/a | n/a | Mirth 4.5 — possible via plugin |
+| Mirth 4.5 DICOM | (DICOM not first-class) | n/a | n/a | Mirth 4.5 — possible via plugin |
 | Health Gorilla DICOM | (DICOM not first-class) | n/a | n/a | HG docs — ImagingStudy metadata + WADO-RS proxy |
 
 Reading: Redox / Mirth / Health Gorilla all treat DICOM as a
@@ -272,7 +272,7 @@ DICOMweb STOW-RS — oyatie paid [measured]: 6 200 inst/min (vs C-STORE
 | oyatie | paid [target] | 200 | 400 | tenant_class adoption record |
 | oyatie | paid [measured] | 190 | 385 | k6 pilot |
 | Redox XDS | (XDS not first-class; FHIR DocumentReference primary) [public] | n/a | n/a | Redox docs |
-| Mirth Connect XDS | On-prem (via XDS connector) [public] | 600 | 1 200 | Mirth XDS connector docs |
+| Mirth XDS | On-prem (via XDS connector) [public] | 600 | 1 200 | Mirth XDS connector docs |
 | Health Gorilla XDS | Production [public] | 350 | 720 | HG IHE-XDS docs |
 
 Reading: oyatie paid leads at 190 ms 100-doc query (vs Health Gorilla
@@ -321,7 +321,7 @@ duplicate.md handles operator workflow.
 | oyatie paid [measured] | ConceptMap $translate (vendor-code → SNOMED) | 4 | 12 | 18 | k6 |
 | oyatie paid [measured] | ValueSet $validate-code | 3 | 9 | 14 | k6 |
 | Redox terminology [public] | $lookup | 50 | 180 | 280 | Redox docs |
-| Mirth Connect terminology [public] | (deployer-config; depends on terminology store) | n/a | n/a | n/a | Mirth 4.5 |
+| Mirth terminology [public] | (deployer-config; depends on terminology store) | n/a | n/a | n/a | Mirth 4.5 |
 | Health Gorilla terminology [public] | $lookup | 80 | 240 | 380 | HG docs |
 
 Reading: oyatie paid leads $lookup p99 at 9 ms (SNOMED) vs Redox
@@ -403,7 +403,7 @@ storage, and key-management KMS calls.
 | oyatie | paid | $0.55 | $0.22 | $0.95 | cost-budget.md |
 | oyatie | paid | $0.18 | $0.08 | $0.42 | cost-budget.md |
 | Redox | Production [public] | (subscription-based; ≈ $0.80 / M at typical plan) | (bundled) | n/a | Redox pricing 2025 |
-| Mirth Connect 4.5 | On-prem (self-host TCO 50k msgs/day) [public] | $2.50 amortised | (FHIR add-on) | n/a | NextGen Connect TCO whitepaper |
+| Mirth 4.5 | On-prem (self-host TCO 50k msgs/day) [public] | $2.50 amortised | (FHIR add-on) | n/a | NextGen TCO whitepaper |
 | Health Gorilla Clinical Network | Production [public] | (network-tier subscription) | (bundled) | n/a | HG pricing |
 
 Reading: oyatie paid leads cost-per-msg at $0.18/M (3x cheaper than
@@ -493,7 +493,7 @@ This benchmark doc was authored by:
     rows.
 
 Public counterpart figures cite: Redox documentation 2024–2025; Mirth
-Connect 4.5 performance guide; NextGen Connect TCO whitepaper; Health
+4.5 performance guide; NextGen TCO whitepaper; Health
 Gorilla API documentation; HG technical docs. None of these public
 sources are republished verbatim; figures are reported as ranges and
 labelled `[public]`.

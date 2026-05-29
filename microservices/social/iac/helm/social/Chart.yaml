@@ -13,7 +13,7 @@ version: 0.1.0
 appVersion: "1.0.0"
 maintainers:
   - name: axis-social
-    email: axis-social@oyatie.dev
+    email: axis-social@oyatie.com
 keywords:
   - social
   - microblog

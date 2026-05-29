@@ -10,7 +10,7 @@ info:
 defaultContentType: application/json
 servers:
   oya-foundry-providers-events:
-    url: nats://foundry-providers.{pack}.oyatie.dev:4222
+    url: nats://foundry-providers.{pack}.oyatie.com:4222
     protocol: nats
     description: NATS JetStream per pack
 channels:

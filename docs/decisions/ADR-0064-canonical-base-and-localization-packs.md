@@ -33,7 +33,7 @@ Every customer-facing µservice has a **canonical global base** (jurisdiction-ag
 |---|---|---|---|
 | **Seam** | A port (trait) inside the canonical base where a jurisdiction-specific value or thin trait impl plugs in via DI | The variation is a value or small trait impl (statutory rate, tax bracket, leave-day count) | Port lives in canonical kernel; impl in pack crate: `oya-<microservice>-<pack>-<bc>-<layer>` |
 | **Adapter** | A separate adapter crate translating jurisdiction-specific I/O (protocol, format, government portal) into canonical domain types | There is a discrete I/O surface (EDI, government API, vendor protocol) | `oya-<microservice>-<pack>-<bc>-adapter` |
-| **Pack** | A coherent bundle of seams + adapters + Cedar fragments + Workflow templates + Typst templates, shipped as one deployable unit per jurisdiction | The deployable bundle and the doc-suite + audit-chain + acceptance-evidence unit | `oya-pack-<pack>-<microservice>-<layer>` for discrete bundle crates; pack as a whole is the catalog entry in `docs/localization-packs/<pack>.md` |
+| **Pack** | A coherent bundle of seams + adapters + Cedar fragments + Workflow templates + Typst templates, shipped as one deployable unit per jurisdiction | The deployable bundle and the doc-set + audit-chain + acceptance-evidence unit | `oya-pack-<pack>-<microservice>-<layer>` for discrete bundle crates; pack as a whole is the catalog entry in `docs/localization-packs/<pack>.md` |
 
 **Canonical global base = universal product.** Examples:
 
@@ -45,7 +45,7 @@ Every customer-facing µservice has a **canonical global base** (jurisdiction-ag
 
 - **Seam** when variation = a value or a small `Provider`-style trait. Smallest blast radius. Preferred for statutory rates, tax tables, leave-day counts, holiday calendars.
 - **Adapter** when variation = a discrete I/O protocol. Preferred for EDI formats, government API ingestion, vendor cross-walks.
-- **Pack** for the deployable bundle. A pack composes seams + adapters; it is the **unit of release** and the **unit of doc-suite enforcement** (per ADR-0063).
+- **Pack** for the deployable bundle. A pack composes seams + adapters; it is the **unit of release** and the **unit of doc-set enforcement** (per ADR-0063).
 
 The three forms compose: a pack composes adapters + seam impls + policy fragments + templates. There is no "or" between them — they are layers, not alternatives.
 
@@ -73,7 +73,7 @@ The seam / adapter / pack trichotomy is a clean split for **mechanical** localiz
 A customer-facing µservice ships to a paying tenant only when:
 
 - (a) its canonical base passes the M02 substrate quality bar (per ADR-0062), **AND**
-- (b) at least one localization pack exists for it, **OR** an explicit ADR declares the µservice pack-neutral (e.g., `connect-messenger` core protocol is jurisdiction-neutral; only retention windows are pack-specific)
+- (b) at least one localization pack exists for it, **OR** an explicit ADR declares the µservice pack-neutral (e.g., `messenger` core protocol is jurisdiction-neutral; only retention windows are pack-specific)
 
 The canonical base alone is **not** shippable to a paying tenant — a pack is mandatory. The canonical-base neutrality CI lane (per ADR-0064 §"Lane enforcement") refuses any paying-tenant deployment without a pack; pack-neutral µservices satisfy condition (b) above via the explicit `pack-neutral` ADR declaration, which is itself a canonical pack designation, not an exemption.
 
@@ -229,7 +229,7 @@ Owner team: `council-architecture` (pack architecture) + per-pack `gtm-customer-
 - ADR-0056 (BNF v4.1 naming grammar)
 - ADR-0058 (flat µservice catalog)
 - ADR-0062 (quality/perf/scale bar applies to canonical base AND packs)
-- ADR-0063 (documentation suite coverage; pack overlay docs enforced)
+- ADR-0063 (documentation set coverage; pack overlay docs enforced)
 - `docs/MASTERPLAN.md` §2.5, §5.5
 - `docs/localization-packs/INDEX.md` (canonical pack catalog)
 - `docs/localization-packs/kr.md` (pack #1 spec)

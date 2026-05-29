@@ -42,7 +42,7 @@ Three CDC algorithms are the field:
 2. **BuzHash** (Boyer–Moore variant; popularised by borg / restic). Cheaper rolling hash. Correlated boundary drift on adversarial inputs.
 3. **FastCDC** (Xia et al. ATC 2016 / TOS 2020). Designed specifically for content-defined chunking; reports 10× faster than Rabin with equivalent dedup; normalised chunk-size bounds + zero-byte gear table. Adopted by restic 0.16+, BorgBackup-NG, and Vercel Build Output. ([usenix.org/conference/atc16/technical-sessions/presentation/xia](https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia))
 
-A fourth option, **fixed-size chunking** (legacy `oya-connect-drive-domain`), is the baseline against which others are measured: trivial CPU, but byte-shift in a single file invalidates all subsequent chunks.
+A fourth option, **fixed-size chunking** (legacy `oya-drive-domain`), is the baseline against which others are measured: trivial CPU, but byte-shift in a single file invalidates all subsequent chunks.
 
 Delta protocol candidates:
 
@@ -75,7 +75,7 @@ Concrete bindings:
 
 ## Alternatives Considered
 
-### A. Fixed-size chunking (legacy `oya-connect-drive-domain`)
+### A. Fixed-size chunking (legacy `oya-drive-domain`)
 
 - **Pros**:
   - Trivial CPU; trivial implementation.
@@ -139,7 +139,7 @@ Concrete bindings:
 
 ### Negative
 
-- **Hyrum's-Law surface #1 callout**: legacy `oya-connect-drive-domain` used fixed-size chunking; chunk-ids differ. The file-level content-address (BLAKE3 over the whole file) remains stable. Migrating consumers documented in `microservices/drive/migration-from-connect.md` Hyrum #1.
+- **Hyrum's-Law surface #1 callout**: legacy `oya-drive-domain` used fixed-size chunking; chunk-ids differ. The file-level content-address (BLAKE3 over the whole file) remains stable. Migrating consumers documented in `microservices/drive/migration-from-connect.md` Hyrum #1.
 - **CPU vs Rabin** — FastCDC is faster but still > BuzHash. Per-cell CPU budget for sync workers ~2 vCPU per worker pod (HPA-bound).
 - **Parameter pinning required** — `oya-check-cdc-parameters-pinned` LEAN lane refuses drift; cost is one CI lane.
 

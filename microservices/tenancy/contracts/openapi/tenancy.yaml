@@ -14,12 +14,12 @@ info:
     match own tenant; platform-operator paths require JIT elevation via OpenBao.
   contact:
     name: axis-tenancy
-    url: https://oyatie.dev/teams/axis-tenancy
+    url: https://oyatie.com/teams/axis-tenancy
   license:
     name: Internal
 
 servers:
-  - url: https://tenancy-{pack}.oyatie.dev/api/v1
+  - url: https://tenancy-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -80,7 +80,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
   parameters:
     TenantIdParam:
       in: path

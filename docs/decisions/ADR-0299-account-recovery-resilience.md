@@ -563,7 +563,7 @@ floor.
 **Decision 3: Per-tenant SIM-swap detection wired through telco
 Number Verification APIs.** Every recovery flow that touches the
 phone-number factor MUST query the per-tenant SIM-swap detector
-(GSMA Mobile Connect Number Verification API + per-carrier
+(GSMA Mobile Number Verification API + per-carrier
 direct integration). On SIM-swap detected within ≤14 days of
 phone-number-factor use, the recovery flow falls back to F2+ (the
 phone-number factor is invalidated for this recovery).

@@ -183,7 +183,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `microservices/social/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-SOCIAL gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0135 (Connect dissolution, parallel).
+- ADR-0135 (dissolution, parallel).
 - ADR-0139 (agentic SLO-gated promotion).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0133 (industry best-practice conformance).

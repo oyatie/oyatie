@@ -84,7 +84,7 @@ status: draft
 
 **Setup**: 50 Band-A suppliers, each with NDA on file.
 
-**Action**: Initiate cross-tenant requests via `connect`.
+**Action**: Initiate cross-tenant requests via `connector`.
 
 **Expected**: 50 channels opened; per-supplier audit seal `EVT-J170-OUTREACH-INITIATED-{supplier}-004a`; MLS encryption active; supplier-side notification routes to their data-submitter principal.
 

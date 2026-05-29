@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/ontology-projection-schema.schema.json",
+  "$id": "https://docs.oyatie.com/specs/ontology-projection-schema.schema.json",
   "title": "Oyatie Ontology Projection Contract",
   "description": "Canonical machine-readable schema for ontology projection manifests in Oyatie. ADR-0316 requires every capability tier to bind object types, relation types, actions, functions, schema revision pins, field visibility, computed properties, jurisdiction filters, pack filters, audit redaction, export policy, search index scope, and lineage policy through a named projection. ADR-0317 extends that model through role-based projections and cache partitioning for the unified UX shell. This contract prevents product-specific object copies and makes projections reviewable, replayable, and auditable.",
   "version": "1.0.0",
@@ -785,7 +785,7 @@
         {
           "ref": "ontology://crm/sales#Opportunity",
           "revision": "rev-2026-05-20-a1b2c3d4",
-          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          "digest": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
         }
       ],
       "field_visibility_rules": [
@@ -975,7 +975,7 @@
         {
           "ref": "ontology://health/core#PatientRecord",
           "revision": "rev-2026-05-20-b2c3d4e5",
-          "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          "digest": "sha256:234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1"
         }
       ],
       "field_visibility_rules": [
@@ -1165,7 +1165,7 @@
         {
           "ref": "ontology://sovereign/evidence#EvidenceObject",
           "revision": "rev-2026-05-20-c3d4e5f6",
-          "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+          "digest": "sha256:34567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12"
         }
       ],
       "field_visibility_rules": [

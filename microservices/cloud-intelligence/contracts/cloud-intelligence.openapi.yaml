@@ -1,9 +1,9 @@
 openapi: 3.2.0
 info:
-  title: Oyatie LLM Gateway API
+  title: Oyatie Cloud Intelligence API
   version: 1.0.0
   description: |
-    Multi-provider LLM/AI gateway — a key-pool reverse proxy fronting OpenAI/Codex,
+    Multi-provider cloud-intelligence AI gateway — a key-pool reverse proxy fronting OpenAI/Codex,
     Anthropic, and Google Gemini behind ONE canonical OpenAI-compatible wire surface.
 
     Design + research grounding: microservices/cloud-intelligence/PRD.md and
@@ -32,8 +32,8 @@ info:
   license:
     name: Internal
 servers:
-  - url: https://cloud-intelligence.{cell}.oyatie.io
-    description: Cell-routed LLM gateway ingress
+  - url: https://cloud-intelligence.{cell}.oyatie.com
+    description: Cell-routed cloud-intelligence gateway ingress
     variables:
       cell:
         default: dev

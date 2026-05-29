@@ -5,23 +5,23 @@ status: Living
 date: 2026-05-13
 auto_emitted_by: oya-check-documentation-cli (LEAN-A5)
 authority_chain: "docs/MASTERPLAN.md \xA713.5 \u2192 ADR-0063 \u2192 this file"
-purpose: "This file is the canonical coverage snapshot for the oyatie documentation suite contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation suite."
+purpose: "This file is the canonical coverage snapshot for the oyatie documentation set contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation set."
 doc_status: published
 ---
-# Documentation Suite Coverage Matrix
+# Documentation Set Coverage Matrix
 
-This file is the canonical coverage snapshot for the oyatie documentation suite contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation suite. This file is **auto-emitted by `oya-check-documentation-cli`** (LEAN-A5) on every PR; hand-edits get overwritten.
+This file is the canonical coverage snapshot for the oyatie documentation set contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation set. This file is **auto-emitted by `oya-check-documentation-cli`** (LEAN-A5) on every PR; hand-edits get overwritten.
 
 ## Status legend
 
 - 🟢 **Full** — PRD + Microservice record + Naming-scope ADR + BC registrations + ≥1 Phase-Spec + ≥1 Impl-Plan, all section-complete per ADR-0063 §4
-- 🟡 **Partial** — some artifacts exist, but the suite is incomplete (e.g., PRD exists but no microservice record, or PRD missing required section)
+- 🟡 **Partial** — some artifacts exist, but the documentation set is incomplete (e.g., PRD exists but no microservice record, or PRD missing required section)
 - 🔴 **Stub** — registered in `[workspace.metadata.oya.microservices]` (or planned in MASTERPLAN §2.1) but no canonical docs yet
 - ⚪ **Not yet registered** — planned in MASTERPLAN §2.1 but not yet a workspace member; not enforced until first introducing-phase claims it
 
 ## Required artifacts (per ADR-0063)
 
-### Canonical suite (per µservice)
+### Canonical set (per µservice)
 
 1. `docs/microservices/<microservice>.md`
 2. `docs/prds/<microservice>.md`
@@ -82,11 +82,11 @@ This file is the canonical coverage snapshot for the oyatie documentation suite 
 | `finance-quant` | 🔴 stub | 🔴 stub | M06 | ⚪ awaits M06-P05 |
 | `settlement` | 🔴 stub | 🔴 stub | M06 | ⚪ awaits M06-P03 |
 
-### Customer-facing — Connect & Social cluster
+### Customer-facing — & Social cluster
 
 | µservice | Canonical | KR pack | Lead milestone | Status |
 |---|---|---|---|---|
-| `connect` | 🟡 PRD only | 🔴 stub | M03 (Pro) / M05 (Personal) | 🟡 PRD exists (covers dual-context); needs microservice record + naming ADR + BC registrations |
+| `connector` | 🟡 PRD only | 🔴 stub | M03 (Pro) / M05 (Personal) | 🟡 PRD exists (covers dual-context); needs microservice record + naming ADR + BC registrations |
 | `community` | 🔴 stub | 🔴 stub | M05 | ⚪ awaits M05-P04 |
 | `social-graph` | 🔴 stub | 🔴 stub | M05 | ⚪ awaits M05-P04 |
 | `profile-personal` | 🔴 stub | 🔴 stub | M05 | ⚪ awaits M05-P04 |
@@ -157,7 +157,7 @@ This file is the canonical coverage snapshot for the oyatie documentation suite 
 
 Status: `planned/foundational`. Flips to `active` when all promotion blockers in `kr/pack.yaml` are green (corpus.lock signed + ≥1 µservice overlay shipped + ≥1 acceptance evidence signed + 1 paying tenant live).
 
-**Scope source of truth**: `docs/localization-packs/kr/pack.yaml > microservices_in_scope` (27 µservices across Workforce / Healthcare / FinTech / Industrial / Connect / Hospitality clusters). The `material_scope: bool` per-µservice flag in the manifest determines whether an overlay PRD is required (per ADR-0063 §2).
+**Scope source of truth**: `docs/localization-packs/kr/pack.yaml > microservices_in_scope` (27 µservices across Workforce / Healthcare / FinTech / Industrial / / Hospitality clusters). The `material_scope: bool` per-µservice flag in the manifest determines whether an overlay PRD is required (per ADR-0063 §2).
 
 | Pack artifact | Path | Status |
 |---|---|---|
@@ -215,7 +215,7 @@ Required Phase-Spec frontmatter: `acceptance_lanes:`, `depends_on:`, `entry_gate
 
 Each 🔴 / 🟡 row above translates 1:1 to a doc-authoring task. The dispatch model:
 
-1. Author per-cluster sweeps (one executor per cluster) to fill canonical-suite gaps
+1. Author per-cluster sweeps (one executor per cluster) to fill canonical doc-set gaps
 2. Per-pack sweep (one executor per pack) to fill pack overlay gaps
 3. Each executor: write all artifacts in scope, commit per `grit claim → work → grit done` protocol
 4. After commit, this matrix re-emits via `oya-check-documentation-cli` and reflects new green status
@@ -224,7 +224,7 @@ Each 🔴 / 🟡 row above translates 1:1 to a doc-authoring task. The dispatch 
 
 ## References
 
-- [ADR-0063 Documentation suite coverage (CI enforced)](decisions/ADR-0063-documentation-suite-coverage.md)
+- [ADR-0063 Documentation set coverage (CI enforced)](decisions/ADR-0063-documentation-set-coverage.md)
 - [ADR-0064 Canonical base + localization seams/adapters/packs](decisions/ADR-0064-canonical-base-and-localization-packs.md)
 - [MASTERPLAN §13.5](MASTERPLAN.md)
 - [Localization packs INDEX](localization-packs/INDEX.md)

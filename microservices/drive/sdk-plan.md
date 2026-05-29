@@ -44,7 +44,7 @@ Three protocol surfaces; SDK clients can use any:
 
 ## Migration path
 
-For consumers of legacy `oya-connect-drive-*` crates: see `microservices/drive/migration-from-connect.md`. Strangler-pattern adapter shim preserves legacy symbol surface verbatim during the 6-month sunset window per ADR-0134.
+For consumers of legacy `oya-drive-*` crates: see `microservices/drive/migration-from-connect.md`. Strangler-pattern adapter shim preserves legacy symbol surface verbatim during the 6-month sunset window per ADR-0134.
 
 ## SDK features
 

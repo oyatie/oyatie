@@ -10,7 +10,7 @@ persona: darren-chen (maintenance planner), carlos-reyes-ii (technician), priya-
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-003: Domain layer for `work-order` — 11-state lifecycle with operation-level confirmation

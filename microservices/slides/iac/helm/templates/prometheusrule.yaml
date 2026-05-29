@@ -19,7 +19,7 @@ spec:
           labels: { severity: sev-2, microservice: slides }
           annotations:
             summary: "Editor burn-rate 14.4x over 1h budget"
-            runbook_url: https://docs.oyatie.dev/runbooks/slides/burn-rate
+            runbook_url: https://docs.oyatie.com/runbooks/slides/burn-rate
 
         - alert: SlidesCollabSilentLossDetected
           expr: |
@@ -28,7 +28,7 @@ spec:
           labels: { severity: sev-1, microservice: slides }
           annotations:
             summary: "AC-06 invariant violated — silent CRDT loss detected"
-            runbook_url: https://docs.oyatie.dev/runbooks/slides/collab-conflict-resolution-crdt
+            runbook_url: https://docs.oyatie.com/runbooks/slides/collab-conflict-resolution-crdt
 
         - alert: SlidesBroadcastSignalDegraded
           expr: |
@@ -37,7 +37,7 @@ spec:
           labels: { severity: sev-2, microservice: slides }
           annotations:
             summary: "Broadcast-mode LiveKit signaling degraded"
-            runbook_url: https://docs.oyatie.dev/runbooks/slides/broadcast-mode-degraded
+            runbook_url: https://docs.oyatie.com/runbooks/slides/broadcast-mode-degraded
 
         - alert: SlidesExportWorkerOomSpike
           expr: |
@@ -46,7 +46,7 @@ spec:
           labels: { severity: sev-2, microservice: slides }
           annotations:
             summary: "gVisor export worker OOM rate > 3/5min"
-            runbook_url: https://docs.oyatie.dev/runbooks/slides/export-pipeline-failure-pptx
+            runbook_url: https://docs.oyatie.com/runbooks/slides/export-pipeline-failure-pptx
 
         - alert: SlidesAiActHighRiskEngagedWithoutOverride
           expr: |
@@ -55,5 +55,5 @@ spec:
           labels: { severity: sev-1, microservice: slides }
           annotations:
             summary: "high-risk T2 engaged without pack override — investigate immediately"
-            runbook_url: https://docs.oyatie.dev/runbooks/slides/ai-act-risk-class
+            runbook_url: https://docs.oyatie.com/runbooks/slides/ai-act-risk-class
 {{- end }}

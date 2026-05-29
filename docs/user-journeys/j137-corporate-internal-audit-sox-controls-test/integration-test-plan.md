@@ -500,7 +500,7 @@ gated by:
 - `oya-lint-cedar` (Cedar policy lint clean)
 - `oya-schema-validate` (all schemas validate JSON Schema 2020-12)
 - `oya-fixture-generate` (test fixtures generated deterministically)
-- `oya-test-internal-audit-sox-404` (this suite)
+- `oya-test-internal-audit-sox-404` (this doc set)
 - `oya-test-internal-audit-personal-tenant-boundary` (cross-suite
   regression — shared across j137/j138/j139/j140/j141)
 
@@ -527,7 +527,7 @@ The generator produces:
 
 ## 20. Closing test invariants
 
-This test suite enforces:
+This test set enforces:
 
 - The personal-tenant default-deny holds 100% of the time, including
   under all failure modes.

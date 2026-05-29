@@ -105,5 +105,5 @@ Per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`: all
 ## References
 
 - ADR-0140 Cedar policy enforcement.
-- ADR-0135 Connect dissolution (no legacy migration).
+- ADR-0135 dissolution (no legacy migration).
 - `feedback_workflow_objectgraph_adapter_layer.md` (cross-µservice SDK-only rule).

@@ -56,7 +56,7 @@ Every record in Oyatie's stores carries exactly one `data_class` annotation. The
 | 4 | `PII_QUASI_IDENTIFIER` | birthdate + ZIP + gender (k-anonymity threshold) | DENY without aggregation | k-anonymous (k≥10) |
 | 5 | `PCI` | card PAN, CVV, account number | **HARD DENY** | **HARD DENY** |
 | 6 | `FINANCIAL_KR` | KR credit score, loan history (`신용정보`) | **HARD DENY** | DP-only with FSC consent flow |
-| 7 | `BEHAVIORAL_TENANT_PRODUCT` | which workflow tenant ran, which Connect feature | DENY for ads outside tenant; per-tenant analytics OK | per-tenant + cross-tenant DP |
+| 7 | `BEHAVIORAL_TENANT_PRODUCT` | which workflow tenant ran, which feature | DENY for ads outside tenant; per-tenant analytics OK | per-tenant + cross-tenant DP |
 | 8 | `BEHAVIORAL_ADS` | impression / click / conversion (ads-axis-internal) | OK for first-party attribution; cross-tenant retargeting requires separate consent | OK |
 | 9 | `DECLARED_PREFERENCE` | tenant-declared interest categories, opted-in segments | OK for ad targeting | OK |
 | 10 | `SEARCH_QUERY` | what a user searched | DP-aggregated only; never per-user ads tied | DP only |
@@ -261,7 +261,7 @@ A record can only **weaken** its data-class via explicit human approval (e.g., a
 | # | Question | Owner |
 |---|---|---|
 | Q1 | Is `BEHAVIORAL_TENANT_PRODUCT` ever allowed to flow to cross-tenant aggregate analytics if the source tenant opted in but the user did not? Default proposed: NO; user consent required. | Privacy + Product |
-| Q2 | Connect Personal: keep "no ads, ever" inviolable, or carve a P-tier that allows opt-in ads? Default proposed: keep inviolable (per existing brand). | Founder + GTM |
+| Q2 | Personal: keep "no ads, ever" inviolable, or carve a P-tier that allows opt-in ads? Default proposed: keep inviolable (per existing brand). | Founder + GTM |
 | Q3 | Healthcare PHI exclusion: are any non-FHIR healthcare records exempt from the hard-deny? Default proposed: NO; healthcare-vertical = hard deny. | Healthcare + Privacy |
 | Q4 | Do agent-runtime tool-call traces inherit the tenant's data class, the user's data class, or the most-restrictive? Default proposed: most-restrictive (§2.2.5 inference boundary). | Foundry + Privacy |
 | Q5 | Cross-tenant search index — per-record opt-in by tenant, or per-collection? Default proposed: per-record (more work, cleaner). | Search + Privacy |

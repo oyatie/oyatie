@@ -82,7 +82,7 @@ Gareth Ng, VP IT Operations at Meridian Logistics is accountable for the busines
 | audit-chain | supporting | Owns incident migration state for cmdb_ci during parallel-run. |
 | observability | supporting | Owns change migration state for sys_user during itsm-cutover. |
 | network | supporting | Owns problem migration state for incident during table-api-export. |
-| connect | supporting | Owns configuration item migration state for change_request during cmdb-graph-replay. |
+| connector | supporting | Owns configuration item migration state for change_request during cmdb-graph-replay. |
 | compliance | supporting | Owns assignment group migration state for problem during mid-server-replacement. |
 | feature-flags | supporting | Owns service migration state for cmdb_ci during parallel-run. |
 | ops-dashboard-control-center | supporting | Owns outage migration state for sys_user during itsm-cutover. |

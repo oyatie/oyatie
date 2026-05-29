@@ -46,7 +46,7 @@ This is the layer that tenants and the workflow studio call.
 4. Cedar policy `policy/cedar/tenant-isolation.cedar` is evaluated
    before every handler; unit-tested against synthetic principals.
 5. Latency budget: handler overhead < 50 ms p99 (excluding
-   downstream calls); enforced via micro-benchmark suite.
+   downstream calls); enforced via micro-benchmark set.
 6. ≥ 6 integration tests using `axum::Router` directly.
 7. `cargo test -p oya-finops-portal-tenant-billing-presentation-api`
    green.

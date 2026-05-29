@@ -334,7 +334,7 @@ follow_ups:
       authored after the strangler migration completes per
       ADR-0237-connect-dissolution-strangler-migration.
     driver_docs:
-      - microservices/connect/RETIREMENT-PLAN.md
+      - microservices/connector/RETIREMENT-PLAN.md
       - docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md
     owner: axis-mail + axis-messenger + axis-tasks (joint receivers)
     trigger: All connect strangler slices land; final connect µservice deletion.
@@ -832,7 +832,7 @@ follow_ups:
       - crates/oya-cloud-intelligence-rest/src/keystore.rs
     owner: council-foundry + ops-security
     trigger: |
-      First cell-deploy of the LLM gateway against a real OpenBao
+      First cell-deploy of the cloud-intelligence gateway against a real OpenBao
       instance, or a tenant onboarding that requires non-vault-only
       keys to be rejected end-to-end.
     status: pending
@@ -997,7 +997,7 @@ follow_ups:
       Emit an immutable `intel.eval.v1` audit-chain record for every
       `dispatch_eval_job` outcome (`EvalWorkerReceipt.status`,
       `runner_status`, `denial_kind`, `evidence_refs`, `idempotency_key`,
-      `tenant_id`, `eval_surface`, `suite_id`), hash-chained into
+      `tenant_id`, `eval_surface`, `module_id`), hash-chained into
       `evidence/audit-chain.jsonl`. The composition root currently
       surfaces a typed `Unimplemented::EvalAuditChainEmission` boundary;
       the dispatch pipeline is structured to feed the (eventual) emitter

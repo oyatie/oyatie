@@ -157,7 +157,10 @@ The full registry lives in `[workspace.metadata.oya.microservices]` in the root
 | `ontology` | Palantir-Ontology-equivalent information adapter: typed entities + links + actions + functions, audit-chain, RLS, jurisdiction overlays. Replaces retired `object-graph`. | `oya-ontology-entity-kernel`, `oya-ontology-agent-gateway-rest` |
 | `workflow` | Cross-µservice action/orchestration adapter: state machines, DAGs, approvals, SLA timers, escalations, handoffs. | `oya-workflow-state-machine-domain`, `oya-workflow-approvals-application` |
 | `application` | B2B unified shell: tenants sign in; enable µservices à-la-carte. | `oya-application-product-enablement-rest` |
-| `connect` | Dual-context (Personal + Professional) messaging: messenger, mail, community. Replaces retired `workspace`. | `oya-connect-messenger-grpc`, `oya-connect-mail-rest` |
+| `messenger` | Concrete messaging µservice with strict personal/professional tenant and RBAC separation. | `oya-messenger-domain`, `oya-messenger-message-stream-usecase` |
+| `mail` | Concrete mail µservice with strict personal/professional tenant and RBAC separation. | `oya-mail-domain`, `oya-mail-mailbox-store-usecase` |
+| `community` | Concrete community µservice for groups, professional profile/graph, social/anonymous modes, and moderation. | `oya-community-post-store-domain`, `oya-community-social-domain` |
+| `connector` | Integration-adapter substrate for external systems, OAuth/webhook brokerage, and connector catalog/runtime contracts. Not a product-group wrapper. | `oya-connector-salesforce-adapter`, `oya-connector-netsuite-adapter` |
 | `tenancy` | Tenant lifecycle, multi-tenant isolation, RLS enforcement. | `oya-tenancy-kernel`, `oya-tenancy-adapter` |
 | `identity` | Authentication, STS token issue, PKCE+nonce, SSO binding. | `oya-identity-kernel`, `oya-identity-rest` |
 | `medical` | Electronic medical records, FHIR R5, clinical workflows. | `oya-medical-encounter-domain` |
@@ -303,7 +306,8 @@ block that pins the closed enums:
 # microservices = open kebab registry; slot-2 of BNF v4.1.
 # "shared", "platform", "vertical", "workspace" are RETIRED — do not add.
 microservices = [
-  "cloud", "foundry", "ontology", "workflow", "application", "connect",
+  "cloud", "foundry", "ontology", "workflow", "application",
+  "mail", "messenger", "community", "connector", "tenant-rbac",
   "tenancy", "identity", "audit-chain", "eventing", "secrets",
   "observability", "kms", "policy", "search", "vector",
   "data-boundary", "finance-library", "capability-registry",

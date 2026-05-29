@@ -97,7 +97,7 @@ Therefore: a DPIA is mandatory pre-deployment. This document is the canonical DP
 - **Data subjects:** Tenant employees (Personal + Professional context); external senders/recipients (joint controllership with tenant); tenant admin/compliance personnel.
 - **Relationship to data subjects:** Joint controllership with tenant per Art. 26 (tenant is controller of employee + external-recipient data; oyatie is joint controller for the storage + processing portion). Joint-controllership terms recorded in tenant DPA template at `legal/dpa-template.md`.
 - **Reasonable expectations:** Tenant employees expect mail to be processed by their employer's mail provider. External senders/recipients expect mail to be delivered (no expectation of processing-for-marketing). Personal-pillar users expect employer cannot read their personal mail (Bominal ADR-0215 invariant).
-- **Previous experience:** Bominal mail (Connect-suite mail surface) operated under same model with `oya-connect-mail-*` crates; no DPA-triggered complaints in 12 months. Inherited per `feedback_bominal_inheritance_precedence.md`.
+- **Previous experience:** Bominal mail (legacy communications mail surface) operated under same model with `oya-mail-* legacy-prefix migration` crates; no DPA-triggered complaints in 12 months. Inherited per `feedback_bominal_inheritance_precedence.md`.
 - **Industry codes:** Voluntary alignment with M³AAWG senders-best-practices and DMARC.org.
 
 ### 2.4 Purposes of the processing
@@ -289,10 +289,10 @@ Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md` carry pack-spe
 - ADR-0008: Data use boundary.
 - ADR-0028 (Bominal): Audit chain.
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0135: Connect dissolution; dual-context invariant.
+- ADR-0135: dissolution; dual-context invariant.
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward policy.
+- ADR-0132: No-grouping forward policy.
 - ADR-0140: Cedar policy enforcement.
 - Bominal ADR-0208 / 0210 / 0215: inherited.
 - `microservices/mail/threat-model.md` — paired security artifact.

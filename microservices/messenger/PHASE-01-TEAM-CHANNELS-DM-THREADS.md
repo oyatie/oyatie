@@ -5,7 +5,7 @@ milestone: M02-foundation
 phase: P01-team-channels-dm-threads-presence
 status: Active
 entry_gate: |
-  ADR-0135 (parallel Connect dual-context) + ADR-0131 + ADR-0132 accepted; /specs/microservices/messenger.json published;
+  ADR-0135 (parallel dual-context) + ADR-0131 + ADR-0132 accepted; /specs/microservices/messenger.json published;
   observability µservice IP-001..IP-015 merged so messenger can author OpenSLO manifests and pass promotion-readiness gate.
 exit_gate: |
   All 15 IPs merged; all 52 crates compile + nextest green; oya gate validate per-microservice-layout --microservice messenger

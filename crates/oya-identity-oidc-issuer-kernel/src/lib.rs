@@ -636,7 +636,7 @@ pub fn current_signing_key(keys: &[SigningKey]) -> Option<&SigningKey> {
     keys.iter().find(|key| key.state.is_signing())
 }
 
-/// OIDC-discovery document per RFC 8414 §3.2 + OpenID Connect Discovery 1.0
+/// OIDC-discovery document per RFC 8414 §3.2 + OpenID Discovery 1.0
 /// §3. Fields are the issuer-canonical subset oyatie publishes; downstream
 /// adapters MAY add extension fields when serializing.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -649,7 +649,7 @@ pub struct IssuerMetadata {
     pub authorization_endpoint: String, // data_class: PUBLIC
     /// `token_endpoint`.
     pub token_endpoint: String, // data_class: PUBLIC
-    /// `userinfo_endpoint` (OpenID Connect optional).
+    /// `userinfo_endpoint` (OpenID optional).
     pub userinfo_endpoint: Option<String>, // data_class: PUBLIC
     /// `response_types_supported`.
     pub response_types_supported: Vec<String>, // data_class: PUBLIC
@@ -1203,7 +1203,7 @@ mod tests {
             Err(IssuerError::InvalidIssuerUrl)
         );
         assert_eq!(IssuerUrl::new(""), Err(IssuerError::InvalidIssuerUrl));
-        assert!(IssuerUrl::new("https://identity-kr.oyatie.dev").is_ok());
+        assert!(IssuerUrl::new("https://identity-kr.oyatie.com").is_ok());
     }
 
     #[test]
@@ -1272,7 +1272,7 @@ mod tests {
 
     #[test]
     fn id_token_claims_round_trip() {
-        let issuer = IssuerUrl::new("https://identity-kr.oyatie.dev").expect("ok");
+        let issuer = IssuerUrl::new("https://identity-kr.oyatie.com").expect("ok");
         let audience = Audience::single("oya-application").expect("ok");
         let subject = Subject::new("usr_abc").expect("ok");
         let claims = build_id_token_claims(IdTokenSpec {
@@ -1288,7 +1288,7 @@ mod tests {
             data_class: Some("INTERNAL_ONLY".to_owned()),
         })
         .expect("build ok");
-        assert_eq!(claims.iss, "https://identity-kr.oyatie.dev");
+        assert_eq!(claims.iss, "https://identity-kr.oyatie.com");
         assert_eq!(claims.aud, vec!["oya-application".to_owned()]);
         assert_eq!(claims.sub, "usr_abc");
         assert_eq!(claims.tenant_id, "ten_acme");
@@ -1300,7 +1300,7 @@ mod tests {
 
     #[test]
     fn id_token_rejects_missing_nonce_and_tenant() {
-        let issuer = IssuerUrl::new("https://identity-kr.oyatie.dev").expect("ok");
+        let issuer = IssuerUrl::new("https://identity-kr.oyatie.com").expect("ok");
         let audience = Audience::single("oya-application").expect("ok");
         let subject = Subject::new("usr_abc").expect("ok");
         let spec = IdTokenSpec {
@@ -1337,13 +1337,13 @@ mod tests {
 
     #[test]
     fn build_issuer_metadata_is_deterministic() {
-        let issuer = IssuerUrl::new("https://identity-kr.oyatie.dev").expect("ok");
+        let issuer = IssuerUrl::new("https://identity-kr.oyatie.com").expect("ok");
         let meta = build_issuer_metadata(issuer.clone(), &[Algorithm::Rs256, Algorithm::Es256])
             .expect("build ok");
         assert_eq!(meta.issuer.as_str(), issuer.as_str());
         assert_eq!(
             meta.jwks_uri,
-            "https://identity-kr.oyatie.dev/oauth/jwks".to_owned()
+            "https://identity-kr.oyatie.com/oauth/jwks".to_owned()
         );
         assert_eq!(
             meta.id_token_signing_alg_values_supported,

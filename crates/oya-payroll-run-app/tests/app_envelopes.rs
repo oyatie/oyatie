@@ -50,7 +50,7 @@ fn accounting_bridge_emits_integration_event() {
     );
     assert_eq!(
         outcome.dispatch_envelope.topic.value,
-        "enterprise.payroll.accounting.journal_draft"
+        "tenant_rbac.payroll.accounting.journal_draft"
     );
     assert_eq!(
         outcome.dispatch_envelope.source_payroll_digest.value.value,

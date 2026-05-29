@@ -52,7 +52,7 @@ service WorkloadTokenValidator {
 
 message EntityRef {
   string entity_type = 1; // e.g. "Oya::WorkloadPrincipal"
-  string entity_id = 2;   // e.g. "spiffe://acme.oyatie.dev/ns/payments/sa/ledger-writer"
+  string entity_id = 2;   // e.g. "spiffe://acme.oyatie.com/ns/payments/sa/ledger-writer"
 }
 
 message ActionRef {

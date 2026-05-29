@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j36/approval-cascade-hero-state.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j36/approval-cascade-hero-state.json",
   "title": "ApprovalCascadeHeroState",
   "version": "1.0.0",
-  "description": "Shared journey object for j36-b2b-workflow-engine-approval-cascade. It lets Marcus Chen route an expense request through three managers and schedule payment through Stripe Connect while preserving tenant scope, auditability, and cross-service status.",
+  "description": "Shared journey object for j36-b2b-workflow-engine-approval-cascade. It lets Marcus Chen route an expense request through three managers and schedule payment through Stripe while preserving tenant scope, auditability, and cross-service status.",
   "_meta": {
     "purpose": "Bind j36-b2b-workflow-engine-approval-cascade to a machine-readable object shared by all participating microservices.",
     "status": "Proposed",
@@ -20,7 +20,7 @@
     ],
     "enforcement_status": "authoring-target",
     "industry_citations": [
-      "Temporal approval workflow plus Stripe Connect platform-facilitator pattern"
+      "Temporal approval workflow plus Stripe platform-facilitator pattern"
     ],
     "contract_surfaces": [
       "OpenAPI 3.2.0",

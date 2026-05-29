@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j17/high-risk-mode-activation.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j17/high-risk-mode-activation.json",
   "title": "HighRiskModeActivation",
   "version": "1.0.0",
   "description": "HighRiskModeActivation shared object for j17 Activist dissident high-risk mode. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

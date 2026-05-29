@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://oyatie.dev/schemas/capabilities-canonical-tier.json",
+  "$id": "https://oyatie.com/schemas/capabilities-canonical-tier.json",
   "title": "Capability T0/T1/T2 canonical tier schema (SWEEP-I Slice 5)",
   "description": "Canonical shape for every per-µservice capability YAML (T0-suggest, T1-assist, T2-auto). Authority: ADR-0064.",
   "canonical_authority": "ADR-0064",
@@ -9,9 +9,18 @@
   "consumer_pattern": "microservices/<ms>/capabilities/{T0,T1,T2}.yaml",
   "type": "object",
   "required": [
-    "id", "name", "namespace", "display_name", "description",
-    "owner_team", "maturity", "created_at", "autonomy_tier",
-    "data_classes_touched", "regulatory_packs_consumed", "evidence_topic"
+    "id",
+    "name",
+    "namespace",
+    "display_name",
+    "description",
+    "owner_team",
+    "maturity",
+    "created_at",
+    "autonomy_tier",
+    "data_classes_touched",
+    "regulatory_packs_consumed",
+    "evidence_topic"
   ],
   "properties": {
     "id": {
@@ -21,44 +30,94 @@
     },
     "name": {
       "type": "string",
-      "enum": ["t0-suggest", "t1-assist", "t2-auto"]
+      "enum": [
+        "t0-suggest",
+        "t1-assist",
+        "t2-auto"
+      ]
     },
     "namespace": {
       "type": "string",
       "description": "µservice slug"
     },
-    "display_name": {"type": "string"},
-    "description": {"type": "string"},
-    "owner_team": {"type": "string"},
+    "display_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "owner_team": {
+      "type": "string"
+    },
     "maturity": {
       "type": "string",
-      "enum": ["alpha", "preview", "GA", "deprecated"]
+      "enum": [
+        "alpha",
+        "preview",
+        "GA",
+        "deprecated"
+      ]
     },
-    "created_at": {"type": "string", "format": "date"},
+    "created_at": {
+      "type": "string",
+      "format": "date"
+    },
     "related_adrs": {
       "type": "array",
-      "items": {"type": "string", "pattern": "^ADR-[0-9]{4}$"}
+      "items": {
+        "type": "string",
+        "pattern": "^ADR-[0-9]{4}$"
+      }
     },
-    "related_specs": {"type": "array", "items": {"type": "string"}},
-    "related_artifacts": {"type": "array", "items": {"type": "string"}},
+    "related_specs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "related_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "autonomy_tier": {
       "type": "string",
-      "enum": ["T0", "T1", "T2"],
+      "enum": [
+        "T0",
+        "T1",
+        "T2"
+      ],
       "description": "T0 = suggest (human reads); T1 = assist (human accepts); T2 = auto (human supervises)"
     },
     "inputs": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "type"],
+        "required": [
+          "name",
+          "type"
+        ],
         "properties": {
-          "name": {"type": "string"},
-          "type": {"type": "string"},
-          "required": {"type": "boolean"},
-          "max_length": {"type": "integer"},
-          "values": {"type": "array"},
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "max_length": {
+            "type": "integer"
+          },
+          "values": {
+            "type": "array"
+          },
           "default": {},
-          "description": {"type": "string"}
+          "description": {
+            "type": "string"
+          }
         }
       }
     },
@@ -66,11 +125,20 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "type"],
+        "required": [
+          "name",
+          "type"
+        ],
         "properties": {
-          "name": {"type": "string"},
-          "type": {"type": "string"},
-          "schema": {"type": "string"}
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "schema": {
+            "type": "string"
+          }
         }
       }
     },
@@ -94,7 +162,19 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["pack-kr", "pack-eu", "pack-us", "pack-us-healthcare", "pack-jp", "pack-sg", "pack-au", "pack-in", "pack-br", "pack-ae", "pack-ksa"]
+        "enum": [
+          "pack-kr",
+          "pack-eu",
+          "pack-us",
+          "pack-us-healthcare",
+          "pack-jp",
+          "pack-sg",
+          "pack-au",
+          "pack-in",
+          "pack-br",
+          "pack-ae",
+          "pack-ksa"
+        ]
       }
     },
     "evidence_topic": {
@@ -104,20 +184,49 @@
     "cost_profile": {
       "type": "object",
       "properties": {
-        "type": {"type": "string", "enum": ["per-invocation", "per-second", "per-month"]},
-        "estimated_cost_usd_per_call": {"type": "number"},
-        "cost_drivers": {"type": "array", "items": {"type": "string"}}
+        "type": {
+          "type": "string",
+          "enum": [
+            "per-invocation",
+            "per-second",
+            "per-month"
+          ]
+        },
+        "estimated_cost_usd_per_call": {
+          "type": "number"
+        },
+        "cost_drivers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
-    "cedar_policy_fragments": {"type": "array", "items": {"type": "string"}},
+    "cedar_policy_fragments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "eval_set": {
       "type": "object",
       "properties": {
-        "golden_inputs_path": {"type": "string"},
-        "pass_threshold": {"type": "number"},
-        "eval_metric": {"type": "string"},
-        "cadence": {"type": "string"},
-        "reference": {"type": "string"}
+        "golden_inputs_path": {
+          "type": "string"
+        },
+        "pass_threshold": {
+          "type": "number"
+        },
+        "eval_metric": {
+          "type": "string"
+        },
+        "cadence": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        }
       }
     },
     "regulatory_compliance": {
@@ -125,16 +234,34 @@
       "properties": {
         "ai_act_2024_1689": {
           "type": "object",
-          "required": ["classification"],
+          "required": [
+            "classification"
+          ],
           "properties": {
             "classification": {
               "type": "string",
-              "enum": ["prohibited", "high-risk-ai-system", "limited-risk-ai-system", "minimal-risk-ai-system"]
+              "enum": [
+                "prohibited",
+                "high-risk-ai-system",
+                "limited-risk-ai-system",
+                "minimal-risk-ai-system"
+              ]
             },
-            "risk_anchor_section": {"type": "string"},
-            "arts_applicable": {"type": "array", "items": {"type": "string"}},
-            "transparency_obligation": {"type": "string"},
-            "human_oversight": {"type": "string"}
+            "risk_anchor_section": {
+              "type": "string"
+            },
+            "arts_applicable": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "transparency_obligation": {
+              "type": "string"
+            },
+            "human_oversight": {
+              "type": "string"
+            }
           }
         }
       }
@@ -142,8 +269,17 @@
     "sunset": {
       "type": "object",
       "properties": {
-        "status": {"type": "string", "enum": ["none", "deprecated", "removed"]},
-        "notes": {"type": "string"}
+        "status": {
+          "type": "string",
+          "enum": [
+            "none",
+            "deprecated",
+            "removed"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     }
   }

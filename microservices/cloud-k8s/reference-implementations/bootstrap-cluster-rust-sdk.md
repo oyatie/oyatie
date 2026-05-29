@@ -70,7 +70,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let trace = TraceContext::new_root();
 
-    // 1. Connect — operator credentials bound to the regulated cell tier (Tier 1 = HIPAA-eligible per ADR-0254)
+    // 1. — operator credentials bound to the regulated cell tier (Tier 1 = HIPAA-eligible per ADR-0254)
     let bootstrap_cfg = ClusterBootstrapConfig::builder()
         .endpoint("https://cloud-k8s.oyatie.local/v1".parse()?)
         .tenant(Tenant::parse("oyatie.b2b.regulated.altavista-health")?)

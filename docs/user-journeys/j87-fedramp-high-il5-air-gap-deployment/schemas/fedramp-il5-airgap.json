@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j87-fedramp-il5-airgap.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j87-fedramp-il5-airgap.schema.json",
   "title": "J87 FedRAMP High IL5 air-gap deployment Journey Object",
   "version": "1.0.0",
   "_meta": {

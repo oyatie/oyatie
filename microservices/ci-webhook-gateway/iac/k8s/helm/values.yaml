@@ -43,7 +43,7 @@ image:
   registry: registry.oyatie.dev
   repository: oya-ci-webhook-gateway
   tag: "0.1.0"
-  digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  digest: ""
   pullPolicy: IfNotPresent
   cosign:
     required: true
@@ -65,7 +65,7 @@ gateway:
     namespace: oya-gateway
     sectionName: https
   hostnames:
-    - intelligence.oya.cloud
+    - ci-webhook-gateway.oyatie.com
   pathPrefix: /webhook/forgejo
   tlsTermination: parent-gateway-tls13-ech-pqc
   openapiContract: microservices/ci-webhook-gateway/contracts/ci-webhook-gateway.openapi.yaml

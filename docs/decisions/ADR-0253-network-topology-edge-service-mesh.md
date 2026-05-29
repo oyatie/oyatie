@@ -580,7 +580,7 @@ is the fast path.**
 - **Transport.** mTLS via **SPIFFE-federated SVIDs**. The receiving
   cell's waypoint terminates mTLS using the federated trust bundle.
 - **Path.** Cross-cell traffic crosses provider backbone (e.g., AWS
-  Direct Connect between regions; NHN private link between
+  Direct between regions; NHN private link between
   Pangyo zones) OR public internet (with WireGuard tunnel — see D-9).
 - **Cedar gate per call.** Per ADR-0243 + ADR-0148 Cedar `ext_authz`
   wiring, the receiving waypoint evaluates Cedar policy for the
@@ -1599,7 +1599,7 @@ The Cloudflare edge:
 
 The POP establishes a connection to Frankfurt cell ingress over
 Cloudflare's private backbone (Argo Smart Routing) → AWS Direct
-Connect → AWS-Frankfurt cell. Latency Berlin → Frankfurt is
+→ AWS-Frankfurt cell. Latency Berlin → Frankfurt is
 ~5-10ms.
 
 The connection is mTLS — Cloudflare's edge POP holds a client cert
@@ -1704,7 +1704,7 @@ End-to-end latency:
 Throughout this flow:
 - DNS resolved to a Cloudflare EU POP (Berlin).
 - Cloudflare → Frankfurt cell over Cloudflare's EU-internal
-  backbone + AWS Direct Connect EU-internal.
+  backbone + AWS Direct EU-internal.
 - All workflow-studio data lives in cell-frankfurt-1.eu-pack
   (AWS Frankfurt; eu-central-1 region).
 - Ontology data is projected from workflow-studio's local DB +

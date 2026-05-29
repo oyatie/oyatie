@@ -279,8 +279,8 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - FinOps can attribute AI and workflow usage.
 - Workflow engine can model compensating actions.
 - This combination is stronger than a generic chat assistant.
-- Competitors include OpenAI enterprise products.
-- Competitors include Anthropic enterprise products.
+- Competitors include OpenAI enterprise-market offerings.
+- Competitors include Anthropic enterprise-market offerings.
 - Competitors include Microsoft Copilot Studio.
 - Competitors include Salesforce Agentforce.
 - Competitors include ServiceNow AI agents.
@@ -436,7 +436,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Defense strategy: use Kubernetes and OpenTofu portability as buyer trust signals.
 - Defense strategy: target buyers with multi-cloud or sovereignty concerns.
 
-## 16 - Competitive Response: Enterprise Suites
+## 16 - Competitive Response: Tenant RBACs
 
 - Salesforce can respond through Agentforce, Data Cloud, MuleSoft, Slack, Tableau, and industry clouds.
 - SAP can respond through Business Technology Platform, S/4HANA, SuccessFactors, Ariba, Concur, and Joule.
@@ -629,7 +629,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Safe claim: Oyatie intends to use Cedar as universal policy gate.
 - Safe claim: Oyatie intends to use audit-chain evidence as trust layer.
 - Safe claim: Oyatie intends to use capability tiers to avoid product fragmentation.
-- Safe claim: Oyatie has a specific first deliverable scope in Enterprise Generic plus SMB Generic.
+- Safe claim: Oyatie has a specific first deliverable scope in Tenant RBAC view plus Tenant RBAC view.
 - Safe claim: Oyatie has a milestone-gated funding plan.
 - Safe claim: Oyatie can sell containment before replacement.
 - Safe claim: Oyatie has a credible reason to focus on regulated and multinational buyers.

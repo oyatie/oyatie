@@ -158,7 +158,7 @@ MLS RFC 9420 currently uses ECDH (X25519) + Ed25519. Post-quantum MLS draft (`dr
 - Standard Notes E2E Whitepaper (publicly available).
 - Apple iCloud Advanced Data Protection.
 - Obsidian End-to-End Encryption Sync documentation.
-- ADR-0135 — Connect dual-context (parallel).
+- ADR-0135 — dual-context (parallel).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0132 — Suite-and-bundle dissolution.
 - ADR-MSGR-0002 — Messenger E2E tier-split (paired pattern).

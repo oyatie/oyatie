@@ -17,7 +17,7 @@ inbound_citations:
 The tenant universal-scoping substrate (ADR-0244). Tenant lifecycle + sub-scope registry +
 reserved-namespace enforcement + KYB-KYC + DR-pairing + data-residency enforcement + lifecycle
 locks + Citus distribution + per-tenant quotas. Hyperscaler precedents: AWS Organisations +
-Stripe Connect (platform-facilitator) + Salesforce Tenant Management + Slack Enterprise Grid +
+Stripe (platform-facilitator) + Salesforce Tenant Management + Slack Enterprise Grid +
 Atlassian Cloud Organisation.
 
 ## Entry points

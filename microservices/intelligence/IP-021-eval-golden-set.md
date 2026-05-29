@@ -9,7 +9,7 @@ acceptance_lanes: [cargo-check, cargo-nextest]
 related_adrs: [ADR-0255, ADR-0105]
 ---
 
-# IP-021: Eval — canonicalen-set regression suite
+# IP-021: Eval — canonicalen-set regression set
 
 ## Intent
 

@@ -38,7 +38,7 @@ API:
 ```ts
 import { IdentitySdk } from '@oyatie/identity-sdk';
 
-const sdk = new IdentitySdk({ packEndpoint: 'https://identity-eu.oyatie.dev' });
+const sdk = new IdentitySdk({ packEndpoint: 'https://identity-eu.oyatie.com' });
 const token = await sdk.signInWithPasskey({ mediation: 'conditional' });
 const me = sdk.verify(token); // { tenantId, acr, ... }
 await sdk.stepUp('sensitive', '/secrets/rotate');
@@ -63,7 +63,7 @@ API:
 ```swift
 import OyatieIdentity
 
-let sdk = IdentitySdk(packEndpoint: URL(string: "https://identity-eu.oyatie.dev")!)
+let sdk = IdentitySdk(packEndpoint: URL(string: "https://identity-eu.oyatie.com")!)
 let token = try await sdk.signInWithPasskey()
 let claims = try sdk.verify(token: token)
 try await sdk.stepUp(required: .sensitive, returnTo: URL(...))
@@ -81,7 +81,7 @@ Targets Android 13+ + JVM.
 
 API:
 ```kotlin
-val sdk = IdentitySdk(packEndpoint = "https://identity-eu.oyatie.dev")
+val sdk = IdentitySdk(packEndpoint = "https://identity-eu.oyatie.com")
 val token = sdk.signInWithPasskey()
 val claims = sdk.verify(token)
 sdk.stepUp(StepUpAcr.SENSITIVE, returnTo = "..."")
@@ -99,7 +99,7 @@ Targets ASP.NET Core + Windows desktop.
 
 API:
 ```csharp
-var sdk = new IdentitySdk(packEndpoint: "https://identity-eu.oyatie.dev");
+var sdk = new IdentitySdk(packEndpoint: "https://identity-eu.oyatie.com");
 var token = await sdk.SignInWithPasskeyAsync();
 var claims = sdk.Verify(token);
 await sdk.StepUpAsync(StepUpAcr.Sensitive, returnTo: "...");
@@ -121,7 +121,7 @@ All SDKs implement:
 - `revokeSession()` → server-side revoke + client-side credential clear.
 - `meetsAcr(claims, floor)` → boolean.
 
-All SDKs MUST pass the conformance test suite `evidence/sdk-conformance/identity-v1.json`.
+All SDKs MUST pass the conformance test set `evidence/sdk-conformance/identity-v1.json`.
 
 ## Versioning
 

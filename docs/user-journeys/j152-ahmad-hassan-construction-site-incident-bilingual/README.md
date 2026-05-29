@@ -32,7 +32,7 @@ Ahmad Hassan is a Construction Site Lead employed by **Halcyon Build LLC**, a 47
 4. Seal the **audit-chain** evidence trail before the foreman's GC liaison or the OSHA Form 301 worker can touch it, so the chain-of-custody survives the OSHA Area Office review
 5. Open a **workplace-integration** sync so that the **HR system of record at Halcyon Build (Paycom)** and the **workers'-compensation carrier (State Fund)** see the incident inside SLA — 8 hours for Cal/OSHA recordable, 24 hours for serious-injury under §342
 
-The journey exercises **five microservices under field-grade bilingual conditions**: `incident-management`, `messenger`, `audit-chain`, `workplace-integration`, `drive` — with secondary touches on `identity`, `tenancy`, `workflow-engine`, `compliance`, `observability`, and `connect`. The Cedar policy invokes ADR-0298 emergency-services bypass to allow Ahmad to attach Khalil's pre-existing medical-history excerpt (limited to relevant allergies) from `drive` without invoking the normal 4-eyes HR-access policy.
+The journey exercises **five microservices under field-grade bilingual conditions**: `incident-management`, `messenger`, `audit-chain`, `workplace-integration`, `drive` — with secondary touches on `identity`, `tenancy`, `workflow-engine`, `compliance`, `observability`, and `connector`. The Cedar policy invokes ADR-0298 emergency-services bypass to allow Ahmad to attach Khalil's pre-existing medical-history excerpt (limited to relevant allergies) from `drive` without invoking the normal 4-eyes HR-access policy.
 
 ## Why this journey matters
 
@@ -72,11 +72,11 @@ Hyperscaler benchmark: ServiceNow IT Service Management for the incident-record 
 | µservice | Touch reason |
 |---|---|
 | `identity` | Resolves Ahmad's site-lead role + Khalil's worker role; passkey step-up for the bypass invocation |
-| `tenancy` | Halcyon Build LLC is the tenant; each site is a sub-resource; the carrier (State Fund) is `connect`-bridged |
+| `tenancy` | Halcyon Build LLC is the tenant; each site is a sub-resource; the carrier (State Fund) is `connector`-bridged |
 | `workflow-engine` | Durable orchestration of the 11-step incident workflow; compensation if Paycom is down |
 | `compliance` | Activates the US-OSHA pack overlay + the EEOC language-access pack |
 | `observability` | Emits the trace `incident-hb-oak-4421-2026-1014` with 11 spans; SLO is incident-create → workplace-integration ack ≤ 8 hours |
-| `connect` | Bridges to State Fund (workers'-comp carrier); separately bridges to Cal/OSHA Area Office Oakland |
+| `connector` | Bridges to State Fund (workers'-comp carrier); separately bridges to Cal/OSHA Area Office Oakland |
 
 ## Pack overlays
 
@@ -155,7 +155,7 @@ The Cedar policy refuses if Ahmad's passkey step-up is older than 120 seconds at
 | AC-J152-003 | Crane load-pin telemetry (90s window, 50Hz, 4,500 samples) and deck camera ID `cam-deck-6-northwest` 4-minute clip attached to the incident automatically; chain-of-custody hash sealed in `audit-chain` |
 | AC-J152-004 | ADR-0298 bypass invocation for Khalil's allergy excerpt succeeds; the excerpt shows `sulfa_drugs`, `codeine` only; full medical record is NOT exposed; the disclosure event is sealed |
 | AC-J152-005 | Paycom HR-system sync writes the incident as workers'-comp pending claim within 6 minutes; State Fund receives FROI-1 derivation within 90 minutes |
-| AC-J152-006 | Cal/OSHA §342 8-hour timer is set on incident create; the timer fires a reminder at T+6h; at T+8h, if the report is not submitted via the `connect` bridge to the Area Office, the workflow escalates to Halcyon Build's safety officer's pager |
+| AC-J152-006 | Cal/OSHA §342 8-hour timer is set on incident create; the timer fires a reminder at T+6h; at T+8h, if the report is not submitted via the `connector` bridge to the Area Office, the workflow escalates to Halcyon Build's safety officer's pager |
 | AC-J152-007 | The bilingual incident narrative survives export to the OSHA-301 PDF in both EN and AR (Arabic right-to-left rendering preserved); the audit-chain hash includes both narratives |
 | AC-J152-008 | An attempt by a non-site-lead crew member to invoke `incident.attach_medical_excerpt` is denied with `EVT-J152-CEDAR-DENY-NOT-SITE-LEAD` audit event; the worker can still create a basic incident but cannot pull medical |
 

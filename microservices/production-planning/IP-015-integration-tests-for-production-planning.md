@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-20
 owner_team: axis-production-planning + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0252, ADR-0253, ADR-0257, ADR-0263, ADR-0294, ADR-0297, ADR-0314, ADR-0315, ADR-0316]
-planned_enforcement_ref: oya-governance-production-planning-doc-suite
+planned_enforcement_ref: oya-governance-production-planning-doc-set
 ip_id: IP-015
 journey_ref: j101
 journey_slug: j101-multi-tier-supply-chain-formation
@@ -257,7 +257,7 @@ Integration-test crate is build-time only; rollback = revert IP changes; CI lane
 - ADR-0105, ADR-0244, ADR-0263, ADR-0294, ADR-0297, ADR-0314, ADR-0315, ADR-0316.
 - testcontainers-rs, criterion-rs, chaos-mesh.
 - SAP Solution Manager Test Workbench, ASUG PP test community baseline.
-- Benchmarks: SAP-AT catalogue | Oracle Fusion Cloud Manufacturing Test Catalog | Microsoft Dynamics 365 SCM RSAT (Regression Suite Automation Tool) | NetSuite SuiteAnalytics QA pack.
+- Benchmarks: SAP-AT catalogue | Oracle Fusion Cloud Manufacturing Test Catalog | Microsoft Dynamics 365 SCM RSAT (Regression Set Automation Tool) | NetSuite SuiteAnalytics QA pack.
 
 ## H. Out of scope
 

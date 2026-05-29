@@ -9,9 +9,9 @@ version: 0.1.0
 appVersion: "0.1.0"
 maintainers:
   - name: axis-foundry
-    email: axis-foundry@oyatie.dev
+    email: axis-foundry@oyatie.com
   - name: ops-security
-    email: ops-security@oyatie.dev
+    email: ops-security@oyatie.com
 keywords:
   - foundry-providers
   - llm-router
@@ -19,7 +19,7 @@ keywords:
   - anthropic
   - openai
   - gemini
-home: https://oyatie.dev/foundry-providers
+home: https://oyatie.com/cloud-intelligence-providers
 icon: ""
 dependencies: []
 annotations:

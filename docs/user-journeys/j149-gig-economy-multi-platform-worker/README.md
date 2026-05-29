@@ -96,7 +96,7 @@ Cedar-limited completed-task counts, not her personal Mail, and tax forms stay p
 | `finops-portal` | [IP-journey-j149-personal-earnings-aggregation.md](../../../microservices/finops-portal/IP-journey-j149-personal-earnings-aggregation.md) | personal-earnings-aggregation |
 | `identity` | [IP-journey-j149-cedar-limited-task-count-principal.md](../../../microservices/identity/IP-journey-j149-cedar-limited-task-count-principal.md) | cedar-limited-task-count-principal |
 | `tenancy` | [IP-journey-j149-platform-to-personal-boundary.md](../../../microservices/tenancy/IP-journey-j149-platform-to-personal-boundary.md) | platform-to-personal-boundary |
-| `connect` | [IP-journey-j149-platform-adapter-roster.md](../../../microservices/connect/IP-journey-j149-platform-adapter-roster.md) | platform-adapter-roster |
+| `connector` | [IP-journey-j149-platform-adapter-roster.md](../../../microservices/connector/IP-journey-j149-platform-adapter-roster.md) | platform-adapter-roster |
 | `community` | [IP-journey-j149-worker-reputation-and-support.md](../../../microservices/community/IP-journey-j149-worker-reputation-and-support.md) | worker-reputation-and-support |
 | `workflow-engine` | [IP-journey-j149-tax-and-availability-automation.md](../../../microservices/workflow-engine/IP-journey-j149-tax-and-availability-automation.md) | tax-and-availability-automation |
 
@@ -106,7 +106,7 @@ Cedar-limited completed-task counts, not her personal Mail, and tax forms stay p
 - `finops-portal`: personal-earnings-aggregation; participates in `GigPlatformEarningsAggregationCommand` and emits `GigPlatformEarningsSettled` evidence.
 - `identity`: cedar-limited-task-count-principal; participates in `GigPlatformEarningsAggregationCommand` and emits `GigPlatformEarningsSettled` evidence.
 - `tenancy`: platform-to-personal-boundary; participates in `GigPlatformEarningsAggregationCommand` and emits `GigPlatformEarningsSettled` evidence.
-- `connect`: platform-adapter-roster; participates in `GigPlatformEarningsAggregationCommand` and emits `GigPlatformEarningsSettled` evidence.
+- `connector`: platform-adapter-roster; participates in `GigPlatformEarningsAggregationCommand` and emits `GigPlatformEarningsSettled` evidence.
 - `community`: worker-reputation-and-support; participates in `GigPlatformEarningsAggregationCommand` and emits `GigPlatformEarningsSettled` evidence.
 - `workflow-engine`: tax-and-availability-automation; participates in `GigPlatformEarningsAggregationCommand` and emits `GigPlatformEarningsSettled` evidence.
 

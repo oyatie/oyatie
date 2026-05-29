@@ -8,7 +8,7 @@ info:
     OIDC + Cedar authorisation (per `microservices/social/policy/*.cedar`)
     and are tenant-scoped via `X-Scope-OrgID` header.
 
-    Real-time path is via WebSocket at `wss://social-{pack}.oyatie.dev/ws/v1`
+    Real-time path is via WebSocket at `wss://social-{pack}.oyatie.com/ws/v1`
     documented in `contracts/asyncapi/social-events.yaml`.
 
     Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.
@@ -19,11 +19,11 @@ info:
     cross-context writes refused per ADR-0135 (parallel) + `policy/dual-context-isolation.md`.
   contact:
     name: axis-social
-    url: https://oyatie.dev/teams/axis-social
+    url: https://oyatie.com/teams/axis-social
   license:
     name: Internal
 servers:
-  - url: https://social-{pack}.oyatie.dev/api/v1
+  - url: https://social-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -84,7 +84,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
   parameters:
     XScopeOrgID:
       in: header

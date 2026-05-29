@@ -82,4 +82,4 @@ Implementation:
 - ASE adult-echo SR
 - Sectra Enterprise Imaging white paper
 - Agfa Enterprise Imaging white paper
-- ADR-0132 (no-suite policy; split-when-warranted)
+- ADR-0132 (no-grouping policy; split-when-warranted)

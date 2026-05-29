@@ -84,7 +84,7 @@ The plan is written against the `microservices/audit-chain/manifest.json` layer 
 - Flake ceiling: zero retries; cryptographic randomness must be seeded.
 - Determinism ceiling: every generated event id uses `audit-test`.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module: `audit_chain_emission_kernel::event_canonicalization_tests`.
 - Test: `canonical_event_requires_tenant_id`.

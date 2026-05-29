@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J100-T001 | analytics mid-flight pack activation | Cedar decision and audit event cite 45 CFR 164.308 administrative safeguards; data remains tenant-scoped |
 | J100-T002 | api-gateway pre-migration inventory | Cedar decision and audit event cite 45 CFR 164.310 physical safeguards; data remains tenant-scoped |

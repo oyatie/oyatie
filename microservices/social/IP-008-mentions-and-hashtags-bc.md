@@ -22,8 +22,8 @@ Implement the planned mention and hashtag crate families already named by PRD/IP
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `src/crates/oya-social-mentions-{kernel,domain,usecase,api,adapter,worker,sdk}/` | Planned mention family named by PRD/IP. |
-| `src/crates/oya-social-hashtags-{kernel,domain,usecase,api,adapter-postgres,worker,sdk}/` | Planned hashtag family named by PRD/IP. |
+| `src/crates/oya-community-social-mentions-{kernel,domain,usecase,api,adapter,worker,sdk}/` | Planned mention family named by PRD/IP. |
+| `src/crates/oya-community-social-hashtags-{kernel,domain,usecase,api,adapter-postgres,worker,sdk}/` | Planned hashtag family named by PRD/IP. |
 | `contracts/asyncapi/social-events.yaml` | Mention and hashtag event source. |
 | `policy/content-policy.cedar` and `policy/dm-scope.cedar` | Visibility and notification guards. |
 
@@ -37,8 +37,8 @@ Implement the planned mention and hashtag crate families already named by PRD/IP
 7. Wire mention-storm throttling and moderation signals.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-mentions-kernel` passes.
-- `cargo nextest run -p oya-social-hashtags-kernel` passes.
+- `cargo nextest run -p oya-community-social-mentions-kernel` passes.
+- `cargo nextest run -p oya-community-social-hashtags-kernel` passes.
 - Notification fanout respects `policy/dm-scope.cedar`.
 - `runbooks/mention-storm-throttle.md` covers burst handling.
 - AsyncAPI mention/hashtag events validate.

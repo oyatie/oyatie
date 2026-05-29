@@ -89,7 +89,7 @@ It uses PSP simulators and sandbox fakes, not real customer accounts or live fin
 - Cross-service handoff coverage target: all audit-chain seal events from manifest.
 - Policy coverage target: all listed payments Cedar policy files receive at least one integration fuzz suite.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `integration::charge_flow`.
 - Test `charge_rest_stripe_authorize_capture_acme_success`.

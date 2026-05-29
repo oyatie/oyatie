@@ -21,7 +21,13 @@
       "preflight_hint": "Every `uses: <action>@<sha>` SHA must resolve via `gh api /repos/<action>/commits/<sha>`; pin to 40-hex SHA, never a branch.",
       "icm_keyword": "error-class,gha,broken-action-sha",
       "citation_probe_lane": "oya-governance-mistakes-ledger-kernel",
-      "controls": ["preflight", "ledger-row", "fitness-lane", "icm", "citation"]
+      "controls": [
+        "preflight",
+        "ledger-row",
+        "fitness-lane",
+        "icm",
+        "citation"
+      ]
     },
     {
       "id": "MFL-0015",
@@ -36,7 +42,13 @@
       "preflight_hint": "`grep -q '[profile.ci]' .config/nextest.toml` AND `cargo nextest list --profile ci --workspace` returns rc 0 before any nextest run-* command.",
       "icm_keyword": "error-class,nextest,missing-profile-ci",
       "citation_probe_lane": "oya-governance-mistakes-ledger-kernel",
-      "controls": ["preflight", "ledger-row", "fitness-lane", "icm", "citation"]
+      "controls": [
+        "preflight",
+        "ledger-row",
+        "fitness-lane",
+        "icm",
+        "citation"
+      ]
     },
     {
       "id": "MFL-0016",
@@ -51,7 +63,13 @@
       "preflight_hint": "`find scripts -type f -name '*.sh' -exec sh -c 'head -1 \"$0\" | grep -q \"^#!\"' {} \\;` must return rc 0 — every shell script needs an explicit shebang.",
       "icm_keyword": "error-class,bash,missing-shebang",
       "citation_probe_lane": "oya-governance-mistakes-ledger-kernel",
-      "controls": ["preflight", "ledger-row", "fitness-lane", "icm", "citation"]
+      "controls": [
+        "preflight",
+        "ledger-row",
+        "fitness-lane",
+        "icm",
+        "citation"
+      ]
     }
   ]
 }

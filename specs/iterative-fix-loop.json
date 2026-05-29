@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/iterative-fix-loop.json",
+  "$id": "https://docs.oyatie.com/specs/iterative-fix-loop.json",
   "title": "IterativeFixLoop",
   "description": "Protocol for the find → fix → re-review cycle invoked by the pre-PR multispectrum checklist. Defines the loop state machine, termination conditions, and the bounded depth of iterations before opening an automated stuck-change remediation task.",
   "_meta": {

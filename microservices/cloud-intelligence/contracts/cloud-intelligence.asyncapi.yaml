@@ -1,6 +1,6 @@
 asyncapi: 3.1.0
 info:
-  title: Oyatie LLM Gateway Event Streams
+  title: Oyatie Cloud Intelligence Event Streams
   version: 1.0.0
   description: |
     AsyncAPI 3.1 contract for the cloud-intelligence µservice telemetry streams.

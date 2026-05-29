@@ -7,7 +7,7 @@ version: 0.1.0
 appVersion: "16.0"  # Postgres 16 LTS line per docs/standards/workflow-engine-substrate.md
 maintainers:
   - name: axis-workflow
-    email: axis-workflow@oyatie.dev
+    email: axis-workflow@oyatie.com
 dependencies:
   - name: citus
     version: "12.1.x"

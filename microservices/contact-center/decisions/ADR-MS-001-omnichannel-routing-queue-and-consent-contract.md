@@ -287,7 +287,7 @@ decision_owner: axis-contact-center + council-product
 - RFC 8224: Authenticated Identity Management in STIR.
 - W3C WebRTC and Media Capture specifications.
 - Twilio Programmable Voice documentation.
-- Amazon Connect administrator and contact flow documentation.
+- Amazon administrator and contact flow documentation.
 - Google SRE Workbook: SLOs, error budgets, and incident response.
 - Cedar policy language documentation.
 - NIST SP 800-63B: Authentication lifecycle for operator access.

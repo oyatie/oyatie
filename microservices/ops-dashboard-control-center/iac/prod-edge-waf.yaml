@@ -82,10 +82,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - ops-dashboard.oyatie.dev
+        - ops-dashboard.oyatie.com
       secretName: ops-dashboard-pqc-tls
   rules:
-    - host: ops-dashboard.oyatie.dev
+    - host: ops-dashboard.oyatie.com
       http:
         paths:
           - path: /ops/

@@ -227,7 +227,7 @@ Five named precedents informed the §D-2 ceremony shape:
 
 - **Internet Root Key Ceremony (DNSSEC IANA).** ICANN's KSK ceremonies
   (held every three months in El Segundo and Culpeper since 2010)
-  combine an offline HSM (a Thales nShield Connect XC), seven
+  combine an offline HSM (a Thales nShield XC), seven
   Cryptographic Officers from seven distinct countries (each holding
   a smartcard component of the operator card), and a separate
   Trusted Community Representative quorum. The full procedure is
@@ -394,7 +394,7 @@ permitted (matches ICANN KSK ceremony posture).
 
 | Component | Specification |
 |---|---|
-| Primary HSM | Thales Luna Network HSM 7 (FIPS 140-3 Level 3 certified; certificate #4543) OR Entrust nShield Connect XC (FIPS 140-3 Level 3 certified; certificate #4458). Brand+model is fixed for any given key lifetime; rotation may select either. |
+| Primary HSM | Thales Luna Network HSM 7 (FIPS 140-3 Level 3 certified; certificate #4543) OR Entrust nShield XC (FIPS 140-3 Level 3 certified; certificate #4458). Brand+model is fixed for any given key lifetime; rotation may select either. |
 | Backup HSM | Second HSM of the same brand/model installed in a geographically-separate facility (≥1000km) and synchronized via Shamir reconstruction, not key replication |
 | Shard storage media | Tamper-evident smartcards (e.g., Gemalto IDPrime 940 with FIPS 140-3 L2 certification); each shard holder receives one smartcard sealed in a tamper-evident bag |
 | Ceremony recording | Dual independent 4K cameras with offline storage; audio captured separately; recordings sealed in tamper-evident container at ceremony close |

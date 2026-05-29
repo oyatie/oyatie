@@ -411,7 +411,7 @@ V.5 Known gaps in this parity matrix:
 - substance of slos/*.openslo.yaml beyond availability.openslo.yaml not sampled (no impact on parity rows but affects SLO claims in adjacent PR per performance benchmark doc).
 - substance of contracts/asyncapi-v1.yaml + contracts/learning-management-v1.proto not sampled beyond line count (impacts §13.6 + §13.9 confidence).
 - IP-006 through IP-025 not sampled (uniform 55-line count suspicion per coherence-audit B.1.8; impacts parity confidence on IP-named features).
-- Canvas-specific deep features (Mastery Paths, MasteryConnect academic-record alignment, ePortfolio) not enumerated row-by-row beyond the §1-§15 sections.
+- Canvas-specific deep features (Mastery Paths, Masteryacademic-record alignment, ePortfolio) not enumerated row-by-row beyond the §1-§15 sections.
 - Docebo-specific deep features (Docebo Coach + Share, Docebo Pages, Docebo Mobile App Publisher) not enumerated beyond the §1-§15 sections.
 - Cornerstone-specific deep features (Saba PeopleFluent compliance, Cornerstone Learning Suite Cloud Storage, Cornerstone Performance) not enumerated beyond the §1-§15 sections.
 

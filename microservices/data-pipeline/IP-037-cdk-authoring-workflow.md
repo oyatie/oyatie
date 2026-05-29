@@ -37,7 +37,7 @@ Also binds: `feedback_rust_strict_only_no_python_2026_05_20` (CDK is Rust-strict
 - Required actor: `principal_id` with `DATA_PIPELINE_OPERATOR`, `tenant_connector_author`, or `oyatie.foundry.connector_author` audience.
 - Required policy decision: Cedar permit from `local-cdk-authoring-scope.cedar`, `local-cdk-publish-scope.cedar`.
 - Required scaffold kind: `source_connector_rest`, `source_connector_grpc`, `source_connector_database_cdc`, `source_connector_file`, `source_connector_event_stream`, `destination_connector_warehouse`, `destination_connector_lakehouse`, `destination_connector_object_lake`, `destination_connector_streaming`, `destination_connector_reverse_etl`.
-- Required tests: integration test suite, contract test suite, replay test suite, drift test suite, watermark monotonicity test.
+- Required tests: integration test set, contract test set, replay test set, drift test set, watermark monotonicity test.
 - Required disposition: `scaffolded`, `compiling`, `tested`, `staged`, `published`, `installed`, `running`, `failed`, `withdrawn`.
 
 ## CDK trait surface (Rust)
@@ -49,7 +49,7 @@ Also binds: `feedback_rust_strict_only_no_python_2026_05_20` (CDK is Rust-strict
 
 ## Authoring workflow (step-by-step)
 1. Author runs `oya cdk scaffold --kind <kind> --tenant <tenant> --slug <slug>` (CLI command in `bin/oya`).
-2. Scaffold produces a Cargo crate with `src/lib.rs` implementing the trait surface and `tests/` with the required test suites.
+2. Scaffold produces a Cargo crate with `src/lib.rs` implementing the trait surface and `tests/` with the required test sets.
 3. Author implements the trait methods; CDK enforces `tenant_id`, `home_cell`, `principal_id`, `data_class` plumbing.
 4. Author runs `oya cdk test --integration --contract --replay --drift --watermark`; failing tests block publish.
 5. Author runs `oya cdk lint` checking BNF v4.1 naming + ADR-0105 layer slugs + ADR-0321 documentation rigor.
@@ -74,7 +74,7 @@ Also binds: `feedback_rust_strict_only_no_python_2026_05_20` (CDK is Rust-strict
 - Add `oya.data.pipeline.cdk.scaffolded`, `.tested`, `.packaged`, `.published`, `.installed`, `.withdrawn` events to AsyncAPI surface.
 - Add `capabilities/cdk-scaffold.yaml`, `capabilities/cdk-publish.yaml`.
 - Add `catalog/oya-data-pipeline-connector-cdk-domain.yaml`.
-- Add SLO `local-cdk-test-suite-success-rate.openslo.yaml` (0.99).
+- Add SLO `local-cdk-test-set-success-rate.openslo.yaml` (0.99).
 - Add SLO `local-cdk-publish-latency.openslo.yaml` (p95 5min for tenant-local, 30min for marketplace including DealSet round-trip).
 - Add runbook `cdk-test-failure.md` and `cdk-publish-blocked.md`.
 - Publish `contracts/cdk-trait-v1.yaml` (Rust trait API doc surfaced as machine-readable contract).
@@ -99,8 +99,8 @@ Also binds: `feedback_rust_strict_only_no_python_2026_05_20` (CDK is Rust-strict
 ## Policy gates
 - Cedar denies cdk.scaffold without `tenant_connector_author` audience.
 - Cedar denies cdk.scaffold for scaffold_kind that exceeds tenant CDK feature pack.
-- Cedar denies cdk.test if the test suite did not run all five required suites.
-- Cedar denies cdk.publish if any test suite failed.
+- Cedar denies cdk.test if the test set did not run all five required suites.
+- Cedar denies cdk.publish if any test set failed.
 - Cedar denies cdk.publish if BNF v4.1 lint failed.
 - Cedar denies cdk.publish if ADR-0321 documentation-rigor lint failed.
 - Cedar denies cdk.publish if signature chain unverifiable.
@@ -108,11 +108,11 @@ Also binds: `feedback_rust_strict_only_no_python_2026_05_20` (CDK is Rust-strict
 - Cedar denies cdk.publish for scaffold_kind that crosses pack overlay boundary (e.g., a PCI-DSS-restricted destination connector cannot publish to a non-PCI tenant marketplace).
 - Cedar denies cdk operations when audit-chain unavailable.
 
-## Required test suites (per scaffold_kind)
-- Integration test suite: connector talks to a representative fake or vendor sandbox; reads/writes a known fixture.
-- Contract test suite: connector's OpenAPI surface (control plane) and AsyncAPI surface (event emission) conform.
-- Replay test suite: connector's cursor advance can be rolled back deterministically.
-- Drift test suite: connector reports schema drift in IP-026 shape on injected drift.
+## Required test sets (per scaffold_kind)
+- Integration test set: connector talks to a representative fake or vendor sandbox; reads/writes a known fixture.
+- Contract test set: connector's OpenAPI surface (control plane) and AsyncAPI surface (event emission) conform.
+- Replay test set: connector's cursor advance can be rolled back deterministically.
+- Drift test set: connector reports schema drift in IP-026 shape on injected drift.
 - Watermark monotonicity test: cursor advances monotonically (IP-030 watermark rule).
 
 ## Benchmark displacement
@@ -126,7 +126,7 @@ Also binds: `feedback_rust_strict_only_no_python_2026_05_20` (CDK is Rust-strict
 ## Failure handling
 - If scaffold fails (filesystem write blocked), refuse and emit evidence.
 - If compilation fails, mark case `compiling` failure and link `runbooks/cdk-test-failure.md`.
-- If any test suite fails, mark case `tested` failure and link `runbooks/cdk-test-failure.md`.
+- If any test set fails, mark case `tested` failure and link `runbooks/cdk-test-failure.md`.
 - If publish blocked by Cedar or signature verification, link `runbooks/cdk-publish-blocked.md`.
 - If marketplace DealSet rejected, hold case and notify author via the case audit channel.
 - If tenant CDK feature pack downgraded mid-authoring, halt and notify; preserve scaffold for re-publish under upgraded pack.
@@ -155,7 +155,7 @@ Also binds: `feedback_rust_strict_only_no_python_2026_05_20` (CDK is Rust-strict
 - CDK trait surface in `oya-data-pipeline-cdk` crate, Rust-strict.
 - All ten scaffold kinds covered with reference fixtures.
 - `bin/oya cdk` subcommands implemented in Rust.
-- All five required test suites enforced before publish.
+- All five required test sets enforced before publish.
 - Marketplace publish requires DealSet (ADR-0314).
 - Foundry authoring restricted to tenant-local publish unless operator approves.
 - SLOs and runbooks exist.
@@ -179,7 +179,7 @@ Also binds: `feedback_rust_strict_only_no_python_2026_05_20` (CDK is Rust-strict
 ## Operator review prompts
 - Reviewer asks whether scaffold_kind is the most specific match.
 - Reviewer asks whether the Rust toolchain version aligns with current MSRV.
-- Reviewer asks whether all five test suites ran and passed.
+- Reviewer asks whether all five test sets ran and passed.
 - Reviewer asks whether documentation rigor floor is met.
 - Reviewer asks whether marketplace DealSet is reasonable (price, terms, license).
 - Reviewer asks whether signature chain is intact.
@@ -199,7 +199,7 @@ This IP was preserved as already substantive; the Wave 15 scrub adds the grep-vi
 - Applicable compliance pack floor: `PCI-DSS-L1-v4` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=86400`, `rpo_p99_seconds=3600`, `multi_region_required=false`, `drill_cadence_required=annual`).
 - Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
 - backup_substrate: `iceberg_snapshot`, `object_storage_versioned`, `audit_chain_merkle_seal`.
-- Surface evidence: `microservices/data-pipeline/IP-037-cdk-authoring-workflow.md:77` - - Add SLO `local-cdk-test-suite-success-rate.openslo.yaml` (0.99).; `microservices/data-pipeline/IP-037-cdk-authoring-workflow.md:78` - - Add SLO `local-cdk-publish-latency.openslo.yaml` (p95 5min for tenant-local, 30min for marketplace including DealSet round-trip)..
+- Surface evidence: `microservices/data-pipeline/IP-037-cdk-authoring-workflow.md:77` - - Add SLO `local-cdk-test-set-success-rate.openslo.yaml` (0.99).; `microservices/data-pipeline/IP-037-cdk-authoring-workflow.md:78` - - Add SLO `local-cdk-publish-latency.openslo.yaml` (p95 5min for tenant-local, 30min for marketplace including DealSet round-trip)..
 
 ## Sustainability emission (per ADR-0344)
 
@@ -216,4 +216,4 @@ This IP was preserved as already substantive; the Wave 15 scrub adds the grep-vi
 - `pod_runtime_tier: 0`.
 - Runtime class: Kata Containers + Cloud Hypervisor (`kata-cloud-hypervisor`) is required for this execution path.
 - Justification: Trigger D matched a sandbox/plugin/workflow/capability surface; treat the execution path as tenant-customer or third-party code until a narrower manifest declaration proves otherwise.
-- Surface evidence: `microservices/data-pipeline/IP-037-cdk-authoring-workflow.md:112` - - Integration test suite: connector talks to a representative fake or vendor sandbox; reads/writes a known fixture..
+- Surface evidence: `microservices/data-pipeline/IP-037-cdk-authoring-workflow.md:112` - - Integration test set: connector talks to a representative fake or vendor sandbox; reads/writes a known fixture..

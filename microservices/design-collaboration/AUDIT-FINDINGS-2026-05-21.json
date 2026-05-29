@@ -5,7 +5,7 @@
   "audit_class": "ADR-0321 second-pass operating-bar buildout",
   "findings": [
     {
-      "id": "design-collaboration-doc-suite-001",
+      "id": "design-collaboration-doc-set-001",
       "status": "closed-by-additive-artifacts",
       "evidence": "microservices/design-collaboration/",
       "target_artifacts": 100

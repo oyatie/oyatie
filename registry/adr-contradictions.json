@@ -7,7 +7,7 @@
     "owner_team": "council-architecture",
     "version": "1.0.0",
     "created_at": "2026-05-14T00:00:00Z",
-    "authority_anchor": ".omc/plans/ralplan-freelance-prevention-controls-2026-05-14.md \u00a76(b)",
+    "authority_anchor": ".omc/plans/ralplan-freelance-prevention-controls-2026-05-14.md §6(b)",
     "consumer_lanes": [
       "oya-check-adr-index (extended at M02-P20 IP-005 expansion)",
       "oya-check-regression / lean-a10-regression (golden fixture)"
@@ -23,16 +23,16 @@
       "adr_b": "ADR-0091",
       "adr_b_title": "workspace-dependency-seam-debt-ledger-phaseout (R5)",
       "adr_b_status": "Proposed (R5 plan pending architect+critic+codex consensus; ADR not yet drafted on disk at HEAD 4d6bf91)",
-      "adr_b_authoring_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md \u00a710 Step 4",
+      "adr_b_authoring_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md §10 Step 4",
       "contradiction_class": "transport-stack-direction",
       "contradiction_summary": "ADR-0090 declares hyper 1.x as canonical HTTP backbone with 'Support everything ourselves with 0-to-minimal-dependency' framing (i.e., long-term retention). ADR-0091 (per R5) declares the same hyper stack as known-debt under a phase-out trajectory (target replacement: std-only, post-ontology-v1-stable). Both ADRs covering the same scope cannot be simultaneously Accepted without an explicit supersession edge.",
-      "resolution_strategy": "ADR-0091 supersedes ADR-0090 (per .omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md \u00a76(c) + R5 \u00a78 ADR-0091 outline). ADR-0090 body remains factual (it accurately describes the current backbone); status flips to 'Superseded by ADR-0091' in the same atomic PR as ADR-0091 Accepted.",
+      "resolution_strategy": "ADR-0091 supersedes ADR-0090 (per .omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md §6(c) + R5 §8 ADR-0091 outline). ADR-0090 body remains factual (it accurately describes the current backbone); status flips to 'Superseded by ADR-0091' in the same atomic PR as ADR-0091 Accepted.",
       "resolution_trigger": {
         "predicate": "adr_status_equals",
         "target_adr": "ADR-0091",
         "target_status": "Accepted",
         "deadline_phase": "M02-P22",
-        "deadline_rationale": "M02 exit gate requires zero unresolved contradictions per masterplan \u00a7Consequences (dispatched in autopilot Phase 2)."
+        "deadline_rationale": "M02 exit gate requires zero unresolved contradictions per masterplan §Consequences (dispatched in autopilot Phase 2)."
       },
       "superseding_pr": null,
       "registered_by": "ralplan-ops-freelance-realignment-2026-05-14 session 7e0309c2",

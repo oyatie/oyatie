@@ -46,8 +46,8 @@ acceptance_status: ga
 | AC-ID | Criterion | Verification |
 |---|---|---|
 | AC-01 | S3 multipart 1GB upload completes p95 ≤ 90s under ≥ 4 concurrent parts | `cargo nextest run --test e2e_upload_multipart_1gb` |
-| AC-02 | AWS SigV4 conformance suite passes (all canonical-request fixtures) | `cargo nextest run --test e2e_s3_sigv4` |
-| AC-03 | tus.io 1.0 conformance suite passes (HEAD, PATCH, OPTIONS, expired upload) | `cargo nextest run --test e2e_tus_1_0` |
+| AC-02 | AWS SigV4 conformance set passes (all canonical-request fixtures) | `cargo nextest run --test e2e_s3_sigv4` |
+| AC-03 | tus.io 1.0 conformance set passes (HEAD, PATCH, OPTIONS, expired upload) | `cargo nextest run --test e2e_tus_1_0` |
 | AC-04 | FastCDC chunk parameters pinned (min 4KiB, avg 8KiB, max 64KiB) and stable | `cargo nextest run -p oya-drive-upload-domain -- fastcdc_parameters_pinned` |
 | AC-05 | Staging-to-durable promotion gated by clean ClamAV + OPSWAT verdict | `cargo nextest run --test e2e_upload_virus_quarantine` |
 

@@ -72,7 +72,7 @@ pass at 100%. The two canonical corpora are:
    src/test/data` — ~200 RRULE cases; the de-facto industry reference.
    libical is used inside Apple Calendar, Mozilla Thunderbird, GNOME
    Evolution, and KDE KOrganizer, so passing it = passing those clients.
-2. **python-dateutil rrule test suite** at
+2. **python-dateutil rrule test set** at
    `github.com/dateutil/dateutil/tree/master/tests` — ~150 cases;
    widely-used as the Python ecosystem's RRULE reference; cited in
    many Stack Overflow answers and is the de-facto "behaviour

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j47/healthcare-billing-claim.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j47/healthcare-billing-claim.json",
   "title": "HealthcareBillingClaim",
   "version": "1.0.0",
   "description": "Shared journey object for j47-healthcare-billing-and-insurance. It lets Yejin Park review a hospital bill, pay the patient portion, and auto-submit the insurance claim while preserving tenant scope, auditability, and cross-service status.",

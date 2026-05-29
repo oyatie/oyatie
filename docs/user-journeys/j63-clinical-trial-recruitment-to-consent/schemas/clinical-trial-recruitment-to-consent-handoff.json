@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j63/clinical-trial-recruitment-to-consent-handoff.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j63/clinical-trial-recruitment-to-consent-handoff.json",
   "title": "J63ClinicalTrialRecruitmentToConsentHandoff",
   "description": "Shared clinical-trial-recruitment-to-consent-handoff schema for j63-clinical-trial-recruitment-to-consent. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

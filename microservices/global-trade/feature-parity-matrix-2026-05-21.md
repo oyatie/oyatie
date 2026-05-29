@@ -358,7 +358,7 @@ Public Descartes anchor: Descartes Global Trade Intelligence page lists import/e
 56. Impact H14: line count hides capability gaps.
 57. Remediation H14: replace generated rows with evidence-bound capability families.
 58. Gap H15: previous audit closure is too narrow.
-59. Evidence H15: `AUDIT-FINDINGS-2026-05-21.json:10-62` closes six doc-suite rows only.
+59. Evidence H15: `AUDIT-FINDINGS-2026-05-21.json:10-62` closes six doc-set rows only.
 60. Impact H15: canonical cross-cutting gaps remain open.
 
 ## Additive Surface For Industry-Leader Coverage

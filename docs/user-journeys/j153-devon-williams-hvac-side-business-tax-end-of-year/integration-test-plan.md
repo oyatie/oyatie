@@ -14,13 +14,13 @@ status: draft
 |---|---|
 | Seed tenants | `tests/fixtures/tenants/{bayshore_climate_systems,devon_williams_hvac_llc}.yaml` |
 | Seed user | `tests/fixtures/personas/devon-williams.yaml` (dual-tenant) |
-| Seed Stripe Connect deposits | `tests/fixtures/payments/stripe-connect-2026-devon-47-deposits.jsonl` |
+| Seed Stripe deposits | `tests/fixtures/payments/stripe-connect-2026-devon-47-deposits.jsonl` |
 | Seed Venmo transactions | `tests/fixtures/payments/venmo-2026-devon-14-transactions.json` |
 | Seed Zelle entries | `tests/fixtures/payments/zelle-2026-marisol-3.json` |
 | Seed receipts | `tests/fixtures/receipts/devon-2026-187-receipts/*` (OCR'd) |
 | Seed mileage trips | `tests/fixtures/tasks/devon-2026-73-trips.csv` |
 | Mock Cookson Tax | `tests/mocks/cookson-tax-recipient.toml` |
-| Mock Stripe Connect | `tests/mocks/stripe-connect.toml` (returns 1099-K when threshold crossed) |
+| Mock Stripe | `tests/mocks/stripe-connect.toml` (returns 1099-K when threshold crossed) |
 | Mock Venmo OAuth | `tests/mocks/venmo-oauth.toml` |
 | Mock CDTFA submission endpoint | `tests/mocks/cdtfa-submission.toml` |
 | Frozen clock | `2026-12-28T19:42:00-08:00` |
@@ -35,7 +35,7 @@ status: draft
 
 **Fail:** Any field of the response indicates the Bayshore tenant role.
 
-### T-J153-002 — Stripe Connect batch reconcile
+### T-J153-002 — Stripe batch reconcile
 
 **Action:** POST `/v1/tenants/devon_williams_hvac_llc/payments/reconcile/batch-approve` with 47 deposit_ids.
 

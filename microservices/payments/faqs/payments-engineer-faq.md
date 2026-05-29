@@ -51,7 +51,7 @@ Behavior:
 
 If a Stripe call is in-flight when a retry comes in (key seen, response not yet computed), the retry waits up to 30 s for the original to complete, then returns the same response. This handles network-retry-storms gracefully.
 
-## What's the per-tenant fee schedule? How is it different from Stripe Connect application fees?
+## What's the per-tenant fee schedule? How is it different from Stripe application fees?
 
 Per ADR-XXX-payments-fee-schedule. A "fee schedule" is a configurable transaction-cost model:
 
@@ -65,7 +65,7 @@ Per ADR-XXX-payments-fee-schedule. A "fee schedule" is a configurable transactio
 
 The tenant configures their fee schedule via `oya payments fee-schedule update`. We compute the gross-to-net transaction internally; the merchant sees only the net settlement on their statement.
 
-Stripe Connect application fees let you take a cut from a sub-merchant. Our per-tenant fee schedule is broader — it covers ALL cost components including FX margin, chargeback, and cross-border surcharges, and applies BEFORE the Stripe Connect cut (if Connect is in use).
+Stripe application fees let you take a cut from a sub-merchant. Our per-tenant fee schedule is broader — it covers ALL cost components including FX margin, chargeback, and cross-border surcharges, and applies BEFORE the Stripe cut (if is in use).
 
 The ADR enumerates the 14 fee components we model. Most tenants use 4-6; advanced tenants use 12+.
 

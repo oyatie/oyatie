@@ -24,7 +24,7 @@ planned_enforcement_ref: oya-governance-doc-rigor
 Role: usage-chargeback.
 
 Journey purpose: TenantF AIScribe sells API access to KrampusCorp, HealthcareSystem-Megacorp, and BoutiqueRetailer with
-per-customer metering, Stripe Connect usage billing, and per-tenant Cedar permits.
+per-customer metering, Stripe usage billing, and per-tenant Cedar permits.
 
 ## Scope
 

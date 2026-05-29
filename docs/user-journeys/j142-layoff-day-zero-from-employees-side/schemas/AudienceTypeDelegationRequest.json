@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/user-journeys/j142/AudienceTypeDelegationRequest.json",
+  "$id": "https://oyatie.com/schemas/user-journeys/j142/AudienceTypeDelegationRequest.json",
   "title": "AudienceTypeDelegationRequest",
   "type": "object",
   "_meta": {

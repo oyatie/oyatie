@@ -60,7 +60,7 @@ perTenantSessionCap: 50
 
 # OIDC + Cedar
 oidc:
-  issuer: https://auth.oyatie.dev
+  issuer: https://auth.oyatie.com
   audience: slides
 cedar:
   evaluatorEndpoint: "http://acl.slides.svc.cluster.local:8080"

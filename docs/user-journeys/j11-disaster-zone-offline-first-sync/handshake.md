@@ -41,8 +41,8 @@ user/device -> api-gateway -> identity -> policy library -> journey service set 
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase1.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase1.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase1.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase1.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase1.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase1.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase1.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase1.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase1.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase1.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase1.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase1.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase1.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase1.cell.sealed |
@@ -56,8 +56,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase2.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase2.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase2.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase2.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase2.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase2.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase2.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase2.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase2.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase2.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase2.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase2.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase2.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase2.cell.sealed |
@@ -71,8 +71,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase3.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase3.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase3.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase3.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase3.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase3.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase3.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase3.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase3.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase3.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase3.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase3.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase3.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase3.cell.sealed |
@@ -86,8 +86,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase4.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase4.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase4.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase4.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase4.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase4.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase4.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase4.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase4.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase4.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase4.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase4.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase4.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase4.cell.sealed |
@@ -101,8 +101,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase5.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase5.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase5.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase5.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase5.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase5.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase5.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase5.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase5.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase5.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase5.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase5.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase5.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase5.cell.sealed |
@@ -116,8 +116,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase6.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase6.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase6.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase6.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase6.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase6.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase6.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase6.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase6.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase6.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase6.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase6.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase6.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase6.cell.sealed |
@@ -131,8 +131,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase7.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase7.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase7.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase7.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase7.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase7.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase7.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase7.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase7.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase7.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase7.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase7.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase7.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase7.cell.sealed |
@@ -146,8 +146,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase8.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase8.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase8.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase8.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase8.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase8.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase8.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase8.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase8.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase8.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase8.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase8.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase8.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase8.cell.sealed |
@@ -161,8 +161,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase9.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase9.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase9.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase9.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase9.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase9.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase9.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase9.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase9.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase9.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase9.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase9.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase9.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase9.cell.sealed |
@@ -176,8 +176,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase10.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase10.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase10.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase10.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase10.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase10.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase10.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase10.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase10.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase10.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase10.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase10.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase10.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase10.cell.sealed |
@@ -191,8 +191,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase11.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase11.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase11.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase11.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase11.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase11.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase11.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase11.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase11.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase11.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase11.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase11.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase11.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase11.cell.sealed |
@@ -206,8 +206,8 @@ Failure invariant: refusal paths return a safe next action and do not leak prote
 
 | Step | Caller | Callee | RPC or event | Schema | Cedar decision | Audit event |
 |---:|---|---|---|---|---|---|
-| 1 | api-gateway | connect | j11.offline-shell-state.phase12.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase12.connect.sealed |
-| 2 | connect | drive | j11.offline-file-journal.phase12.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase12.drive.sealed |
+| 1 | api-gateway | connector | j11.offline-shell-state.phase12.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase12.connect.sealed |
+| 2 | connector | drive | j11.offline-file-journal.phase12.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase12.drive.sealed |
 | 3 | drive | messenger | j11.store-and-forward-queue.phase12.v1 | schemas/conflict-resolution-decision.json | PERMIT or scoped DENY | j11.phase12.messenger.sealed |
 | 4 | messenger | notes | j11.offline-crdt-merge.phase12.v1 | schemas/offline-sync-journal.json | PERMIT or scoped DENY | j11.phase12.notes.sealed |
 | 5 | notes | cell | j11.disaster-sync-routing.phase12.v1 | schemas/connectivity-restore-event.json | PERMIT or scoped DENY | j11.phase12.cell.sealed |

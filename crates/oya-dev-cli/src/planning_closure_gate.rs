@@ -19,7 +19,7 @@ const EXPECTED_STATUS_LEDGER_REF: &str = "/specs/planning-closure-status-closure
 const EXPECTED_MASTERPLAN_PATH: &str = "/specs/masterplan.json";
 const EXPECTED_GATE_COMMAND: &str = "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
 const EXPECTED_CLAIM_STATUS: &str = "blocked_until_planning_closure_gate_green";
-const EXPECTED_FIRST_DELIVERABLE_ID: &str = "FD-001-enterprise-smb-generic-core";
+const EXPECTED_FIRST_DELIVERABLE_ID: &str = "FD-001-tenancy-rbac-microservice-core";
 const EXPECTED_DELIVERY_MODE: &str = "full_depth_production_hyperscaler_exit";
 const EXPECTED_SCOPE_POSTURE: &str = "not_mvp_not_preview_not_reduced_scope";
 const EXPECTED_EXIT_CLAIM_BAR: &str = "industry_leading_production_grade_hyperscaler_grade";
@@ -70,7 +70,7 @@ const REQUIRED_ARCHIVED_STALE_PATTERNS: &[&str] = &[
     ".omc/plans/*.json",
 ];
 
-const REQUIRED_VERTICALS: &[&str] = &["enterprise-generic", "smb-generic"];
+const REQUIRED_PACKAGING_AXES: &[&str] = &["tenancy", "rbac"];
 
 const REQUIRED_SURFACES: &[&str] = &[
     "core",
@@ -92,8 +92,8 @@ const REQUIRED_KR_PACK_SURFACES: &[&str] = &[
     "cedar_policy_fragments",
     "workflow_templates",
     "typst_document_templates",
-    "connect_mail_messenger_community_localization",
-    "enterprise_smb_operating_flows",
+    "messenger_mail_community_localization",
+    "tenant_rbac_operating_flows",
     "audit_chain_evidence",
     "data_residency_and_privacy_controls",
     "import_export_migration_paths",
@@ -102,7 +102,7 @@ const REQUIRED_KR_PACK_SURFACES: &[&str] = &[
 ];
 
 const REQUIRED_ARCHITECTURE_RULES: &[&str] = &[
-    "flat_microservice_catalog_not_suite_forks",
+    "flat_microservice_catalog_not_grouping_forks",
     "per_microservice_prd_manifest_phase_ip_contracts",
     "per_microservice_clean_architecture_crate_layers",
     "per_microservice_api_first_contracts_before_handlers",
@@ -327,7 +327,7 @@ impl Default for PlanningClosureValidateArgs {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PlanningClosureReport {
-    pub vertical_count: usize,
+    pub packaging_axis_count: usize,
     pub surface_count: usize,
     pub kr_pack_surface_count: usize,
     pub architecture_rule_count: usize,
@@ -403,7 +403,7 @@ pub(crate) fn validate_planning_closure_gate(
     }
 
     Ok(PlanningClosureReport {
-        vertical_count: REQUIRED_VERTICALS.len(),
+        packaging_axis_count: REQUIRED_PACKAGING_AXES.len(),
         surface_count: REQUIRED_SURFACES.len(),
         kr_pack_surface_count: REQUIRED_KR_PACK_SURFACES.len(),
         architecture_rule_count: REQUIRED_ARCHITECTURE_RULES.len(),
@@ -957,7 +957,7 @@ fn validate_first_deliverable_common(
     require_string_value(first, "delivery_mode", EXPECTED_DELIVERY_MODE, context)?;
     require_string_value(first, "scope_posture", EXPECTED_SCOPE_POSTURE, context)?;
     require_string_value(first, "exit_claim_bar", EXPECTED_EXIT_CLAIM_BAR, context)?;
-    require_exact_string_set(first, "verticals", REQUIRED_VERTICALS, context)?;
+    require_exact_string_set(first, "packaging_axes", REQUIRED_PACKAGING_AXES, context)?;
     require_exact_string_set(first, "required_surfaces", REQUIRED_SURFACES, context)?;
     Ok(())
 }
@@ -1098,7 +1098,8 @@ fn validate_vertical_adr(contents: &str, path: &Path) -> Result<(), String> {
     let lower = contents.to_ascii_lowercase();
     let path = path.display();
     for phrase in [
-        "enterprise generic + smb generic",
+        "tenancy/rbac packaging",
+        "personal and professional life",
         "full production depth",
         "not mvp",
         "core",

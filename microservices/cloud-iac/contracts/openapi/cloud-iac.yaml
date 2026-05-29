@@ -15,11 +15,11 @@ info:
     match the claim; mismatch returns 401.
   contact:
     name: axis-cloud-iac
-    url: https://oyatie.dev/teams/axis-cloud-iac
+    url: https://oyatie.com/teams/axis-cloud-iac
   license:
     name: Internal
 servers:
-  - url: https://cloud-iac-{pack}.oyatie.dev/api/v1
+  - url: https://cloud-iac-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -80,7 +80,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
     SPIFFE:
       type: mutualTLS
       description: SPIFFE identity for service-to-service calls

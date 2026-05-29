@@ -406,9 +406,8 @@ async fn sse6_client_drop_releases_lease_cleanly() {
     assert!(SubscriptionPool::lease(&pool_ref, &agent, &gate, Instant::now()).is_err());
 
     // Build an infinite stream that never yields None.
-    let infinite_stream: oya_cloud_intelligence_rest::BoxStream<
-        Result<Bytes, RestAdapterError>,
-    > = Box::pin(futures::stream::pending());
+    let infinite_stream: oya_cloud_intelligence_rest::BoxStream<Result<Bytes, RestAdapterError>> =
+        Box::pin(futures::stream::pending());
 
     {
         let wrapped = SseStreamWithLease::new(infinite_stream, lease);

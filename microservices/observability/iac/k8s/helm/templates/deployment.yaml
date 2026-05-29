@@ -1,5 +1,5 @@
 {{- $imageDigest := .Values.image.digest | default "" -}}
-{{- if and .Values.image.cosign.required (or (eq $imageDigest "") (eq $imageDigest "sha256:0000000000000000000000000000000000000000000000000000000000000000")) -}}
+{{- if and .Values.image.cosign.required (not (and (regexMatch "^sha256:[0-9a-f]{64}$" $imageDigest) (regexMatch "[1-9a-f]" (trimPrefix "sha256:" $imageDigest)))) -}}
 {{- fail "image.digest must be set to a real non-zero sha256 digest when image.cosign.required=true" -}}
 {{- end -}}
 apiVersion: apps/v1

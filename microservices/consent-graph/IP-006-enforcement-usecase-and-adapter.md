@@ -159,7 +159,7 @@ every grantee subscriber's projection read.
 ## 10. Risk
 
 - **R**: Hot-path latency regression on Cedar upgrade.
-  **M**: `criterion` benchmark suite + CI gate (≥20% regression fails build).
+  **M**: `criterion` benchmark set + CI gate (≥20% regression fails build).
 - **R**: Cache hit-rate drops under traffic mix shift.
   **M**: SLO `cache-hit-rate` (informational; ≥70% warning). Cache size auto-tunes via VPA.
 - **R**: Pulsar revocation subscriber falls behind, stale permits leak.

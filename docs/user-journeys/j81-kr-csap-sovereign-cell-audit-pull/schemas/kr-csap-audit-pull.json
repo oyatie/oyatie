@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j81-kr-csap-audit-pull.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j81-kr-csap-audit-pull.schema.json",
   "title": "J81 KR CSAP sovereign cell audit pull Journey Object",
   "version": "1.0.0",
   "_meta": {

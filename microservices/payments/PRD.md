@@ -115,7 +115,7 @@ The payments µservice consolidates: PSP routing, tenant-scoped vaulting, idempo
 
 Hyperscaler precedent: **Stripe Connect** (platform-facilitator pattern) + **Adyen MarketPay** (marketplace settlement) + **Toss Payments Sub-Merchant** (KR regulator-mandated platform pattern) — every successful multi-tenant platform converges on the same shape. Failure modes observed:
 
-1. **Slack 2019** — sticker-pack tipping launched on raw Stripe Charges; per-creator payouts required a manual sub-merchant onboarding flow that took weeks. Fix: marketplace-facilitator (Stripe Connect Express) from day-one.
+1. **Slack 2019** — sticker-pack tipping launched on raw Stripe Charges; per-creator payouts required a manual sub-merchant onboarding flow that took weeks. Fix: marketplace-facilitator (Stripe Express) from day-one.
 2. **Discord Nitro 2020-2022** — single PSP (Stripe) created KR + JP + CN payment-friction gaps; users dropped at checkout because KakaoPay / LINE Pay / Alipay were missing. Fix: multi-PSP routing with locale-aware preference.
 3. **Substack 2023** — per-creator tax-1099 generation was bolted onto the subscription engine; year-end tax season caused 5× incident load. Fix: tax-registration is a first-class entity, not an afterthought.
 4. **Patreon 2024** — per-tenant_class subscription churn was opaque because subscription state lived in Stripe rather than the platform's own ledger. Fix: own the subscription state machine; PSP is a transport.
@@ -146,7 +146,7 @@ An oyatie tenant whose product touches money — a creator selling a sticker pac
 
 #### Persona B2C-2 — "Marcus, German indie creator monetising shorts"
 - **Goals**: receive €0.50 super-chats from viewers during his live stream; receive monthly payout to his Sparkasse SEPA IBAN; pay German income tax via auto-1099-equivalent.
-- **Frustrations**: 7-day payout holds; PayPal cross-border 4% margin; opaque Stripe Connect Express onboarding; no auto-tax-report.
+- **Frustrations**: 7-day payout holds; PayPal cross-border 4% margin; opaque Stripe Express onboarding; no auto-tax-report.
 - **Tech comfort**: high (creator-economy native; Stripe Connect, Patreon, Twitch Bits).
 - **Locale + device**: de-DE, CEST, MacBook Pro + iPhone; desktop creator-dashboard primary.
 
@@ -165,9 +165,9 @@ An oyatie tenant whose product touches money — a creator selling a sticker pac
 ### B.2 B2B personas
 
 #### Persona B2B-1 — "Marketplace Mai, B2B platform operator on oyatie"
-- **Goals**: run a marketplace where vendors sell to buyers; oyatie holds funds (escrow) then pays vendors weekly; oyatie keeps 10% facilitator fee; vendors are sub-merchants on Mai's Stripe Connect account.
+- **Goals**: run a marketplace where vendors sell to buyers; oyatie holds funds (escrow) then pays vendors weekly; oyatie keeps 10% facilitator fee; vendors are sub-merchants on Mai's Stripe account.
 - **Frustrations**: PSP onboarding friction; per-vendor KYC; chargeback liability ambiguity; settlement currency conversion losses.
-- **Tech comfort**: high (operator dashboard; Stripe Connect veteran; SaaS founder).
+- **Tech comfort**: high (operator dashboard; Stripe veteran; SaaS founder).
 - **Locale + device**: en-US + zh-Hans (vendors in CN), PT/SGT, desktop primary; admin console.
 
 #### Persona B2B-2 — "Finance Felix, B2B SaaS controller billing per-seat"
@@ -214,7 +214,7 @@ Stories are oyatie-payments specific. They do NOT duplicate `docs/user-stories/b
 - **Acceptance criteria**:
   1. Subscriber enters IBAN OR card; SCA challenge triggered if amount × annual ≥ €30 (PSD2 RTS threshold).
   2. Subscription state machine moves `pending → active`; first charge succeeds within 5s; subsequent monthly charges retry on failure per `payments::retry_ladder::standard`.
-  3. Payout to Marcus's Stripe Connect Express account triggered on `payout_schedule=weekly`; first payout T+7 days.
+  3. Payout to Marcus's Stripe Express account triggered on `payout_schedule=weekly`; first payout T+7 days.
   4. Cancellation by subscriber moves state to `cancelled_at_period_end`; no further charges.
 - **Accessibility AC**: subscription flow keyboard-navigable end-to-end; SCA challenge UI passes WCAG 2.2 AA.
 - **i18n AC**: amounts in EUR with German decimal comma (`5,00 €`); SCA challenge text in de-DE; IBAN field accepts SEPA format.
@@ -262,7 +262,7 @@ Stories are oyatie-payments specific. They do NOT duplicate `docs/user-stories/b
 - **Acceptance criteria**:
   1. `POST /v1/charges` with `application_fee=10_00` (10% in cents) + `transfer_data.destination=<vendor_connect_account>` succeeds.
   2. Charge state machine: `pending → succeeded → captured → in_escrow → ready_for_payout`.
-  3. Weekly payout cron transfers $90 to vendor's Stripe Connect Express balance; $10 to Mai's platform balance.
+  3. Weekly payout cron transfers $90 to vendor's Stripe Express balance; $10 to Mai's platform balance.
   4. Year-end 1099-K generated per vendor jurisdiction (US: IRS 1099-K threshold; KR: NTS annual filing; etc.).
 - **Accessibility AC**: vendor onboarding flow passes WCAG 2.2 AA; 1099-K PDF accessibility-compliant.
 - **i18n AC**: vendor sees amounts in their settlement currency; receipts in vendor locale.
@@ -346,7 +346,7 @@ Stories are oyatie-payments specific. They do NOT duplicate `docs/user-stories/b
 - **I want** to connect my own Stripe account (not oyatie's)
 - **so that** payouts hit MY bank balance and oyatie sees only platform-fee transfers.
 - **Acceptance criteria**:
-  1. `POST /v1/tenant/psp-account/connect` initiates Stripe OAuth Connect Standard flow.
+  1. `POST /v1/tenant/psp-account/connect` initiates Stripe OAuth Standard flow.
   2. After OAuth, tenant's `payments::Tenant.psp_account_ref` references a SecretReference per ADR-0255 §D-4 (oyatie holds no Stripe API key in plaintext).
   3. All charges + payouts route through Mai's account; oyatie collects platform-fee transfers via Stripe `application_fee`.
   4. Disconnect flow: 30-day grace; old charges still settle; new charges refused after disconnect.
@@ -396,7 +396,7 @@ Stories are oyatie-payments specific. They do NOT duplicate `docs/user-stories/b
 - **so that** I am compliant with sub-merchant rules.
 - **Acceptance criteria**:
   1. New vendor enters business name, tax ID, address, beneficial owners.
-  2. KYB submitted to Stripe Connect / equivalent; status `pending_verification → approved` or `rejected_with_reasons`.
+  2. KYB submitted to Stripe / equivalent; status `pending_verification → approved` or `rejected_with_reasons`.
   3. Until approved, charges still route but payouts are held; on approval, hold released.
   4. Periodic re-KYB on PSP request (typically annually).
 - **Accessibility AC**: KYB form accessibility-compliant; field labels explicit.
@@ -492,7 +492,7 @@ Stories are oyatie-payments specific. They do NOT duplicate `docs/user-stories/b
 - **Acceptance criteria**:
   1. Charge in USD; payout settlement in EUR per PSP FX rate at settlement time.
   2. FX rate + spread surfaced in payout statement.
-  3. Settlement currency configurable per Connect account.
+  3. Settlement currency configurable per account.
 - **Accessibility AC**: FX disclosure accessible.
 - **i18n AC**: localized.
 
@@ -710,11 +710,11 @@ Stories are oyatie-payments specific. They do NOT duplicate `docs/user-stories/b
 | FR-P-14 | Proration MUST be computed on mid-cycle plan changes; preview endpoint MUST exist. |
 | FR-P-15 | Pause + resume MUST be supported; max pause = 90 days. |
 
-### D.3 Marketplace + Connect surface
+### D.3 Marketplace + surface
 
 | ID | Requirement |
 |---|---|
-| FR-P-20 | `POST /v1/connect/accounts` MUST onboard a sub-merchant via Stripe Connect Express / Adyen MarketPay / Toss Sub-Merchant. |
+| FR-P-20 | `POST /v1/connect/accounts` MUST onboard a sub-merchant via Stripe Express / Adyen MarketPay / Toss Sub-Merchant. |
 | FR-P-21 | KYB flow MUST collect business name, tax ID, beneficial owners, bank account. |
 | FR-P-22 | Charges MAY include `transfer_data.destination=<connect_account>` + `application_fee=<cents>`. |
 | FR-P-23 | Payouts MUST follow per-account schedule (`daily|weekly|monthly`) + jurisdictional minimum threshold. |
@@ -782,7 +782,7 @@ Stories are oyatie-payments specific. They do NOT duplicate `docs/user-stories/b
 |---|---|
 | FR-P-90 | Charges MAY occur in one currency; payouts MAY settle in another. |
 | FR-P-91 | FX rate + spread MUST be surfaced in payout statement. |
-| FR-P-92 | Settlement currency configurable per Connect account. |
+| FR-P-92 | Settlement currency configurable per account. |
 
 ---
 
@@ -1003,7 +1003,7 @@ States are owned by oyatie payments, not by PSP. PSP state may diverge; payments
 [Cedar gate: marketplace::charge_permitted]
          |
          v
-[PSP: Stripe Connect charge with transfer]
+[PSP: Stripe charge with transfer]
          |
          v
 [Charge succeeds → vendor balance +$90; platform balance +$10]
@@ -1078,10 +1078,10 @@ States are owned by oyatie payments, not by PSP. PSP state may diverge; payments
 [Audit chain emit dispute.lost]
 ```
 
-### F.6 provider-BYOK Stripe Connect OAuth onboarding
+### F.6 provider-BYOK Stripe OAuth onboarding
 
 ```
-[Tenant clicks Connect Stripe]
+[Tenant clicks Stripe]
          |
          v
 [GET /v1/tenant/psp-account/connect/init?provider=stripe]
@@ -1123,7 +1123,7 @@ States are owned by oyatie payments, not by PSP. PSP state may diverge; payments
 [POST /v1/connect/accounts {vendor_payload}]
          |
          v
-[Stripe Connect Express → underwriting]
+[Stripe Express → underwriting]
          |
          v
 [State: kyb_pending]
@@ -1268,7 +1268,7 @@ The following are explicitly NOT in scope for this µservice:
 6. **In-store / point-of-sale terminal hardware** — out of scope (Stripe Terminal-class); future µservice.
 7. **Tax-filing as-a-service** — we generate filing CSV/EDI but do NOT file on behalf of tenant.
 8. **Anti-money-laundering case management** — we emit signals; case workflow is in `compliance` µservice.
-9. **Mass-payouts to non-Connect destinations** — out of scope (Stripe Treasury / Wise-equivalent); future.
+9. **Mass-payouts to non-destinations** — out of scope (Stripe Treasury / Wise-equivalent); future.
 10. **Currency exchange beyond PSP-provided FX** — we do not run an FX desk.
 
 ---
@@ -1283,7 +1283,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | `subscription` | `oya-payments-subscription-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Subscription state machine; renewals; proration |
 | `refund` | `oya-payments-refund-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Refund flow + state machine |
 | `dispute` | `oya-payments-dispute-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Chargeback dispute flow + evidence |
-| `payout` | `oya-payments-payout-{kernel,domain,usecase,api,adapter,worker,sdk,app}` | Marketplace payout to Connect accounts |
+| `payout` | `oya-payments-payout-{kernel,domain,usecase,api,adapter,worker,sdk,app}` | Marketplace payout to accounts |
 | `connect-account` | `oya-payments-connect-account-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Sub-merchant onboarding + KYB |
 | `tax-engine` | `oya-payments-tax-engine-{kernel,domain,usecase,api,adapter,adapter-stripe-tax,adapter-avalara,sdk,app}` | Per-jurisdiction tax computation |
 | `ledger` | `oya-payments-ledger-{kernel,domain,usecase,api,adapter,adapter-postgres,worker,sdk,app}` | Double-entry ledger of all money movements |
@@ -1423,9 +1423,9 @@ The following sections will be added when the corresponding Slice agents complet
 
 ### P.1 Per-PSP capability mapping
 
-| PSP | Region focus | Charges | Subscriptions | Refunds | Disputes | Connect / Marketplace | 3DS / SCA | KR-FSS | provider-BYOK supported | Notes |
+| PSP | Region focus | Charges | Subscriptions | Refunds | Disputes | / Marketplace | 3DS / SCA | KR-FSS | provider-BYOK supported | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Stripe | Global; primary US/EU | Y | Y (Billing) | Y | Y | Y (Connect Express/Standard) | Y | N (no native KR-FSS) | Y (OAuth Connect Standard) | Reference PSP; canonical adapter shape |
+| Stripe | Global; primary US/EU | Y | Y (Billing) | Y | Y | Y (Express/Standard) | Y | N (no native KR-FSS) | Y (OAuth Standard) | Reference PSP; canonical adapter shape |
 | Adyen | Global; primary EU + APAC | Y | Y (Recurring) | Y | Y | Y (MarketPay) | Y | N | Y | Multi-acquirer routing inside Adyen |
 | Braintree | Global; primary US | Y | Y | Y | Y | Y (Marketplace) | Y | N | Y | Owned by PayPal; useful for PayPal-balance payers |
 | Checkout.com | Global; primary EU + UK | Y | Y | Y | Y | P | Y | N | Y | High-volume B2B |

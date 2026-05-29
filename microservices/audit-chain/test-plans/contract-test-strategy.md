@@ -82,7 +82,7 @@ Audit-chain is a substrate; its contract tests are promotion blockers for downst
 - Flake ceiling: no network, HSM, or object-store dependency.
 - Determinism rule: pact examples use fixed synthetic event ids.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module: `audit_chain_contract::openapi_version_tests`.
 - Test: `openapi_audit_chain_uses_3_2_0`.

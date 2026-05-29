@@ -10,7 +10,7 @@ companion_docs:
   - microservices/ops-dashboard-control-center/multi-region.md
   - microservices/ops-dashboard-control-center/runbooks/admin-action-rollback.md
   - microservices/ops-dashboard-control-center/runbooks/forensic-investigation-handoff.md
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # Backfill and Replay — ops-dashboard-control-center

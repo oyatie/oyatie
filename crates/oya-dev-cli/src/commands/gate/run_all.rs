@@ -242,27 +242,6 @@ fn run_ci_required_preflight_command(command: &str) -> bool {
             child.args(["nextest", "run", "--workspace", "--no-fail-fast"]);
             child
         }
-        "cargo run -q -p oya-vcs-admission-gate-app" => {
-            let mut child = cargo_with_ci_env();
-            child.args(["run", "-q", "-p", "oya-vcs-admission-gate-app"]);
-            child
-        }
-        "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json" =>
-        {
-            let mut child = cargo_with_ci_env();
-            child.args([
-                "run",
-                "-q",
-                "-p",
-                "oya-vcs-provider-execution-gate-app",
-                "--",
-                "--mode",
-                "ci",
-                "--emit-evidence",
-                "target/oya-vcs-provider-execution/provider-execution-proof.json",
-            ]);
-            child
-        }
         "bash scripts/github-actions-required-secrets-check.sh" => {
             let mut child = Command::new("bash");
             child.args(["scripts/github-actions-required-secrets-check.sh"]);

@@ -11,7 +11,7 @@ planned_enforcement_ref: 'oya-governance-doc-rigor'
 purpose: >
   Doctrine for the 30-year career-arc claim: learning oyatie once creates transferable competence across personal life, education, apprenticeship, frontline work, office work, management, regulated roles, side businesses, and retirement-era personal use.
 related_adrs:
-  - docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+  - docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
   - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
   - docs/decisions/ADR-0245-substrate-vs-product-layering.md
   - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
@@ -44,7 +44,7 @@ external_precedent_refs:
   - Google Workspace Learning Center: https://support.google.com/a/users/answer/9389764
   - Salesforce Platform and AppExchange: https://www.salesforce.com/platform/ecosystem
   - Salesforce Trailhead AppExchange basics: https://trailhead.salesforce.com/content/learn/modules/appexchange_basics
-  - ServiceNow Now Platform workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
+  - ServiceNow Now Module workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
   - Atlassian Platform: https://www.atlassian.com/platform
   - Notion connected workspace: https://www.notion.com/help/guides/connected-workspace-for-product-teams-to-collaborate-ideate-and-launch
   - Gartner SaaS sprawl collaboration research: https://www.gartner.com/en/documents/6873766
@@ -846,7 +846,7 @@ Why this is a failure: per §6.1, accessibility is a substrate concern, not a pr
 
 Required recovery:
 1. The verb path must be reachable through keyboard navigation, screen-reader announcement, and assistive-input devices.
-2. The regression must be caught at the UX shell action router conformance suite.
+2. The regression must be caught at the UX shell action router conformance set.
 3. Affected users are notified through their preferred accessibility-notification channel that a regression is being repaired.
 
 ## Section 11 - Operational telemetry and claim discipline
@@ -1154,19 +1154,19 @@ The compliance-pack delta is the strongest argument for substrate-level pack ove
 ## Section 16 - Doctrine acceptance evidence
 
 ### 16.1 Acceptance signal: substrate verb-enum conformance
-A test suite at the UX shell action router asserts that the visible verb enum is exactly thirteen. The test must run on every release of the UX shell and the action router. If a fourteenth verb appears without an extending ADR, the test fails and the release is blocked.
+A test set at the UX shell action router asserts that the visible verb enum is exactly thirteen. The test must run on every release of the UX shell and the action router. If a fourteenth verb appears without an extending ADR, the test fails and the release is blocked.
 
 ### 16.2 Acceptance signal: cross-pack verb-resolution conformance
-A test suite at the substrate level asserts that each of the thirteen verbs resolves to the same Cedar evaluation path, the same Workflow Engine event class, the same Ontology projection class, and the same audit-chain event class across every pack overlay. The test must run on every pack release.
+A test set at the substrate level asserts that each of the thirteen verbs resolves to the same Cedar evaluation path, the same Workflow Engine event class, the same Ontology projection class, and the same audit-chain event class across every pack overlay. The test must run on every pack release.
 
 ### 16.3 Acceptance signal: cross-locale verb-label conformance
-A test suite at the localization layer asserts that each of the thirteen verbs has a locale-correct label in every supported locale. A locale that fails to provide a label cannot ship. The locale's translation team is not permitted to add or remove verbs.
+A test set at the localization layer asserts that each of the thirteen verbs has a locale-correct label in every supported locale. A locale that fails to provide a label cannot ship. The locale's translation team is not permitted to add or remove verbs.
 
 ### 16.4 Acceptance signal: cross-collar verb-affordance conformance
-A test suite at the UX shell asserts that every workspace (white-collar, blue-collar, pink-collar, gray-collar per ADR-0318) renders the thirteen verbs with full-floor affordance. Density variation is permitted; affordance reduction is not.
+A test set at the UX shell asserts that every workspace (white-collar, blue-collar, pink-collar, gray-collar per ADR-0318) renders the thirteen verbs with full-floor affordance. Density variation is permitted; affordance reduction is not.
 
 ### 16.5 Acceptance signal: telemetry-projection completeness
-A test suite at the audit-chain layer asserts that each of the four §11 telemetry signals is produced and consumed for every tenant. A tenant whose telemetry is incomplete cannot have its training-cost claim attached to a customer case-study.
+A test set at the audit-chain layer asserts that each of the four §11 telemetry signals is produced and consumed for every tenant. A tenant whose telemetry is incomplete cannot have its training-cost claim attached to a customer case-study.
 
 ### 16.6 Acceptance signal: customer case-study claim chain
 A case-study claim chain ties marketing copy to a sealed audit-chain projection plus a customer-attested measurement window. Marketing must cite the projection by audit-chain reference and the window by timestamp range. Marketing copy that does not cite either is forbidden.
@@ -1180,7 +1180,7 @@ A case-study claim chain ties marketing copy to a sealed audit-chain projection 
 - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
 - docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 - docs/architecture/unified-ecosystem-thesis-2026-05-21.md
-- docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+- docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
 - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
 - docs/decisions/ADR-0245-substrate-vs-product-layering.md
 - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
@@ -1220,7 +1220,7 @@ A case-study claim chain ties marketing copy to a sealed audit-chain projection 
   Training doctrine use: metadata-driven platform extension, marketplace distribution, and role-tailored product clouds over shared customer data.
 - Salesforce Trailhead AppExchange basics: https://trailhead.salesforce.com/content/learn/modules/appexchange_basics
   Training doctrine use: ecosystem learning and marketplace onboarding as a governed adoption primitive.
-- ServiceNow Now Platform workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
+- ServiceNow Now Module workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
   Training doctrine use: workflow automation and low-code development over one governed platform surface.
 - Atlassian Platform: https://www.atlassian.com/platform
   Training doctrine use: shared administration, graph, work management, and compliance features across multiple team tools.

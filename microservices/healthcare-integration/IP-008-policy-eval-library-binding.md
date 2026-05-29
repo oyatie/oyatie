@@ -151,7 +151,7 @@ Repo references: microservices/healthcare-integration/PRD.md; microservices/heal
 - IP-008-122: Rhapsody is displaced by policy library reuse across REST, gRPC, worker, and replay lanes rather than route-engine-specific rule wiring.
 - IP-008-123: InterSystems IRIS for Health is displaced by externalized Cedar decisions and explicit audit events rather than database-resident access logic.
 - IP-008-124: Lyniate/Corepoint is displaced by strict default-deny and fragment rollback evidence rather than channel-level allowlists.
-- IP-008-125: Mirth Connect is displaced by typed, testable policy requests rather than script fragments embedded in transformations.
+- IP-008-125: Mirth is displaced by typed, testable policy requests rather than script fragments embedded in transformations.
 - IP-008-126: NextGate is displaced by patient-match policies that require human review provenance and correction workflow linkage.
 - IP-008-127: Health Catalyst is displaced by proving policy, consent, and residency before analytics or evidence projection.
 - IP-008-128: Epic parity pressure is handled through FHIR consent and purpose enforcement at resource read time.

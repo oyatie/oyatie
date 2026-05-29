@@ -93,7 +93,7 @@ decision_owner: axis-data-pipeline + council-data
 
 ### Alternative 2: Use only connector DLQs for failures
 
-- Pros: reuses `connect` failure queues.
+- Pros: reuses `connector` failure queues.
 - Pros: fewer queues to operate.
 - Cons: transform and quality failures are not connector failures.
 - Cons: lineage and output dataset context would be missing.
@@ -152,7 +152,7 @@ decision_owner: axis-data-pipeline + council-data
 
 ### Neutral
 
-- Connect remains owner of vendor OAuth and webhook credential handling.
+- remains owner of vendor OAuth and webhook credential handling.
 - Data warehouse remains owner of OLAP serving and dimensional query state.
 - Analytics remains owner of product analytics interpretation.
 - Pipeline can use Kafka, Pulsar, Flink, or batch engines as adapters.

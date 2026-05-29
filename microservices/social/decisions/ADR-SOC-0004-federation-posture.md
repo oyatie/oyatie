@@ -85,8 +85,8 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
    - Both ADRs share: opt-in only, Personal-tier never federates, peer allowlist, HTTP Signatures, audit-chain seal.
    - Differences: messenger federation focuses on Matrix Client-Server protocol (more team-collaboration native); social federation focuses on ActivityPub (more public-social native).
 8. **Operational substrate.**
-   - `oya-social-federation-gateway-*` BC (P02 IP) implements outbox + inbox; the BC exists in P01 codebase but is OFF by default.
-   - `oya-social-federation-gateway-adapter-activitypub` backend per ADR-0105 Amendment 3.
+   - `oya-community-social-federation-gateway-*` BC (P02 IP) implements outbox + inbox; the BC exists in P01 codebase but is OFF by default.
+   - `oya-community-social-federation-gateway-adapter-activitypub` backend per ADR-0105 Amendment 3.
    - `runbooks/federation-bridge-degraded.md` (Slice A authored) covers 5 paths: Personal-tier leak attempt (Sev-1), peer compromise (Sev-2), inbox flood (Sev-2), outbox delivery lag (Sev-3), planned resync (operational).
    - Dashboard `dashboards/federation-and-cross-context.json` provides real-time visibility.
 
@@ -155,7 +155,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 
 ### Operational
 
-- `oya-social-federation-gateway-*` BC scaffolded in P01 codebase (Cargo workspace), but `federationGateway.enabled: false` in default Helm values.
+- `oya-community-social-federation-gateway-*` BC scaffolded in P01 codebase (Cargo workspace), but `federationGateway.enabled: false` in default Helm values.
 - P02 IP authoring: federation gateway end-to-end + peer allowlist management + opt-in workflow.
 - Cedar policy `policy/public-read.cedar` PERMIT 5 (federation inbox) belt-and-suspenders forbids Personal-tier delivery.
 - LEAN lane `oya-check-federation-personal-tier-refused` validates type-system constraint.
@@ -184,7 +184,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 
 ## References
 
-- ADR-0135 — Connect dissolution (parallel; DCI-08 source).
+- ADR-0135 — dissolution (parallel; DCI-08 source).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0132 — Suite-and-bundle dissolution.
 - ADR-SOC-0005 — Dual-context feed isolation (paired DCI ADR; federation per-tier).

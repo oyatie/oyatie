@@ -92,7 +92,7 @@ The bar is deterministic, mutation-resistant, property-rich unit coverage for ev
 - Snapshot ceiling: no broad snapshots; every snapshot has a named schema reason.
 - Determinism ceiling: every generated principal id uses the fixed test namespace `identity-test`.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module: `identity_zitadel_instance_controller_kernel::instance_spec_tests`.
 - Test: `instance_spec_rejects_cross_pack_postgres_ref`.

@@ -8,7 +8,7 @@ authority_chain: docs/MASTERPLAN.md §2.5, §5.5 → ADR-0064 → this file → 
 companion_docs:
   - docs/MASTERPLAN.md
   - docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
-  - docs/decisions/ADR-0063-documentation-suite-coverage.md
+  - docs/decisions/ADR-0063-documentation-set-coverage.md
 doc_status: published
 ---
 
@@ -32,7 +32,7 @@ CI enforcement (`oya-check-doc-coverage-cli` / LEAN-A5) reads this catalog plus 
 | **United States** | `us` | Planned (H3) | M09, M11 | TBD | TBD |
 | **European Union** | `eu` | Planned (H3) | M10, M11 | TBD | TBD |
 
-Scope summary — see each pack's `pack.yaml` manifest for authoritative `microservices_in_scope` and `regulatory_bindings` lists. KR pack covers ~28 µservices across Workforce / Healthcare / FinTech / Industrial / Connect / Hospitality clusters; full list and `material_scope` per µservice in `kr/pack.yaml`.
+Scope summary — see each pack's `pack.yaml` manifest for authoritative `microservices_in_scope` and `regulatory_bindings` lists. KR pack covers ~28 µservices across Workforce / Healthcare / FinTech / Industrial / / Hospitality clusters; full list and `material_scope` per µservice in `kr/pack.yaml`.
 
 ## Future packs
 
@@ -63,7 +63,7 @@ See ADR-0064 §5 for lifecycle definitions and gates.
 
 ---
 
-## Per-pack documentation suite (per ADR-0063 §2)
+## Per-pack documentation set (per ADR-0063 §2)
 
 For every (pack × µservice in pack scope) pair, the following artifacts must exist:
 
@@ -78,7 +78,7 @@ CI lane `lean-a5-doc-coverage` enforces.
 ## References
 
 - [ADR-0064 Canonical base + localization packs](../decisions/ADR-0064-canonical-base-and-localization-packs.md)
-- [ADR-0063 Documentation suite coverage](../decisions/ADR-0063-documentation-suite-coverage.md)
+- [ADR-0063 Documentation set coverage](../decisions/ADR-0063-documentation-set-coverage.md)
 - [MASTERPLAN §2.5, §5.5](../MASTERPLAN.md)
 - Bominal ADR-0140 (retired per ADR-0145) (inherited regional-pack pattern)
 - Bominal ADR-0190 (inherited versioned regulatory corpus.lock)

@@ -68,7 +68,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: 'https://schemas.oyatie.dev/user-journeys/j01/emergency-profile-response.json'
+                $ref: 'https://schemas.oyatie.com/user-journeys/j01/emergency-profile-response.json'
         '403':
           description: PSAP attestation failed
 ```

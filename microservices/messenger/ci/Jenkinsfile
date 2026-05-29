@@ -1,8 +1,19 @@
+String requireRealCiImageDigest(String variableName) {
+  String digest = env[variableName]?.trim()
+  if (!digest) {
+    throw new IllegalStateException("${variableName} must be set before rendering the Jenkins Kubernetes agent pod")
+  }
+  if (!(digest ==~ /^sha256:[0-9a-f]{64}$/) || digest ==~ /^sha256:0{64}$/) {
+    throw new IllegalStateException("${variableName} must be a real non-zero sha256 digest")
+  }
+  return digest
+}
+
 pipeline {
   agent {
     kubernetes {
       defaultContainer 'rust'
-      yaml '''
+      yaml """
 apiVersion: v1
 kind: Pod
 metadata:
@@ -16,7 +27,8 @@ spec:
   runtimeClassName: kata-cloud-hypervisor
   containers:
     - name: rust
-      image: registry.oyatie.dev/ci/rust:stable@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      # Jenkins injects OYA_CI_RUST_IMAGE_DIGEST from ADR-0181 release automation; no fake digest is committed.
+      image: registry.oyatie.dev/ci/rust:stable@${requireRealCiImageDigest('OYA_CI_RUST_IMAGE_DIGEST')}
       imagePullPolicy: IfNotPresent
       command:
         - cat
@@ -26,7 +38,7 @@ spec:
         capabilities:
           drop:
             - ALL
-'''
+"""
     }
   }
 
@@ -38,7 +50,7 @@ spec:
 
   environment {
     OYA_MICROSERVICE = 'messenger'
-    BACKBONE_CARGO_PACKAGES = 'oya-messenger-app oya-connect-messenger-domain oya-messenger-message-stream-api oya-messenger-message-stream-usecase oya-messenger-message-stream-rest oya-messenger-message-stream-grpc oya-messenger-message-stream-adapter-postgres oya-shared-postgres-command-kernel oya-shared-postgres-command-adapter-sqlx oya-shared-hyperscaler-metrics-kernel oya-shared-hyperscaler-metrics-adapter-prometheus oya-shared-hyperscaler-metrics-adapter-otlp oya-shared-protocol-parity-kernel oya-shared-protocol-transport-kernel oya-shared-protocol-transport-retry-app oya-shared-backbone-proto-contracts-kernel oya-shared-backbone-grpc-generated-adapter oya-shared-backbone-grpc-transport-adapter oya-shared-backbone-rest-runtime-adapter oya-shared-transactional-outbox-kernel oya-shared-transactional-outbox-adapter-sqlx oya-shared-transactional-outbox-dispatch-app oya-shared-outbox-broker-http-adapter oya-shared-transactional-outbox-worker-app oya-shared-transactional-outbox-poller-app oya-shared-transactional-outbox-runtime-tokio-app oya-policy-cedar-domain'
+    BACKBONE_CARGO_PACKAGES = 'oya-messenger-app oya-messenger-domain oya-messenger-message-stream-api oya-messenger-message-stream-usecase oya-messenger-message-stream-rest oya-messenger-message-stream-grpc oya-messenger-message-stream-adapter-postgres oya-shared-postgres-command-kernel oya-shared-postgres-command-adapter-sqlx oya-shared-hyperscaler-metrics-kernel oya-shared-hyperscaler-metrics-adapter-prometheus oya-shared-hyperscaler-metrics-adapter-otlp oya-shared-protocol-parity-kernel oya-shared-protocol-transport-kernel oya-shared-protocol-transport-retry-app oya-shared-backbone-proto-contracts-kernel oya-shared-backbone-grpc-generated-adapter oya-shared-backbone-grpc-transport-adapter oya-shared-backbone-rest-runtime-adapter oya-shared-transactional-outbox-kernel oya-shared-transactional-outbox-adapter-sqlx oya-shared-transactional-outbox-dispatch-app oya-shared-outbox-broker-http-adapter oya-shared-transactional-outbox-worker-app oya-shared-transactional-outbox-poller-app oya-shared-transactional-outbox-runtime-tokio-app oya-policy-cedar-domain'
     CARGO_INCREMENTAL = '0'
     CARGO_TERM_COLOR = 'always'
     NEXTEST_PROFILE = 'ci'

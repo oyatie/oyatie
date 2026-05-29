@@ -215,7 +215,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Sales AE Maya Lindqvist must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Sales AE Maya Lindqvist must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Sales AE Maya Lindqvist must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Sales AE Maya Lindqvist must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Sales AE Maya Lindqvist must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Sales AE Maya Lindqvist must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Sales AE Maya Lindqvist must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Sales AE Maya Lindqvist must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
@@ -459,7 +459,7 @@ Edge-case synthesis:
 ## §K.1 Substance Anchors — 2026-05-20 Pass
 
 - Place/time: Stockholm Waterfront client lounge, Norrmalm, 08:05 CET in sleet before a DORA-regulated bank demo.
-- Current named tools: Salesforce Sales Cloud Unlimited Spring '26 opportunities, Gong Revenue Intelligence 2026.05 call summaries, DocuSign CLM 2026.02 order forms, LinkedIn Sales Navigator Advanced Plus, Highspot Enterprise 2026.1 deal rooms, and oyatie `connect` cross-tenant buyer rooms.
+- Current named tools: Salesforce Sales Cloud Unlimited Spring '26 opportunities, Gong Revenue Intelligence 2026.05 call summaries, DocuSign CLM 2026.02 order forms, LinkedIn Sales Navigator Advanced Plus, Highspot Enterprise 2026.1 deal rooms, and oyatie `connector` cross-tenant buyer rooms.
 - Named pain points: the "NordicBank Order Form" attached another prospect's DPA, created €74,000 in legal redline delay, and cost Maya 8h rebuilding DocuSign and Highspot access logs.
 - Jobs-to-be-done: daily enterprise deal progression, weekly OKR AE-SE-02 "all buyer-room artifacts scoped by account", Project Aurora DORA bank deal, and quarterly forecast inspection with Anthony Costa.
 - Cedar binding: principal `User::"maya-lindqvist@sales-se"` accesses `Opportunity::*`, `BuyerRoom::*`, `OrderForm::*`, and `CallSummary::*`; actions `share_deal_room`, `request_security_review`, `submit_order_form`, and `deny_cross_account_attachment`.

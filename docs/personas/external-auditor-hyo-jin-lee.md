@@ -212,7 +212,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | External Auditor Hyo-Jin Lee must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | External Auditor Hyo-Jin Lee must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | External Auditor Hyo-Jin Lee must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | External Auditor Hyo-Jin Lee must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | External Auditor Hyo-Jin Lee must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | External Auditor Hyo-Jin Lee must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | External Auditor Hyo-Jin Lee must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | External Auditor Hyo-Jin Lee must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

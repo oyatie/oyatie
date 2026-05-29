@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/ops-deployment-status-panel.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/ops-deployment-status-panel.schema.json",
   "title": "DesignSystemComponent:OpsDeploymentStatusPanel",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",

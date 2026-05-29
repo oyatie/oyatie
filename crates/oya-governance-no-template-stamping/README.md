@@ -8,7 +8,7 @@ Within each directory under `docs/` and `microservices/`, adjacent Markdown file
 
 ## Trigger
 
-Run when adding or bulk-generating documentation suites.
+Run when adding or bulk-generating documentation sets.
 
 ```bash
 cargo run --manifest-path crates/oya-governance-no-template-stamping/Cargo.toml -- --root . --strict

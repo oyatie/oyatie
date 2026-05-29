@@ -19,7 +19,7 @@ owners:
 supersedes: []
 amends:
   - ADR-0131-per-microservice-flat-layout.md (extends layout-only authority with a tier-classification field; additionally: reserved-tier µservices are EXEMPT from the ADR-0131 requirement for `src/` and `iac/` directories — reserved µservices ship PRD.md + threat-model.md + dpia.md + manifest.json skeletons only; `planned_contracts/` is the canonical directory for planned-but-not-yet-live OpenAPI/AsyncAPI contracts on reserved-tier µservices)
-  - ADR-0132-product-suite-and-bundle-dissolution.md (adds tier classification to the flat-microservice forward-policy)
+  - ADR-0132-product-platform-and-bundle-dissolution.md (adds tier classification to the flat-microservice forward-policy)
   - ADR-0145-inter-microservice-communication-reform.md (tightens the three invariants with cross-tier direction rules)
 superseded_by: []
 related:
@@ -32,7 +32,7 @@ related:
   - ADR-0110-changeset-state-machine.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-product-suite-and-bundle-dissolution.md
+  - ADR-0132-product-platform-and-bundle-dissolution.md
   - ADR-0135-connect-super-app-expansion.md
   - ADR-0136-foundry-as-single-microservice.md
   - ADR-0139-agentic-slo-gated-promotion.md
@@ -154,8 +154,8 @@ distinction:
    structure. Sales segmentation remains a PRD-frontmatter field, not
    a directory split." This was the right call for layout but it
    inadvertently *erased* the operational distinction.
-2. **ADR-0132 (no-suite forward-policy, 2026-05-17).** Forbids new
-   suite/bundle µservices. Says "Cross-µservice composition flows
+2. **ADR-0132 (no-grouping forward-policy, 2026-05-17).** Forbids new
+   platform/bundle µservices. Says "Cross-µservice composition flows
    through Workflow events and Ontology reads/writes." Says
    "Categorization (e.g., `DomainTag = {Agentic, Dev, Business, ...}`
    inside Workflow Studio) stays as metadata, NOT as a directory split."
@@ -318,7 +318,7 @@ surface as primary purpose).
 
 The fourth tier — `reserved` — exists to enable the build-ahead-of-
 certification doctrine (ADR-0250). A reserved µservice has its full
-artifact suite (PRD, contracts, threat model, IaC) but is **not
+artifact set (PRD, contracts, threat model, IaC) but is **not
 deployed** because it requires certification (PCI-DSS, ISO 18295,
 HIPAA, ISO 22301, etc.) that has not yet been obtained.
 
@@ -574,7 +574,7 @@ as primary purpose, is tenant-scoped, and consumes substrates from
 | `microservices/social/` | product | `product-consumer-social` | Social network surface (per ADR-0135). Tenant-scoped. Calls ontology + intelligence. |
 | `microservices/community/` | product | `product-consumer-community` | Community Q&A + KB threads (per ADR-0131 IP-M01-MIGR-CONN-4). Tenant-scoped. Calls ontology + intelligence. |
 | `microservices/community/` (anonymity-mode) | product | `product-consumer-community` | Community's anonymity posting-mode capability tier (persona-anchored/pseudonymous/fully-anonymous per ADR-0300). Folded from mis-scaffolded `microservices/anonymous/` on 2026-05-21 per user clarification. Tenant-scoped. Calls intelligence with ephemeral identity binding in persona-anchored + pseudonymous modes. |
-| `microservices/connect/` | product | `product-internal-connect-meta` | Connect umbrella product surface (gateway to mail/calendar/etc.) — meta-product per the connect-super-app expansion. Tenant-scoped. Consumes its peer products via API. **Note:** Will likely dissolve into pure brand metadata per ADR-0132 forward-policy applied retroactively; tracked as a follow-on consideration. |
+| `microservices/connector/` | product | `product-internal-connect-meta` | umbrella product surface (gateway to mail/calendar/etc.) — meta-product per the connect-super-app expansion. Tenant-scoped. Consumes its peer products via API. **Note:** Will likely dissolve into pure brand metadata per ADR-0132 forward-policy applied retroactively; tracked as a follow-on consideration. |
 | `microservices/application/` | product | `product-developer-application-shell` | Application Shell — per ADR-0131 IP-M01-MIGR-008. The product-shell that hosts other products. Tenant-scoped. Calls every product as embedded surface. |
 | `microservices/ops-dashboard-control-center/` | product | `product-internal-ops-console` | Ops dashboards + control center — for oyatie SRE + ops principals. Tenant-scoped (only `oyatie.platform-ops.*` principals have surface access). Calls observability + governance + cloud-k8s. |
 | `microservices/plugin-app-store/` | product | `product-developer-plugin-store` | Plugin App Store — third-party plugin discovery + installation surface. Tenant-scoped. Calls marketplace-catalog substrate + intelligence for recommendations. |
@@ -1004,7 +1004,7 @@ PRD.** A product's contract breaking change requires:
 
 1. A product-specific deprecation notice in the PRD.
 2. Per-product deprecation window (typical: 90 days for consumer-
-   facing surface; 180 days for enterprise-product surface).
+   facing surface; 180 days for tenant-rbac-governance surface).
 3. Per-version SemVer bump.
 4. A consumer-facing in-product migration message.
 5. No cross-µservice migration runbook (the migration is end-user-
@@ -1559,9 +1559,9 @@ considered implemented:
   invariants.
 - **ADR-0131 — Per-microservice flat layout.** Layout unchanged;
   tier added to manifest.
-- **ADR-0132 — No-suite forward-policy.** Flat catalog preserved;
+- **ADR-0132 — No-grouping forward-policy.** Flat catalog preserved;
   tier added.
-- **ADR-0135 — Connect super-app expansion.** Connect's
+- **ADR-0135 — super-app expansion.** Connect's
   decomposition into flat product-tier µservices.
 - **ADR-0136 — Foundry as single µservice + amendment + ADR-0239.**
   Foundry's substrate-meta tier; dissolution path owned by
@@ -1653,7 +1653,7 @@ hyperscaler pattern + source + anti-pattern avoided.
 | D-3 (full classification table) | "Per-Service Tier Registration" | AWS Service Health Dashboard registry; GCP service catalog; Apple Framework Index | "Lazy Tier Classification" — services emerge without tier classification |
 | D-4 (cross-tier dependency rules) | "Layered Service Tier DAG" | AWS Builders' Library service-layering pattern; GCP service dependency graph; Apple Framework dependency rules | "Inverted Dependency" — substrate depends on product (architectural inversion) |
 | D-4.B (substrate DAG ordering) | "Foundational Dependency DAG" | AWS Builders' Library "Static stability"; GCP Borg/Omega layering (Verma et al. 2016); Apple Frameworks Reference dependency layers | "Cyclic Substrate Dependency" — substrate cycle producing chicken-egg bootstrap failure |
-| D-5 (service-cell deep-dive) | "Peer-Cell Service Pattern" | AWS Marketplace + AWS Activate peer-cell pattern; Salesforce AppExchange peer-cell; Stripe Connect peer-cell | "Forced Two-Tier" — service cells classified as substrate or product creating ambiguity |
+| D-5 (service-cell deep-dive) | "Peer-Cell Service Pattern" | AWS Marketplace + AWS Activate peer-cell pattern; Salesforce AppExchange peer-cell; Stripe peer-cell | "Forced Two-Tier" — service cells classified as substrate or product creating ambiguity |
 | D-6 (reserved µservice rules) | "Build-Ahead-of-Certification" | AWS pre-launch service pattern; FedRAMP reserved namespace; Apple beta-framework pattern | "Live-Before-Certified" — uncertified service deployed live, missing regulatory gate |
 | D-7 (CI lane coherence enforcement) | "Coverage-Required Tier Classification" | AWS Config conformance packs; Google SRE Workbook ch. 4 SLO coverage; Apple Xcode static analysis | "Honour-System Tier" — tier classification not enforced at CI time |
 | D-8 (substrate SLO bar 99.99% min) | "Per-Tier SLO Floor" | Google SRE Workbook ch. 2 SLO composition; AWS Well-Architected v2024-Q4 Pillar 4; Microsoft Azure Well-Architected | "Uniform SLO" — single SLO across all tiers, producing substrate underprovisioning and product overprovisioning |

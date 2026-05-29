@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/gitops-vcs-replacement.json",
+  "$id": "https://docs.oyatie.com/specs/gitops-vcs-replacement.json",
   "title": "GitOpsVcsReplacement",
   "description": "Early masterplan prerequisite for an Oyatie-owned VCS replacement that preserves grit-style agentic-development advantages and upgrades closeout from local merges to GitOps CI/CD promotion.",
   "_meta": {
@@ -154,7 +154,7 @@
       },
       {
         "name": "TestStandardPort",
-        "purpose": "Resolve required unit/integration/e2e gates from machine-readable standard, semantic diff, and test-suite registry."
+        "purpose": "Resolve required unit/integration/e2e gates from machine-readable standard, semantic diff, and test-set registry."
       },
       {
         "name": "AstIndexPort",
@@ -307,7 +307,7 @@
         "layer": "application",
         "owns": [
           "unit/integration/e2e tier resolver",
-          "test-suite-registry enforcement",
+          "test-set-registry enforcement",
           "post-rebase evidence freshness"
         ]
       },
@@ -390,7 +390,7 @@
       },
       {
         "id": "test-standard-documented",
-        "rule": "docs/standards/testing.md, /specs/test-standard.json, and /registry/test-suite-registry.json exist before P00 exits."
+        "rule": "docs/standards/testing.md, /specs/test-standard.json, and /registry/test-set-registry.json exist before P00 exits."
       },
       {
         "id": "test-tier-coverage",
@@ -555,13 +555,13 @@
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
       "artifact_ref": "/specs/gitops-vcs-replacement.json#test_standard_enforcement",
-      "known_gap": "test-standard.json and test-suite-registry.json are planned P00 deliverables, not authored in this slice."
+      "known_gap": "test-standard.json and test-set-registry.json are planned P00 deliverables, not authored in this slice."
     },
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/test-standard.json + /registry/test-suite-registry.json",
-      "summary": "Created machine-readable test standard and polyglot test-suite registry for M01-P07 admission enforcement.",
+      "source_path": "/specs/test-standard.json + /registry/test-set-registry.json",
+      "summary": "Created machine-readable test standard and polyglot test-set registry for M01-P07 admission enforcement.",
       "freshness": "2026-05-14T07:22:20Z",
       "command_or_lane": "python json write + jq validation",
       "result": "pending final validation",
@@ -805,8 +805,8 @@
         "status": "created"
       },
       {
-        "path": "/registry/test-suite-registry.json",
-        "purpose": "Per-language/test-suite inventory: owner, command, scope, required trigger, flake budget, artifact outputs.",
+        "path": "/registry/test-set-registry.json",
+        "purpose": "Per-language/test-set inventory: owner, command, scope, required trigger, flake budget, artifact outputs.",
         "status": "created"
       }
     ],
@@ -889,7 +889,7 @@
       ]
     },
     "machine_readable_standard_ref": "/specs/test-standard.json",
-    "test_suite_registry_ref": "/registry/test-suite-registry.json"
+    "test_set_registry_ref": "/registry/test-set-registry.json"
   },
   "product_definition": {
     "name": "Oya VCS",

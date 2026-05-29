@@ -820,12 +820,12 @@ mod tests {
     }
 
     fn config() -> ValidationConfig {
-        ValidationConfig::new("https://idp.oyatie.dev", "oya-cloud-kms")
+        ValidationConfig::new("https://idp.oyatie.com", "oya-cloud-kms")
     }
 
     fn valid_claims(now: i64) -> String {
         format!(
-            r#"{{"iss":"https://idp.oyatie.dev","aud":"oya-cloud-kms","exp":{},"iat":{},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt cloud.kms.describe","mfa":true}}"#,
+            r#"{{"iss":"https://idp.oyatie.com","aud":"oya-cloud-kms","exp":{},"iat":{},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt cloud.kms.describe","mfa":true}}"#,
             now + 300,
             now
         )
@@ -860,7 +860,7 @@ mod tests {
         );
         assert_eq!(
             principal.claim("iss").and_then(ClaimValue::as_text),
-            Some("https://idp.oyatie.dev")
+            Some("https://idp.oyatie.com")
         );
     }
 
@@ -887,7 +887,7 @@ mod tests {
     fn expired_token_is_rejected() {
         let now = 1_700_000_000;
         let expired = format!(
-            r#"{{"iss":"https://idp.oyatie.dev","aud":"oya-cloud-kms","exp":{},"tenant_id":"ten_acme","sub":"wl_a","owning_capability":"cap.x.y"}}"#,
+            r#"{{"iss":"https://idp.oyatie.com","aud":"oya-cloud-kms","exp":{},"tenant_id":"ten_acme","sub":"wl_a","owning_capability":"cap.x.y"}}"#,
             now - 10
         );
         let signed = mint_es256_token(&expired, "kid-1");
@@ -901,7 +901,7 @@ mod tests {
     fn wrong_audience_is_rejected() {
         let now = 1_700_000_000;
         let claims = format!(
-            r#"{{"iss":"https://idp.oyatie.dev","aud":"some-other-service","exp":{},"tenant_id":"ten_acme","sub":"wl_a","owning_capability":"cap.x.y"}}"#,
+            r#"{{"iss":"https://idp.oyatie.com","aud":"some-other-service","exp":{},"tenant_id":"ten_acme","sub":"wl_a","owning_capability":"cap.x.y"}}"#,
             now + 300
         );
         let signed = mint_es256_token(&claims, "kid-1");
@@ -1061,12 +1061,12 @@ mod tests {
 
         // When the exact URL is allowlisted, the header no longer blocks.
         let signed_ok = mint_with_header(
-            r#"{"alg":"ES256","typ":"JWT","kid":"kid-1","jku":"https://idp.oyatie.dev/jwks.json"}"#,
+            r#"{"alg":"ES256","typ":"JWT","kid":"kid-1","jku":"https://idp.oyatie.com/jwks.json"}"#,
             &valid_claims(now),
             "kid-1",
         );
         let jwks_ok = Jwks::new().add_key(signed_ok.jwk);
-        let cfg = config().allow_key_source_url("https://idp.oyatie.dev/jwks.json");
+        let cfg = config().allow_key_source_url("https://idp.oyatie.com/jwks.json");
         assert!(validate_workload_token(&signed_ok.token, &jwks_ok, &cfg, now).is_ok());
     }
 

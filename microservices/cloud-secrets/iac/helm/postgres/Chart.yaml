@@ -10,7 +10,7 @@ sources:
   - https://github.com/zalando/postgres-operator
 maintainers:
   - name: axis-cloud-secrets + ops-sre
-    email: axis-cloud-secrets@oyatie.dev
+    email: axis-cloud-secrets@oyatie.com
 keywords:
   - postgres
   - patroni

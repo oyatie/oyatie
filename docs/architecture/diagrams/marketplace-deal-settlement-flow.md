@@ -148,7 +148,7 @@ graph TD
 46. Every DealSet row has tenant scope.
 47. Every counterparty read is Cedar mediated.
 48. No external marketplace account floats outside tenant scope.
-49. No ERP suite service owns the whole settlement flow.
+49. No ERP platform service owns the whole settlement flow.
 50. Flat services own domain-specific overlays.
 51. DealSet versioning preserves auditability.
 52. Idempotency keys protect duplicate offer acceptance.
@@ -173,7 +173,7 @@ graph TD
 - Service: [microservices/finops-portal/](../../../microservices/finops-portal/)
 - Service: [microservices/ontology/](../../../microservices/ontology/)
 - Service: [microservices/workflow-engine/](../../../microservices/workflow-engine/)
-- Service: [microservices/connect/](../../../microservices/connect/)
+- Service: [microservices/connector/](../../../microservices/connector/)
 - Service: [microservices/global-trade/](../../../microservices/global-trade/)
 - Service: [microservices/warehouse/](../../../microservices/warehouse/)
 - Service: [microservices/plugin-app-store/](../../../microservices/plugin-app-store/)

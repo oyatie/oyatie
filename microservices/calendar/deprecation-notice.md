@@ -2,7 +2,7 @@
 doc_class: DeprecationNotice
 template_id: TPL-DEPRECATION-NOTICE
 microservice: calendar
-deprecated_artifact: oya-connect-calendar-* crate family
+deprecated_artifact: oya-calendar-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-CALENDAR accepts at p99 SLOs sustained 30d
@@ -13,7 +13,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Deprecation Notice: `oya-connect-calendar-*` crate family
+# Deprecation Notice: `oya-calendar-*` crate family
 
 > Formal deprecation notice in the format prescribed by the agent-skills
 > `deprecation-and-migration` skill SKILL.md §"Step 2: Announce and Document".
@@ -40,11 +40,11 @@ gated on the SLO trigger.
 
 ## Reason
 
-The legacy `oya-connect-calendar-*` family was authored before the
+The legacy `oya-calendar-*` family was authored before the
 following ADRs crystallised; each ADR makes the legacy shape non-
 conforming:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — agentic SLO-gated promotion.** Calendar needs
@@ -81,14 +81,14 @@ Strangler timeline; verification checklist.
 
 ## Affected packages enumerated
 
-Per `find crates -maxdepth 1 -type d -name 'oya-connect-calendar-*'`
+Per `find crates -maxdepth 1 -type d -name 'oya-calendar-*'`
 (2026-05-17 workspace state):
 
 | Currently extant in `crates/` | Mapped replacement |
 |---|---|
-| `oya-connect-calendar-domain` | split per BC → `oya-calendar-{event-store,recurrence-engine,availability-resolver,room-booking,invitation-flow,ics-import-export}-domain` |
+| `oya-calendar-domain` | split per BC → `oya-calendar-{event-store,recurrence-engine,availability-resolver,room-booking,invitation-flow,ics-import-export}-domain` |
 
-Plus all `oya-connect-calendar-{kernel,usecase,api,adapter*,rest,
+Plus all `oya-calendar-{kernel,usecase,api,adapter*,rest,
 worker,sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 
 ## Breaking changes flagged per `feedback_no_silent_regression`
@@ -101,11 +101,11 @@ worker,sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 | `rrule-rs` engine replaces legacy in-house RRULE | 1 | **Behaviourally divergent** for 7 named edge cases per ADR-CAL-0002 | adapter does NOT mask divergence; documented in migration guide Hyrum #1 |
 | Recurrence horizon bounded at 5y (PRD AC-10) | 1 | **Behaviourally divergent** for unbounded legacy RRULEs | adapter does NOT mask; documented Hyrum #6 |
 | CalDAV strong-ETag format | 1 | **Format-divergent** | invisible at CalDAV protocol level; documented Hyrum #7 |
-| `oya-connect-calendar-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface) | — |
+| `oya-calendar-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface) | — |
 | Feature-flagged canary 10→50→100% | 3 | No (additive, gated) | — |
 | Zero-usage verification | 4 | No (observability only) | — |
-| **`oya-connect-calendar-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
-| `microservices/connect/` umbrella folder removed | 6 | No | — |
+| **`oya-calendar-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
+| `microservices/connector/` umbrella folder removed | 6 | No | — |
 
 Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
@@ -117,7 +117,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
   silent regression).
 - **Version bump.** The `Cargo.toml` of every consumer crate is bumped
   per semver when its legacy imports are removed (treating the
-  `oya-connect-calendar-*` re-export as the public contract).
+  `oya-calendar-*` re-export as the public contract).
 - **Sunset schedule.** 6-month advisory window from this notice; concrete
   date 2026-11-17 contingent on the HG-CALENDAR SLO trigger.
 - **Owning-axis migration ChangeSets.** axis-calendar ships migration

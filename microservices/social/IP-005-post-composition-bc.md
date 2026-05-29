@@ -22,8 +22,8 @@ Implement the cataloged post-composition kernel and adapters for Postgres, S3, I
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `catalog/oya-social-post-composition-*.yaml` | Existing kernel/adapters anchors. |
-| `src/crates/oya-social-post-composition-{kernel,domain,usecase,api,adapter-postgres,adapter-s3,adapter-imagemagick,adapter-ffmpeg,rest,worker,sdk,app}/` | Planned family named by PRD/IP/catalog. |
+| `catalog/oya-community-social-post-composition-*.yaml` | Existing kernel/adapters anchors. |
+| `src/crates/oya-community-social-post-composition-{kernel,domain,usecase,api,adapter-postgres,adapter-s3,adapter-imagemagick,adapter-ffmpeg,rest,worker,sdk,app}/` | Planned family named by PRD/IP/catalog. |
 | `decisions/ADR-SOC-0006-media-transcode-and-storage.md` | Media pipeline decision source. |
 | `slos/post-create-latency.openslo.yaml` | Post create SLO. |
 
@@ -37,7 +37,7 @@ Implement the cataloged post-composition kernel and adapters for Postgres, S3, I
 7. Emit `PostPublished` and related events with idempotency keys.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-post-composition-kernel` passes.
+- `cargo nextest run -p oya-community-social-post-composition-kernel` passes.
 - Adapter tests pass for Postgres, S3, ImageMagick, and ffmpeg crates.
 - `slos/post-create-latency.openslo.yaml` resolves.
 - `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice social` passes.

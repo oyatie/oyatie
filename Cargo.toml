@@ -301,47 +301,47 @@ members = [
   "microservices/intelligence/crates/oya-intelligence-backbone-workload-live-app",
   "crates/oya-check-raci-coverage",
   "crates/oya-check-readme-coverage",
-  "crates/oya-connect-address-book-domain",
-  "crates/oya-connect-calendar-domain",
-  "crates/oya-connect-messenger-domain",
+  "crates/oya-address-book-domain",
+  "crates/oya-calendar-domain",
+  "crates/oya-messenger-domain",
   "crates/oya-messenger-message-stream-api",
   "crates/oya-messenger-message-stream-usecase",
   "crates/oya-messenger-message-stream-rest",
   "crates/oya-messenger-message-stream-grpc",
   "crates/oya-messenger-app",
   "crates/oya-messenger-message-stream-adapter-postgres",
-  "crates/oya-connect-collab-runtime-domain",
-  "crates/oya-connect-document-format-domain",
-  "crates/oya-connect-dlp-domain",
-  "crates/oya-connect-ediscovery-domain",
-  "crates/oya-connect-docs-domain",
-  "crates/oya-connect-drive-domain",
-  "crates/oya-connect-dsr-domain",
-  "crates/oya-connect-forms-domain",
-  "crates/oya-connect-mail-domain",
+  "crates/oya-collab-runtime-domain",
+  "crates/oya-document-format-domain",
+  "crates/oya-dlp-domain",
+  "crates/oya-ediscovery-domain",
+  "crates/oya-docs-domain",
+  "crates/oya-drive-domain",
+  "crates/oya-retention-dsr-domain",
+  "crates/oya-forms-domain",
+  "crates/oya-mail-domain",
   "crates/oya-mail-mailbox-store-api",
   "crates/oya-mail-mailbox-store-usecase",
   "crates/oya-mail-mailbox-store-rest",
   "crates/oya-mail-mailbox-store-grpc",
   "crates/oya-mail-mailbox-store-app",
   "crates/oya-mail-mailbox-store-adapter-postgres",
-  "crates/oya-connect-social-domain",
-  "crates/oya-social-post-composition-api",
-  "crates/oya-social-post-composition-usecase",
-  "crates/oya-social-post-composition-rest",
-  "crates/oya-social-post-composition-grpc",
-  "crates/oya-social-app",
-  "crates/oya-social-post-composition-adapter-postgres",
-  "crates/oya-connect-meet-domain",
-  "crates/oya-connect-notes-domain",
-  "crates/oya-connect-recordings-domain",
-  "crates/oya-connect-retention-domain",
-  "crates/oya-connect-sheets-domain",
-  "crates/oya-connect-sites-domain",
-  "crates/oya-connect-slides-domain",
-  "crates/oya-connect-tasks-domain",
-  "crates/oya-connect-translate-domain",
-  "crates/oya-connect-trust-portal-domain",
+  "crates/oya-community-social-domain",
+  "crates/oya-community-social-post-composition-api",
+  "crates/oya-community-social-post-composition-usecase",
+  "crates/oya-community-social-post-composition-rest",
+  "crates/oya-community-social-post-composition-grpc",
+  "crates/oya-community-social-app",
+  "crates/oya-community-social-post-composition-adapter-postgres",
+  "crates/oya-meet-domain",
+  "crates/oya-notes-domain",
+  "crates/oya-recordings-domain",
+  "crates/oya-retention-domain",
+  "crates/oya-sheets-domain",
+  "crates/oya-sites-domain",
+  "crates/oya-slides-domain",
+  "crates/oya-tasks-domain",
+  "crates/oya-translate-domain",
+  "crates/oya-trust-portal-domain",
   "crates/oya-community-post-store-domain",
   "crates/oya-community-post-store-api",
   "crates/oya-community-post-store-usecase",
@@ -570,7 +570,7 @@ members = [
   "crates/oya-connector-netsuite-adapter",
   "crates/oya-connector-quickbooks-adapter",
   "crates/oya-connector-epic-fhir-adapter",
-  # Enterprise Generic + SMB Generic HR/payroll/accounting/suite foundations.
+  # Tenant RBAC view + Tenant RBAC view HR/payroll/accounting/platform foundations.
   "crates/oya-hr-employment-domain",
   "crates/oya-hr-employment-app",
   "crates/oya-hr-employment-api",
@@ -596,45 +596,45 @@ members = [
   "crates/oya-crm-customer-engagement-domain",
   "crates/oya-global-trade-compliance-domain",
   "crates/oya-real-estate-portfolio-domain",
-  "crates/oya-enterprise-suite-domain",
-  "crates/oya-enterprise-suite-app",
-  "crates/oya-enterprise-suite-api",
-  "crates/oya-enterprise-suite-runtime",
-  "crates/oya-enterprise-suite-local-runtime-composition",
-  "crates/oya-enterprise-suite-local-inmemory-harness",
-  "crates/oya-enterprise-suite-erp-parity-map",
-  "crates/oya-enterprise-suite-auth-runtime",
-  "crates/oya-enterprise-suite-cloud-deployment-manifest",
-  "crates/oya-enterprise-suite-cloud-deployment-evidence",
-  "crates/oya-enterprise-suite-slo-evidence",
-  "crates/oya-enterprise-suite-statutory-filing-evidence",
-  "crates/oya-enterprise-suite-disbursement-evidence",
-  "crates/oya-enterprise-suite-identity-provider-verification",
-  "crates/oya-enterprise-suite-identity-provider-runtime-evidence",
-  "crates/oya-enterprise-suite-audit-chain-emission",
-  "crates/oya-enterprise-suite-audit-chain-runtime-evidence",
-  "crates/oya-enterprise-suite-listener-gateway",
-  "crates/oya-enterprise-suite-listener-runtime-evidence",
-  "crates/oya-enterprise-suite-cloud-readiness-gate",
-  "crates/oya-enterprise-suite-postgres-rls-storage",
-  "crates/oya-enterprise-suite-postgres-rls-write-contract",
-  "crates/oya-enterprise-suite-postgres-rls-transaction-contract",
-  "crates/oya-enterprise-suite-postgres-rls-runtime-evidence",
-  "crates/oya-enterprise-suite-tenant-admission-policy",
-  "crates/oya-enterprise-suite-tenant-availability-contract",
-  "crates/oya-enterprise-suite-tenant-autoscaling-contract",
-  "crates/oya-enterprise-suite-tenant-cost-allocation-contract",
-  "crates/oya-enterprise-suite-tenant-residency-contract",
-  "crates/oya-enterprise-suite-tenant-egress-policy-contract",
-  "crates/oya-enterprise-suite-tenant-resource-quota-contract",
-  "crates/oya-enterprise-suite-tenant-image-provenance-contract",
-  "crates/oya-enterprise-suite-tenant-secret-boundary-contract",
-  "crates/oya-enterprise-suite-tenant-workload-identity-contract",
-  "crates/oya-enterprise-suite-tenant-workload-manifest",
-  "crates/oya-enterprise-suite-tenant-workload-runtime-evidence",
-  "crates/oya-enterprise-suite-storage-adapter-inmemory",
-  "crates/oya-enterprise-suite-workflow-adapter-inmemory",
-  "crates/oya-enterprise-suite-workflow-runtime-evidence",
+  "crates/oya-tenant-rbac-domain",
+  "crates/oya-tenant-rbac-application",
+  "crates/oya-tenant-rbac-api",
+  "crates/oya-tenant-rbac-runtime",
+  "crates/oya-tenant-rbac-local-runtime-composition",
+  "crates/oya-tenant-rbac-local-inmemory-harness",
+  "crates/oya-tenant-rbac-erp-parity-map",
+  "crates/oya-tenant-rbac-auth-runtime",
+  "crates/oya-tenant-rbac-cloud-deployment-manifest",
+  "crates/oya-tenant-rbac-cloud-deployment-evidence",
+  "crates/oya-tenant-rbac-slo-evidence",
+  "crates/oya-tenant-rbac-statutory-filing-evidence",
+  "crates/oya-tenant-rbac-disbursement-evidence",
+  "crates/oya-tenant-rbac-identity-provider-verification",
+  "crates/oya-tenant-rbac-identity-provider-runtime-evidence",
+  "crates/oya-tenant-rbac-audit-chain-emission",
+  "crates/oya-tenant-rbac-audit-chain-runtime-evidence",
+  "crates/oya-tenant-rbac-listener-gateway",
+  "crates/oya-tenant-rbac-listener-runtime-evidence",
+  "crates/oya-tenant-rbac-cloud-readiness-gate",
+  "crates/oya-tenant-rbac-postgres-rls-storage",
+  "crates/oya-tenant-rbac-postgres-rls-write-contract",
+  "crates/oya-tenant-rbac-postgres-rls-transaction-contract",
+  "crates/oya-tenant-rbac-postgres-rls-runtime-evidence",
+  "crates/oya-tenant-rbac-tenant-admission-policy",
+  "crates/oya-tenant-rbac-tenant-availability-contract",
+  "crates/oya-tenant-rbac-tenant-autoscaling-contract",
+  "crates/oya-tenant-rbac-tenant-cost-allocation-contract",
+  "crates/oya-tenant-rbac-tenant-residency-contract",
+  "crates/oya-tenant-rbac-tenant-egress-policy-contract",
+  "crates/oya-tenant-rbac-tenant-resource-quota-contract",
+  "crates/oya-tenant-rbac-tenant-image-provenance-contract",
+  "crates/oya-tenant-rbac-tenant-secret-boundary-contract",
+  "crates/oya-tenant-rbac-tenant-workload-identity-contract",
+  "crates/oya-tenant-rbac-tenant-workload-manifest",
+  "crates/oya-tenant-rbac-tenant-workload-runtime-evidence",
+  "crates/oya-tenant-rbac-storage-adapter-inmemory",
+  "crates/oya-tenant-rbac-workflow-adapter-inmemory",
+  "crates/oya-tenant-rbac-workflow-runtime-evidence",
   # Analytics µservice crates (ADR-0193 / IP-003 / IP-015) — introduced 2026-05-27
   "crates/oya-shared-olap-clickhouse-adapter",
   "microservices/analytics/crates/oya-analytics-domain",
@@ -750,9 +750,114 @@ adr_cite = "ADR-0056"
 owner = "council-foundry"
 rationale = "Engineering platform vertical: evidence, eval, MCP gateway, capability registry, run/step pipeline."
 adr_cite = "ADR-0056"
-[workspace.metadata.oya.microservices.connect]
-owner = "council-connect"
-rationale = "Connect µservice (dual-context: Professional B2B + Personal B2C): mail, calendar, drive, messenger, meet, docs, sheets, slides, tasks."
+[workspace.metadata.oya.microservices.mail]
+owner = "council-communications"
+rationale = "Concrete mail µservice with strict personal/professional tenant and RBAC separation; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.messenger]
+owner = "council-communications"
+rationale = "Concrete messenger µservice with strict personal/professional tenant and RBAC separation; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.community]
+owner = "council-community"
+rationale = "Concrete community µservice for groups, professional graph/profile, social, anonymous, and moderation surfaces; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.calendar]
+owner = "council-productivity"
+rationale = "Concrete calendar µservice for scheduling/free-busy/action-card handoff; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.drive]
+owner = "council-productivity"
+rationale = "Concrete drive µservice for file storage/collaboration surfaces; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.docs]
+owner = "council-productivity"
+rationale = "Concrete docs/document authoring µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.sheets]
+owner = "council-productivity"
+rationale = "Concrete spreadsheet µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.slides]
+owner = "council-productivity"
+rationale = "Concrete presentation µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.tasks]
+owner = "council-productivity"
+rationale = "Concrete task-management µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.forms]
+owner = "council-productivity"
+rationale = "Concrete forms µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.meet]
+owner = "council-communications"
+rationale = "Concrete meetings µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.notes]
+owner = "council-productivity"
+rationale = "Concrete notes µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.translate]
+owner = "council-productivity"
+rationale = "Concrete translation µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.retention]
+owner = "council-governance"
+rationale = "Concrete retention and records-governance µservice; packaged later by tenant entitlements and regulatory packs."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.dlp]
+owner = "council-security"
+rationale = "Concrete data-loss-prevention µservice; packaged later by tenant entitlements and regulatory packs."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.ediscovery]
+owner = "council-governance"
+rationale = "Concrete eDiscovery µservice; packaged later by tenant entitlements and regulatory packs."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.recordings]
+owner = "council-governance"
+rationale = "Concrete recordings governance µservice; packaged later by tenant entitlements and regulatory packs."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.trust]
+owner = "council-security"
+rationale = "Concrete trust-portal µservice; packaged later by tenant entitlements and regulatory packs."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.address]
+owner = "council-communications"
+rationale = "Concrete address-book/contact graph µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.collab]
+owner = "council-productivity"
+rationale = "Concrete collaboration runtime µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.document]
+owner = "council-productivity"
+rationale = "Concrete document-format µservice; packaged later by tenant entitlements."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.tenant-rbac]
+owner = "tenant-rbac-governance-council"
+rationale = "Tenant/RBAC control µservice for entitlement-to-scope packaging, tenant workload admission, policy evidence, and clean-architecture layer contracts."
 adr_cite = "ADR-0056"
 
 # M02 substrate µservices (registered when at least one workspace crate exists; see oya-shared-documentation-check-cli)
@@ -932,10 +1037,7 @@ naming_scope_adr = "ADR-NNNN-microservice-ops"   # authored at M02-P19 IP-X1 (do
 status = "planned"
 
 
-[workspace.metadata.oya.verticals.connect]
-owner = "council-connect"
-rationale = "Connect µservice (dual-context: Professional B2B + Personal B2C): mail, calendar, drive, messenger, meet, docs, sheets, slides, tasks."
-adr_cite = "ADR-0056"
+# Product/vertical grouping registries are retired. Packaging is computed by tenant/RBAC entitlements.
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }

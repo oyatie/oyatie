@@ -270,7 +270,7 @@ Forbidden language scan evidence: no `.py`, `.js`, `.ts`, `.tsx`, `.rb`, `.go`, 
 2. Inventory substance is uneven.
 3. `manifest.json:68-95` claims a follow-up artifact roster that includes many files now present.
 4. `AUDIT-FINDINGS-2026-05-21.json:5-7` marks the second pass as authored with a 100 artifact target.
-5. `AUDIT-FINDINGS-2026-05-21.json:10-62` closes six doc-suite findings by pointing to a narrow subset of policies, catalog records, and one runbook.
+5. `AUDIT-FINDINGS-2026-05-21.json:10-62` closes six doc-set findings by pointing to a narrow subset of policies, catalog records, and one runbook.
 6. That closure evidence is not enough for this audit because five canonical constraint dimensions remain unproven.
 7. `README.md:32-200` is dominated by repeated "README evidence row" style content and outdated comparator rosters.
 8. `ARCHITECTURE.md:111-200` is dominated by repeated trace rows rather than concrete architecture detail.
@@ -474,7 +474,7 @@ Forbidden language scan evidence: no `.py`, `.js`, `.ts`, `.tsx`, `.rb`, `.go`, 
 ### 3.9 Dimension 9 - Launch And Verification Readiness
 
 1. Existing audit file says second pass was authored at `AUDIT-FINDINGS-2026-05-21.json:5-7`.
-2. Existing audit file closes doc-suite issues at `AUDIT-FINDINGS-2026-05-21.json:10-62`.
+2. Existing audit file closes doc-set issues at `AUDIT-FINDINGS-2026-05-21.json:10-62`.
 3. This audit finds those closure claims too narrow for canonical Wave 3.2 constraints.
 4. No lint, typecheck, build, or Rust test can be run for service code because no Rust source/test files exist.
 5. No OpenTofu plan can be meaningfully run for six contexts because required context modules are absent.
@@ -507,7 +507,7 @@ Forbidden language scan evidence: no `.py`, `.js`, `.ts`, `.tsx`, `.rb`, `.go`, 
 | GT-COH-016 | P2 | User-facing adoption docs are absent. | missing `faqs/`, `onboarding/`, `tutorials/`, `migration-playbooks/`, `reference-implementations/`. | Add docs aligned to counterpart workflows and tenant classes. |
 | GT-COH-017 | P2 | Rust-strict scan passes on forbidden files but implementation boundary is not proven. | no forbidden language files; no Rust source files. | Add Cargo/Rust crate or explicit implementation-plan gate. |
 | GT-COH-018 | P2 | OpenSLO files do not encode all ADR business SLOs. | `slos/*`; `ADR-GT-001:207-214`; `ADR-GT-001:259`. | Add SLOs for screening, classification, callback, event emission, and load. |
-| GT-COH-019 | P2 | Existing second-pass audit closure is narrower than current canonical constraints. | `AUDIT-FINDINGS-2026-05-21.json:5-62`. | Keep closure as doc-suite-only, not canonical-complete. |
+| GT-COH-019 | P2 | Existing second-pass audit closure is narrower than current canonical constraints. | `AUDIT-FINDINGS-2026-05-21.json:5-62`. | Keep closure as doc-set-only, not canonical-complete. |
 | GT-COH-020 | P3 | Proto `java_package` metadata may confuse Rust-strict policy if not annotated. | `contracts/global-trade-v1.proto:5`. | Mark generator metadata as non-runtime. |
 | GT-COH-021 | P3 | README/architecture follow-up wording is stale after files were generated. | `ARCHITECTURE.md:109-110`; `README.md:32-200`. | Refresh docs to current state and remove generated trace boilerplate. |
 
@@ -577,8 +577,8 @@ Forbidden language scan evidence: no `.py`, `.js`, `.ts`, `.tsx`, `.rb`, `.go`, 
 62. Policy evidence: no `policy/trade-hold-release.cedar` exists.
 63. Runbook evidence: `ADR-GT-001:218-219` references denied-party-hit adjudication and broker-filing retry runbooks.
 64. Runbook evidence: no runbook with those names exists in inventory.
-65. Prior-audit evidence: `AUDIT-FINDINGS-2026-05-21.json:10-62` closes six doc-suite rows.
-66. Prior-audit conclusion: prior closure is useful as doc-suite evidence, not as canonical completeness evidence.
+65. Prior-audit evidence: `AUDIT-FINDINGS-2026-05-21.json:10-62` closes six doc-set rows.
+66. Prior-audit conclusion: prior closure is useful as doc-set evidence, not as canonical completeness evidence.
 67. Launch evidence: no executable test harness exists.
 68. Launch evidence: no OpenTofu context plan can be run from this path.
 69. Launch evidence: no OS matrix test can be run from this path.

@@ -22,10 +22,10 @@ spec:
   issuerRef:
     name: oyatie-rooted-ca-issuer
     kind: ClusterIssuer
-  commonName: ops-dashboard.oyatie.dev
+  commonName: ops-dashboard.oyatie.com
   dnsNames:
-    - ops-dashboard.oyatie.dev
-    - ops-dashboard.internal.oyatie.dev
+    - ops-dashboard.oyatie.com
+    - ops-dashboard.internal.oyatie.com
   usages:
     - server auth
     - client auth

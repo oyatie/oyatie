@@ -15,7 +15,7 @@ spec:
     Measured via human-review queue outcomes + canonicalen-set regression. Tracks guardrails
     over-refusal; a high value harms UX. Per ADR-0255 §C + documentation-rigor §3.2.5.
     Hyperscaler precedent: OpenAI content-policy recall/precision metrics; Anthropic policy
-    adherence eval suite.
+    adherence eval set.
   timeWindow:
     - duration: 30d
       isRolling: true

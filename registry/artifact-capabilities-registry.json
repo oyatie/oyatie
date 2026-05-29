@@ -418,7 +418,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Ops portal plan-suite completion ledger; 11 rows (parent + waves 1-7 + 5.5/5.6/5.7). Conforms to master-plan-sequencing.json ledger_required_fields.",
+      "purpose_short": "Ops portal plan-set completion ledger; 11 rows (parent + waves 1-7 + 5.5/5.6/5.7). Conforms to master-plan-sequencing.json ledger_required_fields.",
       "artifact_profile": "ledger",
       "capability_overrides": {
         "enforcement": {
@@ -464,7 +464,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Hyperscaler claim matrix for ops.oyatie.com plan suite per hyperscaler-gates.json:claim_matrix_required. Honest separation of can-claim vs cannot-yet-claim.",
+      "purpose_short": "Hyperscaler claim matrix for ops.oyatie.com plan set per hyperscaler-gates.json:claim_matrix_required. Honest separation of can-claim vs cannot-yet-claim.",
       "artifact_profile": "claim-matrix",
       "capability_overrides": {
         "enforcement": {
@@ -504,8 +504,8 @@
       }
     },
     {
-      "artifact_id": "ops-portal-plan-suite-accepted-attestation",
-      "artifact_path": "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json",
+      "artifact_id": "ops-portal-plan-set-accepted-attestation",
+      "artifact_path": "/evidence/ops-portal-plan-set-accepted-2026-05-13.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -555,7 +555,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
-      "purpose_short": "Machine-readable \u00b5service registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
+      "purpose_short": "Machine-readable µservice registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -650,7 +650,7 @@
       "artifact_format": "openapi-yaml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 \u22642s.",
+      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 ≤2s.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
@@ -824,7 +824,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane \u00d7 contains|exposes|governs|depends-on|enforces.",
+      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane × contains|exposes|governs|depends-on|enforces.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -957,7 +957,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Hyper foundation Layer 5: THE ONLY crate importing hyper directly per ADR-0090. Bridges Router + MiddlewareChain \u2192 hyper::service::Service. Deps: hyper 1, hyper-util 0.1, tokio 1, http-body-util 0.1, bytes 1.",
+      "purpose_short": "Hyper foundation Layer 5: THE ONLY crate importing hyper directly per ADR-0090. Bridges Router + MiddlewareChain → hyper::service::Service. Deps: hyper 1, hyper-util 0.1, tokio 1, http-body-util 0.1, bytes 1.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -995,7 +995,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Layer 6 composition root for the ops/workspace BC. Hyper binary `oya-ops-workspace-shell` listens on 127.0.0.1:OYATIE_OPS_WORKSPACE_PORT (default 8080). Wires kernel \u2192 application \u2192 rest \u2192 router-kernel \u2192 middleware-kernel \u2192 runtime-hyper-adapter into a single tokio::main. Per ADR-0090.",
+      "purpose_short": "Layer 6 composition root for the ops/workspace BC. Hyper binary `oya-ops-workspace-shell` listens on 127.0.0.1:OYATIE_OPS_WORKSPACE_PORT (default 8080). Wires kernel → application → rest → router-kernel → middleware-kernel → runtime-hyper-adapter into a single tokio::main. Per ADR-0090.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -1014,7 +1014,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; \u2264128 chars); deny-on-missing/invalid with 400.",
+      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; ≤128 chars); deny-on-missing/invalid with 400.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -1300,23 +1300,23 @@
       }
     },
     {
-      "artifact_id": "test-suite-registry",
-      "artifact_path": "/registry/test-suite-registry.json",
+      "artifact_id": "test-set-registry",
+      "artifact_path": "/registry/test-set-registry.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry + ops-quality",
-      "purpose_short": "Polyglot test-suite registry mapping surfaces to unit/integration/e2e commands and evidence outputs.",
+      "purpose_short": "Polyglot test-set registry mapping surfaces to unit/integration/e2e commands and evidence outputs.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "lean-a-test-suite-registry"
+          "lane_id": "lean-a-test-set-registry"
         },
         "verification": {
-          "checker_crate": "jq + future crates/oya-check-test-suite-registry",
-          "command": "jq empty /registry/test-suite-registry.json"
+          "checker_crate": "jq + future crates/oya-check-test-set-registry",
+          "command": "jq empty /registry/test-set-registry.json"
         },
         "validation": {
-          "validator": "jq empty + future test-suite-registry validator"
+          "validator": "jq empty + future test-set-registry validator"
         },
         "autogen": {
           "generator": ""
@@ -1327,7 +1327,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_test_suite_registry_row_count",
+              "id": "oya_test_set_registry_row_count",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -1664,7 +1664,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "manual \u2014 kernel boundary violations require human architectural review",
+          "healer": "manual — kernel boundary violations require human architectural review",
           "safe_unattended": [],
           "requires_human_approval_for": [
             "any new external dep in kernel",
@@ -1752,7 +1752,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "manual \u2014 kernel boundary violations require architectural review",
+          "healer": "manual — kernel boundary violations require architectural review",
           "safe_unattended": [],
           "requires_human_approval_for": [
             "any new external dep in kernel"
@@ -1809,7 +1809,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
-      "purpose_short": "CI lane enforcing settings-template drift detection. Feature-flagged off until N>=10 account rows. Before threshold runs against fixture files only (vacuous pass). Per v5 \u00a7A.1.2.",
+      "purpose_short": "CI lane enforcing settings-template drift detection. Feature-flagged off until N>=10 account rows. Before threshold runs against fixture files only (vacuous pass). Per v5 §A.1.2.",
       "artifact_profile": "ci-lane",
       "capability_overrides": {
         "enforcement": {
@@ -1918,7 +1918,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "not-applicable \u2014 verifier is read-only; drift remediation delegated to SettingsRenderer::reconcile",
+          "healer": "not-applicable — verifier is read-only; drift remediation delegated to SettingsRenderer::reconcile",
           "safe_unattended": [],
           "requires_human_approval_for": [
             "any behavioural change in exit code contract"

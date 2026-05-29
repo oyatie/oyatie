@@ -104,7 +104,7 @@
   "ips": [
     {
       "id": "IP-001",
-      "title": "LLM Gateway production design-spec package and clean-room key-pool reverse-proxy implementation (kernel state machine + axum SSE-passthrough rest adapter + app composition layer, OpenBao-sourced keys, two-realm constant-time auth, OTel-aligned metrics, hash-only logging, OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts, Cedar, OpenSLO, runbooks, threat-model + design dossier)",
+      "title": "Cloud Intelligence production design-spec package and clean-room key-pool reverse-proxy implementation (kernel state machine + axum SSE-passthrough rest adapter + app composition layer, OpenBao-sourced keys, two-realm constant-time auth, OTel-aligned metrics, hash-only logging, OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts, Cedar, OpenSLO, runbooks, threat-model + design dossier)",
       "acceptance_status": "ga",
       "file": "microservices/cloud-intelligence/IP-001-cloud-intelligence-design.md"
     }
@@ -140,7 +140,7 @@
     },
     {
       "id": "ADR-0373",
-      "title": "LLM gateway production design: provider-abstraction + canonical OpenAI-compatible surface, key-pool resilience state machine + per-tenant pools honoring Retry-After, Bedrock-shaped immutable audit + default-off body logging, OpenSLO SLI set",
+      "title": "cloud-intelligence gateway production design: provider-abstraction + canonical OpenAI-compatible surface, key-pool resilience state machine + per-tenant pools honoring Retry-After, Bedrock-shaped immutable audit + default-off body logging, OpenSLO SLI set",
       "scope": "microservice"
     }
   ],

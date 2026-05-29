@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | NMLS evidence upload | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | Cedar-gated payment throttling | 31 CFR 1022.320 suspicious activity reporting for money services businesses | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | regulator renewal calendar | California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | threshold detection | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | threshold detection | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | state license gap analysis | Texas Finance Code Chapter 151 sections 151.302 license and 151.308 security | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | surety bond packet | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | NMLS evidence upload | Washington RCW 19.230.030 license required and 19.230.050 surety bond | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | threshold detection | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | state license gap analysis | Washington RCW 19.230.030 license required and 19.230.050 surety bond | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | surety bond packet | 31 CFR 1010.100(ff) money transmitter definition | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | NMLS evidence upload | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | NMLS evidence upload | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | Cedar-gated payment throttling | 31 CFR 1022.320 suspicious activity reporting for money services businesses | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | regulator renewal calendar | California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | threshold detection | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | NMLS evidence upload | California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | Cedar-gated payment throttling | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | regulator renewal calendar | Texas Finance Code Chapter 151 sections 151.302 license and 151.308 security | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | threshold detection | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | threshold detection | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | state license gap analysis | Washington RCW 19.230.030 license required and 19.230.050 surety bond | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | surety bond packet | 31 CFR 1010.100(ff) money transmitter definition | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | NMLS evidence upload | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |

@@ -9,17 +9,17 @@ info:
     Conforms to ADR-0028 audit-chain (Ed25519-sealed events).
   contact:
     name: axis-forms
-    email: axis-forms@oyatie.dev
+    email: axis-forms@oyatie.com
 
 defaultContentType: application/json
 
 servers:
   forms-kafka-pack-kr:
-    host: kafka.forms.kr.oyatie.dev:9093
+    host: kafka.forms.kr.oyatie.com:9093
     protocol: kafka-secure
     description: pack-kr Kafka cluster
   forms-kafka-pack-eu:
-    host: kafka.forms.eu.oyatie.dev:9093
+    host: kafka.forms.eu.oyatie.com:9093
     protocol: kafka-secure
     description: pack-eu Kafka cluster
 

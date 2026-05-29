@@ -424,7 +424,7 @@ related_oyatie_adrs:
   - Rollback: use the rollback_pointer from action 15 and restore the previous authority flag before retrying.
 
 ## Phase 4: Verification
-- Named test suite: crm-migration-dataverse-regression-suite.
+- Named test set: crm-migration-dataverse-regression-suite.
 - Named SLO targets: P95 account read <130 ms, P95 opportunity mutation <200 ms, Synapse delta lag <60 minutes, Web API repair 429 retry success >=99.5%, and unresolved owner mappings exactly 0 at freeze.
 - Named delta-detection algorithm: Dataverse versionnumber watermark with modifiedon overlap, deleted-record audit scan, Synapse Link folder sequence comparison, and per-table Merkle hash keyed by organization/table/primaryid/versionnumber.
 - Verification must be run from an operator account that is not the migration writer account.

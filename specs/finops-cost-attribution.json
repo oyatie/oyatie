@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/finops-cost-attribution.schema.json",
+  "$id": "https://docs.oyatie.com/specs/finops-cost-attribution.schema.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-FINOPS-COST-ATTRIBUTION",
@@ -15,59 +15,175 @@
   },
   "title": "FinOps cost-attribution canonical schema",
   "type": "object",
-  "required": ["tag_block", "chargeback_formula", "anomaly_thresholds", "regulator_evidence_cadence"],
+  "required": [
+    "tag_block",
+    "chargeback_formula",
+    "anomaly_thresholds",
+    "regulator_evidence_cadence"
+  ],
   "properties": {
     "tag_block": {
       "type": "object",
       "description": "Tags every cloud resource MUST carry, applied at provision time by microservices/cloud-iac/.",
-      "required": ["tenant_id", "cell_id", "microservice", "plane", "environment", "cost_center", "sustainability_class"],
+      "required": [
+        "tenant_id",
+        "cell_id",
+        "microservice",
+        "plane",
+        "environment",
+        "cost_center",
+        "sustainability_class"
+      ],
       "properties": {
-        "tenant_id": {"type": "string", "format": "uuid"},
-        "cell_id": {"type": "string", "format": "uuid"},
-        "microservice": {"type": "string", "enum": ["anonymous", "application", "audit-chain", "calendar", "cell", "cloud-iac", "cloud-k8s", "cloud-secrets", "community", "connect", "drive", "forms", "foundry", "governance", "mail", "meet", "messenger", "network", "notes", "observability", "ontology", "recordings", "sheets", "shorts", "sites", "slides", "social", "tasks", "tenancy", "translate", "workflow-engine", "workflow-studio"]},
-        "plane": {"type": "string", "enum": ["control", "data", "analytics"]},
-        "environment": {"type": "string", "enum": ["dev", "staging", "production", "dr"]},
+        "tenant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cell_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "microservice": {
+          "type": "string",
+          "enum": [
+            "anonymous",
+            "application",
+            "audit-chain",
+            "calendar",
+            "cell",
+            "cloud-iac",
+            "cloud-k8s",
+            "cloud-secrets",
+            "community",
+            "connector",
+            "drive",
+            "forms",
+            "foundry",
+            "governance",
+            "mail",
+            "meet",
+            "messenger",
+            "network",
+            "notes",
+            "observability",
+            "ontology",
+            "recordings",
+            "sheets",
+            "shorts",
+            "sites",
+            "slides",
+            "social",
+            "tasks",
+            "tenancy",
+            "translate",
+            "workflow-engine",
+            "workflow-studio"
+          ]
+        },
+        "plane": {
+          "type": "string",
+          "enum": [
+            "control",
+            "data",
+            "analytics"
+          ]
+        },
+        "environment": {
+          "type": "string",
+          "enum": [
+            "dev",
+            "staging",
+            "production",
+            "dr"
+          ]
+        },
         "cost_center": {
           "type": "string",
-          "enum": ["cc-foundry-runtime", "cc-cloud-substrate", "cc-workspace-runtime", "cc-search-runtime", "cc-ads-runtime", "cc-saas-runtime", "cc-vertical-runtime", "cc-shared-infra", "cc-ops-internal", "cc-rd-internal", "cc-marketing-internal", "cc-gtm-internal"]
+          "enum": [
+            "cc-foundry-runtime",
+            "cc-cloud-substrate",
+            "cc-workspace-runtime",
+            "cc-search-runtime",
+            "cc-ads-runtime",
+            "cc-saas-runtime",
+            "cc-vertical-runtime",
+            "cc-shared-infra",
+            "cc-ops-internal",
+            "cc-rd-internal",
+            "cc-marketing-internal",
+            "cc-gtm-internal"
+          ]
         },
-        "sustainability_class": {"type": "string", "enum": ["pue-gte-1-2", "pue-1-2-to-1-1", "pue-lt-1-1"]}
+        "sustainability_class": {
+          "type": "string",
+          "enum": [
+            "pue-gte-1-2",
+            "pue-1-2-to-1-1",
+            "pue-lt-1-1"
+          ]
+        }
       }
     },
     "chargeback_formula": {
       "type": "object",
       "description": "Formula components combined by oya-cloud-billing-domain::chargeback::compute_period().",
-      "required": ["labelled_spend", "capability_invocation", "audit_chain_emission", "storage", "credits"],
+      "required": [
+        "labelled_spend",
+        "capability_invocation",
+        "audit_chain_emission",
+        "storage",
+        "credits"
+      ],
       "properties": {
         "labelled_spend": {
           "type": "object",
           "properties": {
-            "allocation_strategy_dedicated_cell": {"const": 1.0},
+            "allocation_strategy_dedicated_cell": {
+              "const": 1.0
+            },
             "allocation_strategy_shared_cell": {
               "type": "string",
-              "enum": ["cpu-sec-share", "gb-hr-share", "request-count-share", "weighted-composite"]
+              "enum": [
+                "cpu-sec-share",
+                "gb-hr-share",
+                "request-count-share",
+                "weighted-composite"
+              ]
             }
           }
         },
         "capability_invocation": {
           "type": "object",
           "properties": {
-            "source": {"const": "registry/capability-templates"},
-            "field": {"const": "per_invocation_cost"}
+            "source": {
+              "const": "registry/capability-templates"
+            },
+            "field": {
+              "const": "per_invocation_cost"
+            }
           }
         },
         "audit_chain_emission": {
           "type": "object",
           "properties": {
-            "cost_per_row_usd": {"type": "number", "minimum": 0},
-            "review_cadence": {"const": "quarterly-by-ops-finops"}
+            "cost_per_row_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "review_cadence": {
+              "const": "quarterly-by-ops-finops"
+            }
           }
         },
         "storage": {
           "type": "object",
           "properties": {
-            "source": {"const": "registry/data-class"},
-            "field": {"const": "per_byte_storage_cost_by_class"}
+            "source": {
+              "const": "registry/data-class"
+            },
+            "field": {
+              "const": "per_byte_storage_cost_by_class"
+            }
           }
         },
         "credits": {
@@ -78,41 +194,67 @@
     },
     "anomaly_thresholds": {
       "type": "object",
-      "required": ["cost_spike", "cost_creep", "tenant_budget_headroom", "tenant_budget_exhausted", "provider_cost_deviation"],
+      "required": [
+        "cost_spike",
+        "cost_creep",
+        "tenant_budget_headroom",
+        "tenant_budget_exhausted",
+        "provider_cost_deviation"
+      ],
       "properties": {
         "cost_spike": {
           "type": "object",
           "properties": {
-            "trigger": {"const": "tenant_spend > 3*MAD over rolling 14-day baseline AND spend > $1000/hr"},
-            "severity": {"const": "SEV-2"}
+            "trigger": {
+              "const": "tenant_spend > 3*MAD over rolling 14-day baseline AND spend > $1000/hr"
+            },
+            "severity": {
+              "const": "SEV-2"
+            }
           }
         },
         "cost_creep": {
           "type": "object",
           "properties": {
-            "trigger": {"const": "tenant_spend > 7-day rolling baseline by 25% sustained >= 24h"},
-            "severity": {"const": "SEV-3"}
+            "trigger": {
+              "const": "tenant_spend > 7-day rolling baseline by 25% sustained >= 24h"
+            },
+            "severity": {
+              "const": "SEV-3"
+            }
           }
         },
         "tenant_budget_headroom": {
           "type": "object",
           "properties": {
-            "trigger": {"const": "tenant < 10% of monthly budget remaining"},
-            "severity": {"const": "SEV-3"}
+            "trigger": {
+              "const": "tenant < 10% of monthly budget remaining"
+            },
+            "severity": {
+              "const": "SEV-3"
+            }
           }
         },
         "tenant_budget_exhausted": {
           "type": "object",
           "properties": {
-            "trigger": {"const": "tenant has spent 100% of monthly budget"},
-            "severity": {"const": "SEV-2"}
+            "trigger": {
+              "const": "tenant has spent 100% of monthly budget"
+            },
+            "severity": {
+              "const": "SEV-2"
+            }
           }
         },
         "provider_cost_deviation": {
           "type": "object",
           "properties": {
-            "trigger": {"const": "foundry provider per-invocation cost deviates > 50% from registered cost"},
-            "severity": {"const": "SEV-2"}
+            "trigger": {
+              "const": "foundry provider per-invocation cost deviates > 50% from registered cost"
+            },
+            "severity": {
+              "const": "SEV-2"
+            }
           }
         }
       }
@@ -120,13 +262,27 @@
     "regulator_evidence_cadence": {
       "type": "object",
       "properties": {
-        "frequency": {"const": "quarterly"},
-        "audit_chain_class": {"const": "FinOpsQuarterlyReport"},
-        "signer_team_key": {"const": "ops-finops"},
+        "frequency": {
+          "const": "quarterly"
+        },
+        "audit_chain_class": {
+          "const": "FinOpsQuarterlyReport"
+        },
+        "signer_team_key": {
+          "const": "ops-finops"
+        },
         "consumers": {
           "type": "array",
-          "items": {"type": "string"},
-          "default": ["KR-CSAP", "EU-GAIA-X", "KSA-NDMO", "US-FedRAMP", "SOC-2"]
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "KR-CSAP",
+            "EU-GAIA-X",
+            "KSA-NDMO",
+            "US-FedRAMP",
+            "SOC-2"
+          ]
         }
       }
     }

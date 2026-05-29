@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This net-new slice covers SLA-aware routing across voice, chat, SMS, email, and callback. It displaces Genesys Cloud routing, NICE CXone ACD, Five9 routing profiles, Talkdesk routing, and AWS Connect queues with a policy engine that names every decision input.
+This net-new slice covers SLA-aware routing across voice, chat, SMS, email, and callback. It displaces Genesys Cloud routing, NICE CXone ACD, Five9 routing profiles, Talkdesk routing, and AWS queues with a policy engine that names every decision input.
 
 ## Data Model Deltas
 
@@ -59,7 +59,7 @@ gRPC `ContactRoutingPolicyService.Decide(RouteDecisionRequest)` returns `queue_i
 | NICE CXone ACD Skill | `ContactRoutingPolicy` | skill priority maps to route weights. |
 | Five9 Routing Profile | `ContactRoutingPolicy` | profile rules become priority expression. |
 | Talkdesk Routing Rule | `ContactRoutingPolicy` | conditions become expression clauses. |
-| AWS Connect Queue Routing | `ContactRoutingPolicy` | queue and contact attributes become policy inputs. |
+| AWS Queue Routing | `ContactRoutingPolicy` | queue and contact attributes become policy inputs. |
 
 ## Workflow Steps
 

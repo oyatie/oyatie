@@ -13,7 +13,7 @@ Backend code in Rust per `specs/master-plan-sequencing.json#language_policy` and
 
 The ITSM µservice owns the operational concern of running an IT service desk: incident management, problem management, change enablement, service request fulfillment, service catalog, CMDB projection (the cmdb µservice owns the data; ITSM owns the operational integration), knowledge base, AI-powered deflection, on-call routing, escalation, status updates, and postmortems.
 
-Per ADR-0131 (flat layout) and ADR-0132 (no-suite), the µservice does NOT compose a multi-service "suite". It instead composes five separately-buildable bounded-context crates under `crates/`:
+Per ADR-0131 (flat layout) and ADR-0132 (no-grouping), the µservice does NOT compose a multi-service "suite". It instead composes five separately-buildable bounded-context crates under `crates/`:
 
 | Bounded context | Crate | Counterparts |
 |---|---|---|

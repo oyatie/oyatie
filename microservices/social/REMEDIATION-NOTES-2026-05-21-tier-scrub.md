@@ -83,8 +83,8 @@ Per ADR-0336, Redis vocabulary replaced with Valkey in:
 - `microservices/social/PRD.md`
 - `microservices/social/backfill-replay.md`
 - `microservices/social/capacity-model.md`
-- `microservices/social/catalog/oya-social-app.yaml`
-- `microservices/social/catalog/oya-social-feed-timeline-adapter-valkey.yaml`
+- `microservices/social/catalog/oya-community-social-app.yaml`
+- `microservices/social/catalog/oya-community-social-feed-timeline-adapter-valkey.yaml`
 - `microservices/social/coherence-audit-2026-05-20.md`
 - `microservices/social/decisions/ADR-SOC-0002-follow-graph-storage.md`
 - `microservices/social/iac/helm/social/templates/networkpolicy.yaml`
@@ -100,4 +100,4 @@ None.
 
 Files renamed (git mv):
 
-- `microservices/social/catalog/oya-social-feed-timeline-adapter-redis.yaml` -> `microservices/social/catalog/oya-social-feed-timeline-adapter-valkey.yaml`
+- `microservices/social/catalog/oya-community-social-feed-timeline-adapter-redis.yaml` -> `microservices/social/catalog/oya-community-social-feed-timeline-adapter-valkey.yaml`

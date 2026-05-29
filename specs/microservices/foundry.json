@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/microservices/intelligence.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/microservices/intelligence.schema.json",
   "title": "Microservice:Foundry — RETIRED",
   "_meta": {
     "doc_class": "Microservice-Retirement-Marker",
@@ -59,19 +59,71 @@
       "future_rename_policy": "the full rename cascade is sequenced as a separate cleanup wave per ADR-0335 D-43"
     },
     "absorbed_responsibilities": [
-      {"retired": "runtime (capability executor, session state, invocation orchestrator, runtime pod pool, capability registry cache)", "successor": "intelligence", "successor_bounded_context": "model-routing + dispatch-flow"},
-      {"retired": "supervisor (fleet lifecycle, capability deployment, kill-switch, autonomy policy, supervision event bus)", "successor": "intelligence", "successor_bounded_context": "guardrails + observability + audit-tap"},
-      {"retired": "eval (eval runner, parity analyzer, replay engine, golden-output store)", "successor": "intelligence", "successor_bounded_context": "eval"},
-      {"retired": "evidence (capability-invocation recorder, evidence pack builder, regulator export, audit-chain bridge)", "successor": "intelligence", "successor_bounded_context": "audit-tap"},
-      {"retired": "guardrails (prompt classifier, output validator, autonomy-tier gate, content-safety rule engine, jailbreak detector, AI-slop detector)", "successor": "intelligence", "successor_bounded_context": "guardrails"},
-      {"retired": "providers (LLM provider router + 8 adapters + OpenBao credential isolation)", "successor": "intelligence", "successor_bounded_context": "providers (already 18 first-class providers) + credential-resolver"},
-      {"retired": "training and fine-tuning workflows", "successor": "intelligence", "successor_bounded_context": "providers + eval"},
-      {"retired": "RLHF workflows", "successor": "intelligence", "successor_bounded_context": "eval + providers"},
-      {"retired": "red-team workflows", "successor": "intelligence", "successor_bounded_context": "guardrails + eval"},
-      {"retired": "model registry", "successor": "intelligence", "successor_bounded_context": "providers + tenant-class entitlement per ADR-0330"},
-      {"retired": "webhook-driven agent invocation (ADR-0112)", "successor": "intelligence + workflow", "successor_bounded_context": "dispatch-flow + workflow event bus"},
-      {"retired": "VCS orchestrator end-to-end (ADR-0113)", "successor": "vcs-orchestrator + intelligence + workflow", "successor_bounded_context": "distributed across substrate owners"},
-      {"retired": "HG-FOUNDRY hyperscaler-grade conformance gate", "successor": "intelligence", "successor_bounded_context": "HG-INTELLIGENCE per ADR-0255"}
+      {
+        "retired": "runtime (capability executor, session state, invocation orchestrator, runtime pod pool, capability registry cache)",
+        "successor": "intelligence",
+        "successor_bounded_context": "model-routing + dispatch-flow"
+      },
+      {
+        "retired": "supervisor (fleet lifecycle, capability deployment, kill-switch, autonomy policy, supervision event bus)",
+        "successor": "intelligence",
+        "successor_bounded_context": "guardrails + observability + audit-tap"
+      },
+      {
+        "retired": "eval (eval runner, parity analyzer, replay engine, golden-output store)",
+        "successor": "intelligence",
+        "successor_bounded_context": "eval"
+      },
+      {
+        "retired": "evidence (capability-invocation recorder, evidence pack builder, regulator export, audit-chain bridge)",
+        "successor": "intelligence",
+        "successor_bounded_context": "audit-tap"
+      },
+      {
+        "retired": "guardrails (prompt classifier, output validator, autonomy-tier gate, content-safety rule engine, jailbreak detector, AI-slop detector)",
+        "successor": "intelligence",
+        "successor_bounded_context": "guardrails"
+      },
+      {
+        "retired": "providers (LLM provider router + 8 adapters + OpenBao credential isolation)",
+        "successor": "intelligence",
+        "successor_bounded_context": "providers (already 18 first-class providers) + credential-resolver"
+      },
+      {
+        "retired": "training and fine-tuning workflows",
+        "successor": "intelligence",
+        "successor_bounded_context": "providers + eval"
+      },
+      {
+        "retired": "RLHF workflows",
+        "successor": "intelligence",
+        "successor_bounded_context": "eval + providers"
+      },
+      {
+        "retired": "red-team workflows",
+        "successor": "intelligence",
+        "successor_bounded_context": "guardrails + eval"
+      },
+      {
+        "retired": "model registry",
+        "successor": "intelligence",
+        "successor_bounded_context": "providers + tenant-class entitlement per ADR-0330"
+      },
+      {
+        "retired": "webhook-driven agent invocation (ADR-0112)",
+        "successor": "intelligence + workflow",
+        "successor_bounded_context": "dispatch-flow + workflow event bus"
+      },
+      {
+        "retired": "VCS orchestrator end-to-end (ADR-0113)",
+        "successor": "vcs-orchestrator + intelligence + workflow",
+        "successor_bounded_context": "distributed across substrate owners"
+      },
+      {
+        "retired": "HG-FOUNDRY hyperscaler-grade conformance gate",
+        "successor": "intelligence",
+        "successor_bounded_context": "HG-INTELLIGENCE per ADR-0255"
+      }
     ]
   },
   "do_not_use": {

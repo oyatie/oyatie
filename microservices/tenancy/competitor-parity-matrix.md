@@ -28,7 +28,7 @@ Quantitative + qualitative parity comparison vs the industry-leading multi-tenan
 | AWS Cognito | Cognito User Pools + Identity Center | Mature B2C/B2B; AWS-native | `docs.aws.amazon.com/cognito/` |
 | Auth0 (Okta) | Auth0 Organizations | Mature B2B-SaaS tenant model; rich rule engine | `auth0.com/docs/manage-users/organizations` |
 | WorkOS | Organizations + Directory Sync | Best-in-class B2B SSO + provisioning | `workos.com/docs` |
-| Stripe Connect | Connect platform model | Tenant (Connect account) lifecycle; payment-platform precedent | `stripe.com/docs/connect` |
+| Stripe | platform model | Tenant (account) lifecycle; payment-platform precedent | `stripe.com/docs/connect` |
 | Microsoft Entra (Azure AD External ID) | Multi-tenant directory | Mature enterprise; Microsoft-native | `learn.microsoft.com/en-us/entra/external-id/` |
 | Neon | Serverless Postgres with branching | Per-tenant Postgres schema; instant provisioning | `neon.tech/docs` |
 | Citus (Microsoft) | Citus multi-tenant Postgres | Shard-key tenant distribution; we adopt as substrate | `docs.citusdata.com` |
@@ -37,7 +37,7 @@ Quantitative + qualitative parity comparison vs the industry-leading multi-tenan
 
 ### Tenant lifecycle
 
-| Capability | oyatie | Cognito | Auth0 | WorkOS | Stripe Connect | Entra | Neon |
+| Capability | oyatie | Cognito | Auth0 | WorkOS | Stripe | Entra | Neon |
 |---|---|---|---|---|---|---|---|
 | Sub-5-min self-serve activation | ✅ (target) | ✅ | ✅ | ✅ | ✅ (Stripe-managed) | ✅ | ✅ |
 | Tenant lifecycle FSM (suspend/resume/delete) | ✅ | partial | ✅ | ✅ | ✅ | partial | partial |
@@ -47,7 +47,7 @@ Quantitative + qualitative parity comparison vs the industry-leading multi-tenan
 
 ### Isolation primitives (the differentiator)
 
-| Capability | oyatie | Cognito | Auth0 | WorkOS | Stripe Connect | Entra | Neon |
+| Capability | oyatie | Cognito | Auth0 | WorkOS | Stripe | Entra | Neon |
 |---|---|---|---|---|---|---|---|
 | Postgres RLS with FORCE ROW LEVEL SECURITY | ✅ | n/a | n/a | n/a | n/a | n/a | partial (per-schema only) |
 | JWT + RLS + Cedar defence-in-depth | ✅ | JWT only | JWT only | JWT only | API-key | JWT only | RLS only |
@@ -59,7 +59,7 @@ Quantitative + qualitative parity comparison vs the industry-leading multi-tenan
 
 ### Right-to-erasure / DSR (the second differentiator)
 
-| Capability | oyatie | Cognito | Auth0 | WorkOS | Stripe Connect | Entra | Neon |
+| Capability | oyatie | Cognito | Auth0 | WorkOS | Stripe | Entra | Neon |
 |---|---|---|---|---|---|---|---|
 | Cross-µservice DSR cascade | ✅ | per-µservice manual | per-µservice manual | per-µservice manual | per-µservice manual | per-µservice manual | manual |
 | Cryptographic proof-of-erasure (Merkle + Ed25519) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
@@ -70,7 +70,7 @@ Quantitative + qualitative parity comparison vs the industry-leading multi-tenan
 
 ### Operational + integrations
 
-| Capability | oyatie | Cognito | Auth0 | WorkOS | Stripe Connect | Entra | Neon |
+| Capability | oyatie | Cognito | Auth0 | WorkOS | Stripe | Entra | Neon |
 |---|---|---|---|---|---|---|---|
 | Patroni HA + Citus sharding | ✅ (self-hosted) | n/a (SaaS) | n/a (SaaS) | n/a (SaaS) | n/a (SaaS) | n/a (SaaS) | partial (own HA model) |
 | Multi-language SDK | M01: Rust; M01+1: TS; M02: Py/Go; M03: JVM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |

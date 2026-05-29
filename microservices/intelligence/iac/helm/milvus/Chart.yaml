@@ -21,7 +21,7 @@ keywords:
   - cnacf-graduated
 maintainers:
   - name: axis-foundry
-    email: axis-foundry@oyatie.dev
+    email: axis-foundry@oyatie.com
 annotations:
   # Per ADR-0192 §"In-house roadmap" — this chart is the Phase-0 substrate;
   # Phase-2 oya-vector-store-server lands at a separate chart name.

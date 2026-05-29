@@ -6,7 +6,7 @@
     "description": "OpenAPI for the j163 board-meeting choreography. Endpoints for SFU pre-flight, language pipeline pre-flight, consent matrix collection, recording envelope open/close, executive session engage/release, captioning stream, minutes archival, Merkle anchor.",
     "contact": {
       "name": "oyatie meet µservice",
-      "email": "meet@oyatie.dev"
+      "email": "meet@oyatie.com"
     },
     "x-journey-id": "j163-av-coordinator-jordan-park-board-meeting-cross-time-zone",
     "x-adrs": [
@@ -18,8 +18,8 @@
     ]
   },
   "servers": [
-    {"url": "https://meet.us-east.oyatie.dev/v1", "description": "US-East primary"},
-    {"url": "https://meet.eu-frankfurt.oyatie.dev/v1", "description": "EU-Frankfurt mirror"}
+    {"url": "https://meet.us-east.oyatie.com/v1", "description": "US-East primary"},
+    {"url": "https://meet.eu-frankfurt.oyatie.com/v1", "description": "EU-Frankfurt mirror"}
   ],
   "paths": {
     "/meet/board-mode/pre-flight/initiate": {

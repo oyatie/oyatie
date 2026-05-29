@@ -17,7 +17,7 @@ Root-level `SPEC.md` is intentionally not created: repo policy keeps root Markdo
 
 ## Non-negotiable constraints
 
-- First deliverable is `FD-001-enterprise-smb-generic-core`, full-depth production/hyperscaler-grade, not MVP or preview.
+- First deliverable is `FD-001-tenancy-rbac-microservice-core`, full-depth production/hyperscaler-grade, not MVP or preview.
 - Follow the Phase 0 shared-infrastructure order: start with `cloud-iam`, then `cloud-kms`, `cloud-secrets`, `cloud-iac`, network, data, storage, compute, billing, capacity/cell/finops/marketplace/fsh.
 - Use clean architecture: kernel/domain/app/api/adapter/runtime dependencies point inward; business logic stays out of handlers; adapters implement ports without peer-adapter coupling.
 - API-first: public REST/Event/gRPC contracts exist before handlers; public API versions use date carriers.
@@ -1945,7 +1945,7 @@ Non-claims: no live object-store upload/download serving, bucket/IAM provisionin
 
 Closed state (2026-05-25): the Cloud IaC `cloud-iac-cell-topology` gate now treats each cell's `gitops_template` as more than a path-existence pointer. The gate reads the repo-local Argo CD Application template for each cell and requires topology-derived labels for `oyatie.com/region`, `oyatie.com/cell-id`, `oyatie.com/tenant-id`, `oyatie.com/isolation-tier`, and `oyatie.com/default-cross-cell-traffic-allowed`. The five live Cloud IaC Application templates now carry those labels with values matching `microservices/cloud-iac/cell-topology/foundation.json`.
 
-Verification scope: RED first proved a fixture could drift the AWS guest template `cell-id` while the topology gate still accepted the topology. GREEN focused tests prove coherent fixtures pass and label drift fails closed with `gitops_template`/`cell_id` diagnostics. Closeout evidence includes the live cell-topology and GitOps evidence gates, scoped Cloud IaC suite, Rust quality, governance gates, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and accepted Oya VCS work/verify/done/promote.
+Verification scope: RED first proved a fixture could drift the AWS guest template `cell-id` while the topology gate still accepted the topology. GREEN focused tests prove coherent fixtures pass and label drift fails closed with `gitops_template`/`cell_id` diagnostics. Closeout evidence includes the live cell-topology and GitOps evidence gates, scoped Cloud IaC gate set, Rust quality, governance gates, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and accepted Oya VCS work/verify/done/promote.
 
 Non-claims: this is a local filesystem/JSON/YAML-line coherence guard only. It does not call Argo CD, Kubernetes, OpenTofu, cloud provider APIs, mesh runtime, autosharding, auto-rebalance, dynamic sharding, live sync/diff/health/prune/self-heal, provider runtime, tofu plan/apply, production auth/Cedar, FD-001 tenant workload hosting, production readiness, or cloud provisioning.
 
@@ -1953,7 +1953,7 @@ Non-claims: this is a local filesystem/JSON/YAML-line coherence guard only. It d
 
 Closed state (2026-05-25): the Cloud IaC `cloud-iac-gitops-evidence` gate now treats signed image inputs as a local Application-template invariant instead of relying only on top-level cosign annotations. Each repo-local Argo CD Application template must carry Helm parameters `image.digest` with value `{{signed_image_digest}}` and `image.cosign.required` with value `true`, matching the live template contract for signed image promotion.
 
-Verification scope: RED first proved a fixture could omit the `image.digest` Helm parameter while the GitOps evidence gate still accepted the template. GREEN focused tests prove coherent fixtures pass and missing signed-image parameters fail closed. Closeout evidence includes live GitOps/cell-topology gates, Rust quality, governance gates, scoped Cloud IaC suite, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and accepted Oya VCS work/verify/done/promote.
+Verification scope: RED first proved a fixture could omit the `image.digest` Helm parameter while the GitOps evidence gate still accepted the template. GREEN focused tests prove coherent fixtures pass and missing signed-image parameters fail closed. Closeout evidence includes live GitOps/cell-topology gates, Rust quality, governance gates, scoped Cloud IaC gate set, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and accepted Oya VCS work/verify/done/promote.
 
 Non-claims: this is a local filesystem/YAML-template text guard only. It does not execute cosign verification, image signing, admission control, Argo CD API calls, Kubernetes API calls, live sync/diff/health/prune/self-heal, rollout, rollback, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.
 
@@ -1961,6 +1961,6 @@ Non-claims: this is a local filesystem/YAML-template text guard only. It does no
 
 Closed state (2026-05-25): the Cloud IaC `cloud-iac-gitops-evidence` gate now validates signed-image Helm parameters as name/value pairs, not only as independent lines. The gate requires `- name: image.digest` to be immediately followed by `value: "{{signed_image_digest}}"`, and `- name: image.cosign.required` to be immediately followed by `value: "true"`.
 
-Verification scope: RED first proved a fixture could place the signed-image digest placeholder under the wrong Helm parameter while the gate still accepted the template. GREEN focused tests prove coherent fixtures pass and signed-image parameter value-pair drift fails closed. Closeout evidence includes live GitOps/cell-topology gates, Rust quality, governance gates, scoped Cloud IaC suite, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and accepted Oya VCS work/verify/done/promote.
+Verification scope: RED first proved a fixture could place the signed-image digest placeholder under the wrong Helm parameter while the gate still accepted the template. GREEN focused tests prove coherent fixtures pass and signed-image parameter value-pair drift fails closed. Closeout evidence includes live GitOps/cell-topology gates, Rust quality, governance gates, scoped Cloud IaC gate set, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and accepted Oya VCS work/verify/done/promote.
 
 Non-claims: this is a local filesystem/YAML-template text guard only. It does not execute Helm rendering, cosign verification, image signing, admission control, Argo CD API calls, Kubernetes API calls, live sync/diff/health/prune/self-heal, rollout, rollback, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.

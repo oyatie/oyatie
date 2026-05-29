@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/client-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/client-manifest.schema.json",
   "name": "oya-application-shell-frontend-prototype",
   "status": "integrated-product-workbench-prototype",
   "surface": "application-shell-control-center",

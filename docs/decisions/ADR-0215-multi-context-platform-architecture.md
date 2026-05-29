@@ -13,7 +13,7 @@
 
 ## Compatibility note
 
-This is the local Oyatie ADR-0215. Historical references to inherited Bominal ADR-0215 still mean the Connect retention, legal-hold, and dual-context boundary policy. New or touched prose should spell that inherited citation as `Bominal-ADR-0215` to avoid confusing it with this local multi-context platform doctrine.
+This is the local Oyatie ADR-0215. Historical references to inherited Bominal ADR-0215 still mean the retention, legal-hold, and dual-context boundary policy. New or touched prose should spell that inherited citation as `Bominal-ADR-0215` to avoid confusing it with this local multi-context platform doctrine.
 
 ## Context
 
@@ -52,7 +52,7 @@ The same Connect-family microservices serve all contexts through shared UX compo
 ### Required implementation surfaces
 
 1. **Identity:** extend the identity microservice with a multi-context principal resolver. The resolver returns principal id plus active context id, context type, tenant/org binding where applicable, sovereignty region, and allowed context switches.
-2. **Connect family:** mail, messenger, calendar, docs, sheets, social, meet, notes, tasks, drive, and adjacent Connect surfaces must partition data by context while sharing UX shells.
+2. **family:** mail, messenger, calendar, docs, sheets, social, meet, notes, tasks, drive, and adjacent surfaces must partition data by context while sharing UX shells.
 3. **Cedar authorization:** every policy evaluation receives context id and context type. Work-context Cedar fragments differ from personal-context and healthcare-context fragments.
 4. **Audit chain:** every context has a sealed audit stream. Cross-context access emits bilateral entries on source and target contexts.
 5. **Ontology:** entities are scoped by context. Cross-context projection is a consent-graph projection, not a direct join.

@@ -12,7 +12,7 @@ date: 2026-05-20
 - Added runbooks: `csam-detect-and-ncmec-report.md`, `social-bot-score-recalibration.md`, `sock-puppet-cluster-takedown.md`, `coordinated-inauthentic-behavior-response.md`, `dsa-transparency-report-generation.md`.
 - Added `IP-016-minor-protection-strict-defaults.md`, `IP-017-abuse-defence-edge-and-cedar.md`, `IP-018-dsa-compliance-overlay.md`.
 - Added IaC: `iac/edge-waf.yaml`, `iac/ech-config.yaml`, `iac/pqc-cert.yaml`, `iac/openbao-policy.yaml`, `iac/secret-bindings.yaml`.
-- Added catalog: `oya-social-csam-classifier-adapter-photodna.yaml`, `oya-social-sock-puppet-detector-kernel.yaml`, `oya-social-profile-verification-adapter-idv.yaml`, `oya-social-dsa-transparency-worker.yaml`.
+- Added catalog: `oya-community-social-csam-classifier-adapter-photodna.yaml`, `oya-community-social-sock-puppet-detector-kernel.yaml`, `oya-community-social-profile-verification-adapter-idv.yaml`, `oya-community-social-dsa-transparency-worker.yaml`.
 - Added dashboards: `abuse-defence-outcomes.json`, `minor-protection-health.json`, `csam-and-trust-safety.json`.
 - Added SLOs: `csam-classifier-latency.openslo.yaml`, `minor-protection-engagement-correctness.openslo.yaml`.
 

@@ -15,7 +15,7 @@ superseded_by: []
 related:
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0188-passkey-webauthn-as-canonical-auth.md
   - ADR-0244-tenant-as-universal-scoping-primitive.md
@@ -53,7 +53,7 @@ big_8_priority: Healthcare cluster (post-HR, post-CRM, post-ITSM)
 enforcement_status: advisory-until-eight-microservices-scaffold-lands
 enforced_by:
   - oya gate validate per-microservice-layout
-  - oya gate validate no-new-suite-bundles
+  - oya gate validate no-grouping
   - oya gate validate microservice-coherence-audit
   - oya gate validate healthcare-domain-decomposition (NEW lane added by this ADR)
   - oya gate validate hipaa-pack-coverage-per-healthcare-microservice
@@ -65,7 +65,7 @@ purpose: >
   clinical-decision-support, care-management) and narrow the existing healthcare-
   integration microservice to FHIR/HL7v2/DICOM integration substrate only.
   Each new microservice ships at hyperscaler-grade per ADR-0131 flat layout,
-  ADR-0132 no-suite forward policy, and ADR-0251 HIPAA pack mandatory for
+  ADR-0132 no-grouping forward policy, and ADR-0251 HIPAA pack mandatory for
   paid tenants. Each microservice has its own PRD, ARCHITECTURE, contracts,
   SLOs, Cedar policies, runbooks, IaC, IPs, and bespoke counterpart top-3
   parity rooted in named industry-leader software platforms.
@@ -120,7 +120,7 @@ That spread does not match the ADR-0131 + ADR-0132 single-concern doctrine.
 
 ADR-0131 mandates one µservice equals one bounded context, one folder, one PRD,
 one set of SLOs, one set of Cedar fragments, one IaC bundle, one release
-pointer. ADR-0132 forbids new suite/bundle/vertical formations that contain
+pointer. ADR-0132 forbids new platform/bundle/vertical formations that contain
 more than one user-facing concern.
 
 A µservice that ships ePrescribe (NCPDP SCRIPT to Surescripts), C-STORE/C-FIND/
@@ -138,7 +138,7 @@ industry-leader platforms are organised by clinical domain, not as monolithic
 
 - Electronic Medical Records (EMR/EHR): Epic, Oracle Health (formerly Cerner),
   athenahealth, Allscripts/Veradigm, MEDITECH, eClinicalWorks, NextGen
-  Healthcare. These platforms are full-suite EMRs themselves (vendor brands);
+  Healthcare. These platforms are full-platform EMRs themselves (vendor brands);
   oyatie's `emr` µservice projects an EMR substrate that competes shape-for-
   shape with their EMR-core surfaces.
 - Laboratory and Pathology Diagnostics: Sunquest, Clinisys, Oracle Health
@@ -160,7 +160,7 @@ industry-leader platforms are organised by clinical domain, not as monolithic
   Cerner Discern, ClinicalKey (Elsevier), DynaMed.
 - Care Management / Population Health: Salesforce Health Cloud, Epic Healthy
   Planet, Innovaccer, Arcadia, Optum Care Coordination, HMS Carenet.
-- Healthcare Integration: Redox, Mirth Connect (NextGen Connect), Health
+- Healthcare Integration: Redox, Mirth (NextGen Connect), Health
   Gorilla, Lyniate Rhapsody (formerly Corepoint), Iguana / iNTERFACEWARE,
   InterSystems HealthShare, AWS HealthLake, Google Cloud Healthcare API.
 
@@ -251,7 +251,7 @@ and distinct break-glass semantics.
 Anchor 1: ADR-0131 (per-microservice flat layout). The one-µservice-one-
 folder doctrine. Source of the universal artifact-layout pattern.
 
-Anchor 2: ADR-0132 (no-suite forward-policy). Forbids new bundle / industry /
+Anchor 2: ADR-0132 (no-grouping forward-policy). Forbids new bundle / industry /
 vertical µservices that contain more than one user-facing concern.
 
 Anchor 3: ADR-0251 (compliance pack + cell certification levels). Source of
@@ -288,7 +288,7 @@ authoring is governed by the Wave-15M plan companioned with this ADR.
 
 This ADR does not retire the existing healthcare-integration µservice. The
 existing folder remains; its scope narrows to integration substrate only
-(FHIR/HL7v2/DICOM broker concern with Redox / Mirth Connect / Health
+(FHIR/HL7v2/DICOM broker concern with Redox / Mirth / Health
 Gorilla counterpart shape preserved). The capabilities that previously
 lived under the bundled µservice migrate to the new domain-specific
 µservices per §H.
@@ -304,7 +304,7 @@ core / SCM / customer-data-platform) reaches the substance bar.
 
 Effective immediately, the existing `microservices/healthcare-integration/`
 microservice is narrowed in scope to the FHIR/HL7v2/DICOM integration
-substrate concern only. Its top-3 counterpart set (Redox / Mirth Connect /
+substrate concern only. Its top-3 counterpart set (Redox / Mirth /
 Health Gorilla) is preserved; all domain-specific clinical capabilities
 migrate to the eight new microservices below.
 
@@ -1129,7 +1129,7 @@ broker. Public docs: `https://docs.redoxengine.com/`. Redox Data Models
 (vendor-neutral intermediate). Redox Cloud + Hub. 600+ EHR systems
 connected.
 
-**Mirth Connect / NextGen Connect.** Open-source HL7v2 integration
+**Mirth / NextGen Connect.** Open-source HL7v2 integration
 engine. Channel-based message routing with JavaScript/Java
 transformers. Multi-channel listeners (MLLP, TCP, HTTP, FTP/SFTP,
 JMS). De-facto open-source baseline.
@@ -1433,8 +1433,8 @@ The decomposition is verified through:
 
 1. `oya gate validate per-microservice-layout` exits 0 against each new
    µservice folder.
-2. `oya gate validate no-new-suite-bundles` exits 0 — the new µservices
-   are not bundle/suite shapes.
+2. `oya gate validate no-grouping` exits 0 — the new µservices
+   are not bundle/grouping shapes.
 3. `oya gate validate microservice-coherence-audit` exits 0 against
    each new µservice (the same five-dimension protocol used in the
    existing healthcare-integration audit).
@@ -1476,7 +1476,7 @@ The decomposition is verified through:
   follow this).
 - ADR-0131: Per-microservice flat layout (each new µservice is a flat
   folder under `microservices/`).
-- ADR-0132: No-suite forward-policy (forbids new bundle/suite
+- ADR-0132: No-grouping forward-policy (forbids new bundle/grouping
   µservices; this decomposition COMPLIES by authoring single-concern
   µservices, not a healthcare bundle).
 - ADR-0145: Inter-microservice communication reform (direct gRPC + 3
@@ -1544,7 +1544,7 @@ The decomposition is verified through:
   - Innovaccer — `https://innovaccer.com/`.
   - Redox — `https://www.redoxengine.com/` and
     `https://docs.redoxengine.com/`.
-  - Mirth Connect (NextGen Connect) — `https://www.nextgen.com/products-
+  - Mirth (NextGen Connect) — `https://www.nextgen.com/products-
     and-services/integration-engine`.
   - Health Gorilla — `https://www.healthgorilla.com/`.
 
@@ -1558,7 +1558,7 @@ files_produced:
   - /Users/jasonlee/oyatie/microservices/healthcare-integration/REMEDIATION-NOTES-2026-05-21.md
 findings:
   - existing healthcare-integration µservice = 215 features × 14 domains in one µservice
-  - violation of ADR-0131 single-concern + ADR-0132 no-suite forward policy
+  - violation of ADR-0131 single-concern + ADR-0132 no-grouping forward policy
   - decomposition into 8 new domain µservices + scope-narrow of existing healthcare-integration to integration substrate only
   - per-domain top-3 industry counterparts identified via research
   - HIPAA pack mandatory uniformly across all 9 healthcare-domain µservices

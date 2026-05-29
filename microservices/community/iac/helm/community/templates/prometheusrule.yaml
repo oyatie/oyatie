@@ -57,7 +57,7 @@ spec:
             bc: post-store
           annotations:
             summary: "community post-create fast-burn (14.4x) for 5m"
-            runbook_url: "https://oyatie.dev/microservices/community/runbooks/post-mass-deletion"
+            runbook_url: "https://oyatie.com/microservices/community/runbooks/post-mass-deletion"
 
         - alert: CommunityPostCreateSlowBurn6h
           expr: |
@@ -79,7 +79,7 @@ spec:
             bc: voting-engine
           annotations:
             summary: "community vote-cast p99 latency > 100ms for 10m"
-            runbook_url: "https://oyatie.dev/microservices/community/runbooks/vote-anomaly"
+            runbook_url: "https://oyatie.com/microservices/community/runbooks/vote-anomaly"
 
         - alert: CommunitySearchQueryLatencyP99High
           expr: community:search_query:latency_p99_5m > 0.5
@@ -91,7 +91,7 @@ spec:
             bc: search-index
           annotations:
             summary: "community search-query p99 > 500ms for 10m"
-            runbook_url: "https://oyatie.dev/microservices/community/runbooks/search-rebuild"
+            runbook_url: "https://oyatie.com/microservices/community/runbooks/search-rebuild"
 
         - alert: CommunityModerationQueueDepthHigh
           expr: |
@@ -104,7 +104,7 @@ spec:
             bc: moderation-queue
           annotations:
             summary: "community moderation queue depth > 5000 for 15m"
-            runbook_url: "https://oyatie.dev/microservices/community/runbooks/moderation-queue-clear"
+            runbook_url: "https://oyatie.com/microservices/community/runbooks/moderation-queue-clear"
 
         - alert: CommunityAuditSealMiss
           expr: |
@@ -116,7 +116,7 @@ spec:
             microservice: community
           annotations:
             summary: "community audit-chain seal miss detected — P0"
-            runbook_url: "https://oyatie.dev/microservices/community/decisions/ADR-COMM-0001"
+            runbook_url: "https://oyatie.com/microservices/community/decisions/ADR-COMM-0001"
 
         - alert: CommunitySpamFloodDetected
           expr: |
@@ -129,4 +129,4 @@ spec:
             bc: post-store
           annotations:
             summary: "community post-create rate >100/s sustained 5m per tenant — possible spam flood"
-            runbook_url: "https://oyatie.dev/microservices/community/runbooks/spam-flood-throttle"
+            runbook_url: "https://oyatie.com/microservices/community/runbooks/spam-flood-throttle"

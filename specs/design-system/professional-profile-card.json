@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/professional-profile-card.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/professional-profile-card.schema.json",
   "title": "DesignSystem:Professional Profile Card",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "professional-profile-card",

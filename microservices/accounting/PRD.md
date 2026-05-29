@@ -14,4 +14,4 @@ canonical_machine_spec: specs/microservices/accounting.json
 
 The canonical machine-readable product spec is `specs/microservices/accounting.json`. This Markdown PRD exists only because `/specs/per-microservice-flat-layout.json` currently requires `microservices/<ms>/PRD.md` during the Markdown-retirement transition.
 
-The Accounting microservice owns journal vouchers, period-open posting guards, payroll posting intake, VAT workflow evidence, AP approval gates, and close-evidence refusal. It composes with Payroll, HR, Workflow, Tenancy, and Audit Chain by refs/events rather than by becoming an enterprise-suite service.
+The Accounting microservice owns journal vouchers, period-open posting guards, payroll posting intake, VAT workflow evidence, AP approval gates, and close-evidence refusal. It composes with Payroll, HR, Workflow, Tenancy, and Audit Chain by refs/events rather than by becoming an tenant-rbac service.

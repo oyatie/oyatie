@@ -3,7 +3,17 @@
   "spec_id": "chaos-engineering-substrate-canonical",
   "spec_kind": "canonical-decision",
   "authoring_adr": "ADR-0165",
-  "related_adrs": ["ADR-0114", "ADR-0121", "ADR-0128", "ADR-0139", "ADR-0145", "ADR-0148", "ADR-0157", "ADR-0158", "ADR-0160"],
+  "related_adrs": [
+    "ADR-0114",
+    "ADR-0121",
+    "ADR-0128",
+    "ADR-0139",
+    "ADR-0145",
+    "ADR-0148",
+    "ADR-0157",
+    "ADR-0158",
+    "ADR-0160"
+  ],
   "status": "Accepted",
   "date": "2026-05-18",
   "title": "Chaos Engineering Substrate Canonical Spec",
@@ -15,11 +25,31 @@
   "per_microservice_catalog": {
     "path": "microservices/<ms>/chaos/scenarios/*.yaml",
     "minimum_required_scenarios": [
-      {"name": "pod-kill", "kind": "PodChaos", "purpose": "test INV-AT-LEAST-3-REPLICAS"},
-      {"name": "network-delay-100ms", "kind": "NetworkChaos", "purpose": "test latency tolerance + retry"},
-      {"name": "dependency-failure-<dep>", "kind": "HTTPChaos", "purpose": "test circuit-breaker per declared downstream dependency"},
-      {"name": "disk-slow-1000ms", "kind": "IOChaos", "purpose": "test IO failure tolerance"},
-      {"name": "time-skew-30s", "kind": "TimeChaos", "purpose": "test clock tolerance (required if chaos_time_sensitive: true)"}
+      {
+        "name": "pod-kill",
+        "kind": "PodChaos",
+        "purpose": "test INV-AT-LEAST-3-REPLICAS"
+      },
+      {
+        "name": "network-delay-100ms",
+        "kind": "NetworkChaos",
+        "purpose": "test latency tolerance + retry"
+      },
+      {
+        "name": "dependency-failure-<dep>",
+        "kind": "HTTPChaos",
+        "purpose": "test circuit-breaker per declared downstream dependency"
+      },
+      {
+        "name": "disk-slow-1000ms",
+        "kind": "IOChaos",
+        "purpose": "test IO failure tolerance"
+      },
+      {
+        "name": "time-skew-30s",
+        "kind": "TimeChaos",
+        "purpose": "test clock tolerance (required if chaos_time_sensitive: true)"
+      }
     ]
   },
   "drill_cadence": {
@@ -34,17 +64,44 @@
     "per_microservice_custom_queries": "slos/chaos-gates.openslo.yaml"
   },
   "failure_mode_primitives": {
-    "PodChaos": ["pod-kill", "pod-failure", "container-kill"],
-    "NetworkChaos": ["delay", "loss", "duplicate", "corrupt", "partition"],
-    "IOChaos": ["latency", "fault", "attrOverride", "mistake"],
-    "TimeChaos": ["clock-skew"],
-    "StressChaos": ["cpu", "memory"],
-    "DNSChaos": ["resolution-failure"],
-    "HTTPChaos": ["5xx-injection"]
+    "PodChaos": [
+      "pod-kill",
+      "pod-failure",
+      "container-kill"
+    ],
+    "NetworkChaos": [
+      "delay",
+      "loss",
+      "duplicate",
+      "corrupt",
+      "partition"
+    ],
+    "IOChaos": [
+      "latency",
+      "fault",
+      "attrOverride",
+      "mistake"
+    ],
+    "TimeChaos": [
+      "clock-skew"
+    ],
+    "StressChaos": [
+      "cpu",
+      "memory"
+    ],
+    "DNSChaos": [
+      "resolution-failure"
+    ],
+    "HTTPChaos": [
+      "5xx-injection"
+    ]
   },
   "cross_microservice_scenarios": {
     "location": "microservices/cloud-k8s/chaos/scenarios/",
-    "examples": ["cross-cell-partition.yaml", "full-cell-loss.yaml"]
+    "examples": [
+      "cross-cell-partition.yaml",
+      "full-cell-loss.yaml"
+    ]
   },
   "gameday_quarterly": {
     "owner": "SRE team",
@@ -54,7 +111,10 @@
   "production_chaos_optin": {
     "default": false,
     "field": "microservices/<ms>/manifest.json#chaos_production_optin",
-    "applies_to_candidates": ["audit-chain", "foundry"],
+    "applies_to_candidates": [
+      "audit-chain",
+      "foundry"
+    ],
     "requires_severe_slo_gates": true,
     "requires_per_tenant_whitelist": true
   },

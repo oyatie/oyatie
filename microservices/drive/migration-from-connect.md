@@ -12,7 +12,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Migration: `oya-connect-drive-*` → `oya-drive-*`
+# Migration: `oya-drive-*` → `oya-drive-*`
 
 This document applies the Strangler Pattern from the agent-skills `deprecation-and-migration` skill to the **drive** µservice. It is the consumer-facing companion to ADR-0134 (cross-µservice migration policy) and ADR-0135 (target topology).
 
@@ -24,49 +24,49 @@ This document applies the Strangler Pattern from the agent-skills `deprecation-a
 |---|---|
 | Replacement | `oya-drive-*` crate family under `microservices/drive/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-DRIVE accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
+| Reason | ADR-0132 no-grouping forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
 | Migration owner (Churn Rule) | axis-drive |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
 ## Replacement
 
-The 11 bounded-contexts of the `drive` µservice live under `microservices/drive/src/crates/` per ADR-0131. The legacy `oya-connect-drive-domain` crate (a single domain-layer crate that bundled all of file storage + folder hierarchy + permissions + sharing into one) splits per BC into the new flat layout.
+The 11 bounded-contexts of the `drive` µservice live under `microservices/drive/src/crates/` per ADR-0131. The legacy `oya-drive-domain` crate (a single domain-layer crate that bundled all of file storage + folder hierarchy + permissions + sharing into one) splits per BC into the new flat layout.
 
 ### Crate import-path map
 
-| Legacy `oya-connect-drive-*` path | New `oya-drive-*` path |
+| Legacy `oya-drive-*` path | New `oya-drive-*` path |
 |---|---|
-| `oya-connect-drive-domain` | split per BC; see note below |
-| (planned) `oya-connect-drive-file-kernel` | `oya-drive-file-store-kernel` |
-| (planned) `oya-connect-drive-file-domain` | `oya-drive-file-store-domain` |
-| (planned) `oya-connect-drive-file-usecase` | `oya-drive-file-store-usecase` |
-| (planned) `oya-connect-drive-file-api` | `oya-drive-file-store-api` |
-| (planned) `oya-connect-drive-file-adapter` | `oya-drive-file-store-adapter` |
-| (planned) `oya-connect-drive-file-adapter-postgres` | `oya-drive-file-store-adapter-postgres` |
-| (planned) `oya-connect-drive-file-adapter-s3` | `oya-drive-file-store-adapter-s3` |
-| (planned) `oya-connect-drive-file-rest` | `oya-drive-file-store-rest` |
-| (planned) `oya-connect-drive-file-worker` | `oya-drive-file-store-worker` |
-| (planned) `oya-connect-drive-file-sdk` | `oya-drive-file-store-sdk` |
-| (planned) `oya-connect-drive-file-app` | `oya-drive-file-store-app` |
-| (planned) `oya-connect-drive-folder-kernel` | `oya-drive-folder-hierarchy-kernel` |
-| (planned) `oya-connect-drive-folder-*` | `oya-drive-folder-hierarchy-*` |
-| (planned) `oya-connect-drive-upload-*` | `oya-drive-upload-*` |
-| (planned) `oya-connect-drive-download-*` | `oya-drive-download-*` |
-| (planned) `oya-connect-drive-sync-*` | `oya-drive-sync-*` |
-| (planned) `oya-connect-drive-share-*` | `oya-drive-share-link-*` |
-| (planned) `oya-connect-drive-permissions-*` | `oya-drive-permissions-*` |
-| (planned) `oya-connect-drive-search-*` | `oya-drive-search-index-*` |
-| (planned) `oya-connect-drive-preview-*` | `oya-drive-preview-*` |
-| (planned) `oya-connect-drive-dlp-*` | `oya-drive-dlp-virus-scan-*` |
-| (planned) `oya-connect-drive-retention-*` | `oya-drive-immutability-tier-*` |
+| `oya-drive-domain` | split per BC; see note below |
+| (planned) `oya-drive-file-kernel` | `oya-drive-file-store-kernel` |
+| (planned) `oya-drive-file-domain` | `oya-drive-file-store-domain` |
+| (planned) `oya-drive-file-usecase` | `oya-drive-file-store-usecase` |
+| (planned) `oya-drive-file-api` | `oya-drive-file-store-api` |
+| (planned) `oya-drive-file-adapter` | `oya-drive-file-store-adapter` |
+| (planned) `oya-drive-file-adapter-postgres` | `oya-drive-file-store-adapter-postgres` |
+| (planned) `oya-drive-file-adapter-s3` | `oya-drive-file-store-adapter-s3` |
+| (planned) `oya-drive-file-rest` | `oya-drive-file-store-rest` |
+| (planned) `oya-drive-file-worker` | `oya-drive-file-store-worker` |
+| (planned) `oya-drive-file-sdk` | `oya-drive-file-store-sdk` |
+| (planned) `oya-drive-file-app` | `oya-drive-file-store-app` |
+| (planned) `oya-drive-folder-kernel` | `oya-drive-folder-hierarchy-kernel` |
+| (planned) `oya-drive-folder-*` | `oya-drive-folder-hierarchy-*` |
+| (planned) `oya-drive-upload-*` | `oya-drive-upload-*` |
+| (planned) `oya-drive-download-*` | `oya-drive-download-*` |
+| (planned) `oya-drive-sync-*` | `oya-drive-sync-*` |
+| (planned) `oya-drive-share-*` | `oya-drive-share-link-*` |
+| (planned) `oya-drive-permissions-*` | `oya-drive-permissions-*` |
+| (planned) `oya-drive-search-*` | `oya-drive-search-index-*` |
+| (planned) `oya-drive-preview-*` | `oya-drive-preview-*` |
+| (planned) `oya-drive-dlp-*` | `oya-drive-dlp-virus-scan-*` |
+| (planned) `oya-drive-retention-*` | `oya-drive-immutability-tier-*` |
 
-> **`oya-connect-drive-domain` split.** The legacy bundled crate bundled file + folder + upload + download + sync + share-link + permissions + search + preview + scan + retention into a single domain-layer crate. Per ADR-0131 + ADR-0105 (13-layer enum), the new layout splits the domain layer per bounded context. Migration imports from the legacy bundled `oya-connect-drive-domain` must each pick the specific replacement BC; a one-line wholesale `use oya_drive::*` import is not supported.
+> **`oya-drive-domain` split.** The legacy bundled crate bundled file + folder + upload + download + sync + share-link + permissions + search + preview + scan + retention into a single domain-layer crate. Per ADR-0131 + ADR-0105 (13-layer enum), the new layout splits the domain layer per bounded context. Migration imports from the legacy bundled `oya-drive-domain` must each pick the specific replacement BC; a one-line wholesale `use oya_drive::*` import is not supported.
 
 ### Net-new boundaries (no legacy counterpart)
 
-The new µservice introduces capabilities that did NOT exist in `oya-connect-drive-*`. They are therefore not part of the migration surface — they are clean replacement-boundary features:
+The new µservice introduces capabilities that did NOT exist in `oya-drive-*`. They are therefore not part of the migration surface — they are clean replacement-boundary features:
 
-- **`oya-drive-file-store-adapter-garage`** + **`-adapter-seaweedfs`** — secondary backend-qualified adapters per ADR-DRIVE-0001 (the legacy `oya-connect-drive-domain` only spoke to S3-style stores via a single un-qualified adapter; new layout admits Garage edge-distributed + SeaweedFS archive tier directly).
+- **`oya-drive-file-store-adapter-garage`** + **`-adapter-seaweedfs`** — secondary backend-qualified adapters per ADR-DRIVE-0001 (the legacy `oya-drive-domain` only spoke to S3-style stores via a single un-qualified adapter; new layout admits Garage edge-distributed + SeaweedFS archive tier directly).
 - **`oya-drive-sync-*` (FastCDC + LBFS delta-sync)** — content-defined-chunking delta-sync per ADR-DRIVE-0002; the legacy surface uploaded whole files.
 - **`oya-drive-immutability-tier-*` (WORM)** — per ADR-DRIVE-0006; the legacy surface had only soft-delete + retention, no WORM / object-lock semantics.
 - **Client-side E2E (libsodium secretstream)** — opt-in for Personal pillar per ADR-DRIVE-0004; the legacy surface had only server-side envelope encryption.
@@ -79,8 +79,8 @@ The new µservice introduces capabilities that did NOT exist in `oya-connect-dri
 
 ```rust
 // BEFORE
-use oya_connect_drive_domain::{File, Folder, ShareLink, Permission};
-use oya_connect_drive_domain::usecases::{upload_file, mint_share_link};
+use oya_drive_domain::{File, Folder, ShareLink, Permission};
+use oya_drive_domain::usecases::{upload_file, mint_share_link};
 
 // AFTER
 use oya_drive_file_store_kernel::{File, FileVersion};
@@ -94,7 +94,7 @@ use oya_drive_share_link_usecase::mint_share_link;
 ```toml
 # BEFORE — Cargo.toml of a downstream consumer
 [dependencies]
-oya-connect-drive-domain = { workspace = true }
+oya-drive-domain = { workspace = true }
 
 # AFTER
 [dependencies]
@@ -108,17 +108,17 @@ oya-drive-share-link-usecase       = { workspace = true }
 
 ## Reason
 
-The legacy `oya-connect-drive-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
+The legacy `oya-drive-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — per-µservice SLO authority.** Drive needs independent SLO targets per surface (file-list latency, upload throughput, download first-byte latency, search latency, sync delta latency, share-link generation latency, preview render latency, DLP scan correctness, WORM correctness, virus-scan correctness). A `connect-*` umbrella SLO cannot honour those.
 3. **ADR-0131 — per-µservice flat layout.** Drive's IaC, runbooks, threat-model, DPIA, compliance, capacity-model, cost-budget, incident-response, failure-modes, multi-region all need to live under one folder (`microservices/drive/`).
 4. **ADR-0133 — 11-pack-overlay program.** pack-kr (KR PIPA + KR-FSS), pack-eu (GDPR + EU AI Act), pack-us (SEC 17a-4(f) + FINRA 4511), pack-us-healthcare (HIPAA), pack-jp (APPI), pack-sg (PDPA), pack-au (Privacy Act), pack-in (DPDPA), pack-br (LGPD), pack-ae (UAE PDPL), pack-ksa (KSA PDPL) — each lives as `microservices/drive/policy/pack-<region>/`. They cannot share a folder root with mail / calendar / messenger.
-5. **ADR-DRIVE-0001 → ADR-DRIVE-0006** — drive-specific decisions (object-storage backend pick, CDC algorithm, share-link security model, encryption-at-rest + E2E, preview sandboxing, WORM policy) need to live at per-µservice ADR granularity, not at the Connect / Workspace suite level.
+5. **ADR-DRIVE-0001 → ADR-DRIVE-0006** — drive-specific decisions (object-storage backend pick, CDC algorithm, share-link security model, encryption-at-rest + E2E, preview sandboxing, WORM policy) need to live at per-µservice ADR granularity, not at the / Workspace suite level.
 
 ## Migration Guide (step-by-step)
 
-For each consumer crate that imports `oya-connect-drive-*`:
+For each consumer crate that imports `oya-drive-*`:
 
 ### Step 1 — Add the new dependency
 
@@ -131,7 +131,7 @@ For each consumer crate that imports `oya-connect-drive-*`:
 
 ```bash
 # Use this command per file as a guided rewrite (review every hit; manual
-# disambiguation needed for the `oya-connect-drive-domain` split case):
+# disambiguation needed for the `oya-drive-domain` split case):
 rg -l "oya_connect_drive_" --type rust path/to/your/crate
 ```
 
@@ -139,7 +139,7 @@ rg -l "oya_connect_drive_" --type rust path/to/your/crate
 
 ```bash
 # Inside your consumer crate:
-cargo nextest run --features connect-drive-strangler-canary
+cargo nextest run --features drive-strangler-canary
 ```
 
 Run with the feature flag enabled to route through the new µservice; run without to route through the legacy adapter. Compare:
@@ -158,14 +158,14 @@ Only after your consumer crate's tests pass against the new imports AND the driv
 
 ```toml
 # Remove this line:
-oya-connect-drive-domain = { workspace = true }
+oya-drive-domain = { workspace = true }
 ```
 
 ### Step 5 — Verify zero residual
 
 ```bash
 # Per ADR-0134 Phase 4 verification:
-cargo tree -e normal -p your-crate | grep oya-connect-drive   # expect empty
+cargo tree -e normal -p your-crate | grep oya-drive   # expect empty
 rg "use oya_connect_drive_" --type rust path/to/your/crate    # expect zero hits
 ```
 
@@ -176,7 +176,7 @@ rg "use oya_connect_drive_" --type rust path/to/your/crate    # expect zero hits
 | Feature flag namespace | `connect.drive.*` | `drive.*` |
 | OpenSLO file | bundled in `Connect.openslo.yaml` (umbrella) | `microservices/drive/slos/*.openslo.yaml` (per-µservice, 9 files) |
 | Helm chart values key | `.Values.connect.drive.*` | `.Values.drive.*` |
-| K8s namespace | `connect` | `drive` |
+| K8s namespace | `connector` | `drive` |
 | Cedar policy fragment path | `policy/connect/drive/*.cedar` | `microservices/drive/policy/*.cedar` |
 | pack-kr overlay path | `policy/connect/drive/pack-kr/*` | `microservices/drive/iac/kustomize/overlays/pack-kr/*` |
 | Workflow event prefix | `connect.drive.*` | `drive.*` (e.g., `drive.file.lifecycle.v1`, `drive.share.v1`) |
@@ -229,7 +229,7 @@ Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law Makes Removal Ha
 | Phase | Description | Status (drive) | Exit condition |
 |---|---|---|---|
 | 1. Parallel ship | New µservice + legacy coexist | **active** | HG-DRIVE passes at p99 SLOs in dev cluster sustained 7d |
-| 2. Adapter soak | `oya-connect-drive-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
+| 2. Adapter soak | `oya-drive-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
 | 3. Feature-flagged canary | 10% → 50% → 100% traffic shift over 6 weeks | pending | New µservice carries 100% traffic for 7 consecutive days |
 | 4. Zero-active-usage verification | Dependency-graph + telemetry + grep all clean | pending | Verification commands all exit 0 |
 | 5. Code removal sweep | Delete legacy crates + Cargo.toml entries + spec pointers | pending | `cargo build --workspace` exits 0; no `oya_connect_drive_*` symbol resolves |
@@ -250,12 +250,12 @@ Per the deprecation-and-migration skill, every deprecation closeout must satisfy
   ```
 - [ ] **All active consumers have been migrated** (per Phase 4):
   ```bash
-  cargo tree -e normal -p oya-connect-drive-domain --invert    | grep -v 'oya-connect-drive-migration-adapter' | wc -l   # expect 0
+  cargo tree -e normal -p oya-drive-domain --invert    | grep -v 'oya-drive-migration-adapter' | wc -l   # expect 0
   rg "use oya_connect_drive_" --type rust    | rg -v "migration-adapter|legacy_in_process|tests/"    | wc -l   # expect 0
   ```
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
-  find crates -maxdepth 1 -type d -name "oya-connect-drive-*" | wc -l   # expect 0
+  find crates -maxdepth 1 -type d -name "oya-drive-*" | wc -l   # expect 0
   test ! -f /specs/microservices/drive.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase**:
@@ -287,11 +287,11 @@ Phase 5 (code removal) **IS a breaking change** for any consumer that did not mi
 
 ## References
 
-- ADR-0135: Connect super-app expansion into 8 flat µservices (precedent topology).
+- ADR-0135: super-app expansion into 8 flat µservices (precedent topology).
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0133: Industry best-practice conformance program.
-- ADR-0134: Connect dissolution Strangler migration (operational policy).
+- ADR-0134: dissolution Strangler migration (operational policy).
 - ADR-DRIVE-0001: Object-storage substrate selection.
 - ADR-DRIVE-0002: Content-defined-chunking + delta-sync.
 - ADR-DRIVE-0003: Share-link security model.

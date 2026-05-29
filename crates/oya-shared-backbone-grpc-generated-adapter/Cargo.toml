@@ -8,7 +8,7 @@ license = "Apache-2.0"
 build = "build.rs"
 
 [dependencies]
-oya-social-app = { path = "../oya-social-app" }
+oya-community-social-app = { path = "../oya-community-social-app" }
 oya-messenger-app = { path = "../oya-messenger-app" }
 oya-mail-mailbox-store-app = { path = "../oya-mail-mailbox-store-app" }
 oya-community-post-store-app = { path = "../oya-community-post-store-app" }
@@ -20,8 +20,8 @@ oya-mail-mailbox-store-grpc = { path = "../oya-mail-mailbox-store-grpc" }
 oya-messenger-message-stream-api = { path = "../oya-messenger-message-stream-api" }
 oya-messenger-message-stream-grpc = { path = "../oya-messenger-message-stream-grpc" }
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
-oya-social-post-composition-api = { path = "../oya-social-post-composition-api" }
-oya-social-post-composition-grpc = { path = "../oya-social-post-composition-grpc" }
+oya-community-social-post-composition-api = { path = "../oya-community-social-post-composition-api" }
+oya-community-social-post-composition-grpc = { path = "../oya-community-social-post-composition-grpc" }
 oya-shared-backbone-proto-contracts-kernel = { path = "../oya-shared-backbone-proto-contracts-kernel" }
 prost.workspace = true
 tonic.workspace = true

@@ -41,7 +41,7 @@ hard_boundary_under_test:
 | [`schemas/personal-tenant-deny-event.json`](schemas/personal-tenant-deny-event.json) | Deny-by-default envelope | n/a |
 | [`schemas/subpoena-request.json`](schemas/subpoena-request.json) | Subpoena prep envelope | n/a |
 | [`schemas/court-warrant-piercing-request.json`](schemas/court-warrant-piercing-request.json) | ADR-0312 piercing envelope | n/a |
-| [`integration-test-plan.md`](integration-test-plan.md) | The boundary regression test suite | ≥400 |
+| [`integration-test-plan.md`](integration-test-plan.md) | The boundary regression test set | ≥400 |
 
 ## Per-µservice IP slices
 

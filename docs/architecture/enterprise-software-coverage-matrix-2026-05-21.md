@@ -57,7 +57,7 @@ Authoring guardrails: this document is a living coverage reference. It does not 
 | --- | --- | --- |
 | Unified ecosystem | Every vendor benchmark maps into the same tenant, Cedar, ontology, workflow, audit-chain, compliance, and observability substrate. | Avoids a new island per department. |
 | Capability-tier over microservice sprawl | ADR-0316 treats product surfaces as tenant activation bundles of permits, projections, workflows, UX shell manifests, compliance overlays, and telemetry. | Prevents CRM, marketing, learning, ITSM, and analytics from becoming duplicated identity/data/workflow stacks. |
-| No-suite flat catalog | ADR-0132 forbids suite or bundle microservices. Brand-layer grouping is allowed; architecture-layer bundling is not. | ERP suite, CRM suite, HR suite, and vertical suite folders are rejected. |
+| No-grouping flat catalog | ADR-0132 forbids suite or bundle microservices. Brand-layer grouping is allowed; architecture-layer bundling is not. | ERP platform, CRM platform, HR platform, and vertical platform folders are rejected. |
 | Tenant as universal scope | ADR-0244 makes tenant plus sub-scope the routing, auth, retention, residency, audit, cost, and compliance primitive. | Every coverage row states tenant-scoped capability shape. |
 | Substrate/product layering | ADR-0245 requires a tier field and cross-tier dependency discipline. | Shared services stay shared; products activate them without becoming gateways. |
 | Marketplace settlement | ADR-0314 makes every tenant-to-tenant and tenant-to-consumer commercial exchange a DealSet. | Procurement, subscriptions, services, plugins, receivables, workforce contracts, and data licenses settle through one primitive. |
@@ -95,7 +95,7 @@ If those conditions do not hold, the benchmark becomes a capability tier over ex
 | A | Full existing coverage. Existing services already own the benchmark-class behavior at parity-or-better for common cases. | Service docs, permits, projections, workflows, and CI lanes already exist or are mapped. | No |
 | B | Partial existing coverage. Existing services own the concern but still need depth or operating-bar completion. | Gap statement plus capability-tier backlog. | No by default |
 | C | Composed coverage. Multiple existing services compose to cover the vendor surface. | Composition map plus Cedar, ontology, workflow, UX, compliance, and telemetry references. | No unless one subdomain proves distinct operational concern |
-| D | New flat microservice required. No existing service owns the operational concern. | Named service, status, owner lane, PR-143 doc-suite requirement, sequencing dependency. | Yes, flat single-concern only |
+| D | New flat microservice required. No existing service owns the operational concern. | Named service, status, owner lane, PR-143 doc-set requirement, sequencing dependency. | Yes, flat single-concern only |
 | E | Intentionally partner/plugin/out-of-core. | Plugin-app-store or marketplace partner path plus refusal boundary. | No core service |
 
 ### §2.1 Tier interpretation rules
@@ -133,7 +133,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 | EWM | Extended Warehouse Management | inbound; outbound; slotting; yard; labor | warehouse | new scaffold exists | D->C |
 | TRM | Treasury and Risk Management | cash; liquidity; FX; debt; hedging | treasury + payments + finops-portal | new scaffold exists | D->C |
 | RE-FX | Real Estate Flexible Management | lease; facilities; space; maintenance | real-estate + plant-maintenance + finops-portal | new scaffold exists | D->C |
-| IS-* | Industry Solutions | banking; insurance; healthcare; retail; utilities | packs + ontology + workflow-engine + compliance | pack overlays; no new vertical suite | C |
+| IS-* | Industry Solutions | banking; insurance; healthcare; retail; utilities | packs + ontology + workflow-engine + compliance | pack overlays; no new vertical platform | C |
 | NETWORK | Network Products | Ariba; Concur; Fieldglass; SuccessFactors; Commerce | marketplace + payments + workplace-integration + crm + community | composition | C |
 | PLATFORM | Platform Extensibility | BTP; CAP; Fiori; ABAP-like extensions | plugin-app-store + developer-sdk + workflow-studio + workflow-engine + ontology | extension tier | C |
 | DATA | Data and Analytics | Analytics Cloud; Datasphere; HANA-like analytics | analytics + ontology + intelligence + observability + data-warehouse | data-warehouse in-flight for OLAP | C |
@@ -145,7 +145,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 | SAP S/4HANA | ERP system of record | SAP S/4HANA modules FI, CO, MM, SD, PP, QM, PM, HCM, PS, PLM, EHS, SRM, CRM, SCM/APO, GTS, TM, EWM, TRM, RE-FX | payments + finops-portal + marketplace + workflow-engine + ontology + crm + production-planning + quality-management + plant-maintenance + supply-chain-planning + global-trade + warehouse + treasury + real-estate + compliance | ERP scaffold exists; operating bar still required | C - composed capability-tier coverage |
 | Oracle Fusion Cloud ERP | ERP + EPM + procurement + project management | Oracle Financials, Project Management, Enterprise Data Management, Risk Management and Compliance, Procurement, EPM | payments + finops-portal + marketplace + workflow-engine + ontology + compliance + treasury + supply-chain-planning + warehouse | ERP scaffold exists; operating bar still required | C - composed capability-tier coverage |
 | Workday Financial Management | financials + planning adjacency | financial accounting, projects, procurement, expenses, adaptive planning links, people-aware cost model | finops-portal + payments + workflow-engine + ontology + workplace-integration + financial-planning | in-flight service or capability tier required | C - composed capability-tier coverage |
-| Oracle NetSuite ERP | midmarket ERP suite | financials, order management, inventory, CRM, commerce, professional services automation | payments + marketplace + crm + warehouse + workflow-engine + ontology + finops-portal | ERP scaffold exists; operating bar still required | C - composed capability-tier coverage |
+| Oracle NetSuite ERP | midmarket ERP platform | financials, order management, inventory, CRM, commerce, professional services automation | payments + marketplace + crm + warehouse + workflow-engine + ontology + finops-portal | ERP scaffold exists; operating bar still required | C - composed capability-tier coverage |
 | Microsoft Dynamics 365 Finance | ERP finance and operations | finance, supply chain, commerce, project operations, customer engagement, field service | payments + finops-portal + supply-chain-planning + warehouse + marketplace + crm + workflow-engine + ontology | ERP scaffold exists; operating bar still required | C - composed capability-tier coverage |
 | Microsoft Dynamics 365 Supply Chain Management | ERP operations | planning, warehouse, production, asset management, order management, commerce integration | supply-chain-planning + warehouse + production-planning + plant-maintenance + marketplace + global-trade | ERP scaffold exists; operating bar still required | C - composed capability-tier coverage |
 | Infor CloudSuite | industry ERP | manufacturing, distribution, EAM, finance, industry pack specialization | production-planning + warehouse + plant-maintenance + finops-portal + compliance + packs | ERP scaffold exists; operating bar still required | C - composed capability-tier coverage |
@@ -166,7 +166,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Financial Accounting normalizes general ledger document, company code, journal entry, open item, and tax line with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Manage Journal Entries, Display Line Items, and Trial Balance review; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-fi-01 with deterministic replay ids.
-- Capability-tier status: C with treasury exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with treasury exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: payments.erp.fi.activate, payments.erp.fi.execute, audit.read.erp.fi; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/fi-financial-accounting@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-fi-activation-v1 and workflow-template://erp-fi-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -179,7 +179,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Controlling normalizes cost center, profit center, internal order, allocation cycle, and variance with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Cost Center Actuals, Allocation Run, and Variance Analysis; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-co-02 with deterministic replay ids.
-- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: finops-portal.erp.co.activate, finops-portal.erp.co.execute, audit.read.erp.co; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/co-controlling@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-co-activation-v1 and workflow-template://erp-co-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -192,7 +192,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Materials Management normalizes material master, purchase requisition, purchase order, goods receipt, and supplier info record with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Manage Purchase Requisitions, Monitor Purchase Orders, and Post Goods Receipt; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-mm-03 with deterministic replay ids.
-- Capability-tier status: C with warehouse scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with warehouse scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: marketplace.erp.mm.activate, marketplace.erp.mm.execute, audit.read.erp.mm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/mm-materials-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-mm-activation-v1 and workflow-template://erp-mm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -205,7 +205,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Sales and Distribution normalizes customer master, sales order, delivery, billing document, and pricing condition with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Manage Sales Orders, Delivery Due List, and Billing Due List; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-sd-04 with deterministic replay ids.
-- Capability-tier status: C with crm and warehouse scaffolds exist; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with crm and warehouse scaffolds exist; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: marketplace.erp.sd.activate, marketplace.erp.sd.execute, audit.read.erp.sd; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/sd-sales-and-distribution@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-sd-activation-v1 and workflow-template://erp-sd-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -218,7 +218,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Production Planning normalizes bill of material, routing, planned order, production order, and capacity requirement with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Monitor Material Coverage, Manage Production Orders, and Capacity Scheduling Table; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-pp-05 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: production-planning.erp.pp.activate, production-planning.erp.pp.execute, audit.read.erp.pp; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/pp-production-planning@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-pp-activation-v1 and workflow-template://erp-pp-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -231,7 +231,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Quality Management normalizes inspection lot, quality notification, sample result, usage decision, and defect record with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Record Inspection Results, Usage Decision, and Quality Notification worklist; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-qm-06 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: quality-management.erp.qm.activate, quality-management.erp.qm.execute, audit.read.erp.qm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/qm-quality-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-qm-activation-v1 and workflow-template://erp-qm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -244,7 +244,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Plant Maintenance normalizes equipment, functional location, maintenance order, notification, and measurement point with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Manage Maintenance Notifications, Maintenance Order, and Asset history; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-pm-07 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: plant-maintenance.erp.pm.activate, plant-maintenance.erp.pm.execute, audit.read.erp.pm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/pm-plant-maintenance@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-pm-activation-v1 and workflow-template://erp-pm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -257,7 +257,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Human Capital Management normalizes worker, position, payroll area, absence, and benefit enrollment with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Worker Profile, Payroll Control Center, and Absence approval inbox; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-hcm-08 with deterministic replay ids.
-- Capability-tier status: C with capability tiers plus HR specs; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with capability tiers plus HR specs; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: workplace-integration.erp.hcm.activate, workplace-integration.erp.hcm.execute, audit.read.erp.hcm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/hcm-human-capital-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-hcm-activation-v1 and workflow-template://erp-hcm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -270,7 +270,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Project System normalizes work breakdown structure, network activity, milestone, project budget, and settlement rule with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Project Builder, WBS budget review, and milestone confirmation; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-ps-09 with deterministic replay ids.
-- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: workflow-engine.erp.ps.activate, workflow-engine.erp.ps.execute, audit.read.erp.ps; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/ps-project-system@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-ps-activation-v1 and workflow-template://erp-ps-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -283,7 +283,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Product Lifecycle Management normalizes material version, engineering change, document info record, recipe, and release package with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Engineering Change Record, document browser, and release package workflow; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-plm-10 with deterministic replay ids.
-- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: ontology.erp.plm.activate, ontology.erp.plm.execute, audit.read.erp.plm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/plm-product-lifecycle-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-plm-activation-v1 and workflow-template://erp-plm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -296,7 +296,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Environment Health Safety normalizes incident, hazardous substance, safety data sheet, permit, and corrective action with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Incident log, SDS library, and corrective-action board; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-ehs-11 with deterministic replay ids.
-- Capability-tier status: C with pack overlays; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with pack overlays; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: compliance.erp.ehs.activate, compliance.erp.ehs.execute, audit.read.erp.ehs; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/ehs-environment-health-safety@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-ehs-activation-v1 and workflow-template://erp-ehs-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -309,7 +309,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Supplier Relationship Management normalizes supplier, sourcing event, contract, purchase order, and scorecard with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Sourcing event cockpit, supplier scorecard, and contract workspace; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-srm-12 with deterministic replay ids.
-- Capability-tier status: C with DealSet overlay; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with DealSet overlay; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: marketplace.erp.srm.activate, marketplace.erp.srm.execute, audit.read.erp.srm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/srm-supplier-relationship-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-srm-activation-v1 and workflow-template://erp-srm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -322,7 +322,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Customer Relationship Management normalizes account, contact, opportunity, case, and campaign with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Account workspace, opportunity board, service case console, and campaign queue; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-crm-13 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: crm.erp.crm.activate, crm.erp.crm.execute, audit.read.erp.crm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/crm-customer-relationship-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-crm-activation-v1 and workflow-template://erp-crm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -335,7 +335,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Supply Chain Planning normalizes demand plan, supply plan, forecast version, constraint, and deployment order with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Demand Planning book, supply optimizer, and deployment monitor; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-scm-apo-14 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: supply-chain-planning.erp.scm/apo.activate, supply-chain-planning.erp.scm/apo.execute, audit.read.erp.scm/apo; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/scm/apo-supply-chain-planning@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-scm/apo-activation-v1 and workflow-template://erp-scm/apo-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -348,7 +348,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Global Trade Services normalizes customs declaration, license, sanctioned-party hit, commodity code, and trade document with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Customs declaration worklist, license determination, and sanctioned-party hit review; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-gts-15 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: global-trade.erp.gts.activate, global-trade.erp.gts.execute, audit.read.erp.gts; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/gts-global-trade-services@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-gts-activation-v1 and workflow-template://erp-gts-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -361,7 +361,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Transportation Management normalizes freight order, shipment, carrier tender, route, and charge calculation with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Freight order cockpit, carrier tender board, and charge settlement review; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-tm-16 with deterministic replay ids.
-- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: supply-chain-planning.erp.tm.activate, supply-chain-planning.erp.tm.execute, audit.read.erp.tm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/tm-transportation-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-tm-activation-v1 and workflow-template://erp-tm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -374,7 +374,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Extended Warehouse Management normalizes warehouse task, handling unit, storage bin, wave, and inventory count with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Warehouse monitor, wave release, RF task queue, and physical inventory count; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-ewm-17 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: warehouse.erp.ewm.activate, warehouse.erp.ewm.execute, audit.read.erp.ewm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/ewm-extended-warehouse-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-ewm-activation-v1 and workflow-template://erp-ewm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -387,7 +387,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Treasury and Risk Management normalizes cash position, deal, exposure, hedge relationship, and bank account with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Cash position worksheet, exposure monitor, and hedge effectiveness review; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-trm-18 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: treasury.erp.trm.activate, treasury.erp.trm.execute, audit.read.erp.trm; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/trm-treasury-and-risk-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-trm-activation-v1 and workflow-template://erp-trm-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -400,7 +400,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Real Estate Flexible Management normalizes lease contract, building, rental unit, condition, and service charge with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: Lease contract workspace, rental object view, and service-charge settlement; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-re-fx-19 with deterministic replay ids.
-- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: D->C with new scaffold exists; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: real-estate.erp.re-fx.activate, real-estate.erp.re-fx.execute, audit.read.erp.re-fx; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/re-fx-real-estate-flexible-management@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-re-fx-activation-v1 and workflow-template://erp-re-fx-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -413,7 +413,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Industry Solutions normalizes industry pack, regulated object, extension field, workflow overlay, and compliance control with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: pack-specific workspace, regulated object inspector, and compliance workflow queue; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-is-20 with deterministic replay ids.
-- Capability-tier status: C with pack overlays; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with pack overlays; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: packs.erp.is-*.activate, packs.erp.is-*.execute, audit.read.erp.is-*; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/is-*-industry-solutions@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-is-*-activation-v1 and workflow-template://erp-is-*-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -426,7 +426,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Network Products normalizes supplier account, buyer account, catalog item, network order, and settlement event with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: buyer/supplier network portal, catalog review, and settlement inbox; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-network-21 with deterministic replay ids.
-- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with composition; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: marketplace.erp.network.activate, marketplace.erp.network.execute, audit.read.erp.network; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/network-network-products@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-network-activation-v1 and workflow-template://erp-network-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -439,7 +439,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Platform Extensibility normalizes extension app, workflow action, API key, plugin manifest, and tenant installation with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: extension marketplace, API console, workflow action designer, and tenant install page; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-platform-22 with deterministic replay ids.
-- Capability-tier status: C with extension tier; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with extension tier; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: plugin-app-store.erp.platform.activate, plugin-app-store.erp.platform.execute, audit.read.erp.platform; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/platform-platform-extensibility@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-platform-activation-v1 and workflow-template://erp-platform-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -452,7 +452,7 @@ ADR-0315 maps SAP-class ERP parity to flat service composition; ADR-0316 turns p
 - Module data model: Data and Analytics normalizes dataset, semantic model, metric, lineage edge, and dashboard with source_system_ref, company_or_tenant scope, and audit_chain_ref preserved.
 - Named UX surfaces: semantic-model editor, lineage graph, metric catalog, and dashboard review; Oyatie maps them to shared task views instead of recreating an ERP module screen hierarchy.
 - Integration and import: SAP/Oracle-style OData, BAPI/RFC, IDoc, SOAP, FBDI, CSV, and event extracts land in fixture erp-data-23 with deterministic replay ids.
-- Capability-tier status: C with data-warehouse in-flight for OLAP; the row stays a flat capability tier and does not authorize an erp-suite or module-bundle service.
+- Capability-tier status: C with data-warehouse in-flight for OLAP; the row stays a flat capability tier and does not authorize an erp-platform or module-bundle service.
 - Cedar shape: analytics.erp.data.activate, analytics.erp.data.execute, audit.read.erp.data; activation, execution, migration import, rollback, and audit read are separate default-deny actions.
 - Ontology projection: ontology://erp/data-data-and-analytics@v1 with tenant, sub-scope, counterparty, region, pack, source-system, and audit-chain refs; objects carry tenant, sub-scope, counterparty, region, compliance pack, source id, and prior projection version.
 - Workflow templates: workflow-template://erp-data-activation-v1 and workflow-template://erp-data-migration-evidence-v1; branches cover activation, migration evidence, exception approval, failed import quarantine, rollback, and sunset.
@@ -1486,7 +1486,7 @@ Benchmark reports / research anchors: Gartner ITSM Platforms; Forrester collabor
 - Vendor delta: Atlassian Jira Software is treated as a ITSM + IT-Operations Stack benchmark, not as a suite clone; row id CTR-068 resolves to tasks first and then to tasks + workflow-engine + community + foundry.
 - Data model delta: top objects are Issue, Project, Workflow, Sprint, and Service Request; the import contract records source_system_ref, source_object_ref, tenant_id, owner role, and audit_chain_ref for each object family.
 - UX delta: distinctive surfaces are Issue view, Board, Queue, and Automation rules; Oyatie keeps the task grammar in the shared shell while preserving these operator affordances as named workflow views.
-- Integration delta: source integration uses REST APIs, webhooks, Forge/Connect app events, and CSV/XML project exports; adapters must expose deterministic pagination, idempotent replay keys, and export provenance.
+- Integration delta: source integration uses REST APIs, webhooks, Forge/app events, and CSV/XML project exports; adapters must expose deterministic pagination, idempotent replay keys, and export provenance.
 - Oyatie mapping: tasks subsumes the capability at C - composed capability-tier coverage; supporting services remain explicit handoffs instead of hidden bundle ownership: tasks + workflow-engine + community + foundry.
 - Migration extract: API and CSV export with incremental replay; map Issue identifiers, attachment provenance, permissions, and workflow state before write cutover; sample fixture cap-052-atlassian-jira-softwar includes 37 records, 11 relationship edges, and evidence hash sha256:atlassian-ji.
 - Migration risk: field-level permissions, custom statuses, and historical attachments must survive normalization of Issue; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
@@ -2177,7 +2177,7 @@ Benchmark reports / research anchors: Gartner content, document, intranet, CLM, 
 | --- | --- | --- | --- | --- | --- |
 | Microsoft 365 | office collaboration | Word, Excel, PowerPoint, OneDrive, Outlook, Teams, SharePoint | docs + sheets + slides + drive + mail + messenger + sites | covered by existing services | A - full existing coverage |
 | Google Workspace | office collaboration | Docs, Sheets, Slides, Drive, Gmail, Meet, Calendar, Forms, Sites | docs + sheets + slides + drive + mail + meet + calendar + forms + sites | covered by existing services | A - full existing coverage |
-| Apple iWork | productivity suite | Pages, Numbers, Keynote, iCloud collaboration | docs + sheets + slides + drive | covered by existing services | A - full existing coverage |
+| Apple iWork | productivity platform | Pages, Numbers, Keynote, iCloud collaboration | docs + sheets + slides + drive | covered by existing services | A - full existing coverage |
 | Box | enterprise content management | files, governance, classification, retention, workflows | drive + governance + compliance + workflow-engine | covered by existing services | A - full existing coverage |
 | Dropbox | file collaboration | sync, share, signatures, replay, capture | drive + docs + recordings + workplace-integration | covered by existing services | A - full existing coverage |
 | SharePoint | content and intranet | sites, files, lists, intranet, governance | drive + sites + community + governance | covered by existing services | A - full existing coverage |
@@ -4286,7 +4286,7 @@ Benchmark reports / research anchors: Gartner industry cloud and vertical softwa
 
 Consumer surfaces activate the same tenant, identity, Cedar, ontology, workflow, audit, and privacy substrate. Personal and work tenant boundaries from ADR-0311 decide ownership.
 
-Benchmark reports / research anchors: Consumer benchmark surfaces used as product-parity references, not as enterprise suite drivers.
+Benchmark reports / research anchors: Consumer benchmark surfaces used as product-parity references, not as enterprise-market drivers.
 
 ### §13.1 Category coverage table
 
@@ -4983,7 +4983,7 @@ The centers below absorb the most vendor benchmarks. High count does not mean th
 | 53 | incident-management | 4 | specialized capability participant | PR-143 doc depth, Cedar coverage, ontology projection pins, workflow template registry, telemetry and SLO evidence |
 | 54 | plant-maintenance | 4 | specialized capability participant | PR-143 doc depth, Cedar coverage, ontology projection pins, workflow template registry, telemetry and SLO evidence |
 | 55 | whiteboard | 4 | specialized capability participant | PR-143 doc depth, Cedar coverage, ontology projection pins, workflow template registry, telemetry and SLO evidence |
-| 56 | connect | 3 | specialized capability participant | PR-143 doc depth, Cedar coverage, ontology projection pins, workflow template registry, telemetry and SLO evidence |
+| 56 | connector | 3 | specialized capability participant | PR-143 doc depth, Cedar coverage, ontology projection pins, workflow template registry, telemetry and SLO evidence |
 | 57 | contact-center | 3 | specialized capability participant | PR-143 doc depth, Cedar coverage, ontology projection pins, workflow template registry, telemetry and SLO evidence |
 | 58 | global-trade | 3 | specialized capability participant | PR-143 doc depth, Cedar coverage, ontology projection pins, workflow template registry, telemetry and SLO evidence |
 | 59 | shorts | 3 | specialized capability participant | PR-143 doc depth, Cedar coverage, ontology projection pins, workflow template registry, telemetry and SLO evidence |
@@ -5283,7 +5283,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Migration payload: phased extract using CSV/XML plus API deltas; preserve Ledger natural keys, fiscal calendars, and cross-module posting provenance; sample fixture cap-002-oracle-fusion-cloud-er includes 37 records, 11 relationship edges, and evidence hash sha256:oracle-fusio.
 - Normalization issue: field-level permissions, custom statuses, and historical attachments must survive normalization of Ledger; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
 - Commercial segment: enterprise premium tier, complex procurement, administrator-heavy rollout, and high switching cost; the customer profile is represented by tenant scale, compliance pack, administrator count, and migration-window tolerance.
-- Competitive wedge: suite lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing Ledger history.
+- Competitive wedge: platform lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing Ledger history.
 - Permit scope: Cedar action family stays payments.capability.oracle_fusion_cloud_erp.activate + payments.capability.oracle_fusion_cloud_erp.execute + audit.read.oracle_fusion_cloud_erp; default deny covers activation, execution, export, rollback, and audit read separately.
 - Object projection: ontology://oracle_fusion_cloud_erp/TenantScopedProjection@v1 with source_system_ref, source_object_ref, normalized_object_type, retention_class, and audit_chain_ref maps Ledger, Project, and Supplier into TenantScopedProjection nodes with retention_class and source_object_ref preserved.
 - Workflow branch: workflow-template://oracle-fusion-cloud-erp-activation-v1 + workflow-template://oracle-fusion-cloud-erp-evidence-review-v1 with activation, evidence review, migration import, rollback, and sunset branches carries activation, migration import, evidence review, exception approval, rollback, and sunset branches with SLA timers.
@@ -5319,7 +5319,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Migration extract: phased extract using CSV/XML plus API deltas; preserve Customer natural keys, fiscal calendars, and cross-module posting provenance; sample fixture cap-004-oracle-netsuite-erp includes 37 records, 11 relationship edges, and evidence hash sha256:oracle-netsu.
 - Migration risk: field-level permissions, custom statuses, and historical attachments must survive normalization of Customer; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
 - Market posture: enterprise premium tier, complex procurement, administrator-heavy rollout, and high switching cost; the customer profile is represented by tenant scale, compliance pack, administrator count, and migration-window tolerance.
-- Moat erosion: suite lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing Customer history.
+- Moat erosion: platform lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing Customer history.
 - Policy/action proof: Cedar action family stays payments.capability.oracle_netsuite_erp.activate + payments.capability.oracle_netsuite_erp.execute + audit.read.oracle_netsuite_erp; default deny covers activation, execution, export, rollback, and audit read separately.
 - Ontology projection proof: ontology://oracle_netsuite_erp/TenantScopedProjection@v1 with source_system_ref, source_object_ref, normalized_object_type, retention_class, and audit_chain_ref maps Customer, Item, and Transaction into TenantScopedProjection nodes with retention_class and source_object_ref preserved.
 - Workflow proof: workflow-template://oracle-netsuite-erp-activation-v1 + workflow-template://oracle-netsuite-erp-evidence-review-v1 with activation, evidence review, migration import, rollback, and sunset branches carries activation, migration import, evidence review, exception approval, rollback, and sunset branches with SLA timers.
@@ -5373,7 +5373,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Source extract: phased extract using CSV/XML plus API deltas; preserve industry ERP natural keys, fiscal calendars, and cross-module posting provenance; sample fixture cap-007-infor-cloudsuite includes 37 records, 11 relationship edges, and evidence hash sha256:infor-clouds.
 - Key challenge: field-level permissions, custom statuses, and historical attachments must survive normalization of industry ERP; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
 - Positioning: enterprise-to-midmarket, high price tier, finance/operations buyer; the customer profile is represented by tenant scale, compliance pack, administrator count, and migration-window tolerance.
-- Moat reduced: suite lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing industry ERP history.
+- Moat reduced: platform lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing industry ERP history.
 - Authorization: Cedar action family stays production-planning.capability.infor_cloudsuite.activate + production-planning.capability.infor_cloudsuite.execute + audit.read.infor_cloudsuite; default deny covers activation, execution, export, rollback, and audit read separately.
 - Ontology map: ontology://infor_cloudsuite/TenantScopedProjection@v1 with source_system_ref, source_object_ref, normalized_object_type, retention_class, and audit_chain_ref maps industry ERP, manufacturing, and distribution into TenantScopedProjection nodes with retention_class and source_object_ref preserved.
 - Activation path: workflow-template://infor-cloudsuite-activation-v1 + workflow-template://infor-cloudsuite-evidence-review-v1 with activation, evidence review, migration import, rollback, and sunset branches carries activation, migration import, evidence review, exception approval, rollback, and sunset branches with SLA timers.
@@ -5391,7 +5391,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Migration extract: phased extract using CSV/XML plus API deltas; preserve asset-intensive ERP natural keys, fiscal calendars, and cross-module posting provenance; sample fixture cap-008-ifs-cloud includes 37 records, 11 relationship edges, and evidence hash sha256:ifs-cloud000.
 - Migration risk: field-level permissions, custom statuses, and historical attachments must survive normalization of asset-intensive ERP; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
 - Market posture: enterprise-to-midmarket, high price tier, finance/operations buyer; the customer profile is represented by tenant scale, compliance pack, administrator count, and migration-window tolerance.
-- Moat erosion: suite lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing asset-intensive ERP history.
+- Moat erosion: platform lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing asset-intensive ERP history.
 - Policy/action proof: Cedar action family stays plant-maintenance.capability.ifs_cloud.activate + plant-maintenance.capability.ifs_cloud.execute + audit.read.ifs_cloud; default deny covers activation, execution, export, rollback, and audit read separately.
 - Ontology projection proof: ontology://ifs_cloud/TenantScopedProjection@v1 with source_system_ref, source_object_ref, normalized_object_type, retention_class, and audit_chain_ref maps asset-intensive ERP, EAM, and service management into TenantScopedProjection nodes with retention_class and source_object_ref preserved.
 - Workflow proof: workflow-template://ifs-cloud-activation-v1 + workflow-template://ifs-cloud-evidence-review-v1 with activation, evidence review, migration import, rollback, and sunset branches carries activation, migration import, evidence review, exception approval, rollback, and sunset branches with SLA timers.
@@ -5409,7 +5409,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Import route: phased extract using CSV/XML plus API deltas; preserve manufacturing ERP natural keys, fiscal calendars, and cross-module posting provenance; sample fixture cap-009-epicor-kinetic includes 37 records, 11 relationship edges, and evidence hash sha256:epicor-kinet.
 - Cutover hazard: field-level permissions, custom statuses, and historical attachments must survive normalization of manufacturing ERP; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
 - Buyer profile: enterprise premium tier, complex procurement, administrator-heavy rollout, and high switching cost; the customer profile is represented by tenant scale, compliance pack, administrator count, and migration-window tolerance.
-- Lock-in removed: suite lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing manufacturing ERP history.
+- Lock-in removed: platform lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing manufacturing ERP history.
 - Cedar guard: Cedar action family stays production-planning.capability.epicor_kinetic.activate + production-planning.capability.epicor_kinetic.execute + audit.read.epicor_kinetic; default deny covers activation, execution, export, rollback, and audit read separately.
 - Graph pin: ontology://epicor_kinetic/TenantScopedProjection@v1 with source_system_ref, source_object_ref, normalized_object_type, retention_class, and audit_chain_ref maps manufacturing ERP, manufacturing execution, and supply chain into TenantScopedProjection nodes with retention_class and source_object_ref preserved.
 - Process template: workflow-template://epicor-kinetic-activation-v1 + workflow-template://epicor-kinetic-evidence-review-v1 with activation, evidence review, migration import, rollback, and sunset branches carries activation, migration import, evidence review, exception approval, rollback, and sunset branches with SLA timers.
@@ -5427,7 +5427,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Migration payload: API and CSV export with incremental replay; map manufacturing ERP identifiers, attachment provenance, permissions, and workflow state before write cutover; sample fixture cap-010-plex-smart-manufacturi includes 37 records, 11 relationship edges, and evidence hash sha256:plex-smart-m.
 - Normalization issue: field-level permissions, custom statuses, and historical attachments must survive normalization of manufacturing ERP; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
 - Commercial segment: enterprise-to-midmarket, high price tier, finance/operations buyer; the customer profile is represented by tenant scale, compliance pack, administrator count, and migration-window tolerance.
-- Competitive wedge: suite lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing manufacturing ERP history.
+- Competitive wedge: platform lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing manufacturing ERP history.
 - Permit scope: Cedar action family stays production-planning.capability.plex_smart_manufacturing_platform.activate + production-planning.capability.plex_smart_manufacturing_platform.execute + audit.read.plex_smart_manufacturing_platform; default deny covers activation, execution, export, rollback, and audit read separately.
 - Object projection: ontology://plex_smart_manufacturing_platform/TenantScopedProjection@v1 with source_system_ref, source_object_ref, normalized_object_type, retention_class, and audit_chain_ref maps manufacturing ERP, MES, and shop-floor into TenantScopedProjection nodes with retention_class and source_object_ref preserved.
 - Workflow branch: workflow-template://plex-smart-manufacturing-platform-activation-v1 + workflow-template://plex-smart-manufacturing-platform-evidence-review-v1 with activation, evidence review, migration import, rollback, and sunset branches carries activation, migration import, evidence review, exception approval, rollback, and sunset branches with SLA timers.
@@ -5445,7 +5445,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Source extract: API and CSV export with incremental replay; map financial management ERP identifiers, attachment provenance, permissions, and workflow state before write cutover; sample fixture cap-011-sage-intacct includes 37 records, 11 relationship edges, and evidence hash sha256:sage-intacct.
 - Key challenge: field-level permissions, custom statuses, and historical attachments must survive normalization of financial management ERP; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
 - Positioning: enterprise-to-midmarket, high price tier, finance/operations buyer; the customer profile is represented by tenant scale, compliance pack, administrator count, and migration-window tolerance.
-- Moat reduced: suite lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing financial management ERP history.
+- Moat reduced: platform lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing financial management ERP history.
 - Authorization: Cedar action family stays payments.capability.sage_intacct.activate + payments.capability.sage_intacct.execute + audit.read.sage_intacct; default deny covers activation, execution, export, rollback, and audit read separately.
 - Ontology map: ontology://sage_intacct/TenantScopedProjection@v1 with source_system_ref, source_object_ref, normalized_object_type, retention_class, and audit_chain_ref maps financial management ERP, cash, and dimensions into TenantScopedProjection nodes with retention_class and source_object_ref preserved.
 - Activation path: workflow-template://sage-intacct-activation-v1 + workflow-template://sage-intacct-evidence-review-v1 with activation, evidence review, migration import, rollback, and sunset branches carries activation, migration import, evidence review, exception approval, rollback, and sunset branches with SLA timers.
@@ -5463,7 +5463,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Migration extract: phased extract using CSV/XML plus API deltas; preserve manufacturing ERP natural keys, fiscal calendars, and cross-module posting provenance; sample fixture cap-012-qad-adaptive-erp includes 37 records, 11 relationship edges, and evidence hash sha256:qad-adaptive.
 - Migration risk: field-level permissions, custom statuses, and historical attachments must survive normalization of manufacturing ERP; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
 - Market posture: enterprise-to-midmarket, high price tier, finance/operations buyer; the customer profile is represented by tenant scale, compliance pack, administrator count, and migration-window tolerance.
-- Moat erosion: suite lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing manufacturing ERP history.
+- Moat erosion: platform lock-in around canonical records, consultant customization, and cross-module process memory; the competitive claim is only valid when the user can leave the vendor-specific screen without losing manufacturing ERP history.
 - Policy/action proof: Cedar action family stays production-planning.capability.qad_adaptive_erp.activate + production-planning.capability.qad_adaptive_erp.execute + audit.read.qad_adaptive_erp; default deny covers activation, execution, export, rollback, and audit read separately.
 - Ontology projection proof: ontology://qad_adaptive_erp/TenantScopedProjection@v1 with source_system_ref, source_object_ref, normalized_object_type, retention_class, and audit_chain_ref maps manufacturing ERP, manufacturing operations, and supply chain into TenantScopedProjection nodes with retention_class and source_object_ref preserved.
 - Workflow proof: workflow-template://qad-adaptive-erp-activation-v1 + workflow-template://qad-adaptive-erp-evidence-review-v1 with activation, evidence review, migration import, rollback, and sunset branches carries activation, migration import, evidence review, exception approval, rollback, and sunset branches with SLA timers.
@@ -6466,7 +6466,7 @@ Registry size: 244 vendor benchmark rows. Each row is a capability-tier activati
 - Registry delta: Atlassian Jira Software is treated as a ITSM + IT-Operations Stack benchmark, not as a suite clone; row id CTR-068 resolves to tasks first and then to tasks + workflow-engine + community + foundry.
 - Data model delta: top objects are Issue, Project, Workflow, Sprint, and Service Request; the import contract records source_system_ref, source_object_ref, tenant_id, owner role, and audit_chain_ref for each object family.
 - UX delta: distinctive surfaces are Issue view, Board, Queue, and Automation rules; Oyatie keeps the task grammar in the shared shell while preserving these operator affordances as named workflow views.
-- Integration delta: source integration uses REST APIs, webhooks, Forge/Connect app events, and CSV/XML project exports; adapters must expose deterministic pagination, idempotent replay keys, and export provenance.
+- Integration delta: source integration uses REST APIs, webhooks, Forge/app events, and CSV/XML project exports; adapters must expose deterministic pagination, idempotent replay keys, and export provenance.
 - Oyatie mapping: tasks subsumes the capability at C - composed capability-tier coverage; supporting services remain explicit handoffs instead of hidden bundle ownership: tasks + workflow-engine + community + foundry.
 - Migration extract: API and CSV export with incremental replay; map Issue identifiers, attachment provenance, permissions, and workflow state before write cutover; sample fixture cap-068-atlassian-jira-softwar includes 37 records, 11 relationship edges, and evidence hash sha256:atlassian-ji.
 - Migration risk: field-level permissions, custom statuses, and historical attachments must survive normalization of Issue; rollback freezes new writes, replays deltas into a shadow projection, and restores the prior ontology pin without destructive deletion.
@@ -9654,10 +9654,10 @@ The live repository contains 56 top-level microservice directories after the ERP
 
 | Gap bucket | Named surfaces | Count | Status | Claim boundary |
 | --- | --- | --- | --- | --- |
-| ERP scaffolds already present | production-planning, quality-management, plant-maintenance, crm, supply-chain-planning, global-trade, warehouse, treasury, real-estate | 9 | existing-scaffold | Operating bar and PR-143 artifact suites still required; do not count as future unknowns. |
+| ERP scaffolds already present | production-planning, quality-management, plant-maintenance, crm, supply-chain-planning, global-trade, warehouse, treasury, real-estate | 9 | existing-scaffold | Operating bar and PR-143 artifact sets still required; do not count as future unknowns. |
 | B2B-leader core in-flight | marketing-automation, contact-center, performance-management, learning-management, itsm, incident-management, financial-planning, data-warehouse, contract-lifecycle-management, whiteboard, design-collaboration, data-pipeline, healthcare-integration | 13 | in-flight | Minimum path from 56 to 69. |
 | B2B-leader plus correction candidates | logistics-integration, personal-health-tracker | 2+ | candidate/in-flight-extension | Keeps 69+ honest without overclaiming target closure. |
-| Vertical packs | insurance, automotive, oil-gas, gxp-pharma, legal-services, hospitality, agri-food, media-entertainment, nonprofit, public-sector variants | pack-count-not-service-count | pack-overlay | No new vertical-suite microservices. |
+| Vertical packs | insurance, automotive, oil-gas, gxp-pharma, legal-services, hospitality, agri-food, media-entertainment, nonprofit, public-sector variants | pack-count-not-service-count | pack-overlay | No new vertical-grouping microservices. |
 | Capability-tier expansions | CRM, HR, ITSM, BI, identity, security, developer, consumer, vertical benchmark rows | 244 | registry rows | Mostly §15 activation records over existing services. |
 
 ### §16.1 Honest count boundary
@@ -9672,7 +9672,7 @@ The live repository contains 56 top-level microservice directories after the ERP
 | Sequence | Target | Action | Validation evidence |
 | --- | --- | --- | --- |
 | S0 | Freeze doctrine | Use ADR-0316, ADR-0132, ADR-0244, ADR-0314, ADR-0315 as the decision stack. | coverage matrix references resolve; no suite language regression |
-| S1 | Close ERP operating bar | For the 9 existing ERP scaffolds, complete PR-143 doc suites, Cedar fragments, ontology pins, workflow templates, and contract stubs. | oya-governance-erp-parity-module-map passes |
+| S1 | Close ERP operating bar | For the 9 existing ERP scaffolds, complete PR-143 doc sets, Cedar fragments, ontology pins, workflow templates, and contract stubs. | oya-governance-erp-parity-module-map passes |
 | S2 | Land capability-tier registry | Create registry rows for §15 with stable IDs, service owners, and activation shapes. | oya-governance-capability-tier-registry-shape passes |
 | S3 | B2B-leader minimum 13 | Scaffold in-flight B2B services only where distinct operational concern is documented. | 56 -> 69+ target satisfied without suite folders |
 | S4 | Capability depth pass | Expand existing centers of gravity rather than adding service names. | coverage rows move B/C to A only with evidence |
@@ -9694,7 +9694,7 @@ The live repository contains 56 top-level microservice directories after the ERP
 | --- | --- | --- |
 | oya-governance-coverage-matrix-current | Every benchmark row has tier, composition, Cedar, ontology, workflow, status, and source references. | advisory now; blocker after registry lands |
 | oya-governance-capability-tier-registry-shape | §15 rows conform to stable schema and have unique IDs. | required before blocker promotion |
-| oya-governance-no-product-fragmentation-microservices | New service proposals prove distinct operational concern and reject suite/bundle names. | blocker for new service scaffolds |
+| oya-governance-no-product-fragmentation-microservices | New service proposals prove distinct operational concern and reject platform/bundle names. | blocker for new service scaffolds |
 | oya-governance-erp-parity-module-map | All SAP S/4HANA module rows map to existing scaffolds or composition. | ERP gate |
 | oya-governance-capability-tier-cedar-coverage | Every row has default-deny action/resource/context shape. | security gate |
 | oya-governance-capability-tier-ontology-projection-pin | Every row pins ontology object type revision and migration behavior. | schema gate |
@@ -9712,14 +9712,14 @@ The live repository contains 56 top-level microservice directories after the ERP
 3. No vertical row creates a vertical-suite service.
 4. No customer/workforce row bypasses ADR-0311 personal/work boundary.
 5. No commercial row bypasses ADR-0314 DealSet.
-6. No row uses connect as a generic iPaaS. Connect remains supplementary to messenger, mail, and community account bring-your-own flows.
+6. No row uses connect as a generic iPaaS. remains supplementary to messenger, mail, and community account bring-your-own flows.
 7. No row upgrades to Tier A without evidence.
 
 ## §19 References
 
 ### §19.1 Internal doctrine references
 
-- docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+- docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
 - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
 - docs/decisions/ADR-0245-substrate-vs-product-layering.md
 - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md

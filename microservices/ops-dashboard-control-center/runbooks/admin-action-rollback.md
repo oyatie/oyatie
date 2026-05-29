@@ -10,7 +10,7 @@ companion_docs:
   - microservices/ops-dashboard-control-center/incident-response.md
   - microservices/ops-dashboard-control-center/ARCHITECTURE.md
   - microservices/ops-dashboard-control-center/runbooks/forensic-investigation-handoff.md
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # Runbook: Admin Action Rollback
@@ -88,7 +88,7 @@ If the rollback itself was applied in error:
 ## F — Post-incident
 
 - File blameless post-mortem if rollback was triggered by a policy bug (Cedar fragment error).
-- Update Cedar fragment test suite with regression test for the failing permit.
+- Update Cedar fragment test set with regression test for the failing permit.
 - Review: was the step-up auth class sufficient for this action's risk level?
 - SLO error-budget impact: check `slos/command-availability.openslo.yaml` burn rate.
 

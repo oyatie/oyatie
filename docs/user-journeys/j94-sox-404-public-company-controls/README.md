@@ -38,7 +38,7 @@ Marcus operates a public company and must prove SOX 404 financial controls with 
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -75,7 +75,7 @@ Marcus operates a public company and must prove SOX 404 financial controls with 
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -141,7 +141,7 @@ Marcus operates a public company and must prove SOX 404 financial controls with 
 | README-AC-010 | comms-email | management certification packet | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | external auditor read-only portal | 15 U.S.C. 7262 SOX 404 management assessment and auditor attestation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | whistleblower protected intake | Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | control inventory import | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | control inventory import | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | segregation-of-duties graph | Sarbanes-Oxley Act section 802 records destruction penalties | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | quarterly evidence close | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | management certification packet | SEC Rule 21F-17 anti-impediment to whistleblower communication | Cedar deny-wins; ADR-0263 event sealed |
@@ -186,7 +186,7 @@ Marcus operates a public company and must prove SOX 404 financial controls with 
 | README-AC-055 | comms-email | control inventory import | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | segregation-of-duties graph | SEC Rule 21F-17 anti-impediment to whistleblower communication | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | quarterly evidence close | Sarbanes-Oxley Act section 302 issuer officer certifications | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | management certification packet | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | management certification packet | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | external auditor read-only portal | 15 U.S.C. 7262 SOX 404 management assessment and auditor attestation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | whistleblower protected intake | Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | control inventory import | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
@@ -231,7 +231,7 @@ Marcus operates a public company and must prove SOX 404 financial controls with 
 | README-AC-100 | comms-email | management certification packet | Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | external auditor read-only portal | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | whistleblower protected intake | Sarbanes-Oxley Act section 802 records destruction penalties | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | control inventory import | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | control inventory import | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | segregation-of-duties graph | SEC Rule 21F-17 anti-impediment to whistleblower communication | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | quarterly evidence close | Sarbanes-Oxley Act section 302 issuer officer certifications | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | management certification packet | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
@@ -276,7 +276,7 @@ Marcus operates a public company and must prove SOX 404 financial controls with 
 | README-AC-145 | comms-email | control inventory import | Sarbanes-Oxley Act section 302 issuer officer certifications | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | segregation-of-duties graph | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | quarterly evidence close | 15 U.S.C. 7262 SOX 404 management assessment and auditor attestation | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | management certification packet | Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | management certification packet | Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | external auditor read-only portal | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | whistleblower protected intake | Sarbanes-Oxley Act section 802 records destruction penalties | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | control inventory import | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |

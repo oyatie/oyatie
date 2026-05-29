@@ -68,7 +68,7 @@ dependencies:
     repository: oci://oyatie-internal/charts
 maintainers:
   - name: axis-ecosystem
-    email: axis-ecosystem@oyatie.dev
+    email: axis-ecosystem@oyatie.com
 ```
 
 Layer assignment compliance (per ADR-0105 13-layer enum):

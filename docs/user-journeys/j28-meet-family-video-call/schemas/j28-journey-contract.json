@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j28-meet-family-video-call.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j28-meet-family-video-call.schema.json",
   "title": "j28 Meet family video call Journey Contract",
   "type": "object",
   "additionalProperties": false,

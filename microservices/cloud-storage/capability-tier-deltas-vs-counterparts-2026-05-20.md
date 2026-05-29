@@ -112,7 +112,7 @@ Azure primary tier axis: access frequency, online/offline access, network/privac
 
 Oyatie demo_trial equivalent: free/community/dev baseline, closest to cloud free-tier plus hot-only minimal object store.
 Oyatie paid baseline profile equivalent: paid standard production baseline, closest to S3 Standard plus Standard-IA/Glacier entry, GCS Standard/Nearline, Azure Hot/Cool.
-Oyatie paid production profile equivalent: enterprise production object service, closest to S3 Standard + RTC/Object Lock/Storage Lens, GCS dual/multi-region/turbo, Azure Hot/Cool/Cold + object replication.
+Oyatie paid production profile equivalent: business production object service, closest to S3 Standard + RTC/Object Lock/Storage Lens, GCS dual/multi-region/turbo, Azure Hot/Cool/Cold + object replication.
 Oyatie paid regulated profile equivalent: dedicated regulated storage plane, closest to hyperscaler enterprise options plus custom single-tenant/dedicated deployments.
 
 ## §3 Per-Oyatie tenant_class Delta Tables

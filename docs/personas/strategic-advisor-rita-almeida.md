@@ -217,7 +217,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Strategic Advisor Rita Almeida must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Strategic Advisor Rita Almeida must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Strategic Advisor Rita Almeida must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Strategic Advisor Rita Almeida must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Strategic Advisor Rita Almeida must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Strategic Advisor Rita Almeida must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Strategic Advisor Rita Almeida must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | primary | Strategic Advisor Rita Almeida must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

@@ -154,7 +154,7 @@ and `TenantStatus` to verify tenant validity before processing requests.
 |---|---|---|---|
 | Auth0 | Auth0 Organizations | Tenant isolation model; organization-level JWT claims; RBAC | https://auth0.com/docs/manage-users/organizations |
 | AWS Cognito | Cognito User Pools + Identity Center | Multi-tenant JWT; tenant isolation; per-tenant config | https://docs.aws.amazon.com/cognito |
-| Stripe | Stripe Connect (platform model) | Tenant (Connect account) lifecycle; isolated data; platform-level oversight | https://stripe.com/docs/connect |
+| Stripe | Stripe (platform model) | Tenant (account) lifecycle; isolated data; platform-level oversight | https://stripe.com/docs/connect |
 | Neon | Neon Postgres (serverless branching) | Per-tenant Postgres schema isolation; instant provisioning; RLS | https://neon.tech/docs |
 
 Key parity gaps:

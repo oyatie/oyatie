@@ -20,7 +20,7 @@ authority_chain:
   - amends: ADR-0333 (Cell µservice retired — absorbed pattern)
   - amends: ADR-0348 (Autosharding + auto-rebalance + dynamic sharding)
   - depends_on: ADR-0131 (Per-microservice flat layout)
-  - depends_on: ADR-0132 (No-suite policy + governance prefix)
+  - depends_on: ADR-0132 (No-grouping policy + governance prefix)
   - depends_on: ADR-0150 (Cedar policy engine)
   - depends_on: ADR-0251 (Compliance pack primitive)
   - depends_on: ADR-0252 (HLC + TrueTime tier)
@@ -43,7 +43,7 @@ purpose: >
   µservice in ADR-0333 was correct for cell identity lookup, but the
   rebalancing-as-workflow and lifecycle-as-state-machine concerns are
   bounded contexts that warrant their own µservices per ADR-0131
-  per-microservice flat layout and ADR-0132 no-suite policy.
+  per-microservice flat layout and ADR-0132 no-grouping policy.
 ```
 
 ## Status
@@ -105,7 +105,7 @@ Conflating infrastructure provisioning with lifecycle state machine creates two 
 
 ### C-3 — The single-concern criterion (ADR-0131 + ADR-0132)
 
-ADR-0131 declares per-microservice flat layout; ADR-0132 explicitly forbids bundle/suite µservices. A µservice that owns both "telemetry emission" AND "imperative workflow that triggers based on telemetry" is a hidden suite — the bounded contexts are distinct.
+ADR-0131 declares per-microservice flat layout; ADR-0132 explicitly forbids bundle/grouping µservices. A µservice that owns both "telemetry emission" AND "imperative workflow that triggers based on telemetry" is a hidden suite — the bounded contexts are distinct.
 
 Five distinct single-concern domains exist inside what ADR-0333 originally called "cell µservice":
 
@@ -474,7 +474,7 @@ Rebalancing has long-running workflow tests (state machine, partial failure, rol
 
 ### R-9 — Refusal of suite-shape (ADR-0132)
 
-A "cellular suite" with rebalancing + lifecycle + identity + routing inside one µservice would directly violate ADR-0132. Splitting honors the no-suite policy.
+A "cellular suite" with rebalancing + lifecycle + identity + routing inside one µservice would directly violate ADR-0132. Splitting honors the no-grouping policy.
 
 ### R-10 — Per-µservice deployment + scaling
 
@@ -579,7 +579,7 @@ REJECTED. Per `feedback_rust_strict_only_no_python_2026_05_20`, no external work
 ## Cross-references
 
 - ADR-0131 — per-microservice flat layout (foundational shape)
-- ADR-0132 — no-suite policy (refusal of bundled µservices)
+- ADR-0132 — no-grouping policy (refusal of bundled µservices)
 - ADR-0150 — Cedar policy engine (authorization for both µservices)
 - ADR-0245 — substrate vs product layering (both are substrate)
 - ADR-0248 — Amazon-shape cellular architecture (the cellular foundation)

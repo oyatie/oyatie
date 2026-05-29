@@ -151,9 +151,9 @@ oyatie messenger adopts a **strict tier-split** for MLS key escrow:
 - IETF MLS WG — `https://datatracker.ietf.org/wg/mls/`
 - Signal Double-Ratchet precedent (Personal-DM trust model)
 - Apple iCloud Advanced Data Protection (tier-split precedent at consumer scale)
-- ADR-0135 — Connect full social network super-app (dual-context source)
+- ADR-0135 — full social network super-app (dual-context source)
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - ADR-MAIL-0001 — Personal-pillar mail E2E key recovery (companion privacy posture)
 - Bominal ADR-0215 — four-eyes professional-context disclosure pattern (inherited)
 - `microservices/messenger/PRD.md` Open Question 5

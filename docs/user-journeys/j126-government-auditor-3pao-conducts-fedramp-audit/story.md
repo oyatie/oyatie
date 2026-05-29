@@ -149,7 +149,7 @@ kitchen counter and opens her personal iPhone 16 Pro to check her
 - **Notes** — a draft from yesterday: "ConMon prep — pull NIST 800-53
   AU-12 evidence schema; brief the team at 09:00".
 - **Workflow Studio** — a personal automation that runs every Sunday
-  night: "Reconcile Stripe consumer Connect → personal accountant
+  night: "Reconcile Stripe consumer → personal accountant
   Drive folder" (she runs a tiny side practice of bookkeeping for two
   freelance friends; she keeps it strictly outside her GAO role per
   her ethics agreement).
@@ -374,7 +374,7 @@ This is the load-bearing invariant of ADR-0311. The boundary holds.
 
 In the AU-2 evidence, Diana notices that Marcus's tenant's `audit_chain`
 emission cardinality for `PaymentRiskScoreEmitted` is **higher** than
-expected for a federal-contractor tenant whose Stripe Connect surface
+expected for a federal-contractor tenant whose Stripe surface
 is mostly inbound vendor invoices. She opens the per-µservice drill-
 down.
 
@@ -569,7 +569,7 @@ Diana's work tenant has:
 
 Marcus's tenant has:
 - `pack-us-fedramp-mod` — same as Diana's, ensures auditability.
-- `pack-pci-dss-v4` — applies to Marcus's Stripe Connect payments
+- `pack-pci-dss-v4` — applies to Marcus's Stripe payments
   surface.
 - `pack-us-itar-2024` — applies because Chen Aerospace is a defense
   contractor.

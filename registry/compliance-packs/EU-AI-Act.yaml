@@ -40,7 +40,7 @@ compliance_scope:
     - "foundry-policy"
     - "marketplace"
     - "workspace-studio"
-    - "connect-dlp"
+    - "dlp"
     - "model-registry"
 activated_cedar_policies:
   - "pack/EU-AI-ACT-2024-HIGH-RISK/v1.0.0/annex-iii-classification-required"

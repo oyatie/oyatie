@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/ar-camera-overlay.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/ar-camera-overlay.schema.json",
   "title": "DesignSystem:Ar Camera Overlay",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "ar-camera-overlay",
-  "owner_team": "connect-product-council",
-  "product_ref": "$ref:specs/products/connect/social.json",
+  "owner_team": "communications-service-council",
+  "product_ref": "$ref:specs/microservices/social.json",
   "component_name": "ARCameraOverlay",
   "status": "planned-contract",
   "variants": [
@@ -24,7 +24,7 @@
     "mobile-landscape"
   ],
   "contract": {
-    "purpose": "ARCameraOverlay is a declared Connect Social UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
-    "state_model_ref": "$ref:specs/products/connect/social.json#frontend_components"
+    "purpose": "ARCameraOverlay is a declared Social UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
+    "state_model_ref": "$ref:specs/microservices/social.json#frontend_components"
   }
 }

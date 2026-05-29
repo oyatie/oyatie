@@ -135,7 +135,7 @@ Per user directive 2026-05-18, evaluated under in-house policy:
 - **Server**: in-house from inception. The `oya-shared-scim-server-kernel` crate provides the `ScimServer` trait + reference impl handling RFC 7644 §3 endpoints with axum routes. Zitadel's SCIM endpoint is consumed only as a write-through target during Phase 0; the inbound HTTP surface seen by Okta / Entra / Workspace is OURS, not Zitadel's. This is the AWS Cognito / Google Workspace SCIM posture: serve our own SCIM, propagate to upstream IdP store.
 - **Schema**: RFC 7643 core + RFC 7643 enterprise extension + oyatie extension `urn:oyatie:scim:extension:2.0:User` — in-house schema document.
 - **HRIS adapters** (Workday / BambooHR / Rippling): in-house from inception in `oya-identity-hris-adapter-*` crates.
-- **SCIM conformance test suite**: external (`scim2-compliance` OSS tool) — KEEP as test dependency only.
+- **SCIM conformance test set**: external (`scim2-compliance` OSS tool) — KEEP as test dependency only.
 - **Phase-2 swap delta**: when ADR-0187 advances to Phase 2, the SCIM adapter target swaps from Zitadel admin API to in-house identity-store directly; consumer SCIM clients see no change.
 
 Conclusion: SCIM server is in-house from inception; only the write-through to Zitadel is Phase-0; Phase-2 swap removes that hop entirely.

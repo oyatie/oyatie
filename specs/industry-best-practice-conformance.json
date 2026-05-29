@@ -1,6 +1,6 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/industry-best-practice-conformance.schema.json",
-  "$id": "https://docs.oyatie.dev/specs/industry-best-practice-conformance.json",
+  "$schema": "https://docs.oyatie.com/schemas/industry-best-practice-conformance.schema.json",
+  "$id": "https://docs.oyatie.com/specs/industry-best-practice-conformance.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INDUSTRY-BEST-PRACTICE-CONFORMANCE",
@@ -11,21 +11,52 @@
     "adr": "ADR-0133",
     "purpose": "Machine-readable findings + audit invariants for the continuous 6-axis industry-best-practice + hyperscaler-grade conformance program. Consumed by oya-governance-industry-best-practice-conformance CI lane."
   },
-
   "axes": [
     {
       "id": "axis-1-pipeline",
       "name": "Pipeline conformance",
       "industry_baselines": [
-        {"name": "SLSA Level 3", "source": "slsa.dev/spec/v1.0/levels", "version": "v1.0"},
-        {"name": "NIST SSDF", "source": "csrc.nist.gov/publications/detail/sp/800-218/final", "version": "SP 800-218 (2022)"},
-        {"name": "Google Cloud Build pipeline", "source": "cloud.google.com/build/docs/build-config-overview"},
-        {"name": "AWS CodePipeline patterns", "source": "docs.aws.amazon.com/codepipeline/latest/userguide/"},
-        {"name": "GitHub Actions Hardening Guide", "source": "docs.github.com/en/actions/security-guides/"},
-        {"name": "CNCF cloud-native CI/CD", "source": "landscape.cncf.io"},
-        {"name": "OpenSSF Best Practices Badge", "source": "openssf.org/badges/"}
+        {
+          "name": "SLSA Level 3",
+          "source": "slsa.dev/spec/v1.0/levels",
+          "version": "v1.0"
+        },
+        {
+          "name": "NIST SSDF",
+          "source": "csrc.nist.gov/publications/detail/sp/800-218/final",
+          "version": "SP 800-218 (2022)"
+        },
+        {
+          "name": "Google Cloud Build pipeline",
+          "source": "cloud.google.com/build/docs/build-config-overview"
+        },
+        {
+          "name": "AWS CodePipeline patterns",
+          "source": "docs.aws.amazon.com/codepipeline/latest/userguide/"
+        },
+        {
+          "name": "GitHub Actions Hardening Guide",
+          "source": "docs.github.com/en/actions/security-guides/"
+        },
+        {
+          "name": "CNCF cloud-native CI/CD",
+          "source": "landscape.cncf.io"
+        },
+        {
+          "name": "OpenSSF Best Practices Badge",
+          "source": "openssf.org/badges/"
+        }
       ],
-      "canonical_stages": ["build", "test", "security-scan", "sbom", "sign", "deploy", "verify", "promote"],
+      "canonical_stages": [
+        "build",
+        "test",
+        "security-scan",
+        "sbom",
+        "sign",
+        "deploy",
+        "verify",
+        "promote"
+      ],
       "stage_to_oyatie_lane_mapping_required": true,
       "gap_severity": "critical for missing stage; warning for redundant lane on same stage"
     },
@@ -33,11 +64,26 @@
       "id": "axis-2-directory",
       "name": "Directory conformance",
       "industry_baselines": [
-        {"name": "AWS service-team folder", "source": "internal monorepo + smithy-lang/smithy"},
-        {"name": "Google google3 per-service", "source": "Software Engineering at Google (Winters et al. 2020)"},
-        {"name": "Microsoft Engineering Playbook", "source": "microsoft.github.io/code-with-engineering-playbook"},
-        {"name": "Oracle OCI per-service template", "source": "oracle.com/cloud/storage-cloud/sdks-and-cli/"},
-        {"name": "Stripe monorepo per-service", "source": "stripe.com/blog/online-migrations"}
+        {
+          "name": "AWS service-team folder",
+          "source": "internal monorepo + smithy-lang/smithy"
+        },
+        {
+          "name": "Google google3 per-service",
+          "source": "Software Engineering at Google (Winters et al. 2020)"
+        },
+        {
+          "name": "Microsoft Engineering Playbook",
+          "source": "microsoft.github.io/code-with-engineering-playbook"
+        },
+        {
+          "name": "Oracle OCI per-service template",
+          "source": "oracle.com/cloud/storage-cloud/sdks-and-cli/"
+        },
+        {
+          "name": "Stripe monorepo per-service",
+          "source": "stripe.com/blog/online-migrations"
+        }
       ],
       "oyatie_reference": "ADR-0131 per-microservice flat layout (microservices/<ms>/ with src/ as code root)",
       "gap_severity": "critical for new artifact outside microservices/<ms>/; legacy-grandfathered for pre-ADR-0131 placement"
@@ -46,34 +92,99 @@
       "id": "axis-3-naming",
       "name": "Naming conformance",
       "industry_baselines": [
-        {"name": "Rust API guidelines", "source": "rust-lang.github.io/api-guidelines/"},
-        {"name": "Domain-Driven Design", "source": "Evans 2003 + Vernon 2013"},
-        {"name": "conventional-commits 1.0.0", "source": "conventionalcommits.org"}
+        {
+          "name": "Rust API guidelines",
+          "source": "rust-lang.github.io/api-guidelines/"
+        },
+        {
+          "name": "Domain-Driven Design",
+          "source": "Evans 2003 + Vernon 2013"
+        },
+        {
+          "name": "conventional-commits 1.0.0",
+          "source": "conventionalcommits.org"
+        }
       ],
-      "oyatie_references": ["ADR-0056 BNF v4.1", "ADR-0105 13-layer enum", "ADR-0106 application→usecase", "ADR-0132 no-suite-policy"],
+      "oyatie_references": [
+        "ADR-0056 BNF v4.1",
+        "ADR-0105 13-layer enum",
+        "ADR-0106 application→usecase",
+        "ADR-0132 no-grouping-policy"
+      ],
       "gap_severity": "critical for new violation; legacy-grandfathered for pre-ADR rename surface"
     },
     {
       "id": "axis-4-standards",
       "name": "Standards conformance",
       "industry_baselines_by_topic": {
-        "code-style": ["Google styleguide", "rustfmt + clippy"],
-        "commit-message": ["conventional-commits 1.0.0"],
-        "api-design": ["Microsoft REST API guidelines", "Stripe API design", "Google AIP"],
-        "schema-migration": ["Liquibase patterns", "Bytebase migration guide"],
-        "error-handling": ["Rust Result<T,E>", "Google AIP-193"],
-        "logging-tracing": ["OpenTelemetry semconv LTS"],
-        "testing": ["Google Testing on the Toilet", "Kent Beck TDD", "proptest/Hypothesis"],
-        "security-review": ["OWASP ASVS v4", "SLSA", "NIST SSDF", "CIS Benchmarks"],
-        "privacy-review": ["ICO + CNIL DPIA", "GDPR + per-pack overlays"],
-        "code-review": ["Google Code Review Developer Guide", "Microsoft Code Review Practices"],
-        "release": ["Trunk-based development (Hammant)", "Argo Rollouts"],
-        "on-call": ["Google SRE Workbook ch. 11", "PagerDuty IR"],
-        "incident-severity": ["Google SRE Workbook ch. 7", "Atlassian IM"],
-        "doc-style": ["Diátaxis"],
-        "brand-voice": ["per regional pack"],
-        "migration-playbook": ["Stripe migration patterns", "Shopify rebuild patterns"],
-        "observability-slo": ["Google SRE Workbook chs. 4-5", "OpenSLO v1.0"]
+        "code-style": [
+          "Google styleguide",
+          "rustfmt + clippy"
+        ],
+        "commit-message": [
+          "conventional-commits 1.0.0"
+        ],
+        "api-design": [
+          "Microsoft REST API guidelines",
+          "Stripe API design",
+          "Google AIP"
+        ],
+        "schema-migration": [
+          "Liquibase patterns",
+          "Bytebase migration guide"
+        ],
+        "error-handling": [
+          "Rust Result<T,E>",
+          "Google AIP-193"
+        ],
+        "logging-tracing": [
+          "OpenTelemetry semconv LTS"
+        ],
+        "testing": [
+          "Google Testing on the Toilet",
+          "Kent Beck TDD",
+          "proptest/Hypothesis"
+        ],
+        "security-review": [
+          "OWASP ASVS v4",
+          "SLSA",
+          "NIST SSDF",
+          "CIS Benchmarks"
+        ],
+        "privacy-review": [
+          "ICO + CNIL DPIA",
+          "GDPR + per-pack overlays"
+        ],
+        "code-review": [
+          "Google Code Review Developer Guide",
+          "Microsoft Code Review Practices"
+        ],
+        "release": [
+          "Trunk-based development (Hammant)",
+          "Argo Rollouts"
+        ],
+        "on-call": [
+          "Google SRE Workbook ch. 11",
+          "PagerDuty IR"
+        ],
+        "incident-severity": [
+          "Google SRE Workbook ch. 7",
+          "Atlassian IM"
+        ],
+        "doc-style": [
+          "Diátaxis"
+        ],
+        "brand-voice": [
+          "per regional pack"
+        ],
+        "migration-playbook": [
+          "Stripe migration patterns",
+          "Shopify rebuild patterns"
+        ],
+        "observability-slo": [
+          "Google SRE Workbook chs. 4-5",
+          "OpenSLO v1.0"
+        ]
       },
       "every_standard_must_cite_industry_source": true,
       "gap_severity": "high for standard lacking citation; medium for citation drift > 1 quarter old"
@@ -98,9 +209,18 @@
       "id": "axis-6-policies",
       "name": "Policies conformance",
       "industry_baselines": [
-        {"name": "Cedar policy patterns", "source": "cedarpolicy.com"},
-        {"name": "AWS IAM principle of least privilege", "source": "docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"},
-        {"name": "OPA Rego patterns", "source": "openpolicyagent.org"}
+        {
+          "name": "Cedar policy patterns",
+          "source": "cedarpolicy.com"
+        },
+        {
+          "name": "AWS IAM principle of least privilege",
+          "source": "docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"
+        },
+        {
+          "name": "OPA Rego patterns",
+          "source": "openpolicyagent.org"
+        }
       ],
       "oyatie_invariants": [
         "default-deny (forbid first, permit explicitly)",
@@ -112,25 +232,81 @@
       "gap_severity": "critical for default-permit / wildcard-tenant patterns"
     }
   ],
-
   "findings_schema": {
     "type": "object",
-    "required": ["finding_id", "axis", "asset_path", "severity", "industry_source_referenced", "delta_description", "remediation_owner", "target_close_date", "detected_at"],
+    "required": [
+      "finding_id",
+      "axis",
+      "asset_path",
+      "severity",
+      "industry_source_referenced",
+      "delta_description",
+      "remediation_owner",
+      "target_close_date",
+      "detected_at"
+    ],
     "properties": {
-      "finding_id": {"type": "string", "pattern": "^IBP-[A-Z]+-[0-9]+$", "example": "IBP-PIPELINE-001"},
-      "axis": {"type": "string", "enum": ["axis-1-pipeline", "axis-2-directory", "axis-3-naming", "axis-4-standards", "axis-5-practices", "axis-6-policies"]},
-      "asset_path": {"type": "string", "description": "path to the offending artifact relative to repo root"},
-      "severity": {"type": "string", "enum": ["critical", "high", "medium", "low", "legacy-grandfathered", "informational"]},
-      "industry_source_referenced": {"type": "string", "description": "named industry baseline this finding cites"},
-      "delta_description": {"type": "string", "description": "how the artifact deviates from baseline"},
-      "remediation_owner": {"type": "string", "description": "team-id from docs/teams/"},
-      "target_close_date": {"type": "string", "format": "date"},
-      "detected_at": {"type": "string", "format": "date-time"},
-      "linked_ip": {"type": "string", "description": "remediation IP path under microservices/governance/IP-M01-AUDIT-<axis>-<NNN>.md"},
-      "agentic_optimisation_impact": {"type": "string", "description": "if this gap impacts agentic-dev-team efficiency, named here"}
+      "finding_id": {
+        "type": "string",
+        "pattern": "^IBP-[A-Z]+-[0-9]+$",
+        "example": "IBP-PIPELINE-001"
+      },
+      "axis": {
+        "type": "string",
+        "enum": [
+          "axis-1-pipeline",
+          "axis-2-directory",
+          "axis-3-naming",
+          "axis-4-standards",
+          "axis-5-practices",
+          "axis-6-policies"
+        ]
+      },
+      "asset_path": {
+        "type": "string",
+        "description": "path to the offending artifact relative to repo root"
+      },
+      "severity": {
+        "type": "string",
+        "enum": [
+          "critical",
+          "high",
+          "medium",
+          "low",
+          "legacy-grandfathered",
+          "informational"
+        ]
+      },
+      "industry_source_referenced": {
+        "type": "string",
+        "description": "named industry baseline this finding cites"
+      },
+      "delta_description": {
+        "type": "string",
+        "description": "how the artifact deviates from baseline"
+      },
+      "remediation_owner": {
+        "type": "string",
+        "description": "team-id from docs/teams/"
+      },
+      "target_close_date": {
+        "type": "string",
+        "format": "date"
+      },
+      "detected_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "linked_ip": {
+        "type": "string",
+        "description": "remediation IP path under microservices/governance/IP-M01-AUDIT-<axis>-<NNN>.md"
+      },
+      "agentic_optimisation_impact": {
+        "type": "string",
+        "description": "if this gap impacts agentic-dev-team efficiency, named here"
+      }
     }
   },
-
   "findings_initial_run": {
     "_note": "Initial findings inventory will be populated during the first quarterly audit cycle by oya-governance-industry-best-practice-conformance lane. This document spec'ds the schema + axis structure; per-finding rows land in evidence/audits/industry-best-practice-conformance/2026-Q2.json on first run.",
     "expected_count_estimate": {
@@ -143,7 +319,6 @@
     },
     "total_estimate": "~130 findings on first run; ~80% legacy-grandfathered; ~20% remediable in M01 timeframe"
   },
-
   "ci_lane_contract": {
     "name": "oya-governance-industry-best-practice-conformance",
     "severity": "BLOCKER",
@@ -157,7 +332,6 @@
     ],
     "implementation_path": "microservices/governance/src/crates/oya-governance-industry-best-practice-conformance-{kernel,domain,usecase,api,adapter}/ — crate skeletons authored in this scaffold pass; first runtime implementation lands in microservices/governance/IP-INDUSTRY-CONFORMANCE-001 (the inaugural implementation plan tracking AC-INDUSTRY-CONFORMANCE-001 through AC-INDUSTRY-CONFORMANCE-007 against axis-1 through axis-7)"
   },
-
   "quarterly_refresh": {
     "command": "oya dev industry-best-practice-refresh --quarter <YYYY-Q>",
     "fetches": [
@@ -169,13 +343,12 @@
     ],
     "outputs": "evidence/audits/industry-best-practice-conformance/<quarter>.json + opens PR for baseline updates if material drift"
   },
-
   "references": [
     "ADR-0133 (this program's authoring ADR)",
     "docs/standards/agentic-dev-team-optimization.md",
     "docs/standards/observability-slo.md §'Version Pinning' (LTS line discipline)",
     "ADR-0123 (hyperscaler-maturity-claim-gate; this program enables source-bounded sales claims)",
     "ADR-0125 → ADR-0131 per-microservice flat layout (axis-2 reference)",
-    "ADR-0132 no-suite policy (axis-2 reference)"
+    "ADR-0132 no-grouping policy (axis-2 reference)"
   ]
 }
