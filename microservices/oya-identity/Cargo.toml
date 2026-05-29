@@ -1,0 +1,17 @@
+[package]
+name = "oya-identity"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[[bin]]
+name = "oya-identity"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+# Add axum/tonic/sqlx/etc. as actual implementation lands; keep stub minimal for now

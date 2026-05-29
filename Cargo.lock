@@ -5160,22 +5160,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-identity"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "oya-identity-api"
 version = "0.1.0"
 dependencies = [
  "oya-identity-domain",
-]
-
-[[package]]
-name = "oya-identity-app"
-version = "0.1.0"
-dependencies = [
- "oya-identity-kernel",
- "oya-identity-rest",
- "serde",
- "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -5186,26 +5181,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-identity-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "oya-identity-oidc-issuer-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-identity-rest"
-version = "0.1.0"
-dependencies = [
- "axum",
- "oya-identity-kernel",
- "serde",
- "serde_json",
- "tracing",
-]
 
 [[package]]
 name = "oya-identity-usecase"
