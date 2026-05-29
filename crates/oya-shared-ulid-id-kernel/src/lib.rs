@@ -19,20 +19,36 @@
 
 use std::fmt;
 
-/// Canonical ULID — 26-character Crockford-base32 string.
+/// Canonical ULID — 26-character Crockford-base32 string (always uppercase).
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Ulid(String);
 
 impl Ulid {
-    /// Construct after lightweight format validation.
+    /// Construct after full ULID spec validation.
+    ///
+    /// Input is normalised to uppercase before storage, so lowercase Crockford
+    /// symbols are accepted (Crockford-base32 is case-insensitive by spec).
     ///
     /// # Errors
-    /// - `IdGeneratorError::MalformedUlid` when length ≠ 26 or any byte
-    ///   is outside the Crockford-base32 alphabet.
+    /// - `IdGeneratorError::MalformedUlid` when:
+    ///   - length ≠ 26 after uppercasing, or
+    ///   - the first character is outside `'0'..='7'` (timestamp overflow guard —
+    ///     the 48-bit timestamp field uses only 3 bits of the leading base32
+    ///     symbol, so values 8–Z exceed the maximum representable timestamp), or
+    ///   - any byte is outside the Crockford-base32 alphabet.
     pub fn try_new(raw: impl Into<String>) -> Result<Self, IdGeneratorError> {
-        let raw = raw.into();
+        let raw = raw.into().to_ascii_uppercase();
         if raw.len() != 26 {
             return Err(IdGeneratorError::MalformedUlid(raw));
+        }
+        // Timestamp overflow guard: the first character must be 0–7.
+        // A ULID packs a 48-bit timestamp into the first 10 base32 characters
+        // (50 bits total); the leading character therefore uses only 3 of its
+        // 5 bits.  Characters '8'–'Z' in position 0 imply a timestamp beyond
+        // year ~10889 and are rejected per the ULID spec.
+        match raw.as_bytes()[0] {
+            b'0'..=b'7' => {}
+            _ => return Err(IdGeneratorError::MalformedUlid(raw)),
         }
         for byte in raw.as_bytes() {
             if !is_crockford_base32(*byte) {
@@ -138,11 +154,9 @@ mod tests {
             Ulid::try_new("01HMZ1234567890ABCDEFGHJKI"),
             Err(IdGeneratorError::MalformedUlid(_))
         ));
-        // Lowercase rejected (canonical is uppercase).
-        assert!(matches!(
-            Ulid::try_new("01hmz1234567890abcdefghjkm"),
-            Err(IdGeneratorError::MalformedUlid(_))
-        ));
+        // Lowercase is now accepted (normalised to uppercase at the boundary).
+        let lc = Ulid::try_new("01hmz1234567890abcdefghjkm").expect("lowercase accepted");
+        assert_eq!(lc.as_str(), "01HMZ1234567890ABCDEFGHJKM");
     }
 
     #[test]
@@ -159,5 +173,55 @@ mod tests {
         let err = IdGeneratorError::SkeletonNotYetImplemented("new_ulid");
         let msg = format!("{err}");
         assert!(msg.contains("adr-0156-ulid-impl"));
+    }
+
+    // --- New tests for timestamp overflow and lowercase normalisation ---
+
+    #[test]
+    fn ulid_rejects_timestamp_overflow() {
+        // First char '8' — exactly one above the maximum (7).
+        assert!(matches!(
+            Ulid::try_new("81HMZ1234567890ABCDEFGHJKM"),
+            Err(IdGeneratorError::MalformedUlid(_))
+        ));
+        // First char '9'.
+        assert!(matches!(
+            Ulid::try_new("91HMZ1234567890ABCDEFGHJKM"),
+            Err(IdGeneratorError::MalformedUlid(_))
+        ));
+        // First char at the high end of the Crockford alphabet — 'Z'.
+        assert!(matches!(
+            Ulid::try_new("Z1HMZ1234567890ABCDEFGHJKM"),
+            Err(IdGeneratorError::MalformedUlid(_))
+        ));
+    }
+
+    #[test]
+    fn ulid_accepts_lowercase_normalised() {
+        // Valid ULID in all-lowercase should be accepted and uppercased.
+        let lc = Ulid::try_new("01hmz1234567890abcdefghjkm").expect("lowercase accepted");
+        assert_eq!(lc.as_str(), "01HMZ1234567890ABCDEFGHJKM");
+
+        // Mixed case.
+        let mixed = Ulid::try_new("01HmZ1234567890aBcDeFgHjKm").expect("mixed case accepted");
+        assert_eq!(mixed.as_str(), "01HMZ1234567890ABCDEFGHJKM");
+    }
+
+    #[test]
+    fn ulid_monotonic_prefix_boundaries() {
+        // '7' in position 0 is the maximum valid first character.
+        let ok = Ulid::try_new("71HMZ1234567890ABCDEFGHJKM");
+        assert!(ok.is_ok(), "first char '7' should be accepted");
+
+        // '8' in position 0 is the first invalid timestamp character.
+        let overflow = Ulid::try_new("81HMZ1234567890ABCDEFGHJKM");
+        assert!(
+            matches!(overflow, Err(IdGeneratorError::MalformedUlid(_))),
+            "first char '8' should be rejected as timestamp overflow"
+        );
+
+        // '0' is the lowest valid first character.
+        let zero_prefix = Ulid::try_new("01HMZ1234567890ABCDEFGHJKM");
+        assert!(zero_prefix.is_ok(), "first char '0' should be accepted");
     }
 }
