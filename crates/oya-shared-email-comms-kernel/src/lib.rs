@@ -1433,4 +1433,143 @@ mod tests {
         enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new())
             .expect("happy-path preflight must still pass after bounce types added");
     }
+
+    // ---------- Inbound DMARC alignment + disposition tests ----------
+
+    fn dmarc_input(
+        from: &str,
+        spf: &str,
+        dkim: &str,
+        mode: DmarcAlignmentMode,
+        policy: DmarcPolicy,
+    ) -> DmarcAlignmentInput {
+        DmarcAlignmentInput {
+            from_domain: from.to_string(),
+            spf_result_domain: spf.to_string(),
+            dkim_result_domain: dkim.to_string(),
+            alignment_mode: mode,
+            policy,
+        }
+    }
+
+    #[test]
+    fn dmarc_spf_only_aligned_pass() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "example.com", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+        ));
+        assert!(v.spf_aligned);
+        assert!(!v.dkim_aligned);
+        assert!(v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Accept);
+    }
+
+    #[test]
+    fn dmarc_dkim_only_aligned_pass() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "", "example.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+        ));
+        assert!(!v.spf_aligned);
+        assert!(v.dkim_aligned);
+        assert!(v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Accept);
+    }
+
+    #[test]
+    fn dmarc_both_fail_none_policy_accept() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "other.com", "other.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::None,
+        ));
+        assert!(!v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Accept);
+    }
+
+    #[test]
+    fn dmarc_both_fail_quarantine_policy() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "other.com", "other.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::Quarantine,
+        ));
+        assert!(!v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Quarantine);
+    }
+
+    #[test]
+    fn dmarc_both_fail_reject_policy() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "other.com", "other.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+        ));
+        assert!(!v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Reject);
+    }
+
+    #[test]
+    fn dmarc_strict_subdomain_fails() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "sub.example.com", "", DmarcAlignmentMode::Strict, DmarcPolicy::Reject,
+        ));
+        assert!(!v.spf_aligned);
+        assert!(!v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Reject);
+    }
+
+    #[test]
+    fn dmarc_relaxed_subdomain_passes() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "sub.example.com", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+        ));
+        assert!(v.spf_aligned);
+        assert!(v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Accept);
+    }
+
+    #[test]
+    fn dmarc_relaxed_cross_org_fails() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "other.com", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+        ));
+        assert!(!v.spf_aligned);
+        assert!(!v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Reject);
+    }
+
+    #[test]
+    fn dmarc_both_aligned_pass() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "example.com", "example.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+        ));
+        assert!(v.spf_aligned);
+        assert!(v.dkim_aligned);
+        assert!(v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Accept);
+    }
+
+    #[test]
+    fn dmarc_case_insensitive_alignment() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "Example.COM", "example.com", "EXAMPLE.COM", DmarcAlignmentMode::Strict, DmarcPolicy::Reject,
+        ));
+        assert!(v.spf_aligned);
+        assert!(v.dkim_aligned);
+        assert!(v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Accept);
+    }
+
+    #[test]
+    fn dmarc_empty_spf_domain_not_aligned() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::None,
+        ));
+        assert!(!v.spf_aligned);
+        assert!(!v.dkim_aligned);
+        assert!(!v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Accept);
+    }
+
+    #[test]
+    fn dmarc_none_policy_pass_is_accept() {
+        let v = evaluate_inbound_dmarc(&dmarc_input(
+            "example.com", "example.com", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::None,
+        ));
+        assert!(v.aligned);
+        assert_eq!(v.disposition, DmarcDisposition::Accept);
+    }
 }
