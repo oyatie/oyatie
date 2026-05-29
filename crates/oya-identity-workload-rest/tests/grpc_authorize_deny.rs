@@ -5,15 +5,18 @@
 //! use-case delegation path without transport overhead.
 //!
 //! The shared fixtures (mint_token, permit_authorizer, provisioned_state) live
-//! in tests/common.rs and are the same ones used by rest_endpoints.rs, so REST
-//! and gRPC tests provably exercise one shared setup.
+//! in tests/common/mod.rs and are the same ones used by rest_endpoints.rs, so
+//! REST and gRPC tests provably exercise one shared setup.
 //!
 //! ## Assertions
 //!
 //! (a) Allowed principal -> PERMIT (DECISION_EFFECT_ALLOW).
 //! (b) Forbidden principal -> DECISION_EFFECT_DENY response (NOT an RPC error, NOT not-found).
 //! (c) Invalid token -> typed ValidateTokenResponse error, policy engine NOT consulted.
-//! (d) Store/JWKS unavailable injection -> fail-closed Unavailable status.
+//! (d) Store unavailable injection -> fail-closed Unavailable status.
+//!     Note: in this design JWKS is a static in-memory keyset, so an unknown-kid
+//!     token maps to a typed TokenRejected DENY (not Unavailable); the store-fault
+//!     is the only path that produces tonic Code::Unavailable.
 //! (e) Audit: exactly one AuditRecord emitted per authorize and per token-validation.
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
@@ -32,7 +35,7 @@ use oya_identity_workload_rest::{
     grpc::{
         WorkloadGrpcServer,
         proto::{
-            AuthorizeWithTokenRequest, BatchAuthorizeRequest, DecisionEffect,
+            AuthorizeRequest, AuthorizeWithTokenRequest, BatchAuthorizeRequest, DecisionEffect,
             ValidateTokenRequest,
             workload_authorizer_server::WorkloadAuthorizer as _,
             workload_token_validator_server::WorkloadTokenValidator as _,
@@ -186,7 +189,10 @@ async fn authorize_with_invalid_token_engine_not_consulted() {
         authorizer: CedarWorkloadAuthorizer,
         jwk: oya_identity_workload_oidc_adapter::Jwk,
         token: String,
-    ) -> oya_identity_workload_rest::grpc::proto::AuthorizeResponse {
+    ) -> (
+        oya_identity_workload_rest::grpc::proto::AuthorizeResponse,
+        oya_identity_workload_rest::InMemoryAuditSink,
+    ) {
         let mut repo = oya_identity_workload_app::InMemoryWorkloadPrincipalRepository::new();
         oya_identity_workload_app::provision(
             &mut repo,
@@ -209,7 +215,8 @@ async fn authorize_with_invalid_token_engine_not_consulted() {
             InMemoryAuditSink::new(),
             || NOW,
         ));
-        WorkloadGrpcServer::new(state)
+        let audit = state.audit().clone();
+        let resp = WorkloadGrpcServer::new(state)
             .authorize_with_token(Request::new(AuthorizeWithTokenRequest {
                 token,
                 action: "cloud.kms.Decrypt".to_owned(),
@@ -221,16 +228,17 @@ async fn authorize_with_invalid_token_engine_not_consulted() {
             }))
             .await
             .expect("rpc ok")
-            .into_inner()
+            .into_inner();
+        (resp, audit)
     }
 
-    let r_permit = run_with(
+    let (r_permit, audit_permit) = run_with(
         permit_authorizer(),
         minted.jwk.clone(),
         "garbage-token".to_owned(),
     )
     .await;
-    let r_empty = run_with(
+    let (r_empty, _audit_empty) = run_with(
         CedarWorkloadAuthorizer::new(),
         minted.jwk.clone(),
         "garbage-token".to_owned(),
@@ -241,10 +249,19 @@ async fn authorize_with_invalid_token_engine_not_consulted() {
     // path it would have returned ALLOW — the DENY proves engine was not reached.
     assert_eq!(r_permit.effect, DecisionEffect::Deny as i32);
     assert_eq!(r_empty.effect, DecisionEffect::Deny as i32);
+
+    // F3: audit outcome for invalid-token authorize path must be "token-rejected".
+    let permit_records = audit_permit.records();
+    assert_eq!(permit_records.len(), 1);
+    assert_eq!(
+        permit_records[0].outcome(),
+        "token-rejected",
+        "authorize with invalid token must emit 'token-rejected' audit outcome"
+    );
 }
 
 // =====================================================================
-// (d) Store/JWKS unavailable -> fail-closed Unavailable status
+// (d) Store unavailable -> fail-closed Unavailable status
 // =====================================================================
 
 #[tokio::test]
@@ -332,6 +349,93 @@ async fn authorize_batch_returns_per_item_decisions_and_audits() {
     assert_eq!(audit.len(), 2);
     assert_eq!(audit.records()[0].outcome(), "allow");
     assert_eq!(audit.records()[1].outcome(), "deny");
+}
+
+// =====================================================================
+// F2: bare Authorize RPC (already-verified principal, no token)
+// =====================================================================
+
+#[tokio::test]
+async fn authorize_already_verified_principal_permit() {
+    // Mirrors REST `authorize_already_verified_principal_permit`.
+    // No token involved — the gRPC caller asserts the principal directly.
+    let minted = mint_token();
+    let state = provisioned_state(minted.jwk.clone());
+    let audit = state.audit().clone();
+    let server = WorkloadGrpcServer::new(state);
+
+    let result = server
+        .authorize(Request::new(AuthorizeRequest {
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["cloud.kms.decrypt".to_owned()],
+            claims: Default::default(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await;
+
+    // (i) permit -> DECISION_EFFECT_ALLOW.
+    assert!(result.is_ok(), "authorize must succeed for permitted principal");
+    assert_eq!(
+        result.unwrap().into_inner().effect,
+        DecisionEffect::Allow as i32,
+        "expected ALLOW for permitted principal via bare Authorize RPC"
+    );
+    // One audit record emitted.
+    assert_eq!(audit.len(), 1);
+    assert_eq!(audit.records()[0].event(), AuditEvent::Authorize);
+    assert_eq!(audit.records()[0].outcome(), "allow");
+}
+
+#[tokio::test]
+async fn authorize_already_verified_principal_default_deny() {
+    // (ii) default-deny -> DECISION_EFFECT_DENY response (not Err).
+    let minted = mint_token();
+    let mut repo = oya_identity_workload_app::InMemoryWorkloadPrincipalRepository::new();
+    oya_identity_workload_app::provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
+        .unwrap();
+    oya_identity_workload_app::activate(
+        &mut repo,
+        &oya_identity_workload_domain::WorkloadId::new("wl_secrets_sync").unwrap(),
+    )
+    .unwrap();
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo,
+        InMemoryRevocationDenylist::new(),
+        CedarWorkloadAuthorizer::new(), // no policies -> default deny
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        InMemoryAuditSink::new(),
+        || NOW,
+    ));
+    let server = WorkloadGrpcServer::new(state.clone());
+
+    let result = server
+        .authorize(Request::new(AuthorizeRequest {
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["cloud.kms.decrypt".to_owned()],
+            claims: Default::default(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await;
+
+    // A deny is a response value, NOT a tonic Err (key PEP invariant).
+    assert!(result.is_ok(), "a deny must be a response value, not a tonic Err");
+    assert_eq!(
+        result.unwrap().into_inner().effect,
+        DecisionEffect::Deny as i32,
+        "expected DECISION_EFFECT_DENY for default-deny authorizer"
+    );
+    let records = state.audit().records();
+    assert_eq!(records.len(), 1, "exactly one audit record per authorize call");
+    assert_eq!(records[0].outcome(), "deny");
 }
 
 // =====================================================================
