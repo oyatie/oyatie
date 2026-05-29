@@ -141,14 +141,14 @@ pub mod slo_fields {
 /// Stable span name for SLO-breach evaluation traces.
 pub const SLO_BREACH_SPAN_NAME: &str = "slo.breach.evaluate";
 
-/// SLO identity and target objective. // data_class: INTERNAL_ONLY
+/// SLO identity and target objective.
 #[derive(Clone, Debug)]
 pub struct SloObjective {
     pub name: String,  // data_class: INTERNAL_ONLY
     pub target: f64,   // data_class: INTERNAL_ONLY
 }
 
-/// Burn-rate inputs driving the alert evaluation. // data_class: INTERNAL_ONLY
+/// Burn-rate inputs driving the alert evaluation.
 #[derive(Clone, Debug)]
 pub struct AlertBurnRate {
     pub short_window: f64,          // data_class: INTERNAL_ONLY
