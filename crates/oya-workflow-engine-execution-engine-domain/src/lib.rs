@@ -12,6 +12,46 @@ pub use oya_workflow_engine_execution_engine_kernel::{
     StepExecutionStatus, WorkflowExecutionStatus, WorkflowRun, WorkflowRunStore,
 };
 
+/// Classification of an SLA timer's deadline relative to a caller-supplied reference instant.
+/// Pure value object — no wall-clock, no I/O.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SlaDeadlineClass {
+    OnTrack,
+    AtRisk,
+    Breached,
+}
+
+impl SlaDeadlineClass {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::OnTrack => "on-track",
+            Self::AtRisk => "at-risk",
+            Self::Breached => "breached",
+        }
+    }
+}
+
+/// Classify an SLA timer's deadline against a caller-supplied reference epoch (seconds).
+///
+/// Thresholds (pure integer arithmetic):
+/// - `reference >= deadline`                             → `Breached`
+/// - `reference >= armed_at + (deadline - armed_at) * 80 / 100` → `AtRisk`
+/// - otherwise                                           → `OnTrack`
+///
+/// No `std::time::SystemTime::now()`, no randomness, no I/O.
+pub fn classify_sla_deadline(timer: &SlaTimer, reference_epoch_seconds: u64) -> SlaDeadlineClass {
+    if reference_epoch_seconds >= timer.deadline_epoch_seconds {
+        return SlaDeadlineClass::Breached;
+    }
+    let window = timer.deadline_epoch_seconds - timer.armed_at_epoch_seconds;
+    let at_risk_at = timer.armed_at_epoch_seconds + window * 80 / 100;
+    if reference_epoch_seconds >= at_risk_at {
+        SlaDeadlineClass::AtRisk
+    } else {
+        SlaDeadlineClass::OnTrack
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ExecutionDomainOrigin {
     ApiCommand,
@@ -64,6 +104,7 @@ pub struct ExecutionEngineDomainRequest {
     pub spec_integrity_ref: String,          // data_class: INTERNAL_ONLY
     pub replay_epoch_ref: String,            // data_class: INTERNAL_ONLY
     pub scheduler_epoch_ref: String,         // data_class: INTERNAL_ONLY
+    pub sla_reference_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
     pub command: ExecutionDomainCommandKind, // data_class: INTERNAL_ONLY
     pub origin: ExecutionDomainOrigin,       // data_class: INTERNAL_ONLY
 }
@@ -330,6 +371,13 @@ fn domain_audit_refs(request: &ExecutionEngineDomainRequest, outcome: &str) -> V
     }
     if let Some(timer) = &request.sla_timer {
         refs.extend(timer.evidence_refs.clone());
+        if request.command == ExecutionDomainCommandKind::ArmSlaTimer {
+            let class = classify_sla_deadline(timer, request.sla_reference_epoch_seconds);
+            refs.push(format!(
+                "workflow-execution-domain:sla-class:{}",
+                class.as_wire()
+            ));
+        }
     }
     refs.push(format!("workflow-execution-domain:{outcome}"));
     refs.push(format!(
@@ -519,9 +567,35 @@ mod tests {
             spec_integrity_ref: "spec-integrity:workflow:v1".to_owned(),
             replay_epoch_ref: "replay-epoch:execution-domain:1".to_owned(),
             scheduler_epoch_ref: "scheduler-epoch:execution-domain:1".to_owned(),
+            sla_reference_epoch_seconds: 0,
             command,
             origin: ExecutionDomainOrigin::WorkerScheduler,
         }
+    }
+
+    fn sla_timer(armed_at: u64, deadline: u64) -> SlaTimer {
+        SlaTimer::new(
+            "timer:execution-domain:1",
+            "ten_a",
+            "run:execution-domain:1",
+            Some(0),
+            armed_at,
+            deadline,
+            vec!["workflow-execution-domain:sla".to_owned()],
+        )
+        .unwrap()
+    }
+
+    fn arm_sla_timer_request(
+        armed_at: u64,
+        deadline: u64,
+        reference: u64,
+    ) -> ExecutionEngineDomainRequest {
+        let mut req = request(ExecutionDomainCommandKind::ArmSlaTimer);
+        req.step = None;
+        req.sla_timer = Some(sla_timer(armed_at, deadline));
+        req.sla_reference_epoch_seconds = reference;
+        req
     }
 
     #[test]
@@ -705,5 +779,106 @@ mod tests {
         sorted.dedup();
 
         assert_eq!(receipt.audit_refs, sorted);
+    }
+
+    // --- SLA deadline classification tests (subtask 1 + 2 + 3) ---
+
+    #[test]
+    fn sla_deadline_class_on_track_when_reference_well_before_at_risk_threshold() {
+        // window = 200-100 = 100; at_risk_at = 100 + 100*80/100 = 180
+        // reference = 120 < 180 → OnTrack
+        let timer = sla_timer(100, 200);
+        let class = classify_sla_deadline(&timer, 120);
+        assert_eq!(class, SlaDeadlineClass::OnTrack);
+        assert_eq!(class.as_wire(), "on-track");
+    }
+
+    #[test]
+    fn sla_deadline_class_at_risk_when_reference_past_eighty_percent_of_window() {
+        // window = 200-100 = 100; at_risk_at = 100 + 80 = 180
+        // reference = 185 >= 180 and < 200 → AtRisk
+        let timer = sla_timer(100, 200);
+        let class = classify_sla_deadline(&timer, 185);
+        assert_eq!(class, SlaDeadlineClass::AtRisk);
+        assert_eq!(class.as_wire(), "at-risk");
+    }
+
+    #[test]
+    fn sla_deadline_class_breached_when_reference_at_or_past_deadline() {
+        // reference = 200 >= deadline 200 → Breached
+        let timer = sla_timer(100, 200);
+        let class_at = classify_sla_deadline(&timer, 200);
+        assert_eq!(class_at, SlaDeadlineClass::Breached);
+        assert_eq!(class_at.as_wire(), "breached");
+
+        // reference past deadline also Breached
+        let class_past = classify_sla_deadline(&timer, 999);
+        assert_eq!(class_past, SlaDeadlineClass::Breached);
+    }
+
+    #[test]
+    fn arm_sla_timer_accepts_with_on_track_classification_audit_ref() {
+        // reference 120 in window [100, 200) → OnTrack
+        let req = arm_sla_timer_request(100, 200, 120);
+        let receipt = evaluate_execution_domain(req).expect_accepted();
+
+        assert!(receipt.sla_timer_armed);
+        assert!(!receipt.dispatch_required);
+        assert!(
+            receipt
+                .audit_refs
+                .contains(&"workflow-execution-domain:sla-class:on-track".to_owned()),
+            "expected sla-class:on-track in audit_refs, got {:?}",
+            receipt.audit_refs
+        );
+    }
+
+    #[test]
+    fn arm_sla_timer_accepts_with_breached_classification_audit_ref() {
+        // reference 200 >= deadline 200 → Breached
+        let req = arm_sla_timer_request(100, 200, 200);
+        let receipt = evaluate_execution_domain(req).expect_accepted();
+
+        assert!(receipt.sla_timer_armed);
+        assert!(
+            receipt
+                .audit_refs
+                .contains(&"workflow-execution-domain:sla-class:breached".to_owned()),
+            "expected sla-class:breached in audit_refs, got {:?}",
+            receipt.audit_refs
+        );
+    }
+
+    #[test]
+    fn arm_sla_timer_missing_sla_timer_denies_with_invalid_command_shape() {
+        let mut req = request(ExecutionDomainCommandKind::ArmSlaTimer);
+        req.step = None;
+        // sla_timer deliberately left as None
+
+        let denial = evaluate_execution_domain(req).expect_denied();
+
+        assert_eq!(denial.kind, ExecutionDomainDenialKind::InvalidCommandShape);
+        assert!(
+            denial
+                .audit_refs
+                .contains(&"workflow-execution-domain:invalid-command-shape".to_owned()),
+            "expected invalid-command-shape in audit_refs, got {:?}",
+            denial.audit_refs
+        );
+    }
+
+    #[test]
+    fn sla_deadline_class_deterministic_same_input_yields_byte_stable_audit_refs() {
+        let req1 = arm_sla_timer_request(100, 200, 150);
+        let req2 = arm_sla_timer_request(100, 200, 150);
+
+        let receipt1 = evaluate_execution_domain(req1).expect_accepted();
+        let receipt2 = evaluate_execution_domain(req2).expect_accepted();
+
+        // byte-stable: identical input → identical audit_refs vector
+        assert_eq!(
+            receipt1.audit_refs, receipt2.audit_refs,
+            "audit_refs must be byte-stable across identical evaluations"
+        );
     }
 }
