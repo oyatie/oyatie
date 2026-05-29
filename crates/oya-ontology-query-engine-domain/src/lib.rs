@@ -17,6 +17,12 @@ use oya_ontology_kernel::ObjectGraph;
 /// Hard cap for source-level recursive traversal in this preview foundation.
 pub const MAX_QUERY_DEPTH: u32 = 16;
 
+/// Hard cap on nodes returned in a single query result to bound blast radius.
+pub const MAX_QUERY_RESULT_NODES: usize = 1_000;
+
+/// Hard cap on edges returned in a single query result to bound blast radius.
+pub const MAX_QUERY_RESULT_EDGES: usize = 5_000;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KnowledgeGraphLinkInstance {
     pub tenant_id: String,              // data_class: INTERNAL_ONLY
@@ -44,6 +50,9 @@ pub struct KnowledgeGraphQueryResponse {
     pub nodes: Vec<KnowledgeGraphNode>, // data_class: INTERNAL_ONLY
     pub edges: Vec<KnowledgeGraphEdge>, // data_class: INTERNAL_ONLY
     pub observed_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    /// True when the result was truncated by node or edge cardinality caps.
+    /// Callers must treat a truncated result as incomplete. // data_class: INTERNAL_ONLY
+    pub result_truncated: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -71,7 +80,10 @@ pub enum KnowledgeGraphQueryError {
     InvalidQueryId,
     InvalidEntityId,
     InvalidEdgeTypeId,
+    /// `max_depth` is structurally invalid (e.g. zero).
     InvalidMaxDepth,
+    /// `max_depth` exceeds [`MAX_QUERY_DEPTH`]; reduce the requested depth.
+    DepthCeilingExceeded,
     MissingRootEntity,
     DanglingLinkEndpoint { entity_id: String },
 }
@@ -194,6 +206,7 @@ impl KnowledgeGraphQueryEngine {
         let mut seen_nodes = BTreeSet::from([request.root_entity_id.clone()]);
         let mut nodes = BTreeMap::new();
         let mut edges = BTreeSet::new();
+        let mut result_truncated = false;
         insert_node(
             graph,
             &request.tenant_id,
@@ -201,7 +214,7 @@ impl KnowledgeGraphQueryEngine {
             &mut nodes,
         )?;
 
-        while let Some((entity_id, depth)) = queue.pop_front() {
+        'bfs: while let Some((entity_id, depth)) = queue.pop_front() {
             if depth >= request.max_depth {
                 continue;
             }
@@ -215,8 +228,20 @@ impl KnowledgeGraphQueryEngine {
                 }
                 validate_link_endpoints(graph, link)?;
 
+                // Edge cap: stop before inserting when at limit.
+                if edges.len() >= MAX_QUERY_RESULT_EDGES {
+                    result_truncated = true;
+                    break 'bfs;
+                }
                 edges.insert(link.as_contract_edge());
+
+                // Node cap: stop before inserting when at limit.
+                if nodes.len() >= MAX_QUERY_RESULT_NODES {
+                    result_truncated = true;
+                    break 'bfs;
+                }
                 insert_node(graph, &request.tenant_id, &link.to_entity_id, &mut nodes)?;
+
                 if seen_nodes.insert(link.to_entity_id.clone()) {
                     queue.push_back((link.to_entity_id.clone(), depth + 1));
                 }
@@ -229,6 +254,7 @@ impl KnowledgeGraphQueryEngine {
             nodes: nodes.into_values().collect(),
             edges: edges.into_iter().collect(),
             observed_at_epoch_seconds: request.observed_at_epoch_seconds,
+            result_truncated,
         })
     }
 
@@ -343,11 +369,13 @@ fn validate_edge_type_id(edge_type_id: &str) -> Result<(), KnowledgeGraphQueryEr
 }
 
 fn validate_max_depth(max_depth: u32) -> Result<(), KnowledgeGraphQueryError> {
-    if (1..=MAX_QUERY_DEPTH).contains(&max_depth) {
-        Ok(())
-    } else {
-        Err(KnowledgeGraphQueryError::InvalidMaxDepth)
+    if max_depth == 0 {
+        return Err(KnowledgeGraphQueryError::InvalidMaxDepth);
     }
+    if max_depth > MAX_QUERY_DEPTH {
+        return Err(KnowledgeGraphQueryError::DepthCeilingExceeded);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -594,7 +622,7 @@ mod tests {
                 0,
                 1,
             ),
-            Err(KnowledgeGraphQueryError::InvalidMaxDepth)
+            Err(KnowledgeGraphQueryError::DepthCeilingExceeded)
         );
 
         let engine = KnowledgeGraphQueryEngine::default();
@@ -660,5 +688,247 @@ mod tests {
 
         assert_eq!(engine.link_count(), 1);
         assert_eq!(response.edges.len(), 1);
+    }
+
+    // ---- ST1: result-cardinality ceilings + result_truncated signal ----
+
+    /// ST1-a: A star graph with leaf_count > MAX_QUERY_RESULT_NODES triggers
+    /// truncation.  The response MUST set result_truncated = true and return
+    /// at most MAX_QUERY_RESULT_NODES + 1 nodes (cap + root).  Running the
+    /// same query twice MUST return identical node and edge counts
+    /// (determinism guarantee).
+    #[test]
+    fn node_cap_triggers_result_truncated_deterministically() {
+        let cap = MAX_QUERY_RESULT_NODES; // constant must exist
+        let leaf_count = cap + 1;
+
+        let mut g = ObjectGraph::default();
+        g.upsert_entity(
+            ObjectEntity::new(
+                "ten_alpha".to_string(),
+                "ent_root".to_string(),
+                "ety_account".to_string(),
+                vec![property("name")],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        for i in 0..leaf_count {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    format!("ent_leaf_{i:04}"),
+                    "ety_contact".to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        for i in 0..leaf_count {
+            engine
+                .upsert_link(
+                    &g,
+                    KnowledgeGraphLinkInstance::new(
+                        "ten_alpha",
+                        "ent_root",
+                        format!("ent_leaf_{i:04}"),
+                        "lty_owns",
+                        1_u64,
+                    )
+                    .unwrap(),
+                )
+                .unwrap();
+        }
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_node_cap",
+            "ent_root",
+            Vec::<&str>::new(),
+            1,
+            0,
+            0,
+        )
+        .unwrap();
+
+        let r1 = engine.query_graph_slice(&g, req.clone()).unwrap();
+        let r2 = engine.query_graph_slice(&g, req).unwrap();
+
+        // result_truncated field must exist and be true
+        assert!(r1.result_truncated, "first run: node cap must set result_truncated");
+        assert!(r2.result_truncated, "second run: node cap must set result_truncated");
+        // determinism: identical counts across repeated calls
+        assert_eq!(r1.nodes.len(), r2.nodes.len(), "node count must be deterministic");
+        assert_eq!(r1.edges.len(), r2.edges.len(), "edge count must be deterministic");
+        // returned node set must not exceed cap + root
+        assert!(r1.nodes.len() <= cap + 1, "nodes must not exceed cap + root");
+    }
+
+    /// ST1-b: A star graph with leaf_count > MAX_QUERY_RESULT_EDGES triggers
+    /// truncation via the edge ceiling.  result_truncated must be true and
+    /// the returned edge count must not exceed MAX_QUERY_RESULT_EDGES.
+    #[test]
+    fn edge_cap_triggers_result_truncated() {
+        let edge_cap = MAX_QUERY_RESULT_EDGES; // constant must exist
+        let leaf_count = edge_cap + 1;
+
+        let mut g = ObjectGraph::default();
+        g.upsert_entity(
+            ObjectEntity::new(
+                "ten_alpha".to_string(),
+                "ent_root".to_string(),
+                "ety_account".to_string(),
+                vec![property("name")],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        for i in 0..leaf_count {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    format!("ent_leaf_{i:05}"),
+                    "ety_contact".to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        for i in 0..leaf_count {
+            engine
+                .upsert_link(
+                    &g,
+                    KnowledgeGraphLinkInstance::new(
+                        "ten_alpha",
+                        "ent_root",
+                        format!("ent_leaf_{i:05}"),
+                        "lty_owns",
+                        1_u64,
+                    )
+                    .unwrap(),
+                )
+                .unwrap();
+        }
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_edge_cap",
+            "ent_root",
+            Vec::<&str>::new(),
+            1,
+            0,
+            0,
+        )
+        .unwrap();
+
+        let response = engine.query_graph_slice(&g, req).unwrap();
+        assert!(response.result_truncated, "edge cap must set result_truncated");
+        assert!(
+            response.edges.len() <= edge_cap,
+            "returned edges must not exceed MAX_QUERY_RESULT_EDGES"
+        );
+    }
+
+    /// ST1-c: A small graph (3 nodes, 2 edges) — well under both caps —
+    /// MUST return result_truncated = false and complete results.
+    #[test]
+    fn under_cap_query_returns_complete_results_with_result_truncated_false() {
+        let g = graph();
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        engine
+            .upsert_link(
+                &g,
+                KnowledgeGraphLinkInstance::new(
+                    "ten_alpha", "ent_root", "ent_contact", "lty_owns", 10,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        engine
+            .upsert_link(
+                &g,
+                KnowledgeGraphLinkInstance::new(
+                    "ten_alpha", "ent_contact", "ent_case", "lty_related", 11,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+
+        let response = engine
+            .query_graph_slice(&g, request("ent_root", vec![], 2, 0))
+            .unwrap();
+
+        // result_truncated field must exist and be false for small graphs
+        assert!(!response.result_truncated, "under-cap result must not be truncated");
+        assert_eq!(response.nodes.len(), 3);
+        assert_eq!(response.edges.len(), 2);
+    }
+
+    // ---- ST2: DepthCeilingExceeded error variant ----
+
+    /// ST2-a: max_depth > MAX_QUERY_DEPTH must be rejected with the new
+    /// DepthCeilingExceeded variant, NOT with InvalidMaxDepth.
+    #[test]
+    fn max_depth_above_ceiling_returns_depth_ceiling_exceeded_not_invalid_max_depth() {
+        let result = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_over_depth",
+            "ent_root",
+            Vec::<&str>::new(),
+            MAX_QUERY_DEPTH + 1,
+            0,
+            1,
+        );
+        // DepthCeilingExceeded variant must exist and be returned here
+        assert_eq!(
+            result,
+            Err(KnowledgeGraphQueryError::DepthCeilingExceeded),
+            "max_depth > MAX_QUERY_DEPTH must return DepthCeilingExceeded"
+        );
+    }
+
+    /// ST2-b: max_depth == MAX_QUERY_DEPTH (exactly at ceiling) must be
+    /// accepted — Ok result, not an error.
+    #[test]
+    fn max_depth_at_ceiling_is_accepted() {
+        assert!(
+            KnowledgeGraphQueryRequest::new(
+                "ten_alpha",
+                "kgq_at_ceiling",
+                "ent_root",
+                Vec::<&str>::new(),
+                MAX_QUERY_DEPTH,
+                0,
+                1,
+            )
+            .is_ok(),
+            "max_depth == MAX_QUERY_DEPTH must be accepted"
+        );
+    }
+
+    /// ST2-c: max_depth == 0 must still return InvalidMaxDepth (not
+    /// DepthCeilingExceeded), preserving the existing structural-invalidity
+    /// distinction.
+    #[test]
+    fn max_depth_zero_returns_invalid_max_depth_not_depth_ceiling_exceeded() {
+        assert_eq!(
+            KnowledgeGraphQueryRequest::new(
+                "ten_alpha",
+                "kgq_zero_depth",
+                "ent_root",
+                Vec::<&str>::new(),
+                0,
+                0,
+                1,
+            ),
+            Err(KnowledgeGraphQueryError::InvalidMaxDepth),
+            "max_depth == 0 must return InvalidMaxDepth"
+        );
     }
 }
