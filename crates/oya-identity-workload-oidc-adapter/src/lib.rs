@@ -9,10 +9,11 @@
 //!
 //! 1. The token is a well-formed three-segment compact JWS.
 //! 2. The JOSE header declares a supported signature algorithm
-//!    (`RS256`/`RS384`/`RS512` or `ES256`). The unsecured `none` algorithm is
-//!    rejected unconditionally and a symmetric `HS*` alg (against this
-//!    asymmetric-only verifier) is rejected as an algorithm-mismatch — the
-//!    RS256→HS256 key-confusion class (RFC 8725 §2.1/§2.2/§3.1).
+//!    (`RS256`/`RS384`/`RS512`, `ES256`, or `EdDSA` over OKP Ed25519 per
+//!    RFC 8037). The unsecured `none` algorithm is rejected unconditionally
+//!    and a symmetric `HS*` alg (against this asymmetric-only verifier) is
+//!    rejected as an algorithm-mismatch — the RS256→HS256 key-confusion class
+//!    (RFC 8725 §2.1/§2.2/§3.1).
 //! 3. The JOSE `typ` header is present and in the accepted set (cross-JWT
 //!    confusion — RFC 8725 §3.11), and any `jku`/`x5u` key-source URL is
 //!    refused unless explicitly allowlisted (SSRF / key-injection —
@@ -44,9 +45,12 @@
 // ADR-0083 Tier 3: production code stays panic-free; tests may use unwrap/expect.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+#[cfg(test)]
+mod eddsa;
+
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use aws_lc_rs::signature;
+use aws_lc_rs::signature::{self, ED25519};
 use serde::Deserialize;
 
 use oya_identity_workload_domain::{
@@ -143,6 +147,9 @@ enum JwsAlg {
     Rs384,
     Rs512,
     Es256,
+    /// EdDSA over Ed25519 (RFC 8037 / RFC 8032). The `alg` header value is
+    /// `"EdDSA"` and the JWK must be `kty=OKP, crv=Ed25519`.
+    EdDsa,
 }
 
 impl JwsAlg {
@@ -152,6 +159,7 @@ impl JwsAlg {
             "RS384" => Some(Self::Rs384),
             "RS512" => Some(Self::Rs512),
             "ES256" => Some(Self::Es256),
+            "EdDSA" => Some(Self::EdDsa),
             _ => None,
         }
     }
@@ -165,6 +173,8 @@ impl JwsAlg {
     fn family(self) -> AlgFamily {
         if self.is_rsa() {
             AlgFamily::Rsa
+        } else if matches!(self, Self::EdDsa) {
+            AlgFamily::OkpEd25519
         } else {
             AlgFamily::EcP256
         }
@@ -178,6 +188,8 @@ impl JwsAlg {
 enum AlgFamily {
     Rsa,
     EcP256,
+    /// OKP `crv=Ed25519` key family (RFC 8037).
+    OkpEd25519,
 }
 
 /// A single JSON Web Key. Supports RSA (`n`/`e`) and EC P-256 (`x`/`y`) keys.
@@ -216,6 +228,12 @@ pub enum JwkMaterial {
         /// base64url-encoded y coordinate.
         y: String,
     },
+    /// OKP Ed25519 public key (RFC 8037 §2): the raw 32-byte Edwards point
+    /// encoded as base64url in `x`. There is no `y` for OKP keys.
+    OkpEd25519 {
+        /// base64url-encoded 32-byte raw public key (the Edwards point).
+        x: String,
+    },
 }
 
 impl Jwk {
@@ -245,6 +263,17 @@ impl Jwk {
         }
     }
 
+    /// Construct an OKP Ed25519 JWK (RFC 8037) from the raw 32-byte base64url
+    /// public key `x` (the Edwards point). No exact-`alg` pin; family is enforced.
+    #[must_use]
+    pub fn okp_ed25519(kid: impl Into<String>, x: impl Into<String>) -> Self {
+        Self {
+            kid: kid.into(),
+            material: JwkMaterial::OkpEd25519 { x: x.into() },
+            alg: None,
+        }
+    }
+
     /// Pin the exact JWS `alg` this key may verify (builder). A token whose
     /// `alg` differs is refused as an [`OidcValidationError::AlgorithmMismatch`].
     #[must_use]
@@ -258,6 +287,7 @@ impl Jwk {
         match self.material {
             JwkMaterial::Rsa { .. } => AlgFamily::Rsa,
             JwkMaterial::EcP256 { .. } => AlgFamily::EcP256,
+            JwkMaterial::OkpEd25519 { .. } => AlgFamily::OkpEd25519,
         }
     }
 }
@@ -612,21 +642,21 @@ fn verify_signature(
     message: &[u8],
     sig: &[u8],
 ) -> Result<(), OidcValidationError> {
-    match (&jwk.material, alg.is_rsa()) {
-        (JwkMaterial::Rsa { n, e }, true) => {
+    match (&jwk.material, alg) {
+        (JwkMaterial::Rsa { n, e }, alg) if alg.is_rsa() => {
             let der = rsa_pkcs1_der(n, e)?;
             let verifier = match alg {
                 JwsAlg::Rs256 => &signature::RSA_PKCS1_2048_8192_SHA256,
                 JwsAlg::Rs384 => &signature::RSA_PKCS1_2048_8192_SHA384,
                 JwsAlg::Rs512 => &signature::RSA_PKCS1_2048_8192_SHA512,
-                JwsAlg::Es256 => unreachable!("is_rsa() guarded against EC here"),
+                _ => unreachable!("is_rsa() guarded against non-RSA here"),
             };
             signature::UnparsedPublicKey::new(verifier, der)
                 .verify(message, sig)
                 .map_err(|_| OidcValidationError::SignatureInvalid)
         }
-        (JwkMaterial::EcP256 { x, y }, false) => {
-            // ring expects the uncompressed SEC1 point: 0x04 || X || Y.
+        (JwkMaterial::EcP256 { x, y }, JwsAlg::Es256) => {
+            // ring/aws-lc-rs expects the uncompressed SEC1 point: 0x04 || X || Y.
             let x_bytes = b64url_decode(x).map_err(|_| OidcValidationError::MalformedKey)?;
             let y_bytes = b64url_decode(y).map_err(|_| OidcValidationError::MalformedKey)?;
             if x_bytes.len() != 32 || y_bytes.len() != 32 {
@@ -638,6 +668,17 @@ fn verify_signature(
             point.extend_from_slice(&y_bytes);
             // JWS ES256 uses the IEEE-P1363 fixed-width (r||s) signature form.
             signature::UnparsedPublicKey::new(&signature::ECDSA_P256_SHA256_FIXED, point)
+                .verify(message, sig)
+                .map_err(|_| OidcValidationError::SignatureInvalid)
+        }
+        (JwkMaterial::OkpEd25519 { x }, JwsAlg::EdDsa) => {
+            // RFC 8037 §2: the JWK `x` is the raw 32-byte Edwards public key
+            // (no SEC1 prefix, no DER wrapping). The signature is 64 bytes.
+            let x_bytes = b64url_decode(x).map_err(|_| OidcValidationError::MalformedKey)?;
+            if x_bytes.len() != 32 {
+                return Err(OidcValidationError::MalformedKey);
+            }
+            signature::UnparsedPublicKey::new(&ED25519, x_bytes)
                 .verify(message, sig)
                 .map_err(|_| OidcValidationError::SignatureInvalid)
         }
