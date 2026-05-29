@@ -81,6 +81,7 @@ pub enum DmarcAction {
 pub struct DmarcVerdict {
     pub domain_ref: Classified<String>,
     pub action: Classified<DmarcAction>,
+    pub report_only: Classified<bool>,
     pub evidence_ref: Classified<String>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -162,6 +163,38 @@ impl MailMessageGovernance {
     }
 }
 impl DmarcVerdict {
+    /// RFC 7489 §3.1-compliant: derives action from identifier-aligned pass results.
+    /// `spf_aligned` — SPF passed AND the authenticated domain is aligned with From:.
+    /// `dkim_aligned` — DKIM passed AND the d= tag is aligned with From:.
+    pub fn new_aligned(
+        domain_ref: String,
+        spf_aligned: bool,
+        dkim_aligned: bool,
+        policy: DmarcPolicy,
+        evidence_ref: String,
+    ) -> Result<Self, MailGovernanceError> {
+        ne(&domain_ref)?;
+        ne(&evidence_ref)?;
+        let aligned = spf_aligned || dkim_aligned;
+        let action = match (aligned, policy) {
+            (true, _) => DmarcAction::Accept,
+            (false, DmarcPolicy::None) => DmarcAction::Accept,
+            (false, DmarcPolicy::Quarantine) => DmarcAction::Quarantine,
+            (false, DmarcPolicy::Reject) => DmarcAction::Reject,
+        };
+        // p=none non-aligned: Accept but flag for aggregate reporting (RFC 7489 §6.3).
+        let report_only = policy == DmarcPolicy::None && !aligned;
+        Ok(Self {
+            domain_ref: int(domain_ref),
+            action: int(action),
+            report_only: int(report_only),
+            evidence_ref: Classified::new(evidence_ref, DataClass::Audit),
+        })
+    }
+
+    /// Back-compat wrapper: treats raw SPF/DKIM pass as identifier-aligned.
+    /// Pre-RFC-7489 callers that supply raw pass booleans observe no behavioral change
+    /// for messages where raw pass == aligned pass.
     pub fn new(
         domain_ref: String,
         spf: bool,
@@ -169,18 +202,7 @@ impl DmarcVerdict {
         policy: DmarcPolicy,
         evidence_ref: String,
     ) -> Result<Self, MailGovernanceError> {
-        ne(&domain_ref)?;
-        ne(&evidence_ref)?;
-        let action = match (spf || dkim, policy) {
-            (true, _) | (false, DmarcPolicy::None) => DmarcAction::Accept,
-            (false, DmarcPolicy::Quarantine) => DmarcAction::Quarantine,
-            (false, DmarcPolicy::Reject) => DmarcAction::Reject,
-        };
-        Ok(Self {
-            domain_ref: int(domain_ref),
-            action: int(action),
-            evidence_ref: Classified::new(evidence_ref, DataClass::Audit),
-        })
+        Self::new_aligned(domain_ref, spf, dkim, policy, evidence_ref)
     }
 }
 impl MailWorkflowHandoff {
@@ -328,5 +350,108 @@ mod tests {
     #[test]
     fn tracker_pixel_injection_blocked() {
         assert!(tracker_pixel_block("m".into(), 1, "body:safe".into()).is_ok())
+    }
+
+    // ST1: alignment-aware verdict path
+
+    #[test]
+    fn dmarc_aligned_false_reject_policy_rejects() {
+        // spf=true, dkim=true but neither is aligned — RFC 7489 requires Reject.
+        let v = DmarcVerdict::new_aligned(
+            "example.com".into(),
+            false,
+            false,
+            DmarcPolicy::Reject,
+            "audit".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Reject);
+    }
+
+    #[test]
+    fn dmarc_aligned_false_quarantine_policy_quarantines() {
+        let v = DmarcVerdict::new_aligned(
+            "example.com".into(),
+            false,
+            false,
+            DmarcPolicy::Quarantine,
+            "audit".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Quarantine);
+    }
+
+    #[test]
+    fn dmarc_aligned_spf_only_accepts() {
+        let v = DmarcVerdict::new_aligned(
+            "example.com".into(),
+            true,
+            false,
+            DmarcPolicy::Reject,
+            "audit".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Accept);
+    }
+
+    // ST2: report_only accounting for p=none
+
+    #[test]
+    fn dmarc_none_policy_non_aligned_is_report_only() {
+        let v = DmarcVerdict::new_aligned(
+            "example.com".into(),
+            false,
+            false,
+            DmarcPolicy::None,
+            "audit".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Accept);
+        assert!(v.report_only.value);
+    }
+
+    #[test]
+    fn dmarc_aligned_pass_not_report_only() {
+        let v = DmarcVerdict::new_aligned(
+            "example.com".into(),
+            true,
+            false,
+            DmarcPolicy::None,
+            "audit".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Accept);
+        assert!(!v.report_only.value);
+    }
+
+    #[test]
+    fn dmarc_reject_not_report_only() {
+        let v = DmarcVerdict::new_aligned(
+            "example.com".into(),
+            false,
+            false,
+            DmarcPolicy::Reject,
+            "audit".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Reject);
+        assert!(!v.report_only.value);
+    }
+
+    #[test]
+    fn dmarc_evidence_ref_is_audit_class() {
+        use oya_data_boundary_kernel::DataClassification;
+        let v = DmarcVerdict::new_aligned(
+            "example.com".into(),
+            false,
+            false,
+            DmarcPolicy::None,
+            "audit-ref-001".into(),
+        )
+        .unwrap();
+        assert_eq!(
+            v.evidence_ref.data_class,
+            DataClassification::Operational(oya_data_boundary_kernel::OperationalDataClass::Audit)
+        );
     }
 }
