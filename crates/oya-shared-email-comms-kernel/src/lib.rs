@@ -936,11 +936,9 @@ mod tests {
         // same from/subject/body/recipients but recipients in swapped order
         // represent the same logical message and must NOT produce a conflict.
         //
-        // NOTE: This test is expected to FAIL against the current FNV-based
-        // fingerprint implementation because the fingerprint hashes recipients
-        // in iteration order (flat_map over to[]), making it order-sensitive.
-        // The test documents the required ADR-0149 behaviour and is intentionally
-        // RED until the fingerprint is made order-independent.
+        // message_fingerprint sorts recipients before hashing (lib.rs:341-342),
+        // so recipient list ordering does not affect the fingerprint. This test
+        // confirms that collapse semantics hold regardless of to[] ordering.
         let b = good_binding();
         let rcpt_a = EmailAddress::try_new("alice@example.com").unwrap();
         let rcpt_b = EmailAddress::try_new("bob@example.com").unwrap();
