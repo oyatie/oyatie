@@ -8,9 +8,9 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-intelligence-capability-domain = { path = "../oya-intelligence-capability-domain" }
-oya-check-cost-budget = { path = "../../../../crates/oya-check-cost-budget" }
-oya-data-boundary-kernel = { path = "../../../../crates/oya-data-boundary-kernel" }
-oya-secrets-domain = { path = "../../../../crates/oya-secrets-domain" }
+oya-check-cost-budget = { path = "../../../../libs/oya-check-cost-budget" }
+oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+oya-secrets-domain = { path = "../../../cloud-secrets/crates/oya-secrets-domain" }
 
 [lib]
 name = "oya_intelligence_adapter_domain"
