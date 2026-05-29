@@ -178,7 +178,7 @@ pub fn classified_internal(value: impl Into<String>) -> Classified<String> {
 }
 
 impl DkimSigningAlgorithm {
-    const fn supported_for_signing(self) -> bool {
+    pub const fn supported_for_signing(self) -> bool {
         matches!(self, Self::Ed25519Sha256 | Self::RsaSha256)
     }
 }
