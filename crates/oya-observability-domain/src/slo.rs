@@ -16,10 +16,6 @@
 //! All items are annotated `data_class: INTERNAL_ONLY` — they carry operational
 //! metrics that must not leak beyond the observability pipeline.
 //!
-//! # Implementation status
-//!
-//! STUB — types and signatures are present so tests compile; bodies are
-//! intentionally wrong/unimplemented. The GREEN stage will fill them in.
 
 // ---------------------------------------------------------------------------
 // SLOObjective value object
