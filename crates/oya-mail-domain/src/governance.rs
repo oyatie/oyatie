@@ -205,6 +205,150 @@ impl DmarcVerdict {
         Self::new_aligned(domain_ref, spf, dkim, policy, evidence_ref)
     }
 }
+/// RFC 7489 §3.1 alignment mode for SPF and DKIM identifiers.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum AlignmentMode {
+    /// Organizational Domain match (subdomain of the same registered domain is
+    /// sufficient).
+    Relaxed,
+    /// Exact domain match required.
+    Strict,
+}
+
+/// Published DMARC record fields relevant to verdict derivation.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DmarcRecord {
+    /// p= tag: policy for the Organizational Domain.
+    pub policy: DmarcPolicy,
+    /// sp= tag: optional override policy for subdomains.
+    pub subdomain_policy: Option<DmarcPolicy>,
+    /// aspf= tag: SPF alignment mode (default Relaxed per RFC 7489).
+    pub spf_alignment: AlignmentMode,
+    /// adkim= tag: DKIM alignment mode (default Relaxed per RFC 7489).
+    pub dkim_alignment: AlignmentMode,
+}
+
+/// SPF alignment inputs: the domain authenticated by SPF and the RFC5322.From
+/// domain for the message being evaluated.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SpfAlignmentInput {
+    /// Domain authenticated by the SPF mechanism (MAIL FROM / HELO domain).
+    pub authenticated_domain: String,
+    /// RFC5322.From domain extracted from the message header.
+    pub from_domain: String,
+}
+
+/// DKIM alignment inputs: the d= tag from a passing DKIM signature and the
+/// RFC5322.From domain.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DkimAlignmentInput {
+    /// d= tag from the DKIM-Signature header.
+    pub d_tag: String,
+    /// RFC5322.From domain extracted from the message header.
+    pub from_domain: String,
+}
+
+/// Extract the Organizational Domain (registrable domain) from a fully
+/// qualified domain name.  This is a simplified implementation that strips
+/// all labels except the last two (SLD + TLD), matching RFC 7489 relaxed
+/// alignment semantics for single-segment TLDs.
+///
+/// For example:
+///   `mail.example.com` → `example.com`
+///   `example.com`      → `example.com`
+///   `a.b.example.com`  → `example.com`
+pub fn organizational_domain(domain: &str) -> &str {
+    let dot_count = domain.bytes().filter(|&b| b == b'.').count();
+    if dot_count <= 1 {
+        // Already at most SLD.TLD
+        domain
+    } else {
+        // Strip all labels except the last two: find the dot that is
+        // (dot_count - 1) positions from the start (0-indexed), i.e. the
+        // (dot_count - 1)th dot counting from 1 = the one right before the
+        // second-to-last label.
+        //
+        // For "a.b.example.com" dot_count=3, we want the dot at index 1
+        // (0-indexed among dots): positions are [1, 3, 11]; index 1 → pos 3,
+        // giving "example.com". Correct.
+        let dot_pos = domain
+            .char_indices()
+            .filter(|&(_, c)| c == '.')
+            .nth(dot_count - 2)   // 0-indexed: skip the first (dot_count-2) dots
+            .map(|(i, _)| i)
+            .unwrap();
+        &domain[dot_pos + 1..]
+    }
+}
+
+/// Returns `true` when `candidate` is aligned with `from` under `mode`.
+fn domains_aligned(candidate: &str, from: &str, mode: AlignmentMode) -> bool {
+    match mode {
+        AlignmentMode::Strict => candidate.eq_ignore_ascii_case(from),
+        AlignmentMode::Relaxed => {
+            organizational_domain(candidate).eq_ignore_ascii_case(organizational_domain(from))
+        }
+    }
+}
+
+impl DmarcVerdict {
+    /// Full RFC 7489 §3.1 verdict: computes alignment for SPF and DKIM using
+    /// the published `DmarcRecord` alignment modes, applies subdomain policy
+    /// (sp=) when the From domain is a proper subdomain of the policy domain,
+    /// and sets `report_only` for p=none / sp=none non-aligned messages.
+    pub fn new_from_record(
+        domain_ref: String,
+        spf: SpfAlignmentInput,
+        dkim: Option<DkimAlignmentInput>,
+        record: &DmarcRecord,
+        evidence_ref: String,
+    ) -> Result<Self, MailGovernanceError> {
+        ne(&domain_ref)?;
+        ne(&evidence_ref)?;
+
+        let spf_aligned =
+            domains_aligned(&spf.authenticated_domain, &spf.from_domain, record.spf_alignment);
+        let dkim_aligned = dkim
+            .as_ref()
+            .map(|d| domains_aligned(&d.d_tag, &d.from_domain, record.dkim_alignment))
+            .unwrap_or(false);
+        let aligned = spf_aligned || dkim_aligned;
+
+        // Determine which policy applies per RFC 7489 §6.3.
+        // The DMARC record is published at the Organizational Domain level.
+        // sp= applies when the RFC5322.From domain is NOT the Organizational
+        // Domain itself — i.e. it is a proper subdomain of the org domain.
+        // We compute the org domain of domain_ref as the anchor.
+        let policy_org = organizational_domain(&domain_ref);
+        let from_is_subdomain = {
+            let from = spf.from_domain.to_ascii_lowercase();
+            let org = policy_org.to_ascii_lowercase();
+            // from must be a proper subdomain: ends with ".<org>" and != org
+            from != org && from.ends_with(&format!(".{}", org))
+        };
+        let effective_policy = if from_is_subdomain {
+            record.subdomain_policy.unwrap_or(record.policy)
+        } else {
+            record.policy
+        };
+
+        let action = match (aligned, effective_policy) {
+            (true, _) => DmarcAction::Accept,
+            (false, DmarcPolicy::None) => DmarcAction::Accept,
+            (false, DmarcPolicy::Quarantine) => DmarcAction::Quarantine,
+            (false, DmarcPolicy::Reject) => DmarcAction::Reject,
+        };
+        let report_only = effective_policy == DmarcPolicy::None && !aligned;
+
+        Ok(Self {
+            domain_ref: int(domain_ref),
+            action: int(action),
+            report_only: int(report_only),
+            evidence_ref: Classified::new(evidence_ref, DataClass::Audit),
+        })
+    }
+}
+
 impl MailWorkflowHandoff {
     pub fn new(
         m: &MailMessageGovernance,
