@@ -33,6 +33,27 @@
       — SLOs: authorize-latency-p99.openslo.yaml + decision-correctness.openslo.yaml
         cover the gRPC authorize/validate paths (shared use-case core). No new SLO added.
 
+## Post-review cleanup (no behavior change)
+
+- [x] ValidateToken now maps each `OidcValidationError` to its distinct proto
+      `ValidationErrorKind` via `oidc_error_to_kind`, mirroring the spec mapping
+      table, instead of collapsing all 12 kinds to `MALFORMED`. The `detail`
+      string is unchanged. A mesh PEP / Envoy ext_authz consumer can now branch
+      on expired vs forged-signature vs issuer-mismatch. No test assertion or
+      fail-closed semantic changes (tests assert only the `Error` variant).
+- [x] Corrected the `run_authorize_with_token_grpc` docstring: it always returns
+      `Ok(outcome)`; the unary caller maps `StoreUnavailable` to
+      `Status::unavailable` and batch maps it to a per-item DENY.
+- [x] Removed two no-op `.map_err(|e| e)?` (clippy::map_identity) in favor of `?`.
+
+### Deliberate deferrals (out of slice scope)
+
+- `AuthorizeResponse.reason` stays `None` on gRPC; the slice's no-drift contract
+  is framed around the decision EFFECT, not the reason. The audit record still
+  carries the decision label. REST/gRPC reason-payload parity is future work.
+- A missing proto `Resource` becomes `Resource::new("", "")`; default-deny keeps
+  this fail-closed-safe on both surfaces.
+
 ## Registry note
 
 The `registry/dependency-rationales.json` `allowed_crates` arrays for tonic,

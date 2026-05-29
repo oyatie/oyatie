@@ -28,7 +28,7 @@ use tonic::{Request, Response, Status};
 use oya_identity_workload_app::{AuthorizeOutcome, RevocationDenylist, WorkloadPrincipalRepository, authorize_with_token};
 use oya_identity_workload_authz_cedar_adapter::WorkloadAuthorizer;
 use oya_identity_workload_domain::{Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, Resource};
-use oya_identity_workload_oidc_adapter::validate_workload_token;
+use oya_identity_workload_oidc_adapter::{OidcValidationError, validate_workload_token};
 
 use crate::{AuditEvent, AuditRecord, AuditSink, WorkloadAuthzState, build_active_principal};
 
@@ -116,8 +116,11 @@ fn authorize_outcome_label(outcome: &AuthorizeOutcome) -> &'static str {
     }
 }
 
-/// Run authorize_with_token using the (mutex-guarded) state. Returns `Err(Status::unavailable)`
-/// on store outage; returns `Ok(outcome)` for all other results (including DENY).
+/// Run authorize_with_token using the (mutex-guarded) state. Always returns
+/// `Ok(outcome)` (including `StoreUnavailable` and DENY). The caller maps
+/// `StoreUnavailable` to `Status::unavailable` for unary RPCs and to a per-item
+/// DENY decision for batch. The `Result` return is retained so callers thread
+/// the outcome with `?` and a future fallible path can surface a `Status`.
 fn run_authorize_with_token_grpc<R, D, A, S>(
     state: &WorkloadAuthzState<R, D, A, S>,
     token: &str,
@@ -190,6 +193,33 @@ fn proto_claim_value_to_domain(cv: &proto::ClaimValue) -> Option<ClaimValue> {
     }
 }
 
+/// Map an [`OidcValidationError`] to the typed proto [`ValidationErrorKind`] a
+/// mesh PEP / Envoy ext_authz consumer branches on. Mirrors the mapping table in
+/// `docs/specs/slice-id-workload-grpc-surface.md`. The human-readable message is
+/// carried separately in `ValidationError::detail`.
+fn oidc_error_to_kind(error: &OidcValidationError) -> proto::ValidationErrorKind {
+    use proto::ValidationErrorKind as Kind;
+    match error {
+        OidcValidationError::MalformedToken
+        | OidcValidationError::DecodeError
+        | OidcValidationError::MalformedKey => Kind::Malformed,
+        OidcValidationError::AlgNone => Kind::AlgNone,
+        OidcValidationError::InvalidType => Kind::InvalidType,
+        OidcValidationError::UntrustedKeySourceUrl => Kind::UntrustedKeySourceUrl,
+        OidcValidationError::AlgorithmMismatch
+        | OidcValidationError::UnsupportedAlgorithm => Kind::AlgorithmMismatch,
+        OidcValidationError::UnknownKey => Kind::UnknownKey,
+        OidcValidationError::SignatureInvalid => Kind::SignatureInvalid,
+        OidcValidationError::IssuerMismatch => Kind::IssuerMismatch,
+        OidcValidationError::AudienceMismatch => Kind::AudienceMismatch,
+        OidcValidationError::Expired => Kind::Expired,
+        OidcValidationError::NotYetValid => Kind::NotYetValid,
+        OidcValidationError::MissingClaim(_) | OidcValidationError::Domain(_) => {
+            Kind::MissingClaim
+        }
+    }
+}
+
 // =====================================================================
 // WorkloadAuthorizer tonic impl
 // =====================================================================
@@ -214,8 +244,7 @@ where
             action,
             resource,
             context,
-        )
-        .map_err(|e| e)?;
+        )?;
 
         // Determine workload_id for audit (best-effort from token).
         let workload_id = best_effort_workload_id(&self.state, &req.token);
@@ -319,8 +348,7 @@ where
                 action,
                 resource,
                 context,
-            )
-            .map_err(|e| e)?;
+            )?;
 
             let workload_id = best_effort_workload_id(&self.state, &item.token);
             let outcome_label = authorize_outcome_label(&outcome);
@@ -393,7 +421,7 @@ where
                     ok: false,
                     outcome: Some(proto::validate_token_response::Outcome::Error(
                         proto::ValidationError {
-                            kind: proto::ValidationErrorKind::Malformed as i32,
+                            kind: oidc_error_to_kind(&error) as i32,
                             detail: error.to_string(),
                         },
                     )),
