@@ -1235,6 +1235,29 @@ impl IntrospectionRequest {
     }
 }
 
+/// Disclosed claim set for an active RFC 7662 introspection response.
+/// Passed to [`IntrospectionResponse::active`] to avoid the 8-argument
+/// constructor that trips `clippy::too_many_arguments`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ActiveIntrospectionClaims {
+    /// `sub` — subject identifier.
+    pub sub: String, // data_class: PII_IDENTIFYING
+    /// `aud` — intended audience list.
+    pub aud: Vec<String>, // data_class: PUBLIC
+    /// `exp` — expiry (epoch seconds).
+    pub exp: i64, // data_class: INTERNAL_ONLY
+    /// `iat` — issuance time (epoch seconds).
+    pub iat: i64, // data_class: INTERNAL_ONLY
+    /// `scope` — space-separated scope string (None when empty).
+    pub scope: Option<String>, // data_class: INTERNAL_ONLY
+    /// `client_id` — OAuth 2.0 client identifier.
+    pub client_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `tenant_id` — oyatie tenant identifier (ADR-0244 superset).
+    pub tenant_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `token_type` — e.g. `"at+jwt"` for RFC 9068 access tokens.
+    pub token_type: Option<String>, // data_class: PUBLIC
+}
+
 /// RFC 7662 §2.2 introspection response.
 ///
 /// Privacy rule: when `active` is `false`, all other fields MUST be absent.
@@ -1281,28 +1304,19 @@ impl IntrospectionResponse {
         }
     }
 
-    /// Construct an active response with the disclosed claim set.
+    /// Construct an active response from the disclosed claim set.
     #[must_use]
-    pub fn active(
-        sub: String,
-        aud: Vec<String>,
-        exp: i64,
-        iat: i64,
-        scope: Option<String>,
-        client_id: Option<String>,
-        tenant_id: Option<String>,
-        token_type: Option<String>,
-    ) -> Self {
+    pub fn active(claims: ActiveIntrospectionClaims) -> Self {
         Self {
             active: true,
-            sub: Some(sub),
-            aud: Some(aud),
-            exp: Some(exp),
-            iat: Some(iat),
-            scope,
-            client_id,
-            tenant_id,
-            token_type,
+            sub: Some(claims.sub),
+            aud: Some(claims.aud),
+            exp: Some(claims.exp),
+            iat: Some(claims.iat),
+            scope: claims.scope,
+            client_id: claims.client_id,
+            tenant_id: claims.tenant_id,
+            token_type: claims.token_type,
         }
     }
 }
@@ -1334,16 +1348,16 @@ pub fn build_introspection_response(
             } else {
                 Some(claims.scope.clone())
             };
-            Ok(IntrospectionResponse::active(
-                claims.sub.clone(),
-                claims.aud.clone(),
-                claims.exp,
-                claims.iat,
+            Ok(IntrospectionResponse::active(ActiveIntrospectionClaims {
+                sub: claims.sub.clone(),
+                aud: claims.aud.clone(),
+                exp: claims.exp,
+                iat: claims.iat,
                 scope,
-                None,
-                Some(claims.tenant_id.clone()),
-                Some(claims.token_type.clone()),
-            ))
+                client_id: None,
+                tenant_id: Some(claims.tenant_id.clone()),
+                token_type: Some(claims.token_type.clone()),
+            }))
         }
     }
 }
@@ -1712,16 +1726,16 @@ mod tests {
 
     #[test]
     fn introspection_response_active_carries_disclosed_claims() {
-        let resp = IntrospectionResponse::active(
-            "usr_abc".to_owned(),
-            vec!["oya-api".to_owned()],
-            1_700_003_600,
-            1_700_000_000,
-            Some("openid email".to_owned()),
-            Some("client-1".to_owned()),
-            Some("ten_acme".to_owned()),
-            Some("at+jwt".to_owned()),
-        );
+        let resp = IntrospectionResponse::active(ActiveIntrospectionClaims {
+            sub: "usr_abc".to_owned(),
+            aud: vec!["oya-api".to_owned()],
+            exp: 1_700_003_600,
+            iat: 1_700_000_000,
+            scope: Some("openid email".to_owned()),
+            client_id: Some("client-1".to_owned()),
+            tenant_id: Some("ten_acme".to_owned()),
+            token_type: Some("at+jwt".to_owned()),
+        });
         assert!(resp.active);
         assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
         assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));

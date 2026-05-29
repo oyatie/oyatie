@@ -11,12 +11,13 @@
 use std::collections::BTreeMap;
 
 use oya_identity_oidc_issuer_kernel::{
-    AccessTokenSpec, AcrLevel, Algorithm, Audience, ClientAssertion, ClockSkewTolerance,
-    ID_TOKEN_CLAIMS_SCHEMA_VERSION, IdTokenSpec, IntrospectionRequest, IntrospectionResponse,
-    IssuerError, IssuerUrl, JwsSigner, MAX_ACCESS_TOKEN_TTL_SECONDS, MAX_CLOCK_SKEW_SECONDS,
-    MAX_ID_TOKEN_TTL_SECONDS, RefreshRequest, Signature, SigningKey, SigningKeyState, Subject,
-    TokenTypeHint, build_access_token_claims, build_id_token_claims, build_introspection_response,
-    build_issuer_metadata, build_jwks, check_temporal_window, current_signing_key,
+    AccessTokenSpec, ActiveIntrospectionClaims, AcrLevel, Algorithm, Audience, ClientAssertion,
+    ClockSkewTolerance, ID_TOKEN_CLAIMS_SCHEMA_VERSION, IdTokenSpec, IntrospectionRequest,
+    IntrospectionResponse, IssuerError, IssuerUrl, JwsSigner, MAX_ACCESS_TOKEN_TTL_SECONDS,
+    MAX_CLOCK_SKEW_SECONDS, MAX_ID_TOKEN_TTL_SECONDS, RefreshRequest, Signature, SigningKey,
+    SigningKeyState, Subject, TokenTypeHint, build_access_token_claims, build_id_token_claims,
+    build_introspection_response, build_issuer_metadata, build_jwks, check_temporal_window,
+    current_signing_key,
 };
 
 fn rsa_components() -> BTreeMap<String, String> {
