@@ -1,0 +1,29 @@
+[package]
+name = "oya-cost-rest"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Cost-allocation HTTP surface: axum routes + Connect-RPC handlers over oya-cost-kernel. ADR-0480 D3."
+
+[package.metadata.oya]
+microservice = "oya-cost"
+bounded_context = "cost-allocation-substrate"
+layer = "api"
+owner_team = "council-cost"
+adr_anchors = ["ADR-0083", "ADR-0480"]
+data_classification = "INTERNAL_ONLY"
+
+[lib]
+name = "oya_cost_rest"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-cost-kernel = { path = "../oya-cost-kernel" }
+serde = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true

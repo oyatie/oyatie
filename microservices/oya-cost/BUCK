@@ -1,0 +1,53 @@
+# Buck2 build targets for oya-cost µservice (ADR-0480 scaffold).
+#
+# non_claim: targets are placeholders pending D1-D5 implementation.
+# Actual rustc rules will be wired once crate logic lands.
+
+rust_library(
+    name = "oya-cost-kernel",
+    srcs = glob(["crates/oya-cost-kernel/src/**/*.rs"]),
+    crate_root = "crates/oya-cost-kernel/src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "oya-cost-rest",
+    srcs = glob(["crates/oya-cost-rest/src/**/*.rs"]),
+    crate_root = "crates/oya-cost-rest/src/lib.rs",
+    deps = [":oya-cost-kernel"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "oya-cost-app-lib",
+    srcs = glob(["crates/oya-cost-app/src/**/*.rs"]),
+    crate_root = "crates/oya-cost-app/src/lib.rs",
+    deps = [
+        ":oya-cost-kernel",
+        ":oya-cost-rest",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+rust_binary(
+    name = "oya-cost-app",
+    srcs = ["crates/oya-cost-app/src/main.rs"],
+    deps = [":oya-cost-app-lib"],
+    visibility = ["PUBLIC"],
+)
+
+# Convenience aliases
+alias(
+    name = "check",
+    actual = ":oya-cost-app-lib",
+)
+
+alias(
+    name = "test",
+    actual = ":oya-cost-app-lib",
+)
+
+alias(
+    name = "image",
+    actual = ":oya-cost-app",
+)
