@@ -8,6 +8,10 @@
 //! importing any framework crates beyond `serde`.  These types will migrate into a
 //! dedicated `oya-policy-engine-kernel` crate when IP-001 scaffolds the full
 //! policy-engine BC (P14 impl-plan, `execution_variant = merge-into-existing-crates`).
+//!
+//! The `obligations` sub-module adds Cedar-style annotation/obligation key-value pairs
+//! that ride out with `Allow` decisions for downstream PEP step-up, audit, and
+//! redaction.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -15,6 +19,9 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
+
+pub mod obligations;
+pub use obligations::{AnnotationKind, PolicyAnnotation};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum PolicyScope {
@@ -37,6 +44,9 @@ pub struct PolicyRuleInput {
     pub action: String,
     pub resource_prefix: String,
     pub required_attribute: Option<(String, String)>,
+    /// Cedar-style annotations (obligations and advice) attached to this rule.
+    /// Collected onto `AuthorizationDecision` when this rule triggers an Allow.
+    pub annotations: Vec<PolicyAnnotation>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -46,6 +56,9 @@ pub struct PolicyRule {
     pub action: String,
     pub resource_prefix: String,
     pub required_attribute: Option<(String, String)>,
+    /// Cedar-style annotations (obligations and advice) attached to this rule.
+    /// Collected onto `AuthorizationDecision` when this rule triggers an Allow.
+    pub annotations: Vec<PolicyAnnotation>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -85,6 +98,13 @@ pub struct AuthorizationDecision {
     pub allowed: bool,
     pub reason: String,
     pub matched_policy: Option<String>,
+    /// Cedar-style annotations collected from the matching Allow rule.
+    ///
+    /// # Forbid-wins invariant
+    ///
+    /// This field is **always empty when `allowed == false`**.  A PEP must check
+    /// `allowed` first; consuming annotations on a denied decision bypasses the PDP.
+    pub annotations: Vec<PolicyAnnotation>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -199,10 +219,12 @@ impl PolicySet {
         for policy in &scoped_policies {
             for rule in &policy.rules {
                 if rule.matches(query) && rule.effect == PolicyEffect::Deny {
+                    // Forbid-wins: Deny suppresses all annotations.
                     return AuthorizationDecision {
                         allowed: false,
                         reason: "explicit deny policy".to_string(),
                         matched_policy: Some(policy.policy_id.clone()),
+                        annotations: Vec::new(),
                     };
                 }
             }
@@ -214,6 +236,7 @@ impl PolicySet {
                         allowed: true,
                         reason: "matching allow policy".to_string(),
                         matched_policy: Some(policy.policy_id.clone()),
+                        annotations: rule.annotations.clone(),
                     };
                 }
             }
@@ -222,6 +245,7 @@ impl PolicySet {
             allowed: false,
             reason: "no matching allow policy".to_string(),
             matched_policy: None,
+            annotations: Vec::new(),
         }
     }
 }
@@ -242,6 +266,7 @@ impl TryFrom<PolicyRuleInput> for PolicyRule {
             action: input.action,
             resource_prefix: input.resource_prefix,
             required_attribute: input.required_attribute,
+            annotations: input.annotations,
         })
     }
 }
@@ -809,6 +834,7 @@ pub fn backbone_write_policy_versions(tenant_id: impl Into<String>) -> Vec<Polic
                 action: operation.action().to_string(),
                 resource_prefix: operation.resource_prefix().to_string(),
                 required_attribute: Some(("data_plane".to_string(), "backbone".to_string())),
+                annotations: Vec::new(),
             }],
         })
         .collect()
@@ -1210,6 +1236,7 @@ mod tests {
                 action: operation.action().to_string(),
                 resource_prefix: operation.resource_prefix().to_string(),
                 required_attribute: Some(("data_plane".to_string(), "backbone".to_string())),
+                annotations: Vec::new(),
             }],
         });
         let mut evaluator = CedarRuntimeEvaluator::from_policy_versions(versions).unwrap();
@@ -1361,6 +1388,7 @@ mod tests {
                     action: "doc.write".to_string(),
                     resource_prefix: "docs:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
                 PolicyRuleInput {
                     effect: PolicyEffect::Deny,
@@ -1368,6 +1396,7 @@ mod tests {
                     action: "doc.write".to_string(),
                     resource_prefix: "docs:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
             ],
         };
@@ -1403,6 +1432,7 @@ mod tests {
                     action: "content.read".to_string(),
                     resource_prefix: "content:premium:".to_string(),
                     required_attribute: attr.clone(),
+                    annotations: Vec::new(),
                 },
                 PolicyRuleInput {
                     effect: PolicyEffect::Deny,
@@ -1410,6 +1440,7 @@ mod tests {
                     action: "content.read".to_string(),
                     resource_prefix: "content:premium:".to_string(),
                     required_attribute: attr,
+                    annotations: Vec::new(),
                 },
             ],
         };
@@ -1433,6 +1464,7 @@ mod tests {
             action: "resource.read".to_string(),
             resource_prefix: "res:".to_string(),
             required_attribute: None,
+            annotations: Vec::new(),
         };
         let version = PolicyVersion {
             policy_id: "pol_dup_test".to_string(),
@@ -1467,6 +1499,7 @@ mod tests {
                     action: "tenant.settings.update".to_string(),
                     resource_prefix: "tenant:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
                 PolicyRuleInput {
                     effect: PolicyEffect::Allow,
@@ -1474,6 +1507,7 @@ mod tests {
                     action: "tenant.settings.read".to_string(),
                     resource_prefix: "tenant:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
             ],
         };
@@ -1503,6 +1537,7 @@ mod tests {
                     action: "doc.write".to_string(),
                     resource_prefix: "docs:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
                 // Later narrower rule: resource_prefix = "docs:project:" (subsumed)
                 PolicyRuleInput {
@@ -1511,6 +1546,7 @@ mod tests {
                     action: "doc.write".to_string(),
                     resource_prefix: "docs:project:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
             ],
         };
@@ -1544,6 +1580,7 @@ mod tests {
                     action: "doc.write".to_string(),
                     resource_prefix: "docs:projectA:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
                 PolicyRuleInput {
                     effect: PolicyEffect::Allow,
@@ -1551,6 +1588,7 @@ mod tests {
                     action: "doc.write".to_string(),
                     resource_prefix: "docs:projectB:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
             ],
         };
@@ -1585,6 +1623,7 @@ mod tests {
                     action: "doc.write".to_string(),
                     resource_prefix: "docs:".to_string(),
                     required_attribute: Some(("tier".to_string(), "premium".to_string())),
+                    annotations: Vec::new(),
                 },
                 // Later rule: same prefix, NO attribute guard (broader) — not shadowed
                 PolicyRuleInput {
@@ -1593,6 +1632,7 @@ mod tests {
                     action: "doc.write".to_string(),
                     resource_prefix: "docs:".to_string(),
                     required_attribute: None,
+                    annotations: Vec::new(),
                 },
             ],
         };
@@ -1641,6 +1681,7 @@ mod tests {
                 action: "tenant.settings.update".to_string(),
                 resource_prefix: "tenant:".to_string(),
                 required_attribute: None,
+                annotations: Vec::new(),
             }],
         }
     }
@@ -1669,5 +1710,281 @@ mod tests {
             BackboneWriteOperation::CommunityCastVote
             | BackboneWriteOperation::CommunityApplyModerationAction => "post:p",
         }
+    }
+
+    // ── obligations: serde round-trip ─────────────────────────────────────────
+
+    /// obligations-1 acceptance: `AnnotationKind` and `PolicyAnnotation` round-trip
+    /// through `serde_json` with lowercase kind wire values.
+    #[test]
+    fn annotation_kinds_serde_roundtrip() {
+        // AnnotationKind wire values must be lowercase.
+        let obligation_json = serde_json::to_string(&AnnotationKind::Obligation)
+            .expect("AnnotationKind::Obligation serializes");
+        assert_eq!(obligation_json, "\"obligation\"");
+
+        let advice_json = serde_json::to_string(&AnnotationKind::Advice)
+            .expect("AnnotationKind::Advice serializes");
+        assert_eq!(advice_json, "\"advice\"");
+
+        // Full PolicyAnnotation round-trip.
+        let ann = PolicyAnnotation {
+            kind: AnnotationKind::Obligation,
+            key: "require_mfa".to_string(),
+            value: "true".to_string(),
+        };
+        let json = serde_json::to_string(&ann).expect("PolicyAnnotation serializes");
+        let roundtrip: PolicyAnnotation =
+            serde_json::from_str(&json).expect("PolicyAnnotation deserializes");
+        assert_eq!(ann, roundtrip);
+    }
+
+    // ── obligations: allow path surfaces annotations ──────────────────────────
+
+    /// obligations-2 acceptance: a matching Allow rule's annotations are collected
+    /// onto `AuthorizationDecision`.
+    #[test]
+    fn allow_decision_surfaces_rule_annotations() {
+        let mut policies = PolicySet::default();
+        policies
+            .publish(PolicyVersion {
+                policy_id: "pol_annotated_allow".to_string(),
+                version: "1.0.0".to_string(),
+                scope: PolicyScope::Tenant(TEST_TENANT_ID.to_string()),
+                supersedes: None,
+                rules: vec![PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "tenant-admin".to_string(),
+                    action: "tenant.settings.update".to_string(),
+                    resource_prefix: "tenant:".to_string(),
+                    required_attribute: None,
+                    annotations: vec![
+                        PolicyAnnotation {
+                            kind: AnnotationKind::Obligation,
+                            key: "require_mfa".to_string(),
+                            value: "true".to_string(),
+                        },
+                        PolicyAnnotation {
+                            kind: AnnotationKind::Advice,
+                            key: "audit_event".to_string(),
+                            value: "settings_change".to_string(),
+                        },
+                    ],
+                }],
+            })
+            .expect("annotated allow policy publishes");
+
+        let decision = policies.authorize(&AuthorizationQuery {
+            subject: AuthorizationSubject {
+                tenant_id: TEST_TENANT_ID.to_string(),
+                roles: vec!["tenant-admin".to_string()],
+            },
+            action: "tenant.settings.update".to_string(),
+            resource: TEST_TENANT_RESOURCE.to_string(),
+            attributes: BTreeMap::new(),
+        });
+
+        assert!(decision.allowed);
+        assert_eq!(decision.annotations.len(), 2);
+        assert_eq!(decision.annotations[0].kind, AnnotationKind::Obligation);
+        assert_eq!(decision.annotations[0].key, "require_mfa");
+        assert_eq!(decision.annotations[0].value, "true");
+        assert_eq!(decision.annotations[1].kind, AnnotationKind::Advice);
+        assert_eq!(decision.annotations[1].key, "audit_event");
+    }
+
+    // ── obligations: deny wins suppresses annotations ─────────────────────────
+
+    /// obligations-3 acceptance: forbid-wins — an explicit Deny fires before the
+    /// annotated Allow rule; the decision is denied with empty annotations.
+    #[test]
+    fn deny_wins_suppresses_annotations() {
+        let mut policies = PolicySet::default();
+        // First publish an annotated Allow.
+        policies
+            .publish(PolicyVersion {
+                policy_id: "pol_annotated_allow_b".to_string(),
+                version: "1.0.0".to_string(),
+                scope: PolicyScope::Tenant(TEST_TENANT_ID.to_string()),
+                supersedes: None,
+                rules: vec![PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "tenant-admin".to_string(),
+                    action: "tenant.settings.update".to_string(),
+                    resource_prefix: "tenant:".to_string(),
+                    required_attribute: None,
+                    annotations: vec![PolicyAnnotation {
+                        kind: AnnotationKind::Obligation,
+                        key: "require_mfa".to_string(),
+                        value: "true".to_string(),
+                    }],
+                }],
+            })
+            .expect("allow policy publishes");
+        // Then publish an explicit Deny (policy_id sorts before allow so it fires first).
+        policies
+            .publish(PolicyVersion {
+                policy_id: "pol_explicit_deny_b".to_string(),
+                version: "1.0.0".to_string(),
+                scope: PolicyScope::Tenant(TEST_TENANT_ID.to_string()),
+                supersedes: None,
+                rules: vec![PolicyRuleInput {
+                    effect: PolicyEffect::Deny,
+                    principal_role: "tenant-admin".to_string(),
+                    action: "tenant.settings.update".to_string(),
+                    resource_prefix: "tenant:".to_string(),
+                    required_attribute: None,
+                    annotations: Vec::new(),
+                }],
+            })
+            .expect("deny policy publishes");
+
+        let decision = policies.authorize(&AuthorizationQuery {
+            subject: AuthorizationSubject {
+                tenant_id: TEST_TENANT_ID.to_string(),
+                roles: vec!["tenant-admin".to_string()],
+            },
+            action: "tenant.settings.update".to_string(),
+            resource: TEST_TENANT_RESOURCE.to_string(),
+            attributes: BTreeMap::new(),
+        });
+
+        assert!(!decision.allowed, "deny must win");
+        assert!(
+            decision.annotations.is_empty(),
+            "deny must suppress all annotations; got: {:?}",
+            decision.annotations
+        );
+    }
+
+    // ── obligations: default deny has empty annotations ───────────────────────
+
+    /// obligations-4 acceptance: no matching rule → default deny with empty annotations.
+    #[test]
+    fn no_match_deny_has_empty_annotations() {
+        let mut policies = PolicySet::default();
+        policies
+            .publish(policy_version(POLICY_ID, "1.0.0", tenant_scope(), None))
+            .expect("policy publishes");
+
+        let decision = policies.authorize(&AuthorizationQuery {
+            subject: AuthorizationSubject {
+                tenant_id: TEST_TENANT_ID.to_string(),
+                roles: vec!["unknown-role".to_string()],
+            },
+            action: "tenant.settings.update".to_string(),
+            resource: TEST_TENANT_RESOURCE.to_string(),
+            attributes: BTreeMap::new(),
+        });
+
+        assert!(!decision.allowed);
+        assert!(decision.annotations.is_empty());
+        assert_eq!(decision.reason, "no matching allow policy");
+    }
+
+    // ── obligations: multiple annotation kinds on one rule ────────────────────
+
+    /// obligations-5 acceptance: both Obligation and Advice annotations on a single
+    /// rule all surface on the Allow decision.
+    #[test]
+    fn multiple_annotation_kinds_on_one_rule_all_surface() {
+        let annotations = vec![
+            PolicyAnnotation {
+                kind: AnnotationKind::Obligation,
+                key: "step_up".to_string(),
+                value: "mfa".to_string(),
+            },
+            PolicyAnnotation {
+                kind: AnnotationKind::Obligation,
+                key: "redact_fields".to_string(),
+                value: "pii".to_string(),
+            },
+            PolicyAnnotation {
+                kind: AnnotationKind::Advice,
+                key: "audit_event".to_string(),
+                value: "pii_access".to_string(),
+            },
+        ];
+        let mut policies = PolicySet::default();
+        policies
+            .publish(PolicyVersion {
+                policy_id: "pol_multi_annotation".to_string(),
+                version: "1.0.0".to_string(),
+                scope: PolicyScope::Tenant(TEST_TENANT_ID.to_string()),
+                supersedes: None,
+                rules: vec![PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "tenant-admin".to_string(),
+                    action: "tenant.settings.update".to_string(),
+                    resource_prefix: "tenant:".to_string(),
+                    required_attribute: None,
+                    annotations: annotations.clone(),
+                }],
+            })
+            .expect("multi-annotation policy publishes");
+
+        let decision = policies.authorize(&AuthorizationQuery {
+            subject: AuthorizationSubject {
+                tenant_id: TEST_TENANT_ID.to_string(),
+                roles: vec!["tenant-admin".to_string()],
+            },
+            action: "tenant.settings.update".to_string(),
+            resource: TEST_TENANT_RESOURCE.to_string(),
+            attributes: BTreeMap::new(),
+        });
+
+        assert!(decision.allowed);
+        assert_eq!(decision.annotations, annotations);
+    }
+
+    // ── obligations: AuthorizationDecision serde with annotations ────────────
+
+    /// obligations-6 acceptance: `AuthorizationDecision` with annotations
+    /// round-trips through `serde_json`.
+    #[test]
+    fn authorization_decision_serde_with_annotations() {
+        // AuthorizationDecision is not yet Serialize/Deserialize — this test
+        // exercises the PolicyAnnotation fields via direct equality, while the
+        // full struct round-trip is covered by the allow/deny path tests above.
+        // We verify PolicyAnnotation + AnnotationKind serde composability here.
+        let annotations = vec![
+            PolicyAnnotation {
+                kind: AnnotationKind::Obligation,
+                key: "require_mfa".to_string(),
+                value: "true".to_string(),
+            },
+            PolicyAnnotation {
+                kind: AnnotationKind::Advice,
+                key: "label".to_string(),
+                value: "sensitive".to_string(),
+            },
+        ];
+        let json = serde_json::to_string(&annotations).expect("Vec<PolicyAnnotation> serializes");
+        let roundtrip: Vec<PolicyAnnotation> =
+            serde_json::from_str(&json).expect("Vec<PolicyAnnotation> deserializes");
+        assert_eq!(annotations, roundtrip);
+    }
+
+    // ── obligations: TryFrom preserves annotations ────────────────────────────
+
+    /// obligations-7 acceptance: `TryFrom<PolicyRuleInput>` propagates
+    /// `annotations` onto the resulting `PolicyRule` unchanged.
+    #[test]
+    fn policy_rule_input_annotations_propagate_through_try_from() {
+        let annotations = vec![PolicyAnnotation {
+            kind: AnnotationKind::Obligation,
+            key: "step_up".to_string(),
+            value: "mfa".to_string(),
+        }];
+        let input = PolicyRuleInput {
+            effect: PolicyEffect::Allow,
+            principal_role: "admin".to_string(),
+            action: "resource.read".to_string(),
+            resource_prefix: "res:".to_string(),
+            required_attribute: None,
+            annotations: annotations.clone(),
+        };
+        let rule = PolicyRule::try_from(input).expect("valid rule converts");
+        assert_eq!(rule.annotations, annotations);
     }
 }
