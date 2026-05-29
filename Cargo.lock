@@ -4771,6 +4771,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-flags-app"
+version = "0.1.0"
+dependencies = [
+ "oya-flags-kernel",
+ "oya-flags-rest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-flags-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-flags-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-flags-kernel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-forms-domain"
 version = "0.1.0"
 dependencies = [
