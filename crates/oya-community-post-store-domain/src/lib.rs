@@ -8,6 +8,7 @@ pub enum CommunityError {
     SelfVoteForbidden,
     DuplicateVote,
     ModerationNeedsEvidence,
+    NoSuchVote,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CommunityMode {
@@ -129,6 +130,23 @@ impl VoteLedger {
         };
         Ok(())
     }
+    pub fn retract(&mut self, voter_ref: &str, _post: &CommunityPost) -> Result<(), CommunityError> {
+        ne(voter_ref)?;
+        let before = self.receipts.value.len();
+        self.receipts.value.retain(|r| r.voter_ref != voter_ref);
+        if self.receipts.value.len() == before {
+            return Err(CommunityError::NoSuchVote);
+        }
+        Ok(())
+    }
+    pub fn tally(&self) -> i64 {
+        self.receipts.value.iter().fold(0i64, |acc, r| {
+            acc + match r.kind {
+                VoteKind::Up => 1,
+                VoteKind::Down => -1,
+            }
+        })
+    }
 }
 pub fn moderation_case(
     post: &CommunityPost,
@@ -136,13 +154,17 @@ pub fn moderation_case(
     policy_ref: String,
     evidence_ref: String,
 ) -> Result<Classified<String>, CommunityError> {
-    let _ = action;
     ne(&post.post_id.value)?;
     ne(&policy_ref)?;
-    if evidence_ref.trim().is_empty() {
-        return Err(CommunityError::ModerationNeedsEvidence);
-    };
-    Ok(Classified::new(evidence_ref, DataClass::Audit))
+    match action {
+        ModerationAction::Allow => Ok(int(policy_ref)),
+        ModerationAction::Hide | ModerationAction::Remove => {
+            if evidence_ref.trim().is_empty() {
+                return Err(CommunityError::ModerationNeedsEvidence);
+            }
+            Ok(Classified::new(evidence_ref, DataClass::Audit))
+        }
+    }
 }
 fn ne(s: &str) -> Result<(), CommunityError> {
     if s.trim().is_empty() {
@@ -228,5 +250,171 @@ mod tests {
             )
             .is_ok()
         )
+    }
+    // cvt-1: retract tests
+    fn peer_receipt(vote_id: &str) -> VoteReceipt {
+        VoteReceipt {
+            vote_id: vote_id.into(),
+            voter_ref: "user:peer".into(),
+            post_id: "p".into(),
+            kind: VoteKind::Up,
+        }
+    }
+    #[test]
+    fn retract_removes_existing_receipt() {
+        let p = post();
+        let mut l = VoteLedger::new(&p);
+        l.cast(peer_receipt("v1"), &p).unwrap();
+        assert_eq!(l.receipts.value.len(), 1);
+        l.retract("user:peer", &p).unwrap();
+        assert!(l.receipts.value.is_empty());
+    }
+    #[test]
+    fn retract_second_time_errors_no_such_vote() {
+        let p = post();
+        let mut l = VoteLedger::new(&p);
+        l.cast(peer_receipt("v1"), &p).unwrap();
+        l.retract("user:peer", &p).unwrap();
+        assert_eq!(l.retract("user:peer", &p), Err(CommunityError::NoSuchVote));
+    }
+    #[test]
+    fn retract_empty_voter_ref_errors_invalid() {
+        let p = post();
+        let mut l = VoteLedger::new(&p);
+        assert_eq!(l.retract("", &p), Err(CommunityError::Invalid));
+        assert_eq!(l.retract("   ", &p), Err(CommunityError::Invalid));
+    }
+    #[test]
+    fn cast_still_raises_duplicate_vote() {
+        let p = post();
+        let mut l = VoteLedger::new(&p);
+        let r = peer_receipt("v1");
+        l.cast(r.clone(), &p).unwrap();
+        assert_eq!(l.cast(r, &p), Err(CommunityError::DuplicateVote));
+    }
+    // cvt-2: tally tests
+    #[test]
+    fn tally_empty_ledger_is_zero() {
+        let p = post();
+        let l = VoteLedger::new(&p);
+        assert_eq!(l.tally(), 0);
+    }
+    #[test]
+    fn tally_mixed_receipts_net_score() {
+        let p = post();
+        let mut l = VoteLedger::new(&p);
+        for (id, voter, kind) in [
+            ("v1", "u1", VoteKind::Up),
+            ("v2", "u2", VoteKind::Up),
+            ("v3", "u3", VoteKind::Up),
+            ("v4", "u4", VoteKind::Down),
+            ("v5", "u5", VoteKind::Down),
+        ] {
+            l.cast(
+                VoteReceipt { vote_id: id.into(), voter_ref: voter.into(), post_id: "p".into(), kind },
+                &p,
+            )
+            .unwrap();
+        }
+        assert_eq!(l.tally(), 1);
+    }
+    #[test]
+    fn tally_all_up() {
+        let p = post();
+        let mut l = VoteLedger::new(&p);
+        for (id, voter) in [("v1", "u1"), ("v2", "u2")] {
+            l.cast(
+                VoteReceipt { vote_id: id.into(), voter_ref: voter.into(), post_id: "p".into(), kind: VoteKind::Up },
+                &p,
+            )
+            .unwrap();
+        }
+        assert_eq!(l.tally(), 2);
+    }
+    #[test]
+    fn tally_all_down() {
+        let p = post();
+        let mut l = VoteLedger::new(&p);
+        for (id, voter) in [("v1", "u1"), ("v2", "u2")] {
+            l.cast(
+                VoteReceipt { vote_id: id.into(), voter_ref: voter.into(), post_id: "p".into(), kind: VoteKind::Down },
+                &p,
+            )
+            .unwrap();
+        }
+        assert_eq!(l.tally(), -2);
+    }
+    // cvt-3: action-aware moderation tests
+    #[test]
+    fn moderation_remove_without_evidence_errors() {
+        assert_eq!(
+            moderation_case(&post(), ModerationAction::Remove, "policy".into(), "".into()),
+            Err(CommunityError::ModerationNeedsEvidence)
+        );
+    }
+    #[test]
+    fn moderation_remove_with_evidence_tagged_audit() {
+        use oya_data_boundary_kernel::{DataClass, DataClassification, OperationalDataClass};
+        let result = moderation_case(
+            &post(),
+            ModerationAction::Remove,
+            "policy".into(),
+            "evidence-ref".into(),
+        )
+        .unwrap();
+        assert_eq!(result.value, "evidence-ref");
+        assert_eq!(
+            result.data_class,
+            DataClassification::from(DataClass::Audit)
+        );
+        assert_eq!(
+            result.data_class,
+            DataClassification::from(OperationalDataClass::Audit)
+        );
+    }
+    #[test]
+    fn moderation_allow_passes_without_evidence() {
+        assert!(moderation_case(
+            &post(),
+            ModerationAction::Allow,
+            "policy".into(),
+            "".into()
+        )
+        .is_ok());
+    }
+    #[test]
+    fn moderation_allow_tagged_internal_only() {
+        use oya_data_boundary_kernel::{DataClass, DataClassification};
+        let result = moderation_case(
+            &post(),
+            ModerationAction::Allow,
+            "policy-ref".into(),
+            "".into(),
+        )
+        .unwrap();
+        assert_eq!(result.value, "policy-ref");
+        assert_eq!(
+            result.data_class,
+            DataClassification::from(DataClass::InternalOnly)
+        );
+    }
+    #[test]
+    fn moderation_hide_still_requires_evidence() {
+        assert_eq!(
+            moderation_case(&post(), ModerationAction::Hide, "policy".into(), "".into()),
+            Err(CommunityError::ModerationNeedsEvidence)
+        );
+        let result = moderation_case(
+            &post(),
+            ModerationAction::Hide,
+            "policy".into(),
+            "evidence".into(),
+        )
+        .unwrap();
+        use oya_data_boundary_kernel::{DataClass, DataClassification};
+        assert_eq!(
+            result.data_class,
+            DataClassification::from(DataClass::Audit)
+        );
     }
 }
