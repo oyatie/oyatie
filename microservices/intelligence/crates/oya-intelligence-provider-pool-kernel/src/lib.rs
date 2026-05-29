@@ -408,12 +408,31 @@ pub fn pick_account_with_cooldown(
         return Err(PoolError::NoHealthyMembers);
     }
 
+    // Detect whether previous_account was excluded by cooldown/health filtering.
+    // If so, any choice we make is an anti-correlation failover and must be
+    // surfaced as FailoverFrom(prev) regardless of the routing strategy.
+    let prev_was_excluded = request
+        .previous_account
+        .as_ref()
+        .map(|prev| !eligible.contains(prev))
+        .unwrap_or(false);
+
     let (chosen, reason) = match &pool.routing_strategy {
         PoolRoutingStrategy::RoundRobin => round_robin(&eligible, request),
         PoolRoutingStrategy::LeastUsed => least_used(&eligible, usage),
         PoolRoutingStrategy::LeastLatency => least_latency(&eligible, usage),
         PoolRoutingStrategy::LeastRemaining => least_remaining(&eligible, usage)?,
         PoolRoutingStrategy::Sticky(session) => sticky(&eligible, session, request, usage)?,
+    };
+
+    // Override reason: if previous account was filtered out (quarantine/unhealthy),
+    // emit FailoverFrom(prev) so callers can observe the anti-correlation handoff.
+    let reason = if prev_was_excluded {
+        PoolRoutingReason::FailoverFrom(
+            request.previous_account.clone().expect("checked above"),
+        )
+    } else {
+        reason
     };
 
     let fallback_chain: Vec<ProviderAccountId> =
