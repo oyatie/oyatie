@@ -141,11 +141,10 @@ fn validate_actor_ref(actor_ref: &str) -> Result<(), ReactionError> {
     // (consistent with validate_bot_principal in lib.rs)
     // The suffix must be non-empty after trimming — "bot:  " is semantically
     // equivalent to "bot:" and must be rejected.
-    if actor_ref.starts_with("bot:") {
-        let suffix = &actor_ref["bot:".len()..];
-        if suffix.trim().is_empty() {
-            return Err(ReactionError::InvalidActorRef);
-        }
+    if let Some(suffix) = actor_ref.strip_prefix("bot:")
+        && suffix.trim().is_empty()
+    {
+        return Err(ReactionError::InvalidActorRef);
     }
     Ok(())
 }
