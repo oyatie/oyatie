@@ -270,6 +270,120 @@ impl RoutePolicy {
         })
     }
 
+    /// Returns ALL eligible candidates ordered by the 4-step tiebreak chain
+    /// (cost_micros ASC → model_affinity DESC → failover_rank ASC →
+    /// account_id ASC), exposing the full auditable failover ladder.
+    ///
+    /// `slate[0]` is the same winner `select_weighted` would have chosen.
+    ///
+    /// Error-precedence (identical to `select_weighted`):
+    ///   NoCandidates → UnsupportedProvider → NoActiveAccount →
+    ///   BudgetExceeded → ResidencyUnmet → PrivacyBoundaryUnmet →
+    ///   SilentSwitchPrevented
+    pub fn rank_candidates(
+        candidates: &[RouteCandidate<'_>],
+        constraints: &RouteConstraints,
+    ) -> Result<Vec<RouteScore>, RouteError> {
+        // ── Tier-1 guards ────────────────────────────────────────────────────
+        if candidates.is_empty() {
+            return Err(RouteError::NoCandidates);
+        }
+        if constraints.failover_order.is_empty() {
+            return Err(RouteError::UnsupportedProvider);
+        }
+
+        let rank_of = |family: &ProviderFamily| -> Option<usize> {
+            constraints.failover_order.iter().position(|f| f == family)
+        };
+
+        // ── Filter to eligible candidates ────────────────────────────────────
+        let mut last_err = RouteError::NoActiveAccount;
+        let mut eligible: Vec<RouteScore> = Vec::new();
+
+        for cand in candidates {
+            let acc = cand.account;
+
+            if acc.state != AccountState::Active {
+                continue;
+            }
+            if rank_of(&acc.provider_family).is_none() {
+                continue;
+            }
+
+            if cand.cost_micros > constraints.budget_micros_ceiling {
+                if matches!(last_err, RouteError::NoActiveAccount | RouteError::BudgetExceeded) {
+                    last_err = RouteError::BudgetExceeded;
+                }
+                continue;
+            }
+
+            if cand.residency_region != constraints.required_residency_region {
+                if matches!(
+                    last_err,
+                    RouteError::NoActiveAccount | RouteError::BudgetExceeded | RouteError::ResidencyUnmet
+                ) {
+                    last_err = RouteError::ResidencyUnmet;
+                }
+                continue;
+            }
+
+            if cand.privacy_boundary != constraints.required_privacy_boundary {
+                if matches!(
+                    last_err,
+                    RouteError::NoActiveAccount
+                        | RouteError::BudgetExceeded
+                        | RouteError::ResidencyUnmet
+                        | RouteError::PrivacyBoundaryUnmet
+                ) {
+                    last_err = RouteError::PrivacyBoundaryUnmet;
+                }
+                continue;
+            }
+
+            let headroom = constraints.budget_micros_ceiling.saturating_sub(cand.cost_micros);
+            let rank = rank_of(&acc.provider_family).unwrap_or(usize::MAX);
+            eligible.push(RouteScore {
+                account_id: acc.id.clone(),
+                cost_micros: cand.cost_micros,
+                budget_headroom_micros: headroom,
+                model_affinity: cand.model_affinity,
+                failover_rank: rank,
+            });
+        }
+
+        if eligible.is_empty() {
+            return Err(last_err);
+        }
+
+        // ── Tiebreak: cost ASC, affinity DESC, rank ASC, id ASC ─────────────
+        eligible.sort_by(|a, b| {
+            a.cost_micros
+                .cmp(&b.cost_micros)
+                .then_with(|| b.model_affinity.cmp(&a.model_affinity))
+                .then_with(|| a.failover_rank.cmp(&b.failover_rank))
+                .then_with(|| a.account_id.0.cmp(&b.account_id.0))
+        });
+
+        // ── Silent-switch guard (same logic as select_weighted) ──────────────
+        if let Some(prev_id) = &constraints.previous_account_id {
+            let prev_cand = candidates.iter().find(|c| &c.account.id == prev_id);
+            if let Some(prev) = prev_cand {
+                let prev_acc = prev.account;
+                let conflict = candidates.iter().any(|c| {
+                    c.account.id != prev_acc.id
+                        && c.account.provider_family == prev_acc.provider_family
+                        && c.account.subscription_id == prev_acc.subscription_id
+                        && c.account.state == AccountState::Active
+                });
+                if conflict {
+                    return Err(RouteError::SilentSwitchPrevented);
+                }
+            }
+        }
+
+        Ok(eligible)
+    }
+
     /// Convenience helper — same as `select` but always emits the explanation
     /// string verbatim (no further formatting). Kept so callers can audit the
     /// raw reason without extracting it from the Result.
@@ -388,6 +502,276 @@ mod tests {
         ];
         let exp = RoutePolicy::select(&accs, &c).unwrap();
         assert_eq!(exp.chosen_provider, ProviderFamily::Gemini);
+    }
+}
+
+// ── rank_candidates tests ────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests_rank_candidates {
+    use super::*;
+
+    fn aid(s: &str) -> AccountId {
+        AccountId(s.to_owned())
+    }
+
+    fn active(id: &str, family: ProviderFamily) -> ProviderAccount {
+        let mut acc = ProviderAccount::new(aid(id), family);
+        acc.state = AccountState::Active;
+        acc
+    }
+
+    fn constraints() -> RouteConstraints {
+        RouteConstraints::new("claude-sonnet-4-6".to_owned())
+    }
+
+    fn candidate<'a>(
+        account: &'a ProviderAccount,
+        cost_micros: u64,
+        model_affinity: bool,
+    ) -> RouteCandidate<'a> {
+        RouteCandidate {
+            account,
+            cost_micros,
+            residency_region: "tenant-home-region".to_owned(),
+            privacy_boundary: "tenant-default".to_owned(),
+            model_affinity,
+        }
+    }
+
+    // ── Error-precedence (7 rows) ────────────────────────────────────────────
+
+    #[test]
+    fn rank_empty_candidates_returns_no_candidates() {
+        let c = constraints();
+        assert_eq!(
+            RoutePolicy::rank_candidates(&[], &c),
+            Err(RouteError::NoCandidates)
+        );
+    }
+
+    #[test]
+    fn rank_empty_failover_order_returns_unsupported_provider() {
+        let acc = active("a1", ProviderFamily::Claude);
+        let cands = vec![candidate(&acc, 100, true)];
+        let mut c = constraints();
+        c.failover_order.clear();
+        assert_eq!(
+            RoutePolicy::rank_candidates(&cands, &c),
+            Err(RouteError::UnsupportedProvider)
+        );
+    }
+
+    #[test]
+    fn rank_all_inactive_returns_no_active_account() {
+        let mut acc = ProviderAccount::new(aid("a1"), ProviderFamily::Claude);
+        acc.state = AccountState::Draft;
+        let cands = vec![RouteCandidate {
+            account: &acc,
+            cost_micros: 50,
+            residency_region: "tenant-home-region".to_owned(),
+            privacy_boundary: "tenant-default".to_owned(),
+            model_affinity: false,
+        }];
+        let c = constraints();
+        assert_eq!(
+            RoutePolicy::rank_candidates(&cands, &c),
+            Err(RouteError::NoActiveAccount)
+        );
+    }
+
+    #[test]
+    fn rank_all_over_budget_returns_budget_exceeded() {
+        let acc = active("a1", ProviderFamily::Claude);
+        let cands = vec![candidate(&acc, 1_000, false)];
+        let mut c = constraints();
+        c.budget_micros_ceiling = 500;
+        assert_eq!(
+            RoutePolicy::rank_candidates(&cands, &c),
+            Err(RouteError::BudgetExceeded)
+        );
+    }
+
+    #[test]
+    fn rank_residency_mismatch_returns_residency_unmet() {
+        let acc = active("a1", ProviderFamily::Claude);
+        let cands = vec![RouteCandidate {
+            account: &acc,
+            cost_micros: 100,
+            residency_region: "us-east-1".to_owned(),
+            privacy_boundary: "tenant-default".to_owned(),
+            model_affinity: false,
+        }];
+        let c = constraints();
+        assert_eq!(
+            RoutePolicy::rank_candidates(&cands, &c),
+            Err(RouteError::ResidencyUnmet)
+        );
+    }
+
+    #[test]
+    fn rank_privacy_mismatch_returns_privacy_boundary_unmet() {
+        let acc = active("a1", ProviderFamily::Claude);
+        let cands = vec![RouteCandidate {
+            account: &acc,
+            cost_micros: 100,
+            residency_region: "tenant-home-region".to_owned(),
+            privacy_boundary: "gdpr-eu".to_owned(),
+            model_affinity: false,
+        }];
+        let c = constraints();
+        assert_eq!(
+            RoutePolicy::rank_candidates(&cands, &c),
+            Err(RouteError::PrivacyBoundaryUnmet)
+        );
+    }
+
+    #[test]
+    fn rank_silent_switch_returns_silent_switch_prevented() {
+        let mut prev = ProviderAccount::new(aid("a-prev"), ProviderFamily::Claude);
+        prev.state = AccountState::Active;
+        prev.subscription_id = Some("sub-1".to_owned());
+        let mut other = ProviderAccount::new(aid("a-other"), ProviderFamily::Claude);
+        other.state = AccountState::Active;
+        other.subscription_id = Some("sub-1".to_owned());
+        let cands = vec![
+            candidate(&other, 100, true),
+            RouteCandidate {
+                account: &prev,
+                cost_micros: 100,
+                residency_region: "tenant-home-region".to_owned(),
+                privacy_boundary: "tenant-default".to_owned(),
+                model_affinity: true,
+            },
+        ];
+        let mut c = constraints();
+        c.previous_account_id = Some(aid("a-prev"));
+        assert_eq!(
+            RoutePolicy::rank_candidates(&cands, &c),
+            Err(RouteError::SilentSwitchPrevented)
+        );
+    }
+
+    // ── Happy path ───────────────────────────────────────────────────────────
+
+    #[test]
+    fn rank_single_eligible_returns_single_element_slate() {
+        let acc = active("solo", ProviderFamily::Claude);
+        let cands = vec![candidate(&acc, 42, true)];
+        let c = constraints();
+        let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
+        assert_eq!(slate.len(), 1);
+        assert_eq!(slate[0].account_id, aid("solo"));
+        assert_eq!(slate[0].cost_micros, 42);
+        assert!(slate[0].model_affinity);
+        assert_eq!(slate[0].failover_rank, 0);
+    }
+
+    #[test]
+    fn rank_returns_all_eligible_not_just_winner() {
+        let a1 = active("a1", ProviderFamily::Claude);
+        let a2 = active("a2", ProviderFamily::OpenAiOrCodex);
+        let a3 = active("a3", ProviderFamily::Gemini);
+        let cands = vec![
+            candidate(&a3, 300, false),
+            candidate(&a1, 100, false),
+            candidate(&a2, 200, false),
+        ];
+        let c = constraints();
+        let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
+        assert_eq!(slate.len(), 3, "all three eligible candidates must appear");
+        // winner is lowest cost = a1
+        assert_eq!(slate[0].account_id, aid("a1"));
+    }
+
+    // ── Tiebreak tests ───────────────────────────────────────────────────────
+
+    #[test]
+    fn rank_cost_tiebreak_lowest_first() {
+        let cheap = active("cheap", ProviderFamily::Gemini);
+        let expensive = active("expensive", ProviderFamily::Claude);
+        let cands = vec![
+            candidate(&expensive, 500, false),
+            candidate(&cheap, 100, false),
+        ];
+        let c = constraints();
+        let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
+        assert_eq!(slate[0].account_id, aid("cheap"));
+        assert_eq!(slate[1].account_id, aid("expensive"));
+    }
+
+    #[test]
+    fn rank_cost_tie_affinity_true_first() {
+        let no_affinity = active("no-aff", ProviderFamily::Claude);
+        let has_affinity = active("has-aff", ProviderFamily::OpenAiOrCodex);
+        let cands = vec![
+            candidate(&no_affinity, 200, false),
+            candidate(&has_affinity, 200, true),
+        ];
+        let c = constraints();
+        let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
+        assert_eq!(slate[0].account_id, aid("has-aff"));
+        assert_eq!(slate[1].account_id, aid("no-aff"));
+    }
+
+    #[test]
+    fn rank_cost_affinity_tie_lower_failover_rank_first() {
+        let gemini = active("g1", ProviderFamily::Gemini);
+        let claude = active("c1", ProviderFamily::Claude);
+        let cands = vec![
+            candidate(&gemini, 200, false),
+            candidate(&claude, 200, false),
+        ];
+        let c = constraints(); // Claude is rank 0, Gemini is rank 2
+        let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
+        assert_eq!(slate[0].account_id, aid("c1")); // rank 0 wins
+        assert_eq!(slate[1].account_id, aid("g1")); // rank 2
+    }
+
+    #[test]
+    fn rank_full_tie_lexicographic_id_first() {
+        let acc_z = active("z-account", ProviderFamily::Claude);
+        let acc_a = active("a-account", ProviderFamily::Claude);
+        let cands = vec![
+            candidate(&acc_z, 200, true),
+            candidate(&acc_a, 200, true),
+        ];
+        let c = constraints();
+        let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
+        assert_eq!(slate[0].account_id, aid("a-account"));
+        assert_eq!(slate[1].account_id, aid("z-account"));
+    }
+
+    // ── Consistency invariant ────────────────────────────────────────────────
+
+    #[test]
+    fn rank_slate_zero_equals_select_weighted_winner() {
+        let a1 = active("b1", ProviderFamily::Claude);
+        let a2 = active("b2", ProviderFamily::OpenAiOrCodex);
+        let cands = vec![
+            candidate(&a1, 150, false),
+            candidate(&a2, 100, true),
+        ];
+        let c = constraints();
+        let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
+        let explanation = RoutePolicy::select_weighted(&cands, &c).unwrap();
+        assert_eq!(
+            slate[0].account_id,
+            explanation.chosen_account_id,
+            "slate[0] must match select_weighted winner"
+        );
+    }
+
+    // ── RouteScore fields ────────────────────────────────────────────────────
+
+    #[test]
+    fn rank_score_headroom_is_ceiling_minus_cost() {
+        let acc = active("h1", ProviderFamily::Claude);
+        let cands = vec![candidate(&acc, 300, false)];
+        let mut c = constraints();
+        c.budget_micros_ceiling = 1_000;
+        let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
+        assert_eq!(slate[0].budget_headroom_micros, 700);
     }
 }
 
