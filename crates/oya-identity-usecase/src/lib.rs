@@ -5,6 +5,8 @@
 //! `identity.token.issue` before handing typed issuance to the platform identity
 //! kernel.
 
+pub mod observability;
+
 use std::collections::BTreeMap;
 
 use oya_data_boundary_kernel::{Purpose, parse_purpose_pascal_label};
