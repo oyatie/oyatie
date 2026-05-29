@@ -52,6 +52,61 @@ pub fn classify_sla_deadline(timer: &SlaTimer, reference_epoch_seconds: u64) -> 
     }
 }
 
+/// Escalation bucket for an SLA timer relative to a caller-supplied reference instant.
+/// Pure value object — no wall-clock, no I/O.
+///
+/// Ordering: `None < Notify < Page < AutoAbort`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum SlaEscalationLevel {
+    None,
+    Notify,
+    Page,
+    AutoAbort,
+}
+
+impl SlaEscalationLevel {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::Notify => "notify",
+            Self::Page => "page",
+            Self::AutoAbort => "auto-abort",
+        }
+    }
+}
+
+/// Project the SLA escalation bucket for a timer given a reference epoch (seconds) and a
+/// breach-grace window (seconds after the deadline before auto-abort fires).
+///
+/// Thresholds (pure integer arithmetic, saturating):
+/// - `reference >= deadline + breach_grace_seconds` → `AutoAbort`
+/// - `reference >= deadline`                         → `Page`
+/// - `reference >= armed_at + window*80/100`         → `Notify`
+/// - otherwise                                       → `None`
+///
+/// No `std::time::SystemTime::now()`, no randomness, no I/O.
+pub fn project_sla_escalation(
+    timer: &SlaTimer,
+    reference_epoch_seconds: u64,
+    breach_grace_seconds: u64,
+) -> SlaEscalationLevel {
+    let armed_at = timer.armed_at_epoch_seconds;
+    let deadline = timer.deadline_epoch_seconds;
+    let window = deadline.saturating_sub(armed_at);
+    let at_risk_at = armed_at.saturating_add(window.saturating_mul(80) / 100);
+    let grace_end = deadline.saturating_add(breach_grace_seconds);
+
+    if reference_epoch_seconds >= grace_end {
+        SlaEscalationLevel::AutoAbort
+    } else if reference_epoch_seconds >= deadline {
+        SlaEscalationLevel::Page
+    } else if reference_epoch_seconds >= at_risk_at {
+        SlaEscalationLevel::Notify
+    } else {
+        SlaEscalationLevel::None
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ExecutionDomainOrigin {
     ApiCommand,
@@ -865,6 +920,128 @@ mod tests {
             "expected invalid-command-shape in audit_refs, got {:?}",
             denial.audit_refs
         );
+    }
+
+    // --- SLA escalation bucket projection tests ---
+
+    fn escalation_timer(armed_at: u64, deadline: u64) -> SlaTimer {
+        SlaTimer::new(
+            "timer:escalation:1",
+            "ten_a",
+            "run:escalation:1",
+            Some(0),
+            armed_at,
+            deadline,
+            vec!["workflow-execution-domain:sla-escalation".to_owned()],
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn escalation_none_when_reference_well_before_at_risk_threshold() {
+        // window=100, at_risk_at=180, reference=120 → None
+        let timer = escalation_timer(100, 200);
+        let level = project_sla_escalation(&timer, 120, 30);
+        assert_eq!(level, SlaEscalationLevel::None);
+        assert_eq!(level.as_wire(), "none");
+    }
+
+    #[test]
+    fn escalation_notify_when_reference_exactly_at_eighty_percent_threshold() {
+        // window=100, at_risk_at=180, reference=180 → Notify
+        let timer = escalation_timer(100, 200);
+        let level = project_sla_escalation(&timer, 180, 30);
+        assert_eq!(level, SlaEscalationLevel::Notify);
+        assert_eq!(level.as_wire(), "notify");
+    }
+
+    #[test]
+    fn escalation_notify_when_reference_between_threshold_and_deadline() {
+        // at_risk_at=180, deadline=200, reference=195 → Notify
+        let timer = escalation_timer(100, 200);
+        let level = project_sla_escalation(&timer, 195, 30);
+        assert_eq!(level, SlaEscalationLevel::Notify);
+    }
+
+    #[test]
+    fn escalation_page_when_reference_exactly_at_deadline_within_grace() {
+        // deadline=200, grace=30, grace_end=230, reference=200 → Page
+        let timer = escalation_timer(100, 200);
+        let level = project_sla_escalation(&timer, 200, 30);
+        assert_eq!(level, SlaEscalationLevel::Page);
+        assert_eq!(level.as_wire(), "page");
+    }
+
+    #[test]
+    fn escalation_page_when_reference_inside_grace_window_past_deadline() {
+        // deadline=200, grace=30, grace_end=230, reference=215 → Page
+        let timer = escalation_timer(100, 200);
+        let level = project_sla_escalation(&timer, 215, 30);
+        assert_eq!(level, SlaEscalationLevel::Page);
+    }
+
+    #[test]
+    fn escalation_auto_abort_when_reference_exactly_at_grace_end() {
+        // deadline=200, grace=30, grace_end=230, reference=230 → AutoAbort
+        let timer = escalation_timer(100, 200);
+        let level = project_sla_escalation(&timer, 230, 30);
+        assert_eq!(level, SlaEscalationLevel::AutoAbort);
+        assert_eq!(level.as_wire(), "auto-abort");
+    }
+
+    #[test]
+    fn escalation_auto_abort_when_reference_exceeds_grace_end() {
+        // reference=999 → AutoAbort
+        let timer = escalation_timer(100, 200);
+        let level = project_sla_escalation(&timer, 999, 30);
+        assert_eq!(level, SlaEscalationLevel::AutoAbort);
+    }
+
+    #[test]
+    fn escalation_is_monotonic_across_increasing_reference_epochs() {
+        let timer = escalation_timer(100, 200);
+        let grace = 30u64;
+        // sample reference points spanning all four buckets
+        let levels: Vec<SlaEscalationLevel> = [120u64, 180, 195, 200, 215, 230, 999]
+            .iter()
+            .map(|&r| project_sla_escalation(&timer, r, grace))
+            .collect();
+
+        for window in levels.windows(2) {
+            assert!(
+                window[0] <= window[1],
+                "escalation must be monotone: {:?} > {:?}",
+                window[0],
+                window[1]
+            );
+        }
+    }
+
+    #[test]
+    fn escalation_saturating_arithmetic_on_max_breach_grace_seconds() {
+        // deadline + u64::MAX must not overflow (saturates to u64::MAX)
+        let timer = escalation_timer(100, 200);
+        // reference = 200 → below grace_end (saturated u64::MAX) → Page
+        let level = project_sla_escalation(&timer, 200, u64::MAX);
+        assert_eq!(level, SlaEscalationLevel::Page);
+        // reference = u64::MAX → equals saturated grace_end → AutoAbort
+        let level_max = project_sla_escalation(&timer, u64::MAX, u64::MAX);
+        assert_eq!(level_max, SlaEscalationLevel::AutoAbort);
+    }
+
+    #[test]
+    fn escalation_ord_ordering_none_lt_notify_lt_page_lt_auto_abort() {
+        assert!(SlaEscalationLevel::None < SlaEscalationLevel::Notify);
+        assert!(SlaEscalationLevel::Notify < SlaEscalationLevel::Page);
+        assert!(SlaEscalationLevel::Page < SlaEscalationLevel::AutoAbort);
+    }
+
+    #[test]
+    fn escalation_zero_grace_auto_aborts_at_deadline() {
+        // breach_grace_seconds=0 → grace_end=deadline, reference=200 → AutoAbort immediately
+        let timer = escalation_timer(100, 200);
+        let level = project_sla_escalation(&timer, 200, 0);
+        assert_eq!(level, SlaEscalationLevel::AutoAbort);
     }
 
     #[test]
