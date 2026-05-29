@@ -1,8 +1,12 @@
-# FD-001 Phase 0 Task List
+# RETIRED — pointer hub only
 
-Status legend: ⬜ pending · 🟦 in-progress · ✅ done
+This file is retired per the markdown-retirement-policy (`/specs/markdown-retirement-policy.json`).
 
-## Authority
+Authoritative task tracking: `/specs/masterplan.json`
+Execution sequencing: `/specs/master-plan-sequencing.json`
+ADR decisions: `docs/decisions/`
+
+## Authority (archived — non-authoritative)
 
 - `/specs/masterplan.json`
 - `/specs/master-plan-sequencing.json`

@@ -1,8 +1,13 @@
-# Enterprise Microservices Implementation Plan
+# RETIRED — pointer hub only
 
-## Status and authority
+This file is retired per the markdown-retirement-policy (`/specs/markdown-retirement-policy.json`).
+The worktree `agent/enterprise-microservices-20260523T070244Z` has been pruned (content merged to dev).
 
-This additive plan is scoped to the isolated worktree branch `agent/enterprise-microservices-20260523T070244Z` and does not replace the active Phase 0 cloud foundation plan in `tasks/plan.md`.
+Authoritative planning SSOT: `/specs/masterplan.json`
+Microservice specs: `/specs/microservices/`
+ADR decisions: `docs/decisions/`
+
+## Archived content (non-authoritative)
 
 Authoritative inputs:
 
