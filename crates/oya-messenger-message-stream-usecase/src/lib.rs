@@ -1,6 +1,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub mod delivery_receipt;
+pub mod mention_fanout;
+pub use mention_fanout::{MentionFanout, MentionFanoutInput, derive_mention_fanout};
 pub use delivery_receipt::{
     ChannelDeliveryAggregate, DeliveryStatus, RecipientDeliveryState, acknowledge_delivery,
     aggregate_channel_delivery,
