@@ -1549,10 +1549,7 @@ fn signal_await_store_error_receipt(
     input: &SignalAwaitInput,
     error: ExecutionStoreError,
 ) -> SignalAwaitReceipt {
-    let error_ref = match &error {
-        ExecutionStoreError::Unavailable { evidence_ref } => evidence_ref.clone(),
-        ExecutionStoreError::Conflict { evidence_ref, .. } => evidence_ref.clone(),
-    };
+    let error_ref = store_error_ref(&error);
     let refs = sorted_unique(vec![
         error_ref,
         "workflow-signal-usecase:store-unavailable".to_owned(),
@@ -1579,10 +1576,7 @@ fn signal_await_timer_error_receipt(
     input: &SignalAwaitInput,
     error: ExecutionStoreError,
 ) -> SignalAwaitReceipt {
-    let error_ref = match &error {
-        ExecutionStoreError::Unavailable { evidence_ref } => evidence_ref.clone(),
-        ExecutionStoreError::Conflict { evidence_ref, .. } => evidence_ref.clone(),
-    };
+    let error_ref = store_error_ref(&error);
     let refs = sorted_unique(vec![
         error_ref,
         "workflow-signal-usecase:timer-unavailable".to_owned(),
@@ -1675,10 +1669,7 @@ fn signal_deliver_store_error_receipt(
     input: &SignalDeliverInput,
     error: ExecutionStoreError,
 ) -> SignalDeliverReceipt {
-    let error_ref = match &error {
-        ExecutionStoreError::Unavailable { evidence_ref } => evidence_ref.clone(),
-        ExecutionStoreError::Conflict { evidence_ref, .. } => evidence_ref.clone(),
-    };
+    let error_ref = store_error_ref(&error);
     let refs = sorted_unique(vec![
         error_ref,
         "workflow-signal-usecase:store-unavailable".to_owned(),
@@ -1769,10 +1760,7 @@ fn signal_timeout_store_error_receipt(
     input: &SignalTimeoutInput,
     error: ExecutionStoreError,
 ) -> SignalTimeoutReceipt {
-    let error_ref = match &error {
-        ExecutionStoreError::Unavailable { evidence_ref } => evidence_ref.clone(),
-        ExecutionStoreError::Conflict { evidence_ref, .. } => evidence_ref.clone(),
-    };
+    let error_ref = store_error_ref(&error);
     let refs = sorted_unique(vec![
         error_ref,
         "workflow-signal-usecase:store-unavailable".to_owned(),
@@ -1790,6 +1778,17 @@ fn signal_timeout_store_error_receipt(
             refs.clone(),
         )],
         evidence_refs: refs,
+    }
+}
+
+// ── Shared store-error helper (private) ──────────────────────────────────────
+
+/// Extract the evidence_ref string from any ExecutionStoreError variant.
+/// Used by all three signal *_store_error_receipt helpers to avoid duplicate match arms.
+fn store_error_ref(error: &ExecutionStoreError) -> String {
+    match error {
+        ExecutionStoreError::Unavailable { evidence_ref } => evidence_ref.clone(),
+        ExecutionStoreError::Conflict { evidence_ref, .. } => evidence_ref.clone(),
     }
 }
 

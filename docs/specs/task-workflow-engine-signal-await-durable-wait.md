@@ -143,7 +143,7 @@ pub struct SignalAwaitReceipt {
     pub step_id: String,
     pub signal_name: String,
     pub timer_armed: bool,
-    pub audit_events: Vec<ExecutionAuditEvent>,
+    pub audit_events: Vec<SignalAuditEvent>, // separate enum; see SignalAuditEvent below
     pub evidence_refs: Vec<String>,
 }
 ```
@@ -173,7 +173,7 @@ pub struct SignalDeliverReceipt {
     pub tenant_id: String,
     pub run_id: String,
     pub signal_name: String,
-    pub audit_events: Vec<ExecutionAuditEvent>,
+    pub audit_events: Vec<SignalAuditEvent>, // separate enum; see SignalAuditEvent below
     pub evidence_refs: Vec<String>,
 }
 ```
@@ -203,7 +203,7 @@ pub struct SignalTimeoutReceipt {
     pub tenant_id: String,
     pub run_id: String,
     pub signal_name: String,
-    pub audit_events: Vec<ExecutionAuditEvent>,
+    pub audit_events: Vec<SignalAuditEvent>, // separate enum; see SignalAuditEvent below
     pub evidence_refs: Vec<String>,
 }
 ```
