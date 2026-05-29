@@ -1,20 +1,16 @@
-# oya-cost microservice — crate members list (ADR-0480).
-#
-# This file is NOT a [workspace] root. It lists the crates that belong to this
-# µservice for documentation purposes. The actual workspace root is the
-# repository root Cargo.toml.
-#
-# non_claim: placeholder pending D1-D5 implementation.
-
 [package]
 name = "oya-cost"
 version = "0.1.0"
 edition = "2024"
-publish = false
 license = "Apache-2.0"
-description = "oya-cost µservice manifest — not a workspace root (ADR-0480)."
+publish = false
 
-# Members (informational — canonical membership is in root Cargo.toml):
-#   crates/oya-cost-kernel
-#   crates/oya-cost-rest
-#   crates/oya-cost-app
+[[bin]]
+name = "oya-cost"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
