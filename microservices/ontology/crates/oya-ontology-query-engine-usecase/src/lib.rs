@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 use oya_ontology_kernel::ObjectGraph;
 use oya_ontology_query_engine_domain::{
     KnowledgeGraphQueryEngine, KnowledgeGraphQueryError, KnowledgeGraphQueryRequest,
-    KnowledgeGraphQueryResponse,
+    KnowledgeGraphQueryResponse, TraversalDirection,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -401,6 +401,8 @@ mod tests {
                 1,
                 0,
                 12,
+                vec!["lty_owns"],
+                TraversalDirection::Outbound,
             )
             .unwrap(),
             policy_decision: OntologyQueryPolicyDecision {
@@ -472,6 +474,8 @@ mod tests {
             1,
             0,
             12,
+            vec!["lty_owns"],
+            TraversalDirection::Outbound,
         )
         .unwrap();
 
@@ -548,6 +552,8 @@ mod tests {
             1,
             0,
             12,
+            vec!["lty_owns"],
+            TraversalDirection::Outbound,
         )
         .unwrap();
 

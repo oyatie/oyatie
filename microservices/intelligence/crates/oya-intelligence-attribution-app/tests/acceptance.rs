@@ -83,6 +83,7 @@ fn sample_kernel_request(tenant: &str, evidence_suffix: &str) -> AttributionRequ
         policy_evidence_ref: format!("policy:evidence:attribution-app:{evidence_suffix}"),
         trace_context_ref: format!("trace:attribution-app:{evidence_suffix}"),
         max_citations: 8,
+        max_citations_per_claim: 8,
         sources: vec![
             AttributionSource {
                 source_id: "src-kg-policy".to_owned(),

@@ -55,6 +55,7 @@ fn policy_version() -> PolicyVersion {
             action: "cloud.compute.write".to_string(),
             resource_prefix: "cloud:ten_alpha:compute".to_string(),
             required_attribute: None,
+            annotations: vec![],
         }],
     }
 }

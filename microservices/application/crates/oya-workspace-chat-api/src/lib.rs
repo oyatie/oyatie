@@ -1141,6 +1141,12 @@ fn chat_error_message(error: &ChatError) -> &'static str {
         ChatError::InvalidAttachmentMimeType => "Workspace Chat attachment mime type is invalid",
         ChatError::EmptyAttachment => "Workspace Chat attachments must contain bytes",
         ChatError::InvalidDataClass => "Workspace Chat data class is invalid",
+        ChatError::InvalidThreadStateTransition => {
+            "Workspace Chat thread state transition is invalid"
+        }
+        ChatError::CrossPillarSubscriptionDenied => {
+            "Workspace Chat cross-pillar subscription is denied"
+        }
     }
 }
 
@@ -1173,5 +1179,11 @@ fn chat_error_issue(error: &ChatError) -> &'static str {
         ChatError::InvalidAttachmentMimeType => "attachment mime type must be non-empty",
         ChatError::EmptyAttachment => "attachment byte_len must be at least one",
         ChatError::InvalidDataClass => "data class must be a privacy data class",
+        ChatError::InvalidThreadStateTransition => {
+            "thread state transition must follow the allowed lifecycle"
+        }
+        ChatError::CrossPillarSubscriptionDenied => {
+            "cross-pillar subscription is not permitted for this tenant"
+        }
     }
 }

@@ -44,6 +44,7 @@ fn policy_publish_and_authorize_enforces_rbac_abac_by_tenant_scope() {
                 action: "tenant.settings.update".into(),
                 resource_prefix: "tenant:".into(),
                 required_attribute: Some(("region".into(), "region-home".into())),
+                annotations: vec![],
             }],
         })
         .expect("policy version is valid");

@@ -762,6 +762,7 @@ fn cloud_network_status_kind(error: &CloudNetworkError) -> CloudNetworkDnsApiSta
         | CloudNetworkError::InvalidDnsZoneState
         | CloudNetworkError::InvalidIpv4Cidr
         | CloudNetworkError::InvalidIpv6Cidr
+        | CloudNetworkError::InvalidCidrPrefix
         | CloudNetworkError::Ipv6Required
         | CloudNetworkError::InvalidRouteTableId
         | CloudNetworkError::InvalidRoute
@@ -861,6 +862,7 @@ fn cloud_network_issue(error: &CloudNetworkError) -> &'static str {
         }
         CloudNetworkError::InvalidIpv4Cidr => "IPv4 CIDR must be canonical",
         CloudNetworkError::InvalidIpv6Cidr => "IPv6 CIDR must be canonical",
+        CloudNetworkError::InvalidCidrPrefix => "CIDR prefix length is out of range",
         CloudNetworkError::Ipv6Required => "IPv6 CIDR is required",
         CloudNetworkError::InvalidRouteTableId => "route table id must use the rtb_ prefix",
         CloudNetworkError::InvalidRoute => "route next hop and target reference must be consistent",
