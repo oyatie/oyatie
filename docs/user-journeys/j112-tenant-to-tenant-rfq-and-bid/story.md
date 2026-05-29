@@ -100,7 +100,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 003 - workflow-engine moves the relationship forward
@@ -177,7 +177,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 007 - marketplace moves the relationship forward
@@ -258,7 +258,7 @@ through workflow and e-sign, and payments escrows the deposit.
   per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 011 - identity moves the relationship forward
@@ -335,7 +335,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 015 - workflow-engine moves the relationship forward
@@ -414,7 +414,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 019 - marketplace moves the relationship forward
@@ -493,7 +493,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 023 - identity moves the relationship forward
@@ -572,7 +572,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 027 - workflow-engine moves the relationship forward
@@ -649,7 +649,7 @@ through workflow and e-sign, and payments escrows the deposit.
   per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 031 - marketplace moves the relationship forward
@@ -730,7 +730,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 035 - identity moves the relationship forward
@@ -807,7 +807,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 039 - workflow-engine moves the relationship forward
@@ -886,7 +886,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 043 - marketplace moves the relationship forward
@@ -965,7 +965,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 047 - identity moves the relationship forward
@@ -1044,7 +1044,7 @@ through workflow and e-sign, and payments escrows the deposit.
   per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 051 - workflow-engine moves the relationship forward
@@ -1121,7 +1121,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 055 - marketplace moves the relationship forward
@@ -1202,7 +1202,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 059 - identity moves the relationship forward
@@ -1279,7 +1279,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 063 - workflow-engine moves the relationship forward
@@ -1358,7 +1358,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 067 - marketplace moves the relationship forward
@@ -1437,7 +1437,7 @@ through workflow and e-sign, and payments escrows the deposit.
   per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 071 - identity moves the relationship forward
@@ -1516,7 +1516,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 075 - workflow-engine moves the relationship forward
@@ -1595,7 +1595,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 079 - marketplace moves the relationship forward
@@ -1676,7 +1676,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 083 - identity moves the relationship forward
@@ -1755,7 +1755,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 087 - workflow-engine moves the relationship forward
@@ -1836,7 +1836,7 @@ through workflow and e-sign, and payments escrows the deposit.
   per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 091 - marketplace moves the relationship forward
@@ -1915,7 +1915,7 @@ through workflow and e-sign, and payments escrows the deposit.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if five CNC vendor tenants is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 095 - identity moves the relationship forward

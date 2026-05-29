@@ -27,7 +27,7 @@ Tenants embed social functionality in their own surfaces (mobile / desktop / emb
 
 | Language | Priority | Generation strategy | Authority |
 |---|---|---|---|
-| **Rust** | M02 (primary; oyatie's own language) | First-party authored (`oya-social-*-sdk` crates per BC) | axis-social |
+| **Rust** | M02 (primary; oyatie's own language) | First-party authored (`oya-community-social-*-sdk` crates per BC) | axis-social |
 | **TypeScript + Browser SDK** | M02 (web-client + ts-server) | OpenAPI + AsyncAPI generation + first-party ergonomic + WebSocket reconnect | axis-social + gtm |
 | **Kotlin (Android) + Swift (iOS)** | M02-onward1 | gRPC-generated + first-party ergonomic + native WebSocket + multipart-upload | axis-social + gtm |
 | **Python** | M03 | OpenAPI-generated + ergonomic | axis-social + gtm |
@@ -42,7 +42,7 @@ Driver: mobile clients lead because most social usage is mobile (per industry da
 
 ### Rust SDK (first-party)
 
-Lives in `microservices/social/src/crates/oya-social-*-sdk/`.
+Lives in `microservices/social/src/crates/oya-community-social-*-sdk/`.
 
 - `Client::new(opts) -> Client; client.publish_post(...) -> Result<Post>`.
 - WebSocket subscription: `client.subscribe_feed() -> impl Stream<Item=WsFrame>`.

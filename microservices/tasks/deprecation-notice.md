@@ -2,7 +2,7 @@
 doc_class: DeprecationNotice
 template_id: TPL-DEPRECATION-NOTICE
 microservice: tasks
-deprecated_artifact: oya-connect-tasks-* crate family
+deprecated_artifact: oya-tasks-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-TASKS accepts at p99 SLOs sustained 30d
@@ -13,7 +13,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Deprecation Notice: `oya-connect-tasks-*` crate family
+# Deprecation Notice: `oya-tasks-*` crate family
 
 > Formal deprecation notice in the format prescribed by the agent-skills
 > `deprecation-and-migration` skill SKILL.md §"Step 2: Announce and Document".
@@ -43,11 +43,11 @@ soak + Phase 3 canary), the indicative advisory removal date is
 
 ## Reason
 
-The legacy `oya-connect-tasks-*` family was authored before the
+The legacy `oya-tasks-*` family was authored before the
 following ADRs crystallised; each ADR makes the legacy shape non-
 conforming:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — agentic SLO-gated promotion.** Tasks needs independent
@@ -68,7 +68,7 @@ conforming:
 5. **ADR-TASKS-0001 → ADR-TASKS-0006** — tasks-specific decisions (data
    model, dependency graph, rrule alignment, view engine + CRDT scope,
    workflow bridge, AI auto-assign EU AI Act bounds) need to live at
-   per-µservice ADR granularity, not at the Connect suite level.
+   per-µservice ADR granularity, not at the platform level.
 
 ## Migration Guide pointer
 
@@ -86,14 +86,14 @@ continuity table (1 preserved + 6 net-new); 5-step migration recipe;
 
 ## Affected packages enumerated
 
-Per `find crates -maxdepth 1 -type d -name 'oya-connect-tasks-*'`
+Per `find crates -maxdepth 1 -type d -name 'oya-tasks-*'`
 (2026-05-17 workspace state):
 
 | Currently extant in `crates/` | Mapped replacement |
 |---|---|
-| `oya-connect-tasks-domain` | split per BC → `oya-tasks-{task-store,project-list,view-engine,dependency-graph,recurrence,search-index,importers}-domain` |
+| `oya-tasks-domain` | split per BC → `oya-tasks-{task-store,project-list,view-engine,dependency-graph,recurrence,search-index,importers}-domain` |
 
-Plus all `oya-connect-tasks-{kernel,usecase,api,adapter*,rest,worker,
+Plus all `oya-tasks-{kernel,usecase,api,adapter*,rest,worker,
 sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 
 ## Breaking changes flagged per `feedback_no_silent_regression`
@@ -108,11 +108,11 @@ sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 | Recurring horizon bounded at 5y (ADR-TASKS-0003) | 1 | **Behaviourally divergent** for unbounded legacy recurring tasks | adapter does NOT mask; documented Hyrum #6 |
 | Importer strict assignee resolution (ADR-TASKS-0001) | 1 | **Behaviourally divergent** — refuses ambiguous matches instead of silent fuzzy-misassign | adapter does NOT mask; documented Hyrum #7 |
 | Cedar refusal of auto-assign in EU AI Act Annex III §4 employment context (ADR-TASKS-0006) | 1 | **New constraint** — auto-assign refused at Cedar layer until conformity assessment | adapter does NOT mask; documented in capabilities/T2-auto.yaml |
-| `oya-connect-tasks-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface for non-strengthened paths) | — |
+| `oya-tasks-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface for non-strengthened paths) | — |
 | Feature-flagged canary 10→50→100% | 3 | No (additive, gated) | — |
 | Zero-usage verification | 4 | No (observability only) | — |
-| **`oya-connect-tasks-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
-| `microservices/connect/` umbrella folder removed | 6 | No | — |
+| **`oya-tasks-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
+| `microservices/connector/` umbrella folder removed | 6 | No | — |
 
 Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
@@ -124,7 +124,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
   deliberate, owner-authored design choices — NOT silent regressions).
 - **Version bump.** The `Cargo.toml` of every consumer crate is bumped
   per semver when its legacy imports are removed (treating the
-  `oya-connect-tasks-*` re-export as the public contract).
+  `oya-tasks-*` re-export as the public contract).
 - **Sunset schedule.** 6-month advisory window from this notice;
   concrete date 2026-11-17 contingent on the HG-TASKS SLO trigger.
 - **Owning-axis migration ChangeSets.** axis-tasks ships migration

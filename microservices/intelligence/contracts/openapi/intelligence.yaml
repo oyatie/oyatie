@@ -6,7 +6,7 @@ info:
     Consumer and tenant AI substrate. Foundry remains internal; this API exposes
     only context-bound assistance and retrieval surfaces.
 servers:
-  - url: https://intelligence.{pack}.oyatie.dev
+  - url: https://intelligence.{pack}.oyatie.com
     variables:
       pack:
         default: pack-kr

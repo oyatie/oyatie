@@ -25,6 +25,8 @@ use oya_community_post_store_api::{
 };
 use oya_community_post_store_domain::{CommunityPost, VoteLedger};
 use oya_community_post_store_rest as community_rest;
+use oya_community_social_post_composition_api::SocialApiArtifactKind;
+use oya_community_social_post_composition_rest as social_rest;
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{HyperRuntimeError, ServerConfig, serve_listener};
@@ -36,8 +38,6 @@ use oya_shared_postgres_command_kernel::{
     RecordingSqlBatchExecutor, SqlBatchExecutor, SqlExecutionPlan, SqlExecutionReport,
     TenantSqlContext,
 };
-use oya_social_post_composition_api::SocialApiArtifactKind;
-use oya_social_post_composition_rest as social_rest;
 use serde_json::Value;
 use tokio::net::TcpListener;
 

@@ -2,12 +2,12 @@
 packLabel: ksa
 zitadel:
   zitadelConfig:
-    externalDomain: identity-ksa.oyatie.dev
+    externalDomain: identity-ksa.oyatie.com
     Telemetry:
       Endpoint: otel-collector.observability-ksa.svc.cluster.local:4317
 webauthn:
   attestation: direct
-  rpId: identity-ksa.oyatie.dev
+  rpId: identity-ksa.oyatie.com
 openbao:
   hsm:
     type: thales-luna

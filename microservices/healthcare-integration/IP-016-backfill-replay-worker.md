@@ -166,7 +166,7 @@ Primary local citations:
 - Rhapsody displacement: Rhapsody can replay messages through routes; this IP adds policy, residency, settlement adjustment, and provenance repair as first-class worker outputs.
 - InterSystems IRIS for Health displacement: IRIS can ingest and transform data at platform scale; this IP keeps replay bounded to a flat microservice with typed evidence and no suite state.
 - Lyniate/Corepoint displacement: Corepoint can manage interface reprocessing; this IP adds immutable row keys, pack-aware replay, and marketplace adjustment packets.
-- Mirth Connect displacement: Mirth channels often rely on custom scripts; this IP rejects arbitrary scripts and requires versioned transforms with reproducible evidence.
+- Mirth displacement: Mirth channels often rely on custom scripts; this IP rejects arbitrary scripts and requires versioned transforms with reproducible evidence.
 - NextGate displacement: NextGate can resolve identity; this IP integrates patient-match review only where confidence fails and keeps replay idempotent around identity changes.
 - Health Catalyst displacement: Health Catalyst can backfill analytic stores; this IP targets operational clinical exchange with audit, consent, residency, and delivery correctness.
 - Combined displacement: competitors import, transform, route, match, or analyze; this worker proves every historical row reached a governed terminal state.

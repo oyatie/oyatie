@@ -19,7 +19,7 @@ doc_status: published
 
 ## What this µservice does
 
-The `payments` µservice is the **shared hero-substrate** for every oyatie monetisation surface. Every B2C purchase (sticker packs, creator tipping, premium handles), every B2B subscription (per-seat SaaS, usage-metered cloud-billing), every marketplace-facilitator flow (plugin-app-store checkout, shorts creator tipping, community super-chats), and every payout to a tenant or sub-merchant flows through this µservice. It mirrors the **Stripe Connect platform-facilitator** shape (the canonical hyperscaler precedent), augmented with per-region PSP routing (Adyen EU, Toss / KakaoPay KR, LINE Pay JP, WeChat Pay / Alipay CN-PIPL) and a **per-tenant provider-BYOK** model (the tenant's own Stripe / Adyen account, never oyatie's master account).
+The `payments` µservice is the **shared hero-substrate** for every oyatie monetisation surface. Every B2C purchase (sticker packs, creator tipping, premium handles), every B2B subscription (per-seat SaaS, usage-metered cloud-billing), every marketplace-facilitator flow (plugin-app-store checkout, shorts creator tipping, community super-chats), and every payout to a tenant or sub-merchant flows through this µservice. It mirrors the **Stripe platform-facilitator** shape (the canonical hyperscaler precedent), augmented with per-region PSP routing (Adyen EU, Toss / KakaoPay KR, LINE Pay JP, WeChat Pay / Alipay CN-PIPL) and a **per-tenant provider-BYOK** model (the tenant's own Stripe / Adyen account, never oyatie's master account).
 
 ## Why it exists
 
@@ -65,7 +65,7 @@ capability ladder.
 | `refund` | Issue full / partial refund against an original charge | `Refund`, `RefundReason`, `RefundEvidence` |
 | `payout` | Move funds from oyatie balance / tenant balance / sub-merchant balance to bank | `Payout`, `BankAccount`, `PayoutSchedule`, `CoolingPeriod` |
 | `settlement` | Reconcile per-PSP settlement reports against internal ledger | `SettlementBatch`, `Reconciliation`, `Discrepancy` |
-| `kyc-kyb` | Onboard sub-merchants (Stripe Connect / Adyen Marketplace pattern) | `SubMerchant`, `KycKybDocument`, `Verification`, `RestrictedReason` |
+| `kyc-kyb` | Onboard sub-merchants (Stripe / Adyen Marketplace pattern) | `SubMerchant`, `KycKybDocument`, `Verification`, `RestrictedReason` |
 | `dispute` | Manage chargeback / dispute lifecycle | `Dispute`, `Evidence`, `RepresentmentBundle` |
 | `subscription-lifecycle` | Recurring billing: schedule, dunning, trial, upgrade, cancel | `Subscription`, `BillingCycle`, `DunningStep`, `UsageRecord` |
 
@@ -95,7 +95,7 @@ Per BC × layer, the crates are: `oya-payments-<bc>-{domain,kernel,usecase,adapt
 
 ## Hyperscaler precedents
 
-- **Stripe Connect platform-facilitator** — the canonical sub-merchant onboarding pattern.
+- **Stripe platform-facilitator** — the canonical sub-merchant onboarding pattern.
 - **Adyen MarketPay** — the EU-native marketplace-payments shape.
 - **Square Cash for Business** — payout cooling-period + KYB.
 - **PayPal Adaptive Payments** — multi-party charge / split / payout.
@@ -120,7 +120,7 @@ Per BC × layer, the crates are: `oya-payments-<bc>-{domain,kernel,usecase,adapt
 
 ## Change log
 
-- 2026-05-20: Initial publication. Full doc-suite buildout to PR-143 baseline + ≥100 artifact operating bar.
+- 2026-05-20: Initial publication. Full doc-set buildout to PR-143 baseline + ≥100 artifact operating bar.
 
 ## Doctrine references
 

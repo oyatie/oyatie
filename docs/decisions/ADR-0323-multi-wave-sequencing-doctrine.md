@@ -16,7 +16,7 @@ owners:
 supersedes: []
 amends:
   - ADR-0091-multispectrum-review-doctrine.md (sequences multispectrum review across waves)
-  - ADR-0132-product-suite-and-bundle-dissolution.md (clarifies wave-scoped batch-size discipline)
+  - ADR-0132-product-platform-and-bundle-dissolution.md (clarifies wave-scoped batch-size discipline)
   - ADR-0145-inter-microservice-communication-reform.md (sequences inter-service changes across waves to preserve direct gRPC invariants)
   - ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md (wave-scoped substance bar coordination)
 superseded_by: []

@@ -9,7 +9,7 @@ canonical_sources:
   - ../imaging/PRD.md
   - ../imaging/REMEDIATION-NOTES-2026-05-21.md
   - ../../docs/decisions/ADR-0332-healthcare-domain-decomposition.md
-  - ../../docs/decisions/ADR-0132-no-suite-policy.md
+  - ../../docs/decisions/ADR-0132-no-grouping-policy.md
 ---
 
 # Diagnostics Remediation Notes - 2026-05-21

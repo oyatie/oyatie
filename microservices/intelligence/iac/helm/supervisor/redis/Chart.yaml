@@ -6,7 +6,7 @@ version: 0.1.0
 appVersion: "7.2"  # Valkey 8.1 (Redis wire-compat)
 maintainers:
   - name: ops-sre-reliability
-    email: ops-sre-reliability@oyatie.dev
+    email: ops-sre-reliability@oyatie.com
 dependencies:
   - name: redis-cluster
     version: "^10.0.0"

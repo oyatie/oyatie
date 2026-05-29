@@ -6,7 +6,7 @@ info:
   description: AsyncAPI events for tenant migration across cells per ADR-0276 D-2.
 servers:
   production:
-    host: events.oyatie.dev
+    host: events.oyatie.com
     protocol: kafka-secure
     pathname: /v/2026-05-21/cell-rebalancer
 channels:

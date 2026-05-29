@@ -38,7 +38,7 @@ reference until each surface is verified in the SolidJS shell.
 | `UtilityPanels` (notifications + settings drawers) | `src/components/UtilityPanels.tsx` | 2 | Pending |
 | `SidePeek` (object quick-view aside) | `src/components/SidePeek.tsx` | 2 | Pending |
 | `BusinessLogicRow` table (BUSINESS_LOGIC_ROWS const) | `src/components/BusinessLogicTable.tsx` | 2 | Pending |
-| `WorkflowTool` toolbar (Select / Connect / Simulate) | Part of Workflow Studio slice | 3 | Pending |
+| `WorkflowTool` toolbar (Select / / Simulate) | Part of Workflow Studio slice | 3 | Pending |
 | Workflow Studio canvas (full drag + connect) | Rust→WASM compute module per ADR-0372 D3 | 3 | Pending |
 | `ProductSurface` tab switcher (Work Hub: Workflow/Messenger/Mail/Community) | `src/components/WorkHub.tsx` | 2 | Pending |
 | `LocalDraft` + `HubItem` (local draft state) | SolidJS `createSignal` + `createStore` | 2 | Pending |

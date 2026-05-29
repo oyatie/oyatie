@@ -47,7 +47,7 @@ related_adrs:
   - ADR-0117-data-residency-jurisdiction-code
   - ADR-0128-hyperscaler-architecture-invariants
   - ADR-0131-per-microservice-flat-layout
-  - ADR-0132-product-suite-and-bundle-dissolution
+  - ADR-0132-product-platform-and-bundle-dissolution
   - ADR-0139-agentic-slo-gated-promotion
   - ADR-0145-inter-microservice-communication-reform
   - ADR-0148-service-mesh-cilium
@@ -141,11 +141,11 @@ Per ADR-0242 (`oyatie`-is-a-tenant doctrine), Workplace Integration's flows are 
 
 The standalone µservices solve their own problems: Mail delivers mail, Calendar schedules events, HR records employment data. **But a vacation request is not a "Calendar event" — it is a multi-step workflow that touches HR (balance check, record creation), Calendar (out-of-office block + team coverage check), Messenger (approve/deny card), Mail (notification), Audit-Chain (compliance), Tenancy (jurisdiction-aware policy), Workflow Engine (durable orchestration), and Workflow Studio (visual edit by HR power user)**. No single µservice owns the flow; the flow exists in the seams *between* µservices.
 
-Microsoft, Google, Workday, ServiceNow each succeed not because any individual product (Outlook, Gmail, Workday Recruiting, ServiceNow Incident) is best-in-class on its own dimensions, but because the suite-level integration is coherent enough that an employee can complete a vacation request without context-switching between four apps and three approval portals. **That suite-level coherence is what Workplace Integration owns.**
+Microsoft, Google, Workday, ServiceNow each succeed not because any individual product (Outlook, Gmail, Workday Recruiting, ServiceNow Incident) is best-in-class on its own dimensions, but because the platform-level integration is coherent enough that an employee can complete a vacation request without context-switching between four apps and three approval portals. **That platform-level coherence is what Workplace Integration owns.**
 
 ### 1.2 Why cross-cutting and not "one big workplace µservice"
 
-Per ADR-0131 (per-microservice flat layout) + ADR-0132 (no-suite forward-policy): a "workplace" µservice that bundles HR + payroll + e-sign + expense + scheduling would violate the no-suite rule. The flat-µservice rule requires every concern to live in its own µservice that does one thing well. Workplace Integration therefore manifests as:
+Per ADR-0131 (per-microservice flat layout) + ADR-0132 (no-grouping forward-policy): a "workplace" µservice that bundles HR + payroll + e-sign + expense + scheduling would violate the no-grouping rule. The flat-µservice rule requires every concern to live in its own µservice that does one thing well. Workplace Integration therefore manifests as:
 
 - **Per-µservice ownership** of each concern (HR owns HR-records, Calendar owns Calendar-events, Workflow-Engine owns saga orchestration, etc.).
 - **A workplace-integration product layer** that authors saga specs (workflow_spec.v1.json artefacts), event contracts, and competitor-parity templates, registers them with the relevant µservices, and packages the UX surfaces.
@@ -1931,7 +1931,7 @@ Per ADR-0241 per-µservice `dr_tier`:
 - **ADR-0117 — Data residency jurisdiction code** — per-tenant overlay.
 - **ADR-0128 — Hyperscaler architecture invariants** — quality bar.
 - **ADR-0131 — Per-microservice flat layout** — folder shape.
-- **ADR-0132 — Product-suite + bundle dissolution** — no-suite-forward-policy.
+- **ADR-0132 — Product-platform + bundle dissolution** — no-grouping-forward-policy.
 - **ADR-0139 — Agentic SLO-gated promotion** — wave promotion.
 - **ADR-0145 — Inter-microservice communication reform** — three invariants.
 - **ADR-0148 — Service mesh Cilium** — mTLS.
@@ -2045,7 +2045,7 @@ The workplace-integration product layer ships in IPs (Implementation Plans) unde
 - `microservices/audit-chain/`, `microservices/policy-engine/`, `microservices/ontology/`, `microservices/tenancy/`, `microservices/identity/`, `microservices/intelligence/` (substrate dependencies)
 - `microservices/plugin-app-store/PRD.md` (extension model)
 - `docs/decisions/ADR-0131-per-microservice-flat-layout.md`
-- `docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md`
+- `docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`
 - `ADR-0242`
 - `docs/decisions/ADR-0245-substrate-vs-product-layering.md`
 - `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`

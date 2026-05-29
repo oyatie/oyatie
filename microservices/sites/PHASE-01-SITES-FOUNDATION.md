@@ -86,7 +86,7 @@ Phase-exit gate (per ADR-0139): all 15 AC-IDs green; SLO eligibility verdict `el
 |---|---|
 | Let's Encrypt DNS-01 rate-limits during mass-tenant onboarding (50 cert/wk/account) | Multi-account pool + ACME-rate-limit cache; per ADR-SITES-0004 |
 | CDN cache-key drift (cache hit ratio collapse on publish) | Signed purge with per-tenant invalidation contract; tested in `runbooks/cdn-cache-purge-cascade.md` |
-| URL signature regression vs legacy `oya-connect-sites-*` (Hyrum's-Law) | Redirect-signature-stability test corpus per migration guide; AC-15 |
+| URL signature regression vs legacy `oya-sites-*` (Hyrum's-Law) | Redirect-signature-stability test corpus per migration guide; AC-15 |
 | Image-optimize OOM at libvips for large source images | Per-job memory bound (libvips uses pipelined streaming); worker memory limit + soft-OOM kill |
 | schema.org JSON-LD context drift on schema.org spec updates | Pin schema.org context URL + version; LEAN lane `schema-org-jsonld-conformance` |
 | WCAG 2.2 AA correctness false-positive at publish-time | Tenant-override flag with audit-chain seal + tenant DPA disclosure |

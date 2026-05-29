@@ -13,7 +13,7 @@ The gap matters against PagerDuty and OpsGenie because those products make this 
 The success condition is an implementation plan a cold engineer can trace from this IP to concrete files such as `microservices/incident-management/contracts/incident-management-v1.proto` without inventing a hidden service boundary.
 
 ## B. Approach
-Implement `grpc-internal-surface` as a service-local slice, not as a shared suite facility. The technical mechanism is internal service-to-service command/query port bound to `adapter/grpc.rs when present or src/adapter/mod.rs` and checked before user-visible promotion.
+Implement `grpc-internal-surface` as a service-local slice, not as a shared platform facility. The technical mechanism is internal service-to-service command/query port bound to `adapter/grpc.rs when present or src/adapter/mod.rs` and checked before user-visible promotion.
 Use `on-call-schedule` as the first fixture path, then prove the same envelope across `escalation-policy` and `postmortem` so the design is not a one-object shortcut.
 Every command or event carries `tenant_id`, `principal_id`, `audience_type=ONCALL_RESPONDER`, `home_cell`, `jurisdiction_code`, `data_class`, `traceparent`, `idempotency_key` for mutations, and an audit event class.
 The domain layer stays pure in `microservices/incident-management/src/domain/mod.rs`; usecase orchestration lives in `microservices/incident-management/src/usecase/mod.rs`; transport or provider details stay behind adapter/config files.

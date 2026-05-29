@@ -10,7 +10,7 @@ persona: maya-okafor (reliability), priya-singh (plant manager), iot-engineer, e
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-iot
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-020: Condition-based maintenance with IoT signal ingestion (OPC UA, MQTT, Modbus)

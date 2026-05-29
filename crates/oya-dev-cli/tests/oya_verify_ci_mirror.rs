@@ -36,7 +36,7 @@ fn oya_verify_ci_required_runs_mandatory_mirror_and_advisory_steps() {
             "cargo nextest run --workspace",
             "oya gate run-all --ci-required",
             "oya doc adr-index --write",
-            "git diff --name-only origin/dev...HEAD -- docs/decisions/ADR-*.md",
+            "git diff --name-only --diff-filter=A origin/dev...HEAD -- docs/decisions/ADR-*.md",
         ],
     );
 }

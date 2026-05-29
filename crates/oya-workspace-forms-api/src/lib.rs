@@ -9,7 +9,7 @@
 use std::collections::BTreeMap;
 
 use oya_data_boundary_kernel::parse_data_class_label;
-use oya_connect_forms_domain::{
+use oya_forms_domain::{
     workspace_form_data_class_from_legacy, Form, FormAnswer, FormAnswerCreate, FormCreate,
     FormError, FormField, FormFieldCreate, FormFieldKind, FormSubmission, FormSubmissionCreate,
 };

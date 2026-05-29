@@ -1,5 +1,5 @@
 # Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
-name: oya-social-user-profile-rest
+name: oya-community-social-user-profile-rest
 role: rest
 context: social
 plane: data

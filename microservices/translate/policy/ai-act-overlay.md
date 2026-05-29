@@ -112,7 +112,7 @@ Triggered when `content_class` ∈ {legal, medical, employment, credit}. See cla
 
 ### Art. 11 (Technical documentation)
 
-- This µservice's full doc suite: PRD.md + ADRs + policy/ + runbooks/ + dashboards/ + slos/.
+- This µservice's full doc set: PRD.md + ADRs + policy/ + runbooks/ + dashboards/ + slos/.
 - Per ADR-0131 + ADR-0133.
 
 ### Art. 12 (Record-keeping)

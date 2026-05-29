@@ -9,7 +9,7 @@ version: 0.1.0
 appVersion: "7.4.1"   # LTS line; verify-at-deploy
 maintainers:
   - name: ops-sre-reliability
-    email: ops-sre@oyatie.dev
+    email: ops-sre@oyatie.com
 dependencies:
   - name: redis
     version: "^20.0.0"

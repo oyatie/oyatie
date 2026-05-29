@@ -42,7 +42,7 @@ Step 1 of 6 — **Provision shared tenant**. A wizard explains:
 
 > A shared tenant is a temporary, contract-scoped tenant that holds data both partners contribute. It has a defined lifecycle (today → Mar 31 wind-down → Jun 30 archive). Both partners are joint controllers under GDPR Art 26.
 
-Tomas confirms the proposed tenant ID: `glacier-partnerlift-q1-2027-mfg-de-nl-be`. He picks data residency: **eu-amsterdam-secondary** (default; both parties agreed in the contract). The wizard validates with Glacier's side — Henrik must co-sign. A request is sent to Henrik's inbox via the `connect` bridge.
+Tomas confirms the proposed tenant ID: `glacier-partnerlift-q1-2027-mfg-de-nl-be`. He picks data residency: **eu-amsterdam-secondary** (default; both parties agreed in the contract). The wizard validates with Glacier's side — Henrik must co-sign. A request is sent to Henrik's inbox via the `connector` bridge.
 
 Audit: `EVT-J154-TENANCY-SHARED-PROVISION-REQUEST-001`.
 
@@ -52,7 +52,7 @@ Henrik (Frankfurt) co-signs the provisioning. The shared tenant goes from `pendi
 
 ### 14:30 CET — DPA upload + signature collection
 
-Step 2 — **Upload tri-party GDPR DPA**. Tomas drags the signed PDF into the wizard. The PDF was negotiated by both legal teams in December; it bears three signatures: Anneke (PartnerLift), Beate (Glacier), and Esther (external counsel acting for the shared tenant). The `connect` µservice verifies each signature against the signatory's passkey-bound identity.
+Step 2 — **Upload tri-party GDPR DPA**. Tomas drags the signed PDF into the wizard. The PDF was negotiated by both legal teams in December; it bears three signatures: Anneke (PartnerLift), Beate (Glacier), and Esther (external counsel acting for the shared tenant). The `connector` µservice verifies each signature against the signatory's passkey-bound identity.
 
 - Anneke: verified ✓
 - Beate: verified ✓

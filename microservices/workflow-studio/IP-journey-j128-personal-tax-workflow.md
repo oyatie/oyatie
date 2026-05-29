@@ -26,7 +26,7 @@ Implement Workflow Studio surfaces for personal-tenant tax-domain
 workflows:
 
 1. **Tax-domain connector library** — first-class entries for IRS MeF,
-   VA DOR, CA FTB, Vanguard, Fidelity, Stripe Connect Consumer,
+   VA DOR, CA FTB, Vanguard, Fidelity, Stripe Consumer,
    Schwab, Robinhood. Each connector ships with metadata for the
    personal-tenant context-picker.
 2. **Tax-workflow templates** — pre-built `family-tax-202X` template

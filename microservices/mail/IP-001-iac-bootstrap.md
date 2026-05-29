@@ -80,7 +80,7 @@ postfix:
     policyUri: https://mta-sts.${TENANT_DOMAIN}/.well-known/mta-sts.txt
   tls_rpt:
     enabled: true                    # RFC 8460
-    rua: mailto:tls-rpt-${pack}@oyatie.dev
+    rua: mailto:tls-rpt-${pack}@oyatie.com
   milter:
     rspamd:
       endpoint: rspamd.mail.svc.cluster.local:11332

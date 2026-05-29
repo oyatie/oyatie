@@ -66,7 +66,7 @@ Oyatie adopts a per-bounded-context CQRS split for THREE specific high-read BCs 
 
 | Microservice | Bounded context | Command-side primary | Query-side replica strategy | Read-staleness budget |
 |---|---|---|---|---|
-| social | `feed` | `oya-social-feed-primary` (Postgres 17 LTS) | 5 read replicas via pgpool-II; per-cell isolation per ADR-0009 | ≤2s p99 |
+| social | `feed` | `oya-community-social-feed-primary` (Postgres 17 LTS) | 5 read replicas via pgpool-II; per-cell isolation per ADR-0009 | ≤2s p99 |
 | messenger | `search` | `oya-messenger-search-primary` (Postgres 17 LTS + pg_trgm) | 5 read replicas + dedicated full-text-search replica via pgpool-II | ≤5s p99 |
 | ontology | `entity-query` | `oya-ontology-entity-primary` (Postgres 17 LTS) | 7 read replicas + per-pack cell-affinity routing per ADR-0049 | ≤1s p99 |
 

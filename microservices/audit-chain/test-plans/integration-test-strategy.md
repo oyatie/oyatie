@@ -79,7 +79,7 @@ Every suite asserts that audit-chain fails closed when evidence integrity is unc
 - Retry policy: only idempotency retry tests may exercise retry loops.
 - Evidence rule: every mutating integration test asserts a sealed receipt or explicit fail-closed result.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module: `audit_chain_integration::fixtures`.
 - Fixture catalog: `audit_chain_fixture_acme_soc2_access_review`.

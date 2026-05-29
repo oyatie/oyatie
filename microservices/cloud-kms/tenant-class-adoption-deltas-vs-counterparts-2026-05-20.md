@@ -341,7 +341,7 @@ paid hook 03: Add paid external key custody proof that can survive customer disc
 paid hook 04: Add paid latency budget with measured numbers per context, per OS, and per HSM adapter.
 paid hook 05: Add paid active/active replication proof with conflict handling for rotation and destroy operations.
 paid hook 06: Add paid service-level policy for customer-managed root-of-trust ceremonies.
-paid hook 07: Add paid chaos test suite for HSM partition loss, provider outage, clock drift, KMS denial, and audit-chain backpressure.
+paid hook 07: Add paid chaos test set for HSM partition loss, provider outage, clock drift, KMS denial, and audit-chain backpressure.
 paid hook 08: Add paid signed OpenTofu module provenance and state backend controls for every context.
 paid hook 09: Add paid supply-chain attestation for Rust binaries, generated SDKs, schemas, and policy bundles.
 paid hook 10: Add paid launch gate that blocks external maturity claims until benchmarks, compliance, and cross-context failover pass.

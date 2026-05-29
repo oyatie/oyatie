@@ -19,13 +19,13 @@ doc_status: published
 
 ## Purpose
 
-The `drive` µservice is oyatie's native object/file storage, hierarchical folder, multipart resumable upload, range-download, content-defined-chunking delta-sync, shared-link, fine-grained permission, full-text search, preview/thumbnail, virus-scan, DLP, encryption-at-rest, immutability-tier (WORM), and per-tenant quota substrate. Per ADR-0132 (no-suite forward policy) and ADR-0135 (Connect unbundle parallel session) drive is a standalone tenant-facing µservice — separate from docs/sheets/slides editing surfaces — owning bytes-at-rest, bytes-in-flight, hierarchy, sharing, sync, preview, DLP, retention, and immutability.
+The `drive` µservice is oyatie's native object/file storage, hierarchical folder, multipart resumable upload, range-download, content-defined-chunking delta-sync, shared-link, fine-grained permission, full-text search, preview/thumbnail, virus-scan, DLP, encryption-at-rest, immutability-tier (WORM), and per-tenant quota substrate. Per ADR-0132 (no-grouping forward policy) and ADR-0135 (unbundle parallel session) drive is a standalone tenant-facing µservice — separate from docs/sheets/slides editing surfaces — owning bytes-at-rest, bytes-in-flight, hierarchy, sharing, sync, preview, DLP, retention, and immutability.
 
 The µservice carries dual-context (Personal / Professional) per parallel ADR-0238; bytes never cross context boundaries except via explicit share-link issuance or policy-bound projection.
 
 Bominal inheritance: Bominal's `workspace.drive` + `connect.files` ADRs are inherited 1:1 per `feedback_bominal_inheritance_precedence.md`; oyatie additions captured below.
 
-Strangler precedent: the legacy `oya-connect-drive-domain` crate at `crates/oya-connect-drive-domain/` migrates via `microservices/drive/migration-from-connect.md` and `deprecation-notice.md` per ADR-0135 / ADR-0134.
+Strangler precedent: the legacy `oya-drive-domain` crate at `crates/oya-drive-domain/` migrates via `microservices/drive/migration-from-connect.md` and `deprecation-notice.md` per ADR-0135 / ADR-0134.
 
 ## Tenant Value
 
@@ -422,12 +422,12 @@ Sharding: files partitioned by `(tenant_id, file_id_prefix_4)`; folders by `tena
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0135 | Connect unbundle (parallel session) | dual-context inheritance + Strangler precedent |
+| ADR-0135 | unbundle (parallel session) | dual-context inheritance + Strangler precedent |
 | ADR-0139 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
-| ADR-0132 | Product-suite + bundle dissolution | µservice independence |
+| ADR-0132 | Product-platform + bundle dissolution | µservice independence |
 | ADR-0133 | Industry-best-practice conformance | hyperscaler-grade bar |
-| ADR-0134 | Connect dissolution Strangler migration | migration policy (re-used for oya-connect-drive-domain → oya-drive-*) |
+| ADR-0134 | dissolution Strangler migration | migration policy (re-used for oya-drive-domain → oya-drive-*) |
 | ADR-0140 | Cedar policy enforcement | policy substrate |
 | ADR-DRIVE-0001 | Object-storage substrate selection | per-cell backend choice |
 | ADR-DRIVE-0002 | Content-defined-chunking + delta-sync | chunk algorithm |
@@ -436,7 +436,7 @@ Sharding: files partitioned by `(tenant_id, file_id_prefix_4)`; folders by `tena
 | ADR-DRIVE-0005 | Preview pipeline sandboxing | gVisor isolation |
 | ADR-DRIVE-0006 | Immutability + WORM policy | object-lock semantics |
 | Bominal `workspace.drive` | Workspace Drive | inherited 1:1 |
-| Bominal `connect.files` | Connect files-and-attachments | inherited 1:1 |
+| Bominal `connect.files` | files-and-attachments | inherited 1:1 |
 
 ## Doctrine refs (ADR-0346..0349)
 

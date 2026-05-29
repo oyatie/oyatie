@@ -28,7 +28,7 @@ oyatie payments addresses all four with multi-PSP routing + double-entry ledger 
 stripe customers list --limit 100  # paginate; total customer count
 stripe charges list --limit 100 --created.gte=1735689600  # 2025-01-01 onward
 stripe subscriptions list --limit 100
-stripe connect-accounts list  # if Connect is used
+stripe connect-accounts list  # if is used
 stripe products list  # subscription products
 ```
 
@@ -37,10 +37,10 @@ Document:
 - Customer count, charge count (last 12 mo), subscription count.
 - Stripe products in use: Payment Intents, Connect, Billing, Issuing, Treasury, Tax, Radar, etc.
 - Webhooks subscribed (Stripe → your endpoint).
-- Stripe Connect topology if applicable (standard, express, custom).
+- Stripe topology if applicable (standard, express, custom).
 - FX exposure: count of cross-currency charges + currencies in use.
 
-Typical mid-market merchant: 500k-2M customers, 4-12M charges/year, 50-500k active subscriptions, 1-2 Connect topologies, 8-14 webhook event types subscribed.
+Typical mid-market merchant: 500k-2M customers, 4-12M charges/year, 50-500k active subscriptions, 1-2 topologies, 8-14 webhook event types subscribed.
 
 ## Step 2 — Plan the cutover model (≤ 1 week)
 
@@ -106,9 +106,9 @@ Strategy options:
 
 Most tenants use option 1. The grace period drags on for 12-18 months as annual subs renew.
 
-## Step 5 — Migrate Connect topology (if applicable; ≤ 1 month)
+## Step 5 — Migrate topology (if applicable; ≤ 1 month)
 
-Stripe Connect has three account types:
+Stripe has three account types:
 
 - **Standard**: connected accounts have their own Stripe dashboards. Hardest to migrate.
 - **Express**: oyatie's `payments` µservice models this natively as `connected_merchant` records.
@@ -161,7 +161,7 @@ Acceptance criteria for cutover:
 - Drift < 0.01 % per day on charge count + amount + fee.
 - Refund + chargeback flows verified end-to-end on oyatie.
 - All subscriptions either migrated or in `continue-stripe-billing-until-renewal` mode with a documented end-date.
-- Connect topology migrated (Express + Custom) or self-serve handed off (Standard).
+- topology migrated (Express + Custom) or self-serve handed off (Standard).
 
 After ≥ 4 consecutive weeks of clean reconciliation, flip the default-PSP from `stripe-direct` to `oyatie`:
 
@@ -183,7 +183,7 @@ Stripe direct integration stays live until:
 
 - All recurring subscriptions in `continue-stripe-billing-until-renewal` have renewed at least once into oyatie.
 - All chargeback windows have closed (typically 90-180 d post-last-charge).
-- All Connect Standard merchants have completed self-serve migration.
+- All Standard merchants have completed self-serve migration.
 
 At that point:
 

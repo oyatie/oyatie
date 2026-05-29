@@ -48,7 +48,7 @@ Repo-local references: microservices/whiteboard/PRD.md, microservices/whiteboard
 - FigJam provides low-friction collaboration, but Oyatie must prevent low friction from becoming unaudited access.
 - Lucidspark supports collaborative diagramming, but Oyatie must keep data residency and audit export first-class.
 - Whiteboard.fi emphasizes classroom immediacy, but Oyatie must map classroom emergency use to tenant and jurisdiction controls.
-- Microsoft Whiteboard is expected inside enterprise suites, but Oyatie must avoid suite-coupled hidden state and preserve flat whiteboard ownership.
+- Microsoft Whiteboard is expected inside enterprise-market systems, but Oyatie must avoid platform-coupled hidden state and preserve flat whiteboard ownership.
 - The displaced set pressures speed of board-open and presence-sync.
 - The displaced set does not weaken Cedar, audit, or residency requirements.
 - Benchmark parity is accepted only when the emergency path has stronger evidence than the displaced vendor path.

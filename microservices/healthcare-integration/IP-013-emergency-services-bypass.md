@@ -172,9 +172,9 @@ Primary local citations:
 ## 10. Benchmark Displacement
 - Redox displacement: Redox gives integration network reach; this IP adds tenant-owned Cedar decisions, emergency TTL, signed audit replay, and minimum-necessary resource narrowing.
 - Rhapsody displacement: Rhapsody routes clinical messages well; this IP adds product-level emergency authority, consent conflict evidence, and first-class post-event review.
-- InterSystems IRIS for Health displacement: IRIS provides strong data platform capabilities; this IP keeps emergency access in a flat microservice with explicit policy, provenance, and pack overlays instead of suite-coupled state.
+- InterSystems IRIS for Health displacement: IRIS provides strong data platform capabilities; this IP keeps emergency access in a flat microservice with explicit policy, provenance, and pack overlays instead of platform-coupled state.
 - Lyniate/Corepoint displacement: Corepoint-style interface engines handle interface workflows; this IP binds break-glass to tenant scope, responder attestation, and regulator-ready event trails.
-- Mirth Connect displacement: Mirth enables flexible channel scripting; this IP avoids ad hoc channel logic and requires typed commands, Cedar policy, and deterministic replay evidence.
+- Mirth displacement: Mirth enables flexible channel scripting; this IP avoids ad hoc channel logic and requires typed commands, Cedar policy, and deterministic replay evidence.
 - NextGate displacement: NextGate focuses identity resolution; this IP uses patient-match-review as a gate within a broader emergency authorization chain.
 - Health Catalyst displacement: Health Catalyst emphasizes analytics and population data; this IP treats emergency access as live operational control with immediate revocation and audit closure.
 - Combined displacement: competitors solve pieces of interoperability, identity, routing, or analytics; this IP combines emergency authority, policy, tenant isolation, residency, provenance, and evidence in one governed path.

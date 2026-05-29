@@ -5,13 +5,13 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-production-planning + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-production-planning-doc-suite
+planned_enforcement_ref: oya-governance-production-planning-doc-set
 ---
 
 # Production Planning
 
 ## Purpose
-Production Planning is the SAP PP parity microservice for BOM, MRP, Capacity Planning, Shop Floor, Routing. It keeps a flat per-microservice layout, avoids ERP suite ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
+Production Planning is the SAP PP parity microservice for BOM, MRP, Capacity Planning, Shop Floor, Routing. It keeps a flat per-microservice layout, avoids ERP platform ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
 
 ## Bounded contexts
 - bom-revision: tenant-scoped command, query, event, replay, and audit surface.

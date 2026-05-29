@@ -114,7 +114,7 @@ with client.with_secret(secret_ref) as value:
 
 ## Required SDK Behaviour Contract
 
-Every SDK MUST honour the following contract; CI lane `oya-check-sdk-contract-conformance` validates against a reference test suite.
+Every SDK MUST honour the following contract; CI lane `oya-check-sdk-contract-conformance` validates against a reference test set.
 
 ### C-01: SecretReference URI parsing
 

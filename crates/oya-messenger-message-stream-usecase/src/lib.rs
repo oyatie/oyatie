@@ -1,6 +1,6 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_connect_messenger_domain::{
+use oya_messenger_domain::{
     MessageAuditAction, MessageAuditRecord, MessageEnvelope, MessageGovernance,
     MessageGovernanceCreate, MessengerContextKind, MessengerGovernanceError,
     OwnershipPillar as MessengerOwnershipPillar,

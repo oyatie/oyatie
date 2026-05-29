@@ -34,7 +34,7 @@ Tenants pay PSPs directly (provider-BYOK per ADR-0255 §D-4); oyatie does not ma
 | ACH Direct Debit | 0.8% (capped $5) |
 | Card-present (in-person) | 2.7% + $0.05 |
 | Subscription billing platform | + $10 / 1000 invoices |
-| Connect (platform-facilitator) | + 0.25% + $0.25 per payout |
+| (platform-facilitator) | + 0.25% + $0.25 per payout |
 | Identity (KYC) | + $1.50 per verification |
 | Radar (fraud) | + $0.05 / charge |
 
@@ -100,7 +100,7 @@ Assuming average sale price (ASP) of $10 USD and standard Stripe 2.9% + 30¢:
 |---|---:|---:|
 | Stripe PSP fee | $0.59 ($10 × 2.9% + $0.30) | $59,000 |
 | Stripe Radar (fraud) | $0.05 | $5,000 |
-| Stripe Connect markup | $0.025 ($10 × 0.25%) (sub-merchant flows only) | $2,500 (for 100k Connect flows) |
+| Stripe markup | $0.025 ($10 × 0.25%) (sub-merchant flows only) | $2,500 (for 100k flows) |
 | Stripe Identity (per onboarded sub-merchant, amortised) | $0.015 (1.5% × $1.50, assuming 1 KYC per 100 charges) | $1,500 |
 | Per-charge infra (compute + DB + audit-chain seal + observability) | $0.002 | $200 |
 | Per-charge bandwidth (HTTP/3 ingress + PSP outbound) | $0.0005 | $50 |

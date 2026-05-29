@@ -183,7 +183,7 @@ Adopt OpenSchema directly as the canonical form schema; no proprietary extension
 ### Risk register
 
 - **Risk**: JSON Schema draft 2020-12 spec evolves; current profile becomes stale. **Mitigation**: pin `$schema` to draft-2020-12 explicitly; supersession ADR if upgrade required.
-- **Risk**: JCS edge cases (unicode normalisation; number precision). **Mitigation**: shared canonicaliser library (RFC 8785-reference); property test suite over the 14-locale corpus + boundary numbers.
+- **Risk**: JCS edge cases (unicode normalisation; number precision). **Mitigation**: shared canonicaliser library (RFC 8785-reference); property test set over the 14-locale corpus + boundary numbers.
 - **Risk**: LLM output (AI-form-build) generates non-canonical JSON. **Mitigation**: dsl-loader re-canonicalises before save; LLM output is never canonical-by-construction.
 
 ## References

@@ -26,7 +26,7 @@ related_adrs:
   - ADR-0243-cedar-as-universal-gate
   - ADR-0244-tenant-as-universal-scoping-primitive
   - ADR-0131-per-microservice-flat-layout
-  - ADR-0132-no-suite-forward-policy
+  - ADR-0132-no-grouping-forward-policy
   - ADR-0135-connect-unbundle
   - ADR-0238-connect-dual-context
   - ADR-0218-tenant-granular-control-surface
@@ -209,7 +209,7 @@ roster is closed (no ad-hoc personas).
 - **Motivation:** Faisal runs a 4-channel campaign (email, social, blog,
   community) every two weeks. The cross-channel coordination is brutal —
   copy lives in Notion, design in Figma, email in HubSpot, social in
-  Sprout, community in his Slack-Connect with customers. He wants one
+  Sprout, community in his Slack-with customers. He wants one
   workspace where a campaign is one artifact with channels as
   publication targets.
 - **Power level:** Moderate; can write HTML email; not a coder; relies on
@@ -301,7 +301,7 @@ roster is closed (no ad-hoc personas).
 - **Role:** Senior CSM at `tenant-acme-corp`, manages a portfolio of 30
   strategic customers each with $200k-$2M ARR. Reports to the VP CS.
 - **Incumbent stack today:** Gainsight (CSM platform), Salesforce (CRM),
-  Slack + Slack-Connect (customer communication), Zoom (QBRs), Notion
+  Slack + Slack-(customer communication), Zoom (QBRs), Notion
   (customer playbooks), HubSpot (community + support tickets), Zendesk
   (support).
 - **Motivation:** Kara's pain is customer signal aggregation. A customer's
@@ -1208,7 +1208,7 @@ durable execution.
 ### 3.4 Surface 4: HR / Payroll / Compensation (composed surface)
 
 HR / Payroll / Compensation are not yet standalone µservices in oyatie;
-per ADR-0132 (no-suite-forward-policy), they manifest as a composed
+per ADR-0132 (no-grouping-forward-policy), they manifest as a composed
 surface built on the per-microservice primitives: an `Employee` Ontology
 object type owned by a future `microservices/hr/` (out of scope for M03
 but planned post-bootstrap per ADR-0242 § sandbox+preview tenants), with
@@ -3243,9 +3243,9 @@ canonical-base + localization overlay).
 - **ADR-0244** — Tenant as universal scoping primitive.
 - **ADR-0218** — Tenant granular control surface.
 - **ADR-0131** — Per-microservice flat layout.
-- **ADR-0132** — No-suite forward policy.
-- **ADR-0135** — Connect unbundle (parallel session).
-- **ADR-0238** — Connect dual-context (parallel session).
+- **ADR-0132** — No-grouping forward policy.
+- **ADR-0135** — unbundle (parallel session).
+- **ADR-0238** — dual-context (parallel session).
 - **ADR-0064** — Canonical-base + localization overlay.
 - **ADR-0240** — Sovereign cloud per regional pack.
 - **PRD-mail** — microservices/mail/PRD.md.
@@ -3269,7 +3269,7 @@ canonical-base + localization overlay).
 1. **HR / Payroll / Compensation as a µservice vs composed surface.** The
    compendium treats HR/Payroll/Comp as a composed surface (built atop
    tasks, forms, drive, docs, sheets, workflow-studio, calendar). This
-   matches ADR-0132 (no-suite-forward-policy). The open question is
+   matches ADR-0132 (no-grouping-forward-policy). The open question is
    whether to promote `microservices/hr/` to a first-class µservice once
    the Ontology `Employee` object type is concrete (likely post-M03).
 2. **Workplace-integration µservice.** `docs/products/workplace-integration/`

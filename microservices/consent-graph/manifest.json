@@ -5,7 +5,7 @@
   "owner": "axis-consent-graph",
   "authority_adr": "docs/decisions/ADR-0214-cross-tenant-real-time-visibility.md",
   "layout_authority": "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
-  "suite_policy": "docs/decisions/ADR-0132-no-suite-microservices.md",
+  "grouping_policy": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md",
   "summary": "Cross-tenant real-time visibility kernel. First-class DataSharingAgreement entity + Cedar enforcement + bilateral audit chain + zero-copy ontology projection + real-time revocation.",
   "bounded_contexts": [
     {
@@ -303,9 +303,9 @@
     },
     {
       "id": "ADR-0132",
-      "title": "No-Suite Microservices",
+      "title": "No-Grouping Microservices",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-no-suite-microservices.md"
+      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0214",

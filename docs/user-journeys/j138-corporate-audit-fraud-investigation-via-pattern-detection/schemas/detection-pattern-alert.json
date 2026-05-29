@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j138/detection-pattern-alert.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j138/detection-pattern-alert.json",
   "title": "DetectionPatternAlert",
   "description": "Alert envelope emitted by detection substrate when a pattern matches against tenant data. Routed to internal-audit subscribers per Cedar.",
   "_meta": {

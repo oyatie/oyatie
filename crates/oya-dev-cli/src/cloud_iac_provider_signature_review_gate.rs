@@ -880,13 +880,13 @@ fn parse_review_providers(
             ));
             continue;
         };
-        for (platform_idx, row) in platform_rows.iter().enumerate() {
+        for (module_idx, row) in platform_rows.iter().enumerate() {
             let platform = required_string(row, "/platform", diagnostics).unwrap_or_default();
             let status = required_string(row, "/retrieval_status", diagnostics).unwrap_or_default();
             let key_id = required_string(row, "/signing_key_id", diagnostics).unwrap_or_default();
             if status != "signed" {
                 diagnostics.push(format!(
-                    "review /providers/{idx}/platforms/{platform_idx}/retrieval_status must be \"signed\""
+                    "review /providers/{idx}/platforms/{module_idx}/retrieval_status must be \"signed\""
                 ));
             }
             if !platform.is_empty() {

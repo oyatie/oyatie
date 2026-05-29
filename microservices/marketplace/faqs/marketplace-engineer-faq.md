@@ -113,7 +113,7 @@ Hard delete requires regulatory clearance.
 **Q12. What's the relation to `plugin-app-store`?**
 
 `marketplace` is the settlement engine; `plugin-app-store` is the discovery + install surface for the `plugin` listing category.
-Same separation for `workflow-studio` (workflows), `ontology` (datasets), `intelligence` (models), `connect` (apps), `foundry`
+Same separation for `workflow-studio` (workflows), `ontology` (datasets), `intelligence` (models), `connector` (apps), `foundry`
 (agents). Discovery surfaces own UX; settlement is centralized.
 
 ---

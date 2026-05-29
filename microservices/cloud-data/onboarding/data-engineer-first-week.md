@@ -48,7 +48,7 @@ backup_schedule  : every 6 h to s3://oyatie-backup-paid-us-east-2/...
 audit_chain_event: ce-2026-05-20T10:01:33Z-…
 ```
 
-Connect (via the SDK; direct psql is refused):
+(via the SDK; direct psql is refused):
 ```bash
 ./bin/oya data connect \
   --tenant oyatie.b2b.smb.acme-software \

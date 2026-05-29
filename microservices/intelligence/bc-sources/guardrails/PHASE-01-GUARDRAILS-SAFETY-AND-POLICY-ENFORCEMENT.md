@@ -252,7 +252,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0123: Hyperscaler maturity claim gate (HG-FGUARD).
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout (Foundry split).
-- ADR-0132: Product-suite + bundle dissolution.
+- ADR-0132: Product-platform + bundle dissolution.
 - ADR-0133: Industry-best-practice conformance program.
 - ADR-0140: Cedar policy substrate.
 - `/specs/per-microservice-flat-layout.json`.

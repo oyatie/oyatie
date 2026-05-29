@@ -41,7 +41,7 @@ doc_status: published
 
 # Payments µservice — Architecture
 
-> Substrate layering, BC roster, per-PSP adapter pattern, Cedar gate roster, audit-event-class roster, observability emission. The canonical Stripe Connect platform-facilitator shape with multi-PSP routing.
+> Substrate layering, BC roster, per-PSP adapter pattern, Cedar gate roster, audit-event-class roster, observability emission. The canonical Stripe platform-facilitator shape with multi-PSP routing.
 
 ---
 
@@ -50,7 +50,7 @@ doc_status: published
 | Question | Answer |
 |---|---|
 | Substrate or product? | **Substrate** (hero-substrate). |
-| Which products consume it? | `messenger` (sticker store), `shorts` (creator tipping), `community` (super-chats), `connect` (escrow flows), `cloud-billing` (usage invoicing), `plugin-app-store` (developer checkout), `marketplace` (multi-category checkout), `commerce-product-recommendation` (storefront checkout). |
+| Which products consume it? | `messenger` (sticker store), `shorts` (creator tipping), `community` (super-chats), `connector` (escrow flows), `cloud-billing` (usage invoicing), `plugin-app-store` (developer checkout), `marketplace` (multi-category checkout), `commerce-product-recommendation` (storefront checkout). |
 | Substrate dependencies | `tenancy` (tenant model), `cloud-secrets` (OpenBao), `cloud-iam` (principals + roles), `policy-engine` (Cedar evaluation), `observability` (audit-chain + SLO gate), `governance` (audit ledger sealing), `notifications` (receipt / webhook / SCA challenges). |
 | Substrate-dependency DAG position (ADR-0280) | Tier-2: depends on Tier-0 substrate (cell, secrets, IAM); depended on by Tier-3 product µservices. |
 
@@ -124,7 +124,7 @@ pub trait PspAdapter: Send + Sync {
 
 | PSP | Crate | Regions | Notes |
 |---|---|---|---|
-| Stripe | `oya-payments-adapter-stripe` | US / EU / UK / SG / AU / CA / global | Connect platform-facilitator pattern; throughput 100/s tenant-level; webhook-signature verified per docs. |
+| Stripe | `oya-payments-adapter-stripe` | US / EU / UK / SG / AU / CA / global | platform-facilitator pattern; throughput 100/s tenant-level; webhook-signature verified per docs. |
 | Adyen | `oya-payments-adapter-adyen` | EU / UK / interchange-plus regions | MarketPay equivalent; throughput 200/s. |
 | Toss Payments | `oya-payments-adapter-toss` | KR | KR-FSS-licensed; throughput 50/s; KRW-only. |
 | KakaoPay | `oya-payments-adapter-kakaopay` | KR | KR-FSS-licensed; throughput 50/s; KRW; wallet-only. |
@@ -232,7 +232,7 @@ The µservice serves three `audience_type` values:
 - Runbook/IaC evidence: `microservices/payments/runbooks/aml-suspicious-activity-detected.md`, `microservices/payments/runbooks/dispute-escalation.md`, `microservices/payments/runbooks/double-charge-detected.md`, `microservices/payments/runbooks/elder-financial-abuse.md`, `microservices/payments/runbooks/fraud-spike-detected.md`; +11 more.
 - Compliance packs: `pci-dss-l1-v4`, `kr-fss`, `eu-psd2-sca`, `us-state-mtl`, `ccpa-cpra-2023`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `cloud-secrets`, `cloud-iam`, `policy-engine`, `observability`; +2 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `payments` `charge` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -611,7 +611,7 @@ HLC-default for charge / refund / payout event ordering. **TrueTime opt-in** for
 | `oya-payments-*-app` binaries | K8s pods on Cloud Hypervisor + Kata | PCI scope-isolated; Kata-VM-per-pod boundary; per-tenant cell pinning. |
 | Webhook handlers | K8s Job + idempotency-key dedup | Stripe / Adyen / Toss can resend; idempotency-key store in CRDB. |
 | Reconciliation worker | K8s CronJob daily at 02:00 per pack-region | Pulls PSP settlement reports + reconciles vs internal ledger. |
-| Sub-merchant KYB tooling | K8s Job per onboarding | Calls Stripe Connect / Adyen MarketPay APIs. |
+| Sub-merchant KYB tooling | K8s Job per onboarding | Calls Stripe / Adyen MarketPay APIs. |
 | In-cluster pq-Hypervisor isolation | Cloud Hypervisor VM per Tier-1 cell pod | Required for PCI Tier-1 cells. |
 ### Content-pass expansion — deployment-shape
 - This expansion preserves the existing prose above and closes `deployment-shape` for `payments` to the ≥50-line documentation-rigor floor.
@@ -774,7 +774,7 @@ Each category has its own `revshare_policy` in the Ontology. Payments enforces t
 - Runbook/IaC evidence: `microservices/payments/runbooks/aml-suspicious-activity-detected.md`, `microservices/payments/runbooks/dispute-escalation.md`, `microservices/payments/runbooks/double-charge-detected.md`, `microservices/payments/runbooks/elder-financial-abuse.md`, `microservices/payments/runbooks/fraud-spike-detected.md`; +11 more.
 - Compliance packs: `pci-dss-l1-v4`, `kr-fss`, `eu-psd2-sca`, `us-state-mtl`, `ccpa-cpra-2023`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `cloud-secrets`, `cloud-iam`, `policy-engine`, `observability`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `payments` `charge` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -1216,7 +1216,7 @@ Per ADR-0249, payments serves all 6 marketplace categories. Revshare config live
 - Runbook/IaC evidence: `microservices/payments/runbooks/aml-suspicious-activity-detected.md`, `microservices/payments/runbooks/dispute-escalation.md`, `microservices/payments/runbooks/double-charge-detected.md`, `microservices/payments/runbooks/elder-financial-abuse.md`, `microservices/payments/runbooks/fraud-spike-detected.md`; +11 more.
 - Compliance packs: `pci-dss-l1-v4`, `kr-fss`, `eu-psd2-sca`, `us-state-mtl`, `ccpa-cpra-2023`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `cloud-secrets`, `cloud-iam`, `policy-engine`, `observability`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `payments` `charge` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -1526,7 +1526,7 @@ Outbound citations:
 
 ## §J. Change log
 
-- 2026-05-20: Initial publication. Full doc-suite Wave-3-A.
+- 2026-05-20: Initial publication. Full doc-set Wave-3-A.
 
 ---
 

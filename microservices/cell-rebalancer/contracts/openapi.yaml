@@ -9,7 +9,7 @@ info:
     The api-gateway supplies the date-version URL prefix required by ADR-0267; service-local paths remain the /v1 paths named by ADR-0276.
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 servers:
-  - url: https://api.oyatie.dev/v/2026-05-21
+  - url: https://api.oyatie.com/v/2026-05-21
     description: Date-versioned api-gateway public boundary.
 security:
   - mtlsSpiffe: []
@@ -191,7 +191,7 @@ components:
       type: oauth2
       flows:
         clientCredentials:
-          tokenUrl: https://iam.oyatie.dev/oauth/token
+          tokenUrl: https://iam.oyatie.com/oauth/token
           scopes:
             cell-rebalancer.write: create or abort migration workflows
             cell-rebalancer.read: read migration history

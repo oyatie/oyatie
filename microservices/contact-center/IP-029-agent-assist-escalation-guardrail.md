@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This net-new slice controls AI/knowledge suggestions and escalation during live interactions. It displaces Genesys Agent Assist, NICE Enlighten, Five9 Agent Assist, Talkdesk Copilot, and AWS Connect Wisdom/Contact Lens by keeping suggestions advisory and Cedar-gated.
+This net-new slice controls AI/knowledge suggestions and escalation during live interactions. It displaces Genesys Agent Assist, NICE Enlighten, Five9 Agent Assist, Talkdesk Copilot, and AWS Wisdom/Contact Lens by keeping suggestions advisory and Cedar-gated.
 
 ## Data Model Deltas
 
@@ -58,7 +58,7 @@ gRPC `AgentAssistGuardrail.SuggestNextAction(SuggestNextActionRequest)` returns 
 | NICE Enlighten Suggestion | `AgentAssistSuggestion` | score maps to confidence bps. |
 | Five9 Agent Assist Card | `AgentAssistSuggestion` | card type maps to suggestion kind. |
 | Talkdesk Copilot Prompt | `AgentAssistSuggestion` | prompt output maps to advisory text. |
-| AWS Connect Wisdom Result | `AgentAssistSuggestion` | knowledge result maps to article ref. |
+| AWS Wisdom Result | `AgentAssistSuggestion` | knowledge result maps to article ref. |
 
 ## Workflow Steps
 

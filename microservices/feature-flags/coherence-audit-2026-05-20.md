@@ -142,7 +142,7 @@ Evidence: `ARCHITECTURE.md §principals` lists six principals: `flag-manager`, `
 Verdict: PASS-WITH-FINDING. Principals + fragments + capabilities are in alignment, but two soft gaps:
 
 1. `audit-emitter` principal is documented as "no read-back permitted" per `ARCHITECTURE.md §principals`, yet `auditor-scope.cedar` (per filename) grants read access. The auditor-scope policy likely targets the external compliance auditor role rather than the internal `audit-emitter` principal, but the architecture document does not document the auditor role or call out that the two are different. Soft contradiction.
-2. Capabilities directory contains BOTH `flag-evaluation.yaml` (T0) AND `flag-evaluate.yaml` (T0 with emergency_bypass:true). These look like duplicates. Per ADR-0132 no-suite policy and the audit log F-2026-05-20-002 claim of "11 catalog records", the duplication may be historical or may be intentional split (evaluate=hot-path-public, evaluation=meta-capability). The naming distinction is not documented.
+2. Capabilities directory contains BOTH `flag-evaluation.yaml` (T0) AND `flag-evaluate.yaml` (T0 with emergency_bypass:true). These look like duplicates. Per ADR-0132 no-grouping policy and the audit log F-2026-05-20-002 claim of "11 catalog records", the duplication may be historical or may be intentional split (evaluate=hot-path-public, evaluation=meta-capability). The naming distinction is not documented.
 
 Severity: P2 documentation; not P1 unless a consumer agent reads the wrong capability and misroutes traffic.
 

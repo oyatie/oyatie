@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | CPS 234 asset classification | APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | APRA notification drill | Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | OAIC breach packet rehearsal | APP 3 collection of solicited personal information | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | AU tenant eligibility | APP 5 notification of collection | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | AU tenant eligibility | APP 5 notification of collection | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | APP notice and consent bind | APP 6 use or disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | IRAP PROTECTED cell placement | APP 8 cross-border disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | CPS 234 asset classification | APP 11 security of personal information | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | AU tenant eligibility | APP 8 cross-border disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | APP notice and consent bind | APP 11 security of personal information | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | IRAP PROTECTED cell placement | APP 12 access and APP 13 correction | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | CPS 234 asset classification | Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | CPS 234 asset classification | Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | APRA notification drill | APRA CPS 234 paragraphs 13 to 21 governance, capability, policy, classification, and controls | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | OAIC breach packet rehearsal | APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | AU tenant eligibility | Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | CPS 234 asset classification | APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | APRA notification drill | Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | OAIC breach packet rehearsal | APP 3 collection of solicited personal information | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | AU tenant eligibility | APP 5 notification of collection | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | AU tenant eligibility | APP 5 notification of collection | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | APP notice and consent bind | APP 6 use or disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | IRAP PROTECTED cell placement | APP 8 cross-border disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | CPS 234 asset classification | APP 11 security of personal information | Cedar deny-wins; ADR-0263 event sealed |

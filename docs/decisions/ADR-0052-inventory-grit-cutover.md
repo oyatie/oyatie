@@ -309,7 +309,7 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 | oyatie/docs/runbooks/cloud/ | subdir | KEEP | null | A8 | cloud microservice runbooks (billing, cell-isolation, DCops, IAM, KMS, region-failover) |
 | oyatie/docs/runbooks/foundry/ | subdir | KEEP | null | A8 | foundry runbooks (autonomy-ceiling, capability-eval, cost-ceiling, prompt-injection, sandbox-escape) |
 | oyatie/docs/runbooks/search/ | subdir | KEEP | null | A8 | search microservice runbooks (crawler, index-corruption, RTBF, SERP-quality) |
-| oyatie/docs/runbooks/workspace/ | subdir | KEEP | null | A8 | Connect microservice runbooks (doc-CRDT, drive-permission, mail, Meet SFU, recording) |
+| oyatie/docs/runbooks/workspace/ | subdir | KEEP | null | A8 | microservice runbooks (doc-CRDT, drive-permission, mail, Meet SFU, recording) |
 | oyatie/docs/runbooks/vertical-fintech/ | subdir | KEEP | null | A8 | Fintech vertical runbooks (AML, CDE-isolation, PCI) |
 | oyatie/docs/runbooks/vertical-healthcare/ | subdir | KEEP | null | A8 | Healthcare vertical runbooks (clinical-safety, PHI-leak) |
 | oyatie/docs/runbooks/vertical-industrial/ | subdir | KEEP | null | A8 | Industrial vertical runbooks (OT-safety) |

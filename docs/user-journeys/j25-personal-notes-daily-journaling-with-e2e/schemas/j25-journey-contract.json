@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j25-personal-notes-daily-journaling-with-e2e.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j25-personal-notes-daily-journaling-with-e2e.schema.json",
   "title": "j25 Personal Notes journaling with E2E Journey Contract",
   "type": "object",
   "additionalProperties": false,

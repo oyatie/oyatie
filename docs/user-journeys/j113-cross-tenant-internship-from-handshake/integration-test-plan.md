@@ -46,7 +46,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
 - Test data: synthetic, non-production, no secrets, no live rails.
 - Test contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, JSON Schema 2020-12.
 
-## Suite 1: tenant admission
+## Test Set 1: tenant admission
 
 ### IT-113-001: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -114,7 +114,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 2: identity binding
+## Test Set 2: identity binding
 
 ### IT-113-007: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -182,7 +182,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 3: Cedar permit evaluation
+## Test Set 3: Cedar permit evaluation
 
 ### IT-113-013: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -250,7 +250,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 4: marketplace settlement
+## Test Set 4: marketplace settlement
 
 ### IT-113-019: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -318,7 +318,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 5: workflow orchestration
+## Test Set 5: workflow orchestration
 
 ### IT-113-025: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -386,7 +386,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 6: payment escrow
+## Test Set 6: payment escrow
 
 ### IT-113-031: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -454,7 +454,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 7: ontology projection
+## Test Set 7: ontology projection
 
 ### IT-113-037: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -522,7 +522,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 8: audit dual seal
+## Test Set 8: audit dual seal
 
 ### IT-113-043: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -590,7 +590,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 9: compliance overlay
+## Test Set 9: compliance overlay
 
 ### IT-113-049: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.
@@ -658,7 +658,7 @@ tenant bindings, weekly timesheets, stipend, and mentor DM channel.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 10: human review
+## Test Set 10: human review
 
 ### IT-113-055: community handles KrampusCorp Seoul
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j113.

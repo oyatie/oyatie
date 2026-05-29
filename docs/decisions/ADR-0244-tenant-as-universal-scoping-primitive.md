@@ -29,7 +29,7 @@ related:
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0150-cedar-policy-engine.md
@@ -271,13 +271,13 @@ layer:
   use Azure AD B2B Collaboration (guest accounts) or B2C (consumer
   identity). (Source: Microsoft Build 2024 keynote; Azure AAD docs
   2024-2025 "Tenancy in Azure Active Directory.")
-- **Stripe Connect account hierarchy.** Stripe Connect platforms own
+- **Stripe account hierarchy.** Stripe platforms own
   connected accounts; each connected account is a tenant of the
   platform. The hierarchy is one level (platform → connected account)
   but the model is the same: connected accounts inherit defaults from
   the platform, can override, and route capability checks (payouts,
   KYC, payments) per connected-account attributes. (Source: Stripe
-  Engineering Blog 2024 "Designing Connect for global platforms";
+  Engineering Blog 2024 "Designing for global platforms";
   Stripe API Reference 2025 "Accounts" section.)
 - **Cloudflare account → zone hierarchy.** Cloudflare accounts own
   zones, sub-zones, and DNS records. Account-level settings cascade.
@@ -650,7 +650,7 @@ CREATE TABLE tenants (
                                        -- Tenant may settle to bank account / external rail.
 
     can_facilitate_sub_merchants BOOLEAN NOT NULL DEFAULT FALSE,
-                                       -- Tenant may onboard sub-merchants (Stripe Connect platform analogue).
+                                       -- Tenant may onboard sub-merchants (Stripe platform analogue).
 
     -- Payments + tax
     merchant_status        merchant_status NOT NULL DEFAULT 'NONE',
@@ -2017,8 +2017,8 @@ tenant + sub-scope without the combinatorial cost.
 - **Microsoft Build 2024 keynote — Azure AAD multi-tenancy.** Tenant model across Microsoft 365 + Azure + GitHub.
 - **Azure Active Directory Documentation (2024-2025) — "Tenancy in Azure Active Directory".** Tenant + directory + subscription hierarchy.
 - **Azure AD B2B Collaboration documentation (2024).** Cross-tenant guest patterns.
-- **Stripe Engineering Blog 2024 — "Designing Connect for global platforms".** Platform + connected account hierarchy.
-- **Stripe API Reference 2025 — Accounts section.** Connect account capability flags.
+- **Stripe Engineering Blog 2024 — "Designing for global platforms".** Platform + connected account hierarchy.
+- **Stripe API Reference 2025 — Accounts section.** account capability flags.
 - **Stripe Engineering Blog 2025 — "Lifecycle of a Stripe account".** Provisioning + KYB + suspension + offboarding patterns.
 - **Cloudflare Blog 2024 — "Building on our own platform".** Cloudflare-tenant-of-Cloudflare; account → zone hierarchy.
 - **Cloudflare API Documentation (2024).** Account + zone + sub-zone scoping.
@@ -2062,7 +2062,7 @@ tenant + sub-scope without the combinatorial cost.
 - **ADR-0105 — Thirteen-layer canonical enum.** Layer rules unchanged.
 - **ADR-0128 — Hyperscaler architecture invariants.** Doctrine alignment.
 - **ADR-0131 — Per-microservice flat layout.** Layout unchanged.
-- **ADR-0132 — No-suite forward policy.** No suite µservices created.
+- **ADR-0132 — No-grouping forward policy.** No grouping µservices created.
 - **ADR-0144 — EU AI Act graduated-risk tier model.** Per-tenant AI tier (D-3 compliance_packs).
 - **ADR-0145 — Inter-microservice communication reform.** Tenant context in gRPC metadata.
 - **ADR-0150 — Cedar policy engine.** Tenant entity-types live in policy-engine.
@@ -2112,11 +2112,11 @@ hyperscaler pattern + source + anti-pattern avoided.
 | D-2 (Dotted hierarchical sub-scope) | "Hierarchical Principal Path" | AWS IAM principal paths; GCP resource hierarchy; Azure RBAC scope; Kubernetes namespace hierarchy | "Flat Namespace Drift" — inheritance requires explicit cross-namespace queries at scale |
 | D-2 (Max depth 5) | "Bounded-Depth Hierarchy" | AWS IAM path limit; Azure subscription nesting limit; GCP folder depth limit (10 in practice; 5 recommended) | "Unbounded Tree Depth" — policy evaluation exponential in depth |
 | D-3 (Tenant table schema) | "Single Source of Truth Tenant Registry" | AWS Organizations master account table; GCP Resource Manager hierarchy table; Stripe Accounts table | "Per-µservice Tenant View Drift" — each µservice rolls its own tenant concept |
-| D-3 (Capability flags) | "Capability-Based Authorization" | Stripe Connect account capabilities; AWS IAM permission boundaries; Linux capabilities(7) | "Role-Based-Only" — coarse role assignment misses per-capability gating |
+| D-3 (Capability flags) | "Capability-Based Authorization" | Stripe account capabilities; AWS IAM permission boundaries; Linux capabilities(7) | "Role-Based-Only" — coarse role assignment misses per-capability gating |
 | D-3 (DR pair strategy enum) | "Tier-Aware DR Strategy" | AWS Resilience Hub tiers; Azure Site Recovery patterns | "One-Size-Fits-All DR" — premium tier RTO applied to every tenant |
 | D-4 (Cedar entity-types) | "Typed Entity Policy Schema" | AWS Verified Permissions Cedar entity schema; OPA structured-data policies | "Untyped String Match Policy" — fragile per-string conditions |
 | D-5 (Manifest schema; drop audience) | "Caller-Side Attribute Resolution" | AWS principal-attribute policy conditions; Azure AAD claims-based; Stripe webhook tenant_id in payload | "Callee-Side Audience Declaration" — category error retired |
-| D-6 (Cross-tenant grants) | "Time-Bounded Cross-Tenant Grant" | AWS STS AssumeRole cross-account; Azure AAD B2B Collaboration; Stripe Connect platform-on-behalf-of | "Permanent Cross-Tenant Trust" — perpetual elevation; bypass-path acquisition |
+| D-6 (Cross-tenant grants) | "Time-Bounded Cross-Tenant Grant" | AWS STS AssumeRole cross-account; Azure AAD B2B Collaboration; Stripe platform-on-behalf-of | "Permanent Cross-Tenant Trust" — perpetual elevation; bypass-path acquisition |
 | D-6.3 (Partner OBO) | "Platform-on-Behalf-Of Pattern" | Stripe Connect; Salesforce Partner Portal; AWS Marketplace partner accounts | "Direct Customer Credential Sharing" — partner holds customer secrets |
 | D-7 (Tenant lifecycle state machine) | "Multi-State Tenant Lifecycle with Soft-Delete Window" | AWS Organizations account close (90-day grace); GCP Project delete (30-day soft-delete); Azure AD tenant delete (30-day recovery) | "Hard-Delete-Only Lifecycle" — accidental deletes irrecoverable |
 | D-7 (Hard delete cascade + tombstone) | "Cascade-Plus-Tombstone Deletion" | AWS Organizations CLOSED account preserves audit; GCP Project SOFT_DELETED preserves logs | "Total Erasure Including Audit" — regulatory violation; tamper detection broken |

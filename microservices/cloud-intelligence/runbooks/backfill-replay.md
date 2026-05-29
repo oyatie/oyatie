@@ -2,7 +2,7 @@
 
 **Service:** cloud-intelligence  
 **Classification:** Stateless service — no gateway-owned persistent state to replay  
-**ADR authority:** ADR-0373 (LLM gateway production design)
+**ADR authority:** ADR-0373 (cloud-intelligence gateway production design)
 
 ## Stateless declaration
 

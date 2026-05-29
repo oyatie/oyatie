@@ -126,7 +126,7 @@ oya-workspace-calendar-kernel        oya-workspace-chat-api
 oya-workspace-chat-kernel            oya-workspace-collab-runtime-kernel
 oya-workspace-dlp-kernel             oya-workspace-docs-kernel
 oya-workspace-drive-api              oya-workspace-drive-kernel
-oya-workspace-dsr-kernel             oya-workspace-ediscovery-kernel
+oya-retention-dsr-kernel             oya-workspace-ediscovery-kernel
 oya-workspace-forms-api              oya-workspace-forms-kernel
 oya-workspace-mail-kernel            oya-workspace-meet-api
 oya-workspace-meet-kernel            oya-workspace-notes-kernel

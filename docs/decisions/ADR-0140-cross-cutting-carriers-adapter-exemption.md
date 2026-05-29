@@ -303,7 +303,7 @@ Accepted because:
   `microservices/<carrier>/` like any other µservice).
 - ADR-0132 (suite-and-bundle dissolution; carriers are NOT a suite; each
   is a single µservice).
-- ADR-0135 (Connect super-app expansion into 8 µservices; messenger / mail
+- ADR-0135 (super-app expansion into 8 µservices; messenger / mail
   / calendar emerged as carriers from the dissolution).
 - ADR-0136 (Foundry as single µservice; foundry is a substrate, not a
   carrier — distinct concept).
@@ -345,6 +345,6 @@ implicit in the hyperscaler-shape benchmark but not previously written down.
 ADR-0140 is the next free slot in the oyatie ADR sequence following
 ADR-0139 (agentic SLO-gated promotion, 2026-05-17). ADR-0131 has two
 filenames in the repo (`-per-microservice-flat-layout.md` and
-`-connect-social-expansion-planning-contract.md`); per
+`-community-social-expansion-planning-contract.md`); per
 ADR-0135's renumbering precedent, this duplication is a separate
 housekeeping concern and does not affect this ADR's numbering.

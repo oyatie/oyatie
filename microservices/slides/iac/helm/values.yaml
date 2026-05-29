@@ -13,7 +13,7 @@ resources:
 perTenantSessionCap: 50  # T-D-01
 
 oidc:
-  issuer: https://auth.oyatie.dev
+  issuer: https://auth.oyatie.com
   audience: slides
   jwksCacheSeconds: 300
 

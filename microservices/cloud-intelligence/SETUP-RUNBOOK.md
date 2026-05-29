@@ -111,7 +111,7 @@ To lint and render locally:
 helm lint microservices/cloud-intelligence/iac/k8s/helm
 
 helm template microservices/cloud-intelligence/iac/k8s/helm \
-  --set image.digest=sha256:1111111111111111111111111111111111111111111111111111111111111111 \
+  --set image.digest= \
   > /tmp/helm-rendered.yaml
 ```
 
@@ -147,9 +147,9 @@ smoke-test commands.
 2. **OpenBao role** — create the `cloud-intelligence-service-role` Kubernetes auth role
    in OpenBao with a policy granting `read` on `secret/oya/cloud-intelligence`.
 3. **Istio Gateway** — confirm `oyatie-ingress-gateway` in namespace `istio-ingress`
-   exists and has a TLS listener on `intelligence.oya.cloud`.
+   exists and has a TLS listener on `cloud-intelligence.oyatie.com`.
 4. **OAuth callback registration** — register
-   `https://intelligence.oya.cloud/anthropic/oauth/callback` as an allowed redirect URI
+   `https://cloud-intelligence.oyatie.com/anthropic/oauth/callback` as an allowed redirect URI
    with Anthropic if using Authorization Code flow.
 5. **Cosign signature** — sign the published image with the project cosign key so the
    Kyverno `verify-image-signatures` policy passes on admission.

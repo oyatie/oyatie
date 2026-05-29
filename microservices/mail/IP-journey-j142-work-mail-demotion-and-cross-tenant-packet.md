@@ -135,7 +135,7 @@ struct ForwardingConfig {
 ## Out of scope
 
 - Personal-Mail content rendering (UX layer).
-- Connect-mediated COBRA/ERISA submission (Connect µservice).
+- Connect-mediated COBRA/ERISA submission (µservice).
 - Spam filtering policy authoring (lives in compliance).
 
 ## Completion expansion — j142 mail IP rigor pass

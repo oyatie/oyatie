@@ -10,7 +10,7 @@ persona: darren-chen (maintenance planner), carlos-reyes-ii (technician), tony-l
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-005: Domain layer for `technician-dispatch` — Skill-matrix matching + shift binding + travel constraints

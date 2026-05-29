@@ -4,6 +4,7 @@ title: "cloud-intelligence v1: request pipeline and proof layer"
 status: Accepted
 date: 2026-05-28
 authority: founder
+owner: council-architecture
 planning_impact: true
 supersedes: []
 superseded_by: []

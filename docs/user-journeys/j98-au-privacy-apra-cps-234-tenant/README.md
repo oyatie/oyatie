@@ -38,7 +38,7 @@ An Australian financial-services tenant activates Privacy Act APP obligations an
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -78,7 +78,7 @@ An Australian financial-services tenant activates Privacy Act APP obligations an
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -144,7 +144,7 @@ An Australian financial-services tenant activates Privacy Act APP obligations an
 | README-AC-010 | comms-email | CPS 234 asset classification | APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | APRA notification drill | Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | OAIC breach packet rehearsal | APP 3 collection of solicited personal information | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | AU tenant eligibility | APP 5 notification of collection | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | AU tenant eligibility | APP 5 notification of collection | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | APP notice and consent bind | APP 6 use or disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | IRAP PROTECTED cell placement | APP 8 cross-border disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | CPS 234 asset classification | APP 11 security of personal information | Cedar deny-wins; ADR-0263 event sealed |
@@ -189,7 +189,7 @@ An Australian financial-services tenant activates Privacy Act APP obligations an
 | README-AC-055 | comms-email | AU tenant eligibility | APP 8 cross-border disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | APP notice and consent bind | APP 11 security of personal information | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | IRAP PROTECTED cell placement | APP 12 access and APP 13 correction | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | CPS 234 asset classification | Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | CPS 234 asset classification | Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | APRA notification drill | APRA CPS 234 paragraphs 13 to 21 governance, capability, policy, classification, and controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | OAIC breach packet rehearsal | APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | AU tenant eligibility | Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Cedar deny-wins; ADR-0263 event sealed |
@@ -234,7 +234,7 @@ An Australian financial-services tenant activates Privacy Act APP obligations an
 | README-AC-100 | comms-email | CPS 234 asset classification | APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | APRA notification drill | Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | OAIC breach packet rehearsal | APP 3 collection of solicited personal information | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | AU tenant eligibility | APP 5 notification of collection | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | AU tenant eligibility | APP 5 notification of collection | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | APP notice and consent bind | APP 6 use or disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | IRAP PROTECTED cell placement | APP 8 cross-border disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | CPS 234 asset classification | APP 11 security of personal information | Cedar deny-wins; ADR-0263 event sealed |
@@ -279,7 +279,7 @@ An Australian financial-services tenant activates Privacy Act APP obligations an
 | README-AC-145 | comms-email | AU tenant eligibility | APP 8 cross-border disclosure | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | APP notice and consent bind | APP 11 security of personal information | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | IRAP PROTECTED cell placement | APP 12 access and APP 13 correction | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | CPS 234 asset classification | Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | CPS 234 asset classification | Privacy Act 1988 Part IIIC sections 26WE and 26WK eligible data breach assessment and notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | APRA notification drill | APRA CPS 234 paragraphs 13 to 21 governance, capability, policy, classification, and controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | OAIC breach packet rehearsal | APRA CPS 234 paragraphs 35 and 36 incident and material control weakness notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | AU tenant eligibility | Privacy Act 1988 Schedule 1 APP 1 open and transparent management of personal information | Cedar deny-wins; ADR-0263 event sealed |

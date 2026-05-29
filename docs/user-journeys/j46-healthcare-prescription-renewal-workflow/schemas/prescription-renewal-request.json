@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j46/prescription-renewal-request.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j46/prescription-renewal-request.json",
   "title": "PrescriptionRenewalRequest",
   "version": "1.0.0",
   "description": "Shared journey object for j46-healthcare-prescription-renewal-workflow. It lets Yejin Park request an Rx renewal in Workflow Studio, route to a prescribing doctor, then to a pharmacy while preserving tenant scope, auditability, and cross-service status.",

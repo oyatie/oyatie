@@ -208,7 +208,7 @@ Healthcare Integration owns clinical interoperability, consent, break-glass, and
 - Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
 - Compliance packs: `HIPAA-2024`, `SOC-2`, `ISO-27001`, `GDPR`, `KR-Medical-Devices`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `compliance`, `consent-graph`, `workflow-engine`, `drive`, `identity`; +2 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `healthcare-integration` `patient-record` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -748,7 +748,7 @@ Healthcare Integration owns clinical interoperability, consent, break-glass, and
 - Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
 - Compliance packs: `HIPAA-2024`, `SOC-2`, `ISO-27001`, `GDPR`, `KR-Medical-Devices`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `compliance`, `consent-graph`, `workflow-engine`, `drive`, `identity`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `healthcare-integration` `patient-record` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

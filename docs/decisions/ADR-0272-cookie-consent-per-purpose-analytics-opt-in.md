@@ -1012,7 +1012,7 @@ twelve concrete CI lanes:
 
 ### Documentation surface (per feedback_doc_coverage_enforced)
 
-Every CMP-related microservice ships a full doc suite (overview,
+Every CMP-related microservice ships a full doc set (overview,
 runbook, threat model, data-class registry mapping, DSAR
 playbook, locale parity report, accessibility conformance report).
 CI lane `lean-a5-doc-coverage` enforces.

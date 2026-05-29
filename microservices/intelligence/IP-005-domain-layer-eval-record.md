@@ -107,7 +107,7 @@ Local anchors: `capabilities/eval.yaml`, refusal SLO files, and `manifest.json` 
 
 ### §G Counterparts
 
-OpenAI Evals, Anthropic eval suites, and Vertex evaluation define comparable quality records; oyatie adds sealed,
+OpenAI Evals, Anthropic eval sets, and Vertex evaluation define comparable quality records; oyatie adds sealed,
 tenant-scoped dispatch evidence.
 
 ## DR posture (per ADR-0343)

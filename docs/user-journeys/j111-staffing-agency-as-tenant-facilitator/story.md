@@ -37,7 +37,7 @@ journey_sector: hiring/workforce
 # j111-staffing-agency-as-tenant-facilitator - Story
 
 Purpose: A staffing-agency tenant sources workers from Community, places them at KrampusCorp, ConstructionCo, and
-HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
+HealthcareSystem-Megacorp, and receives Stripe facilitator commissions.
 
 ## Load-bearing doctrine
 
@@ -98,7 +98,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 003 - payments moves the relationship forward
@@ -175,7 +175,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 007 - identity moves the relationship forward
@@ -253,7 +253,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 011 - community moves the relationship forward
@@ -329,7 +329,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 015 - workflow-engine moves the relationship forward
@@ -408,7 +408,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 019 - tenancy moves the relationship forward
@@ -485,7 +485,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 023 - payments moves the relationship forward
@@ -564,7 +564,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 027 - identity moves the relationship forward
@@ -640,7 +640,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 031 - community moves the relationship forward
@@ -718,7 +718,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 035 - workflow-engine moves the relationship forward
@@ -795,7 +795,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 039 - tenancy moves the relationship forward
@@ -874,7 +874,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 043 - payments moves the relationship forward
@@ -951,7 +951,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 047 - identity moves the relationship forward
@@ -1029,7 +1029,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 051 - community moves the relationship forward
@@ -1105,7 +1105,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 055 - workflow-engine moves the relationship forward
@@ -1184,7 +1184,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 059 - tenancy moves the relationship forward
@@ -1261,7 +1261,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 063 - payments moves the relationship forward
@@ -1340,7 +1340,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 067 - identity moves the relationship forward
@@ -1416,7 +1416,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 071 - community moves the relationship forward
@@ -1495,7 +1495,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 075 - workflow-engine moves the relationship forward
@@ -1574,7 +1574,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 079 - tenancy moves the relationship forward
@@ -1654,7 +1654,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 083 - payments moves the relationship forward
@@ -1732,7 +1732,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 087 - identity moves the relationship forward
@@ -1812,7 +1812,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 091 - community moves the relationship forward
@@ -1890,7 +1890,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if KrampusCorp is a child or facilitator tenant, the relationship is a revocable Cedar grant
   and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 095 - workflow-engine moves the relationship forward

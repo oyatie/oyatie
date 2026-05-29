@@ -94,7 +94,7 @@ Unit tests must be deterministic and must not require S3, Garage, SeaweedFS, Pos
 - Mutation score target for `preview` request planners: 90 percent killed mutants.
 - Minimum assertion density: one semantic assertion per storage, permission, share, or immutability state transition.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `file_store::kernel::tests`.
 - Test `file_metadata_requires_tenant_id`.

@@ -5,13 +5,13 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-plant-maintenance + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # Plant Maintenance
 
 ## Purpose
-Plant Maintenance is the SAP PM parity microservice for Equipment Master, Work Orders, Preventive Maintenance, Spare Parts. It keeps a flat per-microservice layout, avoids ERP suite ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
+Plant Maintenance is the SAP PM parity microservice for Equipment Master, Work Orders, Preventive Maintenance, Spare Parts. It keeps a flat per-microservice layout, avoids ERP platform ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
 
 ## Bounded contexts
 - equipment-master: tenant-scoped command, query, event, replay, and audit surface.

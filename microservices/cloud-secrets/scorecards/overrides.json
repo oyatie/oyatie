@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "cloud-secrets",
   "summary": "OpenBao + HSM + per-tenant namespace + key rotation",
   "chart_name": "openbao",

@@ -1336,10 +1336,10 @@ E-2.12. Audit: UXProfileResolved includes microservice=compliance.
 E-2.12. Test: profile matrix fixture verifies canonical action ids for compliance.
 
 E-2.13. Microservice: connect.
-E-2.13. Required declaration: microservices/connect/ux/device-profile-matrix.json.
-E-2.13. Required declaration: microservices/connect/ux/workspace-profile-matrix.json.
-E-2.13. Required declaration: microservices/connect/ux/collar-color-shell-matrix.json.
-E-2.13. Required declaration: microservices/connect/ux/accommodation-profile-matrix.json.
+E-2.13. Required declaration: microservices/connector/ux/device-profile-matrix.json.
+E-2.13. Required declaration: microservices/connector/ux/workspace-profile-matrix.json.
+E-2.13. Required declaration: microservices/connector/ux/collar-color-shell-matrix.json.
+E-2.13. Required declaration: microservices/connector/ux/accommodation-profile-matrix.json.
 E-2.13. Runtime adapter: crates/oya-connect-ux-profile-adapter when the service renders user-facing work.
 E-2.13. Audit: UXProfileResolved includes microservice=connect.
 E-2.13. Test: profile matrix fixture verifies canonical action ids for connect.
@@ -1646,7 +1646,7 @@ E-2.47. Required declaration: microservices/social/ux/device-profile-matrix.json
 E-2.47. Required declaration: microservices/social/ux/workspace-profile-matrix.json.
 E-2.47. Required declaration: microservices/social/ux/collar-color-shell-matrix.json.
 E-2.47. Required declaration: microservices/social/ux/accommodation-profile-matrix.json.
-E-2.47. Runtime adapter: crates/oya-social-ux-profile-adapter when the service renders user-facing work.
+E-2.47. Runtime adapter: crates/oya-community-social-ux-profile-adapter when the service renders user-facing work.
 E-2.47. Audit: UXProfileResolved includes microservice=social.
 E-2.47. Test: profile matrix fixture verifies canonical action ids for social.
 

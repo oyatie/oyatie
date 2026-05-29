@@ -129,7 +129,7 @@ oyatie mail ships **two backend stacks** behind the µservice's port traits, sel
 - Rspamd Project (rspamd.com) — spam classification
 - M3AAWG Sender Best Common Practices v3
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - ADR-0133 — Industry best-practice conformance program
 - `microservices/mail/PRD.md` §"Bounded Contexts" + §"Horizontal Scalability"
 - `microservices/mail/competitor-parity-matrix.md`

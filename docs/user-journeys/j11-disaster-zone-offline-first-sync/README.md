@@ -49,7 +49,7 @@ Binding ADR: ADR-0306. The common critical-path doctrine pack also cites ADR-029
 
 | Microservice | Role | Primary contract |
 |---|---|---|
-| connect | offline-shell-state | j11.offline-shell-state.v1 |
+| connector | offline-shell-state | j11.offline-shell-state.v1 |
 | drive | offline-file-journal | j11.offline-file-journal.v1 |
 | messenger | store-and-forward-queue | j11.store-and-forward-queue.v1 |
 | notes | offline-crdt-merge | j11.offline-crdt-merge.v1 |

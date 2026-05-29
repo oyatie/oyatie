@@ -35,7 +35,7 @@ cross_product_compound: true
 # j111-staffing-agency-as-tenant-facilitator - Handshake
 
 Purpose: cross-service and cross-tenant sequence for A staffing-agency tenant sources workers from Community, places
-them at KrampusCorp, ConstructionCo, and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
+them at KrampusCorp, ConstructionCo, and HealthcareSystem-Megacorp, and receives Stripe facilitator commissions.
 
 ## Contract stack
 

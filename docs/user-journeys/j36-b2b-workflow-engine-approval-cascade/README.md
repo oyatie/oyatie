@@ -41,12 +41,12 @@ microservices_touched:
   - mail
   - identity
 journey_number: j36
-benchmark: Temporal approval workflow plus Stripe Connect platform-facilitator pattern
+benchmark: Temporal approval workflow plus Stripe platform-facilitator pattern
 ---
 
 # j36-b2b-workflow-engine-approval-cascade
 
-Purpose: Index and build contract for B2B workflow approval cascade with Stripe Connect auto-pay.
+Purpose: Index and build contract for B2B workflow approval cascade with Stripe auto-pay.
 
 ## Artifact map
 - story.md: persona narrative and acceptance story.

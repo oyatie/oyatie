@@ -75,7 +75,7 @@
 | Network Address Usage maximum after increase | 256,000 | AWS VPC quotas |
 | Peered Network Address Usage default | 128,000 | AWS VPC quotas |
 | Peered Network Address Usage maximum after increase | 512,000 | AWS VPC quotas |
-| Direct Connect dedicated port speeds | 1/10/100/400 Gbps | AWS Direct Connect docs |
+| Direct dedicated port speeds | 1/10/100/400 Gbps | AWS Direct docs |
 
 ### Google Cloud VPC public numbers
 
@@ -404,7 +404,7 @@
 
 - AWS route-table quota of 500 default routes and 1,000 maximum after increase is above Oyatie demo_trial/paid route targets but below Oyatie paid native targets.
 - AWS security group scale is strong at 2,500 groups per region, but Oyatie paid targets a tenant-level policy model that must avoid mapping one-to-one onto provider security groups in guest contexts.
-- AWS Direct Connect 400 Gbps provides a public precedent for Oyatie paid 400 Gbps native provider target.
+- AWS Direct 400 Gbps provides a public precedent for Oyatie paid 400 Gbps native provider target.
 - Google MTU up to 8,896 bytes sets a jumbo-frame precedent that Oyatie should explicitly model for paid/paid colocated and native contexts.
 - Google 7 Gbps ordinary external egress and 25 Gbps Tier_1 egress provide a useful catch-up bar for Oyatie paid guest-on-GCP-like expectations, but this audit target is for `cloud-network` contexts rather than a GCP guest context.
 - Google flow-log retention default of 30 days is a useful minimum; Oyatie must define its own retention by compliance pack because packet tags and audit-chain projection are stronger claims.

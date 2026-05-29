@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/legal-ip-domain-taxonomy.json",
+  "$id": "https://docs.oyatie.com/specs/legal-ip-domain-taxonomy.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "LEGAL-IP-DOMAIN-TAXONOMY",
@@ -28,7 +28,9 @@
         "public_marketing",
         "tenant_product_entry",
         "corporate_entry",
-        "canonical_product_docs_linkout"
+        "canonical_product_docs_linkout",
+        "public_developer_docs_linkout",
+        "public_machine_readable_specs"
       ],
       "disallowed_surface_classes": [
         "status_root",
@@ -94,16 +96,19 @@
     },
     {
       "domain": "oyatie.dev",
-      "canonical_purpose": "developer_and_api_surfaces",
-      "fd001_role": "dev_api",
+      "canonical_purpose": "internal_developer_and_api_surfaces",
+      "fd001_role": "internal_dev_api",
       "allowed_surface_classes": [
-        "developer_docs",
-        "api_reference",
-        "sandbox_api",
-        "sdk_artifacts",
-        "machine_readable_specs"
+        "internal_developer_docs",
+        "internal_api_reference",
+        "internal_sandbox_api",
+        "internal_sdk_artifacts",
+        "internal_machine_readable_specs"
       ],
       "disallowed_surface_classes": [
+        "public_marketing",
+        "public_developer_docs",
+        "public_machine_readable_specs",
         "primary_product_entry",
         "trust_center_root",
         "incident_status_root",
@@ -112,8 +117,8 @@
       "exit_evidence_required": [
         "registrar_control_evidence",
         "dns_authority_evidence",
-        "api_surface_mapping",
-        "machine_readable_contract_publication",
+        "internal_api_surface_mapping",
+        "internal_machine_readable_contract_publication",
         "renewal_owner_record"
       ]
     },
@@ -164,7 +169,7 @@
       "all domain_purpose_rows have dns_authority_evidence",
       "all domain_purpose_rows have renewal_owner_record",
       "docs/LEGAL-IP-LEDGER.md or its retired projection no longer conflicts with this taxonomy",
-      "specs/api-surface-separation.json maps developer/API surfaces without contradicting oyatie.dev role",
+      "specs/api-surface-separation.json maps public developer/API surfaces to oyatie.com and internal developer/API surfaces to oyatie.dev without contradiction",
       "trust/status/AI public surfaces cite this taxonomy before launch claims"
     ],
     "claim_boundary": "This file is target taxonomy plus drift evidence. It is not registrar ownership proof, DNS proof, trademark proof, TLS proof, public routing proof, or production launch proof."

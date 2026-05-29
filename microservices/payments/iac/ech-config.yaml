@@ -32,7 +32,7 @@ per_cell_config_shape:
     kem_id: 0x0020  # X25519
     kdf_id: 0x0001  # HKDF-SHA256
     aead_id: 0x0001  # AES-128-GCM
-  public_name: payments.oyatie.dev
+  public_name: payments.oyatie.com
   extensions:
     # PQC kicker: when ECH negotiated, prefer PQC hybrid in inner ClientHello
     - prefer_pqc_kem_when_available: true

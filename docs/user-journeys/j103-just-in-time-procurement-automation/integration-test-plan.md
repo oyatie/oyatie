@@ -46,7 +46,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
 - Test data: synthetic, non-production, no secrets, no live rails.
 - Test contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, JSON Schema 2020-12.
 
-## Suite 1: tenant admission
+## Test Set 1: tenant admission
 
 ### IT-103-001: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -114,7 +114,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 2: identity binding
+## Test Set 2: identity binding
 
 ### IT-103-007: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -182,7 +182,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 3: Cedar permit evaluation
+## Test Set 3: Cedar permit evaluation
 
 ### IT-103-013: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -250,7 +250,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 4: marketplace settlement
+## Test Set 4: marketplace settlement
 
 ### IT-103-019: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -318,7 +318,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 5: workflow orchestration
+## Test Set 5: workflow orchestration
 
 ### IT-103-025: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -386,7 +386,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 6: payment escrow
+## Test Set 6: payment escrow
 
 ### IT-103-031: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -454,7 +454,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 7: ontology projection
+## Test Set 7: ontology projection
 
 ### IT-103-037: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -522,7 +522,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 8: audit dual seal
+## Test Set 8: audit dual seal
 
 ### IT-103-043: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -590,7 +590,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 9: compliance overlay
+## Test Set 9: compliance overlay
 
 ### IT-103-049: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.
@@ -658,7 +658,7 @@ AcmeRawMaterials auto-fulfills, and payment releases on delivery evidence.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 10: human review
+## Test Set 10: human review
 
 ### IT-103-055: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j103.

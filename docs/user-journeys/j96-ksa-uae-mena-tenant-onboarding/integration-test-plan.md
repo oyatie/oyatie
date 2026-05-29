@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J96-T001 | analytics Arabic tenant signup | Cedar decision and audit event cite KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles; data remains tenant-scoped |
 | J96-T002 | api-gateway KSA sovereign cell placement | Cedar decision and audit event cite KSA PDPL Article 6 processing without consent exceptions; data remains tenant-scoped |

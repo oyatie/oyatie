@@ -10,4 +10,4 @@ version: 0.1.0
 appVersion: "1.0.0"  # sheets µservice version
 maintainers:
   - name: axis-sheets + council-design-system
-    email: axis-sheets@oyatie.dev
+    email: axis-sheets@oyatie.com

@@ -3404,7 +3404,7 @@ Most affected files:
 | `comms-email` | `comms email`, `comms-email`, `email` |
 | `community` | `community` |
 | `compliance` | `compliance` |
-| `connect` | `connect` |
+| `connector` | `connector` |
 | `consent-graph` | `consent graph`, `consent-graph` |
 | `contact-center` | `contact center`, `contact-center` |
 | `contract-lifecycle-management` | `contract lifecycle management`, `contract lifecycle mgmt`, `contract-lifecycle-management`, `contract-lifecycle-mgmt` |

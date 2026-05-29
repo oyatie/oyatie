@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j23-marketplace-listing-and-first-sale.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j23-marketplace-listing-and-first-sale.schema.json",
   "title": "j23 Marketplace listing and first seller payout Journey Contract",
   "type": "object",
   "additionalProperties": false,
@@ -19,7 +19,7 @@
     "doc_class": "Schema",
     "version": "1.0.0",
     "status": "Accepted",
-    "purpose": "Yejin lists a vintage jacket, completes the first sale, and receives a Stripe Connect payout to a Korean bank after marketplace settlement.",
+    "purpose": "Yejin lists a vintage jacket, completes the first sale, and receives a Stripe payout to a Korean bank after marketplace settlement.",
     "binding_adrs": [
       "ADR-0105",
       "ADR-0131",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j85-hipaa-phi-workflow.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j85-hipaa-phi-workflow.schema.json",
   "title": "J85 HIPAA end-to-end PHI workflow Journey Object",
   "version": "1.0.0",
   "_meta": {

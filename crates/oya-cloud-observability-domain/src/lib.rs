@@ -1612,8 +1612,8 @@ mod tests {
     const CELL: &str = "cell-region-alpha1-a-001";
     const SIGNED_EXPORT: &str = "s3+signed://region-alpha1/ten_alpha/audit?sig=abc123";
     const RESOURCE_ID: &str = "oya:cloud:region-alpha1:ten_alpha:instance:vm-a";
-    const HASH_A: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    const HASH_B: &str = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    const HASH_A: &str = "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+    const HASH_B: &str = "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
 
     fn residency_class() -> ResidencyClass {
         ResidencyClass::PerPack(Box::new(

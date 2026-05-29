@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j72/ai-translation-cross-locale-business-event.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j72/ai-translation-cross-locale-business-event.json",
   "title": "J72AiTranslationCrossLocaleBusinessEvent",
   "description": "Shared ai-translation-cross-locale-business-event schema for j72-ai-translation-cross-locale-business. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

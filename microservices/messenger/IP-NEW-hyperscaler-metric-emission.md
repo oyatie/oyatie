@@ -7,7 +7,7 @@ impl_plan_id: IP-NEW-hyperscaler-metric-emission
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-connect-messenger + axis-observability
+owner: axis-messenger + axis-observability
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, hyperscaler-arch-invariants]
 related_adrs:
   - ADR-0064

@@ -21,7 +21,7 @@ decision_owner: axis-ecosystem + ops-finance + council-compliance
 
 - The named pressure is `marketplace-developer-payout-sovereignty`.
 - Developer-sdk owns the developer marketplace surface where plugin, template, API, and app developers earn payouts.
-- Prior incident class `hosted-payout-saas-assumed` treated Stripe Connect as an implementation default despite ADR-0173.
+- Prior incident class `hosted-payout-saas-assumed` treated Stripe as an implementation default despite ADR-0173.
 - Prior incident class `currency-file-shape-ambiguous` left SEPA, ACH, and KR bank files described as generic payout exports.
 - Prior incident class `reconciliation-without-ledger-ref` allowed payout file rows to exist without a durable platform ledger id.
 - ADR-0213 puts developer monetization inside Ecosystem-as-a-Service.
@@ -77,7 +77,7 @@ decision_owner: axis-ecosystem + ops-finance + council-compliance
 
 ## Alternatives Considered
 
-### Stripe Connect hosted payouts
+### Stripe hosted payouts
 
 - Pro: fast implementation.
 - Pro: mature KYC and tax support.

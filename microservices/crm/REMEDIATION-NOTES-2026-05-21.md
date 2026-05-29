@@ -183,7 +183,7 @@ All PRESERVED.
 
 All PRESERVED. Wave 15B adds field-level mapping tables per playbook.
 
-### §3.13 Other doc-suite files
+### §3.13 Other doc-set files
 
 - `PHASE-01-CRM-PARITY.md` (143KB, 4-character ratio; substantive phase plan). PRESERVED. Wave 15B refresh planned for tier-language scrub.
 - `compliance.md`. PRESERVED.

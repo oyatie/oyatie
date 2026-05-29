@@ -145,7 +145,7 @@ ENTRA-11 External ID for business partners, guests, and consumer applications, p
 ENTRA-12 B2B guest collaboration.
 ENTRA-13 Customer identity and access management.
 ENTRA-14 SAML/OIDC/OAuth application federation through Microsoft identity platform.
-ENTRA-15 OpenID Connect and OAuth token issuance.
+ENTRA-15 OpenID and OAuth token issuance.
 ENTRA-16 Microsoft Graph API for administration, user lifecycle, and governance automation, per Entra docs lines 111-115.
 ENTRA-17 Microsoft Entra admin center for unified administration.
 ENTRA-18 Conditional Access as Zero Trust policy engine using user, group, agent, IP, device, application, and risk signals, per Conditional Access lines 32-70.

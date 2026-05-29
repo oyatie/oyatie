@@ -89,7 +89,7 @@ The contract surface must protect chat content, channel ACL semantics, attachmen
 - Proto target: every public RPC has JSON and binary reference samples.
 - Governance target: no contract diff can bypass chat-content and ACL review.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `contract::openapi_conformance`.
 - Test `openapi_document_declares_version_3_2_0`.

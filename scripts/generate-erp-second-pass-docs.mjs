@@ -195,7 +195,7 @@ function frontmatter(service, docClass, extra = {}) {
     ["date", DATE],
     ["owner_team", `axis-${service.microservice} + axis-erp-parity`],
     ["related_adrs", "[ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]"],
-    ["planned_enforcement_ref", `oya-governance-${service.microservice}-doc-suite`],
+    ["planned_enforcement_ref", `oya-governance-${service.microservice}-doc-set`],
     ...Object.entries(extra),
   ];
   return `---\n${entries.map(([k, v]) => `${k}: ${v}`).join("\n")}\n---\n`;
@@ -329,7 +329,7 @@ function readmeDoc(service) {
 # ${service.title}
 
 ## Purpose
-${service.title} is the SAP ${service.sap_module_parity.sap_code} parity microservice for ${service.sap_module_parity.sap_surfaces.join(", ")}. It keeps a flat per-microservice layout, avoids ERP suite ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
+${service.title} is the SAP ${service.sap_module_parity.sap_code} parity microservice for ${service.sap_module_parity.sap_surfaces.join(", ")}. It keeps a flat per-microservice layout, avoids ERP platform ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
 
 ## Bounded contexts
 ${service.bounded_contexts.map((bc) => `- ${bc}: tenant-scoped command, query, event, replay, and audit surface.`).join("\n")}
@@ -515,7 +515,7 @@ ${BENCHMARKS[service.microservice]
   .join("\n")}
 
 ## B. Differentiator
-Oyatie avoids suite lock-in. ${service.title} exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
+Oyatie avoids platform lock-in. ${service.title} exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
 
 `;
   return ensureLines(base, 350, (i) => {
@@ -893,7 +893,7 @@ function scorecard(service) {
       required_transport: ["HTTP/3", "HTTP/2 fallback", "HTTP/1.1 fallback", "ECH", "PQC hybrid where supported"],
       benchmarks: BENCHMARKS[service.microservice],
       scorecards: {
-        doc_suite: "blocker-after-2026-07-15",
+        doc_set: "blocker-after-2026-07-15",
         adr_adherence: "blocker-after-2026-07-15",
         abuse_defence_ux_floor: "required",
         emergency_services_bypass: "required",
@@ -914,7 +914,7 @@ function auditFindings(service) {
       sap_code: service.sap_module_parity.sap_code,
       artifact_target: 100,
       findings: service.bounded_contexts.map((bc) => ({
-        id: `${service.microservice}-${bc}-doc-suite`,
+        id: `${service.microservice}-${bc}-doc-set`,
         status: "closed-by-second-pass",
         evidence: [
           `policy/${bc}-authorization.cedar`,
@@ -979,7 +979,7 @@ function extendManifest(serviceDir, service, stats) {
     ambient_waypoint: manifest.mesh_layering?.ambient_waypoint ?? false,
     north_south_only: manifest.mesh_layering?.north_south_only ?? false,
   };
-  manifest.second_pass_doc_suite = {
+  manifest.second_pass_doc_set = {
     date: DATE,
     target: "PR-143 operating bar",
     operating_bar_artifact_target: 100,

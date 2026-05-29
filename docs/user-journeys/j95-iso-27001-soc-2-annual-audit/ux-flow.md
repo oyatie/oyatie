@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | business continuity exercise proof | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | auditor portal freeze | ISO 22301:2019 clauses 8.4 incident response, 8.5 business continuity plans, and 8.6 exercise program | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | findings remediation loop | AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | scope confirmation | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | scope confirmation | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | evidence collector mapping | SOC 2 confidentiality criteria C1.1 through C1.2 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | control owner attestation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | business continuity exercise proof | SOC 2 privacy criteria P1.1 through P8.1 | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | scope confirmation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | evidence collector mapping | SOC 2 privacy criteria P1.1 through P8.1 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | control owner attestation | ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8 | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | business continuity exercise proof | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | business continuity exercise proof | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | auditor portal freeze | ISO 22301:2019 clauses 8.4 incident response, 8.5 business continuity plans, and 8.6 exercise program | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | findings remediation loop | AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | scope confirmation | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | business continuity exercise proof | AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | auditor portal freeze | SOC 2 availability criteria A1.1 through A1.3 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | findings remediation loop | SOC 2 confidentiality criteria C1.1 through C1.2 | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | scope confirmation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | scope confirmation | SOC 2 processing integrity PI1.1 through PI1.5 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | evidence collector mapping | SOC 2 privacy criteria P1.1 through P8.1 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | control owner attestation | ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8 | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | business continuity exercise proof | ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Cedar deny-wins; ADR-0263 event sealed |

@@ -22,7 +22,7 @@ Implement the planned notifications crate family with Postgres durability, Valke
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `src/crates/oya-social-notifications-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,worker,sdk,app}/` | Planned family named by PRD/IP. |
+| `src/crates/oya-community-social-notifications-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,worker,sdk,app}/` | Planned family named by PRD/IP. |
 | `contracts/asyncapi/social-events.yaml` | Notification-triggering event source. |
 | `slos/notification-fanout-latency.openslo.yaml` | Fanout SLO. |
 | `runbooks/mention-storm-throttle.md` | Burst-control runbook. |
@@ -34,10 +34,10 @@ Implement the planned notifications crate family with Postgres durability, Valke
 4. Add websocket frame delivery and digest worker paths.
 5. Test duplicate events, blocked recipients, muted minors, and backpressure.
 6. Emit audit and SLO metrics for delivered, delayed, suppressed, and failed notifications.
-7. Connect storm throttling runbooks and dashboards.
+7. storm throttling runbooks and dashboards.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-notifications-kernel` passes.
+- `cargo nextest run -p oya-community-social-notifications-kernel` passes.
 - `slos/notification-fanout-latency.openslo.yaml` resolves.
 - Fanout tests prove idempotency for repeated events.
 - Notification policy tests respect `policy/dm-scope.cedar` and `policy/minor-protection.cedar`.

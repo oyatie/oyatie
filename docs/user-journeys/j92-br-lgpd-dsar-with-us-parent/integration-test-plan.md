@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J92-T001 | analytics LGPD request intake | Cedar decision and audit event cite LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles; data remains tenant-scoped |
 | J92-T002 | api-gateway US parent inventory discovery | Cedar decision and audit event cite LGPD Article 7 lawful bases for personal data processing; data remains tenant-scoped |

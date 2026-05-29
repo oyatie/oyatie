@@ -20,7 +20,7 @@ perTenantSessionCap: 50
 
 # OIDC + Cedar enforcement settings
 oidc:
-  issuer: https://auth.oyatie.dev
+  issuer: https://auth.oyatie.com
   audience: workflow-studio
   jwksCacheSeconds: 300
 

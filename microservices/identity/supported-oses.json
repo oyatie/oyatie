@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/supported-oses.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/supported-oses.schema.json",
   "microservice": "identity",
   "criticality_tier": "T0",
   "date": "2026-05-21",

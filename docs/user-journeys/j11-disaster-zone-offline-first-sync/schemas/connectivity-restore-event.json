@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j11/connectivity-restore-event.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j11/connectivity-restore-event.json",
   "title": "ConnectivityRestoreEvent",
   "version": "1.0.0",
   "description": "ConnectivityRestoreEvent shared object for j11 Disaster zone offline-first sync. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

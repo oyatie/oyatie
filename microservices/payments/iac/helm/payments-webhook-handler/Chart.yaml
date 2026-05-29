@@ -16,7 +16,7 @@ keywords:
   - adyen
 maintainers:
   - name: axis-payments
-    email: axis-payments@oyatie.dev
+    email: axis-payments@oyatie.com
 annotations:
   oyatie/microservice: payments
   oyatie/slo-tier: tier-0-revenue-critical

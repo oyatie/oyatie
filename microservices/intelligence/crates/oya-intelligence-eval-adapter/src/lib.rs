@@ -10,8 +10,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub use oya_intelligence_eval_usecase::{
-    DomainEvalSuiteRequest, EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalFailureKind,
-    EvalPolicyDecision, EvalSuite, EvalSuiteStatus, EvalSuiteThresholds, EvalUsecaseDenialKind,
+    DomainEvalSetRequest, EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalFailureKind,
+    EvalPolicyDecision, EvalSet, EvalSetStatus, EvalSetThresholds, EvalUsecaseDenialKind,
     EvalUsecaseReceipt, EvalUsecaseStatus,
 };
 
@@ -76,9 +76,9 @@ pub enum EvalRunnerAdapterConfigError {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EvalRunnerDispatchRequest {
-    pub idempotency_key: String,                // data_class: INTERNAL_ONLY
-    pub domain_request: DomainEvalSuiteRequest, // data_class: INTERNAL_ONLY
-    pub usecase_receipt: EvalUsecaseReceipt,    // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,              // data_class: INTERNAL_ONLY
+    pub domain_request: DomainEvalSetRequest, // data_class: INTERNAL_ONLY
+    pub usecase_receipt: EvalUsecaseReceipt,  // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -100,7 +100,7 @@ pub struct EvalRunnerRequestEnvelope {
     pub principal_id: String,                      // data_class: INTERNAL_ONLY
     pub eval_surface: String,                      // data_class: INTERNAL_ONLY
     pub idempotency_key: String,                   // data_class: INTERNAL_ONLY
-    pub suite_id: String,                          // data_class: INTERNAL_ONLY
+    pub eval_set_id: String,                       // data_class: INTERNAL_ONLY
     pub model_ref: String,                         // data_class: INTERNAL_ONLY
     pub dataset_snapshot_ref: String,              // data_class: INTERNAL_ONLY
     pub route_evidence_ref: String,                // data_class: INTERNAL_ONLY
@@ -219,7 +219,7 @@ impl IntelligenceEvalAdapter {
     }
 
     fn build_envelope(&self, request: &EvalRunnerDispatchRequest) -> EvalRunnerRequestEnvelope {
-        let suite = &request.domain_request.suite;
+        let eval_set = &request.domain_request.eval_set;
         EvalRunnerRequestEnvelope {
             method: EvalRunnerHttpMethod::Post,
             endpoint: normalized_endpoint(&self.config.endpoint),
@@ -229,11 +229,11 @@ impl IntelligenceEvalAdapter {
             principal_id: request.domain_request.principal_id.clone(),
             eval_surface: request.domain_request.eval_surface.clone(),
             idempotency_key: request.idempotency_key.clone(),
-            suite_id: suite.suite_id.clone(),
-            model_ref: suite.model_ref.clone(),
-            dataset_snapshot_ref: suite.dataset_snapshot_ref.clone(),
-            route_evidence_ref: suite.route_evidence_ref.clone(),
-            guardrail_evidence_ref: suite.guardrail_evidence_ref.clone(),
+            eval_set_id: eval_set.eval_set_id.clone(),
+            model_ref: eval_set.model_ref.clone(),
+            dataset_snapshot_ref: eval_set.dataset_snapshot_ref.clone(),
+            route_evidence_ref: eval_set.route_evidence_ref.clone(),
+            guardrail_evidence_ref: eval_set.guardrail_evidence_ref.clone(),
             request_evidence_ref: request.domain_request.request_evidence_ref.clone(),
             trace_context_ref: request.domain_request.trace_context_ref.clone(),
             policy_decision_ref: request.domain_request.policy_decision_ref.clone(),
@@ -245,20 +245,20 @@ impl IntelligenceEvalAdapter {
             credential_handle_ref: self.config.credential_handle_ref.clone(),
             audit_tap_ref: self.config.audit_tap_ref.clone(),
             runner_audience_ref: self.config.runner_audience_ref.clone(),
-            case_count: suite.cases.len() as u32,
+            case_count: eval_set.cases.len() as u32,
             case_evaluator_evidence_refs: sorted_unique(
-                suite
+                eval_set
                     .cases
                     .iter()
                     .map(|case| case.evaluator_evidence_ref.clone())
                     .collect(),
             ),
             thresholds: EvalRunnerThresholdEnvelope {
-                min_pass_rate_bps: suite.thresholds.min_pass_rate_bps,
-                max_safety_violation_rate_bps: suite.thresholds.max_safety_violation_rate_bps,
-                require_golden: suite.thresholds.require_golden,
-                require_adversarial: suite.thresholds.require_adversarial,
-                require_linguistic: suite.thresholds.require_linguistic,
+                min_pass_rate_bps: eval_set.thresholds.min_pass_rate_bps,
+                max_safety_violation_rate_bps: eval_set.thresholds.max_safety_violation_rate_bps,
+                require_golden: eval_set.thresholds.require_golden,
+                require_adversarial: eval_set.thresholds.require_adversarial,
+                require_linguistic: eval_set.thresholds.require_linguistic,
             },
             evidence_refs: dispatch_evidence_refs(request),
             adapter_reference_refs: vec![ADAPTER_REFERENCE_REF.to_owned()],
@@ -330,7 +330,7 @@ fn validate_dispatch_request(
     )?;
 
     let domain = &request.domain_request;
-    let suite = &domain.suite;
+    let eval_set = &domain.eval_set;
     require_opaque(
         "eval-runner:tenant_required",
         "validation:eval-runner-tenant",
@@ -367,37 +367,37 @@ fn validate_dispatch_request(
         &domain.policy_decision.eval_registry_snapshot_ref,
     )?;
     require_opaque(
-        "eval-runner:suite_id_required",
-        "validation:eval-runner-suite-id",
-        &suite.suite_id,
+        "eval-runner:eval_set_id_required",
+        "validation:eval-runner-eval_set-id",
+        &eval_set.eval_set_id,
     )?;
     require_opaque(
         "eval-runner:model_ref_required",
         "validation:eval-runner-model-ref",
-        &suite.model_ref,
+        &eval_set.model_ref,
     )?;
     require_opaque(
         "eval-runner:dataset_snapshot_ref_must_be_opaque",
         "validation:eval-runner-dataset-snapshot",
-        &suite.dataset_snapshot_ref,
+        &eval_set.dataset_snapshot_ref,
     )?;
     require_opaque(
         "eval-runner:route_evidence_required",
         "validation:eval-runner-route-evidence",
-        &suite.route_evidence_ref,
+        &eval_set.route_evidence_ref,
     )?;
     require_opaque(
         "eval-runner:guardrail_evidence_required",
         "validation:eval-runner-guardrail-evidence",
-        &suite.guardrail_evidence_ref,
+        &eval_set.guardrail_evidence_ref,
     )?;
-    if suite.cases.is_empty() {
+    if eval_set.cases.is_empty() {
         return Err(dispatch_failure(
             "eval-runner:case_metadata_required",
             "validation:eval-runner-case-metadata",
         ));
     }
-    for case in &suite.cases {
+    for case in &eval_set.cases {
         require_metadata(
             "eval-runner:case_id_required",
             "validation:eval-runner-case-id",
@@ -418,13 +418,13 @@ fn validate_receipt_binding(
 ) -> Result<(), EvalRunnerDispatchFailure> {
     let receipt = &request.usecase_receipt;
     let domain = &request.domain_request;
-    let suite = &domain.suite;
+    let eval_set = &domain.eval_set;
     if receipt.idempotency_key != request.idempotency_key
         || receipt.tenant_id != domain.tenant_id
         || receipt.principal_id != domain.principal_id
         || receipt.eval_surface != domain.eval_surface
-        || receipt.suite_id != suite.suite_id
-        || receipt.model_ref != suite.model_ref
+        || receipt.eval_set_id != eval_set.eval_set_id
+        || receipt.model_ref != eval_set.model_ref
     {
         return Err(dispatch_failure(
             "eval-runner:usecase_receipt_binding_mismatch",
@@ -437,10 +437,10 @@ fn validate_receipt_binding(
             "validation:eval-runner-usecase-receipt-status",
         ));
     }
-    if receipt.suite_status.is_none() {
+    if receipt.eval_set_status.is_none() {
         return Err(dispatch_failure(
-            "eval-runner:usecase_receipt_missing_suite_status",
-            "validation:eval-runner-suite-status",
+            "eval-runner:usecase_receipt_missing_eval_set_status",
+            "validation:eval-runner-eval_set-status",
         ));
     }
     Ok(())
@@ -540,7 +540,7 @@ fn ok_receipt(
 }
 
 fn dispatch_evidence_refs(request: &EvalRunnerDispatchRequest) -> Vec<String> {
-    let suite = &request.domain_request.suite;
+    let eval_set = &request.domain_request.eval_set;
     let mut refs = vec![
         request.domain_request.request_evidence_ref.clone(),
         request.domain_request.trace_context_ref.clone(),
@@ -550,13 +550,13 @@ fn dispatch_evidence_refs(request: &EvalRunnerDispatchRequest) -> Vec<String> {
             .policy_decision
             .eval_registry_snapshot_ref
             .clone(),
-        suite.route_evidence_ref.clone(),
-        suite.guardrail_evidence_ref.clone(),
-        suite.dataset_snapshot_ref.clone(),
+        eval_set.route_evidence_ref.clone(),
+        eval_set.guardrail_evidence_ref.clone(),
+        eval_set.dataset_snapshot_ref.clone(),
     ];
     refs.extend(request.usecase_receipt.evidence_refs.clone());
     refs.extend(
-        suite
+        eval_set
             .cases
             .iter()
             .map(|case| case.evaluator_evidence_ref.clone()),
@@ -693,7 +693,7 @@ mod tests {
         assert_eq!(envelope.method, EvalRunnerHttpMethod::Post);
         assert_eq!(envelope.path, "/v1/eval-runs");
         assert_eq!(envelope.tenant_id, "tenant:alpha");
-        assert_eq!(envelope.suite_id, "suite:release-gate");
+        assert_eq!(envelope.eval_set_id, "eval_set:release-gate");
         assert_eq!(
             envelope.dataset_snapshot_ref,
             "dataset://evals/releases/2026-05-23"
@@ -779,7 +779,7 @@ mod tests {
     #[test]
     fn rejects_raw_prompt_or_output_shaped_eval_refs_before_envelope() {
         let mut request = valid_request();
-        request.domain_request.suite.dataset_snapshot_ref =
+        request.domain_request.eval_set.dataset_snapshot_ref =
             "raw prompt: write an email to the customer".to_owned();
         let mut adapter = valid_adapter(EvalRunnerStatus::Accepted {
             runner_request_ref: "eval-runner://requests/req-1".to_owned(),
@@ -910,7 +910,7 @@ mod tests {
     }
 
     fn valid_request() -> EvalRunnerDispatchRequest {
-        let domain_request = sample_domain_request("suite:release-gate");
+        let domain_request = sample_domain_request("eval_set:release-gate");
         EvalRunnerDispatchRequest {
             idempotency_key: "idem:eval-runner:1".to_owned(),
             usecase_receipt: EvalUsecaseReceipt {
@@ -918,12 +918,12 @@ mod tests {
                 tenant_id: domain_request.tenant_id.clone(),
                 principal_id: domain_request.principal_id.clone(),
                 eval_surface: domain_request.eval_surface.clone(),
-                suite_id: domain_request.suite.suite_id.clone(),
-                model_ref: domain_request.suite.model_ref.clone(),
+                eval_set_id: domain_request.eval_set.eval_set_id.clone(),
+                model_ref: domain_request.eval_set.model_ref.clone(),
                 status: EvalUsecaseStatus::Evaluated,
                 denial_kind: None,
                 domain_denial_kind: None,
-                suite_status: Some(EvalSuiteStatus::Passed),
+                eval_set_status: Some(EvalSetStatus::Passed),
                 failure_kinds: Vec::new(),
                 evidence_refs: vec!["eval-usecase:evidence:evaluated".to_owned()],
             },
@@ -931,8 +931,8 @@ mod tests {
         }
     }
 
-    fn sample_domain_request(suite_id: &str) -> DomainEvalSuiteRequest {
-        DomainEvalSuiteRequest {
+    fn sample_domain_request(eval_set_id: &str) -> DomainEvalSetRequest {
+        DomainEvalSetRequest {
             tenant_id: "tenant:alpha".to_owned(),
             principal_id: "principal:eval-owner".to_owned(),
             eval_surface: "surface:release-gate".to_owned(),
@@ -940,7 +940,7 @@ mod tests {
             trace_context_ref: "trace:eval-runner:1".to_owned(),
             policy_decision_ref: "policy:evidence:eval-runner:1".to_owned(),
             policy_decision: sample_policy(),
-            suite: sample_suite(suite_id),
+            eval_set: sample_eval_set(eval_set_id),
         }
     }
 
@@ -968,14 +968,14 @@ mod tests {
         }
     }
 
-    fn sample_suite(suite_id: &str) -> EvalSuite {
-        EvalSuite {
-            suite_id: suite_id.to_owned(),
+    fn sample_eval_set(eval_set_id: &str) -> EvalSet {
+        EvalSet {
+            eval_set_id: eval_set_id.to_owned(),
             model_ref: "modelref://openai/gpt-preview".to_owned(),
             route_evidence_ref: "route:evidence:eval-runner:1".to_owned(),
             guardrail_evidence_ref: "guardrail:evidence:eval-runner:1".to_owned(),
             dataset_snapshot_ref: "dataset://evals/releases/2026-05-23".to_owned(),
-            thresholds: EvalSuiteThresholds {
+            thresholds: EvalSetThresholds {
                 min_pass_rate_bps: 8_000,
                 max_safety_violation_rate_bps: 0,
                 require_golden: true,

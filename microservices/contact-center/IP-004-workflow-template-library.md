@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This slice makes routing flows buildable as workflow templates rather than vendor scripts. It subsumes Genesys Architect flows, NICE CXone Studio scripts, Five9 IVR scripts, Talkdesk Studio flows, and AWS Connect contact flows. The named persona is Marcus Chen, who needs predictable service recovery when a VIP queue, callback, or escalation branch fails.
+This slice makes routing flows buildable as workflow templates rather than vendor scripts. It subsumes Genesys Architect flows, NICE CXone Studio scripts, Five9 IVR scripts, Talkdesk Studio flows, and AWS contact flows. The named persona is Marcus Chen, who needs predictable service recovery when a VIP queue, callback, or escalation branch fails.
 
 ## Data Model Deltas
 
@@ -63,7 +63,7 @@ gRPC `ContactRoutingTemplateService.Publish(PublishContactTemplateRequest)` retu
 | NICE CXone Studio Script | `ContactRoutingTemplate` | script branches become workflow branches. |
 | Five9 IVR Script | `ContactRoutingTemplate` | prompts become metadata; decisions become nodes. |
 | Talkdesk Studio Flow | `ContactRoutingTemplate` | flow components map to node kinds. |
-| AWS Connect Contact Flow | `ContactRoutingTemplate` | contact blocks map to nodes and edges. |
+| AWS Contact Flow | `ContactRoutingTemplate` | contact blocks map to nodes and edges. |
 
 ## Workflow Steps
 

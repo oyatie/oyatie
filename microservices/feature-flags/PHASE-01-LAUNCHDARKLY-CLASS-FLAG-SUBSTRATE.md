@@ -21,7 +21,7 @@ companion_docs:
   - microservices/feature-flags/PRD.md
   - microservices/feature-flags/ARCHITECTURE.md
   - microservices/feature-flags/manifest.json
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # PHASE-01 — LaunchDarkly-class Flag Substrate

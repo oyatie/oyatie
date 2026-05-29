@@ -216,7 +216,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Print Operator Diana Lazăr must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Print Operator Diana Lazăr must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Print Operator Diana Lazăr must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Print Operator Diana Lazăr must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Print Operator Diana Lazăr must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Print Operator Diana Lazăr must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Print Operator Diana Lazăr must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Print Operator Diana Lazăr must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

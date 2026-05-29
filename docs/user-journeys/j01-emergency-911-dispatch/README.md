@@ -56,7 +56,7 @@ microservices_touched:
 | [`schemas/emergency-profile-response.json`](schemas/emergency-profile-response.json) | PSAP read response | n/a |
 | [`schemas/kr119-eta-pre-arrival.json`](schemas/kr119-eta-pre-arrival.json) | AsyncAPI ETA event | n/a |
 | [`schemas/audit-event-sealed.json`](schemas/audit-event-sealed.json) | Sealed audit envelope | n/a |
-| [`integration-test-plan.md`](integration-test-plan.md) | End-to-end test suite | ≥400 |
+| [`integration-test-plan.md`](integration-test-plan.md) | End-to-end test set | ≥400 |
 
 ## Per-µservice IP slices (this journey)
 

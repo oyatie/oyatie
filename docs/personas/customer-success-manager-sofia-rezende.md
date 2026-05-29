@@ -210,7 +210,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Customer Success Manager Sofia Rezende must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Customer Success Manager Sofia Rezende must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Customer Success Manager Sofia Rezende must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Customer Success Manager Sofia Rezende must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Customer Success Manager Sofia Rezende must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Customer Success Manager Sofia Rezende must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Customer Success Manager Sofia Rezende must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Customer Success Manager Sofia Rezende must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

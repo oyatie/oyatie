@@ -162,7 +162,7 @@ Multispectrum evidence (per `docs/AGENTS.md` §"changeset"):
 ## References
 
 - ADR-0131 §"Migration DAG → IP-M01-MIGR-014" — bundle decision authority.
-- ADR-0132 §"product-suite-and-bundle dissolution" — naming authority.
+- ADR-0132 §"product-platform-and-bundle dissolution" — naming authority.
 - ADR-0133 §"Decision" + §"Output Artifacts" — 6-axis program authority.
 - ADR-0123 (hyperscaler-maturity-claim-gate) — HG-GOV registers.
 - ADR-0056 BNF v4.1; ADR-0105 13-layer enum; ADR-0106 application → usecase rename.

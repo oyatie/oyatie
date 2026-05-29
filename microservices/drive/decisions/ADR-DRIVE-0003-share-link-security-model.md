@@ -82,7 +82,7 @@ The drive µservice ships **Ed25519 + HKDF for signing share-links + Argon2id (R
 
 ### TTL
 
-- **Strict TTL** — no clock-skew tolerance. Legacy (`oya-connect-drive-domain`) had a 1s tolerance; this is removed per `feedback_no_silent_regression`.
+- **Strict TTL** — no clock-skew tolerance. Legacy (`oya-drive-domain`) had a 1s tolerance; this is removed per `feedback_no_silent_regression`.
 - **Maximum TTL**: 1 year (31,536,000 seconds).
 - **Default TTL**: 7 days.
 

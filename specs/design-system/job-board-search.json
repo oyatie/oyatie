@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/job-board-search.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/job-board-search.schema.json",
   "title": "DesignSystem:Job Board Search",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "job-board-search",

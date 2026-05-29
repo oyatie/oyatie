@@ -22,8 +22,8 @@ Implement the cataloged content-moderation kernel and ClamAV/OPSWAT adapters plu
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `catalog/oya-social-content-moderation-{kernel,adapter-clamav,adapter-opswat}.yaml` | Existing anchors. |
-| `src/crates/oya-social-content-moderation-{kernel,domain,usecase,api,adapter-clamav,adapter-opswat,worker,sdk}/` | Planned family named by PRD/IP/catalog. |
+| `catalog/oya-community-social-content-moderation-{kernel,adapter-clamav,adapter-opswat}.yaml` | Existing anchors. |
+| `src/crates/oya-community-social-content-moderation-{kernel,domain,usecase,api,adapter-clamav,adapter-opswat,worker,sdk}/` | Planned family named by PRD/IP/catalog. |
 | `policy/content-policy.cedar` and `policy/abuse-defence.cedar` | Moderation and abuse controls. |
 | `slos/moderation-classifier-latency.openslo.yaml` and `slos/content-policy-enforcement-correctness.openslo.yaml` | Promotion SLOs. |
 
@@ -34,10 +34,10 @@ Implement the cataloged content-moderation kernel and ClamAV/OPSWAT adapters plu
 4. Add appeal workflow state transitions and audit evidence.
 5. Test policy denials, quarantine, classifier timeout, rollback, and appeal reversal.
 6. Wire DSA transparency worker inputs.
-7. Connect dashboards and runbooks for rollback and CSAM/report queues.
+7. dashboards and runbooks for rollback and CSAM/report queues.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-content-moderation-kernel` passes.
+- `cargo nextest run -p oya-community-social-content-moderation-kernel` passes.
 - ClamAV and OPSWAT adapter tests pass.
 - `slos/moderation-classifier-latency.openslo.yaml` and `slos/content-policy-enforcement-correctness.openslo.yaml` resolve.
 - `cargo run -p oya-dev-cli -- gate validate content-policy --microservice social` passes.

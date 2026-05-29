@@ -20,7 +20,9 @@ const ADVISORY_STATUS: &str = "advisory-until-product-prd-validator";
 const REQUIRED_PRODUCTS: &[&str] = &[
     "ads",
     "cloud",
-    "connect",
+    "community",
+    "mail",
+    "messenger",
     "foundry",
     "ontology",
     "saas",

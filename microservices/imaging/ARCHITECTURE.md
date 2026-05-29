@@ -3,7 +3,7 @@
 `microservice: imaging`
 `layer_enum_source: ADR-0105 (13-layer)`
 `status: wave-15m-g-authored-2026-05-21`
-`split_authority: ADR-0132 (no-suite policy) + user directive 2026-05-21`
+`split_authority: ADR-0132 (no-grouping policy) + user directive 2026-05-21`
 
 ---
 
@@ -338,7 +338,7 @@ A `oya-imaging-modality-vendor-quirks` library handles known private-tag pattern
 - Hitachi MRI private tags.
 - Mindray ultrasound private tags.
 
-Each vendor's quirks are encapsulated in a regression-test suite per modality.
+Each vendor's quirks are encapsulated in a regression-test set per modality.
 
 ---
 
@@ -733,7 +733,7 @@ Per crate; standard `cargo test` lane.
 
 ### 15.2 DICOM Conformance Tests
 
-Per release: DICOM PS 3.4 conformance test suite covering every implemented SOP class.
+Per release: DICOM PS 3.4 conformance test set covering every implemented SOP class.
 
 ### 15.3 IHE Connectathon
 
@@ -865,7 +865,7 @@ Crate semver per workspace policy. DICOM Conformance Statement per release. FHIR
 
 - ADR-0105 (13-layer enum)
 - ADR-0131 (per-µservice flat layout)
-- ADR-0132 (no-suite policy — split authority)
+- ADR-0132 (no-grouping policy — split authority)
 - ADR-0145 (direct gRPC inter-µservice)
 - ADR-0212 (substance-bar artifact count)
 - ADR-0243 (Cedar universal gate)

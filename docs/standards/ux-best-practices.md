@@ -2415,7 +2415,7 @@ For high-risk surfaces:
 - **IBM Carbon Design System** — 2024 release (IBM, 2024). https://carbondesignsystem.com
 - **Atlassian Design System** — Atlas (Atlassian, 2024). https://atlassian.design
 - **Shopify Polaris** — 2024 release (Shopify). https://polaris.shopify.com
-- **Stripe Design** — Dashboard + Connect (Stripe). https://stripe.com/blog/design
+- **Stripe Design** — Dashboard + (Stripe). https://stripe.com/blog/design
 - **Linear** — design language (Linear, 2024). https://linear.app/method
 - **Notion** — design + slash commands. https://www.notion.so/help
 - **Discord** — product principles (Discord engineering blog). https://discord.com/blog

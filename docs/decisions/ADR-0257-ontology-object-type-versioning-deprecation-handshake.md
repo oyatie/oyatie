@@ -36,7 +36,7 @@ related:
   - ADR-0122-ontology-terminology-fold.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0150-cedar-policy-engine.md
@@ -1616,7 +1616,7 @@ modulo the grace-period clock and the ops signoff.
 - **feedback_canonical_base_localization** -- per-pack overlays
   composing with canonical baseline.
 - **feedback_doc_coverage_enforced** -- every µservice ships full
-  doc suite; this ADR is part of the Ontology suite.
+  doc set; this ADR is part of the Ontology suite.
 - **feedback_automate_everything** -- mechanical work is scripted;
   the deprecation lifecycle is a state machine.
 - **feedback_glossary_ontology_not_object_graph** -- terminology.

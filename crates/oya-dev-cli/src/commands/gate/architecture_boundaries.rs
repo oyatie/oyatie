@@ -90,8 +90,11 @@ fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> 
         ],
     );
     // Composite adapters (e.g. kafka/nats/pulsar event-bus adapters wrapping a
-    // base event-bus adapter) and adapters reusing transport DTOs are lateral
-    // interface-layer edges.
+    // base event-bus adapter) and adapters reusing transport DTOs/seams are
+    // lateral interface-layer edges. `rest` is allowed here only for adapters
+    // that implement a seam declared by the REST boundary (for example the
+    // cloud-intelligence OpenBao adapter implements the REST-layer
+    // `OpenBaoSecretStore` seam without moving secret I/O into the kernel).
     insert(
         "adapter",
         &[
@@ -101,6 +104,7 @@ fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> 
             "usecase",
             "adapter",
             "api",
+            "rest",
         ],
     );
     // Co-located SDK bindings wrap the service public surface: api DTOs, rest
@@ -965,6 +969,29 @@ mod tests {
         );
         let packages = vec![kernel_pkg, usecase_pkg, adapter_pkg];
         let catalog = [kernel_rec, usecase_rec, adapter_rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(errors.is_empty(), "{errors:?}");
+    }
+
+    #[test]
+    fn adapter_into_rest_seam_is_allowed() {
+        let (kernel_pkg, kernel_rec) =
+            fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+        let (rest_pkg, rest_rec) = fixture_package(
+            "oya-platform-tenant-rest",
+            "rest",
+            &["oya-platform-tenant-kernel"],
+            "crates",
+        );
+        let (adapter_pkg, adapter_rec) = fixture_package(
+            "oya-platform-tenant-adapter",
+            "adapter",
+            &["oya-platform-tenant-rest"],
+            "crates",
+        );
+        let packages = vec![kernel_pkg, rest_pkg, adapter_pkg];
+        let catalog = [kernel_rec, rest_rec, adapter_rec].into_iter().collect();
         let (errors, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");

@@ -487,7 +487,7 @@ W-004: What is the canonical Legal-Complexity comparator-set registry? CLM has I
 
 W-005: How is the OCI Always Free profile decomposed across the Legal-Complexity µservices so demo_trial tenants can run CLM + governance + identity together within 4 OCPU + 24 GB? CLM should target ~1 OCPU + 4 GB + 50 GB block + 1× 20 GB Autonomous DB + 25 GB egress (the same envelope as in the performance-benchmark-numbers companion deliverable).
 
-W-006: What is the canonical e-signature provider boundary? CLM owns the contract evidence; the e-signature provider integration could be CLM-internal (current path) or a separate e-signature-provider µservice. Per ADR-0132 no-suite policy, if e-signature merits a single-concern µservice, Wave 14 should split it out.
+W-006: What is the canonical e-signature provider boundary? CLM owns the contract evidence; the e-signature provider integration could be CLM-internal (current path) or a separate e-signature-provider µservice. Per ADR-0132 no-grouping policy, if e-signature merits a single-concern µservice, Wave 14 should split it out.
 
 W-007: What is the canonical HSM/QES key custody boundary? CLM mentions Thales Luna 7 A790; kms µservice is the natural HSM owner. Wave 14 must declare CLM ↔ kms contract for QES HSM.
 

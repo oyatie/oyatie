@@ -88,7 +88,7 @@ This PRD is intentionally the **deepest of the five axis PRDs (~25-40 pages of c
 | **Internal Foundry agent operator** | Capability invocation API (`oya-intelligence-api`), autonomy ceiling enforcement, evidence emission to audit chain, capability registry, RAG endpoint, autonomy-tier-gated execution | (Internal — agent run cost metered to invoking tenant) |
 | **Tenant operator** (consumer of Foundry-driven workflow) | Per-vertical workflows authored by Foundry agents + human-reviewed; capability marketplace where ISVs publish capabilities; per-tenant autonomy-tier setting | (Bundled with SaaS subscription; capability run cost metered) |
 | **External developer (Foundry-as-managed-service customer at W-Public-GA)** | Standalone Foundry runtime hosted on Oyatie Cloud, multi-provider (Claude / OpenAI / Gemini) adapter, capability authoring SDK, RAG endpoint to tenant index, autonomy ceiling configuration, evidence chain export | Per-call metering + provider pass-through cost + tenancy fee |
-| **ISV / Connect partner** | Capability publishing in marketplace, plugin substrate (Wasmtime sandbox per ADR-0023), revenue share per ADR-0034 | Marketplace publishing fees + revenue share |
+| **ISV / partner** | Capability publishing in marketplace, plugin substrate (Wasmtime sandbox per ADR-0023), revenue share per ADR-0034 | Marketplace publishing fees + revenue share |
 | **Privacy officer / regulator** | Per-capability autonomy-tier evidence, per-step audit-chain export, per-provider data-flow attestation (subscription mode disclosure to provider), capability change history | (Compliance — bundled) |
 | **Architecture council** | Cross-axis contract gate enforcement, ADR template + decision log, fitness-function dashboards, foundation-bypass ledger | (Internal) |
 | **Tenant-side builder agent** (Foundry agent acting on behalf of tenant) | Tenant-scoped autonomy ceiling, OG-AG agent gateway access, per-tool capability schema, per-step consent inheritance | (Bundled with autonomy tier) |
@@ -840,7 +840,7 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Engineering Agent Console too aggressive (autonomous PR creation) | High | EAC bound to T2 max for code authoring; human-review-mandatory for code merge; per-engineer per-repository EAC enable/disable; audit emission per-PR-action | Foundry + Engineering management |
 | repoctl divergence from upstream Cargo / GitHub APIs | Medium | repoctl pinned dependency versions; quarterly upstream-compat audit; ADR-0044 deploy-platform-consolidation governance | Foundry + Foundry engineering platform |
 | Capability marketplace listing abuse (spam / malicious capabilities) | Medium | Per-listing review (shared with `oya-saas-marketplace-kernel` review pipeline); per-publisher trust tier; takedown workflow | Foundry + SaaS marketplace + Trust & Safety |
-| Subscription-mode adapter breaks on provider UX change (e.g., ChatGPT Plus UI redesign) | Medium | Adapter health-check is monitored; per-adapter regression suite; vendor-change alerting (provider release-notes feed); fallback to API mode where tenant has alternate auth | Foundry + Provider-adapter team |
+| Subscription-mode adapter breaks on provider UX change (e.g., ChatGPT Plus UI redesign) | Medium | Adapter health-check is monitored; per-adapter regression set; vendor-change alerting (provider release-notes feed); fallback to API mode where tenant has alternate auth | Foundry + Provider-adapter team |
 | Vertical-pack capability authoring template drift | Medium | `VerticalPackAuthoringTemplate` versioned per pack; pack-changelog reviewed quarterly | Foundry + Per-pack |
 
 ## 11f. User experience (required for user-facing surfaces)
@@ -1104,7 +1104,7 @@ Foundry exists so oyatie and its tenants can let agents do useful work without l
 
 ### JTBD-FDR-08 - Evaluate capability quality
 - Situation: a capability changes prompt, model, or tool routing.
-- Acceptance: eval suite runs golden cases, adversarial cases, regression cases, cost budget, and citation checks.
+- Acceptance: eval set runs golden cases, adversarial cases, regression cases, cost budget, and citation checks.
 - Acceptance: failing eval blocks publish or routes to lower tier.
 
 ### JTBD-FDR-09 - Meter agent work

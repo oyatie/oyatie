@@ -17,20 +17,20 @@ session_context:
   authored: 2026-05-17
   parallel_session_caveat: |
     Authored in oyatie 2026-05-17 as the operational companion to ADR-0238
-    (Connect super-app expansion; originally drafted as ADR-0126 in the
+    (super-app expansion; originally drafted as ADR-0126 in the
     oyatie 2026-05-17 session, renumbered 2026-05-18 to avoid collision with
     dev's ADR-0126 Employment classification). ADR-0238 establishes the
     target topology; this ADR establishes how legacy `oya-connect-*`
     consumers migrate to the new flat µservices without breaking
     Hyrum's-Law-bound external behaviour.
 purpose: |
-  Operationalise the Connect → 8-flat-µservice dissolution via Strangler Pattern
+  Operationalise the → 8-flat-µservice dissolution via Strangler Pattern
   (per agent-skills deprecation-and-migration SKILL.md §"Migration Patterns").
   Govern adapter-layer translation, feature-flagged traffic-shifting, zero-
   active-usage verification, code-removal sweep, and umbrella-folder retirement.
 ---
 
-# ADR-0237: Connect dissolution — Strangler-pattern migration
+# ADR-0237: dissolution — Strangler-pattern migration
 
 ## Status
 
@@ -42,7 +42,7 @@ Accepted — 2026-05-17.
 
 ## Context
 
-ADR-0238 dissolves Connect into 8 first-class flat µservices (mail, messenger,
+ADR-0238 dissolves into 8 first-class flat µservices (mail, messenger,
 calendar, community, social, shorts, network, anonymous). The new µservices
 **already ship in parallel** under `microservices/<ms>/` per ADR-0131; the
 extant legacy crates `oya-connect-{mail,messenger,calendar}-domain` (and their
@@ -78,7 +78,7 @@ Five facts force the Strangler approach over a Big-Bang cutover:
 
 ## Decision
 
-The Connect → 8-flat-µservice dissolution is migrated via the **Strangler
+The → 8-flat-µservice dissolution is migrated via the **Strangler
 Pattern** as defined in the agent-skills deprecation-and-migration skill
 (SKILL.md §"Strangler Pattern"). The migration proceeds through **6
 sequential phases**, each gated by a concrete verification command.
@@ -89,7 +89,7 @@ sequential phases**, each gated by a concrete verification command.
 (mail 84 files, messenger 96 files, calendar in-progress) per ADR-0238. Legacy
 `oya-connect-*` crates continue to serve 100% of traffic. New `oya-<ms>-*`
 crates serve 0% of production traffic; they are exercised only by their own
-test suites + dev-cluster canary.
+test sets + dev-cluster canary.
 
 **Entry gate:** ADR-0238 accepted; new µservice PRDs published.
 **Exit gate:** All three of HG-MAIL, HG-MESSENGER, HG-CALENDAR pass at p99
@@ -99,13 +99,13 @@ SLOs in dev cluster sustained 7d.
 
 An adapter crate per legacy → new µservice is introduced:
 
-- `oya-connect-mail-migration-adapter` — re-exports `oya-mail-*` public types
-  + ports through the legacy `oya-connect-mail-*` symbol paths.
-- `oya-connect-messenger-migration-adapter` — same shape for messenger.
-- `oya-connect-calendar-migration-adapter` — same shape for calendar.
+- `oya-mail-migration-adapter` — re-exports `oya-mail-*` public types
+  + ports through the legacy `oya-mail-*` symbol paths.
+- `oya-messenger-migration-adapter` — same shape for messenger.
+- `oya-calendar-migration-adapter` — same shape for calendar.
 
 Each adapter follows the skill's Adapter Pattern (SKILL.md §"Adapter Pattern"):
-old interface, new implementation. The legacy `oya-connect-mail-domain` crate
+old interface, new implementation. The legacy `oya-mail-domain` crate
 becomes a `#[deprecated]` re-export shim that delegates to the adapter.
 
 **Entry gate:** Phase 1 exit gate green.
@@ -119,9 +119,9 @@ Each adapter consults a feature flag at entry-point to decide whether to
 delegate to the new µservice or to the legacy in-process path:
 
 ```rust
-// In oya-connect-mail-migration-adapter
+// In oya-mail-migration-adapter
 pub fn deliver_mail(req: MailDeliveryRequest) -> Result<...> {
-    if feature_flags::is_enabled("oya-connect-mail-strangler", &req.tenant_id) {
+    if feature_flags::is_enabled("oya-mail-strangler", &req.tenant_id) {
         oya_mail_outbound_smtp_usecase::deliver(req.into())
     } else {
         legacy_in_process::deliver(req)  // SUPERSEDED 2026-XX-YY
@@ -162,9 +162,9 @@ Concrete verification commands (each must exit 0 / produce expected output):
 cargo run -p oya-dev-cli -- gate validate connect-legacy-symbol-zero-usage
 
 # 2. Workspace cargo-tree: only adapter crates depend on the legacy *-domain crates
-cargo tree -e normal -p oya-connect-mail-domain    --invert | grep -v 'oya-connect-mail-migration-adapter' | wc -l    # expect 0
-cargo tree -e normal -p oya-connect-messenger-domain --invert | grep -v 'oya-connect-messenger-migration-adapter' | wc -l # expect 0
-cargo tree -e normal -p oya-connect-calendar-domain  --invert | grep -v 'oya-connect-calendar-migration-adapter'  | wc -l # expect 0
+cargo tree -e normal -p oya-mail-domain    --invert | grep -v 'oya-mail-migration-adapter' | wc -l    # expect 0
+cargo tree -e normal -p oya-messenger-domain --invert | grep -v 'oya-messenger-migration-adapter' | wc -l # expect 0
+cargo tree -e normal -p oya-calendar-domain  --invert | grep -v 'oya-calendar-migration-adapter'  | wc -l # expect 0
 
 # 3. Production telemetry: zero legacy code-path traversals over the prior 14 days
 cargo run -p oya-dev-cli -- vcs query --metric connect_legacy_codepath_traversals_14d    # expect 0
@@ -208,14 +208,14 @@ review per docs/AGENTS.md.
 **Exit gate:** All 3 removal ChangeSets merged; `cargo build --workspace`
 exits 0; no `oya_connect_*` symbol resolves anywhere in the workspace.
 
-### Phase 6 — Connect umbrella µservice retirement
+### Phase 6 — umbrella µservice retirement
 
 When the LAST of the 8 sub-µservices (per ADR-0238's retirement trigger:
 HG-MAIL, HG-MESSENGER, HG-CALENDAR, HG-COMMUNITY, HG-SOCIAL, HG-SHORTS,
 HG-NETWORK, HG-ANONYMOUS — all green at p99 SLO sustained 30d) crosses its
-own Phase 5 exit, the Connect umbrella µservice retires:
+own Phase 5 exit, the umbrella µservice retires:
 
-1. Delete `microservices/connect/` folder (this RETIREMENT-PLAN.md and any
+1. Delete `microservices/connector/` folder (this RETIREMENT-PLAN.md and any
    sibling artifacts in it).
 2. Remove the `connect-umbrella-retirement-readiness` CI lane from
    `.github/branch-protection.yaml` (per ADR-0238 §Operational).
@@ -227,7 +227,7 @@ own Phase 5 exit, the Connect umbrella µservice retires:
 
 **Entry gate:** All 8 HG-<MS> gates green at p99 SLO sustained 30d AND all
 extant Phase 5 exits green (mail / messenger / calendar code removed).
-**Exit gate:** No `microservices/connect/` folder, no `oya-connect-*` symbol,
+**Exit gate:** No `microservices/connector/` folder, no `oya-connect-*` symbol,
 no `/specs/microservices/*.json` file.
 
 ## Alternatives Considered
@@ -281,8 +281,8 @@ no `/specs/microservices/*.json` file.
     canary is at 100%, but it cannot be removed.
   - Violates skill SKILL.md §"Step 4" (removal is a required step, not
     optional).
-  - The `microservices/connect/` umbrella folder never retires →
-    ADR-0238 §"Connect umbrella retires when..." trigger is unreachable.
+  - The `microservices/connector/` umbrella folder never retires →
+    ADR-0238 §"umbrella retires when..." trigger is unreachable.
 - **Rejected** because keeping the adapter forever is the textbook
   Zombie-Code anti-pattern (skill SKILL.md §"Zombie Code").
 
@@ -413,10 +413,10 @@ Per the skill SKILL.md §"Verification" checklist:
 - ADR-0110: ChangeSet state machine.
 - ADR-0114: Canary observability + rollback.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0238: Connect super-app expansion into 8 flat µservices (target topology).
+- ADR-0238: super-app expansion into 8 flat µservices (target topology).
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0133: Industry best-practice conformance program.
 - `feedback_no_silent_regression.md` — workspace-wide no-silent-regression principle (Linus-style; cited by ADRs 0067 / 0083 / 0091 / 0108 / 0114 / 0130 / 0133).
 - agent-skills deprecation-and-migration SKILL.md — Strangler Pattern, Adapter Pattern, Churn Rule, Verification checklist.

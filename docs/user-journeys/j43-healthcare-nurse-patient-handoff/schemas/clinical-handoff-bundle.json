@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j43/clinical-handoff-bundle.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j43/clinical-handoff-bundle.json",
   "title": "ClinicalHandoffBundle",
   "version": "1.0.0",
   "description": "Shared journey object for j43-healthcare-nurse-patient-handoff. It lets Yejin Park hand off eight patient cases at shift end with HIPAA-eligible notes and patient ontology read-path while preserving tenant scope, auditability, and cross-service status.",

@@ -3,7 +3,7 @@
 //! This adapter is the first live SQLx execution seam for the shared
 //! tenant-scoped command kernel. It owns `sqlx::PgPool` usage, begins a
 //! transaction, executes the tenant `set_config` command before statements, and
-//! commits only after every command succeeds. The default test suite stays
+//! commits only after every command succeeds. The default test set stays
 //! database-free; an explicit environment-gated live probe can exercise
 //! PostgreSQL RLS and optional Citus distribution when a caller supplies a
 //! disposable database URL.

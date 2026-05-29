@@ -5,12 +5,12 @@ description: HSM operator (OCI Cloud-HSM + Thales Luna) for the cloud-secrets µ
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
-home: https://oyatie.dev/teams/axis-cloud-secrets
+home: https://oyatie.com/teams/axis-cloud-secrets
 sources:
-  - https://oyatie.dev/cloud-secrets/iac/helm/hsm-operator
+  - https://oyatie.com/cloud-secrets/iac/helm/hsm-operator
 maintainers:
   - name: ops-security + axis-cloud-secrets
-    email: axis-cloud-secrets@oyatie.dev
+    email: axis-cloud-secrets@oyatie.com
 keywords:
   - hsm
   - pkcs11

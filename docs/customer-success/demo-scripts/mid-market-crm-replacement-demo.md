@@ -21,7 +21,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 # Mid-Market CRM Replacement Demo
 
 ## Pre-Demo Checklist
-- Demo objective: prove Oyatie can replace Salesforce or HubSpot for a mid-market company without recreating CRM suite sprawl.
+- Demo objective: prove Oyatie can replace Salesforce or HubSpot for a mid-market company without recreating CRM platform sprawl.
 - Prospect profile: 300 to 2,000 employee B2B company outgrowing HubSpot or over-customized Salesforce.
 - Named tenant fixture to use: `tenant-acme-mid-market-saas`.
 - Fixture source: `registry/sample-tenants/acme-mid-market-saas.md`.
@@ -406,7 +406,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Commercial anchor: "Assessment includes one live change simulation."
 - Close question: "What sales-process change is already pending?"
 
-- Objection: "Pricing sounds like another enterprise platform."
+- Objection: "Pricing sounds like another enterprise-market platform."
 - Response name: "Assess before subscription."
 - Talk track: "We price the first assessment to prove value before subscription expansion."
 - Proof point: "Close artifact showed a four-week plan."

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j04/shelter-mode-activation.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j04/shelter-mode-activation.json",
   "title": "ShelterModeActivation",
   "version": "1.0.0",
   "description": "ShelterModeActivation shared object for j04 Domestic violence survivor shelter mode. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

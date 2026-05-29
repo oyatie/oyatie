@@ -75,7 +75,7 @@ DPIA mandatory pre-deployment.
 - **Data subjects:** end-users (the tenant's employees, contractors, collaborators); tenant operators; external share-link recipients; mentioned principals; oyatie operators (internal).
 - **Relationship:** joint controllership with tenant (GDPR Art. 26) for end-user document data; oyatie sole processor for operational metadata.
 - **Reasonable expectations:** authors expect operational doc storage; co-editors expect collab + comment per tenant privacy notice; share-link recipients expect bounded access per token scope.
-- **Previous experience:** Bominal Connect Docs inheritance per ADR-0208; no DPA-triggered complaints in inheritance period.
+- **Previous experience:** Bominal Docs inheritance per ADR-0208; no DPA-triggered complaints in inheritance period.
 
 ### 2.4 Purposes
 

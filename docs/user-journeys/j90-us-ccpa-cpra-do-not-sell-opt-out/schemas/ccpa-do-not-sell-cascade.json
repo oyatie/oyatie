@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j90-ccpa-do-not-sell-cascade.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j90-ccpa-do-not-sell-cascade.schema.json",
   "title": "J90 US CCPA CPRA do-not-sell opt-out Journey Object",
   "version": "1.0.0",
   "_meta": {

@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J94-T001 | analytics control inventory import | Cedar decision and audit event cite Sarbanes-Oxley Act section 302 issuer officer certifications; data remains tenant-scoped |
 | J94-T002 | api-gateway segregation-of-duties graph | Cedar decision and audit event cite Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting; data remains tenant-scoped |

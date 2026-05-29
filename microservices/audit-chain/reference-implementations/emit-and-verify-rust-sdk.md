@@ -226,7 +226,7 @@ Until the SDK lands fully, the same flow can be issued via the HTTP gateway:
 
 ```sh
 # Emit
-curl -X POST https://audit-chain-pack-kr.oyatie.dev/api/v1/emit \
+curl -X POST https://audit-chain-pack-kr.oyatie.com/api/v1/emit \
     -H "Authorization: Bearer $AUDIT_EMIT_JWT" \
     -H "X-Scope-OrgID: tenant:acmecorp00000001" \
     -H "Idempotency-Key: 01HZX9K3M2P4QR7S8T9V0W1X2Y" \
@@ -240,20 +240,20 @@ curl -X POST https://audit-chain-pack-kr.oyatie.dev/api/v1/emit \
 # Returns: {"event_id":"01HZX9K3M2P4QR7S8T9V0W1X2Y","period_id":"2026-05-20T14:32:17Z","pack":"pack-kr","sealed":false}
 
 # Query
-curl -X POST https://audit-chain-pack-kr.oyatie.dev/api/v1/query \
+curl -X POST https://audit-chain-pack-kr.oyatie.com/api/v1/query \
     -H "Authorization: Bearer $AUDIT_QUERY_JWT" \
     -H "X-Scope-OrgID: tenant:acmecorp00000001" \
     -H "Content-Type: application/json" \
     -d '{"event_ids":["01HZX9K3M2P4QR7S8T9V0W1X2Y"],"limit":1}'
 
 # Prove
-curl -G https://audit-chain-pack-kr.oyatie.dev/api/v1/events/01HZX9K3M2P4QR7S8T9V0W1X2Y/proof \
+curl -G https://audit-chain-pack-kr.oyatie.com/api/v1/events/01HZX9K3M2P4QR7S8T9V0W1X2Y/proof \
     -H "Authorization: Bearer $AUDIT_QUERY_JWT" \
     -H "X-Scope-OrgID: tenant:acmecorp00000001" \
     -o proof.json
 
 # Get signing-key public
-curl -G https://audit-chain-pack-kr.oyatie.dev/api/v1/keys/pack-kr/epoch-2026-05-20 \
+curl -G https://audit-chain-pack-kr.oyatie.com/api/v1/keys/pack-kr/epoch-2026-05-20 \
     -H "Authorization: Bearer $AUDIT_QUERY_JWT" \
     -H "X-Scope-OrgID: tenant:acmecorp00000001" \
     -o signing_key.pub

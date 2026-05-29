@@ -10,7 +10,7 @@ option go_package = "oyatie.dev/sites/v1;sitesv1";
 // =====================================================================================
 // Sites µservice gRPC contracts.
 //
-// Per ADR-0135 (Connect unbundle) + ADR-0132 (no-suite policy) + ADR-0131
+// Per ADR-0135 (unbundle) + ADR-0132 (no-grouping policy) + ADR-0131
 // (per-µservice flat layout). Mirrors the REST surface in
 // `contracts/openapi/sites.yaml`.
 //

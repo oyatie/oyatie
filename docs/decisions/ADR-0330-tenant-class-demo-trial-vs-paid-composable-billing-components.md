@@ -1922,7 +1922,7 @@ N tenants).
   follows the canonical observability contract.
 - ADR-0131 per-microservice flat layout — cloud-billing internal
   module layout in D.1 follows the flat layout doctrine.
-- ADR-0132 product-suite-and-bundle-dissolution — confirms no
+- ADR-0132 product-platform-and-bundle-dissolution — confirms no
   per-tier product fragmentation.
 - ADR-0145 inter-microservice communication reform — event
   substrate for tenant-class-mutated events follows direct gRPC +

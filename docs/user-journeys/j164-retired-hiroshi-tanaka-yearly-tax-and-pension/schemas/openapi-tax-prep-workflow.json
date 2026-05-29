@@ -8,7 +8,7 @@
     "x-adrs": ["ADR-0244", "ADR-0263", "ADR-0251", "ADR-0311", "ADR-0253"]
   },
   "servers": [
-    {"url": "https://workflow-studio.jp-osaka.oyatie.dev/v1", "description": "Hiroshi's primary cell"}
+    {"url": "https://workflow-studio.jp-osaka.oyatie.com/v1", "description": "Hiroshi's primary cell"}
   ],
   "paths": {
     "/workflow-studio/workflows/open": {

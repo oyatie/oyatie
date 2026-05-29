@@ -38,7 +38,7 @@ A tenant activates a new pack mid-flight, using HIPAA as the worked example for 
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -77,7 +77,7 @@ A tenant activates a new pack mid-flight, using HIPAA as the worked example for 
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -143,7 +143,7 @@ A tenant activates a new pack mid-flight, using HIPAA as the worked example for 
 | README-AC-010 | comms-email | Cedar fragment refresh | ADR-0243 Cedar default-deny and signed fragment bundle publication | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | workflow compensation | 45 CFR 164.308 administrative safeguards | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | first protected action proof | 45 CFR 164.310 physical safeguards | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | mid-flight pack activation | 45 CFR 164.312 technical safeguards | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | mid-flight pack activation | 45 CFR 164.312 technical safeguards | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | pre-migration inventory | 45 CFR 164.316 policies, procedures, and documentation requirements | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | HIPAA cell eligibility check | 45 CFR 164.502 uses and disclosures of protected health information | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | Cedar fragment refresh | 45 CFR 164.514 de-identification and limited data set requirements | Cedar deny-wins; ADR-0263 event sealed |
@@ -188,7 +188,7 @@ A tenant activates a new pack mid-flight, using HIPAA as the worked example for 
 | README-AC-055 | comms-email | mid-flight pack activation | 45 CFR 164.502 uses and disclosures of protected health information | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | pre-migration inventory | 45 CFR 164.514 de-identification and limited data set requirements | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | HIPAA cell eligibility check | 45 CFR 164.524 access of individuals to protected health information | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | Cedar fragment refresh | 45 CFR 164.530 administrative requirements | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | Cedar fragment refresh | 45 CFR 164.530 administrative requirements | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | workflow compensation | ADR-0251 pack activation and cell certification levels | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | first protected action proof | ADR-0243 Cedar default-deny and signed fragment bundle publication | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | mid-flight pack activation | 45 CFR 164.308 administrative safeguards | Cedar deny-wins; ADR-0263 event sealed |
@@ -233,7 +233,7 @@ A tenant activates a new pack mid-flight, using HIPAA as the worked example for 
 | README-AC-100 | comms-email | Cedar fragment refresh | ADR-0243 Cedar default-deny and signed fragment bundle publication | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | workflow compensation | 45 CFR 164.308 administrative safeguards | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | first protected action proof | 45 CFR 164.310 physical safeguards | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | mid-flight pack activation | 45 CFR 164.312 technical safeguards | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | mid-flight pack activation | 45 CFR 164.312 technical safeguards | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | pre-migration inventory | 45 CFR 164.316 policies, procedures, and documentation requirements | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | HIPAA cell eligibility check | 45 CFR 164.502 uses and disclosures of protected health information | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | Cedar fragment refresh | 45 CFR 164.514 de-identification and limited data set requirements | Cedar deny-wins; ADR-0263 event sealed |
@@ -278,7 +278,7 @@ A tenant activates a new pack mid-flight, using HIPAA as the worked example for 
 | README-AC-145 | comms-email | mid-flight pack activation | 45 CFR 164.502 uses and disclosures of protected health information | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | pre-migration inventory | 45 CFR 164.514 de-identification and limited data set requirements | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | HIPAA cell eligibility check | 45 CFR 164.524 access of individuals to protected health information | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | Cedar fragment refresh | 45 CFR 164.530 administrative requirements | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | Cedar fragment refresh | 45 CFR 164.530 administrative requirements | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | workflow compensation | ADR-0251 pack activation and cell certification levels | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | first protected action proof | ADR-0243 Cedar default-deny and signed fragment bundle publication | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | mid-flight pack activation | 45 CFR 164.308 administrative safeguards | Cedar deny-wins; ADR-0263 event sealed |

@@ -1226,7 +1226,7 @@
       "target": 400
     },
     {
-      "path": "microservices/connect/IP-journey-j11-offline-shell-state.md",
+      "path": "microservices/connector/IP-journey-j11-offline-shell-state.md",
       "lines": 803,
       "target": 400
     },
@@ -1690,7 +1690,7 @@
     "microservices/compliance/IP-journey-j02-healthcare-code-blue-ehr-break-glass-privacy-officer.md",
     "microservices/compliance/IP-journey-j13-higher-restriction-policy.md",
     "microservices/compliance/IP-journey-j20-kr-pipa-notification-clock.md",
-    "microservices/connect/IP-journey-j11-offline-shell-state.md",
+    "microservices/connector/IP-journey-j11-offline-shell-state.md",
     "microservices/consent-graph/IP-journey-j04-shared-account-consent-rewrite.md",
     "microservices/drive/IP-journey-j04-shelter-evidence-vault.md",
     "microservices/drive/IP-journey-j06-source-document-vault.md",

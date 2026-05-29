@@ -97,7 +97,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 003 - compliance moves the relationship forward
@@ -174,7 +174,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 007 - compliance moves the relationship forward
@@ -253,7 +253,7 @@ SWIFT or SEPA rails through Connect.
   per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 011 - compliance moves the relationship forward
@@ -330,7 +330,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 015 - compliance moves the relationship forward
@@ -409,7 +409,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 019 - compliance moves the relationship forward
@@ -486,7 +486,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 023 - compliance moves the relationship forward
@@ -565,7 +565,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 027 - compliance moves the relationship forward
@@ -642,7 +642,7 @@ SWIFT or SEPA rails through Connect.
   per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 031 - compliance moves the relationship forward
@@ -721,7 +721,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 035 - compliance moves the relationship forward
@@ -798,7 +798,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 039 - compliance moves the relationship forward
@@ -877,7 +877,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 043 - compliance moves the relationship forward
@@ -954,7 +954,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 047 - compliance moves the relationship forward
@@ -1033,7 +1033,7 @@ SWIFT or SEPA rails through Connect.
   per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 051 - compliance moves the relationship forward
@@ -1110,7 +1110,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 055 - compliance moves the relationship forward
@@ -1189,7 +1189,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 059 - compliance moves the relationship forward
@@ -1266,7 +1266,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 063 - compliance moves the relationship forward
@@ -1345,7 +1345,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 067 - compliance moves the relationship forward
@@ -1422,7 +1422,7 @@ SWIFT or SEPA rails through Connect.
   per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 071 - compliance moves the relationship forward
@@ -1502,7 +1502,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 075 - compliance moves the relationship forward
@@ -1580,7 +1580,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 079 - compliance moves the relationship forward
@@ -1660,7 +1660,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 083 - compliance moves the relationship forward
@@ -1738,7 +1738,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 087 - compliance moves the relationship forward
@@ -1818,7 +1818,7 @@ SWIFT or SEPA rails through Connect.
   per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 091 - compliance moves the relationship forward
@@ -1896,7 +1896,7 @@ SWIFT or SEPA rails through Connect.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if bank rail providers is a child or facilitator tenant, the relationship is a revocable Cedar
   grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 095 - compliance moves the relationship forward

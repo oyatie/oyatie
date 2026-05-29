@@ -22,8 +22,8 @@ Implement the cataloged Meilisearch adapter plus planned search kernel/domain/us
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `catalog/oya-social-search-adapter-meilisearch.yaml` | Existing adapter anchor. |
-| `src/crates/oya-social-search-{kernel,domain,usecase,api,adapter-meilisearch,worker,sdk}/` | Planned family named by PRD/IP/catalog. |
+| `catalog/oya-community-social-search-adapter-meilisearch.yaml` | Existing adapter anchor. |
+| `src/crates/oya-community-social-search-{kernel,domain,usecase,api,adapter-meilisearch,worker,sdk}/` | Planned family named by PRD/IP/catalog. |
 | `policy/public-read.cedar`, `policy/content-policy.cedar`, `policy/minor-protection.cedar` | Search visibility controls. |
 | `slos/search-people-latency.openslo.yaml` | Search latency SLO. |
 
@@ -37,7 +37,7 @@ Implement the cataloged Meilisearch adapter plus planned search kernel/domain/us
 7. Wire search SLO and dashboard evidence.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-search-adapter-meilisearch` passes.
+- `cargo nextest run -p oya-community-social-search-adapter-meilisearch` passes.
 - Search tests prove hidden content is neither indexed nor returned.
 - `slos/search-people-latency.openslo.yaml` resolves.
 - `cargo run -p oya-dev-cli -- gate validate data-residency --microservice social` passes.
@@ -45,7 +45,7 @@ Implement the cataloged Meilisearch adapter plus planned search kernel/domain/us
 
 ## F. Evidence
 - PRD FR-11: `PRD.md`.
-- Catalog: `catalog/oya-social-search-adapter-meilisearch.yaml`.
+- Catalog: `catalog/oya-community-social-search-adapter-meilisearch.yaml`.
 - Policies: `policy/public-read.cedar`, `policy/content-policy.cedar`, `policy/minor-protection.cedar`.
 - Contracts: `contracts/openapi/social.yaml`.
 
@@ -76,7 +76,7 @@ X, Instagram, TikTok, Snapchat, Threads, Bluesky, Mastodon, and LinkedIn all mak
 - Evidence detail: capture nextest output for search adapter and workers.
 - Evidence detail: capture data-residency and content-policy gate outputs.
 - Evidence detail: capture OpenAPI validation for search examples.
-- Evidence detail: cite `catalog/oya-social-search-adapter-meilisearch.yaml`.
+- Evidence detail: cite `catalog/oya-community-social-search-adapter-meilisearch.yaml`.
 - Evidence detail: cite `policy/public-read.cedar`, `policy/content-policy.cedar`, and `policy/minor-protection.cedar`.
 - Evidence detail: cite `contracts/openapi/social.yaml`.
 - Evidence detail: cite Slack as workplace/community search pressure requiring strict Cedar filtering.

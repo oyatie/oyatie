@@ -59,7 +59,7 @@ Pre-existing docs that pre-date the doctrinal substrate (e.g., 2024-2025 vintage
 
 The corpus is complete when ALL of the following hold:
 
-1. **Every µservice has the full doc suite — PR-143 baseline floor, ~100+ artifacts.** PR #143 (2026-05-17 flat-layout substrate + 17 µservice audit-grade packs, 1,515 artifacts) is the **minimal baseline**. Every µservice MUST ship ≥70 artifacts mirroring the observability template (the canonical exemplar at `microservices/observability/`, currently 132 artifacts = 188% of baseline). The roster:
+1. **Every µservice has the full doc set — PR-143 baseline floor, ~100+ artifacts.** PR #143 (2026-05-17 flat-layout substrate + 17 µservice audit-grade packs, 1,515 artifacts) is the **minimal baseline**. Every µservice MUST ship ≥70 artifacts mirroring the observability template (the canonical exemplar at `microservices/observability/`, currently 132 artifacts = 188% of baseline). The roster:
 
    **Mandatory artifacts per µservice (the PR-143 ~70-artifact roster):**
    - **Strategic docs (4):** `PRD.md`, `PHASE-NN-*.md` (≥1 phase doc), `threat-model.md`, `dpia.md`.
@@ -80,7 +80,7 @@ The corpus is complete when ALL of the following hold:
 
    **Above-and-beyond signal:** µservices that exceed the baseline (PR-143 observability ships 132 artifacts at 188%) are the operating bar. New µservices SHOULD target ≥100 artifacts. The ~70 number is the floor; ≥100 is the operating bar; ≥130 is the rigor we ship.
 
-   Missing baseline files trigger `oya-governance-microservice-doc-suite` BLOCKER (advisory until 2026-07-15, BLOCKER thereafter). Aggregate corpus completeness reported by `oya-governance-doc-completeness` daily.
+   Missing baseline files trigger `oya-governance-microservice-doc-set` BLOCKER (advisory until 2026-07-15, BLOCKER thereafter). Aggregate corpus completeness reported by `oya-governance-doc-completeness` daily.
 
    **Worked exemplar:** `microservices/observability/` — read this directory tree before drafting any new µservice. The shape MUST match.
 
@@ -88,12 +88,12 @@ The corpus is complete when ALL of the following hold:
 
    | Tier | Count | µservices |
    |---|---:|---|
-   | **Below floor (<70 artifacts)** — full doc-suite buildout required | 6 | `payments` (1), `api-gateway` (16), `feature-flags` (16), `intelligence` (17), `connect` (18), `ops-dashboard-control-center` (36) |
+   | **Below floor (<70 artifacts)** — full doc-set buildout required | 6 | `payments` (1), `api-gateway` (16), `feature-flags` (16), `intelligence` (17), `connector` (18), `ops-dashboard-control-center` (36) |
    | **Borderline (70–99 artifacts)** — gap-fill to operating bar required | 8 | `compliance` (73), `tenancy` (79), `comms-email` (81), `finops-portal` (85), `ontology` (88), `mail` (94), `notes` (99), `social` (99) |
    | **At/above operating bar (≥100)** — §1.1/§1.2/§3.1 rigor audit required (no new artifacts mandated, but existing ones must clear the bar) | 32 | `shorts` (100) through `foundry` (561), all 32 µservices currently in this band |
    | **Above-and-beyond exemplar (≥130)** | 8 | `observability` (146), `cloud-iac` (150), `governance` (172), `workflow-studio` (198), `foundry` (561), plus 3 more crossing the threshold |
 
-   Total upgrade workload: **14 µservices need artifact-count remediation** + **32 µservices need rigor audit against §1.1/§1.2/§3.1**. The `oya-governance-doc-suite-completeness` lane reports the per-µservice gap daily and gates the platform's promotion-to-GA milestones per ADR-0250.
+   Total upgrade workload: **14 µservices need artifact-count remediation** + **32 µservices need rigor audit against §1.1/§1.2/§3.1**. The `oya-governance-doc-set-completeness` lane reports the per-µservice gap daily and gates the platform's promotion-to-GA milestones per ADR-0250.
 
    Upgrade ordering: below-floor µservices first (they cannot serve production traffic until they meet ADR-0212 buildability doctrine), then borderline, then audit pass on the 32 at-bar µservices. The ordering is *not* alphabetical — substrate µservices (cell, tenancy, policy-engine, cloud-secrets, foundry) are remediated before product µservices (community, marketplace, etc.) because substrate gaps propagate.
 
@@ -103,7 +103,7 @@ The corpus is complete when ALL of the following hold:
 
    Two orthogonal axes determine whether a µservice meets the bar:
 
-   - **Axis A — artifact count:** Below floor / borderline / at-bar / above-and-beyond. Measures *quantity* of the doc suite.
+   - **Axis A — artifact count:** Below floor / borderline / at-bar / above-and-beyond. Measures *quantity* of the doc set.
    - **Axis B — ADR-adherence:** The 27-row §3.2.1 matrix verifying conformance to the keystone bundle 2026-05-20 (ADR-0242..0258 + 0263 + 0272-0292 + 0293-0296 + amendments). Measures *quality of conformance*.
 
    **A µservice can be above-and-beyond on Axis A (130+ artifacts) and still REVISE on Axis B.** A µservice scaffolded before 2026-05-20 may have rich documentation but lack the per-row answers in §3.2.1 (e.g., it may not declare `provider_credential_mode`, may not cite ADR-0246 amendment library-first dispatch, may use pre-amendment ontology read-path semantics, may emit audit events outside the ADR-0263 registry, may hard-code `oyatie` strings against ADR-0284).
@@ -112,7 +112,7 @@ The corpus is complete when ALL of the following hold:
 
    The full upgrade workload across the 46 µservices is therefore:
 
-   - **6 below-floor µservices:** Axis A buildout (artifact suite) **+** Axis B ADR-adherence wiring.
+   - **6 below-floor µservices:** Axis A buildout (artifact set) **+** Axis B ADR-adherence wiring.
    - **8 borderline µservices:** Axis A gap-fill **+** Axis B ADR-adherence wiring.
    - **24 at-bar µservices (100-129):** Axis B ADR-adherence audit + remediation (Axis A already passes).
    - **8 above-and-beyond exemplars (≥130):** Axis B ADR-adherence audit + remediation (Axis A already passes; **no grandfather clause for ADR-adherence**).
@@ -144,7 +144,7 @@ The test is not "could a senior engineer figure it out." It is "could an intern 
 
 Beyond intern-buildability, the produced system MUST meet the rigor a hyperscaler would ship. Concretely, every canonical doc that describes a primitive, surface, or procedure MUST exhibit ALL of:
 
-1. **Named precedent.** At least one explicit "this is the X pattern from Y" citation (e.g., "this is the AWS S3 bucket-replication pattern", "this is the Stripe Connect platform-facilitator pattern", "this is the Palantir Foundry ontology projection pattern"). No invented architectures without a named precedent.
+1. **Named precedent.** At least one explicit "this is the X pattern from Y" citation (e.g., "this is the AWS S3 bucket-replication pattern", "this is the Stripe platform-facilitator pattern", "this is the Palantir Foundry ontology projection pattern"). No invented architectures without a named precedent.
 2. **Failure-mode tree.** Every primitive enumerates ≥3 failure modes (network partition, byzantine actor, regional outage, key compromise, etc.) and the system's behavior in each — not just the happy path.
 3. **Capacity math.** Every capacity claim is backed by a derivation (Little's Law, binomial probability, percentile arithmetic, queue-theory steady-state). No "should be enough" hand-waves.
 4. **Observability hooks.** Every primitive declares its emitted audit events, traces, metrics, and logs — not "we'll add observability later".
@@ -1059,7 +1059,7 @@ The lane reads `docs/standards/documentation-rigor.md` (this doc) + the doc-clas
 - ADR-0255 — Intelligence two-layer (drives the per-doc-class examples above)
 - `feedback_autonomous_implementation_artifacts` (memory) — long-term goal: intern-buildable + machine-buildable
 - `feedback_quality_performance_scalability_bar` (memory) — Stripe / Palantir / Linear bar
-- `feedback_doc_coverage_enforced` (memory) — every µservice ships the full doc suite
+- `feedback_doc_coverage_enforced` (memory) — every µservice ships the full doc set
 
 ## 11. Change log
 

@@ -405,5 +405,5 @@ Sharding:
 | ADR-0123 | Hyperscaler maturity claim gate | HG-FR registers here |
 | ADR-0139 | Agentic SLO-gated promotion | capability versions gated through it |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
-| ADR-0132 | No-suite forward policy | no compat seams |
+| ADR-0132 | No-grouping forward policy | no compat seams |
 | ADR-0133 | Industry-best-practice conformance | OSS LTS pin posture |

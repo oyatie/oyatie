@@ -5,7 +5,7 @@
   "audit_class": "ADR-0321 second-pass operating-bar buildout",
   "findings": [
     {
-      "id": "data-warehouse-doc-suite-001",
+      "id": "data-warehouse-doc-set-001",
       "status": "closed-by-additive-artifacts",
       "evidence": "microservices/data-warehouse/",
       "target_artifacts": 100

@@ -7,7 +7,7 @@
   "artifact_target": 100,
   "findings": [
     {
-      "id": "global-trade-customs-declaration-doc-suite",
+      "id": "global-trade-customs-declaration-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/customs-declaration-authorization.cedar",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "global-trade-sanctions-screening-doc-suite",
+      "id": "global-trade-sanctions-screening-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/sanctions-screening-authorization.cedar",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "global-trade-export-control-classification-doc-suite",
+      "id": "global-trade-export-control-classification-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/export-control-classification-authorization.cedar",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "global-trade-trade-document-doc-suite",
+      "id": "global-trade-trade-document-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/trade-document-authorization.cedar",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "id": "global-trade-denied-party-hit-doc-suite",
+      "id": "global-trade-denied-party-hit-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/denied-party-hit-authorization.cedar",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "global-trade-broker-filing-doc-suite",
+      "id": "global-trade-broker-filing-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/broker-filing-authorization.cedar",

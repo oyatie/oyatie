@@ -53,7 +53,7 @@ doc_status: published
 - tenancy down → per-seat ACL evaluation falls back to deny (fail-closed); editor opens refuse
 - audit-chain down → save path queued + retry; eventually consistent
 
-## Failure-mode test suite
+## Failure-mode test set
 
 Each FM mapped to a chaos-engineering test under `tests/chaos/`:
 

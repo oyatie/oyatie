@@ -14,7 +14,7 @@ _oya() {
         'vcs:Coordination ratchet compatibility surface'
         'gate:Run foundry quality gates'
         'governance-gates:Governance-layer gate checks'
-        'foundation-audit-gates:Foundation audit gate suite'
+        'foundation-audit-gates:Foundation audit gate set'
         'catalog:Crate and product catalog operations'
         'check:Run individual check validators'
         'demo:Demo scaffolding helpers'

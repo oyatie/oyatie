@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/cloud-iac-module-registry-protocol-fixtures.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/cloud-iac-module-registry-protocol-fixtures.schema.json",
   "schema_version": "1.0",
   "protocol_fixture_id": "cloud-iac-opentofu-modules-local-registry-protocol-fixtures",
   "generated_by_changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/specs/journey/j128/workflow-studio-run-request.json",
+  "$id": "https://oyatie.com/specs/journey/j128/workflow-studio-run-request.json",
   "title": "WorkflowStudioRunRequest",
   "version": "1.0.0",
   "_meta": {

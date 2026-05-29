@@ -13,7 +13,7 @@
   - ADR-0110 Changeset State Machine (lifecycle states reused for agreement state machine)
   - ADR-0130 Agentic SLO-Gated Promotion (SLO authoring mandatory before dev→stage)
   - ADR-0131 Per-Microservice Flat Layout (consent-graph µservice ships under `microservices/consent-graph/`)
-  - ADR-0132 No-Suite Policy (consent-graph is single-concern, not a suite)
+  - ADR-0132 No-Grouping Policy (consent-graph is single-concern, not a suite)
 - Coordination surface: `foundry_pipeline`
 - Regulatory packs touched: kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa
 

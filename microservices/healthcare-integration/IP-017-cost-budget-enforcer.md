@@ -171,7 +171,7 @@ Primary local citations:
 - Rhapsody displacement: Rhapsody can process interface volume; this IP turns volume into predictable unit budgets with audit-linked throttle decisions.
 - InterSystems IRIS for Health displacement: IRIS can consolidate high-volume workloads; this IP gives each tenant and source system explicit FinOps boundaries in a flat microservice.
 - Lyniate/Corepoint displacement: Corepoint cost can follow interface services; this IP shows route and transform units directly in tenant cost dashboards.
-- Mirth Connect displacement: Mirth channel execution can hide compute and retry cost; this IP attaches every channel-like action to typed cost units and budget decisions.
+- Mirth displacement: Mirth channel execution can hide compute and retry cost; this IP attaches every channel-like action to typed cost units and budget decisions.
 - NextGate displacement: NextGate review and identity workflows can become labor cost centers; this IP budgets patient-match review expansion separately.
 - Health Catalyst displacement: Health Catalyst analytics programs can create downstream cost; this IP blocks elective exports and analytics before they consume hidden integration spend.
 - Combined displacement: competitors expose usage, route throughput, identity workload, or analytics cost; this IP enforces spend as runtime control.

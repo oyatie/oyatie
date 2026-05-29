@@ -20,11 +20,11 @@ info:
     returns 403.
   contact:
     name: axis-foundry-control-plane
-    url: https://oyatie.dev/teams/axis-foundry-control-plane
+    url: https://oyatie.com/teams/axis-foundry-control-plane
   license:
     name: Internal
 servers:
-  - url: https://foundry-supervisor-{pack}.oyatie.dev/api/v1
+  - url: https://foundry-supervisor-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -35,7 +35,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
   parameters:
     XScopeOrgID:
       in: header

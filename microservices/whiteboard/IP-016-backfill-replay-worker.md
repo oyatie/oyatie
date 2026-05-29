@@ -53,7 +53,7 @@ Repo-local references: microservices/whiteboard/PRD.md, microservices/whiteboard
 - FigJam import pressures multiplayer operation order and lightweight widgets.
 - Lucidspark import pressures diagram semantics and connector fidelity.
 - Whiteboard.fi import pressures classroom board batches and short-lived student artifacts.
-- Microsoft Whiteboard import pressures enterprise suite identity and board ownership.
+- Microsoft Whiteboard import pressures enterprise-market identity and board ownership.
 - Oyatie replay displaces those paths by separating source vendor labels from canonical Whiteboard operations.
 - Benchmark parity requires replay evidence, not just initial import success.
 - Vendor source ids are provenance fields, not durable aggregate ids.

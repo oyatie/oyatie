@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j42/finops-chargeback-packet.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j42/finops-chargeback-packet.json",
   "title": "FinopsChargebackPacket",
   "version": "1.0.0",
   "description": "Shared journey object for j42-b2b-finops-portal-spend-attribution. It lets Marcus Chen review monthly spend, attribute it by team, and export a chargeback packet while preserving tenant scope, auditability, and cross-service status.",

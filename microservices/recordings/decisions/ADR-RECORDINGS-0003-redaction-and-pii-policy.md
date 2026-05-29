@@ -31,7 +31,7 @@ Accepted — 2026-05-17.
 
 PRD-recordings FR-09 mandates compliance-officer redaction of recording
 segments — visually + audibly hidden at playback — without mutating source
-media. The legacy `oya-connect-recordings-domain` had no redaction model
+media. The legacy `oya-recordings-domain` had no redaction model
 (source media + WORM tier was the only protection); the new µservice
 introduces redaction as a first-class capability.
 

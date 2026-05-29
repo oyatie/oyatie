@@ -22,9 +22,9 @@ oya-shared-postgres-command-kernel = { path = "../../../../crates/oya-shared-pos
 oya-shared-protocol-parity-kernel = { path = "../../../../crates/oya-shared-protocol-parity-kernel" }
 oya-shared-transactional-outbox-adapter-sqlx = { path = "../../../../crates/oya-shared-transactional-outbox-adapter-sqlx" }
 oya-shared-transactional-outbox-kernel = { path = "../../../../crates/oya-shared-transactional-outbox-kernel" }
-oya-social-post-composition-adapter-postgres = { path = "../../../../crates/oya-social-post-composition-adapter-postgres" }
-oya-social-post-composition-api = { path = "../../../../crates/oya-social-post-composition-api" }
-oya-social-post-composition-usecase = { path = "../../../../crates/oya-social-post-composition-usecase" }
+oya-community-social-post-composition-adapter-postgres = { path = "../../../../crates/oya-community-social-post-composition-adapter-postgres" }
+oya-community-social-post-composition-api = { path = "../../../../crates/oya-community-social-post-composition-api" }
+oya-community-social-post-composition-usecase = { path = "../../../../crates/oya-community-social-post-composition-usecase" }
 sqlx.workspace = true
 tokio.workspace = true
 

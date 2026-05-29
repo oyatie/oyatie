@@ -25,7 +25,7 @@ DR (`multi-region.md`) and chaos-testing (`failure-modes.md`).
 | Cross-region failover post-promotion | Replay Loro CRDT log + audit-chain from snapshot anchor |
 | Search-index reindex (Meilisearch corruption / version bump) | Replay from Postgres source-of-truth |
 | Site-content migration from external CMS (WordPress, Squarespace etc.) | Backfill via importer (subsequent-to-M04-completion) |
-| Connect → Sites Strangler Phase 5 (legacy cutover) | One-time backfill of legacy `oya-connect-sites-*` data |
+| → Sites Strangler Phase 5 (legacy cutover) | One-time backfill of legacy `oya-sites-*` data |
 | Schema change in cms-collection requiring re-rendering | Replay published artifacts via cdn-delivery-worker |
 
 ## Source-of-truth ordering
@@ -62,14 +62,14 @@ cargo run -p oya-dev-cli -- vcs search-reindex --microservice sites --cell new-c
 cargo run -p oya-dev-cli -- vcs publish-replay --microservice sites --cell new-cell-b --scope live
 ```
 
-### Backfill: legacy Connect → Sites Strangler Phase 5
+### Backfill: legacy → Sites Strangler Phase 5
 
 ```bash
 # Step 1: dump legacy data
-cargo run -p oya-dev-cli -- vcs legacy-dump --legacy oya-connect-sites --output s3://oya-migrate/connect-sites-2026-05-17.jsonl
+cargo run -p oya-dev-cli -- vcs legacy-dump --legacy oya-sites --output s3://oya-migrate/sites-2026-05-17.jsonl
 
 # Step 2: import to new µservice
-cargo run -p oya-dev-cli -- vcs legacy-import --microservice sites --input s3://oya-migrate/connect-sites-2026-05-17.jsonl \
+cargo run -p oya-dev-cli -- vcs legacy-import --microservice sites --input s3://oya-migrate/sites-2026-05-17.jsonl \
   --redirect-map microservices/sites/specs/legacy-url-redirect-map.json
 
 # Step 3: verify URL signature stability
@@ -129,7 +129,7 @@ cargo run -p oya-dev-cli -- vcs search-reindex --microservice sites --tenant-id 
 | Publish-artifact replay | per tenant, 1k pages | 30 min |
 | Search reindex | per tenant, 5k pages | 10 min |
 | Search reindex (full cell) | per cell | 4h |
-| Legacy Connect import | per tenant, 100 sites | 1h |
+| Legacy import | per tenant, 100 sites | 1h |
 
 ## Verification post-replay
 

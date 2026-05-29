@@ -40,7 +40,7 @@ microservices_touched:
   - tenancy
   - mail
 journey_number: j40
-benchmark: AWS Marketplace SaaS contract plus Stripe Connect subscription pattern
+benchmark: AWS Marketplace SaaS contract plus Stripe subscription pattern
 ---
 
 # j40-b2b-marketplace-vendor-billing story
@@ -398,104 +398,104 @@ mail documents multi-region behavior for ap-northeast-1 and the DR-pair cell.
 ## 4. Engineering-rigor dimensions
 ### maintainability
 plugin-app-store / vendor-subscription: maintainability evidence is mandatory in the IP slice and integration plan.
-plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 plugin-app-store / vendor-subscription: the public contract declares SemVer plus a 180-day deprecation cadence.
 plugin-app-store / vendor-subscription: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / per-seat-billing: maintainability evidence is mandatory in the IP slice and integration plan.
-payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 payments / per-seat-billing: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / per-seat-billing: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 tenancy / seat-entitlement: maintainability evidence is mandatory in the IP slice and integration plan.
-tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 tenancy / seat-entitlement: the public contract declares SemVer plus a 180-day deprecation cadence.
 tenancy / seat-entitlement: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / billing-receipts: maintainability evidence is mandatory in the IP slice and integration plan.
-mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 mail / billing-receipts: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / billing-receipts: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### observability
 plugin-app-store / vendor-subscription: observability evidence is mandatory in the IP slice and integration plan.
-plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 plugin-app-store / vendor-subscription: the public contract declares SemVer plus a 180-day deprecation cadence.
 plugin-app-store / vendor-subscription: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / per-seat-billing: observability evidence is mandatory in the IP slice and integration plan.
-payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 payments / per-seat-billing: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / per-seat-billing: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 tenancy / seat-entitlement: observability evidence is mandatory in the IP slice and integration plan.
-tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 tenancy / seat-entitlement: the public contract declares SemVer plus a 180-day deprecation cadence.
 tenancy / seat-entitlement: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / billing-receipts: observability evidence is mandatory in the IP slice and integration plan.
-mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 mail / billing-receipts: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / billing-receipts: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### scalability
 plugin-app-store / vendor-subscription: scalability evidence is mandatory in the IP slice and integration plan.
-plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 plugin-app-store / vendor-subscription: the public contract declares SemVer plus a 180-day deprecation cadence.
 plugin-app-store / vendor-subscription: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / per-seat-billing: scalability evidence is mandatory in the IP slice and integration plan.
-payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 payments / per-seat-billing: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / per-seat-billing: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 tenancy / seat-entitlement: scalability evidence is mandatory in the IP slice and integration plan.
-tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 tenancy / seat-entitlement: the public contract declares SemVer plus a 180-day deprecation cadence.
 tenancy / seat-entitlement: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / billing-receipts: scalability evidence is mandatory in the IP slice and integration plan.
-mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 mail / billing-receipts: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / billing-receipts: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### performance
 plugin-app-store / vendor-subscription: performance evidence is mandatory in the IP slice and integration plan.
-plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 plugin-app-store / vendor-subscription: the public contract declares SemVer plus a 180-day deprecation cadence.
 plugin-app-store / vendor-subscription: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / per-seat-billing: performance evidence is mandatory in the IP slice and integration plan.
-payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 payments / per-seat-billing: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / per-seat-billing: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 tenancy / seat-entitlement: performance evidence is mandatory in the IP slice and integration plan.
-tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 tenancy / seat-entitlement: the public contract declares SemVer plus a 180-day deprecation cadence.
 tenancy / seat-entitlement: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / billing-receipts: performance evidence is mandatory in the IP slice and integration plan.
-mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 mail / billing-receipts: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / billing-receipts: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### optimization
 plugin-app-store / vendor-subscription: optimization evidence is mandatory in the IP slice and integration plan.
-plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 plugin-app-store / vendor-subscription: the public contract declares SemVer plus a 180-day deprecation cadence.
 plugin-app-store / vendor-subscription: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / per-seat-billing: optimization evidence is mandatory in the IP slice and integration plan.
-payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 payments / per-seat-billing: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / per-seat-billing: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 tenancy / seat-entitlement: optimization evidence is mandatory in the IP slice and integration plan.
-tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 tenancy / seat-entitlement: the public contract declares SemVer plus a 180-day deprecation cadence.
 tenancy / seat-entitlement: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / billing-receipts: optimization evidence is mandatory in the IP slice and integration plan.
-mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 mail / billing-receipts: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / billing-receipts: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### code quality
 plugin-app-store / vendor-subscription: code quality evidence is mandatory in the IP slice and integration plan.
-plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+plugin-app-store / vendor-subscription: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 plugin-app-store / vendor-subscription: the public contract declares SemVer plus a 180-day deprecation cadence.
 plugin-app-store / vendor-subscription: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / per-seat-billing: code quality evidence is mandatory in the IP slice and integration plan.
-payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+payments / per-seat-billing: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 payments / per-seat-billing: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / per-seat-billing: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 tenancy / seat-entitlement: code quality evidence is mandatory in the IP slice and integration plan.
-tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+tenancy / seat-entitlement: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 tenancy / seat-entitlement: the public contract declares SemVer plus a 180-day deprecation cadence.
 tenancy / seat-entitlement: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / billing-receipts: code quality evidence is mandatory in the IP slice and integration plan.
-mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe Connect subscription pattern.
+mail / billing-receipts: the named precedent is AWS Marketplace SaaS contract plus Stripe subscription pattern.
 mail / billing-receipts: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / billing-receipts: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 

@@ -39,7 +39,7 @@ compliance_scope:
     - "marketplace"
     - "workflow-engine"
     - "workspace-drive"
-    - "connect-sheets"
+    - "sheets"
     - "foundry-evidence"
     - "control-center"
 activated_cedar_policies:

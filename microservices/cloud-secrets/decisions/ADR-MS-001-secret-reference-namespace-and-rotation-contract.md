@@ -45,7 +45,7 @@ decision_owner: axis-cloud-secrets + ops-security
 - ADR-0008 requires data class annotation so secret metadata cannot drift into ordinary operational data.
 - ADR-0003 requires every create, rotate, revoke, access, and attestation decision to emit audit-chain evidence.
 - Constraint name: dependency fan-out pressure.
-- `api-gateway`, `connect`, `feature-flags`, and payment or webhook surfaces depend on low-latency reference resolution.
+- `api-gateway`, `connector`, `feature-flags`, and payment or webhook surfaces depend on low-latency reference resolution.
 - A slow resolver can turn a routine deploy or key rotation into a shared outage.
 - The existing SLO set names p99 secret resolve latency <=100ms and p95 secret write latency <=200ms.
 - The existing SLO set names HSM availability >=99.99% and audit completeness 100%.

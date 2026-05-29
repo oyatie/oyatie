@@ -28,7 +28,7 @@ related:
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0150-cursor-pagination-canonical.md
   - ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md
@@ -805,7 +805,7 @@ named industry reference.
    (step 6 ingests the bootstrap log).
 3. **Reserved-namespace check requires Unicode discipline.**
    Mitigation: vendored `unicode-security` crate; TR#39 conformance
-   test suite; clearly-named module
+   test set; clearly-named module
    `microservices/tenancy/src/reserved_namespace.rs`.
 4. **Sub-scope hierarchy depth bounded.** Cedar policy evaluation
    complexity grows with depth; recommend max 4 levels
@@ -942,7 +942,7 @@ implemented:
 - **ADR-0105 — Thirteen-layer canonical enum.** Layer rules unchanged.
 - **ADR-0128 — Hyperscaler architecture invariants.** Doctrine alignment.
 - **ADR-0131 — Per-microservice flat layout.** Layout unchanged.
-- **ADR-0132 — No-suite forward policy.** No suite µservices created.
+- **ADR-0132 — No-grouping forward policy.** No grouping µservices created.
 - **ADR-0136 — Foundry as single µservice.** Foundry's internal-only framing is amended (Foundry dissolves per ADR-0247).
 - **ADR-0136 amendment — Foundry internal-only.** Amended.
 - **ADR-0145 — Inter-microservice communication reform.** Direct gRPC + 3 invariants pattern continues; `oyatie.*` principal calls follow same rules.

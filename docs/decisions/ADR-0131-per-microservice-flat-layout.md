@@ -193,7 +193,7 @@ Per `/specs/microservice-migration-tooling.json` `cost_estimate` block, executed
 
 Sum across all 30 migration IPs at the M01 launch tier: ≈ 1500 files moved + 3500 cross-refs updated + ≈ 3h cumulative wall time. Migrations run in parallel per the DAG below; end-to-end M01 migration window ≈ 1 working day with parallel execution.
 
-Migration DAG (concurrency tiers; all IPs within one tier run in parallel). Per ADR-0132 (product-suite-dissolution), prior product bundles `foundry`, `workflow`, `cloud`, Connect Suite, Workspace Productivity Suite, Enterprise Suite are dissolved into 36 flat µservices below — matching AWS / Google / Microsoft / Stripe ship-as-separate-service precedent.
+Migration DAG (concurrency tiers; all IPs within one tier run in parallel). Per ADR-0132 (product-platform-dissolution), prior grouping bundles `foundry`, `workflow`, `cloud`, Tenant/RBAC packaging, workspace productivity composition, Tenant RBAC are dissolved into 36 flat µservices below — matching AWS / Google / Microsoft / Stripe ship-as-separate-service precedent.
 
 ```text
 Tier 0 (substrate; no inter-µservice deps):
@@ -225,11 +225,11 @@ Tier 2 (product host; depends on substrate):
   IP-M01-MIGR-003b workflow-studio        (visual-editor product; depends on workflow-engine)
 
 Tier 3 (end-user / tenant-facing flat µservices; product-tier, unbundled per ADR-0132):
-  IP-M01-MIGR-CONN-1  mail               ← from connect.mail + workspace.mail (dedup)
-  IP-M01-MIGR-CONN-2  messenger          ← from connect.messenger + workspace.chat (dedup)
-  IP-M01-MIGR-CONN-3  calendar           ← from connect.calendar + workspace.calendar (dedup)
-  IP-M01-MIGR-CONN-4  community          ← from connect (org-wide threads, Q&A, KB)
-  IP-M01-MIGR-WS-1    docs               ← from workspace.suite
+  IP-M01-MIGR-CONN-1  mail               ← mail service (deduplicated from legacy communications + workspace mail)
+  IP-M01-MIGR-CONN-2  messenger          ← messenger service (deduplicated from legacy chat surfaces)
+  IP-M01-MIGR-CONN-3  calendar           ← calendar service (deduplicated from legacy workspace surfaces)
+  IP-M01-MIGR-CONN-4  community          ← community service (org-wide threads, Q&A, KB)
+  IP-M01-MIGR-WS-1    docs               ← from workspace document surface
   IP-M01-MIGR-WS-2    sheets
   IP-M01-MIGR-WS-3    slides
   IP-M01-MIGR-WS-4    drive
@@ -240,7 +240,7 @@ Tier 3 (end-user / tenant-facing flat µservices; product-tier, unbundled per AD
   IP-M01-MIGR-WS-9    notes
   IP-M01-MIGR-WS-10   translate
   IP-M01-MIGR-WS-11   recordings
-  IP-M01-MIGR-ENT-1   hr                 ← unbundled from /specs/microservices/enterprise-suite.json
+  IP-M01-MIGR-ENT-1   hr                 ← unbundled from /specs/microservices/tenant-rbac.json
   IP-M01-MIGR-ENT-2   payroll
   IP-M01-MIGR-ENT-3   accounting
 ```
@@ -259,11 +259,11 @@ Total: 36 flat µservices, 30 migration IPs (six µservices ship natively, no mi
 | IP-M01-MIGR-008 | `application` | `docs/prds/application.md`, related crates, catalog. |
 | IP-M01-MIGR-009 | `foundry` | Consolidate `docs/prds/foundry.md` + `docs/products/foundry/` into `microservices/foundry/`; related crates, catalog, contracts. |
 | IP-M01-MIGR-010 | `cloud` | `docs/products/cloud/` → `microservices/cloud/`; related crates, catalog. |
-| IP-M01-MIGR-CONN-1 | `mail` | From `connect.mail` + workspace `mail`; corporate + personal mail; SMTP/IMAP; legal-hold/eDiscovery. Inherits dual-context (Personal / Professional) as a cross-cutting field, not a binding. ADR-0132 carries the dissolution rationale. |
-| IP-M01-MIGR-CONN-2 | `messenger` | From `connect.messenger` + workspace `chat` (deduplicated; same concept, two prior names). |
-| IP-M01-MIGR-CONN-3 | `calendar` | From `connect.calendar` + workspace `calendar` (deduplicated). |
-| IP-M01-MIGR-CONN-4 | `community` | From `connect` (org-wide announcements, Q&A, KB threads). |
-| IP-M01-MIGR-WS-1 | `docs` | Workspace Productivity Suite surface (per ADR-0029, now dissolved by ADR-0132). |
+| IP-M01-MIGR-CONN-1 | `mail` | Mail service; corporate + personal mail remain strictly separated by context; SMTP/IMAP; legal-hold/eDiscovery. Inherits dual-context (Personal / Professional) as a cross-cutting field, not a binding. ADR-0132 carries the dissolution rationale. |
+| IP-M01-MIGR-CONN-2 | `messenger` | Messenger service; personal and professional conversations remain strictly separated by context. |
+| IP-M01-MIGR-CONN-3 | `calendar` | Calendar service deduplicated from legacy workspace surfaces. |
+| IP-M01-MIGR-CONN-4 | `community` | Community service for org-wide announcements, Q&A, and KB threads. |
+| IP-M01-MIGR-WS-1 | `docs` | workspace productivity composition surface (per ADR-0029, now dissolved by ADR-0132). |
 | IP-M01-MIGR-WS-2 | `sheets` | as above |
 | IP-M01-MIGR-WS-3 | `slides` | as above |
 | IP-M01-MIGR-WS-4 | `drive` | as above (storage / file management) |
@@ -274,7 +274,7 @@ Total: 36 flat µservices, 30 migration IPs (six µservices ship natively, no mi
 | IP-M01-MIGR-WS-9 | `notes` | as above |
 | IP-M01-MIGR-WS-10 | `translate` | as above |
 | IP-M01-MIGR-WS-11 | `recordings` | as above |
-| IP-M01-MIGR-ENT-1 | `hr` | `docs/prds/hr.md`, related crates, catalog. Suite wrapper `/specs/microservices/enterprise-suite.json` retires (dissolved by ADR-0132); `hr` becomes flat. |
+| IP-M01-MIGR-ENT-1 | `hr` | `docs/prds/hr.md`, related crates, catalog. Suite wrapper `/specs/microservices/tenant-rbac.json` retires (dissolved by ADR-0132); `hr` becomes flat. |
 | IP-M01-MIGR-ENT-2 | `payroll` | `docs/prds/payroll.md`, related crates, catalog. As above. |
 | IP-M01-MIGR-ENT-3 | `accounting` | `docs/prds/accounting.md`, related crates, catalog. As above. |
 

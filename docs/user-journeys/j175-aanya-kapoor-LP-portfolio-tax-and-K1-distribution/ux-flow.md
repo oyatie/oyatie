@@ -211,7 +211,7 @@ All screens preserve Hindi (Devanagari) + English + Tamil + Mandarin + Japanese 
 │  │  IRS:       $48,228   Treasury Direct Pay  ✓ ACK                   │  │
 │  │  CA FTB:    $24,648   CA FTB Web Pay        ✓ ACK                   │  │
 │  │  NY DTF:     $1,242   NY DTF                 ✓ ACK                   │  │
-│  │  MA DOR:     $1,084   MA MassTaxConnect     ✓ ACK                   │  │
+│  │  MA DOR:     $1,084   MA MassTax    ✓ ACK                   │  │
 │  │  CO DOR:       $324   Revenue Online         ✓ ACK                   │  │
 │  └────────────────────────────────────────────────────────────────────┘  │
 │                                                                          │

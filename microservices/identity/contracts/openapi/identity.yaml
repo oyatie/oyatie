@@ -22,11 +22,11 @@ info:
     All token issuance is via POST + JSON body; refresh tokens are HttpOnly cookies.
   contact:
     name: axis-identity
-    url: https://oyatie.dev/teams/axis-identity
+    url: https://oyatie.com/teams/axis-identity
   license:
     name: Internal
 servers:
-  - url: https://identity-{pack}.oyatie.dev
+  - url: https://identity-{pack}.oyatie.com
     description: Per-pack identity endpoint
     variables:
       pack:

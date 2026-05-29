@@ -220,7 +220,7 @@ tier_delta_deliverable: retired-by-2026-05-20-directive
 188. Positive evidence: `contracts/openapi-v1.yaml:10-49` defines two API operations.
 189. Positive evidence: `contracts/detection-v1.proto:6-36` defines gRPC methods and messages.
 190. Positive evidence: `policy/*.cedar` files exist, showing an intended policy pack surface.
-191. Implementability gap: no source code exists under `src/`, and no test suite exists under `tests/`.
+191. Implementability gap: no source code exists under `src/`, and no test set exists under `tests/`.
 192. Severity: P1 for implementation evidence gap, because docs claim runtime behavior without code or tests.
 
 ### §3.3 Dimension 3 — Contract, policy, and event coherence
@@ -288,7 +288,7 @@ tier_delta_deliverable: retired-by-2026-05-20-directive
 #### §3.4.4 Rust-strict alignment
 245. Forbidden-language file scan for Python, JavaScript, TypeScript, Ruby, Go, Java, Scala, Groovy, PHP, and F# returned no files.
 246. Positive: no forbidden backend implementation file is present under `microservices/detection/`.
-247. Gap: there is no Rust `Cargo.toml`, crate, `src/`, or test suite.
+247. Gap: there is no Rust `Cargo.toml`, crate, `src/`, or test set.
 248. Reference-only evidence: `reference-implementations/streaming-score-rust-sdk.md:13-35` contains a Cargo snippet and dependency plan.
 249. Reference-only evidence: `reference-implementations/streaming-score-rust-sdk.md:36-201` contains Rust example prose/code, not a runnable crate in the repository.
 250. Reference-only caveat: `reference-implementations/streaming-score-rust-sdk.md:212` says the runnable Cargo project will land later.

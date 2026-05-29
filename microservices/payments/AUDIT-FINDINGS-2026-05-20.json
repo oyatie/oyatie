@@ -1,7 +1,7 @@
 {
   "pack": "payments",
   "audit_date": "2026-05-20",
-  "auditor": "oya-governance-microservice-doc-suite (automated) + axis-payments doc-suite wave-3-B",
+  "auditor": "oya-governance-microservice-doc-set (automated) + axis-payments doc-set wave-3-B",
   "scope_tier": "below_floor_remediation",
   "scanned_files_before": 53,
   "scanned_files_after": 116,
@@ -119,5 +119,5 @@
   "violations": [],
   "verdict": "PASS",
   "next_audit_due": "2026-08-20",
-  "notes": "Wave-3-B doc-suite buildout complete. Artifact count: 53 → 116 (119% increase; 16% above operating bar of 100). All §3.2.1 ARCHITECTURE.md anchors confirmed present. All §3.2.3 UX-floor + §3.2.5 critical-path + §3.2.6 DRMP wiring confirmed. PCI DSS L1 v4 QSA engagement to be scheduled Q3 2026. KR-FSS pre-audit scheduled M02-foundation."
+  "notes": "Wave-3-B doc-set buildout complete. Artifact count: 53 → 116 (119% increase; 16% above operating bar of 100). All §3.2.1 ARCHITECTURE.md anchors confirmed present. All §3.2.3 UX-floor + §3.2.5 critical-path + §3.2.6 DRMP wiring confirmed. PCI DSS L1 v4 QSA engagement to be scheduled Q3 2026. KR-FSS pre-audit scheduled M02-foundation."
 }

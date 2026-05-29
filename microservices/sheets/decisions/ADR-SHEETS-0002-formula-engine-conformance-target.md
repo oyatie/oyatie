@@ -69,10 +69,10 @@ Functions beyond this set are added incrementally per release; the target reache
 
 ### Reference corpus: LibreOffice Calc behaviour matrix
 
-The named test corpus is the **LibreOffice Calc behaviour matrix** at `documentation.libreoffice.org` + the LibreOffice Calc test suite at `git.libreoffice.org/core/+/master/sc/qa/`. Reasons:
+The named test corpus is the **LibreOffice Calc behaviour matrix** at `documentation.libreoffice.org` + the LibreOffice Calc test set at `git.libreoffice.org/core/+/master/sc/qa/`. Reasons:
 1. LibreOffice Calc is open-source; behaviour is observable + reproducible.
 2. LibreOffice Calc's stated goal is OOXML ECMA-376 + Excel-behaviour compatibility; for the ≥ 400 core functions, LibreOffice ≈ Excel.
-3. The LibreOffice test suite is the largest open-source spreadsheet correctness test corpus.
+3. The LibreOffice test set is the largest open-source spreadsheet correctness test corpus.
 4. Tenants migrating from LibreOffice-based workflows see exact-match behaviour.
 
 The corpus is materialised at `microservices/sheets/capabilities/eval/formula-reference-corpus.jsonl` (~10k cases at M03 launch; grows per release). Each case carries `{formula, context_cells, expected_result, libreoffice_calc_version, source_ref}`.
@@ -167,7 +167,7 @@ Use the ECMA-376 OOXML standard's function definitions as the reference.
 
 ### Downstream impact
 
-1. **IP-003 (formula-engine kernel + domain + corpus)** — authors the ≥ 400 functions + seeds the corpus from LibreOffice Calc test suite.
+1. **IP-003 (formula-engine kernel + domain + corpus)** — authors the ≥ 400 functions + seeds the corpus from LibreOffice Calc test set.
 2. **IP-004 (recalc-engine)** — consumes formula-engine via SDK; non-determinism in formula-engine output would break recalc-engine determinism invariant per ADR-SHEETS-0004.
 3. **IP-011 (AI-formula bridge)** — foundry-runtime LLM completions validated against formula-engine grammar before user-surfaced; new functions added to library are immediately AI-formula-draftable.
 4. **IP-013 (cell-grid app)** — formula auto-complete UX surfaces the function library; per-pack jurisdiction overlays may filter the list (e.g., pack-us-healthcare adds HIPAA redaction-helper functions).
@@ -185,7 +185,7 @@ Use the ECMA-376 OOXML standard's function definitions as the reference.
 
 ### Tenant-facing documentation
 
-- Per-function reference at `docs.oyatie.dev/sheets/functions/` cites both LibreOffice Calc reference + Excel divergence (where applicable).
+- Per-function reference at `docs.oyatie.com/sheets/functions/` cites both LibreOffice Calc reference + Excel divergence (where applicable).
 - Tenants migrating from Excel get a "Sheets vs Excel divergence catalogue" document.
 - Tenants migrating from LibreOffice / Google Sheets / Apple Numbers get migration guides.
 
@@ -202,7 +202,7 @@ Use the ECMA-376 OOXML standard's function definitions as the reference.
 - `microservices/sheets/capabilities/eval/formula-reference-corpus.jsonl`.
 - `microservices/sheets/runbooks/formula-engine-rollback.md`.
 - LibreOffice Calc behaviour documentation — `documentation.libreoffice.org`.
-- LibreOffice Calc test suite — `git.libreoffice.org/core/+/master/sc/qa/`.
+- LibreOffice Calc test set — `git.libreoffice.org/core/+/master/sc/qa/`.
 - OOXML ECMA-376 — `ecma-international.org/publications-and-standards/standards/ecma-376/`.
 - Microsoft Excel function reference — `support.microsoft.com/en-us/office/excel-functions-by-category`.
 - Google Sheets function reference — `support.google.com/docs/table/25273`.

@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  changeset: CS-LLM-GATEWAY-AGENT-DISPATCH-001
+  changeset: CS-CLOUD-INTELLIGENCE-AGENT-DISPATCH-001
   source_adrs: [ADR-0105, ADR-0131, ADR-0384]
 non_claims:
   - SSE streaming passthrough shipped; pool lease lifecycle extended to span streamed responses
@@ -23,4 +23,4 @@ non_claims:
   - no token TTL cache (access-token refresh coalescing via singleflight HashMap is Stage-6 work when OAuth refresh tokens are introduced)
   - no wiremock/httpmock integration coverage beyond the d3 adapter integration test added in Stage-5 multispectrum fix
   - no production wiring for bin/main + Cedar/Valkey/ClickHouse adapters (composition root deferred to Stage-6 app crate per ADR-0384)
-  - supersedes the retired static-API-key kernel/REST/app crates (deleted in chore/retire-legacy-llm-gateway-crates-2026-05-28); promoted to canonical OAuth subscription-pool kernel per ADR-0384
+  - supersedes the retired static-API-key kernel/REST/app crates (deleted in chore/retire-legacy-cloud-intelligence-crates-2026-05-28); promoted to canonical OAuth subscription-pool kernel per ADR-0384

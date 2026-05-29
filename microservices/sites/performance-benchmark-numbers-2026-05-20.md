@@ -1171,4 +1171,4 @@ Oyatie cannot yet claim tenant_class performance governance because the service 
 
 Oyatie cannot yet claim Core Web Vitals maturity because no field or lab evidence was found under Sites.
 
-The next benchmark work should implement measured load-test suites, OpenTofu context modules, tenant_class quota policy, and per-context evidence bundles.
+The next benchmark work should implement measured load-test sets, OpenTofu context modules, tenant_class quota policy, and per-context evidence bundles.

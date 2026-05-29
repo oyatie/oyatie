@@ -12,7 +12,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Migration: `oya-connect-docs-*` → `oya-docs-*`
+# Migration: `oya-docs-*` → `oya-docs-*`
 
 This document applies the Strangler Pattern from the agent-skills `deprecation-and-migration` skill to the **docs** µservice. It is the consumer-facing companion to ADR-0134 (cross-µservice migration policy) and ADR-0135 (target topology).
 
@@ -24,99 +24,99 @@ This document applies the Strangler Pattern from the agent-skills `deprecation-a
 |---|---|
 | Replacement | `oya-docs-*` crate family under `microservices/docs/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-DOCS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 8-BC docs surface (document-store / collab-crdt / block-types / comments-and-suggestions / version-history / sharing-and-permissions / export-import / embed-resolver) is only addressable at µservice granularity, not at Connect-suite granularity |
+| Reason | ADR-0132 no-grouping forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 8-BC docs surface (document-store / collab-crdt / block-types / comments-and-suggestions / version-history / sharing-and-permissions / export-import / embed-resolver) is only addressable at µservice granularity, not at Connect-platform granularity |
 | Migration owner (Churn Rule) | axis-docs |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~6 months; Phase 5 removal sweep in month 7 (per ADR-0134) |
 
 ## Replacement
 
-The 8 bounded-contexts of the `docs` µservice live under `microservices/docs/src/crates/` per ADR-0131. The legacy `oya-connect-docs-domain` crate bundled all eight surfaces; each replacement is BC-decomposed.
+The 8 bounded-contexts of the `docs` µservice live under `microservices/docs/src/crates/` per ADR-0131. The legacy `oya-docs-domain` crate bundled all eight surfaces; each replacement is BC-decomposed.
 
 ### Crate import-path map
 
-The legacy connect-docs surface was a single bundled domain crate. Per ADR-0131 + ADR-0105 (13-layer enum), the new layout splits per bounded context. Migration imports from the legacy bundled `oya-connect-docs-domain` must each pick the specific replacement BC.
+The legacy docs surface was a single bundled domain crate. Per ADR-0131 + ADR-0105 (13-layer enum), the new layout splits per bounded context. Migration imports from the legacy bundled `oya-docs-domain` must each pick the specific replacement BC.
 
-| Legacy `oya-connect-docs-*` path | New `oya-docs-*` path |
+| Legacy `oya-docs-*` path | New `oya-docs-*` path |
 |---|---|
-| `oya-connect-docs-domain` (bundled) | split per BC; see below |
-| `oya-connect-docs-document-kernel` | `oya-docs-document-store-kernel` |
-| `oya-connect-docs-document-domain` | `oya-docs-document-store-domain` |
-| `oya-connect-docs-document-usecase` | `oya-docs-document-store-usecase` |
-| `oya-connect-docs-document-api` | `oya-docs-document-store-api` |
-| `oya-connect-docs-document-adapter` | `oya-docs-document-store-adapter` |
-| `oya-connect-docs-document-adapter-postgres` | `oya-docs-document-store-adapter-postgres` |
-| `oya-connect-docs-document-adapter-s3` | `oya-docs-document-store-adapter-s3` |
-| `oya-connect-docs-document-rest` | `oya-docs-document-store-rest` |
-| `oya-connect-docs-document-worker` | `oya-docs-document-store-worker` |
-| `oya-connect-docs-document-sdk` | `oya-docs-document-store-sdk` |
-| `oya-connect-docs-document-app` | `oya-docs-document-store-app` |
-| `oya-connect-docs-collab-kernel` | `oya-docs-collab-crdt-kernel` |
-| `oya-connect-docs-collab-domain` | `oya-docs-collab-crdt-domain` |
-| `oya-connect-docs-collab-usecase` | `oya-docs-collab-crdt-usecase` |
-| `oya-connect-docs-collab-api` | `oya-docs-collab-crdt-api` |
-| `oya-connect-docs-collab-adapter` | `oya-docs-collab-crdt-adapter` (Loro wrapping per ADR-DOCS-0001) |
-| `oya-connect-docs-collab-adapter-valkey` | `oya-docs-collab-crdt-adapter-valkey` |
-| `oya-connect-docs-collab-worker` | `oya-docs-collab-crdt-worker` |
-| `oya-connect-docs-collab-sdk` | `oya-docs-collab-crdt-sdk` |
-| `oya-connect-docs-collab-app` | `oya-docs-collab-crdt-app` |
-| `oya-connect-docs-blocks-kernel` | `oya-docs-block-types-kernel` |
-| `oya-connect-docs-blocks-domain` | `oya-docs-block-types-domain` |
-| `oya-connect-docs-blocks-usecase` | `oya-docs-block-types-usecase` |
-| `oya-connect-docs-blocks-api` | `oya-docs-block-types-api` |
-| `oya-connect-docs-blocks-adapter` | `oya-docs-block-types-adapter` |
-| `oya-connect-docs-blocks-sdk` | `oya-docs-block-types-sdk` |
-| `oya-connect-docs-blocks-app` | `oya-docs-block-types-app` |
-| `oya-connect-docs-comments-kernel` | `oya-docs-comments-and-suggestions-kernel` |
-| `oya-connect-docs-comments-domain` | `oya-docs-comments-and-suggestions-domain` |
-| `oya-connect-docs-comments-usecase` | `oya-docs-comments-and-suggestions-usecase` |
-| `oya-connect-docs-comments-api` | `oya-docs-comments-and-suggestions-api` |
-| `oya-connect-docs-comments-adapter` | `oya-docs-comments-and-suggestions-adapter` |
-| `oya-connect-docs-comments-adapter-postgres` | `oya-docs-comments-and-suggestions-adapter-postgres` |
-| `oya-connect-docs-comments-rest` | `oya-docs-comments-and-suggestions-rest` |
-| `oya-connect-docs-comments-worker` | `oya-docs-comments-and-suggestions-worker` |
-| `oya-connect-docs-comments-app` | `oya-docs-comments-and-suggestions-app` |
-| `oya-connect-docs-version-kernel` | `oya-docs-version-history-kernel` |
-| `oya-connect-docs-version-domain` | `oya-docs-version-history-domain` |
-| `oya-connect-docs-version-usecase` | `oya-docs-version-history-usecase` |
-| `oya-connect-docs-version-api` | `oya-docs-version-history-api` |
-| `oya-connect-docs-version-adapter` | `oya-docs-version-history-adapter` |
-| `oya-connect-docs-version-adapter-postgres` | `oya-docs-version-history-adapter-postgres` |
-| `oya-connect-docs-version-worker` | `oya-docs-version-history-worker` |
-| `oya-connect-docs-version-app` | `oya-docs-version-history-app` |
-| `oya-connect-docs-sharing-kernel` | `oya-docs-sharing-and-permissions-kernel` |
-| `oya-connect-docs-sharing-domain` | `oya-docs-sharing-and-permissions-domain` |
-| `oya-connect-docs-sharing-usecase` | `oya-docs-sharing-and-permissions-usecase` |
-| `oya-connect-docs-sharing-api` | `oya-docs-sharing-and-permissions-api` |
-| `oya-connect-docs-sharing-adapter` | `oya-docs-sharing-and-permissions-adapter` |
-| `oya-connect-docs-sharing-adapter-postgres` | `oya-docs-sharing-and-permissions-adapter-postgres` |
-| `oya-connect-docs-sharing-rest` | `oya-docs-sharing-and-permissions-rest` |
-| `oya-connect-docs-sharing-app` | `oya-docs-sharing-and-permissions-app` |
-| `oya-connect-docs-export-kernel` | `oya-docs-export-import-kernel` |
-| `oya-connect-docs-export-domain` | `oya-docs-export-import-domain` |
-| `oya-connect-docs-export-usecase` | `oya-docs-export-import-usecase` |
-| `oya-connect-docs-export-api` | `oya-docs-export-import-api` |
-| `oya-connect-docs-export-adapter` | `oya-docs-export-import-adapter` |
-| `oya-connect-docs-export-adapter-pandoc` | `oya-docs-export-import-adapter-pandoc` (per ADR-DOCS-0003 — backend-qualified) |
-| `oya-connect-docs-export-adapter-weasyprint` | `oya-docs-export-import-adapter-weasyprint` (per ADR-DOCS-0003) |
-| `oya-connect-docs-export-rest` | `oya-docs-export-import-rest` |
-| `oya-connect-docs-export-worker` | `oya-docs-export-import-worker` |
-| `oya-connect-docs-export-app` | `oya-docs-export-import-app` |
-| `oya-connect-docs-embed-kernel` | `oya-docs-embed-resolver-kernel` |
-| `oya-connect-docs-embed-domain` | `oya-docs-embed-resolver-domain` |
-| `oya-connect-docs-embed-usecase` | `oya-docs-embed-resolver-usecase` |
-| `oya-connect-docs-embed-api` | `oya-docs-embed-resolver-api` |
-| `oya-connect-docs-embed-adapter` | `oya-docs-embed-resolver-adapter` |
-| `oya-connect-docs-embed-rest` | `oya-docs-embed-resolver-rest` |
-| `oya-connect-docs-embed-worker` | `oya-docs-embed-resolver-worker` |
-| `oya-connect-docs-embed-app` | `oya-docs-embed-resolver-app` |
+| `oya-docs-domain` (bundled) | split per BC; see below |
+| `oya-docs-document-kernel` | `oya-docs-document-store-kernel` |
+| `oya-docs-document-domain` | `oya-docs-document-store-domain` |
+| `oya-docs-document-usecase` | `oya-docs-document-store-usecase` |
+| `oya-docs-document-api` | `oya-docs-document-store-api` |
+| `oya-docs-document-adapter` | `oya-docs-document-store-adapter` |
+| `oya-docs-document-adapter-postgres` | `oya-docs-document-store-adapter-postgres` |
+| `oya-docs-document-adapter-s3` | `oya-docs-document-store-adapter-s3` |
+| `oya-docs-document-rest` | `oya-docs-document-store-rest` |
+| `oya-docs-document-worker` | `oya-docs-document-store-worker` |
+| `oya-docs-document-sdk` | `oya-docs-document-store-sdk` |
+| `oya-docs-document-app` | `oya-docs-document-store-app` |
+| `oya-docs-collab-kernel` | `oya-docs-collab-crdt-kernel` |
+| `oya-docs-collab-domain` | `oya-docs-collab-crdt-domain` |
+| `oya-docs-collab-usecase` | `oya-docs-collab-crdt-usecase` |
+| `oya-docs-collab-api` | `oya-docs-collab-crdt-api` |
+| `oya-docs-collab-adapter` | `oya-docs-collab-crdt-adapter` (Loro wrapping per ADR-DOCS-0001) |
+| `oya-docs-collab-adapter-valkey` | `oya-docs-collab-crdt-adapter-valkey` |
+| `oya-docs-collab-worker` | `oya-docs-collab-crdt-worker` |
+| `oya-docs-collab-sdk` | `oya-docs-collab-crdt-sdk` |
+| `oya-docs-collab-app` | `oya-docs-collab-crdt-app` |
+| `oya-docs-blocks-kernel` | `oya-docs-block-types-kernel` |
+| `oya-docs-blocks-domain` | `oya-docs-block-types-domain` |
+| `oya-docs-blocks-usecase` | `oya-docs-block-types-usecase` |
+| `oya-docs-blocks-api` | `oya-docs-block-types-api` |
+| `oya-docs-blocks-adapter` | `oya-docs-block-types-adapter` |
+| `oya-docs-blocks-sdk` | `oya-docs-block-types-sdk` |
+| `oya-docs-blocks-app` | `oya-docs-block-types-app` |
+| `oya-docs-comments-kernel` | `oya-docs-comments-and-suggestions-kernel` |
+| `oya-docs-comments-domain` | `oya-docs-comments-and-suggestions-domain` |
+| `oya-docs-comments-usecase` | `oya-docs-comments-and-suggestions-usecase` |
+| `oya-docs-comments-api` | `oya-docs-comments-and-suggestions-api` |
+| `oya-docs-comments-adapter` | `oya-docs-comments-and-suggestions-adapter` |
+| `oya-docs-comments-adapter-postgres` | `oya-docs-comments-and-suggestions-adapter-postgres` |
+| `oya-docs-comments-rest` | `oya-docs-comments-and-suggestions-rest` |
+| `oya-docs-comments-worker` | `oya-docs-comments-and-suggestions-worker` |
+| `oya-docs-comments-app` | `oya-docs-comments-and-suggestions-app` |
+| `oya-docs-version-kernel` | `oya-docs-version-history-kernel` |
+| `oya-docs-version-domain` | `oya-docs-version-history-domain` |
+| `oya-docs-version-usecase` | `oya-docs-version-history-usecase` |
+| `oya-docs-version-api` | `oya-docs-version-history-api` |
+| `oya-docs-version-adapter` | `oya-docs-version-history-adapter` |
+| `oya-docs-version-adapter-postgres` | `oya-docs-version-history-adapter-postgres` |
+| `oya-docs-version-worker` | `oya-docs-version-history-worker` |
+| `oya-docs-version-app` | `oya-docs-version-history-app` |
+| `oya-docs-sharing-kernel` | `oya-docs-sharing-and-permissions-kernel` |
+| `oya-docs-sharing-domain` | `oya-docs-sharing-and-permissions-domain` |
+| `oya-docs-sharing-usecase` | `oya-docs-sharing-and-permissions-usecase` |
+| `oya-docs-sharing-api` | `oya-docs-sharing-and-permissions-api` |
+| `oya-docs-sharing-adapter` | `oya-docs-sharing-and-permissions-adapter` |
+| `oya-docs-sharing-adapter-postgres` | `oya-docs-sharing-and-permissions-adapter-postgres` |
+| `oya-docs-sharing-rest` | `oya-docs-sharing-and-permissions-rest` |
+| `oya-docs-sharing-app` | `oya-docs-sharing-and-permissions-app` |
+| `oya-docs-export-kernel` | `oya-docs-export-import-kernel` |
+| `oya-docs-export-domain` | `oya-docs-export-import-domain` |
+| `oya-docs-export-usecase` | `oya-docs-export-import-usecase` |
+| `oya-docs-export-api` | `oya-docs-export-import-api` |
+| `oya-docs-export-adapter` | `oya-docs-export-import-adapter` |
+| `oya-docs-export-adapter-pandoc` | `oya-docs-export-import-adapter-pandoc` (per ADR-DOCS-0003 — backend-qualified) |
+| `oya-docs-export-adapter-weasyprint` | `oya-docs-export-import-adapter-weasyprint` (per ADR-DOCS-0003) |
+| `oya-docs-export-rest` | `oya-docs-export-import-rest` |
+| `oya-docs-export-worker` | `oya-docs-export-import-worker` |
+| `oya-docs-export-app` | `oya-docs-export-import-app` |
+| `oya-docs-embed-kernel` | `oya-docs-embed-resolver-kernel` |
+| `oya-docs-embed-domain` | `oya-docs-embed-resolver-domain` |
+| `oya-docs-embed-usecase` | `oya-docs-embed-resolver-usecase` |
+| `oya-docs-embed-api` | `oya-docs-embed-resolver-api` |
+| `oya-docs-embed-adapter` | `oya-docs-embed-resolver-adapter` |
+| `oya-docs-embed-rest` | `oya-docs-embed-resolver-rest` |
+| `oya-docs-embed-worker` | `oya-docs-embed-resolver-worker` |
+| `oya-docs-embed-app` | `oya-docs-embed-resolver-app` |
 
-> **`oya-connect-docs-domain` split.** The legacy bundled crate bundled documents + collab + blocks + comments + versions + sharing + export + embed into a single domain-layer crate. Per ADR-0131 + ADR-0105 (13-layer enum), the new layout splits the domain layer per bounded context. Migration imports from the legacy bundled `oya-connect-docs-domain` must each pick the specific replacement BC; a one-line wholesale `use oya_docs::*` import is not supported.
+> **`oya-docs-domain` split.** The legacy bundled crate bundled documents + collab + blocks + comments + versions + sharing + export + embed into a single domain-layer crate. Per ADR-0131 + ADR-0105 (13-layer enum), the new layout splits the domain layer per bounded context. Migration imports from the legacy bundled `oya-docs-domain` must each pick the specific replacement BC; a one-line wholesale `use oya_docs::*` import is not supported.
 
 ### Net-new boundaries (no legacy counterpart)
 
-The new µservice introduces capabilities that did NOT exist in `oya-connect-docs-*`. They are therefore not part of the migration surface — they are clean replacement-boundary features:
+The new µservice introduces capabilities that did NOT exist in `oya-docs-*`. They are therefore not part of the migration surface — they are clean replacement-boundary features:
 
-- **`oya-docs-collab-crdt-adapter` (Loro 1.x)** — first-class CRDT engine per ADR-DOCS-0001; the legacy `connect-docs-collab-*` used a primitive last-write-wins synchroniser. See Hyrum's-Law surface #1 below.
+- **`oya-docs-collab-crdt-adapter` (Loro 1.x)** — first-class CRDT engine per ADR-DOCS-0001; the legacy `docs-collab-*` used a primitive last-write-wins synchroniser. See Hyrum's-Law surface #1 below.
 - **`oya-docs-block-types-*`** — Notion-class block-based schema per ADR-DOCS-0002; the legacy surface had only flat-text + heading + list.
 - **`oya-docs-export-import-adapter-chromium`** — high-fidelity Chromium-headless PDF backend per ADR-DOCS-0003 (opt-in alternative to WeasyPrint).
 - **`oya-docs-sharing-and-permissions-*` per-block ACL** — Notion-class per-block grant per ADR-DOCS-0004; the legacy surface had whole-doc-only ACL.
@@ -144,10 +144,10 @@ use oya_docs_comments_and_suggestions_kernel::{Comment, Thread};
 ```toml
 # BEFORE — Cargo.toml of a downstream consumer
 [dependencies]
-oya-connect-docs-document-kernel = { workspace = true }
-oya-connect-docs-document-usecase = { workspace = true }
-oya-connect-docs-collab-kernel = { workspace = true }
-oya-connect-docs-comments-kernel = { workspace = true }
+oya-docs-document-kernel = { workspace = true }
+oya-docs-document-usecase = { workspace = true }
+oya-docs-collab-kernel = { workspace = true }
+oya-docs-comments-kernel = { workspace = true }
 
 # AFTER
 [dependencies]
@@ -159,18 +159,18 @@ oya-docs-comments-and-suggestions-kernel = { workspace = true }
 
 ## Reason
 
-The legacy `oya-connect-docs-*` family was authored before the following ADRs crystallised:
+The legacy `oya-docs-*` family was authored before the following ADRs crystallised:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — per-µservice SLO authority.** Docs needs independent SLO targets per surface (doc-open-latency, save-latency, collab-cursor-sync-latency, export-pdf-latency, search-within-doc-latency, doc-list-latency, crdt-merge-no-silent-loss 100% target, share-acl-enforcement-correctness 100% target, pandoc-export-pipeline-availability). A `connect-*` umbrella SLO cannot honour those.
 3. **ADR-0131 — per-µservice flat layout.** Docs's IaC, runbooks, threat-model, DPIA, compliance, capacity-model, cost-budget, incident-response, failure-modes, multi-region, SDK plan, competitor-parity-matrix, backfill-replay all need to live under one folder (`microservices/docs/`).
 4. **ADR-0133 — 11-pack-overlay program.** pack-kr (KR PIPA + 전자문서법), pack-eu (GDPR + EU AI Act + eIDAS PAdES), pack-us, pack-us-healthcare (HIPAA + FDA 21 CFR Part 11), pack-jp (APPI), pack-sg (PDPA), pack-au (Privacy Act), pack-in (DPDPA), pack-br (LGPD), pack-ae (UAE PDPL + Hijri overlay), pack-ksa (KSA PDPL + Hijri overlay + Sharia retention) — each lives as `microservices/docs/iac/kustomize/overlays/pack-<region>/`.
 5. **ADR-DOCS-0001 → ADR-DOCS-0006** — docs-specific decisions (CRDT library shared with workflow-studio, block-type system, export pipeline, per-block ACL, AI writing-assist scope, DOCX import fidelity) need to live at per-µservice ADR granularity.
-6. **Cross-µservice CRDT library alignment** with workflow-studio (per ADR-WS-0001 + ADR-DOCS-0001) — the legacy connect-docs collab adapter could not honour this because it predated ADR-WS-0001.
+6. **Cross-µservice CRDT library alignment** with workflow-studio (per ADR-WS-0001 + ADR-DOCS-0001) — the legacy docs collab adapter could not honour this because it predated ADR-WS-0001.
 
 ## Migration Guide (step-by-step)
 
-For each consumer crate that imports `oya-connect-docs-*`:
+For each consumer crate that imports `oya-docs-*`:
 
 ### Step 1 — Add the new dependency
 
@@ -183,7 +183,7 @@ For each consumer crate that imports `oya-connect-docs-*`:
 
 ```bash
 # Use this command per file as a guided rewrite (review every hit;
-# manual disambiguation needed for the `oya-connect-docs-domain`
+# manual disambiguation needed for the `oya-docs-domain`
 # split case):
 rg -l "oya_connect_docs_" --type rust path/to/your/crate
 ```
@@ -192,7 +192,7 @@ rg -l "oya_connect_docs_" --type rust path/to/your/crate
 
 ```bash
 # Inside your consumer crate:
-cargo nextest run --features connect-docs-strangler-canary
+cargo nextest run --features docs-strangler-canary
 ```
 
 Run with the feature flag enabled to route through the new µservice; without to route through the legacy adapter. Compare:
@@ -209,14 +209,14 @@ Only after your consumer crate's tests pass against the new imports AND the docs
 
 ```toml
 # Remove this line:
-oya-connect-docs-document-kernel = { workspace = true }
+oya-docs-document-kernel = { workspace = true }
 ```
 
 ### Step 5 — Verify zero residual
 
 ```bash
 # Per ADR-0134 Phase 4 verification:
-cargo tree -e normal -p your-crate | grep oya-connect-docs   # expect empty
+cargo tree -e normal -p your-crate | grep oya-docs   # expect empty
 rg "use oya_connect_docs_" --type rust path/to/your/crate    # expect zero hits
 ```
 
@@ -227,7 +227,7 @@ rg "use oya_connect_docs_" --type rust path/to/your/crate    # expect zero hits
 | Feature flag namespace | `connect.docs.*` | `docs.*` |
 | OpenSLO file | bundled in `Connect.openslo.yaml` (umbrella) | `microservices/docs/slos/*.openslo.yaml` (per-µservice, 9 files) |
 | Helm chart values key | `.Values.connect.docs.*` | `.Values.docs.*` |
-| K8s namespace | `connect` | `docs` |
+| K8s namespace | `connector` | `docs` |
 | Cedar policy fragment path | `policy/connect/docs/*.cedar` | `microservices/docs/policy/*.cedar` |
 | pack-kr overlay path | `policy/connect/docs/pack-kr/*` | `microservices/docs/iac/kustomize/overlays/pack-kr/*` + per-pack section in `threat-model.md` / `dpia.md` / `compliance.md` / `multi-region.md` |
 | Workflow event prefix | `connect.docs.*` | `docs.*` (e.g., `docs.document.lifecycle.v1`, `docs.sharing.v1`, `docs.comments.v1`, `docs.suggestions.v1`, `docs.export.v1`, `docs.import.v1`, `docs.embed.v1`, `docs.version.v1`) |
@@ -281,7 +281,7 @@ Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law Makes Removal Ha
 | Phase | Description | Status (docs) | Exit condition |
 |---|---|---|---|
 | 1. Parallel ship | New µservice + legacy coexist | **active** | HG-DOCS passes at p99 SLOs in dev cluster sustained 7d |
-| 2. Adapter soak | `oya-connect-docs-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
+| 2. Adapter soak | `oya-docs-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
 | 3. Feature-flagged canary | 10% → 50% → 100% traffic shift over 6 weeks | pending | New µservice carries 100% traffic for 7 consecutive days |
 | 4. Zero-active-usage verification | Dependency-graph + telemetry + grep all clean | pending | Verification commands all exit 0 |
 | 5. Code removal sweep | Delete legacy crates + Cargo.toml entries + spec pointers | pending | `cargo build --workspace` exits 0; no `oya_connect_docs_*` symbol resolves |
@@ -302,12 +302,12 @@ Per the deprecation-and-migration skill, every deprecation closeout must satisfy
   ```
 - [ ] **All active consumers have been migrated** (per Phase 4):
   ```bash
-  cargo tree -e normal -p oya-connect-docs-domain --invert    | grep -v 'oya-connect-docs-migration-adapter' | wc -l   # expect 0
+  cargo tree -e normal -p oya-docs-domain --invert    | grep -v 'oya-docs-migration-adapter' | wc -l   # expect 0
   rg "use oya_connect_docs_" --type rust    | rg -v "migration-adapter|legacy_in_process|tests/"    | wc -l   # expect 0
   ```
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
-  find crates -maxdepth 1 -type d -name "oya-connect-docs-*" | wc -l   # expect 0
+  find crates -maxdepth 1 -type d -name "oya-docs-*" | wc -l   # expect 0
   test ! -f /specs/microservices/docs.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase** (excluding historical ADR / RETIRED.md / git-log surfaces):
@@ -343,11 +343,11 @@ Phase 5 (code removal) **IS a breaking change** for any consumer that did not mi
 
 ## References
 
-- ADR-0135: Connect super-app expansion into 8 flat µservices.
+- ADR-0135: super-app expansion into 8 flat µservices.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0133: Industry best-practice conformance program.
-- ADR-0134: Connect dissolution Strangler migration (operational policy).
+- ADR-0134: dissolution Strangler migration (operational policy).
 - ADR-DOCS-0001: CRDT library — Loro 1.x (cross-µservice consistent with workflow-studio ADR-WS-0001).
 - ADR-DOCS-0002: Block-type system.
 - ADR-DOCS-0003: Export pipeline architecture.

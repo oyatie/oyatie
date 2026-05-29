@@ -253,13 +253,13 @@ decision_owner: healthcare-integration-platform-architecture
 
 - HL7, FHIR Release 4 specification.
 - HL7, FHIR Release 5 specification.
-- HL7, Version 2 Product Suite documentation.
+- HL7, Version 2 Product Platform documentation.
 - SMART Health IT, SMART on FHIR Authorization Guide.
 - IHE IT Infrastructure, Patient Identifier Cross-reference and Patient Demographics Query profiles.
 - U.S. Department of Health and Human Services, HIPAA Security Rule guidance.
 - OAuth 2.0 Authorization Framework, RFC 6749.
 - JSON Web Token Bearer Profile for OAuth 2.0, RFC 7523.
-- OpenID Connect Core 1.0.
+- OpenID Core 1.0.
 - OpenAPI Specification 3.1.0.
 - AsyncAPI Specification 3.0.0.
 - CloudEvents Specification 1.0.2.

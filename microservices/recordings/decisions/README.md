@@ -20,6 +20,6 @@ doc_status: published
 ## References
 
 - ADR-0131 — per-microservice flat layout.
-- ADR-0132 — no-suite forward-policy.
+- ADR-0132 — no-grouping forward-policy.
 - ADR-0133 — industry best-practice conformance.
-- ADR-0134 — Connect dissolution Strangler migration.
+- ADR-0134 — dissolution Strangler migration.

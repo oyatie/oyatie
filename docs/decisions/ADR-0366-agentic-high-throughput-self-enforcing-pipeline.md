@@ -69,7 +69,7 @@ claim-ratchet is NOT revived — ownership-sharding + the queue replace it.)
 
 ### 2. High throughput, minimal wasted work
 **Affected-targets** (build/test only what changed) + **content-hashed gate cache** + a **two-tier**
-split: *presubmit* = fast/affected/blocking per PR; *postsubmit* = full suite with **regression
+split: *presubmit* = fast/affected/blocking per PR; *postsubmit* = full platform with **regression
 attribution** (bisect the culprit). Stacked small PRs over mega-branches.
 
 ### 3. Self-enforcing + self-repairing (the keystone)

@@ -157,6 +157,6 @@ Out (v2+):
   - **Lane Z** — proof harness (loom + proptest + chaos) — same crates, in `tests/`.
   - **Lane A** — admin API + subscription CRUD + window-tracking endpoints — new crate `microservices/cloud-intelligence/crates/oya-cloud-intelligence-admin-api/`.
   - **Lane C** — console v0 wiring + cloud-intelligence tab — `microservices/devops-console/` (new µservice).
-  - **Lane N** — rename sweep `llm-gateway` → `cloud-intelligence` (cosmetic, runs last after all above land).
+  - **Lane N** — rename sweep `legacy gateway name` → `cloud-intelligence` (cosmetic, runs last after all above land).
 
 Loop the rigor pipeline (plan→spec→review₁→test→build→review₂→ship) per lane. Lanes K + R + Z can run in parallel via 3 agents with disjoint paths (overlap-gate enforced). Lane A depends on Lane K (uses the kernel admin contracts). Lane C depends on Lane A (consumes the admin API). Lane N depends on all the above (final sweep).

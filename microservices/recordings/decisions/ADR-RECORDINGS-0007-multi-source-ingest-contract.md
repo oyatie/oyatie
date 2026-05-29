@@ -128,7 +128,7 @@ Current variants:
 - `manual_upload` — user via REST presign + finalize
 - `workflow_screen_capture` — workflow-engine agentic capture
 - `legacy_workspace_recording` — Strangler replay of the legacy
-  `oya-connect-recordings-domain` shape (per `migration-from-connect.md`).
+  `oya-recordings-domain` shape (per `migration-from-connect.md`).
 
 ### 9. Cross-µservice rule alignment
 

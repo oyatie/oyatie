@@ -31,7 +31,7 @@ use oya_identity_workload_authz_cedar_adapter::CedarWorkloadAuthorizer;
 use oya_identity_workload_domain::{Action, Effect, Resource, WorkloadId, WorkloadState};
 use oya_identity_workload_oidc_adapter::{Jwk, Jwks, ValidationConfig};
 
-const ISSUER: &str = "https://idp.oyatie.dev";
+const ISSUER: &str = "https://idp.oyatie.com";
 const AUDIENCE: &str = "oya-cloud-kms";
 const KID: &str = "kid-acceptance-1";
 const NOW: i64 = 1_700_000_000;

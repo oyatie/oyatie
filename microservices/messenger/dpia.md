@@ -90,7 +90,7 @@ DPIA is mandatory pre-deployment. This document is the canonical DPIA reviewed b
 - **Data subjects:** End-users of tenant applications; tenant operators; oyatie operators.
 - **Relationship:** Joint controllership with tenant under Art. 26.
 - **Reasonable expectations:** End-users expect operational telemetry + admin disclosure-on-trigger per tenant onboarding notice.
-- **Previous experience:** Bominal connect-messenger predecessor; no DPA-triggered complaints in 24 months.
+- **Previous experience:** Bominal messenger predecessor; no DPA-triggered complaints in 24 months.
 - **Industry codes:** ePrivacy Directive Art. 5(3) (communications confidentiality); voluntary alignment.
 
 ## Step 3 — Consultation

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j53/invoice-to-cash-recurring-subscription-event.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j53/invoice-to-cash-recurring-subscription-event.json",
   "title": "J53InvoiceToCashRecurringSubscriptionEvent",
   "description": "Shared invoice-to-cash-recurring-subscription-event schema for j53-invoice-to-cash-recurring-subscription. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

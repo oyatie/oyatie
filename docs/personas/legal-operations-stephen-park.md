@@ -214,7 +214,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Legal Operations Stephen Park must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Legal Operations Stephen Park must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | primary | Legal Operations Stephen Park must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Legal Operations Stephen Park must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Legal Operations Stephen Park must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Legal Operations Stephen Park must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Legal Operations Stephen Park must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | primary | Legal Operations Stephen Park must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

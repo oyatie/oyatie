@@ -43,7 +43,7 @@ The on-prem Kubernetes stack on the KR primary cell is:
 | Service mesh control plane | **Istio** (minimal profile initially) | Per ADR-0044 service-mesh + mTLS decision; canonical Envoy operator with strong ecosystem. |
 | Service mesh data plane | **Envoy** (Istio sidecars + ingress gateway) | Pulled forward from M03 (per ADR-0044 §timeline) so on-prem Foundry traffic immediately benefits from L7 access logs + mTLS hooks; portable to OCI OKE unchanged. |
 
-k3s and k0s are **explicitly rejected** for this cell. They remain valid options for **edge cells** (M07-onward Industrial Suite KR satellite cells, retail kiosks) where RAM is constrained and full-upstream parity is not required; future ADRs may sanction k3s/k0s for those classes.
+k3s and k0s are **explicitly rejected** for this cell. They remain valid options for **edge cells** (M07-onward Industrial Platform KR satellite cells, retail kiosks) where RAM is constrained and full-upstream parity is not required; future ADRs may sanction k3s/k0s for those classes.
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j66/tax-quarterly-filing-multi-jurisdiction-event.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j66/tax-quarterly-filing-multi-jurisdiction-event.json",
   "title": "J66TaxQuarterlyFilingMultiJurisdictionEvent",
   "description": "Shared tax-quarterly-filing-multi-jurisdiction-event schema for j66-tax-quarterly-filing-multi-jurisdiction. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

@@ -44,7 +44,7 @@ The K-1 distributions for FY2026 (calendar year tax year):
 
 **Aggregate K-1 income for Aanya FY2026**: $762,148 + $34,148 foreign-source. **State-by-state apportionment for 8 US states + 4 international jurisdictions** (CA + NY + MA + TX + WA + CO + TN + FL; SG + IN + ID + HK).
 
-Microservices: `payments` (quarterly estimated tax payments — Q1 + Q2 already made; Q3 + Q4 from this K-1 cycle), `finops-portal` (LP capital account dashboard + tax-character categorization + Section 199A + Section 1411 NIIT), `compliance` (state-by-state apportionment + foreign tax credit + AMT + EU AIFMD reporting for non-US fund), `drive` (K-1 PDF archival per IRS records-retention rule + audit-chain attestation), `connect` (GP-LP communication channel for clarification + capital call notice + distribution notice).
+Microservices: `payments` (quarterly estimated tax payments — Q1 + Q2 already made; Q3 + Q4 from this K-1 cycle), `finops-portal` (LP capital account dashboard + tax-character categorization + Section 199A + Section 1411 NIIT), `compliance` (state-by-state apportionment + foreign tax credit + AMT + EU AIFMD reporting for non-US fund), `drive` (K-1 PDF archival per IRS records-retention rule + audit-chain attestation), `connector` (GP-LP communication channel for clarification + capital call notice + distribution notice).
 
 The journey covers Aanya's **3 evenings + 2 weekend days** (May 20–24, ~22 hours total) of:
 
@@ -54,7 +54,7 @@ The journey covers Aanya's **3 evenings + 2 weekend days** (May 20–24, ~22 hou
 4. **drive** µservice — K-1 PDF archival (4 K-1 PDFs + 4 capital-account statements + 4 partner-allocation schedules + 4 foreign-tax-credit footnotes); 7-year retention per IRS records-retention rule § 6501(e); WORM-class compliance
 5. **connect** µservice — GP-LP communication channel with each of the 4 fund GPs for clarification on K-1 items (in this journey she has 2 specific clarification questions: one for KKR Asian Fund's Indonesia-source foreign tax credit; one for Insight on the Section 199A pass-through computation)
 
-Microservices: `payments`, `finops-portal`, `compliance`, `drive`, `connect`. Secondary: `identity` (Aanya's passkey + face attestation + accredited-investor + qualified-purchaser attestation), `tenancy` (Aanya's personal tenant + 4 fund-GP tenants + IRS + 8 state revenue tenants + CPA tenant), `messenger` (CPA + GP channels), `notes` (Aanya's working tax worksheet), `audit-chain` (per-K-1 Merkle attestation for FY filing substantiation), `observability` (CPA + IRS deadline tracking).
+Microservices: `payments`, `finops-portal`, `compliance`, `drive`, `connector`. Secondary: `identity` (Aanya's passkey + face attestation + accredited-investor + qualified-purchaser attestation), `tenancy` (Aanya's personal tenant + 4 fund-GP tenants + IRS + 8 state revenue tenants + CPA tenant), `messenger` (CPA + GP channels), `notes` (Aanya's working tax worksheet), `audit-chain` (per-K-1 Merkle attestation for FY filing substantiation), `observability` (CPA + IRS deadline tracking).
 
 ## Why this journey matters
 
@@ -94,7 +94,7 @@ Hyperscaler benchmark: traditional HNW tax prep (Sequoia + Asset-Map + Addepar) 
 | `compliance` | State-by-state apportionment + foreign tax credit + AMT + EU AIFMD | row 233, 234 |
 | `payments` | Q3 + Q4 quarterly estimated tax payments to IRS + 8 states | row 235 |
 | `drive` | K-1 PDF archival with WORM + 7-year retention per IRS | row 236 |
-| `connect` | GP-LP communication channel for clarification | row 237 |
+| `connector` | GP-LP communication channel for clarification | row 237 |
 
 ## Secondary microservices touched
 

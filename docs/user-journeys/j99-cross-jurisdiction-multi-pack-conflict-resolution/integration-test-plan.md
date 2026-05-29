@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J99-T001 | analytics data lineage discovery | Cedar decision and audit event cite GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification; data remains tenant-scoped |
 | J99-T002 | api-gateway pack conflict graph | Cedar decision and audit event cite California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights; data remains tenant-scoped |

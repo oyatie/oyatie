@@ -9,13 +9,13 @@ info:
     Tenant-facing browse + install; admin-facing vetting + revoke; submission flow consumed by developer-sdk.
   contact:
     name: axis-ecosystem
-    email: axis-ecosystem@oyatie.dev
+    email: axis-ecosystem@oyatie.com
   license:
     name: oyatie-proprietary
 servers:
-  - url: https://api.oyatie.dev/v1
+  - url: https://api.oyatie.com/v1
     description: Production
-  - url: https://dev-api.oyatie.dev/v1
+  - url: https://dev-api.oyatie.com/v1
     description: Dev
 tags:
   - name: plugin-catalog

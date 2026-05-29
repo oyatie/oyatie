@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j21-personal-signup-passkey-first-dm.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j21-personal-signup-passkey-first-dm.schema.json",
   "title": "j21 Personal signup passkey first DM Journey Contract",
   "type": "object",
   "additionalProperties": false,

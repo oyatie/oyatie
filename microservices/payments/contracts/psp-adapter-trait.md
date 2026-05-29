@@ -71,7 +71,7 @@ pub trait PspAdapter: Send + Sync {
         req: PayoutRequest,
     ) -> Result<PayoutResponse, PspError>;
 
-    /// Onboard a sub-merchant (Connect / MarketPay-equivalent).
+    /// Onboard a sub-merchant (/ MarketPay-equivalent).
     async fn onboard_sub_merchant(
         &self,
         ctx: &PspCallContext,
@@ -171,7 +171,7 @@ pub struct WebhookPayload {
 
 | PSP | Crate | Key dependencies | Notes |
 |---|---|---|---|
-| Stripe | `oya-payments-adapter-stripe` | `stripe-rust` v0.30+ | Connect platform-facilitator pattern |
+| Stripe | `oya-payments-adapter-stripe` | `stripe-rust` v0.30+ | platform-facilitator pattern |
 | Adyen | `oya-payments-adapter-adyen` | per-PSP REST client | MarketPay equivalent |
 | Toss Payments | `oya-payments-adapter-toss` | per-PSP REST client | KR-FSS-licensed; KRW-only |
 | KakaoPay | `oya-payments-adapter-kakaopay` | per-PSP REST client | KR; wallet-only |

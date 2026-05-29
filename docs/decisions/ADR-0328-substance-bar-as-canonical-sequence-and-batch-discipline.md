@@ -383,7 +383,7 @@ over during audit.
 ### C.4 Hyperscaler-grade rigor application
 
 Named precedent: the phase sequence follows hyperscaler platform layering rather
-than product-suite sprawl.
+than product-platform sprawl.
 
 Cloud substrate is established before platform substrate, as AWS, Google Cloud,
 Azure, and Cloudflare establish identity, networking, key management, storage,
@@ -580,7 +580,7 @@ D-1.63. Phase 3 service 10: `slides`.
 
 D-1.64. Phase 3 service 11: `forms`.
 
-D-1.65. Phase 3 service 12: `connect`.
+D-1.65. Phase 3 service 12: `connector`.
 
 D-1.66. Phase 3 service 13: `comms-email`.
 
@@ -668,7 +668,7 @@ D-1.105. It is not a statement that every current directory is already at
 substance bar.
 
 D-1.106. It is not permission to create missing directories without a separate
-claim, ADR, and microservice doc-suite plan.
+claim, ADR, and microservice doc-set plan.
 
 D-1.107. If the live repository uses an alias such as `cloud-k8s` for a canonical
 name such as `cloud-compute-k8s`, the audit finding records the alias and the
@@ -1650,7 +1650,7 @@ density examples in ADR-0321.
 D-13.20. Dossiers must map vendor features to capability tiers or operationally
 justified services.
 
-D-13.21. Dossiers must not create vendor suite microservices.
+D-13.21. Dossiers must not create vendor grouping microservices.
 
 D-13.22. Dossiers must not treat product label familiarity as architecture.
 

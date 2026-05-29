@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/specs/journey/j127/offboarding-cascade-request.json",
+  "$id": "https://oyatie.com/specs/journey/j127/offboarding-cascade-request.json",
   "title": "OffboardingCascadeRequest",
   "version": "1.0.0",
   "_meta": {

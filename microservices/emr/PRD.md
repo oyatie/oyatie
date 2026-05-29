@@ -40,11 +40,11 @@ counterparts:
     - athenahealth (athenaClinicals + athenaCommunicator + athenaCollector + Population Health)
   secondary:
     - Allscripts Veradigm (Sunrise EHR + Paragon + TouchWorks + Practice Fusion)
-    - Meditech (Meditech Expanse + Patient Connect + Web Ambulatory)
+    - Meditech (Meditech Expanse + Patient + Web Ambulatory)
     - eClinicalWorks (eClinicalWorks V11 + healow + eCW Scribe)
     - NextGen Healthcare (NextGen Enterprise + NextGen Mobile + NextGen Office)
     - Greenway Health (Intergy + Prime Suite)
-planned_enforcement_ref: oya-governance-emr-doc-suite
+planned_enforcement_ref: oya-governance-emr-doc-set
 ---
 
 # PRD-emr: Electronic Medical Record (EMR/EHR)

@@ -161,7 +161,7 @@
       "id": "IP-012-governance-promotion-readiness-lane",
       "title": "IP-012: oya-governance-promotion-readiness CI lane (BLOCKER)",
       "acceptance_status": "ga",
-      "file": "microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md"
+      "file": "microservices/observability/IP-012-governance-promotion-readiness-lane.md"
     },
     {
       "id": "IP-013-event-driven-promote-workflows",
@@ -237,9 +237,9 @@
     },
     {
       "id": "ADR-0234",
-      "title": "Connect Social Expansion Planning Contract",
+      "title": "Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"
+      "file": "docs/decisions/ADR-0234-community-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0139",

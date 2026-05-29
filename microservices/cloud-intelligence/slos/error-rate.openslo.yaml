@@ -2,7 +2,7 @@ apiVersion: openslo/v1
 kind: SLO
 metadata:
   name: cloud-intelligence-error-rate
-  displayName: "LLM Gateway Error Rate"
+  displayName: "Cloud Intelligence Error Rate"
   labels:
     microservice: cloud-intelligence
     surface: ingress
@@ -61,8 +61,8 @@ spec:
             metadata: { name: fastburn }
             spec: { op: gte, threshold: 14.4, lookbackWindow: 1h, alertAfter: 2m }
         notificationTargets:
-          - target: pagerduty-foundry
-          - target: opsgenie-foundry
+          - target: pagerduty-cloud-intelligence
+          - target: opsgenie-cloud-intelligence
     - name: cloud-intelligence-error-rate-burnrate-mediumburn
       kind: AlertPolicy
       spec:

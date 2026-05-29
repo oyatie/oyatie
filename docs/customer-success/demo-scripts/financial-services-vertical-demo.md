@@ -612,7 +612,7 @@ Thank you for the discussion today. I heard five priorities:
 
 1. Reduce the manual burden of DORA incident evidence and resilience reporting.
 2. Govern AI-assisted financial workflows with human oversight and traceable decisions.
-3. Connect liquidity and Basel-style scenario insight to controlled treasury action.
+3. liquidity and Basel-style scenario insight to controlled treasury action.
 4. Improve payment exception handling without weakening dual control.
 5. Build a credible business case without disrupting core banking systems in the first wave.
 

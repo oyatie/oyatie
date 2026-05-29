@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  changeset: CS-LLM-GATEWAY-OPENBAO-ADAPTER-D8-001
+  changeset: CS-CLOUD-INTELLIGENCE-OPENBAO-ADAPTER-D8-001
   source_adrs: [ADR-0105, ADR-0131, ADR-0181, ADR-0183, ADR-0384]
 non_claims:
   - no automatic vault-token rotation (operator runs `vault token renew` or configures a token with a long TTL / periodic token; this adapter does not self-renew)

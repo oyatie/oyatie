@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j133/audit-event-cascade.json",
+  "$id": "https://oyatie.com/schemas/j133/audit-event-cascade.json",
   "title": "AuditEventCascade-j133",
   "type": "array",
   "_meta": {

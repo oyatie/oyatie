@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j84-jp-appi-elder-consent.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j84-jp-appi-elder-consent.schema.json",
   "title": "J84 JP APPI elder user consent Journey Object",
   "version": "1.0.0",
   "_meta": {

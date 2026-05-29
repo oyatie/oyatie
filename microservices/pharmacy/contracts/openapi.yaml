@@ -10,13 +10,13 @@ info:
     interventions, medication reconciliation, outpatient retail, MTM, and DSCSA serialization.
   contact:
     name: axis-pharmacy
-    email: axis-pharmacy@oyatie.dev
+    email: axis-pharmacy@oyatie.com
   license:
     name: Proprietary
 servers:
-  - url: https://api.oyatie.dev/pharmacy/v1
+  - url: https://api.oyatie.com/pharmacy/v1
     description: Production
-  - url: https://api.dev.oyatie.dev/pharmacy/v1
+  - url: https://api.dev.oyatie.com/pharmacy/v1
     description: Development
 tags:
   - name: catalog
@@ -559,8 +559,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://identity.oyatie.dev/authorize
-          tokenUrl: https://identity.oyatie.dev/token
+          authorizationUrl: https://identity.oyatie.com/authorize
+          tokenUrl: https://identity.oyatie.com/token
           scopes:
             pharmacy.read: read pharmacy data
             pharmacy.write: write pharmacy data

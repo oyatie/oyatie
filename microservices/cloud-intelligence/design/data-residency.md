@@ -1,4 +1,4 @@
-# LLM Gateway µservice — Data Residency
+# Cloud Intelligence service — Data Residency
 
 **Authority:** ADR-0373 (audit + default-off body logging), ADR-0373 (per-tenant isolation)
 **Research grounding:** `design/hyperscaler-best-practice-brief.md` §7 (data residency — logging opt-in, access-controlled, redaction-aware, region-pinned).
@@ -72,7 +72,7 @@ Cloudflare DLP).
 ## Non-claims
 
 - No live region-pinned bucket is provisioned by the current foundation
-  (`CS-LLM-GATEWAY-AGENT-DISPATCH-001`); the bucket lifecycle is owned by cloud-iac / cloud-secrets
+  (`CS-CLOUD-INTELLIGENCE-AGENT-DISPATCH-001`); the bucket lifecycle is owned by cloud-iac / cloud-secrets
   (PRD open-question 3). This document specs the posture the rest crate enforces, not a deployed
   bucket.
 

@@ -67,7 +67,7 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 
 ## Phase exit
 
-This IP closes M03-connect-dissolution-phase-01-docs-foundation phase. After all 15 IPs land, the docs µservice is "Phase 1 exit-gate ready" per ADR-0134 phase model (parallel ship; legacy `oya-connect-docs-*` still serves traffic; new `oya-docs-*` serves canary).
+This IP closes M03-connect-dissolution-phase-01-docs-foundation phase. After all 15 IPs land, the docs µservice is "Phase 1 exit-gate ready" per ADR-0134 phase model (parallel ship; legacy `oya-docs-*` still serves traffic; new `oya-docs-*` serves canary).
 
 ## References
 

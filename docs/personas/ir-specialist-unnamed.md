@@ -216,7 +216,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | IR Specialist unnamed must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | IR Specialist unnamed must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | primary | IR Specialist unnamed must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | IR Specialist unnamed must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | IR Specialist unnamed must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | IR Specialist unnamed must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | IR Specialist unnamed must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | IR Specialist unnamed must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
@@ -460,7 +460,7 @@ Edge-case synthesis:
 ## §K.1 Substance Anchors — 2026-05-20 Pass
 
 - Place/time: Nasdaq MarketSite greenroom, Times Square, New York, 05:50 EDT during drizzle before the Q2 earnings livestream.
-- Current named tools: Q4 Capital Connect Enterprise 2026.1 targeting, Nasdaq IR Insight 9.8 surveillance, Workiva Wdesk 2026.05 XBRL binder, Zoom Webinars 6.1 backstage, FactSet Workstation 2026.2 ownership views, and oyatie `meet` investor-event audit trail.
+- Current named tools: Q4 Capital Enterprise 2026.1 targeting, Nasdaq IR Insight 9.8 surveillance, Workiva Wdesk 2026.05 XBRL binder, Zoom Webinars 6.1 backstage, FactSet Workstation 2026.2 ownership views, and oyatie `meet` investor-event audit trail.
 - Named pain points: the "Reg FD Q2-Bridge" draft disclosed ARR churn to one buy-side analyst 23 minutes early, created $185,000 in outside-counsel review, and forced a 5h trading-halt evidence reconstruction.
 - Jobs-to-be-done: weekly shareholder question triage, quarterly OKR IR-REGFD-01 "zero selective-disclosure drafts", Project Beacon annual-meeting logistics, and yearly 10-K investor narrative support for CFO Helena Brandt.
 - Cedar binding: principal `User::"ir-specialist@publicco-us"` accesses `EarningsDeck::*`, `ShareholderQuestion::*`, `InvestorEvent::*`, and `RegFdHold::*`; actions `stage_earnings_script`, `route_question`, `open_livestream_room`, and `deny_preclear_selective_reply`.

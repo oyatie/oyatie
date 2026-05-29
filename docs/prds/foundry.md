@@ -13,7 +13,7 @@ adrs_cited:
   - ADR-0054  # scaffold-claim pattern
   - ADR-0056  # BNF v4.1
   - ADR-0062  # quality/perf/scale bar
-  - ADR-0063  # documentation suite coverage (LEAN-A5)
+  - ADR-0063  # documentation set coverage (LEAN-A5)
 doc_status: published
 ---
 
@@ -107,5 +107,5 @@ Cross-region story: not applicable; Foundry is build-time infrastructure, not ru
 - ADR-0054 scaffold-claim pattern
 - ADR-0056 BNF v4.1
 - ADR-0062 quality/perf/scale bar
-- ADR-0063 documentation suite coverage
+- ADR-0063 documentation set coverage
 - Bominal ADRs 0100/0101/0107/0190/0223 (inherited)

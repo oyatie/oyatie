@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J91-T001 | analytics threshold detection | Cedar decision and audit event cite 31 CFR 1010.100(ff) money transmitter definition; data remains tenant-scoped |
 | J91-T002 | api-gateway state license gap analysis | Cedar decision and audit event cite 31 CFR 1022.210 money services business anti-money-laundering program; data remains tenant-scoped |

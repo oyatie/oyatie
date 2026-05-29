@@ -60,7 +60,7 @@ companion_docs:
   - microservices/itsm/performance-benchmark-numbers-2026-05-20.md
   - microservices/itsm/REMEDIATION-NOTES-2026-05-21.md
 unified_ecosystem_thesis: docs/architecture/unified-ecosystem-thesis-2026-05-21.md
-planned_enforcement_ref: oya-governance-itsm-doc-suite
+planned_enforcement_ref: oya-governance-itsm-doc-set
 ---
 
 # PRD-itsm: IT Service Management

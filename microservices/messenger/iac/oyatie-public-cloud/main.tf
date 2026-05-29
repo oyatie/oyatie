@@ -116,7 +116,7 @@ resource "helm_release" "messenger" {
     yamlencode({
       replicaCount = var.replicas_per_az * length(var.azs)
       image = {
-        repository = "registry.oyatie.app/messenger"
+        repository = "registry.oyatie.dev/messenger"
         tag        = "1.0.0-wave-15a"
         pullPolicy = "IfNotPresent"
       }

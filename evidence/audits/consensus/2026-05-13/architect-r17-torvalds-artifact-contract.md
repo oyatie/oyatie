@@ -37,7 +37,7 @@ Not reject: the direction is right. One graph substrate + contributed registries
    Evidence: `claims_we_can_make` says pre-mortem has `HG-RELIABILITY evidence_class=implementation+verification` at `ops-portal.json:27` while gate coverage says reliability is planned and missing implementations/tests at `155-158`.
    Fix: downgrade that claim to documentation-only, or attach actual implementation/test evidence.
 10. Defect: evidence references ephemeral `/tmp` outputs and an acknowledged protocol violation.
-    Evidence: attestation references `/tmp` architect/critic artifacts and says they should be archived at `ops-portal-plan-suite-accepted-2026-05-13.json:79-98`; it logs `rtk git commit` protocol violation at `111-120`.
+    Evidence: attestation references `/tmp` architect/critic artifacts and says they should be archived at `ops-portal-plan-set-accepted-2026-05-13.json:79-98`; it logs `rtk git commit` protocol violation at `111-120`.
     Fix: archive durable review outputs under `/evidence/audits/consensus/` and make future state transitions grit-sealed before evidence is accepted.
 
 ## Scale/Maintainability assessment
@@ -76,7 +76,7 @@ Not reject: the direction is right. One graph substrate + contributed registries
 - `/registry/reusable-building-blocks-registry.json`: right DRY intent; current data is polluted by estimates, prose, future paths, and manual counts.
 - `.omc/ledger/ops-portal-ledger.json`: useful plan ledger; evidence refs include WT-only and `/tmp`; statuses are plan-level only.
 - `/registry/claim-matrix/ops-portal.json`: best artifact in the set for honesty; still contains an over-classified reliability evidence claim.
-- `/evidence/ops-portal-plan-suite-accepted-2026-05-13.json`: candid about missing cosign/rekor/audit/grit; not durable enough because it cites `/tmp` and untracked artifacts.
+- `/evidence/ops-portal-plan-set-accepted-2026-05-13.json`: candid about missing cosign/rekor/audit/grit; not durable enough because it cites `/tmp` and untracked artifacts.
 
 ## Recommended next-action
 Stop expanding registries. Implement one narrow validator + lane: read the artifact-capabilities registry, verify every `artifact_path` is tracked by `git ls-files`, verify every named checker crate/lane either exists or status is not operational, and fail any `claims_we_can_make` item whose evidence class exceeds its gate status. Then add the ADR for v3.0.0 and rerun this review.

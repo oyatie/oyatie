@@ -168,7 +168,7 @@ Repo references: microservices/healthcare-integration/PRD.md; microservices/heal
 - IP-010-137: Rhapsody is displaced by explicit failover state machines rather than route-engine availability assumptions.
 - IP-010-138: InterSystems IRIS for Health is displaced by cell-aware flat service boundaries rather than a central integration database.
 - IP-010-139: Lyniate/Corepoint is displaced by policy-governed cross-cell routing instead of channel failover configuration.
-- IP-010-140: Mirth Connect is displaced by replay-safe queues and audit evidence rather than script-level recovery.
+- IP-010-140: Mirth is displaced by replay-safe queues and audit evidence rather than script-level recovery.
 - IP-010-141: NextGate is displaced by home-cell patient-match review and redacted evidence export.
 - IP-010-142: Health Catalyst is displaced by data-minimizing replication before analytics or warehouse projection.
 - IP-010-143: Epic parity pressure is handled by FHIR local projection and export residency rules.

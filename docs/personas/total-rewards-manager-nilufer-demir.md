@@ -215,7 +215,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Total Rewards Manager Nilufer Demir must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Total Rewards Manager Nilufer Demir must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Total Rewards Manager Nilufer Demir must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Total Rewards Manager Nilufer Demir must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Total Rewards Manager Nilufer Demir must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Total Rewards Manager Nilufer Demir must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Total Rewards Manager Nilufer Demir must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Total Rewards Manager Nilufer Demir must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

@@ -406,7 +406,7 @@ IP-014 names DealSet settlement. Aligned with C-3 caveat: demo_trial must not se
 
 The directory is flat (no suite parent). Aligned.
 
-### 4.8 ADR-0132 no-suite-bundle policy
+### 4.8 ADR-0132 no-grouping-bundle policy
 
 Aligned.
 
@@ -821,7 +821,7 @@ Phase H — CI:
 - /Users/jasonlee/oyatie/docs/decisions/ADR-0244 (tenant scoping)
 - /Users/jasonlee/oyatie/docs/decisions/ADR-0253-amendment (HTTP/3 + QUIC)
 - /Users/jasonlee/oyatie/docs/decisions/ADR-0131 (per-µservice flat layout)
-- /Users/jasonlee/oyatie/docs/decisions/ADR-0132 (no-suite policy)
+- /Users/jasonlee/oyatie/docs/decisions/ADR-0132 (no-grouping policy)
 - /Users/jasonlee/oyatie/docs/decisions/ADR-0105 (13-layer enum)
 
 ### 12.3 Memory directives cited

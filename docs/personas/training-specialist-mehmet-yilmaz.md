@@ -214,7 +214,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Training Specialist Mehmet Yilmaz must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Training Specialist Mehmet Yilmaz must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Training Specialist Mehmet Yilmaz must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Training Specialist Mehmet Yilmaz must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Training Specialist Mehmet Yilmaz must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Training Specialist Mehmet Yilmaz must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Training Specialist Mehmet Yilmaz must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Training Specialist Mehmet Yilmaz must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

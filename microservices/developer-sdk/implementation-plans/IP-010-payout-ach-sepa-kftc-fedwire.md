@@ -161,4 +161,4 @@ On successful `oya vcs done`, this IP emits to `microservices/developer-sdk/evid
 - NACHA ACH file spec
 - ISO 20022 pain.001 XSD
 - KFTC firm-bank protocol
-- Stripe Connect payout docs
+- Stripe payout docs

@@ -13,7 +13,7 @@
 # Inherit default nextest behavior for local `cargo nextest run`.
 
 [profile.ci]
-# Run the full suite even if a test fails so the CI report shows every
+# Run the full platform even if a test fails so the CI report shows every
 # failure, not just the first.
 fail-fast = false
 # No retries: under DENY + the ADR-0083 Tier 1 posture, a flaky test is

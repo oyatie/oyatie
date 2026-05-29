@@ -22,8 +22,8 @@ Implement the manifest/catalog-named user-profile crates from kernel through RES
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `catalog/oya-social-user-profile-{kernel,domain,adapter-postgres,rest}.yaml` | Existing catalog anchors. |
-| `src/crates/oya-social-user-profile-{kernel,domain,usecase,api,adapter-postgres,rest,sdk,app}/` | Planned family named by PRD/IP. |
+| `catalog/oya-community-social-user-profile-{kernel,domain,adapter-postgres,rest}.yaml` | Existing catalog anchors. |
+| `src/crates/oya-community-social-user-profile-{kernel,domain,usecase,api,adapter-postgres,rest,sdk,app}/` | Planned family named by PRD/IP. |
 | `policy/profile-verification.cedar` and `policy/dual-context-isolation.md` | Profile policy anchors. |
 | `slos/profile-render-availability.openslo.yaml` | Profile availability SLO. |
 
@@ -37,9 +37,9 @@ Implement the manifest/catalog-named user-profile crates from kernel through RES
 7. Wire profile render metrics and audit events.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-user-profile-kernel` passes.
-- `cargo nextest run -p oya-social-user-profile-domain` passes.
-- `cargo nextest run -p oya-social-user-profile-adapter-postgres` passes.
+- `cargo nextest run -p oya-community-social-user-profile-kernel` passes.
+- `cargo nextest run -p oya-community-social-user-profile-domain` passes.
+- `cargo nextest run -p oya-community-social-user-profile-adapter-postgres` passes.
 - `cargo run -p oya-dev-cli -- gate validate dual-context-correctness --microservice social` passes.
 - `slos/profile-render-availability.openslo.yaml` resolves.
 

@@ -42,25 +42,16 @@ branches:
     # reviews are not the merge authority; the required `oya-pr-review`
     # check below is.
     required_approving_reviews: 0
-    # Canonical contract: each entry below is a Jenkins job status context
-    # posted to GitHub via the commit-status API (per ADR-0361 Jenkins-native
-    # CI/CD; the prior GHA workflow contract was retired in R5). The
-    # `oya-governance-protection-context-match` lane enforces this invariant.
+    # Canonical contract: these entries are the live dev branch required
+    # commit-status contexts posted by the local/Jenkins bridge. ADR-0363
+    # retired oya-vcs admission/provider-execution as required contexts; the
+    # broad governance lanes are folded under `oya-pr-review` until the
+    # Forgejo/Jenkins substrate publishes one context per lane.
     required_status_checks:
       - cargo-fmt
       - cargo-check
       - cargo-clippy
       - cargo-nextest
-      - oya-vcs-admission
-      - oya-vcs-provider-execution
-      - oya-governance-supply-chain
-      - oya-governance-cohesion
-      - oya-governance-api-semver
-      - oya-governance-honest-claims
-      - oya-governance-aspirational-enforcement
-      - oya-governance-banned-primitives
-      - oya-governance-protection-context-match
-      - oya-governance-dependency-seam
       - oya-pr-review
 
   staging:

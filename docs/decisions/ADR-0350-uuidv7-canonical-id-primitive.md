@@ -51,7 +51,7 @@ related_adrs:
   - ADR-0113-vcs-orchestrator-end-to-end.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-policy-and-flat-microservice-layout.md
+  - ADR-0132-no-grouping-policy-and-flat-microservice-layout.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0150-cedar-policy-engine.md
   - ADR-0211-in-house-tech-stack-preference.md

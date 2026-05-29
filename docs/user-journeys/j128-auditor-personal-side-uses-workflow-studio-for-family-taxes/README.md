@@ -55,7 +55,7 @@ boundary preserved.
 | [`ux-flow.md`](ux-flow.md) | Per-screen Workflow Studio UI | ≥400 |
 | [`handshake.md`](handshake.md) | µservice sequence | ≥600 |
 | [`schemas/workflow-studio-run-request.json`](schemas/workflow-studio-run-request.json) | Workflow run trigger | n/a |
-| [`schemas/connect-adapter-pull-response.json`](schemas/connect-adapter-pull-response.json) | Generic adapter pull | n/a |
+| [`schemas/connector-adapter-pull-response.json`](schemas/connector-adapter-pull-response.json) | Connector adapter pull | n/a |
 | [`schemas/cross-tenant-spouse-share.json`](schemas/cross-tenant-spouse-share.json) | Spouse-tax-collaboration share | n/a |
 | [`integration-test-plan.md`](integration-test-plan.md) | E2E tests | ≥400 |
 
@@ -65,7 +65,7 @@ boundary preserved.
 |---|---|---|
 | workflow-studio | [`microservices/workflow-studio/IP-journey-j128-personal-tax-workflow.md`](../../../microservices/workflow-studio/IP-journey-j128-personal-tax-workflow.md) | UI + canvas + connector linking |
 | workflow-engine | [`microservices/workflow-engine/IP-journey-j128-personal-tax-orchestrator.md`](../../../microservices/workflow-engine/IP-journey-j128-personal-tax-orchestrator.md) | Multi-step orchestration + pause-for-review |
-| connect | [`microservices/connect/IP-journey-j128-irs-mef-state-adapters.md`](../../../microservices/connect/IP-journey-j128-irs-mef-state-adapters.md) | IRS + VA + CA tax-submission adapters |
+| connector | [`microservices/connector/IP-journey-j128-irs-mef-state-adapters.md`](../../../microservices/connector/IP-journey-j128-irs-mef-state-adapters.md) | IRS + VA + CA tax-submission adapters |
 | payments | [`microservices/payments/IP-journey-j128-irs-direct-pay.md`](../../../microservices/payments/IP-journey-j128-irs-direct-pay.md) | IRS Direct Pay flow |
 | notes | [`microservices/notes/IP-journey-j128-tax-year-index.md`](../../../microservices/notes/IP-journey-j128-tax-year-index.md) | Tax-year index Note structure |
 | identity | [`microservices/identity/IP-journey-j128-personal-context-switch.md`](../../../microservices/identity/IP-journey-j128-personal-context-switch.md) | Personal-side context-switch + tenant-isolation |
@@ -103,7 +103,7 @@ boundary preserved.
 - iCloud Numbers / Pages for personal-side productivity
 
 oyatie's distinction: tax-prep is a platform substrate, not a third-
-party app. Workflow Studio + Connect + Intelligence + Payments compose
+party app. Workflow Studio + + Intelligence + Payments compose
 to enable the workflow without leaving the platform.
 
 ## Doctrine summary

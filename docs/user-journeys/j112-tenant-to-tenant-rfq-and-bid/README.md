@@ -206,7 +206,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 001: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -215,7 +215,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 005: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 007: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -224,7 +224,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 009: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: workplace-integration keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -232,7 +232,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 013: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -242,7 +242,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 017: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 019: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 020: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -250,7 +250,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 021: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: workplace-integration keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 023: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -259,7 +259,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 025: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -268,7 +268,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 029: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 032: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -285,7 +285,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 037: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -294,7 +294,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 041: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 043: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -303,7 +303,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 045: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: workplace-integration keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -311,7 +311,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 049: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -321,7 +321,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 053: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 055: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 056: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -329,7 +329,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 057: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: workplace-integration keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 059: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -338,7 +338,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 061: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -347,7 +347,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 065: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 068: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -364,7 +364,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 073: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -373,7 +373,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 077: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 079: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -382,7 +382,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 081: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: workplace-integration keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -390,7 +390,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 085: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -400,7 +400,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 089: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 091: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 092: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -408,7 +408,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 093: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: workplace-integration keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 095: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -417,7 +417,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 097: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -426,7 +426,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 101: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 103: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 104: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -443,7 +443,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 109: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -452,7 +452,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 113: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 115: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -461,7 +461,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 117: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: workplace-integration keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -469,7 +469,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 121: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -479,7 +479,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 125: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 127: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 128: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
@@ -487,7 +487,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 129: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: workplace-integration keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 131: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -496,7 +496,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 133: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: workflow-engine keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -505,7 +505,7 @@ workflow and e-sign, and payments escrows the deposit.
 - readme-buildability 137: identity keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 138: payments keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 139: marketplace keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 140: community keeps Min-seo Park and five CNC vendor tenants inside tenant-scoped evidence, cites

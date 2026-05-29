@@ -55,7 +55,7 @@ Linkerd CRD would do this better by keeping the CRDs narrow and reconciled by co
 Net: Kubernetes CRD + admission/reconciliation is the right comparison. Oyatie should copy the enforcement loop, not the vocabulary surface.
 
 ## Specific concerns about the 6 today-commits
-1. `5880ce0`: large accepted ops plan suite without equal runtime proof. Risk: planning mass outruns implementation.
+1. `5880ce0`: large accepted ops plan set without equal runtime proof. Risk: planning mass outruns implementation.
 2. `3d6de67`: best commit of the set because it adds a real Rust validator kernel, but ADR-0069 admits the `oya-dev-cli` integration and active lane are incomplete.
 3. `b0798b0`: good reduction via artifact profiles, but still expands graph/gate/report specs before proving the validator through CI.
 4. `1f96255`: stale-text purge is healthy, but it signals the system still relies on manual critique to catch claim drift.

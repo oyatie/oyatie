@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/score-card-result-table.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/score-card-result-table.schema.json",
   "title": "DesignSystemComponent:ScoreCardResultTable",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",

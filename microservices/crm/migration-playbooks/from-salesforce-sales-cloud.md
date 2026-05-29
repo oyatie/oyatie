@@ -424,7 +424,7 @@ related_oyatie_adrs:
   - Rollback: use the rollback_pointer from action 15 and restore the previous authority flag before retrying.
 
 ## Phase 4: Verification
-- Named test suite: crm-migration-salesforce-regression-suite.
+- Named test set: crm-migration-salesforce-regression-suite.
 - Named SLO targets: P95 account lookup <120 ms, P95 opportunity write <180 ms, nightly delta lag <45 minutes, import replay error rate <0.2%, and audit-event loss exactly 0 for scoped events.
 - Named delta-detection algorithm: Salesforce PK watermark plus SystemModstamp window, QueryAll tombstone pass, and Merkle tree comparison keyed by tenant/orgId/object/id/lastModifiedDate.
 - Verification must be run from an operator account that is not the migration writer account.

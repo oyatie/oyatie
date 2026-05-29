@@ -23,7 +23,7 @@ Comparators measured against published vendor benchmarks (PagerDuty engineering 
 | incident.io | 180 | 480 | API + Slack webhook; no Cedar; step-up via separate vendor |
 | FireHydrant | 220 | 520 | API + webhook; no Cedar; step-up = manual |
 | Rootly | 200 | 510 | similar to FireHydrant |
-| ServiceNow ITSM (incident creation) | 350 | 1 200 | enterprise platform; rich UI; slower API |
+| ServiceNow ITSM (incident creation) | 350 | 1 200 | enterprise-market system; rich UI; slower API |
 
 Reading: oyatie ODCC paid leads on p99 latency. The latency budget is consumed by step-up freshness check + Cedar gate + audit-chain emit + Postgres write; competitors lack audit-chain + step-up so they're faster on the raw write but pay later in audit reconciliation cost.
 

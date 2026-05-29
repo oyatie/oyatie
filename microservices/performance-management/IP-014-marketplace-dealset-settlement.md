@@ -13,7 +13,7 @@ The gap matters against Lattice and 15Five because those products make this capa
 The success condition is an implementation plan a cold engineer can trace from this IP to concrete files such as `microservices/performance-management/cost-budget.md` without inventing a hidden service boundary.
 
 ## B. Approach
-Implement `marketplace-dealset-settlement` as a service-local slice, not as a shared suite facility. The technical mechanism is billable provider/template/plugin movement bound to `DealSet settlement metadata` and checked before user-visible promotion.
+Implement `marketplace-dealset-settlement` as a service-local slice, not as a shared platform facility. The technical mechanism is billable provider/template/plugin movement bound to `DealSet settlement metadata` and checked before user-visible promotion.
 Use `goal-cycle` as the first fixture path, then prove the same envelope across `review-cycle` and `recognition` so the design is not a one-object shortcut.
 Every command or event carries `tenant_id`, `principal_id`, `audience_type=HR_BUSINESS_PARTNER`, `home_cell`, `jurisdiction_code`, `data_class`, `traceparent`, `idempotency_key` for mutations, and an audit event class.
 The domain layer stays pure in `microservices/performance-management/src/domain/mod.rs`; usecase orchestration lives in `microservices/performance-management/src/usecase/mod.rs`; transport or provider details stay behind adapter/config files.

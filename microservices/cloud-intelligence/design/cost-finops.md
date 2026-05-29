@@ -1,4 +1,4 @@
-# LLM Gateway µservice — Cost / FinOps
+# Cloud Intelligence service — Cost / FinOps
 
 **Authority:** ADR-0373 (per-tenant budgets), ADR-0373 (metering emission)
 **Research grounding:** `design/hyperscaler-best-practice-brief.md` §8 (cost/FinOps — meter from provider-returned tokens + budget enforcement + attribution dims), §6 (per-tenant budgets).

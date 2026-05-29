@@ -336,7 +336,7 @@ foundation.
 
 ### 4.2 Out of Scope For First Public Release
 
-- Consumer productivity suite.
+- Consumer productivity platform.
 - Ads business.
 - General-purpose social network.
 - Frontier AI model lab.

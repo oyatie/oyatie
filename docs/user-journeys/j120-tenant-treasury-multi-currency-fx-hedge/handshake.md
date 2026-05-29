@@ -71,7 +71,7 @@ Required ADR citation set: ADR-0244, ADR-0297, ADR-0299, ADR-0292, ADR-0263, ADR
 ADR-0311, ADR-0312, ADR-0313.
 
 - `payments`: per-currency-ledger-posting.
-- `connect`: bank-liquidity-provider-adapter.
+- `connector`: bank-liquidity-provider-adapter.
 - `finops-portal`: exposure-dashboard.
 - `workflow-engine`: hedge-approval-state-machine.
 - `observability`: slippage-and-latency-telemetry.
@@ -85,8 +85,8 @@ actor-device -> api-gateway -> payments -> connect -> finops-portal -> workflow-
 | Step | Caller | Callee | Contract | Cedar permit | Audit event | Metric | Rollback |
 |---:|---|---|---|---|---|---|---|
 | 1.1 | `api-gateway` | `payments` | `MultiCurrencyHedgeCommand` | `journey.j120.preflight.payments` | `TreasuryFxHedgeSettled` | `oya_j120_payments_preflight_ms` | compensating command before finality |
-| 1.2 | `payments` | `connect` | `MultiCurrencyHedgeCommand` | `journey.j120.preflight.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_preflight_ms` | compensating command before finality |
-| 1.3 | `connect` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.preflight.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_preflight_ms` | compensating command before finality |
+| 1.2 | `payments` | `connector` | `MultiCurrencyHedgeCommand` | `journey.j120.preflight.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_preflight_ms` | compensating command before finality |
+| 1.3 | `connector` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.preflight.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_preflight_ms` | compensating command before finality |
 | 1.4 | `finops-portal` | `workflow-engine` | `MultiCurrencyHedgeCommand` | `journey.j120.preflight.workflow_engine` | `TreasuryFxHedgeSettled` | `oya_j120_workflow_engine_preflight_ms` | compensating command before finality |
 | 1.5 | `workflow-engine` | `observability` | `MultiCurrencyHedgeCommand` | `journey.j120.preflight.observability` | `TreasuryFxHedgeSettled` | `oya_j120_observability_preflight_ms` | compensating command before finality |
 
@@ -99,8 +99,8 @@ actor-device -> api-gateway -> payments -> connect -> finops-portal -> workflow-
 | Step | Caller | Callee | Contract | Cedar permit | Audit event | Metric | Rollback |
 |---:|---|---|---|---|---|---|---|
 | 2.1 | `api-gateway` | `payments` | `MultiCurrencyHedgeCommand` | `journey.j120.authorize.payments` | `TreasuryFxHedgeSettled` | `oya_j120_payments_authorize_ms` | compensating command before finality |
-| 2.2 | `payments` | `connect` | `MultiCurrencyHedgeCommand` | `journey.j120.authorize.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_authorize_ms` | compensating command before finality |
-| 2.3 | `connect` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.authorize.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_authorize_ms` | compensating command before finality |
+| 2.2 | `payments` | `connector` | `MultiCurrencyHedgeCommand` | `journey.j120.authorize.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_authorize_ms` | compensating command before finality |
+| 2.3 | `connector` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.authorize.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_authorize_ms` | compensating command before finality |
 | 2.4 | `finops-portal` | `workflow-engine` | `MultiCurrencyHedgeCommand` | `journey.j120.authorize.workflow_engine` | `TreasuryFxHedgeSettled` | `oya_j120_workflow_engine_authorize_ms` | compensating command before finality |
 | 2.5 | `workflow-engine` | `observability` | `MultiCurrencyHedgeCommand` | `journey.j120.authorize.observability` | `TreasuryFxHedgeSettled` | `oya_j120_observability_authorize_ms` | compensating command before finality |
 
@@ -113,8 +113,8 @@ actor-device -> api-gateway -> payments -> connect -> finops-portal -> workflow-
 | Step | Caller | Callee | Contract | Cedar permit | Audit event | Metric | Rollback |
 |---:|---|---|---|---|---|---|---|
 | 3.1 | `api-gateway` | `payments` | `MultiCurrencyHedgeCommand` | `journey.j120.compose.payments` | `TreasuryFxHedgeSettled` | `oya_j120_payments_compose_ms` | compensating command before finality |
-| 3.2 | `payments` | `connect` | `MultiCurrencyHedgeCommand` | `journey.j120.compose.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_compose_ms` | compensating command before finality |
-| 3.3 | `connect` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.compose.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_compose_ms` | compensating command before finality |
+| 3.2 | `payments` | `connector` | `MultiCurrencyHedgeCommand` | `journey.j120.compose.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_compose_ms` | compensating command before finality |
+| 3.3 | `connector` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.compose.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_compose_ms` | compensating command before finality |
 | 3.4 | `finops-portal` | `workflow-engine` | `MultiCurrencyHedgeCommand` | `journey.j120.compose.workflow_engine` | `TreasuryFxHedgeSettled` | `oya_j120_workflow_engine_compose_ms` | compensating command before finality |
 | 3.5 | `workflow-engine` | `observability` | `MultiCurrencyHedgeCommand` | `journey.j120.compose.observability` | `TreasuryFxHedgeSettled` | `oya_j120_observability_compose_ms` | compensating command before finality |
 
@@ -127,8 +127,8 @@ actor-device -> api-gateway -> payments -> connect -> finops-portal -> workflow-
 | Step | Caller | Callee | Contract | Cedar permit | Audit event | Metric | Rollback |
 |---:|---|---|---|---|---|---|---|
 | 4.1 | `api-gateway` | `payments` | `MultiCurrencyHedgeCommand` | `journey.j120.counterparty_accept.payments` | `TreasuryFxHedgeSettled` | `oya_j120_payments_counterparty_accept_ms` | compensating command before finality |
-| 4.2 | `payments` | `connect` | `MultiCurrencyHedgeCommand` | `journey.j120.counterparty_accept.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_counterparty_accept_ms` | compensating command before finality |
-| 4.3 | `connect` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.counterparty_accept.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_counterparty_accept_ms` | compensating command before finality |
+| 4.2 | `payments` | `connector` | `MultiCurrencyHedgeCommand` | `journey.j120.counterparty_accept.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_counterparty_accept_ms` | compensating command before finality |
+| 4.3 | `connector` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.counterparty_accept.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_counterparty_accept_ms` | compensating command before finality |
 | 4.4 | `finops-portal` | `workflow-engine` | `MultiCurrencyHedgeCommand` | `journey.j120.counterparty_accept.workflow_engine` | `TreasuryFxHedgeSettled` | `oya_j120_workflow_engine_counterparty_accept_ms` | compensating command before finality |
 | 4.5 | `workflow-engine` | `observability` | `MultiCurrencyHedgeCommand` | `journey.j120.counterparty_accept.observability` | `TreasuryFxHedgeSettled` | `oya_j120_observability_counterparty_accept_ms` | compensating command before finality |
 
@@ -141,8 +141,8 @@ actor-device -> api-gateway -> payments -> connect -> finops-portal -> workflow-
 | Step | Caller | Callee | Contract | Cedar permit | Audit event | Metric | Rollback |
 |---:|---|---|---|---|---|---|---|
 | 5.1 | `api-gateway` | `payments` | `MultiCurrencyHedgeCommand` | `journey.j120.settlement_intent.payments` | `TreasuryFxHedgeSettled` | `oya_j120_payments_settlement_intent_ms` | compensating command before finality |
-| 5.2 | `payments` | `connect` | `MultiCurrencyHedgeCommand` | `journey.j120.settlement_intent.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_settlement_intent_ms` | compensating command before finality |
-| 5.3 | `connect` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.settlement_intent.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_settlement_intent_ms` | compensating command before finality |
+| 5.2 | `payments` | `connector` | `MultiCurrencyHedgeCommand` | `journey.j120.settlement_intent.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_settlement_intent_ms` | compensating command before finality |
+| 5.3 | `connector` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.settlement_intent.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_settlement_intent_ms` | compensating command before finality |
 | 5.4 | `finops-portal` | `workflow-engine` | `MultiCurrencyHedgeCommand` | `journey.j120.settlement_intent.workflow_engine` | `TreasuryFxHedgeSettled` | `oya_j120_workflow_engine_settlement_intent_ms` | compensating command before finality |
 | 5.5 | `workflow-engine` | `observability` | `MultiCurrencyHedgeCommand` | `journey.j120.settlement_intent.observability` | `TreasuryFxHedgeSettled` | `oya_j120_observability_settlement_intent_ms` | compensating command before finality |
 
@@ -155,8 +155,8 @@ actor-device -> api-gateway -> payments -> connect -> finops-portal -> workflow-
 | Step | Caller | Callee | Contract | Cedar permit | Audit event | Metric | Rollback |
 |---:|---|---|---|---|---|---|---|
 | 6.1 | `api-gateway` | `payments` | `MultiCurrencyHedgeCommand` | `journey.j120.finalize.payments` | `TreasuryFxHedgeSettled` | `oya_j120_payments_finalize_ms` | compensating command before finality |
-| 6.2 | `payments` | `connect` | `MultiCurrencyHedgeCommand` | `journey.j120.finalize.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_finalize_ms` | compensating command before finality |
-| 6.3 | `connect` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.finalize.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_finalize_ms` | compensating command before finality |
+| 6.2 | `payments` | `connector` | `MultiCurrencyHedgeCommand` | `journey.j120.finalize.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_finalize_ms` | compensating command before finality |
+| 6.3 | `connector` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.finalize.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_finalize_ms` | compensating command before finality |
 | 6.4 | `finops-portal` | `workflow-engine` | `MultiCurrencyHedgeCommand` | `journey.j120.finalize.workflow_engine` | `TreasuryFxHedgeSettled` | `oya_j120_workflow_engine_finalize_ms` | compensating command before finality |
 | 6.5 | `workflow-engine` | `observability` | `MultiCurrencyHedgeCommand` | `journey.j120.finalize.observability` | `TreasuryFxHedgeSettled` | `oya_j120_observability_finalize_ms` | compensating command before finality |
 
@@ -169,8 +169,8 @@ actor-device -> api-gateway -> payments -> connect -> finops-portal -> workflow-
 | Step | Caller | Callee | Contract | Cedar permit | Audit event | Metric | Rollback |
 |---:|---|---|---|---|---|---|---|
 | 7.1 | `api-gateway` | `payments` | `MultiCurrencyHedgeCommand` | `journey.j120.observe.payments` | `TreasuryFxHedgeSettled` | `oya_j120_payments_observe_ms` | compensating command before finality |
-| 7.2 | `payments` | `connect` | `MultiCurrencyHedgeCommand` | `journey.j120.observe.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_observe_ms` | compensating command before finality |
-| 7.3 | `connect` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.observe.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_observe_ms` | compensating command before finality |
+| 7.2 | `payments` | `connector` | `MultiCurrencyHedgeCommand` | `journey.j120.observe.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_observe_ms` | compensating command before finality |
+| 7.3 | `connector` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.observe.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_observe_ms` | compensating command before finality |
 | 7.4 | `finops-portal` | `workflow-engine` | `MultiCurrencyHedgeCommand` | `journey.j120.observe.workflow_engine` | `TreasuryFxHedgeSettled` | `oya_j120_workflow_engine_observe_ms` | compensating command before finality |
 | 7.5 | `workflow-engine` | `observability` | `MultiCurrencyHedgeCommand` | `journey.j120.observe.observability` | `TreasuryFxHedgeSettled` | `oya_j120_observability_observe_ms` | compensating command before finality |
 
@@ -183,8 +183,8 @@ actor-device -> api-gateway -> payments -> connect -> finops-portal -> workflow-
 | Step | Caller | Callee | Contract | Cedar permit | Audit event | Metric | Rollback |
 |---:|---|---|---|---|---|---|---|
 | 8.1 | `api-gateway` | `payments` | `MultiCurrencyHedgeCommand` | `journey.j120.reconcile.payments` | `TreasuryFxHedgeSettled` | `oya_j120_payments_reconcile_ms` | compensating command before finality |
-| 8.2 | `payments` | `connect` | `MultiCurrencyHedgeCommand` | `journey.j120.reconcile.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_reconcile_ms` | compensating command before finality |
-| 8.3 | `connect` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.reconcile.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_reconcile_ms` | compensating command before finality |
+| 8.2 | `payments` | `connector` | `MultiCurrencyHedgeCommand` | `journey.j120.reconcile.connect` | `TreasuryFxHedgeSettled` | `oya_j120_connect_reconcile_ms` | compensating command before finality |
+| 8.3 | `connector` | `finops-portal` | `MultiCurrencyHedgeCommand` | `journey.j120.reconcile.finops_portal` | `TreasuryFxHedgeSettled` | `oya_j120_finops_portal_reconcile_ms` | compensating command before finality |
 | 8.4 | `finops-portal` | `workflow-engine` | `MultiCurrencyHedgeCommand` | `journey.j120.reconcile.workflow_engine` | `TreasuryFxHedgeSettled` | `oya_j120_workflow_engine_reconcile_ms` | compensating command before finality |
 | 8.5 | `workflow-engine` | `observability` | `MultiCurrencyHedgeCommand` | `journey.j120.reconcile.observability` | `TreasuryFxHedgeSettled` | `oya_j120_observability_reconcile_ms` | compensating command before finality |
 

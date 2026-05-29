@@ -520,7 +520,7 @@ owner: Customer Success Engineering
 - Response name: Joint-Ownership.
 - Say: "The strongest pilots are jointly owned."
 - Say: "Business owns process intent."
-- Say: "IT owns integration, security, and platform governance."
+- Say: "IT owns integration, security, and tenant RBAC governance."
 
 19. Objection: "Can we just use ChatGPT to generate workflows?"
 - Response name: Generated-Text-Is-Not-Governed-Runtime.

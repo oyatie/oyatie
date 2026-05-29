@@ -36,7 +36,7 @@ microservice_count: 5
 # j111-staffing-agency-as-tenant-facilitator
 
 A staffing-agency tenant sources workers from Community, places them at KrampusCorp, ConstructionCo, and
-HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
+HealthcareSystem-Megacorp, and receives Stripe facilitator commissions.
 
 ## Artifact index
 
@@ -197,7 +197,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 001: community keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: identity keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: payments keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 004: tenancy keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -205,7 +205,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 005: workflow-engine keeps Priya Krishnan and staffing agency tenant inside tenant-scoped
   evidence, cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: community keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 007: identity keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -214,7 +214,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 009: tenancy keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: workflow-engine keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: community keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: identity keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -222,7 +222,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 013: payments keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: tenancy keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: workflow-engine keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -232,7 +232,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 017: identity keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: payments keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 019: tenancy keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 020: workflow-engine keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped
@@ -240,7 +240,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 021: community keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: identity keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 023: payments keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 024: tenancy keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -248,7 +248,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 025: workflow-engine keeps Priya Krishnan and staffing agency tenant inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: community keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: identity keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -257,7 +257,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 029: tenancy keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: workflow-engine keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: community keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 032: identity keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -265,7 +265,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 033: payments keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 034: tenancy keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 035: workflow-engine keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 036: community keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -274,7 +274,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 037: identity keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: payments keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: tenancy keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 040: workflow-engine keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped
@@ -282,7 +282,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 041: community keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: identity keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 043: payments keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -291,7 +291,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 045: workflow-engine keeps Priya Krishnan and staffing agency tenant inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: community keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: identity keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: payments keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -299,7 +299,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 049: tenancy keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: workflow-engine keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: community keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -309,7 +309,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 053: payments keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: tenancy keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 055: workflow-engine keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 056: community keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -317,7 +317,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 057: identity keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: payments keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 059: tenancy keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 060: workflow-engine keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped
@@ -326,7 +326,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 061: community keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: identity keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: payments keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -335,7 +335,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 065: workflow-engine keeps Priya Krishnan and staffing agency tenant inside tenant-scoped
   evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: community keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: identity keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 068: payments keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -343,7 +343,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 069: tenancy keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 070: workflow-engine keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 071: community keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 072: identity keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -352,7 +352,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 073: payments keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: tenancy keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: workflow-engine keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 076: community keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -360,7 +360,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 077: identity keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: payments keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 079: tenancy keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -369,7 +369,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 081: community keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: identity keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: payments keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: tenancy keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -377,7 +377,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 085: workflow-engine keeps Priya Krishnan and staffing agency tenant inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: community keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: identity keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -387,7 +387,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 089: tenancy keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: workflow-engine keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 091: community keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 092: identity keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -395,7 +395,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 093: payments keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: tenancy keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 095: workflow-engine keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 096: community keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -403,7 +403,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 097: identity keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: payments keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: tenancy keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -412,7 +412,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 101: community keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: identity keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 103: payments keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 104: tenancy keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -420,7 +420,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 105: workflow-engine keeps Priya Krishnan and staffing agency tenant inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 106: community keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 107: identity keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 108: payments keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -429,7 +429,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 109: tenancy keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: workflow-engine keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: community keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 112: identity keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -437,7 +437,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 113: payments keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: tenancy keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 115: workflow-engine keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -446,7 +446,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 117: identity keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: payments keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: tenancy keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: workflow-engine keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped
@@ -455,7 +455,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 121: community keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: identity keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: payments keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -465,7 +465,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 125: workflow-engine keeps Priya Krishnan and staffing agency tenant inside tenant-scoped
   evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: community keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 127: identity keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 128: payments keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -473,7 +473,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 129: tenancy keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: workflow-engine keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 131: community keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 132: identity keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -481,7 +481,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 133: payments keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: tenancy keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: workflow-engine keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -490,7 +490,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 137: identity keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 138: payments keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 139: tenancy keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 140: workflow-engine keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped
@@ -498,7 +498,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 141: community keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 142: identity keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 143: payments keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 144: tenancy keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -507,7 +507,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 145: workflow-engine keeps Priya Krishnan and staffing agency tenant inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 146: community keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 147: identity keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 148: payments keeps Priya Krishnan and HealthcareSystem-Megacorp inside tenant-scoped evidence,
@@ -515,7 +515,7 @@ HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
 - readme-buildability 149: tenancy keeps Priya Krishnan and staffing agency tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 150: workflow-engine keeps Priya Krishnan and KrampusCorp inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 151: community keeps Priya Krishnan and ConstructionCo inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j35-b2b-workplace-mail-and-calendar.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j35-b2b-workplace-mail-and-calendar.schema.json",
   "title": "j35 B2B workplace Mail and Calendar Journey Contract",
   "type": "object",
   "additionalProperties": false,

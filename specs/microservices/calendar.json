@@ -1,38 +1,37 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/products/connect/calendar.schema.json",
-  "title": "ProductPrd:ConnectCalendar",
+  "$id": "https://docs.oyatie.com/schemas/microservices/calendar.schema.json",
+  "title": "MicroservicePrd:Calendar",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
-    "spec_id": "PRD-CONNECT-CALENDAR",
+    "spec_id": "PRD-CALENDAR",
     "version": "1.0.0",
     "status": "Accepted",
-    "owner_team": "connect-product-council",
+    "owner_team": "communications-service-council",
     "created_at": "2026-05-16T14:30:00Z",
-    "purpose": "Connect Calendar PRD: personal and professional scheduling, resource booking, action-card handoff, Workflow integration, retention/legal-hold overlays, and cross-pillar-safe availability semantics."
+    "purpose": "Calendar microservice PRD: personal and professional scheduling, resource booking, action-card handoff, Workflow integration, retention/legal-hold overlays, and cross-pillar-safe availability semantics."
   },
   "identity": {
     "product_id": "calendar",
-    "suite_id": "connect",
     "owning_axis": "workspace-communications",
-    "product_class": "suite-app",
+    "product_class": "service",
     "user_facing_surface": true,
     "context_model": [
       "personal",
       "work"
     ],
     "crate_refs_planned": [
-      "oya-connect-calendar-kernel",
-      "oya-connect-calendar-domain",
-      "oya-connect-calendar-app",
-      "oya-connect-calendar-rest"
+      "oya-calendar-kernel",
+      "oya-calendar-domain",
+      "oya-calendar-app",
+      "oya-calendar-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
   },
   "inherits": {
     "bominal_adrs": [
       "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
-      "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+      "$ref:bominal/decisions/ADR-0215-retention-legal-hold-dual-context.md",
       "$ref:bominal/decisions/ADR-0132-data-ownership-pillars.md",
       "$ref:bominal/decisions/ADR-0140-multi-jurisdiction-policy.md",
       "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
@@ -44,13 +43,13 @@
       "$ref:specs/deployment-ops-contract.json"
     ],
     "source_docs": [
-      "$ref:bominal/docs/products/connect/enterprise-readiness.md",
-      "$ref:bominal/docs/products/connect/messaging.md",
-      "$ref:bominal/docs/products/connect/internal-communications.md",
+      "$ref:bominal/docs/products/communications-legacy/enterprise-readiness.md",
+      "$ref:bominal/docs/products/communications-legacy/messaging.md",
+      "$ref:bominal/docs/products/communications-legacy/internal-communications.md",
       "$ref:bominal/docs/roadmap/family-connect.md"
     ],
     "user_decisions": [
-      "2026-05-16:D-13 one PRD per suite plus per-app sub-PRDs",
+      "2026-05-16:D-13 one PRD per platform plus per-app sub-PRDs",
       "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/microservices/<id>.json"
     ]
   },
@@ -88,35 +87,35 @@
       "given": "a work calendar event is created",
       "when": "attendees accept or change it",
       "then": "event is Org pillar, tenant-DEK encrypted, retention-classed, and audit logged",
-      "test_ref": "crates/oya-connect-calendar-domain/tests/work_event.rs::test_work_event_org_pillar_audit"
+      "test_ref": "crates/oya-calendar-domain/tests/work_event.rs::test_work_event_org_pillar_audit"
     },
     {
       "id": "AC-02",
       "given": "a personal calendar event exists",
       "when": "an org admin queries availability details",
       "then": "policy returns only allowed free/busy projection or 403 for details",
-      "test_ref": "crates/oya-connect-calendar-domain/tests/personal.rs::test_personal_details_not_org_visible"
+      "test_ref": "crates/oya-calendar-domain/tests/personal.rs::test_personal_details_not_org_visible"
     },
     {
       "id": "AC-03",
       "given": "a work event contains an approval action card",
       "when": "user approves inline",
       "then": "Workflow receives a policy-gated handoff and WorkflowHandoffAuditLog links event, action, consent/policy basis",
-      "test_ref": "crates/oya-connect-calendar-domain/tests/action_card.rs::test_action_card_workflow_handoff_audited"
+      "test_ref": "crates/oya-calendar-domain/tests/action_card.rs::test_action_card_workflow_handoff_audited"
     },
     {
       "id": "AC-04",
       "given": "a professional calendar event is under legal hold",
       "when": "retention expiry runs",
       "then": "event, attendee history, action cards, and audit chain are preserved",
-      "test_ref": "crates/oya-connect-calendar-domain/tests/legal_hold.rs::test_calendar_hold_preserves_attendee_history"
+      "test_ref": "crates/oya-calendar-domain/tests/legal_hold.rs::test_calendar_hold_preserves_attendee_history"
     },
     {
       "id": "AC-05",
       "given": "a tenant has KR/EU/US policy overlays",
       "when": "calendar retention is computed",
       "then": "the selected retention window stays inside jurisdiction bounds and is visible in admin UX",
-      "test_ref": "crates/oya-connect-calendar-domain/tests/retention.rs::test_jurisdiction_bounds"
+      "test_ref": "crates/oya-calendar-domain/tests/retention.rs::test_jurisdiction_bounds"
     }
   ],
   "scope": {
@@ -147,7 +146,7 @@
       },
       {
         "item": "calendar-to-Workflow inference beyond explicit action cards",
-        "why": "advanced optimization out-of-scope by ADR-CAL-0003; initial contract is explicit approvals only \u2014 implicit inference is rejected to keep audit chain deterministic"
+        "why": "advanced optimization out-of-scope by ADR-CAL-0003; initial contract is explicit approvals only — implicit inference is rejected to keep audit chain deterministic"
       },
       {
         "item": "third-party calendar as source of truth",
@@ -157,16 +156,16 @@
   },
   "contracts": {
     "consumes": [
-      "connect.context.v1",
+      "tenant_rbac.context.v1",
       "workflow.handoff.v1",
       "ontology.CalendarEvent",
       "regional.retention_policy.v1"
     ],
     "produces": [
-      "connect.calendar.event.v1",
-      "connect.calendar.availability_projection.v1",
-      "connect.calendar.action_card.v1",
-      "connect.calendar.workflow_handoff.v1"
+      "calendar.event.v1",
+      "calendar.availability_projection.v1",
+      "calendar.action_card.v1",
+      "calendar.workflow_handoff.v1"
     ]
   },
   "data_model": {
@@ -224,17 +223,17 @@
     "events_emitted": [
       {
         "event": "CalendarEventCreated",
-        "topic": "connect.calendar.event",
+        "topic": "calendar.event",
         "idempotency_key": "event_id"
       },
       {
         "event": "CalendarActionCardCompleted",
-        "topic": "connect.calendar.action_card",
+        "topic": "calendar.action_card",
         "idempotency_key": "action_card_id+state"
       },
       {
         "event": "CalendarWorkflowHandoffCreated",
-        "topic": "audit.connect.calendar.workflow_handoff",
+        "topic": "audit.calendar.workflow_handoff",
         "idempotency_key": "event_id+workflow_run_id"
       }
     ],
@@ -313,7 +312,7 @@
     "external_rejected": [
       {
         "name": "Slack/Teams/Google/Microsoft APIs as product substrate",
-        "reason": "Connect is native product; third-party platforms may be import/coexistence adapters only"
+        "reason": "is native product; third-party platforms may be import/coexistence adapters only"
       },
       {
         "name": "shell-script operational glue",
@@ -329,7 +328,7 @@
         "stable": 180,
         "GA": 100
       },
-      "verification_ref": "cargo bench -p oya-connect-calendar-domain -- event_write",
+      "verification_ref": "cargo bench -p oya-calendar-domain -- event_write",
       "lane_ref": "perf-budget"
     },
     {
@@ -339,7 +338,7 @@
         "stable": 200,
         "GA": 120
       },
-      "verification_ref": "cargo bench -p oya-connect-calendar-app -- availability",
+      "verification_ref": "cargo bench -p oya-calendar-app -- availability",
       "lane_ref": "perf-budget"
     },
     {
@@ -349,7 +348,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate connect-calendar-workflow-handoff",
+      "verification_ref": "oya gate validate calendar-workflow-handoff",
       "lane_ref": "audit-chain"
     },
     {
@@ -359,7 +358,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-connect-calendar-domain -- personal_details_not_visible",
+      "verification_ref": "cargo nextest -p oya-calendar-domain -- personal_details_not_visible",
       "lane_ref": "cargo-nextest"
     }
   ],
@@ -369,21 +368,21 @@
       "severity": "critical",
       "risk": "availability projection leaks personal details",
       "mitigation": "minimum-necessary projection tests and Cedar pillar guard",
-      "owner": "connect-product-council"
+      "owner": "communications-service-council"
     },
     {
       "id": "R-02",
       "severity": "high",
       "risk": "calendar Workflow handoff becomes silent automation",
       "mitigation": "explicit action-card and policy disclosure gate",
-      "owner": "connect-product-council"
+      "owner": "communications-service-council"
     },
     {
       "id": "R-03",
       "severity": "medium",
       "risk": "recurrence expansion creates unbounded workload",
       "mitigation": "bounded windows and backpressure on sync jobs",
-      "owner": "connect-product-council"
+      "owner": "communications-service-council"
     }
   ],
   "competitive": [
@@ -428,17 +427,17 @@
     {
       "id": "BP-01",
       "rule": "calendar details are never used as implicit personal-to-work inference source",
-      "enforced_by_lane_ref": "oya-governance-connect-calendar-pillar"
+      "enforced_by_lane_ref": "oya-governance-calendar-pillar"
     },
     {
       "id": "BP-02",
       "rule": "Workflow handoff is explicit action card or documented tenant policy only",
-      "enforced_by_lane_ref": "oya-governance-connect-workflow-handoff"
+      "enforced_by_lane_ref": "oya-governance-calendar-workflow-handoff"
     },
     {
       "id": "BP-03",
       "rule": "recurrence expansion is bounded and observable",
-      "enforced_by_lane_ref": "oya-governance-connect-calendar-scale"
+      "enforced_by_lane_ref": "oya-governance-calendar-scale"
     }
   ],
   "patterns": [
@@ -462,43 +461,43 @@
     {
       "anti_pattern": "silent_calendar_mining",
       "why_forbidden": "turns scheduling into surveillance and violates consent boundary",
-      "detection_lane": "oya-governance-connect-calendar-pillar"
+      "detection_lane": "oya-governance-calendar-pillar"
     },
     {
       "anti_pattern": "unbounded_recurrence_materialization",
       "why_forbidden": "creates scale and cost runaway",
-      "detection_lane": "oya-governance-connect-calendar-scale"
+      "detection_lane": "oya-governance-calendar-scale"
     },
     {
       "anti_pattern": "workflow_handoff_without_policy_basis",
       "why_forbidden": "breaks chain-of-custody and privacy notice",
-      "detection_lane": "oya-governance-connect-workflow-handoff"
+      "detection_lane": "oya-governance-calendar-workflow-handoff"
     }
   ],
   "goals": {
     "scalability": {
-      "target": "10M active Connect identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
-      "verification": "oya gate validate connect-scale-model --repo-root ."
+      "target": "10M active identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
+      "verification": "oya gate validate calendar-scale-model --repo-root ."
     },
     "security": {
       "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
-      "verification": "cargo nextest -p oya-connect-security-domain -- cross_pillar"
+      "verification": "cargo nextest -p oya-tenant-rbac-domain -- cross_pillar"
     },
     "performance": {
       "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
-      "verification": "cargo bench -p oya-connect-bench -- connect_hot_paths"
+      "verification": "cargo bench -p oya-calendar-bench -- calendar_hot_paths"
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
-      "verification": "oya gate validate connect-finops-unit-economics"
+      "verification": "oya gate validate calendar-finops-unit-economics"
     },
     "reliability": {
       "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
-      "verification": "oya gate validate connect-slo-coverage"
+      "verification": "oya gate validate calendar-slo-coverage"
     }
   },
   "user_experience": {
-    "ux_personas_ref": "$ref:specs/microservices/connect-suite.json#target_users",
+    "ux_personas_ref": "$ref:specs/tenant-rbac-packaging.json#target_users",
     "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard traversal 100% for inbox, thread, compose, calendar, legal-hold and approval flows",
     "responsive_breakpoints": [
       "mobile-portrait",
@@ -508,7 +507,7 @@
       "wide-desktop"
     ],
     "internationalization_scope": "locale-aware-dynamic; KR and en-US are launch gates, EU locales follow regional-pack coverage",
-    "design_system_components_used": "$ref:specs/microservices/connect-suite.json#frontend_components",
+    "design_system_components_used": "$ref:specs/tenant-rbac-packaging.json#frontend_components",
     "journey_critical_paths": [
       {
         "persona": "enterprise_it_admin",
@@ -550,9 +549,9 @@
   },
   "frontend_components": [
     {
-      "component": "ConnectShellPersonaSwitcher",
+      "component": "TenantContextSwitcher",
       "source": "planned design-system primitive",
-      "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
+      "design_system_ref": "$ref:specs/design-system/tenant-context-switcher.json",
       "variants": [
         "personal",
         "work",
@@ -599,20 +598,20 @@
   "decision_log": [
     {
       "date": "2026-05-16",
-      "decision": "Canonical Connect PRDs are JSON under specs/microservices/connect; Markdown is projection only",
+      "decision": "Canonical microservice PRDs are JSON under specs/microservices/<service>; Markdown is projection only",
       "drivers": [
         "user directive: machine optimized PRDs",
-        "handoff F-PRD-CONNECT-SUITE-AUTHOR",
+        "handoff F-PRD-COMMUNICATIONS-PLATFORM-AUTHOR",
         "shell-to-Rust consolidation"
       ]
     }
   ],
   "sources_scanned": [
     "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
-    "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+    "$ref:bominal/decisions/ADR-0215-retention-legal-hold-dual-context.md",
     "$ref:bominal/docs/roadmap/family-connect.md",
-    "$ref:bominal/docs/products/connect/enterprise-readiness.md",
-    "$ref:bominal/docs/products/connect/messaging.md",
-    "$ref:bominal/docs/products/connect/internal-communications.md"
+    "$ref:bominal/docs/products/communications-legacy/enterprise-readiness.md",
+    "$ref:bominal/docs/products/communications-legacy/messaging.md",
+    "$ref:bominal/docs/products/communications-legacy/internal-communications.md"
   ]
 }

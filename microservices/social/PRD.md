@@ -4,7 +4,7 @@ template_id: TPL-PRD
 prd_id: PRD-social
 microservice: social
 status: Accepted
-sales_segment: connect-suite-product
+sales_segment: tenant-rbac-entitlement
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md]
@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-The `social` microservice is oyatie's native Twitter/X-class first-party social platform. Per parallel-session ADR-0135 (Connect dissolution), it is one of the 8 first-class µservices factored out of the legacy Connect umbrella. It owns **user-profile + follow-graph + chronological-and-algorithmic feed + post-composition + reactions + comments + reposts/quote-posts + mentions + hashtags + trending-topics + content-discovery + content-moderation + blocking + muting + lists + bookmarks + people-and-content-search + real-time-and-digest notifications + cross-context dual-pillar isolation (Personal B2C vs Professional B2B) + optional ActivityPub federation + content-moderation classifier + ranking model + abuse-reporting + appeal-workflow + age-verification + accessibility-alt-text + ads-substrate-stub (T2 capability, off by default) + short-form video flavor (TikTok-/Reels-/YouTube-Shorts-/Snapchat-Spotlight-class: upload + multi-bitrate HLS/DASH ABR transcode + CDN delivery + audio-track-library + audio-attribution + stitch/duet remix + watch-time-tracking + sound-of-the-week trending + Content-ID-class copyright-claim + DRM tenant-class entitlement + auto-captions + age-gate + parental-controls + creator-analytics)** across the 11 oyatie regulatory packs.
+The `social` microservice is oyatie's native Twitter/X-class first-party social platform. Per parallel-session ADR-0135 (dissolution), it is one of the 8 first-class µservices factored out of the legacy umbrella. It owns **user-profile + follow-graph + chronological-and-algorithmic feed + post-composition + reactions + comments + reposts/quote-posts + mentions + hashtags + trending-topics + content-discovery + content-moderation + blocking + muting + lists + bookmarks + people-and-content-search + real-time-and-digest notifications + cross-context dual-pillar isolation (Personal B2C vs Professional B2B) + optional ActivityPub federation + content-moderation classifier + ranking model + abuse-reporting + appeal-workflow + age-verification + accessibility-alt-text + ads-substrate-stub (T2 capability, off by default) + short-form video flavor (TikTok-/Reels-/YouTube-Shorts-/Snapchat-Spotlight-class: upload + multi-bitrate HLS/DASH ABR transcode + CDN delivery + audio-track-library + audio-attribution + stitch/duet remix + watch-time-tracking + sound-of-the-week trending + Content-ID-class copyright-claim + DRM tenant-class entitlement + auto-captions + age-gate + parental-controls + creator-analytics)** across the 11 oyatie regulatory packs.
 
 ## Short-Form Video Flavor (absorbed from retired `shorts` µservice per ADR-0334)
 
@@ -28,7 +28,7 @@ Per ADR-0334 (2026-05-21), the retired `shorts` µservice is absorbed into socia
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone social clients (web + desktop + mobile). It is also consumable as a shared substrate by other oyatie products via the `social.post.v1` Workflow events and the `Person`, `Post`, `Topic` Ontology object types.
 
-Bominal predecessor: the `connect-social` slice of Bominal's unified Connect suite. Per parallel ADR-0238, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical social landing in oyatie. **social is NET-NEW** — no `oya-connect-social-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md.
+Bominal predecessor: the `community-social` slice of Bominal predecessor grouping. Per parallel ADR-0238, that monolithic grouping is dissolved into per-surface µservices; this PRD is the canonical social landing in oyatie. **social is NET-NEW** — no `oya-community-social-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md.
 
 ## Tenant Value
 
@@ -185,27 +185,27 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 
 | BC | Crate family | Purpose | Key entities |
 |---|---|---|---|
-| `user-profile` | `oya-social-user-profile-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,sdk,app}` | Profile CRUD; handle uniqueness per (tenant, context); avatar + header media refs; verification badge; persona switch | `Profile`, `Handle`, `VerificationBadge`, `PersonaContext` |
-| `follow-graph` | `oya-social-follow-graph-{kernel,domain,usecase,api,adapter,adapter-postgres,worker,sdk}` | Directed follow edges; mutual-follow = friend; block / mute lists; adjacency-list storage | `FollowEdge`, `BlockEdge`, `MuteEdge`, `FriendDerivation` |
-| `post-composition` | `oya-social-post-composition-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,adapter-imagemagick,adapter-ffmpeg,rest,worker,sdk,app}` | Post + repost + quote-post + comment-reply CRUD; media upload + transcode; link-preview; visibility scope; cross-link to messenger | `Post`, `Repost`, `QuotePost`, `Comment`, `Media`, `LinkPreview`, `Visibility`, `ContentWarning` |
-| `feed-timeline` | `oya-social-feed-timeline-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk,app}` | Chronological + algorithmic feed materialisation; fanout-on-write for hot-tier accounts; fanout-on-read for cold-tier; ranking | `FeedEntry`, `RankingSignal`, `FanoutPlan`, `RankSnapshot` |
-| `reactions` | `oya-social-reactions-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk}` | Inline reactions (emoji set bounded); conflict-free counter; per-user reaction record | `Reaction`, `ReactionTally`, `UserReactionRecord` |
-| `mentions` | `oya-social-mentions-{kernel,domain,usecase,api,adapter,worker,sdk}` | @mention parse; Ontology lookup; fanout to notifications + cross-µservice (messenger bridge) | `Mention`, `MentionTarget`, `MentionFanoutPlan` |
-| `hashtags` | `oya-social-hashtags-{kernel,domain,usecase,api,adapter,adapter-postgres,worker,sdk}` | #tag parse; per-tag corpus; trending input emission | `Hashtag`, `HashtagCorpus`, `HashtagEmission` |
-| `trending-topics` | `oya-social-trending-topics-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk}` | Windowed trend compute over hashtags + entities; per-tenant per-pack ranking | `TrendingTopic`, `TrendWindow`, `TrendRank` |
-| `notifications` | `oya-social-notifications-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk,app}` | Real-time + digest notification delivery; per-recipient idempotent; backpressure-coalesced | `Notification`, `DigestBucket`, `RealtimeFrame` |
-| `content-moderation` | `oya-social-content-moderation-{kernel,domain,usecase,api,adapter,adapter-clamav,adapter-opswat,worker,sdk}` | AI-classifier verdicts; manual reviewer queue; appeal workflow input; abuse-report ingestion; EU AI Act high-risk | `ModerationVerdict`, `AbuseReport`, `Appeal`, `ClassifierVersion` |
-| `bookmarks` | `oya-social-bookmarks-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Per-user bookmark list; private to user | `Bookmark`, `BookmarkFolder` |
-| `lists` | `oya-social-lists-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | User-curated lists of accounts; per-list feed view; private or public | `List`, `ListMembership`, `ListVisibility` |
-| `search` | `oya-social-search-{kernel,domain,usecase,api,adapter,adapter-meilisearch,worker,sdk}` | People + content + hashtag search; Cedar-filtered; PHI-redacted in pack-us-healthcare | `SearchDoc`, `SearchQuery`, `SearchResultSet` |
-| `profile-verification` | `oya-social-profile-verification-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Verification badge issuance; per-tenant policy; revocation | `VerificationRequest`, `VerificationBadge`, `RevocationEvent` |
-| `age-verification` | `oya-social-age-verification-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Pack-aware age-gate; signup attestation; minor-protection routing | `AgeAttestation`, `AgeBracket`, `MinorProtectionPolicy` |
-| `federation-gateway` | `oya-social-federation-gateway-{kernel,domain,usecase,api,adapter,adapter-activitypub,worker,sdk}` | Optional ActivityPub egress + ingress; per-tenant opt-in; Professional-only | `FederationPeer`, `ActivityInbox`, `ActivityOutbox`, `FederationOptIn` |
+| `user-profile` | `oya-community-social-user-profile-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,sdk,app}` | Profile CRUD; handle uniqueness per (tenant, context); avatar + header media refs; verification badge; persona switch | `Profile`, `Handle`, `VerificationBadge`, `PersonaContext` |
+| `follow-graph` | `oya-community-social-follow-graph-{kernel,domain,usecase,api,adapter,adapter-postgres,worker,sdk}` | Directed follow edges; mutual-follow = friend; block / mute lists; adjacency-list storage | `FollowEdge`, `BlockEdge`, `MuteEdge`, `FriendDerivation` |
+| `post-composition` | `oya-community-social-post-composition-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,adapter-imagemagick,adapter-ffmpeg,rest,worker,sdk,app}` | Post + repost + quote-post + comment-reply CRUD; media upload + transcode; link-preview; visibility scope; cross-link to messenger | `Post`, `Repost`, `QuotePost`, `Comment`, `Media`, `LinkPreview`, `Visibility`, `ContentWarning` |
+| `feed-timeline` | `oya-community-social-feed-timeline-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk,app}` | Chronological + algorithmic feed materialisation; fanout-on-write for hot-tier accounts; fanout-on-read for cold-tier; ranking | `FeedEntry`, `RankingSignal`, `FanoutPlan`, `RankSnapshot` |
+| `reactions` | `oya-community-social-reactions-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk}` | Inline reactions (emoji set bounded); conflict-free counter; per-user reaction record | `Reaction`, `ReactionTally`, `UserReactionRecord` |
+| `mentions` | `oya-community-social-mentions-{kernel,domain,usecase,api,adapter,worker,sdk}` | @mention parse; Ontology lookup; fanout to notifications + cross-µservice (messenger bridge) | `Mention`, `MentionTarget`, `MentionFanoutPlan` |
+| `hashtags` | `oya-community-social-hashtags-{kernel,domain,usecase,api,adapter,adapter-postgres,worker,sdk}` | #tag parse; per-tag corpus; trending input emission | `Hashtag`, `HashtagCorpus`, `HashtagEmission` |
+| `trending-topics` | `oya-community-social-trending-topics-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk}` | Windowed trend compute over hashtags + entities; per-tenant per-pack ranking | `TrendingTopic`, `TrendWindow`, `TrendRank` |
+| `notifications` | `oya-community-social-notifications-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk,app}` | Real-time + digest notification delivery; per-recipient idempotent; backpressure-coalesced | `Notification`, `DigestBucket`, `RealtimeFrame` |
+| `content-moderation` | `oya-community-social-content-moderation-{kernel,domain,usecase,api,adapter,adapter-clamav,adapter-opswat,worker,sdk}` | AI-classifier verdicts; manual reviewer queue; appeal workflow input; abuse-report ingestion; EU AI Act high-risk | `ModerationVerdict`, `AbuseReport`, `Appeal`, `ClassifierVersion` |
+| `bookmarks` | `oya-community-social-bookmarks-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Per-user bookmark list; private to user | `Bookmark`, `BookmarkFolder` |
+| `lists` | `oya-community-social-lists-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | User-curated lists of accounts; per-list feed view; private or public | `List`, `ListMembership`, `ListVisibility` |
+| `search` | `oya-community-social-search-{kernel,domain,usecase,api,adapter,adapter-meilisearch,worker,sdk}` | People + content + hashtag search; Cedar-filtered; PHI-redacted in pack-us-healthcare | `SearchDoc`, `SearchQuery`, `SearchResultSet` |
+| `profile-verification` | `oya-community-social-profile-verification-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Verification badge issuance; per-tenant policy; revocation | `VerificationRequest`, `VerificationBadge`, `RevocationEvent` |
+| `age-verification` | `oya-community-social-age-verification-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Pack-aware age-gate; signup attestation; minor-protection routing | `AgeAttestation`, `AgeBracket`, `MinorProtectionPolicy` |
+| `federation-gateway` | `oya-community-social-federation-gateway-{kernel,domain,usecase,api,adapter,adapter-activitypub,worker,sdk}` | Optional ActivityPub egress + ingress; per-tenant opt-in; Professional-only | `FederationPeer`, `ActivityInbox`, `ActivityOutbox`, `FederationOptIn` |
 
 Naming justification — `user-profile`:
 
 ```
-NAME: oya-social-user-profile-<layer>
+NAME: oya-community-social-user-profile-<layer>
 JUSTIFICATION:
 - microservice = social: per ADR-0131 per-microservice flat layout.
 - bc-tokens = user-profile: primary BC. ADR-0056 v4.1 BC-optionality rule honoured.
@@ -221,22 +221,22 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 
 | Port trait | Kernel crate | Implementation | Data classes touched |
 |---|---|---|---|
-| `ProfileRepository` | `oya-social-user-profile-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` |
-| `FollowGraphRepository` | `oya-social-follow-graph-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT`, `RELATIONSHIP_GRAPH` |
-| `PostStore` | `oya-social-post-composition-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING`, `PHI` (pack-us-healthcare) |
-| `MediaBlobStore` | `oya-social-post-composition-kernel` | `-adapter-s3` | `BEHAVIORAL_TENANT_PRODUCT`, sometimes `PII_IDENTIFYING` |
-| `ImageTranscoder` | `oya-social-post-composition-kernel` | `-adapter-imagemagick` | `INTERNAL_ONLY` |
-| `VideoTranscoder` | `oya-social-post-composition-kernel` | `-adapter-ffmpeg` | `INTERNAL_ONLY` |
-| `MalwareScanner` | `oya-social-content-moderation-kernel` | `-adapter-opswat` / `-adapter-clamav` | `INTERNAL_ONLY` |
-| `FeedCache` | `oya-social-feed-timeline-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `ReactionCounter` | `oya-social-reactions-kernel` | `-adapter-valkey` + `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `MentionResolver` | `oya-social-mentions-kernel` | `-adapter` (Ontology client) | `PII_IDENTIFYING` |
-| `TrendStore` | `oya-social-trending-topics-kernel` | `-adapter-postgres` + `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `NotificationStore` | `oya-social-notifications-kernel` | `-adapter-postgres` + `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` |
-| `SearchIndex` | `oya-social-search-kernel` | `-adapter-meilisearch` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `ModerationClassifier` | `oya-social-content-moderation-kernel` | `-adapter` (foundry-runtime client; T2) | `INTERNAL_ONLY` |
-| `ActivityPubGateway` | `oya-social-federation-gateway-kernel` | `-adapter-activitypub` | `BEHAVIORAL_TENANT_PRODUCT` (Professional only) |
-| `CedarSocialPolicy` | `oya-social-user-profile-kernel` (cross-BC) | `-adapter` (Cedar evaluator) | `INTERNAL_ONLY` |
+| `ProfileRepository` | `oya-community-social-user-profile-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` |
+| `FollowGraphRepository` | `oya-community-social-follow-graph-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT`, `RELATIONSHIP_GRAPH` |
+| `PostStore` | `oya-community-social-post-composition-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING`, `PHI` (pack-us-healthcare) |
+| `MediaBlobStore` | `oya-community-social-post-composition-kernel` | `-adapter-s3` | `BEHAVIORAL_TENANT_PRODUCT`, sometimes `PII_IDENTIFYING` |
+| `ImageTranscoder` | `oya-community-social-post-composition-kernel` | `-adapter-imagemagick` | `INTERNAL_ONLY` |
+| `VideoTranscoder` | `oya-community-social-post-composition-kernel` | `-adapter-ffmpeg` | `INTERNAL_ONLY` |
+| `MalwareScanner` | `oya-community-social-content-moderation-kernel` | `-adapter-opswat` / `-adapter-clamav` | `INTERNAL_ONLY` |
+| `FeedCache` | `oya-community-social-feed-timeline-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `ReactionCounter` | `oya-community-social-reactions-kernel` | `-adapter-valkey` + `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `MentionResolver` | `oya-community-social-mentions-kernel` | `-adapter` (Ontology client) | `PII_IDENTIFYING` |
+| `TrendStore` | `oya-community-social-trending-topics-kernel` | `-adapter-postgres` + `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `NotificationStore` | `oya-community-social-notifications-kernel` | `-adapter-postgres` + `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` |
+| `SearchIndex` | `oya-community-social-search-kernel` | `-adapter-meilisearch` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `ModerationClassifier` | `oya-community-social-content-moderation-kernel` | `-adapter` (foundry-runtime client; T2) | `INTERNAL_ONLY` |
+| `ActivityPubGateway` | `oya-community-social-federation-gateway-kernel` | `-adapter-activitypub` | `BEHAVIORAL_TENANT_PRODUCT` (Professional only) |
+| `CedarSocialPolicy` | `oya-community-social-user-profile-kernel` (cross-BC) | `-adapter` (Cedar evaluator) | `INTERNAL_ONLY` |
 | `AuditChainClient` | (cross-BC) `-kernel` per BC | (cross-BC) `-adapter` to audit-chain µservice | `AUDIT` |
 
 Data-class enforcement: `oya-check-data-class` LEAN lane refuses unannotated fields.
@@ -415,10 +415,10 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0135 | Connect dissolution (parallel) | dual-context isolation source; social as a sibling µservice |
+| ADR-0135 | dissolution (parallel) | dual-context isolation source; social as a sibling µservice |
 | ADR-0139 | Agentic SLO-gated promotion | gates social releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
-| ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
+| ADR-0132 | Suite-and-bundle dissolution | factored into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-SOCIAL under this |
 | ADR-SOC-0001 | Feed-ranking-algorithm | this µservice |
 | ADR-SOC-0002 | Follow-graph-storage | this µservice |
@@ -426,8 +426,8 @@ Sharding:
 | ADR-SOC-0004 | Federation-posture | this µservice |
 | ADR-SOC-0005 | Dual-context-feed-isolation | this µservice |
 | ADR-SOC-0006 | Media-transcode-and-storage | this µservice |
-| Bominal ADR-0208 | Connect dual-context unified channel hub | inherited |
-| Bominal ADR-0215 | Connect retention legal-hold dual-context | inherited |
+| Bominal ADR-0208 | dual-context unified channel hub | inherited |
+| Bominal ADR-0215 | retention legal-hold dual-context | inherited |
 | Bominal ADR-0028 | Audit-chain Merkle + Ed25519 | inherited |
 | Bominal ADR-0111 | Ciphertext property type + envelope encryption | inherited |
 | ADR-0172 | Read replicas + CQRS where appropriate | this µservice's `social.feed` BC opts in |
@@ -441,7 +441,7 @@ Per ADR-0172 (2026-05-18), the `social.feed` bounded context opts in to the read
 | Field | Value |
 |---|---|
 | Bounded context | `social.feed` |
-| Command-side primary | `oya-social-feed-primary` (Postgres 17 LTS) |
+| Command-side primary | `oya-community-social-feed-primary` (Postgres 17 LTS) |
 | Query-side replicas | 5 read replicas via pgpool-II; per-cell isolation per ADR-0009 |
 | Read-staleness budget | ≤2s p99 |
 | Read:write ratio justifying split | ~100×–1000× (per ADR-0172 §"Context") |

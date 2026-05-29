@@ -59,7 +59,7 @@ Managed and Watch risks are reviewed quarterly unless indicators trip.
 `ops-finops` owns capital efficiency, cloud cost, quota exhaustion, price pressure, and tenant margin risk.
 `axis-foundry` owns agentic development pipeline, capability governance, model/eval drift, guardrails, and evidence packs.
 `axis-cloud` owns cloud-cell, KMS/HSM, network, compute, storage, Kubernetes, and hyperscaler invariants.
-`axis-connect` owns messenger, mail, collaboration, MLS, DLP, moderation, and cross-tenant communication controls.
+`axis-messenger`, `axis-community`, and `axis-mail` jointly own messenger, community, mail, MLS, DLP, moderation, and cross-tenant communication controls.
 `axis-workspace` owns documents, drive, calendar, task, recording, and collaborative editing surfaces.
 `vertical-healthcare` owns HIPAA/PHI feature paths and healthcare compliance runbooks.
 `regional-packs` owns jurisdiction overlays, sovereign residency, regulator publication feeds, and pack deltas.
@@ -93,7 +93,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Strategic
 - description: Oyatie may build agentic or decision-support functions that a regulator later classifies as prohibited, high-risk, or unlawfully manipulative in employment, credit, education, health, or public-service contexts.
 - threat landscape: EU AI Act prohibited-practice guidance, AI Act Annex III high-risk enforcement from 2026-08-02, Korea PIPC AI scrutiny, and US sector regulators create a moving boundary around automated recommendations.
-- affected microservices: foundry, workflow-engine, tasks, analytics, vertical-healthcare, vertical-fintech, connect, application.
+- affected microservices: foundry, workflow-engine, tasks, analytics, vertical-healthcare, vertical-fintech, messenger, community, mail, application.
 - likelihood: Likely (4/5)
 - impact: Critical (5/5)
 - score: 20 Extreme
@@ -188,7 +188,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - name: Capital-market downturn and runway compression
 - category: Strategic
 - description: Weak capital markets or delayed enterprise conversion can compress runway before foundational platform, compliance, and trust controls reach sellable maturity.
-- threat landscape: Enterprise infrastructure buyers elongate procurement during downturns while investors demand faster revenue and lower cloud burn.
+- threat landscape: Tenant RBAC infrastructure buyers elongate procurement during downturns while investors demand faster revenue and lower cloud burn.
 - affected microservices: foundry, cloud-billing, finops, ops, application, marketplace, vertical-corporate.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
@@ -237,7 +237,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - monitoring: `microservices/intelligence/dashboards/eval-parity-trend.json`, `microservices/intelligence/dashboards/providers-provider-error-rate.json`, `microservices/intelligence/dashboards/evidence-pack-assembly-rate.json`.
 - named indicators: eval parity delta, per-capability pass rate, model vendor feature overlap, churn due to "good enough" customer agents.
 - early-warning trigger: a customer replaces an Oyatie proof-of-concept with generic agents plus spreadsheets.
-- control evidence: capability-specific eval suite, evidence export, audited run ledger, tenant-specific Cedar decision logs.
+- control evidence: capability-specific eval set, evidence export, audited run ledger, tenant-specific Cedar decision logs.
 - runbook reference: `docs/runbooks/foundry-model-cutover.md`.
 - incident class: strategic-competitive-differentiation.
 - customer communication: emphasize governed execution, audit chain, residency, and policy controls rather than raw model novelty.
@@ -253,7 +253,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Strategic
 - description: Divergent privacy, AI, sector, residency, security, and export rules may force region-specific behavior that conflicts with the canonical-base plus localization-pack doctrine.
 - threat landscape: EU, Korea, US states, India, Brazil, Middle East, Australia, and sector regulators increasingly impose conflicting data, AI, cloud, and audit requirements.
-- affected microservices: regional-pack, residency, policy, data-boundary, tenancy, analytics, search, connect, foundry.
+- affected microservices: regional-pack, residency, policy, data-boundary, tenancy, analytics, search, messenger, community, mail, foundry.
 - likelihood: Likely (4/5)
 - impact: Severe (4/5)
 - score: 16 Severe
@@ -285,7 +285,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Strategic
 - description: Customers, regulators, workers, or the public may reject Oyatie if autonomous agents appear to act without accountable human authority, explainability, or reversal.
 - threat landscape: Agentic AI incidents, workplace surveillance concerns, prompt injection, and rogue automation narratives can turn a product strength into a trust liability.
-- affected microservices: foundry, guardrails, workflow-engine, connect, tasks, audit-chain, policy, application.
+- affected microservices: foundry, guardrails, workflow-engine, messenger, community, mail, tasks, audit-chain, policy, application.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -377,24 +377,24 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - checkpoint: Every regulated capability must emit `EVT-*` proof.
 - escalation: Security Council and Privacy Council when PHI/PII evidence is incomplete.
 
-### OPS-003 - MLS key compromise in Connect messenger
+### OPS-003 - MLS key compromise in messenger
 - risk-ID: OPS-003
-- name: MLS key compromise in Connect messenger
+- name: MLS key compromise in messenger
 - category: Operational
 - description: Messaging Layer Security keys, group secrets, device credentials, or recovery flows may be compromised, exposing tenant or personal communications.
 - threat landscape: Endpoint compromise, malicious device enrollment, key-backup weakness, and cross-tenant group confusion can defeat end-to-end security claims.
-- affected microservices: connect, messenger, identity, secrets, kms, tenancy, audit-chain.
+- affected microservices: messenger, community, mail, identity, secrets, kms, tenancy, audit-chain.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
 - velocity: Fast; compromise can spread across groups before detection.
-- owner: axis-connect
-- owner role: Connect Security owner with ops-security co-owner.
+- owner: axis-messenger, axis-community, axis-mail
+- owner role: Security owner with ops-security co-owner.
 - review cadence: Monthly; weekly after MLS protocol, client, or device-management changes.
 - status: Open - mitigated through MLS conformance and key-health monitoring.
 - acceptance posture: Reduce; accept only endpoint compromise residual risk with clear user controls.
 - transfer posture: Cyber insurance and customer terms transfer cost, not confidentiality harm.
-- microservice mitigations: `oya-connect-messenger-domain`, `oya-cloud-kms-domain`, `oya-secrets-domain`, `oya-identity-domain`.
+- microservice mitigations: `oya-messenger-domain`, `oya-cloud-kms-domain`, `oya-secrets-domain`, `oya-identity-domain`.
 - Cedar policies: `policy.mls_group_membership_tenant_bound`, `policy.device_enrollment_step_up`, `policy.recovery_key_dual_control`.
 - monitoring: `registry/dashboards/mls-key-delivery-health.yaml`, device enrollment anomaly dashboard, key rotation age.
 - named indicators: unknown device joins, MLS welcome failure rate, group epoch divergence, recovery-key unwrap spike, tenant boundary mismatch.
@@ -403,7 +403,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - runbook reference: `docs/runbooks/per-cell-hsm-rotation.md`.
 - incident class: messaging-confidentiality.
 - customer communication: affected group and device-level key-rotation notice.
-- regulator action reference: GDPR confidentiality, PIPA safeguards, HIPAA ePHI when healthcare workflows use Connect.
+- regulator action reference: GDPR confidentiality, PIPA safeguards, HIPAA ePHI when healthcare workflows use messenger, community, or mail services.
 - ADR reference: ADR-0029, ADR-0188, ADR-0043, ADR-0299.
 - residual risk: Medium because endpoint compromise remains partially outside platform control.
 - checkpoint: No messenger stable release without MLS dashboard green.
@@ -447,7 +447,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Operational
 - description: Tenant recovery keys, backup envelopes, Shamir shares, or BYOK materials may be exposed, coerced, lost, or misused.
 - threat landscape: Recovery paths are attractive because they bypass normal authentication, device possession, and real-time user approval controls.
-- affected microservices: secrets, kms, identity, tenancy, connect, audit-chain, cloud-storage.
+- affected microservices: secrets, kms, identity, tenancy, messenger, community, mail, audit-chain, cloud-storage.
 - likelihood: Unlikely (2/5)
 - impact: Critical (5/5)
 - score: 10 Elevated
@@ -479,7 +479,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Operational
 - description: A malformed, stale, overly broad, or wrongly scoped Cedar policy could authorize an action across tenant, region, data-class, or autonomy boundaries.
 - threat landscape: Policy sprawl, fragment composition errors, emergency overrides, and schema drift can turn a formally secure policy language into an unsafe authorization plane.
-- affected microservices: policy, tenancy, foundry, application, connect, marketplace, analytics, tasks.
+- affected microservices: policy, tenancy, foundry, application, messenger, community, mail, marketplace, analytics, tasks.
 - likelihood: Possible (3/5)
 - impact: Critical (5/5)
 - score: 15 Severe
@@ -575,7 +575,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Operational
 - description: Key-management infrastructure may become unavailable, preventing encryption, decryption, signing, BYOK rotation, recovery, webhook signing, or evidence sealing.
 - threat landscape: Per-cell HSM dependencies, cloud KMS quotas, OpenBao availability, certificate rotation, and KCMVP/sovereign constraints create hard operational choke points.
-- affected microservices: kms, secrets, cloud-iam, audit-chain, connect, storage, identity, regional-pack.
+- affected microservices: kms, secrets, cloud-iam, audit-chain, messenger, community, mail, storage, identity, regional-pack.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -705,7 +705,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Compliance-Regulatory
 - description: Oyatie may fail to provide clear, complete, timely, and role-specific GDPR Articles 12-14 notices for complex agentic, cross-tenant, and AI-enabled processing.
 - threat landscape: EDPB CEF 2026 focuses on transparency and information obligations, increasing likelihood of regulator or customer scrutiny.
-- affected microservices: privacy, consent, analytics, foundry, connect, workspace, regional-pack, trust-portal.
+- affected microservices: privacy, consent, analytics, foundry, messenger, community, mail, workspace, regional-pack, trust-portal.
 - likelihood: Likely (4/5)
 - impact: Severe (4/5)
 - score: 16 Severe
@@ -737,7 +737,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Compliance-Regulatory
 - description: EU personal data may be transferred, accessed, stored, supported, or replicated outside allowed regions without valid transfer mechanism, supplementary measures, or customer-specific restriction.
 - threat landscape: EDPB and Irish DPC Meta transfer enforcement remains the named signal for high-impact Chapter V transfer failures.
-- affected microservices: residency, analytics, search, foundry, support tooling, cloud-storage, audit-chain, connect.
+- affected microservices: residency, analytics, search, foundry, support tooling, cloud-storage, audit-chain, messenger, community, mail.
 - likelihood: Possible (3/5)
 - impact: Critical (5/5)
 - score: 15 Severe
@@ -769,7 +769,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Compliance-Regulatory
 - description: Oyatie may fail Korean PIPA duties around consent, foreign operator notices, cross-border entrustment, breach notice, domestic agent, or behavioral data processing.
 - threat landscape: PIPC has sanctioned Google/Meta for behavioral advertising, OpenAI for breach notification and safeguards, Temu for cross-border transfer, and KAB/TELUS AI for SQLi safeguards.
-- affected microservices: regional-pack-kr, consent, analytics, foundry, connect, marketplace, tenancy, trust-portal.
+- affected microservices: regional-pack-kr, consent, analytics, foundry, messenger, community, mail, marketplace, tenancy, trust-portal.
 - likelihood: Likely (4/5)
 - impact: Severe (4/5)
 - score: 16 Severe
@@ -801,7 +801,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Compliance-Regulatory
 - description: Healthcare workflows may process PHI without sufficient risk analysis, access control, audit controls, breach notification, or business associate obligations.
 - threat landscape: HHS OCR 2026 MMG Fusion settlement highlights business-associate breach and risk-analysis enforcement for software vendors.
-- affected microservices: vertical-healthcare, connect, workflow-engine, analytics, identity, audit-chain, evidence, cloud-storage.
+- affected microservices: vertical-healthcare, messenger, community, mail, workflow-engine, analytics, identity, audit-chain, evidence, cloud-storage.
 - likelihood: Possible (3/5)
 - impact: Critical (5/5)
 - score: 15 Severe
@@ -812,7 +812,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by healthcare pack and audit evidence.
 - acceptance posture: Reduce; do not accept PHI processing without BAA and security controls.
 - transfer posture: cyber insurance and BAAs transfer defined cost/risk, not OCR accountability.
-- microservice mitigations: `oya-shared-compliance-evidence-kernel`, `oya-platform-audit-chain-kernel`, `oya-connect-dsr-domain`, `oya-cloud-storage-domain`.
+- microservice mitigations: `oya-shared-compliance-evidence-kernel`, `oya-platform-audit-chain-kernel`, `oya-dsr-domain`, `oya-cloud-storage-domain`.
 - Cedar policies: `policy.hipaa_phi_minimum_necessary`, `policy.healthcare_break_glass`, `policy.baa_required_for_phi`.
 - monitoring: PHI data-class coverage, access audit completeness, breach clock, healthcare pack attestation, risk-analysis freshness.
 - named indicators: PHI flow without data_class, access log gap, unencrypted export, missing BAA, risk analysis older than review cadence.
@@ -833,7 +833,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Compliance-Regulatory
 - description: California consumers may not receive effective opt-out, GPC honoring, data-sharing disclosures, sensitive data limits, or deletion behavior across Oyatie surfaces.
 - threat landscape: California OAG/CPPA enforcement against Sephora, Healthline, Disney, Jam City, and General Motors shows active focus on opt-out, sharing, children, sensitive health/location data, and minimization.
-- affected microservices: consent, analytics, ads-analytics, marketplace, connect, workspace, trust-portal, regional-pack-us.
+- affected microservices: consent, analytics, ads-analytics, marketplace, messenger, community, mail, workspace, trust-portal, regional-pack-us.
 - likelihood: Likely (4/5)
 - impact: Major (3/5)
 - score: 12 Elevated
@@ -1025,7 +1025,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Compliance-Regulatory
 - description: Australia, Singapore, Japan, India, and regional financial regulators may require security, privacy, outsourcing, breach, or data-localization controls not captured by a generic APAC pack.
 - threat landscape: APAC markets combine privacy statutes, financial outsourcing guidance, critical infrastructure rules, and cross-border transfer controls.
-- affected microservices: regional-pack, tenancy, residency, analytics, vertical-fintech, connect, foundry.
+- affected microservices: regional-pack, tenancy, residency, analytics, vertical-fintech, messenger, community, mail, foundry.
 - likelihood: Possible (3/5)
 - impact: Major (3/5)
 - score: 9 Managed
@@ -1089,7 +1089,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Compliance-Regulatory
 - description: Personal tenant, education, collaboration, marketplace, or content features may collect, infer, or expose minors' data without correct consent, age assurance, default privacy, or safety controls.
 - threat landscape: COPPA, state minor safety laws, EU age-appropriate design, CCPA minor consent, and platform moderation expectations increasingly target youth data and content.
-- affected microservices: identity, connect, marketplace, content-moderation, ads-analytics, application, privacy.
+- affected microservices: identity, messenger, community, mail, marketplace, content-moderation, ads-analytics, application, privacy.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -1100,7 +1100,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - reduce before personal tenant expansion.
 - acceptance posture: Avoid behavioral advertising to minors; reduce other exposure.
 - transfer posture: parental consent processors transfer limited verification support.
-- microservice mitigations: `oya-identity-domain`, `oya-connect-domain`, `oya-ads-analytics-domain`, `oya-foundry-guardrails-content-safety-rule-engine-kernel`.
+- microservice mitigations: `oya-identity-domain`, `oya-messenger-domain`, `oya-community-social-domain`, `oya-mail-domain`, `oya-ads-analytics-domain`, `oya-foundry-guardrails-content-safety-rule-engine-kernel`.
 - Cedar policies: `policy.minor_age_gate`, `policy.minor_no_sale_share`, `policy.guardian_consent_required`, `policy.default_private_minor`.
 - monitoring: age assurance failure, minor content report, consent expiration, ad sharing deny count, account recovery risk.
 - named indicators: under-16 signal, guardian dispute, minor data in ads, social-media complaint, safety escalation.
@@ -1187,7 +1187,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Technical
 - description: REST, gRPC, AsyncAPI, event schemas, SDKs, and cross-axis contracts may drift between providers and consumers.
 - threat landscape: A platform with many services and customer integrations can silently break workflows if contracts are regenerated, versioned, or deprecated inconsistently.
-- affected microservices: workflow-engine, foundry, marketplace, connect, analytics, cloud, tasks, SDKs.
+- affected microservices: workflow-engine, foundry, marketplace, messenger, community, mail, analytics, cloud, tasks, SDKs.
 - likelihood: Likely (4/5)
 - impact: Major (3/5)
 - score: 12 Elevated
@@ -1251,7 +1251,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Technical
 - description: Collaborative documents, workflow canvases, tasks, whiteboards, or other shared editors may diverge across clients, replicas, or offline sessions.
 - threat landscape: CRDTs reduce conflict but can still diverge through version skew, corrupt updates, permission changes, or unsupported migration.
-- affected microservices: workflow-studio, workspace-docs, whiteboard, tasks, drive, connect.
+- affected microservices: workflow-studio, workspace-docs, whiteboard, tasks, drive, messenger, community, mail.
 - likelihood: Possible (3/5)
 - impact: Major (3/5)
 - score: 9 Managed
@@ -1315,7 +1315,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Technical
 - description: New services, policies, telemetry, AI calls, database queries, or workflow orchestration may degrade p95/p99 latency and throughput.
 - threat landscape: Agentic workflows and policy-heavy request paths can add hidden fanout and cold-start costs.
-- affected microservices: application, policy, foundry, workflow-engine, analytics, search, connect, cloud.
+- affected microservices: application, policy, foundry, workflow-engine, analytics, search, messenger, community, mail, cloud.
 - likelihood: Likely (4/5)
 - impact: Major (3/5)
 - score: 12 Elevated
@@ -1326,7 +1326,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through SLOs and performance evidence.
 - acceptance posture: Reduce; accept preview degradation only with customer-visible label.
 - transfer posture: not transferable.
-- microservice mitigations: `oya-observability-domain`, `oya-shared-hyperscaler-metrics-kernel`, `oya-check-perf-evidence`, service-specific benchmark suites.
+- microservice mitigations: `oya-observability-domain`, `oya-shared-hyperscaler-metrics-kernel`, `oya-check-perf-evidence`, service-specific benchmark sets.
 - Cedar policies: `policy.perf_gate_required_for_promotion`, `policy.slo_burn_release_block`, `policy.expensive_query_budget`.
 - monitoring: golden signals, SLO burn, policy eval latency, DB p99, queue lag, provider latency.
 - named indicators: p99 regression, error budget burn, cold start spike, N+1 query, provider roundtrip rise.
@@ -1379,7 +1379,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Technical
 - description: Events may be lost, duplicated, malformed, or version-skewed across outbox, brokers, audit-chain, workflow state, and external subscribers.
 - threat landscape: Event-driven systems trade central coupling for schema/version and replay discipline.
-- affected microservices: eventing, audit-chain, workflow-engine, foundry, marketplace, analytics, connect.
+- affected microservices: eventing, audit-chain, workflow-engine, foundry, marketplace, analytics, messenger, community, mail.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -1475,7 +1475,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Technical
 - description: Karpenter, node pools, pod disruption budgets, topology spread, network policy, or resource requests may schedule workloads into unavailable, insecure, or overloaded cells.
 - threat landscape: Kubernetes-first server workloads require strong scheduling, capacity, and network isolation discipline.
-- affected microservices: cloud-compute, cloud-cell, foundry runtime, workflow-engine, analytics, connect, marketplace.
+- affected microservices: cloud-compute, cloud-cell, foundry runtime, workflow-engine, analytics, messenger, community, mail, marketplace.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -1637,7 +1637,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Customer-Commercial
 - description: A small number of large tenants may dominate revenue, roadmap pressure, support load, and architecture exceptions.
 - threat landscape: Enterprise platform companies can become custom-service organizations when large tenants dictate features, timelines, and exceptions.
-- affected microservices: all customer-facing services, especially workflow-engine, cloud, connect, analytics, marketplace.
+- affected microservices: all customer-facing services, especially workflow-engine, cloud, messenger, community, mail, analytics, marketplace.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -1680,7 +1680,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by first-deliverable sequencing.
 - acceptance posture: Reduce; accept narrower wedge messaging.
 - transfer posture: channel partners can help distribution but not narrative clarity.
-- microservice mitigations: Enterprise Generic plus SMB Generic first-deliverable package, trust portal evidence packs, vertical templates.
+- microservice mitigations: Tenant RBAC view plus Tenant RBAC view first-deliverable package, trust portal evidence packs, vertical templates.
 - Cedar policies: `policy.gtm_claim_evidence_required`, `policy.vertical_pack_claim_gate`, `policy.demo_tenant_data_boundary`.
 - monitoring: sales cycle days, proof-of-value pass rate, demo abandonment, buyer persona confusion, content engagement.
 - named indicators: many demos no pilot, RFP scope creep, buyer cannot describe product, delayed champion.
@@ -1735,7 +1735,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Reputational-Social
 - description: A customer-visible agentic action could be framed as rogue AI, unsafe automation, discriminatory decisioning, or unaccountable workplace control.
 - threat landscape: AI incidents spread quickly through press, social platforms, regulators, and enterprise security communities.
-- affected microservices: foundry, workflow-engine, tasks, connect, guardrails, audit-chain, trust-portal.
+- affected microservices: foundry, workflow-engine, tasks, messenger, community, mail, guardrails, audit-chain, trust-portal.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -1767,7 +1767,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Reputational-Social
 - description: A privacy complaint, screenshot, DSR dispute, cross-tenant access allegation, or support mishandling may spread publicly before investigation completes.
 - threat landscape: Privacy claims are reputationally damaging even when facts are incomplete.
-- affected microservices: privacy, DSR, support, connect, workspace, trust-portal, audit-chain.
+- affected microservices: privacy, DSR, support, messenger, community, mail, workspace, trust-portal, audit-chain.
 - likelihood: Possible (3/5)
 - impact: Major (3/5)
 - score: 9 Managed
@@ -1831,7 +1831,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Reputational-Social
 - description: Generated documents, workflow text, code, images, summaries, or recommendations may be accused of copyright infringement, hallucination, plagiarism, or improper training-data reuse.
 - threat landscape: AI IP disputes are active across jurisdictions and customers expect indemnity, provenance, and content controls.
-- affected microservices: foundry, workflow-studio, docs, content generation, marketplace, connect.
+- affected microservices: foundry, workflow-studio, docs, content generation, marketplace, messenger, community, mail.
 - likelihood: Possible (3/5)
 - impact: Major (3/5)
 - score: 9 Managed
@@ -1861,9 +1861,9 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - risk-ID: REP-005
 - name: Content moderation failure
 - category: Reputational-Social
-- description: Connect, marketplace, community, comments, files, or generated content may host abuse, illegal content, harassment, misinformation, or unsafe material without timely action.
+- description: Messenger, community, mail, marketplace, comments, files, or generated content may host abuse, illegal content, harassment, misinformation, or unsafe material without timely action.
 - threat landscape: Multi-tenant collaboration and marketplace surfaces can inherit platform moderation obligations and public trust risk.
-- affected microservices: connect, marketplace, community, foundry guardrails, storage, trust-portal.
+- affected microservices: messenger, community, mail, marketplace, foundry guardrails, storage, trust-portal.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -1874,7 +1874,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by moderation and takedown controls.
 - acceptance posture: Reduce; accept private enterprise content boundary only where contractually controlled.
 - transfer posture: moderation vendors and insurance transfer some operational cost only.
-- microservice mitigations: `oya-foundry-guardrails-content-safety-rule-engine-kernel`, `oya-marketplace-domain`, `oya-connect-domain`, storage abuse controls.
+- microservice mitigations: `oya-foundry-guardrails-content-safety-rule-engine-kernel`, `oya-marketplace-domain`, `oya-community-social-domain`, `oya-messenger-domain`, `oya-mail-domain`, storage abuse controls.
 - Cedar policies: `policy.content_takedown_authorized`, `policy.abuse_report_triage`, `policy.public_marketplace_listing_review`.
 - monitoring: abuse report queue, takedown SLA, classifier false negatives, marketplace listing flags, repeat offender count.
 - named indicators: illegal content report, customer harassment complaint, public listing abuse, law enforcement request.
@@ -1895,7 +1895,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - category: Reputational-Social
 - description: Workforce analytics, task assignment, productivity scoring, screening, scheduling, or monitoring may be perceived as surveillance or unfair algorithmic management.
 - threat landscape: Worker privacy, works councils, labor regulators, civil-rights groups, and media scrutiny focus on automated workplace decisioning.
-- affected microservices: tasks, analytics, workflow-engine, workplace-integration, connect, foundry, regional-pack.
+- affected microservices: tasks, analytics, workflow-engine, workplace-integration, messenger, community, mail, foundry, regional-pack.
 - likelihood: Possible (3/5)
 - impact: Severe (4/5)
 - score: 12 Elevated
@@ -1952,7 +1952,7 @@ Watch risks: none in this snapshot because the requested catalogue is intentiona
 | STR-007 | autonomy policy enforcement, kill switch, audit chain | autonomy_ceiling_runtime_enforced | autonomy violation rate, kill-switch coverage | autonomy-ceiling-breach-attempt |
 | OPS-001 | cloud-cell app, cell kernel, tenant quotas | cell_mutation_scope | cell-routing dashboard, golden signals | cell-evacuation |
 | OPS-002 | audit-chain domain, evidence bridge | audit_event_emit_required | audit throughput, evidence export status | audit-chain-integrity-failure |
-| OPS-003 | Connect messenger, KMS, secrets, identity | mls_group_membership_tenant_bound | MLS key delivery health | per-cell-hsm-rotation |
+| OPS-003 | messenger, KMS, secrets, identity | mls_group_membership_tenant_bound | MLS key delivery health | per-cell-hsm-rotation |
 | OPS-004 | tenancy kernel, Cedar policy, tenant middleware | tenant_scope_required | tenant isolation health | cell-isolation-breach |
 | OPS-005 | KMS, secrets, audit chain, identity | recovery_key_unwrap_m_of_n | key unwrap and HSM health | shamir-share-loss-or-coercion |
 | OPS-006 | Cedar domain, fragment coverage, guardrails engine | cedar_publish_review_required | policy latency, fragment anomaly | cedar-fragment-emergency-rollback |
@@ -1974,7 +1974,7 @@ Watch risks: none in this snapshot because the requested catalogue is intentiona
 | REG-010 | US state pack, DSR, consent | us_state_privacy_overlay | state pack freshness | regulatory-change-response |
 | REG-011 | APAC pack, residency, evidence export | apac_pack_required | pack attestation, counsel freshness | regulatory-change-response |
 | REG-012 | India pack, residency, marketplace | in_dpdp_consent_required | India pack status, local route | regulatory-change-response |
-| REG-013 | identity, connect, content safety | minor_age_gate | age assurance, minor reports | breach-notification-council-escalation |
+| REG-013 | identity, messenger, community, mail, content safety | minor_age_gate | age assurance, minor reports | breach-notification-council-escalation |
 | TECH-001 | flat crates check, doc catalog, gate catalog | service_promotion_requires_owner | service coverage, missing runbooks | flat-crates-move-pr |
 | TECH-002 | license check, SBOM, plugin sandbox | critical_cve_release_block | Trivy, SBOM, provenance | supply-chain-compromise |
 | TECH-003 | schema registry, SDK release, eventing | contract_breaking_change_review | contract diff, SDK regen | contract-breaking-change |
@@ -1998,7 +1998,7 @@ Watch risks: none in this snapshot because the requested catalogue is intentiona
 | REP-002 | DSR, evidence builder, audit chain | privacy_incident_fact_pack | complaint rate, DSR SLA | breach-notification-council-escalation |
 | REP-003 | vendor ledger, analytics reporting | supplier_esg_review_required | supplier review age | partner-contract-renewal |
 | REP-004 | output validator, invocation recorder | generated_content_review_required | content disputes, similarity alerts | guardrails-rule-store-restore |
-| REP-005 | content safety engine, marketplace, connect | content_takedown_authorized | abuse queue, takedown SLA | marketplace-listing-takedown |
+| REP-005 | content safety engine, marketplace, messenger, community, mail | content_takedown_authorized | abuse queue, takedown SLA | marketplace-listing-takedown |
 | REP-006 | tasks, analytics, workplace policy, guardrails | workplace_monitoring_notice | fairness audit, appeal rate | privacy-council-data-class-review |
 
 ## Section 10. Acceptance and Transfer Decisions
@@ -2026,7 +2026,7 @@ Evidence rule: every accepted or transferred risk must point to the current evid
 | ops-finops | STR-004, COM-006, TECH-008 | Monthly FinOps close | Finance owner |
 | axis-foundry | STR-005, STR-007, TECH-010, OPS-011 | Weekly Foundry governance | Foundry Runtime owner |
 | axis-cloud | OPS-009, REG-008, TECH-012 | Monthly platform review | Cloud SRE lead |
-| axis-connect | OPS-003, REP-005 support | Monthly Connect security review | Messaging Security lead |
+| axis-messenger / axis-community / axis-mail | OPS-003, REP-005 support | Monthly security review | Messaging, Community, and Mail Security leads |
 | regional-packs | STR-006, REG-003, REG-011, REG-012 | Monthly regulator watch | Compliance Pack maintainer |
 | vertical-healthcare | REG-004 | Monthly healthcare control review | Privacy Engineering |
 | gtm-sales-se | COM-001, COM-002, COM-003, COM-004, COM-005 | Monthly commercial risk review | Customer Success lead |

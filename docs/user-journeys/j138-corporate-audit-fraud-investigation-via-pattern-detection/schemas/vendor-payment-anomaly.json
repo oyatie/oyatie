@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j138/vendor-payment-anomaly.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j138/vendor-payment-anomaly.json",
   "title": "VendorPaymentAnomalyPattern",
   "description": "Pattern descriptor used by detection.payments_anomaly_detector_v3 to encode anomalies in vendor-payment data.",
   "_meta": {

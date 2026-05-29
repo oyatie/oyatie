@@ -144,7 +144,7 @@ FINDING OR-004 (P1, outbound-cross-reference, file `microservices/financial-plan
 
 FINDING OR-005 (P2, outbound-cross-reference, broken link risk, file `microservices/financial-planning/IP-026-anaplan-model-space-displacement.md` `journey_ref: J125-close-day-state-machine`): the journey id J125-close-day-state-machine is asserted by IP-026 through IP-030 (five IPs share the same journey ref) but no journey file is cited by path. Per ADR-0328 §D-11.15, audit-only does not allow remediation but the finding must be filed. Fix shape: resolve journey path under `journeys/` or `microservices/financial-planning/journeys/`; if J125-close-day-state-machine doc does not exist, file it as missing-expected-path under ADR-0328 §D-8.16.
 
-FINDING OR-006 (P3, outbound-cross-reference, frontmatter vs body, file `microservices/financial-planning/PRD.md` `planned_enforcement_ref: oya-governance-financial-planning-doc-suite` vs available governance lanes under `crates/oya-governance-*`): the named enforcement lane does not appear in the current crate roster after the foundry-fitness → oya-governance rename. Fix shape: either create the lane and CI workflow, or change `planned_enforcement_ref` to a real lane such as `oya-governance-substance-bar`.
+FINDING OR-006 (P3, outbound-cross-reference, frontmatter vs body, file `microservices/financial-planning/PRD.md` `planned_enforcement_ref: oya-governance-financial-planning-doc-set` vs available governance lanes under `crates/oya-governance-*`): the named enforcement lane does not appear in the current crate roster after the foundry-fitness → oya-governance rename. Fix shape: either create the lane and CI workflow, or change `planned_enforcement_ref` to a real lane such as `oya-governance-substance-bar`.
 
 ### 3.4 Dim 2 verdict
 
@@ -252,7 +252,7 @@ FINDING IP-001 (P1, parity, `microservices/financial-planning/feature-parity-mat
 
 FINDING IP-002 (P1, parity, currency/FX handling): ADR-FP-001 names FX rate table version and effective-date checks; IP-027 cycle-control-012 requires FX policy binding. PRD/ARCHITECTURE do not call out multi-currency reporting, functional vs reporting currency, currency translation per ASC 830 / IAS 21. Fix shape: add multi-currency requirement row to PRD §D and integration row in ARCHITECTURE §D for cross-µservice FX rate source.
 
-FINDING IP-003 (P0, parity, Excel integration): Vena's distinguishing feature is Excel as the native modeling surface (formulas in xlsx files that round-trip to Vena's database with workflow + approvals + audit). financial-planning has no Excel add-in path and does not name xlsx as a first-class import/export format. Workday Adaptive also has OfficeConnect (Excel + PowerPoint plug-in). Fix shape: add Excel/xlsx import + Excel add-in + OfficeConnect-equivalent capability via `sheets` cross-handoff.
+FINDING IP-003 (P0, parity, Excel integration): Vena's distinguishing feature is Excel as the native modeling surface (formulas in xlsx files that round-trip to Vena's database with workflow + approvals + audit). financial-planning has no Excel add-in path and does not name xlsx as a first-class import/export format. Workday Adaptive also has Office(Excel + PowerPoint plug-in). Fix shape: add Excel/xlsx import + Excel add-in + OfficeConnect-equivalent capability via `sheets` cross-handoff.
 
 FINDING IP-004 (P2, parity, dashboard/report authoring): Anaplan dashboards, Workday Adaptive reporting, Vena reporting are all first-class. financial-planning has board-report-seal capability but no general FP&A reporting/dashboarding surface that finance users author themselves. Fix shape: cross-handoff to `analytics` for self-service dashboards and to `slides` for board-pack export.
 
@@ -394,7 +394,7 @@ REVISE. One P0, one P1, one P2.
 
 ### 12.2 Workday Adaptive Planning
 
-- Differentiators: Multi-dimensional cube engine, OfficeConnect (Excel/PowerPoint plug-in), planning cycles + sheets + versions + scenarios, modeled vs standard vs cube sheets, integration with Workday HCM/Financials, mobile.
+- Differentiators: Multi-dimensional cube engine, Office(Excel/PowerPoint plug-in), planning cycles + sheets + versions + scenarios, modeled vs standard vs cube sheets, integration with Workday HCM/Financials, mobile.
 - Financial Planning coverage: budget-cycle + forecast-version + scenario aggregates; IP-027 cycle displacement at ~200 lines covers cycles/sheets/assumptions/drivers/versions/approvals/reports/OfficeConnect-equivalent (signed_export_candidate). Gaps: OfficeConnect-equivalent named only as "signed_export_candidate" — not surfaced as a tenant_class row; mobile not mentioned; cross-µservice handoff to performance-management (HR equivalent) and `payments` for finance integration not documented.
 
 ### 12.3 Vena Solutions

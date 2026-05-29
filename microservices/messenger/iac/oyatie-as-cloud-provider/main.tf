@@ -93,7 +93,7 @@ resource "helm_release" "messenger" {
   namespace = kubernetes_namespace.messenger.metadata[0].name
   chart     = "${path.module}/../helm/messenger"
   values = [yamlencode({
-    image                     = { repository = "registry.oyatie.app/messenger", tag = "1.0.0-wave-15a" }
+    image                     = { repository = "registry.oyatie.dev/messenger", tag = "1.0.0-wave-15a" }
     tenantId                  = var.tenant_id
     oyatieCellId              = var.oyatie_cell_id
     tenantClass               = var.tenant_class

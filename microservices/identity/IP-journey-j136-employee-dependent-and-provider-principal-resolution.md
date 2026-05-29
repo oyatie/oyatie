@@ -15,7 +15,7 @@ related_adrs: [ADR-0311, ADR-0244, ADR-0263]
 Identity provides:
 - Employee work-tenant principal resolution
 - Dependent data scoping (enrollment-purpose-only)
-- Provider tenant principal resolution (Connect cross-tenant)
+- Provider tenant principal resolution (cross-tenant)
 - Personal-tenant continuity verification
 
 ## Acceptance criteria

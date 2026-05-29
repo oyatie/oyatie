@@ -16,7 +16,7 @@ adr_anchors: [ADR-0244, ADR-0245, ADR-0247, ADR-0292, ADR-0311]
 1. Personal-tenant pipeline runtime — same engine substrate as enterprise, restricted Cedar.
 2. **Adapter polling scheduler** with per-source cadence + rate-limit backoff.
 3. **Pipeline aggregator** for the weekly digest.
-4. **Cross-tenant application-submit router** routing `apply`-marked rows to the correct Connect adapter or Community gRPC.
+4. **Cross-tenant application-submit router** routing `apply`-marked rows to the correct adapter or Community gRPC.
 
 ## API surface
 
@@ -49,14 +49,14 @@ service Aggregator {
 
 ### T3 — Submission router
 
-- `apply`-marked Notes row → look up source-of-truth posting → call appropriate Connect adapter (for external) or Community `JobApplication.Submit` (for internal cross-tenant).
+- `apply`-marked Notes row → look up source-of-truth posting → call appropriate adapter (for external) or Community `JobApplication.Submit` (for internal cross-tenant).
 - Submit attaches: cover letter, résumé, portfolio.
 - Audit: `ApplicationSubmitted{employer_tenant, posting_id}`.
 
 ### T4 — Weekly digest aggregator
 
 - Cron: Sun 18:00 ET (per Chris's timezone preference).
-- Aggregates last 7d from Notes + Connect + Intelligence telemetry.
+- Aggregates last 7d from Notes + + Intelligence telemetry.
 - Generates structured digest text via Intelligence (with the same transparency floor).
 
 ## Cedar permits

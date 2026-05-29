@@ -72,7 +72,7 @@ Three production-grade open-source CalDAV servers are candidates:
    deployment. Extremely fast (~2000 concurrent CalDAV sessions per
    pod). Architecturally bundles IMAP + CalDAV + CardDAV + JMAP, which
    makes it the obvious Fastmail choice but introduces a bundling
-   anti-pattern in oyatie (per ADR-0132 no-suite forward-policy) because
+   anti-pattern in oyatie (per ADR-0132 no-grouping forward-policy) because
    the same daemon would have to serve both the `mail` µservice's IMAP
    surface and the `calendar` µservice's CalDAV surface, violating
    per-µservice isolation.
@@ -150,7 +150,7 @@ Both modes share three invariants:
     bundled product.
 - **Cons**:
   - Architecturally bundles IMAP + CalDAV + CardDAV + JMAP in one daemon.
-    Per ADR-0132 no-suite forward-policy, the `mail` µservice and the
+    Per ADR-0132 no-grouping forward-policy, the `mail` µservice and the
     `calendar` µservice MUST be independently operable, independently
     scalable, and independently SLO'd; Cyrus IMAP+CalDAV makes that
     structurally impossible.

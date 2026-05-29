@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "sheets",
   "summary": "cell grid + 400-function formula engine + recalc dep-graph + Loro collab",
   "chart_name": "visual-grid-rest",

@@ -29,7 +29,7 @@ related:
   - ADR-0121-on-prem-k8s-stack.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0148-multi-provider-mesh.md
@@ -349,7 +349,7 @@ Three forcing functions:
 3. **The deployment-control-plane µservice has no doctrine to bind to
    today.** Palantir's Apollo equivalent must exist in the µservice
    catalog. Per ADR-0131 (per-µservice flat layout) and ADR-0132 (no
-   suite µservices), creating a new µservice requires the ADR that
+   grouping µservices), creating a new µservice requires the ADR that
    names its purpose. This ADR names that purpose.
 
 ## Decision
@@ -417,7 +417,7 @@ substrate, upgrades, IR, SLO, compliance, audit-chain, billing.
 
 **Connectivity.** Always online to oyatie's control plane. Tenant
 access via dedicated private link (AWS PrivateLink / GCP Private
-Service Connect / Azure Private Link / Naver Cloud Private Endpoint
+Service / Azure Private Link / Naver Cloud Private Endpoint
 / etc.) by default; public internet as fallback when private link
 unavailable in a region.
 
@@ -684,7 +684,7 @@ central tier 2; in air-gapped, a fully-local bundled Tier 2.
 
 The deployment control plane is a new µservice:
 `microservices/deployment-control-plane/` (per ADR-0131 per-µservice
-flat layout; ADR-0132 no suite µservices). It is Palantir Apollo's
+flat layout; ADR-0132 no grouping µservices). It is Palantir Apollo's
 functional equivalent for oyatie.
 
 Responsibilities:
@@ -1914,7 +1914,7 @@ implemented:
 - **ADR-0121** On-prem K8s stack.
 - **ADR-0128** Hyperscaler architecture invariants.
 - **ADR-0131** Per-microservice flat layout.
-- **ADR-0132** No-suite forward policy.
+- **ADR-0132** No-grouping forward policy.
 - **ADR-0144** EU AI Act graduated risk tier model.
 - **ADR-0145** Inter-microservice communication reform.
 - **ADR-0148** Multi-provider mesh.

@@ -63,13 +63,13 @@ Reading: oyatie's SFU is intentionally blind to media keys — this is a unique 
 | Platform | p99 (ms) | E2EE? | Verified-corp-email gate? |
 |---|---:|---|---|
 | oyatie messenger (paid) | 168 | Yes (MLS) | Yes (Cedar-gated) |
-| Slack Connect | 480 | No | Limited (Slack Connect requires both orgs on Slack) |
+| Slack | 480 | No | Limited (Slack requires both orgs on Slack) |
 | Microsoft Teams cross-org chat | 520 | No | Limited (Teams federation; manual approval per org) |
 | Discord (cross-server DM) | 240 | No | No |
 | Telegram | 220 | No (unless Secret Chat) | No |
 | WhatsApp Business | 380 | Yes (Signal) | No (phone-number-based) |
 
-Reading: oyatie is the only platform that combines MLS E2EE + per-tenant Cedar policy + verified-corporate-email gating. Slack Connect and Teams cross-org chat support cross-organization conversations but without E2EE or cryptographic identity verification.
+Reading: oyatie is the only platform that combines MLS E2EE + per-tenant Cedar policy + verified-corporate-email gating. Slack and Teams cross-org chat support cross-organization conversations but without E2EE or cryptographic identity verification.
 
 ## Workload (e) — eDiscovery export (ciphertext + membership trail, 1M messages)
 
@@ -101,7 +101,7 @@ Reading: oyatie paid self-hosted is 7.5× cheaper than Slack Enterprise Grid at 
 Caveats:
 
 - Slack pricing reflects Enterprise Grid published list (mid-2025); enterprise discounts typically 30-40%.
-- Teams E5 includes the broader M365 productivity suite; pure messenger comparison is harder.
+- Teams E5 includes the broader M365 productivity platform; pure messenger comparison is harder.
 - Hardware costs assume on-prem; cloud (AWS/GCP) increases compute cost ~ 2× for equivalent IOPS.
 - Ops costs assume mature SRE; first-year ops is typically 2× steady-state.
 

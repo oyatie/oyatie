@@ -755,7 +755,7 @@ The PRD is accepted when:
 - ADR-0255 §D-4 — BYOK credentials gated by tenant_class
 - ADR-0249 — multi-category marketplace
 - ADR-0131 — per-microservice flat layout
-- ADR-0132 — no-suite policy
+- ADR-0132 — no-grouping policy
 - ADR-0145 — direct-gRPC inter-µservice
 - ADR-0263 — audit-emission contract
 - ADR-0130 — agentic SLO-gated promotion

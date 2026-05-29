@@ -73,7 +73,7 @@ j132 demonstrates oyatie's HR-platform parity with Workday + LinkedIn + Handshak
 - `schemas/offer-letter.json` — per-jurisdiction offer letter
 - `schemas/audit-event-cascade.json` — 26-class audit registry
 - `schemas/cedar-permit-bundle.json` — Cedar permit set
-- `integration-test-plan.md` — 10 test suites
+- `integration-test-plan.md` — 10 test sets
 - Per-µservice IPs at `microservices/<svc>/IP-journey-j132-*.md` (10 files)
 
 ## How to use this journey

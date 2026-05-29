@@ -8,7 +8,7 @@ info:
     REST surface for third-party developers: onboarding + signing-key issuance + plugin submission +
     sandbox + payout + tax-form. Stripe-Connect-parity developer-facing surface.
 servers:
-  - url: https://developer-api.oyatie.dev/v1
+  - url: https://developer-api.oyatie.com/v1
     description: Production
 tags:
   - name: developer-onboarding

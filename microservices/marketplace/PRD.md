@@ -27,7 +27,7 @@ related_adrs:
   - ADR-0344
   - ADR-0345
 companion_docs: [microservices/marketplace/README.md, docs/standards/documentation-rigor.md]
-planned_enforcement_ref: oya-governance-marketplace-doc-suite
+planned_enforcement_ref: oya-governance-marketplace-doc-set
 naming_justifications: BNF v4 service_action_resource grammar and 13-layer-enum conformance are declared inline in this document
 line_floor: 1500
 ---
@@ -38,7 +38,7 @@ line_floor: 1500
 Marketplace must close the PR-143 documentation gap for seller listing, buyer order, deal set acceptance, escrow reservation, revenue share, mediation, export, appointment commitment, and cross-border settlement evidence.
 The service is a product microservice and its doctrine is universal deal-settlement substrate.
 The current root contained only journey implementation anchors. This PRD makes the product surface buildable from documentation alone.
-The industry precedent is SAP Ariba procurement network, Coupa spend management, Stripe Connect platform settlement, Salesforce Commerce Cloud enterprise commerce.
+The industry precedent is SAP Ariba procurement network, Coupa spend management, Stripe platform settlement, Salesforce Commerce Cloud enterprise commerce.
 The binding decision record is ADR-0314; tenant scope comes from ADR-0244; Cedar gating comes from ADR-0243; audit emission comes from ADR-0263.
 
 ## B. Target users
@@ -50,7 +50,7 @@ The binding decision record is ADR-0314; tenant scope comes from ADR-0244; Cedar
 - Agent implementer: lands single-PR implementation slices from the `ip/` directory.
 
 ## C. Journey IP cross-reference map
-The suite cross-references 15 existing journey IP files and treats them as product anchors, not as isolated notes.
+The doc set cross-references 15 existing journey IP files and treats them as product anchors, not as isolated notes.
 
 | Journey | Concept | Existing file | Product concept woven into this PRD |
 |---|---|---|---|
@@ -133,26 +133,26 @@ The suite cross-references 15 existing journey IP files and treats them as produ
 - Reliability: route-level availability targets in `slos/` remain green for two consecutive release trains.
 - Evidence quality: 100 percent of mutating actions include tenant_id, sub_scope_path, principal_hash, cell_id, audit_event_class, and evidence_ref.
 - Supportability: every alert routes to a runbook in `runbooks/` and a dashboard in `dashboards/`.
-- Contract stability: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 are the only public contract formats in this suite.
+- Contract stability: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 are the only public contract formats in this doc set.
 
 ## H. Compliance impact
 The service processes tenant-scoped operational data and emits audit-chain records. It never bypasses ADR-0244 tenant scope, never grants raw cross-tenant visibility, and never stores provider credentials outside approved secret bindings.
 Sovereign packs cover KR-CSAP, EU-sovereign, CN-PIPL, IL5/6, FedRAMP High, SOC 2, ISO 27001, LGPD, DPDPA, MAS, APRA CPS 234, and SOX 404 control evidence where active.
 
 ## I. Open question posture
-No product-blocking ambiguity remains for this documentation suite. Implementation teams still choose concrete storage migrations per IP after they claim the relevant ChangeSet.
+No product-blocking ambiguity remains for this documentation set. Implementation teams still choose concrete storage migrations per IP after they claim the relevant ChangeSet.
 
 ## J. Out of scope
 - Replacing payments, treasury, identity, audit-chain, workflow-engine, mail, drive, or compliance ownership.
 - Adding runtime production credentials.
 - Changing global ADR doctrine.
-- Collapsing flat microservice ownership into a suite.
+- Collapsing flat microservice ownership into a platform wrapper.
 
 ## Naming justifications: BNF v4 and 13-layer enum conformance
 
 Every new artifact uses the BNF v4 grammar `<service>.<bounded_context>.<action>.<resource>` for actions and `oya-marketplace-<bounded-context>-<layer>` for crate and catalog names.
-The ADR-0105/ADR-0106 canonical 13-layer enum used by this suite is kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api.
-The suite keeps ADR-0105 compatibility by mapping the 12 deployable layers into the larger canonical enum without inventing a new layer name.
+The ADR-0105/ADR-0106 canonical 13-layer enum used by this doc set is kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api.
+The doc set keeps ADR-0105 compatibility by mapping the 12 deployable layers into the larger canonical enum without inventing a new layer name.
 The service slug `marketplace` is retained because it is already the microservice directory name, policy prefix, catalog prefix, and endpoint namespace.
 The primitive name `DealSet` is retained because it is the smallest stable object that lets the journey IP slices share one contract without leaking unrelated service ownership.
 The secondary primitive `SettlementLedger` is retained because it names the audit-backed record that downstream services consume without taking direct table ownership.

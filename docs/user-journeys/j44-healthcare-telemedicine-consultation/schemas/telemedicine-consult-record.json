@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j44/telemedicine-consult-record.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j44/telemedicine-consult-record.json",
   "title": "TelemedicineConsultRecord",
   "version": "1.0.0",
   "description": "Shared journey object for j44-healthcare-telemedicine-consultation. It lets Yejin Park run a virtual consultation, transcribe it, capture the clinical note, and export to EHR while preserving tenant scope, auditability, and cross-service status.",

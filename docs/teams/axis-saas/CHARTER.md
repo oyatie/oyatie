@@ -5,7 +5,7 @@ doc_status: published
 # Team: Axis — SaaS Multi-Tenant Platform
 
 ## Mission
-This team owns the SaaS multi-tenant platform axis: the workflow engine, Object Graph, plugin substrate and marketplace, Bench (collaborative workspace), and Connect partner surface. It exists to make Oyatie the operating system for tenant businesses — the layer that end users touch every day, shaped per vertical by the vertical teams but authored and governed here. It does **not** own the underlying cloud infrastructure (→ `axis-cloud`), the agent runtime (→ `axis-foundry`), or per-vertical domain logic beyond what is shared across all verticals.
+This team owns the SaaS multi-tenant platform axis: the workflow engine, Object Graph, plugin substrate and marketplace, Bench (collaborative workspace), and partner surface. It exists to make Oyatie the operating system for tenant businesses — the layer that end users touch every day, shaped per vertical by the vertical teams but authored and governed here. It does **not** own the underlying cloud infrastructure (→ `axis-cloud`), the agent runtime (→ `axis-foundry`), or per-vertical domain logic beyond what is shared across all verticals.
 
 ## Owned axes / surfaces / contracts
 - **Axis(es):** SaaS multi-tenant (Axis 1)

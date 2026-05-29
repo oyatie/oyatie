@@ -1,6 +1,6 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/planning-closure-status-closure-ledger.schema.json",
-  "$id": "https://docs.oyatie.dev/specs/planning-closure-status-closure-ledger.json",
+  "$schema": "https://docs.oyatie.com/schemas/planning-closure-status-closure-ledger.schema.json",
+  "$id": "https://docs.oyatie.com/specs/planning-closure-status-closure-ledger.json",
   "_meta": {
     "doc_class": "Machine-Readable-Ledger",
     "spec_id": "PLANNING-CLOSURE-STATUS-CLOSURE-LEDGER",

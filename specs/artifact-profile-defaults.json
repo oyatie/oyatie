@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/artifact-profile-defaults.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/artifact-profile-defaults.schema.json",
   "title": "ArtifactProfileDefaults",
   "description": "Profile defaults for the 9-capability artifact contract. Reduces per-row authoring burden: each registry row declares `artifact_profile` + optional overrides; validator merges profile-defaults with row-overrides to produce the resolved capability declaration. Closes architect r17 finding #8 (9-capability contract too heavy to author manually at scale).",
   "_meta": {
@@ -387,7 +387,7 @@
         "json"
       ],
       "examples": [
-        "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json"
+        "/evidence/ops-portal-plan-set-accepted-2026-05-13.json"
       ],
       "default_capabilities": {
         "enforcement": {

@@ -20,7 +20,7 @@ owners:
   - axis-foundry
 supersedes: []
 amends:
-  - ADR-0132-product-suite-and-bundle-dissolution.md (adds capability-tier projection doctrine as the successor to per-product fragmentation)
+  - ADR-0132-product-platform-and-bundle-dissolution.md (adds capability-tier projection doctrine as the successor to per-product fragmentation)
   - ADR-0245-substrate-vs-product-layering.md (adds capability-tier registry as the product-layer activation primitive)
   - ADR-0249-multi-category-marketplace-doctrine.md (declares marketplace categories as tiers and overlays, not fragmented services)
   - ADR-0257-ontology-object-type-versioning-deprecation-handshake.md (requires tier projections to pin object-type schema revisions)
@@ -52,7 +52,7 @@ related_specs:
   - /specs/products/ontology.json
 companion_docs:
   - docs/standards/documentation-rigor.md
-  - docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+  - docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
   - docs/decisions/ADR-0245-substrate-vs-product-layering.md
   - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
   - docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md
@@ -92,7 +92,7 @@ enforced_by:
 Proposed - 2026-05-20.
 
 This ADR lands after ADR-0313, ADR-0314, and ADR-0315. ADR-0315 proved that SAP-class ERP
-parity can be represented by module-to-capability composition rather than a new ERP suite.
+parity can be represented by module-to-capability composition rather than a new ERP platform.
 ADR-0316 generalizes that result across the rest of enterprise software: CRM, HR, ITSM,
 marketing, CLM, learning, performance, analytics, content, support, and adjacent categories
 become capability tiers on shared substrate primitives.
@@ -296,7 +296,7 @@ Those labels are UX and GTM labels bound to capability-tier ids, not service bou
 | Alternative | Claimed benefit | Rejection reason |
 |---|---|---|
 | Status quo point-product acquisition | Short-term procurement speed. | Permanent identity, policy, data, workflow, audit, and compliance fragmentation. |
-| One enterprise-suite microservice | Single owner and familiar suite label. | Violates ADR-0132 and creates a monolith with broad blast radius. |
+| One tenant-rbac microservice | Single owner and familiar grouping label. | Violates ADR-0132 and creates a monolith with broad blast radius. |
 | One microservice per enterprise category | Clear product ownership labels. | Duplicates substrate primitives and recreates SaaS sprawl inside oyatie. |
 | Config flags only | Cheap first implementation. | Flags lack Cedar evidence, schema pins, lifecycle state, and auditability. |
 | Marketplace plugins for every category | Externalizes build effort. | Cannot satisfy first-party compliance, tenant portability, and hyperscaler-grade audit needs. |
@@ -803,7 +803,7 @@ F3.rule.10. No ERP parity tier may contradict ADR-0315 module mapping.
 
 ## Section G - References
 
-- ADR-0132: No-suite forward policy and flat catalog doctrine.
+- ADR-0132: No-grouping forward policy and flat catalog doctrine.
 - ADR-0245: Substrate vs product layering and tier classification.
 - ADR-0249: Marketplace as multi-category surface over shared substrates.
 - ADR-0257: Ontology object-type versioning and deprecation handshake.
@@ -1102,7 +1102,7 @@ J.011. Precedent C: Salesforce metadata components.
 J.011. Doctrine: oyatie uses the primitive only with tenant scope, Cedar evidence, and audit-chain emission.
 J.012. Primitive: Tier composition.
 J.012. Precedent A: Microsoft 365 integrated platform.
-J.012. Precedent B: ServiceNow Now Platform workflows.
+J.012. Precedent B: ServiceNow Now Module workflows.
 J.012. Precedent C: Salesforce Platform layered capabilities.
 J.012. Doctrine: oyatie uses the primitive only with tenant scope, Cedar evidence, and audit-chain emission.
 
@@ -1140,10 +1140,10 @@ K.008. Service compliance MUST declare capability-tier contributions or no-tier 
 K.008. Service compliance MUST bind each contribution to owner team, artifact ref, schema revision, and evidence ref.
 K.008. Service compliance MUST NOT create product-specific authorization outside Cedar permit sets.
 K.008. Service compliance MUST NOT create product-specific object copies outside ontology projection rules.
-K.009. Service connect MUST declare capability-tier contributions or no-tier posture.
-K.009. Service connect MUST bind each contribution to owner team, artifact ref, schema revision, and evidence ref.
-K.009. Service connect MUST NOT create product-specific authorization outside Cedar permit sets.
-K.009. Service connect MUST NOT create product-specific object copies outside ontology projection rules.
+K.009. Service connector MUST declare capability-tier contributions or no-tier posture.
+K.009. Service connector MUST bind each contribution to owner team, artifact ref, schema revision, and evidence ref.
+K.009. Service connector MUST NOT create product-specific authorization outside Cedar permit sets.
+K.009. Service connector MUST NOT create product-specific object copies outside ontology projection rules.
 K.010. Service consent-graph MUST declare capability-tier contributions or no-tier posture.
 K.010. Service consent-graph MUST bind each contribution to owner team, artifact ref, schema revision, and evidence ref.
 K.010. Service consent-graph MUST NOT create product-specific authorization outside Cedar permit sets.
@@ -1395,7 +1395,7 @@ L.023. Review question: Does the category preserve ADR-0249 marketplace substrat
 L.023. Required answer: capability-tier-first unless Section D-10 evidence proves a new operational concern.
 L.024. Review question: Does the category preserve ADR-0245 tier classification?
 L.024. Required answer: capability-tier-first unless Section D-10 evidence proves a new operational concern.
-L.025. Review question: Does the category preserve ADR-0132 no-suite doctrine?
+L.025. Review question: Does the category preserve ADR-0132 no-grouping doctrine?
 L.025. Required answer: capability-tier-first unless Section D-10 evidence proves a new operational concern.
 
 ## Appendix M - Validation evidence contract

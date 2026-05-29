@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/user-journeys/j176-migration-from-sap-s4hana-to-oyatie-finance-month-1/vendor-extract-schema.json",
+  "$id": "https://docs.oyatie.com/user-journeys/j176-migration-from-sap-s4hana-to-oyatie-finance-month-1/vendor-extract-schema.json",
   "title": "SAP S/4HANA to Oyatie Finance month-1 cutover vendor extract schema",
   "type": "object",
   "required": [

@@ -17,13 +17,13 @@ info:
     Hyperscaler precedents: Stripe REST API + Adyen API + Toss Payments API.
   contact:
     name: axis-payments
-    url: https://docs.oyatie.dev/payments
+    url: https://docs.oyatie.com/payments
   license:
     name: oyatie-internal
 servers:
-  - url: https://payments.oyatie.dev
+  - url: https://payments.oyatie.com
     description: Production (regional routing via tenant.region_pin)
-  - url: https://payments-sandbox.oyatie.dev
+  - url: https://payments-sandbox.oyatie.com
     description: Sandbox (PSP test-mode keys only)
 security:
   - bearerAuth: []
@@ -39,7 +39,7 @@ tags:
   - name: subscription
     description: Recurring billing
   - name: sub-merchant
-    description: Stripe Connect sub-merchant + KYC / KYB
+    description: Stripe sub-merchant + KYC / KYB
 paths:
   /v1/charges:
     post:
@@ -301,7 +301,7 @@ paths:
   /v1/sub-merchants:
     post:
       operationId: onboardSubMerchant
-      summary: Onboard a sub-merchant (Stripe Connect / Adyen MarketPay)
+      summary: Onboard a sub-merchant (Stripe / Adyen MarketPay)
       tags: [sub-merchant]
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -464,7 +464,7 @@ components:
         sub_merchant_id:
           type: string
           format: uuid
-          description: For Connect / MarketPay flows
+          description: For / MarketPay flows
         metadata:
           type: object
           additionalProperties:

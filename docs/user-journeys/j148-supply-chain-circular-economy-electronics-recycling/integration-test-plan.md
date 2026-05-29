@@ -77,7 +77,7 @@ and a recycling partner, recovered materials enter AcmeRawMaterials supply, prov
 Yejin earns credit. The stop condition is a reproducible run where every required service emits the
 expected audit event, the marketplace settlement ledger balances, and all negative tests fail closed.
 
-## Suite 1: contract-shape
+## Test Set 1: contract-shape
 
 OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 fixtures parse and round-trip
 
@@ -88,10 +88,10 @@ OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 fixtures parse and round-trip
 | 1.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 1.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 1.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 1.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 1.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 1.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 2: identity-boundary
+## Test Set 2: identity-boundary
 
 same human, correct tenant context, no implicit cross-tenant read
 
@@ -102,10 +102,10 @@ same human, correct tenant context, no implicit cross-tenant read
 | 2.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 2.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 2.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 2.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 2.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 2.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 3: cedar-deny
+## Test Set 3: cedar-deny
 
 missing counterparty permit denies before any side effect
 
@@ -116,10 +116,10 @@ missing counterparty permit denies before any side effect
 | 3.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 3.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 3.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 3.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 3.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 3.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 4: happy-path
+## Test Set 4: happy-path
 
 all service hops complete and marketplace settlement balances
 
@@ -130,10 +130,10 @@ all service hops complete and marketplace settlement balances
 | 4.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 4.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 4.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 4.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 4.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 4.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 5: payment-outage
+## Test Set 5: payment-outage
 
 settlement intent queues without duplicate debit
 
@@ -144,10 +144,10 @@ settlement intent queues without duplicate debit
 | 5.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 5.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 5.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 5.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 5.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 5.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 6: regional-partition
+## Test Set 6: regional-partition
 
 pre-final writes are safe and finality waits for quorum
 
@@ -158,10 +158,10 @@ pre-final writes are safe and finality waits for quorum
 | 6.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 6.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 6.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 6.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 6.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 6.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 7: abuse-defence
+## Test Set 7: abuse-defence
 
 ADR-0297 controls stop scripted counterparty probing
 
@@ -172,10 +172,10 @@ ADR-0297 controls stop scripted counterparty probing
 | 7.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 7.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 7.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 7.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 7.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 7.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 8: minor-protection
+## Test Set 8: minor-protection
 
 ADR-0292 controls activate when a protected user appears
 
@@ -186,10 +186,10 @@ ADR-0292 controls activate when a protected user appears
 | 8.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 8.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 8.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 8.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 8.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 8.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 9: observability
+## Test Set 9: observability
 
 ADR-0263 metrics, traces, logs, and audit-chain events align
 
@@ -200,10 +200,10 @@ ADR-0263 metrics, traces, logs, and audit-chain events align
 | 9.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 9.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 9.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 9.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 9.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 9.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 10: rollback
+## Test Set 10: rollback
 
 compensating command or credit note preserves history
 
@@ -214,7 +214,7 @@ compensating command or credit note preserves history
 | 10.3 | `workflow-engine-fixture-j148` | `workflow-engine` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 10.4 | `ontology-fixture-j148` | `ontology` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 10.5 | `audit-chain-fixture-j148` | `audit-chain` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
-| 10.6 | `connect-fixture-j148` | `connect` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
+| 10.6 | `connect-fixture-j148` | `connector` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 10.7 | `community-fixture-j148` | `community` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
 ## Property and fuzz tests
@@ -224,35 +224,35 @@ compensating command or credit note preserves history
 - Property 03: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `workflow-engine` must preserve idempotency and deny cross-tenant leakage.
 - Property 04: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `ontology` must preserve idempotency and deny cross-tenant leakage.
 - Property 05: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `audit-chain` must preserve idempotency and deny cross-tenant leakage.
-- Property 06: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connect` must preserve idempotency and deny cross-tenant leakage.
+- Property 06: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connector` must preserve idempotency and deny cross-tenant leakage.
 - Property 07: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `community` must preserve idempotency and deny cross-tenant leakage.
 - Property 08: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `plugin-app-store` must preserve idempotency and deny cross-tenant leakage.
 - Property 09: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `payments` must preserve idempotency and deny cross-tenant leakage.
 - Property 10: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `workflow-engine` must preserve idempotency and deny cross-tenant leakage.
 - Property 11: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `ontology` must preserve idempotency and deny cross-tenant leakage.
 - Property 12: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `audit-chain` must preserve idempotency and deny cross-tenant leakage.
-- Property 13: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connect` must preserve idempotency and deny cross-tenant leakage.
+- Property 13: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connector` must preserve idempotency and deny cross-tenant leakage.
 - Property 14: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `community` must preserve idempotency and deny cross-tenant leakage.
 - Property 15: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `plugin-app-store` must preserve idempotency and deny cross-tenant leakage.
 - Property 16: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `payments` must preserve idempotency and deny cross-tenant leakage.
 - Property 17: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `workflow-engine` must preserve idempotency and deny cross-tenant leakage.
 - Property 18: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `ontology` must preserve idempotency and deny cross-tenant leakage.
 - Property 19: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `audit-chain` must preserve idempotency and deny cross-tenant leakage.
-- Property 20: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connect` must preserve idempotency and deny cross-tenant leakage.
+- Property 20: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connector` must preserve idempotency and deny cross-tenant leakage.
 - Property 21: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `community` must preserve idempotency and deny cross-tenant leakage.
 - Property 22: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `plugin-app-store` must preserve idempotency and deny cross-tenant leakage.
 - Property 23: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `payments` must preserve idempotency and deny cross-tenant leakage.
 - Property 24: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `workflow-engine` must preserve idempotency and deny cross-tenant leakage.
 - Property 25: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `ontology` must preserve idempotency and deny cross-tenant leakage.
 - Property 26: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `audit-chain` must preserve idempotency and deny cross-tenant leakage.
-- Property 27: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connect` must preserve idempotency and deny cross-tenant leakage.
+- Property 27: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connector` must preserve idempotency and deny cross-tenant leakage.
 - Property 28: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `community` must preserve idempotency and deny cross-tenant leakage.
 - Property 29: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `plugin-app-store` must preserve idempotency and deny cross-tenant leakage.
 - Property 30: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `payments` must preserve idempotency and deny cross-tenant leakage.
 - Property 31: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `workflow-engine` must preserve idempotency and deny cross-tenant leakage.
 - Property 32: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `ontology` must preserve idempotency and deny cross-tenant leakage.
 - Property 33: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `audit-chain` must preserve idempotency and deny cross-tenant leakage.
-- Property 34: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connect` must preserve idempotency and deny cross-tenant leakage.
+- Property 34: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `connector` must preserve idempotency and deny cross-tenant leakage.
 - Property 35: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `community` must preserve idempotency and deny cross-tenant leakage.
 - Property 36: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `plugin-app-store` must preserve idempotency and deny cross-tenant leakage.
 - Property 37: randomize tenant ids, counterparty ids, amounts, currencies, and retry order; `payments` must preserve idempotency and deny cross-tenant leakage.
@@ -267,7 +267,7 @@ compensating command or credit note preserves history
 - `workflow-engine` load assertion: 1000 journey commands over 10 minutes, P95 <= 300 ms for control-plane hops, zero unbounded-cardinality labels, and queue depth below service budget.
 - `ontology` load assertion: 1000 journey commands over 10 minutes, P95 <= 300 ms for control-plane hops, zero unbounded-cardinality labels, and queue depth below service budget.
 - `audit-chain` load assertion: 1000 journey commands over 10 minutes, P95 <= 300 ms for control-plane hops, zero unbounded-cardinality labels, and queue depth below service budget.
-- `connect` load assertion: 1000 journey commands over 10 minutes, P95 <= 300 ms for control-plane hops, zero unbounded-cardinality labels, and queue depth below service budget.
+- `connector` load assertion: 1000 journey commands over 10 minutes, P95 <= 300 ms for control-plane hops, zero unbounded-cardinality labels, and queue depth below service budget.
 - `community` load assertion: 1000 journey commands over 10 minutes, P95 <= 300 ms for control-plane hops, zero unbounded-cardinality labels, and queue depth below service budget.
 
 Integration evidence row 001: plugin-app-store applies ADR-0244; the test harness proves contract, policy, settlement, observability, and rollback behavior

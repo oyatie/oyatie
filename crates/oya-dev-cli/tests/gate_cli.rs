@@ -1980,7 +1980,7 @@ fn hyperscaler_arch_invariants_gate_accepts_repo_spec() {
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("hyperscaler architecture invariant validation passed"));
-    assert!(stdout.contains("35 invariants, 11 products"));
+    assert!(stdout.contains("35 invariants, 13 services"));
 }
 
 #[test]

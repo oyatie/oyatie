@@ -12,7 +12,7 @@ doc_status: published
 # Competitor parity matrix
 
 
-| Capability | Apple App Store | VS Code Marketplace | AWS Marketplace | Shopify App Store | Stripe Connect | Salesforce AppExchange | Oyatie |
+| Capability | Apple App Store | VS Code Marketplace | AWS Marketplace | Shopify App Store | Stripe | Salesforce AppExchange | Oyatie |
 |---|---|---|---|---|---|---|---|
 | Per-app permissions | Yes (since iOS 6) | Yes (Permissions API) | Limited | Yes (scopes) | n/a | Yes | **Yes** |
 | Signed artifacts | Yes (notarization) | Yes (VSIX signing) | Limited | n/a | n/a | Yes | **Yes (Cosign)** |
@@ -29,6 +29,6 @@ doc_status: published
 ## Differentiation
 
 - Oyatie's auditable per-action trail + per-app SLO publishing is novel vs. App Store / VS Code Marketplace.
-- Oyatie's in-house payout substrate (no Stripe Connect dependency) is the Stripe Connect parity ADR-0211 commits to.
+- Oyatie's in-house payout substrate (no Stripe dependency) is the Stripe parity ADR-0211 commits to.
 - Oyatie's cross-pack regulatory overlay (kr / eu / us-healthcare / us-financial / us-public-sector) is unique to oyatie's product surface.
 

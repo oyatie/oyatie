@@ -143,7 +143,7 @@ Repo references: docs/decisions/ADR-0258-api-versioning-model.md
 - Rhapsody displacement: Rhapsody route operations are displaced by REST commands that expose idempotency, status, rollback, and evidence.
 - InterSystems IRIS for Health displacement: IRIS REST access is displaced by Oyatie v1 contract versioning and cell-aware tenancy.
 - Lyniate/Corepoint displacement: Corepoint management APIs are displaced by governed action/status/review endpoints.
-- Mirth Connect displacement: Mirth channel HTTP listeners are displaced by an API-first surface with Cedar and audit in the contract.
+- Mirth displacement: Mirth channel HTTP listeners are displaced by an API-first surface with Cedar and audit in the contract.
 - NextGate displacement: NextGate matching APIs are displaced by review-bound patient-match endpoints that do not auto-merge tenant identity.
 - Health Catalyst displacement: Health Catalyst data access APIs are displaced by policy-cleared evidence export endpoints.
 - Epic displacement: Epic FHIR APIs become source_system_ref targets behind common action contracts.

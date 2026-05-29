@@ -94,7 +94,7 @@ Assert: marketplace ingests; pipeline appears in catalog with attribution; SHA-2
 ## D. Chaos
 
 - D.1: Intelligence service degraded; pipeline queues drafts; resumes when restored.
-- D.2: Connect rate-limited; adapter backs off with exponential jitter.
+- D.2: rate-limited; adapter backs off with exponential jitter.
 - D.3: Notes database deleted accidentally; pipeline halts with clear error; recoverable via restore.
 - D.4: Chris's compute budget exhausted; pipeline gracefully degrades to manual mode.
 

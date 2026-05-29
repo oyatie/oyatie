@@ -36,7 +36,7 @@ owner_team: axis-warehouse + axis-erp-parity
 - Persona: Elena Petrova, warehouse QA automation lead.
 - Journey leg: j123 launch flow proves inbound, putaway, wave release, RF pick, outbound release, and audit handoffs together.
 - SAP tables: `/SCWM/PRDI`, `/SCWM/PRDO`, `/SCWM/ORDIM_O`, `/SCWM/QUANT`, `/SCWM/STORAGEBIN`, `/SCWM/WAREHOUSEORDER`.
-- Oyatie test suite: `warehouse_integration_tests`.
+- Oyatie test set: `warehouse_integration_tests`.
 - Precedent: SAP EWM end-to-end goods-flow test pack plus Stripe-style contract replay fixtures.
 - ADR-0329/0330/0331 requires implementation-ready depth and ADR-0297 requires Cedar policy coverage.
 - Boundary: owns integration fixture definitions, test orchestration, and evidence assertions; it does not implement business logic.
@@ -198,10 +198,10 @@ pub enum WarehouseIntegrationTestError { FixtureMissing, PolicyFixtureInvalid, A
 | ADR-0263 pack binding | Fixture pack activation emits `OfficePackOverlayChanged`. |
 | ADR-0263 security binding | CI abuse throttles emit `AbuseDefenceRateLimitHit` through the registered class. |
 | Audit payload | Include `tenant_id`, `audit_id`, `trace_id`, test run id, fixture id, expected event id, and policy bundle version. |
-| Metric | `oya_warehouse_integration_test_runs_total{tenant_id,cell_id,suite,status}` caps suite/status cardinality. |
-| Latency histogram | `oya_warehouse_integration_test_duration_seconds` tracks suite and scenario runtime. |
+| Metric | `oya_warehouse_integration_test_runs_total{tenant_id,cell_id,test_set,status}` caps test_set/status cardinality. |
+| Latency histogram | `oya_warehouse_integration_test_duration_seconds` tracks test set and scenario runtime. |
 | Trace span | `warehouse.integration_test.run_scenario` links CI, warehouse APIs, downstream services, and audit-chain spans. |
-| Log schema | Structured logs include `tenant_id`, `principal_id`, `suite_id`, `fixture_id`, `scenario_id`, and failure class. |
+| Log schema | Structured logs include `tenant_id`, `principal_id`, `test_set_id`, `fixture_id`, `scenario_id`, and failure class. |
 | Capacity math | CI shard count uses scenarios / target_minutes; queue depth above target routes non-blocking tests to nightly lane. |
 | Multi-region | Blocking tests run in home-cell and DR-cell read-only replay modes before promotion. |
 | Sovereign cells | Fixture data remains synthetic or in-region for regulated compliance-pack overlays. |

@@ -18,11 +18,11 @@ info:
     claim; mismatch returns 401.
   contact:
     name: axis-workflow + council-design-system
-    url: https://oyatie.dev/teams/axis-workflow
+    url: https://oyatie.com/teams/axis-workflow
   license:
     name: Internal
 servers:
-  - url: https://studio-{pack}.oyatie.dev/api/v1
+  - url: https://studio-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -83,7 +83,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
   parameters:
     XScopeOrgID:
       in: header

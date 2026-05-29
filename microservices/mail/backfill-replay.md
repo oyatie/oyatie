@@ -127,7 +127,7 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers".
 - `microservices/mail/policy/dual-context-isolation.md` (Invariant DCI-03, DCI-04)
 - ADR-0117 (residency)
 - ADR-0133 (cross-tenant pattern)
-- Bominal ADR-0215 (Connect retention/legal-hold dual-context)
+- Bominal ADR-0215 (retention/legal-hold dual-context)
 - RFC 5322 §3.6.4 (Message-Id)
 - RFC 9051 §6.4.4 (IMAP UID FETCH)
 - Imapsync (open-source IMAP migration tool) — `imapsync.lamiral.info`

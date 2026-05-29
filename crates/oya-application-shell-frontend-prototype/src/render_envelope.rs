@@ -214,7 +214,7 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
             label: s("Healthcare not accredited for this tenant"),
             healthcare_enabled: false,
             explanation: s(
-                "Healthcare modules are absent from this render envelope because the tenant lacks accredited healthcare state.",
+                "Healthcare-regulated surfaces are absent from this render envelope because the tenant lacks accredited healthcare state.",
             ),
         },
         server_derivation_note: s(
@@ -640,7 +640,7 @@ fn corporate_office_envelope() -> TenantRenderEnvelope {
             ),
         ],
         omitted_capability_note: s(
-            "Factory controls and healthcare modules are absent from this role-shaped envelope.",
+            "Factory controls and healthcare-regulated surfaces are absent from this role-shaped envelope.",
         ),
     }
 }
@@ -1098,10 +1098,10 @@ mod tests {
     use super::{DemoContext, server_derived_envelope};
 
     #[test]
-    fn healthcare_modules_are_absent_from_unaccredited_contexts() {
+    fn regulated_care_surfaces_are_absent_from_unaccredited_contexts() {
         for context in [DemoContext::TenantAdmin, DemoContext::CorporateOffice] {
             let envelope = server_derived_envelope(context);
-            let module_names = envelope
+            let surface_names = envelope
                 .modules
                 .iter()
                 .map(|module| module.name.as_str())
@@ -1109,16 +1109,16 @@ mod tests {
                 .join("|");
 
             assert!(!envelope.accreditation.healthcare_enabled);
-            assert!(!module_names.contains("Patient"));
-            assert!(!module_names.contains("Clinical"));
-            assert!(!module_names.contains("Care Workflows"));
+            assert!(!surface_names.contains("Patient"));
+            assert!(!surface_names.contains("Clinical"));
+            assert!(!surface_names.contains("Care Workflows"));
         }
     }
 
     #[test]
     fn accredited_healthcare_context_receives_care_modules() {
         let envelope = server_derived_envelope(DemoContext::HealthcareClinician);
-        let module_names = envelope
+        let surface_names = envelope
             .modules
             .iter()
             .map(|module| module.name.as_str())
@@ -1126,9 +1126,9 @@ mod tests {
             .join("|");
 
         assert!(envelope.accreditation.healthcare_enabled);
-        assert!(module_names.contains("Clinical Home"));
-        assert!(module_names.contains("Patient Schedule"));
-        assert!(module_names.contains("Care Workflows"));
+        assert!(surface_names.contains("Clinical Home"));
+        assert!(surface_names.contains("Patient Schedule"));
+        assert!(surface_names.contains("Care Workflows"));
     }
 
     #[test]

@@ -226,7 +226,7 @@ Driver 6: the audit findings backlog already names "tenant-class adoption gap" i
 
 ### C.4 Hyperscaler-grade rigor application
 
-**Named precedent.** AWS IAM principals carry a `pathPrefix` and account-level attributes (per ADR-0244 §A.6 Stripe Connect / AWS IAM / Azure AAD references). The tenant_class adoption pattern follows AWS-style **principal attributes resolved at request boundary, applied via policy** — every µservice trusts the principal's claim rather than re-resolving the attribute at request time.
+**Named precedent.** AWS IAM principals carry a `pathPrefix` and account-level attributes (per ADR-0244 §A.6 Stripe / AWS IAM / Azure AAD references). The tenant_class adoption pattern follows AWS-style **principal attributes resolved at request boundary, applied via policy** — every µservice trusts the principal's claim rather than re-resolving the attribute at request time.
 
 **Failure-mode tree.** Failure modes: (1) µservice forgets to consume the principal claim → fails-closed default in Cedar fragment denies; (2) cloud-billing emits stale claim → cache TTL bound per ADR-0243 §D-10 hot-reload; (3) µservice over-restricts demo_trial → cap-breach grace flow allows recovery; (4) µservice under-restricts (allows compliance pack for demo_trial) → ADR-0251 pack activation gate blocks; (5) tenant_class state changes mid-session → principal claim is reissued at next token refresh.
 

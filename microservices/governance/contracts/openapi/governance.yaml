@@ -15,7 +15,7 @@ info:
   license:
     name: MIT
 servers:
-  - url: https://governance.{pack}.oyatie.dev
+  - url: https://governance.{pack}.oyatie.com
     description: per-pack endpoint
     variables:
       pack:

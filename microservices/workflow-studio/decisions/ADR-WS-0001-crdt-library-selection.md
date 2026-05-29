@@ -62,7 +62,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the workflow-studio CRDT library
 3. CRDT-to-spec projection (`emit`) deterministically orders Loro nodes by their stable `TreeID`s, with map keys lex-sorted at the dsl-emitter boundary. This makes Loro state projection deterministic and is the seam that lets AC-02 (round-trip byte-equality) hold even though Loro's internal op log is not byte-canonical.
 4. Loro snapshot encoding is used for Valkey persistence (`snapshot()` + `import_snapshot()`); JSON projection is used only for the canonical spec emission.
 5. Loro version pinning + Ed25519-signed advisory feed monitoring; major-version upgrades require a fresh round-trip-corpus drill against the 100-spec reference corpus before merge.
-6. The collab-crdt CI lane (`oya-governance-collab-no-silent-loss`) runs Loro's example test suite + workflow-studio's own AC-06 property test (10 concurrent editors, randomized op interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
+6. The collab-crdt CI lane (`oya-governance-collab-no-silent-loss`) runs Loro's example test set + workflow-studio's own AC-06 property test (10 concurrent editors, randomized op interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 
 ## Alternatives Considered
 
@@ -137,7 +137,7 @@ The pre-CRDT industry standard (Google Docs, Etherpad).
 
 ### Downstream impact on other µservices and IPs
 
-1. **IP-005 (collab-crdt kernel/domain/adapter)** — adopts Loro as the concrete merge engine; property test suite for AC-06 must run Loro op streams plus a randomized-interleaving fuzzer.
+1. **IP-005 (collab-crdt kernel/domain/adapter)** — adopts Loro as the concrete merge engine; property test set for AC-06 must run Loro op streams plus a randomized-interleaving fuzzer.
 2. **IP-006 (collab-crdt worker + SDK)** — WebSocket gateway encodes/decodes Loro ops; tenant SDKs (Rust + future TypeScript) MUST NOT expose Loro types directly — they expose `CrdtOp` envelopes only.
 3. **IP-003/IP-004 (dsl-emitter/dsl-loader)** — projection layer between Loro state and canonical JSON is co-authored with IP-005; deterministic node-ordering by stable `TreeID` is the contract.
 4. **workflow-engine µservice** — unaffected at the engine side; engine consumes only the canonical spec, never CRDT state.
@@ -154,7 +154,7 @@ The pre-CRDT industry standard (Google Docs, Etherpad).
 
 - Loro added to `cargo deny` allowlist with explicit version pin.
 - Loro author/maintainer set monitored via GitHub Security Advisories + RustSec advisory database.
-- Major-version Loro upgrade is gated on: (a) 100-spec round-trip-corpus drill green, (b) AC-06 property test suite green, (c) WASM bundle size delta ≤ +50 KB gzip.
+- Major-version Loro upgrade is gated on: (a) 100-spec round-trip-corpus drill green, (b) AC-06 property test set green, (c) WASM bundle size delta ≤ +50 KB gzip.
 - Loro upstream maintainers are notified out-of-band of any CRDT-correctness issue oyatie surfaces; the issue + fix is contributed back per ADR-0133 axis-4 industry-best-practice conformance.
 
 ### Risk register

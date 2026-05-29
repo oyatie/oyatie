@@ -196,7 +196,7 @@ oyatie recordings ships a **two-component foundry-runtime-hosted pipeline**:
   (`developers.deepgram.com`), Speechmatics documentation, Rev AI docs.
 - NVIDIA NeMo Speaker Diarization (`docs.nvidia.com/nemo`).
 - ADR-0131 — per-µservice flat layout.
-- ADR-0132 — no-suite forward-policy.
+- ADR-0132 — no-grouping forward-policy.
 - ADR-0133 — industry best-practice.
 - ADR-RECORDINGS-0003 — redaction policy.
 - ADR-RECORDINGS-0006 — AI feature bounds.

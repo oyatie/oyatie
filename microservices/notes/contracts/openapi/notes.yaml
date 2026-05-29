@@ -9,10 +9,10 @@ info:
     and are tenant-scoped via `X-Scope-OrgID` header + dual-context-tagged via
     `X-Context-Kind` header per parallel ADR-0238.
 
-    Real-time path is via WebSocket at `wss://notes-{pack}.oyatie.dev/ws/v1`
+    Real-time path is via WebSocket at `wss://notes-{pack}.oyatie.com/ws/v1`
     documented in `contracts/asyncapi/notes-events.yaml`.
 
-    Loro CRDT collab is via `wss://notes-{pack}.oyatie.dev/ws/loro/v1`
+    Loro CRDT collab is via `wss://notes-{pack}.oyatie.com/ws/loro/v1`
     using the binary protocol in `contracts/proto/notes.proto`.
 
     Web-clipper REST is `/clip/v1` (subset surface; per-installation token).
@@ -28,12 +28,12 @@ info:
 
   contact:
     name: axis-notes
-    url: https://oyatie.dev/teams/axis-notes
+    url: https://oyatie.com/teams/axis-notes
   license:
     name: Internal
 
 servers:
-  - url: https://notes-{pack}.oyatie.dev/api/v1
+  - url: https://notes-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -94,7 +94,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
     ClipperInstallationToken:
       type: apiKey
       in: header

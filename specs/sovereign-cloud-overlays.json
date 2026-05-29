@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/sovereign-cloud-overlays.schema.json",
+  "$id": "https://docs.oyatie.com/specs/sovereign-cloud-overlays.schema.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-SOVEREIGN-CLOUD-OVERLAYS",
@@ -14,33 +14,77 @@
   },
   "title": "Sovereign cloud overlays canonical schema",
   "type": "object",
-  "required": ["pack_overlays"],
+  "required": [
+    "pack_overlays"
+  ],
   "properties": {
     "pack_overlays": {
       "type": "array",
-      "items": {"$ref": "#/$defs/PackOverlay"}
+      "items": {
+        "$ref": "#/$defs/PackOverlay"
+      }
     }
   },
   "$defs": {
     "PackOverlay": {
       "type": "object",
-      "required": ["pack_id", "primary_provider", "secondary_provider", "sovereign_data_classes", "prohibited_egress", "audit_cadence", "regulator_pack_evidence_cadence"],
+      "required": [
+        "pack_id",
+        "primary_provider",
+        "secondary_provider",
+        "sovereign_data_classes",
+        "prohibited_egress",
+        "audit_cadence",
+        "regulator_pack_evidence_cadence"
+      ],
       "properties": {
-        "pack_id": {"type": "string", "enum": ["kr", "eu", "ksa", "us", "us-government", "jp", "in", "br", "ae", "global"]},
-        "primary_provider": {"$ref": "#/$defs/ProviderRef"},
-        "secondary_provider": {"$ref": "#/$defs/ProviderRef"},
+        "pack_id": {
+          "type": "string",
+          "enum": [
+            "kr",
+            "eu",
+            "ksa",
+            "us",
+            "us-government",
+            "jp",
+            "in",
+            "br",
+            "ae",
+            "global"
+          ]
+        },
+        "primary_provider": {
+          "$ref": "#/$defs/ProviderRef"
+        },
+        "secondary_provider": {
+          "$ref": "#/$defs/ProviderRef"
+        },
         "sovereign_data_classes": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": {
+            "type": "string"
+          }
         },
         "non_sovereign_data_class_fallbacks": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "provider": {"type": "string"},
-              "regions": {"type": "array", "items": {"type": "string"}},
-              "data_classes": {"type": "array", "items": {"type": "string"}}
+              "provider": {
+                "type": "string"
+              },
+              "regions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "data_classes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
             }
           }
         },
@@ -48,25 +92,80 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["data_class", "to_provider"],
+            "required": [
+              "data_class",
+              "to_provider"
+            ],
             "properties": {
-              "data_class": {"type": "string"},
-              "to_provider": {"type": "string"}
+              "data_class": {
+                "type": "string"
+              },
+              "to_provider": {
+                "type": "string"
+              }
             }
           }
         },
-        "audit_cadence": {"type": "string", "enum": ["weekly", "monthly", "quarterly", "annual"]},
-        "regulator_pack_evidence_cadence": {"type": "string", "enum": ["quarterly", "annual"]}
+        "audit_cadence": {
+          "type": "string",
+          "enum": [
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual"
+          ]
+        },
+        "regulator_pack_evidence_cadence": {
+          "type": "string",
+          "enum": [
+            "quarterly",
+            "annual"
+          ]
+        }
       }
     },
     "ProviderRef": {
       "type": "object",
-      "required": ["id", "regions", "certifications", "contract_id"],
+      "required": [
+        "id",
+        "regions",
+        "certifications",
+        "contract_id"
+      ],
       "properties": {
-        "id": {"type": "string", "enum": ["aws", "gcp", "azure", "naver-cloud", "kt-cloud", "stc-cloud", "mobily-cloud", "ovh", "sakura", "aws-gov", "azure-government", "openstack-onprem"]},
-        "regions": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-        "certifications": {"type": "array", "items": {"type": "string"}},
-        "contract_id": {"type": "string"}
+        "id": {
+          "type": "string",
+          "enum": [
+            "aws",
+            "gcp",
+            "azure",
+            "naver-cloud",
+            "kt-cloud",
+            "stc-cloud",
+            "mobily-cloud",
+            "ovh",
+            "sakura",
+            "aws-gov",
+            "azure-government",
+            "openstack-onprem"
+          ]
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "certifications": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "contract_id": {
+          "type": "string"
+        }
       }
     }
   }

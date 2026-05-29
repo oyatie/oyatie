@@ -6,7 +6,7 @@ version: 0.1.0
 appVersion: "16.2"  # Postgres 16 LTS line
 maintainers:
   - name: ops-sre-reliability
-    email: ops-sre-reliability@oyatie.dev
+    email: ops-sre-reliability@oyatie.com
 dependencies:
   - name: postgresql-ha
     version: "^14.0.0"

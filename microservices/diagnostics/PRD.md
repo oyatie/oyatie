@@ -9,7 +9,7 @@ owner_team: axis-diagnostics + council-product
 reconciliation_wave: 15m-reconcile
 canonical_sources:
   - ../../docs/decisions/ADR-0332-healthcare-domain-decomposition.md
-  - ../../docs/decisions/ADR-0132-no-suite-policy.md
+  - ../../docs/decisions/ADR-0132-no-grouping-policy.md
   - ../imaging/PRD.md
   - ../imaging/REMEDIATION-NOTES-2026-05-21.md
 top_3_counterparts:

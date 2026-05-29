@@ -126,7 +126,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: 'https://schemas.oyatie.dev/user-journeys/j01/ios-sos-relay.json'
+              $ref: 'https://schemas.oyatie.com/user-journeys/j01/ios-sos-relay.json'
       responses:
         '200':
           description: Accepted; fanout in progress

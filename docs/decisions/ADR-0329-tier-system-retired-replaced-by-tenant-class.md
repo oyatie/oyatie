@@ -547,7 +547,7 @@ B2.022. The retired ADR-0316 enforcement lanes
 `oya-governance-capability-tier-migration-declaration` are retired in
 Wave 15J. The "no product fragmentation" anti-pattern that
 ADR-0316 also asserted survives in ADR-0245 (substrate-vs-product
-layering) and ADR-0132 (product suite and bundle dissolution); those
+layering) and ADR-0132 (product platform and bundle dissolution); those
 two ADRs already enforce the structural rule independently of the
 capability-tier ladder.
 
@@ -595,7 +595,7 @@ ADR-0331 as the canonical adoption mechanic.
 
 B2.029. The ADR-0316 super-broad claim that "a product name MUST NOT
 create a microservice by itself" survives in ADR-0245 (substrate-vs-product
-layering), ADR-0132 (product suite and bundle dissolution), and
+layering), ADR-0132 (product platform and bundle dissolution), and
 ADR-0316's surviving Section D-10 test (which is migrated to ADR-0245
 as Section D-10 of ADR-0245 in Wave 15J Phase 0).
 
@@ -716,7 +716,7 @@ Quality is uniform across tenant_class. The only differences between
 demo_trial and paid are usage caps, time gating, support class, SLO
 gating, and compliance-pack eligibility (per ADR-0330).
 
-B2.050. The retirement does not affect ADR-0132 (product suite and
+B2.050. The retirement does not affect ADR-0132 (product platform and
 bundle dissolution). The "no new suite or bundle microservice" rule
 survives independently.
 
@@ -2079,7 +2079,7 @@ principal context.
 H.6.3 ADR-0245 (substrate vs product layering): substrate-vs-product
 separation survives independently.
 
-H.6.4 ADR-0132 (product suite and bundle dissolution): no-suite no-
+H.6.4 ADR-0132 (product platform and bundle dissolution): no-grouping no-
 bundle rule survives independently.
 
 H.6.5 ADR-0249 (multi-category marketplace): six-category marketplace

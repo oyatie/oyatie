@@ -317,7 +317,7 @@ Key examples:
 |---|---|---|---|
 | `EmployeeHired` | `hr` | ontology-event | Fan-out: provisioning-sm, payroll-enrollment-sm, connect-provisioning-sm |
 | `PayrollRunCompleted` | `payroll` | event-topic | Trigger accounting journal-posting workflow |
-| `ApprovalRequested` (any) | any µservice | event-topic | Route to correct approval chain; notify approvers via Connect |
+| `ApprovalRequested` (any) | any µservice | event-topic | Route to correct approval chain; notify approvers via |
 | `TenantActivated` | `tenancy` | event-topic | Trigger product-onboarding workflows per enabled products |
 
 ### Workflow events produced (to Ontology + audit)

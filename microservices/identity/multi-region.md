@@ -67,11 +67,11 @@ Postgres replication is **synchronous** within the primary region (zero RPO betw
 
 JWKS is read-only and idempotent. Each Zitadel replica serves the same JWKS (eventually consistent via Postgres replication). Consumers cache JWKS for 24h with respect-Cache-Control honored; rotation is signalled by adding a new `kid` to the JWKS doc and the old `kid` remaining for a 24h grace.
 
-Per-pack JWKS endpoint URL pattern: `https://identity-<pack>.oyatie.dev/oauth/v2/keys`. There is no global `https://identity.oyatie.dev` endpoint; consumer Cedar policy refuses bearer tokens whose `iss` claim does not match the consumer's own pack.
+Per-pack JWKS endpoint URL pattern: `https://identity-<pack>.oyatie.com/oauth/v2/keys`. There is no global `https://identity.oyatie.com` endpoint; consumer Cedar policy refuses bearer tokens whose `iss` claim does not match the consumer's own pack.
 
 ## SCIM provisioning per-region
 
-SCIM endpoint per pack: `https://identity-<pack>.oyatie.dev/scim/v2/<tenant>`. Enterprise IdPs (Okta / Entra / Workspace) configure one SCIM connection per pack-tenant.
+SCIM endpoint per pack: `https://identity-<pack>.oyatie.com/scim/v2/<tenant>`. Enterprise IdPs (Okta / Entra / Workspace) configure one SCIM connection per pack-tenant.
 
 A tenant that operates in two packs (e.g., a US multinational with an EU subsidiary) registers TWO SCIM connections — one to pack-us, one to pack-eu. User records in pack-us and pack-eu are independent; the same `email` is allowed (different scope per pack).
 
@@ -90,7 +90,7 @@ A tenant that operates in two packs (e.g., a US multinational with an EU subsidi
 
 - Primary region degraded; multiple AZs unstable.
 - Promote warm-standby in failover region to read-write.
-- DNS update (pack-routing): `identity-<pack>.oyatie.dev` weighted-to failover region.
+- DNS update (pack-routing): `identity-<pack>.oyatie.com` weighted-to failover region.
 - Sessions stay valid (JWT signature still verifies; JWKS replicated); new sign-ins go to failover.
 - RTO: ≤5min (DNS propagation + warm-standby promotion).
 - RPO: ≤30s (async replication lag).
@@ -124,7 +124,7 @@ identity-us-healthcare.oyatie.dev  A  <pack-us-hc-vip>
 ...
 ```
 
-Global `identity.oyatie.dev` is a 404 page that redirects to a per-pack selector (locale + IP-geo informed).
+Global `identity.oyatie.com` is a 404 page that redirects to a per-pack selector (locale + IP-geo informed).
 
 ## Connection draining on rolling deploy
 

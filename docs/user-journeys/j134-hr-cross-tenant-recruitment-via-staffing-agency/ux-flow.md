@@ -19,7 +19,7 @@ related_adrs: [ADR-0311, ADR-0244, ADR-0249, ADR-0292]
 | 5 | Candidate detail (cross-tenant) | workflow-engine | Read candidate's HireForce-shared profile | b2b.wf.cross_tenant_candidate_read |
 | 6 | Cross-tenant interview invite | mail + calendar | Compose + send to HireForce-represented candidate | b2b.calendar.cross_tenant_invite |
 | 7 | Offer extension (HireForce-aware) | workflow-engine + workplace-integration | Generate offer + share salary to HireForce for fee-calc | b2b.workflow.offer_salary_share |
-| 8 | Placement-fee escrow viewer | payments | View Stripe Connect escrow status | b2b.payments.stripe_connect_facilitator_view |
+| 8 | Placement-fee escrow viewer | payments | View Stripe escrow status | b2b.payments.stripe_connect_facilitator_view |
 | 9 | 90-day retention tracker | workflow-engine | Monitor placement retention | b2b.hr.placement_retention_read |
 | 10 | Replacement-guarantee invoker | workflow-engine + payments | Trigger replacement-guarantee | b2b.payments.replacement_guarantee_invoke |
 | 11 | Engagement quarterly report viewer | community + mail | Read HireForce's report | b2b.hr.engagement_report_read |

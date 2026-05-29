@@ -15,7 +15,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 
 - Oyatie is a unified enterprise operating substrate for regulated, multinational companies replacing fragmented SaaS suites.
 - The company position is not "another CRM" or "another workflow app"; it is a policy-governed business system layer.
-- The first commercial wedge is Enterprise Generic plus SMB Generic, matching the FD-001 delivery scope in `specs/masterplan.json`.
+- The first commercial wedge is Tenant RBAC view plus Tenant RBAC view, matching the FD-001 delivery scope in `specs/masterplan.json`.
 - The platform thesis is that CRM, ERP, HR, ITSM, collaboration, analytics, and workflow labels become capability tiers.
 - The architecture thesis is that shared primitives beat duplicated product silos.
 - The economic thesis is that enterprises are already funding consolidation because software spend keeps rising.
@@ -118,10 +118,10 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 
 ## Slide 05 - First Product Wedge
 
-- FD-001 names the first deliverable as Enterprise Generic plus SMB Generic full-depth production delivery.
+- FD-001 names the first deliverable as Tenant RBAC view plus Tenant RBAC view full-depth production delivery.
 - This deck treats FD-001 as the first fundable product wedge.
-- Enterprise Generic is the multinational regulated-operations wedge.
-- SMB Generic is the lower-friction adoption wedge.
+- Tenant RBAC view is the multinational regulated-operations wedge.
+- Tenant RBAC view is the lower-friction adoption wedge.
 - Both share the same substrates and capability-tier model.
 - The first surfaces are core, messenger, mail, community, infra, ops-dashboard-control-center, foundry, workflow, ontology, canonical-base, and Korea localization pack.
 - CRM expansion is supported by `microservices/crm`.
@@ -360,7 +360,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 
 ## Slide 14 - Technology Architecture
 
-- The architecture is flat microservices, not suite forks.
+- The architecture is flat microservices, not platform forks.
 - Substrates include tenancy, identity, audit-chain, eventing, secrets, policy, ontology, workflow, observability, and cells.
 - Product behavior is expressed through capability tiers and projections.
 - Authorization and policy evaluation use Cedar fragments.
@@ -495,11 +495,11 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 
 ## Slide 19 - Differentiated Claims
 
-- Claim 1: Oyatie treats enterprise product categories as capability tiers over shared primitives.
+- Claim 1: Oyatie treats enterprise-market categories as capability tiers over shared primitives.
 - Claim 2: Oyatie makes policy decisions explicit through Cedar.
 - Claim 3: Oyatie makes evidence a runtime output rather than an after-the-fact project.
 - Claim 4: Oyatie supports deployment portability for regulated and sovereign needs.
-- Claim 5: Oyatie is designed around flat microservice ownership, not suite forks.
+- Claim 5: Oyatie is designed around flat microservice ownership, not platform forks.
 - Claim 6: Oyatie connects AI autonomy to capability grants, cost ceilings, and audit evidence.
 - Claim 7: Oyatie can sell consolidation value without requiring every incumbent to be replaced on day one.
 - Claim 8: Oyatie's internal engineering system is governed by the same primitives it sells.
@@ -663,7 +663,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Oyatie is a wager that enterprise software is ready for substrate-level consolidation.
 - The market is large enough: trillions in IT spend, hundreds of billions in SaaS and business applications.
 - The pain is concrete: too many apps, unclear AI spend, duplicated audit work, and policy drift.
-- The wedge is specific: Enterprise Generic plus SMB Generic with governed workflow and evidence.
+- The wedge is specific: Tenant RBAC view plus Tenant RBAC view with governed workflow and evidence.
 - The product path is staged: demo, design partners, paid pilots, security baseline, ARR, Series A.
 - The defensibility path is cumulative: shared substrates, Cedar, audit chain, capability tiers, compliance packs, and cell deployment.
 - The competitive path is honest: incumbents are strong, but they are constrained by existing product silos and bundle incentives.

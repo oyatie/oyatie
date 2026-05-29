@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "data-warehouse",
   "title": "Data Warehouse",
   "status": "wave-15a-remediated",
@@ -196,7 +196,7 @@
       "README.md",
       "REMEDIATION-NOTES-2026-05-21.md"
     ],
-    "full_suite_artifact_floor": 70,
+    "full_platform_artifact_floor": 70,
     "operating_bar_artifact_count": 100
   },
   "naming_justifications": "data-warehouse is a BNF v4.1 kebab-case microservice slug; generated names follow oya-data-warehouse-<bounded-context>-<layer>, with layer slugs from ADR-0105's 13-layer enum.",

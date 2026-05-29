@@ -37,7 +37,7 @@ Primary ADR: microservices/data-pipeline/decisions/ADR-MS-001-lineage-first-inge
 - Contract `contracts/cdk-trait-v1.yaml`.
 - Capability records `capabilities/cdk-scaffold.yaml` and `cdk-publish.yaml`.
 - Cedar fragments `policies/local-cdk-authoring-scope.cedar` and `local-cdk-publish-scope.cedar`.
-- SLO projections `slos/local-cdk-test-suite-success-rate.openslo.yaml` and `local-cdk-publish-latency.openslo.yaml`.
+- SLO projections `slos/local-cdk-test-set-success-rate.openslo.yaml` and `local-cdk-publish-latency.openslo.yaml`.
 - Runbooks `runbooks/cdk-test-failure.md` and `cdk-publish-blocked.md`.
 
 ## Data Flow
@@ -57,7 +57,7 @@ Primary ADR: microservices/data-pipeline/decisions/ADR-MS-001-lineage-first-inge
 ## Cedar Policy
 - Deny cdk.scaffold without tenant_connector_author or approved Foundry connector_author.
 - Deny cdk.scaffold when scaffold_kind exceeds tenant capability grant.
-- Deny cdk.test if required test suites are not all selected.
+- Deny cdk.test if required test sets are not all selected.
 - Deny cdk.package if tests failed or lockfile missing.
 - Deny cdk.publish if lint failed.
 - Deny cdk.publish if signature chain is unverifiable.
@@ -91,7 +91,7 @@ Primary ADR: microservices/data-pipeline/decisions/ADR-MS-001-lineage-first-inge
 - Reuse `local-deadletter-rate.openslo.yaml` target 0.995 for failed connector rows.
 - Reuse `local-transform-latency.openslo.yaml` target 0.99 for transform-aware connectors.
 - Reuse `local-quality-null-rate.openslo.yaml` target 0.999 for fixture validation.
-- Add `local-cdk-test-suite-success-rate.openslo.yaml` target 0.99 for required suite pass rate.
+- Add `local-cdk-test-set-success-rate.openslo.yaml` target 0.99 for required suite pass rate.
 - Add `local-cdk-publish-latency.openslo.yaml`: tenant-local p95 5m, marketplace p95 30m including DealSet approval.
 
 ## Failure Modes
@@ -168,7 +168,7 @@ Primary ADR: microservices/data-pipeline/decisions/ADR-MS-001-lineage-first-inge
 - Gate 1: cdk-authoring appears under connector bounded_sub_contexts.
 - Gate 2: Rust CDK trait contract is published.
 - Gate 3: all ten scaffold kinds have fixtures.
-- Gate 4: five required test suites are enforced before package.
+- Gate 4: five required test sets are enforced before package.
 - Gate 5: no Python, TypeScript, or Java runtime is accepted.
 - Gate 6: connector_package publish integrates with IP-036.
 - Gate 7: marketplace publish requires DealSet and human approval when Foundry authored.
@@ -187,7 +187,7 @@ Primary ADR: microservices/data-pipeline/decisions/ADR-MS-001-lineage-first-inge
 - Applicable compliance pack floor: `HIPAA-2024` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=3600`, `rpo_p99_seconds=300`, `multi_region_required=true`, `drill_cadence_required=quarterly`).
 - Multi-region active-active posture: `true` (required by the selected floor and IP evidence).
 - backup_substrate: `postgres_wal_g`, `iceberg_snapshot`, `object_storage_versioned`, `audit_chain_merkle_seal`.
-- Surface evidence: `microservices/data-pipeline/implementation-plans/IP-037-cdk-authoring-workflow.md:40` - - SLO projections `slos/local-cdk-test-suite-success-rate.openslo.yaml` and `local-cdk-publish-latency.openslo.yaml`.; `microservices/data-pipeline/implementation-plans/IP-037-cdk-authoring-workflow.md:81` - ## SLO Targets.
+- Surface evidence: `microservices/data-pipeline/implementation-plans/IP-037-cdk-authoring-workflow.md:40` - - SLO projections `slos/local-cdk-test-set-success-rate.openslo.yaml` and `local-cdk-publish-latency.openslo.yaml`.; `microservices/data-pipeline/implementation-plans/IP-037-cdk-authoring-workflow.md:81` - ## SLO Targets.
 
 ## Sustainability emission (per ADR-0344)
 

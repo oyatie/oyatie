@@ -152,7 +152,7 @@ decision_owner: axis-crm + council-revenue
 
 ### Neutral
 
-- External CRM systems remain supported through `connect` adapters.
+- External CRM systems remain supported through `connector` adapters.
 - Ontology remains the projection and query graph, not the write authority.
 - Workflow remains the approval and escalation orchestrator, not the data owner.
 - Revenue dashboards may consume CRM events but cannot mutate CRM state directly.

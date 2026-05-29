@@ -32,7 +32,7 @@ related:
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0140-cedar-policy-enforcement.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
@@ -2101,7 +2101,7 @@ implemented:
 - **ADR-0105** — Thirteen-layer canonical enum.
 - **ADR-0128** — Hyperscaler architecture invariants.
 - **ADR-0131** — Per-microservice flat layout.
-- **ADR-0132** — No-suite forward policy.
+- **ADR-0132** — No-grouping forward policy.
 - **ADR-0140** — Cedar policy enforcement (retired; superseded
   fragments live in policy-engine).
 - **ADR-0144** — EU AI Act graduated-risk tier model.
@@ -2172,7 +2172,7 @@ hyperscaler pattern + source + anti-pattern avoided.
 | D-4 (cell certification level matrix) | "Cell-Certification-as-Discrete-Levels" | AWS regions partitioned (Commercial vs GovCloud vs ISO vs China vs Top Secret); Google Cloud regional compliance designations; Azure compliance offerings per region; AWS Outposts compliance binding | "Single-Tier Substrate" — one substrate must satisfy all regulations |
 | D-5 (tenant → cell pinning rule) | "Mandatory-Compliance-Pinning" | AWS Organizations + Control Tower account-to-OU pinning; Azure Subscription compliance binding; Google Cloud Project assured-workloads binding | "Drift via Tenant Movement" — tenant migrates to incompatible cell silently |
 | D-6 (cross-pack traffic Cedar-gated; FULL matrix) | "Cross-Tenant Policy Gate" | AWS Verified Permissions cross-account evaluation; AWS Resource Access Manager (RAM) cross-account share gating; Azure RBAC cross-tenant guest access; Google IAM cross-project deny | "Implicit Cross-Tenant Trust" — data flows freely across compliance domains |
-| D-7 (BAA/DPA agreement lifecycle saga) | "Durable-Workflow-Driven Compliance-Agreement Lifecycle" | AWS Artifact agreement automation; DocuSign + Adobe Sign integration; Stripe Connect onboarding workflow | "Manual-Email-PDF Agreement Lifecycle" — agreements lost in inboxes |
+| D-7 (BAA/DPA agreement lifecycle saga) | "Durable-Workflow-Driven Compliance-Agreement Lifecycle" | AWS Artifact agreement automation; DocuSign + Adobe Sign integration; Stripe onboarding workflow | "Manual-Email-PDF Agreement Lifecycle" — agreements lost in inboxes |
 | D-8 (breach notification machinery per-jurisdiction workflow) | "Per-Jurisdiction Breach-Notification Workflow" | AWS GuardDuty + Detective + Security Hub integrated incident response; Microsoft Sentinel + Compliance Manager breach playbook; Atlassian + PagerDuty + ServiceNow incident response | "First-Breach Scramble" — workflow built under deadline pressure with errors |
 | D-9 (de-identification engine substrate: tokenization + k-anonymity + l-diversity + t-closeness + differential privacy + HIPAA Safe Harbor + GDPR pseudonymization) | "Shared De-Identification Substrate" | AWS Glue DataBrew PII transforms; Google Cloud DLP API; Microsoft Presidio; Privitar (acquired by Informatica 2023) | "Per-Use-Case De-ID Implementation" — quality varies; HIPAA Safe Harbor implemented incorrectly |
 | D-10 (encryption substrate per-data-class + encryption-BYOK + HYOK + FIPS 140-2/3 + HSM-rooted + PQ-hybrid) | "Hierarchical-Key-Management Substrate" | AWS KMS + CloudHSM + per-service-key hierarchy; Google Cloud KMS + Cloud HSM + External Key Manager; Azure Key Vault Managed HSM | "Per-Service KMS" — keys reimplemented per service inconsistently |

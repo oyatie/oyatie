@@ -13,7 +13,7 @@ info:
     - developer-sdk endpoints (onboarding + keys + sandbox + payout + submissions)
     Streaming endpoints use text/event-stream or application/x-ndjson per OpenAPI 3.2.
 servers:
-  - url: https://api.oyatie.dev/v1
+  - url: https://api.oyatie.com/v1
     description: Production aggregate
 paths:
   # plugin-app-store (read-only mirror for codegen)

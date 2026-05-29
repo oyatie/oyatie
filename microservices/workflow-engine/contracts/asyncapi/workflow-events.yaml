@@ -14,7 +14,7 @@ info:
     Channels are per-tenant; the topic namespace is `oya.workflow-engine.<tenant_hash>.<event_type>`.
   contact:
     name: axis-workflow
-    email: axis-workflow@oyatie.dev
+    email: axis-workflow@oyatie.com
   license:
     name: Internal
 
@@ -22,7 +22,7 @@ defaultContentType: application/json
 
 servers:
   per-pack:
-    host: 'workflow-engine-events.{pack}.oyatie.dev'
+    host: 'workflow-engine-events.{pack}.oyatie.com'
     protocol: nats-with-jetstream
     description: Per-pack event bus endpoint
     variables:

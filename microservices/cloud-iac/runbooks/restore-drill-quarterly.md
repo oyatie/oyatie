@@ -50,7 +50,7 @@ environment.
         --namespace <microservice>-dr-staging \
         --values microservices/<microservice>/iac/helm/<microservice>/values-dr-staging.yaml
    ```
-4. **Run the µservice's smoke-test suite** against `dr-staging`:
+4. **Run the µservice's smoke-test set** against `dr-staging`:
    ```sh
    cargo test -p oya-<microservice>-app --test smoke -- --include-ignored
    ```

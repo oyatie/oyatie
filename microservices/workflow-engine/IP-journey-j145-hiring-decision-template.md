@@ -92,7 +92,7 @@ steps:
 
 - The actual hiring criteria (HR pack).
 - The Intelligence screening model (Intelligence IP).
-- Connect adapter to background-check vendor (Connect IP).
+- adapter to background-check vendor (IP).
 
 ## Wave 15 row-loop remediation
 

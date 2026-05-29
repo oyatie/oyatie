@@ -44,9 +44,9 @@ Tier mapping:
   - pack-in-industrial-disputes-act
 - **Intelligence model loaded**: `applicant-screening-v2` in stage=PRODUCTION with seed historical hiring data
 
-## Test suites
+## Test sets
 
-### Suite 1 — Activation cascade
+### Test Set 1 — Activation cascade
 
 **T-001 Activate single requisition**
 - Given: 1 req in `awaiting_hr_activation`, jurisdiction=IN-BLR
@@ -73,7 +73,7 @@ Tier mapping:
 - When: activate
 - Then: overlay-resolve-failed; activation halts for that req; other reqs proceed; Priya is notified via banner.
 
-### Suite 2 — Community posting
+### Test Set 2 — Community posting
 
 **T-101 Handshake-mode publish (40 reqs to 12 universities)**
 - Given: 40 reqs, 12 university Connect-trust relationships
@@ -95,7 +95,7 @@ Tier mapping:
 - When: publish
 - Then: each post has `bias_audit_url` populated; per-post Cedar permit `b2b.community.linkedin_publish` required pack-us-ny-aedt-local-law-144 active.
 
-### Suite 3 — Application receipt
+### Test Set 3 — Application receipt
 
 **T-201 Receive 100 applications fan-in**
 - Given: 100 candidate principals, 100 reqs
@@ -112,7 +112,7 @@ Tier mapping:
 - When: candidate POSTs /community/posts/{req}/withdraw
 - Then: status → `withdrawn`; ApplicationWithdrawn event; workflow terminated with `WITHDRAWN_OUTCOME`.
 
-### Suite 4 — AI screening + fairness gate
+### Test Set 4 — AI screening + fairness gate
 
 **T-301 AI-screen 1,040 applications**
 - Given: 1,040 received applications, intelligence model active
@@ -139,7 +139,7 @@ Tier mapping:
 - When: workflow triggers explanation retrieval
 - Then: per-applicant explanation served in <5s; cedar PERMIT `b2b.intelligence.applicant_screening_explanation_read`; AuditChain logs ExplanationRead.
 
-### Suite 5 — Interview scheduling
+### Test Set 5 — Interview scheduling
 
 **T-401 Send 250 interview invites**
 - Given: 250 candidates proceed-to-interview decision
@@ -161,7 +161,7 @@ Tier mapping:
 - When: Priya accepts alternate slot
 - Then: original Calendar slot freed; new slot booked; Meet room timestamp updated; candidate + interviewer mailed update.
 
-### Suite 6 — Offer + e-sign + provisioning
+### Test Set 6 — Offer + e-sign + provisioning
 
 **T-501 Generate offer letter — per jurisdiction**
 - Given: 4 candidates, one per jurisdiction
@@ -188,7 +188,7 @@ Tier mapping:
 - When: new-hire enrolls passkey
 - Then: principal `authentication_method=webauthn`; first login successful; Day-1 calendar populated.
 
-### Suite 7 — Post-hire fairness audit
+### Test Set 7 — Post-hire fairness audit
 
 **T-601 Post-hire audit at T+90d**
 - Given: hiring event closed with 80 hires
@@ -200,7 +200,7 @@ Tier mapping:
 - When: report produced
 - Then: drift flag set; remediation workflow `intelligence-retrain-v1` started; Priya notified.
 
-### Suite 8 — ADR-0311 dual-tenant boundary holds
+### Test Set 8 — ADR-0311 dual-tenant boundary holds
 
 **T-701 Priya cannot read candidate's personal Messenger**
 - Given: candidate's personal Messenger DMs exist
@@ -217,7 +217,7 @@ Tier mapping:
 - When: Marcus's identity attempts cross-tenant read
 - Then: Cedar DENY default-deny.
 
-### Suite 9 — Multi-jurisdiction overlay correctness
+### Test Set 9 — Multi-jurisdiction overlay correctness
 
 **T-801 IN-BLR overlay enforces reservation notice**
 - Given: req for govt-contract role (none in this test event)
@@ -226,7 +226,7 @@ Tier mapping:
 **T-802 DE-BER overlay triggers works-council notification**
 - Given: 1 Berlin req publish
 - When: publish
-- Then: works-council notification mailed via Connect to `tu-berlin.tenant.works_council`; WorksCouncilNotified event.
+- Then: works-council notification mailed via to `tu-berlin.tenant.works_council`; WorksCouncilNotified event.
 
 **T-803 US-AUS overlay applies ADEA-compliant rejection language**
 - Given: rejected candidate, jurisdiction US-AUS, age≥40
@@ -237,7 +237,7 @@ Tier mapping:
 - Given: Seoul offer letter
 - Then: offer includes National Pension + NHI + Employment Insurance + Industrial Accident Insurance enrollment forms.
 
-### Suite 10 — Failure-mode tests
+### Test Set 10 — Failure-mode tests
 
 **T-901 Mail outage during invite phase**
 - Given: mail health-probe fails for 3 min

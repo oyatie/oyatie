@@ -21,11 +21,11 @@ doc_status: published
 
 Ship the recordings µservice from zero to **HG-RECORDINGS gate green at p99
 SLOs sustained 30d** across dev → staging → production, with parallel
-Strangler migration of the legacy `oya-connect-recordings-domain` crate.
+Strangler migration of the legacy `oya-recordings-domain` crate.
 
 The phase is the canonical M02 instance of the per-µservice agentic SLO-gated
 promotion pattern (ADR-0139) + per-µservice flat layout (ADR-0131) +
-industry-best-practice conformance (ADR-0133) + Connect dissolution Strangler
+industry-best-practice conformance (ADR-0133) + dissolution Strangler
 migration (ADR-0134).
 
 ## ChangeSet sequencing
@@ -48,7 +48,7 @@ a single claimable-verifiable-bundleable-promotable ChangeSet.
 | IP-011 | Playback BC + share-link BC + watermarking BC | IP-005 | port-location |
 | IP-012 | Export BC + eDiscovery BC | IP-010 | port-location + audit-chain-integrity |
 | IP-013 | Translation BC (cross-µservice → translate) | IP-006 | lean-a2 (cross-product through Workflow) |
-| IP-014 | Strangler migration adapter shim (oya-connect-recordings-*) | IP-004 | strangler-conformance |
+| IP-014 | Strangler migration adapter shim (oya-recordings-*) | IP-004 | strangler-conformance |
 | IP-015 | HG-RECORDINGS authority-cohesion gate registration | IP-002..IP-014 | authority-cohesion |
 
 ## Exit criteria

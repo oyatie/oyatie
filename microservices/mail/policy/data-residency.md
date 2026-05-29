@@ -219,7 +219,7 @@ Each pack's overlay at `regional-packs/<pack>/mail-residency-overlay.md` carries
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0135: Connect dissolution; dual-context residency split.
+- ADR-0135: dissolution; dual-context residency split.
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - `microservices/mail/threat-model.md` T-I-08.

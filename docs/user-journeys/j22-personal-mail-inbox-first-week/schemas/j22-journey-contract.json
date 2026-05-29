@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j22-personal-mail-inbox-first-week.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j22-personal-mail-inbox-first-week.schema.json",
   "title": "j22 Personal Mail first week inbox control Journey Contract",
   "type": "object",
   "additionalProperties": false,

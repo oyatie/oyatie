@@ -191,7 +191,7 @@ This section is the authoritative tenant-class behavior matrix referenced by `ma
 | workflow-engine | Accept workflow template imports | category-workflows |
 | cloud-cell | Accept hosted-tenant provisioning | category-apps |
 | foundry-plugin-registry | Accept wasmtime signed-binary entitlement | category-plugins |
-| connect | Permission review for workflow connector manifest | category-workflows |
+| connector | Permission review for workflow connector manifest | category-workflows |
 | identity | KYC artifact reference resolution | category-apps/agents/models/datasets |
 
 ## §9 Deferred items (Wave 15B / 15F / 15J / 15K)
@@ -288,7 +288,7 @@ Files renamed (git mv):
 - Old array contents removed from Rust: `api`, `rest`, `application`, `usecase`, `domain`, `kernel`, `adapter`, `worker`, `sdk`, `iac`, `policy`, `observability`.
 - New canonical declaration: `Layer::{Kernel, Domain, Usecase, App, Adapter, Infrastructure, Rest, Grpc, Graphql, Worker, Cli, Sdk, Api}` plus `domain::LAYERS`.
 - Files modified: 138 total: `src/lib.rs`, `manifest.json`, `scorecards/overrides.json`, 13 capability files, 13 catalog files, 13 SLO files, 5 dashboard files, 12 IaC files, 17 policy files, 3 contract files, 36 `ip/` files, and 23 top-level marketplace docs/notes.
-- Cargo check status: PASS — `cargo check --manifest-path microservices/marketplace/Cargo.toml -p oya-marketplace-doc-suite-scaffold`.
+- Cargo check status: PASS — `cargo check --manifest-path microservices/marketplace/Cargo.toml -p oya-marketplace-doc-set-scaffold`.
 - Test status: PASS — `cargo test --manifest-path microservices/marketplace/Cargo.toml` (3 passed).
 - Follow-up: legacy marketplace catalog records still include concern-shaped record names such as `policy`, `iac`, `observability`, and `events`; this remediation normalized their layer-enum declarations but did not rename/delete catalog records.
 

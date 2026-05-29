@@ -20,7 +20,7 @@ activation_claim: not-active
 
 ## KR Pack Responsibilities
 - Routes KR communication behavior through pack-owned retention, legal hold, language, and audit hooks while messenger remains canonical-base neutral.
-- kr_pack_surface: connect_mail_messenger_community_localization
+- kr_pack_surface: messenger_mail_community_localization
 - kr_pack_surface: regulatory_bindings
 - kr_pack_surface: audit_chain_evidence
 

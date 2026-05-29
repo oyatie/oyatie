@@ -187,7 +187,7 @@ rating-weighted trust signals.
 - readme-buildability 001: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 004: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -195,7 +195,7 @@ rating-weighted trust signals.
 - readme-buildability 005: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 007: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -204,7 +204,7 @@ rating-weighted trust signals.
 - readme-buildability 009: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -212,7 +212,7 @@ rating-weighted trust signals.
 - readme-buildability 013: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -222,7 +222,7 @@ rating-weighted trust signals.
 - readme-buildability 017: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 019: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 020: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -230,7 +230,7 @@ rating-weighted trust signals.
 - readme-buildability 021: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 023: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 024: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -238,7 +238,7 @@ rating-weighted trust signals.
 - readme-buildability 025: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -247,7 +247,7 @@ rating-weighted trust signals.
 - readme-buildability 029: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 032: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -255,7 +255,7 @@ rating-weighted trust signals.
 - readme-buildability 033: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 034: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 035: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 036: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -264,7 +264,7 @@ rating-weighted trust signals.
 - readme-buildability 037: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 040: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -272,7 +272,7 @@ rating-weighted trust signals.
 - readme-buildability 041: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 043: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -281,7 +281,7 @@ rating-weighted trust signals.
 - readme-buildability 045: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -289,7 +289,7 @@ rating-weighted trust signals.
 - readme-buildability 049: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -299,7 +299,7 @@ rating-weighted trust signals.
 - readme-buildability 053: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 055: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 056: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -307,7 +307,7 @@ rating-weighted trust signals.
 - readme-buildability 057: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 059: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 060: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -315,7 +315,7 @@ rating-weighted trust signals.
 - readme-buildability 061: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -324,7 +324,7 @@ rating-weighted trust signals.
 - readme-buildability 065: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 068: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -332,7 +332,7 @@ rating-weighted trust signals.
 - readme-buildability 069: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 070: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 071: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 072: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -341,7 +341,7 @@ rating-weighted trust signals.
 - readme-buildability 073: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 076: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -349,7 +349,7 @@ rating-weighted trust signals.
 - readme-buildability 077: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 079: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -358,7 +358,7 @@ rating-weighted trust signals.
 - readme-buildability 081: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -366,7 +366,7 @@ rating-weighted trust signals.
 - readme-buildability 085: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -376,7 +376,7 @@ rating-weighted trust signals.
 - readme-buildability 089: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 091: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 092: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -384,7 +384,7 @@ rating-weighted trust signals.
 - readme-buildability 093: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 095: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 096: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -392,7 +392,7 @@ rating-weighted trust signals.
 - readme-buildability 097: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -401,7 +401,7 @@ rating-weighted trust signals.
 - readme-buildability 101: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 103: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 104: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -409,7 +409,7 @@ rating-weighted trust signals.
 - readme-buildability 105: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 106: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 107: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 108: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -418,7 +418,7 @@ rating-weighted trust signals.
 - readme-buildability 109: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 112: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -426,7 +426,7 @@ rating-weighted trust signals.
 - readme-buildability 113: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 115: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -435,7 +435,7 @@ rating-weighted trust signals.
 - readme-buildability 117: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -443,7 +443,7 @@ rating-weighted trust signals.
 - readme-buildability 121: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -453,7 +453,7 @@ rating-weighted trust signals.
 - readme-buildability 125: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 127: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 128: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -461,7 +461,7 @@ rating-weighted trust signals.
 - readme-buildability 129: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 131: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 132: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -469,7 +469,7 @@ rating-weighted trust signals.
 - readme-buildability 133: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -478,7 +478,7 @@ rating-weighted trust signals.
 - readme-buildability 137: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 138: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 139: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 140: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -486,7 +486,7 @@ rating-weighted trust signals.
 - readme-buildability 141: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 142: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 143: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 144: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -495,7 +495,7 @@ rating-weighted trust signals.
 - readme-buildability 145: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 146: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 147: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 148: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -503,7 +503,7 @@ rating-weighted trust signals.
 - readme-buildability 149: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 150: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 151: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -512,7 +512,7 @@ rating-weighted trust signals.
 - readme-buildability 153: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 154: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 155: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 156: intelligence keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence,
@@ -520,7 +520,7 @@ rating-weighted trust signals.
 - readme-buildability 157: marketplace keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 158: community keeps Yuna Baek and BoutiqueRetailer Sao Paulo inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 159: identity keeps Yuna Baek and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.

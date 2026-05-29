@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j137/sox-audit-sample-request.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j137/sox-audit-sample-request.json",
   "title": "SoxAuditSampleRequest",
   "description": "Request to pull a SOX 404 sample for one invoice/control. Sent by Sam's audit pane to api-gateway; fan-routes to workflow-engine.audit_sample_planner.",
   "_meta": {

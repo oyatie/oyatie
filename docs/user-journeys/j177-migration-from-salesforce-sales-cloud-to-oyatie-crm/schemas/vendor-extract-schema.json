@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/user-journeys/j177-migration-from-salesforce-sales-cloud-to-oyatie-crm/vendor-extract-schema.json",
+  "$id": "https://docs.oyatie.com/user-journeys/j177-migration-from-salesforce-sales-cloud-to-oyatie-crm/vendor-extract-schema.json",
   "title": "Salesforce Sales Cloud to Oyatie CRM pipeline migration vendor extract schema",
   "type": "object",
   "required": [

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/forbidden-operations.json",
+  "$id": "https://docs.oyatie.com/specs/forbidden-operations.json",
   "title": "ForbiddenOperations",
-  "description": "Machine-readable avoid-list: the 10 prohibitions every contributor and every agent observes. Migrated from docs/CONSTITUTION.md \u00a7Prohibitions \u2014 Avoid during the 2026-05-15 CONSTITUTION strike per root-hub-pointers.json _retired_constitutional_authority migration map. Extends the forbidden_primitives concept from master-plan-sequencing.json with a doctrinally-binding avoid set.",
+  "description": "Machine-readable avoid-list: the 10 prohibitions every contributor and every agent observes. Migrated from docs/CONSTITUTION.md §Prohibitions — Avoid during the 2026-05-15 CONSTITUTION strike per root-hub-pointers.json _retired_constitutional_authority migration map. Extends the forbidden_primitives concept from master-plan-sequencing.json with a doctrinally-binding avoid set.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-FORBIDDEN-OPERATIONS",

@@ -38,8 +38,8 @@ compliance_scope:
     - "workflow-engine"
     - "workspace-messenger"
     - "workspace-drive"
-    - "connect-mail"
-    - "connect-dlp"
+    - "mail"
+    - "dlp"
     - "cloud-region"
     - "cloud-kms"
 activated_cedar_policies:

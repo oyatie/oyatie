@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j37/attendance-clock-event.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j37/attendance-clock-event.json",
   "title": "AttendanceClockEvent",
   "version": "1.0.0",
   "description": "Shared journey object for j37-b2b-clocking-and-attendance. It lets Marcus Chen let a team clock in and out with workplace geofence proof and export payroll rows to ADP while preserving tenant scope, auditability, and cross-service status.",

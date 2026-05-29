@@ -61,7 +61,7 @@ capability-registration protocol; Application never owns product-specific logic.
 | FR-03 | Employee | navigate to any enabled product from a unified app-switcher | no separate logins per product | `navigation` | Must |
 | FR-04 | Tenant admin | provision users, assign roles, sync with HR on `EmployeeHired` | user accounts match HR system automatically | `user-provisioning` | Must |
 | FR-05 | Tenant admin | view and download invoices; manage billing plan | finance team handles billing without engineering involvement | `billing` | Must |
-| FR-06 | Employee | use global search across all enabled products (Ontology-backed) | I find entities across HR, Payroll, Connect without switching apps | `search` | Should |
+| FR-06 | Employee | use global search across all enabled products (Ontology-backed) | I find entities across HR, Payroll, without switching apps | `search` | Should |
 | FR-07 | Tenant admin | view audit log of all admin actions (product enablement, user changes) | compliance reporting satisfied | `audit` | Must |
 
 ---
@@ -131,7 +131,7 @@ JUSTIFICATION:
 |---|---|---|---|
 | `ProductEnabled` | Tenant enables a µservice | `<µservice>` (onboarding flow) | `product-activation-sm` |
 | `ProductDisabled` | Tenant disables a µservice | `<µservice>` (teardown flow) | `product-activation-sm` |
-| `UserProvisioned` | TenantUser created | `connect` (provisioning) | `user-provisioning-sm` |
+| `UserProvisioned` | TenantUser created | `connector` (provisioning) | `user-provisioning-sm` |
 
 ### Ontology writes
 

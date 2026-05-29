@@ -216,7 +216,7 @@ Doctrine evolution is governed by the standard ADR amendment process (a new ADR-
 - Google — adopts CNCF stack pervasively (CNCF was Google-founded); builds Borg → Kubernetes (donated to CNCF), Spanner, BigQuery, Pub/Sub.
 - Microsoft Azure — adopts Linux, PostgreSQL, OpenJDK, CNCF stack; builds Cosmos DB, AKS, Service Bus.
 - Oracle — adopts Linux (Oracle Linux), MySQL (post-acquisition); builds Exadata, Autonomous Database.
-- Stripe — adopts Ruby, PostgreSQL, MongoDB, Kafka; builds Stripe-internal ML stack, Stripe Connect SDK.
+- Stripe — adopts Ruby, PostgreSQL, MongoDB, Kafka; builds Stripe-internal ML stack, Stripe SDK.
 - Cloudflare — adopts Rust, OpenSSL (BoringSSL fork), Linux; builds Workers, R2, Durable Objects.
 - Datadog — adopts CNCF stack (OTel, Prometheus); builds Datadog APM, Synthetic Monitoring.
 - Adobe — adopts CNCF stack pervasively; runs Cilium + Istio at production scale (CNCF case study).

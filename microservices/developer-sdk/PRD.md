@@ -28,11 +28,11 @@ This µservice is **the supply-side persona platform** of the ecosystem: develop
 
 ## Tenant Value (developer-as-tenant framing)
 
-- **Developer Outcome 1 — Onboarding in 30 minutes.** Sign up, complete KYC + bank account verification, get signing keys issued, get sandbox tenant provisioned. Stripe-Connect parity.
+- **Developer Outcome 1 — Onboarding in 30 minutes.** Sign up, complete KYC + bank account verification, get signing keys issued, get sandbox tenant provisioned. Stripe-parity.
 - **Developer Outcome 2 — Get first plugin to vetting in 1 day.** SDK in their language, OpenAPI contracts published, sandbox tenant for development, dev portal for submission. JetBrains Marketplace + Apple App Store parity.
 - **Developer Outcome 3 — Six native SDK families.** No need to use a generic HTTP client; idiomatic SDK in their stack. TS / Rust / Swift / Kotlin / C# / Python at GA; more on roadmap.
 - **Developer Outcome 4 — Reset-on-demand sandbox.** Every developer gets a sandbox tenant with synthetic data; reset within 30s to a known clean state. Apple Developer Program parity.
-- **Developer Outcome 5 — Transparent revenue share.** Per-plugin install + subscription + revenue ledger; daily payout to bank account in their pack (ACH US, SEPA EU, KFTC KR, FedWire US-wire). Stripe Connect parity.
+- **Developer Outcome 5 — Transparent revenue share.** Per-plugin install + subscription + revenue ledger; daily payout to bank account in their pack (ACH US, SEPA EU, KFTC KR, FedWire US-wire). Stripe parity.
 - **Developer Outcome 6 — Tax forms in-app.** 1099-MISC (US), EU VAT MOSS, KR VAT generated automatically; download in dev portal at tax season.
 - **Developer Outcome 7 — Vetting status streamed.** Submitted plugin's vetting progress is visible per stage; rejection reasons structured + actionable; no opacity.
 - **Internal Outcome 8 — Stripe-Connect-parity payout substrate.** developer-sdk's payout substrate is reusable by any future µservice paying external creators (AI prompt store, template store, plugin store).
@@ -220,7 +220,7 @@ This µservice is **the supply-side persona platform** of the ecosystem: develop
 - ADR-0170 (Backstage developer portal substrate).
 - ADR-0185 (OpenAPI 3.2 codegen).
 - ADR-0211 (in-house tech policy).
-- Stripe Connect docs — stripe.com/docs/connect.
+- Stripe docs — stripe.com/docs/connect.
 - Apple Developer Program — developer.apple.com/programs.
 
 ## Doctrine refs (ADR-0346..0349)

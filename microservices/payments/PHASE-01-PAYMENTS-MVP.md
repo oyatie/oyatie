@@ -10,9 +10,9 @@ entry_gate: |
   + policy-engine + observability + governance + notifications µservices live
   on `dev` ≥ 1 week each.
 exit_gate: |
-  All 25 IPs (IP-001..IP-025) merged; oya-governance-doc-suite-payments
+  All 25 IPs (IP-001..IP-025) merged; oya-governance-doc-set-payments
   green; charge-api availability SLO holds ≥99.95% for ≥30d on staging;
-  Stripe Connect platform-facilitator sub-merchant onboarding e2e validated;
+  Stripe platform-facilitator sub-merchant onboarding e2e validated;
   first non-trivial consumer (messenger sticker store + cloud-billing usage
   invoicing) wired and traffic-on-staging green; PCI-DSS L1 v4 control
   matrix evidence complete and signed by ops-security; KR-FSS pack-overlay
@@ -54,13 +54,13 @@ diataxis_quadrant: how-to
 
 # P01-payments-mvp: Payments substrate MVP
 
-> Land the payments µservice end-to-end — Stripe Connect platform-facilitator + sub-merchant + subscription + one-time + payout — with first non-trivial consumers (messenger sticker store + cloud-billing usage invoicing) traffic-on-staging. Compliance posture: PCI-DSS L1 v4 certification-ready + KR-FSS pack overlay wired + EU PSD2 / SCA wired.
+> Land the payments µservice end-to-end — Stripe platform-facilitator + sub-merchant + subscription + one-time + payout — with first non-trivial consumers (messenger sticker store + cloud-billing usage invoicing) traffic-on-staging. Compliance posture: PCI-DSS L1 v4 certification-ready + KR-FSS pack overlay wired + EU PSD2 / SCA wired.
 
 ---
 
 ## §A. Purpose
 
-This phase ships the canonical Stripe Connect platform-facilitator shape for oyatie. The phase advances master-plan principles:
+This phase ships the canonical Stripe platform-facilitator shape for oyatie. The phase advances master-plan principles:
 
 - **Hero-substrate first** (ADR-0245) — payments serves every monetisation surface; product µservices never call PSPs directly.
 - **Tenant-scoped money** (ADR-0244) — every charge / refund / payout / sub-merchant row carries tenant context.
@@ -81,7 +81,7 @@ The phase is part of M02-foundation because every consumer-facing product surfac
 | `payout` | Bank-account verification + payout scheduling + cooling-period. | `domain`, `kernel`, `usecase`, `adapter`, `rest`, `worker`, `app` |
 | `dispute` | Chargeback lifecycle + evidence + representment-bundle. | `domain`, `kernel`, `usecase`, `adapter`, `rest`, `worker`, `app` |
 | `subscription-lifecycle` | Recurring billing + dunning + trial + upgrade / downgrade / cancel. | `domain`, `kernel`, `usecase`, `adapter`, `rest`, `worker`, `app` |
-| `sub-merchant` | Stripe Connect sub-merchant + KYC / KYB onboarding. | `domain`, `kernel`, `usecase`, `adapter`, `rest`, `worker`, `app` |
+| `sub-merchant` | Stripe sub-merchant + KYC / KYB onboarding. | `domain`, `kernel`, `usecase`, `adapter`, `rest`, `worker`, `app` |
 | `kyc-kyb` | Document collection + verification + restricted-reason taxonomy. | shared with sub-merchant |
 | `settlement` | Daily reconciliation vs PSP settlement report. | `domain`, `usecase`, `adapter`, `worker`, `app` |
 
@@ -89,7 +89,7 @@ The phase is part of M02-foundation because every consumer-facing product surfac
 
 | PSP | Region | Adapter crate | MVP scope |
 |---|---|---|---|
-| Stripe | US / EU / global | `oya-payments-adapter-stripe` | Full: charges / refunds / payouts / disputes / subscriptions / Connect sub-merchant. |
+| Stripe | US / EU / global | `oya-payments-adapter-stripe` | Full: charges / refunds / payouts / disputes / subscriptions / sub-merchant. |
 | Adyen | EU / interchange-plus | `oya-payments-adapter-adyen` | Full: charges / refunds / payouts / MarketPay. |
 | Toss Payments | KR | `oya-payments-adapter-toss` | Charges / refunds / payouts (KR-FSS-licensed). |
 | KakaoPay | KR | `oya-payments-adapter-kakaopay` | Charges / refunds (wallet only). |
@@ -155,7 +155,7 @@ The phase is part of M02-foundation because every consumer-facing product surfac
 | IP-024 | Compliance pack overlay — PCI | Yes |
 | IP-025 | Compliance pack overlay — KR-FSS | Yes |
 
-Sequencing: domain → kernel → usecase → adapter → REST / gRPC / worker → app. Each IP is single-PR-sized. Acceptance: `cargo nextest run --workspace -p oya-payments-* --release` + lane-green on `oya-governance-doc-suite-payments`.
+Sequencing: domain → kernel → usecase → adapter → REST / gRPC / worker → app. Each IP is single-PR-sized. Acceptance: `cargo nextest run --workspace -p oya-payments-* --release` + lane-green on `oya-governance-doc-set-payments`.
 
 ## §D. Risk register
 
@@ -194,7 +194,7 @@ Sequencing: domain → kernel → usecase → adapter → REST / gRPC / worker �
 - [ADR-0255 §D-4 — provider-BYOK](../../docs/decisions/ADR-0255-intelligence-two-layer-substrate.md).
 - [ADR-0263 — observability emission](../../docs/decisions/ADR-0263-observability-emission-contract.md).
 - [ADR-0292 — minor-protection](../../docs/decisions/ADR-0292-minor-user-doctrine.md).
-- Stripe Connect docs — `stripe.com/docs/connect`.
+- Stripe docs — `stripe.com/docs/connect`.
 - Adyen MarketPay docs — `docs.adyen.com/marketpay`.
 - KR-FSS oversight — `fss.or.kr` (Korean Financial Supervisory Service).
 - PCI-DSS L1 v4 — `pcisecuritystandards.org/pci_security/`.

@@ -64,14 +64,14 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
    - Audit-chain seal per edge mutation: every `INSERT` and `DELETE` (tombstone) emits `FollowEdgeAdded` / `FollowEdgeRemoved` event via outbox pattern; periodic drift detector compares Postgres state vs audit-chain authoritative replay.
    - Cell-shard trigger: per `capacity-model.md`, when `(tenant total edges) > 5B` or per-cell `(follow_edges_added_per_sec) > envelope`, shard tenant across cells.
 2. **Future (M04-onward): Graph-DB adapter (future-pluggable per ADR-0105 Amendment 3 backend-qualified naming).**
-   - If deep-traversal use cases emerge (e.g., recommended-follow feature, friend-of-friend feature, social-graph search), introduce `oya-social-follow-graph-adapter-dgraph` (or `-janusgraph`) as a parallel adapter alongside `-adapter-postgres`.
+   - If deep-traversal use cases emerge (e.g., recommended-follow feature, friend-of-friend feature, social-graph search), introduce `oya-community-social-follow-graph-adapter-dgraph` (or `-janusgraph`) as a parallel adapter alongside `-adapter-postgres`.
    - The kernel port traits (`FollowGraphRepository`) are designed to be backend-agnostic; the Postgres adapter is the P01 implementation but is not the only possible one.
    - Migration path: dual-write to both backends during a transition; cut over after audit-chain replay confirms parity; `-adapter-postgres` may be deprecated (with ADR supersession) once the graph-DB adapter is stable.
 3. **No mass-traversal API in P01.**
    - "Friend of friend" queries are explicitly NOT exposed in OpenAPI / proto in P01.
    - "Recommended follows" feature is scheduled-for-distinct-tracked-work to P03 (depends on `foundry-runtime` embedding + ML recommendations); when scheduled-for-distinct-tracked-work, the recommendation flow uses Postgres adjacency-list + foundry-runtime embedding, not graph-DB traversal.
 4. **Mass-follow rate-limit enforced at usecase + Postgres.**
-   - Per-user follow-rate limit (100/hr default per PRD §"Per-Tenant Limits") enforced at the `oya-social-follow-graph-usecase` layer.
+   - Per-user follow-rate limit (100/hr default per PRD §"Per-Tenant Limits") enforced at the `oya-community-social-follow-graph-usecase` layer.
    - Postgres-level: per-tenant aggregate quota tracked via Valkey-buffered counter; usecase refuses over-cap.
    - Sybil-detector signal from foundry-guardrails (when active) further restricts coordinated mass-follow attacks (cf. threat-model T-T-03).
 
@@ -127,7 +127,7 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
 
 ### Operational
 
-- Cargo workspace: `oya-social-follow-graph-adapter-postgres` is the P01 backend; future `oya-social-follow-graph-adapter-dgraph` (or other) lands as parallel adapter per ADR-0105 Amendment 3.
+- Cargo workspace: `oya-community-social-follow-graph-adapter-postgres` is the P01 backend; future `oya-community-social-follow-graph-adapter-dgraph` (or other) lands as parallel adapter per ADR-0105 Amendment 3.
 - Postgres migrations: `0001_init.sql` per IP-004 creates partitioned tables + RLS + reverse-index.
 - Audit-chain integration: outbox pattern via `social_follow_audit_events` table with worker emitter.
 - Per-tenant Valkey counter for mass-follow rate-limit (foundry-guardrails sybil-detector consumes).

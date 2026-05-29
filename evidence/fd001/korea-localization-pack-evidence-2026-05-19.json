@@ -20,7 +20,7 @@
         "docs/localization-packs/kr/evidence/cloud-secrets.md",
         "docs/localization-packs/kr/evidence/ontology.md"
       ],
-      "connect_mail_messenger_community_localization": [
+      "messenger_mail_community_localization": [
         "docs/localization-packs/kr/evidence/messenger.md",
         "docs/localization-packs/kr/evidence/mail.md",
         "docs/localization-packs/kr/evidence/community.md"
@@ -32,7 +32,7 @@
         "docs/localization-packs/kr/evidence/cloud-secrets.md",
         "docs/localization-packs/kr/evidence/ops-dashboard-control-center.md"
       ],
-      "enterprise_smb_operating_flows": [
+      "tenant_rbac_operating_flows": [
         "docs/localization-packs/kr/evidence/application.md",
         "docs/localization-packs/kr/evidence/community.md",
         "docs/localization-packs/kr/evidence/cloud-k8s.md",
@@ -81,7 +81,7 @@
     {
       "evidence_path": "docs/localization-packs/kr/evidence/application.md",
       "kr_pack_surfaces": [
-        "enterprise_smb_operating_flows",
+        "tenant_rbac_operating_flows",
         "import_export_migration_paths",
         "pack_manifest",
         "regulatory_bindings"
@@ -100,7 +100,7 @@
       "evidence_path": "docs/localization-packs/kr/evidence/messenger.md",
       "kr_pack_surfaces": [
         "audit_chain_evidence",
-        "connect_mail_messenger_community_localization",
+        "messenger_mail_community_localization",
         "regulatory_bindings"
       ],
       "microservice": "messenger",
@@ -117,7 +117,7 @@
       "evidence_path": "docs/localization-packs/kr/evidence/mail.md",
       "kr_pack_surfaces": [
         "audit_chain_evidence",
-        "connect_mail_messenger_community_localization",
+        "messenger_mail_community_localization",
         "typst_document_templates"
       ],
       "microservice": "mail",
@@ -133,9 +133,9 @@
     {
       "evidence_path": "docs/localization-packs/kr/evidence/community.md",
       "kr_pack_surfaces": [
-        "connect_mail_messenger_community_localization",
+        "messenger_mail_community_localization",
         "data_residency_and_privacy_controls",
-        "enterprise_smb_operating_flows"
+        "tenant_rbac_operating_flows"
       ],
       "microservice": "community",
       "source_paths": [
@@ -168,7 +168,7 @@
       "evidence_path": "docs/localization-packs/kr/evidence/cloud-k8s.md",
       "kr_pack_surfaces": [
         "data_residency_and_privacy_controls",
-        "enterprise_smb_operating_flows",
+        "tenant_rbac_operating_flows",
         "operational_runbooks_and_slos"
       ],
       "microservice": "cloud-k8s",
@@ -238,7 +238,7 @@
       "evidence_path": "docs/localization-packs/kr/evidence/workflow-engine.md",
       "kr_pack_surfaces": [
         "audit_chain_evidence",
-        "enterprise_smb_operating_flows",
+        "tenant_rbac_operating_flows",
         "workflow_templates"
       ],
       "microservice": "workflow-engine",
@@ -254,7 +254,7 @@
     {
       "evidence_path": "docs/localization-packs/kr/evidence/workflow-studio.md",
       "kr_pack_surfaces": [
-        "enterprise_smb_operating_flows",
+        "tenant_rbac_operating_flows",
         "typst_document_templates",
         "workflow_templates"
       ],

@@ -112,7 +112,7 @@ Benchmark displacement set: Redox, Rhapsody, InterSystems IRIS for Health, Lynia
 - Rhapsody displacement: generated clients keep route, transform, ACK, and replay behavior visible to product operators instead of burying them in engine-specific channels.
 - InterSystems IRIS for Health displacement: generated clients preserve FHIR and HL7 access without requiring callers to adopt a database-centered interoperability runtime.
 - Lyniate/Corepoint displacement: generated clients encode clinical routing and provenance as Oyatie contract primitives instead of locked point-to-point interface definitions.
-- Mirth Connect displacement: generated clients provide typed tenant-scoped operation envelopes instead of script-channel conventions that are hard to audit across tenants.
+- Mirth displacement: generated clients provide typed tenant-scoped operation envelopes instead of script-channel conventions that are hard to audit across tenants.
 - NextGate displacement: generated clients expose patient-match ambiguity and steward workflow state instead of making identity resolution a black-box service dependency.
 - Health Catalyst displacement: generated clients provide governed extraction and evidence export without shifting ownership to analytics warehouse flows.
 - Redox parity is insufficient unless the SDK proves Cedar-deny traceability and settlement evidence per request.

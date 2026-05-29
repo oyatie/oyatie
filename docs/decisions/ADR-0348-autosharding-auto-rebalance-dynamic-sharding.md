@@ -27,7 +27,7 @@ related_adrs:
   - ADR-0110-changeset-state-machine.md
   - ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-policy-and-flat-microservice-layout.md
+  - ADR-0132-no-grouping-policy-and-flat-microservice-layout.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0150-cedar-policy-engine.md
   - ADR-0158-multi-region-active-active.md
@@ -770,7 +770,7 @@ I.2 ADR anchors:
 - ADR-0110 (changeset state machine) — doctrine PR's changeset state transitions through the standard sequence.
 - ADR-0111 (merge queue projected state) — doctrine PR enters the merge queue.
 - ADR-0131 (per-microservice flat layout) — preserved verbatim.
-- ADR-0132 (no-suite policy + governance prefix) — preserved verbatim; six new lanes carry the `oya-governance-*` canonical prefix per ADR-0347.
+- ADR-0132 (no-grouping policy + governance prefix) — preserved verbatim; six new lanes carry the `oya-governance-*` canonical prefix per ADR-0347.
 - ADR-0145 (inter-microservice communication reform) — cross-µservice coordinator pattern consumed for cell-orchestrator composition.
 - ADR-0150 (Cedar policy engine) — Cedar gates for cross-jurisdiction migration permits.
 - ADR-0158 (multi-region active-active) — cross-region migration treated as cross-jurisdiction by default.

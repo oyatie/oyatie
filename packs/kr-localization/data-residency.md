@@ -78,7 +78,7 @@ Operator convenience may not override KR residency.
 `ICN-MID` must map to a Korean in-country cell.
 `ICN-MID` must minimize communications confirmation metadata.
 `ICN-MID` must isolate message routing metadata from message content stores.
-`ICN-MID` may process delivery metadata for `connect`.
+`ICN-MID` may process delivery metadata for `connector`.
 `ICN-MID` may process moderation metadata for `community`.
 `ICN-MID` may process incident routing metadata for `security`.
 `ICN-MID` may process delivery address metadata for `logistics` when personal data controls are satisfied.

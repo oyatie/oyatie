@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j64/hospital-network-cross-tenant-referral-state.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j64/hospital-network-cross-tenant-referral-state.json",
   "title": "J64HospitalNetworkCrossTenantReferralState",
   "description": "Shared hospital-network-cross-tenant-referral-state schema for j64-hospital-network-cross-tenant-referral. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

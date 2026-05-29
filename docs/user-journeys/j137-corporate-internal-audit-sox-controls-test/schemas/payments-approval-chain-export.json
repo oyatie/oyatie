@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j137/payments-approval-chain-export.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j137/payments-approval-chain-export.json",
   "title": "PaymentsApprovalChainExport",
   "description": "Payments approval-graph export for SOX 404 audit. Every node carries Cedar evaluation outcome, principal context, and Merkle-leaf provenance.",
   "_meta": {

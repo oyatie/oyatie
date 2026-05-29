@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/products/workflow-studio.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/products/workflow-studio.schema.json",
   "title": "ProductPrd:WorkflowStudio",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",

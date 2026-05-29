@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/design-system/tenant-context-switcher.schema.json",
+  "title": "DesignSystemComponent:TenantContextSwitcher",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "DS-TENANT_CONTEXT_SWITCHER",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-design-system + communications-service-council",
+    "created_at": "2026-05-16T15:00:00Z",
+    "purpose": "Switch personal/work/admin-audit tenant contexts without leaking cached state across ownership pillars."
+  },
+  "component_id": "tenant-context-switcher",
+  "purpose": "Switch personal/work/admin-audit tenant contexts without leaking cached state across ownership pillars.",
+  "variants": [
+    "personal",
+    "work",
+    "admin-audit"
+  ],
+  "states": [
+    "default",
+    "loading",
+    "policy-denied",
+    "offline",
+    "legal-hold-warning"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": "tab/shift-tab, arrow-key segment navigation, enter/space activation",
+    "screen_reader": "announces active context, policy scope, and unsaved queued changes"
+  },
+  "security_invariants": [
+    "cache namespace includes context_kind and ownership_pillar",
+    "switch requires policy re-evaluation before rendering child app",
+    "admin-audit variant never appears in personal context"
+  ],
+  "test_refs": [
+    "crates/oya-tenant-context-ui/tests/persona_switcher.rs::test_cache_namespace_includes_pillar",
+    "crates/oya-tenant-context-ui/tests/a11y.rs::test_persona_switcher_keyboard"
+  ],
+  "consumers": [
+    "$ref:specs/tenant-rbac-packaging.json",
+    "$ref:specs/microservices/mail.json",
+    "$ref:specs/microservices/messenger.json",
+    "$ref:specs/microservices/calendar.json"
+  ],
+  "verification_commands": [
+    "target/debug/oya gate validate product-prd-json",
+    "cargo test -p oya-dev-cli product_prd_json -- --nocapture"
+  ],
+  "sources_scanned": [
+    "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
+    "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
+    "$ref:specs/tenant-rbac-packaging.json#frontend_components"
+  ]
+}

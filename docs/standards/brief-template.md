@@ -50,7 +50,7 @@ A compliant brief makes the agent answer five questions before writing content:
 1. Which canonical anchors bind this artifact class?
 2. What exact file path and line floor must exist at the end?
 3. Which substance signals make this artifact buildable from cold?
-4. Which Oya VCS lifecycle commands prove claim, verify, done, and promote?
+4. Which branch, verification commands, PR, Jenkins contexts, and reviewer/governance checks prove readiness to merge?
 5. Which condition requires HALT-CLEANLY instead of improvising a bad artifact?
 
 The template exists because "write a doc about X" is too weak for this corpus.
@@ -174,7 +174,7 @@ The brief MUST state the sole or primary deliverable path.
 
 The path MUST be absolute when dispatched from an orchestrator.
 
-The path MAY also include the repository-relative path for Oya VCS commands.
+The path MAY also include the repository-relative path for git/PR and `oya gate` evidence.
 
 The line floor MUST be explicit.
 
@@ -212,7 +212,7 @@ The first procedure step MUST be anchor reading.
 
 The second procedure step MUST be path existence and ownership check.
 
-The third procedure step MUST be Oya VCS claim.
+The third procedure step MUST create or verify the isolated worktree branch scope.
 
 The middle procedure steps MUST be artifact-class-specific.
 
@@ -309,40 +309,43 @@ Failure modes should be specific, such as Bulk API governor limit exhaustion,
 Cedar policy explosion, region-isolated OpenBao unseal delay, webhook replay
 duplication, DKIM key rotation drift, or workflow replay divergence.
 
-### §2.6 VCS Lifecycle: claim -> verify -> done -> promote
+### §2.6 Repository lifecycle: branch -> verify -> PR -> merge
 
-Every brief MUST include the Oya VCS lifecycle.
+Every brief MUST include the plain-git + PR + Jenkins governance lifecycle.
 
 The lifecycle is not optional for documentation-only work.
 
-The lifecycle begins with a claim before editing:
+The lifecycle begins with an isolated worktree branch before editing:
 
 ```bash
-./bin/oya vcs claim --agent <agent-id> --intent "<intent>" <repo-relative-path>
+git worktree add -b <branch> <isolated-worktree> origin/dev
+git status --short --branch
 ```
 
 The lifecycle verifies after the artifact exists:
 
 ```bash
-./bin/oya vcs verify --agent <agent-id> --evidence "bundle:<bundle-id>;file:<path>;lines:<n>;anchors:5;substance:manual-read" <repo-relative-path>
+./bin/oya verify --ci-required
+./bin/oya gate run-all
 ```
 
-The lifecycle marks done only after verification evidence exists:
+The lifecycle opens or updates the PR only after verification evidence exists:
 
 ```bash
-./bin/oya vcs done --agent <agent-id> --evidence "bundle:<bundle-id>;file:<path>;claim:verified" <repo-relative-path>
+git push -u origin <branch>
+gh pr create --base dev --head <branch>
 ```
 
-The lifecycle promotes the bundle only after done:
+The lifecycle merges only after required checks and review/governance gates are green:
 
 ```bash
-./bin/oya vcs promote --agent <agent-id> --bundle <bundle-id> --env dev --evidence "file:<path>;line_floor:passed;substance:passed" <repo-relative-path>
+gh pr merge <number> --squash --delete-branch
 ```
 
-For this standard's own authoring slice, the bundle id is
+For this standard's own authoring slice, the evidence id is
 `brief-template-2026-05-20`.
 
-Future briefs MUST set their own bundle id in the identity section.
+Future briefs MUST set their own evidence id in the identity section.
 
 ### §2.7 HALT-CLEANLY rule
 

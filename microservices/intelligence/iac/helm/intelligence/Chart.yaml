@@ -25,4 +25,4 @@ annotations:
   adr_ref: "ADR-0255, ADR-0254, ADR-0253, ADR-0296, ADR-0248"
   cell_tier: "3"
   tier: substrate
-  enforcement_lane: oya-governance-microservice-doc-suite
+  enforcement_lane: oya-governance-microservice-doc-set

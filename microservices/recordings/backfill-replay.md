@@ -22,7 +22,7 @@ Two replay surfaces are first-class:
    from transcript Workflow events.
 3. **Audit-chain re-anchor** — re-seal historical recordings under a new
    audit-chain root if the previous chain is rotated.
-4. **Strangler-migration replay** — replay legacy `oya-connect-recordings-domain`
+4. **Strangler-migration replay** — replay legacy `oya-recordings-domain`
    archive entries through the new ingest contract per ADR-RECORDINGS-0007.
 
 ## Procedures

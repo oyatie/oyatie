@@ -156,12 +156,12 @@ Repo references: microservices/healthcare-integration/PRD.md; microservices/heal
 - IP-007-127: Rhapsody displacement comes from typed proto and replay-safe idempotency that prevent route-engine convenience from hiding policy and provenance.
 - IP-007-128: InterSystems IRIS for Health displacement comes from Oyatie flat-service ownership and explicit ontology projection instead of database-centered suite gravity.
 - IP-007-129: Lyniate/Corepoint displacement comes from policy, DealSet, and audit evidence at each call boundary instead of adapter-centric channel configuration.
-- IP-007-130: Mirth Connect displacement comes from governed internal contracts, domain invariants, and signed evidence rather than scriptable channel transforms.
+- IP-007-130: Mirth displacement comes from governed internal contracts, domain invariants, and signed evidence rather than scriptable channel transforms.
 - IP-007-131: NextGate displacement comes from patient-match review methods that expose human decision provenance and tenant-scoped correction workflows.
 - IP-007-132: Health Catalyst displacement comes from evidence-preserving clinical exchange and replay controls before analytics projection.
 - IP-007-133: Epic and Cerner parity pressure is handled as FHIR/HL7 depth, not as an EHR-owned boundary.
 - IP-007-134: Allscripts parity pressure is handled as route and consent interoperability, not as a legacy integration channel.
-- IP-007-135: Veeva parity pressure is handled as regulated provenance and GxP evidence, not as CRM suite coupling.
+- IP-007-135: Veeva parity pressure is handled as regulated provenance and GxP evidence, not as CRM platform coupling.
 
 ## Implementation steps
 - IP-007-136: Inventory healthcare-integration-v1.proto and local-operations-v1.proto for current package, service, method, message, enum, and metadata coverage.

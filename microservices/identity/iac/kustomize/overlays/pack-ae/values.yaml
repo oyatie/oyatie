@@ -2,12 +2,12 @@
 packLabel: ae
 zitadel:
   zitadelConfig:
-    externalDomain: identity-ae.oyatie.dev
+    externalDomain: identity-ae.oyatie.com
     Telemetry:
       Endpoint: otel-collector.observability-ae.svc.cluster.local:4317
 webauthn:
   attestation: direct
-  rpId: identity-ae.oyatie.dev
+  rpId: identity-ae.oyatie.com
 openbao:
   hsm:
     type: thales-dpod

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j139/cedar-over-scope-pattern.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j139/cedar-over-scope-pattern.json",
   "title": "CedarOverScopePattern",
   "description": "Pattern descriptor for cumulative Cedar permit scope-creep detection.",
   "_meta": {"binding_adr": "ADR-0307", "related_adrs": ["ADR-0311","ADR-0243"], "schema_version": "v1.0.0"},

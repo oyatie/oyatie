@@ -44,7 +44,7 @@ companion_docs:
   - microservices/crm/manifest.json
   - microservices/crm/competitor-parity-matrix.md
   - microservices/crm/REMEDIATION-NOTES-2026-05-21.md
-planned_enforcement_ref: oya-governance-crm-doc-suite
+planned_enforcement_ref: oya-governance-crm-doc-set
 ---
 
 # PRD-crm: Customer Relationship Management
@@ -63,7 +63,7 @@ Every mutation is Cedar default-deny first; every read is scoped to tenant plus 
 Open questions are limited to implementation sequencing across Wave 15B and Wave 15C; there is no unresolved product boundary decision in this PRD.
 
 ### A.1 Personas
-- B2B process owner: wants to prove parity against incumbent ERP workflows without inheriting suite lock-in; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
+- B2B process owner: wants to prove parity against incumbent ERP workflows without inheriting platform lock-in; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B tenant administrator: wants to activate packs, roles, and data residency boundaries without service-specific policy drift; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B operator: wants to run daily work, recover failures, and see batch progress before customers escalate; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B auditor: wants to export immutable evidence for every state transition and policy decision; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
@@ -716,7 +716,7 @@ The story set covers all 14 bounded contexts (account-master, contact, lead, opp
 - Persona: Prospect on demo_trial running out of Opportunity capacity.
 - Motivation: A prospect signed up for demo_trial; has loaded 100 sample Opportunities; tries to add a 101st; the platform must refuse the write + show a clear conversion path to paid.
 - Counterpart anchor: HubSpot Free tier limits with upgrade-modal prompt; Salesforce trial expiration with conversion prompt.
-- Acceptance criterion 1: POST `/v1/crm/{tenant_id}/opportunity` for the 101st Opportunity returns HTTP 402 Payment Required with `tenant_class_cap_exceeded` + structured detail (current_count: 100, cap: 100, upgrade_url: <https://oyatie.dev/upgrade?tenant_id=...>).
+- Acceptance criterion 1: POST `/v1/crm/{tenant_id}/opportunity` for the 101st Opportunity returns HTTP 402 Payment Required with `tenant_class_cap_exceeded` + structured detail (current_count: 100, cap: 100, upgrade_url: <https://oyatie.com/upgrade?tenant_id=...>).
 - Acceptance criterion 2: The UI surfaces an in-app banner explaining the cap + conversion offer.
 - Acceptance criterion 3: Upgrade flow creates a paid tenant; data migrates from demo_trial to paid; demo_trial caps lift.
 - Acceptance criterion 4: Audit-chain seals the cap-exceeded event for conversion-funnel analytics.

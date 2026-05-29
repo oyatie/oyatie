@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j59/offboarding-and-knowledge-transfer-state.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j59/offboarding-and-knowledge-transfer-state.json",
   "title": "J59OffboardingAndKnowledgeTransferState",
   "description": "Shared offboarding-and-knowledge-transfer-state schema for j59-offboarding-and-knowledge-transfer. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

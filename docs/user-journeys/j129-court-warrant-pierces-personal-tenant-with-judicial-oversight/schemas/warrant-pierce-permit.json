@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/specs/journey/j129/warrant-pierce-permit.json",
+  "$id": "https://oyatie.com/specs/journey/j129/warrant-pierce-permit.json",
   "title": "WarrantPiercePermit",
   "version": "1.0.0",
   "_meta": {

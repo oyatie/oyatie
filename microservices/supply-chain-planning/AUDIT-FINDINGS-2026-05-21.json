@@ -7,7 +7,7 @@
   "artifact_target": 100,
   "findings": [
     {
-      "id": "supply-chain-planning-demand-plan-doc-suite",
+      "id": "supply-chain-planning-demand-plan-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/demand-plan-authorization.cedar",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "supply-chain-planning-supply-network-plan-doc-suite",
+      "id": "supply-chain-planning-supply-network-plan-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/supply-network-plan-authorization.cedar",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "supply-chain-planning-available-to-promise-doc-suite",
+      "id": "supply-chain-planning-available-to-promise-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/available-to-promise-authorization.cedar",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "supply-chain-planning-replenishment-plan-doc-suite",
+      "id": "supply-chain-planning-replenishment-plan-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/replenishment-plan-authorization.cedar",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "id": "supply-chain-planning-transportation-plan-doc-suite",
+      "id": "supply-chain-planning-transportation-plan-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/transportation-plan-authorization.cedar",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "supply-chain-planning-planning-scenario-doc-suite",
+      "id": "supply-chain-planning-planning-scenario-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/planning-scenario-authorization.cedar",

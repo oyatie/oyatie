@@ -454,7 +454,7 @@ Webhook payloads (oyatie → tenant receivers) carry version metadata in **two**
 }
 ```
 
-The webhook dispatcher (per microservices/connect-events or per-µservice outbox; see ADR-0145) renders the payload at the target version. When a target version is sunset (per D-4), the dispatcher:
+The webhook dispatcher (per microservices/connector-events or per-µservice outbox; see ADR-0145) renders the payload at the target version. When a target version is sunset (per D-4), the dispatcher:
 
 1. Emits `WebhookTargetVersionSunset` audit event.
 2. Falls back to the µservice's `default_webhook_version` for that event type.

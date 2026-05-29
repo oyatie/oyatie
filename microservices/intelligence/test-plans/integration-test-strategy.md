@@ -81,7 +81,7 @@ Provider sandboxes, OpenBao test sidecars, local policy bundles, and local retri
 - Flake budget: zero known flakes; quarantine requires owner and expiry.
 - Retry policy: no automatic retries for deterministic assertion failures.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `integration::dispatch_flow`.
 - Test `dispatch_rest_acme_safe_summary_routes_to_platform_default_provider`.

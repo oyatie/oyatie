@@ -12,11 +12,11 @@ info:
     ADR-FORMS-0005 (AI-form-build bounds), ADR-FORMS-0006 (eIDAS).
   contact:
     name: axis-forms
-    email: axis-forms@oyatie.dev
+    email: axis-forms@oyatie.com
   license:
     name: Proprietary
 servers:
-  - url: https://forms-{pack}.oyatie.dev/v1
+  - url: https://forms-{pack}.oyatie.com/v1
     variables:
       pack:
         default: kr

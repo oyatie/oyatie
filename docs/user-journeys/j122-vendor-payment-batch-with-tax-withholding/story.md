@@ -105,7 +105,7 @@ event per state transition. The trace is usable without asking an engineer for t
 
 - Story beat 1.1: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 1.2: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 1.3: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 1.3: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 1.4: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 1.5: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 1.6: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
@@ -131,13 +131,13 @@ Observability emits a trace root, service span per hop, cardinality-bounded metr
 event per state transition. The trace is usable without asking an engineer for tribal context.
 
 - Story beat 2.1: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 2.2: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 2.2: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 2.3: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 2.4: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 2.5: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 2.6: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 2.7: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 2.8: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 2.8: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 
 ### Chapter 3 - T-4 hours: identity step-up and tenant context confirmation
 
@@ -157,13 +157,13 @@ compensating command; after settlement, it issues an offsetting credit note and 
 Observability emits a trace root, service span per hop, cardinality-bounded metrics, and one audit-chain
 event per state transition. The trace is usable without asking an engineer for tribal context.
 
-- Story beat 3.1: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 3.1: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 3.2: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 3.3: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 3.4: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 3.5: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 3.6: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 3.7: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 3.7: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 3.8: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 
 ### Chapter 4 - T+0 minutes: primary action submitted
@@ -189,7 +189,7 @@ event per state transition. The trace is usable without asking an engineer for t
 - Story beat 4.3: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 4.4: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 4.5: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 4.6: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 4.6: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 4.7: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 4.8: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 
@@ -215,7 +215,7 @@ event per state transition. The trace is usable without asking an engineer for t
 - Story beat 5.2: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 5.3: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 5.4: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 5.5: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 5.5: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 5.6: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 5.7: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 5.8: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
@@ -241,7 +241,7 @@ event per state transition. The trace is usable without asking an engineer for t
 - Story beat 6.1: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 6.2: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 6.3: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 6.4: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 6.4: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 6.5: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 6.6: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 6.7: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
@@ -267,7 +267,7 @@ event per state transition. The trace is usable without asking an engineer for t
 
 - Story beat 7.1: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 7.2: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 7.3: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 7.3: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 7.4: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 7.5: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 7.6: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
@@ -293,13 +293,13 @@ Observability emits a trace root, service span per hop, cardinality-bounded metr
 event per state transition. The trace is usable without asking an engineer for tribal context.
 
 - Story beat 8.1: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 8.2: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 8.2: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 8.3: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 8.4: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 8.5: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 8.6: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 8.7: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 8.8: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 8.8: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 
 ### Chapter 9 - T+1 day: finance reconciliation and reversal window
 
@@ -319,13 +319,13 @@ compensating command; after settlement, it issues an offsetting credit note and 
 Observability emits a trace root, service span per hop, cardinality-bounded metrics, and one audit-chain
 event per state transition. The trace is usable without asking an engineer for tribal context.
 
-- Story beat 9.1: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 9.1: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 9.2: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 9.3: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 9.4: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 9.5: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 9.6: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 9.7: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 9.7: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 9.8: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 
 ### Chapter 10 - T+7 days: post-event evidence bundle closed
@@ -351,7 +351,7 @@ event per state transition. The trace is usable without asking an engineer for t
 - Story beat 10.3: `mail` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 10.4: `payments` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 10.5: `finops-portal` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
-- Story beat 10.6: `connect` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
+- Story beat 10.6: `connector` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 10.7: `compliance` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 - Story beat 10.8: `workflow-engine` validates the tenant, counterparty, data class, and settlement state before advancing the chapter.
 

@@ -45,7 +45,7 @@ Example:
 
 ```http
 POST /assist-drafts HTTP/2
-Host: intelligence.oyatie.dev
+Host: intelligence.oyatie.com
 Authorization: Bearer eyJ...
 X-Tenant-Id: 018f7a54-3ef5-7c42-a111-a2c4ad7f88f0
 X-Context-Kind: Professional
@@ -289,10 +289,10 @@ Authorization failure shape:
 - Status: `reference-planned`.
 - Operation: `createEvalRun`.
 - Request schema: `CreateEvalRunRequest`.
-- Required fields: `eval_suite`, `candidate_route`, `sample_set`.
+- Required fields: `eval_set`, `candidate_route`, `sample_set`.
 - Response schema: `EvalRun`.
 - Status codes: `202`, `400`, `401`, `403`, `409`, `422`, `429`, `500`.
-- Error shape: `INTELLIGENCE_EVAL_SUITE_INVALID`.
+- Error shape: `INTELLIGENCE_EVAL_SET_INVALID`.
 
 #### GET /eval-runs/{eval_run_id}
 

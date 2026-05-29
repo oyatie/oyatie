@@ -396,7 +396,7 @@ Classification note 04: "present-additive" means Oyatie has a stronger or more s
 Classification note 05: "gap-api" means the capability needs an OpenAPI/gRPC/event contract or an explicit non-goal decision.
 Classification note 06: "gap-iac" means the capability depends on deployable substrate modules under OpenTofu context directories.
 Classification note 07: "gap-context" means the service has not mapped the capability across six deployment contexts.
-Classification note 08: "gap-doc" means the capability likely belongs in the doc suite but the local document is absent or counterpart coverage is incomplete.
+Classification note 08: "gap-doc" means the capability likely belongs in the doc set but the local document is absent or counterpart coverage is incomplete.
 Classification note 09: "gap-policy" means Cedar/IAM/policy behavior is described but no policy artifact exists in the microservice path.
 Classification note 10: "gap-handoff" means the capability requires another microservice and lacks a reciprocal ownership contract.
 Classification note 11: "gap-capacity-model" means the capability needs quotas, throttle behavior, HSM sizing, and tenancy math.

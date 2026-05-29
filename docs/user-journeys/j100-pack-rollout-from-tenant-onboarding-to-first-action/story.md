@@ -93,7 +93,7 @@ Failure mode: if the first protected action proof lane cannot prove compliance, 
 | 10 | Marcus Chen | comms-email | Cedar fragment refresh; ADR-0243 Cedar default-deny and signed fragment bundle publication | Receipt EVT-J100-010 shown with pack HIPAA-WORKED-EXAMPLE |
 | 11 | Marcus Chen | community | workflow compensation; 45 CFR 164.308 administrative safeguards | Receipt EVT-J100-011 shown with pack PACK-AGNOSTIC |
 | 12 | Marcus Chen | compliance | first protected action proof; 45 CFR 164.310 physical safeguards | Receipt EVT-J100-012 shown with pack HIPAA-WORKED-EXAMPLE |
-| 13 | Marcus Chen | connect | mid-flight pack activation; 45 CFR 164.312 technical safeguards | Receipt EVT-J100-013 shown with pack PACK-AGNOSTIC |
+| 13 | Marcus Chen | connector | mid-flight pack activation; 45 CFR 164.312 technical safeguards | Receipt EVT-J100-013 shown with pack PACK-AGNOSTIC |
 | 14 | Marcus Chen | consent-graph | pre-migration inventory; 45 CFR 164.316 policies, procedures, and documentation requirements | Receipt EVT-J100-014 shown with pack HIPAA-WORKED-EXAMPLE |
 | 15 | Marcus Chen | developer-sdk | HIPAA cell eligibility check; 45 CFR 164.502 uses and disclosures of protected health information | Receipt EVT-J100-015 shown with pack PACK-AGNOSTIC |
 | 16 | Marcus Chen | docs | Cedar fragment refresh; 45 CFR 164.514 de-identification and limited data set requirements | Receipt EVT-J100-016 shown with pack HIPAA-WORKED-EXAMPLE |
@@ -138,7 +138,7 @@ Failure mode: if the first protected action proof lane cannot prove compliance, 
 | 55 | Marcus Chen | comms-email | mid-flight pack activation; 45 CFR 164.502 uses and disclosures of protected health information | Receipt EVT-J100-055 shown with pack PACK-AGNOSTIC |
 | 56 | Marcus Chen | community | pre-migration inventory; 45 CFR 164.514 de-identification and limited data set requirements | Receipt EVT-J100-056 shown with pack HIPAA-WORKED-EXAMPLE |
 | 57 | Marcus Chen | compliance | HIPAA cell eligibility check; 45 CFR 164.524 access of individuals to protected health information | Receipt EVT-J100-057 shown with pack PACK-AGNOSTIC |
-| 58 | Marcus Chen | connect | Cedar fragment refresh; 45 CFR 164.530 administrative requirements | Receipt EVT-J100-058 shown with pack HIPAA-WORKED-EXAMPLE |
+| 58 | Marcus Chen | connector | Cedar fragment refresh; 45 CFR 164.530 administrative requirements | Receipt EVT-J100-058 shown with pack HIPAA-WORKED-EXAMPLE |
 | 59 | Marcus Chen | consent-graph | workflow compensation; ADR-0251 pack activation and cell certification levels | Receipt EVT-J100-059 shown with pack PACK-AGNOSTIC |
 | 60 | Marcus Chen | developer-sdk | first protected action proof; ADR-0243 Cedar default-deny and signed fragment bundle publication | Receipt EVT-J100-060 shown with pack HIPAA-WORKED-EXAMPLE |
 | 61 | Marcus Chen | docs | mid-flight pack activation; 45 CFR 164.308 administrative safeguards | Receipt EVT-J100-061 shown with pack PACK-AGNOSTIC |
@@ -183,7 +183,7 @@ Failure mode: if the first protected action proof lane cannot prove compliance, 
 | 100 | Marcus Chen | comms-email | Cedar fragment refresh; ADR-0243 Cedar default-deny and signed fragment bundle publication | Receipt EVT-J100-100 shown with pack HIPAA-WORKED-EXAMPLE |
 | 101 | Marcus Chen | community | workflow compensation; 45 CFR 164.308 administrative safeguards | Receipt EVT-J100-101 shown with pack PACK-AGNOSTIC |
 | 102 | Marcus Chen | compliance | first protected action proof; 45 CFR 164.310 physical safeguards | Receipt EVT-J100-102 shown with pack HIPAA-WORKED-EXAMPLE |
-| 103 | Marcus Chen | connect | mid-flight pack activation; 45 CFR 164.312 technical safeguards | Receipt EVT-J100-103 shown with pack PACK-AGNOSTIC |
+| 103 | Marcus Chen | connector | mid-flight pack activation; 45 CFR 164.312 technical safeguards | Receipt EVT-J100-103 shown with pack PACK-AGNOSTIC |
 | 104 | Marcus Chen | consent-graph | pre-migration inventory; 45 CFR 164.316 policies, procedures, and documentation requirements | Receipt EVT-J100-104 shown with pack HIPAA-WORKED-EXAMPLE |
 | 105 | Marcus Chen | developer-sdk | HIPAA cell eligibility check; 45 CFR 164.502 uses and disclosures of protected health information | Receipt EVT-J100-105 shown with pack PACK-AGNOSTIC |
 | 106 | Marcus Chen | docs | Cedar fragment refresh; 45 CFR 164.514 de-identification and limited data set requirements | Receipt EVT-J100-106 shown with pack HIPAA-WORKED-EXAMPLE |
@@ -228,7 +228,7 @@ Failure mode: if the first protected action proof lane cannot prove compliance, 
 | 145 | Marcus Chen | comms-email | mid-flight pack activation; 45 CFR 164.502 uses and disclosures of protected health information | Receipt EVT-J100-145 shown with pack PACK-AGNOSTIC |
 | 146 | Marcus Chen | community | pre-migration inventory; 45 CFR 164.514 de-identification and limited data set requirements | Receipt EVT-J100-146 shown with pack HIPAA-WORKED-EXAMPLE |
 | 147 | Marcus Chen | compliance | HIPAA cell eligibility check; 45 CFR 164.524 access of individuals to protected health information | Receipt EVT-J100-147 shown with pack PACK-AGNOSTIC |
-| 148 | Marcus Chen | connect | Cedar fragment refresh; 45 CFR 164.530 administrative requirements | Receipt EVT-J100-148 shown with pack HIPAA-WORKED-EXAMPLE |
+| 148 | Marcus Chen | connector | Cedar fragment refresh; 45 CFR 164.530 administrative requirements | Receipt EVT-J100-148 shown with pack HIPAA-WORKED-EXAMPLE |
 | 149 | Marcus Chen | consent-graph | workflow compensation; ADR-0251 pack activation and cell certification levels | Receipt EVT-J100-149 shown with pack PACK-AGNOSTIC |
 | 150 | Marcus Chen | developer-sdk | first protected action proof; ADR-0243 Cedar default-deny and signed fragment bundle publication | Receipt EVT-J100-150 shown with pack HIPAA-WORKED-EXAMPLE |
 | 151 | Marcus Chen | docs | mid-flight pack activation; 45 CFR 164.308 administrative safeguards | Receipt EVT-J100-151 shown with pack PACK-AGNOSTIC |

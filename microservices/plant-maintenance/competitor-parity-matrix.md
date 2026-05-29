@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-plant-maintenance + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # Competitor Parity Matrix: Plant Maintenance
@@ -20,7 +20,7 @@ planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
 | Microsoft | Microsoft Dynamics 365 Asset Management | Match through composable tenant-scoped microservice plus policy, workflow, and ontology contracts |
 
 ## B. Differentiator
-Oyatie avoids suite lock-in. Plant Maintenance exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
+Oyatie avoids platform lock-in. Plant Maintenance exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
 | Row 001 | SAP PM Plant Maintenance | Plant Maintenance.equipment-master | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |
 | Row 002 | Oracle Fusion Maintenance | Plant Maintenance.maintenance-plan | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |
 | Row 003 | Workday Extend asset-maintenance workflow counterpart | Plant Maintenance.work-order | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |

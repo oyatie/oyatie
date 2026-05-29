@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "observability",
   "summary": "OpenSLO substrate + Grafana/Alloy/Mimir/Loki stack",
   "chart_name": "alloy",

@@ -35,7 +35,7 @@ related:
   - ADR-0121-on-prem-k8s-stack.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0148-service-mesh-cilium-ambient-layered.md
   - ADR-0150-cedar-policy-engine.md
@@ -1828,7 +1828,7 @@ to cells whose certification levels match the required packs.
 ## Verification
 
 - [ ] ADR-0333 successor owners exist; `crates/oya-shuffle-sharding`
-  builds and passes its integration test suite.
+  builds and passes its integration test set.
 - [ ] `oya gate validate cell-tier-coherence` returns exit 0 on a
   clean build with all µservices declaring
   `cellular_deployment_pattern`.
@@ -2007,7 +2007,7 @@ to cells whose certification levels match the required packs.
   one such invariant.
 - **ADR-0131 — Per-microservice flat layout.** Cell substrate
   follows layout.
-- **ADR-0132 — No-suite forward policy.** Cell substrate is single-
+- **ADR-0132 — No-grouping forward policy.** Cell substrate is single-
   concern.
 - **ADR-0144 — EU AI Act graduated-risk tier model.** High-risk AI
   inference uses confidential computing per §D-14.

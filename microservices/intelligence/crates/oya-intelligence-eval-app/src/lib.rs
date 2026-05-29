@@ -29,7 +29,7 @@
 //! It owns **no** scoring algorithm, **no** policy gating rules, and **no**
 //! envelope-shape of its own — those live inward in the vertical slice:
 //! - [`oya_intelligence_eval_kernel`] — pure deterministic
-//!   `evaluate_suite(EvalSuite) -> EvalSuiteReport` scoring with metadata-only
+//!   `evaluate_eval_set(EvalSet) -> EvalSetReport` scoring with metadata-only
 //!   thresholds, fail-closed redaction, and no I/O.
 //! - [`oya_intelligence_eval_domain`] — tenant/principal/surface allowlist,
 //!   model/dataset/case-kind allowlists, threshold floors, policy-drift +
@@ -101,12 +101,12 @@ pub use oya_intelligence_eval_adapter::{
     EvalRunnerTransportMode, IntelligenceEvalAdapter,
 };
 pub use oya_intelligence_eval_domain::{
-    DomainEvalSuiteRequest, EvalDomainDecision, EvalDomainDenial, EvalDomainDenialKind,
+    DomainEvalSetRequest, EvalDomainDecision, EvalDomainDenial, EvalDomainDenialKind,
     EvalDomainReport, EvalDomainStatus, EvalPolicyDecision,
 };
 pub use oya_intelligence_eval_kernel::{
-    EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalFailureKind, EvalKindSummary, EvalSuite,
-    EvalSuiteReport, EvalSuiteStatus, EvalSuiteThresholds,
+    EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalFailureKind, EvalKindSummary, EvalSet,
+    EvalSetReport, EvalSetStatus, EvalSetThresholds,
 };
 pub use oya_intelligence_eval_usecase::{
     EvalAuditEvent, EvalAuditEventKind, EvalUsecaseDenialKind, EvalUsecaseInput,
@@ -826,7 +826,7 @@ fn audit_events_for_receipt(
     envelope: Option<&EvalRunnerRequestEnvelope>,
 ) -> Vec<EvalAuditEvent> {
     // The eval-usecase's audit stream is keyed off the worker's idempotency
-    // key + suite metadata. We surface a projection that matches the
+    // key + eval_set metadata. We surface a projection that matches the
     // observed lifecycle without re-running the usecase (which would
     // double-emit). Missing envelope means the usecase was never reached
     // (the worker denied the job for a job-validation reason); in that case
@@ -839,10 +839,10 @@ fn audit_events_for_receipt(
         tenant_id: envelope.tenant_id.clone(),
         principal_id: envelope.principal_id.clone(),
         eval_surface: envelope.eval_surface.clone(),
-        suite_id: envelope.suite_id.clone(),
+        eval_set_id: envelope.eval_set_id.clone(),
         idempotency_key: envelope.idempotency_key.clone(),
         status: None,
-        suite_status: None,
+        eval_set_status: None,
         evidence_refs: vec![
             envelope.request_evidence_ref.clone(),
             envelope.trace_context_ref.clone(),
@@ -872,10 +872,10 @@ fn audit_events_for_receipt(
             tenant_id: envelope.tenant_id.clone(),
             principal_id: envelope.principal_id.clone(),
             eval_surface: envelope.eval_surface.clone(),
-            suite_id: envelope.suite_id.clone(),
+            eval_set_id: envelope.eval_set_id.clone(),
             idempotency_key: envelope.idempotency_key.clone(),
             status: Some(usecase_status),
-            suite_status: None,
+            eval_set_status: None,
             evidence_refs: receipt.evidence_refs.clone(),
         });
     }
@@ -934,14 +934,14 @@ mod tests {
         }
     }
 
-    fn sample_suite(suite_id: &str) -> EvalSuite {
-        EvalSuite {
-            suite_id: suite_id.to_owned(),
+    fn sample_eval_set(eval_set_id: &str) -> EvalSet {
+        EvalSet {
+            eval_set_id: eval_set_id.to_owned(),
             model_ref: "modelref://openai/gpt-preview".to_owned(),
             route_evidence_ref: "route:evidence:eval-app:1".to_owned(),
             guardrail_evidence_ref: "guardrail:evidence:eval-app:1".to_owned(),
             dataset_snapshot_ref: "dataset://evals/app/2026-05-26".to_owned(),
-            thresholds: EvalSuiteThresholds {
+            thresholds: EvalSetThresholds {
                 min_pass_rate_bps: 8_000,
                 max_safety_violation_rate_bps: 0,
                 require_golden: true,
@@ -974,8 +974,8 @@ mod tests {
         }
     }
 
-    fn sample_request(suite_id: &str) -> DomainEvalSuiteRequest {
-        DomainEvalSuiteRequest {
+    fn sample_request(eval_set_id: &str) -> DomainEvalSetRequest {
+        DomainEvalSetRequest {
             tenant_id: "tenant:alpha".to_owned(),
             principal_id: "principal:eval-app".to_owned(),
             eval_surface: "surface:release-gate".to_owned(),
@@ -983,7 +983,7 @@ mod tests {
             trace_context_ref: "trace:eval-app:1".to_owned(),
             policy_decision_ref: "policy:evidence:eval-app:1".to_owned(),
             policy_decision: sample_policy(),
-            suite: sample_suite(suite_id),
+            eval_set: sample_eval_set(eval_set_id),
         }
     }
 
@@ -998,7 +998,7 @@ mod tests {
             not_before_epoch_seconds: 900,
             input: EvalUsecaseInput {
                 idempotency_key: "idem:eval-app:1".to_owned(),
-                request: sample_request("suite:app-release-gate"),
+                request: sample_request("eval_set:app-release-gate"),
             },
         }
     }

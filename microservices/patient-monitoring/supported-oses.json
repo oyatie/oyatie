@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-supported-oses.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-supported-oses.schema.json",
   "microservice": "patient-monitoring",
   "date": "2026-05-21",
   "rust_toolchain": "1.85.0-stable",

@@ -7,7 +7,7 @@
   "artifact_target": 100,
   "findings": [
     {
-      "id": "crm-account-master-doc-suite",
+      "id": "crm-account-master-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/account-master-authorization.cedar",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "crm-opportunity-doc-suite",
+      "id": "crm-opportunity-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/opportunity-authorization.cedar",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "crm-quote-doc-suite",
+      "id": "crm-quote-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/quote-authorization.cedar",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "crm-service-case-doc-suite",
+      "id": "crm-service-case-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/service-case-authorization.cedar",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "id": "crm-campaign-doc-suite",
+      "id": "crm-campaign-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/campaign-authorization.cedar",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "crm-loyalty-ledger-doc-suite",
+      "id": "crm-loyalty-ledger-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/loyalty-ledger-authorization.cedar",

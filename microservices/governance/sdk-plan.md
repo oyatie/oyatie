@@ -74,7 +74,7 @@ impl GovernanceClient {
 import { GovernanceClient } from '@oyatie/governance-sdk';
 
 const client = new GovernanceClient({
-  endpoint: 'https://governance.pack-kr.oyatie.dev',
+  endpoint: 'https://governance.pack-kr.oyatie.com',
   oidcToken: await fetchToken()
 });
 

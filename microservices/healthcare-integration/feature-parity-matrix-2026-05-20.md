@@ -26,7 +26,7 @@ supersedes: competitor-parity-matrix.md (P0 template-stamped per audit F-PARITY-
 halt_condition: clean
 ---
 
-# Feature Parity Matrix — healthcare-integration vs Redox + Mirth Connect + Health Gorilla
+# Feature Parity Matrix — healthcare-integration vs Redox + Mirth + Health Gorilla
 
 ## §1 Anchors and Counterparts
 
@@ -48,12 +48,12 @@ EHR systems connected, 70+ healthcare data partner networks. Public
 docs cite Redox FHIR endpoint, Redox Data Models (vendor-neutral
 intermediate), and the Redox Cloud + Hub modules.
 
-**Mirth Connect / NextGen Connect (NextGen Healthcare, open-source
+**Mirth / NextGen (NextGen Healthcare, open-source
 since 2006).** The reference open-source HL7v2 integration engine.
 Channel-based message routing with JavaScript / Java transformers,
 multi-channel listeners (LLP, TCP, HTTP, FTP/SFTP, JMS, file, DB
 reader), and an admin console for visual channel editing. Mirth
-Connect 4.x ships native FHIR R4 support and an HL7v2-to-FHIR mapper.
+4.x ships native FHIR R4 support and an HL7v2-to-FHIR mapper.
 The de-facto open-source baseline for HL7v2 integration in 2024–2026.
 
 **Health Gorilla (Sunnyvale, founded 2014).** Clinical data network +
@@ -115,7 +115,7 @@ Coverage states per ADR-0328 §D-5.15..§D-5.19:
 
 | # | Feature | Redox | Mirth | Health Gorilla | oyatie | Owning artifact (oyatie) | Notes |
 |---|---|---|---|---|---|---|---|
-| B1 | HL7v2.3 messages | covered | covered | covered | covered | tenant_class adoption record; Mirth Connect 4.5 underlying | ADT / ORM / ORU |
+| B1 | HL7v2.3 messages | covered | covered | covered | covered | tenant_class adoption record; Mirth 4.5 underlying | ADT / ORM / ORU |
 | B2 | HL7v2.3.1 messages | covered | covered | covered | covered | tenant_class adoption record | |
 | B3 | HL7v2.4 messages | covered | covered | covered | covered | tenant_class adoption record | |
 | B4 | HL7v2.5 messages | covered | covered | covered | covered | tenant_class adoption record | |
@@ -459,7 +459,7 @@ This matrix was authored by:
 7. Cross-referencing public counterpart documentation:
    - Redox developer docs (FHIR endpoint, Redox Data Models, Cloud +
      Hub modules)
-   - Mirth Connect 4.5 admin guide + HL7 v2-to-FHIR mapper
+   - Mirth 4.5 admin guide + HL7 v2-to-FHIR mapper
    - Health Gorilla Clinical Network + CARIN BB + Provider Directory
      surfaces
 8. Reading the local 30 IPs to confirm coverage status for FHIR

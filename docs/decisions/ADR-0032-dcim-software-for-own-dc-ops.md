@@ -165,7 +165,7 @@ If at Phase 3+ scale a per-component RFP returns no acceptable commercial bid, f
 
 - Per-DC SLO catalog: PUE target ≤ 1.3 (Phase 2), ≤ 1.2 (Phase 3 KR-eastcoast); WUE target ≤ 0.5 L/kWh; uptime target Tier-III ≥ 99.982% (annual).
 - Per-cell HSM partition rotation + per-DC fire-drill quarterly.
-- Per-vendor BMS/BAS adapter regression test suite runs nightly against vendor sandbox.
+- Per-vendor BMS/BAS adapter regression test set runs nightly against vendor sandbox.
 - Per-asset retirement audit chain reviewed monthly; proof-of-erasure published to Trust Portal per ADR-0038.
 - DCIM lane: `oya-governance-dcim-substrate` enforces no DCIM action escapes the audit chain.
 

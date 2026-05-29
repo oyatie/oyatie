@@ -248,7 +248,7 @@ permit(
 - Jedox replays use Integrator executions, database snapshots, and cube cell history.
 
 ## Cross-Microservice Handoffs
-- `connect` supplies source snapshots and connector-specific cursor contracts.
+- `connector` supplies source snapshots and connector-specific cursor contracts.
 - `ontology` maps vendor rows into canonical planning objects.
 - `audit-chain` seals replay checkpoints and promotion evidence.
 - `residency` or `regional-pack` supplies region decisions before source reads.

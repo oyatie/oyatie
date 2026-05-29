@@ -85,7 +85,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the slides CRDT library, with th
 3. CRDT-to-canonical-spec projection deterministically orders Loro nodes by stable `TreeID`s, with map keys lex-sorted at the projection boundary. Per-slide ACL filter applied AT PROJECTION TIME so each subscriber receives only ops + state for slides they're permitted to read/edit.
 4. Loro snapshot encoding for Valkey persistence (`snapshot()` + `import_snapshot()`); canonical JSON projection ONLY for the deck-spec emission + import/export pipelines (per ADR-SLIDES-0003).
 5. Loro version pinning (`^1.0`); major-version upgrade gated by (a) AC-06 property test green, (b) PPTX round-trip subset fidelity drill green, (c) WASM bundle size delta ≤ +50 KB gzip.
-6. The slides-side CI lane `oya-governance-collab-no-silent-loss` runs Loro upstream's example test suite + slides' own AC-06 property test (10 concurrent editors, randomized op interleaving + slide-ACL-refinement variants, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
+6. The slides-side CI lane `oya-governance-collab-no-silent-loss` runs Loro upstream's example test set + slides' own AC-06 property test (10 concurrent editors, randomized op interleaving + slide-ACL-refinement variants, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 7. Per-session HMAC-SHA-256 over each op envelope (T-T-01 mitigation); HMAC keys held in Valkey per-session; rotate on suspected tampering (per `runbooks/collab-conflict-resolution-crdt.md` Step 3a).
 8. Animation + transition op-class: ops touching animation/transition objects are CRDT-merged with the same semantic as other ops; replay during present-mode must produce byte-identical frame timing (deterministic Loro projection ordering).
 9. Speaker-notes carrying a per-field `data_class = SPEAKER_NOTE` annotation; gateway projection filter MUST exclude speaker-notes from any subscriber whose stream is the broadcast-frame subscriber (audience-view). Enforced at the kernel port boundary.
@@ -214,7 +214,7 @@ Re-use `oya-workflow-studio-collab-crdt-{kernel,domain,...}` directly.
 - `microservices/slides/slos/crdt-merge-no-silent-loss.openslo.yaml`.
 - ADR-WS-0001 (parent — workflow-studio CRDT decision).
 - ADR-0105 (13-layer + backend-qualified adapters Amendment 3).
-- ADR-0135 (Connect dissolution).
+- ADR-0135 (dissolution).
 - Loro — `loro.dev`, `github.com/loro-dev/loro`.
 - yrs (Yjs Rust port) — `github.com/y-crdt/y-crdt`.
 - Automerge 2.0 — `automerge.org`.

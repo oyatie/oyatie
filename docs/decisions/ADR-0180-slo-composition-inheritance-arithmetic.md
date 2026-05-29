@@ -37,7 +37,7 @@ Hyperscaler precedents:
 
 ## Decision
 
-Oyatie declares **SLO composition arithmetic** as a first-class manifest concern. Every parent product (Workflow Studio, Foundry, Connect Super-App, etc.) declares its composition rule; every blocking child µservice's SLO is verified to satisfy the parent's budget.
+Oyatie declares **SLO composition arithmetic** as a first-class manifest concern. Every parent product (Workflow Studio, Foundry, Super-App, etc.) declares its composition rule; every blocking child µservice's SLO is verified to satisfy the parent's budget.
 
 ### Composition rules
 

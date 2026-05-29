@@ -15,11 +15,11 @@ related_adrs: [ADR-0311, ADR-0244, ADR-0249, ADR-0263, ADR-0292]
 
 ## At a glance
 
-Marcus's tenant engages HireForce (3rd-party staffing-agency tenant) to fill 7 senior+staff-level reqs in Austin and Berlin. HireForce sources candidates; marcus-tenant interviews + extends offers; Stripe Connect facilitator-flow handles per-placement-fee (22% of salary) with replacement-guarantee window. Demonstrates the platform's 3-tenant ecosystem primitive (employer + agency + candidate personal-tenant).
+Marcus's tenant engages HireForce (3rd-party staffing-agency tenant) to fill 7 senior+staff-level reqs in Austin and Berlin. HireForce sources candidates; marcus-tenant interviews + extends offers; Stripe facilitator-flow handles per-placement-fee (22% of salary) with replacement-guarantee window. Demonstrates the platform's 3-tenant ecosystem primitive (employer + agency + candidate personal-tenant).
 
 ## Why this journey matters
 
-j134 shows oyatie's ecosystem extensibility: a third-party tenant (staffing agency) plugs into the HR workflow without bespoke integration, with Cedar permits + Connect-trust providing data isolation, and Stripe Connect providing the financial mechanic. The candidate's personal-tenant remains invisible to both employer and agency throughout — per ADR-0311.
+j134 shows oyatie's ecosystem extensibility: a third-party tenant (staffing agency) plugs into the HR workflow without bespoke integration, with Cedar permits + Connect-trust providing data isolation, and Stripe providing the financial mechanic. The candidate's personal-tenant remains invisible to both employer and agency throughout — per ADR-0311.
 
 ## Personas
 
@@ -37,7 +37,7 @@ j134 shows oyatie's ecosystem extensibility: a third-party tenant (staffing agen
 | workflow-engine | Engagement workflow + offer extension + 90-day check + replacement-guarantee |
 | identity | Cross-tenant principal resolution + audience-type transitions + SCIM provisioning |
 | tenancy | Connect-trust verification + 3-tenant scope |
-| payments | Stripe Connect facilitator-flow + escrow + per-placement disbursement + refund |
+| payments | Stripe facilitator-flow + escrow + per-placement disbursement + refund |
 | workplace-integration | Engagement agreement + per-jurisdiction offer-letter (Austin + Berlin) |
 
 ## Key ADRs surfaced
@@ -74,7 +74,7 @@ j134 shows oyatie's ecosystem extensibility: a third-party tenant (staffing agen
 
 - HR-platform engineers: read story.md + workflow-engine + payments IPs
 - Cedar policy engineers: read handshake.md + permit-bundle schema
-- Finance engineers: read payments IP + Stripe Connect facilitator details
+- Finance engineers: read payments IP + Stripe facilitator details
 - Marketplace engineers: read story.md ch7 + multi-category-marketplace ADR-0249
 
 ## Cross-references

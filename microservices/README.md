@@ -23,7 +23,7 @@ This directory contains the live flat µservice catalog. The table is intentiona
 | `comms-email` | substrate | Transactional and tenant-facing email communications substrate with deliverability and audit hooks. | Not authored yet |
 | `community` | product | Tenant/community social spaces, channels, forums, moderation, and mutual-aid interaction surfaces. | Not authored yet |
 | `compliance` | product | Compliance evidence automation per ADR-0209. In-house pipeline covering SOC 2 Type II, GDPR (incl. DSAR automation), HIPAA, PCI-DSS — replacing Drata / Vanta / Tugboat Logic / AuditBoard / ServiceNow GRC... | Not authored yet |
-| `connect` | retired umbrella | Retiring umbrella coordination surface for the dissolved Connect suite. | [`ADR-MS-001`](connect/decisions/ADR-MS-001-connector-broker-webhook-and-dlq-contract.md) |
+| `connector` | retired umbrella | Retiring umbrella coordination surface for the dissolved platform. | [`ADR-MS-001`](connect/decisions/ADR-MS-001-connector-broker-webhook-and-dlq-contract.md) |
 | `consent-graph` | substrate | Consent, purpose, delegation, and cross-tenant visibility graph for privacy-bound data sharing. | Not authored yet |
 | `contact-center` | product | Omnichannel support routing, queues, consent-aware transcripts, and service-level contact workflows. | [`ADR-MS-001`](contact-center/decisions/ADR-MS-001-omnichannel-routing-queue-and-consent-contract.md) |
 | `contract-lifecycle-management` | product | Contract authoring, negotiation, obligation tracking, renewal, and legal approval workflows. | Not authored yet |

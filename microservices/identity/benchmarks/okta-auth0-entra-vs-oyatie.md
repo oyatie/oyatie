@@ -102,7 +102,7 @@ Reading: oyatie paid with per_seat billing_component is ~ 4× cheaper than Okta.
 
 - Pricing reflects published list (mid-2025); enterprise discounts typically 30-40%.
 - Hardware costs amortize over 5+ years; first-year capex higher.
-- Some vendors (Microsoft Entra ID) bundle identity with broader productivity suites; pure identity comparison is harder.
+- Some vendors (Microsoft Entra ID) bundle identity with broader productivity platforms; pure identity comparison is harder.
 - Throughput depends heavily on token size + claim complexity.
 
 ## Reproducibility

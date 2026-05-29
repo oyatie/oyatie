@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-global-trade + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-global-trade-doc-suite
+planned_enforcement_ref: oya-governance-global-trade-doc-set
 ---
 
 # Competitor Parity Matrix: Global Trade
@@ -20,7 +20,7 @@ planned_enforcement_ref: oya-governance-global-trade-doc-suite
 | Microsoft | Microsoft Dynamics 365 global trade and export-control counterpart | Match through composable tenant-scoped microservice plus policy, workflow, and ontology contracts |
 
 ## B. Differentiator
-Oyatie avoids suite lock-in. Global Trade exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
+Oyatie avoids platform lock-in. Global Trade exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
 | Row 001 | SAP GTS Global Trade Services | Global Trade.customs-declaration | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |
 | Row 002 | Oracle Global Trade Management | Global Trade.sanctions-screening | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |
 | Row 003 | Workday supplier-compliance workflow counterpart | Global Trade.export-control-classification | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |

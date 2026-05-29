@@ -3,7 +3,18 @@
   "spec_id": "schema-registry-canonical",
   "spec_kind": "canonical-decision",
   "authoring_adr": "ADR-0166",
-  "related_adrs": ["ADR-0005", "ADR-0011", "ADR-0029", "ADR-0100", "ADR-0105", "ADR-0128", "ADR-0131", "ADR-0145", "ADR-0148", "ADR-0157"],
+  "related_adrs": [
+    "ADR-0005",
+    "ADR-0011",
+    "ADR-0029",
+    "ADR-0100",
+    "ADR-0105",
+    "ADR-0128",
+    "ADR-0131",
+    "ADR-0145",
+    "ADR-0148",
+    "ADR-0157"
+  ],
   "status": "Accepted",
   "date": "2026-05-18",
   "title": "Schema Registry Canonical Spec",
@@ -36,7 +47,12 @@
   "contract_authoring_model": {
     "single_shared_source_of_truth_required": true,
     "authoring_model": "Rust-native TypeSpec-like source checked into the service contract-source tree",
-    "generated_or_validated_outputs": ["OpenAPI REST", "Protobuf gRPC", "GraphQL SDL/resolver contracts", "AsyncAPI event contracts where applicable"],
+    "generated_or_validated_outputs": [
+      "OpenAPI REST",
+      "Protobuf gRPC",
+      "GraphQL SDL/resolver contracts",
+      "AsyncAPI event contracts where applicable"
+    ],
     "manual_parallel_schema_maintenance_forbidden": true,
     "drift_gate_required": "future ChangeSet must add deterministic gate coverage that refuses REST/gRPC/GraphQL drift from the shared source."
   },
@@ -45,10 +61,30 @@
     "assigned_by": "registry on publish"
   },
   "compatibility_levels": {
-    "BACKWARD": {"description": "new schema can read old data", "default_for": ["events", "REST responses"]},
-    "FORWARD": {"description": "old schema can read new data", "default_for": ["REST requests"]},
-    "FULL": {"description": "both backward and forward", "default_for": ["ontology", "audit-chain"]},
-    "NONE": {"description": "no compatibility check; reserved for explicit-ADR carve-out", "default_for": []}
+    "BACKWARD": {
+      "description": "new schema can read old data",
+      "default_for": [
+        "events",
+        "REST responses"
+      ]
+    },
+    "FORWARD": {
+      "description": "old schema can read new data",
+      "default_for": [
+        "REST requests"
+      ]
+    },
+    "FULL": {
+      "description": "both backward and forward",
+      "default_for": [
+        "ontology",
+        "audit-chain"
+      ]
+    },
+    "NONE": {
+      "description": "no compatibility check; reserved for explicit-ADR carve-out",
+      "default_for": []
+    }
   },
   "major_version_bump_policy": {
     "rule": "breaks compatibility intentionally; requires ADR + sunset window per ADR-0100",
@@ -58,7 +94,11 @@
     "name": "schema-registry-backward-compat",
     "command": "oya gate validate schema-registry-backward-compat",
     "blocking": true,
-    "required_status_check_on": ["dev", "staging", "production"],
+    "required_status_check_on": [
+      "dev",
+      "staging",
+      "production"
+    ],
     "assertions": [
       "each schema in contracts/ compared against previously-published version",
       "build fails if new version breaks declared compatibility level"

@@ -11,7 +11,7 @@ planned_enforcement_ref: 'oya-governance-doc-rigor'
 purpose: >
   Six long-form day-in-the-life narratives showing the unified ecosystem from different persona perspectives. Every moment demonstrates same passkey identity, explicit tenant context, role projection, shared UX vocabulary, Cedar policy, Workflow Engine, Ontology, audit-chain evidence, and no per-tool training friction.
 related_adrs:
-  - docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+  - docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
   - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
   - docs/decisions/ADR-0245-substrate-vs-product-layering.md
   - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
@@ -42,7 +42,7 @@ external_precedent_refs:
   - Google Workspace Learning Center: https://support.google.com/a/users/answer/9389764
   - Salesforce Platform and AppExchange: https://www.salesforce.com/platform/ecosystem
   - Salesforce Trailhead AppExchange basics: https://trailhead.salesforce.com/content/learn/modules/appexchange_basics
-  - ServiceNow Now Platform workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
+  - ServiceNow Now Module workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
   - Atlassian Platform: https://www.atlassian.com/platform
   - Notion connected workspace: https://www.notion.com/help/guides/connected-workspace-for-product-teams-to-collaborate-ideate-and-launch
   - Gartner SaaS sprawl collaboration research: https://www.gartner.com/en/documents/6873766
@@ -5960,12 +5960,12 @@ The risk focus is review cascade must be evidence-bound.
 
 ### Day 5 11:00 benefits open enrollment Forms
 Priya enters benefits open enrollment Forms from the benefits owner role projection inside the corporate benefits tenant context.
-The visible products are Forms plus Drive plus Connect plus Payments, but the substrate path is still identity, tenancy, Cedar policy, Workflow Engine, Ontology projection, audit-chain, marketplace or settlement when money changes hands, and the shared UX shell vocabulary.
+The visible products are Forms plus Drive plus plus Payments, but the substrate path is still identity, tenancy, Cedar policy, Workflow Engine, Ontology projection, audit-chain, marketplace or settlement when money changes hands, and the shared UX shell vocabulary.
 The risk focus is benefits data is sensitive and jurisdictional.
 #### Day 5 11:00 benefits open enrollment Forms pass 1: scene, dialogue, and tenant gate
 - Time anchor: 11:00 is captured as local-time event evt-d5-m05-p1-benefits-open-enro with day_index=5, persona=Priya, role_projection=benefits owner, and tenant_scope=corporate benefits.
 - Dialogue: Priya: "At 11:00, keep the task in this role and show the evidence before I approve."
-- Visible surface: Forms plus Drive plus Connect plus Payments opens with tenant label, role label, data-class badge, and switch affordance before records render.
+- Visible surface: Forms plus Drive plus plus Payments opens with tenant label, role label, data-class badge, and switch affordance before records render.
 - First object: obj-d5-m05-p1-benefits-open-enro is created or reviewed with 7 linked records and no implicit copy from another tenant.
 - Microservice handoff: payments receives the user intent, forms normalizes the task state, and drive pins the object reference.
 - UX action: approve, assign, comment, attach evidence, route, defer, and review history keep the same button vocabulary as earlier moments.
@@ -6021,7 +6021,7 @@ The risk focus is benefits data is sensitive and jurisdictional.
 - Recovery behavior: stale cache clears with a visible reason, preserves draft text, blocks export, and asks for explicit tenant re-selection.
 - Accessibility detail: screen-reader announces tenant, role, data class, decision, and next action before reading the record body.
 - Mobile/offline path: offline edits are drafts only; sync requires policy replay and duplicate detection before any server write.
-- Training-transfer detail: the same approve/comment/route/history controls appear whether the surface is Forms plus Drive plus Connect plus Payments.
+- Training-transfer detail: the same approve/comment/route/history controls appear whether the surface is Forms plus Drive plus plus Payments.
 - Failure copy: the denial names benefits data is sensitive and jurisdictional, the service boundary, and the evidence id instead of telling the user to try another product.
 - Operator shortcut: command palette action route-evidence:benefits-open-enrollment-forms maps to the same workflow branch as the button.
 - Visual boundary: personal, employer, agency, healthcare, and side-business tenants use labels plus data-class badges, not separate mental models.
@@ -7927,7 +7927,7 @@ The risk focus is work emergency data clears before personal return.
 - docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 - docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
 - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
-- docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+- docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
 - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
 - docs/decisions/ADR-0245-substrate-vs-product-layering.md
 - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
@@ -7946,7 +7946,7 @@ The risk focus is work emergency data clears before personal return.
 - Google Workspace Learning Center: https://support.google.com/a/users/answer/9389764 (shared collaboration surfaces and service training across Gmail, Drive, Meet, Chat, Docs, Sheets, Slides, Forms, and Calendar)
 - Salesforce Platform and AppExchange: https://www.salesforce.com/platform/ecosystem (metadata-driven platform extension, marketplace distribution, and role-tailored product clouds over shared customer data)
 - Salesforce Trailhead AppExchange basics: https://trailhead.salesforce.com/content/learn/modules/appexchange_basics (ecosystem learning and marketplace onboarding as a governed adoption primitive)
-- ServiceNow Now Platform workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html (workflow automation and low-code development over one governed platform surface)
+- ServiceNow Now Module workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html (workflow automation and low-code development over one governed platform surface)
 - Atlassian Platform: https://www.atlassian.com/platform (shared administration, graph, work management, and compliance features across multiple team tools)
 - Notion connected workspace: https://www.notion.com/help/guides/connected-workspace-for-product-teams-to-collaborate-ideate-and-launch (docs, wiki, projects, tasks, and connected tools in one workspace grammar)
 - Gartner SaaS sprawl collaboration research: https://www.gartner.com/en/documents/6873766 (SaaS sprawl is an enterprise architecture and application-team governance problem rather than a simple procurement nuisance)

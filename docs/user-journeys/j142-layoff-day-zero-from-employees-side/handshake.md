@@ -255,7 +255,7 @@ audit_emit:  HRRPSignalPublished
 ### Step 3.1 — COBRA election via Connect
 
 ```
-caller:  Chris's personal-Mail → Connect adapter to COBRA vendor
+caller:  Chris's personal-Mail → adapter to COBRA vendor
 target:  connect (personal-tenant) → cobra-vendor-tenant
 rpc:     connect.v1.Adapter.Submit
 payload: {
@@ -292,7 +292,7 @@ audit_emit: HighRiskModeEnabled
 
 ```
 caller:  payments (work-tenant) batch scheduler
-target:  bank ACH-rail (via Connect → ACH-vendor-tenant)
+target:  bank ACH-rail (via → ACH-vendor-tenant)
 rpc:     connect.v1.ACH.SubmitBatch
 payload: { batch_id, payables: [...the_severance_among_others] }
 cedar_check: PERMIT b2b.payments.ach.submit

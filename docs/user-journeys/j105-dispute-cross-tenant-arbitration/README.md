@@ -212,7 +212,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 001: workflow-engine keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: payments keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 004: messenger keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
@@ -220,7 +220,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 005: mail keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: audit-chain keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 007: compliance keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -230,7 +230,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 009: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: drive keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: mail keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
@@ -238,7 +238,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 013: audit-chain keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: compliance keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: workflow-engine keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -257,7 +257,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 021: compliance keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: workflow-engine keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 023: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -266,7 +266,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 025: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: mail keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: audit-chain keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -275,7 +275,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 029: workflow-engine keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: payments keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 031: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -294,7 +294,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 037: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: drive keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 040: mail keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
@@ -302,7 +302,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 041: audit-chain keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: compliance keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 043: workflow-engine keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -312,7 +312,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 045: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: messenger keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: mail keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: audit-chain keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
@@ -321,7 +321,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 049: compliance keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: workflow-engine keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -331,7 +331,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 053: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: mail keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform
+  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 055: audit-chain keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -340,7 +340,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 057: workflow-engine keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: payments keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 059: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -350,7 +350,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 061: mail keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: audit-chain keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: compliance keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -359,7 +359,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 065: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: drive keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 068: mail keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
@@ -377,7 +377,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 073: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: messenger keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: mail keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 076: audit-chain keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
@@ -385,7 +385,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 077: compliance keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: workflow-engine keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 079: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -395,7 +395,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 081: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: mail keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: audit-chain keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: compliance keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
@@ -404,7 +404,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 085: workflow-engine keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: payments keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -423,7 +423,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 093: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: drive keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 095: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 096: mail keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
@@ -431,7 +431,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 097: audit-chain keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: compliance keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: workflow-engine keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -440,7 +440,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 101: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: messenger keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 103: mail keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -459,7 +459,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 109: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: mail keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: audit-chain keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -468,7 +468,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 113: workflow-engine keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: payments keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 115: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
@@ -478,7 +478,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 117: mail keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: audit-chain keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: compliance keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: workflow-engine keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
@@ -487,7 +487,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 121: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: drive keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped evidence,
-  cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: messenger keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -506,7 +506,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 129: drive keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: messenger keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform
+  evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 131: mail keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
@@ -516,7 +516,7 @@ mutual contract, and evidence is held in Drive with dual audit seals.
 - readme-buildability 133: compliance keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: workflow-engine keeps Soo-jin Han and neutral arbitration board tenant inside tenant-scoped
-  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: payments keeps Soo-jin Han and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.

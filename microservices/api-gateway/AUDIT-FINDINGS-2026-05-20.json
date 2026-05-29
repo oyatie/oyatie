@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-audit-findings.json",
+  "$schema": "https://oyatie.com/schemas/microservice-audit-findings.json",
   "microservice": "api-gateway",
   "audit_date": "2026-05-20",
   "wave": "Wave-3-A",

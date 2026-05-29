@@ -434,7 +434,7 @@ related_oyatie_adrs:
   - Rollback: use the rollback_pointer from action 15 and restore the previous authority flag before retrying.
 
 ## Phase 4: Verification
-- Named test suite: data-warehouse-migration-bigquery-regression-suite.
+- Named test set: data-warehouse-migration-bigquery-regression-suite.
 - Named SLO targets: P95 certified dashboard query <2.5 seconds, nightly refresh completes inside 4-hour window, critical table hash parity 100%, restricted-policy mismatch 0, and replayed BI query failure <0.5%.
 - Named delta-detection algorithm: Catalog snapshot plus per-table partition Merkle hashes, late-arrival partition overlap window, query-history replay diff, and policy graph canonical hash keyed by tenant/database/schema/object/principal.
 - Verification must be run from an operator account that is not the migration writer account.

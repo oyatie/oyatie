@@ -24,7 +24,7 @@
     "pr143_floor": 70
   },
   "scorecards": {
-    "doc_suite_completeness": "required",
+    "doc_set_completeness": "required",
     "adr_adherence_matrix": "required",
     "abuse_defence_ux_floor": "required",
     "emergency_services_bypass": "required",

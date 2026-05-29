@@ -117,7 +117,7 @@ pub struct AccessDecision {
 ### Negative
 
 - Tenant-mutation PRs become slower because the cross-microservice review label is mandatory.
-- The substrate is a single point of architectural failure — a regression here cascades to all microservices. Mitigation: kernel ships with an exhaustive property-test suite + a quarterly rotation of architecture-council review.
+- The substrate is a single point of architectural failure — a regression here cascades to all microservices. Mitigation: kernel ships with an exhaustive property-test set + a quarterly rotation of architecture-council review.
 - Per-region IdP onboarding requires a regional-pack PR even for adjacent locales; the seam exists to prevent kernel patching, but it is real per-pack work.
 
 ### Operational
@@ -156,7 +156,7 @@ pub struct AccessDecision {
 1. **Q1.** Cross-tenant individual identity linking (`cross_tenant_individual` purpose per ADR-0008) — under what evidence threshold does the kernel allow it? Default: founder + privacy-council ratification per request, never automated. → owner: `council-privacy`.
 2. **Q2.** Where does the per-tenant HSM partition (ADR-0009) bind to the identity kernel — at session issuance, or at credential decryption? Default: at session issuance. → ADR-0009.
 3. **Q3.** Schema-version migration of the `Tenant` struct — what is the maximum supported lag between schema versions in production? Default: two versions; older tenants migrated within one wave. → owner: `tenancy-identity`.
-4. **Q4.** Does the customer-builder persona (Connect microservice ISVs) get a distinct `Principal` variant or reuse `ServicePrincipal`? Default: reuse, with `owning_capability` differentiating. → owner: `foundry`.
+4. **Q4.** Does the customer-builder persona (microservice ISVs) get a distinct `Principal` variant or reuse `ServicePrincipal`? Default: reuse, with `owning_capability` differentiating. → owner: `foundry`.
 
 ---
 

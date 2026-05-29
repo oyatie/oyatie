@@ -31,7 +31,7 @@ Wire the HG-COMMUNITY hyperscaler-maturity claim gate. Per `feedback_quality_per
 
 - Parity-matrix CI lane.
 - Per-claim test files at `tests/parity/`.
-- Synthetic benchmark suite at `tests/perf/`.
+- Synthetic benchmark set at `tests/perf/`.
 
 ## Acceptance
 

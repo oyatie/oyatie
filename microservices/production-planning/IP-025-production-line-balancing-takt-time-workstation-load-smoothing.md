@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-20
 owner_team: axis-production-planning + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0252, ADR-0253, ADR-0257, ADR-0263, ADR-0294, ADR-0297, ADR-0314, ADR-0315, ADR-0316]
-planned_enforcement_ref: oya-governance-production-planning-doc-suite
+planned_enforcement_ref: oya-governance-production-planning-doc-set
 ip_id: IP-025
 journey_ref: j101
 journey_slug: j101-multi-tier-supply-chain-formation

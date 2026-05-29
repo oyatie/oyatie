@@ -33,7 +33,7 @@ substance_bar_self_verdict: red (existing competitor-parity-matrix.md + PRD §B+
 stop_conditions:
   - finding crosses microservice boundary -> defer to remediation wave, do not edit foreign service
   - tier-delta surfaces -> reject and reroute to tenant_class doctrine
-  - new µservice required -> HALT-CLEANLY, route through ADR-0132 no-suite policy
+  - new µservice required -> HALT-CLEANLY, route through ADR-0132 no-grouping policy
 ---
 
 # Wave 4-Rolling Coherence Audit — data-pipeline
@@ -70,9 +70,9 @@ iPaaS-shaped operational concern in the Oyatie corpus. Those dimensions are:
 
 ### §1.2 What this audit does not cover
 
-This audit does not touch the `connect` microservice even though connect and
+This audit does not touch the `connector` microservice even though connect and
 data-pipeline are adjacent. The boundary correction in PRD §A names the
-explicit reason: ELT and iPaaS coverage cannot route through `connect`
+explicit reason: ELT and iPaaS coverage cannot route through `connector`
 because pipeline runs, lineage, and replay need their own owner. That
 boundary is respected here.
 
@@ -164,7 +164,7 @@ policy-decision-latency), `src/` (adapter/, config.rs, domain/, error.rs,
 lib.rs, main.rs, usecase/), and `tests/`.
 
 Total documentary artifact count: ~75 files plus subdirectory entries.
-This is above the `full_suite_artifact_floor` of 70 declared in
+This is above the `full_platform_artifact_floor` of 70 declared in
 `manifest.json`, but below the `operating_bar_artifact_count` of 100.
 The audit confirms the microservice is in `reserved-wave-3-i-anchor`
 status as declared in `manifest.json`.
@@ -198,7 +198,7 @@ audit notes that `application`, `kernel`, `worker`, and `governance` are
 declared in the documentary layers but are not yet code-resident
 subdirectories at this layout level. The microservice is in
 `reserved-wave-3-i-anchor` status, so this is consistent with the
-full-suite floor of 70 artifacts but not yet at the operating bar.
+full-platform floor of 70 artifacts but not yet at the operating bar.
 Remediation class: implementation plan IP-006/IP-007/IP-022 wiring.
 
 ### §2.4 ADR bindings
@@ -874,7 +874,7 @@ paid.billing_components composable.
 The audit confirms data-pipeline remains a single flat
 microservice with five bounded contexts. The audit does not
 propose spinning off destination-connector or scheduling as
-separate microservices (per ADR-0132 no-suite policy); instead
+separate microservices (per ADR-0132 no-grouping policy); instead
 the audit proposes adding bounded contexts within data-pipeline.
 
 ### §6.3 No parallel writes outside microservice path: confirmed
@@ -1036,7 +1036,7 @@ performance-benchmark-numbers-2026-05-20.md as input and produce:
 The audit closes with the explicit assertion that
 `microservices/data-pipeline/` is owned by `axis-data-pipeline +
 council-product`, that the operational concern boundary against
-`connect` and `data-warehouse` is correctly drawn, and that the
+`connector` and `data-warehouse` is correctly drawn, and that the
 substance-bar repair has a clear remediation path.
 
 <!--

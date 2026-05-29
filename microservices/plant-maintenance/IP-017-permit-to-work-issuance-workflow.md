@@ -10,7 +10,7 @@ persona: safety-authority, permit-issuer, carlos-reyes-ii (tech), tony-li (super
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-safety
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-017: Permit-to-work issuance workflow with safety-authority quorum

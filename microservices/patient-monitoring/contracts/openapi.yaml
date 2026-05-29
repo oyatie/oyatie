@@ -11,7 +11,7 @@ info:
     and administrative actions.
   contact:
     name: axis-clinical-realtime
-    email: patient-monitoring-stewards@oyatie.dev
+    email: patient-monitoring-stewards@oyatie.com
   license:
     name: oyatie monorepo license
 servers:

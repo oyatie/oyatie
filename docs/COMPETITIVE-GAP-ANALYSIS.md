@@ -31,14 +31,14 @@ Each Gap row gets a proposed expansion + estimated investment + wave placement.
 | Plugin substrate | Salesforce AppExchange / Slack App Directory / Microsoft AppSource | ADR-0036/0157/0161/0162 manifest + trust + signing + Wasmtime sandbox | Edge (sandbox + signing) | **Gap: developer experience + revenue share economics.** Expand: plugin SDK in 4 languages (Rust + TS + Python + Go), per-plugin sandboxed dev environment, marketplace revenue share (industry 30%), curated review queue |
 | Tenant onboarding self-serve | HubSpot / Zendesk free-tier signup | Issue #1204 / #1212 KR-first manual onboarding | **Gap (high)** | Self-serve onboarding ≤ 5min; per-vertical guided setup; Foundry-driven configuration agent; design-partner referral flow |
 | Marketplace economics | Salesforce AppExchange (30%) / Apple App Store (15-30%) | undefined | **Gap (high)** | Per-tier revenue share matrix; ISV onboarding playbook; payout cadence; per-region tax handling |
-| Connect / collaboration surface | Slack / Discord / Microsoft Teams | Issue #749/#750/#1288 partial; planned ad-free per LEDG-021 | Parity (planned) | **Gap: voice+video integration depth.** Connect Personal as an "ad-free Discord-class messaging" differentiator |
-| Per-tenant white-label / theming | Stripe Connect / Salesforce Lightning brand customization | undefined | **Gap (medium)** | Per-tenant logo / brand-color / custom-domain in Workspace surfaces |
+| / collaboration surface | Slack / Discord / Microsoft Teams | Issue #749/#750/#1288 partial; planned ad-free per LEDG-021 | Parity (planned) | **Gap: voice+video integration depth.** Personal as an "ad-free Discord-class messaging" differentiator |
+| Per-tenant white-label / theming | Stripe / Salesforce Lightning brand customization | undefined | **Gap (medium)** | Per-tenant logo / brand-color / custom-domain in Workspace surfaces |
 
 **Edge to lean into:** engine-enforced object-graph isolation (ADR-0006) is a real moat — competitors have application-layer isolation only.
 
 ---
 
-## 3. Axis 2 — Workspace / Productivity Suite
+## 3. Axis 2 — Workspace / Productivity Platform
 
 | Surface | Incumbent | Oyatie posture | Score | Gap + expansion |
 |---|---|---|---|---|

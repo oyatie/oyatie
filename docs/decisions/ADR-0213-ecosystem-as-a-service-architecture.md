@@ -23,7 +23,7 @@ related_adrs:
   - ADR-0110  # ChangeSet state machine (plugin/app version state machine inherits)
   - ADR-0123  # Hyperscaler maturity claim gate (HG-PAS + HG-SDK)
   - ADR-0131  # Per-microservice flat layout (plugin-app-store + developer-sdk ship under this)
-  - ADR-0132  # No-suite policy; EaaS is two single-concern µservices, not one bundle
+  - ADR-0132  # No-grouping policy; EaaS is two single-concern µservices, not one bundle
   - ADR-0139  # Agentic SLO-gated promotion (per-plugin SLO publishing inherits)
   - ADR-0147  # Wasmtime sandbox baseline
   - ADR-0170  # Backstage dev portal substrate (developer-sdk portal lives under)
@@ -47,14 +47,14 @@ inherited_doctrine_from:
   - Apple App Store — vetting pipeline, per-app permissions, signature verification, revenue share, developer onboarding, sandbox runtime, entitlements
   - VS Code Marketplace — extension catalog, per-extension permission scoping, signed VSIX artifacts, in-IDE install flow
   - AWS Marketplace (SaaS + AMI catalog) — vetted catalog of third-party offerings, per-account procurement, billing aggregation, security review
-  - Stripe Connect — third-party developer onboarding, KYC + AML, revenue share + payout substrate, developer dashboard
+  - Stripe — third-party developer onboarding, KYC + AML, revenue share + payout substrate, developer dashboard
   - Shopify App Store — published / unlisted / private app modes, per-tenant install model, per-install configuration, scoped permissions
   - Salesforce AppExchange — enterprise vetting (security review), per-app subscription billing
   - JetBrains Marketplace — IDE plugin distribution + paid plugins + revenue share + per-plugin signing
 forbidden_primitives_for_implementation:
   - "External plugin-store SaaS (e.g., GitHub Marketplace as backing substrate) — plugin-app-store is 100% in-house per ADR-0211"
   - "External developer-portal SaaS (e.g., readme.io, stoplight.io hosted) — Backstage in-house per ADR-0170"
-  - "External revenue-share SaaS (e.g., Tipalti, Stripe Connect hosted) — payout substrate is in-house per ADR-0211 §revenue-share"
+  - "External revenue-share SaaS (e.g., Tipalti, Stripe hosted) — payout substrate is in-house per ADR-0211 §revenue-share"
   - "External package-manager surface (e.g., npm registry, crates.io) for first-party SDK distribution — vendored under microservices/developer-sdk/iac/registry per ADR-0211 §package-distribution"
 ---
 
@@ -85,7 +85,7 @@ Open for council review through 2026-06-01. Acceptance gates:
 
 **Naming rule (enforced by `oya gate validate naming-justification`):** the substring `marketplace` in oyatie µservice names is reserved for concern #2 (B2C commerce). Plugin distribution uses `plugin-app-store`; developer surface uses `developer-sdk`. This ADR registers the naming reservation.
 
-**Why two µservices for concern #1 (per ADR-0132 no-suite policy):**
+**Why two µservices for concern #1 (per ADR-0132 no-grouping policy):**
 - `plugin-app-store` serves tenant-operators + tenant-admins + platform-admins (the consumer + governance personas of the ecosystem).
 - `developer-sdk` serves third-party developers (the supply-side persona of the ecosystem).
 These are two distinct personas with two distinct rate-limit profiles, two distinct authorization surfaces, and two distinct release cadences. ADR-0132 forbids bundling them.
@@ -96,8 +96,8 @@ Bominal-inherited ADR-0037 ("plugin substrate") shipped a thin plugin-loader con
 
 1. **Plugin loader ≠ plugin ecosystem.** A "plugin loader" implies a load-once code extension. In 2026 the load-bearing competitive surface is a **third-party developer ecosystem** with marketplace-class UX: VS Code Marketplace (~50k extensions), Apple App Store (~1.8M apps), JetBrains Marketplace (~5k plugins), Shopify App Store (~13k apps), AWS Marketplace (~15k catalog items), Salesforce AppExchange (~8k apps), WeChat Mini-Programs (~3.6M). Every hyperscaler-class platform of the 2020s ships a plugin-ecosystem surface.
 2. **ADR-0037 has no developer-facing product surface.** No public SDK, no contracts registry, no sandbox env, no developer onboarding, no revenue share. ADR-0037's load-bearing assumption was that third-party developers are an internal concern, not a tenant-facing product persona.
-3. **One-bundle-µservice violates ADR-0132 (no-suite policy).** A single `plugin-substrate` µservice that does discovery + lifecycle + vetting + signing + sandbox + billing + SDK + portal violates the single-concern rule.
-4. **VS Code / App Store / Stripe Connect parity requires per-plugin billing aggregation.** Tenant pays one consolidated invoice; revenue share routes per-plugin; per-plugin subscription state machine. ADR-0037 had no billing seam.
+3. **One-bundle-µservice violates ADR-0132 (no-grouping policy).** A single `plugin-substrate` µservice that does discovery + lifecycle + vetting + signing + sandbox + billing + SDK + portal violates the single-concern rule.
+4. **VS Code / App Store / Stripe parity requires per-plugin billing aggregation.** Tenant pays one consolidated invoice; revenue share routes per-plugin; per-plugin subscription state machine. ADR-0037 had no billing seam.
 5. **Per-plugin permissions are the security load-bearing surface.** Each plugin declares which capabilities it consumes (read PII, write to Workflow Engine, call AI features). Tenant grants per-plugin at install time. Apple App Store has had this since iOS 6 (2012); VS Code added explicit `Permissions` in 2024. ADR-0037 had no per-plugin permission model.
 
 User directive 2026-05-18 made the decision explicit: **Direction C — Explicit Ecosystem-as-a-Service**. Ship two distinct µservices, one for the consumer + governance surface (the **plugin/app store**) and one for the developer surface (the **SDK**), each single-concern per ADR-0132. Treat third-party developers as a first-class tenant persona, with the same audit-grade rigor every other oyatie µservice receives.
@@ -113,7 +113,7 @@ Oyatie ships an **Ecosystem-as-a-Service** product surface, composed of **two si
 | µservice | Concern | Persona served | Inheritance |
 |---|---|---|---|
 | `microservices/plugin-app-store/` | Consumer-facing plugin/app discovery + install + per-plugin permission grant + subscription mgmt + audit; admin-facing vetting queue + revocation | tenant-operator, tenant-admin, platform-admin | Apple App Store + VS Code Marketplace + AWS Marketplace + Shopify App Store |
-| `microservices/developer-sdk/` | Developer-facing SDK distribution + API contracts (OpenAPI 3.2 + AsyncAPI 3.1 + proto3) + sandbox env + dev portal + signing-key issuance + Stripe-Connect-style onboarding + revenue payout | 3rd-party developer | Stripe Connect (developer onboarding + payout) + Apple Developer Program (signing keys + sandbox) + Backstage (developer portal) |
+| `microservices/developer-sdk/` | Developer-facing SDK distribution + API contracts (OpenAPI 3.2 + AsyncAPI 3.1 + proto3) + sandbox env + dev portal + signing-key issuance + Stripe-Connect-style onboarding + revenue payout | 3rd-party developer | Stripe (developer onboarding + payout) + Apple Developer Program (signing keys + sandbox) + Backstage (developer portal) |
 
 Both µservices share **no code** with each other beyond canonical contracts (event schemas, Cedar policy fragments). They communicate exclusively via the Workflow + Ontology adapter layer per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`. No `ecosystem` super-bundle; ADR-0132 forbids it.
 
@@ -160,7 +160,7 @@ Every plugin runs in a per-installation Wasmtime sandbox per ADR-0147 + ADR-0200
 - **Per-plugin Cedar permissions.** Declared capabilities are translated to Cedar policy at install time; runtime authorization is via the central Cedar evaluator (per ADR-0007).
 - **Per-plugin audit trail.** Every action the plugin takes against tenant data emits a seal event consumed by the audit-chain µservice (ADR-0003).
 
-### 5. Revenue model — Stripe Connect parity, in-house
+### 5. Revenue model — Stripe parity, in-house
 
 Three monetisation paths per plugin:
 - **Free (open-source).** Developer ships free plugin; oyatie covers infra cost from tenant base subscription. No revenue share.
@@ -252,7 +252,7 @@ Reject because:
 Reject because:
 - `marketplace` carries B2C commerce semantics in oyatie naming (Amazon/Shopify class); using it for plugin distribution conflates two distinct concerns and pre-empts a future µservice's name.
 - The chosen name `plugin-app-store` aligns with Apple App Store + VS Code Marketplace shape and is unambiguous.
-- A single µservice violates ADR-0132 no-suite policy.
+- A single µservice violates ADR-0132 no-grouping policy.
 
 ## Consequences
 
@@ -303,7 +303,7 @@ EaaS is **100% in-house from day one** per ADR-0211 in-house tech policy. The ro
 - External developer-portal SaaS (readme.io, stoplight, gitbook) — replaced by Backstage in-house extension per ADR-0170.
 - External package-registry SaaS (npmjs.com, crates.io) for first-party SDK distribution — vendored in-house under `microservices/developer-sdk/iac/registry/`.
 - External KYC / AML SaaS (Onfido, Stripe Identity) — implemented in-house under `microservices/developer-sdk/src/onboarding/kyc/`.
-- External payout SaaS (Tipalti, Stripe Connect hosted, Wise hosted) — implemented in-house with direct ACH / SEPA / KFTC integration under `microservices/developer-sdk/src/payout/`.
+- External payout SaaS (Tipalti, Stripe hosted, Wise hosted) — implemented in-house with direct ACH / SEPA / KFTC integration under `microservices/developer-sdk/src/payout/`.
 - External vetting SaaS (Veracode, Snyk hosted) — Trivy + cargo-audit + cosign-verify chained in-house under `microservices/plugin-app-store/src/vetting/`.
 - External plugin-store SaaS (e.g., GitHub Marketplace) — `microservices/plugin-app-store/` is the plugin store; no external dependency.
 
@@ -333,12 +333,12 @@ This ADR is verified by:
 - WeChat ecosystem reference — Tencent platform blog 2023 disclosures (Mini-Program platform architecture).
 - Apple App Store Review Guidelines — developer.apple.com/app-store/review/guidelines (vetting + sandbox + entitlements).
 - VS Code Marketplace publisher docs — code.visualstudio.com/api/working-with-extensions/publishing-extension (VSIX signing + permissions).
-- Stripe Connect platform documentation — stripe.com/docs/connect (KYC + payout + revenue split).
+- Stripe platform documentation — stripe.com/docs/connect (KYC + payout + revenue split).
 - Shopify App Store partner program — shopify.dev/docs/apps (per-install model + scopes).
 - AWS Marketplace seller guide — docs.aws.amazon.com/marketplace (vetted catalog + per-account procurement).
 - Salesforce AppExchange Security Review — partners.salesforce.com/partnerresource/security (enterprise vetting).
 - JetBrains Marketplace plugin distribution — plugins.jetbrains.com/docs/marketplace (signed plugins + paid plugins + revenue share).
 - Bominal ADR-0037 (plugin substrate) — inherited verbatim, superseded for new work by ADR-0213.
 - ADR-0131 (per-microservice flat layout) — substrate authority.
-- ADR-0132 (no-suite policy) — two single-concern µservices, not one bundle.
+- ADR-0132 (no-grouping policy) — two single-concern µservices, not one bundle.
 - Memory: `feedback_quality_performance_scalability_bar.md` (hyperscaler-grade); `feedback_workflow_objectgraph_adapter_layer.md` (Workflow + Ontology adapter routing); `feedback_canonical_base_localization.md` (per-pack overlays).

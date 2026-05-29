@@ -99,7 +99,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 003 - identity moves the relationship forward
@@ -177,7 +177,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 007 - identity moves the relationship forward
@@ -257,7 +257,7 @@ through rating-weighted trust signals.
   per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 011 - identity moves the relationship forward
@@ -335,7 +335,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 015 - identity moves the relationship forward
@@ -415,7 +415,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 019 - identity moves the relationship forward
@@ -493,7 +493,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 023 - identity moves the relationship forward
@@ -573,7 +573,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 027 - identity moves the relationship forward
@@ -651,7 +651,7 @@ through rating-weighted trust signals.
   per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 031 - identity moves the relationship forward
@@ -731,7 +731,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 035 - identity moves the relationship forward
@@ -809,7 +809,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 039 - identity moves the relationship forward
@@ -889,7 +889,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 043 - identity moves the relationship forward
@@ -967,7 +967,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 047 - identity moves the relationship forward
@@ -1047,7 +1047,7 @@ through rating-weighted trust signals.
   per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 051 - identity moves the relationship forward
@@ -1125,7 +1125,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 055 - identity moves the relationship forward
@@ -1205,7 +1205,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 059 - identity moves the relationship forward
@@ -1283,7 +1283,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 063 - identity moves the relationship forward
@@ -1363,7 +1363,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 067 - identity moves the relationship forward
@@ -1441,7 +1441,7 @@ through rating-weighted trust signals.
   per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 071 - identity moves the relationship forward
@@ -1521,7 +1521,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 075 - identity moves the relationship forward
@@ -1600,7 +1600,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 079 - identity moves the relationship forward
@@ -1681,7 +1681,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 083 - identity moves the relationship forward
@@ -1760,7 +1760,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 087 - identity moves the relationship forward
@@ -1841,7 +1841,7 @@ through rating-weighted trust signals.
   per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 091 - identity moves the relationship forward
@@ -1920,7 +1920,7 @@ through rating-weighted trust signals.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if BoutiqueRetailer Sao Paulo is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 095 - identity moves the relationship forward

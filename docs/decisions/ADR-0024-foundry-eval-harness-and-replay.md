@@ -19,7 +19,7 @@ doc_status: published
 
 A capability that lacks an eval set is a capability we cannot reason about. Without a golden set, regression detection is impossible; without adversarial cohorts, the autonomy ceiling and the data-class boundaries are theoretical; without per-region linguistic evaluation, a capability that performs well in English can silently degrade in Korean, Japanese, or any other supported locale; without A/B testing of provider routing, we cannot defend a routing decision under cost or quality pressure; without replay against past traces, every change is a leap of faith.
 
-We also need an eval substrate that is the same substrate the in-house model effort (ADR-0026) will use to decide when an Oyatie-internal model variant beats a provider on a per-vertical eval suite. Splitting eval per capability vs. per model would fragment authority. The eval harness must therefore be capability-shaped (the unit consumers reason about) and model-aware (the substrate the model effort consumes).
+We also need an eval substrate that is the same substrate the in-house model effort (ADR-0026) will use to decide when an Oyatie-internal model variant beats a provider on a per-vertical eval set. Splitting eval per capability vs. per model would fragment authority. The eval harness must therefore be capability-shaped (the unit consumers reason about) and model-aware (the substrate the model effort consumes).
 
 ---
 

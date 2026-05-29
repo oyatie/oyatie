@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | Cedar deny-wins simulation | Korean PIPA Articles 15, 17, 21, 22, 23, 29, 34, 35, 36, 37 data processing, transfer, security, breach, access, correction, suspension rights | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | transparency report publication | Privacy Act 1988 APP 1, APP 3, APP 5, APP 6, APP 8, APP 11, APP 12, APP 13 and Part IIIC eligible data breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | regulator evidence partitioning | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | data lineage discovery | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | data lineage discovery | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | pack conflict graph | ADR-0263 audit-event class requirements for every cross-pack decision | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | higher-restriction floor selection | GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | Cedar deny-wins simulation | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | data lineage discovery | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | pack conflict graph | ADR-0263 audit-event class requirements for every cross-pack decision | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | higher-restriction floor selection | GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | Cedar deny-wins simulation | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | Cedar deny-wins simulation | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | transparency report publication | Korean PIPA Articles 15, 17, 21, 22, 23, 29, 34, 35, 36, 37 data processing, transfer, security, breach, access, correction, suspension rights | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | regulator evidence partitioning | Privacy Act 1988 APP 1, APP 3, APP 5, APP 6, APP 8, APP 11, APP 12, APP 13 and Part IIIC eligible data breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | data lineage discovery | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | Cedar deny-wins simulation | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | transparency report publication | Korean PIPA Articles 15, 17, 21, 22, 23, 29, 34, 35, 36, 37 data processing, transfer, security, breach, access, correction, suspension rights | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | regulator evidence partitioning | Privacy Act 1988 APP 1, APP 3, APP 5, APP 6, APP 8, APP 11, APP 12, APP 13 and Part IIIC eligible data breach notification | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | data lineage discovery | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | data lineage discovery | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | pack conflict graph | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | higher-restriction floor selection | ADR-0263 audit-event class requirements for every cross-pack decision | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | Cedar deny-wins simulation | GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification | Cedar deny-wins; ADR-0263 event sealed |

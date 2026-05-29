@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j140/dlp-policy-rule.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j140/dlp-policy-rule.json",
   "title": "DLPPolicyRule",
   "description": "DLP policy rule used at egress evaluation time. Composes file classification + destination class + Cedar policy gating.",
   "_meta": {"binding_adr": "ADR-0243", "related_adrs": ["ADR-0311","ADR-0307"], "schema_version": "v1.0.0"},

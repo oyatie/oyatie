@@ -85,7 +85,7 @@ The plan also names consumer-driven pacts and breaking-change checks for downstr
 - Version skew target: current and previous minor contract versions must be diffed.
 - Governance target: no missing ADR-0105 layer metadata in generated SDK tags.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `contract::openapi_conformance`.
 - Test `openapi_document_declares_version_3_2_0`.

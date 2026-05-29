@@ -57,7 +57,7 @@ Binding ADRs: ADR-0105, ADR-0131, ADR-0242, ADR-0243, ADR-0244, ADR-0246, ADR-02
 - Substance status 001: the pre-pass file was 55 lines and repeated the same six capability sentences across every section.
 - Substance status 002: this rewrite makes Cedar default-deny concrete for ITSM rather than treating authorization as a generic B2B concern.
 - Substance status 003: displaced benchmarks are ServiceNow ITSM, Jira Service Management, BMC Helix ITSM, Ivanti Neurons, and Freshservice.
-- Substance status 004: the policy packet replaces product-suite permission assumptions with explicit tenant, principal, action, resource, context, pack, and audit inputs.
+- Substance status 004: the policy packet replaces product-platform permission assumptions with explicit tenant, principal, action, resource, context, pack, and audit inputs.
 - Substance status 005: docs/standards/documentation-rigor.md section 1.1 is satisfied only if an intern can implement the deny matrix and tests from this file.
 - Substance status 006: ADR-0244 and ADR-0321 make default-deny and B2B leader parity mandatory; optional policy wiring is not accepted.
 - Substance status 007: the packet owns ITSM service authorization only and does not grant incident-management responder paging, ERP approval, or marketing automation access.

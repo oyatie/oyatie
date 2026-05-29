@@ -106,7 +106,7 @@ resource "helm_release" "messenger" {
   chart     = "${path.module}/../helm/messenger"
   values = [yamlencode({
     image = {
-      repository = var.air_gap_mode ? "registry.internal.${var.site_id}/messenger" : "registry.oyatie.app/messenger"
+      repository = var.air_gap_mode ? "registry.internal.${var.site_id}/messenger" : "registry.oyatie.dev/messenger"
       tag        = "1.0.0-wave-15a"
     }
     tenantId                = var.tenant_id

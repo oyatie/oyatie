@@ -180,7 +180,7 @@ event log, not a primary attribute. Operationally undebuggable.
   before any µservice provisions.
 - **Migration is a first-class operation** (matches Google's tenant-move
   pattern + AWS Organizations move-account workflow).
-- **Hyperscaler-grade.** Matches Stripe Connect onboarding state
+- **Hyperscaler-grade.** Matches Stripe onboarding state
   machine + AWS Organizations lifecycle.
 
 ### C-2. Negative
@@ -212,7 +212,7 @@ event log, not a primary attribute. Operationally undebuggable.
 
 ## References
 
-- Stripe Connect onboarding — *Account state machine* (public docs
+- Stripe onboarding — *Account state machine* (public docs
   2024).
 - AWS Organizations — *Account creation lifecycle* (AWS docs).
 - Google Workspace Admin SDK — *Domain lifecycle states*.

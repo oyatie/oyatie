@@ -158,7 +158,7 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers".
 - `microservices/social/cost-budget.md`.
 - `microservices/social/contracts/asyncapi/social-events.yaml`.
 - ADR-0028 audit-chain.
-- ADR-0135 (Connect dissolution).
+- ADR-0135 (dissolution).
 - ADR-0131 (per-microservice flat layout).
 - ActivityPub W3C Rec 2018 §5 (Outbox).
 - RFC 9421 HTTP Signatures.

@@ -336,7 +336,7 @@ Datadog packages observability by product and usage unit; New Relic packages by 
 19. compliance_pack-gated paid tenant_class headline: differentiated sovereignty story, weak implementation proof.
 20. compliance_pack-gated paid tenant_class ahead surface: single-tenant pack, HSM custody, WORM evidence, and air-gap behavior are strong additive ambitions.
 21. compliance_pack-gated paid tenant_class parity surface: private/enterprise posture maps to counterpart enterprise tiers only at a conceptual level.
-22. compliance_pack-gated paid tenant_class catch-up surface: counterpart enterprise products have mature product workflows that Oyatie has not documented.
+22. compliance_pack-gated paid tenant_class catch-up surface: counterpart enterprise-market offerings have mature product workflows that Oyatie has not documented.
 23. compliance_pack-gated paid tenant_class blocker: no pack OpenTofu module exists for `iac/oyatie-iaas/`, `iac/colo/`, or other context paths.
 24. compliance_pack-gated paid tenant_class blocker: architecture lines 693-704 discuss credential isolation but not complete sovereign-pack runtime.
 25. Cross-tier P1: six-context deployment support is absent and affects all tiers.

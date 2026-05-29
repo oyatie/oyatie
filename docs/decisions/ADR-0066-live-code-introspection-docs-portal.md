@@ -246,7 +246,7 @@ First green window: M02-P22 exit gate. From M03 onward, the Docs Portal is THE p
 - ADR-0056 (BNF v4.1)
 - ADR-0058 (flat µservice catalog; `docs` µservice declared in ADR-0065)
 - ADR-0061 (Application B2B shell; Docs Portal as a product within)
-- ADR-0063 (documentation suite coverage; this ADR extends)
+- ADR-0063 (documentation set coverage; this ADR extends)
 - ADR-0064 (canonical base + localization packs; portal renders pack scope)
 - ADR-0065 (Docs portal Leptos + machine-readable co-emission; this ADR's structural predecessor)
 - Bominal ADR-0209 (Leptos client-stack policy; inherited)

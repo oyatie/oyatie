@@ -181,7 +181,7 @@ This policy is binding for the `calendar` µservice only. Cross-µservice flows 
 
 - ADR-0028 (Bominal): audit chain.
 - ADR-0117: data residency.
-- ADR-0135: Connect unbundle (dual-context).
+- ADR-0135: unbundle (dual-context).
 - ADR-0140: Cedar policy substrate.
 - Bominal ADR-0111: envelope encryption.
 - Bominal ADR-0208: dual-context unified-channel hub.

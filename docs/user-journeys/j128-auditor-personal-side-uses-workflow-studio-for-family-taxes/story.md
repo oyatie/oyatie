@@ -17,7 +17,7 @@ related_adrs:
 related_specs:
   - /specs/microservices/workflow-studio.json
   - /specs/microservices/workflow-engine.json
-  - /specs/microservices/connect.json
+  - /specs/microservices/connector.json
   - /specs/microservices/payments.json
   - /specs/microservices/notes.json
 related_packs:
@@ -36,7 +36,7 @@ purpose: >
   Narrate Diana Reyes's PERSONAL Sunday afternoon: she opens her personal
   iPhone on her family-room couch and uses oyatie Workflow Studio in her
   PERSONAL tenant to assemble her family's federal + state joint tax
-  return. This involves connect-adapter pulls from her Stripe consumer
+  return. This involves connector-adapter pulls from her Stripe consumer
   account, her wife Jennifer's W-2 imported via OAuth from Jennifer's
   employer, her son's 1098-T (he was 9 last year, so this is irrelevant
   this year but pre-loaded for future), her vintage-records hobby
@@ -57,7 +57,7 @@ GAO tenant. But invisibility alone is not enough — the personal
 tenant must also be **productive**. A platform that simply isolates a
 personal surface but offers no useful function would be inferior to
 Google Drive for personal use. j128 demonstrates that the personal
-tenant has the full Workflow Studio + Workflow Engine + Connect +
+tenant has the full Workflow Studio + Workflow Engine + +
 Payments + Notes + Identity substrate — the SAME substrate as the
 work tenant, just scoped to a different tenant_id.
 
@@ -107,7 +107,7 @@ Active workflows:
   📋 mom-easter-flight-tracker (one-off; deleted next month)
 
 Available connectors (personal-tenant):
-  • Stripe Connect (consumer, linked since 2024)
+  • Stripe (consumer, linked since 2024)
   • Vanguard taxable brokerage (linked 2025-08)
   • Smithsonian SSO/W-2 (Jennifer linked her employer; shared with Diana)
   • Virginia DOR e-File
@@ -127,7 +127,7 @@ building since early March:
 ```
                       ┌──────────────┐
                       │  Stripe       │
-                      │  Connect Pull │
+                      │  Pull │
                       │  (Vinyl sales)│
                       └───────┬──────┘
                               │ $4,200 gross
@@ -215,8 +215,8 @@ has zero involvement.
 She clicks "Run workflow". Workflow Engine begins execution. Each
 step:
 
-1. **Stripe Connect Pull** — workflow-engine calls connect µservice.
-   Connect retrieves Stripe Connect transactions for Diana's vinyl
+1. **Stripe Pull** — workflow-engine calls connect µservice.
+   retrieves Stripe transactions for Diana's vinyl
    side-business. Cedar permit:
    `connect.read_consumer_stripe_account` evaluates Allow because
    Diana's principal in `diana-reyes-personal-92381` owns the linked
@@ -341,7 +341,7 @@ With it:
 
 oyatie's distinction: tax-prep is a workflow primitive on the
 personal tenant, not a separate vendor. The platform's substrate
-(Workflow Studio + Connect + Intelligence + Payments) makes the
+(Workflow Studio + + Intelligence + Payments) makes the
 workflow feasible without leaving the platform.
 
 ## 11. The story's invariants

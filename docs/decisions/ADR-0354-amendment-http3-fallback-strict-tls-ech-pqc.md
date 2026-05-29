@@ -268,7 +268,7 @@ The following endpoint classes are ECH-mandatory (no opt-out):
 | Edge POP ingress (all regions) | Prevents SNI leakage to ISP on-path observers |
 | API gateway (external tenant API surface) | SNI carries tenant-id-derived hostname → privacy leak |
 | Intelligence inference API | User prompt routing SNI leaks capability tier |
-| Connect signalling (WebRTC / MLS) | SNI leaks participant identity to on-path MITM |
+| signalling (WebRTC / MLS) | SNI leaks participant identity to on-path MITM |
 | Cloud IAM / STS token endpoint | SNI timing + frequency leaks auth patterns |
 | Governance policy-engine evaluator (external) | Leaks policy evaluation patterns |
 
@@ -384,7 +384,7 @@ composite issuance.
 | Edge POP ingress (external) | REQUIRED | REQUIRED |
 | API gateway (external) | REQUIRED | REQUIRED |
 | Intelligence inference API | REQUIRED | REQUIRED |
-| Connect signalling | REQUIRED | REQUIRED |
+| signalling | REQUIRED | REQUIRED |
 | Cloud IAM / STS | REQUIRED | REQUIRED |
 | Policy-engine evaluator (external) | REQUIRED | REQUIRED |
 | Inter-cell substrate mesh (Cilium mTLS) | REQUIRED | REQUIRED |
@@ -405,7 +405,7 @@ intra-cell or inter-cell mesh only.
 |----------|-------------------|--------|-----|-----------|-------|
 | api-gateway | yes | REQUIRED | REQUIRED | REQUIRED | Primary external ingress |
 | intelligence | yes (inference API) | REQUIRED | REQUIRED | REQUIRED | Consumer-facing AI surface |
-| connect | yes (signalling, WebRTC) | REQUIRED | REQUIRED | REQUIRED | MLS RFC 9420 E2EE channel |
+| connector | yes (signalling, WebRTC) | REQUIRED | REQUIRED | REQUIRED | MLS RFC 9420 E2EE channel |
 | cloud-iam | yes (token endpoint) | REQUIRED | REQUIRED | REQUIRED | STS auth criticality |
 | governance | no (internal only) | RECOMMENDED | EXEMPT | REQUIRED | Policy eval; mesh-internal |
 | policy-engine | no (internal only) | RECOMMENDED | EXEMPT | REQUIRED | Cedar eval; mesh-internal |
@@ -785,7 +785,7 @@ higher criticality of the offline root. ML-DSA-87 is not mandated
 broadly (§B-4.2 uses level 3) but the HSM-offline root requires the
 highest available quantum security margin.
 
-### F-4 Impact on Connect MLS (RFC 9420)
+### F-4 Impact on MLS (RFC 9420)
 
 The connect µservice uses MLS for E2EE group messaging. MLS key
 packages contain the leaf node's HPKE public key for QUIC-based

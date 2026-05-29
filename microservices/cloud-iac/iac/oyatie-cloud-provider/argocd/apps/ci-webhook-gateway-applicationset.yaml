@@ -31,19 +31,19 @@ spec:
           - environment: dev
             targetRevision: dev
             namespace: ci-webhook-gateway
-            imageDigest: sha256:1111111111111111111111111111111111111111111111111111111111111111
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: dev
             replicaCount: "1"
           - environment: staging
             targetRevision: main
             namespace: ci-webhook-gateway-staging
-            imageDigest: sha256:1111111111111111111111111111111111111111111111111111111111111111
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: staging
             replicaCount: "1"
           - environment: prod
             targetRevision: main
             namespace: ci-webhook-gateway-prod
-            imageDigest: sha256:1111111111111111111111111111111111111111111111111111111111111111
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: production
             replicaCount: "1"
   template:

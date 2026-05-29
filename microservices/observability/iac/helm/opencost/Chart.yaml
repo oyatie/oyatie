@@ -12,7 +12,7 @@ version: 0.1.0
 appVersion: "1.110.0"  # OpenCost stable per docs/standards/finops-cost-attribution-canonical.md (verified 2026-05-18)
 maintainers:
   - name: axis-observability
-    email: axis-observability@oyatie.dev
+    email: axis-observability@oyatie.com
 dependencies:
   - name: opencost
     version: "^1.110.0"

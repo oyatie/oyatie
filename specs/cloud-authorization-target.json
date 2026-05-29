@@ -4,8 +4,19 @@
   "spec_kind": "target-architecture-canonical",
   "authoring_adr": "ADR-0243",
   "roadmap_phase": "P-TARGET (masterplan.ideal_production_roadmap)",
-  "related_adrs": ["ADR-0243 (Cedar universal gate)", "ADR-0244 (tenant scoping)", "ADR-0251 (compliance pack overlays)", "ADR-0294 (Cedar fragment soak/rollback)", "ADR-0358 (ideal roadmap)"],
-  "related_specs": ["specs/cedar-policy-schema.json", "specs/cedar-fragment-schema.json", "specs/pack-overlay-schema.json", "specs/cloud-control-plane-canonical.json"],
+  "related_adrs": [
+    "ADR-0243 (Cedar universal gate)",
+    "ADR-0244 (tenant scoping)",
+    "ADR-0251 (compliance pack overlays)",
+    "ADR-0294 (Cedar fragment soak/rollback)",
+    "ADR-0358 (ideal roadmap)"
+  ],
+  "related_specs": [
+    "specs/cedar-policy-schema.json",
+    "specs/cedar-fragment-schema.json",
+    "specs/pack-overlay-schema.json",
+    "specs/cloud-control-plane-canonical.json"
+  ],
   "status": "Proposed-target",
   "date": "2026-05-25",
   "title": "Cloud authorization target — Cedar as the universal gate for the Oyatie Cloud control plane + cloud-* resources",

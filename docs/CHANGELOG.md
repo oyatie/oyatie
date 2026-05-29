@@ -64,7 +64,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 - Delivered the 4-crate core decomposition (supervisor-kernel, supervisor-app, jsonl-supervisor-adapter, supervisor-conformance) and the 2-crate settings-template expansion (settings-template-kernel, settings-template-adapter).
 - Hardened the supervisor orchestration loop with ADR-0003 audit paths, data_class annotations, zero-unwrap error handling, and a 17-step tick_once cycle including saturation checks and silent-switch guards.
 - Integrated real CLI drivers for Claude, Codex, and Gemini with template-driven settings drift detection and a minimum-eligible-account "blackhole" defense.
-- Established the full documentation suite (README, Architecture, Operations, Security, Sample Payloads) and a lifecycle management runbook (RB-SUPERVISOR-001).
+- Established the full documentation set (README, Architecture, Operations, Security, Sample Payloads) and a lifecycle management runbook (RB-SUPERVISOR-001).
 - Updated ADR-INDEX and DOC-CATALOG with 7 new ADRs (0096-0102) and 5 new doc surfaces; 2400/2400 workspace tests pass.
 
 ## 2026-05-14 — P01 foundation full-check closeout
@@ -134,7 +134,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 - Promoted the identity user kernel to current flat-crate surfaces: `oya-identity-domain` now owns `User`, `UserId`, and required per-region `IdpBinding`.
 - Added domain regressions for tenant/user/idp binding validation and kept STS service-principal issuance compatible while preserving ≤1h token gates.
-- Brought `oya-platform-identity-api` into the Rust 1.95.0 / edition 2024 workspace and verified `identity.user.upsert` through its API regression suite.
+- Brought `oya-platform-identity-api` into the Rust 1.95.0 / edition 2024 workspace and verified `identity.user.upsert` through its API regression set.
 - Aligned SPEC and machine-readable contract mirrors to the current identity crates, with repo-root rustfmt `style_edition = "2024"` retained.
 
 ## 2026-05-14 — M01-P01 foundation complete
@@ -504,7 +504,7 @@ This is the founding consolidation, authored in one session as the project repos
 9. M0/M1/M2/M3/MVP vocab retired → wave-named phases
 10. Repoctl persona-split (`oya dev/admin/build/agent/ops/pack/catalog/gate`)
 11. MCP gateway for agent-discoverable CLI
-12. Workspace / Productivity Suite as Axis 2 (NEW)
+12. Workspace / Productivity Platform as Axis 2 (NEW)
 13. In-house AI model training + inference (W-AI-Model-Substrate, long-horizon)
 14. DCIM software for own DC ops (W-DataCenter-Operations)
 15. Robotics / Vision / Speech intelligence sub-substrates

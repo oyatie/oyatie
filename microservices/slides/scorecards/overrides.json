@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "slides",
   "summary": "presentation/slide/asset + Loro collab + presenter mode + LiveKit broadcast",
   "chart_name": "slides",

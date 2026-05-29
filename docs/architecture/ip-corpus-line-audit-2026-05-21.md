@@ -243,7 +243,7 @@ No proto2 references found.
 
 ### §2.7 "platform" used as synonym for "shared"
 
-44 IPs contain the bare token `platform`. Sampling reveals **most uses are legitimate** (e.g., "Stripe Connect platform-facilitator", "WHIP fallback: when platform doesn't accept RTMP", "ops-platform team name", "platform_default credential mode per ADR-0255", "platform-owner-name-indirection ADR-0284"). The few that are stale and need rewording per [[glossary-shared-not-platform]]:
+44 IPs contain the bare token `platform`. Sampling reveals **most uses are legitimate** (e.g., "Stripe platform-facilitator", "WHIP fallback: when platform doesn't accept RTMP", "ops-platform team name", "platform_default credential mode per ADR-0255", "platform-owner-name-indirection ADR-0284"). The few that are stale and need rewording per [[glossary-shared-not-platform]]:
 
 | IP file | Line | Stale phrasing | Should be |
 |---|---:|---|---|
@@ -314,7 +314,7 @@ Reading: `ks=` count of IPs citing any ADR in `[0242..0258]`; `f5=` count citing
 | comms-email | 26 | 7 | 0 | 0 | 0 | 27% |
 | community | 15 | 0 | 0 | 0 | 0 | 0% |
 | compliance | 26 | 10 | 2 | 0 | 0 | 38% |
-| connect | 15 | 12 | 5 | 1 | 0 | 80% |
+| connector | 15 | 12 | 5 | 1 | 0 | 80% |
 | consent-graph | 15 | 0 | 0 | 0 | 0 | 0% |
 | developer-sdk | 15 | 0 | 0 | 0 | 0 | 0% |
 | docs | 20 | 0 | 0 | 0 | 0 | 0% |
@@ -351,10 +351,10 @@ Reading: `ks=` count of IPs citing any ADR in `[0242..0258]`; `f5=` count citing
 
 ### §3.2 Findings
 
-1. **Eight µservices are at ≥50% keystone-bundle coverage**: `payments` (100%), `feature-flags` (96%), `connect` (80%), `intelligence` (69%), `ops-dashboard-control-center` (50%), `tenancy` (42%), `compliance` (38%), `finops-portal` (31%). These are the post-2026-05-20 wave-3-C/D µservices.
+1. **Eight µservices are at ≥50% keystone-bundle coverage**: `payments` (100%), `feature-flags` (96%), `connector` (80%), `intelligence` (69%), `ops-dashboard-control-center` (50%), `tenancy` (42%), `compliance` (38%), `finops-portal` (31%). These are the post-2026-05-20 wave-3-C/D µservices.
 2. **Thirty µservices are at 0% keystone-bundle coverage**: every µservice that was authored Wave-1 / Wave-2 / Wave-3-A / Wave-3-B (pre-keystone) has zero ADR-0242…0258 citations in its IPs. **This includes substrate µservices** `foundry` (101 IPs), `observability` (26 IPs), `governance` (22 IPs), `cell` (15 IPs), `tenancy-substrate-portion`, `cloud-iac` (26 IPs), `cloud-k8s` (19 IPs), `cloud-secrets` (15 IPs), `identity` (17 IPs), `audit-chain` (15 IPs), `consent-graph` (15 IPs), `application` (16 IPs), `api-gateway` (the 16 of 18 not yet rebound). This is the primary substrate-rigor risk because substrate gaps propagate.
 3. **Zero IPs cite any amendment ADR** (ADR-0246-amendment library-first dispatch; ADR-0257-amendment library-first registry; ADR-0253-amendment HTTP/3 + ECH + PQC). The amendment ADRs landed during the 2026-05-20 bundle and are not yet woven into IP language. This is a corpus-wide gap — even the 100%-coverage µservices need an amendment pass.
-4. **The critical-path cluster (ADR-0297–0310) is barely represented**: 17 IPs cite any. The five µservices that have any critical-path citations are `api-gateway` (3), `feature-flags` (8), `connect` (1), `mail` (1), `notes` (1), `ontology` (1), `ops-dashboard-control-center` (1), `social` (1). The doctrine bundle landed 2026-05-20 and applies to **every** internet-facing / auth / financial / minor-user surface — see §8 for the surface×doctrine coverage gap.
+4. **The critical-path cluster (ADR-0297–0310) is barely represented**: 17 IPs cite any. The five µservices that have any critical-path citations are `api-gateway` (3), `feature-flags` (8), `connector` (1), `mail` (1), `notes` (1), `ontology` (1), `ops-dashboard-control-center` (1), `social` (1). The doctrine bundle landed 2026-05-20 and applies to **every** internet-facing / auth / financial / minor-user surface — see §8 for the surface×doctrine coverage gap.
 
 ### §3.3 Per-IP P0 list — substrate µservices at 0% keystone coverage
 
@@ -470,7 +470,7 @@ Action for Wave-3-E: cross-check each candidate lane name against `docs/standard
 | `cloud-iac` | 11 |
 | `community` | 15 (all) |
 | `tenancy` | 11 |
-| `connect` | 15 (all) |
+| `connector` | 15 (all) |
 | `observability` | 11 |
 | `intelligence` | 1 |
 | `ops-dashboard-control-center` | 16 (all) |
@@ -524,7 +524,7 @@ Per-µservice breakdown (recursive):
 | comms-email | 26 | 26 | 100% |
 | community | 15 | 15 | 100% |
 | compliance | 26 | 26 | 100% |
-| connect | 15 | 15 | 100% |
+| connector | 15 | 15 | 100% |
 | consent-graph | 15 | 15 | 100% |
 | developer-sdk | 15 | 0 | 0% |
 | docs | 20 | 17 | 85% |
@@ -836,7 +836,7 @@ microservices/developer-sdk/implementation-plans/IP-011-tax-form-1099-vat-moss-k
 microservices/developer-sdk/implementation-plans/IP-015-stripe-connect-parity-end-to-end-drill.md
 microservices/finops-portal/implementation-plans/IP-013-finops-portal-credit-ledger-kernel.md
 microservices/finops-portal/implementation-plans/IP-014-finops-portal-focus-export-pipeline.md
-microservices/connect/IP-009-connector-catalog-seed.md       (any connector touching payment APIs)
+microservices/connector/IP-009-connector-catalog-seed.md       (any connector touching payment APIs)
 ```
 
 All 18 payments IPs cite the keystone bundle (100% per §3.1) but **none cite ADR-0307**. The Wave-3-E task is to rebind all 18 + sister financial IPs.
@@ -857,9 +857,9 @@ microservices/consent-graph/IP-005-enforcement-domain-cedar.md
 microservices/consent-graph/IP-007-revocation-kernel-worker.md
 microservices/community/IP-010-foundry-guardrails-moderation-bridge.md
 microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md
-microservices/connect/IP-002-connector-catalog-domain-kernel.md
-microservices/connect/IP-009-connector-catalog-seed.md
-microservices/connect/IP-010-iac-postgres-openbao.md
+microservices/connector/IP-002-connector-catalog-domain-kernel.md
+microservices/connector/IP-009-connector-catalog-seed.md
+microservices/connector/IP-010-iac-postgres-openbao.md
 microservices/workflow-studio/IP-002-visual-canvas-kernel-domain.md
 microservices/workflow-studio/IP-018-swiftui-canvas-impl.md
 microservices/workflow-studio/IP-019-compose-canvas-impl.md
@@ -1021,14 +1021,14 @@ After substrate is rebound, product µservices follow. Order = revenue-critical 
 | Order | µservice | IPs | Reason |
 |---|---|---:|---|
 | 16 | `payments` | 18 | already 100% keystone; needs ADR-0307 + ADR-0250 add — narrow rebind |
-| 17 | `developer-sdk` | 15 | revenue-adjacent (Stripe Connect parity); needs ADR-0307 |
+| 17 | `developer-sdk` | 15 | revenue-adjacent (Stripe parity); needs ADR-0307 |
 | 18 | `finops-portal` | 26 | financial — needs ADR-0307 + ADR-0249 marketplace doctrine |
 | 19 | `intelligence` | 26 | 69% keystone; needs ADR-0255 amendment + ADR-0247 |
 | 20 | `feature-flags` | 27 | 96% keystone; needs amendments + ADR-0263 audit-event rebind |
 | 21 | `comms-email` | 26 | DMARC + reputation-monitor — needs ADR-0297 abuse-defence |
 | 22 | `messenger` | 16 | ADR-0246 KS#5 MLS RFC 9420 canonical E2EE |
 | 23 | `meet` | 15 | real-time + WHIP — needs ADR-0253 HTTP/3 |
-| 24 | `connect` | 15 | 80% keystone; finish off |
+| 24 | `connector` | 15 | 80% keystone; finish off |
 | 25 | `ops-dashboard-control-center` | 16 | 50%; finish off |
 | 26 | `notes` | 18 | content + sharing |
 | 27 | `social` | 18 | content + sharing |
@@ -1599,7 +1599,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `compliance/IP-025-breach-notification-async-emit.md` (      28L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
 - `compliance/IP-026-control-mapping-rest-and-sdk.md` (      28L) noContract noCB noCFT noVerify noDeps noLanes <50lines
 
-### §15.connect — `microservices/connect/`
+### §15.connect — `microservices/connector/`
 
 - `connect/IP-001-connect-retirement-design-readiness.md` (      27L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
 - `connect/IP-002-connector-catalog-domain-kernel.md` (      87L) noContract noCB noCFT noVerify noDeps noLanes <100lines

@@ -6,14 +6,14 @@ date: 2026-05-20
 doc_status: published
 ---
 
-# Tutorial — Publish a paid plugin with SBOM, Stripe Connect revenue share, and EU VAT compliance
+# Tutorial — Publish a paid plugin with SBOM, Stripe revenue share, and EU VAT compliance
 
-Goal: take a working plugin from local development to a published, paid listing in the oyatie marketplace, with full SBOM emission, Stripe Connect revenue share, and EU VAT-compliant checkout.
+Goal: take a working plugin from local development to a published, paid listing in the oyatie marketplace, with full SBOM emission, Stripe revenue share, and EU VAT-compliant checkout.
 
 Prereqs:
 - `marketplace::publisher` Cedar role.
 - tenant_class paid tier or higher (paid listings + auto-review require tenant_class paid).
-- Stripe account + Stripe Connect activated.
+- Stripe account + Stripe activated.
 - Your plugin already works locally as a container image.
 - ~ 4 hours.
 
@@ -37,7 +37,7 @@ oya marketplace publisher-setup \
   --support-email "support@acme.com"
 ```
 
-Stripe Connect activation flow: substrate redirects you to Stripe; you complete identity verification + bank account linking; Stripe returns the activated account ID; substrate persists.
+Stripe activation flow: substrate redirects you to Stripe; you complete identity verification + bank account linking; Stripe returns the activated account ID; substrate persists.
 
 For EU VAT: substrate auto-registers your listings for VAT-MOSS via the One-Stop Shop (OSS) for sales in EU member states; you receive quarterly OSS returns to file with your tax authority.
 
@@ -293,7 +293,7 @@ A production-quality paid plugin listing with:
 - CycloneDX 1.6 SBOM.
 - Clean Trivy + Semgrep + ClamAV scans.
 - License-compliant dependency tree.
-- Stripe Connect revenue share active.
+- Stripe revenue share active.
 - EU VAT + US sales tax handled by the substrate.
 - 14-day free trial flow.
 - Analytics + revenue tracking.

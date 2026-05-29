@@ -15,7 +15,7 @@ companion_docs:
   - microservices/feature-flags/ARCHITECTURE.md
   - microservices/feature-flags/PRD.md
   - microservices/feature-flags/manifest.json
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # feature-flags
@@ -184,7 +184,7 @@ oya flags kill-switch engage dark-mode-v2 \
 |---|---|---|
 | `oya-governance-adr-adherence-matrix` | 28-row ADR adherence check | Advisory → BLOCKER 2026-07-16 |
 | `oya-governance-pack-overlay-coverage` | Verifies all active packs have declared overrides | Advisory |
-| `oya-governance-microservice-doc-suite` | Artifact count ≥70 | Advisory → BLOCKER 2026-07-16 |
+| `oya-governance-microservice-doc-set` | Artifact count ≥70 | Advisory → BLOCKER 2026-07-16 |
 | `oya-governance-abuse-defence-ux-floor` | Default-path latency budget | Advisory |
 | `oya-governance-emergency-services-chaos-test` | Quarterly chaos test | Advisory |
 | `oya-governance-detection-fairness-audit` | Quarterly experiment fairness | Advisory |

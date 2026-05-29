@@ -117,7 +117,7 @@ Status: investigating | mitigated | resolved
 Next update: <time> (or as developments warrant)
 
 Workarounds: <if any>
-Workgroup contacts: incidents@oyatie.dev
+Workgroup contacts: incidents@oyatie.com
 ```
 
 ### Status page (Sev-1 / Sev-2)

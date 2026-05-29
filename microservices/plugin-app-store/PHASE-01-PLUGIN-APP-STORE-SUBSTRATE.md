@@ -230,7 +230,7 @@ cargo run -p oya-dev-cli -- vcs promote --changeset <id>
 
 - ADR-0213 (Ecosystem-as-a-Service architecture — Plugin/App Store substrate).
 - ADR-0037 (Bominal plugin substrate — superseded for new work).
-- ADR-0131 (per-microservice flat layout); ADR-0132 (no-suite policy); ADR-0139 (agentic SLO-gated promotion).
+- ADR-0131 (per-microservice flat layout); ADR-0132 (no-grouping policy); ADR-0139 (agentic SLO-gated promotion).
 - ADR-0147 (Wasmtime sandbox baseline); ADR-0181 (Cosign signing); ADR-0200 (Wasmtime canonical); ADR-0211 (in-house tech policy).
 - `microservices/plugin-app-store/PRD.md`.
 - `/specs/microservices/plugin-app-store.json` (to be authored as follow-up CR).

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/user-journeys/j141/personal-tenant-deny-event.json",
+  "$id": "https://oyatie.com/schemas/user-journeys/j141/personal-tenant-deny-event.json",
   "title": "PersonalTenantDenyEvent",
   "version": "1.0.0",
   "_meta": {

@@ -86,7 +86,7 @@ Adopt the **block-based model** (Notion-class) for the docs µservice block-type
   - **Per-block ACL is impossible**: paragraph properties are not addressable for ACL. A whole-doc ACL is the only granularity, which loses the ADR-DOCS-0004 differentiator vs Google Docs.
   - **CRDT mapping is awkward**: Loro tree CRDT prefers stable per-node IDs; document-tree's paragraph-as-flat-sequence does not naturally provide them.
   - **Embed-resolver targeting is awkward**: an embed must reference a "paragraph offset" which moves with edits; addressing fragility.
-  - **Comment + suggestion anchor stability** suffers the same fragility (Hyrum surface #6 in `migration-from-connect.md` documents the legacy connect-docs offset-based anchors that broke on every edit).
+  - **Comment + suggestion anchor stability** suffers the same fragility (Hyrum surface #6 in `migration-from-connect.md` documents the legacy docs offset-based anchors that broke on every edit).
 - **Rejected reason**: incompatible with per-block ACL (PRD AC-04 differentiator) + stable embed addressing + CRDT-aware anchor stability.
 
 ### Alternative B — Paragraph-based with named ranges (Google Docs model)

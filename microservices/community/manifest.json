@@ -252,7 +252,7 @@
       "id": "IP-013-oya-governance-promotion-readiness",
       "title": "IP-013 \u2014 oya-governance promotion-readiness wiring",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-013-oya-vcs-promotion-readiness.md"
+      "file": "microservices/community/IP-013-oya-governance-promotion-readiness.md"
     },
     {
       "id": "IP-014-hyperscaler-maturity-gate",
@@ -311,15 +311,15 @@
     },
     {
       "id": "ADR-0234",
-      "title": "Connect Social Expansion Planning Contract",
+      "title": "Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"
+      "file": "docs/decisions/ADR-0234-community-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0132",
-      "title": "Product Suite And Bundle Dissolution",
+      "title": "Product Platform And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0236",
@@ -329,7 +329,7 @@
     },
     {
       "id": "ADR-0238",
-      "title": "Connect Super App Expansion",
+      "title": "Super App Expansion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0238-connect-super-app-expansion.md"
     },

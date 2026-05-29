@@ -114,7 +114,7 @@ paths:
                 summary: No policy matches → implicit deny
                 value:
                   policyStoreId: tenant_acme
-                  principal: { entityType: "Oya::WorkloadPrincipal", entityId: "spiffe://acme.oyatie.dev/ns/payments/sa/ledger-writer" }
+                  principal: { entityType: "Oya::WorkloadPrincipal", entityId: "spiffe://acme.oyatie.com/ns/payments/sa/ledger-writer" }
                   action: { actionType: "Oya::Action", actionId: "ledger:Write" }
                   resource: { entityType: "Oya::Ledger", entityId: "tenant_acme/ledger/main" }
                   context: { mfa_present: false, source_cell: "eu-frankfurt-1" }
@@ -429,7 +429,7 @@ components:
           example: "Oya::WorkloadPrincipal"
         entityId:
           type: string
-          example: "spiffe://acme.oyatie.dev/ns/payments/sa/ledger-writer"
+          example: "spiffe://acme.oyatie.com/ns/payments/sa/ledger-writer"
     ActionRef:
       type: object
       required: [actionType, actionId]
@@ -599,11 +599,11 @@ components:
         principalId:
           type: string
           description: SPIFFE-shaped, immutable, never-reused id.
-          example: "spiffe://acme.oyatie.dev/ns/payments/sa/ledger-writer"
+          example: "spiffe://acme.oyatie.com/ns/payments/sa/ledger-writer"
         trustDomain:
           type: string
           description: SPIFFE trust domain == tenant (brief §6).
-          example: "acme.oyatie.dev"
+          example: "acme.oyatie.com"
         tenantId:
           type: string
           example: tenant_acme

@@ -29,7 +29,7 @@ Acceptance criteria:
 7. **ECH advertised** verified by `iac/ech-config.yaml` HTTPS RR block.
 8. **PQC hybrid offered** verified by `iac/pqc-cert.yaml` cert chain.
 9. **Bot-management** verified by `iac/edge-waf.yaml` rule set.
-10. **CI lane `oya-governance-microservice-doc-suite`** green for `api-gateway`.
+10. **CI lane `oya-governance-microservice-doc-set`** green for `api-gateway`.
 
 ---
 
@@ -145,7 +145,7 @@ Day 2–3: Runbooks + contracts + capabilities.
 Day 3–4: SLOs + dashboards.
 Day 4–5: IPs + catalog records.
 Day 5: Manifest sync + scorecard + audit-findings.
-Day 5 EOD: Six-hops graph walk green; CI lane `oya-governance-microservice-doc-suite` green.
+Day 5 EOD: Six-hops graph walk green; CI lane `oya-governance-microservice-doc-set` green.
 
 ---
 

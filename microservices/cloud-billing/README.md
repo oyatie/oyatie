@@ -326,7 +326,7 @@ cloud-billing inherits authority from:
 8. **ADR-0255** §D-4 — BYOK Credentials Gating
 9. **ADR-0249** — Multi-Category Marketplace
 10. **ADR-0131** — Per-Microservice Flat Layout
-11. **ADR-0132** — No-Suite Policy
+11. **ADR-0132** — No-Grouping Policy
 12. **ADR-0145** — Inter-Microservice Communication Reform (Direct gRPC)
 13. **ADR-0263** — Audit Emission Contract
 14. **ADR-0130** — Agentic SLO-Gated Promotion

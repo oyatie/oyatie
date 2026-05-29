@@ -54,7 +54,7 @@
 | Counterpart | Tier/map | Axis emphasized | Oyatie mapping |
 |---|---|---|---|
 | Stripe | Standard account/sandbox | Start accepting payments, hosted checkout, Payment Links, core APIs. | Oyatie DemoTrial/Paid should match core payment acceptance. |
-| Stripe | Connect platform | Marketplace, connected accounts, onboarding, payouts, balances. | Oyatie Paid/Paid should map to Connect parity. |
+| Stripe | platform | Marketplace, connected accounts, onboarding, payouts, balances. | Oyatie Paid/Paid should map to parity. |
 | Stripe | Billing/Tax/Radar add-ons | Subscriptions, invoices, tax, fraud. | Oyatie paid missing several add-on equivalents. |
 | Stripe | Enterprise/custom limits | Higher rate limits, support, account-specific scaling. | Oyatie Paid/Paid target. |
 | Stripe | Dedicated/special arrangements | Account-specific approval and support. | Oyatie Paid analog. |
@@ -99,7 +99,7 @@
 | BR-19 Subscriptions | partial | Billing | recurring | recurring billing | partial |
 | BR-20 Billing plan | missing | prices/plans | partial | plans | gap |
 | BR-21 Invoices | missing | Invoicing | partial | partial | gap |
-| BR-22 Marketplace onboarding | partial | Connect onboarding | platform onboarding | marketplace | partial |
+| BR-22 Marketplace onboarding | partial | onboarding | platform onboarding | marketplace | partial |
 | BR-23 Braintree adapter | missing | not applicable | not applicable | required | gap |
 | BR-24 Payouts | present | payouts | payouts | disbursements | parity partial |
 | BR-25 Payout schedule | missing | present | present | present | gap |
@@ -137,7 +137,7 @@
 | SI-13 Dunning/rescue | missing | billing recovery | Auto Rescue | recurring workflows | gap |
 | SI-14 Invoicing | missing | present | partial | partial | gap |
 | SI-15 Tax calculation | partial | Stripe Tax | partial | partial | partial |
-| SI-16 Marketplace onboarding | partial | Connect | Platforms | Marketplace | partial |
+| SI-16 Marketplace onboarding | partial | | Platforms | Marketplace | partial |
 | SI-17 Connected account capability | missing | capabilities | account holder checks | sub-merchant checks | gap |
 | SI-18 Split payments | partial | charges/transfers | split transactions | marketplace | partial |
 | SI-19 Balance accounts | partial ledger | balances | balance accounts | merchant accounts | partial |
@@ -155,7 +155,7 @@
 | SI-31 Admin console | missing | dashboard | customer area | control panel | gap |
 | SI-32 SDKs | plan only | present | present | present | partial |
 | SI-33 PCI L1 | intended | PCI docs | PCI docs | PCI tooling | parity target |
-| SI-34 KYC/KYB | partial | Connect verification | platform onboarding | marketplace | partial |
+| SI-34 KYC/KYB | partial | verification | platform onboarding | marketplace | partial |
 | SI-35 OpenTofu | missing | no equivalent | no equivalent | no equivalent | Oyatie gap |
 | SI-36 OS manifest | missing | no equivalent | no equivalent | no equivalent | Oyatie gap |
 | SI-37 Context IaC | missing | no equivalent | no equivalent | no equivalent | Oyatie gap |
@@ -178,8 +178,8 @@
 | GO-10 Advanced subscriptions | partial | strong | partial | strong | gap |
 | GO-11 Invoicing/rev-rec | missing | strong | partial | partial | gap |
 | GO-12 Tax automation | partial | strong | partial | partial | partial |
-| GO-13 Platform onboarding scale | partial | Connect | Platforms | Marketplace | partial |
-| GO-14 Split settlement waterfall | journey docs | Connect | Platforms split | Marketplace | partial |
+| GO-13 Platform onboarding scale | partial | | Platforms | Marketplace | partial |
+| GO-14 Split settlement waterfall | journey docs | | Platforms split | Marketplace | partial |
 | GO-15 Reserves/holdbacks | partial | platform controls | platform controls | marketplace | partial |
 | GO-16 Instant/staged payout | missing | present | present | partial | gap |
 | GO-17 Fraud adaptive controls | dashboard only | Radar | Risk | Premium Fraud | gap |

@@ -40,7 +40,7 @@ Five families of substrate exist:
 
 For STUN/TURN (NAT traversal): **coturn** is the de-facto OSS implementation (RFC 5766 + RFC 5389 + RFC 8155 + RFC 8489); zero credible OSS alternative. The choice is whether to self-host (coturn) or use a managed service (Twilio Network Traversal / Cloudflare TURN).
 
-Forward-policy constraint (ADR-0132): no new bundle/suite µservices. ADR-MSGR-0001 already chose LiveKit 1.6.2 for the messenger huddles BC, treating LiveKit as a substrate adapter (not a sibling µservice). The meet µservice can either:
+Forward-policy constraint (ADR-0132): no new bundle/grouping µservices. ADR-MSGR-0001 already chose LiveKit 1.6.2 for the messenger huddles BC, treating LiveKit as a substrate adapter (not a sibling µservice). The meet µservice can either:
 - (a) share the LiveKit substrate-adapter pattern (meet has its own LiveKit sidecar per cell; reuses the per-µservice substrate-adapter shape from messenger), OR
 - (b) make a different SFU choice and accept the operator-tooling fork between messenger huddles and meet.
 
@@ -108,7 +108,7 @@ meet µservice adopts **LiveKit 1.6.2 LTS as the SFU substrate**, run as a sidec
 ### Positive
 
 - meet's media plane sits on the same OSS SFU substrate as messenger huddles; operator-tooling singleton.
-- ADR-0132 no-suite forward policy honoured: meet runs its own LiveKit sidecar cluster (not a shared cluster); single-concern + cell-isolation preserved.
+- ADR-0132 no-grouping forward policy honoured: meet runs its own LiveKit sidecar cluster (not a shared cluster); single-concern + cell-isolation preserved.
 - LiveKit Egress provides the recording-pipeline hook to ffmpeg/gVisor per ADR-MEET-0002 cleanly; no DIY substrate-fork.
 - Insertable Streams (W3C) wire is supported natively by LiveKit Client SDK; enables ADR-MEET-0003 E2E mode without substrate-fork.
 - Rust SDK (`livekit-client` Rust + `livekit-server-sdk-rust`) means meet's BC adapters integrate without language-mismatch.
@@ -160,7 +160,7 @@ meet µservice adopts **LiveKit 1.6.2 LTS as the SFU substrate**, run as a sidec
 - 100ms — `https://100ms.live/docs`
 - Cloudflare Calls — `https://developers.cloudflare.com/calls/`
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - ADR-0133 — Industry best-practice conformance program
 - ADR-MSGR-0001 — Huddles placement (substrate-sharing precedent)
 - `microservices/meet/PRD.md`

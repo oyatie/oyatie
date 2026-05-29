@@ -25,7 +25,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 | 3 | P1 NEEDS-FIX | HIGH | D-051..D-165 is not merely scaffold: D-051..D-064 are substantive, D-065..D-085 are thin scaffold, and D-086..D-165 are missing. | `D-051..D-064 complete; D-065..D-085 12-19 lines; D-086..D-165 absent` |
 | 4 | P1 NEEDS-FIX | HIGH | IP slice substance is uneven: only 19/70 services pass the seeded two-IP sample. | `seed=20260520; pass requires >=200 lines, bespoke signal, >=10 unique ADR refs` |
 | 5 | P1 NEEDS-FIX | HIGH | Per-microservice decision suites are incomplete: 33/70 services have authored decisions/ ADR files. | `microservices/*/decisions scan` |
-| 6 | P1 NEEDS-FIX | HIGH | Doc-suite surfaces are incomplete even though artifact counts are healthy: 22/70 services have all 8 requested surfaces. | `surfaces: capability-tiers/onboarding/faqs/tutorials/benchmarks/migration-playbooks/reference-implementations/decisions` |
+| 6 | P1 NEEDS-FIX | HIGH | Doc-set surfaces are incomplete even though artifact counts are healthy: 22/70 services have all 8 requested surfaces. | `surfaces: capability-tiers/onboarding/faqs/tutorials/benchmarks/migration-playbooks/reference-implementations/decisions` |
 | 7 | P1 NEEDS-FIX | HIGH | Journey substance is partial after j161: j151 is under the 200-line bar, j162 is partial, and j163..j175 directories are empty or have zero audited files. | `docs/user-journeys/j151..j175` |
 | 8 | P1 NEEDS-FIX | HIGH | Persona marker pass meets the absolute 30+ threshold but not corpus-wide coverage: 60/129 persona dossiers carry the exact marker. | `docs/personas/*.md` |
 | 9 | P1 NEEDS-FIX | MED | BYOK authority docs are clean, but 112/572 BYOK-bearing artifacts lack a local provider/encryption/ADR disambiguation signal by heuristic scan. | `ADR-0255 §D-4 and ADR-0251 §D-10 pass; downstream docs/IPs still need local clarity` |
@@ -39,7 +39,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 | D-001..D-050 bespoke substance bar | 88.0% | P1 NEEDS-FIX | HIGH | 44/50 pass strict line+anchor bar; all 50 carry bespoke anchors |
 | Long-form doctrine clause-loop cleanup | 100.0% | P2 IMPROVE | HIGH | Both target docs have zero Thesis clause and zero Problem clause hits |
 | Microservice artifact floor | 100.0% | P2 IMPROVE | HIGH | All 70 service dirs have >=100 artifacts |
-| Microservice all-surface doc suite | 31.4% | P1 NEEDS-FIX | HIGH | Only services with all 8 requested sub-surfaces pass |
+| Microservice all-surface doc set | 31.4% | P1 NEEDS-FIX | HIGH | Only services with all 8 requested sub-surfaces pass |
 | Per-microservice authored ADRs | 47.1% | P1 NEEDS-FIX | HIGH | Decision subdir with at least one markdown ADR |
 | IP sample substance | 27.1% | P1 NEEDS-FIX | HIGH | Seeded sample of 2 IP files per service |
 | Journey j151..j158 substance | 87.5% | P1 NEEDS-FIX | HIGH | j151 is below line/file bar; j152..j158 pass |
@@ -71,7 +71,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 | F-002 | P1 NEEDS-FIX | HIGH | ADR-0321 | Six D-001..D-050 sections are bespoke but below strict line bar. | Backfill D-006, D-009, D-010, D-011, D-012, D-013 to >=120 lines without templating. |
 | F-003 | P1 NEEDS-FIX | HIGH | ADR-0321 | D-065..D-085 are thin scaffold despite having section headings. | Backfill each to the 10-anchor long-form pattern or mark as intentionally out-of-scope. |
 | F-004 | P1 NEEDS-FIX | HIGH | Doctrine docs | Clause-loop cleanup passes; no blocking issue remains. | Keep zero-hit grep guard in future doctrine waves. |
-| F-005 | P1 NEEDS-FIX | HIGH | Microservice doc suite | 48/70 services are missing at least one requested doc-suite surface. | Fill missing surface directories/files using service-specific content; prioritize decisions plus capability/onboarding docs. |
+| F-005 | P1 NEEDS-FIX | HIGH | Microservice doc set | 48/70 services are missing at least one requested doc-set surface. | Fill missing surface directories/files using service-specific content; prioritize decisions plus capability/onboarding docs. |
 | F-006 | P1 NEEDS-FIX | HIGH | Per-service ADRs | 37/70 services do not have authored decisions/ ADR files. | Add service-local decision records or explicitly map each service to central ADR ownership. |
 | F-007 | P1 NEEDS-FIX | HIGH | IP substance | 51/70 services fail the seeded IP sample. | Bring non-journey IPs to >=200 lines and >=10 ADR citations or split scaffold files out of substance claims. |
 | F-008 | P1 NEEDS-FIX | HIGH | Journeys | j151 is under line/file bar; j162 partial; j163..j175 empty. | Backfill j151 and j162; author or remove empty j163+ shells from readiness claims. |
@@ -1516,7 +1516,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - `Problem clause` hits: 0
 - Verdict: PASS
 
-## Appendix C - Per-Microservice Doc-Suite Artifacts and Surfaces
+## Appendix C - Per-Microservice Doc-Set Artifacts and Surfaces
 
 | Microservice | Artifacts | Doc artifacts | Surface count | Decisions | Severity | Confidence | Missing surfaces |
 | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
@@ -1532,7 +1532,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 | comms-email | 135 | 125 | 8/8 | 5 | P2 IMPROVE | HIGH | none |
 | community | 199 | 191 | 8/8 | 6 | P2 IMPROVE | HIGH | none |
 | compliance | 186 | 175 | 1/8 | 6 | P1 NEEDS-FIX | HIGH | capability-tiers, onboarding, faqs, tutorials, benchmarks, migration-playbooks, reference-implementations |
-| connect | 183 | 173 | 7/8 | 0 | P1 NEEDS-FIX | HIGH | decisions |
+| connector | 183 | 173 | 7/8 | 0 | P1 NEEDS-FIX | HIGH | decisions |
 | consent-graph | 135 | 131 | 8/8 | 5 | P2 IMPROVE | HIGH | none |
 | contact-center | 152 | 141 | 0/8 | 0 | P1 NEEDS-FIX | HIGH | capability-tiers, onboarding, faqs, tutorials, benchmarks, migration-playbooks, reference-implementations, decisions |
 | contract-lifecycle-management | 152 | 141 | 0/8 | 0 | P1 NEEDS-FIX | HIGH | capability-tiers, onboarding, faqs, tutorials, benchmarks, migration-playbooks, reference-implementations, decisions |
@@ -2882,7 +2882,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 | comms-email | yes | 5 | P2 IMPROVE | HIGH |
 | community | yes | 6 | P2 IMPROVE | HIGH |
 | compliance | yes | 6 | P2 IMPROVE | HIGH |
-| connect | no | 0 | P1 NEEDS-FIX | HIGH |
+| connector | no | 0 | P1 NEEDS-FIX | HIGH |
 | consent-graph | yes | 5 | P2 IMPROVE | HIGH |
 | contact-center | no | 0 | P1 NEEDS-FIX | HIGH |
 | contract-lifecycle-management | no | 0 | P1 NEEDS-FIX | HIGH |
@@ -3167,13 +3167,13 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Confidence: HIGH
 - IP file count: 51
 - Sample verdict: FAIL
-- Sample path: `microservices/connect/IP-journey-j120-bank-liquidity-provider-adapter.md`
+- Sample path: `microservices/connector/IP-journey-j120-bank-liquidity-provider-adapter.md`
   - Lines: 430
   - Unique ADR citations: 14
   - Bespoke signal: yes
   - Generic-hit count: 0
   - Verdict: PASS
-- Sample path: `microservices/connect/IP-002-connector-catalog-domain-kernel.md`
+- Sample path: `microservices/connector/IP-002-connector-catalog-domain-kernel.md`
   - Lines: 87
   - Unique ADR citations: 4
   - Bespoke signal: yes
@@ -4408,7 +4408,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 | comms-email | `microservices/comms-email/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | community | `microservices/community/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | compliance | `microservices/compliance/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
-| connect | `microservices/connect/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
+| connector | `microservices/connector/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | consent-graph | `microservices/consent-graph/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | contact-center | `microservices/contact-center/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | contract-lifecycle-management | `microservices/contract-lifecycle-management/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
@@ -4486,9 +4486,9 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - OpenAPI file: `microservices/comms-email/contracts/openapi.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/community/contracts/openapi/community.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/compliance/contracts/openapi.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/connect/contracts/connect-retirement.openapi.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/connect/contracts/openapi/connect-integration.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/connect/contracts/openapi-v1.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/connector/contracts/connect-retirement.openapi.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/connector/contracts/openapi/connect-integration.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/connector/contracts/openapi-v1.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/consent-graph/contracts/openapi/consent-graph.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/contact-center/contracts/local-openapi-v1.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/contact-center/contracts/openapi-v1.yaml`; version=3.2.0; verdict=PASS.
@@ -4598,9 +4598,9 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - AsyncAPI file: `microservices/comms-email/contracts/asyncapi.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/community/contracts/asyncapi/community-events.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/compliance/contracts/asyncapi.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/connect/contracts/asyncapi/connect-integration-events.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/connect/contracts/asyncapi-v1.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/connect/contracts/connect-retirement.asyncapi.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/connector/contracts/asyncapi/connect-integration-events.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/connector/contracts/asyncapi-v1.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/connector/contracts/connect-retirement.asyncapi.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/consent-graph/contracts/asyncapi/consent-events.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/contact-center/contracts/asyncapi-v1.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/contact-center/contracts/local-asyncapi-v1.yaml`; version=3.1.0; verdict=PASS.
@@ -4717,8 +4717,8 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - proto file: `microservices/comms-email/contracts/comms_email.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/community/contracts/proto/community.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/compliance/contracts/compliance.proto`; version=proto3; verdict=PASS.
-- proto file: `microservices/connect/contracts/connect_retirement.proto`; version=proto3; verdict=PASS.
-- proto file: `microservices/connect/contracts/proto/connect_integration.proto`; version=proto3; verdict=PASS.
+- proto file: `microservices/connector/contracts/connect_retirement.proto`; version=proto3; verdict=PASS.
+- proto file: `microservices/connector/contracts/proto/connect_integration.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/consent-graph/contracts/proto/consent-graph.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/contact-center/contracts/contact-center-v1.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/contact-center/contracts/local-operations-v1.proto`; version=proto3; verdict=PASS.
@@ -4869,34 +4869,34 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/plant-maintenance/IP-005-domain-layer-for-technician-dispatch.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
 - Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/plant-maintenance/IP-006-domain-layer-for-downtime-window.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
 - Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/cloud-secrets/sdk-plan.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/sdk-plan.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/README.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/competitor-parity-matrix.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/capabilities/oauth-grant-initiate.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/contracts/asyncapi-v1.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/contracts/openapi-v1.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/stripe.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/opsgenie.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/jira.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/mailgun.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/launchdarkly.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/shopify.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/trello.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/sendgrid.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/kakaopay.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/pagerduty.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/toss-payments.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/sentry.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/postgres-direct.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/bigquery.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/snowflake.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/segment.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/mixpanel.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/twilio.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/datadog.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/catalog/connectors/linear.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/contracts/asyncapi/connect-integration-events.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
-- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connect/contracts/openapi/connect-integration.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/sdk-plan.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/README.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/competitor-parity-matrix.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/capabilities/oauth-grant-initiate.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/contracts/asyncapi-v1.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/contracts/openapi-v1.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/stripe.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/opsgenie.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/jira.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/mailgun.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/launchdarkly.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/shopify.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/trello.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/sendgrid.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/kakaopay.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/pagerduty.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/toss-payments.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/sentry.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/postgres-direct.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/bigquery.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/snowflake.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/segment.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/mixpanel.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/twilio.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/datadog.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/catalog/connectors/linear.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/contracts/asyncapi/connect-integration-events.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
+- Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/connector/contracts/openapi/connect-integration.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
 - Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/social/iac/openbao-policy.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
 - Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/ontology/iac/openbao-policy.yaml`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.
 - Severity: P1 NEEDS-FIX; Confidence: MED; path=`microservices/feature-flags/runbooks/audit-replay.md`; provider_signals=0; encryption_signals=0; finding=bare or locally ambiguous BYOK reference.

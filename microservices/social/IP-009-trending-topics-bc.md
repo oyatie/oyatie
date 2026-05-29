@@ -22,7 +22,7 @@ Implement the planned trending-topics crate family named by PRD/IP. Compute per-
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `src/crates/oya-social-trending-topics-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,worker,sdk}/` | Planned family named by PRD/IP. |
+| `src/crates/oya-community-social-trending-topics-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,worker,sdk}/` | Planned family named by PRD/IP. |
 | `runbooks/trending-topic-poisoning.md` | Abuse response runbook. |
 | `policy/content-policy.cedar` and `policy/abuse-defence.cedar` | Trend eligibility controls. |
 | `dashboards/abuse-defence-outcomes.json` | Abuse outcome evidence. |
@@ -37,7 +37,7 @@ Implement the planned trending-topics crate family named by PRD/IP. Compute per-
 7. Wire trend poisoning runbook and dashboard metrics.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-trending-topics-kernel` passes.
+- `cargo nextest run -p oya-community-social-trending-topics-kernel` passes.
 - Trend eligibility tests respect `policy/content-policy.cedar`.
 - Abuse dampening tests respect `policy/abuse-defence.cedar`.
 - `runbooks/trending-topic-poisoning.md` remains linked.

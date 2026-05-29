@@ -60,7 +60,7 @@ supplier, and audit-chain captures the recovery decision.
 - Service: mail; IP file: ../../../microservices/mail/IP-journey-j107-tenant-notification.md; Role: tenant-notification
 - Service: audit-chain; IP file: ../../../microservices/audit-chain/IP-journey-j107-dual-seal-events.md; Role:
   dual-seal-events
-- Service: connect; IP file: ../../../microservices/connect/IP-journey-j107-external-rail-adapter.md; Role:
+- Service: connector; IP file: ../../../microservices/connector/IP-journey-j107-external-rail-adapter.md; Role:
   external-rail-adapter
 
 ## ADR cross-references
@@ -204,7 +204,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 001: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 004: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -212,7 +212,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 005: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 007: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -221,7 +221,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 009: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -229,7 +229,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 013: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -238,7 +238,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 017: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 019: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 020: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -246,7 +246,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 021: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 023: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 024: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -254,7 +254,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 025: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -263,7 +263,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 029: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 032: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -271,7 +271,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 033: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 034: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 035: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 036: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -279,7 +279,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 037: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 040: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -287,7 +287,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 041: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 043: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -296,7 +296,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 045: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -304,7 +304,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 049: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -313,7 +313,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 053: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 055: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 056: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -321,7 +321,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 057: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 059: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 060: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -329,7 +329,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 061: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -338,7 +338,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 065: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 068: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -346,7 +346,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 069: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 070: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 071: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 072: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -354,7 +354,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 073: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 076: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -362,7 +362,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 077: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 079: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -371,7 +371,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 081: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -379,7 +379,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 085: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -388,7 +388,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 089: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 091: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 092: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -396,7 +396,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 093: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 095: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 096: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -404,7 +404,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 097: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -413,7 +413,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 101: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 103: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 104: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -421,7 +421,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 105: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 106: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 107: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 108: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -429,7 +429,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 109: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 112: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -437,7 +437,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 113: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 115: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -446,7 +446,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 117: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -454,7 +454,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 121: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -463,7 +463,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 125: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 127: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 128: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -471,7 +471,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 129: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 131: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 132: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -479,7 +479,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 133: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -488,7 +488,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 137: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 138: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 139: workflow-engine keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 140: marketplace keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
@@ -496,7 +496,7 @@ supplier, and audit-chain captures the recovery decision.
 - readme-buildability 141: observability keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 142: mail keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 143: audit-chain keeps Dae Kim and backup supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 144: connect keeps Dae Kim and GlobalLogistics Singapore inside tenant-scoped evidence, cites

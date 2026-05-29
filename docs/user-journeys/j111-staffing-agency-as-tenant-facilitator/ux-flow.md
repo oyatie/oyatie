@@ -36,7 +36,7 @@ primary_persona: Priya Krishnan
 # j111-staffing-agency-as-tenant-facilitator - UX flow
 
 Purpose: screen-by-screen flow for A staffing-agency tenant sources workers from Community, places them at KrampusCorp,
-ConstructionCo, and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
+ConstructionCo, and HealthcareSystem-Megacorp, and receives Stripe facilitator commissions.
 
 ## UX invariants
 

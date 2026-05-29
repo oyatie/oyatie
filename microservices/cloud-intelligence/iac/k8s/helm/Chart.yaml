@@ -8,5 +8,5 @@ annotations:
   oyatie.com/adr-0181: signed-image-promotion-required
   oyatie.com/adr-0254: kubernetes-everywhere
   oyatie.com/adr-0349: argocd-application-source
-  oyatie.com/adr-0384: llm-gateway-path-b
+  oyatie.com/adr-0384: cloud-intelligence-path-b
   oyatie.com/license-class: internal

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j76-gdpr-dsar-cascade.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j76-gdpr-dsar-cascade.schema.json",
   "title": "J76 EU GDPR DSAR full cascade Journey Object",
   "version": "1.0.0",
   "_meta": {

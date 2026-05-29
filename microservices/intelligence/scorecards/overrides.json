@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "microservice": "intelligence",
-  "scorecard_family": "oya-governance-microservice-doc-suite",
+  "scorecard_family": "oya-governance-microservice-doc-set",
   "generated_at": "2026-05-20T00:00:00Z",
   "overrides": [],
   "suppressions": [],

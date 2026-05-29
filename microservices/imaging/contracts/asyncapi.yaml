@@ -11,11 +11,11 @@ info:
     Authority: split from `diagnostics` per ADR-0132 + user directive 2026-05-21.
   contact:
     name: axis-imaging
-    email: axis-imaging@oyatie.dev
+    email: axis-imaging@oyatie.com
 defaultContentType: application/cloudevents+json
 servers:
   oyatie-event-mesh:
-    host: events.oyatie.dev
+    host: events.oyatie.com
     protocol: kafka-tls
     description: |
       Tenant-scoped event mesh; partition key is `tenant_id`. Cell-aware

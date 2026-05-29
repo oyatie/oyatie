@@ -1,5 +1,5 @@
 # Per-µservice Milvus database. Overlays patch `metadata.name` to the
-# canonical per-µservice value (e.g., `foundry`, `search`, `connect`).
+# canonical per-µservice value (e.g., `foundry`, `search`, `connector`).
 apiVersion: milvus.io/v1alpha1
 kind: MilvusDatabase
 metadata:

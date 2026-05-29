@@ -82,7 +82,7 @@ The pack is loaded at microservice-kernel init; the Cedar policy gate evaluates 
 | `Sensitive-PIPA-Art23` (union membership, political views) | `All` for ad sourcing |
 | `DisciplinaryRecord` | `All` for ad sourcing |
 
-#### Connect microservice (mail / calendar / chat / docs)
+#### microservice (mail / calendar / chat / docs)
 
 | Data class | Hard-deny scope |
 |---|---|

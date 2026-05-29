@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-supply-chain-planning + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-supply-chain-planning-doc-suite
+planned_enforcement_ref: oya-governance-supply-chain-planning-doc-set
 ---
 
 # Competitor Parity Matrix: Supply Chain Planning
@@ -20,7 +20,7 @@ planned_enforcement_ref: oya-governance-supply-chain-planning-doc-suite
 | Microsoft | Microsoft Dynamics 365 Master Planning | Match through composable tenant-scoped microservice plus policy, workflow, and ontology contracts |
 
 ## B. Differentiator
-Oyatie avoids suite lock-in. Supply Chain Planning exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
+Oyatie avoids platform lock-in. Supply Chain Planning exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
 | Row 001 | SAP SCM/APO and SAP IBP | Supply Chain Planning.demand-plan | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |
 | Row 002 | Oracle Supply Chain Planning | Supply Chain Planning.supply-network-plan | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |
 | Row 003 | Workday Adaptive Planning supply-chain scenario counterpart | Supply Chain Planning.available-to-promise | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |

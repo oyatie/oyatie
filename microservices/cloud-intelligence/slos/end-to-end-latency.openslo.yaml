@@ -2,7 +2,7 @@ apiVersion: openslo/v1
 kind: SLO
 metadata:
   name: cloud-intelligence-end-to-end-latency
-  displayName: "LLM Gateway End-to-End Latency (non-stream)"
+  displayName: "Cloud Intelligence End-to-End Latency (non-stream)"
   labels:
     microservice: cloud-intelligence
     surface: non-stream
@@ -57,8 +57,8 @@ spec:
             metadata: { name: fastburn }
             spec: { op: gte, threshold: 14.4, lookbackWindow: 1h, alertAfter: 2m }
         notificationTargets:
-          - target: pagerduty-foundry
-          - target: opsgenie-foundry
+          - target: pagerduty-cloud-intelligence
+          - target: opsgenie-cloud-intelligence
     - name: cloud-intelligence-e2e-latency-burnrate-mediumburn
       kind: AlertPolicy
       spec:

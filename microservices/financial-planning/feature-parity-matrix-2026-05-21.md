@@ -9,7 +9,7 @@ top3_counterparts:
   - name: Anaplan
     version_basis: Anaplan Platform 2026 (HyperBlock engine; Anaplan Calc formula language; PlanIQ AI/ML; XL/Excel Add-in; Mobile)
   - name: Workday Adaptive Planning
-    version_basis: Workday Adaptive Planning 2026 R1 (multi-dimensional cube engine; OfficeConnect Excel/PowerPoint plug-in; Insight Apps AI)
+    version_basis: Workday Adaptive Planning 2026 R1 (multi-dimensional cube engine; OfficeExcel/PowerPoint plug-in; Insight Apps AI)
   - name: Vena Solutions
     version_basis: Vena Complete Planning 2026 (Excel-native engine; Vena Insights AI; Mobile via web)
 parity_bar: UNION-coverage per ADR-0328 §D-5
@@ -54,7 +54,7 @@ State vocabulary per ADR-0328 §D-5.15:
 ### 1.2 Counterpart source basis
 
 - Anaplan Platform 2026 — HyperBlock in-memory engine, modules + line items + lists + versions + line-item subsets + formulas (Anaplan Calc), dashboards, Selective Access, Workflow, Connected Planning across HR/Finance/Sales/Supply Chain, PlanIQ AI/ML, Mobile (iOS/Android), XL/Excel Add-in, API v3, ALM (Application Lifecycle Management).
-- Workday Adaptive Planning 2026 R1 — Planning Cycles, Sheets (modeled / standard / cube), Assumptions, Accounts, Levels, Versions, Scenarios, Workflow + Approvals, Reports, OfficeConnect (Excel + PowerPoint plug-in), Integration loaders, Currency tables, Allocation rules, Insight Apps (AI/ML).
+- Workday Adaptive Planning 2026 R1 — Planning Cycles, Sheets (modeled / standard / cube), Assumptions, Accounts, Levels, Versions, Scenarios, Workflow + Approvals, Reports, Office(Excel + PowerPoint plug-in), Integration loaders, Currency tables, Allocation rules, Insight Apps (AI/ML).
 - Vena Complete Planning 2026 — Excel-native modelling (xlsx is source of truth, formulas live in Excel, round-trip to Vena cube), Templates, Workflows, Tasks/Approvals/Comments, Connector jobs, Reports, Board packs, Vena Insights AI.
 
 ### 1.3 Top-3 mapping to Oyatie Financial Planning
@@ -191,11 +191,11 @@ Group G subtotal: 3 covered, 5 partial, 3 missing.
 
 | Feature | Anaplan | Workday Adaptive | Vena | Oyatie state | Owning artifact | Gap / remediation |
 |---|---|---|---|---|---|---|
-| Excel add-in (live data) | XL/Excel Add-in | OfficeConnect (Excel) | Vena Add-in (Excel-native) | missing | none | P0 audit IP-003. Add tenant class `paid.fp_and_a_excel_addin` + cross-handoff to `sheets`. |
-| Excel-native modeling (xlsx = source of truth) | partial (XL Add-in is read/write) | partial (OfficeConnect is read) | full (xlsx-native) | missing | none | Mark Vena-style xlsx-native as `paid.fp_and_a_excel_native_modeling` or out-of-scope intentional with doctrine reason. |
+| Excel add-in (live data) | XL/Excel Add-in | Office(Excel) | Vena Add-in (Excel-native) | missing | none | P0 audit IP-003. Add tenant class `paid.fp_and_a_excel_addin` + cross-handoff to `sheets`. |
+| Excel-native modeling (xlsx = source of truth) | partial (XL Add-in is read/write) | partial (Officeis read) | full (xlsx-native) | missing | none | Mark Vena-style xlsx-native as `paid.fp_and_a_excel_native_modeling` or out-of-scope intentional with doctrine reason. |
 | Excel import (xlsx → forecast) | yes | yes | yes (native) | partial | cross-handoff to `sheets` implied | Add import command surface. |
 | Excel export (forecast → xlsx) | yes (Excel export) | yes (OfficeConnect) | yes (native) | partial | board-report-seal references signed export | Add explicit xlsx export. |
-| PowerPoint plug-in (OfficeConnect) | partial | yes (OfficeConnect PPT) | yes (Reports → PPT) | missing | cross-handoff to `slides` | Add tenant class. |
+| PowerPoint plug-in (OfficeConnect) | partial | yes (OfficePPT) | yes (Reports → PPT) | missing | cross-handoff to `slides` | Add tenant class. |
 | Round-trip (Excel-edit → server) | yes (XL Add-in) | yes (OfficeConnect) | yes (native, Vena bound) | missing | none | Add tenant class. |
 | Formula language (server-side) | Anaplan Calc | Workday formula | Excel formula | partial | ADR-FP-001 formula version + deterministic parse output | Publish formula language spec per M-005. |
 | Formula round-trip (Excel ↔ server) | partial | partial | full | missing | none | Add Vena-style round-trip OR mark out-of-scope intentional. |
@@ -421,7 +421,7 @@ Note: total feature rows = sum of group totals = 197 (some rows recur across gro
 ### 20.3 Top counterpart-specific gaps
 
 - **Anaplan-driven gaps**: HyperBlock-class hyperblock capacity math (SB-003 / M-002), Connected Planning across HR/sales/supply-chain (IP-001), PlanIQ AI/ML (K group), XL/Excel Add-in (H group), Mobile (L group), Workforce Planning module (E group), CapEx waterfall (E group), Sensitivity analysis (B + C).
-- **Workday Adaptive-driven gaps**: OfficeConnect Excel + PowerPoint plug-in (H group), Insight Apps AI (K group), Mobile (L group), FCC OneStream integration (F group), Multi-GAAP parallel ledger (R group).
+- **Workday Adaptive-driven gaps**: OfficeExcel + PowerPoint plug-in (H group), Insight Apps AI (K group), Mobile (L group), FCC OneStream integration (F group), Multi-GAAP parallel ledger (R group).
 - **Vena-driven gaps**: Excel-native modelling (xlsx = source of truth) (H group P0), Vena Insights AI (K group), Vena Marketplace plugin authoring (M group), Comment / annotation first-class (J group).
 
 ### 20.4 Phase 4 promotion gate impact

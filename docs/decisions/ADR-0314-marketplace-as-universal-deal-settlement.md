@@ -31,7 +31,7 @@ Proposed - 2026-05-20. This ADR extends ADR-0249 from multi-category marketplace
 
 Marketplace is no longer only a catalog surface. In oyatie it is the universal deal-settlement substrate: every commercial agreement between two tenants, or between a tenant and a consumer, lands as a deal set with priced terms, counterparties, entitlements, obligations, settlement rails, audit-chain evidence, and policy gates.
 The doctrine covers goods, services, subscriptions, capability grants, plugins, workforce contracts, M&A transitions, joint ventures, data licenses, receivables assignments, usage-based commitments, supplier agreements, and customer-specific enterprise contracts.
-The hyperscaler pattern is already visible in SAP Ariba for procurement networks, Stripe Connect for platform-facilitated money movement, Coupa for spend management, and Salesforce Commerce Cloud for enterprise commerce experiences. oyatie adopts the settlement substrate pattern while preserving flat microservice ownership per ADR-0131 and no-suite boundaries per ADR-0132.
+The hyperscaler pattern is already visible in SAP Ariba for procurement networks, Stripe for platform-facilitated money movement, Coupa for spend management, and Salesforce Commerce Cloud for enterprise commerce experiences. oyatie adopts the settlement substrate pattern while preserving flat microservice ownership per ADR-0131 and no-grouping boundaries per ADR-0132.
 Tenant identity remains the universal scoping primitive per ADR-0244. A deal never floats outside tenant scope; even a consumer purchase is `tenant + consumer_principal`, and a conglomerate deal uses sovereign child tenants plus controlling-entity grants per ADR-0313.
 
 ### §A.1 ERP reason this ADR exists
@@ -52,7 +52,7 @@ A DealSet always has at least one seller-side tenant, one buyer-side tenant or c
 
 ### §B.3 Rejected alternatives
 - Rejected: one deal table per ERP module. Reason: duplicates settlement semantics and breaks cross-module auditability.
-- Rejected: a monolithic commerce/ERP suite. Reason: violates ADR-0132 and forces unrelated ERP domains to share deployment cadence.
+- Rejected: a monolithic commerce/ERP platform. Reason: violates ADR-0132 and forces unrelated ERP domains to share deployment cadence.
 - Rejected: payments-only settlement. Reason: ERP parity requires non-money obligations, entitlements, data licenses, audit evidence, service levels, and post-settlement controls.
 - Rejected: unscoped external marketplace accounts. Reason: violates ADR-0244 tenant scoping and breaks DSAR, audit, and cost attribution.
 
@@ -115,7 +115,7 @@ Little's Law applies to deal acceptance: `concurrency = arrival_rate * service_t
 - `microservices/finops-portal/` owns invoice presentation, chargeback, cost allocation, credits, and FOCUS export.
 - `microservices/ontology/` owns DealSet object types, relation types, and tenant subclassing.
 - `microservices/workflow-engine/` owns lifecycle workflow execution, approvals, disputes, renewals, and amendment cascades.
-- `microservices/connect/` owns SAP, Oracle, Workday, NetSuite, bank, tax, carrier, and compliance adapter ingestion.
+- `microservices/connector/` owns SAP, Oracle, Workday, NetSuite, bank, tax, carrier, and compliance adapter ingestion.
 - `microservices/global-trade/` owns sanctions, customs, export control, and trade hold decisions.
 
 ## §F Migration
@@ -150,7 +150,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 - Forrester Wave ERP reference: https://www.forrester.com/report/
 - Internal: docs/standards/documentation-rigor.md
 - Internal: docs/decisions/ADR-0131-per-microservice-flat-layout.md
-- Internal: docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+- Internal: docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
 - Internal: docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
 - Internal: docs/decisions/ADR-0245-substrate-vs-product-layering.md
 - Internal: docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
@@ -165,7 +165,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: retail-order
 - Settlement doctrine: retail-order is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every retail-order row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: retail-order maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -175,7 +175,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: purchase-requisition
 - Settlement doctrine: purchase-requisition is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every purchase-requisition row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: purchase-requisition maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -185,7 +185,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: goods-receipt
 - Settlement doctrine: goods-receipt is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every goods-receipt row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: goods-receipt maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -195,7 +195,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: supplier-contract
 - Settlement doctrine: supplier-contract is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every supplier-contract row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: supplier-contract maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -205,7 +205,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: service-milestone
 - Settlement doctrine: service-milestone is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every service-milestone row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: service-milestone maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -215,7 +215,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: creator-subscription
 - Settlement doctrine: creator-subscription is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every creator-subscription row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: creator-subscription maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -225,7 +225,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: plugin-entitlement
 - Settlement doctrine: plugin-entitlement is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every plugin-entitlement row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: plugin-entitlement maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -235,7 +235,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: api-capability-grant
 - Settlement doctrine: api-capability-grant is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every api-capability-grant row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: api-capability-grant maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -245,7 +245,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: data-license
 - Settlement doctrine: data-license is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every data-license row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: data-license maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -255,7 +255,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: receivable-assignment
 - Settlement doctrine: receivable-assignment is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every receivable-assignment row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: receivable-assignment maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -265,7 +265,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: joint-venture-capital-call
 - Settlement doctrine: joint-venture-capital-call is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every joint-venture-capital-call row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: joint-venture-capital-call maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -275,7 +275,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: merger-transition-service
 - Settlement doctrine: merger-transition-service is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every merger-transition-service row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: merger-transition-service maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -285,7 +285,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: freight-contract
 - Settlement doctrine: freight-contract is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every freight-contract row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: freight-contract maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -295,7 +295,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: lease-contract
 - Settlement doctrine: lease-contract is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every lease-contract row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: lease-contract maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -305,7 +305,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: maintenance-contract
 - Settlement doctrine: maintenance-contract is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every maintenance-contract row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: maintenance-contract maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -315,7 +315,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: quality-hold-release
 - Settlement doctrine: quality-hold-release is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every quality-hold-release row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: quality-hold-release maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -325,7 +325,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: customs-broker-filing
 - Settlement doctrine: customs-broker-filing is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every customs-broker-filing row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: customs-broker-filing maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -335,7 +335,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: tax-invoice
 - Settlement doctrine: tax-invoice is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every tax-invoice row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: tax-invoice maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -345,7 +345,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: credit-memo
 - Settlement doctrine: credit-memo is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every credit-memo row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: credit-memo maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -355,7 +355,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: rebate
 - Settlement doctrine: rebate is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every rebate row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: rebate maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -365,7 +365,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: loyalty-award
 - Settlement doctrine: loyalty-award is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every loyalty-award row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: loyalty-award maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -375,7 +375,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: workforce-engagement
 - Settlement doctrine: workforce-engagement is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every workforce-engagement row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: workforce-engagement maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -385,7 +385,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: project-milestone-bill
 - Settlement doctrine: project-milestone-bill is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every project-milestone-bill row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: project-milestone-bill maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -395,7 +395,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: warranty-claim
 - Settlement doctrine: warranty-claim is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every warranty-claim row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: warranty-claim maps to an ontology object type with per-tenant subclassing and source-system provenance.
@@ -405,7 +405,7 @@ SAP Ariba, Coupa, Salesforce Commerce Cloud, Stripe Connect, Oracle, Workday, Ne
 
 ### §D-X Deal primitive: bank-guarantee
 - Settlement doctrine: bank-guarantee is represented as a DealSet category overlay, never as an isolated settlement table.
-- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe Connect or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
+- Hyperscaler precedent: SAP Ariba or Coupa covers procurement/spend shape; Stripe or Salesforce Commerce Cloud covers platform-facilitated settlement shape as applicable.
 - Tenant rule: every bank-guarantee row carries tenant scope, counterparty role, region, compliance pack, and audit-chain stream.
 - Cedar rule: create, accept, amend, settle, dispute, and revoke actions are distinct actions with default deny.
 - Ontology rule: bank-guarantee maps to an ontology object type with per-tenant subclassing and source-system provenance.

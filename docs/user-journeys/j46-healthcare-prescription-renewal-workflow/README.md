@@ -59,7 +59,7 @@ Purpose: Index and build contract for Healthcare prescription renewal routed to 
 - ../../microservices/workflow-engine/IP-journey-j46-prescriber-routing.md: workflow-engine implementation slice.
 - ../../microservices/mail/IP-journey-j46-rx-status-messaging.md: mail implementation slice.
 - ../../microservices/identity/IP-journey-j46-patient-prescriber-resolution.md: identity implementation slice.
-- ../../microservices/connect/IP-journey-j46-pharmacy-adapter.md: connect implementation slice.
+- ../../microservices/connector/IP-journey-j46-pharmacy-adapter.md: connect implementation slice.
 - ../../microservices/compliance/IP-journey-j46-rx-overlay.md: compliance implementation slice.
 ## Integration points
 - workflow-studio: rx-renewal-template; emits audit, metrics, logs, and traces per ADR-0263.

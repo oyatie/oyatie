@@ -150,7 +150,7 @@ Marketplace is ~10× faster than AWS Marketplace from EOM to seller payout (1-3d
 - Settlement statement seals at EOM + 1d via the outbox-driven monthly statement event (Wave 15F gap from coherence-audit §3.4.B.ii.3).
 - Payout dispatch is per-paid-tenant configurable (Wave 15F gap from §3.4.B.ii.6).
 
-Industry-leader Stripe Connect comparison (per `feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md` billing component (a)) — Instant Payouts at $0.50/txn — marketplace targets sub-cent overhead via real-time SettlementLedger (per ADR-MKT-001).
+Industry-leader Stripe comparison (per `feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md` billing component (a)) — Instant Payouts at $0.50/txn — marketplace targets sub-cent overhead via real-time SettlementLedger (per ADR-MKT-001).
 
 ### §5.1 ADR-MKT-001 declared SLO targets
 
@@ -214,7 +214,7 @@ Where AWS does not publish a number, the counterpart benchmark is shown:
 | Metric | AppExchange | Atlassian Marketplace | marketplace target |
 |---|---|---|---|
 | Security review SLA (initial) | 1-12 weeks (Chimera) | 14-28 d (Cloud Fortified) | ≤14 d (paid; bound to foundry-absorbed supply-chain) |
-| License key issuance | ~5s (LMA Apex) | ~3s (Connect lifecycle) | ≤2s |
+| License key issuance | ~5s (LMA Apex) | ~3s (lifecycle) | ≤2s |
 | Install on Lightning Experience | ~30s | n/a | n/a |
 | Install on Atlassian Cloud | n/a | ~10s (Forge) | n/a |
 | Webhook fanout to subscribers | ~1s per subscriber | ~500ms per subscriber | ≤200ms per subscriber (AsyncAPI + ADR-0263 observability) |

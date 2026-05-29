@@ -16,7 +16,7 @@ version: 1.0.0
 appVersion: "1.0.0"
 maintainers:
   - name: axis-calendar
-    email: calendar@oyatie.dev
+    email: calendar@oyatie.com
 keywords:
   - calendar
   - rfc-5545
@@ -24,7 +24,7 @@ keywords:
   - rfc-4791
   - rfc-6638
   - scheduling
-home: https://oyatie.dev/microservices/calendar
+home: https://oyatie.com/microservices/calendar
 sources:
   - https://github.com/oyatie/oyatie/tree/main/microservices/calendar
 annotations:

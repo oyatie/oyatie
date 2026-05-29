@@ -17,7 +17,7 @@ doc_status: published
 
 The repo accumulates JSON/TOML/YAML/Cedar/SQL/etc. machine-readable artifacts (specs, registries, ledgers, claim-matrices, evidence bundles, OpenAPI contracts, lane registries, capability records) that drift without mechanical prevention. Per CONSTITUTION Decision principle 3 (mechanical prevention over process), every recurring failure produces a CI lane, hook, validator, or schema check — not a checklist line.
 
-The Ops portal plan suite consensus loop (Wave 5 v18 Accepted, 13 architect + 7 critic rounds via codex gpt-5.5) revealed five systemic gaps in the existing canonical control surface:
+The Ops portal plan set consensus loop (Wave 5 v18 Accepted, 13 architect + 7 critic rounds via codex gpt-5.5) revealed five systemic gaps in the existing canonical control surface:
 
 1. **No drift-prevention contract for machine-readable artifacts.** Every spec invents its own `_schema.validation_check` string with no enforcement. Stale text accumulates between rounds; only manual critique caught it.
 2. **No DRY-enforcement registry.** Recurring patterns (Cedar predicates, port traits, schemas, ADR shapes) get reinvented across plans because there is no central catalog naming the canonical home + consumers.

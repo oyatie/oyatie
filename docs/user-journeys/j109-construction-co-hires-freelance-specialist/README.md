@@ -205,7 +205,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
 - readme-buildability 001: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: identity keeps Amelia Wright and freelance structural specialist personal tenant inside
-  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 003: workflow-engine keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg
@@ -217,7 +217,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: observability keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 007: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to
   Bloomberg Terminal entitlement hierarchy.
@@ -251,7 +251,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: observability keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 019: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -263,7 +263,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   Organizations.
 - readme-buildability 022: workplace-integration keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 023: payments keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -274,7 +274,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS
   Organizations.
 - readme-buildability 026: identity keeps Amelia Wright and freelance structural specialist personal tenant inside
-  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 027: workflow-engine keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to
@@ -298,7 +298,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   AWS Organizations.
 - readme-buildability 034: workplace-integration keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to
-  Stripe Connect platform facilitator.
+  Stripe platform facilitator.
 - readme-buildability 035: payments keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -308,7 +308,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
 - readme-buildability 037: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: identity keeps Amelia Wright and freelance structural specialist personal tenant inside
-  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 039: workflow-engine keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg
@@ -320,7 +320,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: observability keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 043: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to
   Bloomberg Terminal entitlement hierarchy.
@@ -354,7 +354,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: observability keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 055: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -366,7 +366,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   Organizations.
 - readme-buildability 058: workplace-integration keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 059: payments keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -377,7 +377,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS
   Organizations.
 - readme-buildability 062: identity keeps Amelia Wright and freelance structural specialist personal tenant inside
-  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 063: workflow-engine keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to
@@ -401,7 +401,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   AWS Organizations.
 - readme-buildability 070: workplace-integration keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to
-  Stripe Connect platform facilitator.
+  Stripe platform facilitator.
 - readme-buildability 071: payments keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -411,7 +411,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
 - readme-buildability 073: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: identity keeps Amelia Wright and freelance structural specialist personal tenant inside
-  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 075: workflow-engine keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg
@@ -423,7 +423,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: observability keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 079: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to
   Bloomberg Terminal entitlement hierarchy.
@@ -457,7 +457,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: observability keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 091: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -469,7 +469,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   Organizations.
 - readme-buildability 094: workplace-integration keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 095: payments keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -480,7 +480,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS
   Organizations.
 - readme-buildability 098: identity keeps Amelia Wright and freelance structural specialist personal tenant inside
-  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 099: workflow-engine keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to
@@ -504,7 +504,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   AWS Organizations.
 - readme-buildability 106: workplace-integration keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to
-  Stripe Connect platform facilitator.
+  Stripe platform facilitator.
 - readme-buildability 107: payments keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -514,7 +514,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
 - readme-buildability 109: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: identity keeps Amelia Wright and freelance structural specialist personal tenant inside
-  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 111: workflow-engine keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg
@@ -526,7 +526,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: observability keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 115: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to
   Bloomberg Terminal entitlement hierarchy.
@@ -560,7 +560,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: observability keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 127: community keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -572,7 +572,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   Organizations.
 - readme-buildability 130: workplace-integration keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe
-  Connect platform facilitator.
+  platform facilitator.
 - readme-buildability 131: payments keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -583,7 +583,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS
   Organizations.
 - readme-buildability 134: identity keeps Amelia Wright and freelance structural specialist personal tenant inside
-  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform
+  tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 135: workflow-engine keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to
@@ -607,7 +607,7 @@ e-sign through workflow-engine, verifies insurance, and pays milestones.
   AWS Organizations.
 - readme-buildability 142: workplace-integration keeps Amelia Wright and freelance structural specialist personal tenant
   inside tenant-scoped evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to
-  Stripe Connect platform facilitator.
+  Stripe platform facilitator.
 - readme-buildability 143: payments keeps Amelia Wright and freelance structural specialist personal tenant inside
   tenant-scoped evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal
   entitlement hierarchy.

@@ -432,7 +432,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - ServiceNow competes through workflow product packages and enterprise agreements.
 - Microsoft competes through M365, Dynamics 365, Power Platform, Entra, Purview, Fabric, Azure, and Copilot bundles.
 - Oracle competes through Fusion Cloud Applications, NetSuite, OCI, and database economics.
-- Palantir competes through high-value enterprise platform contracts and implementation-intensive deployments.
+- Palantir competes through high-value enterprise-market contracts and implementation-intensive deployments.
 - HubSpot competes through SMB and midmarket CRM and marketing bundles.
 - Zoho competes through low-price suite breadth.
 - Atlassian competes through team and developer workflow penetration.
@@ -534,7 +534,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Year-3 risk: AI cost spikes.
 - Year-3 response: budget-deny and revised overage terms.
 - Year-3 risk: competitors bundle governance.
-- Year-3 response: emphasize cross-suite policy and evidence.
+- Year-3 response: emphasize cross-platform policy and evidence.
 
 ## 24 - Board Metrics
 

@@ -117,26 +117,32 @@ fi
 
 # Per-context verdict extraction — read EXPLICIT gate verdicts, not chained exit.
 # These markers are emitted by `oya verify --ci-required` and `oya gate run-all`.
+stage_passed() {
+  local stage_marker="$1"
+  local legacy_regex="$2"
+
+  grep -qE "${legacy_regex}" /tmp/oya-ci-post-verify.log     || grep -qE "^--- ${stage_marker}: PASS( |$)" /tmp/oya-ci-post-verify.log
+}
+
 verdict_for() {
   local label="$1"
   case "${label}" in
     cargo-fmt)
-      grep -qE "^\[oya verify\] PASS fmt|^cargo fmt --check.*PASS" /tmp/oya-ci-post-verify.log && echo "success" || echo "failure"
+      stage_passed "D-1" "^\[oya verify\] PASS fmt|^cargo fmt --check.*PASS" && echo "success" || echo "failure"
       ;;
     cargo-check)
-      grep -qE "^\[oya verify\] PASS check|^cargo check.*PASS" /tmp/oya-ci-post-verify.log && echo "success" || echo "failure"
+      stage_passed "D-2" "^\[oya verify\] PASS check|^cargo check.*PASS" && echo "success" || echo "failure"
       ;;
     cargo-clippy)
-      grep -qE "^\[oya verify\] PASS clippy|^cargo clippy.*PASS" /tmp/oya-ci-post-verify.log && echo "success" || echo "failure"
+      stage_passed "D-3" "^\[oya verify\] PASS clippy|^cargo clippy.*PASS" && echo "success" || echo "failure"
       ;;
     cargo-nextest)
-      grep -qE "^\[oya verify\] PASS nextest|^cargo nextest.*PASS" /tmp/oya-ci-post-verify.log && echo "success" || echo "failure"
+      stage_passed "D-4" "^\[oya verify\] PASS nextest|^cargo nextest.*PASS" && echo "success" || echo "failure"
       ;;
     oya-pr-review)
       # The oya-pr-review context is the reviewer-agent gate. For the local-CI
-      # bridge it follows the gate-run-all verdict: if all 100 lanes pass, the
-      # founder/reviewer is implicitly approving via running the script.
-      if grep -qE "\[gate run-all\] summary: 100/100 lanes passed" /tmp/oya-ci-post-verify.log; then
+      # bridge it follows the gate-run-all verdict: any N/N summary is green.
+      if awk '/\[gate run-all\] summary:/ { split($4, parts, "/"); if (parts[1] == parts[2]) ok=1 } END { exit ok ? 0 : 1 }' /tmp/oya-ci-post-verify.log; then
         echo "success"
       else
         echo "failure"

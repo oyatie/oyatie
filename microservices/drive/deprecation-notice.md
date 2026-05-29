@@ -2,7 +2,7 @@
 doc_class: DeprecationNotice
 template_id: TPL-DEPRECATION-NOTICE
 microservice: drive
-deprecated_artifact: oya-connect-drive-* crate family
+deprecated_artifact: oya-drive-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-DRIVE accepts at p99 SLOs sustained 30d
@@ -13,11 +13,11 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Deprecation Notice: `oya-connect-drive-*` crate family
+# Deprecation Notice: `oya-drive-*` crate family
 
 > Formal deprecation notice in the format prescribed by the agent-skills `deprecation-and-migration` skill SKILL.md §"Step 2: Announce and Document".
 
-Per `feedback_no_silent_regression.md`: this notice is the loud, CI-detectable, time-boxed public surface for the deprecation of the legacy `oya-connect-drive-*` crate family.
+Per `feedback_no_silent_regression.md`: this notice is the loud, CI-detectable, time-boxed public surface for the deprecation of the legacy `oya-drive-*` crate family.
 
 ## Status
 
@@ -33,13 +33,13 @@ Per `feedback_no_silent_regression.md`: this notice is the loud, CI-detectable, 
 
 ## Reason
 
-The legacy `oya-connect-drive-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
+The legacy `oya-drive-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — agentic SLO-gated promotion.** Drive needs independent SLO targets per surface (file-list latency, upload throughput, download first-byte, search, sync delta, share-link mint, preview render, DLP correctness, WORM correctness, virus-scan correctness); a `connect-*` umbrella SLO cannot serve them.
 3. **ADR-0131 — per-µservice flat layout.** Drive's IaC, runbooks, threat-model, DPIA, compliance, capacity-model, cost-budget all need to live under one folder.
 4. **ADR-0133 — 11-pack-overlay program.** pack-kr / pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa each live at per-µservice overlay granularity.
-5. **ADR-DRIVE-0001 → ADR-DRIVE-0006** — drive-specific decisions (object-storage backend, CDC algorithm, share-link model, encryption-at-rest + E2E, preview sandbox, WORM policy) need to live at per-µservice ADR granularity, not at the Connect / Workspace suite level.
+5. **ADR-DRIVE-0001 → ADR-DRIVE-0006** — drive-specific decisions (object-storage backend, CDC algorithm, share-link model, encryption-at-rest + E2E, preview sandbox, WORM policy) need to live at per-µservice ADR granularity, not at the / Workspace suite level.
 
 ## Migration Guide pointer
 
@@ -49,13 +49,13 @@ Includes: 1:1 import-path map; net-new-boundary features (Garage / SeaweedFS ada
 
 ## Affected packages enumerated
 
-Per `find crates -maxdepth 1 -type d -name 'oya-connect-drive-*'` (2026-05-17 workspace state):
+Per `find crates -maxdepth 1 -type d -name 'oya-drive-*'` (2026-05-17 workspace state):
 
 | Currently extant in `crates/` | Mapped replacement |
 |---|---|
-| `oya-connect-drive-domain` | split per BC → `oya-drive-{file-store,folder-hierarchy,upload,download,sync,share-link,permissions,search-index,preview,dlp-virus-scan,immutability-tier}-domain` |
+| `oya-drive-domain` | split per BC → `oya-drive-{file-store,folder-hierarchy,upload,download,sync,share-link,permissions,search-index,preview,dlp-virus-scan,immutability-tier}-domain` |
 
-Plus all planned `oya-connect-drive-{kernel,usecase,api,adapter*,rest,worker,sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
+Plus all planned `oya-drive-{kernel,usecase,api,adapter*,rest,worker,sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 
 ## Breaking changes flagged per `feedback_no_silent_regression`
 
@@ -71,18 +71,18 @@ Plus all planned `oya-connect-drive-{kernel,usecase,api,adapter*,rest,worker,sdk
 | Sync conflict deterministic tie-break | 1 | **Behaviourally divergent** | documented Hyrum #4 |
 | Virus-scan at upload time (not first download) | 1 | **Behaviourally divergent** | documented Hyrum #5 |
 | WORM strict refuses tenant-root purge | 1 | **Behaviourally divergent** | documented Hyrum #6 |
-| `oya-connect-drive-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface) | — |
+| `oya-drive-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface) | — |
 | Feature-flagged canary 10→50→100% | 3 | No (additive, gated) | — |
 | Zero-usage verification | 4 | No (observability only) | — |
-| **`oya-connect-drive-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
-| `microservices/connect/` umbrella folder removed | 6 | No | — |
+| **`oya-drive-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
+| `microservices/connector/` umbrella folder removed | 6 | No | — |
 
 Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
 - **This deprecation notice** (renders the change loud + immediate + CI-detectable).
 - **ADR-0134** (carries the migration policy decision).
 - **ADR-DRIVE-0002 / ADR-DRIVE-0003 / ADR-DRIVE-0005 / ADR-DRIVE-0006** (specifically document the behavioural strengthenings as deliberate, owner-authored design choices — NOT silent regressions).
-- **Version bump.** The `Cargo.toml` of every consumer crate is bumped per semver when its legacy imports are removed (treating the `oya-connect-drive-*` re-export as the public contract).
+- **Version bump.** The `Cargo.toml` of every consumer crate is bumped per semver when its legacy imports are removed (treating the `oya-drive-*` re-export as the public contract).
 - **Sunset schedule.** 6-month advisory window from this notice; concrete date 2026-11-17 contingent on the HG-DRIVE SLO trigger.
 - **Owning-axis migration ChangeSets.** axis-drive ships migration ChangeSets for every known internal consumer per the Churn Rule before Phase 5.
 

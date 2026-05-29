@@ -26,7 +26,7 @@ Wire the `oya-shared-oidc-client-kernel` trait to a concrete Zitadel-talking ada
 
 ## Adapter responsibilities
 
-1. **JWKS fetch**: GET `https://identity-<pack>.oyatie.dev/oauth/v2/keys` with mTLS; parse into `Jwks`.
+1. **JWKS fetch**: GET `https://identity-<pack>.oyatie.com/oauth/v2/keys` with mTLS; parse into `Jwks`.
 2. **Cache**: 24h TTL; on `UnknownKid` error from kernel, refresh-once then retry.
 3. **Signature verify**: RS256 (RSA-PKCS1-v1.5-SHA-256) and ES256 (ECDSA-P256-SHA-256) via aws-lc-rs.
 4. **Discovery probe**: GET `/.well-known/openid-configuration`; verify `issuer` matches pack-pinned issuer URL.
@@ -63,7 +63,7 @@ Wire the `oya-shared-oidc-client-kernel` trait to a concrete Zitadel-talking ada
 
 - 10+ tests passing, including the mock-server integration test.
 - aws-lc-rs version pinned to ≥1.x LTS; vendor-recency lane clean.
-- Discovery probe matches `https://identity-<pack>.oyatie.dev` for every pack.
+- Discovery probe matches `https://identity-<pack>.oyatie.com` for every pack.
 - JWKS fetch hot path p99 < 8ms.
 
 ## Cross-references

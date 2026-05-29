@@ -45,7 +45,7 @@ Audit mode: read existing artifacts, compare to canonical direction, write only 
 22. The audit's non-goal is landing the remediation work.
 23. The audit's non-goal is creating a fourth tier-deltas document.
 24. The audit's non-goal is touching another microservice.
-25. The audit's non-goal is re-running the whole platform gate suite.
+25. The audit's non-goal is re-running the whole platform gate set.
 26. The audit's key pass signal is that `meet` has a rich product surface and deep contract/runbook/policy material.
 27. The audit's key fail signal is that deployment-context, OpenTofu, OS-manifest, tenant-class, and retired-tier alignment are not coherent yet.
 28. The product is directionally strong enough to preserve.
@@ -516,7 +516,7 @@ Audit mode: read existing artifacts, compare to canonical direction, write only 
 
 1. Should `meet` retain `broadcast_tier` as a technical enum, or rename it to `audience_mode` to avoid policy confusion?
 2. Should `ADR-MEE-001` be renamed into the `ADR-MEET-*` series, or is `MEE` an accepted historical prefix?
-3. Should `meet` own PSTN dial-in directly, or should dial-in be delegated to `connect` or another telephony substrate?
+3. Should `meet` own PSTN dial-in directly, or should dial-in be delegated to `connector` or another telephony substrate?
 4. Should whiteboard remain a `meet` feature surface, or should it bind to `slides`/future whiteboard service through Workflow events?
 5. Should AI summary and live translation be implemented in `meet` adapters, or delegated to `translate` and `intelligence` with strict event boundaries?
 6. Should all six deployment contexts be required immediately for `meet`, or should on-prem and colo begin with a service-local review/N/A matrix?

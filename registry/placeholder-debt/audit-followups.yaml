@@ -301,7 +301,7 @@ follow_ups:
     intent: >-
       The packs api-gateway, feature-flags, and connect each have a single
       manifest.json scaffold (1 file). At graduation time (manifest declares
-      ready_to_promote), run the full audit suite against the freshly-authored
+      ready_to_promote), run the full audit set against the freshly-authored
       pack.
     canonical_adr: ADR-0131
     affected_packs:

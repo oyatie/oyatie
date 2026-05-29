@@ -91,7 +91,7 @@ Each subcommand is mirrored as an MCP tool in the gateway, so the same surface i
 - `foundry-capability-schema` — kernel-driven validation of every `registry/catalog/oya-foundry-capability-*.yaml`.
 - `foundry-capability-eval-coverage` — refuses publish without an eval set (delegates to ADR-0024).
 - `foundry-capability-autonomy-coherence` — refuses incoherent autonomy/data-class pairings.
-- `foundry-mcp-gateway-contract` — asserts MCP wire compatibility against the upstream MCP test suite.
+- `foundry-mcp-gateway-contract` — asserts MCP wire compatibility against the upstream MCP test set.
 - `foundry-capability-tenant-isolation` — synthetic cross-tenant reach test; must always refuse.
 
 ---

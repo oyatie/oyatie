@@ -114,11 +114,11 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - Redox proof: access is not accepted until post-event review state is closed.
 - Rhapsody displacement: route-console overrides are displaced by Cedar-governed emergency route continuation.
 - Rhapsody proof: ACK and route evidence attach to the review packet.
-- InterSystems IRIS for Health displacement: suite-level emergency controls are displaced by flat healthcare-integration review workflows.
+- InterSystems IRIS for Health displacement: platform-level emergency controls are displaced by flat healthcare-integration review workflows.
 - InterSystems proof: PRD, architecture, and capability record keep ownership local.
 - Lyniate/Corepoint displacement: operator channel overrides are displaced by reviewer-owned justification states.
 - Lyniate/Corepoint proof: runbooks own review and remediation.
-- Mirth Connect displacement: script toggles are displaced by structured request fields and Cedar gates.
+- Mirth displacement: script toggles are displaced by structured request fields and Cedar gates.
 - Mirth proof: free text is retained as evidence but never policy authority.
 - NextGate displacement: identity matching confidence is not emergency authorization.
 - NextGate proof: patient_scope_id must still attach to scope and post-event review.

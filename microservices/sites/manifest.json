@@ -268,15 +268,15 @@
     },
     {
       "id": "ADR-0234",
-      "title": "Connect Social Expansion Planning Contract",
+      "title": "Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"
+      "file": "docs/decisions/ADR-0234-community-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0132",
-      "title": "Product Suite And Bundle Dissolution",
+      "title": "Product Platform And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0236",
@@ -286,13 +286,13 @@
     },
     {
       "id": "ADR-0237",
-      "title": "Connect Dissolution Strangler Migration",
+      "title": "Dissolution Strangler Migration",
       "scope": "repo",
       "file": "docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md"
     },
     {
       "id": "ADR-0238",
-      "title": "Connect Super App Expansion",
+      "title": "Super App Expansion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0238-connect-super-app-expansion.md"
     },

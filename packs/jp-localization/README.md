@@ -164,7 +164,7 @@ Where two Japanese obligations conflict, legal escalation blocks production acti
 `security` activates NISC/METI incident response, serious-accident triage, and cross-border attack routing.
 `messenger` activates communications-secret handling for Japan messaging workloads.
 `mail` activates communications-history minimization and lawful-disclosure workflows.
-`connect` activates telecom registration classification and carrier partner controls.
+`connector` activates telecom registration classification and carrier partner controls.
 `community` activates defamation-response metadata preservation without content over-retention.
 `hr` activates employee APPI and My Number payroll/tax/social-insurance purpose checks.
 `payroll` activates Individual Number permitted-purpose enumeration and daily-call limit controls.

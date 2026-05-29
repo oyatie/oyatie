@@ -74,7 +74,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-009-slo-engine-app.md`](IP-009-slo-engine-app.md) | `oya-observability-slo-engine-app` composition root binary wiring worker + rest + adapters | pending | axis-observability | IP-007, IP-008 |
 | [`IP-010-promotion-eligibility-ledger.md`](IP-010-promotion-eligibility-ledger.md) | `registry/promotion-eligibility.jsonl` schema, union-merge driver assertion, append-only writer crate hook | pending | axis-observability | IP-005 |
 | [`IP-011-per-component-release-pointers.md`](IP-011-per-component-release-pointers.md) | `release/<ms>/<env>` ref naming, required-check rules, fast-forward primitive on top of signed Git refs | pending | ops-sre-reliability | IP-010 |
-| [`IP-012-oya-vcs-promotion-readiness-lane.md`](IP-012-oya-vcs-promotion-readiness-lane.md) | New BLOCKER CI lane `oya-governance-promotion-readiness`; reads ledger; refuses release-pointer advancement unless verdicts green | pending | axis-foundry | IP-010, IP-011 |
+| [`IP-012-governance-promotion-readiness-lane.md`](IP-012-governance-promotion-readiness-lane.md) | New BLOCKER CI lane `oya-governance-promotion-readiness`; reads ledger; refuses release-pointer advancement unless verdicts green | pending | axis-foundry | IP-010, IP-011 |
 | [`IP-013-event-driven-promote-workflows.md`](IP-013-event-driven-promote-workflows.md) | Rewrite promotion jobs to consume signed `eligibility-changed` events; decommission FUTURE stubs | pending | ops-sre-reliability | IP-012 |
 | [`IP-014-automated-rollback-primitive.md`](IP-014-automated-rollback-primitive.md) | Production-tier fast-burn → ref revert; signed; ledger `rollback` verdict; Grafana OnCall incident | pending | axis-observability | IP-011, IP-013 |
 | [`IP-015-canary-cohort-weighting.md`](IP-015-canary-cohort-weighting.md) | Service-mesh traffic-split ramp 1 → 10 → 50 → 100 %; abort-on-burn; otel-ingest BC integration | pending | ops-sre-reliability | IP-001, IP-008 |
@@ -226,7 +226,7 @@ branches:
       - oya-governance-mimir-tenancy-enforced # NEW; from /specs/agentic-slo-gated-promotion.json §mimir_multi_tenancy
       - oya-governance-per-microservice-layout   # NEW; from ADR-0131
       - oya-governance-aggregation-index-generation   # NEW; from ADR-0131
-      - oya-governance-no-new-suite-bundles    # NEW; from ADR-0132
+      - oya-governance-no-grouping    # NEW; from ADR-0132
       - oya-governance-multispectrum-evidence  # NEW; ChangeSet payload validator
       - oya-governance-version-pinning-conformance   # NEW; from docs/standards/observability-slo.md §"Version Pinning"
 

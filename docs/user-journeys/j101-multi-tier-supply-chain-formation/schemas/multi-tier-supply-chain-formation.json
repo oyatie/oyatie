@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/user-journeys/j101-multi-tier-supply-chain-formation/schemas/multi-tier-supply-chain-formation.json",
+  "$id": "https://docs.oyatie.com/user-journeys/j101-multi-tier-supply-chain-formation/schemas/multi-tier-supply-chain-formation.json",
   "title": "MultiTierSupplyChainFormation",
   "version": "1.0.0",
   "_meta": {
@@ -22,7 +22,7 @@
     "enforcement_status": "advisory-until-journey-contract-validator-lands",
     "industry_citations": [
       "AWS Organizations",
-      "Stripe Connect platform facilitator",
+      "Stripe platform facilitator",
       "Bloomberg Terminal entitlement hierarchy",
       "Microsoft 365 Cross-Tenant Sync"
     ],

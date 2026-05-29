@@ -26,7 +26,7 @@ Per ADR-0145 every inter-µservice call carries an Ed25519-signed OIDC bearer wi
 
 The hyperscaler bar for an IdP substrate:
 
-- **Multi-tenant native.** Per-tenant realm isolation must be a first-class object, not a deployment pattern; tenant CRUD must be an API call, not a Helm re-release. Google Workspace IAM, Microsoft Entra ID, and Stripe Connect tenants exhibit this shape.
+- **Multi-tenant native.** Per-tenant realm isolation must be a first-class object, not a deployment pattern; tenant CRUD must be an API call, not a Helm re-release. Google Workspace IAM, Microsoft Entra ID, and Stripe tenants exhibit this shape.
 - **OIDC + SAML + SCIM 2.0 + WebAuthn + magic-link + device-code in one binary.** Bolt-on protocol layers fragment trust boundaries and complicate audit (Cloudflare Access, Okta Workforce, Microsoft Entra all ship the union).
 - **Open-source license without vendor lock.** Per ADR-0173-vendor-lock-in-avoidance-and-stack-ownership the substrate must be runnable in an air-gapped sovereign pack without phoning home.
 - **API-first administration.** No vendor-only web UI for tenant provisioning, role assignment, or policy editing; everything must be reachable from `oya` CLI and Terraform/OpenTofu providers.

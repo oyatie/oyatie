@@ -22,8 +22,8 @@ Implement the cataloged feed-timeline kernel and Valkey adapter plus planned dom
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `catalog/oya-social-feed-timeline-kernel.yaml` and `catalog/oya-social-feed-timeline-adapter-valkey.yaml` | Existing anchors. |
-| `src/crates/oya-social-feed-timeline-{kernel,domain,usecase,adapter-postgres,adapter-valkey,worker,rest,sdk,app}/` | Planned family named by PRD/IP. |
+| `catalog/oya-community-social-feed-timeline-kernel.yaml` and `catalog/oya-community-social-feed-timeline-adapter-valkey.yaml` | Existing anchors. |
+| `src/crates/oya-community-social-feed-timeline-{kernel,domain,usecase,adapter-postgres,adapter-valkey,worker,rest,sdk,app}/` | Planned family named by PRD/IP. |
 | `decisions/ADR-SOC-0001-feed-ranking-algorithm.md` | Ranking decision source. |
 | `slos/feed-render-latency.openslo.yaml` | Feed latency SLO. |
 
@@ -37,8 +37,8 @@ Implement the cataloged feed-timeline kernel and Valkey adapter plus planned dom
 7. Wire feed cache rebuild runbook and dashboard evidence.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-feed-timeline-kernel` passes.
-- `cargo nextest run -p oya-social-feed-timeline-adapter-valkey` passes.
+- `cargo nextest run -p oya-community-social-feed-timeline-kernel` passes.
+- `cargo nextest run -p oya-community-social-feed-timeline-adapter-valkey` passes.
 - `slos/feed-render-latency.openslo.yaml` resolves.
 - `cargo run -p oya-dev-cli -- gate validate content-policy --microservice social` passes.
 - `runbooks/feed-cache-rebuild.md` covers rebuild and degradation behavior.

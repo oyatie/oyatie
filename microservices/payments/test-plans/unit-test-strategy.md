@@ -100,7 +100,7 @@ Unit tests must run offline and must never contact Stripe, Adyen, Toss, KakaoPay
 - Minimum assertion density: one business invariant assertion per monetary transition.
 - Snapshot tests count only when paired with semantic assertions on money, idempotency, and audit state.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `charge::kernel::tests`.
 - Test `charge_authorization_requires_positive_minor_units`.

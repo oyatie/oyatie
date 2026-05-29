@@ -21,7 +21,7 @@
 0018 | protocol_warning | prior reports overstated completed landings.
 0019 | protocol_warning | ADR-0321 D-126..D-140 had previous mismatch history.
 0020 | protocol_warning | ADR-0321 D-134..D-148 had previous zero-net-new concern.
-0021 | protocol_warning | doc-suite W8 had previous completed-report mismatch.
+0021 | protocol_warning | doc-set W8 had previous completed-report mismatch.
 0022 | protocol_warning | codex-erp-ip-w2 produced shallow 80-line IPs.
 0023 | protocol_warning | per-microservice ADR batches A-F were not verified.
 0024 | governance | read specs/root-hub-pointers.json before repo work.
@@ -41,7 +41,7 @@
 0038 | workstream_count | 10.
 0039 | workstream_A | ADR-0321 Section D corpus.
 0040 | workstream_B | j151-j175 user journeys.
-0041 | workstream_C | 7-surface µservice doc-suite sample.
+0041 | workstream_C | 7-surface µservice doc-set sample.
 0042 | workstream_D | per-µservice ADR batches A-F.
 0043 | workstream_E | ERP implementation plans.
 0044 | workstream_F | localization packs.
@@ -65,7 +65,7 @@
 ## Executive Verdict
 0061 | verdict_A_ADR_0321 | PARTIAL (⚠️).
 0062 | verdict_B_journeys | PARTIAL (⚠️).
-0063 | verdict_C_doc_suite | SUBSTANCE-BAR-FAIL (❌).
+0063 | verdict_C_doc_set | SUBSTANCE-BAR-FAIL (❌).
 0064 | verdict_D_microservice_ADRs | SUBSTANCE-BAR-FAIL (❌).
 0065 | verdict_E_ERP_IPs | SUBSTANCE-BAR-FAIL (❌).
 0066 | verdict_F_localization | SUBSTANCE-BAR-MET (✓).
@@ -75,7 +75,7 @@
 0070 | verdict_J_cross_service | PARTIAL (⚠️).
 0071 | aggregate | NEEDS-REMEDIATION.
 0072 | approve_blocker | not every completed agent landing matches reported scope.
-0073 | approve_blocker | random doc-suite samples did not all pass surface floors.
+0073 | approve_blocker | random doc-set samples did not all pass surface floors.
 0074 | approve_blocker | random runbook samples did not all pass the 250-line floor.
 0075 | approve_blocker | ERP IP batch contains known 80-line shallow pattern.
 0076 | approve_blocker | per-µservice ADR corpus contains many averages below 200 lines.
@@ -120,7 +120,7 @@
 0113 | method | checked story files for concrete actors.
 0114 | method | checked story files for concrete places.
 0115 | method | checked story files for concrete regulatory anchors.
-0116 | method | checked doc-suite surfaces against a 150-line floor.
+0116 | method | checked doc-set surfaces against a 150-line floor.
 0117 | method | checked ADR averages against a 200-line floor.
 0118 | method | checked ERP IPs against a 200-line floor.
 0119 | method | checked runbooks against a 250-line floor.
@@ -470,7 +470,7 @@
 0459 | B_remediate | rerun file-count check for all j151-j175.
 0460 | B_checkpoint | journeys are not approved as a complete block until j151 is delivered.
 
-## Workstream C - µservice Seven-Surface Doc Suite
+## Workstream C - µservice Seven-Surface Doc Set
 0461 | C_scope | seven-surface directories under microservices.
 0462 | C_surface | benchmarks.
 0463 | C_surface | capability-tiers.
@@ -489,7 +489,7 @@
 0476 | C_observed_tutorials_dirs | 61.
 0477 | C_scope_result | observed coverage does not exactly match 62/79 claim.
 0478 | C_sample_method | deterministic random sample with seed 20260520.
-0479 | C_sample_service | microservices/connect.
+0479 | C_sample_service | microservices/connector.
 0480 | C_sample_service | microservices/docs.
 0481 | C_sample_service | microservices/ontology.
 0482 | C_sample_service | microservices/comms-email.
@@ -605,12 +605,12 @@
 0592 | C_remediate | rewrite microservices/cloud-k8s/faqs/sre-faq.md.
 0593 | C_remediate | expand microservices/plugin-app-store/migration-playbooks/from-salesforce-appexchange.md.
 0594 | C_remediate | expand microservices/docs/capability-tiers.
-0595 | C_remediate | expand microservices/connect/benchmarks.
+0595 | C_remediate | expand microservices/connector/benchmarks.
 0596 | C_remediate | expand microservices/comms-email/faqs.
 0597 | C_remediate | expand microservices/healthcare-integration/onboarding.
 0598 | C_remediate | expand microservices/cloud-k8s/benchmarks.
 0599 | C_remediate | reconcile 61, 62, 63 surface counts.
-0600 | C_checkpoint | doc-suite claim is not approved.
+0600 | C_checkpoint | doc-set claim is not approved.
 
 ## Workstream D - Per-µservice ADR Batches A-F
 0601 | D_scope | microservices/*/decisions/ADR-*.md.
@@ -1290,8 +1290,8 @@
 1261 | R21 | microservices/plugin-app-store/decisions/ADR-PAS-0001.md | 39-line template ADR | high leverage.
 1262 | R22 | microservices/plugin-app-store/decisions/ADR-PAS-0002.md | 39-line template ADR | high leverage.
 1263 | R23 | microservices/plugin-app-store/decisions/ADR-PAS-0003.md | 39-line template ADR | high leverage.
-1264 | R24 | microservices/cloud-k8s/faqs/sre-faq.md | 62-line doc-suite surface | medium leverage.
-1265 | R25 | microservices/plugin-app-store/migration-playbooks/from-salesforce-appexchange.md | 88-line doc-suite surface | medium leverage.
+1264 | R24 | microservices/cloud-k8s/faqs/sre-faq.md | 62-line doc-set surface | medium leverage.
+1265 | R25 | microservices/plugin-app-store/migration-playbooks/from-salesforce-appexchange.md | 88-line doc-set surface | medium leverage.
 1266 | R26 | microservices/contact-center/runbooks/spam-call-surge.md | padded runbook | high leverage.
 1267 | R27 | microservices/contact-center/runbooks/callback-worker-stall.md | padded runbook | high leverage.
 1268 | R28 | microservices/global-trade/runbooks/policy-deny-spike.md | repetitive runbook | high leverage.
@@ -1299,7 +1299,7 @@
 1270 | R30 | registry/tutorial-library | missing requested registry path | high leverage.
 
 ## Remediation Wave Shape
-1271 | wave_1 | restore missing j151 artifact suite.
+1271 | wave_1 | restore missing j151 artifact set.
 1272 | wave_1_reason | j151 has concrete README source and missing files are directly known.
 1273 | wave_1_validation | find j151 directory and count 10 files.
 1274 | wave_1_validation | sample story.md for named persons.
@@ -1476,7 +1476,7 @@
 1443 | ledger | journey block is partial because j151 fails.
 1444 | ledger | journey block has strong j152-j175 evidence.
 1445 | ledger | journey remediation can be isolated to j151 first.
-1446 | ledger | doc-suite surface count is uneven.
+1446 | ledger | doc-set surface count is uneven.
 1447 | ledger | benchmarks directories observed: 61.
 1448 | ledger | capability-tiers directories observed: 61.
 1449 | ledger | faqs directories observed: 61.
@@ -1511,10 +1511,10 @@
 1478 | ledger | healthcare-integration faqs below floor.
 1479 | ledger | healthcare-integration migration-playbooks below floor.
 1480 | ledger | healthcare-integration onboarding below floor.
-1481 | ledger | doc-suite random sample failed all-service pass criterion.
-1482 | ledger | doc-suite content is not uniformly empty.
-1483 | ledger | doc-suite line floor still fails.
-1484 | ledger | doc-suite verdict is fail.
+1481 | ledger | doc-set random sample failed all-service pass criterion.
+1482 | ledger | doc-set content is not uniformly empty.
+1483 | ledger | doc-set line floor still fails.
+1484 | ledger | doc-set verdict is fail.
 1485 | ledger | analytics ADR average 76.8.
 1486 | ledger | cloud-k8s ADR average 98.
 1487 | ledger | community ADR average 169.6.
@@ -1783,37 +1783,37 @@
 1744 | j151 | after rewrite, all schemas should parse where applicable.
 1745 | j151 | after rewrite, content sampling should pass.
 
-## Remediation Detail - Doc Suite
-1746 | doc_suite | connect benchmarks need a fuller comparison methodology.
-1747 | doc_suite | connect capability tiers need more tier-by-tier limits.
-1748 | doc_suite | connect FAQs need operational Q&A depth.
-1749 | doc_suite | docs benchmarks need stronger benchmark cases.
-1750 | doc_suite | docs capability tiers need service-specific ceilings.
-1751 | doc_suite | docs onboarding needs more day-one steps.
-1752 | doc_suite | ontology benchmarks need larger workload description.
-1753 | doc_suite | comms-email benchmarks need throughput and compliance specifics.
-1754 | doc_suite | comms-email capability tiers need concrete quotas.
-1755 | doc_suite | comms-email FAQs need deliverability edge cases.
-1756 | doc_suite | plugin-app-store benchmarks need marketplace workload details.
-1757 | doc_suite | plugin-app-store capability tiers need publisher and tenant limits.
-1758 | doc_suite | plugin-app-store FAQs need security-review specifics.
-1759 | doc_suite | plugin-app-store Salesforce migration needs concrete API mappings.
-1760 | doc_suite | shorts benchmarks need video pipeline metrics.
-1761 | doc_suite | shorts FAQs need creator and moderation specifics.
-1762 | doc_suite | mail benchmarks need MTA and retention context.
-1763 | doc_suite | cloud-storage benchmarks need object-store workload dimensions.
-1764 | doc_suite | cloud-storage capability tiers need retention and object limits.
-1765 | doc_suite | cloud-k8s benchmarks need cluster-scale scenarios.
-1766 | doc_suite | cloud-k8s FAQ needs more SRE run questions.
-1767 | doc_suite | cloud-k8s migration playbooks need migration steps.
-1768 | doc_suite | cloud-k8s onboarding needs bootstrap commands and checks.
-1769 | doc_suite | healthcare-integration benchmarks need HL7/FHIR workloads.
-1770 | doc_suite | healthcare-integration FAQs need PHI and consent cases.
-1771 | doc_suite | healthcare-integration migration needs EHR handoff specifics.
-1772 | doc_suite | healthcare-integration onboarding needs tenant data controls.
-1773 | doc_suite | reconcile all seven-surface directory counts.
-1774 | doc_suite | rerun sample after floor repair.
-1775 | doc_suite | fail remains until random samples all pass.
+## Remediation Detail - Doc Set
+1746 | doc_set | connect benchmarks need a fuller comparison methodology.
+1747 | doc_set | connect capability tiers need more tier-by-tier limits.
+1748 | doc_set | connect FAQs need operational Q&A depth.
+1749 | doc_set | docs benchmarks need stronger benchmark cases.
+1750 | doc_set | docs capability tiers need service-specific ceilings.
+1751 | doc_set | docs onboarding needs more day-one steps.
+1752 | doc_set | ontology benchmarks need larger workload description.
+1753 | doc_set | comms-email benchmarks need throughput and compliance specifics.
+1754 | doc_set | comms-email capability tiers need concrete quotas.
+1755 | doc_set | comms-email FAQs need deliverability edge cases.
+1756 | doc_set | plugin-app-store benchmarks need marketplace workload details.
+1757 | doc_set | plugin-app-store capability tiers need publisher and tenant limits.
+1758 | doc_set | plugin-app-store FAQs need security-review specifics.
+1759 | doc_set | plugin-app-store Salesforce migration needs concrete API mappings.
+1760 | doc_set | shorts benchmarks need video pipeline metrics.
+1761 | doc_set | shorts FAQs need creator and moderation specifics.
+1762 | doc_set | mail benchmarks need MTA and retention context.
+1763 | doc_set | cloud-storage benchmarks need object-store workload dimensions.
+1764 | doc_set | cloud-storage capability tiers need retention and object limits.
+1765 | doc_set | cloud-k8s benchmarks need cluster-scale scenarios.
+1766 | doc_set | cloud-k8s FAQ needs more SRE run questions.
+1767 | doc_set | cloud-k8s migration playbooks need migration steps.
+1768 | doc_set | cloud-k8s onboarding needs bootstrap commands and checks.
+1769 | doc_set | healthcare-integration benchmarks need HL7/FHIR workloads.
+1770 | doc_set | healthcare-integration FAQs need PHI and consent cases.
+1771 | doc_set | healthcare-integration migration needs EHR handoff specifics.
+1772 | doc_set | healthcare-integration onboarding needs tenant data controls.
+1773 | doc_set | reconcile all seven-surface directory counts.
+1774 | doc_set | rerun sample after floor repair.
+1775 | doc_set | fail remains until random samples all pass.
 
 ## Remediation Detail - ADR Batches
 1776 | adr_batches | plugin-app-store ADR-PAS-0001 needs real context.
@@ -2001,7 +2001,7 @@
 1950 | command | sed drive integration test plan sample.
 
 ## Blockers and Non-Blockers
-1951 | blocker | aggregate approval blocked by failing doc-suite sample.
+1951 | blocker | aggregate approval blocked by failing doc-set sample.
 1952 | blocker | aggregate approval blocked by failing ADR batch average check.
 1953 | blocker | aggregate approval blocked by failing ERP IP boilerplate check.
 1954 | blocker | aggregate approval blocked by failing runbook sample.
@@ -2034,7 +2034,7 @@
 1979 | condition_to_approve | all missing j151 artifacts exist.
 1980 | condition_to_approve | ADR-0321 missing IDs resolved.
 1981 | condition_to_approve | ADR-0321 short sections expanded.
-1982 | condition_to_approve | doc-suite random sample passes floor.
+1982 | condition_to_approve | doc-set random sample passes floor.
 1983 | condition_to_approve | per-service ADR averages pass floor or documented exceptions exist.
 1984 | condition_to_approve | ERP IP files pass floor and bespoke sample.
 1985 | condition_to_approve | runbook sample passes floor and bespoke sample.
@@ -2071,8 +2071,8 @@
 2012 | finding | Journeys j152-j175 are not the immediate blocker.
 2013 | finding | Journey samples had named persons and place anchors.
 2014 | finding | Journey samples had regulation anchors, not just generic compliance words.
-2015 | finding | Seven-surface doc suite has broad presence.
-2016 | finding | Seven-surface doc suite lacks consistent depth.
+2015 | finding | Seven-surface doc set has broad presence.
+2016 | finding | Seven-surface doc set lacks consistent depth.
 2017 | finding | Benchmarks are weak across the random service sample.
 2018 | finding | FAQs are weak across the random service sample.
 2019 | finding | Tutorials are comparatively strong across the random service sample.
@@ -2080,8 +2080,8 @@
 2021 | finding | Cloud-k8s FAQ is good evidence that short does not mean empty.
 2022 | finding | Cloud-k8s FAQ still fails the explicit 150-line floor.
 2023 | finding | Plugin-app-store migration playbook is below half-depth relative to floor.
-2024 | finding | Healthcare-integration needs more doc-suite depth.
-2025 | finding | Connect needs more benchmark and FAQ depth.
+2024 | finding | Healthcare-integration needs more doc-set depth.
+2025 | finding | needs more benchmark and FAQ depth.
 2026 | finding | Docs service needs more onboarding and tier depth.
 2027 | finding | Per-service ADRs show severe variability.
 2028 | finding | Plugin-app-store ADRs are the most obvious template cluster.
@@ -2195,11 +2195,11 @@
 2134 | note | A path mismatch can break automation even if alternate content exists.
 2135 | note | YAML validity is a stronger check than line count for manifests.
 2136 | note | Markdown substance still needs human sampling.
-2137 | note | Random sampling exposed failures quickly in doc-suite.
+2137 | note | Random sampling exposed failures quickly in doc-set.
 2138 | note | Random sampling exposed failures quickly in runbooks.
 2139 | note | Deterministic seed makes this audit repeatable.
 2140 | note | Repetition is evidence when exact phrasing recurs across boilerplate files.
-2141 | note | Similarity checks did not prove clone stamping in sampled doc-suite files.
+2141 | note | Similarity checks did not prove clone stamping in sampled doc-set files.
 2142 | note | Similarity checks did prove the need to inspect content, not only lengths.
 2143 | note | The protocol file explicitly warned against line-count-only validation.
 2144 | note | This audit still records line counts because floors were requested.
@@ -2221,7 +2221,7 @@
 2160 | note | The ERP 80-line clusters are represented by boundary files in top-30.
 2161 | note | The full ERP cluster list is present earlier in this audit.
 2162 | note | The full ADR-0321 short section list is present earlier in this audit.
-2163 | note | The full sampled doc-suite line list is present earlier in this audit.
+2163 | note | The full sampled doc-set line list is present earlier in this audit.
 2164 | note | The full j151 missing artifact list is present earlier in this audit.
 2165 | note | The central cross-service test list is present earlier in this audit.
 2166 | note | The handoff matrix list is present earlier in this audit.
@@ -2302,7 +2302,7 @@
 ## Audit Evidence Index
 2236 | index | ADR-0321 lines 0151-0260.
 2237 | index | journey audit lines 0261-0460.
-2238 | index | doc-suite audit lines 0461-0600.
+2238 | index | doc-set audit lines 0461-0600.
 2239 | index | per-µservice ADR audit lines 0601-0725.
 2240 | index | ERP IP audit lines 0726-0845.
 2241 | index | localization audit lines 0846-0955.
@@ -2343,7 +2343,7 @@
 2272 | buffer | Do not mark ADR-0321 complete until D-123 through D-125 exist.
 2273 | buffer | Do not mark ADR-0321 complete until D-142 through D-148 exist.
 2274 | buffer | Do not mark j151 complete until README inventory files exist.
-2275 | buffer | Do not mark doc-suite complete until random samples pass 150-line surfaces.
+2275 | buffer | Do not mark doc-set complete until random samples pass 150-line surfaces.
 2276 | buffer | Do not mark per-service ADR batches complete until severe averages are repaired.
 2277 | buffer | Do not mark ERP IPs complete until 80-line clusters are rewritten.
 2278 | buffer | Do not mark runbooks complete until padding and below-floor files are remediated.
@@ -2432,7 +2432,7 @@
 2359 | result | Partial workstream: j151-j175 journeys.
 2360 | result | Partial workstream: registries and corpora.
 2361 | result | Partial workstream: cross-service tests and plans.
-2362 | result | Failed workstream: µservice doc-suite.
+2362 | result | Failed workstream: µservice doc-set.
 2363 | result | Failed workstream: per-µservice ADR batches.
 2364 | result | Failed workstream: ERP IPs.
 2365 | result | Failed workstream: runbooks.
@@ -2451,10 +2451,10 @@
 2376 | anchor | j151 integration-test-plan should refer to concrete schema fields.
 2377 | anchor | j151 Cedar policy should name ADR-0298 conditions.
 2378 | anchor | j151 story should not invent a different persona.
-2379 | anchor | doc-suite benchmark repair should include workload dimensions.
-2380 | anchor | doc-suite FAQ repair should include operator questions.
-2381 | anchor | doc-suite onboarding repair should include setup validation.
-2382 | anchor | doc-suite migration repair should include source-system mappings.
+2379 | anchor | doc-set benchmark repair should include workload dimensions.
+2380 | anchor | doc-set FAQ repair should include operator questions.
+2381 | anchor | doc-set onboarding repair should include setup validation.
+2382 | anchor | doc-set migration repair should include source-system mappings.
 2383 | anchor | ADR batch repair should preserve decision-record shape.
 2384 | anchor | ADR batch repair should include rejected alternatives.
 2385 | anchor | ADR batch repair should include consequences.
@@ -2514,7 +2514,7 @@
 2437 | assertion | The clearest regulatory success is packs localization.
 2438 | assertion | The clearest cross-handoff success is api-gateway matrix.
 2439 | assertion | The clearest threat-model failure is api-gateway 19-line file.
-2440 | assertion | The clearest doc-suite failure is cloud-k8s FAQ 62-line file.
+2440 | assertion | The clearest doc-set failure is cloud-k8s FAQ 62-line file.
 2441 | assertion | The clearest journey failure is j151 story.md absence.
 2442 | assertion | The clearest remediation principle is rewrite failed artifacts only.
 2443 | assertion | The clearest verification principle is rerun exact checks.

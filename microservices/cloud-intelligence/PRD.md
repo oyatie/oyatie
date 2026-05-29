@@ -17,7 +17,7 @@ related_adrs:
 research_brief: microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md
 ---
 
-# LLM Gateway µservice — Product Requirements Document
+# Cloud Intelligence service — Product Requirements Document
 
 **Status:** Draft (introduced 2026-05-26)
 **Owner:** council-foundry

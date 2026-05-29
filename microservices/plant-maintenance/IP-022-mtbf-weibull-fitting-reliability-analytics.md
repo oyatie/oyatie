@@ -10,7 +10,7 @@ persona: maya-okafor (reliability engineer), data-scientist, priya-singh (plant 
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-reliability + axis-analytics
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-022: MTBF computation + Weibull distribution fitting for failure-rate analytics

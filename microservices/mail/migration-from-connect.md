@@ -12,7 +12,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Migration: `oya-connect-mail-*` → `oya-mail-*`
+# Migration: `oya-mail-*` → `oya-mail-*`
 
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **mail** µservice specifically. It is
@@ -28,67 +28,67 @@ in dev cluster.**
 |---|---|
 | Replacement | `oya-mail-*` crate family under `microservices/mail/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-MAIL accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #1) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
+| Reason | ADR-0132 no-grouping forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
 | Migration owner (Churn Rule) | axis-mail |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
 ## Replacement
 
 The 8 bounded-contexts of the `mail` µservice live under
-`microservices/mail/src/crates/` per ADR-0131. Each legacy `oya-connect-mail-*`
+`microservices/mail/src/crates/` per ADR-0131. Each legacy `oya-mail-*`
 crate has a 1:1 replacement under the new prefix:
 
 ### Crate import-path map
 
-| Legacy `oya-connect-mail-*` path | New `oya-mail-*` path |
+| Legacy `oya-mail-*` path | New `oya-mail-*` path |
 |---|---|
-| `oya-connect-mail-domain` | `oya-mail-mailbox-store-domain` (the domain-layer kernel split out; see note below) |
-| `oya-connect-mail-mailbox-kernel` | `oya-mail-mailbox-store-kernel` |
-| `oya-connect-mail-mailbox-usecase` | `oya-mail-mailbox-store-usecase` |
-| `oya-connect-mail-mailbox-api` | `oya-mail-mailbox-store-api` |
-| `oya-connect-mail-mailbox-adapter-postgres` | `oya-mail-mailbox-store-adapter-postgres` |
-| `oya-connect-mail-mailbox-adapter-s3` | `oya-mail-mailbox-store-adapter-s3` |
-| `oya-connect-mail-mailbox-rest` | `oya-mail-mailbox-store-rest` |
-| `oya-connect-mail-mailbox-worker` | `oya-mail-mailbox-store-worker` |
-| `oya-connect-mail-mailbox-sdk` | `oya-mail-mailbox-store-sdk` |
-| `oya-connect-mail-mailbox-app` | `oya-mail-mailbox-store-app` |
-| `oya-connect-mail-inbound-smtp-kernel` | `oya-mail-inbound-smtp-kernel` |
-| `oya-connect-mail-inbound-smtp-usecase` | `oya-mail-inbound-smtp-usecase` |
-| `oya-connect-mail-inbound-smtp-rest` | `oya-mail-inbound-smtp-rest` |
-| `oya-connect-mail-inbound-smtp-worker` | `oya-mail-inbound-smtp-worker` |
-| `oya-connect-mail-inbound-smtp-app` | `oya-mail-inbound-smtp-app` |
-| `oya-connect-mail-outbound-smtp-kernel` | `oya-mail-outbound-smtp-kernel` |
-| `oya-connect-mail-outbound-smtp-usecase` | `oya-mail-outbound-smtp-usecase` |
-| `oya-connect-mail-outbound-smtp-rest` | `oya-mail-outbound-smtp-rest` |
-| `oya-connect-mail-outbound-smtp-worker` | `oya-mail-outbound-smtp-worker` |
-| `oya-connect-mail-outbound-smtp-app` | `oya-mail-outbound-smtp-app` |
-| `oya-connect-mail-imap-frontend-kernel` | `oya-mail-imap-frontend-kernel` |
-| `oya-connect-mail-imap-frontend-usecase` | `oya-mail-imap-frontend-usecase` |
-| `oya-connect-mail-imap-frontend-rest` | `oya-mail-imap-frontend-rest` |
-| `oya-connect-mail-imap-frontend-app` | `oya-mail-imap-frontend-app` |
-| `oya-connect-mail-search-index-kernel` | `oya-mail-search-index-kernel` |
-| `oya-connect-mail-search-index-usecase` | `oya-mail-search-index-usecase` |
-| `oya-connect-mail-search-index-adapter-tantivy` | `oya-mail-search-index-adapter-tantivy` |
-| `oya-connect-mail-search-index-adapter-elasticsearch` | `oya-mail-search-index-adapter-elasticsearch` |
-| `oya-connect-mail-search-index-worker` | `oya-mail-search-index-worker` |
-| `oya-connect-mail-search-index-app` | `oya-mail-search-index-app` |
-| `oya-connect-mail-retention-policy-kernel` | `oya-mail-retention-policy-kernel` |
-| `oya-connect-mail-retention-policy-usecase` | `oya-mail-retention-policy-usecase` |
-| `oya-connect-mail-retention-policy-worker` | `oya-mail-retention-policy-worker` |
-| `oya-connect-mail-retention-policy-app` | `oya-mail-retention-policy-app` |
-| `oya-connect-mail-legal-hold-kernel` | `oya-mail-legal-hold-kernel` |
-| `oya-connect-mail-legal-hold-usecase` | `oya-mail-legal-hold-usecase` |
-| `oya-connect-mail-legal-hold-worker` | `oya-mail-legal-hold-worker` |
-| `oya-connect-mail-legal-hold-app` | `oya-mail-legal-hold-app` |
-| `oya-connect-mail-dual-context-isolation-kernel` | `oya-mail-dual-context-isolation-kernel` |
-| `oya-connect-mail-dual-context-isolation-usecase` | `oya-mail-dual-context-isolation-usecase` |
-| `oya-connect-mail-dual-context-isolation-app` | `oya-mail-dual-context-isolation-app` |
+| `oya-mail-domain` | `oya-mail-mailbox-store-domain` (the domain-layer kernel split out; see note below) |
+| `oya-mail-mailbox-kernel` | `oya-mail-mailbox-store-kernel` |
+| `oya-mail-mailbox-usecase` | `oya-mail-mailbox-store-usecase` |
+| `oya-mail-mailbox-api` | `oya-mail-mailbox-store-api` |
+| `oya-mail-mailbox-adapter-postgres` | `oya-mail-mailbox-store-adapter-postgres` |
+| `oya-mail-mailbox-adapter-s3` | `oya-mail-mailbox-store-adapter-s3` |
+| `oya-mail-mailbox-rest` | `oya-mail-mailbox-store-rest` |
+| `oya-mail-mailbox-worker` | `oya-mail-mailbox-store-worker` |
+| `oya-mail-mailbox-sdk` | `oya-mail-mailbox-store-sdk` |
+| `oya-mail-mailbox-app` | `oya-mail-mailbox-store-app` |
+| `oya-mail-inbound-smtp-kernel` | `oya-mail-inbound-smtp-kernel` |
+| `oya-mail-inbound-smtp-usecase` | `oya-mail-inbound-smtp-usecase` |
+| `oya-mail-inbound-smtp-rest` | `oya-mail-inbound-smtp-rest` |
+| `oya-mail-inbound-smtp-worker` | `oya-mail-inbound-smtp-worker` |
+| `oya-mail-inbound-smtp-app` | `oya-mail-inbound-smtp-app` |
+| `oya-mail-outbound-smtp-kernel` | `oya-mail-outbound-smtp-kernel` |
+| `oya-mail-outbound-smtp-usecase` | `oya-mail-outbound-smtp-usecase` |
+| `oya-mail-outbound-smtp-rest` | `oya-mail-outbound-smtp-rest` |
+| `oya-mail-outbound-smtp-worker` | `oya-mail-outbound-smtp-worker` |
+| `oya-mail-outbound-smtp-app` | `oya-mail-outbound-smtp-app` |
+| `oya-mail-imap-frontend-kernel` | `oya-mail-imap-frontend-kernel` |
+| `oya-mail-imap-frontend-usecase` | `oya-mail-imap-frontend-usecase` |
+| `oya-mail-imap-frontend-rest` | `oya-mail-imap-frontend-rest` |
+| `oya-mail-imap-frontend-app` | `oya-mail-imap-frontend-app` |
+| `oya-mail-search-index-kernel` | `oya-mail-search-index-kernel` |
+| `oya-mail-search-index-usecase` | `oya-mail-search-index-usecase` |
+| `oya-mail-search-index-adapter-tantivy` | `oya-mail-search-index-adapter-tantivy` |
+| `oya-mail-search-index-adapter-elasticsearch` | `oya-mail-search-index-adapter-elasticsearch` |
+| `oya-mail-search-index-worker` | `oya-mail-search-index-worker` |
+| `oya-mail-search-index-app` | `oya-mail-search-index-app` |
+| `oya-mail-retention-policy-kernel` | `oya-mail-retention-policy-kernel` |
+| `oya-mail-retention-policy-usecase` | `oya-mail-retention-policy-usecase` |
+| `oya-mail-retention-policy-worker` | `oya-mail-retention-policy-worker` |
+| `oya-mail-retention-policy-app` | `oya-mail-retention-policy-app` |
+| `oya-mail-legal-hold-kernel` | `oya-mail-legal-hold-kernel` |
+| `oya-mail-legal-hold-usecase` | `oya-mail-legal-hold-usecase` |
+| `oya-mail-legal-hold-worker` | `oya-mail-legal-hold-worker` |
+| `oya-mail-legal-hold-app` | `oya-mail-legal-hold-app` |
+| `oya-mail-dual-context-isolation-kernel` | `oya-mail-dual-context-isolation-kernel` |
+| `oya-mail-dual-context-isolation-usecase` | `oya-mail-dual-context-isolation-usecase` |
+| `oya-mail-dual-context-isolation-app` | `oya-mail-dual-context-isolation-app` |
 
-> **Note on the `-domain` split.** The legacy `oya-connect-mail-domain` crate
+> **Note on the `-domain` split.** The legacy `oya-mail-domain` crate
 > bundled mailbox + SMTP + IMAP + search + retention + legal-hold + context
 > isolation into a single domain-layer crate. Per ADR-0131 + ADR-0105 (13-layer
 > enum), the new layout splits the domain layer per bounded context. Migration
-> imports from the legacy bundled `oya-connect-mail-domain` must each pick the
+> imports from the legacy bundled `oya-mail-domain` must each pick the
 > specific replacement BC; a one-line wholesale `use oya_mail::*` import is
 > not supported.
 
@@ -109,9 +109,9 @@ use oya_mail_legal_hold_kernel::HoldScope;
 ```toml
 # BEFORE — Cargo.toml of a downstream consumer
 [dependencies]
-oya-connect-mail-mailbox-kernel  = { workspace = true }
-oya-connect-mail-mailbox-usecase = { workspace = true }
-oya-connect-mail-legal-hold-kernel = { workspace = true }
+oya-mail-mailbox-kernel  = { workspace = true }
+oya-mail-mailbox-usecase = { workspace = true }
+oya-mail-legal-hold-kernel = { workspace = true }
 
 # AFTER
 [dependencies]
@@ -122,11 +122,11 @@ oya-mail-legal-hold-kernel     = { workspace = true }
 
 ## Reason
 
-The legacy `oya-connect-mail-*` family was authored before the no-suite
+The legacy `oya-mail-*` family was authored before the no-grouping
 forward-policy (ADR-0132) and the per-µservice flat layout (ADR-0131)
 crystallised. Specifically:
 
-1. **ADR-0132 no-suite forward-policy.** A `connect-*` crate prefix encodes
+1. **ADR-0132 no-grouping forward-policy.** A `connect-*` crate prefix encodes
    bundle membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
 2. **ADR-0139 per-µservice SLO authority.** Mail's mailbox-fill, inbound
@@ -145,7 +145,7 @@ crystallised. Specifically:
 
 ## Migration Guide (step-by-step)
 
-For each consumer crate that imports `oya-connect-mail-*`:
+For each consumer crate that imports `oya-mail-*`:
 
 ### Step 1 — Add the new dependency
 
@@ -158,7 +158,7 @@ For each consumer crate that imports `oya-connect-mail-*`:
 
 ```bash
 # Use this command per file as a guided rewrite (review every hit; manual
-# disambiguation needed for the `oya-connect-mail-domain` split case):
+# disambiguation needed for the `oya-mail-domain` split case):
 rg -l "oya_connect_mail_" --type rust path/to/your/crate
 ```
 
@@ -166,7 +166,7 @@ rg -l "oya_connect_mail_" --type rust path/to/your/crate
 
 ```bash
 # Inside your consumer crate:
-cargo nextest run --features connect-mail-strangler-canary
+cargo nextest run --features mail-strangler-canary
 ```
 
 Run with the feature flag enabled to route through the new µservice; run
@@ -174,7 +174,7 @@ without to route through the legacy adapter. Compare:
 
 - error variant ordering (Hyrum's Law: external consumers may pattern-match
   on `Err(MailError::Variant)` ordering; new µservice preserves the order
-  from the legacy `oya-connect-mail-*` API contract).
+  from the legacy `oya-mail-*` API contract).
 - p99 latency (must be ≤ legacy + 5% per ADR-0134 Phase 3 canary gate).
 - log-line format (preserved verbatim during the canary; may be tightened in
   a successor-IP `feedback_no_silent_regression`-conforming ADR).
@@ -187,14 +187,14 @@ the legacy dependency from your `Cargo.toml`:
 
 ```toml
 # Remove this line:
-oya-connect-mail-mailbox-kernel = { workspace = true }
+oya-mail-mailbox-kernel = { workspace = true }
 ```
 
 ### Step 5 — Verify zero residual
 
 ```bash
 # Per ADR-0134 Phase 4 verification:
-cargo tree -e normal -p your-crate | grep oya-connect-mail   # expect empty
+cargo tree -e normal -p your-crate | grep oya-mail   # expect empty
 rg "use oya_connect_mail_" --type rust path/to/your/crate    # expect zero hits
 ```
 
@@ -205,7 +205,7 @@ rg "use oya_connect_mail_" --type rust path/to/your/crate    # expect zero hits
 | Feature flag namespace | `connect.mail.*` | `mail.*` |
 | OpenSLO file | bundled in `Connect.openslo.yaml` (umbrella) | `microservices/mail/slos/mail.openslo.yaml` (per-µservice) |
 | Helm chart values key | `.Values.connect.mail.*` | `.Values.mail.*` |
-| K8s namespace | `connect` | `mail` |
+| K8s namespace | `connector` | `mail` |
 | Cedar policy fragment path | `policy/connect/mail/*.cedar` | `microservices/mail/policy/cedar/*.cedar` |
 | pack-kr overlay path | `policy/connect/mail/pack-kr/*` | `microservices/mail/policy/pack-kr/*` |
 | Workflow event prefix | `connect.mail.*` | `mail.*` (e.g., `mail.MessageReceived`) |
@@ -216,7 +216,7 @@ rg "use oya_connect_mail_" --type rust path/to/your/crate    # expect zero hits
 ## Dual-context isolation invariant (preserved)
 
 The Personal ↔ Professional context isolation invariant from the legacy
-`oya-connect-mail-dual-context-isolation-kernel` is preserved verbatim in
+`oya-mail-dual-context-isolation-kernel` is preserved verbatim in
 `oya-mail-dual-context-isolation-kernel`. Specifically:
 
 - The `ContextBoundaryGuard` port trait keeps the same method signatures.
@@ -259,7 +259,7 @@ re-test after Phase 5 removal in case they had a long-tail dependency:
 | Phase | Description | Status (mail) | Exit condition |
 |---|---|---|---|
 | 1. Parallel ship | New µservice + legacy coexist | **active** | HG-MAIL passes at p99 SLOs in dev cluster sustained 7d |
-| 2. Adapter soak | `oya-connect-mail-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
+| 2. Adapter soak | `oya-mail-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
 | 3. Feature-flagged canary | 10% → 50% → 100% traffic shift over 6 weeks | pending | New µservice carries 100% traffic for 7 consecutive days |
 | 4. Zero-active-usage verification | Dependency-graph + telemetry + grep all clean | pending | Verification commands all exit 0 |
 | 5. Code removal sweep | Delete legacy crates + Cargo.toml entries + spec pointers | pending | `cargo build --workspace` exits 0; no `oya_connect_mail_*` symbol resolves |
@@ -281,12 +281,12 @@ satisfy these checks. Each is gated by a concrete command:
   ```
 - [ ] **All active consumers have been migrated** (per Phase 4):
   ```bash
-  cargo tree -e normal -p oya-connect-mail-domain --invert    | grep -v 'oya-connect-mail-migration-adapter' | wc -l   # expect 0
+  cargo tree -e normal -p oya-mail-domain --invert    | grep -v 'oya-mail-migration-adapter' | wc -l   # expect 0
   rg "use oya_connect_mail_" --type rust    | rg -v "migration-adapter|legacy_in_process|tests/"    | wc -l   # expect 0
   ```
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
-  find crates -maxdepth 1 -type d -name "oya-connect-mail-*" | wc -l   # expect 0
+  find crates -maxdepth 1 -type d -name "oya-mail-*" | wc -l   # expect 0
   test ! -f /specs/microservices/mail.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase**
@@ -323,11 +323,11 @@ not migrate during the 5-month adapter+canary window. Per
 
 ## References
 
-- ADR-0135: Connect super-app expansion into 8 flat µservices.
+- ADR-0135: super-app expansion into 8 flat µservices.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0133: Industry best-practice conformance program.
-- ADR-0134: Connect dissolution Strangler migration (operational policy).
+- ADR-0134: dissolution Strangler migration (operational policy).
 - `microservices/mail/PRD.md` — full target-state product definition.
 - `microservices/mail/PHASE-01-MAIL-DISSOLUTION-FROM-CONNECT.md` — phase plan.
 - `microservices/mail/deprecation-notice.md` — formal deprecation notice.

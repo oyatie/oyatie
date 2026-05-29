@@ -5,7 +5,7 @@
   "audit_class": "ADR-0321 second-pass operating-bar buildout",
   "findings": [
     {
-      "id": "marketing-automation-doc-suite-001",
+      "id": "marketing-automation-doc-set-001",
       "status": "closed-by-additive-artifacts",
       "evidence": "microservices/marketing-automation/",
       "target_artifacts": 100

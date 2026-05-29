@@ -16,14 +16,14 @@ info:
     ISO 639-3, ICU MessageFormat, CLDR plural rules.
   contact:
     name: axis-translate
-    email: axis-translate@oyatie.dev
+    email: axis-translate@oyatie.com
   license:
     name: Proprietary — oyatie
   x-oyatie-microservice: translate
   x-oyatie-related-adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
 
 servers:
-  - url: https://translate-{pack}.oyatie.dev/v1
+  - url: https://translate-{pack}.oyatie.com/v1
     description: Per-pack endpoint (kr | eu | us | us-healthcare | jp | sg | au | in | br | ae | ksa | cn-stub)
     variables:
       pack:
@@ -443,8 +443,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://auth-{pack}.oyatie.dev/oauth/authorize
-          tokenUrl: https://auth-{pack}.oyatie.dev/oauth/token
+          authorizationUrl: https://auth-{pack}.oyatie.com/oauth/authorize
+          tokenUrl: https://auth-{pack}.oyatie.com/oauth/token
           scopes:
             translate.translate: Single + batch translate
             translate.detect: Language detection

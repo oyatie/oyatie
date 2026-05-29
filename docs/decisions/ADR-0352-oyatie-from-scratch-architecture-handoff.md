@@ -73,7 +73,7 @@ Oyatie development follows these principles:
 
 Build the first production deliverable before later sector verticals.
 
-The first deliverable is Enterprise Generic plus SMB Generic. It is full-depth
+The first deliverable is Tenant RBAC view plus Tenant RBAC view. It is full-depth
 production scope, not MVP, not preview, and not reduced scope.
 
 Required surfaces:
@@ -252,7 +252,7 @@ layered.
 
 Rules:
 
-- No suite microservices.
+- No grouping microservices.
 - No bundle microservices.
 - No vertical-grouping microservices.
 - No product-specific duplicates of shared substrates.
@@ -1003,7 +1003,7 @@ implementation branch:
 ```text
 You are implementing Oyatie from scratch from a self-contained handoff.
 
-Build the first production deliverable first: Enterprise Generic plus SMB
+Build the first production deliverable first: Tenant RBAC view plus SMB
 Generic, full-depth production scope, with core, messenger, mail, community,
 infrastructure, ops-dashboard-control-center, intelligence, workflow, ontology,
 canonical base, and Korea localization pack. Do not build later sector verticals

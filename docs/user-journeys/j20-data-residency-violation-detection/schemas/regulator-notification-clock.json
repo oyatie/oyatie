@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j20/regulator-notification-clock.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j20/regulator-notification-clock.json",
   "title": "RegulatorNotificationClock",
   "version": "1.0.0",
   "description": "RegulatorNotificationClock shared object for j20 Data residency violation detection. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

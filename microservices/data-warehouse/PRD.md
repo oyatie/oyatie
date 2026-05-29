@@ -45,7 +45,7 @@ companion_docs:
   - microservices/data-warehouse/manifest.json
   - microservices/data-warehouse/README.md
   - microservices/data-warehouse/REMEDIATION-NOTES-2026-05-21.md
-planned_enforcement_ref: oya-governance-data-warehouse-doc-suite
+planned_enforcement_ref: oya-governance-data-warehouse-doc-set
 tenant_class_model:
   classes: [demo_trial, paid]
   paid.billing_components:
@@ -562,7 +562,7 @@ SLO.
 The µservice is considered substance-bar-passing when:
 
 - Every persona in §B has at least one concrete acceptance row passing in
-  the integration test suite.
+  the integration test set.
 - The audit defects F-D2-01..F-D8-02 are all closed (see
   `REMEDIATION-NOTES-2026-05-21.md`).
 - The 60-primitive union coverage from §2.4 of the audit reaches ≥ 85 %

@@ -13,7 +13,7 @@ VCS CLAIM: `./bin/oya vcs claim --agent codex-cloud-network-dns-audit --intent "
 2. Master plan machine contract: `specs/master-plan-sequencing.json:704-867` defines the six deployment contexts, OpenTofu substrate, supported OS matrix, Rust-strict language policy, and OCI Always Free profile.
 3. Service PRD anchor: `microservices/cloud-network-dns/PRD.md` is absent in the service inventory; nearest service-local product-purpose evidence is `microservices/cloud-network-dns/retired tenant_class adoption artifact:7-10`.
 4. Service architecture anchor: `microservices/cloud-network-dns/ARCHITECTURE.md` is absent in the service inventory; nearest service-local architecture-equivalent evidence is `microservices/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5` and `microservices/cloud-network-dns/faqs/dns-engineer-faq.md:26-30`.
-5. Documentation rigor anchor: `docs/standards/documentation-rigor.md:62-80` requires the full per-microservice doc suite, and `docs/standards/documentation-rigor.md:133-156` defines intern-buildability plus hyperscaler-grade rigor.
+5. Documentation rigor anchor: `docs/standards/documentation-rigor.md:62-80` requires the full per-microservice doc set, and `docs/standards/documentation-rigor.md:133-156` defines intern-buildability plus hyperscaler-grade rigor.
 
 ## Investigation basis
 
@@ -262,7 +262,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 27. demo_trial tenant_class claims `$5/mo` substrate cost (`tenant-class-adoption/...:28`), conflicting with OCI Always Free profile for OCI demo_trial tenant_class.
 28. demo_trial record cap of 25 records and 100 QPS could plausibly fit OCI Always Free, but no capacity-check test proves it.
 29. paid claims unlimited zones and unbounded QPS (`tenant-class-adoption/...:71-79`), which cannot fit OCI Always Free and must be paid tenant_class or paid context.
-30. Documentation-rigor requires full doc suite and intern-buildability (`docs/standards/documentation-rigor.md:62-81`, `:133-156`).
+30. Documentation-rigor requires full doc set and intern-buildability (`docs/standards/documentation-rigor.md:62-81`, `:133-156`).
 31. Service path has 7 artifacts, far below the >=70 artifact floor.
 32. The user-required ownership directive says one agent must own every file under the microservice path and verify contradictions (`feedback_microservice_ownership_coherence_2026_05_20.md:18-59`); this audit followed that scope.
 33. The verify-deliverables directive rejects line count as a quality proxy (`feedback_verify_deliverables_not_just_line_count_2026_05_20.md:10-31`); this report cites actual file evidence.
@@ -274,7 +274,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 39. Alignment classification for OS support: drifted-fixable with P1 missing manifest.
 40. Alignment classification for Rust-strict files: aligned on file extensions; drifted-fixable on command examples.
 41. Alignment classification for OCI Always Free: drifted-fixable; demo_trial tenant_class must be reconciled.
-42. Alignment classification for documentation rigor: incoherent with full-service claim; fixable through doc-suite and machine-readable surfaces.
+42. Alignment classification for documentation rigor: incoherent with full-service claim; fixable through doc-set and machine-readable surfaces.
 43. Alignment classification for current runtime evidence: narrowed to zone create, not full DNS substrate.
 44. Alignment classification for service ambition: aligned with Phase 0 network substrate doctrine.
 45. Canonical conflict: existing service docs oversell measured performance and full replacement without the required evidence.
@@ -561,7 +561,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 | P1 | D1 | HSM/KSK import tenant_class statement is internally contradictory | `migration-playbooks/from-route53-and-ns1.md:88-98`; `retired tenant_class adoption artifact:74-80` | Rewrite import policy by tier: software key vs HSM |
 | P1 | D1 | Benchmark claims measured evidence, but cited evidence path is absent | `benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:3-5,119` | Mark as target numbers or land evidence bundle |
 | P1 | D2 | ADR-0273 expects DNS orchestrator IaC path that does not exist | `docs/decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:1330-1332` | Add IaC path or update ADR via owning workflow |
-| P1 | D3 | Full doc-suite floor is not met: 7 artifacts versus >=70 floor | `docs/standards/documentation-rigor.md:62-81` | Build PR-143-style suite for this service |
+| P1 | D3 | Full doc-set floor is not met: 7 artifacts versus >=70 floor | `docs/standards/documentation-rigor.md:62-81` | Build PR-143-style suite for this service |
 | P1 | D4/D6 | No six-context support matrix exists | `specs/master-plan-sequencing.json:704-745`; `feedback_multi_context_provider_agnostic_2026_05_20.md:32-38` | Add manifest/PRD context matrix |
 | P1 | D4/D7 | No OpenTofu `iac/` directory exists | `docs/decisions/ADR-0328-...md:2275-2295` | Add per-context OpenTofu modules |
 | P1 | D4/D8 | No OS support manifest exists | `specs/master-plan-sequencing.json:777-815`; `feedback_os_support_matrix_2026_05_20.md:56-78` | Add supported OS manifest and CI lanes |

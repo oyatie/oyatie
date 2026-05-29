@@ -137,7 +137,7 @@ spec:
         {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: social-media-transcode-worker
-          image: "{{ .Values.global.imageRegistry }}/oya-social-media-transcode:{{ .Values.image.tag }}"
+          image: "{{ .Values.global.imageRegistry }}/oya-community-social-media-transcode:{{ .Values.image.tag }}"
           args: ["--pack={{ .Values.global.pack }}"]
           resources:
             requests: {cpu: 1000m, memory: 2Gi}

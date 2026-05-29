@@ -7,7 +7,7 @@ info:
     comments-and-suggestions, version-history, sharing-and-permissions,
     export-import, and embed-resolver bounded contexts.
 
-    Per ADR-0135 (Connect unbundle) + ADR-0132 (no-suite forward policy): docs is a
+    Per ADR-0135 (unbundle) + ADR-0132 (no-grouping forward policy): docs is a
     standalone tenant-facing µservice. Dual-context (Personal / Professional) isolation
     enforced structurally per `policy/editor-isolation.md`. Per-block ACL per ADR-DOCS-0004.
 
@@ -16,11 +16,11 @@ info:
     Realtime collab via WebSocket gateway (see asyncapi/docs-events.yaml).
   contact:
     name: axis-docs
-    email: docs@oyatie.dev
+    email: docs@oyatie.com
   license:
     name: Internal-Use
 servers:
-  - url: https://docs.{pack}.oyatie.dev/v1
+  - url: https://docs.{pack}.oyatie.com/v1
     description: per-pack production endpoint
     variables:
       pack:
@@ -477,7 +477,7 @@ components:
   securitySchemes:
     oidcBearer:
       type: openIdConnect
-      openIdConnectUrl: https://oidc.{pack}.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://oidc.{pack}.oyatie.com/.well-known/openid-configuration
     tenantApiKey:
       type: apiKey
       in: header

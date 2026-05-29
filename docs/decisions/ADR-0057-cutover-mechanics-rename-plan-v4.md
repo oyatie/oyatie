@@ -163,7 +163,7 @@ Pre-conditions (ALL three required):
    ```
 Then: `gh pr merge --admin` under the named exception.
 
-Post-emergency: full §8 gate suite runs non-blocking (BLOCKING if staging already reached, per R8).
+Post-emergency: full §8 gate set runs non-blocking (BLOCKING if staging already reached, per R8).
 
 **Security P0 during 48 h freeze**:
 The on-call security council member releases the grit symbol-lock via

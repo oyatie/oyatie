@@ -998,7 +998,7 @@ the edge via platform attestation APIs.
   certificate.
 - Backend verifies the attestation per Apple's published
   attestation chain validation (Apple's "Validating Apps That
-  Connect to Your Server" developer documentation).
+  to Your Server" developer documentation).
 - Per-request, native app calls `DCAppAttestService.generateAssertion`
   to sign the request; backend verifies against the previously-
   attested key.
@@ -2891,7 +2891,7 @@ B2B surfaces face moderate bot pressure (less scrape, more
 credential-stuffing on enterprise SSO). B2B µservices:
 `tenancy`, `identity`, `governance`, `audit-chain` (per-tenant
 view), `policy-engine` (tenant-policy admin), `workflow-studio`
-(B2B mode), `marketplace` (B2B catalog), `connect`, `feature-flags`,
+(B2B mode), `marketplace` (B2B catalog), `connector`, `feature-flags`,
 `ops-dashboard-control-center`.
 
 **Phase 3: Internal-platform surfaces (2026-08-01 to 2026-08-15).**

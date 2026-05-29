@@ -5,7 +5,7 @@ milestone: M02-foundation
 phase: P01-notes-foundation
 status: Active
 entry_gate: |
-  ADR-0135 (parallel Connect dual-context) + ADR-0131 + ADR-0132 accepted;
+  ADR-0135 (parallel dual-context) + ADR-0131 + ADR-0132 accepted;
   observability µservice IP-001..IP-015 merged so notes can author OpenSLO manifests and pass promotion-readiness gate;
   drive µservice ready for attachment refs; tasks µservice ready to receive checklist-emitted events.
 exit_gate: |

@@ -2,7 +2,7 @@
 doc_class: DeprecationNotice
 template_id: TPL-DEPRECATION-NOTICE
 microservice: docs
-deprecated_artifact: oya-connect-docs-* crate family
+deprecated_artifact: oya-docs-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-DOCS accepts at p99 SLOs sustained 30d
@@ -13,7 +13,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Deprecation Notice: `oya-connect-docs-*` crate family
+# Deprecation Notice: `oya-docs-*` crate family
 
 > Formal deprecation notice in the format prescribed by the agent-skills `deprecation-and-migration` skill SKILL.md §"Step 2: Announce and Document".
 
@@ -31,14 +31,14 @@ doc_status: published
 
 ## Reason
 
-The legacy `oya-connect-docs-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
+The legacy `oya-docs-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — agentic SLO-gated promotion.** Docs needs independent SLO targets per surface (doc-open, save, collab-cursor-sync, export-pdf, search-within-doc, doc-list, crdt-no-silent-loss 100%, share-acl-enforcement-correctness 100%, pandoc-export-pipeline-availability); a `connect-*` umbrella SLO cannot serve them.
 3. **ADR-0131 — per-µservice flat layout.** Docs's IaC, runbooks, threat-model, DPIA, compliance, capacity-model, cost-budget all need to live under one folder (`microservices/docs/`).
 4. **ADR-0133 — 11-pack-overlay program.** pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa each need per-µservice overlay granularity.
 5. **ADR-DOCS-0001 → ADR-DOCS-0006** — docs-specific decisions (CRDT library shared with workflow-studio, block-type system, export pipeline architecture, per-block ACL, AI writing-assist bounds, DOCX import fidelity) need to live at per-µservice ADR granularity.
-6. **Cross-µservice CRDT consistency** with workflow-studio (per ADR-WS-0001 + ADR-DOCS-0001) is impossible at the legacy connect-suite granularity.
+6. **Cross-µservice CRDT consistency** with workflow-studio (per ADR-WS-0001 + ADR-DOCS-0001) is impossible at the legacy tenant-rbac-packaging granularity.
 
 ## Migration Guide pointer
 
@@ -48,13 +48,13 @@ Includes: ~75-row 1:1 import-path map; net-new-boundary features (Loro CRDT, blo
 
 ## Affected packages enumerated
 
-Per `find crates -maxdepth 1 -type d -name 'oya-connect-docs-*'` (2026-05-17 workspace state):
+Per `find crates -maxdepth 1 -type d -name 'oya-docs-*'` (2026-05-17 workspace state):
 
 | Currently extant in `crates/` | Mapped replacement |
 |---|---|
-| `oya-connect-docs-domain` | split per BC → `oya-docs-{document-store,collab-crdt,block-types,comments-and-suggestions,version-history,sharing-and-permissions,export-import,embed-resolver}-domain` |
+| `oya-docs-domain` | split per BC → `oya-docs-{document-store,collab-crdt,block-types,comments-and-suggestions,version-history,sharing-and-permissions,export-import,embed-resolver}-domain` |
 
-Plus all `oya-connect-docs-{kernel,usecase,api,adapter*,rest,worker,sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
+Plus all `oya-docs-{kernel,usecase,api,adapter*,rest,worker,sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 
 ## Breaking changes flagged per `feedback_no_silent_regression`
 
@@ -74,18 +74,18 @@ Plus all `oya-connect-docs-{kernel,usecase,api,adapter*,rest,worker,sdk,app}-*` 
 | Comment anchor CRDT-aware | 1 | **Schema-divergent** | adapter provides anchor-migration utility Hyrum #6 |
 | Suggestion no auto-acceptance | 1 | **Behaviourally divergent** | adapter does NOT mask Hyrum #7 |
 | Export async (not sync) | 1 | **Behaviourally divergent** | adapter provides `awaitExport()` shim Hyrum #8 |
-| `oya-connect-docs-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface modulo Hyrum surfaces) | — |
+| `oya-docs-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface modulo Hyrum surfaces) | — |
 | Feature-flagged canary 10→50→100% | 3 | No (additive, gated) | — |
 | Zero-usage verification | 4 | No (observability only) | — |
-| **`oya-connect-docs-*` crates removed from workspace** | **5** | **YES — breaking** | **7-mo advisory sunset from 2026-05-17** |
-| `microservices/connect/` umbrella folder removed | 6 | No | — |
+| **`oya-docs-*` crates removed from workspace** | **5** | **YES — breaking** | **7-mo advisory sunset from 2026-05-17** |
+| `microservices/connector/` umbrella folder removed | 6 | No | — |
 
 Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
 - **This deprecation notice** (renders the change loud + immediate + CI-detectable).
 - **ADR-0134** (carries the migration policy decision).
 - **ADR-DOCS-0001 + ADR-DOCS-0003 + ADR-DOCS-0006** (specifically document the CRDT + export + import behavioural strengthenings as deliberate, owner-authored design choices — NOT silent regressions).
-- **Version bump.** The `Cargo.toml` of every consumer crate is bumped per semver when its legacy imports are removed (treating the `oya-connect-docs-*` re-export as the public contract).
+- **Version bump.** The `Cargo.toml` of every consumer crate is bumped per semver when its legacy imports are removed (treating the `oya-docs-*` re-export as the public contract).
 - **Sunset schedule.** 7-month advisory window from this notice; concrete date 2026-12-17 contingent on the HG-DOCS SLO trigger.
 - **Owning-axis migration ChangeSets.** axis-docs ships migration ChangeSets for every known internal consumer per the Churn Rule before Phase 5.
 

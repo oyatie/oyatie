@@ -19,23 +19,23 @@ j134 integration tests live at Tier 3 on `j134-integration-lane`.
   - tenanth.hireforce (B2B_STAFFING_AGENCY audience-type pre-loaded)
   - 30 candidate personal-tenants (10 in HireForce's pipeline + 20 alternates)
 - Connect-trust: pre-loaded between marcus-tenant + tenanth.hireforce
-- Stripe Connect platform account seeded with test escrow
+- Stripe platform account seeded with test escrow
 
-## Test suites
+## Test sets
 
-### Suite 1 — Engagement initiation
+### Test Set 1 — Engagement initiation
 
 **T-001 Post 7 reqs to HireForce**
 - Then: 7 StaffingReqPosted events; cross-tenant posts delivered; engagement-agreement auto-generated.
 
 **T-002 HireForce signs engagement agreement**
-- Then: EngagementAgreementGenerated → EngagementSigned event chain; Stripe Connect escrow created.
+- Then: EngagementAgreementGenerated → EngagementSigned event chain; Stripe escrow created.
 
 **T-003 Engagement without Connect-trust DENIED**
 - Given: random non-trusted tenant attempt to engage
 - Then: Cedar DENY; UnauthorizedEngagementAttempt event.
 
-### Suite 2 — Shortlist + interview
+### Test Set 2 — Shortlist + interview
 
 **T-101 HireForce posts shortlist**
 - Then: StaffingShortlistPosted ×7; visible to marcus-tenant.
@@ -49,7 +49,7 @@ j134 integration tests live at Tier 3 on `j134-integration-lane`.
 **T-104 marcus-tenant cannot read HireForce internal Messenger**
 - Then: Cedar DENY; UnauthorizedCrossTenantAccessAttempt event.
 
-### Suite 3 — Offer + salary read-grant
+### Test Set 3 — Offer + salary read-grant
 
 **T-201 Generate offer + HireForce salary read-grant**
 - Then: OfferLetterGenerated + SalaryReadGrantStamped events.
@@ -60,31 +60,31 @@ j134 integration tests live at Tier 3 on `j134-integration-lane`.
 **T-203 HireForce attempts to read non-engagement offer**
 - Then: Cedar DENY; UnauthorizedSalaryReadAttempt event.
 
-### Suite 4 — Stripe Connect facilitator-flow
+### Test Set 4 — Stripe facilitator-flow
 
 **T-301 Pre-escrow placement fee on offer extend**
 - Then: PlacementFeePreescrowed event.
 
 **T-302 Disburse on candidate start-date**
 - Given: durable timer fires
-- Then: PlacementFeeDisbursed event; HireForce receives Stripe Connect payout.
+- Then: PlacementFeeDisbursed event; HireForce receives Stripe payout.
 
 **T-303 Disburse with replacement-guarantee-window not elapsed → escrow holds**
 - Given: candidate not yet at T+90d
 - Then: full disbursement happens; guarantee window still active.
 
-### Suite 5 — 90-day replacement guarantee
+### Test Set 5 — 90-day replacement guarantee
 
 **T-401 Candidate still employed at T+90d**
 - Then: GuaranteeWindowClosed event; HireForce keeps full fee.
 
 **T-402 Candidate departs before T+90d**
-- Then: ReplacementGuaranteeInvoked event; reverse Stripe Connect refund 75%; HireForce notified.
+- Then: ReplacementGuaranteeInvoked event; reverse Stripe refund 75%; HireForce notified.
 
 **T-403 HireForce sources replacement**
 - Then: New candidate placed; new placement-fee escrow created.
 
-### Suite 6 — Audience-type transition
+### Test Set 6 — Audience-type transition
 
 **T-501 Candidate signs → transition B2B_STAFFING_AGENCY_CANDIDATE → B2B_TENANT_MEMBER**
 - Then: AudienceTypeTransitioned event; personal-tenant principal UNCHANGED (per T-502).
@@ -120,7 +120,7 @@ j134 integration tests live at Tier 3 on `j134-integration-lane`.
 
 - All T-001..T-502 pass
 - 3-tenant boundary holds (no cross-tenant leaks)
-- Stripe Connect facilitator-flow correct
+- Stripe facilitator-flow correct
 - Replacement-guarantee logic durable
 
 — end of integration-test-plan —

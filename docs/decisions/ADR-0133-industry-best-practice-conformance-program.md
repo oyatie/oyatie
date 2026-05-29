@@ -25,7 +25,7 @@ Accepted — 2026-05-17.
 
 User directive 2026-05-17: *"make sure all our pipeline, directories, naming, standards, practices, policies follow industry best practices, and hyperscaler grade. The only difference is that our dev team is fully agentic. optimization is key."*
 
-oyatie has already adopted several industry-leading baselines piecemeal (per ADR-0030 Argo Rollouts; ADR-0041 GitOps trunk-based; ADR-0117 cloud-native infrastructure; ADR-0123 hyperscaler-maturity-claim-gate; ADR-0114 canary observability rollback; ADR-0139 agentic SLO-gated promotion; ADR-0131 per-microservice flat layout; ADR-0132 no-suite forward-policy). What is missing is a **continuous, multi-axis audit program** that catches drift the moment an artifact deviates from industry baseline and that explicitly optimises for oyatie's fully-agentic developer (rather than the human-developer assumption embedded in most industry artifacts).
+oyatie has already adopted several industry-leading baselines piecemeal (per ADR-0030 Argo Rollouts; ADR-0041 GitOps trunk-based; ADR-0117 cloud-native infrastructure; ADR-0123 hyperscaler-maturity-claim-gate; ADR-0114 canary observability rollback; ADR-0139 agentic SLO-gated promotion; ADR-0131 per-microservice flat layout; ADR-0132 no-grouping forward-policy). What is missing is a **continuous, multi-axis audit program** that catches drift the moment an artifact deviates from industry baseline and that explicitly optimises for oyatie's fully-agentic developer (rather than the human-developer assumption embedded in most industry artifacts).
 
 The audit must distinguish:
 - **Conformance**: artifact matches an industry-published baseline (SOC 2 + ISO 27001 + SLSA + Google SRE + AWS Well-Architected + Microsoft Azure Well-Architected Framework + CNCF cloud-native maturity + OWASP ASVS + Google styleguide + conventional-commits + OpenAPI + AsyncAPI + OpenSLO + OpenTelemetry + Stripe API design + Linear + Vercel deploy patterns + etc.).
@@ -81,7 +81,7 @@ Audit output: per-µservice migration progress against `ADR-0131 §"Migration DA
 
 #### Axis 3 — Naming conformance
 
-Audit BNF v4.1 (ADR-0056) + 13-layer enum (ADR-0105) + `application → usecase` rename (ADR-0106) + no-suite policy (ADR-0132) against every crate, ADR, spec, registry entry.
+Audit BNF v4.1 (ADR-0056) + 13-layer enum (ADR-0105) + `application → usecase` rename (ADR-0106) + no-grouping policy (ADR-0132) against every crate, ADR, spec, registry entry.
 
 Industry baselines:
 - **Rust API guidelines** — `rust-lang.github.io/api-guidelines/`.
@@ -204,7 +204,7 @@ Every Cedar fragment under `microservices/<ms>/policy/*.cedar` audited against:
 - ADR-0123 (hyperscaler-maturity-claim-gate)
 - ADR-0139 (agentic SLO-gated promotion)
 - ADR-0131 (per-microservice flat layout)
-- ADR-0132 (no-suite forward-policy)
+- ADR-0132 (no-grouping forward-policy)
 - SLSA — `slsa.dev`
 - NIST SSDF SP 800-218 — `csrc.nist.gov`
 - Google SRE Workbook — `sre.google/workbook/`

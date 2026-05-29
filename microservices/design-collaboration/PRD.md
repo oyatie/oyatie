@@ -28,7 +28,7 @@ companion_docs:
   - microservices/design-collaboration/ARCHITECTURE.md
   - microservices/design-collaboration/compliance.md
   - microservices/design-collaboration/manifest.json
-planned_enforcement_ref: oya-governance-design-collaboration-doc-suite
+planned_enforcement_ref: oya-governance-design-collaboration-doc-set
 ---
 
 # PRD-design-collaboration: Design Collaboration

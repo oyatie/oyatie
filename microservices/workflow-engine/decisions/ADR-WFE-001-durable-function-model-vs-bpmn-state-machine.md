@@ -19,7 +19,7 @@ decision_owner: axis-workflow-engine
 
 ## Context
 
-- Workflow-engine is the durable execution substrate for Oyatie product and platform workflows.
+- Workflow-engine is the durable execution substrate for Oyatie product and tenant RBAC workflows.
 - The engine has no end-user UI and must serve Workflow Studio, saga orchestration, compliance automation, and internal control-plane jobs.
 - The runtime must survive worker crashes, cell failover, process restarts, and partial downstream outages.
 - The runtime must support tenant-scoped replay without leaking payloads across tenants or cells.

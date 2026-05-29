@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/supported-oses.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/supported-oses.schema.json",
   "microservice": "emr",
   "date": "2026-05-21",
   "policy_source": "ADR-0328 §D-17 + memory feedback_os_support_matrix_2026_05_20",

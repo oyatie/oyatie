@@ -636,7 +636,7 @@ Examples of v4.1 `proposed_name` after translation:
 - `oya-cloud-storage-object-api` → `oya-cloud-storage-object-rest`
 - `oya-foundation-app` → `oya-application-app` (B2B shell µservice)
 - `oya-tooling-agent-read` → `oya-codeview-cli`
-- `oya-workspace-mail-kernel` → `oya-connect-mail-domain`
+- `oya-workspace-mail-kernel` → `oya-mail-domain`
 - `oya-workspace-chat-api` → `oya-connect-chat-rest`
 
 > **Audit table format note (superseded by D1)**: the iter-1-fold-A
@@ -897,47 +897,47 @@ to the flat `check` namespace.
 > 11-check expansion are both SUPERSEDED — see §4a LEAN-A1–LEAN-A4 for
 > current canonical and §15a/§15b for the journey history.
 
-### 3.4 Connect µservice crates (formerly workspace; n = 26) — BNF v4.1: `oya-workspace-*` → `oya-connect-*`
+### 3.4 µservice crates (formerly workspace; n = 26) — BNF v4.1: `oya-workspace-*` → `oya-connect-*`
 
 > **v4.1 rule**: workspace renamed to connect per Round 4 session decision
 > [[feedback-flat-product-catalog]]. Old `crates/oya-workspace-<bc>-<layer>/`
 > directory is DELETED; replaced by `crates/oya-connect-<bc>-<layer>/`.
-> No alias. Connect covers dual-context: Professional (B2B) + Personal (B2C)
+> No alias. covers dual-context: Professional (B2B) + Personal (B2C)
 > per Bominal ADR-0208.
 
 | # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|:-:|--:|
-| 112 | `oya-workspace-address-book-kernel` | `connect` | `address-book` | `domain` | `STUB-pending-src-inspection` | `oya-connect-address-book-domain` | 2 | est. 5–10 |
-| 113 | `oya-workspace-calendar-kernel` | `connect` | `calendar` | `domain` | `STUB-pending-src-inspection` | `oya-connect-calendar-domain` | 2 | est. 5–10 |
-| 114 | `oya-workspace-chat-kernel` | `connect` | `messenger` | `domain` | `STUB-pending-src-inspection` (chat → messenger per ADR-0208 dual-context nomenclature) | `oya-connect-messenger-domain` | 2 | est. 5–10 |
-| 115 | `oya-workspace-chat-api` | `connect` | `messenger` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (WebSocket / GraphQL subscriptions plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 116 | `oya-workspace-collab-runtime-kernel` | `connect` | `collab-runtime` | `domain` | `STUB-pending-src-inspection` | `oya-connect-collab-runtime-domain` | 2 | est. 5–10 |
-| 117 | `oya-workspace-document-format-kernel` | `connect` | `document-format` | `domain` | `STUB-pending-src-inspection` | `oya-connect-document-format-domain` | 2 | est. 5–10 |
-| 118 | `oya-workspace-dlp-kernel` | `connect` | `dlp` | `domain` | `STUB-pending-src-inspection` | `oya-connect-dlp-domain` | 2 | est. 5–10 |
-| 119 | `oya-workspace-ediscovery-kernel` | `connect` | `ediscovery` | `domain` | `STUB-pending-src-inspection` | `oya-connect-ediscovery-domain` | 2 | est. 5–10 |
-| 120 | `oya-workspace-docs-kernel` | `connect` | `docs` | `domain` | `STUB-pending-src-inspection` | `oya-connect-docs-domain` | 2 | est. 5–10 |
-| 121 | `oya-workspace-drive-kernel` | `connect` | `drive` | `domain` | `STUB-pending-src-inspection` | `oya-connect-drive-domain` | 2 | est. 5–10 |
-| 122 | `oya-workspace-drive-api` | `connect` | `drive` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical; GraphQL possible for UI surface) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 123 | `oya-workspace-dsr-kernel` | `connect` | `dsr` | `domain` | `STUB-pending-src-inspection` | `oya-connect-dsr-domain` | 2 | est. 5–10 |
-| 124 | `oya-workspace-forms-kernel` | `connect` | `forms` | `domain` | `STUB-pending-src-inspection` | `oya-connect-forms-domain` | 2 | est. 5–10 |
-| 125 | `oya-workspace-forms-api` | `connect` | `forms` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 126 | `oya-workspace-mail-kernel` | `connect` | `mail` | `domain` | `STUB-pending-src-inspection` | `oya-connect-mail-domain` | 2 | est. 5–10 |
-| 127 | `oya-workspace-meet-kernel` | `connect` | `meet` | `domain` | `STUB-pending-src-inspection` | `oya-connect-meet-domain` | 2 | est. 5–10 |
-| 128 | `oya-workspace-meet-api` | `connect` | `meet` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST signaling + WebRTC data-plane split candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 129 | `oya-workspace-notes-kernel` | `connect` | `notes` | `domain` | `STUB-pending-src-inspection` | `oya-connect-notes-domain` | 2 | est. 5–10 |
-| 130 | `oya-workspace-recordings-kernel` | `connect` | `recordings` | `domain` | `STUB-pending-src-inspection` | `oya-connect-recordings-domain` | 2 | est. 5–10 |
-| 131 | `oya-workspace-retention-kernel` | `connect` | `retention` | `domain` | `STUB-pending-src-inspection` | `oya-connect-retention-domain` | 2 | est. 5–10 |
-| 132 | `oya-workspace-sheets-kernel` | `connect` | `sheets` | `domain` | `STUB-pending-src-inspection` | `oya-connect-sheets-domain` | 2 | est. 5–10 |
-| 133 | `oya-workspace-sites-kernel` | `connect` | `sites` | `domain` | `STUB-pending-src-inspection` | `oya-connect-sites-domain` | 2 | est. 5–10 |
-| 134 | `oya-workspace-slides-kernel` | `connect` | `slides` | `domain` | `STUB-pending-src-inspection` | `oya-connect-slides-domain` | 2 | est. 5–10 |
-| 135 | `oya-workspace-tasks-kernel` | `connect` | `tasks` | `domain` | `STUB-pending-src-inspection` | `oya-connect-tasks-domain` | 2 | est. 5–10 |
-| 136 | `oya-workspace-translate-kernel` | `connect` | `translate` | `domain` | `STUB-pending-src-inspection` | `oya-connect-translate-domain` | 2 | est. 5–10 |
-| 137 | `oya-workspace-trust-portal-kernel` | `connect` | `trust-portal` | `domain` | `STUB-pending-src-inspection` | `oya-connect-trust-portal-domain` | 2 | est. 5–10 |
+| 112 | `oya-workspace-address-book-kernel` | `connector` | `address-book` | `domain` | `STUB-pending-src-inspection` | `oya-address-book-domain` | 2 | est. 5–10 |
+| 113 | `oya-workspace-calendar-kernel` | `connector` | `calendar` | `domain` | `STUB-pending-src-inspection` | `oya-calendar-domain` | 2 | est. 5–10 |
+| 114 | `oya-workspace-chat-kernel` | `connector` | `messenger` | `domain` | `STUB-pending-src-inspection` (chat → messenger per ADR-0208 dual-context nomenclature) | `oya-messenger-domain` | 2 | est. 5–10 |
+| 115 | `oya-workspace-chat-api` | `connector` | `messenger` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (WebSocket / GraphQL subscriptions plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 116 | `oya-workspace-collab-runtime-kernel` | `connector` | `collab-runtime` | `domain` | `STUB-pending-src-inspection` | `oya-collab-runtime-domain` | 2 | est. 5–10 |
+| 117 | `oya-workspace-document-format-kernel` | `connector` | `document-format` | `domain` | `STUB-pending-src-inspection` | `oya-document-format-domain` | 2 | est. 5–10 |
+| 118 | `oya-workspace-dlp-kernel` | `connector` | `dlp` | `domain` | `STUB-pending-src-inspection` | `oya-dlp-domain` | 2 | est. 5–10 |
+| 119 | `oya-workspace-ediscovery-kernel` | `connector` | `ediscovery` | `domain` | `STUB-pending-src-inspection` | `oya-ediscovery-domain` | 2 | est. 5–10 |
+| 120 | `oya-workspace-docs-kernel` | `connector` | `docs` | `domain` | `STUB-pending-src-inspection` | `oya-docs-domain` | 2 | est. 5–10 |
+| 121 | `oya-workspace-drive-kernel` | `connector` | `drive` | `domain` | `STUB-pending-src-inspection` | `oya-drive-domain` | 2 | est. 5–10 |
+| 122 | `oya-workspace-drive-api` | `connector` | `drive` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical; GraphQL possible for UI surface) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 123 | `oya-retention-dsr-kernel` | `connector` | `dsr` | `domain` | `STUB-pending-src-inspection` | `oya-dsr-domain` | 2 | est. 5–10 |
+| 124 | `oya-workspace-forms-kernel` | `connector` | `forms` | `domain` | `STUB-pending-src-inspection` | `oya-forms-domain` | 2 | est. 5–10 |
+| 125 | `oya-workspace-forms-api` | `connector` | `forms` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 126 | `oya-workspace-mail-kernel` | `connector` | `mail` | `domain` | `STUB-pending-src-inspection` | `oya-mail-domain` | 2 | est. 5–10 |
+| 127 | `oya-workspace-meet-kernel` | `connector` | `meet` | `domain` | `STUB-pending-src-inspection` | `oya-meet-domain` | 2 | est. 5–10 |
+| 128 | `oya-workspace-meet-api` | `connector` | `meet` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST signaling + WebRTC data-plane split candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 129 | `oya-workspace-notes-kernel` | `connector` | `notes` | `domain` | `STUB-pending-src-inspection` | `oya-notes-domain` | 2 | est. 5–10 |
+| 130 | `oya-workspace-recordings-kernel` | `connector` | `recordings` | `domain` | `STUB-pending-src-inspection` | `oya-recordings-domain` | 2 | est. 5–10 |
+| 131 | `oya-workspace-retention-kernel` | `connector` | `retention` | `domain` | `STUB-pending-src-inspection` | `oya-retention-domain` | 2 | est. 5–10 |
+| 132 | `oya-workspace-sheets-kernel` | `connector` | `sheets` | `domain` | `STUB-pending-src-inspection` | `oya-sheets-domain` | 2 | est. 5–10 |
+| 133 | `oya-workspace-sites-kernel` | `connector` | `sites` | `domain` | `STUB-pending-src-inspection` | `oya-sites-domain` | 2 | est. 5–10 |
+| 134 | `oya-workspace-slides-kernel` | `connector` | `slides` | `domain` | `STUB-pending-src-inspection` | `oya-slides-domain` | 2 | est. 5–10 |
+| 135 | `oya-workspace-tasks-kernel` | `connector` | `tasks` | `domain` | `STUB-pending-src-inspection` | `oya-tasks-domain` | 2 | est. 5–10 |
+| 136 | `oya-workspace-translate-kernel` | `connector` | `translate` | `domain` | `STUB-pending-src-inspection` | `oya-translate-domain` | 2 | est. 5–10 |
+| 137 | `oya-workspace-trust-portal-kernel` | `connector` | `trust-portal` | `domain` | `STUB-pending-src-inspection` | `oya-trust-portal-domain` | 2 | est. 5–10 |
 
-> Note: row 123 (`oya-workspace-dsr-kernel`) keeps the `workspace-`
+> Note: row 123 (`oya-retention-dsr-kernel`) keeps the `workspace-`
 > prefix because row 3 already claims `dsr` for the platform-DSR
 > bounded context; the workspace-axis DSR uses compound bounded context
-> `workspace-dsr`. 26 product-axis crates (rows 112–137); plus the
+> `retention-dsr`. 26 product-axis crates (rows 112–137); plus the
 > additional foundation/tooling crates (rows 138–140) total exactly 140.
 
 ### 3.5 Foundation + tooling crates (n = 3) — BNF v4.1: drop `oya-foundation-`/`oya-tooling-` prefix
@@ -967,7 +967,7 @@ to the flat `check` namespace.
 | Cloud µservice (unchanged; foundry is µservice name) | 31 | 31 | dirs renamed per new name |
 | Foundry non-check µservice (unchanged; foundry is µservice name) | 23 | 23 | dirs renamed per new name |
 | Foundry check crates (move to flat `oya-check-*` namespace) | 29 | 29 | `crates/oya-foundry-*-kernel/` (check subset) deleted |
-| Connect µservice (formerly workspace; ALL `oya-workspace-*` → `oya-connect-*`) | 26 | 26 | `crates/oya-workspace-*/` ALL deleted |
+| µservice (formerly workspace; ALL `oya-workspace-*` → `oya-connect-*`) | 26 | 26 | `crates/oya-workspace-*/` ALL deleted |
 | Foundation + tooling (drop prefix; `oya-foundation-app` → `oya-application-app`; `oya-tooling-*` → µservice names) | 3 | 3 | `crates/oya-foundation-*/` + `crates/oya-tooling-*/` deleted |
 | **Subtotal — existing crates renamed** | **140** | **140** | **140 old dirs gone** |
 | **NEW — 4 LEAN check crates scaffolded fresh** (`oya-check-architecture`, `oya-check-bounded-contexts`, `oya-check-supply-chain`, `oya-check-semver`) | **+4** | n/a (new scaffolds) | n/a |
@@ -1516,7 +1516,7 @@ Port forward from v3 §7.2:
   direct-tool-invocations -c "EMERGENCY revert of Shard 1 via admin-
   authority" -i critical` logged BEFORE the admin-merge command runs.
 - CI bypass: revert PR runs only `cargo check --workspace --all-features`
-  (~3 min); full §8 gate suite is BYPASSED. Full suite re-runs post-merge
+  (~3 min); full §8 gate set is BYPASSED. Full platform re-runs post-merge
   as a non-blocking observability sweep (BLOCKING per R8 if staging
   already reached).
 
@@ -2415,7 +2415,7 @@ bounded_contexts = [
   "regional-pack", "regulatory-pack", "residency", "resource",
   "retention", "secrets", "sheets", "sites", "slides", "storage",
   "surface", "tasks", "tenant", "translate", "trust-portal",
-  "workspace-dsr",
+  "retention-dsr",
 ]
 ```
 

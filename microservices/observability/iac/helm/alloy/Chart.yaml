@@ -9,7 +9,7 @@ icon: https://grafana.com/static/img/logos/alloy.svg
 keywords: [observability, opentelemetry, alloy, oyatie]
 maintainers:
   - name: axis-observability
-    email: axis-observability@oyatie.dev
+    email: axis-observability@oyatie.com
 dependencies:
   - name: alloy
     version: "^0.10.0"

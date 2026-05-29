@@ -13,7 +13,7 @@ fn srv() -> ReferenceScimServer<InMemoryUserStore, InMemoryGroupStore, CounterId
         InMemoryUserStore::default(),
         InMemoryGroupStore::default(),
         CounterIdGen::new(),
-        "https://identity.oyatie.dev/scim/v2",
+        "https://identity.oyatie.com/scim/v2",
     )
 }
 

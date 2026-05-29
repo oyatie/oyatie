@@ -46,7 +46,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
 - Test data: synthetic, non-production, no secrets, no live rails.
 - Test contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, JSON Schema 2020-12.
 
-## Suite 1: tenant admission
+## Test Set 1: tenant admission
 
 ### IT-110-001: community handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -114,7 +114,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 2: identity binding
+## Test Set 2: identity binding
 
 ### IT-110-007: identity handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -182,7 +182,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 3: Cedar permit evaluation
+## Test Set 3: Cedar permit evaluation
 
 ### IT-110-013: workplace-integration handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -250,7 +250,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 4: marketplace settlement
+## Test Set 4: marketplace settlement
 
 ### IT-110-019: payments handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -318,7 +318,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 5: workflow orchestration
+## Test Set 5: workflow orchestration
 
 ### IT-110-025: tenancy handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -386,7 +386,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 6: payment escrow
+## Test Set 6: payment escrow
 
 ### IT-110-031: community handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -454,7 +454,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 7: ontology projection
+## Test Set 7: ontology projection
 
 ### IT-110-037: identity handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -522,7 +522,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 8: audit dual seal
+## Test Set 8: audit dual seal
 
 ### IT-110-043: workplace-integration handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -590,7 +590,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 9: compliance overlay
+## Test Set 9: compliance overlay
 
 ### IT-110-049: payments handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.
@@ -658,7 +658,7 @@ per-shift Cedar permits, per-hospital identity binding, and payroll cascade.
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 10: human review
+## Test Set 10: human review
 
 ### IT-110-055: tenancy handles HealthcareSystem-Megacorp US
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j110.

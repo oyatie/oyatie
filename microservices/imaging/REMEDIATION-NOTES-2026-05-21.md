@@ -11,13 +11,13 @@
 
 The imaging µservice is authored as a NEW, single-concern µservice per:
 
-- **ADR-0132 (no-suite policy)** — explicitly prohibits bundle/suite µservices including healthcare. ADR-0132 is the canonical authority for splitting imaging out of any bundled healthcare scope.
+- **ADR-0132 (no-grouping policy)** — explicitly prohibits bundle/grouping µservices including healthcare. ADR-0132 is the canonical authority for splitting imaging out of any bundled healthcare scope.
 - **ADR-0131 (per-µservice flat layout)** — every µservice ships under `microservices/<ms>/` with `src/` as the canonical code root.
 - **User directive 2026-05-21** — explicit split of imaging out of diagnostics. Imaging is a domain with substantial product breadth (PACS / VNA / enterprise imaging / AI image analysis) that warrants its own µservice.
 
 ## 2. Supersession of Diagnostics Imaging Portions
 
-A diagnostics µservice was authored concurrently with a bundled scope (lab + imaging + pathology). That bundled scope violates ADR-0132's no-suite policy.
+A diagnostics µservice was authored concurrently with a bundled scope (lab + imaging + pathology). That bundled scope violates ADR-0132's no-grouping policy.
 
 **This imaging µservice's authority SUPERSEDES the imaging portions of the concurrently-authored diagnostics µservice.**
 
@@ -177,7 +177,7 @@ Per the substance-bar discipline:
 | K8s + Cloud Hypervisor per ADR-0254 + `feedback_kubernetes_everywhere_pods_cloud_hypervisor` | Cloud Hypervisor + Kata pods for PHI workloads |
 | Provider BYOK opt-in per ADR-0255 §D-4 + `feedback_byok_everywhere_credentials` | BYOK opt-in in `iac/sovereign-cell/main.tf` + `cloud-kms` integration |
 | No silent regression per `feedback_no_silent_regression` | DICOM Conformance Statement per release; FHIR profile versioning; Cedar policy bundle versioning |
-| Doc-coverage enforced per `feedback_doc_coverage_enforced` | Full doc suite + per-pack overlays via `iac/sovereign-cell/main.tf` |
+| Doc-coverage enforced per `feedback_doc_coverage_enforced` | Full doc set + per-pack overlays via `iac/sovereign-cell/main.tf` |
 
 ## 9. Execution Posture Note (No Commits / No Scripting / No Stamping)
 

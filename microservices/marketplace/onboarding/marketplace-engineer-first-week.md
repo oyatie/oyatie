@@ -1,6 +1,6 @@
 # Marketplace Engineer — First Week on `marketplace`
 
-Audience: an engineer with payments / marketplace / Stripe Connect / Shopify experience joining the `oya-marketplace-*` lane.
+Audience: an engineer with payments / marketplace / Stripe / Shopify experience joining the `oya-marketplace-*` lane.
 
 ## Day 1 — required reading
 

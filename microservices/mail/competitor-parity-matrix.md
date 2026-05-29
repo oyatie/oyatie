@@ -164,8 +164,8 @@ Sales claims FORBIDDEN (per ADR-0123):
 - `microservices/mail/PRD.md` §Competitive Benchmark
 - `/specs/hyperscaler-gates.json` HG-MAIL
 - ADR-0123 (hyperscaler-maturity-claim-gate)
-- ADR-0135 (Connect super-app dissolution)
-- ADR-0132 (no-suite forward policy)
+- ADR-0135 (super-app dissolution)
+- ADR-0132 (no-grouping forward policy)
 - ADR-0133 (cross-tenant mail-server pattern)
 - Competitor docs as cited inline
 - M3AAWG Sender Best Common Practices v3

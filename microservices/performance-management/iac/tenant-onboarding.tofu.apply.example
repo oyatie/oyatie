@@ -17,7 +17,7 @@
 #   Plan: 7 to add, 0 to change, 0 to destroy.
 #
 #   Outputs:
-#     service_url = "https://018f8ad2-0e0f-7ad2-92d2-pm000001.perf.oyatie.dev"
+#     service_url = "https://018f8ad2-0e0f-7ad2-92d2-pm000001.perf.oyatie.com"
 #     namespace   = "perf-mgmt-018f8ad2-0e0f-7ad2-92d2-pm000001"
 #     billing_component_id = "bc-performance-management"
 #     deal_set_id = "ds-2026-05-21-..."
@@ -32,7 +32,7 @@
 # Expected: Cedar policies pushed to policy-engine via substrate sync.
 
 # === Step 4: Verify ===
-# $ curl -s https://018f8ad2-0e0f-7ad2-92d2-pm000001.perf.oyatie.dev/healthz
+# $ curl -s https://018f8ad2-0e0f-7ad2-92d2-pm000001.perf.oyatie.com/healthz
 #   {"status":"ok","tenant_id":"018f8ad2-0e0f-7ad2-92d2-pm000001","tenant_class":"paid"}
 
 # === Step 5: Run smoke tests ===

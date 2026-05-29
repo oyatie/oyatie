@@ -71,7 +71,7 @@ The unit of inspection is every file under `microservices/sites`, not only PRD o
 
 The bar is product coherence, canonical direction, and implementability from the local artifacts.
 
-The PRD defines `sites` as a standalone published-web plus intranet microservice after Connect unbundling, citing ADR-0132 and ADR-0135 in `microservices/sites/PRD.md` lines 20-26.
+The PRD defines `sites` as a standalone published-web plus intranet microservice after unbundling, citing ADR-0132 and ADR-0135 in `microservices/sites/PRD.md` lines 20-26.
 
 The PRD product surface is broad: site authoring, URL-routed pages, block composition, themes, navigation, domain binding, SEO, CMS collections, Meilisearch search, forms integration, commerce stub, analytics, accessibility, preview, versioning, i18n, comments, CDN delivery, AI page build, and collaboration in `microservices/sites/PRD.md` lines 22-24.
 
@@ -325,7 +325,7 @@ Incident response present: `microservices/sites/incident-response.md`, 155 lines
 
 Manifest present: `microservices/sites/manifest.json`, 435 lines.
 
-Connect migration doc present: `microservices/sites/migration-from-connect.md`, 489 lines.
+migration doc present: `microservices/sites/migration-from-connect.md`, 489 lines.
 
 Migration playbook present: `microservices/sites/migration-playbooks/from-webflow-wix-business-and-wordpress.md`, 202 lines.
 
@@ -441,11 +441,11 @@ The proto contract also contradicts the manifest by defining `UrlRoutingService`
 
 Evidence: proto services include `UrlRoutingService` and `SeoService` in `microservices/sites/contracts/proto/sites.proto` lines 202-211.
 
-The manifest still depends on `connect` even though the PRD states that sites is standalone after Connect unbundling.
+The manifest still depends on `connector` even though the PRD states that sites is standalone after unbundling.
 
 Evidence: PRD standalone/unbundle statement is in `microservices/sites/PRD.md` lines 20-26.
 
-Evidence: manifest dependency list includes `connect` in `microservices/sites/manifest.json` lines 410-430.
+Evidence: manifest dependency list includes `connector` in `microservices/sites/manifest.json` lines 410-430.
 
 Impact: the product boundary remains ambiguous; a builder could wire new work back into the deprecated suite.
 
@@ -485,7 +485,7 @@ Evidence: examples appear at `microservices/sites/ARCHITECTURE.md` lines 22-30, 
 
 Impact: repeated template inventory is not itself false, but it is a signal that the audit must prefer concrete product sections and contracts over generated anchor repetition.
 
-Dimension 1 finding severity: P1 for manifest/product contract contradiction and stale Connect dependency.
+Dimension 1 finding severity: P1 for manifest/product contract contradiction and stale dependency.
 
 ### Section 3.2 - Dimension 2, Outbound Cross-References
 
@@ -495,13 +495,13 @@ The PRD references many sibling microservices and correctly states that cross-pr
 
 Evidence: `microservices/sites/PRD.md` lines 208-210 list consumed microservices and prohibit direct product imports.
 
-The manifest dependency graph is broader and includes `connect`.
+The manifest dependency graph is broader and includes `connector`.
 
-Evidence: `microservices/sites/manifest.json` lines 410-430 list dependencies, including `connect`.
+Evidence: `microservices/sites/manifest.json` lines 410-430 list dependencies, including `connector`.
 
-The PRD explicitly says legacy Connect sites migrate away under the strangler timeline.
+The PRD explicitly says legacy sites migrate away under the strangler timeline.
 
-Evidence: `microservices/sites/PRD.md` line 24 points to `migration-from-connect.md` and says the legacy `oya-connect-sites-*` family is deprecated.
+Evidence: `microservices/sites/PRD.md` line 24 points to `migration-from-connect.md` and says the legacy `oya-sites-*` family is deprecated.
 
 The cross-service references to `forms`, `community`, `docs`, `social`, `mail`, `workflow-engine`, `ontology`, `observability`, `tenancy`, and `audit-chain` are plausible for the product surface.
 
@@ -529,7 +529,7 @@ Evidence: PRD competitive list includes Squarespace in `microservices/sites/PRD.
 
 Impact: migration parity is incomplete for one of the top-3 counterparts.
 
-Dimension 2 finding severity: P2 for migration/cross-reference documentation gaps, P1 where `connect` keeps a retired boundary alive.
+Dimension 2 finding severity: P2 for migration/cross-reference documentation gaps, P1 where `connector` keeps a retired boundary alive.
 
 ### Section 3.3 - Dimension 3, Substance Bar
 
@@ -1088,7 +1088,7 @@ Dimension 9 severity: no P1 language violation found; P2 documentation gap for b
 | ID | Severity | Dimension | Finding | Evidence |
 |---|---:|---|---|---|
 | SITES-COH-001 | P1 | Dim 1 | Product model split: PRD/contracts define 11 BCs and 78 crates, manifest defines 7 BCs and 3 layers. | `PRD.md:116-183`; `manifest.json:6-70`; `openapi/sites.yaml:34-58`; `proto/sites.proto:202-211` |
-| SITES-COH-002 | P1 | Dim 1/2 | Manifest still depends on `connect` after PRD says sites is standalone after Connect unbundle. | `PRD.md:20-26`; `manifest.json:410-430` |
+| SITES-COH-002 | P1 | Dim 1/2 | Manifest still depends on `connector` after PRD says sites is standalone after unbundle. | `PRD.md:20-26`; `manifest.json:410-430` |
 | SITES-COH-003 | P1 | Dim 4/6 | Six deployment contexts are not declared and no context modules or N/A reasons exist. | `ADR-0328:3854-3871`; `master-plan-sequencing.json:704-746`; inventory absence |
 | SITES-COH-004 | P1 | Dim 7 | OpenTofu is absent; current IaC is Helm/Kustomize only. | `master-plan-sequencing.json:747-775`; `IP-001-iac-bootstrap.md:16-69`; IaC inventory |
 | SITES-COH-005 | P1 | Dim 8 | `supported-oses.json` and OS/arch/package CI matrix are absent. | `master-plan-sequencing.json:777-815`; `brief-template.md:967-1123`; inventory absence |
@@ -1130,7 +1130,7 @@ The manifest still depends on Connect.
 
 This can wire future work through a retired boundary.
 
-The remediation is to delete the Connect dependency from sites-local machine-readable surfaces after confirming the migration doc has the strangler history.
+The remediation is to delete the dependency from sites-local machine-readable surfaces after confirming the migration doc has the strangler history.
 
 ### Finding Detail - SITES-COH-003
 
@@ -1280,7 +1280,7 @@ Open question 3: Should `tenant_class` appear only in identity/gateway claims, o
 
 Open question 4: Should the service manifest be the canonical machine-readable source for bounded contexts, or should PRD plus contracts drive manifest regeneration?
 
-Open question 5: Should `connect` remain only in historical migration docs after remediation, with all live manifest dependencies removed?
+Open question 5: Should `connector` remain only in historical migration docs after remediation, with all live manifest dependencies removed?
 
 Open question 6: Should the `cell` dependency be retained as a service dependency until Wave 15L, or replaced with pattern/runtime terminology in sites-local docs now?
 

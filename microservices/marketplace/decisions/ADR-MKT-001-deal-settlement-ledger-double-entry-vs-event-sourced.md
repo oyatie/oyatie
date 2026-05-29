@@ -25,7 +25,7 @@ decision_owner: axis-marketplace
 - Marketplace is the universal deal-settlement substrate per ADR-0314.
 - The j103 implementation plan names marketplace as the deal-settlement-ledger owner for just-in-time procurement.
 - DealSet covers offers, acceptance, obligations, entitlements, settlement, disputes, amendments, revocation, and renewals.
-- Stripe Connect is a named precedent for platform and marketplace multiparty payments.
+- Stripe is a named precedent for platform and marketplace multiparty payments.
 - Shopify Plus B2B is a named precedent for enterprise commerce terms, companies, catalogs, and payment terms.
 - Settlement state must feed payments, treasury, finops-portal, workflow-engine, ontology, audit-chain, and compliance.
 - Named pressure MKT-P1: marketplace needs accounting-grade balance invariants for money and entitlement movement.
@@ -72,7 +72,7 @@ decision_owner: axis-marketplace
 - Use read models for per-tenant receivables, payable exposure, escrow balances, and entitlement grants.
 - Use Cedar to gate transition commands before events or ledger entries are created.
 - Use audit-chain to seal command intent, permit id, event id, ledger batch id, and resulting balance hash.
-- Use Stripe Connect as a precedent for marketplace payout and connected account concepts, not as the system of record.
+- Use Stripe as a precedent for marketplace payout and connected account concepts, not as the system of record.
 - Use Shopify Plus B2B as a precedent for company terms and B2B purchasing flows, not as the settlement ledger.
 - Keep PSP authorization and capture in payments.
 - Keep treasury cash position in treasury.
@@ -112,7 +112,7 @@ decision_owner: axis-marketplace
 
 ### Payments Provider Ledger as Source of Truth
 
-- Pros: Stripe Connect and PSPs already model charges, payouts, refunds, and disputes.
+- Pros: Stripe and PSPs already model charges, payouts, refunds, and disputes.
 - Pros: lower initial accounting build.
 - Pros: external reconciliation tools exist.
 - Cons: violates ADR-0314 universal settlement beyond money.
@@ -246,7 +246,7 @@ decision_owner: axis-marketplace
 - Internal: docs/decisions/ADR-0153-outbox-pattern.md
 - Internal: docs/decisions/ADR-0222-saga-compensation-portfolio-policy.md
 - Internal: microservices/marketplace/IP-journey-j103-deal-settlement-ledger.md
-- Stripe Connect documentation: https://docs.stripe.com/connect/how-connect-works
+- Stripe documentation: https://docs.stripe.com/connect/how-connect-works
 - Stripe platform and marketplace payments: https://stripe.com/connect
 - Shopify B2B documentation: https://help.shopify.com/manual/b2b
 - Shopify apps and B2B developer documentation: https://shopify.dev/docs/apps/selling-strategies/b2b

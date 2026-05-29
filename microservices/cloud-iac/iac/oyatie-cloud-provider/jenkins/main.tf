@@ -58,7 +58,9 @@ locals {
       labels    = local.common_labels
     }
     data = {
-      "jenkins.yaml" = file("${path.module}/values/jenkins.yaml")
+      "jenkins.yaml" = templatefile("${path.module}/values/jenkins.yaml", {
+        agent_image_ref = "${var.agent_image}@${var.agent_image_digest}"
+      })
       "plugins.yaml" = file("${path.module}/values/plugins.yaml")
     }
   }

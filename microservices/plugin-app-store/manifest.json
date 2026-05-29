@@ -321,9 +321,9 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Product suite and bundle dissolution",
+      "title": "Product platform and bundle dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0139",

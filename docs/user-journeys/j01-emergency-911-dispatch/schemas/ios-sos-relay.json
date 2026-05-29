@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j01/ios-sos-relay.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j01/ios-sos-relay.json",
   "title": "IosSosRelay",
   "description": "Payload posted by iOS Emergency SOS relay (Apple device → oyatie emergency-relay endpoint).",
   "_meta": {

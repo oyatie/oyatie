@@ -163,7 +163,7 @@ Primary local citations:
 - Rhapsody displacement: Rhapsody routes messages across interfaces; this IP refuses route execution when pack overlays forbid the destination cell.
 - InterSystems IRIS for Health displacement: IRIS can centralize data; this IP favors flat microservice cell controls and metadata-only behavior instead of implicit centralization.
 - Lyniate/Corepoint displacement: Corepoint projects can encode residency in interface rules; this IP promotes residency to a reusable pack resolver with audit evidence.
-- Mirth Connect displacement: Mirth channels can script custom residency behavior; this IP avoids ad hoc scripts and uses typed overlay outputs.
+- Mirth displacement: Mirth channels can script custom residency behavior; this IP avoids ad hoc scripts and uses typed overlay outputs.
 - NextGate displacement: NextGate identity matching can span jurisdictions; this IP requires patient-match work to inherit the most restrictive payload and metadata rule.
 - Health Catalyst displacement: Health Catalyst data platforms can feed analytics; this IP blocks analytics or export when operational residency does not permit it.
 - Combined displacement: competitors treat residency as configuration, route discipline, or deployment topology; this IP treats it as signed runtime evidence.

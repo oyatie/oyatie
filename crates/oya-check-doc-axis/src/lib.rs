@@ -107,6 +107,97 @@ pub const CANONICAL_DOCS_SUBDIRS: &[&str] = &[
     "site",
 ];
 
+/// Transitional root-level markdown files that predate ADR-0388. They remain
+/// allowed so the gate can ratchet against new proliferation without forcing a
+/// broad documentation move in unrelated PRs. New root-level docs stay blocked
+/// unless a future ADR deliberately promotes them or moves them under a
+/// canonical axis.
+pub const LEGACY_DOCS_ROOT_FILES: &[&str] = &[
+    "ADR-CONSOLIDATION-PLAN.md",
+    "ADR-INDEX.md",
+    "ADR-LEGACY-REGRESSION-MAPPING.md",
+    "AGENT-INSTRUCTION-SOURCES.md",
+    "AGENTS-OPERATING-CONTRACT.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "COMPETITIVE-GAP-ANALYSIS.md",
+    "COMPLIANCE-MATRIX.md",
+    "CONTRADICTION-LEDGER.md",
+    "DESIGN.md",
+    "DOC-CATALOG.md",
+    "DOC-COVERAGE.md",
+    "DOC-UPDATE-PROTOCOL.md",
+    "DOCUMENTATION.md",
+    "FINOPS-PLAN.md",
+    "GLOSSARY.md",
+    "GTM-PLAN.md",
+    "HIRING-CAPACITY-PLAN.md",
+    "INCIDENT-MANAGEMENT.md",
+    "INTERNATIONALIZATION.md",
+    "LEGAL-IP-LEDGER.md",
+    "MASTERPLAN.md",
+    "MISTAKES-LEDGER.md",
+    "PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
+    "PRD.md",
+    "PRIVACY-PROGRAM.md",
+    "QA-TEST-STRATEGY.md",
+    "RACI-OWNERSHIP.md",
+    "README.md",
+    "RELEASE-MANAGEMENT.md",
+    "RISK-REGISTER.md",
+    "ROADMAP.md",
+    "RUNBOOKS-INDEX.md",
+    "SECURITY-PROGRAM.md",
+    "SLO-CATALOG.md",
+    "SPEC.md",
+    "STANDARDS-AND-TEMPLATES.md",
+    "TOOLCHAIN.md",
+    "VENDOR-PARTNER-LEDGER.md",
+    "bootstrap.md",
+];
+
+/// Transitional top-level `docs/` directories that already exist in the
+/// repository. They are not new axes; they are an allowlist that lets the gate
+/// block new unreviewed directories while a separate documentation-retirement
+/// wave moves legacy content under canonical ADR-0388 axes.
+pub const LEGACY_DOCS_SUBDIRS: &[&str] = &[
+    "advanced-cicd",
+    "agents",
+    "api",
+    "architecture",
+    "audits",
+    "automation",
+    "checklists",
+    "customer-success",
+    "foundry",
+    "governance",
+    "governance-lanes",
+    "gtm",
+    "investor",
+    "localization-packs",
+    "onboarding",
+    "operators",
+    "performance-budgets",
+    "personas",
+    "plans",
+    "policies",
+    "prds",
+    "quality",
+    "raw",
+    "regional-packs",
+    "release",
+    "research",
+    "runbooks",
+    "specs",
+    "standards",
+    "teams",
+    "templates",
+    "tutorials",
+    "user-journeys",
+    "user-stories",
+    "wiki",
+];
+
 // ---------------------------------------------------------------------------
 // Idea-pager promotion window
 // ---------------------------------------------------------------------------
@@ -469,6 +560,9 @@ fn check_docs_proliferation(
             .unwrap_or("")
             .to_string();
         if path.is_file() && name.ends_with(".md") {
+            if LEGACY_DOCS_ROOT_FILES.contains(&name.as_str()) {
+                continue;
+            }
             // A markdown file directly under docs/ (not in any subdir).
             report.docs_files_checked += 1;
             let rel = repo_relative(repo_root, &path);
@@ -482,7 +576,10 @@ fn check_docs_proliferation(
                 ),
                 blocking: true,
             });
-        } else if path.is_dir() && !CANONICAL_DOCS_SUBDIRS.contains(&name.as_str()) {
+        } else if path.is_dir()
+            && !CANONICAL_DOCS_SUBDIRS.contains(&name.as_str())
+            && !LEGACY_DOCS_SUBDIRS.contains(&name.as_str())
+        {
             // A directory that is not one of the canonical subdirectories.
             report.docs_files_checked += 1;
             let rel = repo_relative(repo_root, &path);
@@ -706,9 +803,7 @@ mod tests {
         // 2026-05-28: days since epoch.
         // 2026-05-28 = 20602 days after 1970-01-01 (approximate; test confirms round-trip).
         let ymd = "2026-05-28";
-        let days = ymd_to_days(ymd).unwrap();
-        // We can't trivially get the unix-epoch offset here, but we can
-        // verify the round-trip via days_between.
+        assert!(ymd_to_days(ymd).is_some());
         assert_eq!(days_between(ymd, ymd), Some(0));
     }
 }

@@ -27,7 +27,7 @@ companion_docs:
   - microservices/learning-management/ARCHITECTURE.md
   - microservices/learning-management/compliance.md
   - microservices/learning-management/manifest.json
-planned_enforcement_ref: oya-governance-learning-management-doc-suite
+planned_enforcement_ref: oya-governance-learning-management-doc-set
 ---
 
 # PRD-learning-management: Learning Management

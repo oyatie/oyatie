@@ -40,7 +40,7 @@ Local evidence anchors:
 03. Social identity provider connections; source: Auth0 identity fundamentals docs.
 04. Enterprise identity provider connections; source: Auth0 enterprise/SCIM docs.
 05. SAML enterprise connection support; source: Auth0 inbound SCIM docs.
-06. OpenID Connect enterprise connection support; source: Auth0 inbound SCIM docs.
+06. OpenID enterprise connection support; source: Auth0 inbound SCIM docs.
 07. Okta Workforce enterprise connection support; source: Auth0 inbound SCIM docs.
 08. Microsoft Entra enterprise connection support; source: Auth0 inbound SCIM docs.
 09. Organizations for B2B tenants; source: Auth0 Organizations docs.
@@ -292,7 +292,7 @@ Local evidence anchors:
 | Fine-grained tenant Cedar policy | partial | yes | yes | yes | yes | parity |
 | Context-split principal model | no | no | partial | yes for Oyatie | partial/scaffolded | catch-up |
 | Personal/work dual-context protection | no | partial | partial | yes for Oyatie | yes design, partial maturity | additive/partial |
-| Integration test suite | yes | yes | yes | yes | test plans only | partial |
+| Integration test set | yes | yes | yes | yes | test plans only | partial |
 | Raw measured benchmark evidence | partial | partial | partial | yes for Oyatie | absent | gap |
 | SLA/SLO public evidence | yes | yes | yes | yes | SLO docs yes | partial |
 | Control-plane deployment docs | yes | yes | yes | yes | partial, missing OpenTofu | gap |

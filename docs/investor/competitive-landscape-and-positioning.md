@@ -373,7 +373,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Unified ecosystem means evidence is generated as work happens.
 - Unified ecosystem means AI agents inherit policy and budget gates by default.
 - Unified ecosystem means regulated deployment is planned as a product requirement, not an exception.
-- Unified ecosystem means platform governance is visible in ADRs, specs, and registries.
+- Unified ecosystem means tenant RBAC governance is visible in ADRs, specs, and registries.
 - Unified ecosystem does not mean one monolith.
 - Unified ecosystem does not mean all workflows are identical.
 - Unified ecosystem does not mean every vertical depth problem is solved immediately.
@@ -607,7 +607,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Salesforce enterprise contracts can reach seven or eight figures when Sales Cloud, Service Cloud, Data Cloud, Slack, MuleSoft, Tableau, and AI are combined.
 - SAP transformation programs can require multimillion-dollar license and services commitments.
 - Workday enterprise deployments can become strategic HCM and finance commitments.
-- ServiceNow workflow expansion can become a major enterprise platform budget.
+- ServiceNow workflow expansion can become a major enterprise-market budget.
 - Microsoft enterprise agreements can bundle productivity, identity, cloud, data, low-code, and AI commitments.
 - Palantir programs can command premium budgets when mission-critical outcomes are clear.
 - Vertical SaaS products can dominate one department but still require integration spend.

@@ -178,7 +178,7 @@ Repo references: microservices/healthcare-integration/PRD.md; microservices/heal
 - IP-011-147: Rhapsody is displaced by cross-layer traces and signed evidence rather than route-engine logs.
 - IP-011-148: InterSystems IRIS for Health is displaced by service-local, flat-boundary audit events rather than database-centered operational telemetry.
 - IP-011-149: Lyniate/Corepoint is displaced by structured denial and recovery evidence rather than channel event logs.
-- IP-011-150: Mirth Connect is displaced by redaction-tested logs and audit-chain events instead of script/channel diagnostics.
+- IP-011-150: Mirth is displaced by redaction-tested logs and audit-chain events instead of script/channel diagnostics.
 - IP-011-151: NextGate is displaced by patient-match review queue evidence, decision provenance, and correction workflows.
 - IP-011-152: Health Catalyst is displaced by compliance-ready clinical exchange evidence before analytics output.
 - IP-011-153: Epic parity pressure is handled through FHIR access audit depth.

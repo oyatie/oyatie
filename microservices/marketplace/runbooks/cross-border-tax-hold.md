@@ -20,8 +20,8 @@ doc_status: published
 - Owning rotation: PagerDuty oya-marketplace-primary; seller-buyer-ops-secondary.
 - Incident channel: `#inc-marketplace`.
 - Operational focus: cross-border tax decision puts settlement into manual hold.
-- Named precedent: this follows the Stripe Connect marketplace settlement plus Amazon Marketplace dispute mediation pattern.
-- External dependencies: Stripe Connect support; Adyen for Platforms support; Avalara tax support.
+- Named precedent: this follows the Stripe marketplace settlement plus Amazon Marketplace dispute mediation pattern.
+- External dependencies: Stripe support; Adyen for Platforms support; Avalara tax support.
 - API authority: `https://marketplace.internal.oyatie.dev/v1/marketplace/cross-border-tax-hold/incident-handoff`.
 - Audit event class: `EVT_MARKETPLACE_CROSS_BORDER_TAX_HOLD_INCIDENT` with ADR-0263 fields `incident_id`, `tenant_id`, `cell_id`, `microservice`, `runbook_id`, `decision_id`, `evidence_hash`, `operator_id`.
 - Stop condition: mitigation has held for 30 minutes, `CrossBorderTaxHoldCritical` is green, and every Cross-microservice handoff API returns `202 accepted`.
@@ -55,14 +55,14 @@ doc_status: published
 - Log signature `decision=deny reason=cross-border-tax-hold.policy_guard` means the guard is working; investigate caller inputs before rollback.
 - Log signature `decision=permit reason=cross-border-tax-hold.break_glass` means manual intervention is active; confirm two-person authorization.
 - Log signature `audit_emit_status=stalled event_class=EVT_MARKETPLACE_CROSS_BORDER_TAX_HOLD_INCIDENT` means mitigation cannot be closed until replay succeeds.
-- Service-specific pattern: `oya_marketplace_cross_border_tax_hold_total` rises while `oya_marketplace_cross_border_tax_hold_dependency_error_ratio` is flat; inspect local state before escalating Stripe Connect support.
+- Service-specific pattern: `oya_marketplace_cross_border_tax_hold_total` rises while `oya_marketplace_cross_border_tax_hold_dependency_error_ratio` is flat; inspect local state before escalating Stripe support.
 - Service-specific pattern: `oya_marketplace_cross_border_tax_hold_dependency_error_ratio` rises while `oya_marketplace_cross_border_tax_hold_total` is flat; inspect vendor or adjacent-service dependency health before local rollback.
 
 ## Failure Mode Tree
 - Failure mode 1: single-tenant DealSet inconsistency; contain with tenant quarantine, preserve all `EVT_MARKETPLACE_CROSS_BORDER_TAX_HOLD_INCIDENT` rows, and avoid fleet rollback.
 - Failure mode 2: cross-cell SettlementLedger drift; freeze writes, compare state hash across cells, and use audit-chain replay before accepting new mutations.
 - Failure mode 3: byzantine or abusive principal; suspend the principal through identity, keep tenant data scoped, and preserve Cedar explain output.
-- Failure mode 4: external dependency outage at Stripe Connect support; open vendor ticket only after local dashboards and handoff APIs prove the dependency is causal.
+- Failure mode 4: external dependency outage at Stripe support; open vendor ticket only after local dashboards and handoff APIs prove the dependency is causal.
 - Failure mode 5: operator mitigation made state worse; roll back feature flag `oya.marketplace.cross_border_tax_hold.incident_hold`, close `marketplace-cross-border-tax-hold-circuit-breaker`, and restore the previous deployment revision.
 - Failure mode 6: audit emission is delayed; do not close even when customer symptoms improve because ADR-0263 evidence is incomplete.
 - Failure mode 7: regional partition; keep prod-us-east-1 as evidence leader and reject cross-region mutation until `oya_marketplace_cross_border_tax_hold_state_hash_match == 1`.
@@ -137,7 +137,7 @@ Cross Border Tax Hold incident decision tree
 14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
 15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/marketplace/runbooks/cross-border-tax-hold.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice marketplace --incident $INCIDENT_ID --channel #inc-marketplace`.
-17. Open external vendor ticket: `oya vendor ticket open --vendor "Stripe Connect support" --incident $INCIDENT_ID --summary marketplace-cross-border-tax-hold`.
+17. Open external vendor ticket: `oya vendor ticket open --vendor "Stripe support" --incident $INCIDENT_ID --summary marketplace-cross-border-tax-hold`.
 18. Confirm breaker effect: `oya ops breaker status marketplace-cross-border-tax-hold-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
 19. Confirm user impact reduced: `curl -s https://marketplace.internal.oyatie.dev/v1/marketplace/cross-border-tax-hold/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
 20. Emit mitigation audit: `oya audit-chain emit --event-class EVT_MARKETPLACE_CROSS_BORDER_TAX_HOLD_INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=cross-border-tax-hold`.
@@ -272,7 +272,7 @@ evidence_hash: <sha256>
 - Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
 - Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
 - Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
-- External vendors: Stripe Connect support; Adyen for Platforms support; Avalara tax support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
+- External vendors: Stripe support; Adyen for Platforms support; Avalara tax support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
 - Customer communications: use status page component `oyatie-marketplace-cross-border-tax-hold` and keep private details in the incident channel.
 - Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.
 - Executive notice: sev0 or fleet-wide sev1 goes to `#exec-incident-readout` within 30 minutes.

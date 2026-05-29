@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j45/patient-record-correction.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j45/patient-record-correction.json",
   "title": "PatientRecordCorrection",
   "version": "1.0.0",
   "description": "Shared journey object for j45-healthcare-patient-portal-records. It lets Yejin Park read lab results through a patient portal composition and request a record correction while preserving tenant scope, auditability, and cross-service status.",

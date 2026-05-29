@@ -7,7 +7,7 @@ owner_team: axis-marketplace
 primary_adr: ADR-0329
 related_adrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0249, ADR-0263, ADR-0314, ADR-0329, ADR-0330, ADR-0331]
 companion_docs: [microservices/marketplace/REMEDIATION-NOTES-2026-05-21.md]
-planned_enforcement_ref: oya-governance-marketplace-doc-suite
+planned_enforcement_ref: oya-governance-marketplace-doc-set
 naming_justifications: BNF v4 service_action_resource grammar and 13-layer-enum conformance are declared inline in this document
 impl_plan_id: IP-032-revenue-share-cohort-id-fk
 execution_unit: ChangeSet

@@ -10,7 +10,7 @@ persona: darren-chen (planner), elena-volkov (stock-controller), maya-okafor (re
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-supply-chain
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-019: Spare-parts MRP linkage — PM-MRP ↔ PP-MRP integration with reorder-point + DDMRP

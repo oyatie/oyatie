@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/cloud-iac-provider-signature-review.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/cloud-iac-provider-signature-review.schema.json",
   "schema_version": "1.0",
   "review_id": "cloud-iac-provider-signature-review-local-inventory",
   "generated_by_changeset": "CS-CLOUD-IAC-PROVIDER-SIGNATURE-REVIEW-GATE-001",

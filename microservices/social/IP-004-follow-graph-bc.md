@@ -22,8 +22,8 @@ Implement the cataloged follow-graph kernel and Postgres adapter plus planned do
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `catalog/oya-social-follow-graph-kernel.yaml` and `catalog/oya-social-follow-graph-adapter-postgres.yaml` | Existing anchors. |
-| `src/crates/oya-social-follow-graph-{kernel,domain,usecase,adapter-postgres,worker,sdk}/` | Planned family named by PRD/IP. |
+| `catalog/oya-community-social-follow-graph-kernel.yaml` and `catalog/oya-community-social-follow-graph-adapter-postgres.yaml` | Existing anchors. |
+| `src/crates/oya-community-social-follow-graph-{kernel,domain,usecase,adapter-postgres,worker,sdk}/` | Planned family named by PRD/IP. |
 | `slos/follow-action-latency.openslo.yaml` | Follow mutation SLO. |
 | `runbooks/follow-graph-corruption.md` | Repair and rollback runbook. |
 
@@ -37,15 +37,15 @@ Implement the cataloged follow-graph kernel and Postgres adapter plus planned do
 7. Wire runbook evidence for graph rebuild.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-follow-graph-kernel` passes.
-- `cargo nextest run -p oya-social-follow-graph-adapter-postgres` passes.
+- `cargo nextest run -p oya-community-social-follow-graph-kernel` passes.
+- `cargo nextest run -p oya-community-social-follow-graph-adapter-postgres` passes.
 - `cargo run -p oya-dev-cli -- gate validate data-residency --microservice social` passes.
 - `slos/follow-action-latency.openslo.yaml` resolves.
 - `runbooks/follow-graph-corruption.md` covers rebuild and audit reconciliation.
 
 ## F. Evidence
 - PRD FR-02 and graph port table: `PRD.md`.
-- Catalog: `catalog/oya-social-follow-graph-*.yaml`.
+- Catalog: `catalog/oya-community-social-follow-graph-*.yaml`.
 - Policy: `policy/tenant-scope.cedar`, `policy/minor-protection.cedar`.
 - SLO: `slos/follow-action-latency.openslo.yaml`.
 
@@ -77,6 +77,6 @@ X, Instagram, TikTok, Bluesky, Mastodon, Threads, and LinkedIn all rely on follo
 - Evidence detail: capture data-residency or tenant-scope gate output.
 - Evidence detail: capture AsyncAPI validation for graph-change events.
 - Evidence detail: cite `policy/minor-protection.cedar` for protected relation behavior.
-- Evidence detail: cite `catalog/oya-social-follow-graph-*.yaml` for crate anchors.
+- Evidence detail: cite `catalog/oya-community-social-follow-graph-*.yaml` for crate anchors.
 - Evidence detail: cite `runbooks/follow-graph-corruption.md` if present, or record it as a required runbook gap.
 - Evidence detail: cite Slack as relationship-surface pressure where membership and moderation constrain social graph access.

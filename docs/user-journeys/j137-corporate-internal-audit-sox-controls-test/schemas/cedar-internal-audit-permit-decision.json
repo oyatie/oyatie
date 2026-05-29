@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j137/cedar-internal-audit-permit-decision.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j137/cedar-internal-audit-permit-decision.json",
   "title": "CedarInternalAuditPermitDecision",
   "description": "Cedar decision envelope emitted for every internal-audit-bound action. Every PERMIT and every DENY (including the 3,645 personal-tenant denies in j137) is recorded as one of these.",
   "_meta": {

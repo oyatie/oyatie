@@ -35,7 +35,7 @@ its first impl plan can be authored (per `feedback_autonomous_implementation_art
 | [`hr.md`](hr.md) | `hr` | M03-first-paying-tenant | Accepted | Enterprise |
 | [`payroll.md`](payroll.md) | `payroll` | M03-first-paying-tenant | Accepted | Enterprise |
 | [`accounting.md`](accounting.md) | `accounting` | M03-first-paying-tenant | Accepted | Enterprise |
-| [`connect.md`](connect.md) | `connect` | M03-first-paying-tenant | Accepted | Enterprise |
+| [`communications.md`](communications.md) | `connector` | M03-first-paying-tenant | Accepted | Enterprise |
 
 ## Notes
 
@@ -45,7 +45,7 @@ its first impl plan can be authored (per `feedback_autonomous_implementation_art
 - **Workflow Studio** ships as both shared substrate (M02) and end-user B2B
   product (M03 GA). It is oyatie's first hero product
   (per `feedback_workflow_studio_scope.md`).
-- **Connect Personal** context is scaffolded in M03 but not GA until
+- **Personal** context is scaffolded in M03 but not GA until
   post-crypto-audit; deferred per `feedback_flat_product_catalog.md` §"Deferred".
 - M04+ µservices (Healthcare, FinTech expansion, GRC, ATS, Procurement,
   Manufacturing, Logistics, etc.) will have PRDs authored in Wave 3+.

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "governance",
   "summary": "policy lane runtime + evidence emitter + aggregation indexer + ADR-0131 fitness",
   "chart_name": "lane-runner-pool",

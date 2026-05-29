@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "meet",
   "summary": "meeting rooms + LiveKit SFU + lobby + recording handoff",
   "chart_name": "meet",

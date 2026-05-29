@@ -132,7 +132,7 @@ equivalent for pgBackRest and Restic.
 - **Quarterly** restore drills run via the chaos-engineering substrate.
 - Drill targets one µservice per quarter on a rotation; the target's
   primary Postgres + PVs are restored to the `dr-staging` environment;
-  validation runs the µservice's smoke-test suite against the restored
+  validation runs the µservice's smoke-test set against the restored
   state.
 - Drill evidence (success + duration + RPO/RTO observed) is sealed to the
   audit chain with `class: BackupRestoreDrill` and forwarded to ops-

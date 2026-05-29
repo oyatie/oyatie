@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/specs/journey/j127/tenant-membership-revoked.json",
+  "$id": "https://oyatie.com/specs/journey/j127/tenant-membership-revoked.json",
   "title": "TenantMembershipRevoked",
   "version": "1.0.0",
   "_meta": {

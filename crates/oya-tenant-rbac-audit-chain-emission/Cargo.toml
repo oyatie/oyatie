@@ -1,0 +1,19 @@
+[package]
+name = "oya-tenant-rbac-audit-chain-emission"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-audit-chain-emission-api = { path = "../oya-audit-chain-emission-api" }
+oya-audit-chain-emission-kernel = { path = "../oya-audit-chain-emission-kernel" }
+
+[lib]
+name = "oya_tenant_rbac_audit_chain_emission"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

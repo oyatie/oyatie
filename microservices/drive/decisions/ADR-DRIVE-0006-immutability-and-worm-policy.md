@@ -162,7 +162,7 @@ The drive µservice ships **defence-in-depth WORM enforcement across application
 ### Hyrum's Law
 
 Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law":
-- **Legacy `oya-connect-drive-domain` had no WORM tier**; only soft-delete + retention. Strangler-migration consumers using legacy soft-delete pattern need explicit WORM election to gain compliance-mode behaviour. Documented in `migration-from-connect.md` §"Net-new boundaries" + Hyrum #6.
+- **Legacy `oya-drive-domain` had no WORM tier**; only soft-delete + retention. Strangler-migration consumers using legacy soft-delete pattern need explicit WORM election to gain compliance-mode behaviour. Documented in `migration-from-connect.md` §"Net-new boundaries" + Hyrum #6.
 
 ### Operational
 

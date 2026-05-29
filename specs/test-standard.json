@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/test-standard.json",
+  "$id": "https://docs.oyatie.com/specs/test-standard.json",
   "title": "OyatieTestStandard",
   "description": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion.",
   "_meta": {
@@ -127,11 +127,11 @@
       "promotion_blocking": true
     }
   ],
-  "polyglot_command_registry_ref": "/registry/test-suite-registry.json",
+  "polyglot_command_registry_ref": "/registry/test-set-registry.json",
   "admission_algorithm": [
     "Compute semantic diff from AST/artifact index.",
     "Map changed symbols to surfaces, languages, contracts, and generated clients.",
-    "Resolve required test tiers from tiers[].must_run_when and test-suite-registry rows.",
+    "Resolve required test tiers from tiers[].must_run_when and test-set-registry rows.",
     "Reject ChangeBundle if required evidence is missing or stale after controller-owned rebase.",
     "Convert CI/review failures to typed FixupTasks with affected symbol/test refs.",
     "Block merge queue promotion until required tiers are pass or recorded as production-blocking gap when permitted."

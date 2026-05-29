@@ -82,7 +82,7 @@ fn forge_token(kid: &str, payload: serde_json::Value) -> String {
 
 fn default_cfg(now: i64) -> VerifyConfig {
     VerifyConfig {
-        expected_issuer: "https://identity-eu.oyatie.dev".into(),
+        expected_issuer: "https://identity-eu.oyatie.com".into(),
         expected_audience: "oya-foundry".into(),
         clock_tolerance: Default::default(),
         now_unix_seconds: now,
@@ -91,7 +91,7 @@ fn default_cfg(now: i64) -> VerifyConfig {
 
 fn valid_claims_json() -> serde_json::Value {
     json!({
-        "iss": "https://identity-eu.oyatie.dev",
+        "iss": "https://identity-eu.oyatie.com",
         "aud": "oya-foundry",
         "sub": "user-123",
         "iat": 1_700_000_000_i64,

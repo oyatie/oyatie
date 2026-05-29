@@ -17,7 +17,7 @@ mTLS + L7 policy. Goal: migrate to `cloud-network` without service interruption 
      aws ec2 describe-security-groups --region $r > "sgs-$r.json"
    done
    ```
-2. Export TGW attachments + Direct Connect peers:
+2. Export TGW attachments + Direct peers:
    ```bash
    aws ec2 describe-transit-gateways > tgw.json
    aws directconnect describe-connections > dx.json

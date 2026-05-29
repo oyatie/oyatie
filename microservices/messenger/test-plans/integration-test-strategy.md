@@ -85,7 +85,7 @@ It does not use production chat content, production media, or live customer iden
 - Policy coverage target: channel ACL, search ACL, mention routing, huddle access, and moderation decisions.
 - Cross-service handoff target: all manifest audit-chain seal events have at least one publish test.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `integration::channel_store_flow`.
 - Test `channel_create_postgres_acme_success`.

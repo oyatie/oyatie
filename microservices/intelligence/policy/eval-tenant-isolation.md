@@ -76,7 +76,7 @@ When DSR shred fires for `subject_id` belonging to `tenant_id=T`, only T's per-s
 ## Verification
 
 - Pen-test annually: attempt to read tenant-B data while authenticated as tenant-A.
-- LEAN lane suite: `oya-check-{clickhouse-tenant-partition,kms-kek-per-tenant,s3-prefix-tenant,dp-noise-on-cross-tenant-aggregates}-conformance`.
+- LEAN lane set: `oya-check-{clickhouse-tenant-partition,kms-kek-per-tenant,s3-prefix-tenant,dp-noise-on-cross-tenant-aggregates}-conformance`.
 - Integration test: `tests/integration/cross-tenant-isolation.rs` covers each invariant.
 
 ## Incident Response

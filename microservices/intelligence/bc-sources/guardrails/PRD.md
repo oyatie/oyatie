@@ -378,7 +378,7 @@ Sharding:
 | ADR-0123 | Hyperscaler maturity claim gate | HG-FGUARD registers here |
 | ADR-0139 | Agentic SLO-gated promotion | self-SLOs gate guardrails' own promotion |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it; Foundry split |
-| ADR-0132 | Product-suite + bundle dissolution | guardrails ships as substrate, not a suite |
+| ADR-0132 | Product-platform + bundle dissolution | guardrails ships as substrate, not a suite |
 | ADR-0133 | Industry-best-practice conformance program | competitor parity matrix mandate |
 | ADR-0140 | Cedar policy substrate | Cedar v4 is the autonomy-ceiling + tenant-overlay engine |
 

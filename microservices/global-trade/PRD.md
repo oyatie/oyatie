@@ -28,7 +28,7 @@ companion_docs:
   - microservices/global-trade/ARCHITECTURE.md
   - microservices/global-trade/compliance.md
   - microservices/global-trade/manifest.json
-planned_enforcement_ref: oya-governance-global-trade-doc-suite
+planned_enforcement_ref: oya-governance-global-trade-doc-set
 ---
 
 # PRD-global-trade: Global Trade
@@ -37,7 +37,7 @@ planned_enforcement_ref: oya-governance-global-trade-doc-suite
 
 This PRD defines the SAP-parity product requirement surface for Global Trade.
 global-trade is equivalent to SAP GTS coverage for customs declarations, sanctions screening, export controls, trade documents, denied-party hits, and broker filing.
-The target is not a monolithic ERP suite; the target is SAP Global Trade Services parity through a flat, tenant-scoped microservice that composes with shared Oyatie substrates.
+The target is not a monolithic ERP platform; the target is SAP Global Trade Services parity through a flat, tenant-scoped microservice that composes with shared Oyatie substrates.
 ADR-0315 binds the SAP-parity doctrine, ADR-0329 retires the old capability model vocabulary, ADR-0330 binds demo_trial and paid tenant_class eligibility, ADR-0331 binds per-microservice adoption, ADR-0244 binds tenant scoping, and ADR-0314 binds marketplace DealSet settlement.
 The service owns control customs declarations, sanctioned-party screening, export controls, denied-party evidence, trade documents, broker filings, and trade-compliance holds.
 The operating bar is the documentation-rigor PRD floor: 1500 or more lines, 40 or more stories, critical-path coverage, explicit policies, explicit ontology projections, and direct references.
@@ -47,7 +47,7 @@ Every mutation is Cedar default-deny first; every read is scoped to tenant plus 
 Open questions are limited to implementation sequencing; there is no unresolved product boundary decision in this PRD.
 
 ### A.1 Personas
-- B2B process owner: wants to prove parity against incumbent ERP workflows without inheriting suite lock-in; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
+- B2B process owner: wants to prove parity against incumbent ERP workflows without inheriting platform lock-in; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B tenant administrator: wants to activate packs, roles, and data residency boundaries without service-specific policy drift; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B operator: wants to run daily work, recover failures, and see batch progress before customers escalate; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B auditor: wants to export immutable evidence for every state transition and policy decision; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.

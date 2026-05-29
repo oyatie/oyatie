@@ -19,7 +19,7 @@ Every other healthcare µservice in the oyatie portfolio reads from or writes to
 ### Secondary
 
 - **Allscripts (Veradigm)** — Sunrise EHR (inpatient) + Paragon + TouchWorks (ambulatory) + Practice Fusion (small-practice). Mid-market and small-practice presence.
-- **Meditech** — Meditech Expanse + Patient Connect + Web Ambulatory. Community-hospital strength.
+- **Meditech** — Meditech Expanse + Patient + Web Ambulatory. Community-hospital strength.
 - **eClinicalWorks** — eClinicalWorks V11 + healow (patient app) + eCW Scribe (AI documentation). Small-to-mid ambulatory.
 - **NextGen Healthcare** — NextGen Enterprise + NextGen Mobile + NextGen Office. Specialty-clinic focus.
 - **Greenway Health** — Intergy + Prime Suite. Ambulatory.
@@ -281,7 +281,7 @@ There is no "Epic-Made-Cheaper-And-Open-Source." The closed-source competition (
 
 ### Q: How does oyatie EMR compete with Epic on clinical-UX, where Epic has 25 years of refinement?
 
-Three angles. (1) Mobile-first portal (ADR-MS-003) — Epic's MyChart is a refined web-first product retrofitted to mobile; oyatie EMR is mobile-native. (2) FHIR R5 default + R4 compatibility (ADR-MS-002) — Epic ships R4 default; R5 is a 2025-2026 readiness story still. (3) Tenant-class-aware overlays — Epic licenses Hyperspace + Spring + Community Connect + FQHC variants separately; oyatie EMR ships one canonical base + tenant-class overlay. The clinical-UX gap to Epic in inpatient is the hardest; we close it by pilot-IDN co-design + recruiting senior clinical-informaticists who came from Epic.
+Three angles. (1) Mobile-first portal (ADR-MS-003) — Epic's MyChart is a refined web-first product retrofitted to mobile; oyatie EMR is mobile-native. (2) FHIR R5 default + R4 compatibility (ADR-MS-002) — Epic ships R4 default; R5 is a 2025-2026 readiness story still. (3) Tenant-class-aware overlays — Epic licenses Hyperspace + Spring + Community + FQHC variants separately; oyatie EMR ships one canonical base + tenant-class overlay. The clinical-UX gap to Epic in inpatient is the hardest; we close it by pilot-IDN co-design + recruiting senior clinical-informaticists who came from Epic.
 
 ### Q: What happens to a tenant if oyatie EMR has a critical bug that affects clinical safety?
 

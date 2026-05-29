@@ -19,7 +19,7 @@ Two reasons: (1) Security — when a CVE drops on a transitive dependency (e.g. 
 
 ## Q3: My listing requires payment by my tenants. How does that work?
 
-Use Stripe Connect (default) or Adyen MarketPay (alternative). At publish time, you provide your Stripe Connect account ID. When a customer installs your paid listing, the substrate creates the Stripe Checkout session, the customer pays, Stripe transfers your 70% share to your account (after the 30% platform fee + Stripe's processing fee). For subscriptions: Stripe handles recurring billing; the substrate tracks active subscriptions per tenant. For usage-based: you emit usage events to the marketplace; daily aggregation generates the Stripe invoice. Refunds (within 14 days for most products) are processed through Stripe with the platform fee partially refunded.
+Use Stripe (default) or Adyen MarketPay (alternative). At publish time, you provide your Stripe account ID. When a customer installs your paid listing, the substrate creates the Stripe Checkout session, the customer pays, Stripe transfers your 70% share to your account (after the 30% platform fee + Stripe's processing fee). For subscriptions: Stripe handles recurring billing; the substrate tracks active subscriptions per tenant. For usage-based: you emit usage events to the marketplace; daily aggregation generates the Stripe invoice. Refunds (within 14 days for most products) are processed through Stripe with the platform fee partially refunded.
 
 ## Q4: What about taxes (US sales tax, EU VAT, KR VAT, JP consumption)?
 
@@ -76,7 +76,7 @@ Yes. Agent listings have stricter review:
 - Required: model card describing the underlying LLM(s) used + safety evaluations.
 - Required: tool-permissions enumeration (what tools the agent can invoke; substrate enforces via Cedar permits).
 - Required: human-in-the-loop policy (which actions require approval).
-- Required: hallucination/error rate disclosure on a standard test suite.
+- Required: hallucination/error rate disclosure on a standard test set.
 - Required: termination conditions (when does the agent stop?).
 - Manual review: every agent listing reviewed by an AI-safety reviewer.
 

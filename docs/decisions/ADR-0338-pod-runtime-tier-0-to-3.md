@@ -38,7 +38,7 @@ related_adrs:
   - ADR-0121-on-prem-k8s-stack.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0150-cedar-policy-engine.md
   - ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md
@@ -694,7 +694,7 @@ D-5.8. The `oya-governance-nodepool-binding` lane validates per-µservice Helm c
 
 ### D-6: CI lane `oya-check-pod-runtime-tier`
 
-D-6.1. A new CI lane `oya-check-pod-runtime-tier` is added under the corpus governance lane suite at `crates/oya-check-pod-runtime-tier/`.
+D-6.1. A new CI lane `oya-check-pod-runtime-tier` is added under the corpus governance lane set at `crates/oya-check-pod-runtime-tier/`.
 
 D-6.2. The lane is REPORT-ONLY at landing (advisory); promoted to BLOCKER per §G sunset schedule.
 

@@ -12,7 +12,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Migration: `oya-connect-tasks-*` → `oya-tasks-*`
+# Migration: `oya-tasks-*` → `oya-tasks-*`
 
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **tasks** µservice. It is the
@@ -28,7 +28,7 @@ proven in dev cluster.**
 |---|---|
 | Replacement | `oya-tasks-*` crate family under `microservices/tasks/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-TASKS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 7-BC tasks surface (task-store / project-list / view-engine / dependency-graph / recurrence / search-index / importers) is only addressable at µservice granularity, not at Connect-suite granularity |
+| Reason | ADR-0132 no-grouping forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 7-BC tasks surface (task-store / project-list / view-engine / dependency-graph / recurrence / search-index / importers) is only addressable at µservice granularity, not at Connect-platform granularity |
 | Migration owner (Churn Rule) | axis-tasks |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -36,91 +36,91 @@ proven in dev cluster.**
 
 The 7 bounded-contexts of the `tasks` µservice live under
 `microservices/tasks/src/crates/` per ADR-0131. The legacy
-`oya-connect-tasks-domain` crate (the only legacy crate currently extant
-per `find crates -maxdepth 1 -type d -name 'oya-connect-tasks-*'`) is
+`oya-tasks-domain` crate (the only legacy crate currently extant
+per `find crates -maxdepth 1 -type d -name 'oya-tasks-*'`) is
 split per BC into per-domain crates.
 
 ### Crate import-path map
 
-| Legacy `oya-connect-tasks-*` path | New `oya-tasks-*` path |
+| Legacy `oya-tasks-*` path | New `oya-tasks-*` path |
 |---|---|
-| `oya-connect-tasks-domain` | (split per BC; see note below) |
-| `oya-connect-tasks-task-kernel` (Phase 2 adapter authoring) | `oya-tasks-task-store-kernel` |
-| `oya-connect-tasks-task-domain` | `oya-tasks-task-store-domain` |
-| `oya-connect-tasks-task-usecase` | `oya-tasks-task-store-usecase` |
-| `oya-connect-tasks-task-api` | `oya-tasks-task-store-api` |
-| `oya-connect-tasks-task-adapter` | `oya-tasks-task-store-adapter` |
-| `oya-connect-tasks-task-adapter-postgres` | `oya-tasks-task-store-adapter-postgres` |
-| `oya-connect-tasks-task-rest` | `oya-tasks-task-store-rest` |
-| `oya-connect-tasks-task-worker` | `oya-tasks-task-store-worker` |
-| `oya-connect-tasks-task-sdk` | `oya-tasks-task-store-sdk` |
-| `oya-connect-tasks-task-app` | `oya-tasks-task-store-app` |
-| `oya-connect-tasks-project-kernel` | `oya-tasks-project-list-kernel` |
-| `oya-connect-tasks-project-domain` | `oya-tasks-project-list-domain` |
-| `oya-connect-tasks-project-usecase` | `oya-tasks-project-list-usecase` |
-| `oya-connect-tasks-project-api` | `oya-tasks-project-list-api` |
-| `oya-connect-tasks-project-adapter` | `oya-tasks-project-list-adapter` |
-| `oya-connect-tasks-project-adapter-postgres` | `oya-tasks-project-list-adapter-postgres` |
-| `oya-connect-tasks-project-rest` | `oya-tasks-project-list-rest` |
-| `oya-connect-tasks-project-app` | `oya-tasks-project-list-app` |
-| `oya-connect-tasks-view-kernel` | `oya-tasks-view-engine-kernel` |
-| `oya-connect-tasks-view-domain` | `oya-tasks-view-engine-domain` |
-| `oya-connect-tasks-view-usecase` | `oya-tasks-view-engine-usecase` |
-| `oya-connect-tasks-view-api` | `oya-tasks-view-engine-api` |
-| `oya-connect-tasks-view-adapter` | `oya-tasks-view-engine-adapter` |
-| `oya-connect-tasks-view-adapter-valkey` | `oya-tasks-view-engine-adapter-valkey` |
-| `oya-connect-tasks-view-rest` | `oya-tasks-view-engine-rest` |
-| `oya-connect-tasks-view-app` | `oya-tasks-view-engine-app` |
-| `oya-connect-tasks-dependency-kernel` | `oya-tasks-dependency-graph-kernel` |
-| `oya-connect-tasks-dependency-domain` | `oya-tasks-dependency-graph-domain` |
-| `oya-connect-tasks-dependency-usecase` | `oya-tasks-dependency-graph-usecase` |
-| `oya-connect-tasks-dependency-api` | `oya-tasks-dependency-graph-api` |
-| `oya-connect-tasks-dependency-adapter` | `oya-tasks-dependency-graph-adapter` |
-| `oya-connect-tasks-dependency-rest` | `oya-tasks-dependency-graph-rest` |
-| `oya-connect-tasks-dependency-app` | `oya-tasks-dependency-graph-app` |
-| `oya-connect-tasks-recurrence-kernel` | `oya-tasks-recurrence-kernel` |
-| `oya-connect-tasks-recurrence-domain` | `oya-tasks-recurrence-domain` |
-| `oya-connect-tasks-recurrence-usecase` | `oya-tasks-recurrence-usecase` |
-| `oya-connect-tasks-recurrence-api` | `oya-tasks-recurrence-api` |
-| `oya-connect-tasks-recurrence-adapter` | `oya-tasks-recurrence-adapter` |
-| `oya-connect-tasks-recurrence-worker` | `oya-tasks-recurrence-worker` |
-| `oya-connect-tasks-recurrence-app` | `oya-tasks-recurrence-app` |
-| `oya-connect-tasks-search-kernel` | `oya-tasks-search-index-kernel` |
-| `oya-connect-tasks-search-domain` | `oya-tasks-search-index-domain` |
-| `oya-connect-tasks-search-usecase` | `oya-tasks-search-index-usecase` |
-| `oya-connect-tasks-search-api` | `oya-tasks-search-index-api` |
-| `oya-connect-tasks-search-adapter` | `oya-tasks-search-index-adapter` |
-| `oya-connect-tasks-search-adapter-meilisearch` | `oya-tasks-search-index-adapter-meilisearch` |
-| `oya-connect-tasks-search-worker` | `oya-tasks-search-index-worker` |
-| `oya-connect-tasks-search-app` | `oya-tasks-search-index-app` |
-| `oya-connect-tasks-importers-kernel` | `oya-tasks-importers-kernel` |
-| `oya-connect-tasks-importers-domain` | `oya-tasks-importers-domain` |
-| `oya-connect-tasks-importers-usecase` | `oya-tasks-importers-usecase` |
-| `oya-connect-tasks-importers-api` | `oya-tasks-importers-api` |
-| `oya-connect-tasks-importers-adapter` | `oya-tasks-importers-adapter` |
-| `oya-connect-tasks-importers-adapter-csv` | `oya-tasks-importers-adapter-csv` |
-| `oya-connect-tasks-importers-adapter-jira` | `oya-tasks-importers-adapter-jira` |
-| `oya-connect-tasks-importers-adapter-asana` | `oya-tasks-importers-adapter-asana` |
-| `oya-connect-tasks-importers-adapter-trello` | `oya-tasks-importers-adapter-trello` |
-| `oya-connect-tasks-importers-adapter-linear` | `oya-tasks-importers-adapter-linear` |
-| `oya-connect-tasks-importers-adapter-todoist` | `oya-tasks-importers-adapter-todoist` |
-| `oya-connect-tasks-importers-rest` | `oya-tasks-importers-rest` |
-| `oya-connect-tasks-importers-worker` | `oya-tasks-importers-worker` |
-| `oya-connect-tasks-importers-app` | `oya-tasks-importers-app` |
+| `oya-tasks-domain` | (split per BC; see note below) |
+| `oya-tasks-task-kernel` (Phase 2 adapter authoring) | `oya-tasks-task-store-kernel` |
+| `oya-tasks-task-domain` | `oya-tasks-task-store-domain` |
+| `oya-tasks-task-usecase` | `oya-tasks-task-store-usecase` |
+| `oya-tasks-task-api` | `oya-tasks-task-store-api` |
+| `oya-tasks-task-adapter` | `oya-tasks-task-store-adapter` |
+| `oya-tasks-task-adapter-postgres` | `oya-tasks-task-store-adapter-postgres` |
+| `oya-tasks-task-rest` | `oya-tasks-task-store-rest` |
+| `oya-tasks-task-worker` | `oya-tasks-task-store-worker` |
+| `oya-tasks-task-sdk` | `oya-tasks-task-store-sdk` |
+| `oya-tasks-task-app` | `oya-tasks-task-store-app` |
+| `oya-tasks-project-kernel` | `oya-tasks-project-list-kernel` |
+| `oya-tasks-project-domain` | `oya-tasks-project-list-domain` |
+| `oya-tasks-project-usecase` | `oya-tasks-project-list-usecase` |
+| `oya-tasks-project-api` | `oya-tasks-project-list-api` |
+| `oya-tasks-project-adapter` | `oya-tasks-project-list-adapter` |
+| `oya-tasks-project-adapter-postgres` | `oya-tasks-project-list-adapter-postgres` |
+| `oya-tasks-project-rest` | `oya-tasks-project-list-rest` |
+| `oya-tasks-project-app` | `oya-tasks-project-list-app` |
+| `oya-tasks-view-kernel` | `oya-tasks-view-engine-kernel` |
+| `oya-tasks-view-domain` | `oya-tasks-view-engine-domain` |
+| `oya-tasks-view-usecase` | `oya-tasks-view-engine-usecase` |
+| `oya-tasks-view-api` | `oya-tasks-view-engine-api` |
+| `oya-tasks-view-adapter` | `oya-tasks-view-engine-adapter` |
+| `oya-tasks-view-adapter-valkey` | `oya-tasks-view-engine-adapter-valkey` |
+| `oya-tasks-view-rest` | `oya-tasks-view-engine-rest` |
+| `oya-tasks-view-app` | `oya-tasks-view-engine-app` |
+| `oya-tasks-dependency-kernel` | `oya-tasks-dependency-graph-kernel` |
+| `oya-tasks-dependency-domain` | `oya-tasks-dependency-graph-domain` |
+| `oya-tasks-dependency-usecase` | `oya-tasks-dependency-graph-usecase` |
+| `oya-tasks-dependency-api` | `oya-tasks-dependency-graph-api` |
+| `oya-tasks-dependency-adapter` | `oya-tasks-dependency-graph-adapter` |
+| `oya-tasks-dependency-rest` | `oya-tasks-dependency-graph-rest` |
+| `oya-tasks-dependency-app` | `oya-tasks-dependency-graph-app` |
+| `oya-tasks-recurrence-kernel` | `oya-tasks-recurrence-kernel` |
+| `oya-tasks-recurrence-domain` | `oya-tasks-recurrence-domain` |
+| `oya-tasks-recurrence-usecase` | `oya-tasks-recurrence-usecase` |
+| `oya-tasks-recurrence-api` | `oya-tasks-recurrence-api` |
+| `oya-tasks-recurrence-adapter` | `oya-tasks-recurrence-adapter` |
+| `oya-tasks-recurrence-worker` | `oya-tasks-recurrence-worker` |
+| `oya-tasks-recurrence-app` | `oya-tasks-recurrence-app` |
+| `oya-tasks-search-kernel` | `oya-tasks-search-index-kernel` |
+| `oya-tasks-search-domain` | `oya-tasks-search-index-domain` |
+| `oya-tasks-search-usecase` | `oya-tasks-search-index-usecase` |
+| `oya-tasks-search-api` | `oya-tasks-search-index-api` |
+| `oya-tasks-search-adapter` | `oya-tasks-search-index-adapter` |
+| `oya-tasks-search-adapter-meilisearch` | `oya-tasks-search-index-adapter-meilisearch` |
+| `oya-tasks-search-worker` | `oya-tasks-search-index-worker` |
+| `oya-tasks-search-app` | `oya-tasks-search-index-app` |
+| `oya-tasks-importers-kernel` | `oya-tasks-importers-kernel` |
+| `oya-tasks-importers-domain` | `oya-tasks-importers-domain` |
+| `oya-tasks-importers-usecase` | `oya-tasks-importers-usecase` |
+| `oya-tasks-importers-api` | `oya-tasks-importers-api` |
+| `oya-tasks-importers-adapter` | `oya-tasks-importers-adapter` |
+| `oya-tasks-importers-adapter-csv` | `oya-tasks-importers-adapter-csv` |
+| `oya-tasks-importers-adapter-jira` | `oya-tasks-importers-adapter-jira` |
+| `oya-tasks-importers-adapter-asana` | `oya-tasks-importers-adapter-asana` |
+| `oya-tasks-importers-adapter-trello` | `oya-tasks-importers-adapter-trello` |
+| `oya-tasks-importers-adapter-linear` | `oya-tasks-importers-adapter-linear` |
+| `oya-tasks-importers-adapter-todoist` | `oya-tasks-importers-adapter-todoist` |
+| `oya-tasks-importers-rest` | `oya-tasks-importers-rest` |
+| `oya-tasks-importers-worker` | `oya-tasks-importers-worker` |
+| `oya-tasks-importers-app` | `oya-tasks-importers-app` |
 
-> **`oya-connect-tasks-domain` split.** The legacy bundled crate (28.5KB
+> **`oya-tasks-domain` split.** The legacy bundled crate (28.5KB
 > at 2026-05-17) bundles task + project + view + dependency +
 > recurrence + search + importer concerns into a single domain-layer
 > crate. Per ADR-0131 + ADR-0105 (13-layer enum), the new layout splits
 > the domain layer per bounded context. Migration imports from the
-> legacy bundled `oya-connect-tasks-domain` must each pick the specific
-> replacement BC; a one-line wholesale `use oya_connect_tasks_domain::*`
+> legacy bundled `oya-tasks-domain` must each pick the specific
+> replacement BC; a one-line wholesale `use oya_tasks_domain::*`
 > import is not supported.
 
 ### Net-new boundaries (no legacy counterpart)
 
 The new µservice introduces capabilities that did NOT exist in
-`oya-connect-tasks-*`. They are therefore not part of the migration
+`oya-tasks-*`. They are therefore not part of the migration
 surface — they are clean replacement-boundary features:
 
 - **`oya-tasks-search-index-adapter-meilisearch`** — full Meilisearch
@@ -134,7 +134,7 @@ surface — they are clean replacement-boundary features:
   CRDT-light state per ADR-TASKS-0004; the legacy surface had no
   realtime presence.
 - **Dependency-graph cycle prevention at write time** — PRD FR-04 +
-  AC-02 differentiator; legacy `oya-connect-tasks-*` had only lazy
+  AC-02 differentiator; legacy `oya-tasks-*` had only lazy
   cycle detection at read time.
 - **Workflow-engine bidirectional bridge** — per ADR-TASKS-0005;
   legacy had only unidirectional task → workflow trigger.
@@ -148,10 +148,10 @@ surface — they are clean replacement-boundary features:
 
 ```rust
 // BEFORE
-use oya_connect_tasks_domain::{Task, TaskStatus, TaskPriority, DependencyEdge};
-use oya_connect_tasks_domain::project::Project;
-use oya_connect_tasks_domain::view::BoardColumn;
-use oya_connect_tasks_domain::dependency::CycleDecision;
+use oya_tasks_domain::{Task, TaskStatus, TaskPriority, DependencyEdge};
+use oya_tasks_domain::project::Project;
+use oya_tasks_domain::view::BoardColumn;
+use oya_tasks_domain::dependency::CycleDecision;
 
 // AFTER
 use oya_tasks_task_store_kernel::{Task, TaskStatus, TaskPriority};
@@ -163,7 +163,7 @@ use oya_tasks_view_engine_kernel::BoardColumn;
 ```toml
 # BEFORE — Cargo.toml of a downstream consumer
 [dependencies]
-oya-connect-tasks-domain = { workspace = true }
+oya-tasks-domain = { workspace = true }
 
 # AFTER
 [dependencies]
@@ -176,10 +176,10 @@ oya-tasks-view-engine-kernel      = { workspace = true }
 
 ## Reason
 
-The legacy `oya-connect-tasks-*` family was authored before the
+The legacy `oya-tasks-*` family was authored before the
 following ADRs crystallised:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — per-µservice SLO authority.** Tasks needs independent
@@ -200,11 +200,11 @@ following ADRs crystallised:
    (data model, dependency graph cycle prevention, rrule alignment,
    view engine + CRDT scope, workflow bridge, AI auto-assign EU AI Act
    bounds) need to live at per-µservice ADR granularity, not at the
-   Connect suite level.
+   platform level.
 
 ## Migration Guide (step-by-step)
 
-For each consumer crate that imports `oya-connect-tasks-*`:
+For each consumer crate that imports `oya-tasks-*`:
 
 ### Step 1 — Add the new dependency
 
@@ -217,7 +217,7 @@ For each consumer crate that imports `oya-connect-tasks-*`:
 
 ```bash
 # Use this command per file as a guided rewrite (review every hit;
-# manual disambiguation needed for the `oya-connect-tasks-domain`
+# manual disambiguation needed for the `oya-tasks-domain`
 # split case):
 rg -l "oya_connect_tasks_" --type rust path/to/your/crate
 ```
@@ -226,7 +226,7 @@ rg -l "oya_connect_tasks_" --type rust path/to/your/crate
 
 ```bash
 # Inside your consumer crate:
-cargo nextest run --features connect-tasks-strangler-canary
+cargo nextest run --features tasks-strangler-canary
 ```
 
 Run with the feature flag enabled to route through the new µservice;
@@ -247,14 +247,14 @@ ADR-0134), remove the legacy dependency from your `Cargo.toml`:
 
 ```toml
 # Remove this line:
-oya-connect-tasks-domain = { workspace = true }
+oya-tasks-domain = { workspace = true }
 ```
 
 ### Step 5 — Verify zero residual
 
 ```bash
 # Per ADR-0134 Phase 4 verification:
-cargo tree -e normal -p your-crate | grep oya-connect-tasks   # expect empty
+cargo tree -e normal -p your-crate | grep oya-tasks   # expect empty
 rg "use oya_connect_tasks_" --type rust path/to/your/crate    # expect zero hits
 ```
 
@@ -265,7 +265,7 @@ rg "use oya_connect_tasks_" --type rust path/to/your/crate    # expect zero hits
 | Feature flag namespace | `connect.tasks.*` | `tasks.*` |
 | OpenSLO file | bundled in `Connect.openslo.yaml` (umbrella) | `microservices/tasks/slos/*.openslo.yaml` (per-µservice, 9 files) |
 | Helm chart values key | `.Values.connect.tasks.*` | `.Values.tasks.*` |
-| K8s namespace | `connect` | `tasks` |
+| K8s namespace | `connector` | `tasks` |
 | Cedar policy fragment path | `policy/connect/tasks/*.cedar` | `microservices/tasks/policy/*.cedar` |
 | pack-kr overlay path | `policy/connect/tasks/pack-kr/*` | `microservices/tasks/iac/kustomize/overlays/pack-kr/*` + per-pack section in `threat-model.md` / `dpia.md` / `compliance.md` / `multi-region.md` |
 | Workflow event prefix | `connect.tasks.*` | `tasks.*` (e.g., `tasks.task.lifecycle.v1`, `tasks.task.state.v1`, `tasks.task.dependency.v1`) |
@@ -379,7 +379,7 @@ had a long-tail dependency:
 | Phase | Description | Status (tasks) | Exit condition |
 |---|---|---|---|
 | 1. Parallel ship | New µservice + legacy coexist | **active** | HG-TASKS passes at p99 SLOs in dev cluster sustained 7d |
-| 2. Adapter soak | `oya-connect-tasks-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
+| 2. Adapter soak | `oya-tasks-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
 | 3. Feature-flagged canary | 10% → 50% → 100% traffic shift over 6 weeks | pending | New µservice carries 100% traffic for 7 consecutive days |
 | 4. Zero-active-usage verification | Dependency-graph + telemetry + grep all clean | pending | Verification commands all exit 0 |
 | 5. Code removal sweep | Delete legacy crate + Cargo.toml entry + spec pointer | pending | `cargo build --workspace` exits 0; no `oya_connect_tasks_*` symbol resolves |
@@ -401,12 +401,12 @@ satisfy these checks. Each is gated by a concrete command:
   ```
 - [ ] **All active consumers have been migrated** (per Phase 4):
   ```bash
-  cargo tree -e normal -p oya-connect-tasks-domain --invert | grep -v 'oya-connect-tasks-migration-adapter' | wc -l   # expect 0
+  cargo tree -e normal -p oya-tasks-domain --invert | grep -v 'oya-tasks-migration-adapter' | wc -l   # expect 0
   rg "use oya_connect_tasks_" --type rust | rg -v "migration-adapter|legacy_in_process|tests/" | wc -l   # expect 0
   ```
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
-  find crates -maxdepth 1 -type d -name "oya-connect-tasks-*" | wc -l   # expect 0
+  find crates -maxdepth 1 -type d -name "oya-tasks-*" | wc -l   # expect 0
   test ! -f /specs/microservices/tasks.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase**
@@ -473,11 +473,11 @@ did not migrate during the 5-month adapter+canary window. Per
 
 ## References
 
-- ADR-0135: Connect super-app expansion into flat µservices.
+- ADR-0135: super-app expansion into flat µservices.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0133: Industry best-practice conformance program.
-- ADR-0134: Connect dissolution Strangler migration (operational policy).
+- ADR-0134: dissolution Strangler migration (operational policy).
 - ADR-TASKS-0001: Task data model + custom fields (strict coercion).
 - ADR-TASKS-0002: Dependency graph + cycle prevention at write time.
 - ADR-TASKS-0003: Recurring task engine (rrule-rs alignment with calendar ADR-CAL-0002).

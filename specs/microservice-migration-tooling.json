@@ -1,6 +1,6 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-migration-tooling.schema.json",
-  "$id": "https://docs.oyatie.dev/specs/microservice-migration-tooling.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-migration-tooling.schema.json",
+  "$id": "https://docs.oyatie.com/specs/microservice-migration-tooling.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-MICROSERVICE-MIGRATION-TOOLING",
@@ -11,20 +11,42 @@
     "adr": "ADR-0131",
     "purpose": "Spec for the `oya dev migrate-microservice` command that mechanises per-µservice migrations from the legacy scattered layout (crates/, docs/prds/, /specs/microservices/, .omc/plans/milestones/, registry/catalog/) to the canonical per-microservice flat layout under microservices/<ms>/ per ADR-0131."
   },
-
   "command": "oya dev migrate-microservice",
   "implemented_by": "crates/oya-dev-cli/src/commands/migrate_microservice.rs (Turn 2 IP)",
-
   "synopsis": "oya dev migrate-microservice --microservice <ms> [--dry-run] [--force] [--from-paths <path-list>] [--scope crates|docs|specs|catalog|contracts|all]",
-
   "arguments": {
-    "--microservice": {"type": "string", "required": true, "description": "kebab-case µservice name; matches ADR-0131 migration_ip_enumeration entries"},
-    "--dry-run": {"type": "boolean", "default": true, "description": "Default: dry-run; emits the plan + the git-mv commands without executing. Pass --no-dry-run to execute."},
-    "--force": {"type": "boolean", "default": false, "description": "Skip pre-flight refusals (NOT recommended; logged with elevated severity in audit-chain)."},
-    "--from-paths": {"type": "string-list", "description": "Override default paths to migrate (e.g., only certain crates). Default: full per-µservice scope."},
-    "--scope": {"type": "enum", "values": ["crates", "docs", "specs", "catalog", "contracts", "all"], "default": "all"}
+    "--microservice": {
+      "type": "string",
+      "required": true,
+      "description": "kebab-case µservice name; matches ADR-0131 migration_ip_enumeration entries"
+    },
+    "--dry-run": {
+      "type": "boolean",
+      "default": true,
+      "description": "Default: dry-run; emits the plan + the git-mv commands without executing. Pass --no-dry-run to execute."
+    },
+    "--force": {
+      "type": "boolean",
+      "default": false,
+      "description": "Skip pre-flight refusals (NOT recommended; logged with elevated severity in audit-chain)."
+    },
+    "--from-paths": {
+      "type": "string-list",
+      "description": "Override default paths to migrate (e.g., only certain crates). Default: full per-µservice scope."
+    },
+    "--scope": {
+      "type": "enum",
+      "values": [
+        "crates",
+        "docs",
+        "specs",
+        "catalog",
+        "contracts",
+        "all"
+      ],
+      "default": "all"
+    }
   },
-
   "phases": [
     {
       "name": "1-discover",
@@ -44,11 +66,31 @@
       "name": "2-pre-flight",
       "description": "Refuse if conditions for safe migration are not met.",
       "checks": [
-        {"id": "PF-01", "rule": "git working tree clean for the µservice's paths", "violation": "uncommitted changes; commit or stash first"},
-        {"id": "PF-02", "rule": "no other agent holds an oya vcs claim on these paths", "violation": "concurrent claim active; retry after that claim completes"},
-        {"id": "PF-03", "rule": "target microservices/<ms>/ does NOT already exist (or --force used)", "violation": "would overwrite; remove or --force"},
-        {"id": "PF-04", "rule": "Cargo.toml [workspace.members] contains the legacy crate paths", "violation": "workspace state already drifted; investigate"},
-        {"id": "PF-05", "rule": "no parallel-session PR touches the legacy paths", "violation": "merge conflict risk; coordinate with parallel session"}
+        {
+          "id": "PF-01",
+          "rule": "git working tree clean for the µservice's paths",
+          "violation": "uncommitted changes; commit or stash first"
+        },
+        {
+          "id": "PF-02",
+          "rule": "no other agent holds an oya vcs claim on these paths",
+          "violation": "concurrent claim active; retry after that claim completes"
+        },
+        {
+          "id": "PF-03",
+          "rule": "target microservices/<ms>/ does NOT already exist (or --force used)",
+          "violation": "would overwrite; remove or --force"
+        },
+        {
+          "id": "PF-04",
+          "rule": "Cargo.toml [workspace.members] contains the legacy crate paths",
+          "violation": "workspace state already drifted; investigate"
+        },
+        {
+          "id": "PF-05",
+          "rule": "no parallel-session PR touches the legacy paths",
+          "violation": "merge conflict risk; coordinate with parallel session"
+        }
       ]
     },
     {
@@ -57,23 +99,47 @@
       "output_schema": {
         "type": "object",
         "properties": {
-          "microservice": {"type": "string"},
+          "microservice": {
+            "type": "string"
+          },
           "operations": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "op": {"type": "string", "enum": ["git_mv", "edit_file", "regen_aggregation"]},
-                "from": {"type": "string"},
-                "to": {"type": "string"},
-                "rename_pkg": {"type": "boolean", "description": "true if Cargo.toml package name rewrite needed (e.g., oya-check-* → oya-governance-*)"},
-                "details": {"type": "object"}
+                "op": {
+                  "type": "string",
+                  "enum": [
+                    "git_mv",
+                    "edit_file",
+                    "regen_aggregation"
+                  ]
+                },
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "rename_pkg": {
+                  "type": "boolean",
+                  "description": "true if Cargo.toml package name rewrite needed (e.g., oya-check-* → oya-governance-*)"
+                },
+                "details": {
+                  "type": "object"
+                }
               }
             }
           },
-          "estimated_files_moved": {"type": "integer"},
-          "estimated_cross_refs_to_update": {"type": "integer"},
-          "estimated_workspace_members_to_rewrite": {"type": "integer"}
+          "estimated_files_moved": {
+            "type": "integer"
+          },
+          "estimated_cross_refs_to_update": {
+            "type": "integer"
+          },
+          "estimated_workspace_members_to_rewrite": {
+            "type": "integer"
+          }
         }
       }
     },
@@ -93,7 +159,7 @@
     },
     {
       "name": "5-verify",
-      "description": "Run the verification suite; refuse exit-0 unless all pass.",
+      "description": "Run the verification set; refuse exit-0 unless all pass.",
       "checks": [
         "cargo check --workspace exits 0",
         "cargo build --workspace exits 0",
@@ -114,7 +180,6 @@
       ]
     }
   ],
-
   "rollback": {
     "trigger": "Verification phase failure OR explicit `oya dev migrate-microservice --rollback --microservice <ms>` invocation",
     "procedure": [
@@ -124,27 +189,38 @@
       "Emit audit event: microservice_migration_rolled_back{microservice, reason, executed_at}"
     ]
   },
-
   "idempotency": "Re-running migrate-microservice on an already-migrated µservice is a no-op + emits a `migration_already_complete` audit event. The command does NOT mutate state when the target shape is already correct.",
-
   "parallel_safety": "Multiple migrations may run concurrently for different µservices (they touch disjoint paths). Running the same migration twice in parallel is prevented by oya vcs claim on `microservices/<ms>/**`.",
-
   "cost_estimate": {
-    "small_microservice (1-3 crates, 1 PRD)": {"files_moved": 5, "refs_updated": 15, "wall_time": "≤ 30s"},
-    "medium_microservice (5-10 crates, multiple PRDs + catalog rows)": {"files_moved": 25, "refs_updated": 100, "wall_time": "≤ 2min"},
-    "large_microservice (foundry split: 6 sub-microservices; 50+ crates total)": {"files_moved": 200, "refs_updated": 500, "wall_time": "≤ 10min per sub-microservice; running in parallel: ≤ 15min total"},
-    "governance bundle (50 oya-check-* crates with name rename)": {"files_moved": 250, "refs_updated": 1000, "wall_time": "≤ 30min (atomic; long but bundleable as one ChangeSet)"}
+    "small_microservice (1-3 crates, 1 PRD)": {
+      "files_moved": 5,
+      "refs_updated": 15,
+      "wall_time": "≤ 30s"
+    },
+    "medium_microservice (5-10 crates, multiple PRDs + catalog rows)": {
+      "files_moved": 25,
+      "refs_updated": 100,
+      "wall_time": "≤ 2min"
+    },
+    "large_microservice (foundry split: 6 sub-microservices; 50+ crates total)": {
+      "files_moved": 200,
+      "refs_updated": 500,
+      "wall_time": "≤ 10min per sub-microservice; running in parallel: ≤ 15min total"
+    },
+    "governance bundle (50 oya-check-* crates with name rename)": {
+      "files_moved": 250,
+      "refs_updated": 1000,
+      "wall_time": "≤ 30min (atomic; long but bundleable as one ChangeSet)"
+    }
   },
-
   "verification_post_completion": {
     "lane": "oya-governance-per-microservice-layout",
     "expected_state": "every migrated µservice conforms to ADR-0131 canonical folder shape",
     "rollback_window": "Migration commit may be reverted within 24h without ADR; after 24h, revert requires its own ADR-shaped decision."
   },
-
   "references": [
     "ADR-0131 (per-microservice flat layout)",
-    "ADR-0132 (no-suite forward-policy)",
+    "ADR-0132 (no-grouping forward-policy)",
     "/specs/per-microservice-flat-layout.json §migration_ip_enumeration",
     "docs/standards/git-workflow.md",
     "feedback_rename_blanket_sed_forbidden — multi-batch migration required; this tool replaces blanket-sed with structured operations"

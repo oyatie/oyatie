@@ -45,7 +45,7 @@ Example:
 
 ```http
 GET /lanes HTTP/2
-Host: governance.oyatie.dev
+Host: governance.oyatie.com
 Authorization: Bearer eyJ...
 X-Tenant-Id: 018f7a54-3ef5-7c42-a111-a2c4ad7f88f0
 X-Governance-Pack: korea-base

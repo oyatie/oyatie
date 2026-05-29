@@ -17,7 +17,7 @@ version: 1.0.0
 appVersion: "1.0.0"
 maintainers:
   - name: axis-docs
-    email: docs@oyatie.dev
+    email: docs@oyatie.com
 keywords:
   - docs
   - collaborative-document
@@ -28,7 +28,7 @@ keywords:
   - export
   - pdfa
   - wcag
-home: https://oyatie.dev/microservices/docs
+home: https://oyatie.com/microservices/docs
 sources:
   - https://github.com/oyatie/oyatie/tree/main/microservices/docs
 annotations:

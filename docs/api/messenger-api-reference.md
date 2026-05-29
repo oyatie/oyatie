@@ -38,7 +38,7 @@ Example REST flow:
 
 ```http
 POST /api/v1/channels HTTP/2
-Host: messenger-kr.oyatie.dev
+Host: messenger-kr.oyatie.com
 Authorization: Bearer eyJ...
 X-Scope-OrgID: tenant:2f0a1c0e9b77aa11
 X-Context-Kind: Professional
@@ -86,7 +86,7 @@ Authorization failure shape:
 
 ## REST Endpoints
 
-Base URL: `https://messenger-{pack}.oyatie.dev/api/v1`.
+Base URL: `https://messenger-{pack}.oyatie.com/api/v1`.
 
 All success responses use `{ "data": ..., "metadata": ... }` unless the OpenAPI
 operation returns a typed object directly. All error responses use `{ "error": ... }`.

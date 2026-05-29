@@ -48,7 +48,7 @@ He opens his personal-tenant Workflow Studio. The widget that he ignored the day
 
 Workflow Studio loads a template authored by the personal-tenant team (canonical template; SHA-256 versioned). The template has 7 blocks:
 
-1. **Job-board sources** — Connect adapters to LinkedIn (Connect MS-LinkedIn-Adapter v3.2), Indeed, AngelList, Otta, RemoteOK, and **Community** (oyatie's own job-board surface, in LinkedIn-mode + Handshake-mode).
+1. **Job-board sources** — adapters to LinkedIn (MS-LinkedIn-Adapter v3.2), Indeed, AngelList, Otta, RemoteOK, and **Community** (oyatie's own job-board surface, in LinkedIn-mode + Handshake-mode).
 2. **AI filter (Intelligence)** — uses a local Intelligence model on Chris's personal compute budget to filter incoming postings against his criteria.
 3. **Personalized cover-letter drafter (Intelligence)** — given a filtered job + his portfolio + his résumé, drafts a cover letter.
 4. **Application tracker (Notes)** — adds a row to a "Applications-2026" Notes database with status, contact, deadline.
@@ -73,7 +73,7 @@ He hits **Activate**. Workflow Studio compiles the visual canvas into a Workflow
 
 ### 2.1 Job-board adapters poll
 
-Connect µservice polls each source at its rate-limit-tolerant interval:
+µservice polls each source at its rate-limit-tolerant interval:
 - LinkedIn: every 15 minutes via authenticated API (Chris's OAuth on his personal LinkedIn).
 - Otta: every 30 minutes.
 - RemoteOK: every hour.
@@ -189,7 +189,7 @@ j144 demonstrates that **the personal tenant is not just a "consumer surface" bu
 2. **The same Intelligence µservice serves consumer + enterprise** (ADR-0255 two-layer). Chris's pipeline uses the consumer-brand-surface; KrampusCorp's HR pipeline (j145 + j132) uses the enterprise-brand-surface. Same substrate.
 3. **The pipeline is his.** No data leaks to a third-party. No third-party model trains on his applications. The retraining is local. Audit-chain has the proof.
 4. **High-risk-mode + HRRP signals (from j142) protect him.** The scammer-recruiter is caught at the boundary.
-5. **Connect adapters are the integration glue.** External job-boards (LinkedIn, Otta, RemoteOK) are accessed through Chris's OAuth — auditable, revocable.
+5. **adapters are the integration glue.** External job-boards (LinkedIn, Otta, RemoteOK) are accessed through Chris's OAuth — auditable, revocable.
 
 ## Chapter 7 — Cross-references
 
@@ -204,7 +204,7 @@ j144 demonstrates that **the personal tenant is not just a "consumer surface" bu
 
 1. Should the pipeline support cross-jurisdiction salary-band auto-translation (e.g., normalize $185k US to ₩240M KRW)? (Yes for v2; out of v1.)
 2. Should Intelligence be allowed to call out to a hosted model with provider-credential BYOK if Chris explicitly enables? (Yes — ADR-0255 §D-4 supports this; default is platform_default; Chris can flip to provider-credential BYOK.)
-3. How does the pipeline degrade if Connect to LinkedIn breaks? (Graceful — other sources continue; LinkedIn block surfaces "API unavailable; retrying" notice.)
+3. How does the pipeline degrade if to LinkedIn breaks? (Graceful — other sources continue; LinkedIn block surfaces "API unavailable; retrying" notice.)
 
 ## Completion expansion — j144 story rigor pass
 

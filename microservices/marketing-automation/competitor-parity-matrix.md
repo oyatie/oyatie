@@ -166,7 +166,7 @@ Legend:
 | Time-decay model | Time-Decay | Time-Decay | — | attribution.time_decay model | EQUIVALENT (matches HubSpot+Marketo) | IP-028 |
 | Custom model | Custom (Enterprise) | Custom | — | attribution.custom_model with formula | EQUIVALENT | IP-028 |
 | Cross-channel attribution | Yes | Yes | Limited | touches include all engagement channels via ontology | EQUIVALENT | IP-028 |
-| Revenue-event source-of-truth | HubSpot CRM | Marketo Sales Connect / CRM sync | Mailchimp e-commerce | crm.opportunity via crm contract | DIFFERENTIATOR | Exceeds counterpart (cryptographic seal) |
+| Revenue-event source-of-truth | HubSpot CRM | Marketo Sales / CRM sync | Mailchimp e-commerce | crm.opportunity via crm contract | DIFFERENTIATOR | Exceeds counterpart (cryptographic seal) |
 | Deterministic replay | Limited | Limited | Limited | attribution model + touches + revenue events → deterministic credit | DIFFERENTIATOR | Exceeds counterpart |
 | Audit-chain sealed reconciliation | — | Limited | — | `EVT-MARKETING-ATTRIBUTION-RECONCILED` sealed | DIFFERENTIATOR | Exceeds counterpart |
 

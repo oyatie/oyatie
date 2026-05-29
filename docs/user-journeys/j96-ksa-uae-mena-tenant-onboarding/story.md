@@ -93,7 +93,7 @@ Failure mode: if the right-to-access bilingual response lane cannot prove compli
 | 10 | Marcus Chen | comms-email | UAE branch transfer review; UAE PDPL Article 24 personal data security and breach notification obligations | Receipt EVT-J96-010 shown with pack KSA-NDMO |
 | 11 | Marcus Chen | community | SDAIA-ready evidence packet; KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles | Receipt EVT-J96-011 shown with pack KSA-PDPL |
 | 12 | Marcus Chen | compliance | right-to-access bilingual response; KSA PDPL Article 6 processing without consent exceptions | Receipt EVT-J96-012 shown with pack UAE-PDPL |
-| 13 | Marcus Chen | connect | Arabic tenant signup; KSA PDPL Article 18 data subject rights and controller response duties | Receipt EVT-J96-013 shown with pack KSA-NDMO |
+| 13 | Marcus Chen | connector | Arabic tenant signup; KSA PDPL Article 18 data subject rights and controller response duties | Receipt EVT-J96-013 shown with pack KSA-NDMO |
 | 14 | Marcus Chen | consent-graph | KSA sovereign cell placement; KSA PDPL Article 20 personal data breach notification to the competent authority | Receipt EVT-J96-014 shown with pack KSA-PDPL |
 | 15 | Marcus Chen | developer-sdk | NDMO classification mapping; KSA PDPL Article 29 transfer or disclosure of personal data outside the Kingdom | Receipt EVT-J96-015 shown with pack UAE-PDPL |
 | 16 | Marcus Chen | docs | UAE branch transfer review; SDAIA Regulation on Personal Data Transfer Outside the Kingdom implementing PDPL Article 29 | Receipt EVT-J96-016 shown with pack KSA-NDMO |
@@ -138,7 +138,7 @@ Failure mode: if the right-to-access bilingual response lane cannot prove compli
 | 55 | Marcus Chen | comms-email | Arabic tenant signup; KSA PDPL Article 29 transfer or disclosure of personal data outside the Kingdom | Receipt EVT-J96-055 shown with pack KSA-NDMO |
 | 56 | Marcus Chen | community | KSA sovereign cell placement; SDAIA Regulation on Personal Data Transfer Outside the Kingdom implementing PDPL Article 29 | Receipt EVT-J96-056 shown with pack KSA-PDPL |
 | 57 | Marcus Chen | compliance | NDMO classification mapping; NDMO National Data Governance Interim Regulations data classification and data sharing controls | Receipt EVT-J96-057 shown with pack UAE-PDPL |
-| 58 | Marcus Chen | connect | UAE branch transfer review; UAE Federal Decree-Law No. 45 of 2021 Article 4 data subject rights | Receipt EVT-J96-058 shown with pack KSA-NDMO |
+| 58 | Marcus Chen | connector | UAE branch transfer review; UAE Federal Decree-Law No. 45 of 2021 Article 4 data subject rights | Receipt EVT-J96-058 shown with pack KSA-NDMO |
 | 59 | Marcus Chen | consent-graph | SDAIA-ready evidence packet; UAE PDPL Articles 22 and 23 cross-border transfer controls | Receipt EVT-J96-059 shown with pack KSA-PDPL |
 | 60 | Marcus Chen | developer-sdk | right-to-access bilingual response; UAE PDPL Article 24 personal data security and breach notification obligations | Receipt EVT-J96-060 shown with pack UAE-PDPL |
 | 61 | Marcus Chen | docs | Arabic tenant signup; KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles | Receipt EVT-J96-061 shown with pack KSA-NDMO |
@@ -183,7 +183,7 @@ Failure mode: if the right-to-access bilingual response lane cannot prove compli
 | 100 | Marcus Chen | comms-email | UAE branch transfer review; UAE PDPL Article 24 personal data security and breach notification obligations | Receipt EVT-J96-100 shown with pack KSA-NDMO |
 | 101 | Marcus Chen | community | SDAIA-ready evidence packet; KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles | Receipt EVT-J96-101 shown with pack KSA-PDPL |
 | 102 | Marcus Chen | compliance | right-to-access bilingual response; KSA PDPL Article 6 processing without consent exceptions | Receipt EVT-J96-102 shown with pack UAE-PDPL |
-| 103 | Marcus Chen | connect | Arabic tenant signup; KSA PDPL Article 18 data subject rights and controller response duties | Receipt EVT-J96-103 shown with pack KSA-NDMO |
+| 103 | Marcus Chen | connector | Arabic tenant signup; KSA PDPL Article 18 data subject rights and controller response duties | Receipt EVT-J96-103 shown with pack KSA-NDMO |
 | 104 | Marcus Chen | consent-graph | KSA sovereign cell placement; KSA PDPL Article 20 personal data breach notification to the competent authority | Receipt EVT-J96-104 shown with pack KSA-PDPL |
 | 105 | Marcus Chen | developer-sdk | NDMO classification mapping; KSA PDPL Article 29 transfer or disclosure of personal data outside the Kingdom | Receipt EVT-J96-105 shown with pack UAE-PDPL |
 | 106 | Marcus Chen | docs | UAE branch transfer review; SDAIA Regulation on Personal Data Transfer Outside the Kingdom implementing PDPL Article 29 | Receipt EVT-J96-106 shown with pack KSA-NDMO |
@@ -228,7 +228,7 @@ Failure mode: if the right-to-access bilingual response lane cannot prove compli
 | 145 | Marcus Chen | comms-email | Arabic tenant signup; KSA PDPL Article 29 transfer or disclosure of personal data outside the Kingdom | Receipt EVT-J96-145 shown with pack KSA-NDMO |
 | 146 | Marcus Chen | community | KSA sovereign cell placement; SDAIA Regulation on Personal Data Transfer Outside the Kingdom implementing PDPL Article 29 | Receipt EVT-J96-146 shown with pack KSA-PDPL |
 | 147 | Marcus Chen | compliance | NDMO classification mapping; NDMO National Data Governance Interim Regulations data classification and data sharing controls | Receipt EVT-J96-147 shown with pack UAE-PDPL |
-| 148 | Marcus Chen | connect | UAE branch transfer review; UAE Federal Decree-Law No. 45 of 2021 Article 4 data subject rights | Receipt EVT-J96-148 shown with pack KSA-NDMO |
+| 148 | Marcus Chen | connector | UAE branch transfer review; UAE Federal Decree-Law No. 45 of 2021 Article 4 data subject rights | Receipt EVT-J96-148 shown with pack KSA-NDMO |
 | 149 | Marcus Chen | consent-graph | SDAIA-ready evidence packet; UAE PDPL Articles 22 and 23 cross-border transfer controls | Receipt EVT-J96-149 shown with pack KSA-PDPL |
 | 150 | Marcus Chen | developer-sdk | right-to-access bilingual response; UAE PDPL Article 24 personal data security and breach notification obligations | Receipt EVT-J96-150 shown with pack UAE-PDPL |
 | 151 | Marcus Chen | docs | Arabic tenant signup; KSA PDPL Royal Decree M/19 Article 5 lawful basis and consent principles | Receipt EVT-J96-151 shown with pack KSA-NDMO |

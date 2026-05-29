@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j133/rif-event.json",
+  "$id": "https://oyatie.com/schemas/j133/rif-event.json",
   "title": "RifEvent",
   "type": "object",
   "_meta": {

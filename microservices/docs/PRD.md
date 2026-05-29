@@ -7,7 +7,7 @@ status: Accepted
 sales_segment: shared-substrate + hero-product
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
-bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
+bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-retention-legal-hold-dual-context]
 related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/docs.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `docs` µservice is oyatie's native collaborative document substrate — the Google Docs / Microsoft Word Web / Notion-pages / Coda parallel. Per ADR-0132 (product-suite + bundle dissolution) and ADR-0135 (Connect unbundle), docs is a standalone tenant-facing µservice owning: rich-text document authoring; real-time multi-user collaboration via CRDT (aligned with workflow-studio ADR-WS-0001); block-based document model (paragraph, heading, list, table, image, embed, code-block, math, callout); comments + suggestions (track-changes); version history; per-block ACL; cross-document embedding (workflow-studio nodes, sheets cells); document import/export (DOCX/Markdown/HTML/PDF/EPUB/LaTeX); AI writing assist (T1 grammar + summary; T2 translation); accessibility (WCAG 2.2 AA).
+The `docs` µservice is oyatie's native collaborative document substrate — the Google Docs / Microsoft Word Web / Notion-pages / Coda parallel. Per ADR-0132 (product-platform + bundle dissolution) and ADR-0135 (unbundle), docs is a standalone tenant-facing µservice owning: rich-text document authoring; real-time multi-user collaboration via CRDT (aligned with workflow-studio ADR-WS-0001); block-based document model (paragraph, heading, list, table, image, embed, code-block, math, callout); comments + suggestions (track-changes); version history; per-block ACL; cross-document embedding (workflow-studio nodes, sheets cells); document import/export (DOCX/Markdown/HTML/PDF/EPUB/LaTeX); AI writing assist (T1 grammar + summary; T2 translation); accessibility (WCAG 2.2 AA).
 
 The µservice carries dual-context (Personal / Professional) per ADR-0135; document content never crosses context boundaries except via explicit sharing grant.
 
@@ -399,15 +399,15 @@ Sharding: documents partitioned by `(tenant_id, document_id_first_byte)`; commen
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0135 | Connect unbundle (parallel session) | dual-context inheritance |
+| ADR-0135 | unbundle (parallel session) | dual-context inheritance |
 | ADR-0139 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
-| ADR-0132 | Product-suite + bundle dissolution | µservice independence |
+| ADR-0132 | Product-platform + bundle dissolution | µservice independence |
 | ADR-0133 | Industry-best-practice conformance | hyperscaler-grade bar |
-| ADR-0134 | Connect dissolution Strangler migration | migration policy |
+| ADR-0134 | dissolution Strangler migration | migration policy |
 | ADR-0140 | Cedar policy enforcement | policy substrate |
-| Bominal ADR-0208 | Connect dual-context unified-channel hub | inherited 1:1 |
-| Bominal ADR-0215 | Connect retention + legal-hold dual-context | inherited 1:1 |
+| Bominal ADR-0208 | dual-context unified-channel hub | inherited 1:1 |
+| Bominal ADR-0215 | retention + legal-hold dual-context | inherited 1:1 |
 | ADR-WS-0001 | workflow-studio CRDT library selection (Loro) | cross-µservice CRDT alignment authority |
 | ADR-DOCS-0001 | CRDT library selection (Loro; aligns with WS-0001) | this µservice |
 | ADR-DOCS-0002 | Block-type system (block-based per Notion) | this µservice |

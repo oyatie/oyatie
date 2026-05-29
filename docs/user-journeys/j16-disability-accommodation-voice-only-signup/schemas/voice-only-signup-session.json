@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j16/voice-only-signup-session.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j16/voice-only-signup-session.json",
   "title": "VoiceOnlySignupSession",
   "version": "1.0.0",
   "description": "VoiceOnlySignupSession shared object for j16 Voice-only disability accommodation signup. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

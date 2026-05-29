@@ -101,7 +101,7 @@ acceptance_criteria:
   - source submission completes in p99 ≤ 3 s (includes E2EE encryption)
   - journalist mailbox read completes in p99 ≤ 500 ms
   - IP stripping verified: no source IP in any application log (CI scan)
-  - plaintext never appears in any platform storage (CI scan of storage schemas)
+  - plaintext never appears in any tenant RBAC storage (CI scan of storage schemas)
   - platform decryption attempt rejected by Cedar gate (never reaches storage layer)
   - Tor onion service availability ≥ 99.9% (SLO)
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j05/nonbinding-eligibility-proof.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j05/nonbinding-eligibility-proof.json",
   "title": "NonbindingEligibilityProof",
   "version": "1.0.0",
   "description": "NonbindingEligibilityProof shared object for j05 Anonymous ethics report from SNU Hospital employee. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

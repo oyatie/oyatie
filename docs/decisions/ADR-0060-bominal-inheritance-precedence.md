@@ -52,7 +52,7 @@ Two-tier precedence for all architectural decisions in oyatie:
 | 4 | Arm grouping | "Arms" structure (Healthcare/Corporate/FinTech/Connect/Platform) | Flat microservice catalog; no grouping; Arms retired | `[[feedback-flat-product-catalog]]`; ADR-0058 |
 | 5 | Product Groups | (would-be Arm equivalent in oyatie) | Retired; flat catalog only | ADR-0058 |
 | 6 | BNF `shared\|vertical` slot2 | (no equivalent in Bominal) | Retired; slot2 = µservice name (open kebab); BNF v4.1 | ADR-0056 |
-| 7 | Workspace product | `modules/workspace` (Bominal) | Workspace → Connect dual-context per Bominal ADR-0208 model | `[[feedback-flat-product-catalog]]` |
+| 7 | Workspace product | `modules/workspace` (Bominal) | Workspace → dual-context per Bominal ADR-0208 model | `[[feedback-flat-product-catalog]]` |
 | 8 | "Shell" terminology | "Modular Product Shell" (Bominal ADR-0121) | "Application" (capital A) | ADR-0061 |
 | 9 | Sales segmentation | Architectural Arms | Sales labels (Healthcare/Enterprise/FinTech/Social) for GTM only, NOT architecture | `[[feedback-flat-product-catalog]]` |
 | 10 | Workflow+Ontology centrality | (not explicit in Bominal) | Workflow + Ontology = THE ecosystem adapter layer; all inter-product flow through them | `[[feedback-workflow-objectgraph-adapter-layer]]`; ADR-0059 |
@@ -85,10 +85,10 @@ Two-tier precedence for all architectural decisions in oyatie:
 | ADR-0128 + ADR-0190 | Versioned regulatory corpus (bominal-law / corpus.lock) |
 | ADR-0132 | Data ownership pillars (org-pillar / person-pillar; Cedar enforcement) |
 | ADR-0140 (retired per ADR-0145) | Multi-jurisdiction policy (per-jurisdiction Cedar overlays) |
-| ADR-0208 | Connect dual-context (Personal + Professional) |
+| ADR-0208 | dual-context (Personal + Professional) |
 | ADR-0209 | Client architecture (Leptos web + 5 native + SvelteKit prototype lane) |
 | ADR-0210 | M03 KR group payroll + mail launch (= oyatie M03 first-paying-tenant target) |
-| ADR-0215 | Connect retention / legal hold / dual-context boundary |
+| ADR-0215 | retention / legal hold / dual-context boundary |
 | ADR-0223 | Proof Ladder L0..L7 |
 | ADR-0224..ADR-0231 | 9 architecture planes |
 | ADR-0232 | Wave integration framework |

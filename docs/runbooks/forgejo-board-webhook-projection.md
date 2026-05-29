@@ -4,7 +4,7 @@ doc_status: published
 
 # Runbook: Forgejo Board Webhook Projection
 
-> **Owner:** `platform-governance` / `agentic-pipeline`
+> **Owner:** `tenant-rbac-governance` / `agentic-pipeline`
 > **Status:** Active
 > **Severity scope:** Sev 3
 > **Last verified:** 2026-05-27 by worker-6 in documentation review

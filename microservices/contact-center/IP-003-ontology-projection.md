@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This slice maps vendor routing and interaction records into ontology primitives before implementation begins. Diana Alvarez needs multi-client migration from Genesys, NICE CXone, Five9, Talkdesk, and AWS Connect without carrying vendor-specific queue, contact flow, and recording labels into the service.
+This slice maps vendor routing and interaction records into ontology primitives before implementation begins. Diana Alvarez needs multi-client migration from Genesys, NICE CXone, Five9, Talkdesk, and AWS without carrying vendor-specific queue, contact flow, and recording labels into the service.
 
 ## Data Model Deltas
 
@@ -59,7 +59,7 @@ gRPC `ContactCenterProjectionService.PreviewProjection(PreviewContactProjectionR
 | NICE CXone Skill | `ContactQueue` | skill id maps to queue plus skill tags. |
 | Five9 Campaign/List | `OutboundDialerPlan` | campaign id maps to plan; list id maps to audience source ref. |
 | Talkdesk Ring Group | `ContactQueue` | ring-group id maps to queue. |
-| AWS Connect Contact Flow | `ContactRoutingFlow` | flow ARN maps to source ref; blocks become workflow nodes. |
+| AWS Contact Flow | `ContactRoutingFlow` | flow ARN maps to source ref; blocks become workflow nodes. |
 
 ## Workflow Steps
 
@@ -93,7 +93,7 @@ Branches: recording payload fields are rejected from projection; missing queue o
 
 ## Migration Notes
 
-Genesys and AWS Connect model flows as graphs, while NICE CXone, Five9, and Talkdesk split skills, queues, and campaigns differently. Import must map behavior and resources, not product labels.
+Genesys and AWS model flows as graphs, while NICE CXone, Five9, and Talkdesk split skills, queues, and campaigns differently. Import must map behavior and resources, not product labels.
 
 ## Cross-µservice Handoffs
 

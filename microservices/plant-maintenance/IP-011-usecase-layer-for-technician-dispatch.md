@@ -10,7 +10,7 @@ persona: darren-chen (planner), tony-li (supervisor), carlos-reyes-ii (tech), ma
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-011: Use-case layer for `technician-dispatch` — Match, offer, accept, no-show sweep

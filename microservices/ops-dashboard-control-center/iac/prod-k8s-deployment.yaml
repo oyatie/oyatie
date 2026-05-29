@@ -50,7 +50,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: ops-dashboard-control-center
-          image: registry.oyatie.dev/ops-dashboard-control-center:0.1.0
+          image: registry.oyatie.com/ops-dashboard-control-center:0.1.0
           imagePullPolicy: Always
           ports:
             - name: http3
@@ -109,7 +109,7 @@ spec:
             - name: tmp
               mountPath: /tmp
         - name: cedar-sidecar
-          image: registry.oyatie.dev/cedar-eval-sidecar:4.2.0
+          image: registry.oyatie.com/cedar-eval-sidecar:4.2.0
           ports:
             - name: cedar-grpc
               containerPort: 9092

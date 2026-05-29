@@ -212,7 +212,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals; 1: AWS Verified Permissions Cedar anchors the external control pattern for cedar-gates; 2: Google Zanzibar provides a second independent hyperscaler pattern for cedar-gates; 1: Stripe Connect account isolation anchors the external control pattern for tenant-scoping; 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for tenant-scoping",
+  "hyperscaler_benchmark": "1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals; 1: AWS Verified Permissions Cedar anchors the external control pattern for cedar-gates; 2: Google Zanzibar provides a second independent hyperscaler pattern for cedar-gates; 1: Stripe account isolation anchors the external control pattern for tenant-scoping; 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for tenant-scoping",
   "owner_team": "oya-substrate-comms",
   "service_classification": "draft",
   "data_classification": "PII, Tenant-Config, PII_IDENTIFYING, AUTHENTICATION, AUDIT",

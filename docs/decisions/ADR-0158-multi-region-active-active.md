@@ -87,7 +87,7 @@ A dedicated **global control-plane** handles tenant-to-cell routing decisions:
 | `workflow-studio` | `active_active` | Stateless control-plane µservice. |
 | `foundry` | `single_region` per-cell | GPU pool pinned to region. |
 | `mail` / `calendar` / `drive` / `notes` / `tasks` / `forms` | `active_passive` per-cell | User-data µservices; per-cell strong-consistency primary. |
-| `connect` / `meet` / `messenger` | `active_active` per-cell | Real-time messaging; per-cell active; cross-cell federation. |
+| `connector` / `meet` / `messenger` | `active_active` per-cell | Real-time messaging; per-cell active; cross-cell federation. |
 | `sites` / `shorts` / `social` / `community` | `active_active` | Read-heavy content µservices. |
 | `recordings` / `sheets` / `slides` / `translate` / `anonymous` / `network` | `active_passive` | Standard SaaS tier. |
 | `application` | `active_active` | Stateless app shell. |

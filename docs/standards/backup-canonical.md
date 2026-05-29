@@ -100,7 +100,7 @@ All backup payloads are age-encrypted before write per ADR-0197 D-3:
   2. Restore associated PVs to `dr-staging` via Velero.
   3. Stand up the µservice's Deployments via Helm against the restored
      namespace.
-  4. Run the µservice's smoke-test suite.
+  4. Run the µservice's smoke-test set.
   5. Measure observed RPO + RTO; compare to the workload-class targets.
 - Evidence:
   - Drill outcome emitted to the audit chain as

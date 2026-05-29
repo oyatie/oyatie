@@ -78,7 +78,7 @@ bash microservices/mail/tests/e2e/imap-fetch.sh
 
 ## Test Plan
 
-- IMAP4rev2 conformance: imaptest harness (Dovecot test suite) passes.
+- IMAP4rev2 conformance: imaptest harness (Dovecot test set) passes.
 - JMAP conformance: `jmap-test` reference suite passes.
 - Performance: latest-50-headers fetch p99 ≤ 300ms.
 - Apple Mail / Thunderbird compatibility: scripted IMAP login + SELECT + FETCH against mock mailbox.

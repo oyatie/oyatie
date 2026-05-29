@@ -120,13 +120,13 @@ Each row carries: (a) Counterpart-specific surface name, (b) Counterpart-specifi
 | SF-074 | Salesforce Lightning Web Components / Aura | Custom UI components | Application frontend (Leptos for web; Swift/Kotlin for mobile) | DELEGATED |
 | SF-075 | Salesforce Apex / Apex Triggers / Batch Apex | Server-side custom code | Delegated to `workflow-engine` µservice for per-tenant logic | DELEGATED |
 | SF-076 | Salesforce Platform Events + Change Data Capture + Streaming API | Event emission + CDC | `crm` AsyncAPI 3.1.0 channel emits all aggregate events; `ontology` provides CDC | PRIMARY |
-| SF-077 | Salesforce External Services + Salesforce Connect + OData | Federated external data | Delegated to `data-sync` µservice for external integration | DELEGATED |
+| SF-077 | Salesforce External Services + Salesforce + OData | Federated external data | Delegated to `data-sync` µservice for external integration | DELEGATED |
 | SF-078 | Salesforce AppExchange (Packaging, DevHub, ISV Program) | Marketplace for apps | Delegated to `marketplace` µservice (multi-category marketplace per ADR-0249) | DELEGATED |
 | SF-079 | Salesforce REST API v59.0 + SOAP API + Bulk API 2.0 + Composite API + Tooling API | API surface | `crm` OpenAPI 3.2.0 + AsyncAPI 3.1.0 + gRPC proto3 triple | DIFFERENTIATED — single OpenAPI surface vs Salesforce's six API families |
 | SF-080 | Salesforce Field Audit Trail + Setup Audit Trail + Shield Event Monitoring | Audit logging | `audit-chain` µservice emits seal events unconditionally per ADR-0263 — exceeds Salesforce default (Field Audit Trail is licensed add-on) | DIFFERENTIATED |
 | SF-081 | Salesforce Experience Cloud Partner Community + Deal Registration + Partner Portal | Partner relationship surface | `partner` bounded context (new in Wave 15A) with Deal Registration aggregate | PRIMARY |
 | SF-082 | Salesforce Account-Based Marketing (Pardot ABM) | Account-based marketing & selling | Delegated to `marketing-automation` µservice ABM module | DELEGATED |
-| SF-083 | Salesforce Social Customer Service + Social Studio | Social CRM | Delegated to `community` + `connect` µservices | DELEGATED |
+| SF-083 | Salesforce Social Customer Service + Social Studio | Social CRM | Delegated to `community` + `connector` µservices | DELEGATED |
 | SF-084 | Salesforce Data Import Wizard + Data Loader + dataloader.io | Bulk data import | `migration-playbooks/from-salesforce-sales-cloud.md`; `data-sync` µservice owns runtime ingest | PARTIAL — Wave 15A documents; implementation Wave 15B |
 | SF-085 | Salesforce Sandbox + Trailhead Playgrounds + Scratch Org | Non-prod environments | Per-tenant sandbox via `oyatie-as-cloud-provider` OpenTofu profile | DEFERRED — Wave 15B |
 | SF-086 | Salesforce Shield Platform Encryption | Encryption with customer-managed keys | Delegated to `cloud-kms` µservice + per-pack overlay activation | DELEGATED |
@@ -175,7 +175,7 @@ Each row carries: (a) Counterpart-specific surface name, (b) Counterpart-specifi
 | HS-034 | HubSpot Custom Code Actions + Webhooks | Programmable automation | Delegated to `workflow-engine` µservice | DELEGATED |
 | HS-035 | HubSpot Operations Hub Programmable | Custom-coded workflow steps | Delegated to `workflow-engine` | DELEGATED |
 | HS-036 | HubSpot Mobile (iOS + Android) | Native mobile app | `crm` Wave 15A native apps: Swift iOS + Kotlin Android | PRIMARY |
-| HS-037 | HubSpot Marketplace + Connect | App marketplace + integrations | Delegated to `marketplace` µservice (multi-category marketplace) | DELEGATED |
+| HS-037 | HubSpot Marketplace + | App marketplace + integrations | Delegated to `marketplace` µservice (multi-category marketplace) | DELEGATED |
 | HS-038 | HubSpot Free + Starter + Professional + Enterprise tiers | Pricing tiers | Per ADR-0330 tenant-class model; per-pack overlay activates features | DIFFERENTIATED — pack overlay vs SKU tier |
 | HS-039 | HubSpot Marketing Contacts (per-contact-billed) | Per-marketing-contact metered pricing | `tenant_class.paid.billing_components` includes `per_usage` per ADR-0331 | DIFFERENTIATED |
 | HS-040 | HubSpot Smart CRM + AI Agents | Embedded AI for CRM | Delegated to `intelligence` µservice + EU-AI-Act high-risk classification per ADR-0251 | DELEGATED |
@@ -284,7 +284,7 @@ These are surfaces present in one or more anchors that Oyatie crm Wave 15A expli
 - E-001. Salesforce Lightning Component Framework + Apex IDE — frontend tooling is delegated to the Oyatie application frontend stack; per-tenant UI extension is via Custom Pages declarative model not Apex code.
 - E-002. Salesforce Trailhead — customer education is delegated to `community` µservice; LMS variant ships under that µservice.
 - E-003. Salesforce Sandbox Refresh — non-prod environments are provisioned via `oyatie-as-cloud-provider` OpenTofu profile (Wave 15B implementation); semantics differ from Salesforce per-org sandbox model.
-- E-004. Salesforce Connect (External Objects via OData) — the federated-read pattern is via `ontology` µservice projection, not OData. External-system federation goes through `data-sync` µservice.
+- E-004. Salesforce (External Objects via OData) — the federated-read pattern is via `ontology` µservice projection, not OData. External-system federation goes through `data-sync` µservice.
 - E-005. HubSpot Inbound Marketing methodology guides — operating-model reference only.
 - E-006. HubSpot Academy + Partner Program — customer/partner education delegated to `community`.
 - E-007. Dynamics Field Service / Project Operations / Finance and Operations (separate Microsoft cloud products) — out-of-scope; expected separate µservices.

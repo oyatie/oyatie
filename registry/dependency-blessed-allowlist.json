@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/dependency-blessed-allowlist.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/dependency-blessed-allowlist.schema.json",
   "title": "DependencyBlessedAllowlist",
   "description": "Data-driven hyperscaler-blessed direct-dependency allowlist consumed by the oya-dev-cli dependency-blessed-allowlist gate. Each crate's own [dependencies]/[dev-dependencies]/[build-dependencies] is read at lane time; every DIRECT external dependency (path/workspace-internal oya-* deps are exempt) is checked against this allowlist. Unblessed direct deps are reported per-crate with the crate path. Default severity is report-only to honor the ADR-0092 D14 report-only-on-day-1 contract; callers opt in to blocking with --enforce. This file is the SINGLE source of truth for the blessed set so the policy is data-driven, not hard-coded in Rust.",
   "_meta": {

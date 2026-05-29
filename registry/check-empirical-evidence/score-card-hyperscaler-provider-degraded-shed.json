@@ -4,7 +4,9 @@
   "enforcement_status": "advisory-until-validator",
   "portfolio_gap_rank": 3,
   "adr_reference": "ADR-0134",
-  "affected_products": ["foundry"],
+  "affected_products": [
+    "foundry"
+  ],
   "source_evidence_refs": [
     "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json"
   ],

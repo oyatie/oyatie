@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/cloud-iac-opentofu-module-catalog.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/cloud-iac-opentofu-module-catalog.schema.json",
   "schema_version": "1.0",
   "catalog_id": "cloud-iac-opentofu-modules-local-foundation",
   "generated_by_changeset": "CS-CLOUD-IAC-001",

@@ -53,7 +53,7 @@ when {
 // PERMIT 3 — synthetic-probe tenant for social smoke tests
 // =============================================================================
 //
-// A reserved tenant:oya-social-synthetic is used by oya-ci to drive
+// A reserved tenant:oya-community-social-synthetic is used by oya-ci to drive
 // end-to-end profile-and-post drills without polluting customer data.
 
 permit (
@@ -72,7 +72,7 @@ permit (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-social-synthetic"
+  resource.tenant_id == "tenant:oya-community-social-synthetic"
 };
 
 // =============================================================================
@@ -92,7 +92,7 @@ forbid (
 )
 when {
   resource has tenant_id &&
-  !(resource.tenant_id in ["tenant:oya-ci", "tenant:oya-aggregate", "tenant:oya-self", "tenant:oya-social-synthetic"])
+  !(resource.tenant_id in ["tenant:oya-ci", "tenant:oya-aggregate", "tenant:oya-self", "tenant:oya-community-social-synthetic"])
 };
 
 // =============================================================================

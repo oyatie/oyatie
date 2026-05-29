@@ -22,11 +22,11 @@ related_adrs:
 # Story - Marketplace listing and first seller payout
 
 ## A. Narrative anchor
-Yejin lists a vintage jacket, completes the first sale, and receives a Stripe Connect payout to a Korean bank after marketplace settlement.
+Yejin lists a vintage jacket, completes the first sale, and receives a Stripe payout to a Korean bank after marketplace settlement.
 
 Yejin Park begins in Seoul. The user job is complete only when the visible action succeeds, the audit chain seals, and `marketplace` can prove the journey from telemetry alone.
 
-Pattern precedent: Stripe Connect marketplace facilitator plus Etsy listing controls.
+Pattern precedent: Stripe marketplace facilitator plus Etsy listing controls.
 
 ## B. Scene-by-scene story
 

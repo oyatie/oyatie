@@ -62,7 +62,7 @@ Stripe Billing is the largest subscription-billing surface in the industry. The 
 | S-25 Reporting (Stripe Sigma SQL) | Stripe Sigma | `partial` | FOCUS 1.1 export to Parquet + Kafka stream | Gap: no canonical SQL surface; FOCUS export is point-in-time. Target: Wave 15B SQL-via-finops-portal. |
 | S-26 Revenue Recognition (ASC 606 + IFRS 15) | Stripe Revenue Recognition | `partial` | FAQ Q12 "SOX-404 controls" + benchmark "OECD BEPS Pillar Two GloBE" | Gap: no canonical RevRec schedule (deferred revenue, earned revenue, contract liability); ASC 606 5-step model not modeled. Target: Wave 15B revenue-recognition.md + kernel ScheduleOfRevenue. |
 | S-27 Tax reporting (e.g., 1099, EU VAT MOSS) | Stripe Tax reports | `partial` | cloud-billing-tax produces per-jurisdiction tax lines | Gap: jurisdiction-specific reports (1099-K, OSS/IOSS quarterly VAT) not modeled. Target: cloud-billing-tax authoring lane. |
-| S-28 Connect (marketplace settlement + platform commission) | Stripe Connect (`Account`, `Transfer`, `ApplicationFee`) | `missing` | revenue_share component (per directive memory) not modeled in kernel | Target: Wave 15B revenue_share primitive + cohort tracking + monthly settlement event + payments-µservice payout integration. |
+| S-28 (marketplace settlement + platform commission) | Stripe (`Account`, `Transfer`, `ApplicationFee`) | `missing` | revenue_share component (per directive memory) not modeled in kernel | Target: Wave 15B revenue_share primitive + cohort tracking + monthly settlement event + payments-µservice payout integration. |
 | S-29 Treasury (embedded financial accounts) | Stripe Treasury | `out-of-scope intentional` | not Oyatie's product surface | Reason: ADR-0321 long-tail B2B SaaS; embedded banking-as-a-service is not a Phase-0 substrate concern. |
 | S-30 Billing Meter (usage-based with aggregation) | Stripe `BillingMeter` (2024+) | `covered` | metering bus + `CloudBillingEvent` + per_usage billing_component | None — actually cloud-billing's metering bus is more substantial (5M events/sec) than Stripe's BillingMeter (per spec). |
 | S-31 Drafts (invoice + credit note drafts) | `Invoice.status=draft` | `partial` | invoice preview vs final state in runbook | Gap: explicit Draft state in kernel `InvoiceState` enum (currently `Issued | Paid | Overdue | Void`). Target: Wave 15B add `Draft` to InvoiceState. |
@@ -175,7 +175,7 @@ The UNION matrix consolidates the three counterparts. Rows where one counterpart
 | Test clocks (simulate time advance) | S-20 | `partial` | --fast-forward flag |
 | Multi-currency invoicing | S-21, A-19 | `covered` | CurrencyCode + ECB FX |
 | FX rate lock at issuance | S-22 | `partial` | runbook command; kernel does not model FX |
-| Marketplace Connect / commission settlement | S-28, R-16 | `missing` | revenue_share component target Wave 15B |
+| Marketplace / commission settlement | S-28, R-16 | `missing` | revenue_share component target Wave 15B |
 | Treasury / embedded banking | S-29 | `out-of-scope intentional` | ADR-0321 long-tail |
 | Usage-based metering (Stripe Billing Meter) | S-30 | `covered` | metering bus + CloudBillingEvent |
 | Reporting / SQL surface (Sigma) | S-25 | `partial` | FOCUS export → SQL via finops-portal target |
@@ -222,7 +222,7 @@ The second biggest gap is **revenue recognition**. Stripe RevRec and Recurly Rev
 
 The third biggest gap is **dunning / retry policy**. Recurly's dunning is industry-leader. cloud-billing's FAQ Q19 covers fraud detection (10x baseline spike → throttle, 3+ declines → freeze, reservation purchase + immediate cancellation pattern → governance) but not the canonical dunning state machine (smart retry windows, retry-on-decline-category, hard-freeze on N attempts, comms cadence, recovery webhook). Target: Wave 15B dunning-policy.md + DunningPolicy primitive parametric over (retry_count, retry_interval, hard_freeze_threshold, recovery_grace).
 
-The fourth gap is **marketplace settlement (revenue_share)**. The directive memory says cloud-billing OWNS revenue_share; no kernel primitive exists today. Stripe Connect is the strongest counterpart; AWS Marketplace billing is the closest cloud-cost counterpart. Wave 15B introduces RevenueShareEvent + cohort tracking + monthly settlement + payouts integration.
+The fourth gap is **marketplace settlement (revenue_share)**. The directive memory says cloud-billing OWNS revenue_share; no kernel primitive exists today. Stripe is the strongest counterpart; AWS Marketplace billing is the closest cloud-cost counterpart. Wave 15B introduces RevenueShareEvent + cohort tracking + monthly settlement + payouts integration.
 
 The fifth gap is **budgets + free-tier alerts**. AWS Budgets is the canonical primitive; cloud-billing has nothing user-defined. Target: Wave 15B Budget + Alert primitives.
 
@@ -238,7 +238,7 @@ The matrix was authored by inspecting cloud-billing's local corpus (10 docs + ke
 
 ## §10 Findings → Wave 14 Backlog (UNION-derived)
 
-The parity rows produce 14 new missing-feature rows that consolidate into the Wave 14 backlog. The 14 rows are: Subscription primitive (S-02/R-02), Proration (S-03/R-03), Add-ons (R-04), Pause/Resume (R-05), Setup fees (R-06), Quote→Invoice (S-14), Coupons (S-15/R-15), Discounts (S-16), Custom fields metadata (S-32), Budgets (A-07), Free Tier Usage Alerts (A-08), Marketplace Connect / revenue_share (S-28/R-16), Multi-language invoice templates (R-20), Carbon Footprint (A-10). Each row's owner is `cloud-billing` (Phase-0 service 12) with the Wave 15B (substance) sub-wave as the canonical landing point. Severity per ADR-0328 §D-8.10..§D-8.12: missing parity is P2 by default unless it blocks a Big 8 priority µservice; in this case all 14 rows are P2 because they enrich cloud-billing but do not block downstream phase promotion. Two exceptions: Subscription primitive (P1 because every CRM / HR / ERP Phase-4 µservice will need subscription-style billing) and Marketplace Connect / revenue_share (P1 because the directive memory says cloud-billing OWNS revenue_share and the absence of the primitive blocks marketplace seller onboarding).
+The parity rows produce 14 new missing-feature rows that consolidate into the Wave 14 backlog. The 14 rows are: Subscription primitive (S-02/R-02), Proration (S-03/R-03), Add-ons (R-04), Pause/Resume (R-05), Setup fees (R-06), Quote→Invoice (S-14), Coupons (S-15/R-15), Discounts (S-16), Custom fields metadata (S-32), Budgets (A-07), Free Tier Usage Alerts (A-08), Marketplace / revenue_share (S-28/R-16), Multi-language invoice templates (R-20), Carbon Footprint (A-10). Each row's owner is `cloud-billing` (Phase-0 service 12) with the Wave 15B (substance) sub-wave as the canonical landing point. Severity per ADR-0328 §D-8.10..§D-8.12: missing parity is P2 by default unless it blocks a Big 8 priority µservice; in this case all 14 rows are P2 because they enrich cloud-billing but do not block downstream phase promotion. Two exceptions: Subscription primitive (P1 because every CRM / HR / ERP Phase-4 µservice will need subscription-style billing) and Marketplace / revenue_share (P1 because the directive memory says cloud-billing OWNS revenue_share and the absence of the primitive blocks marketplace seller onboarding).
 
 ## §11 Per-Counterpart Tenant-Class Mapping
 
@@ -246,10 +246,10 @@ This section maps each counterpart's pricing-class concept to the canonical Oyat
 
 ### §11.1 Stripe Billing → Oyatie tenant_class
 
-Stripe's pricing classes (Stripe Standard, Stripe Plus, Stripe Premium, Stripe Connect Standard / Express / Custom) carry feature gating + revenue-share differences.
+Stripe's pricing classes (Stripe Standard, Stripe Plus, Stripe Premium, Stripe Standard / Express / Custom) carry feature gating + revenue-share differences.
 Stripe Standard ≈ Oyatie paid + billing_components={per_usage} for Stripe charges.
 Stripe Plus / Premium ≈ Oyatie paid + billing_components={per_usage, per_seat} (higher seat count / dedicated support).
-Stripe Connect Standard / Express / Custom ≈ Oyatie paid + billing_components={revenue_share, per_usage} (marketplace settlement).
+Stripe Standard / Express / Custom ≈ Oyatie paid + billing_components={revenue_share, per_usage} (marketplace settlement).
 Stripe Atlas (entity formation) is out-of-scope for cloud-billing.
 Stripe Climate (sustainability) maps to the Carbon Footprint row A-10.
 Demo / sandbox Stripe (test mode) ≈ Oyatie tenant_class=demo_trial.
@@ -286,8 +286,8 @@ Export Stripe Customers (`stripe customers list --limit 100 --starting-after ...
 Export Stripe Subscriptions (`stripe subscriptions list ...`) with plan + cycle anchor + trial state.
 Export Stripe Invoices for the trailing 25 months (matches Paid-equivalent retention).
 Export Stripe Credit Notes.
-Export Stripe Payment Methods (transfer to `payments` µservice via Stripe Connect oauth flow).
-Export Stripe Connect Accounts + Application Fees (transfer to revenue_share cohort).
+Export Stripe Payment Methods (transfer to `payments` µservice via Stripe oauth flow).
+Export Stripe Accounts + Application Fees (transfer to revenue_share cohort).
 
 Phase 1 — Tenant + billing-components provisioning.
 `./bin/oya billing tenant register --tenant <name> --class paid --components revenue_share,per_seat,per_usage --currency USD --invoice-cadence monthly`.
@@ -344,12 +344,12 @@ This annex consolidates counterpart pricing comparable to Oyatie cloud-billing T
 |---|---|---|
 | Stripe Billing | 0.5 % of revenue + payment processing fees (~2.9 % + $0.30) | ~$10,000-$15,000 / month |
 | Stripe Tax | 0.5 % of taxable revenue | ~$5,000-$10,000 / month |
-| Stripe Connect | 0.25 % of Connect transactions + processing | ~$5,000-$15,000 / month |
+| Stripe | 0.25 % of transactions + processing | ~$5,000-$15,000 / month |
 | AWS Billing & Cost Management (native) | $0 (included with AWS account) | $0 — but you pay ~$8,000 / month for Apptio Cloudability or ~$5,500 / month for CloudZero to get chargeback functionality |
 | Recurly | $200-$300 base + 0.9 % of revenue | ~$15,000-$25,000 / month |
 | Oyatie cloud-billing (existing benchmark TCO at mid-market) | ~$2,800 / month substrate cost + processing fees through payments µservice | ~$2,800 / month + processing |
 
-The cloud-billing pricing posture is 49-65 % below Apptio Cloudability + AWS native combo and 70-85 % below Stripe Billing + Stripe Tax + Stripe Connect combo at mid-market scale. The pricing comparison should be tested before publication and updated to reflect the Wave 15B per-billing-component decomposition (Q-BM-10 from the performance-benchmark doc).
+The cloud-billing pricing posture is 49-65 % below Apptio Cloudability + AWS native combo and 70-85 % below Stripe Billing + Stripe Tax + Stripe combo at mid-market scale. The pricing comparison should be tested before publication and updated to reflect the Wave 15B per-billing-component decomposition (Q-BM-10 from the performance-benchmark doc).
 
 ## §14 Out-of-Scope Intentional Reasons (consolidated)
 
@@ -374,12 +374,12 @@ The intentional out-of-scope rows are not gaps; they are correctly delegated to 
 ## §15 Findings Confirmation
 
 The matrix produces these explicit findings (consolidated for Wave 14):
-- 14 missing parity rows (Subscription, Proration, Add-ons, Pause/Resume, Setup fees, Quote, Coupons, Discounts, Custom fields, Budgets, Free Tier Alerts, Marketplace Connect / revenue_share, Multi-language invoice templates, Carbon Footprint).
+- 14 missing parity rows (Subscription, Proration, Add-ons, Pause/Resume, Setup fees, Quote, Coupons, Discounts, Custom fields, Budgets, Free Tier Alerts, Marketplace / revenue_share, Multi-language invoice templates, Carbon Footprint).
 - 26 partial parity rows requiring documentation or completion in Wave 15B.
 - 16 covered rows providing the existing competitive surface.
 - 14 out-of-scope intentional rows with doctrine reasons.
 
-The matrix confirms that cloud-billing is materially weak on subscription primitives + materially strong on substrate primitives. The Wave 14 backlog prioritization should reflect the Big-8 enterprise displacement: Subscription primitive is P1 because every Phase-4 µservice (CRM, HR, ERP) needs subscription-style billing; Marketplace Connect / revenue_share is P1 because the keystone directive memory says cloud-billing OWNS the revenue_share component.
+The matrix confirms that cloud-billing is materially weak on subscription primitives + materially strong on substrate primitives. The Wave 14 backlog prioritization should reflect the Big-8 enterprise displacement: Subscription primitive is P1 because every Phase-4 µservice (CRM, HR, ERP) needs subscription-style billing; Marketplace / revenue_share is P1 because the keystone directive memory says cloud-billing OWNS the revenue_share component.
 
 ## §16 Forward Compatibility Notes
 
@@ -387,7 +387,7 @@ Subscription, Plan, Add-on, Coupon, Discount, DunningPolicy, Budget, and Free-Ti
 
 The Subscription primitive is the highest leverage row; introducing it correctly unlocks several rows that are currently `missing`: Subscription itself, Proration, Add-ons, Pause/Resume, Setup fees, Trial extensions, Cycle anchors, Discounts at the subscription level, Coupons applied to subscriptions, Custom fields on Subscription. The implementation surface for the Subscription primitive should follow Stripe Billing's Customer + Subscription + Plan + Price separation because that schema is the dominant industry mental model; Recurly's Plan + Add-on + Coupon overlays on Stripe's base; AWS B&CM has no subscription concept and is not constraining here.
 
-The Marketplace Connect / revenue_share row is the second-highest leverage row; introducing it correctly unlocks revenue-share cohort tracking, monthly settlement, payouts integration with payments µservice, marketplace seller onboarding, B2C consumer-product operator billing, embedded SaaS reseller pricing, and affiliate / channel partner negative-rev-share flows. The implementation surface should follow Stripe Connect's Account + Transfer + ApplicationFee separation because that schema is the dominant marketplace mental model; AWS Marketplace billing's separation is account-flat (no concept of platform fee separate from seller payout).
+The Marketplace / revenue_share row is the second-highest leverage row; introducing it correctly unlocks revenue-share cohort tracking, monthly settlement, payouts integration with payments µservice, marketplace seller onboarding, B2C consumer-product operator billing, embedded SaaS reseller pricing, and affiliate / channel partner negative-rev-share flows. The implementation surface should follow Stripe Connect's Account + Transfer + ApplicationFee separation because that schema is the dominant marketplace mental model; AWS Marketplace billing's separation is account-flat (no concept of platform fee separate from seller payout).
 
 The Budget primitive is the third-highest leverage row because Budgets enable both demo_trial cap-breach (currently row CB-F-020 in the coherence audit) and AWS Budgets parity (A-07 in this matrix). Wave 15B should author a Budget that supports limit_kind (cost / usage / consumption), threshold (absolute / percentage), action (notify / restrict via Cedar / suspend), notification (comms-email + webhook + Cedar audit), and a per-tenant-class default (demo_trial budget = hard cap; paid budget = soft alert + auto-action).
 

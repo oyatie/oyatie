@@ -118,7 +118,7 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - InterSystems proof: packet fields cite healthcare-integration contracts and capability records.
 - Lyniate/Corepoint displacement: channel audit exports are displaced by signed packet verification and local redaction runbooks.
 - Lyniate/Corepoint proof: clinical export redaction runbooks own remediation.
-- Mirth Connect displacement: script output archives are displaced by deterministic canonicalization and sidecar-held signatures.
+- Mirth displacement: script output archives are displaced by deterministic canonicalization and sidecar-held signatures.
 - Mirth proof: seal verification does not depend on channel scripts.
 - NextGate displacement: MPI lineage is included but cannot seal unresolved identity.
 - NextGate proof: patient_match_case_id must be final before export.

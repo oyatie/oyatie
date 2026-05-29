@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j134/staffing-shortlist.json",
+  "$id": "https://oyatie.com/schemas/j134/staffing-shortlist.json",
   "title": "StaffingShortlist",
   "type": "object",
   "_meta": {

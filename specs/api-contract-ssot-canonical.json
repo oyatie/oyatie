@@ -11,7 +11,11 @@
     "ADR-0349/0359 (Jenkins CI runs the drift gate)",
     "ADR-0358 (ideal roadmap)"
   ],
-  "related_specs": ["specs/schema-registry-canonical.json", "specs/cloud-control-plane-canonical.json", "specs/api-surface-separation.json"],
+  "related_specs": [
+    "specs/schema-registry-canonical.json",
+    "specs/cloud-control-plane-canonical.json",
+    "specs/api-surface-separation.json"
+  ],
   "status": "Proposed-target",
   "date": "2026-05-25",
   "title": "API contract single-source-of-truth — one Rust-native source generating/validating REST + gRPC + GraphQL",
@@ -20,9 +24,21 @@
     "form": "Rust-native typed contract definitions (the canonical source); OpenAPI 3.2.0 + proto3 + GraphQL SDL are projections generated/validated from it",
     "principle": "one source mastered in exactly one place; the three wire surfaces are derived projections, never independently hand-edited (SSOT single-master).",
     "surfaces": [
-      {"surface": "rest", "artifact": "OpenAPI 3.2.0 (.yaml under contracts/openapi/<domain>/<name>-vN.yaml + .meta.yaml)", "derivation": "generated from the Rust source; api-semver gate enforces -vN suffix + metadata (ADR-0342)"},
-      {"surface": "grpc", "artifact": "proto3 (.proto under contracts/proto/<domain>/vN/<name>-vN.proto + .meta.yaml)", "derivation": "generated from the Rust source; tonic/prost adapters consume the generated bindings"},
-      {"surface": "graphql", "artifact": "GraphQL SDL (.graphql) + resolver bindings", "derivation": "FIRST-CLASS but generated/validated from the same Rust source; NO separately hand-maintained GraphQL schema"}
+      {
+        "surface": "rest",
+        "artifact": "OpenAPI 3.2.0 (.yaml under contracts/openapi/<domain>/<name>-vN.yaml + .meta.yaml)",
+        "derivation": "generated from the Rust source; api-semver gate enforces -vN suffix + metadata (ADR-0342)"
+      },
+      {
+        "surface": "grpc",
+        "artifact": "proto3 (.proto under contracts/proto/<domain>/vN/<name>-vN.proto + .meta.yaml)",
+        "derivation": "generated from the Rust source; tonic/prost adapters consume the generated bindings"
+      },
+      {
+        "surface": "graphql",
+        "artifact": "GraphQL SDL (.graphql) + resolver bindings",
+        "derivation": "FIRST-CLASS but generated/validated from the same Rust source; NO separately hand-maintained GraphQL schema"
+      }
     ]
   },
   "drift_gate": {
@@ -32,7 +48,11 @@
   },
   "messaging_directives": {
     "launch_primary": "Apache Pulsar (eventing/messaging)",
-    "first_class_adapters": ["Apache Kafka", "Redpanda", "RabbitMQ"],
+    "first_class_adapters": [
+      "Apache Kafka",
+      "Redpanda",
+      "RabbitMQ"
+    ],
     "async_contracts": "AsyncAPI 3.1.0 for event contracts, also derived from the shared source where events are typed"
   },
   "admission_directives": {

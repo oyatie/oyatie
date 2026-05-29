@@ -164,7 +164,7 @@ oyatie operates as a **SAQ-A facilitator** above PSP-tokenisation. PAN / PIN / t
 
 - The pages that load PSP SDKs (PSP-controlled).
 - The audit-trail surrounding tokenised charges.
-- Sub-merchant onboarding (PCI Connect facilitator role).
+- Sub-merchant onboarding (PCI facilitator role).
 
 ### Req-by-req mapping (PCI DSS v4 high-level)
 
@@ -1081,7 +1081,7 @@ Explicit handling for applicable §3.2.5 rows:
 | Date | Reviewer | Outcome |
 |---|---|---|
 | 2026-05-20 | ops-compliance + axis-payments + dpo | Accepted (initial publication; QSA + KR-FSS pre-audit scheduled M02-foundation pre-cert) |
-| 2026-05-20 | axis-payments doc-suite wave-3-B | Wave-3-B gap sections added: §detection-substrate-binding, §insider-threat-controls, §threat-intelligence-feeds, §key-rotation-cadence, §crypto-agility-plan, §critical-path-edge-cases |
+| 2026-05-20 | axis-payments doc-set wave-3-B | Wave-3-B gap sections added: §detection-substrate-binding, §insider-threat-controls, §threat-intelligence-feeds, §key-rotation-cadence, §crypto-agility-plan, §critical-path-edge-cases |
 
 ---
 

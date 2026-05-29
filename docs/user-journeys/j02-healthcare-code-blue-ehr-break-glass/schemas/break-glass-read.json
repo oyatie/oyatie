@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j02/break-glass-read.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j02/break-glass-read.json",
   "title": "BreakGlassReadRequest",
   "_meta": {
     "binding_adr": "ADR-0247",

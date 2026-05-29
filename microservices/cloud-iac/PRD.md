@@ -450,7 +450,7 @@ Sharding:
 | ADR-0123 | Hyperscaler maturity claim gate | HG-CLOUD-IAC registers here |
 | ADR-0139 | Agentic SLO-gated promotion | downstream consumer of ApplyExecuted events |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
-| ADR-0132 | No-suite policy | cloud-iac stands alone, not a suite member |
+| ADR-0132 | No-grouping policy | cloud-iac stands alone, not a platform member |
 | ADR-0133 | Industry-best-practice conformance | competitor parity authority |
 | ADR-0171 | Multi-cluster federation (ArgoCD ApplicationSets + Cluster API) | this PRD's canonical multi-cluster surface |
 

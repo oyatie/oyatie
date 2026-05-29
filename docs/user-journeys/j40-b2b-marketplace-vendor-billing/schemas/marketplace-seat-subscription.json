@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j40/marketplace-seat-subscription.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j40/marketplace-seat-subscription.json",
   "title": "MarketplaceSeatSubscription",
   "version": "1.0.0",
-  "description": "Shared journey object for j40-b2b-marketplace-vendor-billing. It lets Marcus Chen buy a SaaS plugin from the plugin app store, bill per seat, and settle through Stripe Connect while preserving tenant scope, auditability, and cross-service status.",
+  "description": "Shared journey object for j40-b2b-marketplace-vendor-billing. It lets Marcus Chen buy a SaaS plugin from the plugin app store, bill per seat, and settle through Stripe while preserving tenant scope, auditability, and cross-service status.",
   "_meta": {
     "purpose": "Bind j40-b2b-marketplace-vendor-billing to a machine-readable object shared by all participating microservices.",
     "status": "Proposed",
@@ -20,7 +20,7 @@
     ],
     "enforcement_status": "authoring-target",
     "industry_citations": [
-      "AWS Marketplace SaaS contract plus Stripe Connect subscription pattern"
+      "AWS Marketplace SaaS contract plus Stripe subscription pattern"
     ],
     "contract_surfaces": [
       "OpenAPI 3.2.0",

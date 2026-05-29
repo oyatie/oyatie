@@ -215,7 +215,7 @@ The chat history also says `marketplace`, `plugin-app-store`, and social/communi
 The current docs still over-own billing implementation: PRD context `subscription-billing` owns subscriptions and revenue share at `PRD.md:158-161`.
 ADR-PAS-0006 says billing events are owned by the app store and aggregated nightly; `decisions/ADR-PAS-0006-billing-events-owned-by-app-store.md:22-34` makes that ownership explicit.
 The manifest lists dependencies on `billing-engine`, `stripe-connect`, `finops-ledger`, and `marketplace-substrate`; `manifest.json:235-245` hints the service should depend on shared systems, not reimplement them.
-The tutorial models Stripe Connect revenue share locally; `tutorials/publish-paid-plugin-with-sbom-and-stripe.md:296-298` is a product-flow artifact but lacks tenant-class contract alignment.
+The tutorial models Stripe revenue share locally; `tutorials/publish-paid-plugin-with-sbom-and-stripe.md:296-298` is a product-flow artifact but lacks tenant-class contract alignment.
 Conclusion: product purpose is strong, but billing and revenue-share ownership should be reframed as orchestration over shared billing/substrate systems.
 
 ### §3.2 Dimension 2: artifact completeness and inventory health
@@ -331,7 +331,7 @@ Tenant-class adoption verdict: gap present.
 No `tenant_class` key or enum appears in the service inventory.
 No `demo_trial` literal appears in the service inventory.
 No `revenue_share` tenant-class literal appears in service contracts, although revenue-share product and catalog examples exist.
-Existing product examples mention revenue share as monetization: `catalog/revenue-share-ledger.yaml` exists in inventory and `tutorials/publish-paid-plugin-with-sbom-and-stripe.md:296-298` describes Stripe Connect revenue-share behavior.
+Existing product examples mention revenue share as monetization: `catalog/revenue-share-ledger.yaml` exists in inventory and `tutorials/publish-paid-plugin-with-sbom-and-stripe.md:296-298` describes Stripe revenue-share behavior.
 Existing publisher FAQ says default revenue split and negotiations exist; `faqs/marketplace-publisher-faq.md:14` is stale because it couples revenue share to paid billing_components language.
 Existing onboarding says publishers choose free, one-time, subscription, usage-based, and mixed free+paid pricing; `onboarding/marketplace-publisher-first-week.md:26` models pricing choices but not tenant classes.
 The OpenAPI pricing model has `free`, `one_time`, and `recurring`; `contracts/openapi/plugin-app-store.yaml:256-258` does not separate tenant class from app pricing.

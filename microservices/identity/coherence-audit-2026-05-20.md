@@ -5,7 +5,7 @@ Citation anchors:
 2. Machine-readable master plan: `specs/master-plan-sequencing.json:704-889`, including deployment contexts, OpenTofu substrate, OS matrix, language policy, and OCI Always Free.
 3. Identity product requirements: `microservices/identity/PRD.md:1-1642`, read end to end for purpose, scope, constraints, and benchmark claims.
 4. Identity architecture: `microservices/identity/ARCHITECTURE.md:1-880`, read end to end for topology, dependencies, operations, and edge cases.
-5. Documentation rigor: `docs/standards/documentation-rigor.md:133-139` for intern-buildability and `docs/standards/documentation-rigor.md:58-83` for microservice doc-suite completeness.
+5. Documentation rigor: `docs/standards/documentation-rigor.md:133-139` for intern-buildability and `docs/standards/documentation-rigor.md:58-83` for microservice doc-set completeness.
 
 Constraint memory anchors read:
 - `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_multi_context_provider_agnostic_2026_05_20.md`.

@@ -11,7 +11,7 @@ QuickBooks Online connector — SMB accounting.
 
 ## Auth
 
-OAuth 2.0 — QuickBooks Connect → access token (1h) + refresh token (100d).
+OAuth 2.0 — QuickBooks → access token (1h) + refresh token (100d).
 SecretReference resolves to `sref://<tenant>/qbo/oauth`.
 
 ## Sandbox

@@ -14,11 +14,11 @@ info:
     SPIFFE-bound mTLS for internal callers. X-Scope-OrgID for both.
   contact:
     name: axis-audit-chain
-    url: https://oyatie.dev/teams/axis-audit-chain
+    url: https://oyatie.com/teams/axis-audit-chain
   license:
     name: Internal
 servers:
-  - url: https://audit-chain-{pack}.oyatie.dev/api/v1
+  - url: https://audit-chain-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -79,7 +79,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
     SPIFFEmTLS:
       type: mutualTLS
       description: SPIFFE-identity-bound mTLS for internal mesh callers

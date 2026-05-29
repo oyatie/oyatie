@@ -7,7 +7,7 @@ related_adrs:
   - ADR-0258
 companion_docs:
   - microservices/ops-dashboard-control-center/manifest.json
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # CHANGELOG — ops-dashboard-control-center

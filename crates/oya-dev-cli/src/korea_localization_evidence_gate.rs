@@ -22,8 +22,8 @@ const REQUIRED_KR_PACK_SURFACES: &[&str] = &[
     "cedar_policy_fragments",
     "workflow_templates",
     "typst_document_templates",
-    "connect_mail_messenger_community_localization",
-    "enterprise_smb_operating_flows",
+    "messenger_mail_community_localization",
+    "tenant_rbac_operating_flows",
     "audit_chain_evidence",
     "data_residency_and_privacy_controls",
     "import_export_migration_paths",
@@ -281,7 +281,7 @@ fn validate_pack_manifest(contents: &str) -> Result<(), String> {
     )?;
     for required in [
         "regulatory_bindings:",
-        "connect-retention-kr",
+        "retention-kr",
         "pipa-b2b",
         "microservices_in_scope:",
     ] {

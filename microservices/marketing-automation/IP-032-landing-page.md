@@ -54,7 +54,7 @@ REST `POST /v1/marketing-automation/landing-pages`:
   "seo_metadata": {
     "title": "May 2026 Webinar — Acme Product",
     "meta_description": "Join us for a deep dive into Acme Product.",
-    "og_tags": {"og:image": "https://drive.oyatie.dev/..."}
+    "og_tags": {"og:image": "https://drive.oyatie.com/..."}
   }
 }
 ```

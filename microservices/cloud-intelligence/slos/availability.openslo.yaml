@@ -2,7 +2,7 @@ apiVersion: openslo/v1
 kind: SLO
 metadata:
   name: cloud-intelligence-availability
-  displayName: "LLM Gateway Availability"
+  displayName: "Cloud Intelligence Availability"
   labels:
     microservice: cloud-intelligence
     surface: ingress
@@ -51,8 +51,8 @@ spec:
             metadata: { name: fastburn }
             spec: { op: gte, threshold: 14.4, lookbackWindow: 1h, alertAfter: 2m }
         notificationTargets:
-          - target: pagerduty-foundry
-          - target: opsgenie-foundry
+          - target: pagerduty-cloud-intelligence
+          - target: opsgenie-cloud-intelligence
     - name: cloud-intelligence-availability-burnrate-mediumburn
       kind: AlertPolicy
       spec:

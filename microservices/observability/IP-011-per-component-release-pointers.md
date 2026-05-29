@@ -85,7 +85,7 @@ git ls-remote --heads origin "release/*"
 
 ## Next IP
 
-[`IP-012-oya-vcs-promotion-readiness-lane.md`](IP-012-oya-vcs-promotion-readiness-lane.md)
+[`IP-012-governance-promotion-readiness-lane.md`](IP-012-governance-promotion-readiness-lane.md)
 
 ## References
 

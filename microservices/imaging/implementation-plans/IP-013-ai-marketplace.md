@@ -36,7 +36,7 @@ Stand up the vendor-neutral CADe/CADx fan-out marketplace covering ≥15 AI vend
 
 ## Risks
 
-- Vendor-API drift; mitigate with per-vendor regression suite.
+- Vendor-API drift; mitigate with per-vendor regression set.
 - De-identification correctness on private tags; mitigate with strict allow-list.
 
 ## Estimated effort

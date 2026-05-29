@@ -170,7 +170,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 
 | Actor | Trust level | Authentication | Capability |
 |---|---|---|---|
-| PR author (human or agent) | Untrusted external | GitHub OAuth + signed-commits | Open PR; lane suite runs against their ref; cannot bypass gates |
+| PR author (human or agent) | Untrusted external | GitHub OAuth + signed-commits | Open PR; lane set runs against their ref; cannot bypass gates |
 | Tenant operator (when PR touches their tenant's µservice) | Untrusted external | OIDC + MFA via Application Shell | Read own µservice's Findings; cannot read others' |
 | oyatie CI runner (GitHub Actions; ephemeral) | Semi-trusted internal | SPIFFE workload identity + scoped PAT | Execute lanes; write Findings; emit dispatch events; ephemeral filesystem only |
 | Lane-runtime worker (long-lived service) | Trusted internal | OpenBao-issued service-account token | Dispatch matrix jobs; collect verdicts; admission-gate query API |
@@ -243,7 +243,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: `microservices/governance/src/crates/oya-check-*/rules/*.toml`
 - Likelihood: M / Impact: H / Risk: **H**
 - Mitigations:
-  - Every rule-pack edit requires a PR (no direct push); PR runs the full ~50-lane suite including `oya-check-quality-lane` (which validates rule-pack schema and forbids weakening without ADR).
+  - Every rule-pack edit requires a PR (no direct push); PR runs the full ~50-lane set including `oya-check-quality-lane` (which validates rule-pack schema and forbids weakening without ADR).
   - Two-reviewer requirement for rule-pack edits via CODEOWNERS (axis-foundry + ops-security).
   - Self-application: any softening that would let the softening PR itself pass un-noticed is caught by the synthetic-probe fallback per PRD Open Q3.
   - Audit-chain seal on every rule-pack git blob; diff-replay shows historical posture.

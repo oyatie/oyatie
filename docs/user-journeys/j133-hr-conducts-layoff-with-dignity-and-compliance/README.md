@@ -74,7 +74,7 @@ j133 demonstrates that oyatie's HR platform handles the **hardest** employee-lif
 - `schemas/cohort-channel.json`
 - `schemas/audit-event-cascade.json`
 - `schemas/cedar-permit-bundle.json`
-- `integration-test-plan.md` — 10 test suites
+- `integration-test-plan.md` — 10 test sets
 - Per-µservice IPs at `microservices/<svc>/IP-journey-j133-*.md` (10 files)
 
 ## How to use this journey

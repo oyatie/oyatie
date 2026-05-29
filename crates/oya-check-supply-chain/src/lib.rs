@@ -901,7 +901,7 @@ mod tests {
                 [release_artifact()],
                 [ReleaseSupplyChainEvidence {
                     artifact_digest:
-                        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                        "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
                             .into(),
                     ..release_evidence()
                 }]
@@ -909,7 +909,7 @@ mod tests {
             Err(ReleaseSupplyChainError::DigestNotPinnedInArtifactRef {
                 artifact_ref: release_artifact().artifact_ref,
                 artifact_digest:
-                    "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into(),
+                    "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210".into(),
             })
         );
     }
@@ -929,7 +929,7 @@ mod tests {
 
     fn release_artifact_ref(name: &str) -> String {
         format!(
-            "ghcr.io/oyatie/{name}@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "ghcr.io/oyatie/{name}@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
         )
     }
 
@@ -937,7 +937,7 @@ mod tests {
         ReleaseSupplyChainEvidence {
             artifact_ref: release_artifact().artifact_ref,
             artifact_digest:
-                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
+                "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".into(),
             release_version: "0.1.0".into(),
             source_revision: "0123456789abcdef0123456789abcdef01234567".into(),
             sbom_spdx_ref: "artifact://release/0.1.0/tooling.spdx.json".into(),

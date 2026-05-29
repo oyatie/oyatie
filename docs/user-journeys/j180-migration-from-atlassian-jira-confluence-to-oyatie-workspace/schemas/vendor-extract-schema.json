@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/user-journeys/j180-migration-from-atlassian-jira-confluence-to-oyatie-workspace/vendor-extract-schema.json",
+  "$id": "https://docs.oyatie.com/user-journeys/j180-migration-from-atlassian-jira-confluence-to-oyatie-workspace/vendor-extract-schema.json",
   "title": "Atlassian Jira and Confluence to Oyatie Workspace cutover vendor extract schema",
   "type": "object",
   "required": [

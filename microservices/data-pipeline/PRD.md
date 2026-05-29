@@ -47,7 +47,7 @@ companion_docs:
   - microservices/data-pipeline/coherence-audit-2026-05-20.md
   - microservices/data-pipeline/feature-parity-matrix-2026-05-20.md
   - microservices/data-pipeline/REMEDIATION-NOTES-2026-05-21.md
-planned_enforcement_ref: oya-governance-data-pipeline-doc-suite
+planned_enforcement_ref: oya-governance-data-pipeline-doc-set
 tenant_class_doctrine: {demo_trial, paid}
 remediation_history:
   - 2026-05-21 wave-15A: REMEDIATE-data-pipeline-prd-bespoke-rewrite (§B/C/D/H rewritten from template stamping to bespoke prose per audit §3.1.3)
@@ -57,7 +57,7 @@ remediation_history:
 
 ## A. Problem
 
-Data Pipeline closes the B2B leader coverage gap for ELT, iPaaS, CDC, transformation, lineage, and replay. The audit (§3.8.2) names Fivetran, Airbyte, and dbt Cloud as the top-3 counterparts; Workato, Boomi, and MuleSoft enter as iPaaS context pressure but are not the parity bar. The operational reason for this dedicated flat microservice is the boundary correction recorded in the coverage matrix: ELT and iPaaS cannot route through `connect` because pipeline runs, lineage, and replay need their own owner that can attribute cost, hold dead-letter custody, and reconcile lineage independently from cross-domain integrations.
+Data Pipeline closes the B2B leader coverage gap for ELT, iPaaS, CDC, transformation, lineage, and replay. The audit (§3.8.2) names Fivetran, Airbyte, and dbt Cloud as the top-3 counterparts; Workato, Boomi, and MuleSoft enter as iPaaS context pressure but are not the parity bar. The operational reason for this dedicated flat microservice is the boundary correction recorded in the coverage matrix: ELT and iPaaS cannot route through `connector` because pipeline runs, lineage, and replay need their own owner that can attribute cost, hold dead-letter custody, and reconcile lineage independently from cross-domain integrations.
 
 The product remains compatible with ADR-0316 capability tiers: product labels (e.g., "Workflow Studio", "Analytics") are capability tier projections, while this service owns the durable operational concern of moving and transforming data with audit-chain evidence. Per ADR-0245 substrate-vs-product layering, data-pipeline is substrate that several products consume; it is not a product itself.
 
@@ -170,7 +170,7 @@ Functional requirements are scoped per primitive, with explicit shape and Cedar 
 - **FR-PKG-001**: `package.publish` requires Cedar permit + signature verification + (for marketplace) DealSet.
 - **FR-PKG-002**: `package.install` produces a deterministic lockfile_fingerprint.
 - **FR-PKG-003**: `cdk.scaffold` produces a Rust crate (no Python per `feedback_rust_strict_only_no_python_2026_05_20`).
-- **FR-PKG-004**: `cdk.publish` requires all five test suites to pass (integration, contract, replay, drift, watermark).
+- **FR-PKG-004**: `cdk.publish` requires all five test sets to pass (integration, contract, replay, drift, watermark).
 
 ### Cross-primitive gates
 - **FR-GATE-001**: Every mutation is Cedar-evaluated before storage access; refusal emits audit evidence (per ADR-0243 KS#2).
@@ -327,7 +327,7 @@ The `eligible_tiers: [tier-1, tier-2, tier-3]` in manifest.json and the `Tier-1 
 
 ## J. Out of scope
 
-- Recreating a vendor suite boundary (no `fivetran/`, `airbyte/`, `dbt/` subdirectories; per ADR-0132 no-suite).
+- Recreating a vendor suite boundary (no `fivetran/`, `airbyte/`, `dbt/` subdirectories; per ADR-0132 no-grouping).
 - Sharing database tables with adjacent microservices.
 - Treating vendor labels as canonical object names.
 - Bypassing marketplace DealSet (ADR-0314) for commercial obligations.

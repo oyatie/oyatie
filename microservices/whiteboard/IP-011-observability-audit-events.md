@@ -11,7 +11,7 @@ Binding ADRs: ADR-0105, ADR-0131, ADR-0242, ADR-0243, ADR-0244, ADR-0246, ADR-02
 - Keep high-cardinality tenant identifiers out of ordinary metrics.
 - Keep tenant and board identifiers inside signed audit evidence.
 - Tie denial evidence to policy, pack, DealSet, sidecar, cell, abuse, and export decisions.
-- Give operators enough evidence to displace benchmark suites without losing incident clarity.
+- Give operators enough evidence to displace benchmark sets without losing incident clarity.
 - Satisfy ADR-0321 by naming benchmark-specific events and failure evidence for Miro Enterprise, Mural Enterprise, FigJam, Lucidspark, Whiteboard.fi, and Microsoft Whiteboard.
 - Keep audit event shape compatible with microservices/whiteboard/contracts/asyncapi-v1.yaml.
 - Keep synchronous acceptance references compatible with microservices/whiteboard/contracts/whiteboard-v1.proto.

@@ -173,7 +173,7 @@ Primary risk: the service has rich product artifacts but does not yet encode the
 - INV-095 `microservices/docs/iac/kustomize/overlays/pack-kr/kustomization.yaml` - Kustomize overlay.
 - INV-096 `microservices/docs/incident-response.md` - incident response artifact.
 - INV-097 `microservices/docs/manifest.json` - machine-readable manifest with capability and tier fields.
-- INV-098 `microservices/docs/migration-from-connect.md` - Connect migration artifact.
+- INV-098 `microservices/docs/migration-from-connect.md` - migration artifact.
 - INV-099 `microservices/docs/migration-playbooks/from-google-docs-and-notion.md` - migration playbook with tier provisioning commands.
 - INV-100 `microservices/docs/multi-region.md` - multi-region artifact.
 - INV-101 `microservices/docs/onboarding/docs-engineer-first-week.md` - onboarding artifact with tier commands.
@@ -220,7 +220,7 @@ Primary risk: the service has rich product artifacts but does not yet encode the
 - No `src/` or `tests/` files exist under the microservice path to sample.
 - No root `README.md` exists to read.
 - Chat history was searched for docs-related context in `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/8f603fc7-eb0e-4752-ab03-f8ab63ce113d.jsonl`.
-- Chat history line 11572 records a prior "µservice doc-suite gapfill wave 5" that authored docs `tenant-class-adoption`, onboarding, FAQ, tutorial, benchmark, migration, and reference implementation surfaces.
+- Chat history line 11572 records a prior "µservice doc-set gapfill wave 5" that authored docs `tenant-class-adoption`, onboarding, FAQ, tutorial, benchmark, migration, and reference implementation surfaces.
 - Chat history line 16311 embeds the rolling audit queue row mapping `docs` to Google Docs, Microsoft Word Online, and Notion Docs.
 - Chat history line 16439 lists `docs` in an in-flight Phase 3 first cohort of microservice audits.
 - Chat history context confirms several docs artifacts were generated before the no-tenant-class-drifts correction, explaining why tier retirement candidates are concentrated in onboarding, FAQ, benchmark, migration, and tenant-class-adoption-record surfaces.
@@ -447,7 +447,7 @@ Primary risk: the service has rich product artifacts but does not yet encode the
 - Weakness: no `tests/` files exist under the microservice path.
 - Weakness: docs-site implementation plans mention SvelteKit and Backstage, which require explicit retirement or rehosting outside the Rust/Leptos allowed web frontend posture.
 - Weakness: proto includes a `go_package` option at `contracts/proto/docs.proto` line 8; if generated clients are allowed, this needs explicit generated-SDK classification.
-- Weakness: the prior doc-suite chat line 11572 mentions developer-sdk artifacts with Rust, TypeScript, and Python SDKs; current docs microservice reference implementation is Rust, but the surrounding project history increases the need for language-boundary clarity.
+- Weakness: the prior doc-set chat line 11572 mentions developer-sdk artifacts with Rust, TypeScript, and Python SDKs; current docs microservice reference implementation is Rust, but the surrounding project history increases the need for language-boundary clarity.
 - Feasibility conclusion: implementation architecture is plausible, but the local path is documentation-first and not implementation-verifiable yet.
 
 ### §3.9 Dimension 9 - Ownership Coherence and Handoff Readiness
@@ -487,7 +487,7 @@ Primary risk: the service has rich product artifacts but does not yet encode the
 | DOCS-015 | P2 | No local source or tests exist for implementation verification. | `find microservices/docs -maxdepth 2 -type d` found no `src/` or `tests/`. | Add implementation/test surface or explicitly state docs-only status until code lands. |
 | DOCS-016 | P2 | Proto generated-client metadata needs Rust-strict classification. | `contracts/proto/docs.proto:8` has `option go_package`. | Mark as generator compatibility metadata, not backend implementation permission. |
 | DOCS-017 | P2 | Architecture overstates IaC evidence as present. | `ARCHITECTURE.md:568-631` says IaC evidence surfaces are present, but only Helm/Kustomize exist. | Amend architecture to distinguish runtime manifests from canonical OpenTofu context modules. |
-| DOCS-018 | P2 | Prior chat confirms docs artifacts came from a pre-retirement doc-suite gapfill. | Chat history line 11572 lists docs tenant-class-adoption-record, onboarding, FAQ, tutorial, benchmark, migration, and reference implementation. | Treat those artifacts as review inputs, not final current doctrine. |
+| DOCS-018 | P2 | Prior chat confirms docs artifacts came from a pre-retirement doc-set gapfill. | Chat history line 11572 lists docs tenant-class-adoption-record, onboarding, FAQ, tutorial, benchmark, migration, and reference implementation. | Treat those artifacts as review inputs, not final current doctrine. |
 | DOCS-019 | P3 | Existing parity matrix includes extra competitors without current top-3 methodology separation. | `competitor-parity-matrix.md` lines 24-42 includes many competitors beyond top-3. | Keep extended set as secondary, but separate top-3 union coverage. |
 | DOCS-020 | P3 | PRD/competitor matrix include `M03-onward1` typo-like milestone text. | `competitor-parity-matrix.md` lines 61, 89, 114-116, 138-140. | Normalize milestone spelling in a cleanup pass. |
 | DOCS-021 | P3 | Architecture still includes anchor-sweep provenance warning. | `ARCHITECTURE.md:3`. | Complete content-pass review and remove obsolete scaffold warning when true. |

@@ -25,7 +25,7 @@ Canonical OpenFeature provider contract shared by all language SDKs. Defines the
 | 5 | Caching contract | Hit: return from DashMap; Miss: fetch API; TTL 30s; SSE stream invalidates immediately; LKG disk fallback 30min |
 | 6 | Stale-while-revalidate | Return stale value + trigger background refresh when TTL expired but SSE not yet delivered |
 | 7 | Versioning | Provider version `1.x` tracks openapi-v1.yaml SemVer; breaking changes require major bump + sunset per ADR-0258 |
-| 8 | Conformance tests | OpenFeature spec conformance suite passes for all 4 resolution types |
+| 8 | Conformance tests | OpenFeature spec conformance set passes for all 4 resolution types |
 
 ## Caching Architecture
 
@@ -46,7 +46,7 @@ LKG disk cache (30min, survives process restart)
 
 ## Definition of Done
 
-- OpenFeature spec conformance suite green
+- OpenFeature spec conformance set green
 - Stale-while-revalidate: stale value returned within 1ms; refresh completes within 2s
 - SSE invalidation: flag change propagates to client within 5s (SLO: flag-state-propagation)
 - All 4 language SDKs (IP-014, IP-015, IP-016, + Go in Phase 2) implement this contract

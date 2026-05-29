@@ -14,11 +14,11 @@ info:
     X-Tenant-Id header MUST match the JWT tenant_id claim; mismatch returns 401.
   contact:
     name: axis-ontology
-    url: https://oyatie.dev/teams/axis-ontology
+    url: https://oyatie.com/teams/axis-ontology
   license:
     name: Internal
 servers:
-  - url: https://ontology-{pack}.oyatie.dev/api/v1
+  - url: https://ontology-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -79,7 +79,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
     AgentJWT:
       type: http
       scheme: bearer

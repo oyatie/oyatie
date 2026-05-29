@@ -584,7 +584,7 @@ The sidecar process is **strongly isolated** from caller pods:
 |---|---|
 | **Kubernetes Pod isolation** | Sidecar is a separate Pod (DaemonSet pattern), not a sidecar container in the caller's pod. Inter-pod IPC via UDS mounted from a shared CSI volume. |
 | **User namespace** | Sidecar runs as a dedicated UID/GID outside the caller's UID/GID range |
-| **Seccomp profile** | Restricts syscalls to: `read`, `write`, `recvmsg`, `sendmsg`, `socket`, `bind`, `accept`, `connect`, `close`, `epoll_*`, `clock_gettime`, `mlock`, `munlock`, `prctl`, `getrandom`, `exit_group`, `mmap`, `munmap`, `mprotect`, `futex`. NO `ptrace`, NO `process_vm_readv`, NO `process_vm_writev`. |
+| **Seccomp profile** | Restricts syscalls to: `read`, `write`, `recvmsg`, `sendmsg`, `socket`, `bind`, `accept`, `connector`, `close`, `epoll_*`, `clock_gettime`, `mlock`, `munlock`, `prctl`, `getrandom`, `exit_group`, `mmap`, `munmap`, `mprotect`, `futex`. NO `ptrace`, NO `process_vm_readv`, NO `process_vm_writev`. |
 | **AppArmor / SELinux profile** | Refuses any file access outside `/run/oya-sidecar.sock` (the UDS path), `/etc/oya/sidecar/`, `/proc/self/`, `/dev/urandom`, and the audit-emit Kafka endpoint |
 | **Memory limits** | Cgroup memory limit set explicitly to prevent OOM-killer escalation to root |
 | **No host PID namespace** | Sidecar's PID namespace is isolated from caller pods |

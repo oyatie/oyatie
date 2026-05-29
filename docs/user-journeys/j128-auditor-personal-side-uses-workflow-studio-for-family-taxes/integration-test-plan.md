@@ -148,7 +148,7 @@ async fn test_b2_gao_audit_chain_zero() {
 }
 ```
 
-### B.3 Connect adapter pull is tenant-scoped
+### B.3 adapter pull is tenant-scoped
 
 ```rust
 #[tokio::test]

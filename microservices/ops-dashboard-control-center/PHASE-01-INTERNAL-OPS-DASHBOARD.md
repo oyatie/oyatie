@@ -14,7 +14,7 @@ related_adrs:
 companion_docs:
   - microservices/ops-dashboard-control-center/PRD.md
   - microservices/ops-dashboard-control-center/ARCHITECTURE.md
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # PHASE-01 — Internal Ops Dashboard Buildout

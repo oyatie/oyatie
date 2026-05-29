@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j16/single-switch-fallback.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j16/single-switch-fallback.json",
   "title": "SingleSwitchFallback",
   "version": "1.0.0",
   "description": "SingleSwitchFallback shared object for j16 Voice-only disability accommodation signup. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

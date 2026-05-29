@@ -62,7 +62,7 @@ Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`,
 |---|---|---|
 | GitHub | Reserved organization/user names and anti-impersonation controls | Prevents tenant slugs that look like platform or service owners. |
 | Slack Enterprise Grid | Workspace URL/name reservation for enterprise domains | Protects user-facing workspace aliases below the tenant. |
-| Stripe Connect | Platform-owned account namespace separation | Keeps customer-controlled tenant names distinct from substrate principals and audit actors. |
+| Stripe | Platform-owned account namespace separation | Keeps customer-controlled tenant names distinct from substrate principals and audit actors. |
 
 ## API Versioning (per ADR-0342)
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.

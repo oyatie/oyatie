@@ -4,7 +4,7 @@ template_id: TPL-PRD
 prd_id: PRD-notes
 microservice: notes
 status: Accepted
-sales_segment: connect-suite-product
+sales_segment: tenant-rbac-entitlement
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: []
@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `notes` µservice is the **short-form personal-notes + knowledge-capture** surface that ships under parallel ADR-0238 (Connect super-app expansion) and ADR-0132 (suite-and-bundle dissolution) as a stand-alone hero µservice. It is NET-NEW; no `oya-connect-notes-*` legacy crates exist.
+The `notes` µservice is the **short-form personal-notes + knowledge-capture** surface that ships under parallel ADR-0238 (super-app expansion) and ADR-0132 (suite-and-bundle dissolution) as a stand-alone hero µservice. It is NET-NEW; no `oya-notes-*` legacy crates exist.
 
 The µservice owns: **note (Markdown body + YAML frontmatter), notebook/stack (loose hierarchy), tag (multi-tag per note + tag-graph), backlink (Obsidian-style `[[wikilink]]` bidirectional), daily-note (auto-created per day), template, web-clipper-bridge, share-link (read-only by default), embed (image + video + file via drive µservice), checklist, reminder (cross-µservice to tasks), folder (optional; flat-by-default), version-history (linear), search (cross-note + tag-faceted; client-side for E2E notes), graph-view (Obsidian-style force-directed; client-side render), import (Apple Notes export + Evernote ENEX + OneNote + Notion Markdown + Bear + Obsidian vault), export (Markdown + PDF + JSON portable), collab-edit (optional per note; Loro CRDT align), AI-summarize (T1), AI-suggest-tag (T1), AI-link-suggest (T1)**, across the dual-context model (Personal B2C + Professional B2B).
 
@@ -405,15 +405,15 @@ Sharding:
 |---|---|---|
 | ADR-0008 | Data Use Boundary | personal/professional data-use invariants |
 | ADR-0056 | BNF v4.1 | naming authority |
-| ADR-0063 | Documentation suite coverage | doc-coverage CI lane |
+| ADR-0063 | Documentation set coverage | doc-coverage CI lane |
 | ADR-0064 | Canonical base + localization packs | pack pattern |
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0117 | Data residency packs | residency authority |
-| ADR-0135 | Connect dual-context (parallel) | dual-context isolation source |
+| ADR-0135 | dual-context (parallel) | dual-context isolation source |
 | ADR-0139 | Agentic SLO-gated promotion | gates notes releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
-| ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
+| ADR-0132 | Suite-and-bundle dissolution | factored into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-NOTES under this |
 | ADR-NOTES-0001 | E2E encryption default on Personal tier | sealed by this PRD's NFR + DCI-03 |
 | ADR-NOTES-0002 | Bidirectional link + graph storage | sealed by FR-04 + FR-14 |
@@ -426,8 +426,8 @@ Sharding:
 | ADR-WS-0001 | Workflow-studio Loro CRDT (sibling) | Loro alignment source |
 | Bominal ADR-0028 | Audit-chain Merkle + Ed25519 | inherited |
 | Bominal ADR-0111 | Ciphertext property type + envelope encryption | inherited |
-| Bominal ADR-0208 | Connect dual-context unified channel hub | inherited via ADR-0135 |
-| Bominal ADR-0215 | Connect retention legal-hold dual-context | inherited via ADR-0135 |
+| Bominal ADR-0208 | dual-context unified channel hub | inherited via ADR-0135 |
+| Bominal ADR-0215 | retention legal-hold dual-context | inherited via ADR-0135 |
 
 ## Doctrine refs (ADR-0346..0349)
 

@@ -4,13 +4,13 @@ ip_id: IP-015
 microservice: plant-maintenance
 related_adrs: [ADR-0105, ADR-0131, ADR-0244, ADR-0252, ADR-0253, ADR-0257, ADR-0263, ADR-0294, ADR-0297, ADR-0314, ADR-0315, ADR-0329, ADR-0330, ADR-0331]
 journey_ref: j208-asset-lifecycle-and-maintenance
-sap_submodule: End-to-end test suite covering SAP S/4HANA PM-EAM, PM-PRM, PM-WOC, PM-MRP, PM-WCM submodule lifecycles
+sap_submodule: End-to-end test set covering SAP S/4HANA PM-EAM, PM-PRM, PM-WOC, PM-MRP, PM-WCM submodule lifecycles
 service_surface: substrate
 persona: integration-engineer, quality-engineer, maya-okafor (reliability)
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity + axis-qa
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-015: Integration tests for `plant-maintenance` — End-to-end, saga, multi-region
@@ -21,9 +21,9 @@ Implements the **integration test pyramid** for plant-maintenance: contract-test
 
 Test taxonomy follows the **Test Pyramid** (Mike Cohn) + the **Five-Test-Type model** (Spotify): unit / property / contract / integration / end-to-end. Coverage floors per ADR-0063 doc-rigor: ≥85% line, ≥75% branch, ≥95% on Cedar-gated paths.
 
-Industry-precedent equivalents: Stripe API integration test suite shape, AWS CloudFormation TestKit, Kubernetes e2e test harness, Spring Boot test-slice taxonomy.
+Industry-precedent equivalents: Stripe API integration test set shape, AWS CloudFormation TestKit, Kubernetes e2e test harness, Spring Boot test-slice taxonomy.
 
-### A.1 Why the integration test suite is non-trivial
+### A.1 Why the integration test set is non-trivial
 
 1. **Saga tests need test-doubles.** Inventory / identity / finops / permit-to-work must be doubled with deterministic behavior; chaos-mode test-doubles inject latency + failure to exercise compensation paths.
 2. **Cedar policy soak.** Per ADR-0294, every Cedar fragment changes go through a ≥60s soak window; integration test runs the soak in a compressed simulation (`cedar_test_clock`).
@@ -296,7 +296,7 @@ exclude = ["build.rs", "src/main.rs"]
 | IP-006/012 | OEE refresh (subtree) p99 ≤ 7s | `perf::oee_refresh_subtree_p99` |
 | IP-014 | REST GET equipment p99 ≤ 42ms | `perf::rest_load_equipment_p99` |
 
-### D-10. Audit-event registry (test-suite-emitted)
+### D-10. Audit-event registry (test-set-emitted)
 
 | Event class | Severity | Emitter |
 |---|---|---|

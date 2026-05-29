@@ -210,7 +210,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Ombudsperson Felix Tan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Ombudsperson Felix Tan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Ombudsperson Felix Tan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Ombudsperson Felix Tan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Ombudsperson Felix Tan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Ombudsperson Felix Tan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Ombudsperson Felix Tan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Ombudsperson Felix Tan must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

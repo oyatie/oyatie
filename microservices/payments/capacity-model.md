@@ -35,7 +35,7 @@ Consumer-facing surfaces that drive payment volume:
 | `cloud-billing` usage invoicing | 5k | 200k | Per-tenant monthly billing cycle (≤30k tenants) |
 | `plugin-app-store` checkout | 2k | 500k | Per-developer-cohort growth |
 | `marketplace` apps + agents + datasets | 1k | 1M | Marketplace-volume growth |
-| `connect` escrow | 100 | 50k | Tail-light B2B contract escrow |
+| `connector` escrow | 100 | 50k | Tail-light B2B contract escrow |
 | **Total** | **~358k** | **~18.75M** | |
 
 ### 1.2 Burst factor
@@ -69,7 +69,7 @@ Each PSP has rate-limits that constrain our routing.
 | Live mode | 100/s/account (default) | Tenant-account-level; can request raise. |
 | Test mode | 25/s/account | Sandbox only. |
 | Webhook | unlimited from Stripe → us | We absorb at edge + queue. |
-| Connect platform | inherits per-sub-merchant-account | Each sub-merchant has its own 100/s ceiling. |
+| platform | inherits per-sub-merchant-account | Each sub-merchant has its own 100/s ceiling. |
 
 **Implication**: a tenant with >50k charges/day needs Stripe rate-limit raise (Stripe approves on legitimate volume).
 
@@ -229,7 +229,7 @@ At year-3 GA, fixed infra is **<0.1% of total cost**. The cost lever is PSP-fee-
 
 | Bottleneck candidate | Mitigation |
 |---|---|
-| Per-tenant Stripe rate-limit | Request raise; sharding via Connect sub-merchants. |
+| Per-tenant Stripe rate-limit | Request raise; sharding via sub-merchants. |
 | Per-cell CRDB write capacity | Horizontal cell-shard expansion per ADR-0248. |
 | Audit-chain seal lag | Parallel-seal-shard by tenant_id-prefix; 16-shard parallelism. |
 | Webhook-handler queue depth | HPA on queue-depth; cross-cell rebalance. |

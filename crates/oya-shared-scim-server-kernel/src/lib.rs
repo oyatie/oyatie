@@ -496,7 +496,7 @@ pub struct ReferenceScimServer<U: UserStore, G: GroupStore, I: IdGen> {
     pub users: U,
     pub groups: G,
     pub ids: I,
-    pub base_url: String, // e.g. "https://identity.oyatie.dev/scim/v2"
+    pub base_url: String, // e.g. "https://identity.oyatie.com/scim/v2"
     pub max_items_per_page: usize,
 }
 

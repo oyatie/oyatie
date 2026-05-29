@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j132/ai-screening-fairness-audit.json",
+  "$id": "https://oyatie.com/schemas/j132/ai-screening-fairness-audit.json",
   "title": "AiScreeningFairnessAudit",
   "type": "object",
   "_meta": {

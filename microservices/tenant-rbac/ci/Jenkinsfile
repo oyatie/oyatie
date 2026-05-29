@@ -1,0 +1,180 @@
+String requireRealCiImageDigest(String variableName) {
+  String digest = env[variableName]?.trim()
+  if (!digest) {
+    throw new IllegalStateException("${variableName} must be set before rendering the Jenkins Kubernetes agent pod")
+  }
+  if (!(digest ==~ /^sha256:[0-9a-f]{64}$/) || digest ==~ /^sha256:0{64}$/) {
+    throw new IllegalStateException("${variableName} must be a real non-zero sha256 digest")
+  }
+  return digest
+}
+
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer 'rust'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    oyatie.com/ci-substrate: jenkins
+    oyatie.com/adr: ADR-0349
+  annotations:
+    cosign.sigstore.dev/required: "true"
+    oyatie.com/image-promotion: ADR-0181
+spec:
+  runtimeClassName: kata-cloud-hypervisor
+  containers:
+    - name: rust
+      # Jenkins injects OYA_CI_RUST_IMAGE_DIGEST from ADR-0181 release automation; no fake digest is committed.
+      image: registry.oyatie.dev/ci/rust:stable@${requireRealCiImageDigest('OYA_CI_RUST_IMAGE_DIGEST')}
+      imagePullPolicy: IfNotPresent
+      command:
+        - cat
+      tty: true
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+"""
+    }
+  }
+
+  options {
+    timestamps()
+    ansiColor('xterm')
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    OYA_MICROSERVICE = 'tenant-rbac'
+    CARGO_PACKAGE = 'oya-tenant-rbac-api'
+    CARGO_PACKAGES = 'oya-tenant-rbac-domain oya-tenant-rbac-application oya-tenant-rbac-api'
+    CARGO_INCREMENTAL = '0'
+    CARGO_TERM_COLOR = 'always'
+    NEXTEST_PROFILE = 'ci'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install Rust CI tooling') {
+      steps {
+        container('rust') {
+          sh 'rustup component add rustfmt clippy'
+          sh 'cargo nextest --version || cargo install cargo-nextest --locked'
+        }
+      }
+    }
+
+    stage('cargo fmt --check') {
+      steps {
+        container('rust') {
+          sh 'cargo fmt --all -- --check'
+        }
+      }
+    }
+
+    stage('cargo check -p package group') {
+      steps {
+        container('rust') {
+          sh '''
+set -eu
+for package in $CARGO_PACKAGES; do
+  cargo check -p "$package"
+done
+'''
+        }
+      }
+    }
+
+    stage('cargo clippy -p package group') {
+      steps {
+        container('rust') {
+          sh '''
+set -eu
+for package in $CARGO_PACKAGES; do
+  cargo clippy -p "$package" --all-targets -- -D warnings
+done
+'''
+        }
+      }
+    }
+
+    stage('cargo nextest run -p package group') {
+      steps {
+        container('rust') {
+          sh '''
+set -eu
+for package in $CARGO_PACKAGES; do
+  cargo nextest run -p "$package" --no-fail-fast
+done
+'''
+        }
+      }
+    }
+
+    stage('OpenAPI semver contract gate') {
+      steps {
+        container('rust') {
+          sh './bin/oya gate validate api-semver --contracts-dir "microservices/${OYA_MICROSERVICE}/contracts"'
+        }
+      }
+    }
+
+    stage('Oya VCS admission evidence') {
+      steps {
+        container('rust') {
+          sh 'cargo run -q -p oya-vcs-admission-gate-app'
+        }
+      }
+    }
+
+    stage('Emit Wave 15-ZE evidence') {
+      steps {
+        container('rust') {
+          sh '''
+set -eu
+evidence_dir="evidence/ci/jenkins/${OYA_MICROSERVICE}"
+mkdir -p "$evidence_dir"
+cat > "$evidence_dir/wave-15-ze.json" <<JSON
+{
+  "wave": "15-ZE",
+  "adr": "ADR-0349",
+  "microservice": "${OYA_MICROSERVICE}",
+  "cargo_package": "${CARGO_PACKAGE}",
+  "cargo_packages": "${CARGO_PACKAGES}",
+  "ci_substrate": "jenkins-lts",
+  "runtime_class": "kata-cloud-hypervisor",
+  "lanes": [
+    "cargo fmt --all -- --check",
+    "cargo check -p for each package in ${CARGO_PACKAGES}",
+    "cargo clippy -p for each package in ${CARGO_PACKAGES} --all-targets -- -D warnings",
+    "cargo nextest run -p for each package in ${CARGO_PACKAGES} --no-fail-fast",
+    "./bin/oya gate validate api-semver --contracts-dir microservices/${OYA_MICROSERVICE}/contracts",
+    "cargo run -q -p oya-vcs-admission-gate-app"
+  ],
+  "build_url": "${BUILD_URL:-local}",
+  "git_commit": "${GIT_COMMIT:-unknown}",
+  "image_signature_policy": "cosign-required",
+  "scope_boundary": "quality-gate-only-no-deploy"
+}
+JSON
+'''
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      archiveArtifacts artifacts: "evidence/ci/jenkins/${OYA_MICROSERVICE}/wave-15-ze.json", allowEmptyArchive: false
+    }
+  }
+}

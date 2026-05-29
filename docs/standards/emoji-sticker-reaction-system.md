@@ -277,7 +277,7 @@ my-pack.oyastk
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/sticker-pack/v1.json",
+  "$id": "https://oyatie.com/schemas/sticker-pack/v1.json",
   "title": "OyatieStickerPack",
   "type": "object",
   "required": [

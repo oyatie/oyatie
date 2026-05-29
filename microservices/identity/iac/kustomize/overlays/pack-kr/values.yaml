@@ -2,12 +2,12 @@
 packLabel: kr
 zitadel:
   zitadelConfig:
-    externalDomain: identity-kr.oyatie.dev
+    externalDomain: identity-kr.oyatie.com
     Telemetry:
       Endpoint: otel-collector.observability-kr.svc.cluster.local:4317
 webauthn:
   attestation: direct
-  rpId: identity-kr.oyatie.dev
+  rpId: identity-kr.oyatie.com
 openbao:
   hsm:
     type: thales-luna

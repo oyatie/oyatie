@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/goal.json",
+  "$id": "https://docs.oyatie.com/goal.json",
   "title": "OyatieDurableGoal",
   "description": "Repo-root durable goal artifact. An agent invoked with 'implement following instructions from goal.json' reads prompt_markdown end-to-end and executes the per-slice loop until stop_condition.",
   "_meta": {

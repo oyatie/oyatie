@@ -13,7 +13,7 @@ version: 0.1.0
 appVersion: "1.0.0"
 maintainers:
   - name: axis-translate
-    email: axis-translate@oyatie.dev
+    email: axis-translate@oyatie.com
 keywords:
   - translate
   - machine-translation

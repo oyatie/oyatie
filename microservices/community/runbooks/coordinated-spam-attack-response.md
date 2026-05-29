@@ -310,4 +310,4 @@ evidence_hash: <sha256>
 ## Checkpoint Closure Criteria
 - The runbook remains current when `CoordinatedSpamAttackResponseCritical`, `CoordinatedSpamAttackResponseSloBurn`, `oya_community_coordinated_spam_attack_total`, `oya.community.coordinated_spam_attack_response.incident_hold`, and `community-coordinated-spam-attack-response-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when the recovery PR against `dev` has Jenkins green, `oya gate run-all --ci-required` and `oya verify --ci-required` evidence attached, and reviewer APPROVE records the five target scopes.

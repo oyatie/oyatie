@@ -155,7 +155,7 @@ PERMIT. The Workflow Engine spawns 200 `rif-employee-cascade-v3` workflows — o
 
 ### 2.4 Seoul announcements (T+4.5 hours)
 
-20 affected Seoul employees. Ji-won leads. The Workflow Engine emits 20 `RifEmployeeCascadeStarted` events. Per LSA §24, the 30-day advance notice has been served via T-30 informal notification + T+0 formal Mail. Severance computed: 1 month/year × tenure. Employment Insurance enrollment is auto-triggered (Connect to Korean Employment Insurance system).
+20 affected Seoul employees. Ji-won leads. The Workflow Engine emits 20 `RifEmployeeCascadeStarted` events. Per LSA §24, the 30-day advance notice has been served via T-30 informal notification + T+0 formal Mail. Severance computed: 1 month/year × tenure. Employment Insurance enrollment is auto-triggered (to Korean Employment Insurance system).
 
 ### 2.5 Berlin announcements (T+12 hours, the longest tail)
 
@@ -242,7 +242,7 @@ Per-employee enrollment cost: $1,800 (paid by Marcus's tenant to outplacement-ve
 
 ### 4.2 Cross-tenant enrollment via Connect
 
-Workflow Engine triggers `outplacement-enroll-v2` per affected employee. Connect µservice mints a cross-tenant invitation for the outplacement-vendor-x tenant. The vendor accepts. The employee receives a Mail with the enrollment link. The employee uses their personal-tenant principal to enroll (per ADR-0311, the employee's outplacement experience runs in their personal-tenant context, NOT marcus-tenant — they're no longer a marcus-tenant member).
+Workflow Engine triggers `outplacement-enroll-v2` per affected employee. µservice mints a cross-tenant invitation for the outplacement-vendor-x tenant. The vendor accepts. The employee receives a Mail with the enrollment link. The employee uses their personal-tenant principal to enroll (per ADR-0311, the employee's outplacement experience runs in their personal-tenant context, NOT marcus-tenant — they're no longer a marcus-tenant member).
 
 ### 4.3 90-day support
 
@@ -367,7 +367,7 @@ The boundary still holds: legal-hold applies to TENANT-OWNED data. The employee'
 
 - 1 Austin employee filed an EEOC complaint at T+45 days (age discrimination allegation; the disparate-impact analysis showed no statistical violation, but the employee's individual claim is being investigated). Marcus's tenant cooperates fully via Cedar-permitted document production.
 - Berlin works-council requested a follow-up consultation at T+60 days about future hiring plans (preventive); Klaus complied per BetrVG.
-- 4 Seoul employees missed Employment Insurance auto-enrollment due to a Connect channel hiccup; manually corrected within 7 days.
+- 4 Seoul employees missed Employment Insurance auto-enrollment due to a channel hiccup; manually corrected within 7 days.
 - One outplacement-vendor-x coach had complaints from 3 employees about quality; the vendor replaced the coach.
 
 ### 9.3 Cross-jurisdiction learnings

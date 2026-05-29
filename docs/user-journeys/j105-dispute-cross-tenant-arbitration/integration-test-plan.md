@@ -47,7 +47,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
 - Test data: synthetic, non-production, no secrets, no live rails.
 - Test contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, JSON Schema 2020-12.
 
-## Suite 1: tenant admission
+## Test Set 1: tenant admission
 
 ### IT-105-001: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -115,7 +115,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 2: identity binding
+## Test Set 2: identity binding
 
 ### IT-105-007: compliance handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -183,7 +183,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 3: Cedar permit evaluation
+## Test Set 3: Cedar permit evaluation
 
 ### IT-105-013: audit-chain handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -251,7 +251,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 4: marketplace settlement
+## Test Set 4: marketplace settlement
 
 ### IT-105-019: mail handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -319,7 +319,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 5: workflow orchestration
+## Test Set 5: workflow orchestration
 
 ### IT-105-025: messenger handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -387,7 +387,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 6: payment escrow
+## Test Set 6: payment escrow
 
 ### IT-105-031: drive handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -455,7 +455,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 7: ontology projection
+## Test Set 7: ontology projection
 
 ### IT-105-037: payments handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -523,7 +523,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 8: audit dual seal
+## Test Set 8: audit dual seal
 
 ### IT-105-043: workflow-engine handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -591,7 +591,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 9: compliance overlay
+## Test Set 9: compliance overlay
 
 ### IT-105-049: compliance handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.
@@ -659,7 +659,7 @@ arbitrates against the mutual contract, and evidence is held in Drive with dual 
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 10: human review
+## Test Set 10: human review
 
 ### IT-105-055: audit-chain handles AcmeRawMaterials Hamburg
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j105.

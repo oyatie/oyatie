@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  changeset: CS-LLM-GATEWAY-WIRE-REAL-ADAPTERS-001
+  changeset: CS-CLOUD-INTELLIGENCE-WIRE-REAL-ADAPTERS-001
   source_adrs: [ADR-0105, ADR-0131, ADR-0193, ADR-0384]
 non_claims:
   - implements EventSink from oya-cloud-intelligence-kernel; INSERTs LlmGatewayEvent rows into cloud_intelligence_receipts table via oya-shared-olap-clickhouse-adapter (ADR-0193)

@@ -74,7 +74,7 @@ Phase-exit gate (per ADR-0139): all 12 AC-IDs green; SLO eligibility verdict `el
 
 | Risk | Mitigation |
 |---|---|
-| RFC 5545 RRULE corner cases (BYSETPOS + BYDAY + EXDATE interaction) | Adopt libical RFC 5545 corpus as conformance suite; 100% pass before GA |
+| RFC 5545 RRULE corner cases (BYSETPOS + BYDAY + EXDATE interaction) | Adopt libical RFC 5545 corpus as conformance set; 100% pass before GA |
 | CalDAV client diversity (Apple / Thunderbird / Evolution) | E2E test against three real clients in staging |
 | Cross-tenant availability privacy regression | LEAN check `oya-check-cross-tenant-availability-projection` (NEW) refuses build if projection includes raw fields |
 | Time-zone DB staleness (IANA tzdata) | Hourly refresh job; verification gate before deploy |

@@ -213,7 +213,7 @@ Local tenant_class evidence:
 | Entitlement management | absent | partial | present | present | gap |
 | Integration catalog | absent | marketplace/docs | OIN | gallery | gap |
 | Admin console | dashboard JSON only | present | present | present | gap |
-| Readiness verdict | strong protocol docs but platform gaps | mature CIAM | mature WIC | mature enterprise platform | paid with per_seat billing_component is catch-up until admin/governance/deploy evidence lands |
+| Readiness verdict | strong protocol docs but platform gaps | mature CIAM | mature WIC | mature enterprise-market substrate | paid with per_seat billing_component is catch-up until admin/governance/deploy evidence lands |
 
 ### 3.3 paid with per_usage billing_component tenant_class table
 

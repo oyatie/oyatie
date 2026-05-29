@@ -20,14 +20,14 @@ info:
     RFC 4880), MTA-STS (RFC 8461), TLS-RPT (RFC 8460), SMTP TLS (RFC 3207, RFC 8314).
   contact:
     name: axis-mail
-    email: axis-mail@oyatie.dev
+    email: axis-mail@oyatie.com
   license:
     name: Proprietary — oyatie
   x-oyatie-microservice: mail
   x-oyatie-related-adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 
 servers:
-  - url: https://mail-{pack}.oyatie.dev/v1
+  - url: https://mail-{pack}.oyatie.com/v1
     description: Per-pack endpoint (kr | eu | us | us-healthcare | jp | sg | au | in | br | ae | ksa)
     variables:
       pack:
@@ -410,8 +410,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://auth-{pack}.oyatie.dev/oauth/authorize
-          tokenUrl: https://auth-{pack}.oyatie.dev/oauth/token
+          authorizationUrl: https://auth-{pack}.oyatie.com/oauth/authorize
+          tokenUrl: https://auth-{pack}.oyatie.com/oauth/token
           scopes:
             mail.read: Read mailbox + message
             mail.send: Submit outbound

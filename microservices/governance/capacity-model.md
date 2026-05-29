@@ -30,7 +30,7 @@ Model governance µservice load (PRs/min, lanes/PR, finding rate, evidence growt
 |---|---|---|---|---|
 | Files in PR | 5 | 50 | 200 | per `oya-check-pr-traceability` historical |
 | Lines changed | 50 | 500 | 5000 | per same source |
-| Lanes invoked | ~50 (full suite) | ~50 | ~50 | every PR runs the full suite |
+| Lanes invoked | ~50 (full platform) | ~50 | ~50 | every PR runs the full platform |
 | Per-lane duration | 3s | 10s | 30s | per `lane-execution.md` Invariant 3 |
 | Total PR wall-clock | 15s | 45s | 90s | parallel matrix |
 | Findings emitted | 0–2 (BLOCKER) | 5 | 20 | majority of PRs pass clean |

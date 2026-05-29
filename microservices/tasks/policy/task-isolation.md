@@ -198,12 +198,12 @@ This policy is binding for the `tasks` µservice only. Cross-µservice flows (ta
 
 - ADR-0028 (Bominal): audit chain.
 - ADR-0117: data residency.
-- ADR-0135: Connect unbundle (dual-context).
+- ADR-0135: unbundle (dual-context).
 - ADR-0140: Cedar policy substrate.
 - ADR-TASKS-0001 (data model + strict coercion).
 - ADR-TASKS-0002 (dependency cycle prevention).
 - ADR-TASKS-0006 (AI auto-assign EU AI Act bounds).
 - Bominal ADR-0111: envelope encryption.
-- Bominal ADR-0231-0233: connect-tasks board + dependency + recurring inheritance.
+- Bominal ADR-0231-0233: tasks board + dependency + recurring inheritance.
 - `microservices/tasks/threat-model.md`, `dpia.md`, `policy/*.cedar`.
 - `microservices/calendar/policy/event-isolation.md` — sibling reference template.

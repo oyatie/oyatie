@@ -159,7 +159,7 @@ After fixing, verify the complete scenario:
 # Run the specific test
 npm test -- --grep "specific test"
 
-# Run the full test suite (check for regressions)
+# Run the full test set (check for regressions)
 npm test
 
 # Build the project (check for type/compilation errors)

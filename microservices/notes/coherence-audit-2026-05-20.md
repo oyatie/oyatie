@@ -271,7 +271,7 @@ status: landed
 ### §3.3 Dimension 3 — Internal consistency and contradiction scan
 - D3.1 Finding: the corpus has several material contradictions.
 - D3.2 Contradiction: PRD line 175 claims 111 crates; IP-002 lines 31-51 also enumerate 111 crates; manifest lines 6-29 list only one bounded context with 16 crates.
-- D3.3 Contradiction impact: implementers cannot know whether `notes` is a 17-BC product suite or a one-BC manifest projection.
+- D3.3 Contradiction impact: implementers cannot know whether `notes` is a 17-BC product platform or a one-BC manifest projection.
 - D3.4 Severity: P2; severe enough to block clean implementation planning but not an immediate safety issue.
 - D3.5 Contradiction: capacity model line 33 says XL-max creates are 20k notes/sec, while PRD line 331 says shard once a cell hits 500k notes/sec aggregate.
 - D3.6 Contradiction impact: performance benchmark and scaling targets can be off by 25x.

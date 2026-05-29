@@ -118,7 +118,7 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - InterSystems proof: match scoring, review, and replay stay under healthcare-integration.
 - Lyniate/Corepoint displacement: channel duplicate handling is displaced by structured split, merge, reject, and replay states.
 - Lyniate/Corepoint proof: local patient-match runbooks own remediation.
-- Mirth Connect displacement: script-based patient routing is displaced by deterministic scoring and Cedar-gated review.
+- Mirth displacement: script-based patient routing is displaced by deterministic scoring and Cedar-gated review.
 - Mirth proof: score rules are versioned and testable outside scripts.
 - NextGate displacement: NextGate identity confidence is displaced by consent-separated, reviewer-audited adjudication.
 - NextGate proof: match confidence never authorizes FHIR delivery by itself.

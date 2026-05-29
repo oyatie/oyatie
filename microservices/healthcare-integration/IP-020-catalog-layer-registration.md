@@ -14,15 +14,15 @@ Benchmark displacement set: Redox, Rhapsody, InterSystems IRIS for Health, Lynia
 - Preserve the flat microservice boundary from ADR-0131 and the PRD: clinical interoperability belongs under microservices/healthcare-integration, not under vendor suites or product-label folders.
 - Make ADR-0105 layer slugs explicit for api, app, domain, kernel, rest, sdk, worker, adapter, usecase, cli, test, postgres, and valkey records.
 - Bind every catalog row to the clinical-interoperability business capability and to a concrete healthcare capability record.
-- Connect catalog registration to tenant doctrine from ADR-0242 and tenant scope from ADR-0244.
-- Connect catalog registration to Cedar as universal gate from ADR-0243.
-- Connect catalog registration to library-first policy and ontology routes from ADR-0246 and ADR-0257.
-- Connect catalog registration to API versioning from ADR-0258.
-- Connect catalog registration to observability emission from ADR-0263.
-- Connect catalog registration to credential sidecar ownership from ADR-0296.
-- Connect catalog registration to abuse-defence baseline from ADR-0297.
-- Connect catalog registration to marketplace DealSet settlement from ADR-0314.
-- Connect catalog registration to B2B leader coverage from ADR-0321.
+- catalog registration to tenant doctrine from ADR-0242 and tenant scope from ADR-0244.
+- catalog registration to Cedar as universal gate from ADR-0243.
+- catalog registration to library-first policy and ontology routes from ADR-0246 and ADR-0257.
+- catalog registration to API versioning from ADR-0258.
+- catalog registration to observability emission from ADR-0263.
+- catalog registration to credential sidecar ownership from ADR-0296.
+- catalog registration to abuse-defence baseline from ADR-0297.
+- catalog registration to marketplace DealSet settlement from ADR-0314.
+- catalog registration to B2B leader coverage from ADR-0321.
 - Ensure a catalog consumer can identify who owns FHIR reads, HL7 routing, break-glass authorization, consent sync, EHR provenance sealing, and patient-match review.
 - Ensure a catalog consumer can identify contract sources, policy sources, SLO sources, runbook sources, dashboard sources, and rollback evidence sources.
 
@@ -115,7 +115,7 @@ Benchmark displacement set: Redox, Rhapsody, InterSystems IRIS for Health, Lynia
 - Rhapsody displacement: catalog rows make route ownership, ACK latency, and replay runbooks discoverable without an engine console.
 - InterSystems IRIS for Health displacement: catalog rows keep FHIR, HL7, and persistence dependency ownership separate so the database/runtime does not become the interoperability product boundary.
 - Lyniate/Corepoint displacement: catalog rows turn interface definitions into ADR-bound service-layer records with local contracts and rollback paths.
-- Mirth Connect displacement: catalog rows replace channel-script tribal knowledge with governed layer records, policy evidence, and replay fixtures.
+- Mirth displacement: catalog rows replace channel-script tribal knowledge with governed layer records, policy evidence, and replay fixtures.
 - NextGate displacement: catalog rows make patient identity review ownership explicit and separate from black-box identity matching.
 - Health Catalyst displacement: catalog rows keep analytics extraction as downstream consumption, not the owner of clinical interoperability controls.
 - Redox-like connector catalogs are insufficient unless every row carries tenant, policy, audit, and DealSet evidence.
@@ -233,4 +233,4 @@ Benchmark displacement set: Redox, Rhapsody, InterSystems IRIS for Health, Lynia
 - Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
 - Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
 - finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
-- Surface evidence: `microservices/healthcare-integration/IP-020-catalog-layer-registration.md:21` - - Connect catalog registration to observability emission from ADR-0263..
+- Surface evidence: `microservices/healthcare-integration/IP-020-catalog-layer-registration.md:21` - - catalog registration to observability emission from ADR-0263..

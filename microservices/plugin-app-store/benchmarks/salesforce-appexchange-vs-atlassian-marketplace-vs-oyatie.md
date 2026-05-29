@@ -75,7 +75,7 @@ Reading: oyatie paid leads. Multi-PSP failover (Stripe primary, Adyen secondary)
 
 | Platform | Hardware (USD) | Licence + fees (USD) | Tax + PSP fees (USD) | Ops (USD) | Total (USD) |
 |---:|---:|---:|---:|---:|---:|
-| oyatie plugin-app-store (tenant_class paid on-prem) | 740 000 | 0 | 120 000 (Avalara + Stripe Connect platform fees) | 372 000 (3 SRE × 0.4 FTE) | 1 232 000 |
+| oyatie plugin-app-store (tenant_class paid on-prem) | 740 000 | 0 | 120 000 (Avalara + Stripe platform fees) | 372 000 (3 SRE × 0.4 FTE) | 1 232 000 |
 | Salesforce AppExchange (Independent ISV) | 0 | (revenue-share-only model; ISVs pay no platform fee; Salesforce gets 15-25 % per listing) | (bundled) | n/a | n/a (we operate the marketplace; not pay-to-operate) |
 | Atlassian Marketplace (vendor operator) | n/a (not operable by 3rd party) | n/a | n/a | n/a | n/a |
 | GitHub Marketplace | n/a (not operable) | n/a | n/a | n/a | n/a |

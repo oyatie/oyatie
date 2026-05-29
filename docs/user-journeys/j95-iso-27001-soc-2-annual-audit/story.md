@@ -91,7 +91,7 @@ Failure mode: if the findings remediation loop lane cannot prove compliance, the
 | 10 | Marcus Chen | comms-email | business continuity exercise proof; ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Receipt EVT-J95-010 shown with pack ISO-27001-2022 |
 | 11 | Marcus Chen | community | auditor portal freeze; ISO 22301:2019 clauses 8.4 incident response, 8.5 business continuity plans, and 8.6 exercise program | Receipt EVT-J95-011 shown with pack ISO-22301-2019 |
 | 12 | Marcus Chen | compliance | findings remediation loop; AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Receipt EVT-J95-012 shown with pack SOC-2-TYPE-II |
-| 13 | Marcus Chen | connect | scope confirmation; SOC 2 availability criteria A1.1 through A1.3 | Receipt EVT-J95-013 shown with pack ISO-27001-2022 |
+| 13 | Marcus Chen | connector | scope confirmation; SOC 2 availability criteria A1.1 through A1.3 | Receipt EVT-J95-013 shown with pack ISO-27001-2022 |
 | 14 | Marcus Chen | consent-graph | evidence collector mapping; SOC 2 confidentiality criteria C1.1 through C1.2 | Receipt EVT-J95-014 shown with pack ISO-22301-2019 |
 | 15 | Marcus Chen | developer-sdk | control owner attestation; SOC 2 processing integrity PI1.1 through PI1.5 | Receipt EVT-J95-015 shown with pack SOC-2-TYPE-II |
 | 16 | Marcus Chen | docs | business continuity exercise proof; SOC 2 privacy criteria P1.1 through P8.1 | Receipt EVT-J95-016 shown with pack ISO-27001-2022 |
@@ -136,7 +136,7 @@ Failure mode: if the findings remediation loop lane cannot prove compliance, the
 | 55 | Marcus Chen | comms-email | scope confirmation; SOC 2 processing integrity PI1.1 through PI1.5 | Receipt EVT-J95-055 shown with pack ISO-27001-2022 |
 | 56 | Marcus Chen | community | evidence collector mapping; SOC 2 privacy criteria P1.1 through P8.1 | Receipt EVT-J95-056 shown with pack ISO-22301-2019 |
 | 57 | Marcus Chen | compliance | control owner attestation; ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8 | Receipt EVT-J95-057 shown with pack SOC-2-TYPE-II |
-| 58 | Marcus Chen | connect | business continuity exercise proof; ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Receipt EVT-J95-058 shown with pack ISO-27001-2022 |
+| 58 | Marcus Chen | connector | business continuity exercise proof; ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Receipt EVT-J95-058 shown with pack ISO-27001-2022 |
 | 59 | Marcus Chen | consent-graph | auditor portal freeze; ISO 22301:2019 clauses 8.4 incident response, 8.5 business continuity plans, and 8.6 exercise program | Receipt EVT-J95-059 shown with pack ISO-22301-2019 |
 | 60 | Marcus Chen | developer-sdk | findings remediation loop; AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Receipt EVT-J95-060 shown with pack SOC-2-TYPE-II |
 | 61 | Marcus Chen | docs | scope confirmation; SOC 2 availability criteria A1.1 through A1.3 | Receipt EVT-J95-061 shown with pack ISO-27001-2022 |
@@ -181,7 +181,7 @@ Failure mode: if the findings remediation loop lane cannot prove compliance, the
 | 100 | Marcus Chen | comms-email | business continuity exercise proof; AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Receipt EVT-J95-100 shown with pack ISO-27001-2022 |
 | 101 | Marcus Chen | community | auditor portal freeze; SOC 2 availability criteria A1.1 through A1.3 | Receipt EVT-J95-101 shown with pack ISO-22301-2019 |
 | 102 | Marcus Chen | compliance | findings remediation loop; SOC 2 confidentiality criteria C1.1 through C1.2 | Receipt EVT-J95-102 shown with pack SOC-2-TYPE-II |
-| 103 | Marcus Chen | connect | scope confirmation; SOC 2 processing integrity PI1.1 through PI1.5 | Receipt EVT-J95-103 shown with pack ISO-27001-2022 |
+| 103 | Marcus Chen | connector | scope confirmation; SOC 2 processing integrity PI1.1 through PI1.5 | Receipt EVT-J95-103 shown with pack ISO-27001-2022 |
 | 104 | Marcus Chen | consent-graph | evidence collector mapping; SOC 2 privacy criteria P1.1 through P8.1 | Receipt EVT-J95-104 shown with pack ISO-22301-2019 |
 | 105 | Marcus Chen | developer-sdk | control owner attestation; ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8 | Receipt EVT-J95-105 shown with pack SOC-2-TYPE-II |
 | 106 | Marcus Chen | docs | business continuity exercise proof; ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Receipt EVT-J95-106 shown with pack ISO-27001-2022 |
@@ -226,7 +226,7 @@ Failure mode: if the findings remediation loop lane cannot prove compliance, the
 | 145 | Marcus Chen | comms-email | scope confirmation; ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8 | Receipt EVT-J95-145 shown with pack ISO-27001-2022 |
 | 146 | Marcus Chen | community | evidence collector mapping; ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls | Receipt EVT-J95-146 shown with pack ISO-22301-2019 |
 | 147 | Marcus Chen | compliance | control owner attestation; ISO 22301:2019 clauses 8.4 incident response, 8.5 business continuity plans, and 8.6 exercise program | Receipt EVT-J95-147 shown with pack SOC-2-TYPE-II |
-| 148 | Marcus Chen | connect | business continuity exercise proof; AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Receipt EVT-J95-148 shown with pack ISO-27001-2022 |
+| 148 | Marcus Chen | connector | business continuity exercise proof; AICPA SOC 2 Trust Services Criteria CC1 through CC9 | Receipt EVT-J95-148 shown with pack ISO-27001-2022 |
 | 149 | Marcus Chen | consent-graph | auditor portal freeze; SOC 2 availability criteria A1.1 through A1.3 | Receipt EVT-J95-149 shown with pack ISO-22301-2019 |
 | 150 | Marcus Chen | developer-sdk | findings remediation loop; SOC 2 confidentiality criteria C1.1 through C1.2 | Receipt EVT-J95-150 shown with pack SOC-2-TYPE-II |
 | 151 | Marcus Chen | docs | scope confirmation; SOC 2 processing integrity PI1.1 through PI1.5 | Receipt EVT-J95-151 shown with pack ISO-27001-2022 |

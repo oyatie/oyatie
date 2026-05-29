@@ -103,7 +103,7 @@ const ShellRail: Component<ShellRailProps> = (props) => {
       <a class="rail-nav" href="#leave-time">
         <span aria-hidden="true">◫</span>Leave &amp; time
       </a>
-      <a class="rail-nav" href="#identity-workforce-suite">
+      <a class="rail-nav" href="#identity-workforce-platform">
         <span aria-hidden="true">⚿</span>Auth · Org
       </a>
 

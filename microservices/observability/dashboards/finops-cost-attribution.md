@@ -93,7 +93,7 @@ groups:
           severity: SEV-2
         annotations:
           summary: "Tenant {{ $labels.tenant_id }} cost spike — 3*MAD over 14-day baseline AND > $1000/hr"
-          runbook_url: "https://docs.oyatie.dev/runbooks/finops/cost-spike.md"
+          runbook_url: "https://docs.oyatie.com/runbooks/finops/cost-spike.md"
 
       - alert: TenantCostCreep
         expr: >

@@ -40,7 +40,7 @@ remediation_history:
 
 ## A. Boundary
 
-Data Pipeline owns the ELT/CDC/transformation/lineage/replay/destination/scheduling/semantic-layer/materialization/exposure/package/CDK substrate. It does not own tenant identity, Cedar policy engine internals, workflow runtime internals, ontology storage, payments rails, marketplace settlement protocol internals, or adjacent product labels. The boundary correction per coverage matrix forbids routing ELT and iPaaS through the `connect` microservice: pipeline runs, lineage, and replay need an independent owner that can attribute cost, hold dead-letter custody, and reconcile lineage without depending on cross-domain integration concerns.
+Data Pipeline owns the ELT/CDC/transformation/lineage/replay/destination/scheduling/semantic-layer/materialization/exposure/package/CDK substrate. It does not own tenant identity, Cedar policy engine internals, workflow runtime internals, ontology storage, payments rails, marketplace settlement protocol internals, or adjacent product labels. The boundary correction per coverage matrix forbids routing ELT and iPaaS through the `connector` microservice: pipeline runs, lineage, and replay need an independent owner that can attribute cost, hold dead-letter custody, and reconcile lineage without depending on cross-domain integration concerns.
 
 Per ADR-0245 substrate-vs-product layering, data-pipeline is substrate consumed by products (Workflow Studio, Analytics, B2B leader). It is not itself a product. Per ADR-0316 capability-tier doctrine, product labels remain capability-tier projections; this service owns the durable operational concern.
 
@@ -134,7 +134,7 @@ All cross-microservice interactions are API/event-only. Direct database sharing 
 - **Semantic metric pack restriction** (post-IP-033): metric.read denied for pack-restricted dimensions; refusal evidence surfaces to operator.
 - **Materialization refresh failure** (post-IP-035): materialization marked refresh_failed; IP-031 destination_load_run rollback fires; downstream consumers notified via IP-034.
 - **Package install conflict** (post-IP-036): dependency resolver emits conflict report; install refused; lockfile preserved for replay.
-- **CDK publish blocked** (post-IP-037): test suite results, lint failures, or signature failures refuse publish.
+- **CDK publish blocked** (post-IP-037): test set results, lint failures, or signature failures refuse publish.
 
 ## F. Required ADR-0321 anchors
 

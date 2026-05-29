@@ -190,7 +190,7 @@ where
             }
 
             // Stage 1 + 2: the Jenkins `oyaCiLane` pipeline runs admission then
-            // the gate suite (the trusted-runner re-execution per ADR-0367).
+            // the gate set (the trusted-runner re-execution per ADR-0367).
             let Some(url) = self.dispatch_url.clone() else {
                 return Err(GatewayError::DispatchTransport(
                     "Jenkins dispatch URL not configured (OYA_JENKINS_DISPATCH_URL); \
@@ -284,7 +284,7 @@ mod tests {
             html_url: None,
             repository_full_name: "owner/repo".to_owned(),
             snapshot_id:
-                "issue:sha256:0000000000000000000000000000000000000000000000000000000000000108"
+                "issue:sha256:a71527716283639cdc975ef544828c655d501e1fac5c859e64c20af5b9a33aad"
                     .to_owned(),
         })
     }
@@ -301,7 +301,7 @@ mod tests {
             commits: 1,
             deleted: false,
             snapshot_id:
-                "push:sha256:0000000000000000000000000000000000000000000000000000000000000def"
+                "push:sha256:fc52d4f3c19063e4570ca74b1bfd138babf545ee57199d13e4fcca300257a0c3"
                     .to_owned(),
         })
     }
@@ -382,7 +382,7 @@ mod tests {
                         assert_eq!(issue_number, 108);
                         assert_eq!(
                             snapshot_id,
-                            "issue:sha256:0000000000000000000000000000000000000000000000000000000000000108"
+                            "issue:sha256:a71527716283639cdc975ef544828c655d501e1fac5c859e64c20af5b9a33aad"
                         );
                         assert_eq!(labels, vec!["masterplan:IP-108"]);
                     }
@@ -400,7 +400,7 @@ mod tests {
         assert_eq!(
             receipt.snapshot_id,
             Some(
-                "issue:sha256:0000000000000000000000000000000000000000000000000000000000000108"
+                "issue:sha256:a71527716283639cdc975ef544828c655d501e1fac5c859e64c20af5b9a33aad"
                     .to_owned()
             )
         );
@@ -431,7 +431,7 @@ mod tests {
                         assert_eq!(pusher_login, Some("worker-a".to_owned()));
                         assert_eq!(
                             snapshot_id,
-                            "push:sha256:0000000000000000000000000000000000000000000000000000000000000def"
+                            "push:sha256:fc52d4f3c19063e4570ca74b1bfd138babf545ee57199d13e4fcca300257a0c3"
                         );
                     }
                     other => panic!("expected push snapshot, got {other:?}"),
@@ -450,7 +450,7 @@ mod tests {
         assert_eq!(
             receipt.snapshot_id,
             Some(
-                "push:sha256:0000000000000000000000000000000000000000000000000000000000000def"
+                "push:sha256:fc52d4f3c19063e4570ca74b1bfd138babf545ee57199d13e4fcca300257a0c3"
                     .to_owned()
             )
         );

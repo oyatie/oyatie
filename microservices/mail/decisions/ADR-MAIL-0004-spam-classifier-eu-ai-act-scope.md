@@ -153,7 +153,7 @@ oyatie's inbound + outbound mail classifier is **scoped Annex III-exempt (limite
 - NIST AI RMF (Risk Management Framework) v1.0
 - Rspamd documentation — `https://rspamd.com/doc/`
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - ADR-0133 — Industry best-practice conformance program
 - ADR-MAIL-0001 — Personal-pillar key recovery (companion privacy posture)
 - `microservices/mail/PRD.md` FR-10

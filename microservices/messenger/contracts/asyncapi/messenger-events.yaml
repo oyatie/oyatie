@@ -5,7 +5,7 @@ info:
   summary: Real-time + Workflow events emitted by the messenger µservice
   description: |
     Two channel families:
-    - **Real-time WebSocket** (`wss://messenger-{pack}.oyatie.dev/ws/v1`):
+    - **Real-time WebSocket** (`wss://messenger-{pack}.oyatie.com/ws/v1`):
       client-facing events delivered to authenticated session connections.
       Per-event Cedar evaluation; payloads scoped to the consumer's membership.
     - **Workflow event bus** (cluster-internal AMQP / NATS):
@@ -15,7 +15,7 @@ defaultContentType: application/json
 
 servers:
   websocket-gateway:
-    host: messenger-{pack}.oyatie.dev
+    host: messenger-{pack}.oyatie.com
     protocol: wss
     description: Per-pack WebSocket gateway
     variables:

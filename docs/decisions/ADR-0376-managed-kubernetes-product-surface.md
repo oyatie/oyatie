@@ -30,7 +30,7 @@ deliverables:
     exit_criteria: "the ADR states the dogfood-first build target + tenant-zero/no-bypass invariant and lists billing/SLA/DPIA/external-GA as deferred future-work legs with a named follow-on ADR placeholder."
     verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
   - id: ADR-0376-D4
-    description: "Name the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no suite/bundle)."
+    description: "Name the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no platform/bundle)."
     exit_criteria: "the ADR names all four microservices, asserts flat single-concern layout per ADR-0131/0132, and explicitly marks them as future-lane work."
     verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
   - id: ADR-0376-D5
@@ -132,7 +132,7 @@ here).
 **Implementation decomposition (named here; BUILT in later lanes, NOT now).** The
 product layer decomposes into **four flat, single-concern microservices**, each shipped
 under `microservices/<ms>/` with `src/` as the canonical root, single-concern, no
-suite/bundle, per ADR-0131/0132:
+platform/bundle, per ADR-0131/0132:
 
 - `oya-managed-k8s-cluster-lifecycle` — the cluster-CRUD API (create / scale / upgrade /
   delete a tenant cluster as a first-class resource), wrapping the CAPI `Cluster`
@@ -232,7 +232,7 @@ retiring the hosted provider without touching the substrate.
 - ADR-0375 — Talos + Cluster API + Argo CD fleet substrate (the substrate this product builds on).
 - ADR-0148 — service mesh: Cilium L3/L4 + Istio Ambient L7 (zero overlap).
 - ADR-0147 / ADR-0338 — Kata Containers + Cloud Hypervisor untrusted worker pools.
-- ADR-0131 / ADR-0132 — flat single-concern microservice layout (src/ canonical root; no suite/bundle).
+- ADR-0131 / ADR-0132 — flat single-concern microservice layout (src/ canonical root; no platform/bundle).
 - ADR-0009 — per-tenant per-region cells; ADR-0306 — disaster-mode survival.
 - Kamaji — `github.com/clastix/kamaji`; CAPI control-plane provider
   `github.com/clastix/cluster-api-control-plane-provider-kamaji` (listed in the upstream

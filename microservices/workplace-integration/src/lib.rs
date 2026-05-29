@@ -66,14 +66,14 @@ pub mod domain {
 pub use domain::{LAYERS, Layer};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct DocSuiteScaffold {
+pub struct DocSetScaffold {
     pub microservice: &'static str,
     pub primary_adr: &'static str,
     pub primitive: &'static str,
     pub architecture_layers: Vec<&'static str>,
 }
 
-impl DocSuiteScaffold {
+impl DocSetScaffold {
     pub fn layer_count(&self) -> usize {
         self.architecture_layers.len()
     }
@@ -83,8 +83,8 @@ impl DocSuiteScaffold {
     }
 }
 
-pub fn scaffold() -> DocSuiteScaffold {
-    DocSuiteScaffold {
+pub fn scaffold() -> DocSetScaffold {
+    DocSetScaffold {
         microservice: MICROSERVICE,
         primary_adr: PRIMARY_ADR,
         primitive: "WorkplaceAgreement",

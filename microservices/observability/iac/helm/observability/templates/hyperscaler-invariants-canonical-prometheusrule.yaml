@@ -56,7 +56,7 @@ spec:
               for capability {{ $labels.capability_id }}. Per
               INV-CIRCUIT-BREAKER-BULKHEAD, this halts retries against the
               failing downstream until the breaker probes back to half-open.
-            runbook_url: "https://oyatie.dev/microservices/{{ $labels.microservice }}/runbooks/"
+            runbook_url: "https://oyatie.com/microservices/{{ $labels.microservice }}/runbooks/"
 
         - alert: OyaCapabilityRetryBudgetExhausted
           expr: |

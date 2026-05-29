@@ -28,7 +28,7 @@ tofu apply \
 
 Inherits `iac/on-prem/` resources + colocation-specific:
 
-- **Cross-connect** to public cloud (AWS Direct Connect / OCI FastConnect / Azure ExpressRoute) for hybrid cloud egress.
+- **Cross-connect** to public cloud (AWS Direct / OCI Fast/ Azure ExpressRoute) for hybrid cloud egress.
 - **Colocation-provider managed DNS** (e.g. Equinix Network Edge).
 - **Colocation-provider DDoS protection**.
 - **Colocation-provider physical security attestation** (typically SOC-2 + ISO 27001 from the colo operator).
@@ -37,7 +37,7 @@ Inherits `iac/on-prem/` resources + colocation-specific:
 
 When a tenant runs CLM in a colo facility but uses cloud-native services (e.g. SES for email), the cross-connect provides low-latency egress to the cloud provider. The `colo/hybrid-cross-connect/` sub-module provisions:
 
-- AWS Direct Connect / OCI FastConnect / Azure ExpressRoute.
+- AWS Direct / OCI Fast/ Azure ExpressRoute.
 - Private VLAN.
 - BGP peering.
 

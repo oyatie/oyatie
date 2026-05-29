@@ -37,7 +37,7 @@ j136 is the highest-volume, longest-duration HR journey in the catalog. It demon
 | workflow-engine | Orchestrate 60-day cycle + 5000 enrollment workflows + per-jurisdiction timing |
 | forms | Per-jurisdiction enrollment forms + dependent + beneficiary surfaces |
 | drive | Plan documents + dependent proofs + ACA forms archive |
-| connect | Cross-tenant bulk push to 5 benefits providers + ACK reconciliation |
+| connector | Cross-tenant bulk push to 5 benefits providers + ACK reconciliation |
 | payments | Per-pay-period payroll deduction setup + execution from Jan 2027 |
 | mail | Announcement + reminder + confirmation + year-end document delivery |
 | identity | Employee principal resolution + dependent-data scoping |
@@ -69,7 +69,7 @@ j136 is the highest-volume, longest-duration HR journey in the catalog. It demon
 - `schemas/payroll-deduction.json`
 - `schemas/audit-event-cascade.json`
 - `schemas/cedar-permit-bundle.json`
-- `integration-test-plan.md` (10 test suites)
+- `integration-test-plan.md` (10 test sets)
 - Per-µservice IPs at `microservices/<svc>/IP-journey-j136-*.md` (8 files)
 
 ## How to use

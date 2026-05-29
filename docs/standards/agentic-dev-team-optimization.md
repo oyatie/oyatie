@@ -20,20 +20,20 @@ doc_status: published
 
 Cross-cutting principles that distinguish oyatie's repo from a human-developer-team repo. Industry best practices assume a human typing into an editor; oyatie's developer is a fully-agentic team executing in parallel. This standard codifies the optimisation vectors that make every artifact agent-friendly: structured, parallel-safe, idempotent, audit-chain-sealed, fail-closed, smallest-actionable.
 
-Every artifact authored in oyatie MUST satisfy these principles. The `oya-governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces.
+Every artifact authored in oyatie MUST satisfy these principles. The `oya-governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces. The retired `oya vcs` claim/verify/done/promote ratchet is historical only; live coordination uses plain git branches, PRs, Jenkins, and `oya gate` / `oya verify`.
 
-## Principle 1 — ChangeSet semantic claim
+## Principle 1 — Semantic branch scope
 
-**Rule:** Agents claim semantic AST/artifact units (a port trait, a use case, a manifest, a runbook section), not line hunks or whole files.
+**Rule:** Agents scope each isolated worktree branch to semantic AST/artifact units (a port trait, a use case, a manifest, a runbook section), not line hunks or whole files.
 
 **Why:** Per `feedback_durable_goal_spec` ("Agents claim semantic AST/artifact units instead of line hunks or whole files, so unrelated edits in the same file or project can proceed in parallel"). Two agents touching different parts of the same file cannot collide.
 
 **How to apply:**
-- Use `oya vcs claim --paths <ast-or-symbol-pattern>` not `--paths <whole-file>`.
+- Declare the PR/worktree scope as semantic paths or symbols; do not treat a whole-file glob as ownership when unrelated edits can proceed independently.
 - Migrations use `oya dev migrate-microservice` (per `/specs/microservice-migration-tooling.json`) which claims at µservice-scope, not at repo-scope.
 - ast-grep / rust-analyzer / clippy refactors operate on AST nodes; never blanket-sed (see Principle 7).
 
-**Verification:** `cargo run -p oya-dev-cli -- vcs status` shows per-symbol claims; any claim with `--paths "<file>"` triggers a warning to refine.
+**Verification:** PR description and governance evidence identify the semantic scope; reviewer/governance gates reject oversized or ambiguous scope claims.
 
 ## Principle 2 — Parallel-safe operations
 
@@ -44,9 +44,9 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 **How to apply:**
 - IP dependency graphs use explicit DAG ordering with parallel tiers (per `ADR-0131 §"Migration DAG"`).
 - Migrations touch disjoint paths (per `migrate-microservice` parallel_safety contract).
-- CI lanes parallelise per-changeset; cross-µservice ordering only on explicit ChangeSet ChangeSet dependencies.
+- CI lanes parallelise per PR branch; cross-µservice ordering only on explicit dependency edges.
 
-**Verification:** `oya gate validate parallel-safe --changeset <id>` asserts the changeset's affected paths don't overlap with any in-flight claim.
+**Verification:** `oya gate run-all` / reviewer governance evidence asserts the PR branch affected paths do not overlap with known in-flight ownership.
 
 ## Principle 3 — Idempotent operations
 
@@ -55,7 +55,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 **Why:** Agents retry on transient failures; retries must not cascade unintended mutations. Per Stripe / Twilio / Google idempotency-key conventions.
 
 **How to apply:**
-- Every `oya vcs <subcommand>` carries a stable idempotency key derived from the changeset id + state.
+- Every external webhook, CI dispatch, and evidence emission carries a stable idempotency key derived from the PR/change id + state.
 - Mimir verdict emissions key on `(microservice, source_sha, target_env, verdict, evaluator_version)`; duplicate writes deduplicated by the metric label hash.
 - File migrations honour `--dry-run` default; `--no-dry-run` is opt-in per `microservice-migration-tooling.json`.
 
@@ -86,7 +86,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 - SLO engine worker fail-closed during cold-start (≥3 evaluator cycles clean before emitting `eligible`) per `IP-008-slo-engine-worker.md`.
 - CI lanes exit non-zero on any unhandled error condition; never silently pass.
 
-**Verification:** Cedar test suite: every fragment has at least one assertion that an unauthenticated principal is denied.
+**Verification:** Cedar test set: every fragment has at least one assertion that an unauthenticated principal is denied.
 
 ## Principle 6 — Smallest-actionable artifact format
 

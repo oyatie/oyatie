@@ -210,7 +210,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Compliance Officer Tunde Bello must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Compliance Officer Tunde Bello must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Compliance Officer Tunde Bello must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Compliance Officer Tunde Bello must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Compliance Officer Tunde Bello must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Compliance Officer Tunde Bello must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Compliance Officer Tunde Bello must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Compliance Officer Tunde Bello must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

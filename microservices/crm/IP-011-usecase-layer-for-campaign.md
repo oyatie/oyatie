@@ -162,7 +162,7 @@ pub enum CampaignUsecaseOutcome { Applied(CampaignId), Denied(PolicyDecisionId),
 - Marketing-automation receives dispatch event and member deltas.
 - Intelligence receives response and rejection features.
 - Ontology receives Customer campaign membership projection.
-- Connect receives DPA-missing and contract-attestation requests.
+- receives DPA-missing and contract-attestation requests.
 - Audit-chain seals all import, activation, and denial evidence.
 
 ## Build Checklist

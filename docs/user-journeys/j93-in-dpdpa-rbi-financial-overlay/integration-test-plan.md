@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J93-T001 | analytics creator consent notice | Cedar decision and audit event cite Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data; data remains tenant-scoped |
 | J93-T002 | api-gateway merchant KYC tiering | Cedar decision and audit event cite DPDPA section 5 notice; data remains tenant-scoped |

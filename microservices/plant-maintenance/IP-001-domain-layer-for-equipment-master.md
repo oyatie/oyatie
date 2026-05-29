@@ -10,7 +10,7 @@ persona: carlos-reyes-ii (senior maintenance technician), maya-okafor (reliabili
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-001: Domain layer for `equipment-master` — Equipment hierarchy with functional-location topology

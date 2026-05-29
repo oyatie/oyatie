@@ -10,7 +10,7 @@
 //!
 //! # Auth
 //!
-//! OAuth 2.0 — QuickBooks Connect → access token (1h) + refresh token (100d).
+//! OAuth 2.0 — QuickBooks → access token (1h) + refresh token (100d).
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 

@@ -60,7 +60,7 @@ Authored under `legal-dimensions/` and `packs/<pack>/README.md`:
 
 1. **L-001** `legal-dimensions/gdpr-article-7-consent-records.md` — GDPR Article 7 consent records (signatory consent, counterparty PII consent, retention consent, cross-border transfer consent).
 2. **L-002** `legal-dimensions/signature-envelope-canonical.md` — eIDAS AES evidence model (PKCS#7, CMS, CAdES, XAdES, PAdES envelope choice; SHA-256 / SHA-3 / BLAKE3 hash; signer certificate path; timestamp inclusion).
-3. **L-003** `packs/eidas/README.md` — QES Trust List + Trust Service Provider catalog (LOTL/TSL ingestion, qualified-status validation at signing time, Thales Luna 7 A790 HSM, Utimaco SecurityServer, Entrust nShield Connect XC).
+3. **L-003** `packs/eidas/README.md` — QES Trust List + Trust Service Provider catalog (LOTL/TSL ingestion, qualified-status validation at signing time, Thales Luna 7 A790 HSM, Utimaco SecurityServer, Entrust nShield XC).
 4. **L-004** `legal-dimensions/esign-consumer-disclosure-flow.md` — ESIGN Act 15 USC § 7001(c) consumer disclosure (clear-and-conspicuous, retention affordance, ability-to-receive demonstration, hardware/software requirements).
 5. **L-005** `jurisdictions/ueta-states.md` — UETA inter-state framework across 47 US states + DC + USVI; UCC vs Common Law per-state delta.
 6. **L-006** `legal-dimensions/retention-overlay-by-contract-type.md` — NDA retention overlay (term + N years post-termination, perpetual for trade-secret).

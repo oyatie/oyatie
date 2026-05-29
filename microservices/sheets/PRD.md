@@ -26,7 +26,7 @@ doc_status: published
 
 ## Purpose
 
-The `sheets` µservice is oyatie's **spreadsheet + structured-data authoring product** — a Google-Sheets / Microsoft-Excel-Web / Airtable-grid / Notion-database / Coda-table-class hero product per ADR-0135. Sheets is the **end-user surface** of the spreadsheet/grid product class; it is NET-NEW per ADR-0135 (no `oya-connect-sheets-*` legacy crates exist; no migration-from-connect). Sheets owns: the cell-grid editor canvas, the workbook/sheet/cell/range/formula data model, the formula recalculation engine (dependency-graph + parallel-safe), pivot tables, charts, conditional formatting, data validation, real-time collaborative editing (CRDT-based, aligned with workflow-studio Loro per ADR-WS-0001 + this ADR-SHEETS-0001), comments + notes, version history, sharing + per-range ACL, XLSX/ODS/CSV/TSV/JSON import/export, AI-formula and AI-fill (T1/T2 tiers; EU AI Act-bounded), and connected-sheets queries.
+The `sheets` µservice is oyatie's **spreadsheet + structured-data authoring product** — a Google-Sheets / Microsoft-Excel-Web / Airtable-grid / Notion-database / Coda-table-class hero product per ADR-0135. Sheets is the **end-user surface** of the spreadsheet/grid product class; it is NET-NEW per ADR-0135 (no `oya-sheets-*` legacy crates exist; no migration-from-connect). Sheets owns: the cell-grid editor canvas, the workbook/sheet/cell/range/formula data model, the formula recalculation engine (dependency-graph + parallel-safe), pivot tables, charts, conditional formatting, data validation, real-time collaborative editing (CRDT-based, aligned with workflow-studio Loro per ADR-WS-0001 + this ADR-SHEETS-0001), comments + notes, version history, sharing + per-range ACL, XLSX/ODS/CSV/TSV/JSON import/export, AI-formula and AI-fill (T1/T2 tiers; EU AI Act-bounded), and connected-sheets queries.
 
 Sheets is **NOT a substrate**. It is a tenant-facing product surface with five distinct user personas (business power user, business analyst, financial-modelling specialist, vertical specialist, agentic developer role). The cell grid is the second-largest Leptos application in oyatie (sibling to workflow-studio's visual canvas, per ADR-0065 Rust-WASM SSR + browser-WASM hybrid). The canonical source of truth is the workbook's structured cell graph; the visual grid derives from the graph, never vice-versa.
 
@@ -103,7 +103,7 @@ This µservice is **shared substrate AND hero product** simultaneously: the cell
 
 - OIDC tenant-scoped at every REST/WebSocket entry; Sheets refuses opens without resolvable tenant identity.
 - Per-seat license-gate Cedar fragment enforced at workbook open; refusal emits `sheets_per_seat_license_denied` audit row.
-- Strict CSP (`default-src 'self' https://cdn-<pack>.oyatie.dev; script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>'`) — no inline scripts except WASM bootstrap nonce; no eval.
+- Strict CSP (`default-src 'self' https://cdn-<pack>.oyatie.com; script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>'`) — no inline scripts except WASM bootstrap nonce; no eval.
 - XSS-free architecture: cell text rendered via virtual-DOM text nodes; never `innerHTML`. Anti-pattern `per_tenant_branding_mid_render` is forbidden.
 - Per-tenant CDN cache key: CDN partitions cache by `(tenant_hash, pack, version)`; no cross-tenant cache pollution.
 - WebSocket auth: OIDC token validated at WS upgrade; tenant binding rebound at WS message dispatch.
@@ -200,7 +200,7 @@ Naming justification — `cell-grid`:
 NAME: oya-sheets-cell-grid-<layer>
 JUSTIFICATION:
 - microservice = sheets: hero product µservice (per-microservice flat layout, ADR-0131).
-  Net-new per ADR-0135; no legacy oya-connect-sheets-* crates.
+  Net-new per ADR-0135; no legacy oya-sheets-* crates.
 - bc-tokens = cell-grid: primary BC for the cell-grid canvas, viewport, selection, headers,
   freeze panes, drag-fill. ADR-0056 v4.1 BC-optionality honoured (18 sibling BCs exist).
 - layer = <layer>: one crate per layer per ADR-0105 13-value canonical enum.
@@ -612,10 +612,10 @@ Sharding:
 | ADR-0106 | Application → usecase rename | applied for new crates |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-SHEETS registers here |
-| ADR-0135 | Sheets net-new µservice (no legacy connect-sheets) | this µservice's existence rationale |
+| ADR-0135 | Sheets net-new µservice (no legacy sheets) | this µservice's existence rationale |
 | ADR-0139 | Agentic SLO-gated promotion | Sheets SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout | this µservice authored natively under it |
-| ADR-0132 | Product-suite-and-bundle dissolution | Sheets is a hero product, not a suite |
+| ADR-0132 | Product-platform-and-bundle dissolution | Sheets is a hero product, not a suite |
 | ADR-0133 | Industry-best-practice conformance | Sheets competitor parity tracked here |
 | ADR-0140 | Cedar policy enforcement | license-gate-cedar + sharing-acl built on this |
 | ADR-SHEETS-0001 | Loro 1.x CRDT — aligns ADR-WS-0001 | local |

@@ -4,6 +4,7 @@ title: "cloud-intelligence: Bedrock-on-Talos pattern as a cloud primitive"
 status: Accepted
 date: 2026-05-28
 authority: founder
+owner: council-architecture
 planning_impact: true
 supersedes: []
 superseded_by: []
@@ -97,7 +98,7 @@ The model-ID → provider-seat mapping lives in the cloud-intelligence admin API
 
 - **Hyperscaler lens** (per project memory): Bedrock Converse has active upstream, clean license (Apache 2.0 compatible), is fully self-hostable (public API spec), and is a hyperscaler-internal-equivalent. Passes all four filters.
 - **ADR-0131 flat layout**: v2 Bedrock-compat crate lands under `microservices/cloud-intelligence/crates/oya-cloud-intelligence-bedrock-compat/`.
-- **ADR-0132 no-suite**: single-concern crate; no bundle/suite grouping.
+- **ADR-0132 flat packaging**: single-concern crate; no bundle grouping.
 - **Dogfood tenancy**: `oyatie-dogfood` tenant traverses the Bedrock-compat surface as a regular tenant; no internal bypass.
 - **Data residency**: no tenant PII stored in the routing layer; prompt content flows through only if the invocation-log flag is enabled (per ADR-0390 P4 spec).
 

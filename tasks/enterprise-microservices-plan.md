@@ -120,7 +120,7 @@ Verification:
 - `cargo clippy --locked -p oya-payroll-run-domain -p oya-payroll-run-app -p oya-payroll-run-api --all-targets -- -D warnings`
 - `./bin/oya gate validate api-semver --contracts-dir microservices/payroll/contracts`
 - `cargo fmt --all -- --check`
-- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Enterprise Suite crates
+- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Tenant RBAC crates
 - data-class annotation scan for touched Payroll public fields and OpenAPI `x-data-class` fields
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-payroll-hr-leave-impact-intake-1779535200.json --severity error`
 
@@ -149,7 +149,7 @@ Verification:
 ### CS-ENT-PROCUREMENT-001 — Procurement source-to-pay domain foundation
 
 - **Intent:** Add a flat procurement source-to-pay domain foundation for supplier qualification, requisition approval, purchase order issuance, and three-way matching so ERP/SAP MM/SRM parity has a repo-native service destination before cloud integration.
-- **Primary scope:** `microservices/procurement/crates/oya-procurement-source-to-pay-domain`, `specs/microservices/procurement.json`, `registry/catalog/oya-procurement-source-to-pay-domain.yaml`, `Cargo.toml`, Enterprise Suite ERP parity map MM/SRM rows, evidence/audit closeout.
+- **Primary scope:** `microservices/procurement/crates/oya-procurement-source-to-pay-domain`, `specs/microservices/procurement.json`, `registry/catalog/oya-procurement-source-to-pay-domain.yaml`, `Cargo.toml`, Tenant RBAC ERP parity map MM/SRM rows, evidence/audit closeout.
 - **Acceptance:** Domain tests validate supplier KYB/risk/vendor-master evidence, purchase requisition approval with qualified supplier and budget/policy/approval evidence, purchase order issuance from approved requisition, three-way PO/receipt/invoice quantity and amount match, unsafe source/evidence ref refusal, and explicit false payment/inventory/supplier-network/cloud runtime capability flags.
 - **Non-claims:** no durable persistence, no supplier portal/network call, no Workflow execution, no inventory mutation, no payment execution, no statutory filing, no cloud deployment, no production procurement parity claim, and no runtime audit-chain emission.
 - **Verification:** `cargo test --locked -p oya-procurement-source-to-pay-domain`; `cargo clippy --locked -p oya-procurement-source-to-pay-domain --all-targets -- -D warnings`; ERP parity map tests/clippy; enterprise package-group tests/clippy including procurement; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
@@ -157,7 +157,7 @@ Verification:
 ### CS-ENT-TREASURY-001 — Treasury cash-position domain foundation
 
 - **Intent:** Add a flat treasury cash-management domain foundation for bank-account approval, cash-position snapshots, liquidity forecasts, and cash-transfer proposal metadata so ERP/SAP FI/TRM parity has a repo-native service destination before cloud integration.
-- **Primary scope:** `microservices/treasury/crates/oya-treasury-cash-domain`, `specs/microservices/treasury.json`, `registry/catalog/oya-treasury-cash-domain.yaml`, `Cargo.toml`, Enterprise Suite ERP parity map FI/TRM rows, evidence/audit closeout.
+- **Primary scope:** `microservices/treasury/crates/oya-treasury-cash-domain`, `specs/microservices/treasury.json`, `registry/catalog/oya-treasury-cash-domain.yaml`, `Cargo.toml`, Tenant RBAC ERP parity map FI/TRM rows, evidence/audit closeout.
 - **Acceptance:** Domain tests validate bank-account approval with target balance and control evidence, cash-position closing-balance derivation from bank statement/exposure-flow evidence, liquidity forecast shortfall/breach calculation, cash-transfer proposal surplus/need checks, unsafe source/evidence ref refusal, invalid date/currency refusal, and explicit false payment/bank-network/cloud/runtime-audit capability flags.
 - **Non-claims:** no durable persistence, no live bank connectivity or bank-network call, no payment execution, no accounting ledger mutation, no Workflow execution, no statutory filing, no cloud deployment, no production treasury parity claim, and no runtime audit-chain emission.
 - **Verification:** `cargo test --locked -p oya-treasury-cash-domain`; `cargo clippy --locked -p oya-treasury-cash-domain --all-targets -- -D warnings`; ERP parity map tests/clippy; enterprise package-group tests/clippy including treasury/procurement; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
@@ -165,7 +165,7 @@ Verification:
 ### CS-ENT-WAREHOUSE-001 — Warehouse inventory domain foundation
 
 - **Intent:** Add a flat warehouse inventory domain foundation for goods receipt, putaway stock positioning, inventory reservation, pick confirmation, and cycle-count reconciliation so ERP/SAP MM/EWM parity has a repo-native service destination before cloud integration.
-- **Primary scope:** `microservices/warehouse/crates/oya-warehouse-inventory-domain`, `specs/microservices/warehouse.json`, `registry/catalog/oya-warehouse-inventory-domain.yaml`, `Cargo.toml`, Enterprise Suite ERP parity map MM/EWM rows, evidence/audit closeout.
+- **Primary scope:** `microservices/warehouse/crates/oya-warehouse-inventory-domain`, `specs/microservices/warehouse.json`, `registry/catalog/oya-warehouse-inventory-domain.yaml`, `Cargo.toml`, Tenant RBAC ERP parity map MM/EWM rows, evidence/audit closeout.
 - **Acceptance:** Domain tests validate goods receipt with PO/inbound-load evidence and explicit false procurement/accounting/durable-write flags, putaway into capacity-checked bins, reservation without over-allocation, pick confirmation without carrier/shipping-label calls, cycle-count variance/tolerance reconciliation, unsafe source/evidence ref refusal, and explicit false robotics/scanner/cloud runtime capability flags.
 - **Non-claims:** no durable persistence, no WMS runtime task engine, no procurement three-way match, no accounting ledger mutation, no robotics/scanner runtime I/O, no carrier call, no shipping label generation, no Workflow execution, no statutory filing, no cloud deployment, no production warehouse parity claim, and no runtime audit-chain emission.
 - **Verification:** `cargo test --locked -p oya-warehouse-inventory-domain`; `cargo clippy --locked -p oya-warehouse-inventory-domain --all-targets -- -D warnings`; ERP parity map tests/clippy; enterprise package-group tests/clippy including warehouse/procurement/treasury; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
@@ -173,7 +173,7 @@ Verification:
 ### CS-ENT-PRODUCTION-PLANNING-001 — Production planning domain foundation
 
 - **Intent:** Add a flat production-planning domain foundation for approved work definitions, MRP planned-order proposals, and production-release preparation so ERP/SAP PP parity has a repo-native service destination before cloud integration.
-- **Primary scope:** `microservices/production-planning/crates/oya-production-planning-domain`, `specs/microservices/production-planning.json`, `registry/catalog/oya-production-planning-domain.yaml`, `Cargo.toml`, Enterprise Suite ERP parity map PP row, evidence/audit closeout.
+- **Primary scope:** `microservices/production-planning/crates/oya-production-planning-domain`, `specs/microservices/production-planning.json`, `registry/catalog/oya-production-planning-domain.yaml`, `Cargo.toml`, Tenant RBAC ERP parity map PP row, evidence/audit closeout.
 - **Acceptance:** Domain tests validate work-definition approval with BOM/route/work-center/effective-date evidence, MRP net-requirement and lot-size planned-order derivation, production release material/capacity evidence checks, unsafe source/evidence ref refusal, invalid date/horizon/quantity refusal, and explicit false procurement purchase-order/inventory/shop-floor/accounting/Workflow/cloud runtime capability flags.
 - **Non-claims:** no durable persistence, no live MRP engine, no finite scheduler, no manufacturing execution/shop-floor runtime, no inventory mutation, no procurement purchase-order creation, no accounting posting, no Workflow execution, no statutory filing, no cloud deployment, no production PP parity claim, and no runtime audit-chain emission.
 - **Verification:** `cargo test --locked -p oya-production-planning-domain`; `cargo clippy --locked -p oya-production-planning-domain --all-targets -- -D warnings`; ERP parity map tests/clippy; enterprise package-group tests/clippy including production-planning/warehouse/treasury/procurement; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
@@ -181,7 +181,7 @@ Verification:
 ### CS-ENT-QUALITY-001 — Quality management domain foundation
 
 - **Intent:** Add a flat quality-management domain foundation for inspection-plan approval, inspection-lot usage decisions, quality-certificate preparation, and quality-notification opening so ERP/SAP QM parity has a repo-native service destination before cloud integration.
-- **Primary scope:** `microservices/quality-management/crates/oya-quality-management-domain`, `specs/microservices/quality-management.json`, `registry/catalog/oya-quality-management-domain.yaml`, `Cargo.toml`, Enterprise Suite ERP parity map QM row, evidence/audit closeout.
+- **Primary scope:** `microservices/quality-management/crates/oya-quality-management-domain`, `specs/microservices/quality-management.json`, `registry/catalog/oya-quality-management-domain.yaml`, `Cargo.toml`, Tenant RBAC ERP parity map QM row, evidence/audit closeout.
 - **Acceptance:** Domain tests validate inspection plan approval with characteristics, sampling, AQL, effective-date evidence; inspection-lot accepted/rejected usage decisions; quality-certificate preparation from accepted inspection; quality-notification opening from rejected inspection; unsafe source/evidence ref refusal; invalid date/AQL/quantity/result refusal; and explicit false inventory mutation, certificate rendering, email delivery, CAPA Workflow, supplier-network, maintenance-notification, and cloud runtime capability flags.
 - **Sources:** SAP S/4HANA Cloud Quality Management / Quality Inspection / quality certificates; Oracle Fusion Cloud Quality inspection plans, inline inspections, and quality issues/actions; Microsoft Dynamics 365 quality/nonconformance, quality orders, and advanced quality management.
 - **Non-claims:** no durable persistence, no live inspection runtime, no inventory blocking or release mutation, no laboratory instrument integration, no certificate PDF rendering, no email delivery, no supplier collaboration network, no CAPA Workflow execution, no plant-maintenance notification, no statutory filing, no cloud deployment, no production QM parity claim, and no runtime audit-chain emission.
@@ -190,7 +190,7 @@ Verification:
 ### CS-ENT-PLANT-MAINTENANCE-001 — Plant maintenance domain foundation
 
 - **Intent:** Add a flat plant-maintenance domain foundation for equipment asset registration, preventive-maintenance plan approval, maintenance work-order release, and work-order completion so ERP/SAP PM/EAM parity has a repo-native service destination before cloud integration.
-- **Primary scope:** `microservices/plant-maintenance/crates/oya-plant-maintenance-domain`, `specs/microservices/plant-maintenance.json`, `registry/catalog/oya-plant-maintenance-domain.yaml`, `Cargo.toml`, Enterprise Suite ERP parity map PM row, evidence/audit closeout.
+- **Primary scope:** `microservices/plant-maintenance/crates/oya-plant-maintenance-domain`, `specs/microservices/plant-maintenance.json`, `registry/catalog/oya-plant-maintenance-domain.yaml`, `Cargo.toml`, Tenant RBAC ERP parity map PM row, evidence/audit closeout.
 - **Acceptance:** Domain tests validate equipment registration with functional location, criticality, installation/warranty evidence; preventive maintenance plan approval with interval/lead-time/labor/spare metadata; work-order release with planned labor/spares/safety permit/job instruction evidence; work-order completion with labor variance, spare-part consumption, downtime, and recalculation flag; unsafe source/evidence ref refusal; invalid date/interval/quantity refusal; missing registration/approval/release refusal; spare-part over-consumption refusal; and explicit false durable-registry, IoT/SCADA, scheduler, inventory, procurement, technician-dispatch, accounting, meter-write, Workflow, cloud, and runtime-audit capability flags.
 - **Sources:** SAP S/4HANA Cloud Asset Management configuration/docs, SAP Cloud ERP Asset Management, Oracle Fusion Cloud Maintenance execution/work-order docs, Oracle Maintenance work-order REST docs, and Microsoft Dynamics 365 Asset Management assets/work-orders and maintenance plans docs.
 - **Non-claims:** no durable persistence, live EAM runtime, scheduling engine, technician/mobile dispatch, IoT/SCADA ingestion, spare-parts inventory mutation/reservation, procurement requisition creation, accounting posting, plant safety permit execution, Workflow execution, statutory filing, cloud deployment, production PM/EAM parity claim, or runtime audit-chain emission.
@@ -285,7 +285,7 @@ Verification:
 - `cargo test --locked -p oya-hr-employment-domain -p oya-hr-employment-app`
 - `cargo clippy --locked -p oya-hr-employment-domain -p oya-hr-employment-app --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Enterprise Suite crates
+- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Tenant RBAC crates
 - data-class annotation scan for touched HR domain/app public fields
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-hr-leave-payroll-impact-1779532800.json --severity error`
 
@@ -316,7 +316,7 @@ Verification:
 - `cargo test --locked -p oya-hr-employment-domain -p oya-hr-employment-app`
 - `cargo clippy --locked -p oya-hr-employment-domain -p oya-hr-employment-app --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Enterprise Suite crates
+- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Tenant RBAC crates
 - data-class annotation scan for touched HR domain/app public fields
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json --severity error`
 
@@ -349,7 +349,7 @@ Verification:
 - `cargo clippy --locked -p oya-hr-employment-api --all-targets -- -D warnings`
 - `./bin/oya gate validate api-semver --contracts-dir microservices/hr/contracts`
 - `cargo fmt --all -- --check`
-- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Enterprise Suite crates
+- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Tenant RBAC crates
 - data-class annotation scan for touched HR API public fields and OpenAPI `x-data-class` sensitive-read fields
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-hr-sensitive-read-api-openapi-1779534000.json --severity error`
 
@@ -383,7 +383,7 @@ Verification:
 - `cargo clippy --locked -p oya-hr-employment-api --all-targets -- -D warnings`
 - `./bin/oya gate validate api-semver --contracts-dir microservices/hr/contracts`
 - `cargo fmt --all -- --check`
-- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Enterprise Suite crates
+- enterprise package-group regression tests/clippy across HR, Payroll, Accounting, and Tenant RBAC crates
 - data-class annotation scan for touched HR API public fields and OpenAPI `x-data-class` leave/payroll fields
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json --severity error`
 
@@ -400,38 +400,38 @@ Verification:
 
 ### CS-ENT-SUITE-010 — Enterprise local runtime composition manifest
 
-- **Intent:** Catalog router-ready HR, Payroll, Accounting, and Enterprise Suite runtime route manifests in one local composition crate for later cloud listener wiring without deploying a listener or executing runtime side effects.
-- **Primary scope:** `microservices/enterprise-suite/crates/oya-enterprise-suite-local-runtime-composition`, `Cargo.toml`, `registry/catalog/oya-enterprise-suite-local-runtime-composition.yaml`, Enterprise Suite spec AC-12/D-09, evidence/audit closeout.
+- **Intent:** Catalog router-ready HR, Payroll, Accounting, and Tenant RBAC runtime route manifests in one local composition crate for later cloud listener wiring without deploying a listener or executing runtime side effects.
+- **Primary scope:** `microservices/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition`, `Cargo.toml`, `registry/catalog/oya-tenant-rbac-local-runtime-composition.yaml`, Tenant RBAC spec AC-12/D-09, evidence/audit closeout.
 - **Acceptance:** Composition tests preserve service, method, path, operation id, request/response data-class metadata, route count, and method/path uniqueness while capability flags keep deployed listener, authentication runtime, child network calls, storage integration, Workflow execution, cloud deployment, and runtime audit-chain emission false.
 - **Non-claims:** no deployed HTTP listener, authentication runtime, child-service network calls, storage integration, Workflow engine execution, cloud deployment, or runtime audit-chain emission.
-- **Verification:** `cargo test --locked -p oya-enterprise-suite-local-runtime-composition`; `cargo clippy --locked -p oya-enterprise-suite-local-runtime-composition --all-targets -- -D warnings`; Enterprise Suite package-group tests/clippy; enterprise package-group tests/clippy; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
+- **Verification:** `cargo test --locked -p oya-tenant-rbac-local-runtime-composition`; `cargo clippy --locked -p oya-tenant-rbac-local-runtime-composition --all-targets -- -D warnings`; Tenant RBAC package-group tests/clippy; enterprise package-group tests/clippy; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
 
 
 ### CS-ENT-SUITE-011 — Enterprise local in-memory service harness
 
-- **Intent:** Compose the HR, Payroll, Accounting, and Enterprise Suite in-memory adapters into one process-local harness that records real app-layer envelopes for later cloud-integration rehearsal without deployed runtime side effects.
-- **Primary scope:** `microservices/enterprise-suite/crates/oya-enterprise-suite-local-inmemory-harness`, `Cargo.toml`, `registry/catalog/oya-enterprise-suite-local-inmemory-harness.yaml`, Enterprise Suite spec AC-13/D-10, evidence/audit closeout.
-- **Acceptance:** Harness tests persist HR leave payroll-impact, Payroll HR leave intake, Payroll accounting dispatch, Accounting payroll posting, and Enterprise Suite Workflow dispatch metadata into service-specific in-memory stores/queue, expose aggregate record counts and capability flags, surface duplicate-store errors, and keep durable storage, Postgres/RLS, deployed listener, child network calls, Workflow engine, broker publish, filing/disbursement rails, cloud deployment, and runtime audit-chain emission false.
+- **Intent:** Compose the HR, Payroll, Accounting, and Tenant RBAC in-memory adapters into one process-local harness that records real app-layer envelopes for later cloud-integration rehearsal without deployed runtime side effects.
+- **Primary scope:** `microservices/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness`, `Cargo.toml`, `registry/catalog/oya-tenant-rbac-local-inmemory-harness.yaml`, Tenant RBAC spec AC-13/D-10, evidence/audit closeout.
+- **Acceptance:** Harness tests persist HR leave payroll-impact, Payroll HR leave intake, Payroll accounting dispatch, Accounting payroll posting, and Tenant RBAC Workflow dispatch metadata into service-specific in-memory stores/queue, expose aggregate record counts and capability flags, surface duplicate-store errors, and keep durable storage, Postgres/RLS, deployed listener, child network calls, Workflow engine, broker publish, filing/disbursement rails, cloud deployment, and runtime audit-chain emission false.
 - **Non-claims:** no durable backend, Postgres/RLS, deployed listener, child-service network calls, Workflow engine/broker execution, statutory filing/disbursement rails, cloud deployment, runtime storage write path, or runtime audit-chain emission.
-- **Verification:** `cargo test --locked -p oya-enterprise-suite-local-inmemory-harness`; `cargo clippy --locked -p oya-enterprise-suite-local-inmemory-harness --all-targets -- -D warnings`; Enterprise Suite package-group tests/clippy; enterprise package-group tests/clippy; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
+- **Verification:** `cargo test --locked -p oya-tenant-rbac-local-inmemory-harness`; `cargo clippy --locked -p oya-tenant-rbac-local-inmemory-harness --all-targets -- -D warnings`; Tenant RBAC package-group tests/clippy; enterprise package-group tests/clippy; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
 
 
 ### CS-ENT-SUITE-012 — Executable ERP/SAP parity composition map
 
-- **Intent:** Convert ADR-0315 SAP module parity into a typed, testable Enterprise Suite composition map that preserves flat service ownership and forbids a monolithic ERP service while preparing later Oyatie cloud integration sequencing.
-- **Primary scope:** `microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map`, `Cargo.toml`, `registry/catalog/oya-enterprise-suite-erp-parity-map.yaml`, Enterprise Suite spec AC-14/D-11, evidence/audit closeout.
+- **Intent:** Convert ADR-0315 SAP module parity into a typed, testable Tenant RBAC composition map that preserves flat service ownership and forbids a monolithic ERP service while preparing later Oyatie cloud integration sequencing.
+- **Primary scope:** `microservices/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map`, `Cargo.toml`, `registry/catalog/oya-tenant-rbac-erp-parity-map.yaml`, Tenant RBAC spec AC-14/D-11, evidence/audit closeout.
 - **Acceptance:** Parity tests cover all 23 SAP module rows, first-write owners, service destinations, HCM/FI evidence refs to landed HR/payroll/accounting/harness slices, new-required flat ERP operational gaps, capability non-claims, and rejection of `microservices/erp` destinations.
 - **Non-claims:** no monolithic ERP microservice, deployed listener, durable business-document store, Workflow execution, cloud deployment, runtime audit-chain emission, or production ERP parity claim.
-- **Verification:** `cargo test --locked -p oya-enterprise-suite-erp-parity-map`; `cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings`; Enterprise Suite package-group tests/clippy; enterprise package-group tests/clippy; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
+- **Verification:** `cargo test --locked -p oya-tenant-rbac-erp-parity-map`; `cargo clippy --locked -p oya-tenant-rbac-erp-parity-map --all-targets -- -D warnings`; Tenant RBAC package-group tests/clippy; enterprise package-group tests/clippy; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
 
 
 ### CS-ENT-SUITE-013 — Enterprise cloud readiness gate
 
 - **Intent:** Combine the local runtime composition, in-memory service harness, and executable ERP parity map into a deterministic pre-cloud gate that proves local rehearsal readiness while refusing cloud deployment overclaims.
-- **Primary scope:** `microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate`, `Cargo.toml`, `registry/catalog/oya-enterprise-suite-cloud-readiness-gate.yaml`, Enterprise Suite spec AC-15/D-12, evidence/audit closeout.
+- **Primary scope:** `microservices/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate`, `Cargo.toml`, `registry/catalog/oya-tenant-rbac-cloud-readiness-gate.yaml`, Tenant RBAC spec AC-15/D-12, evidence/audit closeout.
 - **Acceptance:** Readiness tests assert route count, SAP module count, local rehearsal gates, evidence refs, blocker inventory, and negative cloud-claim validation when blockers remain unresolved.
 - **Non-claims:** no deployed listener, auth runtime, durable business store, Postgres/RLS, Workflow engine, broker publish, statutory filing/disbursement rails, runtime audit emission, cloud deployment, or SLO evidence.
-- **Verification:** `cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate`; `cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings`; Enterprise Suite package-group tests/clippy; enterprise package-group tests/clippy; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
+- **Verification:** `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`; `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`; Tenant RBAC package-group tests/clippy; enterprise package-group tests/clippy; `cargo fmt --all -- --check`; dependency-seam evidence gate; append-only audit-chain check; Oya VCS claim/status/verify/done/promote transcript.
 
 ### CS-ENT-HR-007 — HR in-memory storage seam reference
 
@@ -573,24 +573,24 @@ Verification:
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-cicd-quality-gates-1779528600.json --severity error`
 
 
-### CS-ENT-SUITE-001 — Enterprise Suite governance foundation
+### CS-ENT-SUITE-001 — Tenant RBAC governance foundation
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-domain/**`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-app/**`
-- `microservices/enterprise-suite/catalog/oya-enterprise-suite-{domain,app}.yaml`
-- `registry/catalog/oya-enterprise-suite-{domain,app}.yaml`
-- `specs/microservices/enterprise-suite.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/**`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/**`
+- `microservices/tenant-rbac/catalog/oya-tenant-rbac-{domain,app}.yaml`
+- `registry/catalog/oya-tenant-rbac-{domain,app}.yaml`
+- `specs/microservices/tenant-rbac.json`
 - `Cargo.toml`
 - `Cargo.lock`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-foundation-1779529200.json`
-- `evidence/vcs/cs-ent-suite-foundation-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-platform-foundation-1779529200.json`
+- `evidence/vcs/cs-ent-platform-foundation-oya-vcs-lifecycle-20260523.json`
 
-Acceptance focus: suite-level policy admission and group close projection for
+Acceptance focus: platform-level policy admission and group close projection for
 HR, Payroll, and Accounting children. The domain crate refuses child writes
-that bypass the shared suite policy gateway or omit data-class/audit evidence,
+that bypass the shared tenant RBAC policy gateway or omit data-class/audit evidence,
 and preserves legal-entity close boundaries during group rollup. The app crate
 emits metadata-only ops command envelopes and refuses manual SSH routing.
 This slice makes no storage, network, REST, Workflow execution, incident
@@ -598,27 +598,27 @@ runtime, statutory filing, ArgoCD, Helm, or cloud adapter claim.
 
 Verification:
 
-- `cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app`
-- `cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
 - `./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-`
 - `./bin/oya gate validate slo-coverage --registry registry/catalog`
 - `./bin/oya gate validate claim-ceiling --registry registry/catalog`
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-foundation-1779529200.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-foundation-1779529200.json --severity error`
 
 
-### CS-ENT-SUITE-002 — Enterprise Suite cross-product Workflow deterministic gates
+### CS-ENT-SUITE-002 — Tenant RBAC cross-product Workflow deterministic gates
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-domain/src/lib.rs`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/workflow.rs`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-app/src/lib.rs`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/workflow.rs`
-- `specs/microservices/enterprise-suite.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/src/lib.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/tests/workflow.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/src/lib.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/tests/workflow.rs`
+- `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-workflow-gates-1779529800.json`
-- `evidence/vcs/cs-ent-suite-workflow-gates-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-tenant-rbac-workflow-gates-1779529800.json`
+- `evidence/vcs/cs-ent-tenant-rbac-workflow-gates-oya-vcs-lifecycle-20260523.json`
 
 Acceptance focus: AC-04 foundation for workflows that cross HR, Payroll, and
 Accounting. The domain crate requires Workflow-owned routing, Object
@@ -630,26 +630,26 @@ ArgoCD, Helm, or cloud adapter claim.
 
 Verification:
 
-- `cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app`
-- `cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-workflow-gates-1779529800.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-tenant-rbac-workflow-gates-1779529800.json --severity error`
 
 
-### CS-ENT-SUITE-003 — Enterprise Suite incident rollback/quarantine envelope
+### CS-ENT-SUITE-003 — Tenant RBAC incident rollback/quarantine envelope
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-domain/src/lib.rs`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/incident.rs`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-app/src/lib.rs`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/incident.rs`
-- `specs/microservices/enterprise-suite.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/src/lib.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/tests/incident.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/src/lib.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/tests/incident.rs`
+- `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-incident-rollback-1779530400.json`
-- `evidence/vcs/cs-ent-suite-incident-rollback-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-platform-incident-rollback-1779530400.json`
+- `evidence/vcs/cs-ent-platform-incident-rollback-oya-vcs-lifecycle-20260523.json`
 
-Acceptance focus: AC-05 metadata foundation for unhealthy enterprise runtime
+Acceptance focus: AC-05 metadata foundation for unhealthy tenant RBAC runtime
 incidents. The domain crate requires rollback or quarantine before remediation,
 requires canary/incident/rollback audit evidence, refuses manual SSH, and
 requires infra/config convergence through OpenTofu or ops references. The app
@@ -659,30 +659,30 @@ ArgoCD, Helm, Workflow execution, or cloud adapter claim.
 
 Verification:
 
-- `cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app`
-- `cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- package-group regression tests/clippy across HR, Payroll, Accounting, and Enterprise Suite crates
-- data-class annotation scan for Enterprise Suite public fields
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-incident-rollback-1779530400.json --severity error`
+- package-group regression tests/clippy across HR, Payroll, Accounting, and Tenant RBAC crates
+- data-class annotation scan for Tenant RBAC public fields
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-incident-rollback-1779530400.json --severity error`
 
 
-### CS-ENT-SUITE-004 — Enterprise Suite API DTO contracts
+### CS-ENT-SUITE-004 — Tenant RBAC API DTO contracts
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-api/**`
-- `microservices/enterprise-suite/catalog/oya-enterprise-suite-api.yaml`
-- `registry/catalog/oya-enterprise-suite-api.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-api/**`
+- `microservices/tenant-rbac/catalog/oya-tenant-rbac-api.yaml`
+- `registry/catalog/oya-tenant-rbac-api.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
 - `registry/dependency-rationales.json`
-- `specs/microservices/enterprise-suite.json`
+- `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-api-dto-contracts-1779531000.json`
-- `evidence/vcs/cs-ent-suite-api-dto-contracts-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-platform-api-dto-contracts-1779531000.json`
+- `evidence/vcs/cs-ent-platform-api-dto-contracts-oya-vcs-lifecycle-20260523.json`
 
-Acceptance focus: AC-06 preview DTO contracts for Enterprise Suite policy
+Acceptance focus: AC-06 preview DTO contracts for Tenant RBAC policy
 admission, group rollup, cross-product Workflow planning, incident rollback,
 and ops command metadata. DTOs serialize camelCase JSON with stable
 SCREAMING_SNAKE_CASE enums and convert into existing domain/app inputs. This
@@ -692,27 +692,27 @@ claim.
 
 Verification:
 
-- `cargo test --locked -p oya-enterprise-suite-api`
-- `cargo clippy --locked -p oya-enterprise-suite-api --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-api`
+- `cargo clippy --locked -p oya-tenant-rbac-api --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- package-group regression tests/clippy across HR, Payroll, Accounting, and Enterprise Suite crates
-- data-class annotation scan for Enterprise Suite API public fields
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-api-dto-contracts-1779531000.json --severity error`
+- package-group regression tests/clippy across HR, Payroll, Accounting, and Tenant RBAC crates
+- data-class annotation scan for Tenant RBAC API public fields
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-api-dto-contracts-1779531000.json --severity error`
 
 
-### CS-ENT-SUITE-005 — Enterprise Suite OpenAPI preview contracts
+### CS-ENT-SUITE-005 — Tenant RBAC OpenAPI preview contracts
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/contracts/openapi-v1.yaml`
-- `microservices/enterprise-suite/contracts/openapi-v1.meta.yaml`
-- `specs/microservices/enterprise-suite.json`
+- `microservices/tenant-rbac/contracts/openapi-v1.yaml`
+- `microservices/tenant-rbac/contracts/openapi-v1.meta.yaml`
+- `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-openapi-contracts-1779531600.json`
-- `evidence/vcs/cs-ent-suite-openapi-contracts-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-platform-openapi-contracts-1779531600.json`
+- `evidence/vcs/cs-ent-platform-openapi-contracts-oya-vcs-lifecycle-20260523.json`
 
 Acceptance focus: AC-07 OpenAPI 3.2.0 preview wire-shape contract aligned
-to `oya-enterprise-suite-api` DTOs for policy admission, group close rollup,
+to `oya-tenant-rbac-api` DTOs for policy admission, group close rollup,
 cross-product Workflow planning, incident rollback planning, and ops command
 metadata. This slice makes no deployed HTTP endpoint, auth enforcement runtime,
 storage adapter, Workflow execution, incident rollback runtime, OpenTofu
@@ -720,24 +720,24 @@ execution, or cloud adapter claim.
 
 Verification:
 
-- JSON/YAML structural parse for Enterprise Suite OpenAPI artifacts.
-- `./bin/oya gate validate api-semver --contracts-dir microservices/enterprise-suite/contracts`
-- `cargo test --locked -p oya-enterprise-suite-api`
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-openapi-contracts-1779531600.json --severity error`
+- JSON/YAML structural parse for Tenant RBAC OpenAPI artifacts.
+- `./bin/oya gate validate api-semver --contracts-dir microservices/tenant-rbac/contracts`
+- `cargo test --locked -p oya-tenant-rbac-api`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-openapi-contracts-1779531600.json --severity error`
 
 
-### CS-ENT-SUITE-006 — Enterprise Suite Jenkins quality gate
+### CS-ENT-SUITE-006 — Tenant RBAC Jenkins quality gate
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/ci/Jenkinsfile`
-- `specs/microservices/enterprise-suite.json`
+- `microservices/tenant-rbac/ci/Jenkinsfile`
+- `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-cicd-quality-gate-1779532200.json`
-- `evidence/vcs/cs-ent-suite-cicd-quality-gate-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-platform-cicd-quality-gate-1779532200.json`
+- `evidence/vcs/cs-ent-platform-cicd-quality-gate-oya-vcs-lifecycle-20260523.json`
 
 Acceptance focus: AC-08 Jenkins LTS self-hostable quality gate per ADR-0349
-for Enterprise Suite. The Jenkinsfile runs checkout, Rust CI tooling, workspace
+for Tenant RBAC. The Jenkinsfile runs checkout, Rust CI tooling, workspace
 fmt, package-group check/clippy/nextest, OpenAPI semver, Oya VCS admission, and
 Wave 15-ZE evidence archival. This slice makes no live Jenkins controller run,
 ArgoCD Application, Helm chart, runtime deployment, storage, Workflow execution,
@@ -745,31 +745,31 @@ incident runtime, OpenTofu execution, or cloud adapter claim.
 
 Verification:
 
-- Static Jenkins lane scan over `microservices/enterprise-suite/ci/Jenkinsfile`.
+- Static Jenkins lane scan over `microservices/tenant-rbac/ci/Jenkinsfile`.
 - `cargo fmt --all -- --check`
-- `cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api`
-- `cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api --all-targets -- -D warnings`
-- `./bin/oya gate validate api-semver --contracts-dir microservices/enterprise-suite/contracts`
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-cicd-quality-gate-1779532200.json --severity error`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api --all-targets -- -D warnings`
+- `./bin/oya gate validate api-semver --contracts-dir microservices/tenant-rbac/contracts`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-cicd-quality-gate-1779532200.json --severity error`
 
 
-### CS-ENT-SUITE-007 — Enterprise Suite HTTP runtime adapter foundation
+### CS-ENT-SUITE-007 — Tenant RBAC HTTP runtime adapter foundation
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-runtime/**`
-- `registry/catalog/oya-enterprise-suite-runtime.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-runtime/**`
+- `registry/catalog/oya-tenant-rbac-runtime.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
 - `registry/dependency-rationales.json`
-- `specs/microservices/enterprise-suite.json`
-- `microservices/enterprise-suite/contracts/openapi-v1.meta.yaml`
+- `specs/microservices/tenant-rbac.json`
+- `microservices/tenant-rbac/contracts/openapi-v1.meta.yaml`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-runtime-adapter-foundation-1779537600.json`
-- `evidence/vcs/cs-ent-suite-runtime-adapter-foundation-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-platform-runtime-adapter-foundation-1779537600.json`
+- `evidence/vcs/cs-ent-platform-runtime-adapter-foundation-oya-vcs-lifecycle-20260523.json`
 
 Acceptance focus: AC-09 repo-native Hyper runtime adapter foundation for
-Enterprise Suite. The runtime dispatches policy admission, group close rollup,
+Tenant RBAC. The runtime dispatches policy admission, group close rollup,
 cross-product Workflow planning, incident rollback planning, ops command
 metadata, and health checks to existing API/domain/app seams with OpenAPI-aligned
 JSON responses and validation error envelopes. This slice makes no live listener
@@ -779,30 +779,30 @@ integration, or runtime audit-chain emission claim.
 
 Verification:
 
-- `cargo test --locked -p oya-enterprise-suite-runtime`
-- `cargo clippy --locked -p oya-enterprise-suite-runtime --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime`
-- `cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-runtime`
+- `cargo clippy --locked -p oya-tenant-rbac-runtime --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- data-class annotation scan for Enterprise Suite runtime public fields
-- `./bin/oya gate validate api-semver --contracts-dir microservices/enterprise-suite/contracts`
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-runtime-adapter-foundation-1779537600.json --severity error`
+- data-class annotation scan for Tenant RBAC runtime public fields
+- `./bin/oya gate validate api-semver --contracts-dir microservices/tenant-rbac/contracts`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-runtime-adapter-foundation-1779537600.json --severity error`
 
 
-### CS-ENT-SUITE-008 — Enterprise Suite in-memory storage seam reference
+### CS-ENT-SUITE-008 — Tenant RBAC in-memory storage seam reference
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-storage-adapter-inmemory/**`
-- `registry/catalog/oya-enterprise-suite-storage-adapter-inmemory.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/**`
+- `registry/catalog/oya-tenant-rbac-storage-adapter-inmemory.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
+- `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-storage-adapter-inmemory-1779538200.json`
-- `evidence/vcs/cs-ent-suite-storage-adapter-inmemory-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-tenant-rbac-storage-adapter-inmemory-1779538200.json`
+- `evidence/vcs/cs-ent-tenant-rbac-storage-adapter-inmemory-oya-vcs-lifecycle-20260523.json`
 
-Acceptance focus: AC-10 storage seam reference for Enterprise Suite metadata.
+Acceptance focus: AC-10 storage seam reference for Tenant RBAC metadata.
 The adapter records policy admission, group close rollup, cross-product Workflow
 plan, incident rollback plan, and ops command metadata with validated
 idempotency keys and duplicate-write refusal. It is an in-memory reference only:
@@ -812,29 +812,29 @@ network calls, audit-chain runtime emission, or cloud storage claim is made.
 
 Verification:
 
-- `cargo test --locked -p oya-enterprise-suite-storage-adapter-inmemory`
-- `cargo clippy --locked -p oya-enterprise-suite-storage-adapter-inmemory --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory`
-- `cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-storage-adapter-inmemory`
+- `cargo clippy --locked -p oya-tenant-rbac-storage-adapter-inmemory --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime -p oya-tenant-rbac-storage-adapter-inmemory`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime -p oya-tenant-rbac-storage-adapter-inmemory --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- data-class annotation scan for Enterprise Suite storage public fields
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-storage-adapter-inmemory-1779538200.json --severity error`
+- data-class annotation scan for Tenant RBAC storage public fields
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-tenant-rbac-storage-adapter-inmemory-1779538200.json --severity error`
 
 
-### CS-ENT-SUITE-009 — Enterprise Suite in-memory Workflow dispatch queue reference
+### CS-ENT-SUITE-009 — Tenant RBAC in-memory Workflow dispatch queue reference
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-workflow-adapter-inmemory/**`
-- `registry/catalog/oya-enterprise-suite-workflow-adapter-inmemory.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/**`
+- `registry/catalog/oya-tenant-rbac-workflow-adapter-inmemory.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
+- `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-workflow-adapter-inmemory-1779538800.json`
-- `evidence/vcs/cs-ent-suite-workflow-adapter-inmemory-oya-vcs-lifecycle-20260523.json`
+- `evidence/multispectrum/cs-ent-tenant-rbac-workflow-adapter-inmemory-1779538800.json`
+- `evidence/vcs/cs-ent-tenant-rbac-workflow-adapter-inmemory-oya-vcs-lifecycle-20260523.json`
 
-Acceptance focus: AC-11 Workflow dispatch seam reference for Enterprise Suite
+Acceptance focus: AC-11 Workflow dispatch seam reference for Tenant RBAC
 cross-product workflow metadata. The adapter records prepared Workflow dispatch
 intents with required gate counts, evidence counts, object-graph relationship
 refs, AI suggestion refs, idempotency validation, and duplicate-dispatch
@@ -844,13 +844,13 @@ audit-chain runtime emission, or cloud Workflow claim is made.
 
 Verification:
 
-- `cargo test --locked -p oya-enterprise-suite-workflow-adapter-inmemory`
-- `cargo clippy --locked -p oya-enterprise-suite-workflow-adapter-inmemory --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory -p oya-enterprise-suite-workflow-adapter-inmemory`
-- `cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory -p oya-enterprise-suite-workflow-adapter-inmemory --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-workflow-adapter-inmemory`
+- `cargo clippy --locked -p oya-tenant-rbac-workflow-adapter-inmemory --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime -p oya-tenant-rbac-storage-adapter-inmemory -p oya-tenant-rbac-workflow-adapter-inmemory`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime -p oya-tenant-rbac-storage-adapter-inmemory -p oya-tenant-rbac-workflow-adapter-inmemory --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- data-class annotation scan for Enterprise Suite Workflow adapter public fields
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-workflow-adapter-inmemory-1779538800.json --severity error`
+- data-class annotation scan for Tenant RBAC Workflow adapter public fields
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-tenant-rbac-workflow-adapter-inmemory-1779538800.json --severity error`
 
 ### CS-ENT-CRM-001 — CRM customer engagement domain foundation
 
@@ -861,7 +861,7 @@ Disjoint path envelope:
 - `specs/microservices/crm.json`
 - `Cargo.toml`
 - `Cargo.lock`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/**`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/**`
 - `tasks/enterprise-microservices-*`
 - `evidence/multispectrum/cs-ent-crm-customer-engagement-domain-1779549600.json`
 - `evidence/vcs/cs-ent-crm-customer-engagement-domain-oya-vcs-lifecycle-20260524.json`
@@ -871,7 +871,7 @@ Acceptance focus: CRM customer-engagement domain foundation. The domain
 registers customer account metadata, qualifies opportunity metadata, prepares
 quote metadata, opens service-case metadata, plans marketing-campaign metadata,
 and records loyalty activity metadata with validation, data-class annotations,
-false runtime/cloud flags, and Enterprise Suite ERP parity-map linkage. This
+false runtime/cloud flags, and Tenant RBAC ERP parity-map linkage. This
 slice makes no durable customer master, CDP unification, CPQ price engine,
 order-management mutation, service routing, knowledge-base integration,
 marketing journey execution, message delivery, loyalty wallet settlement,
@@ -882,8 +882,8 @@ Verification:
 - `cargo check -p oya-crm-customer-engagement-domain`
 - `cargo test --locked -p oya-crm-customer-engagement-domain`
 - `cargo clippy --locked -p oya-crm-customer-engagement-domain --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-erp-parity-map`
-- `cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-erp-parity-map`
+- `cargo clippy --locked -p oya-tenant-rbac-erp-parity-map --all-targets -- -D warnings`
 - 33-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
 - `jq . specs/microservices/crm.json`
@@ -900,7 +900,7 @@ Disjoint path envelope:
 - `specs/microservices/supply-chain-planning.json`
 - `Cargo.toml`
 - `Cargo.lock`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/**`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/**`
 - `tasks/enterprise-microservices-*`
 - `evidence/multispectrum/cs-ent-supply-chain-planning-domain-1779549000.json`
 - `evidence/vcs/cs-ent-supply-chain-planning-domain-oya-vcs-lifecycle-20260524.json`
@@ -910,7 +910,7 @@ Acceptance focus: SCM/APO supply-chain planning domain foundation. The domain
 approves consensus demand-plan metadata, proposes supply-network plan metadata,
 prepares available-to-promise response metadata, and prepares distribution-lane
 plan metadata with validation, data-class annotations, false runtime/cloud flags,
-and Enterprise Suite ERP parity-map linkage. This slice makes no durable planning
+and Tenant RBAC ERP parity-map linkage. This slice makes no durable planning
 store, live demand-sensing ML, optimizer/scheduler/CTP runtime, production order,
 procurement requisition, inventory mutation, warehouse reservation, carrier
 booking, order-management rescheduling, Workflow execution, runtime audit-chain
@@ -921,8 +921,8 @@ Verification:
 - `cargo check -p oya-supply-chain-planning-domain`
 - `cargo test --locked -p oya-supply-chain-planning-domain`
 - `cargo clippy --locked -p oya-supply-chain-planning-domain --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-erp-parity-map`
-- `cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-erp-parity-map`
+- `cargo clippy --locked -p oya-tenant-rbac-erp-parity-map --all-targets -- -D warnings`
 - 32-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
 - `jq . specs/microservices/supply-chain-planning.json`
@@ -943,7 +943,7 @@ Disjoint path envelope:
 - `specs/microservices/global-trade.json`
 - `Cargo.toml`
 - `Cargo.lock`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/**`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/**`
 - `tasks/enterprise-microservices-*`
 - `evidence/multispectrum/cs-ent-global-trade-compliance-domain-1779550200.json`
 - `evidence/vcs/cs-ent-global-trade-compliance-domain-oya-vcs-lifecycle-20260524.json`
@@ -953,7 +953,7 @@ Acceptance focus: GTS/global-trade compliance domain foundation. The domain
 screens trade-party metadata, classifies trade-item metadata, assesses
 export-control metadata, prepares customs-declaration metadata, and simulates
 landed-cost metadata with validation, data-class annotations, false
-runtime/cloud flags, and Enterprise Suite ERP parity-map linkage. This slice
+runtime/cloud flags, and Tenant RBAC ERP parity-map linkage. This slice
 makes no live denied-party screening, government list download, regulatory
 content subscription, legal ruling, customs/export filing, broker network,
 shipment/order/inventory/accounting mutation, Workflow execution, runtime
@@ -964,8 +964,8 @@ Verification:
 - `cargo check -p oya-global-trade-compliance-domain`
 - `cargo test --locked -p oya-global-trade-compliance-domain`
 - `cargo clippy --locked -p oya-global-trade-compliance-domain --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-erp-parity-map`
-- `cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-erp-parity-map`
+- `cargo clippy --locked -p oya-tenant-rbac-erp-parity-map --all-targets -- -D warnings`
 - 34-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
 - `jq . specs/microservices/global-trade.json`
@@ -982,7 +982,7 @@ Disjoint path envelope:
 - `specs/microservices/real-estate.json`
 - `Cargo.toml`
 - `Cargo.lock`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/**`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/**`
 - `tasks/enterprise-microservices-*`
 - `evidence/multispectrum/cs-ent-real-estate-portfolio-domain-1779550800.json`
 - `evidence/vcs/cs-ent-real-estate-portfolio-domain-oya-vcs-lifecycle-20260524.json`
@@ -992,7 +992,7 @@ Acceptance focus: RE-FX real-estate portfolio domain foundation. The domain
 registers property/rental-object metadata, registers lease-contract metadata,
 projects lease cash-flow metadata, plans space-occupancy metadata, and prepares
 facility-maintenance linkage metadata with validation, data-class annotations,
-false runtime/cloud flags, and Enterprise Suite ERP parity-map linkage. This
+false runtime/cloud flags, and Tenant RBAC ERP parity-map linkage. This
 slice makes no durable real-estate store, SAP RE-FX/SAP Cloud for Real Estate
 integration, lease-accounting engine, GL/AP/AR posting, payment execution,
 plant-maintenance work order, workspace/team sync, document archive, Workflow
@@ -1003,8 +1003,8 @@ Verification:
 - `cargo check -p oya-real-estate-portfolio-domain`
 - `cargo test --locked -p oya-real-estate-portfolio-domain`
 - `cargo clippy --locked -p oya-real-estate-portfolio-domain --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-erp-parity-map`
-- `cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-erp-parity-map`
+- `cargo clippy --locked -p oya-tenant-rbac-erp-parity-map --all-targets -- -D warnings`
 - 35-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
 - `jq . specs/microservices/real-estate.json`
@@ -1012,22 +1012,22 @@ Verification:
 - quality-marker scan for real-estate domain/spec/catalog
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-real-estate-portfolio-domain-1779550800.json --severity error`
 
-### CS-ENT-SUITE-CLOUD-DEPLOYMENT-MANIFEST-001 — Enterprise Suite cloud deployment manifest foundation
+### CS-ENT-SUITE-CLOUD-DEPLOYMENT-MANIFEST-001 — Tenant RBAC cloud deployment manifest foundation
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-deployment-manifest/**`
-- `registry/catalog/oya-enterprise-suite-cloud-deployment-manifest.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest/**`
+- `registry/catalog/oya-tenant-rbac-cloud-deployment-manifest.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/**`
+- `specs/microservices/tenant-rbac.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/**`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-cloud-deployment-manifest-1779551400.json`
-- `evidence/vcs/cs-ent-suite-cloud-deployment-manifest-oya-vcs-lifecycle-20260524.json`
+- `evidence/multispectrum/cs-ent-platform-cloud-deployment-manifest-1779551400.json`
+- `evidence/vcs/cs-ent-platform-cloud-deployment-manifest-oya-vcs-lifecycle-20260524.json`
 - `evidence/audit-chain.jsonl`
 
-Acceptance focus: Enterprise Suite cloud deployment manifest foundation. The
+Acceptance focus: Tenant RBAC cloud deployment manifest foundation. The
 manifest records Kubernetes namespace/deployment/service-account shape,
 digest-pinned image policy, probes, replica/resource bounds, ArgoCD application
 ref, Jenkins quality gate ref, Cosign policy ref, network policy ref, OTel
@@ -1040,36 +1040,36 @@ filing/disbursement rails, and runtime audit-chain emission as non-claims.
 
 Verification:
 
-- `cargo check -p oya-enterprise-suite-cloud-deployment-manifest`
-- `cargo test --locked -p oya-enterprise-suite-cloud-deployment-manifest`
-- `cargo clippy --locked -p oya-enterprise-suite-cloud-deployment-manifest --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate`
-- `cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings`
+- `cargo check -p oya-tenant-rbac-cloud-deployment-manifest`
+- `cargo test --locked -p oya-tenant-rbac-cloud-deployment-manifest`
+- `cargo clippy --locked -p oya-tenant-rbac-cloud-deployment-manifest --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`
+- `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`
 - 36-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
-- `jq . specs/microservices/enterprise-suite.json`
+- `jq . specs/microservices/tenant-rbac.json`
 - data-class annotation scan for cloud manifest/readiness fields
 - quality-marker scan for cloud manifest source/tests, spec, and catalog
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-cloud-deployment-manifest-1779551400.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-cloud-deployment-manifest-1779551400.json --severity error`
 
-### CS-ENT-SUITE-AUTH-RUNTIME-001 — Enterprise Suite auth runtime foundation
+### CS-ENT-SUITE-AUTH-RUNTIME-001 — Tenant RBAC auth runtime foundation
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-auth-runtime/**`
-- `registry/catalog/oya-enterprise-suite-auth-runtime.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-auth-runtime/**`
+- `registry/catalog/oya-tenant-rbac-auth-runtime.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/**`
+- `specs/microservices/tenant-rbac.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/**`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-auth-runtime-1779552000.json`
-- `evidence/vcs/cs-ent-suite-auth-runtime-oya-vcs-lifecycle-20260524.json`
+- `evidence/multispectrum/cs-ent-platform-auth-runtime-1779552000.json`
+- `evidence/vcs/cs-ent-platform-auth-runtime-oya-vcs-lifecycle-20260524.json`
 - `evidence/audit-chain.jsonl`
 
-Acceptance focus: Enterprise Suite auth runtime foundation. The runtime records
+Acceptance focus: Tenant RBAC auth runtime foundation. The runtime records
 deny-by-default route policy coverage for local HR, Payroll, Accounting, and
-Enterprise Suite routes; validates issuer, audience, nonce, session age, tenant
+Tenant RBAC routes; validates issuer, audience, nonce, session age, tenant
 isolation, route scopes, sensitive-data MFA/AAL2 requirements, and break-glass
 audit requirements; and is consumed by the cloud-readiness gate as a local
 pre-cloud artifact. It keeps OIDC signature verification, JWKS/provider
@@ -1079,34 +1079,34 @@ as non-claims/blockers.
 
 Verification:
 
-- `cargo check -p oya-enterprise-suite-auth-runtime`
-- `cargo test --locked -p oya-enterprise-suite-auth-runtime`
-- `cargo clippy --locked -p oya-enterprise-suite-auth-runtime --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate`
-- `cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings`
+- `cargo check -p oya-tenant-rbac-auth-runtime`
+- `cargo test --locked -p oya-tenant-rbac-auth-runtime`
+- `cargo clippy --locked -p oya-tenant-rbac-auth-runtime --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`
+- `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`
 - 37-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
-- `jq . specs/microservices/enterprise-suite.json`
+- `jq . specs/microservices/tenant-rbac.json`
 - data-class annotation scan for auth runtime/readiness fields
 - quality-marker scan for auth runtime source/tests, readiness source/tests, spec, and catalog
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-auth-runtime-1779552000.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-auth-runtime-1779552000.json --severity error`
 
-### CS-ENT-SUITE-POSTGRES-RLS-STORAGE-001 — Enterprise Suite Postgres/RLS storage schema foundation
+### CS-ENT-SUITE-POSTGRES-RLS-STORAGE-001 — Tenant RBAC Postgres/RLS storage schema foundation
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-postgres-rls-storage/**`
-- `registry/catalog/oya-enterprise-suite-postgres-rls-storage.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-storage/**`
+- `registry/catalog/oya-tenant-rbac-postgres-rls-storage.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/**`
+- `specs/microservices/tenant-rbac.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/**`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-postgres-rls-storage-1779552600.json`
-- `evidence/vcs/cs-ent-suite-postgres-rls-storage-oya-vcs-lifecycle-20260524.json`
+- `evidence/multispectrum/cs-ent-platform-postgres-rls-storage-1779552600.json`
+- `evidence/vcs/cs-ent-platform-postgres-rls-storage-oya-vcs-lifecycle-20260524.json`
 - `evidence/audit-chain.jsonl`
 
-Acceptance focus: Enterprise Suite Postgres/RLS durable-storage schema
+Acceptance focus: Tenant RBAC Postgres/RLS durable-storage schema
 foundation. The plan records tenant-scoped tables for policy admissions, group
 close rollups, cross-product Workflow plans, incident rollback plans, and ops
 commands with tenant/idempotency primary keys, required payload/audit evidence
@@ -1118,34 +1118,34 @@ database, and runtime audit-chain emission as non-claims/blockers.
 
 Verification:
 
-- `cargo check -p oya-enterprise-suite-postgres-rls-storage`
-- `cargo test --locked -p oya-enterprise-suite-postgres-rls-storage`
-- `cargo clippy --locked -p oya-enterprise-suite-postgres-rls-storage --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate`
-- `cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings`
+- `cargo check -p oya-tenant-rbac-postgres-rls-storage`
+- `cargo test --locked -p oya-tenant-rbac-postgres-rls-storage`
+- `cargo clippy --locked -p oya-tenant-rbac-postgres-rls-storage --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`
+- `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`
 - 38-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
-- `jq . specs/microservices/enterprise-suite.json`
+- `jq . specs/microservices/tenant-rbac.json`
 - data-class annotation scan for Postgres/RLS storage plan and readiness fields
 - quality-marker scan for Postgres/RLS storage source/tests, readiness source/tests, spec, and catalog
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-postgres-rls-storage-1779552600.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-postgres-rls-storage-1779552600.json --severity error`
 
-### CS-ENT-SUITE-LISTENER-GATEWAY-001 — Enterprise Suite listener/gateway foundation
+### CS-ENT-SUITE-LISTENER-GATEWAY-001 — Tenant RBAC listener/gateway foundation
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-listener-gateway/**`
-- `registry/catalog/oya-enterprise-suite-listener-gateway.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-listener-gateway/**`
+- `registry/catalog/oya-tenant-rbac-listener-gateway.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/**`
+- `specs/microservices/tenant-rbac.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/**`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-listener-gateway-1779553200.json`
-- `evidence/vcs/cs-ent-suite-listener-gateway-oya-vcs-lifecycle-20260524.json`
+- `evidence/multispectrum/cs-ent-platform-listener-gateway-1779553200.json`
+- `evidence/vcs/cs-ent-platform-listener-gateway-oya-vcs-lifecycle-20260524.json`
 - `evidence/audit-chain.jsonl`
 
-Acceptance focus: Enterprise Suite listener/gateway foundation. The plan
+Acceptance focus: Tenant RBAC listener/gateway foundation. The plan
 composes the 19-route local runtime catalog, 19-route auth policy, and cloud
 deployment manifest into a review-only Kubernetes ClusterIP Service + Gateway
 API HTTPRoute contract with TLS, network-policy, authz, route-scope, probe,
@@ -1157,34 +1157,34 @@ audit-chain emission as non-claims/blockers.
 
 Verification:
 
-- `cargo check -p oya-enterprise-suite-listener-gateway`
-- `cargo test --locked -p oya-enterprise-suite-listener-gateway`
-- `cargo clippy --locked -p oya-enterprise-suite-listener-gateway --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate`
-- `cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings`
+- `cargo check -p oya-tenant-rbac-listener-gateway`
+- `cargo test --locked -p oya-tenant-rbac-listener-gateway`
+- `cargo clippy --locked -p oya-tenant-rbac-listener-gateway --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`
+- `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`
 - 39-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
-- `jq . specs/microservices/enterprise-suite.json`
+- `jq . specs/microservices/tenant-rbac.json`
 - data-class annotation scan for listener/gateway plan and readiness fields
 - quality-marker scan for listener/gateway source/tests, readiness source/tests, spec, and catalog
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-listener-gateway-1779553200.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-listener-gateway-1779553200.json --severity error`
 
-### CS-ENT-SUITE-IDP-VERIFICATION-001 — Enterprise Suite identity-provider verification foundation
+### CS-ENT-SUITE-IDP-VERIFICATION-001 — Tenant RBAC identity-provider verification foundation
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-identity-provider-verification/**`
-- `registry/catalog/oya-enterprise-suite-identity-provider-verification.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification/**`
+- `registry/catalog/oya-tenant-rbac-identity-provider-verification.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/**`
+- `specs/microservices/tenant-rbac.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/**`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-idp-verification-1779553800.json`
-- `evidence/vcs/cs-ent-suite-idp-verification-oya-vcs-lifecycle-20260524.json`
+- `evidence/multispectrum/cs-ent-platform-idp-verification-1779553800.json`
+- `evidence/vcs/cs-ent-platform-idp-verification-oya-vcs-lifecycle-20260524.json`
 - `evidence/audit-chain.jsonl`
 
-Acceptance focus: Enterprise Suite identity-provider verification foundation.
+Acceptance focus: Tenant RBAC identity-provider verification foundation.
 The plan composes the auth runtime issuer/audience into a review-only OIDC
 Discovery + JWKS + JWT-claim verification contract with TLS, issuer/audience,
 expiry/not-before/issued-at, nonce, key id, tenant claim, subject claim,
@@ -1196,37 +1196,37 @@ enforcement, and runtime audit-chain emission as non-claims/blockers.
 
 Verification:
 
-- `cargo check -p oya-enterprise-suite-identity-provider-verification`
-- `cargo test --locked -p oya-enterprise-suite-identity-provider-verification`
-- `cargo clippy --locked -p oya-enterprise-suite-identity-provider-verification --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate`
-- `cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings`
+- `cargo check -p oya-tenant-rbac-identity-provider-verification`
+- `cargo test --locked -p oya-tenant-rbac-identity-provider-verification`
+- `cargo clippy --locked -p oya-tenant-rbac-identity-provider-verification --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`
+- `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`
 - 40-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
-- `jq . specs/microservices/enterprise-suite.json`
+- `jq . specs/microservices/tenant-rbac.json`
 - data-class annotation scan for identity-provider verification and readiness fields
 - quality-marker scan for identity-provider verification source/tests, readiness source/tests, spec, and catalog
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-idp-verification-1779553800.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-idp-verification-1779553800.json --severity error`
 
-### CS-ENT-SUITE-AUDIT-CHAIN-EMISSION-001 — Enterprise Suite audit-chain emission contract foundation
+### CS-ENT-SUITE-AUDIT-CHAIN-EMISSION-001 — Tenant RBAC audit-chain emission contract foundation
 
 Disjoint path envelope:
 
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-audit-chain-emission/**`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission/**`
 - `crates/oya-audit-chain-emission-kernel/src/lib.rs`
 - `crates/oya-audit-chain-sealing-kernel/src/lib.rs`
-- `registry/catalog/oya-enterprise-suite-audit-chain-emission.yaml`
-- `registry/catalog/oya-enterprise-suite-{auth-runtime,cloud-deployment-manifest,cloud-readiness-gate,erp-parity-map,local-inmemory-harness,local-runtime-composition,postgres-rls-storage}.yaml`
+- `registry/catalog/oya-tenant-rbac-audit-chain-emission.yaml`
+- `registry/catalog/oya-tenant-rbac-{auth-runtime,cloud-deployment-manifest,cloud-readiness-gate,erp-parity-map,local-inmemory-harness,local-runtime-composition,postgres-rls-storage}.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
-- `microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/**`
+- `specs/microservices/tenant-rbac.json`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/**`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-audit-chain-emission-1779661200.json`
-- `evidence/vcs/cs-ent-suite-audit-chain-emission-oya-vcs-lifecycle-20260524.json`
+- `evidence/multispectrum/cs-ent-platform-audit-chain-emission-1779661200.json`
+- `evidence/vcs/cs-ent-platform-audit-chain-emission-oya-vcs-lifecycle-20260524.json`
 - `evidence/audit-chain.jsonl`
 
-Acceptance focus: Enterprise Suite audit-chain emission contract foundation.
+Acceptance focus: Tenant RBAC audit-chain emission contract foundation.
 The plan defines CloudEvents-style context attributes, W3C traceparent
 correlation, OpenTelemetry log-mapping intent, tenant/idempotency/payload-digest
 extensions, source evidence references, nine tenant-scoped event schemas,
@@ -1239,18 +1239,18 @@ CI gate evidence.
 
 Verification:
 
-- `cargo check -p oya-enterprise-suite-audit-chain-emission`
-- `cargo test --locked -p oya-enterprise-suite-audit-chain-emission`
-- `cargo clippy --locked -p oya-enterprise-suite-audit-chain-emission --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate`
-- `cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings`
+- `cargo check -p oya-tenant-rbac-audit-chain-emission`
+- `cargo test --locked -p oya-tenant-rbac-audit-chain-emission`
+- `cargo clippy --locked -p oya-tenant-rbac-audit-chain-emission --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`
+- `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`
 - 41-package enterprise regression test/clippy package group
 - `cargo fmt --all -- --check`
-- `jq . specs/microservices/enterprise-suite.json`
-- `./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog` (currently advances past normalized Enterprise Suite rows, then blocks on pre-existing missing `oya-tenancy-tenant-lifecycle-kernel` catalog row)
+- `jq . specs/microservices/tenant-rbac.json`
+- `./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog` (currently advances past normalized Tenant RBAC rows, then blocks on pre-existing missing `oya-tenancy-tenant-lifecycle-kernel` catalog row)
 - `./bin/oya gate validate data-class --workspace Cargo.toml` (currently advances past audit-chain kernel annotations, then blocks on pre-existing `RebalanceTask.from_cell`)
 - quality-marker scan for audit-chain emission source/tests, readiness source/tests, spec, and catalog
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-audit-chain-emission-1779661200.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-audit-chain-emission-1779661200.json --severity error`
 
 ### CS-ENT-CI-GATE-UNBLOCKERS-001 — Tenancy catalog/data-class gate unblockers for enterprise verification
 
@@ -1268,11 +1268,11 @@ Disjoint path envelope:
 
 Acceptance focus: enterprise verification gate hygiene needed before broad CI
 claims. This slice adds missing catalog coverage for the tenancy workspace
-crates that blocked `oya catalog validate` after the Enterprise Suite catalog
+crates that blocked `oya catalog validate` after the Tenant RBAC catalog
 normalization, and annotates current tenancy kernel fields so
 `oya gate validate data-class --workspace Cargo.toml` passes. It does not
 change tenancy behavior, runtime isolation, DSR execution, lifecycle logic, or
-Enterprise Suite cloud-readiness blockers. Catalog validation advances to the
+Tenant RBAC cloud-readiness blockers. Catalog validation advances to the
 next unrelated pre-existing missing record (`oya-payments-adapter-adyen`).
 
 Verification:
@@ -1321,7 +1321,7 @@ Verification:
 Disjoint path envelope:
 
 - `registry/catalog/oya-{hr-employment,payroll-run,accounting-journal}-storage-adapter-inmemory.yaml`
-- `registry/catalog/oya-enterprise-suite-{local-inmemory-harness,storage-adapter-inmemory,workflow-adapter-inmemory,identity-provider-verification,listener-gateway,cloud-readiness-gate}.yaml`
+- `registry/catalog/oya-tenant-rbac-{local-inmemory-harness,storage-adapter-inmemory,workflow-adapter-inmemory,identity-provider-verification,listener-gateway,cloud-readiness-gate}.yaml`
 - `tasks/enterprise-microservices-*`
 - `evidence/multispectrum/cs-ent-ci-gate-arch-role-matrix-1779663000.json`
 - `evidence/vcs/cs-ent-ci-gate-arch-role-matrix-oya-vcs-lifecycle-20260524.json`
@@ -1342,7 +1342,7 @@ Verification:
 - `./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog`
 - `./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog` (expected to retain only pre-existing microservices/* package-placement diagnostics)
 - `./bin/oya gate validate data-class --workspace Cargo.toml`
-- affected HR/payroll/accounting/Enterprise Suite package-group check/test/clippy smoke where role rows changed
+- affected HR/payroll/accounting/Tenant RBAC package-group check/test/clippy smoke where role rows changed
 - `cargo fmt --all -- --check`
 - quality-marker scan for touched catalog/tasks/evidence rows
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-ci-gate-arch-role-matrix-1779663000.json --severity error`
@@ -1351,7 +1351,7 @@ Verification:
 
 Disjoint path envelope:
 
-- `microservices/{hr,payroll,accounting,procurement,treasury,warehouse,production-planning,quality-management,plant-maintenance,supply-chain-planning,crm,global-trade,real-estate,enterprise-suite}/crates/**` moved to `crates/oya-*`
+- `microservices/{hr,payroll,accounting,procurement,treasury,warehouse,production-planning,quality-management,plant-maintenance,supply-chain-planning,crm,global-trade,real-estate,tenant-rbac}/crates/**` moved to `crates/oya-*`
 - `Cargo.toml`
 - `tasks/enterprise-microservices-*`
 - `evidence/multispectrum/cs-ent-ci-gate-package-layout-1779663600.json`
@@ -1379,23 +1379,23 @@ Verification:
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-ci-gate-package-layout-1779663600.json --severity error`
 - audit-chain HEAD-prefix append-only check and Oya VCS claim/status/verify/done/promote transcript
 
-### CS-ENT-SUITE-SLO-EVIDENCE-001 — Enterprise Suite SLO evidence contract foundation
+### CS-ENT-SUITE-SLO-EVIDENCE-001 — Tenant RBAC SLO evidence contract foundation
 
 Disjoint path envelope:
 
-- `crates/oya-enterprise-suite-slo-evidence/**`
-- `crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}`
-- `microservices/enterprise-suite/slos/*.openslo.yaml`
-- `registry/catalog/oya-enterprise-suite-slo-evidence.yaml`
+- `crates/oya-tenant-rbac-slo-evidence/**`
+- `crates/oya-tenant-rbac-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}`
+- `microservices/tenant-rbac/slos/*.openslo.yaml`
+- `registry/catalog/oya-tenant-rbac-slo-evidence.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
-- `specs/microservices/enterprise-suite.json`
+- `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
-- `evidence/multispectrum/cs-ent-suite-slo-evidence-1779664200.json`
-- `evidence/vcs/cs-ent-suite-slo-evidence-oya-vcs-lifecycle-20260524.json`
+- `evidence/multispectrum/cs-ent-platform-slo-evidence-1779664200.json`
+- `evidence/vcs/cs-ent-platform-slo-evidence-oya-vcs-lifecycle-20260524.json`
 - `evidence/audit-chain.jsonl`
 
-Acceptance focus: define a typed Enterprise Suite SLO evidence contract for later
+Acceptance focus: define a typed Tenant RBAC SLO evidence contract for later
 Oyatie cloud promotion without overclaiming production SLO evidence. The slice
 adds OpenSLO-style manifest paths, OTel metric stream names, rolling
 error-budget windows, multi-window burn-rate alert policy, canary evidence refs,
@@ -1408,17 +1408,17 @@ emission as blockers/non-claims.
 
 Verification:
 
-- `cargo check -p oya-enterprise-suite-slo-evidence`
-- `cargo test --locked -p oya-enterprise-suite-slo-evidence`
-- `cargo clippy --locked -p oya-enterprise-suite-slo-evidence --all-targets -- -D warnings`
-- `cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate`
-- `cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings`
+- `cargo check -p oya-tenant-rbac-slo-evidence`
+- `cargo test --locked -p oya-tenant-rbac-slo-evidence`
+- `cargo clippy --locked -p oya-tenant-rbac-slo-evidence --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`
+- `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
-- `jq . specs/microservices/enterprise-suite.json`
-- OpenSLO manifest parse/shape scan for `microservices/enterprise-suite/slos/*.openslo.yaml`
+- `jq . specs/microservices/tenant-rbac.json`
+- OpenSLO manifest parse/shape scan for `microservices/tenant-rbac/slos/*.openslo.yaml`
 - `./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog`
 - `./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog`
 - `./bin/oya gate validate data-class --workspace Cargo.toml`
 - quality-marker scan for touched SLO evidence/readiness/spec/task/evidence rows
-- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-slo-evidence-1779664200.json --severity error`
+- `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-slo-evidence-1779664200.json --severity error`
 - audit-chain HEAD-prefix append-only check and Oya VCS claim/status/verify/done/promote transcript

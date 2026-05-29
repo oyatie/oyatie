@@ -7,7 +7,7 @@
   "artifact_target": 100,
   "findings": [
     {
-      "id": "real-estate-lease-contract-doc-suite",
+      "id": "real-estate-lease-contract-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/lease-contract-authorization.cedar",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "real-estate-facility-master-doc-suite",
+      "id": "real-estate-facility-master-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/facility-master-authorization.cedar",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "real-estate-occupancy-allocation-doc-suite",
+      "id": "real-estate-occupancy-allocation-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/occupancy-allocation-authorization.cedar",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "real-estate-rent-schedule-doc-suite",
+      "id": "real-estate-rent-schedule-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/rent-schedule-authorization.cedar",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "id": "real-estate-lease-accounting-event-doc-suite",
+      "id": "real-estate-lease-accounting-event-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/lease-accounting-event-authorization.cedar",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "real-estate-facility-service-request-doc-suite",
+      "id": "real-estate-facility-service-request-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/facility-service-request-authorization.cedar",

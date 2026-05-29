@@ -34,7 +34,7 @@ This document is the authoritative reference for SOC 2 examiners (CC6.1), ISO 27
 ## Context Kind Enumeration
 
 ```rust
-// oya-social-user-profile-kernel (sealed)
+// oya-community-social-user-profile-kernel (sealed)
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum ContextKind {
     Personal,
@@ -55,8 +55,8 @@ The social BC introduces **two distinct top-level entity types** for the profile
 
 | Entity | Context | Backing crate |
 |---|---|---|
-| `PersonalProfile` + `PersonalPost` | only `Personal` | `oya-social-user-profile-kernel` + `oya-social-post-composition-kernel` |
-| `ProfessionalProfile` + `ProfessionalPost` | only `Professional` | `oya-social-user-profile-kernel` + `oya-social-post-composition-kernel` |
+| `PersonalProfile` + `PersonalPost` | only `Personal` | `oya-community-social-user-profile-kernel` + `oya-community-social-post-composition-kernel` |
+| `ProfessionalProfile` + `ProfessionalPost` | only `Professional` | `oya-community-social-user-profile-kernel` + `oya-community-social-post-composition-kernel` |
 
 There is **no shared trait** that allows generic code to construct either; consumers must match on the entity type. LEAN check `oya-check-dual-context-isolation` asserts there are no trait impls covering both.
 
@@ -164,8 +164,8 @@ In addition to compile-time + LEAN-lane enforcement, runtime guards:
 ## References
 
 - Parallel ADR-0135.
-- Bominal ADR-0208 (Connect dual-context unified channel hub; inherited).
-- Bominal ADR-0215 (Connect retention legal-hold dual-context; inherited).
+- Bominal ADR-0208 (dual-context unified channel hub; inherited).
+- Bominal ADR-0215 (retention legal-hold dual-context; inherited).
 - ADR-0008 Data Use Boundary.
 - ADR-SOC-0004 (federation posture).
 - ADR-SOC-0005 (dual-context-feed-isolation).

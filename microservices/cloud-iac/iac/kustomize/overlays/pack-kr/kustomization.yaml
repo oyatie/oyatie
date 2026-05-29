@@ -36,5 +36,5 @@ configMapGenerator:
       - APPLY_AUDIT_RETENTION_YEARS=5  # KR commercial code; KR-FSS guidance
       - HIPAA_ELIGIBLE=false
       - ARGOCD_URL=https://argocd-kr.oyatie.dev
-      - AUDIT_CHAIN_ENDPOINT=https://audit-chain-kr.oyatie.dev
-      - OIDC_ISSUER=https://auth.oyatie.dev
+      - AUDIT_CHAIN_ENDPOINT=https://audit-chain-kr.oyatie.com
+      - OIDC_ISSUER=https://auth.oyatie.com

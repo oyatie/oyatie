@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "microservice": "intelligence",
   "audit_date": "2026-05-20",
-  "auditor": "oya-governance-doc-suite-completeness",
+  "auditor": "oya-governance-doc-set-completeness",
   "axis_a_artifact_count": {
     "before": 79,
     "after": 117,
@@ -82,5 +82,5 @@
     }
   ],
   "next_audit_due": "2026-08-20",
-  "ci_lane": "oya-governance-microservice-doc-suite"
+  "ci_lane": "oya-governance-microservice-doc-set"
 }

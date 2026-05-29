@@ -8,7 +8,7 @@ related:
   - PRD.md
   - ../imaging/PRD.md
   - ../../docs/decisions/ADR-0332-healthcare-domain-decomposition.md
-  - ../../docs/decisions/ADR-0132-no-suite-policy.md
+  - ../../docs/decisions/ADR-0132-no-grouping-policy.md
 ---
 
 # Diagnostics Architecture - Lab + Pathology

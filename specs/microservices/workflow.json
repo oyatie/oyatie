@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/products/workflow.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/products/workflow.schema.json",
   "title": "ProductPrd:Workflow",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
@@ -642,7 +642,7 @@
       "id": "R-01",
       "severity": "high",
       "risk": "state-machine + DAG hybrid is novel; engine bugs corrupt long-running state",
-      "mitigation_ref": "$ref:specs/agent-durable-goal.json#tdd_contract + chaos test suite + per-step audit forensic replay"
+      "mitigation_ref": "$ref:specs/agent-durable-goal.json#tdd_contract + chaos test set + per-step audit forensic replay"
     },
     {
       "id": "R-02",

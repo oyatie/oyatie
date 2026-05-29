@@ -27,7 +27,7 @@ companion_docs:
   - microservices/financial-planning/ARCHITECTURE.md
   - microservices/financial-planning/compliance.md
   - microservices/financial-planning/manifest.json
-planned_enforcement_ref: oya-governance-financial-planning-doc-suite
+planned_enforcement_ref: oya-governance-financial-planning-doc-set
 ---
 
 # PRD-financial-planning: Financial Planning

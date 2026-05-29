@@ -372,7 +372,7 @@ list. Cross-BC open questions:
 | ADR-0123 | Hyperscaler maturity claim gate | HG-FOUNDRY registers here |
 | ADR-0139 | Agentic SLO-gated promotion | capability + per-BC version gating |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
-| ADR-0132 | No-suite forward policy | foundry is one µservice, not a suite |
+| ADR-0132 | No-grouping forward policy | foundry is one µservice, not a suite |
 | ADR-0133 | Industry-best-practice conformance | OSS LTS pin posture |
 | ADR-0136 | Foundry as single µservice | **this consolidation** |
 | ADR-0137 | Foundry bounded contexts | 6-BC contract |

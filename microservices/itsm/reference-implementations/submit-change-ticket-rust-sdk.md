@@ -99,7 +99,7 @@ No schema changes; pure engine upgrade. Replication-aware procedure used.".into(
                 "verification": "error rate baseline + replica lag < 1 s",
                 "communications": ["#cloud-data-oncall slack", "@cto", "status-page update"]
             }))?,
-            verification_plan: "Run post-upgrade smoke test suite; verify replica lag normal; verify p99 query latency unchanged".into(),
+            verification_plan: "Run post-upgrade smoke test set; verify replica lag normal; verify p99 query latency unchanged".into(),
             requester_principal_id: "user:db-platform@your-tenant.com".into(),
             tags: vec!["quarterly".into(), "postgresql".into()],
         };

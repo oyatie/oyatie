@@ -77,7 +77,7 @@ ADR-0311, ADR-0312, ADR-0313.
 - `workflow-engine`: recycling-route-dag.
 - `ontology`: material-provenance-graph.
 - `audit-chain`: chain-of-custody-seal.
-- `connect`: carrier-and-recycler-adapters.
+- `connector`: carrier-and-recycler-adapters.
 - `community`: consumer-impact-reputation.
 
 ## Phase 1: preflight
@@ -93,8 +93,8 @@ actor-device -> api-gateway -> plugin-app-store -> payments -> workflow-engine -
 | 1.3 | `payments` | `workflow-engine` | `CircularRecyclingReturnCommand` | `journey.j148.preflight.workflow_engine` | `CircularMaterialProvenanceSettled` | `oya_j148_workflow_engine_preflight_ms` | compensating command before finality |
 | 1.4 | `workflow-engine` | `ontology` | `CircularRecyclingReturnCommand` | `journey.j148.preflight.ontology` | `CircularMaterialProvenanceSettled` | `oya_j148_ontology_preflight_ms` | compensating command before finality |
 | 1.5 | `ontology` | `audit-chain` | `CircularRecyclingReturnCommand` | `journey.j148.preflight.audit_chain` | `CircularMaterialProvenanceSettled` | `oya_j148_audit_chain_preflight_ms` | compensating command before finality |
-| 1.6 | `audit-chain` | `connect` | `CircularRecyclingReturnCommand` | `journey.j148.preflight.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_preflight_ms` | compensating command before finality |
-| 1.7 | `connect` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.preflight.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_preflight_ms` | compensating command before finality |
+| 1.6 | `audit-chain` | `connector` | `CircularRecyclingReturnCommand` | `journey.j148.preflight.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_preflight_ms` | compensating command before finality |
+| 1.7 | `connector` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.preflight.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_preflight_ms` | compensating command before finality |
 
 ## Phase 2: authorize
 
@@ -109,8 +109,8 @@ actor-device -> api-gateway -> plugin-app-store -> payments -> workflow-engine -
 | 2.3 | `payments` | `workflow-engine` | `CircularRecyclingReturnCommand` | `journey.j148.authorize.workflow_engine` | `CircularMaterialProvenanceSettled` | `oya_j148_workflow_engine_authorize_ms` | compensating command before finality |
 | 2.4 | `workflow-engine` | `ontology` | `CircularRecyclingReturnCommand` | `journey.j148.authorize.ontology` | `CircularMaterialProvenanceSettled` | `oya_j148_ontology_authorize_ms` | compensating command before finality |
 | 2.5 | `ontology` | `audit-chain` | `CircularRecyclingReturnCommand` | `journey.j148.authorize.audit_chain` | `CircularMaterialProvenanceSettled` | `oya_j148_audit_chain_authorize_ms` | compensating command before finality |
-| 2.6 | `audit-chain` | `connect` | `CircularRecyclingReturnCommand` | `journey.j148.authorize.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_authorize_ms` | compensating command before finality |
-| 2.7 | `connect` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.authorize.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_authorize_ms` | compensating command before finality |
+| 2.6 | `audit-chain` | `connector` | `CircularRecyclingReturnCommand` | `journey.j148.authorize.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_authorize_ms` | compensating command before finality |
+| 2.7 | `connector` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.authorize.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_authorize_ms` | compensating command before finality |
 
 ## Phase 3: compose
 
@@ -125,8 +125,8 @@ actor-device -> api-gateway -> plugin-app-store -> payments -> workflow-engine -
 | 3.3 | `payments` | `workflow-engine` | `CircularRecyclingReturnCommand` | `journey.j148.compose.workflow_engine` | `CircularMaterialProvenanceSettled` | `oya_j148_workflow_engine_compose_ms` | compensating command before finality |
 | 3.4 | `workflow-engine` | `ontology` | `CircularRecyclingReturnCommand` | `journey.j148.compose.ontology` | `CircularMaterialProvenanceSettled` | `oya_j148_ontology_compose_ms` | compensating command before finality |
 | 3.5 | `ontology` | `audit-chain` | `CircularRecyclingReturnCommand` | `journey.j148.compose.audit_chain` | `CircularMaterialProvenanceSettled` | `oya_j148_audit_chain_compose_ms` | compensating command before finality |
-| 3.6 | `audit-chain` | `connect` | `CircularRecyclingReturnCommand` | `journey.j148.compose.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_compose_ms` | compensating command before finality |
-| 3.7 | `connect` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.compose.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_compose_ms` | compensating command before finality |
+| 3.6 | `audit-chain` | `connector` | `CircularRecyclingReturnCommand` | `journey.j148.compose.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_compose_ms` | compensating command before finality |
+| 3.7 | `connector` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.compose.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_compose_ms` | compensating command before finality |
 
 ## Phase 4: counterparty_accept
 
@@ -141,8 +141,8 @@ actor-device -> api-gateway -> plugin-app-store -> payments -> workflow-engine -
 | 4.3 | `payments` | `workflow-engine` | `CircularRecyclingReturnCommand` | `journey.j148.counterparty_accept.workflow_engine` | `CircularMaterialProvenanceSettled` | `oya_j148_workflow_engine_counterparty_accept_ms` | compensating command before finality |
 | 4.4 | `workflow-engine` | `ontology` | `CircularRecyclingReturnCommand` | `journey.j148.counterparty_accept.ontology` | `CircularMaterialProvenanceSettled` | `oya_j148_ontology_counterparty_accept_ms` | compensating command before finality |
 | 4.5 | `ontology` | `audit-chain` | `CircularRecyclingReturnCommand` | `journey.j148.counterparty_accept.audit_chain` | `CircularMaterialProvenanceSettled` | `oya_j148_audit_chain_counterparty_accept_ms` | compensating command before finality |
-| 4.6 | `audit-chain` | `connect` | `CircularRecyclingReturnCommand` | `journey.j148.counterparty_accept.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_counterparty_accept_ms` | compensating command before finality |
-| 4.7 | `connect` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.counterparty_accept.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_counterparty_accept_ms` | compensating command before finality |
+| 4.6 | `audit-chain` | `connector` | `CircularRecyclingReturnCommand` | `journey.j148.counterparty_accept.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_counterparty_accept_ms` | compensating command before finality |
+| 4.7 | `connector` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.counterparty_accept.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_counterparty_accept_ms` | compensating command before finality |
 
 ## Phase 5: settlement_intent
 
@@ -157,8 +157,8 @@ actor-device -> api-gateway -> plugin-app-store -> payments -> workflow-engine -
 | 5.3 | `payments` | `workflow-engine` | `CircularRecyclingReturnCommand` | `journey.j148.settlement_intent.workflow_engine` | `CircularMaterialProvenanceSettled` | `oya_j148_workflow_engine_settlement_intent_ms` | compensating command before finality |
 | 5.4 | `workflow-engine` | `ontology` | `CircularRecyclingReturnCommand` | `journey.j148.settlement_intent.ontology` | `CircularMaterialProvenanceSettled` | `oya_j148_ontology_settlement_intent_ms` | compensating command before finality |
 | 5.5 | `ontology` | `audit-chain` | `CircularRecyclingReturnCommand` | `journey.j148.settlement_intent.audit_chain` | `CircularMaterialProvenanceSettled` | `oya_j148_audit_chain_settlement_intent_ms` | compensating command before finality |
-| 5.6 | `audit-chain` | `connect` | `CircularRecyclingReturnCommand` | `journey.j148.settlement_intent.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_settlement_intent_ms` | compensating command before finality |
-| 5.7 | `connect` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.settlement_intent.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_settlement_intent_ms` | compensating command before finality |
+| 5.6 | `audit-chain` | `connector` | `CircularRecyclingReturnCommand` | `journey.j148.settlement_intent.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_settlement_intent_ms` | compensating command before finality |
+| 5.7 | `connector` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.settlement_intent.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_settlement_intent_ms` | compensating command before finality |
 
 ## Phase 6: finalize
 
@@ -173,8 +173,8 @@ actor-device -> api-gateway -> plugin-app-store -> payments -> workflow-engine -
 | 6.3 | `payments` | `workflow-engine` | `CircularRecyclingReturnCommand` | `journey.j148.finalize.workflow_engine` | `CircularMaterialProvenanceSettled` | `oya_j148_workflow_engine_finalize_ms` | compensating command before finality |
 | 6.4 | `workflow-engine` | `ontology` | `CircularRecyclingReturnCommand` | `journey.j148.finalize.ontology` | `CircularMaterialProvenanceSettled` | `oya_j148_ontology_finalize_ms` | compensating command before finality |
 | 6.5 | `ontology` | `audit-chain` | `CircularRecyclingReturnCommand` | `journey.j148.finalize.audit_chain` | `CircularMaterialProvenanceSettled` | `oya_j148_audit_chain_finalize_ms` | compensating command before finality |
-| 6.6 | `audit-chain` | `connect` | `CircularRecyclingReturnCommand` | `journey.j148.finalize.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_finalize_ms` | compensating command before finality |
-| 6.7 | `connect` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.finalize.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_finalize_ms` | compensating command before finality |
+| 6.6 | `audit-chain` | `connector` | `CircularRecyclingReturnCommand` | `journey.j148.finalize.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_finalize_ms` | compensating command before finality |
+| 6.7 | `connector` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.finalize.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_finalize_ms` | compensating command before finality |
 
 ## Phase 7: observe
 
@@ -189,8 +189,8 @@ actor-device -> api-gateway -> plugin-app-store -> payments -> workflow-engine -
 | 7.3 | `payments` | `workflow-engine` | `CircularRecyclingReturnCommand` | `journey.j148.observe.workflow_engine` | `CircularMaterialProvenanceSettled` | `oya_j148_workflow_engine_observe_ms` | compensating command before finality |
 | 7.4 | `workflow-engine` | `ontology` | `CircularRecyclingReturnCommand` | `journey.j148.observe.ontology` | `CircularMaterialProvenanceSettled` | `oya_j148_ontology_observe_ms` | compensating command before finality |
 | 7.5 | `ontology` | `audit-chain` | `CircularRecyclingReturnCommand` | `journey.j148.observe.audit_chain` | `CircularMaterialProvenanceSettled` | `oya_j148_audit_chain_observe_ms` | compensating command before finality |
-| 7.6 | `audit-chain` | `connect` | `CircularRecyclingReturnCommand` | `journey.j148.observe.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_observe_ms` | compensating command before finality |
-| 7.7 | `connect` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.observe.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_observe_ms` | compensating command before finality |
+| 7.6 | `audit-chain` | `connector` | `CircularRecyclingReturnCommand` | `journey.j148.observe.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_observe_ms` | compensating command before finality |
+| 7.7 | `connector` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.observe.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_observe_ms` | compensating command before finality |
 
 ## Phase 8: reconcile
 
@@ -205,8 +205,8 @@ actor-device -> api-gateway -> plugin-app-store -> payments -> workflow-engine -
 | 8.3 | `payments` | `workflow-engine` | `CircularRecyclingReturnCommand` | `journey.j148.reconcile.workflow_engine` | `CircularMaterialProvenanceSettled` | `oya_j148_workflow_engine_reconcile_ms` | compensating command before finality |
 | 8.4 | `workflow-engine` | `ontology` | `CircularRecyclingReturnCommand` | `journey.j148.reconcile.ontology` | `CircularMaterialProvenanceSettled` | `oya_j148_ontology_reconcile_ms` | compensating command before finality |
 | 8.5 | `ontology` | `audit-chain` | `CircularRecyclingReturnCommand` | `journey.j148.reconcile.audit_chain` | `CircularMaterialProvenanceSettled` | `oya_j148_audit_chain_reconcile_ms` | compensating command before finality |
-| 8.6 | `audit-chain` | `connect` | `CircularRecyclingReturnCommand` | `journey.j148.reconcile.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_reconcile_ms` | compensating command before finality |
-| 8.7 | `connect` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.reconcile.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_reconcile_ms` | compensating command before finality |
+| 8.6 | `audit-chain` | `connector` | `CircularRecyclingReturnCommand` | `journey.j148.reconcile.connect` | `CircularMaterialProvenanceSettled` | `oya_j148_connect_reconcile_ms` | compensating command before finality |
+| 8.7 | `connector` | `community` | `CircularRecyclingReturnCommand` | `journey.j148.reconcile.community` | `CircularMaterialProvenanceSettled` | `oya_j148_community_reconcile_ms` | compensating command before finality |
 
 ## Cedar permit grammar
 

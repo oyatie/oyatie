@@ -5,7 +5,7 @@ Canonical pharmacy clinical and operational substrate for the Oyatie platform â€
 - **Owner team**: `axis-pharmacy`
 - **Authority ADR**: `docs/decisions/ADR-0332-pharmacy-substrate.md`
 - **Layout authority**: `docs/decisions/ADR-0131-per-microservice-flat-layout.md`
-- **Suite policy**: `docs/decisions/ADR-0132-no-suite-microservices.md`
+- **Suite policy**: `docs/decisions/ADR-0132-no-grouping-microservices.md`
 - **Inter-microservice**: `docs/decisions/ADR-0145-inter-microservice-direct-grpc.md`
 - **Criticality tier**: T0 (patient-safety + DEA-regulated)
 - **Top-3 counterparts**: Oracle Health (Cerner) Pharmacy Manager / Epic Willow / BD Pyxis
@@ -265,7 +265,7 @@ All breaking changes follow `feedback_no_silent_regression`: ADR + version bump 
 
 - ADR-0105 13-layer enum.
 - ADR-0131 per-microservice flat layout.
-- ADR-0132 no-suite microservices.
+- ADR-0132 no-grouping microservices.
 - ADR-0145 inter-microservice direct gRPC.
 - ADR-0248 hyperscaler-shape cellular architecture.
 - ADR-0251 compliance-pack primitive.
@@ -381,7 +381,7 @@ Sunset policy:
 ## Reach out
 
 - Slack: `#axis-pharmacy`
-- Email: `axis-pharmacy@oyatie.dev`
+- Email: `axis-pharmacy@oyatie.com`
 - GitHub: `oyatie/oyatie` issues labeled `microservice:pharmacy`
 
 ## Doctrine references

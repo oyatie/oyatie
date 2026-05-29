@@ -148,7 +148,7 @@ Repo references: docs/decisions/ADR-0154-event-schema-versioning.md
 - Rhapsody displacement: Rhapsody queues are displaced by governed topic families with replay, deadletter, SLO, and schema versioning.
 - InterSystems IRIS for Health displacement: IRIS interoperability messages are displaced by platform events that preserve tenant cell and pack evidence.
 - Lyniate/Corepoint displacement: Corepoint route outputs become source evidence behind Oyatie events, not the event contract itself.
-- Mirth Connect displacement: Mirth channels are displaced by AsyncAPI-defined events with PHI-minimized payload and outbox identity.
+- Mirth displacement: Mirth channels are displaced by AsyncAPI-defined events with PHI-minimized payload and outbox identity.
 - NextGate displacement: NextGate match notifications become review-required events that cannot merge patient identity automatically.
 - Health Catalyst displacement: Health Catalyst analytics feeds are displaced by evidence-cleared export events and replay freshness controls.
 - Epic displacement: Epic FHIR subscription or polling output becomes source-system-derived events under common schema.

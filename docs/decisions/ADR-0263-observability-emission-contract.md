@@ -28,7 +28,7 @@ related:
   - ADR-0049-cross-region-replication-and-residency.md
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0139-burn-rate-slo-alerting.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0153-observability-backplane-high-level-reference.md
@@ -998,7 +998,7 @@ if scrubbing rates spike, the substrate notices.
 
 **Test fixtures:**
 
-Per the contract, every µservice's test suite includes scrubbing
+Per the contract, every µservice's test set includes scrubbing
 fixtures: known PII payloads enter the emission boundary; assertion
 verifies they exit scrubbed. The lane
 `oya-check-pii-scrubbing-at-emission` enforces fixture coverage.
@@ -1531,7 +1531,7 @@ configuration).
 - **ADR-0098 — LTS rotation cadence.** OpenTelemetry version pin rotation.
 - **ADR-0105 — Thirteen-layer canonical enum.** `layer` field in log schema per §D-6.
 - **ADR-0131 — Per-microservice flat layout.** Manifest field locations.
-- **ADR-0132 — No-suite forward policy.** Single observability µservice; no bundled suite.
+- **ADR-0132 — No-grouping forward policy.** Single observability µservice; no bundled suite.
 - **ADR-0139 — Burn-rate SLO alerting.** Trace `oyatie.slo.touched` attribute per §D-8.
 - **ADR-0145 — Inter-microservice communication reform.** W3C Trace Context propagation invariant; direct gRPC pattern.
 - **ADR-0153 — Observability backplane high-level reference.** Antecedent.

@@ -75,7 +75,7 @@ The decision needs to: (a) confirm the high-risk classification, (b) enumerate t
 oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 + 50 + 73 compliance** for both sub-capabilities:
 
 1. **Classification: HIGH-RISK per Annex III §1(a).**
-   - Both content-moderation classifier (`oya-social-content-moderation-*`) AND feed-ranking model (`oya-social-feed-timeline-*` algorithmic mode) are HIGH-RISK.
+   - Both content-moderation classifier (`oya-community-social-content-moderation-*`) AND feed-ranking model (`oya-community-social-feed-timeline-*` algorithmic mode) are HIGH-RISK.
    - Heuristic ranking (P01 default per ADR-SOC-0001) is treated under Art. 50 transparency even though it's rule-based; ML ranking (P03+) is full Art. 9-15.
 2. **Art. 9 risk-management:**
    - `microservices/social/dpia.md` §Step 6 carries the risk register; R-13 (algorithmic ranking discrimination) and R-14 (classifier false-positive) are the load-bearing rows.
@@ -171,7 +171,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
 
 ### Operational
 
-- Cargo workspace: `oya-social-content-moderation-*` BC (per IP-011) integrates foundry-runtime client + audit-chain seal + Statement-of-Reasons emission.
+- Cargo workspace: `oya-community-social-content-moderation-*` BC (per IP-011) integrates foundry-runtime client + audit-chain seal + Statement-of-Reasons emission.
 - CI lane `oya-governance-eu-ai-act-conformance` registered in IP-015; verifies:
   - Statement-of-Reasons emission per verdict.
   - eu_ai_act_label populated.
@@ -205,7 +205,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
 - NIST AI RMF.
 - ISO/IEC 23894.
 - ADR-0022 — Bominal autonomy-tier classification.
-- ADR-0135 — Connect dissolution.
+- ADR-0135 — dissolution.
 - ADR-0131 — Per-microservice flat layout.
 - ADR-SOC-0001 — Feed-ranking algorithm (paired).
 - ADR-MSGR-0003 — Messenger search backend selection (sibling classifier ADR pattern reference; though this ADR pairs more directly with a future ADR-MSGR-NNNN on messenger moderation).

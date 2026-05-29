@@ -41,7 +41,7 @@ microservices_touched:
   - mail
   - identity
 journey_number: j36
-benchmark: Temporal approval workflow plus Stripe Connect platform-facilitator pattern
+benchmark: Temporal approval workflow plus Stripe platform-facilitator pattern
 ---
 
 # j36-b2b-workflow-engine-approval-cascade story
@@ -480,128 +480,128 @@ identity documents multi-region behavior for ap-south-1 and the DR-pair cell.
 ## 4. Engineering-rigor dimensions
 ### maintainability
 workflow-engine / approval-cascade-runtime: maintainability evidence is mandatory in the IP slice and integration plan.
-workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-engine / approval-cascade-runtime: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-engine / approval-cascade-runtime: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 workflow-studio / manager-review-console: maintainability evidence is mandatory in the IP slice and integration plan.
-workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-studio / manager-review-console: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-studio / manager-review-console: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / stripe-connect-auto-pay: maintainability evidence is mandatory in the IP slice and integration plan.
-payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 payments / stripe-connect-auto-pay: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / stripe-connect-auto-pay: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / approval-notification-thread: maintainability evidence is mandatory in the IP slice and integration plan.
-mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 mail / approval-notification-thread: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / approval-notification-thread: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 identity / manager-role-resolution: maintainability evidence is mandatory in the IP slice and integration plan.
-identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 identity / manager-role-resolution: the public contract declares SemVer plus a 180-day deprecation cadence.
 identity / manager-role-resolution: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### observability
 workflow-engine / approval-cascade-runtime: observability evidence is mandatory in the IP slice and integration plan.
-workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-engine / approval-cascade-runtime: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-engine / approval-cascade-runtime: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 workflow-studio / manager-review-console: observability evidence is mandatory in the IP slice and integration plan.
-workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-studio / manager-review-console: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-studio / manager-review-console: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / stripe-connect-auto-pay: observability evidence is mandatory in the IP slice and integration plan.
-payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 payments / stripe-connect-auto-pay: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / stripe-connect-auto-pay: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / approval-notification-thread: observability evidence is mandatory in the IP slice and integration plan.
-mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 mail / approval-notification-thread: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / approval-notification-thread: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 identity / manager-role-resolution: observability evidence is mandatory in the IP slice and integration plan.
-identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 identity / manager-role-resolution: the public contract declares SemVer plus a 180-day deprecation cadence.
 identity / manager-role-resolution: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### scalability
 workflow-engine / approval-cascade-runtime: scalability evidence is mandatory in the IP slice and integration plan.
-workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-engine / approval-cascade-runtime: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-engine / approval-cascade-runtime: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 workflow-studio / manager-review-console: scalability evidence is mandatory in the IP slice and integration plan.
-workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-studio / manager-review-console: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-studio / manager-review-console: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / stripe-connect-auto-pay: scalability evidence is mandatory in the IP slice and integration plan.
-payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 payments / stripe-connect-auto-pay: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / stripe-connect-auto-pay: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / approval-notification-thread: scalability evidence is mandatory in the IP slice and integration plan.
-mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 mail / approval-notification-thread: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / approval-notification-thread: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 identity / manager-role-resolution: scalability evidence is mandatory in the IP slice and integration plan.
-identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 identity / manager-role-resolution: the public contract declares SemVer plus a 180-day deprecation cadence.
 identity / manager-role-resolution: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### performance
 workflow-engine / approval-cascade-runtime: performance evidence is mandatory in the IP slice and integration plan.
-workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-engine / approval-cascade-runtime: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-engine / approval-cascade-runtime: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 workflow-studio / manager-review-console: performance evidence is mandatory in the IP slice and integration plan.
-workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-studio / manager-review-console: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-studio / manager-review-console: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / stripe-connect-auto-pay: performance evidence is mandatory in the IP slice and integration plan.
-payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 payments / stripe-connect-auto-pay: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / stripe-connect-auto-pay: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / approval-notification-thread: performance evidence is mandatory in the IP slice and integration plan.
-mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 mail / approval-notification-thread: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / approval-notification-thread: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 identity / manager-role-resolution: performance evidence is mandatory in the IP slice and integration plan.
-identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 identity / manager-role-resolution: the public contract declares SemVer plus a 180-day deprecation cadence.
 identity / manager-role-resolution: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### optimization
 workflow-engine / approval-cascade-runtime: optimization evidence is mandatory in the IP slice and integration plan.
-workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-engine / approval-cascade-runtime: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-engine / approval-cascade-runtime: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 workflow-studio / manager-review-console: optimization evidence is mandatory in the IP slice and integration plan.
-workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-studio / manager-review-console: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-studio / manager-review-console: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / stripe-connect-auto-pay: optimization evidence is mandatory in the IP slice and integration plan.
-payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 payments / stripe-connect-auto-pay: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / stripe-connect-auto-pay: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / approval-notification-thread: optimization evidence is mandatory in the IP slice and integration plan.
-mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 mail / approval-notification-thread: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / approval-notification-thread: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 identity / manager-role-resolution: optimization evidence is mandatory in the IP slice and integration plan.
-identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 identity / manager-role-resolution: the public contract declares SemVer plus a 180-day deprecation cadence.
 identity / manager-role-resolution: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 ### code quality
 workflow-engine / approval-cascade-runtime: code quality evidence is mandatory in the IP slice and integration plan.
-workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-engine / approval-cascade-runtime: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-engine / approval-cascade-runtime: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-engine / approval-cascade-runtime: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 workflow-studio / manager-review-console: code quality evidence is mandatory in the IP slice and integration plan.
-workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+workflow-studio / manager-review-console: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 workflow-studio / manager-review-console: the public contract declares SemVer plus a 180-day deprecation cadence.
 workflow-studio / manager-review-console: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 payments / stripe-connect-auto-pay: code quality evidence is mandatory in the IP slice and integration plan.
-payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+payments / stripe-connect-auto-pay: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 payments / stripe-connect-auto-pay: the public contract declares SemVer plus a 180-day deprecation cadence.
 payments / stripe-connect-auto-pay: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 mail / approval-notification-thread: code quality evidence is mandatory in the IP slice and integration plan.
-mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+mail / approval-notification-thread: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 mail / approval-notification-thread: the public contract declares SemVer plus a 180-day deprecation cadence.
 mail / approval-notification-thread: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 identity / manager-role-resolution: code quality evidence is mandatory in the IP slice and integration plan.
-identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe Connect platform-facilitator pattern.
+identity / manager-role-resolution: the named precedent is Temporal approval workflow plus Stripe platform-facilitator pattern.
 identity / manager-role-resolution: the public contract declares SemVer plus a 180-day deprecation cadence.
 identity / manager-role-resolution: the service owner must preserve tenant_id, audience_type, purpose, and data_class through every call.
 

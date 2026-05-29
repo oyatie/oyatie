@@ -232,7 +232,7 @@ Benchmark displacement set: Redox, Rhapsody, InterSystems IRIS for Health, Lynia
 - Rhapsody displacement: route and replay threats are mapped to repo-local controls instead of engine-channel operational knowledge.
 - InterSystems IRIS for Health displacement: database/runtime controls are not treated as sufficient for consent, provenance, identity, and DealSet threats.
 - Lyniate/Corepoint displacement: point-to-point interface threats are mapped to service-layer contracts, policies, and runbooks.
-- Mirth Connect displacement: script/channel threat paths are replaced with typed controls, redacted logs, and replay fingerprints.
+- Mirth displacement: script/channel threat paths are replaced with typed controls, redacted logs, and replay fingerprints.
 - NextGate displacement: patient identity threats are governed by steward review and rollback controls.
 - Health Catalyst displacement: analytics pipeline threats cannot override clinical consent, provenance, and PHI delivery controls.
 - Redox parity is insufficient without tenant-level deny evidence.

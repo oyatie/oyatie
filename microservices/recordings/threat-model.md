@@ -56,7 +56,7 @@ PIPC, HIPAA OCR, SEC examiners, FINRA, EU AI Act notified bodies, and ISO
 
 ### In-scope
 
-All components introduced by ADR-0135 (Connect dual-context inherited) and
+All components introduced by ADR-0135 (dual-context inherited) and
 ADR-0132 (suite dissolution into recordings surface). Deployed in the
 dedicated recordings Kubernetes namespace.
 

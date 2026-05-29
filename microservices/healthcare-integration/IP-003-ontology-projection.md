@@ -118,7 +118,7 @@ Repo references: registry/knowledge-graph-dynamic.json
 - Rhapsody displacement: Rhapsody maps and routes interfaces, but Oyatie projection models durable clinical objects and replayable provenance.
 - InterSystems IRIS for Health displacement: IRIS stores and queries health data; Oyatie keeps healthcare projection under platform-wide ontology versioning and tenant cells.
 - Lyniate/Corepoint displacement: Corepoint transformations feed source evidence, while Oyatie ontology controls canonical object and edge shape.
-- Mirth Connect displacement: Mirth channel outputs are treated as source events, not canonical semantic state.
+- Mirth displacement: Mirth channel outputs are treated as source events, not canonical semantic state.
 - NextGate displacement: NextGate identity resolution becomes PatientMatchReview evidence; it cannot merge ontology persons across tenants by itself.
 - Health Catalyst displacement: Health Catalyst analytics depends on modeled facts; Oyatie projection records governed, pack-aware source-to-ontology lineage first.
 - Epic displacement: Epic FHIR resources are projected as HealthcareFhirResource with Epic as provenance.

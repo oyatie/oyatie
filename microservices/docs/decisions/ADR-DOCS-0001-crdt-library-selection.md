@@ -77,7 +77,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the docs µservice's CRDT librar
 5. **CRDT-to-spec projection (`emit`) deterministically orders Loro nodes by their stable `TreeID`s, with map keys lex-sorted at the document-store boundary. This makes Loro state projection deterministic and is the seam that lets AC-02 (round-trip byte-equality) hold even though Loro's internal op log is not byte-canonical.
 6. **Loro snapshot encoding is used for Valkey persistence; JSON projection is used only for the canonical spec emission**.
 7. **Version-aligned op-log compaction**: per the discussion in PRD §"Open Questions" #1, op-log is compacted at version increments (default every 100 versions). Compaction runs through the same pinned Loro version + re-projects to canonical block tree; AC-02 byte-equality is preserved.
-8. **The collab-crdt CI lane** (`oya-governance-crdt-no-silent-loss`) runs Loro's example test suite + docs's own AC-06 property test (10 concurrent editors, randomized op interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
+8. **The collab-crdt CI lane** (`oya-governance-crdt-no-silent-loss`) runs Loro's example test set + docs's own AC-06 property test (10 concurrent editors, randomized op interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 9. **Loro authorship at WS gateway**: every CRDT op carries OIDC-derived author SPIFFE-identity + Ed25519 signature added at the WS gateway boundary (per `policy/editor-isolation.md` §"CRDT Op Authenticity"). Unsigned ops refused at adapter boundary.
 
 ## Alternatives Considered
@@ -150,7 +150,7 @@ The pre-CRDT industry standard; Google Docs OT.
 
 ### Downstream impact on other µservices and IPs
 
-1. **IP-006 + IP-007** — adopt Loro as the concrete merge engine; property test suite for AC-06 runs Loro op streams + randomized-interleaving fuzzer.
+1. **IP-006 + IP-007** — adopt Loro as the concrete merge engine; property test set for AC-06 runs Loro op streams + randomized-interleaving fuzzer.
 2. **workflow-studio** — co-decided upgrade cadence; co-authored migration ADR when Loro 2.x lands.
 3. **embed-resolver BC** — `oya-docs-embed-resolver` consumes workflow-studio canvas snapshots; the CRDT op envelope shape is reused at the cross-µservice mTLS boundary.
 4. **observability** — `dashboards/collab-health.json` includes `crdt_library=loro` dimension shared with workflow-studio.
@@ -166,7 +166,7 @@ The pre-CRDT industry standard; Google Docs OT.
 ### Supply-chain + security
 
 - Loro added to `cargo deny` allowlist with explicit version pin matching workflow-studio.
-- Major-version Loro upgrade gated on: (a) 100-doc round-trip-corpus drill green, (b) AC-06 property test suite green, (c) WASM bundle size delta ≤ +50 KB gzip, (d) workflow-studio co-decision evidence on file.
+- Major-version Loro upgrade gated on: (a) 100-doc round-trip-corpus drill green, (b) AC-06 property test set green, (c) WASM bundle size delta ≤ +50 KB gzip, (d) workflow-studio co-decision evidence on file.
 - Loro upstream maintainers notified out-of-band of any CRDT-correctness issue oyatie surfaces.
 
 ### Risk register

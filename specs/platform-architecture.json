@@ -1,6 +1,6 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/platform-architecture.schema.json",
-  "$id": "https://docs.oyatie.dev/specs/platform-architecture.json",
+  "$schema": "https://docs.oyatie.com/schemas/platform-architecture.schema.json",
+  "$id": "https://docs.oyatie.com/specs/platform-architecture.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-PLATFORM-ARCHITECTURE",
@@ -234,7 +234,7 @@
         "deny_wins_ties": true,
         "not_applicable_default": "default-deny"
       },
-      "per_tenant_overlay_composition_formula": "effective_policy(T) = baseline \u222a overlay[jurisdiction(T)] \u222a overlay[secondary_jurisdictions(T)] \u222a \u22c3 pack_fragments[pack \u2208 active_packs(T)] \u222a tenant_fragments[T]",
+      "per_tenant_overlay_composition_formula": "effective_policy(T) = baseline ∪ overlay[jurisdiction(T)] ∪ overlay[secondary_jurisdictions(T)] ∪ ⋃ pack_fragments[pack ∈ active_packs(T)] ∪ tenant_fragments[T]",
       "tenant_fragment_restrictions": [
         "tenant may forbid actions baseline permits (more restrictive)",
         "tenant may permit baseline-permits conditional on attributes",
@@ -534,7 +534,7 @@
       "manifest_schema_ref": "/specs/per-microservice-flat-layout.json",
       "microservice_root_path": "microservices/<ms>/",
       "code_root_within_microservice": "microservices/<ms>/src/",
-      "no_suite_microservices_per_adr_0132": true,
+      "no_grouping_microservices_per_adr_0132": true,
       "tier_classification_table_ref": "/specs/microservice-tier-classification.json",
       "summary_counts": {
         "substrate": 19,
@@ -575,9 +575,9 @@
           "lifetime": "until tier-2 handoff complete; then self-retires"
         },
         "tier_2_control_plane_cells": {
-          "description": "Control-plane cells host substrate \u00b5services and orchestrate data-plane cells",
+          "description": "Control-plane cells host substrate µservices and orchestrate data-plane cells",
           "components": [
-            "all substrate-tier \u00b5services",
+            "all substrate-tier µservices",
             "cell registry",
             "regional pack registry",
             "fleet management",
@@ -853,7 +853,7 @@
         },
         {
           "id": "kr-fss",
-          "framework": "\uc804\uc790\uae08\uc735\uac10\ub3c5\uaddc\uc815 (Electronic Financial Supervisory Regulations)",
+          "framework": "전자금융감독규정 (Electronic Financial Supervisory Regulations)",
           "authority": "KR Financial Services Commission / FSS",
           "scope": "Electronic payment service providers in KR",
           "applies_to_tenants": [
@@ -1210,9 +1210,9 @@
     "time_coordination": {
       "doctrine_summary": "Hybrid Logical Clock as default; TrueTime-class for high-precision-critical workloads; smear for leap seconds; causal consistency by default with stronger guarantees for substrates.",
       "default_clock": "HLC",
-      "default_clock_implementation": "Hybrid Logical Clock per Kulkarni et al. 2014; tolerance \u00b12s vs NTP-synced wall clock",
+      "default_clock_implementation": "Hybrid Logical Clock per Kulkarni et al. 2014; tolerance ±2s vs NTP-synced wall clock",
       "high_precision_clock": "TrueTime",
-      "high_precision_clock_implementation": "GPS+atomic-disciplined NTP fleet; per-region TrueTime API; tolerance \u00b110ms with explicit interval",
+      "high_precision_clock_implementation": "GPS+atomic-disciplined NTP fleet; per-region TrueTime API; tolerance ±10ms with explicit interval",
       "high_precision_workloads": [
         "payments",
         "settlement",
@@ -1475,7 +1475,7 @@
       "bootstrap_recovery_runbook": "docs/runbooks/oyatie-bootstrap-recovery.md"
     },
     "certification_gates": {
-      "doctrine_summary": "Build ahead of certification. Reserved microservices ship their full artifact suite (PRD, threat-model, contracts, IaC) but cannot deploy until certification is obtained. Each reserved service declares its certification gate explicitly.",
+      "doctrine_summary": "Build ahead of certification. Reserved microservices ship their full artifact set (PRD, threat-model, contracts, IaC) but cannot deploy until certification is obtained. Each reserved service declares its certification gate explicitly.",
       "schema_ref": "/specs/certification-gates.json",
       "matrix": [
         {
@@ -1491,7 +1491,7 @@
             },
             {
               "authority": "KR Financial Services Commission / FSS",
-              "framework": "\uc804\uc790\uae08\uc735\uac10\ub3c5\uaddc\uc815",
+              "framework": "전자금융감독규정",
               "scope": "Electronic Payment Service Provider designation",
               "target_completion": "2027-Q3"
             },
@@ -1565,7 +1565,7 @@
             },
             {
               "authority": "KR NTS (National Tax Service)",
-              "framework": "KR \ubd80\uac00\uc138 + electronic tax invoice",
+              "framework": "KR 부가세 + electronic tax invoice",
               "scope": "KR VAT + electronic invoicing",
               "target_completion": "2027-Q3"
             },
@@ -2130,7 +2130,7 @@
       "thirteen_layer_canonical_enum_ref": "ADR-0105",
       "microservice_root_pattern": "microservices/<ms>/",
       "code_root_pattern": "microservices/<ms>/src/",
-      "no_suite_microservices": true,
+      "no_grouping_microservices": true,
       "new_governance_lane_prefix": "oya-governance-*",
       "reserved_namespaces_on_naming": [
         "oyatie",
@@ -2396,7 +2396,7 @@
     "TLS 1.3 + post-quantum hybrid Year 2",
     "five deployment models supported",
     "compliance packs as first-class versioned signed bundles",
-    "no suite microservices (ADR-0132)",
+    "no grouping microservices (ADR-0132)",
     "flat per-microservice layout (ADR-0131)",
     "policy-in-code prohibited; Cedar mediates",
     "default-deny everywhere on policy decisions",
@@ -2422,7 +2422,7 @@
     "sovereign_cloud_per_regional_pack": "/docs/decisions/ADR-0240-sovereign-cloud-per-regional-pack.md",
     "dr_business_continuity_portfolio_policy": "/docs/decisions/ADR-0241-dr-business-continuity-portfolio-policy.md",
     "per_microservice_flat_layout": "/docs/decisions/ADR-0131-per-microservice-flat-layout.md",
-    "no_suite_forward_policy": "/docs/decisions/ADR-0132-no-suite-forward-policy.md",
+    "no_grouping_forward_policy": "/docs/decisions/ADR-0132-no-grouping-forward-policy.md",
     "inter_microservice_communication_reform": "/docs/decisions/ADR-0145-inter-microservice-communication-reform.md",
     "cedar_policy_engine_baseline": "/docs/decisions/ADR-0150-cedar-policy-engine.md",
     "cedar_app_authz_kyverno_admission_separation": "/docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",

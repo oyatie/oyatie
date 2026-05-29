@@ -190,7 +190,7 @@ Audit emits at both tenants: `CrossTenantPrincipalProvisioned{credential_id_link
 
 ### 4.2 Background check
 
-KrampusCorp's HR initiates the background check via Connect adapter to their vendor (Checkr or similar). Chris's consent is captured as a signed event in his personal-Mail (he reviews the consent doc per FCRA, clicks Accept; signed event sealed in both tenants' audit-chains).
+KrampusCorp's HR initiates the background check via adapter to their vendor (Checkr or similar). Chris's consent is captured as a signed event in his personal-Mail (he reviews the consent doc per FCRA, clicks Accept; signed event sealed in both tenants' audit-chains).
 
 The background check runs over 3 days. Comes back clean. KrampusCorp's HR closes the pre-condition.
 

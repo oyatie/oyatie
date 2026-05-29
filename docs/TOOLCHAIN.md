@@ -284,7 +284,7 @@ The toolchain optimizes for parallel agent dispatch.
 | **Speculative parallel dispatch** | Fire 3 alternative agent approaches in parallel; pick the first to reach acceptance criteria. |
 | **Replay-as-eval** | Run a new agent build on a frozen trace set to detect regression before promotion. |
 | **Per-batch fanout tagging** | Every backlog batch declares `fanout=N` + `SHARED-WRITES:` so the dispatch knows safe parallelism. |
-| **Capability versioning** | Every capability is versioned; agents pin to a version; eval suite per version; promotion gated. |
+| **Capability versioning** | Every capability is versioned; agents pin to a version; eval set per version; promotion gated. |
 | **Per-tenant budget routing** | Cost ceilings per tenant per capability; hard cutoff. |
 
 ---

@@ -89,7 +89,7 @@ The contract surface is treated as regulated evidence: every schema change must 
 - Proto target: every public RPC has JSON and binary paiden samples.
 - Governance target: no contract diff can bypass financial-core review label.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `contract::openapi_conformance`.
 - Test `openapi_document_declares_version_3_2_0`.

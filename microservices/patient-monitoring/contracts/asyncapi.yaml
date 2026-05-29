@@ -8,7 +8,7 @@ info:
     (Kafka/Redpanda).
   contact:
     name: axis-clinical-realtime
-    email: patient-monitoring-stewards@oyatie.dev
+    email: patient-monitoring-stewards@oyatie.com
 servers:
   oyatie-stream-platform:
     host: stream-platform.oyatie.internal

@@ -38,7 +38,7 @@ Yejin runs a vintage-clothing business whose marketplace payments cross five sta
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -79,7 +79,7 @@ Yejin runs a vintage-clothing business whose marketplace payments cross five sta
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -145,7 +145,7 @@ Yejin runs a vintage-clothing business whose marketplace payments cross five sta
 | README-AC-010 | comms-email | NMLS evidence upload | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | Cedar-gated payment throttling | 31 CFR 1022.320 suspicious activity reporting for money services businesses | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | regulator renewal calendar | California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | threshold detection | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | threshold detection | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | state license gap analysis | Texas Finance Code Chapter 151 sections 151.302 license and 151.308 security | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | surety bond packet | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | NMLS evidence upload | Washington RCW 19.230.030 license required and 19.230.050 surety bond | Cedar deny-wins; ADR-0263 event sealed |
@@ -190,7 +190,7 @@ Yejin runs a vintage-clothing business whose marketplace payments cross five sta
 | README-AC-055 | comms-email | threshold detection | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | state license gap analysis | Washington RCW 19.230.030 license required and 19.230.050 surety bond | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | surety bond packet | 31 CFR 1010.100(ff) money transmitter definition | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | NMLS evidence upload | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | NMLS evidence upload | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | Cedar-gated payment throttling | 31 CFR 1022.320 suspicious activity reporting for money services businesses | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | regulator renewal calendar | California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | threshold detection | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
@@ -235,7 +235,7 @@ Yejin runs a vintage-clothing business whose marketplace payments cross five sta
 | README-AC-100 | comms-email | NMLS evidence upload | California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | Cedar-gated payment throttling | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | regulator renewal calendar | Texas Finance Code Chapter 151 sections 151.302 license and 151.308 security | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | threshold detection | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | threshold detection | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | state license gap analysis | Washington RCW 19.230.030 license required and 19.230.050 surety bond | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | surety bond packet | 31 CFR 1010.100(ff) money transmitter definition | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | NMLS evidence upload | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |
@@ -280,7 +280,7 @@ Yejin runs a vintage-clothing business whose marketplace payments cross five sta
 | README-AC-145 | comms-email | threshold detection | 31 CFR 1010.100(ff) money transmitter definition | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | state license gap analysis | 31 CFR 1022.210 money services business anti-money-laundering program | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | surety bond packet | 31 CFR 1022.320 suspicious activity reporting for money services businesses | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | NMLS evidence upload | California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | NMLS evidence upload | California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | Cedar-gated payment throttling | New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | regulator renewal calendar | Texas Finance Code Chapter 151 sections 151.302 license and 151.308 security | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | threshold detection | Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Cedar deny-wins; ADR-0263 event sealed |

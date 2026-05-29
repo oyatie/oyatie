@@ -28,7 +28,7 @@
 ## Slice 5: SMS + pager gateway
 
 - Twilio + AWS SNS fallback for SMS.
-- Spok + Connect + Vocera pager-gateway SDK wrappers.
+- Spok + + Vocera pager-gateway SDK wrappers.
 
 ## Slice 6: Routing + dispatch tracking
 

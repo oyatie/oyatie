@@ -1,7 +1,7 @@
 # `docs` µservice — Benchmark vs Google Docs, Microsoft Word Online, Notion, Coda, Quip
 
 > Measured 2026-05-02 to 2026-05-19 across 6 dimensions: keystroke latency, cold-load, concurrent editor cap, block-type richness,
-> compliance, pricing. Vendor numbers from public release notes + Gartner 2026 Productivity Suite reports + our reproduction
+> compliance, pricing. Vendor numbers from public release notes + Gartner 2026 Productivity Platform reports + our reproduction
 > harness (real browser sessions via Playwright against vendor SaaS).
 
 ## Keystroke → server ack latency

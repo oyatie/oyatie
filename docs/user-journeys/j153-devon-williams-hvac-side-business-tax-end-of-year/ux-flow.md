@@ -49,7 +49,7 @@ Persistent pill, top-center:
   7. Share with preparer
 - Right rail: "Set up nightly automation (recommended)"
 
-## Screen 3 — Stripe Connect deposits batch
+## Screen 3 — Stripe deposits batch
 
 - Header: "47 deposits, $28,419.27 gross"
 - Sortable table: date · customer · job · gross · fee · net
@@ -58,7 +58,7 @@ Persistent pill, top-center:
 
 ## Screen 4 — Venmo import wizard
 
-- Step a: "Connect your Venmo account" — OAuth button
+- Step a: "your Venmo account" — OAuth button
 - Step b: Plaid-Exchange-style consent screen rendered inside the app
 - Step c: "Review 14 transactions" — table; each row "Side-business? [Yes/No/Maybe]"
 - Step d: "Match to jobs" — 12/14 auto-matched (green check); 2 manual (amber "Link to job"); tap to pick the job from the tasks job picker
@@ -126,7 +126,7 @@ When Devon taps "Import from Bayshore" (testing the boundary):
 - Body: explains ADR-0311 in plain language ("Your W-2 from Bayshore goes on your personal 1040, not your Schedule C. Your tax preparer combines them.")
 - Tertiary: "Why this rule exists" → opens an explainer drawer
 
-## Screen 12 — Connect share with preparer
+## Screen 12 — share with preparer
 
 - Recipient card: "Cookson Tax & Accounting — Hayward, CA" (verified ✓)
 - Scope checkboxes (mandatory on by default):
@@ -165,7 +165,7 @@ When Devon taps "Import from Bayshore" (testing the boundary):
 | Each step approve | step N | step N+1 | audit-sealed |
 | All steps complete | step 6 | step 7 | Schedule-C draft confirmed |
 | Workflow-studio publish | n/a | scheduled flow | workflow-engine arms next run |
-| Connect share mint | n/a | share-link active | preparer receives email |
+| share mint | n/a | share-link active | preparer receives email |
 | Share link first download | share-link active | share-link partially-consumed | each download audit-sealed |
 | TTL passes | share-link active | share-link expired | preparer cannot access |
 

@@ -29,7 +29,7 @@ The empirical reality in 2026 is inverse to this design heritage:
 - Margaret Chen (PRD §B persona 4) does her chart review on her phone at the kitchen table or during her commute.
 - Caregiver-proxies (James Thompson, persona 5) overwhelmingly use mobile.
 
-Most competitor portals are mobile-responsive web first; native-app capabilities (push notifications, biometric login, offline-resilient drafts, camera-based document capture, Apple Health / Google Health Connect integration) are second-class.
+Most competitor portals are mobile-responsive web first; native-app capabilities (push notifications, biometric login, offline-resilient drafts, camera-based document capture, Apple Health / Google Health integration) are second-class.
 
 oyatie's strategic position is mobile-first: design the patient + caregiver portal experience to be best-in-class on mobile native, with web as a mobile-responsive web companion (not a separate-experience desktop product).
 
@@ -39,7 +39,7 @@ oyatie's strategic position is mobile-first: design the patient + caregiver port
 2. **Web is a mobile-responsive companion.** A single web surface (React, with WebKit-first design) renders well on mobile-browser + desktop-browser. Desktop receives no extra feature surface beyond what mobile-responsive supports.
 3. **Authentication is passkey-first** (per ADR-0188). Native apps use platform passkeys (iOS Keychain / Android Credential Manager) + biometric. Web uses WebAuthn passkeys + browser-side biometric where available.
 4. **Push notifications are first-class.** APNs on iOS, FCM on Android. Tenant-pack overlay can disable on regulated cells. Patient receives push for: result available, message from care team, appointment reminder, refill ready, education content assigned, billing statement.
-5. **Apple Health + Google Health Connect integration is a Wave-2 follow-up.** Per ADR-MS-001 the `vital` BC supports patient-contributed vitals; the mobile-app integration with the platform health APIs ships after MVP.
+5. **Apple Health + Google Health integration is a Wave-2 follow-up.** Per ADR-MS-001 the `vital` BC supports patient-contributed vitals; the mobile-app integration with the platform health APIs ships after MVP.
 6. **Native apps offline-resilient.** Patients on subway / rural-connectivity must browse cached chart data (last fetched) + queue messages to send when reconnected. Sync via the FHIR R5 SubscriptionTopic.
 7. **Document capture via camera.** Patients can capture insurance card, government ID (for proxy verification), prior-encounter records (e.g., a paper note from an out-of-network specialist) and attach via the secure attachment pipeline.
 
@@ -94,4 +94,4 @@ oyatie's strategic position is mobile-first: design the patient + caregiver port
 - Pew Research 2024 portal-usage survey.
 - KFF 2024 patient-portal survey.
 - Epic MyChart product history (KLAS).
-- Apple Health + Google Health Connect API references.
+- Apple Health + Google Health API references.

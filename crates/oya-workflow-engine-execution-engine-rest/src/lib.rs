@@ -243,7 +243,7 @@ fn rest_problem_response(
         content_type: EXECUTION_ENGINE_REST_PROBLEM_CONTENT_TYPE.to_owned(),
         body: ExecutionEngineRestBody::Problem(Box::new(ExecutionEngineApiProblem {
             type_uri: format!(
-                "https://oyatie.dev/problems/workflow-engine/execution-engine/rest/{}",
+                "https://oyatie.com/problems/workflow-engine/execution-engine/rest/{}",
                 code.to_ascii_lowercase().replace('_', "-")
             ),
             title: title.to_owned(),

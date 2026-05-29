@@ -16,7 +16,7 @@ adr_invariants_tested: [ADR-0145, ADR-0244, ADR-0299, ADR-0311]
 | `<chris-personal-tenant>` | audience_type B2C_JOB_SEEKER_ACTIVE; passkey credential_id known |
 | `<krampuscorp-tenant>` | Tenant-attestation badge active; enterprise Intelligence configured |
 | `<former-employer-tenant>` | Read-only; public attestation-verify endpoint serving |
-| Connect background-check adapter | sandbox vendor tenant |
+| background-check adapter | sandbox vendor tenant |
 | Mary, Karim, Diego, Karen, Anil reference letters | Pre-seeded; attestation receipts available |
 
 ## B. Test cases

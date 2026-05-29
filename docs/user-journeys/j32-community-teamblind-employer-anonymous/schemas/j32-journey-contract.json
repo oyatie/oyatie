@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j32-community-teamblind-employer-anonymous.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j32-community-teamblind-employer-anonymous.schema.json",
   "title": "j32 Community TeamBlind employer-anonymous post Journey Contract",
   "type": "object",
   "additionalProperties": false,

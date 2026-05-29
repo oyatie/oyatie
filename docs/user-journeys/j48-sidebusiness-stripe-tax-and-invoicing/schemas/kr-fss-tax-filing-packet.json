@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j48/kr-fss-tax-filing-packet.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j48/kr-fss-tax-filing-packet.json",
   "title": "KrFssTaxFilingPacket",
   "version": "1.0.0",
   "description": "Shared journey object for j48-sidebusiness-stripe-tax-and-invoicing. It lets Yejin Park detect the KR-FSS threshold, prepare tax filings, and export quarterly payroll rows to ADP-KR while preserving tenant scope, auditability, and cross-service status.",

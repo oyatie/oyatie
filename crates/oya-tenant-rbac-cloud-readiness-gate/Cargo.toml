@@ -1,0 +1,50 @@
+[package]
+name = "oya-tenant-rbac-cloud-readiness-gate"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-tenant-rbac-audit-chain-emission = { path = "../oya-tenant-rbac-audit-chain-emission" }
+oya-tenant-rbac-audit-chain-runtime-evidence = { path = "../oya-tenant-rbac-audit-chain-runtime-evidence" }
+oya-tenant-rbac-auth-runtime = { path = "../oya-tenant-rbac-auth-runtime" }
+oya-tenant-rbac-cloud-deployment-manifest = { path = "../oya-tenant-rbac-cloud-deployment-manifest" }
+oya-tenant-rbac-cloud-deployment-evidence = { path = "../oya-tenant-rbac-cloud-deployment-evidence" }
+oya-tenant-rbac-disbursement-evidence = { path = "../oya-tenant-rbac-disbursement-evidence" }
+oya-tenant-rbac-erp-parity-map = { path = "../oya-tenant-rbac-erp-parity-map" }
+oya-tenant-rbac-identity-provider-runtime-evidence = { path = "../oya-tenant-rbac-identity-provider-runtime-evidence" }
+oya-tenant-rbac-identity-provider-verification = { path = "../oya-tenant-rbac-identity-provider-verification" }
+oya-tenant-rbac-local-inmemory-harness = { path = "../oya-tenant-rbac-local-inmemory-harness" }
+oya-tenant-rbac-local-runtime-composition = { path = "../oya-tenant-rbac-local-runtime-composition" }
+oya-tenant-rbac-listener-gateway = { path = "../oya-tenant-rbac-listener-gateway" }
+oya-tenant-rbac-listener-runtime-evidence = { path = "../oya-tenant-rbac-listener-runtime-evidence" }
+oya-tenant-rbac-postgres-rls-runtime-evidence = { path = "../oya-tenant-rbac-postgres-rls-runtime-evidence" }
+oya-tenant-rbac-postgres-rls-storage = { path = "../oya-tenant-rbac-postgres-rls-storage" }
+oya-tenant-rbac-postgres-rls-transaction-contract = { path = "../oya-tenant-rbac-postgres-rls-transaction-contract" }
+oya-tenant-rbac-postgres-rls-write-contract = { path = "../oya-tenant-rbac-postgres-rls-write-contract" }
+oya-tenant-rbac-slo-evidence = { path = "../oya-tenant-rbac-slo-evidence" }
+oya-tenant-rbac-statutory-filing-evidence = { path = "../oya-tenant-rbac-statutory-filing-evidence" }
+oya-tenant-rbac-tenant-admission-policy = { path = "../oya-tenant-rbac-tenant-admission-policy" }
+oya-tenant-rbac-tenant-availability-contract = { path = "../oya-tenant-rbac-tenant-availability-contract" }
+oya-tenant-rbac-tenant-autoscaling-contract = { path = "../oya-tenant-rbac-tenant-autoscaling-contract" }
+oya-tenant-rbac-tenant-cost-allocation-contract = { path = "../oya-tenant-rbac-tenant-cost-allocation-contract" }
+oya-tenant-rbac-tenant-residency-contract = { path = "../oya-tenant-rbac-tenant-residency-contract" }
+oya-tenant-rbac-tenant-egress-policy-contract = { path = "../oya-tenant-rbac-tenant-egress-policy-contract" }
+oya-tenant-rbac-tenant-resource-quota-contract = { path = "../oya-tenant-rbac-tenant-resource-quota-contract" }
+oya-tenant-rbac-tenant-image-provenance-contract = { path = "../oya-tenant-rbac-tenant-image-provenance-contract" }
+oya-tenant-rbac-tenant-secret-boundary-contract = { path = "../oya-tenant-rbac-tenant-secret-boundary-contract" }
+oya-tenant-rbac-tenant-workload-identity-contract = { path = "../oya-tenant-rbac-tenant-workload-identity-contract" }
+oya-tenant-rbac-tenant-workload-manifest = { path = "../oya-tenant-rbac-tenant-workload-manifest" }
+oya-tenant-rbac-tenant-workload-runtime-evidence = { path = "../oya-tenant-rbac-tenant-workload-runtime-evidence" }
+oya-tenant-rbac-workflow-adapter-inmemory = { path = "../oya-tenant-rbac-workflow-adapter-inmemory" }
+oya-tenant-rbac-workflow-runtime-evidence = { path = "../oya-tenant-rbac-workflow-runtime-evidence" }
+
+[lib]
+name = "oya_tenant_rbac_cloud_readiness_gate"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

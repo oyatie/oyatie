@@ -55,7 +55,7 @@ Purpose: Index and build contract for Healthcare billing and insurance auto-subm
 - schemas/healthcare-billing-claim.json: shared JSON Schema object.
 - integration-test-plan.md: end-to-end and failure-injection plan.
 - ../../microservices/payments/IP-journey-j47-hospital-bill-payment.md: payments implementation slice.
-- ../../microservices/connect/IP-journey-j47-insurance-claim-submit.md: connect implementation slice.
+- ../../microservices/connector/IP-journey-j47-insurance-claim-submit.md: connect implementation slice.
 - ../../microservices/mail/IP-journey-j47-bill-and-eob-thread.md: mail implementation slice.
 - ../../microservices/tenancy/IP-journey-j47-provider-patient-scope.md: tenancy implementation slice.
 - ../../microservices/compliance/IP-journey-j47-healthcare-billing-overlay.md: compliance implementation slice.

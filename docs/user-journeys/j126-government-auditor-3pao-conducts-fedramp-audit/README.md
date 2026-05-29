@@ -27,7 +27,7 @@ pack_overlays_activated:
   - pack-us-nist-sp-800-53-rev5 (Diana's work tenant + Marcus's tenant)
   - pack-us-omb-a-130 (Diana's work tenant)
   - pack-us-fisma-2014 (Diana's work tenant)
-  - pack-pci-dss-v4 (Marcus's tenant — for Stripe Connect surface)
+  - pack-pci-dss-v4 (Marcus's tenant — for Stripe surface)
   - pack-us-itar-2024 (Marcus's tenant — defense contractor)
   - pack-us-ccpa-2023 (Diana's personal tenant)
   - pack-us-coppa-1998 (Diana's personal tenant — son aged 9)

@@ -13,7 +13,7 @@ purpose: >
 related:
   - ADR-0111-merge-queue-projected-merge-state.md
   - ADR-0116-retire-external-agent-coordination-tooling.md
-  - ADR-0132-product-suite-and-bundle-dissolution.md
+  - ADR-0132-product-platform-and-bundle-dissolution.md
 evidence:
   - evidence/pr-159-adr-0223-doubt-driven-design-checkpoint-2026-05-18.json
 ---

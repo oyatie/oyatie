@@ -40,7 +40,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let trace = TraceContext::new_root();
 
-    // Connect with the agent identity (typically populated by the agent harness)
+    // with the agent identity (typically populated by the agent harness)
     let cfg = FoundryConfig::builder()
         .endpoint("https://loopback.foundry.oyatie.local".parse()?)
         .agent_identity(AgentIdentity::parse("agent.example.reference-impl")?)

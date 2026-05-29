@@ -63,7 +63,7 @@ This section consolidates the public numbers from the three counterparts. Number
 | Plan / Product / Price catalog query p99 | < 200 ms | estimated |
 | Test clock simulate time advance | seconds | Stripe Test Clock docs |
 | Invoice generation throughput | not published; Stripe processes 4+ M API requests / sec aggregate, billing slice not split | Stripe quarterly engineering posts |
-| FOCUS 1.1 export | not native; partial via Stripe Connect / Stripe Sigma | Stripe FinOps blog |
+| FOCUS 1.1 export | not native; partial via Stripe / Stripe Sigma | Stripe FinOps blog |
 
 ### §2.2 AWS Billing & Cost Management
 

@@ -329,7 +329,7 @@ impl ExecutionEngineApiProblem {
         let status = error.status();
         Self {
             type_uri: format!(
-                "https://oyatie.dev/problems/workflow-engine/execution-engine/{}",
+                "https://oyatie.com/problems/workflow-engine/execution-engine/{}",
                 error.code().as_str().to_ascii_lowercase().replace('_', "-")
             ),
             title: status.title().to_owned(),

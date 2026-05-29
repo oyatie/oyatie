@@ -15,10 +15,10 @@
     "status": "## codex/fd001-planning-closure-20260519...origin/codex/fd001-planning-closure-20260519 [ahead 2]"
   },
   "objective_restatement": {
-    "goal": "Execute FD-001 until Enterprise Generic + SMB Generic reach full-depth production-grade, hyperscaler-grade exit, or until a blocker is proven with evidence.",
-    "must_include_verticals": [
-      "enterprise-generic",
-      "smb-generic"
+    "goal": "Execute FD-001 until Tenant/RBAC-packaged core services reach full-depth production-grade, hyperscaler-grade exit, or until a blocker is proven with evidence.",
+    "must_include_packaging_axes": [
+      "tenancy",
+      "rbac"
     ],
     "must_include_surfaces": [
       "core",
@@ -69,17 +69,17 @@
       "artifacts": [
         "/tmp/fd001-entry-gate-20260519T112025Z.log"
       ],
-      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0\n",
+      "evidence": "planning-closure validation passed: 2 packaging axes, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0\n",
       "status": "pass"
     },
     {
-      "requirement": "Map FD-001 verticals and 11 surfaces to concrete evidence",
+      "requirement": "Map FD-001 packaging axes and 11 surfaces to concrete evidence",
       "artifacts": [
         "specs/masterplan.json#planning_closure.first_deliverable",
         "specs/planning-closure-contract.json#first_deliverable",
         "docs/decisions/ADR-0217-vertical-slice-rollout-order.md"
       ],
-      "evidence": "Planning gate counts 2 verticals, 11 surfaces, 12 KR-pack surfaces; ADR-0217 requires full-depth production exit before next vertical.",
+      "evidence": "Planning gate counts 2 packaging axes, 11 surfaces, 12 KR-pack surfaces; ADR-0217 requires full-depth production exit before next vertical.",
       "status": "planning_gate_pass_only",
       "gap": "Does not prove implementation/production exit for every surface."
     },

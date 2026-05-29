@@ -148,7 +148,7 @@ Weights vary by **quality profile**:
 
 - ADR-0025 — Foundry as engineering platform.
 - ADR-0026 — In-house AI substrate roadmap.
-- ADR-0135 — Connect super-app expansion (parent ADR).
+- ADR-0135 — super-app expansion (parent ADR).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0133 — Industry-best-practice conformance program.
 - ADR-TRANSLATE-0003 — QE + EU AI Act bounds.

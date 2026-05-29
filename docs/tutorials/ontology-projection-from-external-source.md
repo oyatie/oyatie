@@ -39,7 +39,7 @@ You will connect a Salesforce sandbox, map Account, Contact, and Opportunity obj
 - Role projection id: `role-projection:revops-analyst:v1`.
 - Lineage policy id: `lineage-policy:salesforce-revops:v1`.
 - Capability tier: `sales-cloud-core`.
-- Subscribed microservices: `connect`, `ontology`, `policy-engine`, `workflow-engine`, `audit-chain`, `tenancy`, `identity`, `drive`, `intelligence`.
+- Subscribed microservices: `connector`, `ontology`, `policy-engine`, `workflow-engine`, `audit-chain`, `tenancy`, `identity`, `drive`, `intelligence`.
 - Required Cedar permit: `connect.source.register`.
 - Required Cedar permit: `connect.source.test`.
 - Required Cedar permit: `ontology.projection.create`.

@@ -7,7 +7,7 @@
   "artifact_target": 100,
   "findings": [
     {
-      "id": "production-planning-bom-revision-doc-suite",
+      "id": "production-planning-bom-revision-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/bom-revision-authorization.cedar",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "production-planning-mrp-run-doc-suite",
+      "id": "production-planning-mrp-run-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/mrp-run-authorization.cedar",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "production-planning-capacity-calendar-doc-suite",
+      "id": "production-planning-capacity-calendar-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/capacity-calendar-authorization.cedar",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "production-planning-routing-step-doc-suite",
+      "id": "production-planning-routing-step-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/routing-step-authorization.cedar",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "id": "production-planning-production-order-doc-suite",
+      "id": "production-planning-production-order-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/production-order-authorization.cedar",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "production-planning-shop-floor-release-doc-suite",
+      "id": "production-planning-shop-floor-release-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/shop-floor-release-authorization.cedar",

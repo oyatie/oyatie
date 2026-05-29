@@ -45,7 +45,7 @@ Example:
 
 ```http
 POST /editor-sessions HTTP/2
-Host: workflow-studio.oyatie.dev
+Host: workflow-studio.oyatie.com
 Authorization: Bearer eyJ...
 X-Tenant-Id: 018f7a54-3ef5-7c42-a111-a2c4ad7f88f0
 Idempotency-Key: 01HYWFOPEN00000000000000

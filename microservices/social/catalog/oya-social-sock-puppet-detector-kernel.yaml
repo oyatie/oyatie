@@ -1,7 +1,7 @@
 apiVersion: catalog.oyatie/v2
 kind: Component
 metadata:
-  name: oya-social-sock-puppet-detector-kernel
+  name: oya-community-social-sock-puppet-detector-kernel
   namespace: social
 spec:
   microservice: social

@@ -134,7 +134,7 @@ Benchmark displacement set: Redox, Rhapsody, InterSystems IRIS for Health, Lynia
 - Rhapsody displacement: route health and replay readiness are explicit promotion gates instead of engine-channel status screens.
 - InterSystems IRIS for Health displacement: platform uptime is not enough; FHIR, HL7, audit, consent, and tenant evidence must pass independently.
 - Lyniate/Corepoint displacement: interface change promotion requires Oyatie contracts, runbooks, and SLO burn evidence instead of interface-engine deployment approval alone.
-- Mirth Connect displacement: channel success does not equal promotion success unless audit completeness and replay safety are proven.
+- Mirth displacement: channel success does not equal promotion success unless audit completeness and replay safety are proven.
 - NextGate displacement: patient identity quality and review backlog are promotion blockers, not downstream data-quality tasks.
 - Health Catalyst displacement: analytics ingestion success cannot promote clinical integration unless consent, provenance, and PHI delivery SLOs are green.
 - Redox-like managed reliability is insufficient without local audit and Cedar evidence.

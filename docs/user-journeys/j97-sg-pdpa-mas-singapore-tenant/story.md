@@ -93,7 +93,7 @@ Failure mode: if the incident drill export lane cannot prove compliance, the wor
 | 10 | Marcus Chen | comms-email | MTCS-L3 cell proof; MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Receipt EVT-J97-010 shown with pack SG-PDPA |
 | 11 | Marcus Chen | community | cross-border home-jurisdiction review; Singapore PDPA section 11 accountability | Receipt EVT-J97-011 shown with pack SG-MAS-TRM |
 | 12 | Marcus Chen | compliance | incident drill export; Singapore PDPA sections 13 to 17 consent, purpose, and withdrawal duties | Receipt EVT-J97-012 shown with pack SG-MTCS-L3 |
-| 13 | Marcus Chen | connect | fintech tenant activation; Singapore PDPA section 20 notification of purposes | Receipt EVT-J97-013 shown with pack SG-PDPA |
+| 13 | Marcus Chen | connector | fintech tenant activation; Singapore PDPA section 20 notification of purposes | Receipt EVT-J97-013 shown with pack SG-PDPA |
 | 14 | Marcus Chen | consent-graph | PDPA consent catalog; Singapore PDPA section 21 access and correction | Receipt EVT-J97-014 shown with pack SG-MAS-TRM |
 | 15 | Marcus Chen | developer-sdk | MAS critical-system tagging; Singapore PDPA section 24 protection obligation | Receipt EVT-J97-015 shown with pack SG-MTCS-L3 |
 | 16 | Marcus Chen | docs | MTCS-L3 cell proof; Singapore PDPA section 25 retention limitation | Receipt EVT-J97-016 shown with pack SG-PDPA |
@@ -138,7 +138,7 @@ Failure mode: if the incident drill export lane cannot prove compliance, the wor
 | 55 | Marcus Chen | comms-email | fintech tenant activation; Singapore PDPA section 24 protection obligation | Receipt EVT-J97-055 shown with pack SG-PDPA |
 | 56 | Marcus Chen | community | PDPA consent catalog; Singapore PDPA section 25 retention limitation | Receipt EVT-J97-056 shown with pack SG-MAS-TRM |
 | 57 | Marcus Chen | compliance | MAS critical-system tagging; Singapore PDPA section 26 transfer limitation | Receipt EVT-J97-057 shown with pack SG-MTCS-L3 |
-| 58 | Marcus Chen | connect | MTCS-L3 cell proof; Singapore PDPA section 26A data breach notification | Receipt EVT-J97-058 shown with pack SG-PDPA |
+| 58 | Marcus Chen | connector | MTCS-L3 cell proof; Singapore PDPA section 26A data breach notification | Receipt EVT-J97-058 shown with pack SG-PDPA |
 | 59 | Marcus Chen | consent-graph | cross-border home-jurisdiction review; MAS Notice on Technology Risk Management incident reporting provisions for relevant incidents | Receipt EVT-J97-059 shown with pack SG-MAS-TRM |
 | 60 | Marcus Chen | developer-sdk | incident drill export; MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Receipt EVT-J97-060 shown with pack SG-MTCS-L3 |
 | 61 | Marcus Chen | docs | fintech tenant activation; Singapore PDPA section 11 accountability | Receipt EVT-J97-061 shown with pack SG-PDPA |
@@ -183,7 +183,7 @@ Failure mode: if the incident drill export lane cannot prove compliance, the wor
 | 100 | Marcus Chen | comms-email | MTCS-L3 cell proof; MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Receipt EVT-J97-100 shown with pack SG-PDPA |
 | 101 | Marcus Chen | community | cross-border home-jurisdiction review; Singapore PDPA section 11 accountability | Receipt EVT-J97-101 shown with pack SG-MAS-TRM |
 | 102 | Marcus Chen | compliance | incident drill export; Singapore PDPA sections 13 to 17 consent, purpose, and withdrawal duties | Receipt EVT-J97-102 shown with pack SG-MTCS-L3 |
-| 103 | Marcus Chen | connect | fintech tenant activation; Singapore PDPA section 20 notification of purposes | Receipt EVT-J97-103 shown with pack SG-PDPA |
+| 103 | Marcus Chen | connector | fintech tenant activation; Singapore PDPA section 20 notification of purposes | Receipt EVT-J97-103 shown with pack SG-PDPA |
 | 104 | Marcus Chen | consent-graph | PDPA consent catalog; Singapore PDPA section 21 access and correction | Receipt EVT-J97-104 shown with pack SG-MAS-TRM |
 | 105 | Marcus Chen | developer-sdk | MAS critical-system tagging; Singapore PDPA section 24 protection obligation | Receipt EVT-J97-105 shown with pack SG-MTCS-L3 |
 | 106 | Marcus Chen | docs | MTCS-L3 cell proof; Singapore PDPA section 25 retention limitation | Receipt EVT-J97-106 shown with pack SG-PDPA |
@@ -228,7 +228,7 @@ Failure mode: if the incident drill export lane cannot prove compliance, the wor
 | 145 | Marcus Chen | comms-email | fintech tenant activation; Singapore PDPA section 24 protection obligation | Receipt EVT-J97-145 shown with pack SG-PDPA |
 | 146 | Marcus Chen | community | PDPA consent catalog; Singapore PDPA section 25 retention limitation | Receipt EVT-J97-146 shown with pack SG-MAS-TRM |
 | 147 | Marcus Chen | compliance | MAS critical-system tagging; Singapore PDPA section 26 transfer limitation | Receipt EVT-J97-147 shown with pack SG-MTCS-L3 |
-| 148 | Marcus Chen | connect | MTCS-L3 cell proof; Singapore PDPA section 26A data breach notification | Receipt EVT-J97-148 shown with pack SG-PDPA |
+| 148 | Marcus Chen | connector | MTCS-L3 cell proof; Singapore PDPA section 26A data breach notification | Receipt EVT-J97-148 shown with pack SG-PDPA |
 | 149 | Marcus Chen | consent-graph | cross-border home-jurisdiction review; MAS Notice on Technology Risk Management incident reporting provisions for relevant incidents | Receipt EVT-J97-149 shown with pack SG-MAS-TRM |
 | 150 | Marcus Chen | developer-sdk | incident drill export; MAS Notice 658 cybersecurity overlay as tenant pack citation in this journey brief | Receipt EVT-J97-150 shown with pack SG-MTCS-L3 |
 | 151 | Marcus Chen | docs | fintech tenant activation; Singapore PDPA section 11 accountability | Receipt EVT-J97-151 shown with pack SG-PDPA |

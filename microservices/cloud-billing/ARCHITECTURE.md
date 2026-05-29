@@ -46,7 +46,7 @@ companion_docs:
 
 cloud-billing is the canonical source-of-truth for commercial state in Oyatie. It owns `tenant_class` lifecycle, `billing_components` composition, the metering ledger, the multi-currency invoice ledger, the rate-card lifecycle, the reservation lifecycle, the credit memo ledger, the FX lock service, the revenue-share settlement engine, the per-seat counter, the per-usage aggregator, the FOCUS 1.1 export adapter, the ERP export adapter, the dunning policy, the subscription primitive, and the proration engine.
 
-The microservice is authored under ADR-0131 (per-microservice flat layout — `src/` is the canonical code root with bounded-context-named subdirectories) and ADR-0132 (no-suite policy — single-concern; tax computation lives in cloud-billing-tax, payment-method handling lives in payments). It exposes three contract surfaces — REST/OpenAPI 3.2.0, AsyncAPI 3.1.0 (events on the inter-µservice gRPC substrate per ADR-0145), and proto3 over gRPC + HTTP/3 (per ADR-0253 default protocol). Cedar default-deny (ADR-0243) gates every state-mutation surface; tenant-scoping (ADR-0244) holds on every audited row.
+The microservice is authored under ADR-0131 (per-microservice flat layout — `src/` is the canonical code root with bounded-context-named subdirectories) and ADR-0132 (no-grouping policy — single-concern; tax computation lives in cloud-billing-tax, payment-method handling lives in payments). It exposes three contract surfaces — REST/OpenAPI 3.2.0, AsyncAPI 3.1.0 (events on the inter-µservice gRPC substrate per ADR-0145), and proto3 over gRPC + HTTP/3 (per ADR-0253 default protocol). Cedar default-deny (ADR-0243) gates every state-mutation surface; tenant-scoping (ADR-0244) holds on every audited row.
 
 cloud-billing is cell-aware per ADR-0248. The metering bus is per-cell; the invoice ledger is per-cell; cross-cell traffic is forbidden for demo_trial tenants; paid tenants may operate cross-cell sub-tenancies via explicit Cedar grant. The home-cell anchor for a tenant is the deployment_context choice at provisioning time per ADR-0218.
 
@@ -957,7 +957,7 @@ Postgres migrations are versioned in `migrations/` (Liquibase / sqlx-style). Eve
 
 ADRs cited (in narrative order of first reference):
 - ADR-0131 (per-microservice flat layout)
-- ADR-0132 (no-suite policy)
+- ADR-0132 (no-grouping policy)
 - ADR-0145 (direct gRPC inter-µservice)
 - ADR-0243 (Cedar as universal gate)
 - ADR-0244 (tenant as universal scoping primitive)

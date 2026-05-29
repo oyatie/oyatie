@@ -20,7 +20,7 @@ doc_status: drafted
 - Related ADRs: see `related_adrs` frontmatter; legacy anchors include ADR-0003 (audit-chain), ADR-0028 (cloud µservice arch), ADR-0056 (clean architecture
   BNF), ADR-0058 (ontology), ADR-0078 (Pulsar substrate), ADR-0090 (Cedar policy engine), ADR-0105
   (13-layer enum), ADR-0110 (state machine), ADR-0130 (SLO-gated promotion), ADR-0131 (flat layout),
-  ADR-0132 (no-suite policy).
+  ADR-0132 (no-grouping policy).
 - Date: 2026-05-18
 - Schema version: 1.0
 

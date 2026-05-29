@@ -272,7 +272,7 @@ Auditors receive frozen evidence pack per `docs/templates/evidence-pack-template
 - `microservices/mail/policy/{dual-context-isolation, data-residency}.md`.
 - `microservices/mail/policy/*.cedar`.
 - `microservices/mail/incident-response.md`.
-- ADR-0008 (data-use-boundary); ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (HG-MAIL); ADR-0135 (Connect dissolution); ADR-0131 (per-µservice layout); ADR-0140 (Cedar).
+- ADR-0008 (data-use-boundary); ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (HG-MAIL); ADR-0135 (dissolution); ADR-0131 (per-µservice layout); ADR-0140 (Cedar).
 - SOC 2 Type 2: TSC 2017 + 2022 Points of Focus — `aicpa.org`.
 - ISO/IEC 27001:2022 + ISO/IEC 27002:2022 — `iso.org`.
 - GDPR — `gdpr-info.eu`; EDPB Guidelines — `edpb.europa.eu`.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/deployment-ops-contract.json",
+  "$id": "https://docs.oyatie.com/specs/deployment-ops-contract.json",
   "title": "DeploymentOpsContract",
   "description": "Machine-readable deployment entrypoint contract: OpenTofu owns the Cloudflare edge, the cluster fleet is provisioned declaratively by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD, the root Makefile owns operator entry, day-2 changes route through ops, and no manual SSH troubleshooting.",
   "_meta": {

@@ -78,7 +78,7 @@ ADR-0311, ADR-0312, ADR-0313.
 - `workplace-integration`: esign-closing-package.
 - `payments`: repayment-cascade.
 - `finops-portal`: financial-statement-export.
-- `connect`: bank-core-adapter.
+- `connector`: bank-core-adapter.
 
 ## Phase 1: preflight
 
@@ -94,7 +94,7 @@ actor-device -> api-gateway -> identity -> tenancy -> workflow-engine -> workpla
 | 1.4 | `workflow-engine` | `workplace-integration` | `BankTenantLoanApplicationCommand` | `journey.j121.preflight.workplace_integration` | `BankTenantLoanAgreementExecuted` | `oya_j121_workplace_integration_preflight_ms` | compensating command before finality |
 | 1.5 | `workplace-integration` | `payments` | `BankTenantLoanApplicationCommand` | `journey.j121.preflight.payments` | `BankTenantLoanAgreementExecuted` | `oya_j121_payments_preflight_ms` | compensating command before finality |
 | 1.6 | `payments` | `finops-portal` | `BankTenantLoanApplicationCommand` | `journey.j121.preflight.finops_portal` | `BankTenantLoanAgreementExecuted` | `oya_j121_finops_portal_preflight_ms` | compensating command before finality |
-| 1.7 | `finops-portal` | `connect` | `BankTenantLoanApplicationCommand` | `journey.j121.preflight.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_preflight_ms` | compensating command before finality |
+| 1.7 | `finops-portal` | `connector` | `BankTenantLoanApplicationCommand` | `journey.j121.preflight.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_preflight_ms` | compensating command before finality |
 
 ## Phase 2: authorize
 
@@ -110,7 +110,7 @@ actor-device -> api-gateway -> identity -> tenancy -> workflow-engine -> workpla
 | 2.4 | `workflow-engine` | `workplace-integration` | `BankTenantLoanApplicationCommand` | `journey.j121.authorize.workplace_integration` | `BankTenantLoanAgreementExecuted` | `oya_j121_workplace_integration_authorize_ms` | compensating command before finality |
 | 2.5 | `workplace-integration` | `payments` | `BankTenantLoanApplicationCommand` | `journey.j121.authorize.payments` | `BankTenantLoanAgreementExecuted` | `oya_j121_payments_authorize_ms` | compensating command before finality |
 | 2.6 | `payments` | `finops-portal` | `BankTenantLoanApplicationCommand` | `journey.j121.authorize.finops_portal` | `BankTenantLoanAgreementExecuted` | `oya_j121_finops_portal_authorize_ms` | compensating command before finality |
-| 2.7 | `finops-portal` | `connect` | `BankTenantLoanApplicationCommand` | `journey.j121.authorize.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_authorize_ms` | compensating command before finality |
+| 2.7 | `finops-portal` | `connector` | `BankTenantLoanApplicationCommand` | `journey.j121.authorize.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_authorize_ms` | compensating command before finality |
 
 ## Phase 3: compose
 
@@ -126,7 +126,7 @@ actor-device -> api-gateway -> identity -> tenancy -> workflow-engine -> workpla
 | 3.4 | `workflow-engine` | `workplace-integration` | `BankTenantLoanApplicationCommand` | `journey.j121.compose.workplace_integration` | `BankTenantLoanAgreementExecuted` | `oya_j121_workplace_integration_compose_ms` | compensating command before finality |
 | 3.5 | `workplace-integration` | `payments` | `BankTenantLoanApplicationCommand` | `journey.j121.compose.payments` | `BankTenantLoanAgreementExecuted` | `oya_j121_payments_compose_ms` | compensating command before finality |
 | 3.6 | `payments` | `finops-portal` | `BankTenantLoanApplicationCommand` | `journey.j121.compose.finops_portal` | `BankTenantLoanAgreementExecuted` | `oya_j121_finops_portal_compose_ms` | compensating command before finality |
-| 3.7 | `finops-portal` | `connect` | `BankTenantLoanApplicationCommand` | `journey.j121.compose.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_compose_ms` | compensating command before finality |
+| 3.7 | `finops-portal` | `connector` | `BankTenantLoanApplicationCommand` | `journey.j121.compose.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_compose_ms` | compensating command before finality |
 
 ## Phase 4: counterparty_accept
 
@@ -142,7 +142,7 @@ actor-device -> api-gateway -> identity -> tenancy -> workflow-engine -> workpla
 | 4.4 | `workflow-engine` | `workplace-integration` | `BankTenantLoanApplicationCommand` | `journey.j121.counterparty_accept.workplace_integration` | `BankTenantLoanAgreementExecuted` | `oya_j121_workplace_integration_counterparty_accept_ms` | compensating command before finality |
 | 4.5 | `workplace-integration` | `payments` | `BankTenantLoanApplicationCommand` | `journey.j121.counterparty_accept.payments` | `BankTenantLoanAgreementExecuted` | `oya_j121_payments_counterparty_accept_ms` | compensating command before finality |
 | 4.6 | `payments` | `finops-portal` | `BankTenantLoanApplicationCommand` | `journey.j121.counterparty_accept.finops_portal` | `BankTenantLoanAgreementExecuted` | `oya_j121_finops_portal_counterparty_accept_ms` | compensating command before finality |
-| 4.7 | `finops-portal` | `connect` | `BankTenantLoanApplicationCommand` | `journey.j121.counterparty_accept.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_counterparty_accept_ms` | compensating command before finality |
+| 4.7 | `finops-portal` | `connector` | `BankTenantLoanApplicationCommand` | `journey.j121.counterparty_accept.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_counterparty_accept_ms` | compensating command before finality |
 
 ## Phase 5: settlement_intent
 
@@ -158,7 +158,7 @@ actor-device -> api-gateway -> identity -> tenancy -> workflow-engine -> workpla
 | 5.4 | `workflow-engine` | `workplace-integration` | `BankTenantLoanApplicationCommand` | `journey.j121.settlement_intent.workplace_integration` | `BankTenantLoanAgreementExecuted` | `oya_j121_workplace_integration_settlement_intent_ms` | compensating command before finality |
 | 5.5 | `workplace-integration` | `payments` | `BankTenantLoanApplicationCommand` | `journey.j121.settlement_intent.payments` | `BankTenantLoanAgreementExecuted` | `oya_j121_payments_settlement_intent_ms` | compensating command before finality |
 | 5.6 | `payments` | `finops-portal` | `BankTenantLoanApplicationCommand` | `journey.j121.settlement_intent.finops_portal` | `BankTenantLoanAgreementExecuted` | `oya_j121_finops_portal_settlement_intent_ms` | compensating command before finality |
-| 5.7 | `finops-portal` | `connect` | `BankTenantLoanApplicationCommand` | `journey.j121.settlement_intent.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_settlement_intent_ms` | compensating command before finality |
+| 5.7 | `finops-portal` | `connector` | `BankTenantLoanApplicationCommand` | `journey.j121.settlement_intent.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_settlement_intent_ms` | compensating command before finality |
 
 ## Phase 6: finalize
 
@@ -174,7 +174,7 @@ actor-device -> api-gateway -> identity -> tenancy -> workflow-engine -> workpla
 | 6.4 | `workflow-engine` | `workplace-integration` | `BankTenantLoanApplicationCommand` | `journey.j121.finalize.workplace_integration` | `BankTenantLoanAgreementExecuted` | `oya_j121_workplace_integration_finalize_ms` | compensating command before finality |
 | 6.5 | `workplace-integration` | `payments` | `BankTenantLoanApplicationCommand` | `journey.j121.finalize.payments` | `BankTenantLoanAgreementExecuted` | `oya_j121_payments_finalize_ms` | compensating command before finality |
 | 6.6 | `payments` | `finops-portal` | `BankTenantLoanApplicationCommand` | `journey.j121.finalize.finops_portal` | `BankTenantLoanAgreementExecuted` | `oya_j121_finops_portal_finalize_ms` | compensating command before finality |
-| 6.7 | `finops-portal` | `connect` | `BankTenantLoanApplicationCommand` | `journey.j121.finalize.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_finalize_ms` | compensating command before finality |
+| 6.7 | `finops-portal` | `connector` | `BankTenantLoanApplicationCommand` | `journey.j121.finalize.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_finalize_ms` | compensating command before finality |
 
 ## Phase 7: observe
 
@@ -190,7 +190,7 @@ actor-device -> api-gateway -> identity -> tenancy -> workflow-engine -> workpla
 | 7.4 | `workflow-engine` | `workplace-integration` | `BankTenantLoanApplicationCommand` | `journey.j121.observe.workplace_integration` | `BankTenantLoanAgreementExecuted` | `oya_j121_workplace_integration_observe_ms` | compensating command before finality |
 | 7.5 | `workplace-integration` | `payments` | `BankTenantLoanApplicationCommand` | `journey.j121.observe.payments` | `BankTenantLoanAgreementExecuted` | `oya_j121_payments_observe_ms` | compensating command before finality |
 | 7.6 | `payments` | `finops-portal` | `BankTenantLoanApplicationCommand` | `journey.j121.observe.finops_portal` | `BankTenantLoanAgreementExecuted` | `oya_j121_finops_portal_observe_ms` | compensating command before finality |
-| 7.7 | `finops-portal` | `connect` | `BankTenantLoanApplicationCommand` | `journey.j121.observe.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_observe_ms` | compensating command before finality |
+| 7.7 | `finops-portal` | `connector` | `BankTenantLoanApplicationCommand` | `journey.j121.observe.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_observe_ms` | compensating command before finality |
 
 ## Phase 8: reconcile
 
@@ -206,7 +206,7 @@ actor-device -> api-gateway -> identity -> tenancy -> workflow-engine -> workpla
 | 8.4 | `workflow-engine` | `workplace-integration` | `BankTenantLoanApplicationCommand` | `journey.j121.reconcile.workplace_integration` | `BankTenantLoanAgreementExecuted` | `oya_j121_workplace_integration_reconcile_ms` | compensating command before finality |
 | 8.5 | `workplace-integration` | `payments` | `BankTenantLoanApplicationCommand` | `journey.j121.reconcile.payments` | `BankTenantLoanAgreementExecuted` | `oya_j121_payments_reconcile_ms` | compensating command before finality |
 | 8.6 | `payments` | `finops-portal` | `BankTenantLoanApplicationCommand` | `journey.j121.reconcile.finops_portal` | `BankTenantLoanAgreementExecuted` | `oya_j121_finops_portal_reconcile_ms` | compensating command before finality |
-| 8.7 | `finops-portal` | `connect` | `BankTenantLoanApplicationCommand` | `journey.j121.reconcile.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_reconcile_ms` | compensating command before finality |
+| 8.7 | `finops-portal` | `connector` | `BankTenantLoanApplicationCommand` | `journey.j121.reconcile.connect` | `BankTenantLoanAgreementExecuted` | `oya_j121_connect_reconcile_ms` | compensating command before finality |
 
 ## Cedar permit grammar
 

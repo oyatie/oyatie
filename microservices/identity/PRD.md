@@ -541,7 +541,7 @@ Stories are identity-µservice specific. Do NOT duplicate `docs/user-stories/b2c
 - **so that** PIPA + sovereignty is honored.
 - **Acceptance criteria**:
   1. Per ADR-0179, pack-kr identity data lives in OCI ap-seoul-1; no cross-pack federation.
-  2. JWKS issuer `https://identity-kr.oyatie.dev` is pack-specific.
+  2. JWKS issuer `https://identity-kr.oyatie.com` is pack-specific.
   3. Cross-pack reads refused at Cedar gate.
 - **Accessibility AC**: N/A.
 - **i18n AC**: residency disclosure in ko-KR.
@@ -844,7 +844,7 @@ Stories are identity-µservice specific. Do NOT duplicate `docs/user-stories/b2c
 
 - Per-pack identity data sovereignty per ADR-0179.
 - No cross-pack identity replication.
-- Per-pack Zitadel instances; per-pack JWKS issuers (`https://identity-<pack>.oyatie.dev`).
+- Per-pack Zitadel instances; per-pack JWKS issuers (`https://identity-<pack>.oyatie.com`).
 
 ### E.7 DR posture
 
@@ -1064,7 +1064,7 @@ Stories are identity-µservice specific. Do NOT duplicate `docs/user-stories/b2c
 [POST /oauth/device_authorization]
        |
        v
-[CLI prints: "Open https://oyatie.dev/device and enter code ABCD-EFGH"]
+[CLI prints: "Open https://oyatie.com/device and enter code ABCD-EFGH"]
        |
        v
 [User opens URL in browser; enters code; signs in]
@@ -1183,7 +1183,7 @@ Compliance evidence emission:
 4. **Cross-pack identity replication** — sovereign-residency forbidden.
 5. **Legacy SAML 1.1 / WS-Federation** — rejected; obsolete.
 6. **Behavioral biometrics** — out of scope at M01; future enhancement.
-7. **Identity-proofing / KYC for B2C** — out of scope; lives in `connect` µservice.
+7. **Identity-proofing / KYC for B2C** — out of scope; lives in `connector` µservice.
 8. **PAM (privileged access management) for prod infra** — out of scope; lives in `ops-pam` future µservice.
 9. **Decentralized identity (DID, Verifiable Credentials)** — out of scope at M01; M05+ exploration.
 
@@ -1447,12 +1447,12 @@ forbid (
 
 ```json
 {
-  "issuer": "https://identity-kr.oyatie.dev",
-  "authorization_endpoint": "https://identity-kr.oyatie.dev/oauth/authorize",
-  "token_endpoint": "https://identity-kr.oyatie.dev/oauth/token",
-  "userinfo_endpoint": "https://identity-kr.oyatie.dev/oauth/userinfo",
-  "jwks_uri": "https://identity-kr.oyatie.dev/oauth/jwks",
-  "registration_endpoint": "https://identity-kr.oyatie.dev/oauth/register",
+  "issuer": "https://identity-kr.oyatie.com",
+  "authorization_endpoint": "https://identity-kr.oyatie.com/oauth/authorize",
+  "token_endpoint": "https://identity-kr.oyatie.com/oauth/token",
+  "userinfo_endpoint": "https://identity-kr.oyatie.com/oauth/userinfo",
+  "jwks_uri": "https://identity-kr.oyatie.com/oauth/jwks",
+  "registration_endpoint": "https://identity-kr.oyatie.com/oauth/register",
   "scopes_supported": ["openid", "profile", "email", "tenant_id", "acr", "purpose", "data_class"],
   "response_types_supported": ["code", "id_token", "id_token token"],
   "grant_types_supported": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:device_code", "urn:ietf:params:oauth:grant-type:token-exchange"],
@@ -1471,9 +1471,9 @@ forbid (
 
 ```json
 {
-  "iss": "https://identity-kr.oyatie.dev",
+  "iss": "https://identity-kr.oyatie.com",
   "sub": "user_01HZX2N5Q3K8R7M6V4P9W2Y3F1",
-  "aud": "messenger.oyatie.dev",
+  "aud": "messenger.oyatie.com",
   "exp": 1747765931,
   "iat": 1747762331,
   "nbf": 1747762331,
@@ -1619,7 +1619,7 @@ Resolves a Bearer token into the full principal context:
 
 ```http
 POST /scim/v2/Users HTTP/1.1
-Host: identity-us.oyatie.dev
+Host: identity-us.oyatie.com
 Authorization: Bearer <per-tenant-scim-bearer>
 Content-Type: application/scim+json
 
@@ -1643,7 +1643,7 @@ Content-Type: application/scim+json
 ```http
 HTTP/1.1 201 Created
 Content-Type: application/scim+json
-Location: https://identity-us.oyatie.dev/scim/v2/Users/u-01HZX...
+Location: https://identity-us.oyatie.com/scim/v2/Users/u-01HZX...
 
 {
   "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
@@ -1657,7 +1657,7 @@ Location: https://identity-us.oyatie.dev/scim/v2/Users/u-01HZX...
     "resourceType": "User",
     "created": "2026-05-20T14:32:11Z",
     "lastModified": "2026-05-20T14:32:11Z",
-    "location": "https://identity-us.oyatie.dev/scim/v2/Users/u-01HZX2N5..."
+    "location": "https://identity-us.oyatie.com/scim/v2/Users/u-01HZX2N5..."
   }
 }
 ```
@@ -1671,16 +1671,16 @@ Location: https://identity-us.oyatie.dev/scim/v2/Users/u-01HZX...
 ```xml
 <?xml version="1.0"?>
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
-                     entityID="https://identity-us.oyatie.dev/saml/sp/acme">
+                     entityID="https://identity-us.oyatie.com/saml/sp/acme">
   <md:SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
     <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>
     <md:AssertionConsumerService
         Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-        Location="https://identity-us.oyatie.dev/saml/acs/acme"
+        Location="https://identity-us.oyatie.com/saml/acs/acme"
         index="1"/>
     <md:SingleLogoutService
         Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
-        Location="https://identity-us.oyatie.dev/saml/slo/acme"/>
+        Location="https://identity-us.oyatie.com/saml/slo/acme"/>
   </md:SPSSODescriptor>
 </md:EntityDescriptor>
 ```

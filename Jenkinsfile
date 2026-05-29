@@ -17,7 +17,7 @@ pipeline {
   stages {
     stage('repo-wide governance gate') {
       steps {
-        // The whole oya gate suite + cargo mirror, affected-scoped on PR.
+        // The whole oya gate set + cargo mirror, affected-scoped on PR.
         oyaCiLane(service: 'repo')
       }
     }

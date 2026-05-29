@@ -31,7 +31,7 @@ use oya_identity_workload_rest::{
     AuditEvent, InMemoryAuditSink, SharedState, WorkloadAuthzState, build_router,
 };
 
-const ISSUER: &str = "https://idp.oyatie.dev";
+const ISSUER: &str = "https://idp.oyatie.com";
 const AUDIENCE: &str = "oya-cloud-kms";
 const KID: &str = "kid-rest-1";
 const NOW: i64 = 1_700_000_000;

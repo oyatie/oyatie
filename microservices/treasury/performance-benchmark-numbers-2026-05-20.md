@@ -354,7 +354,7 @@ Every TARGET budget in this document must be observable via the canonical observ
 - Trace: distributed trace spans from API gateway → treasury REST → usecase → domain → repository → Postgres/Valkey/Iceberg/CDN, with HLC timestamp per ADR-0252.
 - Log: structured logs with workload classifier (single-entity, multi-entity, cross-region, sovereign-cell-enforced, regulatory-pack-active).
 - Audit: every benchmark-relevant decision (payment-rail selection, sanctions screening hit, hedge effectiveness pass/fail, LCR ratio breach) sealed to audit-chain per ADR-0263.
-- SLO: each TARGET above maps to a microservices/treasury/slos/*.openslo.yaml record. The four named SLOs from manifest.second_pass_doc_suite (cash-position-recalc latency, fx-exposure refresh latency, payment-execution decision latency, regulatory-report-generation throughput) must be re-authored against these TARGETs.
+- SLO: each TARGET above maps to a microservices/treasury/slos/*.openslo.yaml record. The four named SLOs from manifest.second_pass_doc_set (cash-position-recalc latency, fx-exposure refresh latency, payment-execution decision latency, regulatory-report-generation throughput) must be re-authored against these TARGETs.
 
 ## §12 Brownout Degradation Signals
 

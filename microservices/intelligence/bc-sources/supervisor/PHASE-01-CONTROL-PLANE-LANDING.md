@@ -177,7 +177,7 @@ cargo run -p oya-dev-cli -- vcs promote --changeset <id>
 - ADR-0123 (hyperscaler maturity claim gate; HG-FND-SUP).
 - ADR-0139 (SLO gate; supervisor consumes EligibilityChanged).
 - ADR-0131 §"Foundry split" (this µservice's scope).
-- ADR-0132 (product-suite-and-bundle dissolution).
+- ADR-0132 (product-platform-and-bundle dissolution).
 - ADR-0133 (industry-best-practice conformance).
 - ADR-0140 (Cedar policy enforcement).
 - `microservices/intelligence-supervisor/PRD.md`.

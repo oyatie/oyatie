@@ -47,7 +47,7 @@ layout: flat per-microservice layout per ADR-0131
 ## Cold open
 
 KrampusCorp lists unpaid receivables on the financing marketplace, financiers bid as other tenants, and
-Stripe Connect style settlement clears proceeds, fees, and audit evidence. The narrative starts with
+Stripe style settlement clears proceeds, fees, and audit evidence. The narrative starts with
 Marcus Chen, KrampusCorp treasury sponsor in tenant krampuscorp.global and follows the same principal
 through every screen, message, approval, ledger posting, and audit emission.
 

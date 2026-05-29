@@ -21,10 +21,10 @@ authority_tier: 2
 | # | Screen | µservice | Cedar | Audit | Notes |
 |---|---|---|---|---|---|
 | B.1 | Canvas with 7 blocks; Chris drags 4 onto active area | workflow-studio | `b2c.workflow_studio.block.activate` | `BlockActivated × 4` | Sources, Filter, Drafter, Tracker |
-| B.2 | Sources config drawer: checkboxes for 6 sources | connect | `b2c.connect.adapter.list` | `AdapterListViewed` | LinkedIn requires OAuth handshake (B.5) |
+| B.2 | Sources config drawer: checkboxes for 6 sources | connector | `b2c.connect.adapter.list` | `AdapterListViewed` | LinkedIn requires OAuth handshake (B.5) |
 | B.3 | Filter config drawer: structured form for role, location, comp, exclusions | intelligence | `b2c.intelligence.filter_spec.author` | `FilterSpecAuthored` | Closed-form schema; not free-form |
 | B.4 | Drafter config drawer: upload portfolio + résumé | intelligence | `b2c.intelligence.context.bind` | `IntelligenceContextBound` | Files indexed locally; no upload to 3rd-party |
-| B.5 | LinkedIn OAuth handshake (Connect) | connect | `b2c.connect.oauth.initiate` | `OAuthInitiated`, `OAuthCompleted` | One-time; revocable |
+| B.5 | LinkedIn OAuth handshake (Connect) | connector | `b2c.connect.oauth.initiate` | `OAuthInitiated`, `OAuthCompleted` | One-time; revocable |
 | B.6 | Tracker config: create Notes database `Applications-2026` | notes | `b2c.notes.database.create` | `NotesDatabaseCreated` | 7-column schema |
 | B.7 | Activate button | workflow-engine | `b2c.workflow_engine.template.deploy` | `JobSearchPipelineActivated` | Compiles canvas → engine template |
 
@@ -69,7 +69,7 @@ authority_tier: 2
 1. Portfolio files indexed locally; no upload to external Intelligence service.
 2. AI retraining stays on Chris's compute budget; no model weights leak out.
 3. Cover-letter drafts MUST carry `intelligence_model_id` + `prompt_template_hash` (transparency floor; AEDT compliance).
-4. Connect OAuth tokens MUST be revocable; revocation cuts source immediately.
+4. OAuth tokens MUST be revocable; revocation cuts source immediately.
 5. Pipeline MUST gracefully degrade when one source breaks (rest continue).
 6. The filter MUST NOT silently filter on protected characteristics (age, gender, race) — and indeed the structured filter schema has no such fields.
 

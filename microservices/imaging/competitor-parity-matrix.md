@@ -168,7 +168,7 @@ Legend: Y = native; P = partial; N = absent; * = differentiation. Coverage colum
 | 156 | OCI Always Free demo_trial profile | N | N | N | Y | * |
 | 157 | DICOM Conformance Statement per release | Y | Y | Y | Y | Substrate parity |
 | 158 | IHE Connectathon participation | Y | Y | Y | Y | Substrate parity |
-| 159 | Vendor-quirk regression suite | P | P | Y | Y | Substrate parity |
+| 159 | Vendor-quirk regression set | P | P | Y | Y | Substrate parity |
 | 160 | Vendor-VNA migration adapter (GE EA) | N | Y | P | Y | * |
 | 161 | Vendor-VNA migration adapter (Philips ISyntax-VNA) | P | Y | P | Y | * |
 | 162 | Vendor-VNA migration adapter (Sectra VNA) | N | P | Y | Y | * |

@@ -34,7 +34,7 @@ related:
   - ADR-0116-retire-external-agent-coordination-tooling.md
   - ADR-0112-webhook-driven-foundry-agent-invocation.md
   - ADR-0113-vcs-orchestrator-end-to-end.md
-  - ADR-0132-product-suite-and-bundle-dissolution.md
+  - ADR-0132-product-platform-and-bundle-dissolution.md
   - ADR-0245-substrate-vs-product-layering.md
   - ADR-0333-cell-microservice-retired-pattern-not-service.md
   - ADR-0334-shorts-microservice-merged-into-social.md
@@ -603,7 +603,7 @@ operating retirement pattern.
 P-7. ADR-0112 + ADR-0113 + ADR-0116 remain active for the agentic
 pipeline doctrine.
 
-P-8. ADR-0132 no-suite policy remains active; intelligence is
+P-8. ADR-0132 no-grouping policy remains active; intelligence is
 single-concern with a two-layer internal shape that does not violate
 the policy.
 
@@ -776,7 +776,7 @@ absorption_map_owner: microservices/intelligence/manifest.json
 prd_owner: microservices/intelligence/PRD.md
 manifest_owner: microservices/intelligence/manifest.json
 precedent_waves: Wave 15K network→community; Wave 15L cell retire; Wave 15O shorts→social
-authority_adrs: ADR-0255 KS#14 intelligence two-layer; ADR-0247 self-modification; ADR-0220 consumer intelligence; ADR-0239 foundry internal-only amendment; ADR-0132 no-suite; ADR-0138 strangler; ADR-0328 D-9.18/D-9.22 wave-15I sequencing
+authority_adrs: ADR-0255 KS#14 intelligence two-layer; ADR-0247 self-modification; ADR-0220 consumer intelligence; ADR-0239 foundry internal-only amendment; ADR-0132 no-grouping; ADR-0138 strangler; ADR-0328 D-9.18/D-9.22 wave-15I sequencing
 hermes_drop_authority: ADR-0247 D-10; ADR-0328 D-9.22 + D-12.22..D-12.24
 crate_transition_debt_policy: ADR-0333 D-59 precedent; existing oya-foundry-* crates retained as transition debt; future rename in separate cleanup wave
 commits: none

@@ -15,7 +15,7 @@ related_adrs: [ADR-0311, ADR-0244, ADR-0249, ADR-0263]
 - Tenancy holds the engagement trust certificate.
 - Per ADR-0244 amendment, `B2B_STAFFING_AGENCY` audience-type is registered.
 - Per ADR-0249, multi-category marketplace primitive supports staffing-agency category.
-- Stripe Connect platform account active.
+- Stripe platform account active.
 - Audit-chain Merkle root current.
 
 ## Phase 1 — Engagement initiation (T+0 to T+1 day)
@@ -195,7 +195,7 @@ Personal-tenant principal: UNCHANGED (Devika personal-tenant intact per ADR-0311
                                       │ unlock escrow             │
                                       ├────────────►│            │
                                       │             │ Stripe     │
-                                      │             │ Connect    │
+                                      │             │    │
                                       │             │ facilitator │
                                       │             │ pay        │
                                       │             │ HireForce   │
@@ -287,7 +287,7 @@ permit (
 | Failure | Recovery |
 |---|---|
 | HireForce tenant unreachable | Queue retry; manual escalation |
-| Stripe Connect escrow creation fails | Defer; alert ops; manual reconciliation |
+| Stripe escrow creation fails | Defer; alert ops; manual reconciliation |
 | Candidate departs T+88 (just before T+90d) | Replacement-guarantee triggers; refund processed; HireForce sources replacement |
 | Audit-chain degraded | Local WAL per ADR-0028 |
 | Audience-type transition fails | Halt onboarding; ops manual |

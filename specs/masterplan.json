@@ -1,6 +1,6 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/masterplan.schema.json",
-  "$id": "https://docs.oyatie.dev/specs/masterplan.json",
+  "$schema": "https://docs.oyatie.com/schemas/masterplan.schema.json",
+  "$id": "https://docs.oyatie.com/specs/masterplan.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-MASTERPLAN",
@@ -21,7 +21,7 @@
       "/specs/gitops-vcs-replacement.json",
       "https://github.com/rtk-ai/grit",
       "/specs/test-standard.json",
-      "/registry/test-suite-registry.json",
+      "/registry/test-set-registry.json",
       ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
       "/specs/planning-closure-status-closure-ledger.json"
     ],
@@ -34,7 +34,7 @@
       "01KRJN9MX6W8BD8TE87NC5GA37"
     ],
     "oya_vcs_directive_2026_05_14": "Oya VCS is the provider-neutral, agent-native successor to grit with first-class but replaceable GitHub/GitHub Actions/Trivy/Argo CD adapters, native queue feature parity, semantic ChangeSets, virtual merge stack, queue-aware locks, review/CI fix loops, dev/staging/prod promotion, and Rust compile-latency scheduling.",
-    "purpose": "Schema for https://docs.oyatie.dev/specs/masterplan.json",
+    "purpose": "Schema for https://docs.oyatie.com/specs/masterplan.json",
     "oya_vcs_directive_2026_05_15": "Oya VCS replaces grit/icm/rtk/vox/omx/omc as forward agentic VCS/promotion authority; legacy surfaces are compatibility/provenance only.",
     "session_directives_2026_05_17": {
       "op11_audit": {
@@ -42,17 +42,17 @@
         "audit_artifact": "masterplan-summary-plus-fixuptasks-until-source-corpus-lands",
         "adr_citation": "ADR-0236"
       },
-      "connect_expansion": {
-        "description": "Connect gains 4 planned B2C sub-product PRD surfaces (social, shorts, network, anonymous) in PR #130. Total Connect sub-product planning surfaces: 7. See ADR-0234.",
-        "new_sub_products": [
-          "connect-social",
-          "connect-shorts",
-          "connect-network",
-          "connect-anonymous"
+      "community_service_expansion": {
+        "description": "gains 4 planned community-mode PRD surfaces (social, shorts, network, anonymous) in PR #130. Total sub-product planning surfaces: 7. See ADR-0234.",
+        "new_community_modes": [
+          "community-social",
+          "community-shorts",
+          "community-network",
+          "community-anonymous"
         ],
         "pr_reference": "PR #130",
         "adr_citation": "ADR-0234",
-        "decision_boundary": "Planning contract only; implementation crates and validators are follow-up work."
+        "decision_boundary": "Planning contract only; community modes are not product wrappers, and implementation crates plus validators are follow-up work."
       },
       "portfolio_hyperscaler_gaps": {
         "description": "Five hyperscaler patterns identified as portfolio gaps; added as IPs to relevant milestones. See ADR-0134.",
@@ -425,15 +425,11 @@
       "stale_projection_rule": "Markdown prose cannot override machine-readable masterplan, planning-closure contract, ADR-0217, or validator output."
     },
     "first_deliverable": {
-      "id": "FD-001-enterprise-smb-generic-core",
-      "name": "Enterprise Generic + SMB Generic full-depth production delivery",
+      "id": "FD-001-tenancy-rbac-microservice-core",
+      "name": "Tenant/RBAC-packaged core microservices full-depth production delivery",
       "delivery_mode": "full_depth_production_hyperscaler_exit",
       "scope_posture": "not_mvp_not_preview_not_reduced_scope",
       "exit_claim_bar": "industry_leading_production_grade_hyperscaler_grade",
-      "verticals": [
-        "enterprise-generic",
-        "smb-generic"
-      ],
       "required_surfaces": [
         "core",
         "messenger",
@@ -460,7 +456,7 @@
         "hyperscaler_pattern_authority": "specs/hyperscaler-architecture-invariants.json",
         "api_first_contracts_must_exist_before_handlers": true,
         "required_rules": [
-          "flat_microservice_catalog_not_suite_forks",
+          "flat_microservice_catalog_not_grouping_forks",
           "per_microservice_prd_manifest_phase_ip_contracts",
           "per_microservice_clean_architecture_crate_layers",
           "per_microservice_api_first_contracts_before_handlers",
@@ -548,6 +544,10 @@
         "security_privacy_tenant_isolation_and_audit_chain_evidence",
         "import_export_migration_and_vendor_exit_paths",
         "operational_readiness_for_real_tenant_exit"
+      ],
+      "packaging_axes": [
+        "tenancy",
+        "rbac"
       ]
     },
     "deployment_portability_policy": {
@@ -592,19 +592,14 @@
       "sequencing_rule": "FD-001 deployables must stay cloud-native and reproducible through declarative Kubernetes, GitOps, OpenTofu/IaC, distroless-or-scratch image posture, OCI image, SBOM/provenance, conformance, one-time secure bootstrap, one-command/one-click setup, remote config-driven cluster join, hardening evidence, and restore evidence. Major enterprise Linux families and macOS Apple Silicon are supported through adapter bootstrap packs, multi-arch OCI artifacts, and local Kubernetes/OCI parity evidence, not host-distro assumptions in product code."
     },
     "delivery_order": {
-      "mode": "vertical_delivery_ordering",
-      "first": "Enterprise Generic + SMB Generic",
-      "later_verticals": [
-        "healthcare",
-        "retail-commerce",
-        "manufacturing",
-        "logistics-delivery",
-        "hospitality",
-        "financial-services",
-        "education",
-        "government"
-      ],
-      "sector_fanout_rule": "Later sector-specific verticals may plan ahead, but production-GA claims serialize after FD-001 exit evidence."
+      "mode": "service_packaging_ordering",
+      "first": "Tenant RBAC view + Tenant RBAC view",
+      "sector_fanout_rule": "Later sector-specific distribution bundles may plan ahead, but production-GA claims serialize after FD-001 tenant/RBAC-packaged service exit evidence.",
+      "later_distribution_bundles": [
+        "sector-specific-compliance-bundles",
+        "tenant-specific-entitlement-bundles",
+        "regional-localization-bundles"
+      ]
     },
     "parallelization_policy": {
       "shared_contracts_must_lock_before_parallel_fanout": true,
@@ -677,7 +672,7 @@
     },
     {
       "id": "flat-microservice-catalog",
-      "summary": "Flat microservice catalog remains the architecture boundary; verticals are product delivery and GA-claim order overlays, not suite forks or direct cross-service coupling."
+      "summary": "Flat microservice catalog remains the architecture boundary; verticals are product delivery and GA-claim order overlays, not platform forks or direct cross-service coupling."
     },
     {
       "id": "dependency-seam-discipline",
@@ -985,7 +980,7 @@
       "class": "documentation",
       "status": "pass",
       "source_path": "/specs/test-standard.json",
-      "summary": "Machine-readable test standard and test-suite registry added as concrete artifacts supporting M01-P07.",
+      "summary": "Machine-readable test standard and test-set registry added as concrete artifacts supporting M01-P07.",
       "freshness": "2026-05-14T07:22:20Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "planning-closure validation passed 2026-05-19",
@@ -1136,7 +1131,7 @@
     "test_standard_enforcement": {
       "source_spec": "/specs/gitops-vcs-replacement.json#test_standard_enforcement",
       "machine_readable_standard_ref": "/specs/test-standard.json",
-      "test_suite_registry_ref": "/registry/test-suite-registry.json",
+      "test_set_registry_ref": "/registry/test-set-registry.json",
       "required": true
     },
     "ast_support": {
@@ -4658,22 +4653,22 @@
             "implementation_plans": []
           },
           {
-            "id": "P04-connect-pro-mail",
-            "slug": "P04-connect-pro-mail",
-            "path": ".omc/plans/milestones/M07-first-tenant/phases/P04-connect-pro-mail",
-            "index": ".omc/plans/milestones/M07-first-tenant/phases/P04-connect-pro-mail/INDEX.md",
-            "title": "Connect Pro Mail",
+            "id": "P04-mail-professional",
+            "slug": "P04-mail-professional",
+            "path": ".omc/plans/milestones/M07-first-tenant/phases/P04-mail-professional",
+            "index": ".omc/plans/milestones/M07-first-tenant/phases/P04-mail-professional/INDEX.md",
+            "title": "Pro Mail",
             "status": "indexed-from-existing-ips",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 0,
             "implementation_plans": []
           },
           {
-            "id": "P05-connect-pro-messenger",
-            "slug": "P05-connect-pro-messenger",
-            "path": ".omc/plans/milestones/M07-first-tenant/phases/P05-connect-pro-messenger",
-            "index": ".omc/plans/milestones/M07-first-tenant/phases/P05-connect-pro-messenger/INDEX.md",
-            "title": "Connect Pro Messenger",
+            "id": "P05-messenger-professional",
+            "slug": "P05-messenger-professional",
+            "path": ".omc/plans/milestones/M07-first-tenant/phases/P05-messenger-professional",
+            "index": ".omc/plans/milestones/M07-first-tenant/phases/P05-messenger-professional/INDEX.md",
+            "title": "Pro Messenger",
             "status": "indexed-from-existing-ips",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 0,
@@ -5634,45 +5629,45 @@
       }
     ]
   },
-  "connect_product_catalog_2026_05_17": {
-    "description": "Connect records 7 planned sub-product PRD surfaces as of PR #130. The 4 new B2C sub-product planning surfaces below expand the flat \u00b5service catalog. See ADR-0234.",
+  "communications_service_catalog_2026_05_17": {
+    "description": "records concrete mail, messenger, and community planning surfaces as of PR #130. The 4 community-mode planning surfaces below remain inside the community service; mail and messenger stay separate services. See ADR-0234.",
     "adr_citation": "ADR-0234",
     "pr_reference": "PR #130",
-    "existing_sub_products": [
-      "connect-messenger",
-      "connect-mail",
-      "connect-community"
+    "existing_services": [
+      "messenger",
+      "mail",
+      "community"
     ],
-    "new_sub_products_pr130": [
+    "new_community_modes_pr130": [
       {
-        "id": "connect-social",
+        "id": "community-social",
         "context": "B2C",
         "description": "Social feed, reactions, follower graph",
-        "crate_prefix": "oya-connect-social"
+        "crate_prefix": "oya-community-social"
       },
       {
-        "id": "connect-shorts",
+        "id": "community-shorts",
         "context": "B2C",
         "description": "Short-form video / content format",
-        "crate_prefix": "oya-connect-shorts"
+        "crate_prefix": "oya-community-shorts"
       },
       {
-        "id": "connect-network",
+        "id": "community-network",
         "context": "B2C",
         "description": "Professional network layer (connections, endorsements)",
-        "crate_prefix": "oya-connect-network"
+        "crate_prefix": "oya-community-network"
       },
       {
-        "id": "connect-anonymous",
+        "id": "community-anonymous",
         "context": "B2C",
         "description": "Anonymous posting / ephemeral context",
-        "crate_prefix": "oya-connect-anonymous"
+        "crate_prefix": "oya-community-anonymous"
       }
     ],
-    "decision_boundary": "Planning contract only; implementation crates and validators are follow-up work."
+    "decision_boundary": "Planning contract only; community modes are not product wrappers, and implementation crates plus validators are follow-up work."
   },
   "industrial_mes_benchmark_2026_05_17": {
-    "scope": "M07 Industrial Suite KR manufacturing MES planning benchmark",
+    "scope": "M07 Industrial Platform KR manufacturing MES planning benchmark",
     "evidence_ref": "evidence/autoresearch/industrial-mes-benchmark-1779034103.json",
     "enforcement_status": "advisory_until_M07_industrial_mes_validator",
     "competitors": [
@@ -6002,7 +5997,7 @@
         "rationale": "avoid the constitution-with-amendments SSOT anti-pattern"
       },
       {
-        "choice": "tier system / suites",
+        "choice": "tier system / platform groupings",
         "verdict": "KEEP retired (ADR-0329/0132)",
         "rationale": "tenant-class + flat single-concern already aligns with hyperscaler service ownership"
       },

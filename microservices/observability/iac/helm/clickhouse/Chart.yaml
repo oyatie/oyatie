@@ -21,7 +21,7 @@ keywords:
   - apache-2-0
 maintainers:
   - name: axis-observability
-    email: axis-observability@oyatie.dev
+    email: axis-observability@oyatie.com
 annotations:
   oya.adr/0193: olap-analytics-warehouse-clickhouse
   oya.adr/0195: stream-processing-tier

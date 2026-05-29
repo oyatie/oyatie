@@ -44,7 +44,7 @@ The journey covers Mira's **9 days** (May 15–25) of:
 4. **governance** µservice — board-resolution Cedar gate + audit committee approval flow + the go/no-go decision recording with Merkle anchor
 5. **connect** µservice — the cross-tenant NDA-bound due-diligence channel between Skylark + MRT; the secure room for sharing material non-public information
 
-Microservices: `governance`, `financial-planning`, `intelligence`, `compliance`, `connect`. Secondary: `identity`, `tenancy`, `audit-chain`, `notes`, `drive`, `observability`, `cell`, `messenger` (executive-only channel).
+Microservices: `governance`, `financial-planning`, `intelligence`, `compliance`, `connector`. Secondary: `identity`, `tenancy`, `audit-chain`, `notes`, `drive`, `observability`, `cell`, `messenger` (executive-only channel).
 
 ## Why this journey matters
 
@@ -82,7 +82,7 @@ Hyperscaler benchmark: traditional M&A tools (DealCloud + Intralinks + Datasite)
 | `financial-planning` | M&A model with ARR/CAC/LTV inputs; scenario analysis at 3 prices | row 102 |
 | `intelligence` | ML-driven Monte-Carlo + cohort churn + integration cost forecast | row 103 |
 | `compliance` | Pack-manifest cross-check + multi-jurisdiction filing requirements | row 102, 105 |
-| `connect` | Cross-tenant NDA-bound due-diligence channel | row 104 |
+| `connector` | Cross-tenant NDA-bound due-diligence channel | row 104 |
 
 ## Secondary microservices touched
 

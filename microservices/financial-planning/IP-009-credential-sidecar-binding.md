@@ -264,7 +264,7 @@ permit (
 
 ## Cross-Microservice Handoffs
 - To `cloud-secrets`: resolve OpenBao-backed credential refs and sidecar leases.
-- To `connect`: provide short-lived lease refs to vendor adapters.
+- To `connector`: provide short-lived lease refs to vendor adapters.
 - To `policy-cedar`: authorize bind, verify, read, rotate, revoke, and breakglass actions.
 - To `audit-chain`: seal credential lifecycle and lease events.
 - To `cell`: enforce home-cell sidecar locality.

@@ -2,7 +2,7 @@ apiVersion: openslo/v1
 kind: SLO
 metadata:
   name: cloud-intelligence-completeness
-  displayName: "LLM Gateway Stream Completeness"
+  displayName: "Cloud Intelligence Stream Completeness"
   labels:
     microservice: cloud-intelligence
     surface: chat-completions-stream
@@ -60,8 +60,8 @@ spec:
             metadata: { name: fastburn }
             spec: { op: gte, threshold: 14.4, lookbackWindow: 1h, alertAfter: 2m }
         notificationTargets:
-          - target: pagerduty-foundry
-          - target: opsgenie-foundry
+          - target: pagerduty-cloud-intelligence
+          - target: opsgenie-cloud-intelligence
     - name: cloud-intelligence-completeness-burnrate-mediumburn
       kind: AlertPolicy
       spec:

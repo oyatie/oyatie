@@ -134,7 +134,7 @@ Sunday night. — Sam
 ## 3. Sunday night — preparing the Cedar permit batch
 
 On Sunday 12 July at 22:30 WAT, Sam logs into oyatie ops-dashboard at
-`https://ops.marcus-corp.tenant.oyatie.dev` from his work laptop
+`https://ops.marcus-corp.tenant.oyatie.com` from his work laptop
 (his passkey is bound to the laptop's secure enclave per ADR-0188).
 
 The dashboard's "Internal Audit" pane is visible because his

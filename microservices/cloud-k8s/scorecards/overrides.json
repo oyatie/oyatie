@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "cloud-k8s",
   "summary": "kubeadm + Cilium CNI + Istio mesh + Envoy ingress + CSI",
   "chart_name": "istio-base",

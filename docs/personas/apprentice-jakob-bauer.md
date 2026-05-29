@@ -214,7 +214,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Apprentice Jakob Bauer must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Apprentice Jakob Bauer must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Apprentice Jakob Bauer must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Apprentice Jakob Bauer must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Apprentice Jakob Bauer must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Apprentice Jakob Bauer must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Apprentice Jakob Bauer must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Apprentice Jakob Bauer must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

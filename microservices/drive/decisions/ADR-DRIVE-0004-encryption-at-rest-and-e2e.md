@@ -101,7 +101,7 @@ The drive µservice ships:
 ### Key storage
 
 - All KMS keys stored in OpenBao Transit.
-- HSM backing for pack-us-healthcare + pack-eu (FIPS 140-3 Level 2 HSM via cloud provider; nShield Connect XC equivalent).
+- HSM backing for pack-us-healthcare + pack-eu (FIPS 140-3 Level 2 HSM via cloud provider; nShield XC equivalent).
 - Per-tenant `Secret<T>` wrapper type in Rust (stripped `Debug` impl + no `Serialize` impl; LEAN check `oya-check-secret-no-log` refuses any path that could log a key).
 
 ## Alternatives Considered
@@ -180,7 +180,7 @@ The drive µservice ships:
 ### Hyrum's Law
 
 Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law":
-- **Ciphertext binding tuple shape**: legacy `oya-connect-drive-domain` used a different ciphertext-binding format; new format includes `(kek_id, dek_id, cek_derivation_path, ciphertext_iv, ciphertext_tag)`. Consumers that pattern-matched on the legacy binding see different bytes; ciphertext-at-rest is internal-only. No external Hyrum surface.
+- **Ciphertext binding tuple shape**: legacy `oya-drive-domain` used a different ciphertext-binding format; new format includes `(kek_id, dek_id, cek_derivation_path, ciphertext_iv, ciphertext_tag)`. Consumers that pattern-matched on the legacy binding see different bytes; ciphertext-at-rest is internal-only. No external Hyrum surface.
 
 ### Operational
 

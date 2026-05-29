@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j24-marketplace-purchase-as-buyer.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j24-marketplace-purchase-as-buyer.schema.json",
   "title": "j24 Marketplace purchase as buyer Journey Contract",
   "type": "object",
   "additionalProperties": false,

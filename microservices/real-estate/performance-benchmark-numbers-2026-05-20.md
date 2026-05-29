@@ -18,7 +18,7 @@ External source 3: AppFolio analysis reports feature scores for AppFolio, Yardi 
 External source 4: Yardi Voyager source describes web-based integrated end-to-end platform, mobile access, operations, leasing, analytics, resident/tenant/investor services, accounting, and maintenance (`https://www.yardi.com/suite/voyager-suite/`, opened lines 675-881).
 External source 5: RealPage source reports OneSite lifecycle, application screening, portfolio views, AI workflows, vendor management, compliance, and an 83 percent staff-time reduction for selected processes (`https://www.realpage.com/property-management-software/`, opened lines 585-606).
 External source 6: RealPage multifamily source reports more than 24 million rental units and integrated leasing, operations, accounting, resident experience, payments, maintenance, portals, and enterprise-scale operations (`https://www.realpage.com/multifamily/`, opened lines 567-641 and 915-947).
-Methodology disclosure: none of the three counterparts publishes a complete public p50/p95/p99/RPS benchmark suite for the exact property-management workflows in this audit.
+Methodology disclosure: none of the three counterparts publishes a complete public p50/p95/p99/RPS benchmark set for the exact property-management workflows in this audit.
 Methodology disclosure: public numbers below are marked as `source` when directly public, and `estimated from` when derived from public feature scale plus enterprise SaaS workload assumptions.
 Methodology disclosure: estimates are planning targets, not claims about the counterpart's private production systems.
 Methodology disclosure: Oyatie targets are normative engineering goals for this microservice, not measured results from this scaffold.

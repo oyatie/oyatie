@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j10/account-lock-decision.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j10/account-lock-decision.json",
   "title": "AccountLockDecision",
   "version": "1.0.0",
   "description": "AccountLockDecision shared object for j10 SIM-swap account takeover detected. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

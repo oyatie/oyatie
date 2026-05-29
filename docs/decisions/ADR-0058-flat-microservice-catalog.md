@@ -136,7 +136,7 @@ crates/
   oya-workflow-kernel/
   oya-ontology-entity-kernel/
   oya-medical-domain/
-  oya-connect-mail-kernel/
+  oya-mail-kernel/
   oya-payments-ledger-application/
   ... (all per BNF v4.1; no subdirectories by arm/group/vertical)
 ```

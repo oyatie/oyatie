@@ -12,7 +12,7 @@ companion_docs:
   - microservices/ops-dashboard-control-center/slos/command-availability.openslo.yaml
   - microservices/ops-dashboard-control-center/capacity-model.md
   - microservices/ops-dashboard-control-center/runbooks/admin-action-rollback.md
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # Runbook: Dashboard Performance Degradation

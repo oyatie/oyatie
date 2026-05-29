@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j13/transparency-report-entry.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j13/transparency-report-entry.json",
   "title": "TransparencyReportEntry",
   "version": "1.0.0",
   "description": "TransparencyReportEntry shared object for j13 EU GDPR versus US CLOUD Act conflict. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

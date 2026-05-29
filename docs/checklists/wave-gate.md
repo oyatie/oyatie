@@ -44,7 +44,7 @@ doc_status: published
 | W-Search-Stable | Public web search + crawler + freshness + KG + SERP; sponsored-result infra ready (ad serving still off) |
 | W-Ads-Preview | Internal-tenant ads only; Data Use Boundary ADR satisfied; per-tenant auction quality ≥ baseline |
 | W-Ads-Stable | External advertisers; cross-tenant aggregate consent flows; KR adtech compliance evidence |
-| W-AI-Model-Substrate | GPU fleet provisioned; ≥ 1 in-house model trained + outperforms or cost-matches external on its eval suite |
+| W-AI-Model-Substrate | GPU fleet provisioned; ≥ 1 in-house model trained + outperforms or cost-matches external on its eval set |
 | W-Region-Fan-Out | Per-region regulator-equivalent + residency contracts; per-pack identity / payment / tax / language pack live |
 
 ## After passing

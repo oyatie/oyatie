@@ -342,7 +342,7 @@ B2.028. The corpus-wide per-µservice declaration sub-wave `15U-Capacity-Model-d
 
 B2.029. Per-µservice declaration follows the canonical-build phase order under ADR-0328. Phase 0 cloud-* µservices declare first; Phase 4B long-tail B2B SaaS µservices declare last.
 
-B2.030. The CI lane suite (E.1 through E.7) is REPORT-ONLY at landing and promotes to BLOCKER per the §H sunset schedule.
+B2.030. The CI lane set (E.1 through E.7) is REPORT-ONLY at landing and promotes to BLOCKER per the §H sunset schedule.
 
 B2.031. The Kyverno admission policy `enforce-capacity-model-presence` (new) refuses Helm release admission for µservices whose manifest omits the `capacity_model` block beyond the per-µservice grace window.
 

@@ -122,7 +122,7 @@ Ma = Masimo; W = Welch Allyn/Hillrom; Ed = Edwards; BT = BioTelemetry; Dr = Drag
 | D02 | Android push (FCM) | yes | yes | yes | — | ✅ |
 | D03 | WebPush (browser) | partial | partial | partial | — | ✅ |
 | D04 | SMS fallback | yes | yes | yes | — | ✅ |
-| D05 | Pager gateway (Spok / Connect / Vocera) | yes | yes | yes | — | ✅ |
+| D05 | Pager gateway (Spok / / Vocera) | yes | yes | yes | — | ✅ |
 | D06 | Acknowledgement round-trip | yes | yes | yes | — | ✅ |
 | D07 | Escalation across hops | yes | yes | yes | — | ✅ |
 | D08 | Per-clinician schedule (on-call) | partial | partial | partial | — | ✅ |

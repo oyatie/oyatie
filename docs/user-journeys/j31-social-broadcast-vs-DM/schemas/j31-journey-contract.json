@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j31-social-broadcast-vs-DM.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j31-social-broadcast-vs-DM.schema.json",
   "title": "j31 Social broadcast versus DM Journey Contract",
   "type": "object",
   "additionalProperties": false,

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j140/protective-action.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j140/protective-action.json",
   "title": "ProtectiveAction",
   "description": "Envelope for protective actions taken in response to DLP / detection signals; supports light-touch + heavy-touch remediation classes.",
   "_meta": {"binding_adr": "ADR-0310", "related_adrs": ["ADR-0311","ADR-0307"], "schema_version": "v1.0.0"},

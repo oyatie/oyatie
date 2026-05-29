@@ -140,7 +140,7 @@ Estimated scope: 2-3 quarters subsequent-to-M03-completion.
 2. **IP-001 (IaC)** provisions gVisor RuntimeClass + ClamAV + OPSWAT sidecars.
 3. **`runbooks/export-pipeline-failure-xlsx.md`** — handles export failure modes.
 4. **competitor-parity-matrix.md** — documents fidelity-tier choice + named-limit list.
-5. **Tenant-facing docs** at `docs.oyatie.dev/sheets/xlsx-fidelity` — published named-limit list.
+5. **Tenant-facing docs** at `docs.oyatie.com/sheets/xlsx-fidelity` — published named-limit list.
 
 ### CI lanes + SLOs
 

@@ -48,7 +48,7 @@ crate: tokio-postgres
 version_pinned: "0.7.x"
 lts_track: "PostgreSQL 16 LTS"
 role: "primary OLTP store"
-adapter_crate: oya-platform-storage-postgres-adapter
+adapter_crate: oya-tenant-rbac-storage-postgres-adapter
 distroless_base: "gcr.io/distroless/cc-debian12"
 license: "MIT OR Apache-2.0"
 last_audit: 2026-04-30
@@ -61,8 +61,8 @@ last_audit: 2026-04-30
 ```mermaid
 graph LR
   subgraph "Persistence"
-    pg["PostgreSQL 16 LTS<br/>tokio-postgres 0.7<br/>oya-platform-storage-postgres-adapter"]
-    obj["Object Storage S3-API<br/>aws-sdk-s3<br/>oya-platform-storage-object-adapter-aws"]
+    pg["PostgreSQL 16 LTS<br/>tokio-postgres 0.7<br/>oya-tenant-rbac-storage-postgres-adapter"]
+    obj["Object Storage S3-API<br/>aws-sdk-s3<br/>oya-tenant-rbac-storage-object-adapter-aws"]
   end
   subgraph "Identity"
     cedar["Cedar 4.x<br/>cedar-policy<br/>oya-cloud-iam-kernel"]

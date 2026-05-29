@@ -65,15 +65,15 @@ pub mod domain {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct DocSuiteScaffold {
+pub struct DocSetScaffold {
     pub microservice: &'static str,
     pub primary_adr: &'static str,
     pub primitive: &'static str,
     pub layers: &'static [Layer],
 }
 
-pub fn scaffold() -> DocSuiteScaffold {
-    DocSuiteScaffold {
+pub fn scaffold() -> DocSetScaffold {
+    DocSetScaffold {
         microservice: MICROSERVICE,
         primary_adr: PRIMARY_ADR,
         primitive: "DealSet",

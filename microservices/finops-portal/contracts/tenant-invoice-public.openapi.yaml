@@ -9,11 +9,11 @@ info:
     HTTP surface itself is a thin adapter over `finops-portal-tenant-billing-presentation-usecase`.
   contact:
     name: ops-finops council
-    email: ops-finops@oyatie.dev
+    email: ops-finops@oyatie.com
 servers:
-  - url: https://api.oyatie.dev
+  - url: https://api.oyatie.com
     description: production
-  - url: https://api-staging.oyatie.dev
+  - url: https://api-staging.oyatie.com
     description: staging
 security:
   - bearerAuth: []

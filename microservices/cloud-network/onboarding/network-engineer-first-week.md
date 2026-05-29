@@ -85,7 +85,7 @@ A request without the client cert returns `403 ssl_client_cert_required`.
 
 ## Day 4 — hybrid BGP peer
 
-paid allows ≤ 1 hybrid connection. Simulate a Direct Connect peer (the dev cell ships a quagga peer for testing):
+paid allows ≤ 1 hybrid connection. Simulate a Direct peer (the dev cell ships a quagga peer for testing):
 ```bash
 ./bin/oya network hybrid-connection create \
   --tenant oyatie.b2b.smb.acme-software \

@@ -47,7 +47,7 @@ Parity dimensions are derived from competitor product documentation (canonical s
 
 ## Matrix
 
-| Dimension | HashiCorp Vault | AWS Secrets Manager + KMS | GCP Secret Manager + KMS | Azure Key Vault | OCI Vault | 1Password Connect | Doppler | Infisical | Akeyless | **oyatie cloud-secrets (M01)** | **oyatie target** |
+| Dimension | HashiCorp Vault | AWS Secrets Manager + KMS | GCP Secret Manager + KMS | Azure Key Vault | OCI Vault | 1Password | Doppler | Infisical | Akeyless | **oyatie cloud-secrets (M01)** | **oyatie target** |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | D1 | per-region | per-region | per-region | per-region | per-region | global SaaS | global SaaS | self-host opt | global SaaS | **per-pack** | per-pack |
 | D2 | Vault Enterprise+HSM | KMS-CMK | Cloud KMS HSM tier | Managed HSM | OCI Cloud-HSM | partial | partial | partial | DFC fragments | **HSM-backed** | HSM-backed |
@@ -119,7 +119,7 @@ Quarterly review:
 - GCP Secret Manager + Cloud KMS docs
 - Azure Key Vault + Managed HSM docs
 - OCI Vault + Cloud-HSM docs
-- 1Password Connect docs
+- 1Password docs
 - Doppler docs
 - Infisical OSS docs
 - Akeyless docs

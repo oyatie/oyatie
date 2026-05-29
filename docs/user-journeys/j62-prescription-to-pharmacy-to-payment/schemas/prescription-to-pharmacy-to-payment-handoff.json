@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j62/prescription-to-pharmacy-to-payment-handoff.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j62/prescription-to-pharmacy-to-payment-handoff.json",
   "title": "J62PrescriptionToPharmacyToPaymentHandoff",
   "description": "Shared prescription-to-pharmacy-to-payment-handoff schema for j62-prescription-to-pharmacy-to-payment. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

@@ -73,7 +73,7 @@ ADR-0311, ADR-0312, ADR-0313.
 
 - `payments`: mass-payout-and-withholding-ledger.
 - `finops-portal`: ap-batch-control-panel.
-- `connect`: bank-rail-payout-adapter.
+- `connector`: bank-rail-payout-adapter.
 - `compliance`: tax-withholding-overlay.
 - `workflow-engine`: approval-and-release-state-machine.
 - `mail`: vendor-remittance-notices.
@@ -88,8 +88,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> connect -> complianc
 |---:|---|---|---|---|---|---|---|
 | 1.1 | `api-gateway` | `payments` | `VendorBatchWithholdingCommand` | `journey.j122.preflight.payments` | `VendorBatchPayoutSettled` | `oya_j122_payments_preflight_ms` | compensating command before finality |
 | 1.2 | `payments` | `finops-portal` | `VendorBatchWithholdingCommand` | `journey.j122.preflight.finops_portal` | `VendorBatchPayoutSettled` | `oya_j122_finops_portal_preflight_ms` | compensating command before finality |
-| 1.3 | `finops-portal` | `connect` | `VendorBatchWithholdingCommand` | `journey.j122.preflight.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_preflight_ms` | compensating command before finality |
-| 1.4 | `connect` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.preflight.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_preflight_ms` | compensating command before finality |
+| 1.3 | `finops-portal` | `connector` | `VendorBatchWithholdingCommand` | `journey.j122.preflight.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_preflight_ms` | compensating command before finality |
+| 1.4 | `connector` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.preflight.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_preflight_ms` | compensating command before finality |
 | 1.5 | `compliance` | `workflow-engine` | `VendorBatchWithholdingCommand` | `journey.j122.preflight.workflow_engine` | `VendorBatchPayoutSettled` | `oya_j122_workflow_engine_preflight_ms` | compensating command before finality |
 | 1.6 | `workflow-engine` | `mail` | `VendorBatchWithholdingCommand` | `journey.j122.preflight.mail` | `VendorBatchPayoutSettled` | `oya_j122_mail_preflight_ms` | compensating command before finality |
 
@@ -103,8 +103,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> connect -> complianc
 |---:|---|---|---|---|---|---|---|
 | 2.1 | `api-gateway` | `payments` | `VendorBatchWithholdingCommand` | `journey.j122.authorize.payments` | `VendorBatchPayoutSettled` | `oya_j122_payments_authorize_ms` | compensating command before finality |
 | 2.2 | `payments` | `finops-portal` | `VendorBatchWithholdingCommand` | `journey.j122.authorize.finops_portal` | `VendorBatchPayoutSettled` | `oya_j122_finops_portal_authorize_ms` | compensating command before finality |
-| 2.3 | `finops-portal` | `connect` | `VendorBatchWithholdingCommand` | `journey.j122.authorize.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_authorize_ms` | compensating command before finality |
-| 2.4 | `connect` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.authorize.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_authorize_ms` | compensating command before finality |
+| 2.3 | `finops-portal` | `connector` | `VendorBatchWithholdingCommand` | `journey.j122.authorize.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_authorize_ms` | compensating command before finality |
+| 2.4 | `connector` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.authorize.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_authorize_ms` | compensating command before finality |
 | 2.5 | `compliance` | `workflow-engine` | `VendorBatchWithholdingCommand` | `journey.j122.authorize.workflow_engine` | `VendorBatchPayoutSettled` | `oya_j122_workflow_engine_authorize_ms` | compensating command before finality |
 | 2.6 | `workflow-engine` | `mail` | `VendorBatchWithholdingCommand` | `journey.j122.authorize.mail` | `VendorBatchPayoutSettled` | `oya_j122_mail_authorize_ms` | compensating command before finality |
 
@@ -118,8 +118,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> connect -> complianc
 |---:|---|---|---|---|---|---|---|
 | 3.1 | `api-gateway` | `payments` | `VendorBatchWithholdingCommand` | `journey.j122.compose.payments` | `VendorBatchPayoutSettled` | `oya_j122_payments_compose_ms` | compensating command before finality |
 | 3.2 | `payments` | `finops-portal` | `VendorBatchWithholdingCommand` | `journey.j122.compose.finops_portal` | `VendorBatchPayoutSettled` | `oya_j122_finops_portal_compose_ms` | compensating command before finality |
-| 3.3 | `finops-portal` | `connect` | `VendorBatchWithholdingCommand` | `journey.j122.compose.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_compose_ms` | compensating command before finality |
-| 3.4 | `connect` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.compose.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_compose_ms` | compensating command before finality |
+| 3.3 | `finops-portal` | `connector` | `VendorBatchWithholdingCommand` | `journey.j122.compose.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_compose_ms` | compensating command before finality |
+| 3.4 | `connector` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.compose.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_compose_ms` | compensating command before finality |
 | 3.5 | `compliance` | `workflow-engine` | `VendorBatchWithholdingCommand` | `journey.j122.compose.workflow_engine` | `VendorBatchPayoutSettled` | `oya_j122_workflow_engine_compose_ms` | compensating command before finality |
 | 3.6 | `workflow-engine` | `mail` | `VendorBatchWithholdingCommand` | `journey.j122.compose.mail` | `VendorBatchPayoutSettled` | `oya_j122_mail_compose_ms` | compensating command before finality |
 
@@ -133,8 +133,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> connect -> complianc
 |---:|---|---|---|---|---|---|---|
 | 4.1 | `api-gateway` | `payments` | `VendorBatchWithholdingCommand` | `journey.j122.counterparty_accept.payments` | `VendorBatchPayoutSettled` | `oya_j122_payments_counterparty_accept_ms` | compensating command before finality |
 | 4.2 | `payments` | `finops-portal` | `VendorBatchWithholdingCommand` | `journey.j122.counterparty_accept.finops_portal` | `VendorBatchPayoutSettled` | `oya_j122_finops_portal_counterparty_accept_ms` | compensating command before finality |
-| 4.3 | `finops-portal` | `connect` | `VendorBatchWithholdingCommand` | `journey.j122.counterparty_accept.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_counterparty_accept_ms` | compensating command before finality |
-| 4.4 | `connect` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.counterparty_accept.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_counterparty_accept_ms` | compensating command before finality |
+| 4.3 | `finops-portal` | `connector` | `VendorBatchWithholdingCommand` | `journey.j122.counterparty_accept.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_counterparty_accept_ms` | compensating command before finality |
+| 4.4 | `connector` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.counterparty_accept.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_counterparty_accept_ms` | compensating command before finality |
 | 4.5 | `compliance` | `workflow-engine` | `VendorBatchWithholdingCommand` | `journey.j122.counterparty_accept.workflow_engine` | `VendorBatchPayoutSettled` | `oya_j122_workflow_engine_counterparty_accept_ms` | compensating command before finality |
 | 4.6 | `workflow-engine` | `mail` | `VendorBatchWithholdingCommand` | `journey.j122.counterparty_accept.mail` | `VendorBatchPayoutSettled` | `oya_j122_mail_counterparty_accept_ms` | compensating command before finality |
 
@@ -148,8 +148,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> connect -> complianc
 |---:|---|---|---|---|---|---|---|
 | 5.1 | `api-gateway` | `payments` | `VendorBatchWithholdingCommand` | `journey.j122.settlement_intent.payments` | `VendorBatchPayoutSettled` | `oya_j122_payments_settlement_intent_ms` | compensating command before finality |
 | 5.2 | `payments` | `finops-portal` | `VendorBatchWithholdingCommand` | `journey.j122.settlement_intent.finops_portal` | `VendorBatchPayoutSettled` | `oya_j122_finops_portal_settlement_intent_ms` | compensating command before finality |
-| 5.3 | `finops-portal` | `connect` | `VendorBatchWithholdingCommand` | `journey.j122.settlement_intent.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_settlement_intent_ms` | compensating command before finality |
-| 5.4 | `connect` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.settlement_intent.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_settlement_intent_ms` | compensating command before finality |
+| 5.3 | `finops-portal` | `connector` | `VendorBatchWithholdingCommand` | `journey.j122.settlement_intent.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_settlement_intent_ms` | compensating command before finality |
+| 5.4 | `connector` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.settlement_intent.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_settlement_intent_ms` | compensating command before finality |
 | 5.5 | `compliance` | `workflow-engine` | `VendorBatchWithholdingCommand` | `journey.j122.settlement_intent.workflow_engine` | `VendorBatchPayoutSettled` | `oya_j122_workflow_engine_settlement_intent_ms` | compensating command before finality |
 | 5.6 | `workflow-engine` | `mail` | `VendorBatchWithholdingCommand` | `journey.j122.settlement_intent.mail` | `VendorBatchPayoutSettled` | `oya_j122_mail_settlement_intent_ms` | compensating command before finality |
 
@@ -163,8 +163,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> connect -> complianc
 |---:|---|---|---|---|---|---|---|
 | 6.1 | `api-gateway` | `payments` | `VendorBatchWithholdingCommand` | `journey.j122.finalize.payments` | `VendorBatchPayoutSettled` | `oya_j122_payments_finalize_ms` | compensating command before finality |
 | 6.2 | `payments` | `finops-portal` | `VendorBatchWithholdingCommand` | `journey.j122.finalize.finops_portal` | `VendorBatchPayoutSettled` | `oya_j122_finops_portal_finalize_ms` | compensating command before finality |
-| 6.3 | `finops-portal` | `connect` | `VendorBatchWithholdingCommand` | `journey.j122.finalize.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_finalize_ms` | compensating command before finality |
-| 6.4 | `connect` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.finalize.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_finalize_ms` | compensating command before finality |
+| 6.3 | `finops-portal` | `connector` | `VendorBatchWithholdingCommand` | `journey.j122.finalize.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_finalize_ms` | compensating command before finality |
+| 6.4 | `connector` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.finalize.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_finalize_ms` | compensating command before finality |
 | 6.5 | `compliance` | `workflow-engine` | `VendorBatchWithholdingCommand` | `journey.j122.finalize.workflow_engine` | `VendorBatchPayoutSettled` | `oya_j122_workflow_engine_finalize_ms` | compensating command before finality |
 | 6.6 | `workflow-engine` | `mail` | `VendorBatchWithholdingCommand` | `journey.j122.finalize.mail` | `VendorBatchPayoutSettled` | `oya_j122_mail_finalize_ms` | compensating command before finality |
 
@@ -178,8 +178,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> connect -> complianc
 |---:|---|---|---|---|---|---|---|
 | 7.1 | `api-gateway` | `payments` | `VendorBatchWithholdingCommand` | `journey.j122.observe.payments` | `VendorBatchPayoutSettled` | `oya_j122_payments_observe_ms` | compensating command before finality |
 | 7.2 | `payments` | `finops-portal` | `VendorBatchWithholdingCommand` | `journey.j122.observe.finops_portal` | `VendorBatchPayoutSettled` | `oya_j122_finops_portal_observe_ms` | compensating command before finality |
-| 7.3 | `finops-portal` | `connect` | `VendorBatchWithholdingCommand` | `journey.j122.observe.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_observe_ms` | compensating command before finality |
-| 7.4 | `connect` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.observe.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_observe_ms` | compensating command before finality |
+| 7.3 | `finops-portal` | `connector` | `VendorBatchWithholdingCommand` | `journey.j122.observe.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_observe_ms` | compensating command before finality |
+| 7.4 | `connector` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.observe.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_observe_ms` | compensating command before finality |
 | 7.5 | `compliance` | `workflow-engine` | `VendorBatchWithholdingCommand` | `journey.j122.observe.workflow_engine` | `VendorBatchPayoutSettled` | `oya_j122_workflow_engine_observe_ms` | compensating command before finality |
 | 7.6 | `workflow-engine` | `mail` | `VendorBatchWithholdingCommand` | `journey.j122.observe.mail` | `VendorBatchPayoutSettled` | `oya_j122_mail_observe_ms` | compensating command before finality |
 
@@ -193,8 +193,8 @@ actor-device -> api-gateway -> payments -> finops-portal -> connect -> complianc
 |---:|---|---|---|---|---|---|---|
 | 8.1 | `api-gateway` | `payments` | `VendorBatchWithholdingCommand` | `journey.j122.reconcile.payments` | `VendorBatchPayoutSettled` | `oya_j122_payments_reconcile_ms` | compensating command before finality |
 | 8.2 | `payments` | `finops-portal` | `VendorBatchWithholdingCommand` | `journey.j122.reconcile.finops_portal` | `VendorBatchPayoutSettled` | `oya_j122_finops_portal_reconcile_ms` | compensating command before finality |
-| 8.3 | `finops-portal` | `connect` | `VendorBatchWithholdingCommand` | `journey.j122.reconcile.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_reconcile_ms` | compensating command before finality |
-| 8.4 | `connect` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.reconcile.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_reconcile_ms` | compensating command before finality |
+| 8.3 | `finops-portal` | `connector` | `VendorBatchWithholdingCommand` | `journey.j122.reconcile.connect` | `VendorBatchPayoutSettled` | `oya_j122_connect_reconcile_ms` | compensating command before finality |
+| 8.4 | `connector` | `compliance` | `VendorBatchWithholdingCommand` | `journey.j122.reconcile.compliance` | `VendorBatchPayoutSettled` | `oya_j122_compliance_reconcile_ms` | compensating command before finality |
 | 8.5 | `compliance` | `workflow-engine` | `VendorBatchWithholdingCommand` | `journey.j122.reconcile.workflow_engine` | `VendorBatchPayoutSettled` | `oya_j122_workflow_engine_reconcile_ms` | compensating command before finality |
 | 8.6 | `workflow-engine` | `mail` | `VendorBatchWithholdingCommand` | `journey.j122.reconcile.mail` | `VendorBatchPayoutSettled` | `oya_j122_mail_reconcile_ms` | compensating command before finality |
 

@@ -263,7 +263,7 @@ SH-050: Oyatie can exceed Shopify on tenant-level audit chain and per-install go
 | One-time purchase | no | distribution paid item | legacy Shopify Billing | partial | partial | OpenAPI pricing includes `one_time` |
 | Free trial | trial label | distribution paid/free | yes | partial | partial | tutorial trial lines exist but no tenant class |
 | Revenue-share tenant class | no | no | yes as business model | absent | absent | no `tenant_class` literal found |
-| Billing provider constraint | no | Chrome payments deprecated/history | Shopify-provided billing | partial | partial | local Stripe Connect tutorial exists without canonical policy split |
+| Billing provider constraint | no | Chrome payments deprecated/history | Shopify-provided billing | partial | partial | local Stripe tutorial exists without canonical policy split |
 | Invoice/chargeback handling | no | limited | yes | partial | partial | finops dependency in `manifest.json:235-245` |
 | Merchant/publisher payout ledger | no | limited | yes | partial | partial | `catalog/revenue-share-ledger.yaml`; `runbooks/revenue-share-reconciliation.md` |
 | App registration fee | no | developer account | yes | absent | absent | no publisher fee policy found |

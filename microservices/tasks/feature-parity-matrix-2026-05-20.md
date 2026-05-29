@@ -281,7 +281,7 @@ Asana parity conclusion: broad work-management intent is present, but non-engine
 109. Supported OS matrix: canonical requirement; local artifact absent.
 110. Rust backend: intended by canonical policy; local source tree absent.
 111. Forbidden language avoidance: satisfied in source-file inventory.
-112. Test suite: required by implementation plans; local test tree absent.
+112. Test set: required by implementation plans; local test tree absent.
 113. Load-test evidence: required by performance claims; local load tests absent.
 114. Contract parity tests: needed for OpenAPI/AsyncAPI/proto; local tests absent.
 115. SLO burn alerts: runbooks and dashboards exist; runtime evidence absent.

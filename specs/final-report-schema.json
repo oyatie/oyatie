@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/master-plan-final-report.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/master-plan-final-report.schema.json",
   "title": "MasterPlanFinalReport",
   "description": "Schema for the final autonomous master-plan completion report. Requires honest claim boundaries and evidence references.",
   "_meta": {

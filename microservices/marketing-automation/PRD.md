@@ -39,7 +39,7 @@ companion_docs:
   - microservices/marketing-automation/manifest.json
   - microservices/marketing-automation/coherence-audit-2026-05-20.md
   - microservices/marketing-automation/REMEDIATION-NOTES-2026-05-21.md
-planned_enforcement_ref: oya-governance-marketing-automation-doc-suite
+planned_enforcement_ref: oya-governance-marketing-automation-doc-set
 ---
 
 # PRD-marketing-automation: Marketing Automation

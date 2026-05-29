@@ -3,7 +3,18 @@
   "spec_id": "per-tenant-audit-log-slicing-canonical",
   "spec_kind": "canonical-decision",
   "authoring_adr": "ADR-0162",
-  "related_adrs": ["ADR-0003", "ADR-0008", "ADR-0009", "ADR-0028", "ADR-0038", "ADR-0049", "ADR-0128", "ADR-0143", "ADR-0158", "ADR-0164"],
+  "related_adrs": [
+    "ADR-0003",
+    "ADR-0008",
+    "ADR-0009",
+    "ADR-0028",
+    "ADR-0038",
+    "ADR-0049",
+    "ADR-0128",
+    "ADR-0143",
+    "ADR-0158",
+    "ADR-0164"
+  ],
   "status": "Accepted",
   "date": "2026-05-18",
   "title": "Per-Tenant Audit-Chain Slicing Canonical Spec",
@@ -32,14 +43,24 @@
   },
   "per_tenant_retrieval_api": {
     "endpoint": "GET /v1/audit-chain/tenant/{tenant_id}/seals",
-    "query_params": ["since (iso8601)", "until (iso8601)", "event_class", "proof (boolean)"],
+    "query_params": [
+      "since (iso8601)",
+      "until (iso8601)",
+      "event_class",
+      "proof (boolean)"
+    ],
     "pagination": "cursor-based; 1000 seals per page",
     "cedar_gate": "principal.tenant_id == path.tenant_id (tenant can only read its own seals; cross-tenant requires explicit Cedar grant)",
     "inclusion_proof_option": "?proof=true returns Merkle inclusion proof per seal",
     "dsr_cascade_safe": "seal contains hashes + metadata only; PII fields zeroed per ADR-0008 DUBO"
   },
   "sovereign_dedicated_shard_contract": {
-    "applies_to_packs": ["pack-ksa", "pack-eu-sovereign", "pack-uae", "pack-ru-if-onboarded"],
+    "applies_to_packs": [
+      "pack-ksa",
+      "pack-eu-sovereign",
+      "pack-uae",
+      "pack-ru-if-onboarded"
+    ],
     "constraints": [
       "shard storage in-cell only (no cross-cell beyond intra-region DR)",
       "shard encryption key custody in-region HSM",

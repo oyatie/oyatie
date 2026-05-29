@@ -285,7 +285,7 @@ status: landed
 254. U-070 | OpenTofu context module | Canonical required | Local missing | `iac/terraform/` exists instead.
 255. U-071 | Supported OS manifest | Canonical required | Local missing | No `supported-oses.json`.
 256. U-072 | Rust backend crate | Canonical required | Local missing | no `src/` or `Cargo.toml`.
-257. U-073 | Contract test suite | Canonical required | Local missing | no `tests/`.
+257. U-073 | Contract test set | Canonical required | Local missing | no `tests/`.
 258. U-074 | Bot scoring calibration report | Union required | Local missing | no calibration doc.
 259. U-075 | False-negative escape analysis | Union required | Local partial | runbooks exist but generic.
 260. U-076 | False-positive remediation queue | Union required | Local partial | investigation bridge docs exist.

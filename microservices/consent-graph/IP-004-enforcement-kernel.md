@@ -195,4 +195,4 @@ kernel (excluding evaluator + cache I/O): ≤100ns per call.
 
 ## Wave 15-IP-substance counterpart evidence
 
-Preserved as substantive. Counterpart anchors: OneTrust/TrustArc expose policy and preference enforcement through platform workflows, Cookiebot gates tags/categories, and Snowflake/Databricks rely on RBAC/table controls. This kernel's Cedar evaluation port is the Oyatie-specific boundary: every cross-tenant hop returns Allow/Deny/Indeterminate under cache invalidation rules instead of treating consent as a detached record.
+Preserved as substantive. Counterpart anchors: OneTrust/TrustArc expose policy and preference enforcement through tenant RBAC workflows, Cookiebot gates tags/categories, and Snowflake/Databricks rely on RBAC/table controls. This kernel's Cedar evaluation port is the Oyatie-specific boundary: every cross-tenant hop returns Allow/Deny/Indeterminate under cache invalidation rules instead of treating consent as a detached record.

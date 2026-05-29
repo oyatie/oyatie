@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j19/tenant-break-glass-petition.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j19/tenant-break-glass-petition.json",
   "title": "TenantBreakGlassPetition",
   "version": "1.0.0",
   "description": "TenantBreakGlassPetition shared object for j19 Tenant break-glass for locked-out admin. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

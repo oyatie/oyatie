@@ -37,7 +37,7 @@ compliance_scope:
     - "dsr"
     - "workflow-engine"
     - "cloud-kms"
-    - "connect-dlp"
+    - "dlp"
     - "workspace-drive"
     - "workspace-meet"
     - "workspace-messenger"

@@ -87,7 +87,7 @@ Authorization failure shape:
 
 ## REST Endpoints
 
-Base URL: `https://drive.{pack}.oyatie.dev/v1`.
+Base URL: `https://drive.{pack}.oyatie.com/v1`.
 
 ### Files
 

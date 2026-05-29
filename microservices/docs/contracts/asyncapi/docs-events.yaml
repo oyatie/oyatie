@@ -22,14 +22,14 @@ defaultContentType: application/cloudevents+json
 
 servers:
   workflow-event-bus:
-    host: workflow.{pack}.oyatie.dev
+    host: workflow.{pack}.oyatie.com
     protocol: nats
     description: per-pack Workflow event bus
     variables:
       pack:
         enum: [kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa]
   websocket-gateway:
-    host: docs.{pack}.oyatie.dev
+    host: docs.{pack}.oyatie.com
     protocol: wss
     description: per-pack docs WebSocket gateway for CRDT op streaming
     variables:

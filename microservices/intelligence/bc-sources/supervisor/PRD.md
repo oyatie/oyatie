@@ -329,6 +329,6 @@ Sharding:
 | ADR-0123 | Hyperscaler maturity claim gate | HG-FND-SUP registers here |
 | ADR-0139 | Agentic SLO-gated promotion | consumes `EligibilityChanged` for rollout gates |
 | ADR-0131 | Per-microservice flat layout (Foundry split) | this PRD lives under that split |
-| ADR-0132 | Product-suite-and-bundle dissolution | flat layout precedent |
+| ADR-0132 | Product-platform-and-bundle dissolution | flat layout precedent |
 | ADR-0133 | Industry-best-practice conformance | self-SLO authoring + HG-FND-SUP claim |
 | ADR-0140 | Cedar policy enforcement | autonomy-policy-enforcement BC implements |

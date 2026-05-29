@@ -14,7 +14,7 @@ metadata:
 spec:
   description: |
     KYC/KYB sub-merchant onboarding via PSP-hosted verification flows
-    (Stripe Connect / Adyen MarketPay). Covers document submission, AML risk
+    (Stripe / Adyen MarketPay). Covers document submission, AML risk
     scoring, KR-PASS identity verification for KR tenants, and lifecycle
     management (pending → verified → restricted → suspended).
   tier: T1

@@ -44,7 +44,7 @@ microservices_in_scope:
   - { microservice: clinical,            material_scope: true,  lead_milestone: M04 }
   - { microservice: healthcare-portal,   material_scope: true,  lead_milestone: M04 }
 
-  # Connect cluster (M03 Pro / M05 Personal)
+  # cluster (M03 Pro / M05 Personal)
   - { microservice: connect,             material_scope: true,  lead_milestone: M03 }
   - { microservice: community,           material_scope: false, lead_milestone: M05 }
 
@@ -72,7 +72,7 @@ regulatory_bindings:
   - { id: yearly-tax-settlement,   regimes: [연말정산],                       surface: "XML / 홈택스 API",               milestone: M03, authority: "국세청" }
   - { id: k-gaap,                  regimes: [K-GAAP],                          surface: "accounting kernel",                milestone: M03, authority: "한국채택국제회계기준원" }
   - { id: kgaap-statements,        regimes: [재무상태표, 손익계산서, 현금흐름표, 자본변동표], surface: "Typst",        milestone: M03, authority: "한국채택국제회계기준원" }
-  - { id: connect-retention-kr,    regimes: [메신저/메일 보관 의무 (ADR-0215 KR-mode)], surface: "connect adapter",   milestone: M03, authority: "(Bominal inherited)" }
+  - { id: retention-kr,    regimes: [메신저/메일 보관 의무 (ADR-0215 KR-mode)], surface: "connect adapter",   milestone: M03, authority: "(Bominal inherited)" }
   - { id: pipa-b2b,                regimes: [개인정보보호법],                  surface: "Cedar policy fragments",           milestone: M03, authority: "개인정보보호위원회" }
   - { id: medical-law,             regimes: [의료법],                          surface: "medical / patient kernels",        milestone: M04, authority: "보건복지부" }
   - { id: hira-dur,                regimes: [HIRA DUR],                        surface: "pharmacy adapter (realtime)",      milestone: M04, authority: "건강보험심사평가원" }

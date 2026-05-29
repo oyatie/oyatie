@@ -97,7 +97,7 @@ Tests that need those dependencies belong in the integration or contract plans.
 - Snapshot tests count only when paired with semantic assertions.
 - retired-advanceden tests must name the regulatory pack and audience category under test.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `model_routing::kernel::tests`.
 - Test `routes_minor_targeted_prompt_to_minor_safe_provider_policy`.

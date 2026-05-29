@@ -998,10 +998,10 @@ Evidence required: manifest row, validator output, audit event sample, and owner
 - Migration risk: existing local role flags may conflict with the shared registry; local flags must become adapter inputs or be deleted.
 - Stop condition: registry validates and local adapter passes no-cross-role-bleed tests.
 
-#### §F.2.4 `connect-suite`
+#### §F.2.4 `tenant-rbac-packaging`
 
-- Registry id: `role_projection_registry.connect_suite.v1`.
-- Source spec: `specs/microservices/connect-suite.json`.
+- Registry id: `role_projection_registry.tenant_rbac_packaging.v1`.
+- Source spec: `specs/tenant-rbac-packaging.json`.
 - Required role set: declare supported role codes explicitly; unsupported roles must render no local shell routes.
 - Cedar binding: local action namespace maps to RoleProjection permit sets; default-deny when projection is missing.
 - Ontology binding: local objects and links list field-redaction behavior per role.
@@ -1015,10 +1015,10 @@ Evidence required: manifest row, validator output, audit event sample, and owner
 - Migration risk: existing local role flags may conflict with the shared registry; local flags must become adapter inputs or be deleted.
 - Stop condition: registry validates and local adapter passes no-cross-role-bleed tests.
 
-#### §F.2.5 `enterprise-suite`
+#### §F.2.5 `tenant-rbac`
 
-- Registry id: `role_projection_registry.enterprise_suite.v1`.
-- Source spec: `specs/microservices/enterprise-suite.json`.
+- Registry id: `role_projection_registry.tenant_rbac.v1`.
+- Source spec: `specs/microservices/tenant-rbac.json`.
 - Required role set: declare supported role codes explicitly; unsupported roles must render no local shell routes.
 - Cedar binding: local action namespace maps to RoleProjection permit sets; default-deny when projection is missing.
 - Ontology binding: local objects and links list field-redaction behavior per role.
@@ -1769,7 +1769,7 @@ Evidence required: manifest row, validator output, audit event sample, and owner
 - [ ] Same-training-transfer exceptions have owner and expiry.
 - [ ] Adapter tests prove no cross-role data bleed.
 
-### Appendix A.4 `connect-suite` acceptance checklist
+### Appendix A.4 `tenant-rbac-packaging` acceptance checklist
 
 - [ ] Registry row exists and is versioned.
 - [ ] Role codes are explicit and unsupported roles are refused.
@@ -1796,7 +1796,7 @@ Evidence required: manifest row, validator output, audit event sample, and owner
 - [ ] Same-training-transfer exceptions have owner and expiry.
 - [ ] Adapter tests prove no cross-role data bleed.
 
-### Appendix A.5 `enterprise-suite` acceptance checklist
+### Appendix A.5 `tenant-rbac` acceptance checklist
 
 - [ ] Registry row exists and is versioned.
 - [ ] Role codes are explicit and unsupported roles are refused.

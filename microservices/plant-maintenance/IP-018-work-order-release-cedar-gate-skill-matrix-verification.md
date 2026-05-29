@@ -10,7 +10,7 @@ persona: darren-chen (planner), carlos-reyes-ii (tech), tony-li (supervisor), ma
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-policy
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-018: Work-order release Cedar gate with skill-matrix verification

@@ -194,7 +194,7 @@ DSR (export, delete, restrict) or consent withdrawal triggers a 30-day cascade a
 ## Open questions
 
 1. **Q1.** Can `BEHAVIORAL_TENANT_PRODUCT` flow to cross-tenant aggregate analytics if source tenant opted in but user did not? Default: NO; user consent required. → owner: `council-privacy`.
-2. **Q2.** Workspace personal-use surfaces (e.g. Connect Personal) — keep "no ads, ever" inviolable, or carve a P-tier? Default: keep inviolable. → ADR-0012 + GTM.
+2. **Q2.** Workspace personal-use surfaces (e.g. Personal) — keep "no ads, ever" inviolable, or carve a P-tier? Default: keep inviolable. → ADR-0012 + GTM.
 3. **Q3.** Healthcare PHI exclusion — any non-FHIR healthcare records exempt? Default: NO. → owner: `council-privacy` + `vertical-healthcare`.
 4. **Q4.** Agent-runtime tool-call traces — whose data class? Default: most-restrictive (inference boundary §7). → ADR-0007.
 5. **Q5.** Cross-tenant search index — per-record opt-in or per-collection? Default: per-record. → owner: `axis-search`.

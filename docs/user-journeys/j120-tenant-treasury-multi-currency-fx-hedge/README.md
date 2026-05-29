@@ -91,7 +91,7 @@ accounts while observability reports slippage and exposure.
 | Service | IP slice | Role |
 |---|---|---|
 | `payments` | [IP-journey-j120-per-currency-ledger-posting.md](../../../microservices/payments/IP-journey-j120-per-currency-ledger-posting.md) | per-currency-ledger-posting |
-| `connect` | [IP-journey-j120-bank-liquidity-provider-adapter.md](../../../microservices/connect/IP-journey-j120-bank-liquidity-provider-adapter.md) | bank-liquidity-provider-adapter |
+| `connector` | [IP-journey-j120-bank-liquidity-provider-adapter.md](../../../microservices/connector/IP-journey-j120-bank-liquidity-provider-adapter.md) | bank-liquidity-provider-adapter |
 | `finops-portal` | [IP-journey-j120-exposure-dashboard.md](../../../microservices/finops-portal/IP-journey-j120-exposure-dashboard.md) | exposure-dashboard |
 | `workflow-engine` | [IP-journey-j120-hedge-approval-state-machine.md](../../../microservices/workflow-engine/IP-journey-j120-hedge-approval-state-machine.md) | hedge-approval-state-machine |
 | `observability` | [IP-journey-j120-slippage-and-latency-telemetry.md](../../../microservices/observability/IP-journey-j120-slippage-and-latency-telemetry.md) | slippage-and-latency-telemetry |
@@ -99,7 +99,7 @@ accounts while observability reports slippage and exposure.
 ## Integration points
 
 - `payments`: per-currency-ledger-posting; participates in `MultiCurrencyHedgeCommand` and emits `TreasuryFxHedgeSettled` evidence.
-- `connect`: bank-liquidity-provider-adapter; participates in `MultiCurrencyHedgeCommand` and emits `TreasuryFxHedgeSettled` evidence.
+- `connector`: bank-liquidity-provider-adapter; participates in `MultiCurrencyHedgeCommand` and emits `TreasuryFxHedgeSettled` evidence.
 - `finops-portal`: exposure-dashboard; participates in `MultiCurrencyHedgeCommand` and emits `TreasuryFxHedgeSettled` evidence.
 - `workflow-engine`: hedge-approval-state-machine; participates in `MultiCurrencyHedgeCommand` and emits `TreasuryFxHedgeSettled` evidence.
 - `observability`: slippage-and-latency-telemetry; participates in `MultiCurrencyHedgeCommand` and emits `TreasuryFxHedgeSettled` evidence.

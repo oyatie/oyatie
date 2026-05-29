@@ -92,7 +92,7 @@ async fn hop_by_hop_headers_not_forwarded_to_upstream() {
     let client = make_client();
 
     let mut headers = BTreeMap::new();
-    headers.insert("x-custom-app".to_string(), "test-suite".to_string());
+    headers.insert("x-custom-app".to_string(), "test-set".to_string());
     for h in HOP_BY_HOP {
         headers.insert(h.to_string(), "should-be-dropped".to_string());
     }

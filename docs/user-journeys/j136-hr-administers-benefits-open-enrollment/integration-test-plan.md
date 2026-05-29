@@ -25,9 +25,9 @@ Tier 3 on `j136-integration-lane`.
 - Compliance packs: pack-us-erisa-baseline, pack-us-hipaa-baseline, pack-us-aca-baseline, pack-eu-iorp-ii-baseline, pack-de-bav-baseline, pack-kr-national-pension-baseline, pack-in-epf-baseline
 - Connect-trust: pre-loaded between marcus-tenant + all 5 provider tenants
 
-## Test suites
+## Test sets
 
-### Suite 1 — Plan design + engagement
+### Test Set 1 — Plan design + engagement
 
 **T-001 Open 2026 cycle with 4 jurisdictions**
 - Then: OpenEnrollmentOpened event; per-jurisdiction sub-tenant resolution complete.
@@ -38,7 +38,7 @@ Tier 3 on `j136-integration-lane`.
 **T-003 Engagement without B2B_BENEFITS_PROVIDER audience-type DENIED**
 - Then: Cedar DENY.
 
-### Suite 2 — Plan documents + announcement Mail
+### Test Set 2 — Plan documents + announcement Mail
 
 **T-101 Publish plan documents to Drive**
 - Then: PlanDocPublished events per document; per-jurisdiction retention pack applied.
@@ -46,7 +46,7 @@ Tier 3 on `j136-integration-lane`.
 **T-102 Send 5000 announcement Mails**
 - Then: 5000 OpenEnrollmentAnnouncementMailSent events; per-jurisdiction template used.
 
-### Suite 3 — Employee elections
+### Test Set 3 — Employee elections
 
 **T-201 Employee submits US-AUS election**
 - Then: BenefitsElectionSubmitted event; per-jurisdiction validator passes; payroll calculation in real-time matches expected.
@@ -74,7 +74,7 @@ Tier 3 on `j136-integration-lane`.
 - Given: 2 beneficiaries at 60% + 60%
 - Then: Cedar DENY; banner.
 
-### Suite 4 — Late filers + passive defaults
+### Test Set 4 — Late filers + passive defaults
 
 **T-301 Late-reminder cascade T+30d**
 - Then: 800 OpenEnrollmentLateReminderSent events.
@@ -82,7 +82,7 @@ Tier 3 on `j136-integration-lane`.
 **T-302 Passive default at T+38d for 80 stragglers**
 - Then: BenefitsEnrollmentDefaultedPassive events; defaults match per-jurisdiction rules.
 
-### Suite 5 — Provider bulk push
+### Test Set 5 — Provider bulk push
 
 **T-401 Push to TenantU.medshield for 1500 employees**
 - Then: BulkEnrollmentPackage created; BenefitsProviderBulkPushed event; ACK with policy_ids received.
@@ -99,7 +99,7 @@ Tier 3 on `j136-integration-lane`.
 **T-405 Push to TenantI.in EPF 1000 employees**
 - Then: EPF account-number reconciliation complete.
 
-### Suite 6 — Reconciliation
+### Test Set 6 — Reconciliation
 
 **T-501 Reconciliation discrepancy detected (5 employees)**
 - Then: BenefitsReconciliationDiscrepancyFound events; ops surfaces.
@@ -107,7 +107,7 @@ Tier 3 on `j136-integration-lane`.
 **T-502 Reconciliation resolved**
 - Then: 5 BenefitsReconciliationResolved events.
 
-### Suite 7 — Payroll deduction + execution
+### Test Set 7 — Payroll deduction + execution
 
 **T-601 Payroll deduction setup for 5000 employees**
 - Then: 5000 PayrollDeductionSetup events; per-period amounts match elections.
@@ -119,7 +119,7 @@ Tier 3 on `j136-integration-lane`.
 - Given: 401(k) Traditional vs Roth
 - Then: Traditional = pre-tax deduction; Roth = post-tax.
 
-### Suite 8 — Year-end ACA + per-jurisdiction docs
+### Test Set 8 — Year-end ACA + per-jurisdiction docs
 
 **T-701 ACA Form 1095-C for 1500 US-AUS employees**
 - Then: ACAForm1095CGenerated events; PDFs archived to Drive; mailed.
@@ -133,7 +133,7 @@ Tier 3 on `j136-integration-lane`.
 **T-704 IN Form 16**
 - Then: per-employee Form 16 generated + delivered.
 
-### Suite 9 — Mid-year life events
+### Test Set 9 — Mid-year life events
 
 **T-801 Employee adds newborn dependent mid-year**
 - Then: BenefitsLifeEventChangeProcessed event; provider sync triggered; payroll deduction adjusted.
@@ -144,7 +144,7 @@ Tier 3 on `j136-integration-lane`.
 **T-803 Employee moves jurisdiction (rare)**
 - Then: complex cascade; per-jurisdiction overlay transition.
 
-### Suite 10 — Boundary tests
+### Test Set 10 — Boundary tests
 
 **T-901 Provider tenant cannot access marcus-tenant employee personal Messenger**
 - Then: Cedar DENY.

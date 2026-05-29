@@ -1,6 +1,6 @@
 // payments µservice — sub-merchant-onboarding Cedar v4.2 LTS fragment
 //
-// Purpose: gate Stripe Connect / Adyen MarketPay sub-merchant onboarding.
+// Purpose: gate Stripe / Adyen MarketPay sub-merchant onboarding.
 //          Enforce KYC tier, ToS acceptance, sanctions screen, age verification
 //          (no minor as beneficial-owner), per-jurisdiction restrictions.
 // Owner:   ops-security + axis-payments + ops-compliance + ops-fraud

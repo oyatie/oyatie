@@ -24,8 +24,8 @@ Provide DIMSE compatibility bridge to the DICOMweb-first substrate. Preserve the
 ## Acceptance criteria
 
 - C-STORE throughput sustains 10,250 inst/min/pod under sustained load (preserves healthcare-integration claim).
-- DICOM PS 3.4 Conformance Statement passes IHE TF conformance test suite for IRWF.b + SWF.b.
-- Per-vendor regression suite covers ≥10 known-quirk patterns per vendor.
+- DICOM PS 3.4 Conformance Statement passes IHE TF conformance test set for IRWF.b + SWF.b.
+- Per-vendor regression set covers ≥10 known-quirk patterns per vendor.
 - MWL response p95 < 500ms (FR-ACQ-002).
 - C-FIND patient-level query p95 < 200ms with 10M-row index.
 
@@ -47,7 +47,7 @@ Provide DIMSE compatibility bridge to the DICOMweb-first substrate. Preserve the
 
 ## Testing strategy
 
-- DICOM PS 3.4 conformance suite.
+- DICOM PS 3.4 conformance set.
 - IHE Connectathon participation (NA + Europe).
 - Vendor-quirk regression corpus.
 - Performance benchmark lane.

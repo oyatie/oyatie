@@ -10,7 +10,7 @@ persona: elena-volkov (data steward), maya-okafor (reliability), darren-chen (pl
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-025: Equipment hierarchy advanced — Class/characteristic schema versioning + equipment-BoM + cross-plant relocation

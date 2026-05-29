@@ -58,7 +58,7 @@ workflow with jurisdictional holds.
   dual-context-principal-binding
 - Service: workflow-engine; IP file:
   ../../../microservices/workflow-engine/IP-journey-j104-cross-tenant-orchestration.md; Role: cross-tenant-orchestration
-- Service: connect; IP file: ../../../microservices/connect/IP-journey-j104-external-rail-adapter.md; Role:
+- Service: connector; IP file: ../../../microservices/connector/IP-journey-j104-external-rail-adapter.md; Role:
   external-rail-adapter
 - Service: compliance; IP file: ../../../microservices/compliance/IP-journey-j104-pack-attestation.md; Role:
   pack-attestation
@@ -214,7 +214,7 @@ workflow with jurisdictional holds.
 - readme-buildability 001: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: identity keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -223,7 +223,7 @@ workflow with jurisdictional holds.
 - readme-buildability 005: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 007: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -232,7 +232,7 @@ workflow with jurisdictional holds.
 - readme-buildability 009: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: workflow-engine keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence,
-  cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: compliance keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -240,7 +240,7 @@ workflow with jurisdictional holds.
 - readme-buildability 013: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: audit-chain keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -249,7 +249,7 @@ workflow with jurisdictional holds.
 - readme-buildability 017: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: connect keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 019: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 020: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -257,7 +257,7 @@ workflow with jurisdictional holds.
 - readme-buildability 021: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: tenancy keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 023: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 024: workflow-engine keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence,
@@ -265,7 +265,7 @@ workflow with jurisdictional holds.
 - readme-buildability 025: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: compliance keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -274,7 +274,7 @@ workflow with jurisdictional holds.
 - readme-buildability 029: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: identity keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -283,7 +283,7 @@ workflow with jurisdictional holds.
 - readme-buildability 033: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 034: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 035: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 036: tenancy keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -291,7 +291,7 @@ workflow with jurisdictional holds.
 - readme-buildability 037: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: workflow-engine keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence,
-  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 040: compliance keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -299,7 +299,7 @@ workflow with jurisdictional holds.
 - readme-buildability 041: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: audit-chain keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 043: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -308,7 +308,7 @@ workflow with jurisdictional holds.
 - readme-buildability 045: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: connect keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -316,7 +316,7 @@ workflow with jurisdictional holds.
 - readme-buildability 049: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: tenancy keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -326,7 +326,7 @@ workflow with jurisdictional holds.
 - readme-buildability 053: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: compliance keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 055: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 056: audit-chain keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -334,7 +334,7 @@ workflow with jurisdictional holds.
 - readme-buildability 057: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: identity keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 059: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -343,7 +343,7 @@ workflow with jurisdictional holds.
 - readme-buildability 061: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -352,7 +352,7 @@ workflow with jurisdictional holds.
 - readme-buildability 065: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: workflow-engine keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence,
-  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 068: compliance keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -360,7 +360,7 @@ workflow with jurisdictional holds.
 - readme-buildability 069: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 070: audit-chain keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 071: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 072: identity keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -368,7 +368,7 @@ workflow with jurisdictional holds.
 - readme-buildability 073: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: connect keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -377,7 +377,7 @@ workflow with jurisdictional holds.
 - readme-buildability 077: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: tenancy keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 079: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -386,7 +386,7 @@ workflow with jurisdictional holds.
 - readme-buildability 081: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: compliance keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: audit-chain keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -394,7 +394,7 @@ workflow with jurisdictional holds.
 - readme-buildability 085: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: identity keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -403,7 +403,7 @@ workflow with jurisdictional holds.
 - readme-buildability 089: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 091: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 092: tenancy keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -411,7 +411,7 @@ workflow with jurisdictional holds.
 - readme-buildability 093: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: workflow-engine keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence,
-  cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 095: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 096: compliance keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -419,7 +419,7 @@ workflow with jurisdictional holds.
 - readme-buildability 097: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: audit-chain keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -428,7 +428,7 @@ workflow with jurisdictional holds.
 - readme-buildability 101: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: connect keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 103: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 104: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -436,7 +436,7 @@ workflow with jurisdictional holds.
 - readme-buildability 105: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 106: tenancy keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 107: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 108: workflow-engine keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence,
@@ -445,7 +445,7 @@ workflow with jurisdictional holds.
 - readme-buildability 109: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: compliance keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -454,7 +454,7 @@ workflow with jurisdictional holds.
 - readme-buildability 113: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: identity keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 115: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -463,7 +463,7 @@ workflow with jurisdictional holds.
 - readme-buildability 117: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: tenancy keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -471,7 +471,7 @@ workflow with jurisdictional holds.
 - readme-buildability 121: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: workflow-engine keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence,
-  cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: connect keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -480,7 +480,7 @@ workflow with jurisdictional holds.
 - readme-buildability 125: ontology keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: audit-chain keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 127: tenancy keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 128: identity keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -488,7 +488,7 @@ workflow with jurisdictional holds.
 - readme-buildability 129: workflow-engine keeps Hana Lee and New precision supplier tenant inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: connect keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 131: compliance keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 132: ontology keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
@@ -496,7 +496,7 @@ workflow with jurisdictional holds.
 - readme-buildability 133: audit-chain keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: tenancy keeps Hana Lee and AcmeRawMaterials verifier inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: identity keeps Hana Lee and New precision supplier tenant inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.

@@ -19,13 +19,7 @@ cat > "$tmp_dir/live-missing.json" <<'JSON'
     "cargo-fmt",
     "cargo-check",
     "cargo-clippy",
-    "cargo-nextest",
-    "oya-vcs-admission",
-    "oya-vcs-provider-execution",
-    "oya-governance-supply-chain",
-    "oya-governance-cohesion",
-    "oya-governance-api-semver",
-    "oya-governance-protection-context-match"
+    "cargo-nextest"
   ]
 }
 JSON

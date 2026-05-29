@@ -21,7 +21,7 @@ related_oyatie_adrs:
 
 This plan validates identity's public and internal contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3.
 It protects consumers of OIDC, WebAuthn, SCIM, principal-context, step-up, identity events, and identity gRPC services from accidental breaking changes.
-Every conformance suite ties back to consumer-driven pacts and explicit SemVer gates.
+Every conformance set ties back to consumer-driven pacts and explicit SemVer gates.
 
 ## Test Scope
 
@@ -82,7 +82,7 @@ Every conformance suite ties back to consumer-driven pacts and explicit SemVer g
 - Flake ceiling: zero network dependencies.
 - Determinism rule: all pacts use fixture tenant ids, not generated timestamps.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module: `identity_contract::openapi_version_tests`.
 - Test: `openapi_identity_uses_3_2_0`.

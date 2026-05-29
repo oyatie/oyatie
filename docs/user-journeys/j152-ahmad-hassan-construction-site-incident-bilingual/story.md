@@ -211,7 +211,7 @@ Same step derives the **FROI-1** (First Report of Injury, California DWC Form 50
 - Cause: struck by falling object (rebar bundle)
 - Initial treatment: AMR transport, Highland Hospital
 
-The FROI-1 is submitted to State Fund via the `connect` bridge using their FROI EDI 148 endpoint. State Fund returns acknowledgement code `SF-FROI-ACK-2026-10-14-49217`. Audit: `EVT-J152-WORKPLACE-STATEFUND-FROI-012`.
+The FROI-1 is submitted to State Fund via the `connector` bridge using their FROI EDI 148 endpoint. State Fund returns acknowledgement code `SF-FROI-ACK-2026-10-14-49217`. Audit: `EVT-J152-WORKPLACE-STATEFUND-FROI-012`.
 
 ### 15:14 PDT — Priya Mehrotra reviews
 
@@ -231,7 +231,7 @@ The `severe_injury` provisional flag is downgraded — but the §342 8-hour repo
 
 ### 18:21 PDT — Priya rules the §342 path
 
-Priya reviews Highland's discharge summary (attached via the AMR ePCR bridge with Khalil's consent). She determines hospitalization was <24h (admitted 14:50, discharged 17:08), no amputation, no eye loss. She marks `§342_reportable = false` with a written justification in EN. The system **still files a courtesy report** to Cal/OSHA via the `connect` bridge because Halcyon Build's HSE policy is to over-report. The Cal/OSHA inbox receives the incident summary at `18:24:11 PDT`.
+Priya reviews Highland's discharge summary (attached via the AMR ePCR bridge with Khalil's consent). She determines hospitalization was <24h (admitted 14:50, discharged 17:08), no amputation, no eye loss. She marks `§342_reportable = false` with a written justification in EN. The system **still files a courtesy report** to Cal/OSHA via the `connector` bridge because Halcyon Build's HSE policy is to over-report. The Cal/OSHA inbox receives the incident summary at `18:24:11 PDT`.
 
 Audit: `EVT-J152-COMPLIANCE-CALOSHA-COURTESY-FILED-016`.
 
@@ -261,7 +261,7 @@ Ahmad closes shift. The incident is at status `OPEN-MEDICAL-UNDER-OBSERVATION`. 
 | 005 | EVT-J152-INCIDENT-NARRATIVE-VOICE-AR | 14:38:02.117 | incident-management |
 | 006 | EVT-J152-INCIDENT-NARRATIVE-VOICE-EN | 14:38:14.220 | incident-management |
 | 007 | EVT-J152-DRIVE-MED-EMRG-DISCLOSE | 14:38:21.005 | drive |
-| 008 | EVT-J152-CONNECT-EMS-EXCERPT-VIEW | 14:42:14.881 | connect |
+| 008 | EVT-J152-CONNECT-EMS-EXCERPT-VIEW | 14:42:14.881 | connector |
 | 009 | EVT-J152-INCIDENT-TRANSPORT-LOG | 14:48:31.901 | incident-management |
 | 010 | EVT-J152-WORKFLOW-TIMER-SET | 14:50:00.000 | workflow-engine |
 | 011 | EVT-J152-WORKPLACE-PAYCOM-WRITE | 14:54:08.412 | workplace-integration |

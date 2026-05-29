@@ -41,7 +41,7 @@ microservices_touched:
   - mail
   - identity
 journey_number: j36
-benchmark: Temporal approval workflow plus Stripe Connect platform-facilitator pattern
+benchmark: Temporal approval workflow plus Stripe platform-facilitator pattern
 ---
 
 # j36-b2b-workflow-engine-approval-cascade UX flow

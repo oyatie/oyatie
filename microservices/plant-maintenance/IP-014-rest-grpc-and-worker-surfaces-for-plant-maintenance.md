@@ -10,7 +10,7 @@ persona: integration-engineer, mobile-engineer, frontend-engineer
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity + axis-public-api
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-014: REST + gRPC + AsyncAPI worker surfaces for `plant-maintenance`

@@ -20,7 +20,7 @@ data:
   # ECH config-id served at ingress; rotated via key-rotation runbook
   ech_config_id: "${openbao:secret/oyatie/pki/ops-dashboard/ech-config-id}"
   # HTTPS RR published via ADR-0273 DKIM/SPF/DMARC toolchain
-  https_rr_target: "ops-dashboard.oyatie.dev"
+  https_rr_target: "ops-dashboard.oyatie.com"
   https_rr_ech_param: "${openbao:secret/oyatie/pki/ops-dashboard/ech-public-param}"
   # Graceful degradation: ECH-incapable clients fall through to TLS 1.3
   ech_fallback_mode: "tls_13_fallback"

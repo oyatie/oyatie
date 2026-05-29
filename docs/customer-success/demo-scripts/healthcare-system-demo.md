@@ -594,7 +594,7 @@ Hi {{first_name}},
 Thank you for the discussion today. I heard five priorities:
 
 1. Reduce operational work that sits outside the EHR.
-2. Connect FHIR and HL7 integration state to governed workflows.
+2. FHIR and HL7 integration state to governed workflows.
 3. Improve HIPAA access review and minimum necessary evidence.
 4. Support Part 11-style electronic signature evidence where required.
 5. Evaluate clinical AI only with human review, traceability, and clear governance.
@@ -657,7 +657,7 @@ Best,
 - External: HHS HIPAA Breach Notification Rule, https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html.
 - External: 21 CFR Part 11, https://www.ecfr.gov/current/title-21/chapter-I/subchapter-A/part-11.
 - External: HL7 FHIR, https://hl7.org/fhir/.
-- External: HL7 Version 2 Product Suite, https://www.hl7.org/implement/standards/product_brief.cfm?product_id=185.
+- External: HL7 Version 2 Product Platform, https://www.hl7.org/implement/standards/product_brief.cfm?product_id=185.
 - External: EU AI Act Regulation (EU) 2024/1689, https://eur-lex.europa.eu/eli/reg/2024/1689/oj.
 - External: Cedar policy language, https://www.cedarpolicy.com/.
 - Demo note: all patient, clinical, provider, and integration examples in this script are synthetic.

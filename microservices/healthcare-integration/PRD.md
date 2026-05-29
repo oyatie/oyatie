@@ -27,7 +27,7 @@ companion_docs:
   - microservices/healthcare-integration/ARCHITECTURE.md
   - microservices/healthcare-integration/compliance.md
   - microservices/healthcare-integration/manifest.json
-planned_enforcement_ref: oya-governance-healthcare-integration-doc-suite
+planned_enforcement_ref: oya-governance-healthcare-integration-doc-set
 ---
 
 # PRD-healthcare-integration: Healthcare Integration

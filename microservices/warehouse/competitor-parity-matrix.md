@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-warehouse + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-warehouse-doc-suite
+planned_enforcement_ref: oya-governance-warehouse-doc-set
 ---
 
 # Competitor Parity Matrix: Warehouse
@@ -20,7 +20,7 @@ planned_enforcement_ref: oya-governance-warehouse-doc-suite
 | Microsoft | Microsoft Dynamics 365 Warehouse Management | Match through composable tenant-scoped microservice plus policy, workflow, and ontology contracts |
 
 ## B. Differentiator
-Oyatie avoids suite lock-in. Warehouse exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
+Oyatie avoids platform lock-in. Warehouse exposes focused contracts, composes with marketplace settlement per ADR-0314, and preserves tenant pack overlays as data rather than product forks.
 | Row 001 | SAP EWM Extended Warehouse Management | Warehouse.inbound-delivery | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |
 | Row 002 | Oracle Fusion Warehouse Management | Warehouse.outbound-delivery | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |
 | Row 003 | Workday inventory-operations counterpart | Warehouse.putaway-task | Requires tenant scope, Cedar permit, audit-chain event, OpenAPI/AsyncAPI/proto parity, HTTP/3/ECH/PQC transport note, and pack overlay evidence before claiming parity |

@@ -609,7 +609,7 @@ ADR-0099):
   active key material is excluded per §D-7 boundary).
 - `billing` — invoices, line items, payment-method metadata
   (PCI-scope fields excluded; reference tokens only), credit notes.
-- `connect` — social-graph edges scoped to the tenant, post history,
+- `connector` — social-graph edges scoped to the tenant, post history,
   reaction history.
 - `search` — saved searches, search-history opt-in records.
 - `intelligence` — prompt history (opt-in per ADR-0220 successor
@@ -1061,7 +1061,7 @@ class.
   µservice surface. Would force shoehorning every data class into
   Activity types, losing semantic precision.
 - **Verdict.** Rejected as the general format. ActivityPub MAY
-  appear as a profile-specific export option for the `connect`
+  appear as a profile-specific export option for the `connector`
   µservice's social-graph data (a future v1.N addition).
 
 ### Alternative E: Proprietary binary container with vendor-specific reader
@@ -1277,7 +1277,7 @@ Each in-scope µservice (per §D-4) ships:
    `calendar`, `iam`. Land import substrate. Land cross-tenant
    restore admission gate.
 3. **Wave 3 (week 8).** Expand to `workflow-studio`, `ontology`,
-   `audit-chain`, `hr`, `billing`, `connect`, `search`,
+   `audit-chain`, `hr`, `billing`, `connector`, `search`,
    `intelligence`.
 4. **Wave 4 (week 12).** Expand to `marketplace`,
    `foundry-self-modification-records`, `compute`, `network`,
@@ -1497,7 +1497,7 @@ fan-out.
 - **SCIM 2.0** — RFC 7643/7644 cross-controller identity
   schema; influence on `iam` exporter.
 - **ActivityPub** — W3C Recommendation 2018-01-23; influence
-  on `connect` social-graph exporter (future profile).
+  on `connector` social-graph exporter (future profile).
 
 ### Internal — oyatie ADRs
 
@@ -2052,7 +2052,7 @@ scope and are tracked as follow-up items:
   attestation listing the exact µservice versions, the schema
   versions, and the data-class registry version? Plausibly
   yes; deferred to a follow-on ADR.
-- **D.5 ActivityPub profile for `connect`.** The social-graph
+- **D.5 ActivityPub profile for `connector`.** The social-graph
   export currently uses an oyatie-specific JSON-LD context. An
   ActivityPub-compatible profile would let tenants migrate to
   Fediverse-shaped destinations natively. Deferred.

@@ -297,7 +297,7 @@ Two-column layout. Left column is the campaign tree from Screen 6. Right column 
 | Sender domains: 3/3 DKIM aligned | ✓ | Tomas |
 | GDPR landing pages: 4/4 consent banner verified | ✓ | Tomas |
 | Per-country email reputation: ≥ "good" | ✓ | Comms-email auto |
-| DPA on file: 3/3 tenants | ✓ | Connect auto |
+| DPA on file: 3/3 tenants | ✓ | auto |
 | Cedar policy bundle: deployed + validated | ✓ | Auto |
 | CRM routing rules: 5/5 dry-runs passed | ✓ | Tomas |
 | LinkedIn Ads: paused-ready | ✓ | Henrik |

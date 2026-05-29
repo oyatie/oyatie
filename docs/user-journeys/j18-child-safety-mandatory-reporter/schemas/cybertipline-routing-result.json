@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j18/cybertipline-routing-result.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j18/cybertipline-routing-result.json",
   "title": "CybertiplineRoutingResult",
   "version": "1.0.0",
   "description": "CybertiplineRoutingResult shared object for j18 Child safety mandatory reporter. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

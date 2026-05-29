@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/pack-overlay-schema.schema.json",
+  "$id": "https://docs.oyatie.com/specs/pack-overlay-schema.schema.json",
   "title": "Oyatie Compliance Pack Overlay Schema",
   "description": "Canonical machine-readable contract for compliance pack overlays in Oyatie. ADR-0251 establishes pack overlays as the compliance layer evaluated during request handling, and ADR-0316 requires capability tiers to bind regulated product surfaces through compliance overlays rather than forked services. This schema defines overlay identity, jurisdiction scope, data classes, regulated decisions, Cedar bindings, ontology projection constraints, workflow constraints, audit obligations, evidence requirements, precedence, lifecycle, and promotion gates.",
   "version": "1.0.0",

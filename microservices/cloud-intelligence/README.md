@@ -155,7 +155,7 @@ Once observability lands (PR #260 + ADR-0383), the gateway emits OTel metrics on
 
 ## Status / non-claims
 
-`CS-LLM-GATEWAY-AGENT-DISPATCH-001` is a **code-backed local foundation**: the
+`CS-CLOUD-INTELLIGENCE-AGENT-DISPATCH-001` is a **code-backed local foundation**: the
 workspace builds, clippy is clean, and unit tests pass. There is **no** live
 deployment, container image, k8s manifest, measured SLO, persistence, or
 audit-chain runtime. See [`manifest.json`](./manifest.json) for the full

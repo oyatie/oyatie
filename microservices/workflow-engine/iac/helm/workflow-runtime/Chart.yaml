@@ -7,4 +7,4 @@ version: 0.1.0
 appVersion: "0.1.0"  # bumped per workflow-engine µservice version (semver)
 maintainers:
   - name: axis-workflow
-    email: axis-workflow@oyatie.dev
+    email: axis-workflow@oyatie.com

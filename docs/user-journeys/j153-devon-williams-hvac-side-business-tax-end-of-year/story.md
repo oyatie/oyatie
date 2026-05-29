@@ -66,7 +66,7 @@ Audit event: `EVT-J153-FINOPS-YEAR-END-START-002`.
 
 The finops-portal walks Devon through three sub-flows.
 
-**Sub-flow 1.1 — Stripe Connect deposits**
+**Sub-flow 1.1 — Stripe deposits**
 
 The portal shows 47 deposits totaling $28,419.27. Each row has: date, customer name, job-tasks-id, amount, fee, net. Devon scrolls through. He approves all 47 in a batch by passkey-tapping the **Approve 47 deposits** button.
 
@@ -103,9 +103,9 @@ Audit: `EVT-J153-PAYMENTS-ZELLE-MANUAL-IMPORT-005`.
 - Zelle: $1,800.00
 - **Total: $34,436.77**
 
-1099-K threshold for tax year 2026: $2,500. Stripe Connect will issue Devon a 1099-K because his Stripe gross alone is way above. Venmo's threshold tracking — Venmo legally issues a 1099-K too. Zelle does not (Zelle is bank-to-bank, no third-party-settlement-organization status).
+1099-K threshold for tax year 2026: $2,500. Stripe will issue Devon a 1099-K because his Stripe gross alone is way above. Venmo's threshold tracking — Venmo legally issues a 1099-K too. Zelle does not (Zelle is bank-to-bank, no third-party-settlement-organization status).
 
-The portal shows: "Expect 1099-K from Stripe Connect and Venmo by Jan 31. Zelle is reported by you on Schedule C directly."
+The portal shows: "Expect 1099-K from Stripe and Venmo by Jan 31. Zelle is reported by you on Schedule C directly."
 
 Audit: `EVT-J153-FINOPS-1099K-THRESHOLD-COMPUTED-006`.
 
@@ -260,7 +260,7 @@ Across the session: 13 audit-event classes emitted, 187 receipts processed, 64 i
 
 Eleven minutes after Dec 28 turns to Dec 29 — wait, this is the next day. The `nightly-side-business-reconcile-v1` is scheduled for 22:30 PST nightly. Tonight is the first run.
 
-It fires at 22:30 PST Dec 29. There are 2 new Stripe Connect deposits since the last run (yesterday), 1 new mileage trip, 0 new receipts. Bookie categorizes the 2 deposits (both are repeat customers, confidence 0.99) and adds the mileage (3.2 mi). Schedule-C draft updated. Push notification to Devon:
+It fires at 22:30 PST Dec 29. There are 2 new Stripe deposits since the last run (yesterday), 1 new mileage trip, 0 new receipts. Bookie categorizes the 2 deposits (both are repeat customers, confidence 0.99) and adds the mileage (3.2 mi). Schedule-C draft updated. Push notification to Devon:
 
 > "Nightly reconcile complete: 2 new deposits ($172.50), 1 trip (3.2 mi, +$1.74 mileage deduction). No review needed."
 

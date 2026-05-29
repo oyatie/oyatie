@@ -13,7 +13,7 @@ The gap matters against Lattice and 15Five because those products make this capa
 The success condition is an implementation plan a cold engineer can trace from this IP to concrete files such as `microservices/performance-management/policy/emergency-services-bypass.cedar` without inventing a hidden service boundary.
 
 ## B. Approach
-Implement `emergency-services-bypass` as a service-local slice, not as a shared suite facility. The technical mechanism is narrow bypass of friction controls only bound to `breakglass/emergency permit path` and checked before user-visible promotion.
+Implement `emergency-services-bypass` as a service-local slice, not as a shared platform facility. The technical mechanism is narrow bypass of friction controls only bound to `breakglass/emergency permit path` and checked before user-visible promotion.
 Use `goal-cycle` as the first fixture path, then prove the same envelope across `review-cycle` and `recognition` so the design is not a one-object shortcut.
 Every command or event carries `tenant_id`, `principal_id`, `audience_type=HR_BUSINESS_PARTNER`, `home_cell`, `jurisdiction_code`, `data_class`, `traceparent`, `idempotency_key` for mutations, and an audit event class.
 The domain layer stays pure in `microservices/performance-management/src/domain/mod.rs`; usecase orchestration lives in `microservices/performance-management/src/usecase/mod.rs`; transport or provider details stay behind adapter/config files.

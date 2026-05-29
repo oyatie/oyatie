@@ -17,8 +17,8 @@ oya-mail-mailbox-store-api = { path = "../oya-mail-mailbox-store-api" }
 oya-mail-mailbox-store-rest = { path = "../oya-mail-mailbox-store-rest" }
 oya-messenger-message-stream-api = { path = "../oya-messenger-message-stream-api" }
 oya-messenger-message-stream-rest = { path = "../oya-messenger-message-stream-rest" }
-oya-social-post-composition-api = { path = "../oya-social-post-composition-api" }
-oya-social-post-composition-rest = { path = "../oya-social-post-composition-rest" }
+oya-community-social-post-composition-api = { path = "../oya-community-social-post-composition-api" }
+oya-community-social-post-composition-rest = { path = "../oya-community-social-post-composition-rest" }
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
 serde_json.workspace = true
 tokio.workspace = true

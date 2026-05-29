@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: argocd
     oyatie.com/adr: ADR-0349
     oyatie.com/image-promotion: ADR-0181
-    oyatie.com/adr-0384: llm-gateway-path-b
+    oyatie.com/adr-0384: cloud-intelligence-path-b
     oyatie.com/context: oyatie-cloud-provider
     oya.io/tenant-id: oyatie-dogfood
     oya.io/cost-center: fd001-backbone
@@ -31,19 +31,19 @@ spec:
           - environment: dev
             targetRevision: dev
             namespace: cloud-intelligence
-            imageDigest: sha256:1111111111111111111111111111111111111111111111111111111111111111
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: dev
             replicaCount: "1"
           - environment: staging
             targetRevision: main
             namespace: cloud-intelligence-staging
-            imageDigest: sha256:1111111111111111111111111111111111111111111111111111111111111111
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: staging
             replicaCount: "1"
           - environment: prod
             targetRevision: main
             namespace: cloud-intelligence-prod
-            imageDigest: sha256:1111111111111111111111111111111111111111111111111111111111111111
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: production
             replicaCount: "1"
   template:
@@ -55,7 +55,7 @@ spec:
         app.kubernetes.io/managed-by: argocd
         oyatie.com/adr: ADR-0349
         oyatie.com/image-promotion: ADR-0181
-        oyatie.com/adr-0384: llm-gateway-path-b
+        oyatie.com/adr-0384: cloud-intelligence-path-b
         oyatie.com/context: oyatie-cloud-provider
         oyatie.com/environment: '{{ .environment }}'
         oya.io/tenant-id: oyatie-dogfood

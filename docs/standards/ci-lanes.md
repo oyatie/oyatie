@@ -100,7 +100,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
 | `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |
 | `lean-a4-semver` | API semver stability tier per ADR-0037 |
-| `lean-a5-documentation` | documentation suite coverage — every µservice has full canonical + per-pack suite per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22 |
+| `lean-a5-documentation` | documentation set coverage — every µservice has full canonical + per-pack documentation set per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22 |
 | `lean-a10-regression` | catch attempted silent regressions of public contracts (manifest.json schema bump without ADR; Cedar policy widening; Protobuf field reuse; fitness lane severity downgrade; µservice removal without retirement ADR; doc frontmatter schema downgrade; event topic schema regression); per feedback_no_silent_regression.md (Linus-style) |
 | `quality-statelessness` | no module-level mutable state in application/worker/presentation layers per ADR-0062 |
 | `quality-shardability` | all DB designs declare tenant_id partition key + RLS per ADR-0062 |

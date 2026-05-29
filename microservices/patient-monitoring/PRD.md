@@ -37,7 +37,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 **Date**: 2026-05-21
 **Owner**: axis-clinical-realtime
 **Binding ADRs**: ADR-0332 (clinical-realtime substrate), ADR-0328 (substance-bar + batch discipline),
-ADR-0131 (per-microservice flat layout), ADR-0132 (suite/bundle dissolution),
+ADR-0131 (per-microservice flat layout), ADR-0132 (platform/bundle dissolution),
 ADR-0244 (tenant-scoping primitive), ADR-0245 (substrate-vs-product), ADR-0248 (Amazon-shape cellular),
 ADR-0251 (compliance pack + cell certification), ADR-0253 (HTTP/3 + QUIC default),
 ADR-0254 (deployment-model spectrum).
@@ -571,7 +571,7 @@ open p99 ≤ 600 ms.
 clinician on the right device.
 
 **Channels**: iOS APNs; Android FCM; WebPush (Chrome / Edge / Safari); SMS (fallback); pager
-gateway (legacy paging, e.g., Spok / Connect / Vocera).
+gateway (legacy paging, e.g., Spok / / Vocera).
 
 **Domain entities.**
 
@@ -666,7 +666,7 @@ within 2 hours of midnight tenant-local-time.
 **Wearables supported (≥ 12)**:
 
 - Apple HealthKit (via CMS-API)
-- Google Fit / Health Connect (via Healthcare API)
+- Google Fit / Health (via Healthcare API)
 - Fitbit (Web API v1)
 - Garmin Health API
 - Withings Public Cloud API
@@ -811,7 +811,7 @@ implementation-plans (IP-001..IP-010).
   dedup (per ADR-MS-002).
 - FR-19 Cedar-gated alarm suppression with justification text + duration + audit.
 - FR-20 Escalation chain: bedside → charge → on-call → code-blue (per severity ladder).
-- FR-21 Mobile notification: APNs, FCM, WebPush, SMS, pager (Spok / Connect / Vocera).
+- FR-21 Mobile notification: APNs, FCM, WebPush, SMS, pager (Spok / / Vocera).
 
 ### 5.5 Deterioration + sepsis prediction
 

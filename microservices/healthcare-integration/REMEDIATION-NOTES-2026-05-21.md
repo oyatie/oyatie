@@ -8,7 +8,7 @@ governing_adr: ADR-0332-healthcare-domain-decomposition.md
 companion_plan: /Users/jasonlee/oyatie/.omc/plans/healthcare-decomposition-plan-2026-05-21.md
 related_adrs:
   - ADR-0131 (per-microservice flat layout)
-  - ADR-0132 (no-suite forward policy)
+  - ADR-0132 (no-grouping forward policy)
   - ADR-0138 (six-path deprecation pattern)
   - ADR-0145 (inter-microservice communication reform)
   - ADR-0244 (tenant primitive)
@@ -64,7 +64,7 @@ AND the FHIR/HL7v2/DICOM broker — under one PRD, one manifest, one
 SLO bundle.
 
 This violates ADR-0131 (per-microservice flat layout single-concern
-doctrine) and ADR-0132 (no-suite forward policy). Section §3.4 of the
+doctrine) and ADR-0132 (no-grouping forward policy). Section §3.4 of the
 2026-05-20 coherence audit ("Canonical Direction Alignment") records
 the verdict `REVISE` with two P0 findings.
 
@@ -418,7 +418,7 @@ substrate = 28 IPs (down from 30).
 ### §4.4 Top-3 counterparts (PRESERVED)
 
 - Redox
-- Mirth Connect (NextGen Connect)
+- Mirth (NextGen Connect)
 - Health Gorilla
 
 The Wave 4-rolling audit at `coherence-audit-2026-05-20.md` already

@@ -35,7 +35,7 @@ fn ec_components() -> BTreeMap<String, String> {
 }
 
 fn issuer() -> IssuerUrl {
-    IssuerUrl::new("https://identity-kr.oyatie.dev").expect("issuer ok")
+    IssuerUrl::new("https://identity-kr.oyatie.com").expect("issuer ok")
 }
 
 /// Stub signer that produces a deterministic signature based on the kid.
@@ -53,18 +53,18 @@ impl JwsSigner for StubSigner {
 #[test]
 fn issuer_metadata_includes_required_oidc_fields() {
     let meta = build_issuer_metadata(issuer(), &[Algorithm::Rs256, Algorithm::Es256]).expect("ok");
-    assert_eq!(meta.issuer.as_str(), "https://identity-kr.oyatie.dev");
+    assert_eq!(meta.issuer.as_str(), "https://identity-kr.oyatie.com");
     assert_eq!(
         meta.jwks_uri,
-        "https://identity-kr.oyatie.dev/oauth/jwks".to_owned()
+        "https://identity-kr.oyatie.com/oauth/jwks".to_owned()
     );
     assert_eq!(
         meta.authorization_endpoint,
-        "https://identity-kr.oyatie.dev/oauth/authorize".to_owned()
+        "https://identity-kr.oyatie.com/oauth/authorize".to_owned()
     );
     assert_eq!(
         meta.token_endpoint,
-        "https://identity-kr.oyatie.dev/oauth/token".to_owned()
+        "https://identity-kr.oyatie.com/oauth/token".to_owned()
     );
     assert!(meta.userinfo_endpoint.is_some());
     assert!(
@@ -92,11 +92,11 @@ fn issuer_metadata_includes_required_oidc_fields() {
 
 #[test]
 fn issuer_metadata_strips_trailing_slash() {
-    let url = IssuerUrl::new("https://identity-eu.oyatie.dev/").expect("ok");
+    let url = IssuerUrl::new("https://identity-eu.oyatie.com/").expect("ok");
     let meta = build_issuer_metadata(url, &[Algorithm::Rs256]).expect("ok");
     assert_eq!(
         meta.jwks_uri,
-        "https://identity-eu.oyatie.dev/oauth/jwks".to_owned(),
+        "https://identity-eu.oyatie.com/oauth/jwks".to_owned(),
         "trailing slash should be normalised"
     );
 }
@@ -211,7 +211,7 @@ fn id_token_claims_include_iss_aud_sub_iat_exp_nonce() {
     })
     .expect("ok");
     // Required OIDC claims:
-    assert_eq!(claims.iss, "https://identity-kr.oyatie.dev");
+    assert_eq!(claims.iss, "https://identity-kr.oyatie.com");
     assert_eq!(claims.aud, vec!["oya-application".to_owned()]);
     assert_eq!(claims.sub, "usr_abc");
     assert_eq!(claims.iat, 1_700_000_000);
@@ -302,7 +302,7 @@ fn access_token_claims_carry_scopes_and_token_type() {
         data_class: Some("PUBLIC".to_owned()),
     })
     .expect("ok");
-    assert_eq!(claims.iss, "https://identity-kr.oyatie.dev");
+    assert_eq!(claims.iss, "https://identity-kr.oyatie.com");
     assert_eq!(claims.aud, vec!["oya-foundry", "oya-ops"]);
     assert_eq!(claims.scope, "openid email");
     assert_eq!(claims.token_type, "at+jwt");

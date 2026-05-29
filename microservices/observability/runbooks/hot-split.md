@@ -49,7 +49,7 @@ source_adrs:
 - Trigger 4: `oya_sharding_hot_split_threshold_breach_total` crosses the declared threshold for two evaluator windows.
 - Trigger 5: `oya_sharding_hot_split_duration_seconds_p99` threatens the service SLO budget or promotion-gate quiet window.
 - Trigger 6: governance reports missing sharding automation coverage for this service.
-- Trigger 7: Jenkins or Jenkins required-check drift blocks the release train for the sharding automation lane.
+- Trigger 7: Jenkins required-check drift blocks the release train for the sharding automation lane.
 - Trigger 8: ArgoCD reports a pending sync tied to this service after a sharding automation manifest change.
 
 ## Preflight Checklist
@@ -113,7 +113,7 @@ source_adrs:
 3. Confirm Cedar decisions are sealed and tied to the incident id.
 4. Confirm `oya-governance-auto-rebalance-residency-honored` or `oya-governance-dynamic-sharding-threshold-coverage` evidence is attached as applicable.
 5. Confirm `oya-governance-audit-chain-emit-on-automation-events` evidence is attached for every automation event.
-6. Confirm Jenkins and Jenkins required-check evidence is attached per ADR-0349.
+6. Confirm Jenkins required-check evidence is attached per ADR-0349.
 7. Confirm ArgoCD did not sync unsigned images and did not cross tenant namespaces.
 8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
 9. Close only after the incident commander records the stop condition and evidence bundle hash.

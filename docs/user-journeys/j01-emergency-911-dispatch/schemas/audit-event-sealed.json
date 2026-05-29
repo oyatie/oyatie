@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j01/audit-event-sealed.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j01/audit-event-sealed.json",
   "title": "AuditEventSealed",
   "description": "Canonical sealed audit event shape per ADR-0028 + ADR-0263. Every state-changing emission carries this envelope.",
   "_meta": {

@@ -21,7 +21,7 @@ Combine edge WAF signals, Cedar decisions, sock-puppet detection, moderation que
 |---|---|
 | `iac/edge-waf.yaml` | Edge abuse filtering anchor. |
 | `policy/abuse-defence.cedar` | Application abuse policy. |
-| `catalog/oya-social-sock-puppet-detector-kernel.yaml` | Existing detector catalog anchor. |
+| `catalog/oya-community-social-sock-puppet-detector-kernel.yaml` | Existing detector catalog anchor. |
 | `dashboards/abuse-defence-outcomes.json` | Abuse outcomes dashboard. |
 | `runbooks/coordinated-inauthentic-behavior-response.md` and `runbooks/sock-puppet-cluster-takedown.md` | Incident closure. |
 
@@ -43,7 +43,7 @@ Combine edge WAF signals, Cedar decisions, sock-puppet detection, moderation que
 
 ## F. Evidence
 - Policy/IaC: `policy/abuse-defence.cedar`, `iac/edge-waf.yaml`.
-- Catalog: `catalog/oya-social-sock-puppet-detector-kernel.yaml`.
+- Catalog: `catalog/oya-community-social-sock-puppet-detector-kernel.yaml`.
 - Runbooks: `runbooks/coordinated-inauthentic-behavior-response.md`, `runbooks/sock-puppet-cluster-takedown.md`, `runbooks/abuse-report-backlog-drain.md`.
 
 ## G. Counterpart comparison
@@ -73,7 +73,7 @@ X, TikTok, Instagram, Snapchat, Reddit, Mastodon, and Bluesky all fight abuse an
 - Evidence detail: capture parser output for `iac/edge-waf.yaml`.
 - Evidence detail: capture Cedar tests for `policy/abuse-defence.cedar`.
 - Evidence detail: capture abuse-defence gate output for social.
-- Evidence detail: cite `catalog/oya-social-sock-puppet-detector-kernel.yaml`.
+- Evidence detail: cite `catalog/oya-community-social-sock-puppet-detector-kernel.yaml`.
 - Evidence detail: cite `dashboards/abuse-defence-outcomes.json`.
 - Evidence detail: cite coordinated-behavior and sock-puppet runbooks if present.
 - Evidence detail: cite Slack as community/channel abuse-defense pressure alongside Reddit and X.

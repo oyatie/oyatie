@@ -6,7 +6,7 @@ Doc class: README
 Phase: 4A.5 Big-8 customer-engagement substrate
 Primary counterpart: HubSpot Marketing Hub
 Flanking counterparts: Adobe Marketo Engage, Mailchimp
-Binding authorities: ADR-0105 (13-layer enum), ADR-0131 (per-microservice flat layout), ADR-0244 (tenant-class primitive), ADR-0245 (substrate vs product), ADR-0248 (cellular shape), ADR-0251 (compliance pack primitive), ADR-0253-amendment (HTTP/3 + QUIC + ECH + PQC), ADR-0263 (observability emission), ADR-0314 (marketplace DealSet), ADR-0321 (per-microservice doc-suite anchor), ADR-0328 (substance bar + Big-8 sequence), ADR-0331 (tenant-class adoption surfaces — in flight).
+Binding authorities: ADR-0105 (13-layer enum), ADR-0131 (per-microservice flat layout), ADR-0244 (tenant-class primitive), ADR-0245 (substrate vs product), ADR-0248 (cellular shape), ADR-0251 (compliance pack primitive), ADR-0253-amendment (HTTP/3 + QUIC + ECH + PQC), ADR-0263 (observability emission), ADR-0314 (marketplace DealSet), ADR-0321 (per-microservice doc-set anchor), ADR-0328 (substance bar + Big-8 sequence), ADR-0331 (tenant-class adoption surfaces — in flight).
 
 ## 1. What this microservice owns
 

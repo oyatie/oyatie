@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-manifest.json",
+  "$schema": "https://oyatie.com/schemas/microservice-manifest.json",
   "schema_version": "1.0",
   "microservice": "managed-k8s-control-plane-host",
   "version": "0.1.0",
@@ -138,7 +138,7 @@
   "owner_team": "council-architecture + ops-platform",
   "criticality_tier": "substrate-critical",
   "flat_layout_authority": "ADR-0131",
-  "no_suite_authority": "ADR-0132",
+  "no_grouping_authority": "ADR-0132",
   "layer": "app",
   "data_classification": "INTERNAL_ONLY, AUDIT; tenant-scoped control-plane identity (tenant_id, cluster_name, opaque handle) — no tenant workload data",
   "maturity_non_claim": "design-spec maturity (ADR-0376 lane): the kernel + ControlPlaneProvisioning port + in-memory adapter + composition root are BUILT and tested; the kube-rs CAPI adapter's LIVE Kamaji/Talos CRD reconciliation is honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration). Billing, public SLA, DPIA, and external multi-tenant GA are deferred to oya-managed-k8s-commercial-ga per ADR-0376. All aspirational fields below describe design intent, not runtime behavior."

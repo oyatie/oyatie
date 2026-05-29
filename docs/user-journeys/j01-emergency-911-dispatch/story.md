@@ -68,7 +68,7 @@ fragmenting her identity.
 | **Day-to-day consumer** | `oyatie.consumer.kr` | `yejin@oyatie.me` | Tier-2 (consumer general-purpose) | `pack-kr-pipa-2023-amendment` |
 | **Enterprise — nurse at SNUH** | `snuh.org` (B2B tenant on oyatie) | `yejin.park@snuh.org` (work passkey) | Tier-3 (regulated HIPAA-eligible) | `pack-hipa-2024 + pack-kr-pipa + pack-kr-medical-records-act` |
 | **Patient (of her own hospital)** | `snuh.org` (as PHI subject) | `yejin.park@patient.snuh.org` (subject-of-record DSAR proxy) | Tier-3 (regulated PHI cell) | `pack-hipa-2024 + pack-kr-medical-records-act` |
-| **Personal-business (vintage clothes)** | `oyatie.merchant.kr` | `yejin-vintage@oyatie.me` (Stripe Connect linked) | Tier-2 | `pack-kr-pipa + pack-kr-fss-2024 (payments)` |
+| **Personal-business (vintage clothes)** | `oyatie.merchant.kr` | `yejin-vintage@oyatie.me` (Stripe linked) | Tier-2 | `pack-kr-pipa + pack-kr-fss-2024 (payments)` |
 | **Family parent (two minors)** | `oyatie.family.kr` (family-account-mode) | `yejin@oyatie.me` (parent role) | Tier-2 with COPPA/KOSA/KR-Youth pack | per ADR-0292 minor-doctrine |
 
 When Min-jun collapses she will, within eleven minutes, **cross every one
@@ -83,7 +83,7 @@ Yejin's iPhone 16 Pro sits on the kitchen counter. The lock screen shows:
 
 - A waiting reply in oyatie Messenger from her friend group "한강 산책팀"
   (Hangang walking team) — three messages about Saturday's plan.
-- An oyatie Mail badge: 4 unread (one is a Stripe Connect 입금완료 notification
+- An oyatie Mail badge: 4 unread (one is a Stripe 입금완료 notification
   from her vintage-clothing side-business).
 - An oyatie Workflow Studio push notification: her "신상품 자동출고" workflow
   ran and a customer paid for a 1990s denim jacket.

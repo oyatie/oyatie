@@ -54,7 +54,7 @@ The matrix replaces the prior shape-only file (audit finding F-SB-03 / F-PA-01) 
 
 ## Bounded-context plurality (Wave 15A audit fix for F-IC-12 / PRD §C)
 
-Per ADR-0131 flat layout the ITSM µservice composes five separately-buildable crates under `microservices/itsm/crates/`. Each crate has its own Cargo.toml, src/lib.rs, and unit-test suite. The umbrella µservice re-exports each crate as a module (`oya_itsm::on_call_schedule`, etc.) and the umbrella `validate_scaffold()` asserts `BOUNDED_CONTEXTS.len() == 5`.
+Per ADR-0131 flat layout the ITSM µservice composes five separately-buildable crates under `microservices/itsm/crates/`. Each crate has its own Cargo.toml, src/lib.rs, and unit-test set. The umbrella µservice re-exports each crate as a module (`oya_itsm::on_call_schedule`, etc.) and the umbrella `validate_scaffold()` asserts `BOUNDED_CONTEXTS.len() == 5`.
 
 The five crates:
 
@@ -93,7 +93,7 @@ Every feature above is delivered with uniform industry-leader quality across `de
 |---|---|---|
 | Multi-instance per-tenant DB | ServiceNow (defining feature) | ADR-0248 cellular shuffle-sharding + ADR-0244 tenant scoping deliver stronger isolation without the cost of per-tenant DB |
 | Public marketing KB | (none of the top-3) | brand-surface µservices own marketing KB; ITSM owns operational KB only |
-| External chat-ops bridges as native modules | ServiceNow Connect Chat | Personal Messenger substrate (MLS RFC 9420 per ADR-0246) is the canonical chat layer; bridges live as marketplace listings |
+| External chat-ops bridges as native modules | ServiceNow Chat | Personal Messenger substrate (MLS RFC 9420 per ADR-0246) is the canonical chat layer; bridges live as marketplace listings |
 | Per-tenant on-call mobile pagers (hardware) | PagerDuty hardware ack | Out of scope; mobile push via APNs/FCM is the canonical pager channel |
 
 ## Backlog deltas absorbed by Wave 15A

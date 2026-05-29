@@ -7,7 +7,7 @@ status: Accepted
 sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M02-product-tier-foundation
-bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
+bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-retention-legal-hold-dual-context]
 related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/calendar.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `calendar` µservice is oyatie's native calendar, meeting-scheduling, invitation, cross-tenant availability, and room-booking substrate. Per ADR-0132 (product-suite + bundle dissolution) and parallel-session ADR-0135 (Connect unbundle), calendar is a standalone tenant-facing µservice — no longer part of a Connect suite — owning: event/meeting scheduling; invitations (RFC 5545 iCalendar + CalDAV compatible); recurring events; cross-tenant availability lookups; meeting rooms / resources; time-zone handling (ICU/IANA tzdata); .ics import/export.
+The `calendar` µservice is oyatie's native calendar, meeting-scheduling, invitation, cross-tenant availability, and room-booking substrate. Per ADR-0132 (product-platform + bundle dissolution) and parallel-session ADR-0135 (unbundle), calendar is a standalone tenant-facing µservice — no longer part of a platform — owning: event/meeting scheduling; invitations (RFC 5545 iCalendar + CalDAV compatible); recurring events; cross-tenant availability lookups; meeting rooms / resources; time-zone handling (ICU/IANA tzdata); .ics import/export.
 
 The µservice carries dual-context (Personal / Professional) per parallel ADR-0238; details never cross context boundaries except via explicit invitation or policy-bound projection.
 
@@ -320,7 +320,7 @@ Sharding: events partitioned by `(tenant_id, starts_at_year_month)`; resources p
 | AC-01 | Event create with attendees + invitation fanout completes within p99 ≤ 300ms | `cargo bench` |
 | AC-02 | Cross-tenant availability lookup returns only free/busy projection (no titles / attendees / locations) | `cargo nextest -p oya-calendar-availability-resolver-domain -- cross_tenant_minimum_necessary` |
 | AC-03 | RFC 5545 RRULE conformance test corpus 100% pass | `cargo nextest -p oya-calendar-recurrence-engine-domain -- rfc_5545_corpus` |
-| AC-04 | RFC 4791 CalDAV PROPFIND / REPORT / PUT / DELETE end-to-end against Apple Calendar + Thunderbird + Evolution | E2E test suite `tests/e2e/caldav-clients.rs` |
+| AC-04 | RFC 4791 CalDAV PROPFIND / REPORT / PUT / DELETE end-to-end against Apple Calendar + Thunderbird + Evolution | E2E test set `tests/e2e/caldav-clients.rs` |
 | AC-05 | .ics import of 10k events completes within p99 ≤ 60s without parse errors | `cargo bench -p oya-calendar-ics-import-export-adapter-icalendar` |
 | AC-06 | Legal-hold preserves event + attendee history + invitation chain past retention expiry | `cargo nextest -p oya-calendar-event-store-domain -- legal_hold` |
 | AC-07 | Personal-context details NEVER appear in Professional-context availability queries | `cargo nextest -p oya-calendar-availability-resolver-domain -- context_isolation` |
@@ -347,14 +347,14 @@ Sharding: events partitioned by `(tenant_id, starts_at_year_month)`; resources p
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0135 | Connect unbundle (parallel session) | dual-context inheritance |
+| ADR-0135 | unbundle (parallel session) | dual-context inheritance |
 | ADR-0139 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
-| ADR-0132 | Product-suite + bundle dissolution | µservice independence |
+| ADR-0132 | Product-platform + bundle dissolution | µservice independence |
 | ADR-0133 | Industry-best-practice conformance | hyperscaler-grade bar |
 | ADR-0140 | Cedar policy enforcement | policy substrate |
-| Bominal ADR-0208 | Connect dual-context unified-channel hub | inherited 1:1 |
-| Bominal ADR-0215 | Connect retention + legal-hold dual-context | inherited 1:1 |
+| Bominal ADR-0208 | dual-context unified-channel hub | inherited 1:1 |
+| Bominal ADR-0215 | retention + legal-hold dual-context | inherited 1:1 |
 
 ## Doctrine refs (ADR-0346..0349)
 

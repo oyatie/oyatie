@@ -113,7 +113,7 @@ permit (
 
 ## Test gates
 
-- All Suite 5 + 6 + 7 tests
+- All Test Set 5 + 6 + 7 tests
 - T-001..T-503 (investigation orchestration end-to-end)
 
 ## Notes

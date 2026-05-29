@@ -793,8 +793,8 @@ mod tests {
             "specs/masterplan.json"
         );
         assert_eq!(
-            normalize_repo_root_artifact_path("registry/test-suite-registry.json"),
-            "registry/test-suite-registry.json"
+            normalize_repo_root_artifact_path("registry/test-set-registry.json"),
+            "registry/test-set-registry.json"
         );
     }
 

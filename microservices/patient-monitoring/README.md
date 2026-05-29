@@ -294,11 +294,11 @@ sibling clinical-realtime ADRs bind the streaming substrate + smart-alarm engine
 
 ## 15. Contact + escalation
 
-- L1 on-call: `patient-monitoring-l1-oncall@oyatie.dev`
-- L3 SaMD-engineering oncall: `patient-monitoring-l3-oncall@oyatie.dev`
-- Clinical safety officer: `clinical-safety-officer@oyatie.dev`
-- Regulatory officer: `regulatory-officer@oyatie.dev`
-- Security officer: `security-officer@oyatie.dev`
+- L1 on-call: `patient-monitoring-l1-oncall@oyatie.com`
+- L3 SaMD-engineering oncall: `patient-monitoring-l3-oncall@oyatie.com`
+- Clinical safety officer: `clinical-safety-officer@oyatie.com`
+- Regulatory officer: `regulatory-officer@oyatie.com`
+- Security officer: `security-officer@oyatie.com`
 
 ## 16. Change log
 

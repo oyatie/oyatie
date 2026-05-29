@@ -103,7 +103,7 @@ Per RFC 7644 §3.12:
 
 `meta.version` stores `W/"<etag>"`; HTTP handler-layer compares against `If-Match`. Mismatch → 412 with `scimType=invalidVers`.
 
-## RFC 7644 conformance test suite
+## RFC 7644 conformance test set
 
 Per ADR-0190 §"Verification", `scim2-compliance` (Go tool) runs against the live server in CI; required to pass at GA.
 

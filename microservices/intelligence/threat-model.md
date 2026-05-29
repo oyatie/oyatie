@@ -313,7 +313,7 @@ frameworks satisfied.
   - ADR-0296 sidecar pattern: credentials never enter intelligence process memory; opaque handle
     only.
   - Structured-log redactor strips any field containing `secret_reference` / `credential_handle`.
-  - Per-provider adapter test suite includes "log-scrape for credential leak" assertion.
+  - Per-provider adapter test set includes "log-scrape for credential leak" assertion.
 - Owner: ops-security + axis-intelligence
 - Residual: L
 - Frameworks: SOC 2 CC6.6; ISO 27001 A.5.34, A.8.12; GDPR Art. 32(1)(a); OWASP LLM02 (Sensitive

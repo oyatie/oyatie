@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This net-new slice covers recording consent, transcript redaction, and export proof. It displaces Genesys recording policies, NICE CXone recording controls, Five9 call recordings, Talkdesk recordings, and AWS Connect Contact Lens recording outputs while preserving consent and pack rules.
+This net-new slice covers recording consent, transcript redaction, and export proof. It displaces Genesys recording policies, NICE CXone recording controls, Five9 call recordings, Talkdesk recordings, and AWS Contact Lens recording outputs while preserving consent and pack rules.
 
 ## Data Model Deltas
 
@@ -59,7 +59,7 @@ gRPC `RecordingVaultService.Redact(RedactRecordingRequest)` returns `redacted_re
 | NICE CXone Recording | `ContactRecording` | contact id maps to interaction id. |
 | Five9 Call Recording | `ContactRecording` | call id and agent id become refs. |
 | Talkdesk Recording | `ContactRecording` | recording url becomes storage import source. |
-| AWS Connect Recording | `ContactRecording` | S3 key maps to storage ref after copy. |
+| AWS Recording | `ContactRecording` | S3 key maps to storage ref after copy. |
 
 ## Workflow Steps
 

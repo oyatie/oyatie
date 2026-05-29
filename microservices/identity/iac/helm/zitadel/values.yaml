@@ -37,7 +37,7 @@ zitadel:
   zitadelConfig:
     # Per-pack overrides set externalSecure, externalDomain, externalPort.
     externalSecure: true
-    externalDomain: identity-PACK.oyatie.dev
+    externalDomain: identity-PACK.oyatie.com
     externalPort: 443
     tls:
       enabled: true
@@ -115,7 +115,7 @@ openbao:
 
 # WebAuthn relying-party config.
 webauthn:
-  rpId: identity-PACK.oyatie.dev
+  rpId: identity-PACK.oyatie.com
   rpName: oyatie identity
   attestation: indirect      # tightened to "direct" in regulated-pack overlay
   userVerification: required

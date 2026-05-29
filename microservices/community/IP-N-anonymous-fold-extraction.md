@@ -117,28 +117,28 @@ IPs become community sub-IPs under the anonymity-mode slice.
 
 ### §B.4 — Catalog records (anonymous/catalog/)
 
-All catalog records require crate-slug rewrite: `oya-anonymous-*` → `oya-community-*-anonymity-mode-*`.
+All catalog records require crate-slug rewrite: `oya-community-anonymous-*` → `oya-community-*-anonymity-mode-*`.
 
 | Source artifact | Community destination | Crate rename |
 |---|---|---|
-| `anonymous/catalog/oya-anonymous-affinity-attestation-adapter-oidc.yaml` | `community/catalog/oya-community-affinity-attestation-adapter-oidc.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-affinity-attestation-adapter-saml.yaml` | `community/catalog/oya-community-affinity-attestation-adapter-saml.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-affinity-attestation-kernel.yaml` | `community/catalog/oya-community-affinity-attestation-kernel.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-blind-signatures-adapter-ring.yaml` | `community/catalog/oya-community-blind-signatures-adapter-ring.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-blind-signatures-adapter-rust-bls.yaml` | `community/catalog/oya-community-blind-signatures-adapter-rust-bls.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-blind-signatures-kernel.yaml` | `community/catalog/oya-community-blind-signatures-kernel.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-content-moderation-adapter-foundry-runtime.yaml` | `community/catalog/oya-community-content-moderation-adapter-foundry-runtime.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-feed-timeline-adapter-meilisearch.yaml` | Merge with existing community feed catalog | PENDING |
-| `anonymous/catalog/oya-anonymous-feed-timeline-adapter-valkey.yaml` | Merge with existing community feed catalog | PENDING |
-| `anonymous/catalog/oya-anonymous-legal-process-disclosure-adapter-workflow-engine.yaml` | `community/catalog/oya-community-legal-process-disclosure-adapter-workflow-engine.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-post-thread-adapter-postgres.yaml` | Merge with existing `community/catalog/` post-thread entries | PENDING |
-| `anonymous/catalog/oya-anonymous-post-thread-kernel.yaml` | Merge with existing community post-thread kernel | PENDING |
-| `anonymous/catalog/oya-anonymous-pseudonymous-identity-adapter-postgres.yaml` | `community/catalog/oya-community-pseudonymous-identity-adapter-postgres.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-pseudonymous-identity-domain.yaml` | `community/catalog/oya-community-pseudonymous-identity-domain.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-pseudonymous-identity-kernel.yaml` | `community/catalog/oya-community-pseudonymous-identity-kernel.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-pseudonymous-identity-usecase.yaml` | `community/catalog/oya-community-pseudonymous-identity-usecase.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-retention-policy-worker.yaml` | `community/catalog/oya-community-retention-policy-worker-anonymity-mode.yaml` | PENDING |
-| `anonymous/catalog/oya-anonymous-vote-engine-adapter-valkey.yaml` | Merge with existing community vote-engine catalog | PENDING |
+| `anonymous/catalog/oya-community-anonymous-affinity-attestation-adapter-oidc.yaml` | `community/catalog/oya-community-affinity-attestation-adapter-oidc.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-affinity-attestation-adapter-saml.yaml` | `community/catalog/oya-community-affinity-attestation-adapter-saml.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-affinity-attestation-kernel.yaml` | `community/catalog/oya-community-affinity-attestation-kernel.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-blind-signatures-adapter-ring.yaml` | `community/catalog/oya-community-blind-signatures-adapter-ring.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-blind-signatures-adapter-rust-bls.yaml` | `community/catalog/oya-community-blind-signatures-adapter-rust-bls.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-blind-signatures-kernel.yaml` | `community/catalog/oya-community-blind-signatures-kernel.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-content-moderation-adapter-foundry-runtime.yaml` | `community/catalog/oya-community-content-moderation-adapter-foundry-runtime.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-feed-timeline-adapter-meilisearch.yaml` | Merge with existing community feed catalog | PENDING |
+| `anonymous/catalog/oya-community-anonymous-feed-timeline-adapter-valkey.yaml` | Merge with existing community feed catalog | PENDING |
+| `anonymous/catalog/oya-community-anonymous-legal-process-disclosure-adapter-workflow-engine.yaml` | `community/catalog/oya-community-legal-process-disclosure-adapter-workflow-engine.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-post-thread-adapter-postgres.yaml` | Merge with existing `community/catalog/` post-thread entries | PENDING |
+| `anonymous/catalog/oya-community-anonymous-post-thread-kernel.yaml` | Merge with existing community post-thread kernel | PENDING |
+| `anonymous/catalog/oya-community-anonymous-pseudonymous-identity-adapter-postgres.yaml` | `community/catalog/oya-community-pseudonymous-identity-adapter-postgres.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-pseudonymous-identity-domain.yaml` | `community/catalog/oya-community-pseudonymous-identity-domain.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-pseudonymous-identity-kernel.yaml` | `community/catalog/oya-community-pseudonymous-identity-kernel.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-pseudonymous-identity-usecase.yaml` | `community/catalog/oya-community-pseudonymous-identity-usecase.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-retention-policy-worker.yaml` | `community/catalog/oya-community-retention-policy-worker-anonymity-mode.yaml` | PENDING |
+| `anonymous/catalog/oya-community-anonymous-vote-engine-adapter-valkey.yaml` | Merge with existing community vote-engine catalog | PENDING |
 
 ### §B.5 — SLO records (anonymous/slos/)
 
@@ -284,7 +284,7 @@ This IP is complete when ALL of the following hold:
 - Acceptance: each IP has ≥150 lines + §A–§J sections; cross-references to ADR-ANON-0003/0004/0005
 
 ### Slice 6 — Catalog record rewrites (18 records → oya-community-*-anonymity-mode-*)
-- Acceptance: no `oya-anonymous-*` slug in community/catalog/
+- Acceptance: no `oya-community-anonymous-*` slug in community/catalog/
 
 ### Slice 7 — SLO merges (9 records → community/slos/)
 - Acceptance: `community/slos/anonymity-correlation-resistance.openslo.yaml` present;
@@ -308,7 +308,7 @@ This IP is complete when ALL of the following hold:
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | Duplicate Cedar policy fragments (anonymous + community both define same action) | Medium | High | §F policy-dedup validation: run Cedar policy linter across all community/policy/*.cedar |
-| Blinded-credential crate name collision (oya-anonymous-* vs oya-community-*) | Low | Medium | Cargo workspace rename in Slice 6; no runtime impact until crates are built |
+| Blinded-credential crate name collision (oya-community-anonymous-* vs oya-community-*) | Low | Medium | Cargo workspace rename in Slice 6; no runtime impact until crates are built |
 | SLO target drift (anonymous SLO targets ≠ community SLO targets for same action) | Medium | Medium | Slice 7 uses higher of the two targets; conflicts escalated to ops-security |
 | Legal-process workflow ADR-ANON-0003 lost from cross-reference | Low | High | ADR-ANON-0003 referenced from community/IP-023 and community/policy/legal-process-disclosure.cedar |
 | Anonymous AUDIT-FINDINGS-2026-05-18.json lost entirely | Low | High | Moved to evidence/anonymous-fold/ in Slice 10 |

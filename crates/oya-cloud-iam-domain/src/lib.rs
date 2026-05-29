@@ -1738,7 +1738,7 @@ mod tests {
     }
 
     #[test]
-    fn creates_role_with_cedar_policy_and_assumes_sts_session_via_platform_identity() {
+    fn creates_role_with_cedar_policy_and_assumes_sts_session_via_module_identity() {
         let mut directory = directory_with_role();
 
         let session = directory

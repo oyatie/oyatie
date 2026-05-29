@@ -9,7 +9,7 @@
 
 ## External Source Set
 - Stripe Payments docs: https://docs.stripe.com/payments
-- Stripe Connect docs: https://docs.stripe.com/connect
+- Stripe docs: https://docs.stripe.com/connect
 - Stripe rate limits docs: https://docs.stripe.com/rate-limits
 - Adyen Online Payments docs: https://docs.adyen.com/online-payments/
 - Adyen Platforms split transaction docs: https://docs.adyen.com/platforms/online-payments/split-transactions/
@@ -37,15 +37,15 @@
 | S-12 | Recurring invoices. | Stripe recurring invoice docs. | No invoice contract. |
 | S-13 | Hosted invoice page. | Stripe Invoicing docs. | No hosted invoice page. |
 | S-14 | Custom invoicing API. | Stripe Invoicing integration. | No invoice API. |
-| S-15 | SaaS platform support. | Stripe Connect SaaS docs. | Sub-merchant onboarding partial. |
-| S-16 | Marketplace support. | Stripe Connect marketplace docs. | Strong journey and settlement docs. |
-| S-17 | Connected account onboarding. | Stripe Connect onboarding. | `contracts/openapi-v1.yaml:301-321` partial. |
+| S-15 | SaaS platform support. | Stripe SaaS docs. | Sub-merchant onboarding partial. |
+| S-16 | Marketplace support. | Stripe marketplace docs. | Strong journey and settlement docs. |
+| S-17 | Connected account onboarding. | Stripe onboarding. | `contracts/openapi-v1.yaml:301-321` partial. |
 | S-18 | Connected account capabilities. | Stripe account capabilities. | No capability management API. |
-| S-19 | Connected account balances. | Stripe Connect balance docs. | Ledger docs partial. |
-| S-20 | Connected account payouts. | Stripe Connect payouts. | `contracts/openapi-v1.yaml:204-242`. |
-| S-21 | Split charges and transfers. | Stripe Connect charges and transfers. | Settlement journeys partial; transfer naming conflict. |
-| S-22 | Platform pricing tools. | Stripe Connect platform pricing. | `cost-budget.md` partial, no admin API. |
-| S-23 | Embedded connected-account components. | Stripe Connect embedded components. | No embedded dashboard. |
+| S-19 | Connected account balances. | Stripe balance docs. | Ledger docs partial. |
+| S-20 | Connected account payouts. | Stripe payouts. | `contracts/openapi-v1.yaml:204-242`. |
+| S-21 | Split charges and transfers. | Stripe charges and transfers. | Settlement journeys partial; transfer naming conflict. |
+| S-22 | Platform pricing tools. | Stripe platform pricing. | `cost-budget.md` partial, no admin API. |
+| S-23 | Embedded connected-account components. | Stripe embedded components. | No embedded dashboard. |
 | S-24 | Tax for Connect. | Stripe Tax with Connect. | PRD tax ledger only. |
 | S-25 | Radar fraud for Connect. | Stripe Radar with Connect. | Fraud dashboards/runbooks partial. |
 | S-26 | Disputes. | Stripe disputes docs. | `contracts/openapi-v1.yaml:243-279`. |
@@ -66,11 +66,11 @@
 | S-41 | Webhooks. | Stripe webhooks docs linked. | `contracts/openapi-v1.yaml:322-349`; AsyncAPI. |
 | S-42 | Refunds and partial refunds. | Stripe refunds docs. | refund API present. |
 | S-43 | Payout rate constraints. | Stripe Create Payout API rate limit. | capacity model uses PSP ceilings. |
-| S-44 | Platform account creation rates. | Stripe Connect rate-limit docs. | no onboarding throughput contract. |
+| S-44 | Platform account creation rates. | Stripe rate-limit docs. | no onboarding throughput contract. |
 | S-45 | Load-test guidance. | Stripe rate-limit docs discourage direct sandbox load tests. | local benchmark docs need measured/mock disclosure. |
 | S-46 | Atlas company incorporation. | Stripe Atlas linked from Payments docs. | not payments-core; no gap for current scope. |
 | S-47 | Revenue recognition and billing analytics. | Stripe Billing ecosystem. | no explicit rev-rec feature. |
-| S-48 | Identity/verification integration. | Stripe Connect verification. | KYC/KYB bounded context partial. |
+| S-48 | Identity/verification integration. | Stripe verification. | KYC/KYB bounded context partial. |
 | S-49 | Fraud/risk rules. | Stripe Radar. | no first-class rule authoring API. |
 | S-50 | Multi-party marketplace compliance. | Stripe Connect. | compliance docs strong but partner API incomplete. |
 

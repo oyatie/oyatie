@@ -167,7 +167,7 @@ doc_status: published
 9. Run guardrail tests: `cargo test -p oya-governance-eval-domain prompt_fence -- --nocapture`.
 10. Run routing safety tests: `cargo test -p oya-intelligence-route-policy-kernel prompt_fence -- --nocapture`.
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-prompt-fence --production-snapshot --cell $CELL`.
-12. Verify eval suite: `oya ops intelligence eval run --pack $PACK --suite prompt-fence-critical --expect pass`.
+12. Verify eval set: `oya ops intelligence eval run --pack $PACK --suite prompt-fence-critical --expect pass`.
 13. Remove temporary deny only after permanent policy lands: `oya ops intelligence tool-policy deny-fragment remove --tenant $TENANT --tool <tool> --reason resolved-$INCIDENT_ID`.
 14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 15. Seal audit: `oya audit-chain emit --event-class EVT_INTELLIGENCE_PROMPT_FENCE_BYPASS_DETECTION_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
@@ -264,6 +264,6 @@ evidence_hash: <sha256>
 ## Runbook Maintenance
 - Add new bypass pattern signatures after every incident.
 - Keep sensitive evidence handling explicit.
-- Keep eval suite names aligned with CI.
+- Keep eval set names aligned with CI.
 - Review this runbook after every prompt bundle change.
 - Add every new tool policy surface to Diagnostic Steps.

@@ -68,7 +68,7 @@ Foundry (internal-only): grit, icm, oya-tooling-agent-read, LEAN check
   9 architecture planes, Wave integration framework.
 ```
 
-**Connect Personal** (B2C) is a separate entry path via the person-pillar; it does not go through the B2B Application shell.
+**Personal** (B2C) is a separate entry path via the person-pillar; it does not go through the B2B Application shell.
 
 ### The six substrates are codified
 

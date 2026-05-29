@@ -261,7 +261,7 @@ The five-phase journey is summarized as a state machine:
 | Linear "Free → Plus" upgrade | Workspace owner → billing page → plan change | Similar but tenant_id is org-rooted | Direct parity. |
 | Notion "Free → Plus" upgrade | Workspace settings → upgrade plan | Same pattern | Direct parity. |
 | Heroku "Hobby → Production" | Add credit card → upgrade dyno → instant | Direct parity | Heroku's "Eco" dynos sleep; oyatie's OCI Always Free doesn't. |
-| Stripe Connect onboarding | Hosted onboarding flow for connected accounts (Know Your Customer) | Marketplace seller onboarding = demo_trial → paid + revenue_share component | Same conceptual flow; KYC delegated to cloud-iam + crm. |
+| Stripe onboarding | Hosted onboarding flow for connected accounts (Know Your Customer) | Marketplace seller onboarding = demo_trial → paid + revenue_share component | Same conceptual flow; KYC delegated to cloud-iam + crm. |
 
 ## §H Open questions
 

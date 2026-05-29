@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-05-20
 related_adrs: [ADR-0294]
 acceptance_status: draft
-companion_docs: [microservices/social/catalog/oya-social-dsa-transparency-worker.yaml]
+companion_docs: [microservices/social/catalog/oya-community-social-dsa-transparency-worker.yaml]
 inbound_citations: [microservices/social/manifest.json]
 ---
 
@@ -19,8 +19,8 @@ Implement the cataloged DSA transparency worker and bind moderation verdicts, ap
 ## C. Deliverables
 | Artifact | Role |
 |---|---|
-| `catalog/oya-social-dsa-transparency-worker.yaml` | Existing worker catalog anchor. |
-| `src/crates/oya-social-dsa-transparency-worker/` | Planned worker path named by catalog/IP. |
+| `catalog/oya-community-social-dsa-transparency-worker.yaml` | Existing worker catalog anchor. |
+| `src/crates/oya-community-social-dsa-transparency-worker/` | Planned worker path named by catalog/IP. |
 | `runbooks/dsa-transparency-report-generation.md` | Report generation runbook. |
 | `dashboards/moderation-and-safety.json` | Moderation evidence dashboard. |
 | `policy/content-policy.cedar` | Moderation basis source. |
@@ -35,14 +35,14 @@ Implement the cataloged DSA transparency worker and bind moderation verdicts, ap
 7. Add retention and data-residency checks for EU packs.
 
 ## E. Acceptance
-- `cargo nextest run -p oya-social-dsa-transparency-worker` passes.
+- `cargo nextest run -p oya-community-social-dsa-transparency-worker` passes.
 - `runbooks/dsa-transparency-report-generation.md` includes generation, validation, and rollback steps.
 - `dashboards/moderation-and-safety.json` validates as JSON.
 - DSA report fixtures include statement-of-reasons and appeal status.
 - Policy basis resolves to `policy/content-policy.cedar`.
 
 ## F. Evidence
-- Catalog: `catalog/oya-social-dsa-transparency-worker.yaml`.
+- Catalog: `catalog/oya-community-social-dsa-transparency-worker.yaml`.
 - Policy: `policy/content-policy.cedar`, `policy/data-residency.md`.
 - Runbook/dashboard: `runbooks/dsa-transparency-report-generation.md`, `dashboards/moderation-and-safety.json`.
 - Compliance: `compliance.md`, `dpia.md`.
@@ -71,10 +71,10 @@ X, Threads/Instagram, TikTok, Snapchat, Reddit, Mastodon, and Bluesky all face D
 - Acceptance detail: Slack, Reddit, X, TikTok, and Mastodon comparisons must map to moderation transparency evidence.
 
 ## J. Evidence expansion
-- Evidence detail: capture nextest output for `oya-social-dsa-transparency-worker`.
+- Evidence detail: capture nextest output for `oya-community-social-dsa-transparency-worker`.
 - Evidence detail: capture generated DSA report fixture validation.
 - Evidence detail: capture dashboard JSON validation for `moderation-and-safety.json`.
-- Evidence detail: cite `catalog/oya-social-dsa-transparency-worker.yaml`.
+- Evidence detail: cite `catalog/oya-community-social-dsa-transparency-worker.yaml`.
 - Evidence detail: cite `policy/content-policy.cedar` and `policy/data-residency.md`.
 - Evidence detail: cite `compliance.md` and `dpia.md`.
 - Evidence detail: cite Slack as community moderation transparency pressure alongside European social-platform counterparts.

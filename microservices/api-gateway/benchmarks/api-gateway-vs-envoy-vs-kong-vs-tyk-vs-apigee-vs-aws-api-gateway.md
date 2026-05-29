@@ -12,7 +12,7 @@ Workloads measured: (a) edge p99 latency at 50 k RPS, (b) TLS handshake latency 
 
 Hardware (oyatie paid tenant_class profile): 16× Envoy + 12× rate-limit + 4× control-plane × 3 regions.
 
-Comparators measured against published latency figures (AWS docs, Apigee performance whitepaper, Kong benchmark suite) + our independent test rig.
+Comparators measured against published latency figures (AWS docs, Apigee performance whitepaper, Kong benchmark set) + our independent test rig.
 
 ## Workload (a) — edge p99 latency at 50 000 RPS sustained
 

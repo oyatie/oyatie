@@ -63,7 +63,7 @@ Oyatie adopts the following per-surface client matrix. Each surface is native; e
 
 The web stack runs **SvelteKit-now → Leptos-future**, not dual-parallel.
 
-- **Phase 1** (now → Leptos 1.0, ETA mid-2026): SvelteKit 2.55 is the sole web stack. Ship Workflow Studio editor, Ops Portal, Connect web surfaces, marketing/docs all in SvelteKit. Phase 1 active 2026-05-18.
+- **Phase 1** (now → Leptos 1.0, ETA mid-2026): SvelteKit 2.55 is the sole web stack. Ship Workflow Studio editor, Ops Portal, web surfaces, marketing/docs all in SvelteKit. Phase 1 active 2026-05-18.
 - **Phase 2 trigger conditions** (ALL must hold):
   - Leptos 1.0 has shipped a stable release (currently 0.8.x; 1.0 outlook documented in Leptos roadmap).
   - Leptos 1.0 has SSR + islands routing + auth-aware reactivity ergonomics matching SvelteKit.

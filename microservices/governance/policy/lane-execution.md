@@ -95,7 +95,7 @@ This document declares the invariants that every fitness lane under `microservic
 
 **Statement**: Every lane MUST be applicable to the governance µservice itself. The lane runs on every governance PR. If the lane's rule-pack requires changes for governance to pass, those changes belong in the same PR.
 
-**Test**: `microservices/governance/tests/e2e/self-application.rs` runs the full ~50-lane suite against the governance µservice's own working tree.
+**Test**: `microservices/governance/tests/e2e/self-application.rs` runs the full ~50-lane set against the governance µservice's own working tree.
 
 **Why**: Bootstrap-paradox mitigation per PRD Open Q3; honesty per ADR-0133.
 

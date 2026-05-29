@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/entity-action-policy-preview.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/entity-action-policy-preview.schema.json",
   "title": "DesignSystemComponent:EntityActionPolicyPreview",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",

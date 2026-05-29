@@ -214,7 +214,7 @@ Authoring needed.
 
 | Counterpart | Has feature? |
 |---|---|
-| Stripe Tax | yes — Stripe Connect platforms remit tax for sellers (US, EU OSS) |
+| Stripe Tax | yes — Stripe platforms remit tax for sellers (US, EU OSS) |
 | Avalara | yes — explicit MFL support |
 | TaxJar | partial — Amazon-facilitated sales handling |
 
@@ -1519,7 +1519,7 @@ adapter is not detailed beyond mention. Authoring needed.
 
 ## §18 Marketplace / Two-Sided Platform Tax
 
-### §18.1 Stripe Connect marketplace tax
+### §18.1 Stripe marketplace tax
 
 Stripe Tax has explicit Connect-platform-aware tax APIs (where the
 platform pays the seller, and the platform may be the marketplace

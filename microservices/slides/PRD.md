@@ -27,7 +27,7 @@ doc_status: published
 
 The `slides` µservice is oyatie's **collaborative presentation product** — a Google-Slides / Microsoft PowerPoint Web / Apple Keynote / Pitch / Beautiful.ai / Canva-presentations-class product surface. It owns: deck authoring (slides, layouts, master slides, themes), real-time multi-user collaboration via Loro CRDT (aligning with workflow-studio + docs + sheets per ADR-WS-0001 family), present-mode (single-presenter + audience-broadcast), live audience-engagement (reactions + Q&A + polls), import/export across PPTX / ODP / PDF / Keynote / MP4, AI-design and AI-content-generation under foundry-runtime gating, embed bridges to docs (quote blocks), sheets (live charts), and forms (in-deck polls), and broadcast-mode signaling reusing the messenger µservice's LiveKit infrastructure.
 
-Slides is **net-new** per ADR-0135 (Connect dissolution) — there is no `oya-connect-slides-*` legacy. The µservice is a hero workspace surface alongside `docs`, `sheets`, `drive`, and `forms`.
+Slides is **net-new** per ADR-0135 (dissolution) — there is no `oya-slides-*` legacy. The µservice is a hero workspace surface alongside `docs`, `sheets`, `drive`, and `forms`.
 
 Slides operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`): it consumes ontology object-type descriptors for embed-bridge typing; emits authoring + broadcast events to the workflow event-bus; routes cross-µservice flows (sheets chart links, docs quote-embeds, forms polls, messenger broadcast-signaling, drive storage) through SDKs only; runs in the application µservice's hosting shell.
 
@@ -111,7 +111,7 @@ The load-bearing invariants are: **never silent loss** under concurrent edit (CR
 
 - OIDC tenant-scoped at every REST + WebSocket entry; slides refuses opens without resolvable tenant identity.
 - Per-deck ACL evaluated via Cedar v4.2 LTS; per-slide ACL is a Cedar refinement (ADR-SLIDES-0007).
-- Strict CSP (`default-src 'self' https://cdn-<pack>.oyatie.dev; script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>'`); no inline scripts except WASM bootstrap nonce.
+- Strict CSP (`default-src 'self' https://cdn-<pack>.oyatie.com; script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>'`); no inline scripts except WASM bootstrap nonce.
 - XSS-free render: rich-text rendered via virtual-DOM text nodes; never `innerHTML`. Embed-bridge content (charts, polls, docs-quotes) passes through sanitization at the bridge boundary.
 - Upload virus-scan: ClamAV + OPSWAT for any uploaded asset (image, video, audio, PPTX/ODP/Keynote import); quarantine on detection.
 - Per-tenant CDN cache key partitioning; no cross-tenant cache pollution.
@@ -222,7 +222,7 @@ Naming justification — `presentation`:
 NAME: oya-slides-presentation-<layer>
 JUSTIFICATION:
 - microservice = slides: hero workspace µservice (per-microservice flat layout, ADR-0131).
-  Net-new per ADR-0135; no legacy connect-slides-* heritage.
+  Net-new per ADR-0135; no legacy slides-* heritage.
 - bc-tokens = presentation: top-level container BC; one Presentation = one Deck.
   ADR-0056 v4.1 BC-optionality honoured (30 sibling BCs exist; presentation is the
   composition root).
@@ -530,10 +530,10 @@ Sharding:
 | ADR-0105 | 13-layer enum + backend-qualified adapters Amd.3 | layer authority |
 | ADR-0106 | Application → usecase rename | applied for new crates |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-SLIDES registers here |
-| ADR-0135 | Connect dissolution | slides is one of 5 net-new µservices unbundled from connect; no legacy |
+| ADR-0135 | dissolution | slides is one of 5 net-new µservices unbundled from connect; no legacy |
 | ADR-0139 | Agentic SLO-gated promotion | slides SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout | this µservice authored natively under it |
-| ADR-0132 | Product-suite-and-bundle dissolution | slides is a single-concern µservice, not a suite |
+| ADR-0132 | Product-platform-and-bundle dissolution | slides is a single-concern µservice, not a suite |
 | ADR-0133 | Industry-best-practice conformance | slides competitor parity tracked here |
 | ADR-0134 | Strangler-fig migration | not applicable; slides is net-new |
 | ADR-0140 | Cedar policy enforcement | acl BC built on this |

@@ -168,7 +168,7 @@ Conclusion: ACR + step-up are in-house from inception. Only the redirect endpoin
 ## Cross-references
 
 - RFC 9068 §3.1 (acr claim)
-- OpenID Connect Core §3.1.2 (acr_values request param)
+- OpenID Core §3.1.2 (acr_values request param)
 - ADR-0187 canonical-oidc-idp-zitadel-primary
 - ADR-0188 passkey-webauthn-substrate
 - ADR-0183 policy-engine-separation-cedar-app-authz-kyverno-admission

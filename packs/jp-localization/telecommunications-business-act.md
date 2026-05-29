@@ -514,7 +514,7 @@ CrossRef-011: See ADR-0251 for compliance-pack mechanics.
 CrossRef-012: See ADR-0263 for audit redaction.
 CrossRef-013: Messenger owns message-content classification.
 CrossRef-014: Mail owns usage detail and retention mapping.
-CrossRef-015: Connect owns carrier partner diligence.
+CrossRef-015: owns carrier partner diligence.
 CrossRef-016: Security owns serious-accident triage.
 CrossRef-017: Legal-ops owns foreign disclosure and warrant review.
 CrossRef-018: Support owns redacted tooling.

@@ -520,7 +520,7 @@ All events go through the canonical eventing backbone per ADR-0050/0174 + outbox
 | `cloud.region_registered.v1` | `oya.cloud.region` | `contracts/events/cloud.region_registered.v1.avsc` | All axes (residency-aware), regulatory pack binding, marketplace | indefinite | `region_code` |
 | `cloud.cell_rebalanced.v1` | `oya.cloud.region` | `contracts/events/cloud.cell_rebalanced.v1.avsc` | Audit, FinOps, observability | 90 d | `(cell_id, rebalance_seq)` |
 | `cloud.invoice_issued.v1` | `oya.cloud.billing` | `contracts/events/cloud.invoice_issued.v1.avsc` | SaaS billing-account update, Tax (regional pack), Tenant trust portal | 7y | `invoice_id` |
-| `cloud.budget_alert.v1` | `oya.cloud.billing` | `contracts/events/cloud.budget_alert.v1.avsc` | Tenant FinOps surface, Connect (notification) | 30 d | `(billing_account_id, alert_seq)` |
+| `cloud.budget_alert.v1` | `oya.cloud.billing` | `contracts/events/cloud.budget_alert.v1.avsc` | Tenant FinOps surface, (notification) | 30 d | `(billing_account_id, alert_seq)` |
 | `cloud.bucket_replication_lag.v1` | `oya.cloud.storage` | `contracts/events/cloud.bucket_replication_lag.v1.avsc` | Observability, Foundry remediation capability | 14 d | `(bucket_id, ts)` |
 | `cloud.object_lifecycle_transitioned.v1` | `oya.cloud.storage` | `contracts/events/cloud.object_lifecycle_transitioned.v1.avsc` | Audit, FinOps, Search re-index hint | 90 d | `(bucket_id, key, transition_seq)` |
 | `cloud.network_flow_anomaly.v1` | `oya.cloud.network` | `contracts/events/cloud.network_flow_anomaly.v1.avsc` | Security review, Foundry remediation, Audit | 90 d | `(vpc_id, anomaly_id)` |
@@ -1355,7 +1355,7 @@ Pass: imported credentials are secret references only.
 - Azure: oyatie wins on evidence-native sovereign controls and smaller policy surface.
 - GCP: oyatie wins on audit-chain productization and Foundry-operated control plane.
 - Oracle Cloud: oyatie wins on workload portability and tenant-scoped marketplace integration.
-- Naver Cloud: oyatie wins on cross-region product suite plus KR sovereignty.
+- Naver Cloud: oyatie wins on cross-region product platform plus KR sovereignty.
 - NHN Cloud: oyatie wins on agent-operated operations and audit export.
 - KT Cloud: oyatie wins on developer-facing managed service breadth and automation.
 - Kakao Cloud: oyatie wins on enterprise control, evidence, and cross-product handoffs.

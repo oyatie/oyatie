@@ -20,7 +20,7 @@ She has Wharton's Round 2 application portal open in a Safari tab and her oyatie
 
 Her current paragraph reads:
 
-> When I joined Stripe Connect APAC in 2022, I inherited a platform that had grown product-led without an explicit thesis for the Indonesia and the Philippines markets. Over the following two years I co-authored the Asia-Pacific go-to-market rewrite that turned Connect from a flat fee schedule into a region-specific elasticity model — and watched our Indonesia GMV grow from $14m to $112m annualized. I did not, at any point during that work, feel that I had reached the ceiling of what I could learn at my desk. What I did feel was that the next ten years of my career, if I want them to be the ten years I built something rather than improved something, need a different operating system.
+> When I joined Stripe APAC in 2022, I inherited a platform that had grown product-led without an explicit thesis for the Indonesia and the Philippines markets. Over the following two years I co-authored the Asia-Pacific go-to-market rewrite that turned from a flat fee schedule into a region-specific elasticity model — and watched our Indonesia GMV grow from $14m to $112m annualized. I did not, at any point during that work, feel that I had reached the ceiling of what I could learn at my desk. What I did feel was that the next ten years of my career, if I want them to be the ten years I built something rather than improved something, need a different operating system.
 
 She reads it once. Then again. She nods once. She types the last sentence:
 
@@ -68,7 +68,7 @@ She closes the iPad. She has set her alarm for 06:30 — Anaya wakes at 06:45 on
 
 ## §2 — Monday Dec 7 09:34 IST — Priya gets the recommender invitation
 
-Priya Krishnamurthy is 41, lives in Koramangala 5th Block, has been at Stripe for 4 years (joined from Razorpay in 2022 after a brief stint as a PM at Flipkart), holds an MBA from ISB Hyderabad (2014), and manages a team of 11 product managers across India, Singapore, and Sydney covering Stripe Connect APAC. She is currently in her home office on her Stripe-issued MacBook Pro 16" M4 Pro, signed into her work tenant `stripe-india-pvt-ltd`. The tenant chip at the top of her screen reads:
+Priya Krishnamurthy is 41, lives in Koramangala 5th Block, has been at Stripe for 4 years (joined from Razorpay in 2022 after a brief stint as a PM at Flipkart), holds an MBA from ISB Hyderabad (2014), and manages a team of 11 product managers across India, Singapore, and Sydney covering Stripe APAC. She is currently in her home office on her Stripe-issued MacBook Pro 16" M4 Pro, signed into her work tenant `stripe-india-pvt-ltd`. The tenant chip at the top of her screen reads:
 
 > **💼 priya.krishnamurthy@stripe-india-pvt-ltd · work · 1 tenant active**
 
@@ -140,7 +140,7 @@ Rajesh's recommendation slot is the "supplementary" slot — Wharton accepts a p
 
 The sweep walks `stripe-india-pvt-ltd`'s work-tenant `drive` for Saanvi's documents. It finds:
 
-- 217 work-tenant Drive documents (roadmap docs, design reviews, Connect APAC strategy artifacts, OKR documents) — all expected for a senior product manager
+- 217 work-tenant Drive documents (roadmap docs, design reviews, APAC strategy artifacts, OKR documents) — all expected for a senior product manager
 - ZERO references to MBA applications, Wharton, Stanford, HBS, Booth, or INSEAD
 - ZERO references to Saanvi's personal Drive paths
 - ZERO references to her personal-tenant email
@@ -237,13 +237,13 @@ She decides to disclose for all 5 schools, keeping the framing consistent.
 
 ## §8 — Monday Dec 14 09:00–18:00 IST — calibration day at Stripe
 
-Monday is the Stripe Connect APAC calibration meeting. The Bangalore office is full (Stripe runs hybrid 3 days a week; today is one). Saanvi arrives at 08:42 IST, badges in via her work-tenant identity (`saanvi.mehta@stripe-india-pvt-ltd` + passkey on her MacBook), walks to her 5th-floor desk, opens her work laptop, signs in. The tenant chip reads:
+Monday is the Stripe APAC calibration meeting. The Bangalore office is full (Stripe runs hybrid 3 days a week; today is one). Saanvi arrives at 08:42 IST, badges in via her work-tenant identity (`saanvi.mehta@stripe-india-pvt-ltd` + passkey on her MacBook), walks to her 5th-floor desk, opens her work laptop, signs in. The tenant chip reads:
 
 > **💼 saanvi.mehta@stripe-india-pvt-ltd · work · 1 tenant active**
 
 She does NOT sign into her personal tenant on the work laptop. Ever. Not even via the browser. That is the discipline.
 
-Her work-day is normal: 09:30 standup, 10:00 Connect Pricing Workshop, 12:00 lunch with two product designers, 13:00 a 1:1 with her own report Mohammed Akram, 14:00 a Connect APAC deep-dive design review where she chairs, 15:30 the calibration prep, 16:00 the calibration meeting itself.
+Her work-day is normal: 09:30 standup, 10:00 Pricing Workshop, 12:00 lunch with two product designers, 13:00 a 1:1 with her own report Mohammed Akram, 14:00 a APAC deep-dive design review where she chairs, 15:30 the calibration prep, 16:00 the calibration meeting itself.
 
 In the calibration meeting Priya advocates for an "Exceeds" rating for Saanvi. Priya's case is anchored on the Indonesia GMV trajectory + Saanvi's Manila bug catch + her cross-team work with the Sydney engineering team. Two peer managers cross-question on whether Saanvi's "consensus-building" style is sometimes a velocity drag; Priya agrees there is a development edge but argues the net is strongly positive. The calibration concludes at 17:42 IST with Saanvi's rating set to **Exceeds**.
 

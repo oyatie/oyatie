@@ -51,7 +51,7 @@ COMPLETION REPORT (Wave 15M-G — 2026-05-21):
 `status: wave-15m-g-authored-2026-05-21`
 `tier: product / b2b-leader-operational-concern / medical-device-software`
 `tenant_class_eligibility: ["demo_trial", "paid"]`
-`split_authority: ADR-0132 (no-suite policy) + user directive 2026-05-21`
+`split_authority: ADR-0132 (no-grouping policy) + user directive 2026-05-21`
 `top_3_anchors: GE Centricity Universal Viewer; Philips IntelliSpace PACS; Sectra PACS + VNA`
 
 ---
@@ -73,7 +73,7 @@ The Imaging microservice is Oyatie's hyperscaler-grade enterprise imaging platfo
 
 The product is designed to displace GE Centricity Universal Viewer + PACS-IW + Enterprise Archive, Philips IntelliSpace PACS + Enterprise Imaging (Carestream Vue lineage), and Sectra PACS + VNA — not by feature-checkbox parity, but by delivering a unified DICOM + FHIR + IHE substrate that the legacy vendors approximate with bolted-together acquired products. Secondary anchors (Agfa Enterprise Imaging, Visage 7, Merge PACS, Fujifilm Synapse, Siemens syngo.via, Change Healthcare Stratus) inform the secondary capability matrix.
 
-This µservice owns ONE concern (medical imaging end-to-end) per ADR-0132's no-suite policy. The concurrently-authored `diagnostics` µservice has a bundled scope (lab + imaging + pathology) that violates ADR-0132; **this imaging µservice's authority SUPERSEDES the imaging portions of diagnostics**. Reconciliation is queued for Wave 15M follow-up.
+This µservice owns ONE concern (medical imaging end-to-end) per ADR-0132's no-grouping policy. The concurrently-authored `diagnostics` µservice has a bundled scope (lab + imaging + pathology) that violates ADR-0132; **this imaging µservice's authority SUPERSEDES the imaging portions of diagnostics**. Reconciliation is queued for Wave 15M follow-up.
 
 ---
 
@@ -703,7 +703,7 @@ Per ADR-0328 §D-15..D-20 substance-bar discipline + Big-8 priority.
 - `microservices/healthcare-integration/manifest.json` (preserved 10,250 inst/min claim)
 - `microservices/healthcare-integration/performance-benchmark-numbers-2026-05-20.md`
 - `docs/decisions/ADR-0131-per-microservice-flat-layout.md`
-- `docs/decisions/ADR-0132-no-suite-policy.md`
+- `docs/decisions/ADR-0132-no-grouping-policy.md`
 - `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`
 - `docs/decisions/ADR-0251-compliance-pack-primitive.md`
 - `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md`
@@ -732,12 +732,12 @@ Per ADR-0328 §D-15..D-20 substance-bar discipline + Big-8 priority.
 | Legacy VNA migration data integrity | Med | High | Per-vendor adapter with checksum + sample-verified validation lane |
 | AI vendor model drift | High | Med | Drift detector per FR-AI-005 + on-call AI-Ops |
 | Voice recognition vendor lock-in | Med | Low | Whisper-medical fallback + multi-vendor abstraction |
-| Modality private-tag breakage on vendor upgrade | High | Low | Vendor-quirk regression suite per modality |
+| Modality private-tag breakage on vendor upgrade | High | Low | Vendor-quirk regression set per modality |
 | Sovereign-cell capacity exhaustion | Low | High | Per-cell capacity admission control + cross-pack capacity dashboards |
 | HIPAA breach via AI vendor egress | Low | Critical | Pixel-PHI de-identification gate per FR-AI-008 + Cedar policy `ai-model-can-read-deidentified.cedar` |
 | Critical-result delivery failure | Low | Critical | Multi-channel escalation + audit-chain + workflow-engine retry |
 | MQSA retention violation | Low | High | MQSA-retention enforcement gate via compliance pack |
-| Cross-VNA federation auth failure | Med | Med | XCA-I conformance suite + IHE Connectathon participation |
+| Cross-VNA federation auth failure | Med | Med | XCA-I conformance set + IHE Connectathon participation |
 | Multi-GB study load latency under load | Med | Med | Visage-class server-side rendering + edge CDN for thumbnails |
 
 ---

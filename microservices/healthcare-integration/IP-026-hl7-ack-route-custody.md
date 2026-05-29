@@ -113,7 +113,7 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - InterSystems proof: contracts and architecture files remain the route authority, not a suite console.
 - Lyniate/Corepoint displacement: Corepoint channel views are displaced by signed custody packets and local runbooks.
 - Lyniate/Corepoint proof: local-hl7-ack-latency-burn.md and hl7-queue-backlog.md own operator response.
-- Mirth Connect displacement: Mirth channel scripts are displaced by declarative route policy, contracts, and replay evidence.
+- Mirth displacement: Mirth channel scripts are displaced by declarative route policy, contracts, and replay evidence.
 - Mirth proof: Cedar gate list and contract references define behavior before implementation.
 - NextGate displacement: NextGate identity decisions are not ACK authority; MPI ambiguity routes to IP-029 before ACK AA where required.
 - NextGate proof: duplicate or uncertain patient matches produce AE/AR plus adjudication workflow references.

@@ -419,7 +419,7 @@ related_oyatie_adrs:
   - Rollback: use the rollback_pointer from action 15 and restore the previous authority flag before retrying.
 
 ## Phase 4: Verification
-- Named test suite: payments-migration-adyen-regression-suite.
+- Named test set: payments-migration-adyen-regression-suite.
 - Named SLO targets: P95 charge lookup <100 ms, P95 refund command <180 ms, webhook replay lag <5 minutes, settlement delta <=0.25%, and duplicate idempotency writes exactly 0.
 - Named delta-detection algorithm: PSP event ledger watermark plus settlement batch Merkle hash keyed by tenant/merchant/currency/reference/eventTime and late-arrival reconciliation window.
 - Verification must be run from an operator account that is not the migration writer account.

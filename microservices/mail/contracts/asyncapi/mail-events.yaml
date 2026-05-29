@@ -26,7 +26,7 @@ info:
     RFC 6376 (DKIM), RFC 7489 (DMARC), RFC 8617 (ARC).
   contact:
     name: axis-mail
-    email: axis-mail@oyatie.dev
+    email: axis-mail@oyatie.com
 
 defaultContentType: application/json
 

@@ -24,11 +24,11 @@ companion_docs:
 # j23 - Marketplace listing and first seller payout
 
 ## Outcome
-Yejin lists a vintage jacket, completes the first sale, and receives a Stripe Connect payout to a Korean bank after marketplace settlement.
+Yejin lists a vintage jacket, completes the first sale, and receives a Stripe payout to a Korean bank after marketplace settlement.
 
 Persona: Yejin Park. Locale: `ko-KR`. Tenant mode: `personal-seller`. Center of gravity: `marketplace`.
 
-Hyperscaler precedent: Stripe Connect marketplace facilitator plus Etsy listing controls.
+Hyperscaler precedent: Stripe marketplace facilitator plus Etsy listing controls.
 
 ## Artifact index
 

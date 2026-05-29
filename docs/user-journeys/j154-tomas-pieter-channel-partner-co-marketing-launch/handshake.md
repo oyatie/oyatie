@@ -109,7 +109,7 @@ Response (`201 Created`):
 
 Audit: `EVT-J154-TENANCY-SHARED-PROVISIONED-002` (sealed in all 3 tenants).
 
-## §2 Connect — tri-party DPA attestation
+## §2 — tri-party DPA attestation
 
 ### 2.1 DPA upload + signature verification
 
@@ -580,7 +580,7 @@ Trinity-replication rule: any event whose `payload` references data from another
 | Campaign launch without sender-domain alignment | Pre-flight floor fails | `EVT-J154-CAMPAIGN-LAUNCH-DELIVERABILITY-FLOOR` |
 | Lead routed without consent | NL-Telecom §11.7 + GDPR Art 6 | `EVT-J154-CRM-DENY-LEAD-NO-CONSENT` |
 | Cross-tenant marketing-asset preview (PartnerLift principal previews Glacier-internal asset) | Trinity scoping | `EVT-J154-CEDAR-DENY-CROSS-PARTNER-ASSET-PREVIEW` |
-| DPA upload with revoked signing cert | Connect verification fails | `EVT-J154-CONNECT-DPA-CERT-REVOKED` |
+| DPA upload with revoked signing cert | verification fails | `EVT-J154-CONNECT-DPA-CERT-REVOKED` |
 | Escrow release before T-fire | Workflow guard fails | `EVT-J154-PAYMENTS-DENY-PREMATURE-RELEASE` |
 | Shared tenant write after Apr 1 wind-down | Lifecycle state machine | `EVT-J154-TENANCY-DENY-WRITE-DURING-WINDDOWN` |
 | Public reads of joint analytics by non-controller | Trinity Cedar | `EVT-J154-CEDAR-DENY-ANALYTICS-NON-CONTROLLER` |

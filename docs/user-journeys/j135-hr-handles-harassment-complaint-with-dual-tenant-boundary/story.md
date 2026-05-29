@@ -215,7 +215,7 @@ Engagement scope:
 - NO access to personal-tenant data of either party (Cedar default-deny)
 - Deliverable: investigation report + recommendation
 
-Per-investigation fee: $18,500 (mid-market for this scope). Stripe Connect facilitator-flow handles payment on report-delivery + Priya's acceptance.
+Per-investigation fee: $18,500 (mid-market for this scope). Stripe facilitator-flow handles payment on report-delivery + Priya's acceptance.
 
 ### 5.2 WorkRights's investigator (Tamika Brooks)
 

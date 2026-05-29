@@ -46,7 +46,7 @@ The implementation maps JMAP methods to existing contract concepts: `Mailbox/get
 5. Wire upload/download to the S3 MIME blob adapter and reject cross-context blob reads through the IP-005 `ContextBoundaryGuard`.
 6. Add HTTP/3 Alt-Svc coverage in `iac/edge-waf.yaml`; verify h2 fallback still reaches the same policy path.
 7. Register ADR-0263 audit events for JMAP batch accepted, JMAP method denied, JMAP upload accepted, and JMAP push subscription opened.
-8. Add conformance and performance checks: JMAP test suite, malformed method-call tests, Personal-vs-Professional refusal tests, and P99 mailbox fetch under the SLO file.
+8. Add conformance and performance checks: JMAP test set, malformed method-call tests, Personal-vs-Professional refusal tests, and P99 mailbox fetch under the SLO file.
 
 ## E. Acceptance
 
@@ -54,7 +54,7 @@ The implementation maps JMAP methods to existing contract concepts: `Mailbox/get
 - Batched JMAP calls return per-method errors without leaking hidden mailbox ids or message ids.
 - `Email/query` and `SearchSnippet` meet `mail-jmap-mailbox-fetch-latency` and do not bypass encrypted-token search rules.
 - Upload/download paths reject stale blob ids, wrong-account blob ids, and Professional-to-Personal context crossings.
-- CI runs the Fastmail JMAP conformance suite reference plus local tests for request batching, state-token invalidation, and h2 fallback.
+- CI runs the Fastmail JMAP conformance set reference plus local tests for request batching, state-token invalidation, and h2 fallback.
 
 ## F. Evidence
 

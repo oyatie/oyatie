@@ -368,21 +368,21 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 - ✅ CS-CLOUD-IAC-CELL-TOPOLOGY-GITOPS-IDENTITY-GATE-001 — make cell topology fail closed when Argo CD templates drift from cell identity labels.
   - RED: `cargo test -p oya-dev-cli cloud_iac_cell_topology_gate_rejects_gitops_template_identity_drift -- --nocapture` failed because a template with a drifted `oyatie.com/cell-id` label was still accepted.
   - GREEN: focused `cloud_iac_cell_topology` tests now prove coherent templates pass and topology-to-template identity drift fails closed.
-  - GREEN: live cell-topology/GitOps gates, Rust fmt/check/clippy, governance gates, scoped Cloud IaC suite, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and Oya VCS work/verify/done/promote pass.
+  - GREEN: live cell-topology/GitOps gates, Rust fmt/check/clippy, governance gates, scoped Cloud IaC gate set, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and Oya VCS work/verify/done/promote pass.
   - NEXT: continue sequentially toward live Argo CD/Kubernetes sync evidence, production auth/Cedar, object-store adapter, or OpenTofu plan/apply/state evidence; do not claim FD-001 tenant hosting yet.
   - NON-CLAIMS: no Argo CD API, Kubernetes API, live sync/diff/health/prune/self-heal, mesh runtime, autosharding, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.
 
 - ✅ CS-CLOUD-IAC-GITOPS-SIGNED-IMAGE-PARAM-GATE-001 — make GitOps evidence fail closed when signed image Helm parameters drift or disappear.
   - RED: `cargo test -p oya-dev-cli cloud_iac_gitops_evidence_gate_rejects_missing_signed_image_parameter -- --nocapture` failed because a template without `image.digest` was accepted.
   - GREEN: focused `cloud_iac_gitops_evidence` tests now prove coherent templates pass and missing signed-image parameters fail closed.
-  - GREEN: live GitOps/cell-topology gates, Rust fmt/check/clippy, governance gates, scoped Cloud IaC suite, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and Oya VCS work/verify/done/promote pass.
+  - GREEN: live GitOps/cell-topology gates, Rust fmt/check/clippy, governance gates, scoped Cloud IaC gate set, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and Oya VCS work/verify/done/promote pass.
   - NEXT: continue sequentially toward live cosign/admission evidence, Argo CD/Kubernetes sync evidence, OpenTofu plan/apply/state evidence, or FD-001 tenant workload dogfood render/deploy evidence; do not claim runtime hosting yet.
   - NON-CLAIMS: no cosign verification execution, image signing, admission controller, Argo CD API, Kubernetes API, live sync/diff/health/prune/self-heal, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.
 
 - ✅ CS-CLOUD-IAC-GITOPS-HELM-PARAM-PAIR-GATE-001 — make GitOps evidence fail closed when signed-image Helm parameter values are orphaned or paired with the wrong names.
   - RED: `cargo test -p oya-dev-cli cloud_iac_gitops_evidence_gate_rejects_signed_image_parameter_value_pair_drift -- --nocapture` failed because `image.digest` with the wrong adjacent value was accepted when `{{signed_image_digest}}` appeared elsewhere.
   - GREEN: focused `cloud_iac_gitops_evidence` tests now prove coherent templates pass and signed-image Helm name/value pair drift fails closed.
-  - GREEN: live GitOps/cell-topology gates, Rust fmt/check/clippy, governance gates, scoped Cloud IaC suite, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and Oya VCS work/verify/done/promote pass.
+  - GREEN: live GitOps/cell-topology gates, Rust fmt/check/clippy, governance gates, scoped Cloud IaC gate set, strict dependency-seam, scoped honest/retired vocabulary, JSON/audit parsing, whitespace checks, and Oya VCS work/verify/done/promote pass.
   - NEXT: continue sequentially toward live Helm render evidence, cosign/admission evidence, Argo CD/Kubernetes sync evidence, OpenTofu plan/apply/state evidence, or FD-001 tenant workload dogfood render/deploy evidence; do not claim runtime hosting yet.
   - NON-CLAIMS: no Helm rendering, cosign verification execution, image signing, admission controller, Argo CD API, Kubernetes API, live sync/diff/health/prune/self-heal, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.
 

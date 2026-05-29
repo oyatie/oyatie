@@ -189,7 +189,7 @@ Every row in every table carrying user-facing data has `tenant_id` column. Every
 - Runbook/IaC evidence: `microservices/ops-dashboard-control-center/runbooks/admin-action-rollback.md`, `microservices/ops-dashboard-control-center/runbooks/admin-mfa-cascade.md`, `microservices/ops-dashboard-control-center/runbooks/dashboard-perf-degradation.md`, `microservices/ops-dashboard-control-center/runbooks/deployment-rollback.md`, `microservices/ops-dashboard-control-center/runbooks/forensic-investigation-handoff.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `PII_IDENTIFYING`, `AUTHENTICATION`, `AUDIT`, `INTERNAL_ONLY`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `ops-dashboard-control-center` `incident-declare` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -469,7 +469,7 @@ This µservice does NOT expose marketplace surfaces. It is internal-only. Per AD
 - Runbook/IaC evidence: `microservices/ops-dashboard-control-center/runbooks/admin-action-rollback.md`, `microservices/ops-dashboard-control-center/runbooks/admin-mfa-cascade.md`, `microservices/ops-dashboard-control-center/runbooks/dashboard-perf-degradation.md`, `microservices/ops-dashboard-control-center/runbooks/deployment-rollback.md`, `microservices/ops-dashboard-control-center/runbooks/forensic-investigation-handoff.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `PII_IDENTIFYING`, `AUTHENTICATION`, `AUDIT`, `INTERNAL_ONLY`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `ops-dashboard-control-center` `incident-declare` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

@@ -37,7 +37,7 @@ cross_product_compound: true
 # j115-saas-vendor-sells-api-to-multiple-tenant-customers - Handshake
 
 Purpose: cross-service and cross-tenant sequence for TenantF AIScribe sells API access to KrampusCorp,
-HealthcareSystem-Megacorp, and BoutiqueRetailer with per-customer metering, Stripe Connect usage billing, and per-tenant
+HealthcareSystem-Megacorp, and BoutiqueRetailer with per-customer metering, Stripe usage billing, and per-tenant
 Cedar permits.
 
 ## Contract stack

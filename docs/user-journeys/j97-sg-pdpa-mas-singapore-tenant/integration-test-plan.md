@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J97-T001 | analytics fintech tenant activation | Cedar decision and audit event cite Singapore PDPA section 11 accountability; data remains tenant-scoped |
 | J97-T002 | api-gateway PDPA consent catalog | Cedar decision and audit event cite Singapore PDPA sections 13 to 17 consent, purpose, and withdrawal duties; data remains tenant-scoped |

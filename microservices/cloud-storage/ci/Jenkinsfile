@@ -1,8 +1,19 @@
+String requireRealCiImageDigest(String variableName) {
+  String digest = env[variableName]?.trim()
+  if (!digest) {
+    throw new IllegalStateException("${variableName} must be set before rendering the Jenkins Kubernetes agent pod")
+  }
+  if (!(digest ==~ /^sha256:[0-9a-f]{64}$/) || digest ==~ /^sha256:0{64}$/) {
+    throw new IllegalStateException("${variableName} must be a real non-zero sha256 digest")
+  }
+  return digest
+}
+
 pipeline {
   agent {
     kubernetes {
       defaultContainer 'rust'
-      yaml '''
+      yaml """
 apiVersion: v1
 kind: Pod
 metadata:
@@ -16,7 +27,8 @@ spec:
   runtimeClassName: kata-cloud-hypervisor
   containers:
     - name: rust
-      image: registry.oyatie.dev/ci/rust:stable@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      # Jenkins injects OYA_CI_RUST_IMAGE_DIGEST from ADR-0181 release automation; no fake digest is committed.
+      image: registry.oyatie.dev/ci/rust:stable@${requireRealCiImageDigest('OYA_CI_RUST_IMAGE_DIGEST')}
       imagePullPolicy: IfNotPresent
       command:
         - cat
@@ -26,7 +38,7 @@ spec:
         capabilities:
           drop:
             - ALL
-'''
+"""
     }
   }
 

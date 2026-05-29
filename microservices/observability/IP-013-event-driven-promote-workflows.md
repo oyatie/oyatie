@@ -42,9 +42,14 @@ stage('Promote eligible microservice') {
     sh 'cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha "$SOURCE_SHA" --env "$TARGET_ENV"'
     sh '''
 set -eu
-git fetch origin "refs/heads/release/${MICROSERVICE}/${TARGET_ENV}:refs/remotes/origin/release/${MICROSERVICE}/${TARGET_ENV}" || true
-git update-ref "refs/heads/release/${MICROSERVICE}/${TARGET_ENV}" "$SOURCE_SHA"
-git push origin "refs/heads/release/${MICROSERVICE}/${TARGET_ENV}"
+cargo run -p oya-dev-cli -- promotion advance-release-pointer \
+  --microservice "$MICROSERVICE" \
+  --env "$TARGET_ENV" \
+  --source-sha "$SOURCE_SHA" \
+  --event "$PROMOTION_EVENT_ID" \
+  --require-signed-source \
+  --require-protected-release-ref \
+  --append-audit-chain
 '''
   }
 }

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "financial-planning",
   "title": "Financial Planning",
   "status": "reserved-wave-3-i-anchor",
@@ -90,7 +90,7 @@
       "ARCHITECTURE.md",
       "compliance.md"
     ],
-    "full_suite_artifact_floor": 70,
+    "full_platform_artifact_floor": 70,
     "operating_bar_artifact_count": 100
   },
   "naming_justifications": "financial-planning is a BNF v4.1 kebab-case microservice slug; generated names follow oya-financial-planning-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",

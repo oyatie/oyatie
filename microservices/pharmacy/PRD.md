@@ -32,7 +32,7 @@ related_adrs:
 - **Wave**: 15M-E (Healthcare Pharmacy Author Wave)
 - **Authority ADR**: ADR-0332 (per-microservice pharmacy substrate authorization)
 - **Layout authority**: ADR-0131 (per-microservice flat layout)
-- **Suite policy**: ADR-0132 (no-suite microservices; single-concern flat)
+- **Suite policy**: ADR-0132 (no-grouping microservices; single-concern flat)
 - **Inter-microservice substrate**: ADR-0145 direct gRPC + 3 invariants (no Workflow+Ontology forced adapter)
 - **Architecture overlay**: ADR-0328 (multispectrum review v2.4.0 + Big 8 + foundry absorption)
 - **Compliance overlays**: ADR-0251 (compliance-pack primitive) — applicable packs: `hipaa`, `dea-controlled-substance`, `gdpr`, `pci-dss`, `eu-ai-act`, `lgpd`, `cn-pipl-2021`, `kr-pipa`, `state-board-of-pharmacy`, `dscsa`, `usp-797`, `usp-800`, `340b`, `ncpdp-script`, `surescripts`
@@ -710,7 +710,7 @@ Each bounded context owns its own kernel/domain/usecase/api/sdk/rest/adapter/wor
 ## §12 References
 
 - ADR-0131 per-microservice flat layout.
-- ADR-0132 no-suite microservices.
+- ADR-0132 no-grouping microservices.
 - ADR-0145 inter-microservice direct-gRPC + 3 invariants.
 - ADR-0251 compliance-pack primitive.
 - ADR-0328 multispectrum review v2.4.0 overlay.
@@ -874,7 +874,7 @@ Pharmacy is held to:
 All CI lanes enforce these:
 
 - `lean-a10-no-silent-regression` — public-contract drift fails the build.
-- `lean-a5-doc-coverage` — every µservice ships full doc suite.
+- `lean-a5-doc-coverage` — every µservice ships full doc set.
 - `pharmacy-os-tier-1` — Tier-1 OS lane blocking.
 - `pharmacy-os-tier-2` — Tier-2 soft-gate.
 - `pharmacy-cabinet-vendor-swap-smoke` — switch-vendor smoke per IP-009.
@@ -903,7 +903,7 @@ authoring_date: 2026-05-21
 sole_owner: pharmacy authoring agent
 authority_adr: ADR-0332
 layout_authority: ADR-0131
-suite_policy: ADR-0132
+grouping_policy: ADR-0132
 bounded_contexts_authored: 20 (MedicationCatalog, Formulary, ePrescribe, DrugInteraction, AllergyCheck, DoseCheck, Verification, Compounding, Inventory, AutoDispensing, BCMA, IVAdmixture, ControlledSubstance, Reimbursement, Operations, Interventions, MedRec, OutpatientRX, MTM, DSCSA)
 slos_authored: 12
 cedar_policies_authored: 5

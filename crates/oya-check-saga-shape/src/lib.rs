@@ -138,7 +138,7 @@ impl fmt::Display for SagaShapeViolation {
     }
 }
 
-/// Canonical 32-µservice catalog (per microservices/ directory at ADR-0131
+/// Canonical flattened µservice catalog (per microservices/ directory at ADR-0131
 /// per-microservice flat layout). Callers may inject a different catalog
 /// for tests.
 pub fn canonical_microservice_catalog() -> BTreeSet<&'static str> {
@@ -152,7 +152,7 @@ pub fn canonical_microservice_catalog() -> BTreeSet<&'static str> {
         "cloud-k8s",
         "cloud-secrets",
         "community",
-        "connect",
+        "connector",
         "drive",
         "forms",
         "foundry",

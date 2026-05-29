@@ -46,7 +46,7 @@ Example:
 
 ```http
 POST /object-types/task/instances HTTP/2
-Host: ontology.oyatie.dev
+Host: ontology.oyatie.com
 Authorization: Bearer eyJ...
 X-Tenant-Id: 018f7a54-3ef5-7c42-a111-a2c4ad7f88f0
 X-Context-Kind: Professional

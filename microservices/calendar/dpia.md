@@ -75,7 +75,7 @@ DPIA mandatory pre-deployment. Reviewed by EU DPAs (Art. 35) and KR PIPC (Art. 3
 - **Data subjects:** end-users (the tenant's employees + invitees + customers); tenant operators; external attendees (RSVP-only); oyatie operators (internal).
 - **Relationship:** joint controllership with tenant (GDPR Art. 26) for end-user event data; oyatie sole processor for operational metadata.
 - **Reasonable expectations:** tenant operators expect operational scheduling; end-users expect scheduling per tenant's privacy notice; external attendees expect RSVP-only access.
-- **Previous experience:** Bominal Connect Calendar inheritance per ADR-0208; no DPA-triggered complaints in inheritance period.
+- **Previous experience:** Bominal Calendar inheritance per ADR-0208; no DPA-triggered complaints in inheritance period.
 
 ### 2.4 Purposes
 

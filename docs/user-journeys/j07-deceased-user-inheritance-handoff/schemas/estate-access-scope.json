@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j07/estate-access-scope.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j07/estate-access-scope.json",
   "title": "EstateAccessScope",
   "version": "1.0.0",
   "description": "EstateAccessScope shared object for j07 Deceased user inheritance handoff. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

@@ -50,7 +50,7 @@ Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0242, ADR-0243, ADR-0244, ADR-02
 - `pack_restriction_overlay`: per-pack dimension and grain allow-list.
 
 ## Implementation steps
-- Add `semantic-layer` sub-context within the `transform` bounded context (rather than a new top-level context) per ADR-0132 no-suite policy and audit §6.2.
+- Add `semantic-layer` sub-context within the `transform` bounded context (rather than a new top-level context) per ADR-0132 no-grouping policy and audit §6.2.
 - Add `src/domain/semantic_metric.rs` with `SemanticMetricDefinition`, `MetricKind` enum, `MetricExpression` parser.
 - Add `src/usecase/semantic_metric.rs` exposing `metric.define`, `metric.amend`, `metric.approve`, `metric.deprecate`, `metric.query_plan`, `metric.read`.
 - Add `src/adapter/metric_expression_parser.rs` (canonical metric DSL).

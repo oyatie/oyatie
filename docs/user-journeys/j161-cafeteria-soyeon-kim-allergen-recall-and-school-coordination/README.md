@@ -79,7 +79,7 @@ The journey closes:
 - **Critical-path row 41** (Cross-tenant supplier escalation with audit-chain capture)
 - **Critical-path row 42** (Hangul + dialect fidelity for Korean names, place names, regulator titles)
 
-Hyperscaler benchmark: CBORD + LINQ + Nutrislice + Linq Connect + MealsCount (Texas school-state systems) + EZSchoolPay. The unique part of oyatie is that **Cedar policy makes "school nutritionist can halt food service" a first-class permit gated on certification + role + active service window + ingredient context** — not a flag in a config table — and the resulting cross-tenant parent broadcast respects per-family privacy without forcing the school to bcc 805 parents in plain-text email.
+Hyperscaler benchmark: CBORD + LINQ + Nutrislice + Linq + MealsCount (Texas school-state systems) + EZSchoolPay. The unique part of oyatie is that **Cedar policy makes "school nutritionist can halt food service" a first-class permit gated on certification + role + active service window + ingredient context** — not a flag in a config table — and the resulting cross-tenant parent broadcast respects per-family privacy without forcing the school to bcc 805 parents in plain-text email.
 
 ## Artifact inventory
 

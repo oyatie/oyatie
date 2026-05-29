@@ -188,7 +188,7 @@ pub fn build_rollup(generated_at: &str, overrides_by_ms: &[(String, Value)]) -> 
     }
 
     json!({
-        "$schema": "https://oyatie.dev/schemas/hyperscaler-scorecard-rollup.json",
+        "$schema": "https://oyatie.com/schemas/hyperscaler-scorecard-rollup.json",
         "schema_version": "1.1",
         "generated_at": generated_at,
         "sweep": "SWEEP-H",

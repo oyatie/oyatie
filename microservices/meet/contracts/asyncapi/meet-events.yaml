@@ -5,7 +5,7 @@ info:
   summary: Real-time signaling + Workflow events emitted by the meet µservice
   description: |
     Two channel families:
-    - **Real-time WebSocket** (`wss://meet-{pack}.oyatie.dev/ws/v1`):
+    - **Real-time WebSocket** (`wss://meet-{pack}.oyatie.com/ws/v1`):
       client-facing signaling events (lobby, presence, captions, breakout
       transitions, host actions) delivered to authenticated session
       connections. Per-event Cedar evaluation.
@@ -21,7 +21,7 @@ defaultContentType: application/json
 
 servers:
   signaling-gateway:
-    host: meet-{pack}.oyatie.dev
+    host: meet-{pack}.oyatie.com
     protocol: wss
     description: Per-pack signaling WebSocket
     variables:

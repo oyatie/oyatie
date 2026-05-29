@@ -59,7 +59,7 @@ Purpose: Index and build contract for Side-business omnichannel customer support
 - ../../microservices/mail/IP-journey-j49-support-email-bridge.md: mail implementation slice.
 - ../../microservices/plugin-app-store/IP-journey-j49-marketplace-case-context.md: plugin-app-store implementation slice.
 - ../../microservices/community/IP-journey-j49-review-routing.md: community implementation slice.
-- ../../microservices/connect/IP-journey-j49-external-marketplace-adapter.md: connect implementation slice.
+- ../../microservices/connector/IP-journey-j49-external-marketplace-adapter.md: connect implementation slice.
 - ../../microservices/intelligence/IP-journey-j49-support-reply-assist.md: intelligence implementation slice.
 ## Integration points
 - messenger: omnichannel-thread; emits audit, metrics, logs, and traces per ADR-0263.

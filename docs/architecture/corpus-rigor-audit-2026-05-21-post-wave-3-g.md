@@ -17,7 +17,7 @@ canonical_authority: docs/standards/documentation-rigor.md
 ## Evidence Bar
 
 - Documentation-rigor applies retroactively to docs, microservices, packs, specs, and crates docs: `docs/standards/documentation-rigor.md:42`.
-- Microservice full-suite floor is the PR-143 roster with >=70 artifacts, >=100 operating bar, and >=130 exemplar band: `docs/standards/documentation-rigor.md:62`-80.
+- Microservice full-platform floor is the PR-143 roster with >=70 artifacts, >=100 operating bar, and >=130 exemplar band: `docs/standards/documentation-rigor.md:62`-80.
 - Hyperscaler-grade requires named precedent, failure modes, capacity math, observability, rollback, multi-region, sovereign-cell, and versioning/deprecation evidence: `docs/standards/documentation-rigor.md:143`-156.
 - Six engineering dimensions are mandatory where applicable: `docs/standards/documentation-rigor.md:158`-171.
 - Doc-class rigor matrix defines class floors: `docs/standards/documentation-rigor.md:175`-190.
@@ -77,7 +77,7 @@ canonical_authority: docs/standards/documentation-rigor.md
 
 ### §1.3 Methodology Notes
 - Counts are live filesystem counts under documentation-rigor scope, including concurrent Wave 3-G additions visible at generation time.
-- Per-service ratings use six axes: artifact suite, 52-row ADR/defense/DRMP signal coverage, engineering rigor, six-hop graph proxy, cross-service consistency, and abuse/DRMP coverage.
+- Per-service ratings use six axes: artifact set, 52-row ADR/defense/DRMP signal coverage, engineering rigor, six-hop graph proxy, cross-service consistency, and abuse/DRMP coverage.
 - Contract conformance counts only numeric top-level OpenAPI/AsyncAPI/proto documents under contracts/ or schemas/; catalog YAML pointers are not counted as contract specs.
 - Six-hop graph is proxy-only because the deterministic graph walker named by documentation-rigor.md was not present under tools/.
 
@@ -113,7 +113,7 @@ canonical_authority: docs/standards/documentation-rigor.md
 
 ## §3 Per-Microservice Tier Rating
 
-The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop proxy, E consistency, and F abuse/DRMP.
+The six axes are A artifact set, B ADR/52-row proxy, C engineering, D six-hop proxy, E consistency, and F abuse/DRMP.
 ### §3.1 `analytics`
 
 - Evidence anchors: `microservices/analytics/PRD.md:1`, `microservices/analytics/ARCHITECTURE.md:1`, `microservices/analytics/compliance.md:1`, `microservices/analytics/manifest.json:1`.
@@ -126,7 +126,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 7, retired/stale terminology 5.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 88 | 46/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 2 | proxy only |
@@ -149,7 +149,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 4, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 98 | FULL |
+| A artifact set | 98 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 67 | proxy only |
@@ -172,7 +172,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 2.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 97 | FULL |
+| A artifact set | 97 | FULL |
 | B ADR/52-row proxy | 94 | 49/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 28 | proxy only |
@@ -195,7 +195,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 5.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 100 | proxy only |
@@ -218,7 +218,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 4.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 97 | FULL |
+| A artifact set | 97 | FULL |
 | B ADR/52-row proxy | 98 | 51/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 12 | proxy only |
@@ -241,7 +241,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 8.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 72 | proxy only |
@@ -264,7 +264,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 3.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 94 | 49/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 12 | proxy only |
@@ -287,7 +287,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 5, retired/stale terminology 6.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 88 | FULL |
+| A artifact set | 88 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 15 | proxy only |
@@ -310,7 +310,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 5.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 96 | FULL |
+| A artifact set | 96 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 6 | proxy only |
@@ -333,7 +333,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 3, retired/stale terminology 3.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 98 | FULL |
+| A artifact set | 98 | FULL |
 | B ADR/52-row proxy | 88 | 46/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 22 | proxy only |
@@ -356,7 +356,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 8.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 100 | FULL |
 | D six-hop proxy | 63 | proxy only |
@@ -379,7 +379,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 2, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 75 | proxy only |
@@ -390,9 +390,9 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Top gaps: P1 PRD below rigor floor: 127 lines, 0 US stories, 0/10 A-J sections; P1 compliance anchors 14/15; P2 manifest missing naming_justifications; P2 placeholder markers residue 2
 - Recommended wave: **Wave 3-J**.
 
-### §3.13 `connect`
+### §3.13 `connector`
 
-- Evidence anchors: `microservices/connect/PRD.md:1`, `microservices/connect/ARCHITECTURE.md:1`, `microservices/connect/compliance.md:1`, `microservices/connect/manifest.json:1`, `microservices/connect/README.md:1`.
+- Evidence anchors: `microservices/connector/PRD.md:1`, `microservices/connector/ARCHITECTURE.md:1`, `microservices/connector/compliance.md:1`, `microservices/connector/manifest.json:1`, `microservices/connector/README.md:1`.
 - Artifact tier: **EXEMPLAR-130+** with 176 files, 175 doc files, 51 IP files, 36 IP-journey files.
 - PRD signal: 321 lines, 0 US stories, 10/10 A-J sections.
 - Architecture/compliance signal: ARCH 1067 lines with 18 § anchors; compliance 1255 lines with 21 § anchors.
@@ -402,7 +402,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 2, retired/stale terminology 1.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 52 | proxy only |
@@ -425,7 +425,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 6, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 98 | FULL |
+| A artifact set | 98 | FULL |
 | B ADR/52-row proxy | 94 | 49/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 29 | proxy only |
@@ -448,7 +448,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -471,7 +471,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -494,7 +494,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 85 | 44/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -517,7 +517,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -540,7 +540,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -563,7 +563,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -586,7 +586,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 24.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 93 | FULL |
+| A artifact set | 93 | FULL |
 | B ADR/52-row proxy | 79 | 41/52 signals |
 | C engineering rigor | 100 | FULL |
 | D six-hop proxy | 39 | proxy only |
@@ -609,7 +609,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 9, retired/stale terminology 15.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 92 | 48/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 10 | proxy only |
@@ -632,7 +632,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 1.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 92 | FULL |
+| A artifact set | 92 | FULL |
 | B ADR/52-row proxy | 92 | 48/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 8 | proxy only |
@@ -655,7 +655,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 1.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 76 | proxy only |
@@ -678,7 +678,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 1.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 93 | FULL |
+| A artifact set | 93 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 30 | proxy only |
@@ -701,7 +701,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -724,7 +724,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 2, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 92 | 48/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 27 | proxy only |
@@ -747,7 +747,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 3, retired/stale terminology 2.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 94 | 49/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 11 | proxy only |
@@ -770,7 +770,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 3, retired/stale terminology 12.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 98 | 51/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 15 | proxy only |
@@ -793,7 +793,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 85 | 44/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -816,7 +816,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 16, retired/stale terminology 4.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 98 | 51/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 42 | proxy only |
@@ -839,7 +839,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -862,7 +862,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 3, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 100 | FULL |
 | D six-hop proxy | 100 | proxy only |
@@ -885,7 +885,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -908,7 +908,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 6.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 93 | proxy only |
@@ -931,7 +931,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -954,7 +954,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -977,7 +977,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 2, retired/stale terminology 16.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 100 | FULL |
 | D six-hop proxy | 85 | proxy only |
@@ -1000,7 +1000,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -1023,7 +1023,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 12 | GAP |
+| A artifact set | 12 | GAP |
 | B ADR/52-row proxy | 85 | 44/52 signals |
 | C engineering rigor | 73 | PARTIAL-STRONG |
 | D six-hop proxy | 23 | proxy only |
@@ -1046,7 +1046,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 8.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 15 | proxy only |
@@ -1069,7 +1069,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 10.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 100 | FULL |
 | D six-hop proxy | 100 | proxy only |
@@ -1092,7 +1092,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 17.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 91 | FULL |
+| A artifact set | 91 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 16 | proxy only |
@@ -1115,7 +1115,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 3.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 57 | proxy only |
@@ -1138,7 +1138,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 33.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 86 | proxy only |
@@ -1161,7 +1161,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 3, retired/stale terminology 21.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 98 | 51/52 signals |
 | C engineering rigor | 100 | FULL |
 | D six-hop proxy | 49 | proxy only |
@@ -1184,7 +1184,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 18.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 94 | 49/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 46 | proxy only |
@@ -1207,7 +1207,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 4, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 100 | FULL |
 | D six-hop proxy | 100 | proxy only |
@@ -1230,7 +1230,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -1253,7 +1253,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 88 | 46/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -1276,7 +1276,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 13, retired/stale terminology 23.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 92 | 48/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 12 | proxy only |
@@ -1299,7 +1299,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 87 | 45/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -1322,7 +1322,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 87 | 45/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -1345,7 +1345,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 87 | 45/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -1368,7 +1368,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 92 | FULL |
+| A artifact set | 92 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 11 | proxy only |
@@ -1391,7 +1391,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 2, retired/stale terminology 10.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 91 | FULL |
+| A artifact set | 91 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 15 | proxy only |
@@ -1414,7 +1414,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 1.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 88 | FULL |
+| A artifact set | 88 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 15 | proxy only |
@@ -1437,7 +1437,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 1.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 89 | FULL |
+| A artifact set | 89 | FULL |
 | B ADR/52-row proxy | 94 | 49/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 10 | proxy only |
@@ -1460,7 +1460,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 81.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 93 | FULL |
+| A artifact set | 93 | FULL |
 | B ADR/52-row proxy | 94 | 49/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 4 | proxy only |
@@ -1483,7 +1483,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 16.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 32 | proxy only |
@@ -1506,7 +1506,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 87 | 45/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -1529,7 +1529,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 5, retired/stale terminology 3.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 88 | FULL |
+| A artifact set | 88 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 11 | proxy only |
@@ -1552,7 +1552,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 7.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 58 | proxy only |
@@ -1575,7 +1575,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 1, retired/stale terminology 1.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 88 | FULL |
+| A artifact set | 88 | FULL |
 | B ADR/52-row proxy | 96 | 50/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 16 | proxy only |
@@ -1598,7 +1598,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 85 | 44/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -1621,7 +1621,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 99 | FULL |
+| A artifact set | 99 | FULL |
 | B ADR/52-row proxy | 85 | 44/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 24 | proxy only |
@@ -1644,7 +1644,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 81 | PARTIAL-STRONG |
+| A artifact set | 81 | PARTIAL-STRONG |
 | B ADR/52-row proxy | 83 | 43/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 21 | proxy only |
@@ -1667,7 +1667,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 3, retired/stale terminology 13.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 100 | FULL |
 | D six-hop proxy | 59 | proxy only |
@@ -1690,7 +1690,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 3, retired/stale terminology 74.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 100 | FULL |
+| A artifact set | 100 | FULL |
 | B ADR/52-row proxy | 100 | 52/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 13 | proxy only |
@@ -1713,7 +1713,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 - Residue signal: placeholder markers 0, retired/stale terminology 0.
 | Axis | Score | Rating |
 | --- | --- | --- |
-| A artifact suite | 12 | GAP |
+| A artifact set | 12 | GAP |
 | B ADR/52-row proxy | 65 | 34/52 signals |
 | C engineering rigor | 90 | FULL |
 | D six-hop proxy | 28 | proxy only |
@@ -2841,7 +2841,7 @@ Persona corpus contains 130 markdown files, including 129 dossiers plus roster/i
 | comms-email | 10 | 26 | 36 | 88 | 88 |
 | community | 50 | 16 | 66 | 100 | 100 |
 | compliance | 64 | 26 | 90 | 96 | 92 |
-| connect | 36 | 15 | 51 | 100 | 100 |
+| connector | 36 | 15 | 51 | 100 | 100 |
 | consent-graph | 19 | 15 | 34 | 94 | 92 |
 | contact-center | 0 | 25 | 25 | 83 | 62 |
 | contract-lifecycle-management | 0 | 25 | 25 | 83 | 62 |
@@ -2977,7 +2977,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | comms-email | yes | yes | yes | yes | 88 | PASS |
 | community | yes | yes | yes | yes | 100 | PASS |
 | compliance | yes | yes | yes | yes | 92 | PASS |
-| connect | yes | yes | yes | yes | 100 | PASS |
+| connector | yes | yes | yes | yes | 100 | PASS |
 | consent-graph | yes | yes | yes | yes | 92 | PASS |
 | contact-center | yes | yes | yes | yes | 62 | REVISE |
 | contract-lifecycle-management | yes | yes | yes | yes | 62 | REVISE |
@@ -3139,7 +3139,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/audits/convention-audit-2026-05-12.md:63` — `(crate-naming-convention §6 / §7.1). Many foundry-fitness kernels carry`
 
 ### §11.3 Object Graph retired term
-- `docs/PRD.md:65` — `| **Tenant builder / IT** | A tenant's internal engineer or a Connect partner | Workflow Studio, Ontology (legacy: Object Graph — renamed per MASTERPLAN.md §2.4), capability author`
+- `docs/PRD.md:65` — `| **Tenant builder / IT** | A tenant's internal engineer or a partner | Workflow Studio, Ontology (legacy: Object Graph — renamed per MASTERPLAN.md §2.4), capability author`
 - `docs/DOC-CATALOG.md:134` — `| `doc.adr_0122` | `decisions/ADR-0122-ontology-crate-rename-from-object-graph.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness``
 - `docs/ADR-CONSOLIDATION-PLAN.md:59` — `| `ADR-0050-object-graph-model` | ADR-0006 (engine-enforced typed-entity) + ADR-0108 (vector) + ADR-0109 (geo) + ADR-0110 (timeseries) + ADR-0043 (ciphertext) + ADR-0112 (struct) +`
 - `docs/CHANGELOG.md:85` — `- Exposed the five Object Graph property tiers (`vector`, `timeseries`, `geo`, `ciphertext`, `struct`) as a stable domain set while retaining scalar compatibility for existing prop`
@@ -3196,7 +3196,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `microservices/calendar/IP-011-contracts-openapi-asyncapi-proto.md:22` — `events.yaml`, `contracts/proto/calendar.proto`) ship at OpenAPI 3.1.0;`
 - `microservices/calendar/sdk-plan.md:35` — `| REST facade (calendar.yaml) | Tenant writes a custom calendar app or backend pipeline | OpenAPI 3.1.0 |`
 - `microservices/feature-flags/CHANGELOG.md:52` — `- `contracts/feature-flags.openapi.yaml` → renamed to `contracts/openapi-v1.yaml`; upgraded from OpenAPI 3.1.0 to 3.2.0; OpenFeature context fields added.`
-- `microservices/connect/contracts/connect-retirement.openapi.yaml:1` — `openapi: 3.1.0`
+- `microservices/connector/contracts/connect-retirement.openapi.yaml:1` — `openapi: 3.1.0`
 
 ## §12 BNF v4.1 + 13-Layer Enum Conformance
 
@@ -3223,7 +3223,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | comms-email | yes | no | 80 |
 | community | yes | no | 79 |
 | compliance | yes | no | 80 |
-| connect | yes | no | 56 |
+| connector | yes | no | 56 |
 | consent-graph | yes | no | 79 |
 | contact-center | yes | no | 90 |
 | contract-lifecycle-management | yes | no | 90 |
@@ -3292,13 +3292,13 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 ### §13.1 Stale OpenAPI Files
 | File | Version | Citation |
 | --- | --- | --- |
-| microservices/connect/contracts/connect-retirement.openapi.yaml | 3.1.0 | microservices/connect/contracts/connect-retirement.openapi.yaml:1 |
+| microservices/connector/contracts/connect-retirement.openapi.yaml | 3.1.0 | microservices/connector/contracts/connect-retirement.openapi.yaml:1 |
 | microservices/feature-flags/contracts/feature-flags.openapi.yaml | 3.1.0 | microservices/feature-flags/contracts/feature-flags.openapi.yaml:1 |
 | microservices/api-gateway/contracts/api-gateway.openapi.yaml | 3.1.0 | microservices/api-gateway/contracts/api-gateway.openapi.yaml:1 |
 ### §13.2 Stale AsyncAPI Files
 | File | Version | Citation |
 | --- | --- | --- |
-| microservices/connect/contracts/connect-retirement.asyncapi.yaml | 3.0.0 | microservices/connect/contracts/connect-retirement.asyncapi.yaml:1 |
+| microservices/connector/contracts/connect-retirement.asyncapi.yaml | 3.0.0 | microservices/connector/contracts/connect-retirement.asyncapi.yaml:1 |
 | microservices/feature-flags/contracts/feature-flags.asyncapi.yaml | 3.0.0 | microservices/feature-flags/contracts/feature-flags.asyncapi.yaml:1 |
 | microservices/api-gateway/contracts/api-gateway.asyncapi.yaml | 3.0.0 | microservices/api-gateway/contracts/api-gateway.asyncapi.yaml:1 |
 ### §13.4 Contract Inventory
@@ -3310,9 +3310,9 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/itsm/contracts/openapi-v1.yaml | OpenAPI | PASS |
 | microservices/audit-chain/contracts/openapi/audit-chain.yaml | OpenAPI | PASS |
 | microservices/plugin-app-store/contracts/openapi/plugin-app-store.yaml | OpenAPI | PASS |
-| microservices/connect/contracts/openapi-v1.yaml | OpenAPI | PASS |
-| microservices/connect/contracts/connect-retirement.openapi.yaml | OpenAPI | STALE |
-| microservices/connect/contracts/openapi/connect-integration.yaml | OpenAPI | PASS |
+| microservices/connector/contracts/openapi-v1.yaml | OpenAPI | PASS |
+| microservices/connector/contracts/connect-retirement.openapi.yaml | OpenAPI | STALE |
+| microservices/connector/contracts/openapi/connect-integration.yaml | OpenAPI | PASS |
 | microservices/drive/contracts/openapi/drive.yaml | OpenAPI | PASS |
 | microservices/community/contracts/openapi/community.yaml | OpenAPI | PASS |
 | microservices/warehouse/contracts/openapi-v1.yaml | OpenAPI | PASS |
@@ -3401,9 +3401,9 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/itsm/contracts/asyncapi-v1.yaml | AsyncAPI | PASS |
 | microservices/audit-chain/contracts/asyncapi/audit-events.yaml | AsyncAPI | PASS |
 | microservices/plugin-app-store/contracts/asyncapi/plugin-app-store-events.yaml | AsyncAPI | PASS |
-| microservices/connect/contracts/asyncapi-v1.yaml | AsyncAPI | PASS |
-| microservices/connect/contracts/connect-retirement.asyncapi.yaml | AsyncAPI | STALE |
-| microservices/connect/contracts/asyncapi/connect-integration-events.yaml | AsyncAPI | PASS |
+| microservices/connector/contracts/asyncapi-v1.yaml | AsyncAPI | PASS |
+| microservices/connector/contracts/connect-retirement.asyncapi.yaml | AsyncAPI | STALE |
+| microservices/connector/contracts/asyncapi/connect-integration-events.yaml | AsyncAPI | PASS |
 | microservices/drive/contracts/asyncapi/drive-events.yaml | AsyncAPI | PASS |
 | microservices/community/contracts/asyncapi/community-events.yaml | AsyncAPI | PASS |
 | microservices/warehouse/contracts/asyncapi-v1.yaml | AsyncAPI | PASS |
@@ -3490,8 +3490,8 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/itsm/contracts/itsm-v1.proto | proto | PASS |
 | microservices/audit-chain/contracts/proto/audit-chain.proto | proto | PASS |
 | microservices/plugin-app-store/contracts/proto/plugin-app-store.proto | proto | PASS |
-| microservices/connect/contracts/connect_retirement.proto | proto | PASS |
-| microservices/connect/contracts/proto/connect_integration.proto | proto | PASS |
+| microservices/connector/contracts/connect_retirement.proto | proto | PASS |
+| microservices/connector/contracts/proto/connect_integration.proto | proto | PASS |
 | microservices/drive/contracts/proto/drive.proto | proto | PASS |
 | microservices/community/contracts/proto/community.proto | proto | PASS |
 | microservices/warehouse/contracts/warehouse-v1.proto | proto | PASS |
@@ -3580,7 +3580,7 @@ The invariant requires <=6-hop reachability by BFS over links/frontmatter: `docs
 | comms-email | 22 | 35 | 128 | CRITICAL |
 | community | 63 | 481 | 192 | REVISE |
 | compliance | 75 | 446 | 185 | APPROVE-WITH-FINDINGS |
-| connect | 52 | 256 | 175 | REVISE |
+| connector | 52 | 256 | 175 | REVISE |
 | consent-graph | 29 | 147 | 128 | CRITICAL |
 | contact-center | 21 | 25 | 105 | CRITICAL |
 | contract-lifecycle-management | 21 | 25 | 105 | CRITICAL |
@@ -3670,7 +3670,7 @@ The invariant requires <=6-hop reachability by BFS over links/frontmatter: `docs
 | comms-email | 128 | 128 | 183 | 0 | 21 | 16 | 3 | 0 | 3 | 3 | 83.0 |
 | community | 192 | 192 | 1449 | 20 | 15 | 17 | 3 | 0 | 1 | 8 | 94.2 |
 | compliance | 185 | 185 | 127 | 0 | 24 | 14 | 3 | 0 | 2 | 0 | 91.3 |
-| connect | 176 | 175 | 321 | 0 | 18 | 21 | 8 | 2 | 2 | 1 | 88.8 |
+| connector | 176 | 175 | 321 | 0 | 18 | 21 | 8 | 2 | 2 | 1 | 88.8 |
 | consent-graph | 128 | 128 | 280 | 0 | 12 | 14 | 3 | 0 | 6 | 0 | 85.7 |
 | contact-center | 105 | 105 | 400 | 0 | 14 | 15 | 3 | 0 | 0 | 0 | 75.4 |
 | contract-lifecycle-management | 105 | 105 | 400 | 0 | 14 | 15 | 3 | 0 | 0 | 0 | 75.4 |
@@ -3759,7 +3759,7 @@ The invariant requires <=6-hop reachability by BFS over links/frontmatter: `docs
 | specs/design-system/catalog.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/design-system/cloud-cell-topology-map.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/design-system/communication-thread-list.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
-| specs/design-system/connect-shell-persona-switcher.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
+| specs/design-system/tenant-context-switcher.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/design-system/entity-action-policy-preview.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/design-system/foundry-agent-run-timeline.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/design-system/hr-aggregate-insights-dashboard.json | True | False | True | 0 | 0 | 0 | 45 | CRITICAL |
@@ -3815,8 +3815,8 @@ The invariant requires <=6-hop reachability by BFS over links/frontmatter: `docs
 | specs/microservices/accounting.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/anonymous.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/calendar.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
-| specs/microservices/connect-suite.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
-| specs/microservices/enterprise-suite.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
+| specs/tenant-rbac-packaging.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
+| specs/microservices/tenant-rbac.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/intelligence.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/hr.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/mail.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |

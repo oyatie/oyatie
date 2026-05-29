@@ -18,7 +18,7 @@ use oya_payroll_run_domain::{
 };
 
 const PAYROLL_CLOSE_TOPIC: &str = "audit.payroll.run.close";
-const PAYROLL_ACCOUNTING_TOPIC: &str = "enterprise.payroll.accounting.journal_draft";
+const PAYROLL_ACCOUNTING_TOPIC: &str = "tenant_rbac.payroll.accounting.journal_draft";
 const PAYROLL_HR_LEAVE_IMPACT_TOPIC: &str = "integration.payroll.hr.leave-impact-intake";
 
 #[derive(Clone, Debug, Eq, PartialEq)]

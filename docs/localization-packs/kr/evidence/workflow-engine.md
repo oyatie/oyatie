@@ -21,7 +21,7 @@ activation_claim: not-active
 ## KR Pack Responsibilities
 - Anchors KR workflow-template execution boundaries and audit events while cross-service orchestration remains in Workflow adapters.
 - kr_pack_surface: workflow_templates
-- kr_pack_surface: enterprise_smb_operating_flows
+- kr_pack_surface: tenant_rbac_operating_flows
 - kr_pack_surface: audit_chain_evidence
 
 ## Non-Claims

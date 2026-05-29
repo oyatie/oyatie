@@ -2451,7 +2451,7 @@ Mitigations:
   Pack B's tenants have a defined interop semantic.
 - **Pack baseline**: minimum-pack defines the floor; per-Pack overlays
   add only restrictions, never permissions.
-- **Pack testing harness**: per-Pack integration test suite as a CI
+- **Pack testing harness**: per-Pack integration test set as a CI
   lane.
 
 ### 11.8 The "Self-Hosting Catches Everything" Smell
@@ -2654,7 +2654,7 @@ Prompts are policy. They should be versioned + signed + Cedar-gated.
 ### 14.4 Evaluation framework
 
 Per-prompt + per-model evaluation:
-- Eval suite per prompt class (translation, summarisation, classification).
+- Eval set per prompt class (translation, summarisation, classification).
 - Baseline metrics: accuracy, latency, cost, hallucination rate.
 - Regression detection: per-deploy eval must not regress beyond X%.
 - Per-tenant eval option for high-stakes use.
@@ -3373,7 +3373,7 @@ methodology was applied.
   2024 sessions enumerated in §8.1).
 - GCP (Spanner consistency, Vertex AI, Cloud Next 2024 enumerated).
 - Azure (Cobalt, Fabric, Build 2024 enumerated).
-- Stripe (idempotency, request-time pinning, Connect facilitator
+- Stripe (idempotency, request-time pinning, facilitator
   model).
 - Cloudflare (Pingora, Workers AI, anycast).
 - Apple (Passkeys, Legacy Contact, App Store antitrust posture).
@@ -3482,7 +3482,7 @@ It changes everything.
 - ADR-0128-hyperscaler-architecture-invariants.md
 - ADR-0130-agentic-slo-gated-promotion.md
 - ADR-0131-per-microservice-flat-layout.md
-- ADR-0132-no-suite-forward-policy.md
+- ADR-0132-no-grouping-forward-policy.md
 - ADR-0145-inter-microservice-communication-reform.md
 - ADR-0148-service-mesh-cilium-ambient-layered.md
 - ADR-0150-cursor-pagination-canonical.md

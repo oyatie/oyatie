@@ -41,26 +41,26 @@ DOSSIER-010: DR replication shape is `active-active-multi-az-cross-region-warm` 
 DOSSIER-011: Regulatory packs declared: kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa.
 DOSSIER-012: Data classes processed: manifest-not-populated.
 DOSSIER-BC-001: Bounded context `social` states: Bounded context 'social' within social (data plane); includes short-form video flavor absorbed from successor-mapped short-form video surface per ADR-0334; crate count=30.
-DOSSIER-CRATE-001: Existing crate `oya-social-app` remains untouched by this document-stage IP.
-DOSSIER-CRATE-002: Existing crate `oya-social-content-moderation-adapter-clamav` remains untouched by this document-stage IP.
-DOSSIER-CRATE-003: Existing crate `oya-social-content-moderation-adapter-opswat` remains untouched by this document-stage IP.
-DOSSIER-CRATE-004: Existing crate `oya-social-content-moderation-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-005: Existing crate `oya-social-federation-gateway-adapter-activitypub` remains untouched by this document-stage IP.
-DOSSIER-CRATE-006: Existing crate `oya-social-feed-timeline-adapter-valkey` remains untouched by this document-stage IP.
-DOSSIER-CRATE-007: Existing crate `oya-social-feed-timeline-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-008: Existing crate `oya-social-follow-graph-adapter-postgres` remains untouched by this document-stage IP.
-DOSSIER-CRATE-009: Existing crate `oya-social-follow-graph-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-010: Existing crate `oya-social-post-composition-adapter-ffmpeg` remains untouched by this document-stage IP.
-DOSSIER-CRATE-011: Existing crate `oya-social-post-composition-adapter-imagemagick` remains untouched by this document-stage IP.
-DOSSIER-CRATE-012: Existing crate `oya-social-post-composition-adapter-postgres` remains untouched by this document-stage IP.
-DOSSIER-CRATE-013: Existing crate `oya-social-post-composition-adapter-s3` remains untouched by this document-stage IP.
-DOSSIER-CRATE-014: Existing crate `oya-social-post-composition-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-015: Existing crate `oya-social-search-adapter-meilisearch` remains untouched by this document-stage IP.
-DOSSIER-CRATE-016: Existing crate `oya-social-user-profile-adapter-postgres` remains untouched by this document-stage IP.
-DOSSIER-CRATE-017: Existing crate `oya-social-user-profile-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-018: Existing crate `oya-social-user-profile-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-019: Existing crate `oya-social-user-profile-rest` remains untouched by this document-stage IP.
-DOSSIER-CRATE-020: Existing crate `oya-social-short-video-upload-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-001: Existing crate `oya-community-social-app` remains untouched by this document-stage IP.
+DOSSIER-CRATE-002: Existing crate `oya-community-social-content-moderation-adapter-clamav` remains untouched by this document-stage IP.
+DOSSIER-CRATE-003: Existing crate `oya-community-social-content-moderation-adapter-opswat` remains untouched by this document-stage IP.
+DOSSIER-CRATE-004: Existing crate `oya-community-social-content-moderation-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-005: Existing crate `oya-community-social-federation-gateway-adapter-activitypub` remains untouched by this document-stage IP.
+DOSSIER-CRATE-006: Existing crate `oya-community-social-feed-timeline-adapter-valkey` remains untouched by this document-stage IP.
+DOSSIER-CRATE-007: Existing crate `oya-community-social-feed-timeline-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-008: Existing crate `oya-community-social-follow-graph-adapter-postgres` remains untouched by this document-stage IP.
+DOSSIER-CRATE-009: Existing crate `oya-community-social-follow-graph-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-010: Existing crate `oya-community-social-post-composition-adapter-ffmpeg` remains untouched by this document-stage IP.
+DOSSIER-CRATE-011: Existing crate `oya-community-social-post-composition-adapter-imagemagick` remains untouched by this document-stage IP.
+DOSSIER-CRATE-012: Existing crate `oya-community-social-post-composition-adapter-postgres` remains untouched by this document-stage IP.
+DOSSIER-CRATE-013: Existing crate `oya-community-social-post-composition-adapter-s3` remains untouched by this document-stage IP.
+DOSSIER-CRATE-014: Existing crate `oya-community-social-post-composition-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-015: Existing crate `oya-community-social-search-adapter-meilisearch` remains untouched by this document-stage IP.
+DOSSIER-CRATE-016: Existing crate `oya-community-social-user-profile-adapter-postgres` remains untouched by this document-stage IP.
+DOSSIER-CRATE-017: Existing crate `oya-community-social-user-profile-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-018: Existing crate `oya-community-social-user-profile-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-019: Existing crate `oya-community-social-user-profile-rest` remains untouched by this document-stage IP.
+DOSSIER-CRATE-020: Existing crate `oya-community-social-short-video-upload-kernel` remains untouched by this document-stage IP.
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/social/contracts/openapi/social.yaml.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/social/contracts/asyncapi/social-events.yaml.
 DOSSIER-CONTRACT-003: proto3: microservices/social/contracts/proto/social.proto.

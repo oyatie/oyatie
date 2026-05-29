@@ -214,7 +214,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Maintenance Tech Carlos Reyes II must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Maintenance Tech Carlos Reyes II must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Maintenance Tech Carlos Reyes II must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Maintenance Tech Carlos Reyes II must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Maintenance Tech Carlos Reyes II must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Maintenance Tech Carlos Reyes II must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Maintenance Tech Carlos Reyes II must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Maintenance Tech Carlos Reyes II must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

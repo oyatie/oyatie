@@ -111,7 +111,7 @@ oyatie messenger ships a **two-backend search stack** behind the `MessageSearchI
 
 ### Negative
 
-- Two backends to maintain (two adapters, two test suites, two upgrade IPs per quarter). Mitigated by sharing the port trait + contract tests in `microservices/messenger/tests/contract/search/`.
+- Two backends to maintain (two adapters, two test sets, two upgrade IPs per quarter). Mitigated by sharing the port trait + contract tests in `microservices/messenger/tests/contract/search/`.
 - Meilisearch operator pool is smaller than Elasticsearch's; mitigated by Meilisearch's much smaller surface (one binary, one config file, native HTTP). Operator on-call documentation in runbook needed.
 - Tenant migration from Tantivy → Meilisearch (when a starter tenant grows past the Tantivy comfort zone) requires re-index, dual-publish window, and cutover; documented as `microservices/messenger/runbooks/search-backend-migration.md` (NEW) — not auto-migratable.
 - Personal-DM tier client-side search is bandwidth- and battery-heavy on mobile; mitigated by client-side index caching + WASM-Tantivy on web; this is the tradeoff of preserving E2E.
@@ -144,7 +144,7 @@ oyatie messenger ships a **two-backend search stack** behind the `MessageSearchI
 - AWS CloudSearch + Lucene precedent (industry comparison)
 - Apache Lucene engine internals
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - ADR-0133 — Industry best-practice conformance program
 - `microservices/messenger/PRD.md` FR-08, AC-07, Open Question 1
 - `microservices/messenger/PHASE-01-TEAM-CHANNELS-DM-THREADS.md` IP-005, IP-013

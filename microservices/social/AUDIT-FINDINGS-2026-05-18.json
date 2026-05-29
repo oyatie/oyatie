@@ -96,7 +96,7 @@
           "hits": [
             {
               "line": 51,
-              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (feed cache + reaction counters + trending + notification fanout) | `oya-social-follow-graph-*` (8 crates) |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (feed cache + reaction counters + trending + notification fanout) | `oya-community-social-follow-graph-*` (8 crates) |"
             },
             {
               "line": 108,
@@ -182,11 +182,11 @@
             },
             {
               "line": 37,
-              "excerpt": "| `src/crates/oya-social-reactions-adapter-valkey/src/counter.rs` | create \u2014 Valkey HINCRBY-based counter |"
+              "excerpt": "| `src/crates/oya-community-social-reactions-adapter-valkey/src/counter.rs` | create \u2014 Valkey HINCRBY-based counter |"
             },
             {
               "line": 38,
-              "excerpt": "| `src/crates/oya-social-reactions-worker/src/flush_postgres.rs` | create \u2014 periodic Valkey \u2192 Postgres flush |"
+              "excerpt": "| `src/crates/oya-community-social-reactions-worker/src/flush_postgres.rs` | create \u2014 periodic Valkey \u2192 Postgres flush |"
             }
           ],
           "hits_total": 4
@@ -214,7 +214,7 @@
           "hits": [
             {
               "line": 37,
-              "excerpt": "| `src/crates/oya-social-notifications-adapter-valkey/src/queue.rs` | create \u2014 Valkey Streams (RESP3 wire-compatible) for fanout |"
+              "excerpt": "| `src/crates/oya-community-social-notifications-adapter-valkey/src/queue.rs` | create \u2014 Valkey Streams (RESP3 wire-compatible) for fanout |"
             }
           ],
           "hits_total": 1
@@ -276,7 +276,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/social/catalog/oya-social-feed-timeline-adapter-valkey.yaml",
+          "file": "microservices/social/catalog/oya-community-social-feed-timeline-adapter-valkey.yaml",
           "hits": [
             {
               "line": 19,

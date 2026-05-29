@@ -159,7 +159,7 @@ distinct from encryption-BYOK on the at-rest store.
 - Runbook/IaC evidence: `microservices/comms-email/runbooks/blacklist-recovery.md`, `microservices/comms-email/runbooks/bounce-storm-mitigation.md`, `microservices/comms-email/runbooks/dkim-key-rotation.md`, `microservices/comms-email/runbooks/dmarc-policy-tune.md`, `microservices/comms-email/runbooks/inbound-receiver-quarantine-release.md`; +11 more.
 - Compliance packs: `soc2-type2`, `iso27001-2022`, `gdpr`, `kr-pipa`; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `comms-email` `T0-transactional-send` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

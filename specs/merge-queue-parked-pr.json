@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/merge-queue-parked-pr.json",
+  "$id": "https://docs.oyatie.com/specs/merge-queue-parked-pr.json",
   "title": "MergeQueueParkedPrStateMachine",
   "description": "State-machine spec for the merge-queue parked-PR + fix-loop integration shipped by M01-P17-IP-006. Companion to the kernel modules parked_state, pr_retry_budget, speculative_rebase, fairness, scheduler in crates/oya-vcs-review-mergequeue-kernel.",
   "_meta": {

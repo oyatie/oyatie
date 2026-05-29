@@ -23,7 +23,7 @@ doc_status: published
 
 ## Purpose
 
-Implement `OnboardSubMerchantUseCase`, `VerifyDocumentsUseCase`, and `AmlMonitoringWorker`. Integrates with PSP-hosted KYB flows (Stripe Connect onboarding, Adyen MarketPay).
+Implement `OnboardSubMerchantUseCase`, `VerifyDocumentsUseCase`, and `AmlMonitoringWorker`. Integrates with PSP-hosted KYB flows (Stripe onboarding, Adyen MarketPay).
 
 ## Acceptance criteria
 

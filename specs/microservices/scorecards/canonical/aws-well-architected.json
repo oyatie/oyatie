@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/aws-well-architected.json",
+  "$schema": "https://oyatie.com/schemas/aws-well-architected.json",
   "canonical_base": true,
   "framework": "AWS Well-Architected (5 pillars)",
   "framework_version": "2024-12",

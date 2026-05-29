@@ -14,7 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ## [Unreleased]
 
 ### Added
-- Initial full doc-suite buildout (Wave-3-A) — PRD (Slice 8) + 110+ artifact suite landed.
+- Initial full doc-set buildout (Wave-3-A) — PRD (Slice 8) + 110+ artifact suite landed.
 - 7 bounded contexts scaffolded: `charge`, `refund`, `payout`, `settlement`, `kyc-kyb`, `dispute`, `subscription-lifecycle`.
 - PSP-adapter trait + per-PSP adapters (Stripe, Adyen, Toss, KakaoPay, LINE Pay, WeChat Pay, Alipay) targeted for M02.
 - Cedar fragments (charge / payout / refund / sub-merchant-onboarding / abuse-defence / auditor-scope / ci-scope) authored.
@@ -26,11 +26,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Implementation plans IP-001 through IP-025 — domain / kernel / usecase / adapter / REST / gRPC / worker / app crates.
 - First non-trivial consumer (messenger sticker store) wired.
 
-## [0.0.0] — 2026-05-20 (doc-suite-only seed)
+## [0.0.0] — 2026-05-20 (doc-set-only seed)
 
 ### Added
 - `PRD.md` (1612 lines, Slice 8).
-- Full doc-suite at PR-143 baseline + operating-bar ≥100 artifacts (this changelog).
+- Full doc-set at PR-143 baseline + operating-bar ≥100 artifacts (this changelog).
 
 ## Versioning policy
 

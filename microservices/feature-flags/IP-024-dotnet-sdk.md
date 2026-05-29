@@ -24,11 +24,11 @@
 | 3 | `IMemoryCache` | `MemoryCacheEntryOptions` with `AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30)`; LKG: JSON to `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)` |
 | 4 | SSE `IHostedService` | Background hosted service per tenant; `CancellationToken` on shutdown; Polly retry policy |
 | 5 | DI integration | `IServiceCollection.AddOyatieFeatureFlags(options)` extension method |
-| 6 | Tests | xUnit + Moq; `MockHttpMessageHandler`; OpenFeature .NET conformance suite |
+| 6 | Tests | xUnit + Moq; `MockHttpMessageHandler`; OpenFeature .NET conformance set |
 
 ## Definition of Done
 
 - `dotnet test` green
 - DI integration test: provider registered via `AddOyatieFeatureFlags` resolves correctly
-- OpenFeature .NET conformance suite passes
+- OpenFeature .NET conformance set passes
 - Published to NuGet as `Oyatie.FeatureFlags.Sdk`

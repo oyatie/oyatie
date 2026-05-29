@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | management certification packet | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | external auditor read-only portal | 15 U.S.C. 7262 SOX 404 management assessment and auditor attestation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | whistleblower protected intake | Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | control inventory import | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | control inventory import | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | segregation-of-duties graph | Sarbanes-Oxley Act section 802 records destruction penalties | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | quarterly evidence close | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | management certification packet | SEC Rule 21F-17 anti-impediment to whistleblower communication | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | control inventory import | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | segregation-of-duties graph | SEC Rule 21F-17 anti-impediment to whistleblower communication | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | quarterly evidence close | Sarbanes-Oxley Act section 302 issuer officer certifications | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | management certification packet | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | management certification packet | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | external auditor read-only portal | 15 U.S.C. 7262 SOX 404 management assessment and auditor attestation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | whistleblower protected intake | Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | control inventory import | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | management certification packet | Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | external auditor read-only portal | Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | whistleblower protected intake | Sarbanes-Oxley Act section 802 records destruction penalties | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | control inventory import | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | control inventory import | Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | segregation-of-duties graph | SEC Rule 21F-17 anti-impediment to whistleblower communication | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | quarterly evidence close | Sarbanes-Oxley Act section 302 issuer officer certifications | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | management certification packet | Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Cedar deny-wins; ADR-0263 event sealed |

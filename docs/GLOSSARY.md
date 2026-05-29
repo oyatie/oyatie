@@ -78,7 +78,7 @@ The fitness-function `oya-governance-glossary` walks every consolidated doc and 
 | **Availability Zone (AZ)** | An isolated power/network failure domain inside a region. |
 | **Cell** | A blast-radius-sized isolated unit inside an AZ. |
 | **VPC** | Virtual Private Cloud; tenant network boundary. |
-| **VPN / Direct Connect / Interconnect / Cross-Connect** | Customer-to-cloud private link. |
+| **VPN / Direct / Interconnect / Cross-Connect** | Customer-to-cloud private link. |
 | **CDN** | Content Delivery Network; edge cache. |
 | **Object store** | S3-class blob storage. |
 | **Block store** | EBS-class attached storage. |
@@ -97,7 +97,7 @@ The fitness-function `oya-governance-glossary` walks every consolidated doc and 
 |---|---|
 | **AuthN** | Authentication. |
 | **AuthZ** | Authorization. |
-| **OIDC** | OpenID Connect (OAuth2 + identity layer). |
+| **OIDC** | OpenID (OAuth2 + identity layer). |
 | **SAML** | Security Assertion Markup Language. |
 | **STS** | Security Token Service (short-lived credentials). |
 | **RBAC** | Role-Based Access Control. |
@@ -424,7 +424,7 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 | OEE | Overall Equipment Effectiveness | §7 |
 | OG | Object Graph | §8 |
 | OG-AG | Object Graph Agent Gateway | (ADR-0021) |
-| OIDC | OpenID Connect | §4 |
+| OIDC | OpenID | §4 |
 | OLTP / OLAP | Online Transactional / Analytical Processing | §5 |
 | OPA | Open Policy Agent | §4 |
 | OPC UA | Industrial protocol | §7 |
@@ -605,7 +605,7 @@ The table is reference-shaped so an intern can resolve each term to a decision s
 | **ChangeBundle** | Promotion package grouping verified ChangeSets for controller-owned movement. | [ADR-0110](decisions/ADR-0110-changeset-state-machine.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | merge queue batch | ChangeSet |
 | **Cell tier** | Deployment class controlling blast radius, compliance eligibility, and workload isolation. | [ADR-0248](decisions/ADR-0248-amazon-shape-cellular-architecture.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | AWS cellular architecture | shuffle sharding |
 | **Sovereign cell** | Cell operating under jurisdiction-specific legal, data, and operational constraints. | [ADR-0240](decisions/ADR-0240-sovereign-cloud-per-regional-pack.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Azure sovereign cloud | pack overlay |
-| **Marketplace settlement** | Universal transaction, labor, partner, and business deal settlement surface. | [ADR-0314](decisions/ADR-0314-marketplace-as-universal-deal-settlement.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Stripe Connect | audit-chain |
+| **Marketplace settlement** | Universal transaction, labor, partner, and business deal settlement surface. | [ADR-0314](decisions/ADR-0314-marketplace-as-universal-deal-settlement.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Stripe | audit-chain |
 | **Collar-color workspace** | Projection axis covering white, blue, pink, gray, green, and gold collar work. | [ADR-0318](decisions/ADR-0318-collar-color-workspace-universality.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | frontline worker SKU | persona |
 | **Information barrier** | Front, middle, and back office separation enforced by policy and audit. | [ADR-0319](decisions/ADR-0319-front-middle-back-office-information-barrier.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Purview information barrier | role projection |
 | **Platform-owner indirection** | Rule that owner names are configurable and not hard-coded. | [ADR-0284](decisions/ADR-0284-platform-owner-name-indirection.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | white-label SaaS | canonical base |
@@ -662,7 +662,7 @@ The table is reference-shaped so an intern can resolve each term to a decision s
 | **AWS Verified Permissions** | AWS Verified Permissions benchmark row used to compare Oyatie coverage against established enterprise software and platform precedents. | [ADR-0243](decisions/ADR-0243-cedar-as-universal-gate.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | AWS Verified Permissions | vendor benchmark, role projection |
 | **AWS Organizations** | AWS Organizations benchmark row used to compare Oyatie coverage against established enterprise software and platform precedents. | [ADR-0321](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | AWS Organizations | vendor benchmark, role projection |
 | **Okta** | Okta benchmark row used to compare Oyatie coverage against established enterprise software and platform precedents. | [ADR-0321](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Okta | vendor benchmark, role projection |
-| **Stripe Connect** | Stripe Connect benchmark row used to compare Oyatie coverage against established enterprise software and platform precedents. | [ADR-0321](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Stripe Connect | vendor benchmark, role projection |
+| **Stripe Connect** | Stripe benchmark row used to compare Oyatie coverage against established enterprise software and platform precedents. | [ADR-0321](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Stripe | vendor benchmark, role projection |
 | **GitHub Enterprise** | GitHub Enterprise benchmark row used to compare Oyatie coverage against established enterprise software and platform precedents. | [ADR-0321](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | GitHub Enterprise | vendor benchmark, role projection |
 | **Palantir Foundry** | Palantir Foundry benchmark row used to compare Oyatie coverage against established enterprise software and platform precedents. | [ADR-0321](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Palantir Foundry | vendor benchmark, role projection |
 | **Cloudflare Zero Trust** | Cloudflare Zero Trust benchmark row used to compare Oyatie coverage against established enterprise software and platform precedents. | [ADR-0321](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Cloudflare Zero Trust | vendor benchmark, role projection |
@@ -790,8 +790,8 @@ The table is reference-shaped so an intern can resolve each term to a decision s
 | **Whistleblower anonymity** | Whistleblower anonymity architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
 | **Canonical base** | Canonical base architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
 | **Korea localization pack** | Korea localization pack architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
-| **Enterprise Generic** | Enterprise Generic architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
-| **SMB Generic** | SMB Generic architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
+| **Tenant RBAC view** | Tenant RBAC view architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
+| **Tenant RBAC view** | Tenant RBAC view architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
 | **Ops Dashboard** | Ops Dashboard architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
 | **Control Center** | Control Center architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
 | **Foundry** | Foundry architectural vocabulary row used by onboarding, implementation packets, and review evidence. | [ADR-0245](decisions/ADR-0245-substrate-vs-product-layering.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | platform architecture precedent | architecture, review |
@@ -965,9 +965,9 @@ Definition: MLS means Messaging Layer Security, the IETF RFC 9420 protocol Oyati
 
 MLS protects message content and group key evolution; it does not replace tenant authorization. Cedar still decides whether a tenant, principal, device, or cross-tenant channel may participate, while MLS protects the encrypted communication once membership is allowed.
 
-Oyatie uses MLS where collaboration needs scalable group encryption instead of pairwise ad hoc key exchange. Messenger owns the primary MLS message path, Meet uses it for end-to-end encrypted sessions, Notes applies it to collaborative editing hardening, and Connect uses it for cross-tenant channels.
+Oyatie uses MLS where collaboration needs scalable group encryption instead of pairwise ad hoc key exchange. Messenger owns the primary MLS message path, Meet uses it for end-to-end encrypted sessions, Notes applies it to collaborative editing hardening, and uses it for cross-tenant channels.
 
-Named µservices using the term include `messenger`, `meet`, `notes`, `connect`, `identity`, and `audit-chain`. Identity and Audit Chain do not own cryptographic content, but they anchor device identity, group creation evidence, and membership-change audit records.
+Named µservices using the term include `messenger`, `meet`, `notes`, `connector`, `identity`, and `audit-chain`. Identity and Audit Chain do not own cryptographic content, but they anchor device identity, group creation evidence, and membership-change audit records.
 
 Related terms: Cedar; principal; tenant; audit-event class; cell; compliance pack.
 

@@ -56,7 +56,7 @@ authority_tier: 2
 | D.2 | EU VAT reverse-charge banner on contract | marketplace + finops-portal | (rules engine) | `EUVATReverseChargeApplied` | "B2B reverse-charge applies; Chris invoices net" |
 | D.3 | Sanctions screening pass | marketplace + compliance | `b2c.marketplace.sanctions_screen` | `SanctionsScreenPassed` | OFAC + EU list |
 | D.4 | 3-week project work | (out-of-app) | | | |
-| D.5 | Delivery review + escrow release | payments | (same) | `EscrowReleased{cross_currency=EUR_to_USD}` | FX via Connect |
+| D.5 | Delivery review + escrow release | payments | (same) | `EscrowReleased{cross_currency=EUR_to_USD}` | FX via |
 | D.6 | finops-portal logs as `marketplace_consulting_2026` foreign-derived | finops-portal | (categorize) | `IncomeCategoryAssigned` | |
 
 ## Section E — Cumulative finops dashboard

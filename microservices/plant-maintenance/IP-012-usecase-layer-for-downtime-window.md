@@ -10,7 +10,7 @@ persona: maya-okafor (reliability), priya-singh (plant manager), tony-li (superv
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-012: Use-case layer for `downtime-window` — Open, close, classify, OEE roll-up

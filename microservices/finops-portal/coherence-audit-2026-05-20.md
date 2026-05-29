@@ -6,7 +6,7 @@
 2. Machine control surface: `specs/master-plan-sequencing.json:704-868`, covering six deployment contexts, OpenTofu-only substrate, OS matrix, Rust-strict language policy, and demo_trial OCI Always Free profile.
 3. Service PRD audited: `microservices/finops-portal/PRD.md:1-116`; this includes the product boundary, out-of-scope clauses, NFRs, competitive parity notes, phase plan, and evidence references.
 4. Service architecture audited: `microservices/finops-portal/ARCHITECTURE.md:1-1058`; this includes ownership, substrate binding, six-dimension matrix, deployment shape, and portability posture.
-5. Documentation rigor source: `docs/standards/documentation-rigor.md:40-220`, especially retroactive applicability, service documentation suite floor, intern-buildability test, hyperscaler-grade sub-test, and cross-reference invariants.
+5. Documentation rigor source: `docs/standards/documentation-rigor.md:40-220`, especially retroactive applicability, service documentation set floor, intern-buildability test, hyperscaler-grade sub-test, and cross-reference invariants.
 
 ## Investigation scope statement
 
@@ -363,7 +363,7 @@ D3-38 A cold intern could not validate tenant_class-1 OS support from these arti
 D3-39 A cold intern could not promote the service under ADR-0328 §D-20 because the deployment matrix is absent.
 D3-40 The service should not claim "full-pack-ready" until executable and deployment proof exists (`README.md:6-7`, `manifest.json:91-95`).
 D3-41 Substance severity: P1 for canonical buildability gaps, P2 for stale internal references, P3 for formatting/provenance refinements.
-D3-42 Documentation-rigor §1.1 makes the service doc suite retroactively subject to the bar (`docs/standards/documentation-rigor.md:40-56`).
+D3-42 Documentation-rigor §1.1 makes the service doc set retroactively subject to the bar (`docs/standards/documentation-rigor.md:40-56`).
 D3-43 Documentation-rigor §2 requires broad suites and explicitly listed finops-portal as borderline in a prior snapshot (`docs/standards/documentation-rigor.md:62-92`).
 D3-44 Documentation-rigor intern-buildability test is not passed because executable paths are missing (`docs/standards/documentation-rigor.md:133-141`).
 D3-45 Documentation-rigor hyperscaler-grade sub-test is partially passed in product and failure-mode prose, but not in code, measured benchmark, or deployment evidence (`docs/standards/documentation-rigor.md:143-156`).

@@ -145,7 +145,7 @@ Rejected per NIST SP 800-63B §5.1.3 (restricted) and per documented SIM-swap bl
 
 - `cargo test -p oya-shared-webauthn-server-kernel` — register + authenticate happy path + replay protection + sign-count rollback rejection.
 - Lane `lean-a14-webauthn-aaguid-allowlist-policy` (advisory mode) verifies regulated packs declare allowlist.
-- Browser conformance: WebAuthn.io test suite + virtual authenticator (Chrome DevTools) in CI.
+- Browser conformance: WebAuthn.io test set + virtual authenticator (Chrome DevTools) in CI.
 
 ## In-house roadmap
 

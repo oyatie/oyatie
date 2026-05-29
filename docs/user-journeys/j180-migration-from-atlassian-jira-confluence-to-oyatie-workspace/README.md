@@ -83,7 +83,7 @@ Nora Stein, VP Engineering at AtlasBridge Robotics is accountable for the busine
 | observability | supporting | Owns story migration state for Project board during workspace-cutover. |
 | search | supporting | Owns bug migration state for Issue types during jira-rest-export. |
 | messenger | supporting | Owns task migration state for Workflow schemes during workflow-permission-freeze. |
-| connect | supporting | Owns sprint migration state for Permission schemes during confluence-space-load. |
+| connector | supporting | Owns sprint migration state for Permission schemes during confluence-space-load. |
 | compliance | supporting | Owns space migration state for Confluence space during sprint-parallel-run. |
 | ops-dashboard-control-center | supporting | Owns page migration state for Project board during workspace-cutover. |
 

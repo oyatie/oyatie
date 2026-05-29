@@ -19,7 +19,7 @@ service_classification_rationale: |
 tier_certified_at: 2026-05-20
 launch_modes: [B2C-personal, B2B-work, oyatie-internal-tenant]
 milestone_first_ship: M02-foundation
-bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md, ADR-0215-connect-retention-legal-hold-dual-context.md]
+bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md, ADR-0215-retention-legal-hold-dual-context.md]
 related_adrs:
   - ADR-0008
   - ADR-0028
@@ -97,12 +97,16 @@ benchmarks:
 
 ---
 
+## Strict personal/professional separation
+
+Messenger is a concrete microservice, not part of any retired grouping. Personal DMs/groups and professional tenant channels share UX primitives but not tenancy or RBAC authority. Personal messaging lives under the user's personal tenant scope; professional messaging lives under the organization/workspace tenant scope. The default cross-context decision is **deny**: org admins, legal hold, retention, DLP, search, export, notification routing, workflow bridges, huddles, and automation for a professional tenant cannot read, infer, mutate, or route personal messages. Any explicit user-mediated cross-context action must carry tenant id, RBAC scope, policy decision id, data-class check, and audit-chain evidence before execution.
+
 ## 1. Purpose
 
 The `messenger` µservice is oyatie's unified real-time messaging surface. It speaks Matrix Client-Server + Server-Server APIs, WebSocket/QUIC native transport, MLS (RFC 9420) E2E key agreement, ActivityPub for federation, and HTTP/3/QUIC at the edge. It stores conversations in a per-tenant Postgres + Citus + SeaweedFS + ClickHouse + Tantivy/Meilisearch stack, and is differentiated at the application layer into two products that share the same substrate:
 
 - **Personal Messenger (B2C).** Standalone consumer messenger account (`alice@oyatie.app` handle, phone-number optional). Best-in-class 1:1 + group chat, voice + video calls, stickers + custom emoji + GIFs, status/stories, multi-device sync, full MLS E2E by default. Targets Signal / Telegram / KakaoTalk / Line / WhatsApp / Instagram DM / Facebook Messenger / Discord / iMessage switchers.
-- **Work Messenger (B2B).** Enterprise messenger attached to a tenant (`alice@acme.com` on `acme` tenant). Adds channels, threads, mentions, Workflow-Engine slash commands, mail-to-messenger bridge, calendar + meet integration, huddles (per ADR-MSGR-0001), clocking-in via `/in`, e-signing flows, approval workflows, DLP, eDiscovery, audit-chain, retention, federation via Slack Connect + Matrix bridges. Targets Slack / Microsoft Teams / Mattermost / Rocket.Chat / Naver Works / Line Works switchers.
+- **Work Messenger (B2B).** Enterprise messenger attached to a tenant (`alice@acme.com` on `acme` tenant). Adds channels, threads, mentions, Workflow-Engine slash commands, mail-to-messenger bridge, calendar + meet integration, huddles (per ADR-MSGR-0001), clocking-in via `/in`, e-signing flows, approval workflows, DLP, eDiscovery, audit-chain, retention, federation via Slack + Matrix bridges. Targets Slack / Microsoft Teams / Mattermost / Rocket.Chat / Naver Works / Line Works switchers.
 
 A single user can hold any number of personal handles and be a member of any number of work tenants. The kernel-layer **dual-context isolation** invariant (ADR-0135 parallel + Bominal ADR-0208) guarantees a user's personal DMs are structurally invisible to any org admin, even when both contexts share a physical cluster, and that a personal DM cannot become a professional channel reply.
 
@@ -145,7 +149,7 @@ Per ADR-0330 and ADR-0331, messenger supports `tenant_class_eligibility = ["demo
 - **Principal claim binding.** cloud-iam / identity issues `principal.tenant_class`, `principal.billing_components`, `principal.cap_breached`, and `principal.demo_trial_expires_at` at session issuance. The messenger gateway passes those claims to `policy/tenant-class.cedar`; messenger never re-queries cloud-billing per request.
 - **Paid billing components emitted.** Messenger emits `paid_billing_components_emitted = ["per_seat", "per_usage"]`. Per-seat meters count active messenger seats and per-usage meters count message sends, active channels, huddle minutes, attachment bytes, MLS KeyPackage uploads, search queries, mention fanout, and workflow triggers.
 - **demo_trial caps.** Demo trial tenants get the same capability surface and security posture, with capped usage: 25 monthly active users, 10 active channels, 50,000 messages per month, 30-day message retention, 120 huddle minutes per month, and 2 GB attachment storage. Cap breach preserves read access and refuses new write-heavy actions until conversion or grace-window resolution.
-- **Compliance pack gate.** Compliance pack activation, HSM-anchored backup-key escrow, work-mode MLS recovery-key escrow, BYOK, cross-tenant Slack Connect pairing, and retention overrides above 30 days require `principal.tenant_class == "paid"` and the relevant billing component. Demo trial tenants cannot activate compliance packs.
+- **Compliance pack gate.** Compliance pack activation, HSM-anchored backup-key escrow, work-mode MLS recovery-key escrow, BYOK, cross-tenant Slack pairing, and retention overrides above 30 days require `principal.tenant_class == "paid"` and the relevant billing component. Demo trial tenants cannot activate compliance packs.
 - **Conversion.** cloud-billing owns demo_trial to paid conversion. Messenger observes the refreshed principal claim at token refresh, clears cap-based write denies, and preserves message/channel state without retroactive billing.
 
 ---
@@ -175,7 +179,7 @@ Sources cited inline in §14. Snapshot date: 2026-05.
 | Threads (inline reply chain) | N | P | N | N | Y | Y (since 2024) | Y | Y | N | **Y** (Slack-class threading) |
 | Mentions (`@user`, `@channel`, `@here`, `@everyone`) | P | Y | Y | Y | Y | Y | Y | Y | P | **Y+** (cross-product via Ontology) |
 | Role mentions (`@role`) | N | N | N | N | N | N | N | Y | N | **Y** |
-| Cross-workspace DM (Slack Connect-style) | N | N | N | N | N | N | N | N | N | **Y** (federation via Matrix + Slack-Connect adapter) |
+| Cross-workspace DM (Slack Connect-style) | N | N | N | N | N | N | N | N | N | **Y** (federation via Matrix + Slack-adapter) |
 
 ### 3.2 Reactions, edit, delete, scheduling, voice msg
 
@@ -341,7 +345,7 @@ Per the 2026-05-21 mobile-bundle directive, messenger, mail, social, and communi
 
 | Feature | Signal | Telegram | KakaoTalk | Line | WhatsApp | IG DM | FB Msgr | Discord | iMessage | Slack | Element/Matrix | **oyatie target** |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Federation (cross-server) | N | N | N | N | N | N | N | N | N | P (Slack Connect) | Y (Matrix) | **Y** (Matrix r0.6.1 federation + Slack-Connect adapter) |
+| Federation (cross-server) | N | N | N | N | N | N | N | N | N | P (Slack Connect) | Y (Matrix) | **Y** (Matrix r0.6.1 federation + Slack-adapter) |
 | ActivityPub fediverse | N | N | N | N | N | N | N | N | N | N | P | **Y** (B2C personal opt-in; channel-broadcast as ActivityPub Group actor) |
 | iOS native client | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | **Y** (Swift native bundle pane) |
 | Android native client | Y | Y | Y | Y | Y | Y | Y | Y | N | Y | Y | **Y** (Kotlin native bundle pane) |
@@ -392,7 +396,7 @@ Per the 2026-05-21 mobile-bundle directive, messenger, mail, social, and communi
 | Compliance exports (CSV, JSON, EDRM-XML) | Y | Y | N | Y | Y | P | P | **Y** |
 | HIPAA / BAA | Y (Enterprise+) | Y | N | Y | Y | N | N | **Y** (pack-us-healthcare overlay) |
 | FedRAMP / IL5 | Y (GovSlack) | Y (GCC-High) | N | Y (USG) | Y | N | N | **Roadmap** (M06) |
-| Slack Connect (cross-workspace DM) | Y | P (Federation) | N | P | P | N | N | **Y** (Slack-Connect adapter; Matrix-bridged) |
+| Slack (cross-workspace DM) | Y | P (Federation) | N | P | P | N | N | **Y** (Slack-adapter; Matrix-bridged) |
 
 ### 3.13 Aggregate parity scorecard
 
@@ -434,7 +438,7 @@ The personal messenger uses **MLS RFC 9420** as the canonical group key agreemen
 - **Authentication via Authentication Service** (AS) per RFC 9420 §5.3 — oyatie's `identity` µservice issues KeyPackages signed by user's master key.
 - **Delivery Service** (DS) per RFC 9420 §5.4 — oyatie's `message-stream` BC routes commits + application messages; never sees plaintext.
 
-Cross-vendor bridges (e.g., Slack Connect adapter, Matrix federation): MLS is mandatory inside oyatie; bridge endpoints decrypt MLS, transcode to the bridge's wire format (Signal Protocol, Olm/Megolm for Matrix r0.6.1, Slack's TLS-only), and re-encrypt. The bridge run is audit-chained as a `CrossVendorBridgeDecryptionEvent`.
+Cross-vendor bridges (e.g., Slack adapter, Matrix federation): MLS is mandatory inside oyatie; bridge endpoints decrypt MLS, transcode to the bridge's wire format (Signal Protocol, Olm/Megolm for Matrix r0.6.1, Slack's TLS-only), and re-encrypt. The bridge run is audit-chained as a `CrossVendorBridgeDecryptionEvent`.
 
 Sealed sender: per ADR-MSGR-0002 §metadata-minimisation, the server sees only the recipient device's wrapped key blob; it does NOT see who the sender is. Implementation: sender attaches a sealed envelope encrypted to recipient's device key containing sender's identity proof.
 
@@ -516,7 +520,7 @@ Each device holds its own keys; oyatie operators never see them. No cloud key es
 
 - **Matrix r0.6.1 Client-Server + r0.1.4 Server-Server**: canonical-base federation. Oyatie homeserver is a Matrix homeserver; users can interact with `@user:matrix.org`, `@user:element.io`, etc.
 - **ActivityPub** (B2C personal opt-in only): WebFinger discovery; `Note` for posts; channels as `Group` actor. Mastodon/Lemmy follower can follow an oyatie channel.
-- **Slack Connect adapter**: per-tenant opt-in; bridges to an external Slack workspace by tenant admin pairing.
+- **Slack adapter**: per-tenant opt-in; bridges to an external Slack workspace by tenant admin pairing.
 - **Bridge security**: cross-vendor decryption events are audit-chained; tenant admin must approve federation at the tenant level + every cross-vendor channel pairing.
 
 ### 4.9 Status, stories, presence
@@ -684,9 +688,9 @@ Workflow trigger audit: every trigger emits `WorkflowTriggerRequested{source_msg
 - Tenant admin UI at `https://admin.<tenant>.oyatie.app/messenger`.
 - Surfaces: users, channels, retention, legal holds, eDiscovery jobs, DLP rules, slash command library, workflow integrations, audit-log search, federation pairings (Slack Connect, Matrix), quota usage, FinOps, federation blocklist.
 
-### 5.15 Federation (Slack Connect + Matrix)
+### 5.15 Federation (Slack + Matrix)
 
-- Slack Connect adapter: per ADR-MSGR-0001 + ADR-MSGR-0003. Tenant pairs with an external Slack workspace; cross-tenant DMs + channels route through the adapter.
+- Slack adapter: per ADR-MSGR-0001 + ADR-MSGR-0003. Tenant pairs with an external Slack workspace; cross-tenant DMs + channels route through the adapter.
 - Matrix federation: r0.6.1 Client-Server + r0.1.4 Server-Server (per ADR-MSGR-0003). Tenant can pair with Matrix homeservers (Element, internal Synapse, etc.).
 - Federation default OFF for B2B; tenant admin must enable + each pairing requires four-eyes audit.
 
@@ -1021,12 +1025,12 @@ Workflow trigger audit: every trigger emits `WorkflowTriggerRequested{source_msg
 - Walt's messages include MLS-encrypted personal DMs: hold preserves ciphertext only; plaintext disclosure requires separate four-eyes per ADR-0215.
 - Hold release: same four-eyes pattern.
 
-### Story W-9 — Yvonne (Work) federates with an external Slack workspace via Slack Connect adapter
+### Story W-9 — Yvonne (Work) federates with an external Slack workspace via Slack adapter
 
 **Precondition.** Acme works with vendor BarCorp; both have messenger workspaces. BarCorp uses Slack.
 
 **Steps.**
-1. Yvonne (Acme admin) and Zane (BarCorp admin) coordinate: Yvonne enables Slack Connect adapter in admin console; pairs Acme tenant with BarCorp Slack workspace.
+1. Yvonne (Acme admin) and Zane (BarCorp admin) coordinate: Yvonne enables Slack adapter in admin console; pairs Acme tenant with BarCorp Slack workspace.
 2. Per ADR-MSGR-0003 federation pairing: four-eyes (Yvonne + co-admin Aaron approve).
 3. Cross-workspace channel `acme-barcorp-collab` created.
 4. Members from both sides join.
@@ -1175,7 +1179,7 @@ Per ADR-0245 §D-4 cross-tier dependency rules: `messenger` (hero product) consu
 | FR-43 | end-user | to use the messenger in 17 languages day-one | global UX | direct-messaging, group-messaging | Must |
 | FR-44 | end-user | to federate (Matrix) with external users | cross-vendor comms | federation | Should (M02-pack) |
 | FR-45 | B2C personal | to federate (ActivityPub) for channels | fediverse interop | federation | Should (M02-pack) |
-| FR-46 | tenant operator | to enable Slack Connect adapter | cross-vendor B2B comms | federation | Should (M02-pack) |
+| FR-46 | tenant operator | to enable Slack adapter | cross-vendor B2B comms | federation | Should (M02-pack) |
 | FR-47 | tenant operator | to configure SSO (SAML/OIDC) + SCIM provisioning | enterprise identity | direct-messaging, group-messaging, channels | Must (B2B) |
 | FR-48 | tenant operator | to define custom roles + Cedar permissions | tenant-tuned authorization | channels | Must (B2B) |
 | FR-49 | tenant operator | to set per-channel + per-tenant retention | regulatory compliance | archive-retention | Must (B2B) |
@@ -1364,7 +1368,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | **stickers-emoji** | Sticker pack catalog; custom emoji registry; GIF picker (Tenor/Giphy proxy) | `StickerPack`, `Sticker`, `CustomEmoji`, `GifReference` |
 | **presence-status** | Online/away/dnd/custom status; last-seen; typing indicator | `Presence`, `Status`, `LastSeenCursor`, `TypingIndicator` |
 | **notifications** | Push (APNs + FCM + Web Push); in-app; mention inbox; notification preferences | `NotificationPreference`, `PushTarget`, `MentionInboxEntry`, `BatchedNotification` |
-| **federation** | Matrix homeserver state; ActivityPub actor; Slack Connect adapter; cross-vendor bridge | `MatrixHomeserverState`, `ActivityPubActor`, `SlackConnectPairing`, `BridgeDecryptionEvent` |
+| **federation** | Matrix homeserver state; ActivityPub actor; Slack adapter; cross-vendor bridge | `MatrixHomeserverState`, `ActivityPubActor`, `SlackConnectPairing`, `BridgeDecryptionEvent` |
 | **workflow-triggers** | Workflow Engine event emission; slash commands; approval cards; action cards | `SlashCommandRegistration`, `ApprovalCard`, `ActionCardEnvelope`, `WorkflowTriggerEvent` |
 | **dlp** | Pattern scan; PII/PHI/keyword detection; block/warn/quarantine verdict (work-only) | `DlpRule`, `DlpVerdict`, `DlpOverrideRecord` |
 | **archive-retention** | Per-conversation + per-tenant retention policy; legal hold; eDiscovery export | `RetentionPolicy`, `Hold`, `EDiscoveryJob`, `ArchiveBundle` |
@@ -1571,7 +1575,7 @@ CI lanes that must green:
 | Federated client-server | Matrix Client-Server API | r0.6.1 LTS | Per ADR-MSGR-0003. Major-version upgrade requires ADR. |
 | Federated server-server | Matrix Server-Server API | r0.1.4 LTS | Per ADR-MSGR-0003. Cross-pack routing default-deny. |
 | Fediverse | ActivityPub (W3C 2018; living spec 2024) | W3C Rec 2018-01-23 + 2024 living spec | B2C personal opt-in only. WebFinger discovery. NodeInfo 2.1. |
-| Slack Connect bridge | Slack RTM API + WebClient | adapter-pinned | Per-tenant pairing. |
+| Slack bridge | Slack RTM API + WebClient | adapter-pinned | Per-tenant pairing. |
 | E2E key agreement | MLS (RFC 9420) | RFC 9420 (final 2023-07) | Canonical for personal + work. Per ADR-MSGR-0002. |
 | E2E cross-vendor (Matrix bridge) | Olm 3.x + Megolm 1.x | Olm 3.x + Megolm 1.x | Bridge endpoints decrypt MLS → re-encrypt to Olm/Megolm. |
 | E2E cross-vendor (Signal Protocol) | Signal X3DH + Double Ratchet | X3DH 2021 spec + DR 2016 spec | For Signal-compat bridges only. |
@@ -1665,16 +1669,16 @@ Per ADR-0064 canonical-base + localization, per-pack overlays MAY pin a newer mi
 - ADR-0131 Per-microservice flat layout
 - ADR-0132 Suite-and-bundle dissolution
 - ADR-0133 Industry best-practice conformance
-- ADR-0135 Connect dual-context (parallel)
+- ADR-0135 dual-context (parallel)
 - ADR-0139 Agentic SLO-gated promotion
 - ADR-0140 Cedar policy engine
 - ADR-0145 Cross-product flows via Workflow + Ontology only
 - ADR-0148 mTLS service mesh
 - ADR-0150 Postgres + Citus sharding
 - ADR-0172 Read replicas + CQRS for high-read BCs
-- ADR-0208 Connect dual-context unified channel hub (Bominal inherited)
-- ADR-0215 Connect retention legal-hold dual-context (Bominal inherited)
-- ADR-0238 Connect suite parallel dissolution
+- ADR-0208 dual-context unified channel hub (Bominal inherited)
+- ADR-0215 retention legal-hold dual-context (Bominal inherited)
+- ADR-0238 platform parallel dissolution
 - ADR-0240 Sovereign-cloud-per-pack
 - ADR-0241 DR tiers (T0/T1/T2)
 - ADR-0242 oyatie-is-a-tenant doctrine
@@ -1706,7 +1710,7 @@ Per ADR-0064 canonical-base + localization, per-pack overlays MAY pin a newer mi
 | 2 | MLS key escrow: none (Signal-default) or opt-in passphrase + Shamir-split for personal + HSM-anchored for work? | council-privacy | ADR-MSGR-0002 §key-escrow |
 | 3 | Live translation backend: on-device only (Whisper-Small + NLLB-200) or cloud-Whisper opt-in? | axis-intelligence | ADR-MSGR-0001 §live-translation |
 | 4 | Federation default for B2B: opt-in per tenant (current) or pack-allowlist? | ops-compliance | ADR-MSGR-0003 §federation-default |
-| 5 | Slack Connect bridge: build in-house or partner with Element's bridge stack? | axis-messenger + ops-security | RFC-MSGR-001 |
+| 5 | Slack bridge: build in-house or partner with Element's bridge stack? | axis-messenger + ops-security | RFC-MSGR-001 |
 | 6 | Recording storage: encrypted to MLS group key (current plan) or tenant-DEK only for compliance work mode? | council-privacy | ADR-MSGR-0001 §recording |
 | 7 | E2E for calls under federation (Matrix bridge): degrade to TLS-only with explicit warning or refuse? | council-privacy | ADR-MSGR-0003 §federated-call-e2e |
 | 8 | Sticker store revenue model: free-tier only at M02, paid via Plugin App Store at M03? | sales-strategy | IP-PLUGIN-STORE |
@@ -1722,7 +1726,7 @@ Per ADR-0064 canonical-base + localization, per-pack overlays MAY pin a newer mi
 | M02-foundation | First ship | All 18 BCs in skeletal form; 1:1 + group DM with MLS; voice/video 1:1; channels; threads; reactions; mentions; basic admin | 2026-Q3 |
 | M02-pack-personal | B2C launch | Stories, channels (broadcast), self-destruct, custom emoji, GIF, polls, location, contacts, multi-device, full MLS, 17 languages | 2026-Q3 |
 | M02-pack-work | B2B launch | Workspaces, threads, mentions, slash commands, workflow triggers, mail-bridge, calendar/meet integration, huddles, clock-in, e-sign, approvals, DLP, eDiscovery, audit-chain, SSO, SCIM | 2026-Q3 |
-| M02-pack-federation | Federation packs | Matrix r0.6.1 federation; ActivityPub channels; Slack Connect adapter | 2026-Q4 |
+| M02-pack-federation | Federation packs | Matrix r0.6.1 federation; ActivityPub channels; Slack adapter | 2026-Q4 |
 | M03-pack-intel | Intelligence packs | Live captions, voice-msg transcription, smart-reply, AI-summarisation, live translation | 2027-Q1 |
 | M04-spatial | Spatial audio + AR | Spatial audio for calls; AR effects roadmap | 2027-Q2 |
 | M05-active-sync | ActiveSync | EAS sync (for legacy Exchange ecosystems if demanded) | 2027-Q3 |

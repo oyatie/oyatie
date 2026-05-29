@@ -60,7 +60,7 @@ external_market_refs:
 
 1. **What is oyatie?** Oyatie is a single, unified software ecosystem that replaces the 110-plus separate SaaS applications a modern enterprise — and the increasingly software-saturated modern human — runs on today. One login, one policy engine, one workflow engine, one data model, one audit trail, one marketplace, one user-interface vocabulary; every "product" (CRM, HR, ERP, IT-service-management, marketplace, mail, calendar, notes, sheets, meet, community, workflow studio, audit) is a role-based projection of that single substrate.
 2. **Why does it exist?** Because SaaS fragmentation has become an industrial-scale tax. Enterprises now spend a third of their IT budget on integration alone, train their workforce repeatedly on overlapping tools, and re-prove compliance posture vendor-by-vendor. Oyatie ends that cycle: train the user once, certify the platform once, audit the platform once, and carry that investment across personal, professional, regulated, and side-business contexts for a lifetime.
-3. **What does it displace?** Functionally, the next decade of enterprise SaaS — SAP, Salesforce, Workday, ServiceNow, Atlassian, Microsoft, Adobe, HubSpot, Zendesk, Snowflake, Stripe-Connect — and the next decade of personal-productivity-and-communication tools — Gmail, iMessage, WhatsApp, Slack, Notion, Calendly, Google Drive, Google Meet, Reddit, Instagram, TikTok, and the per-vertical apps stitched on top of them. Not by feature-matching them one-by-one, but by collapsing the fragmentation that makes them all expensive to own together.
+3. **What does it displace?** Functionally, the next decade of enterprise SaaS — SAP, Salesforce, Workday, ServiceNow, Atlassian, Microsoft, Adobe, HubSpot, Zendesk, Snowflake, Stripe-— and the next decade of personal-productivity-and-communication tools — Gmail, iMessage, WhatsApp, Slack, Notion, Calendly, Google Drive, Google Meet, Reddit, Instagram, TikTok, and the per-vertical apps stitched on top of them. Not by feature-matching them one-by-one, but by collapsing the fragmentation that makes them all expensive to own together.
 
 That is the whole thesis. The rest of this briefing is the evidence, the scope, the doctrine, the personas, the journeys, the compliance posture, the roadmap, and the competitive landscape that supports it.
 
@@ -490,7 +490,7 @@ Total: **150 journeys, 1,092+ artifacts in the catalog, 1,340+ per-microservice 
 
 Three reasons:
 
-1. **Journeys are the operational definition of "the platform works."** A journey passes if and only if the user can complete the flow end-to-end without a context switch, a re-authentication, a separate-tool integration, a separate-tool training, or a separate-tool compliance review. A journey catalog of 150 is an operational test suite for the unified-ecosystem thesis.
+1. **Journeys are the operational definition of "the platform works."** A journey passes if and only if the user can complete the flow end-to-end without a context switch, a re-authentication, a separate-tool integration, a separate-tool training, or a separate-tool compliance review. A journey catalog of 150 is an operational test set for the unified-ecosystem thesis.
 2. **Journeys are the sales motion.** Every journey is a customer story. The sales-leader who walks a prospect through j43 (quote-to-cash) does not have to explain the architecture — they show the prospect what their CFO + their VP of Sales + their AR clerk + their audit team see in the same flow.
 3. **Journeys are the implementation backlog.** Each journey decomposes into per-microservice implementation-plan slices. 1,340+ IP slices is the engineering-team's marching orders. The corpus is sized; the team is sequencing.
 
@@ -747,7 +747,7 @@ The capability-tier registry (per ADR-0316) is the runtime primitive that turns 
 
 - The registry schema.
 - The first wave of tier manifests (CRM, ITSM, HRIS, ERP-finance, ERP-supply-chain).
-- The CI lanes that enforce no-product-fragmentation, no-suite-microservices, and capability-tier coverage.
+- The CI lanes that enforce no-product-fragmentation, no-grouping-microservices, and capability-tier coverage.
 
 ### §9.4 Wave 3-J — Code authoring (the microservices need actual Rust)
 
@@ -799,7 +799,7 @@ The single highest-leverage GTM artifact is the migration-from-incumbent journey
 - **FROM ServiceNow TO oyatie ITSM** — incident / change / problem / asset / configuration migration.
 - **FROM Atlassian (Jira + Confluence) TO oyatie** — issue / wiki / project / portfolio migration.
 - **FROM Microsoft 365 TO oyatie** — mail / calendar / drive / teams / sharepoint / power-platform migration.
-- **FROM Stripe Connect TO oyatie marketplace settlement** — platform-payment migration with parallel-run.
+- **FROM Stripe TO oyatie marketplace settlement** — platform-payment migration with parallel-run.
 - **FROM Snowflake TO oyatie data-warehouse** — table / view / pipeline / RBAC migration.
 
 Each migration journey is itself a multi-month customer engagement and a multi-million-dollar contract. The migration playbooks are the GTM unlock for the first 18 months of enterprise sales.
@@ -917,7 +917,7 @@ For each major vendor or vendor-category, the head-to-head positioning is as fol
 - **What they do.** Global ERP standard. S/4HANA. 28 modules. Deep finance + supply-chain + manufacturing + industry verticals.
 - **Where they win today.** Incumbent enterprise relationships. 50-year regulatory + audit-firm familiarity. Strong industry-vertical depth.
 - **Where they lose.** Implementation cost (often $100M+ for large enterprises). Time-to-value (3-7 years). Per-module integration tax. Per-locale fork (S/4HANA-Public-Cloud vs S/4HANA-Private-Cloud vs SAP-ECC long-tail).
-- **Oyatie's positioning.** Full S/4HANA module parity (ADR-0315), unified-substrate-integrated (no per-module tax), capability-tier projected (no suite lock-in), with build-ahead-of-certification regulatory readiness.
+- **Oyatie's positioning.** Full S/4HANA module parity (ADR-0315), unified-substrate-integrated (no per-module tax), capability-tier projected (no platform lock-in), with build-ahead-of-certification regulatory readiness.
 
 ### §11.2 Salesforce
 
@@ -1290,7 +1290,7 @@ Three principles govern the consumer-side approach:
 
 - **No advertising substrate.** Oyatie's user-data is not monetized via advertising. This is a substrate-level commitment, not a per-product policy. The Cedar substrate does not have an "advertising" permit class for cross-tenant data sale.
 - **Freemium with capability-tier upsell.** Consumer hero products (messenger, mail, community, marketplace consumer-side, drive, calendar, meet, notes) are free at a basic capability tier. Power-user features (custom domains, higher storage, advanced workflows, larger meetings, AI-assist depth) are paid capability tiers.
-- **Marketplace settlement take-rate.** Consumer purchases through marketplace generate take-rate revenue, the same way Stripe-Connect or Shopify do.
+- **Marketplace settlement take-rate.** Consumer purchases through marketplace generate take-rate revenue, the same way Stripe-or Shopify do.
 
 The consumer-side revenue is not the largest revenue line. It is the GTM unlock that makes the enterprise sale easier. A workforce that already uses oyatie at home is a workforce pre-disposed to advocate for oyatie at work.
 
