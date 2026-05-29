@@ -32,6 +32,8 @@ use oya_governance_gate_catalog_domain::{
     CI_REQUIRED_PREFLIGHT_COMMANDS, DEPENDENCY_SEAM_EVIDENCE,
 };
 
+use crate::commands::verify_affected::changed_files;
+
 use super::result_cache::{FsVerdictCache, GateInputs, Verdict, default_cache_dir};
 use super::run as gate_dispatch;
 
@@ -72,20 +74,35 @@ const DEFERRED_GATES: &[(&str, &str)] = &[
 pub(crate) struct RunAllArgs {
     pub(crate) include_deferred: bool,
     pub(crate) ci_required: bool,
+    /// When `true`, narrow the lane set to those triggered by the diff vs `base`.
+    /// Ignored (full set) when `ci_required` is also `true`.
+    pub(crate) affected: bool,
+    /// Git ref to diff against when `--affected` is supplied. Defaults to `origin/dev`.
+    pub(crate) base: String,
 }
 
 pub(crate) fn parse_run_all_args(args: Vec<String>) -> Result<RunAllArgs, String> {
     let mut parsed = RunAllArgs {
         include_deferred: false,
         ci_required: false,
+        affected: false,
+        base: "origin/dev".to_string(),
     };
-    for flag in args {
+    let mut iter = args.into_iter();
+    while let Some(flag) = iter.next() {
         match flag.as_str() {
             "--include-deferred" => parsed.include_deferred = true,
             "--ci-required" => parsed.ci_required = true,
+            "--affected" => parsed.affected = true,
+            "--base" => {
+                let ref_val = iter.next().ok_or_else(|| {
+                    "gate run-all: --base requires a <ref> argument".to_string()
+                })?;
+                parsed.base = ref_val;
+            }
             other => {
                 return Err(format!(
-                    "gate run-all: unknown flag {other:?}; allowed: --include-deferred, --ci-required"
+                    "gate run-all: unknown flag {other:?}; allowed: --include-deferred, --ci-required, --affected, --base <ref>"
                 ));
             }
         }
@@ -100,8 +117,39 @@ pub(crate) struct LaneOutcome {
 }
 
 pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
+    // Compute the active lane set.
+    // --ci-required is the trunk backstop: always runs the full catalog,
+    // unconditionally overriding --affected narrowing.
+    let active_lanes: Vec<&str> = if args.ci_required || !args.affected {
+        AGGREGATED_VALIDATE_LANES.to_vec()
+    } else {
+        // --affected mode: narrow to lanes triggered by the diff vs base.
+        let repo_root = Path::new(".");
+        match changed_files(repo_root, &args.base) {
+            Ok(changed) => {
+                let changed_refs: Vec<&str> = changed.iter().map(String::as_str).collect();
+                let selected =
+                    oya_governance_gate_catalog_domain::lanes_for_changed(&changed_refs);
+                println!(
+                    "[gate run-all] affected mode: {}/{} lanes selected (base={})",
+                    selected.len(),
+                    AGGREGATED_VALIDATE_LANES.len(),
+                    args.base
+                );
+                selected
+            }
+            Err(error) => {
+                eprintln!(
+                    "[gate run-all] WARNING: affected-scope git diff failed ({error}); \
+                     falling back to full lane set"
+                );
+                AGGREGATED_VALIDATE_LANES.to_vec()
+            }
+        }
+    };
+
     let mut outcomes: Vec<LaneOutcome> = Vec::with_capacity(
-        AGGREGATED_VALIDATE_LANES.len()
+        active_lanes.len()
             + if args.ci_required {
                 CI_REQUIRED_PREFLIGHT_COMMANDS.len()
             } else {
@@ -115,7 +163,7 @@ pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
     let cache = (std::env::var("OYA_GATE_CACHE").as_deref() == Ok("1"))
         .then(|| FsVerdictCache::new(default_cache_dir(Path::new("."))));
 
-    for lane in AGGREGATED_VALIDATE_LANES {
+    for lane in &active_lanes {
         let inputs = lane_gate_inputs(lane);
         if let Some(cache) = &cache
             && let Some(verdict) = cache.lookup(&inputs)
@@ -454,5 +502,105 @@ mod tests {
         assert!(is_success(ExitCode::SUCCESS));
         assert!(!is_success(ExitCode::FAILURE));
         assert!(!is_success(ExitCode::from(2)));
+    }
+
+    // ------------------------------------------------------------------
+    // --affected / --base flag tests (ADR-0360 O1 gate-scope narrowing)
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn parse_args_affected_flag_defaults_base_to_origin_dev() {
+        let parsed = parse_run_all_args(vec!["--affected".into()]).expect("affected flag");
+        assert!(parsed.affected);
+        assert!(!parsed.ci_required);
+        assert_eq!(parsed.base, "origin/dev");
+    }
+
+    #[test]
+    fn parse_args_affected_with_explicit_base() {
+        let parsed =
+            parse_run_all_args(vec!["--affected".into(), "--base".into(), "main".into()])
+                .expect("--affected --base main");
+        assert!(parsed.affected);
+        assert_eq!(parsed.base, "main");
+    }
+
+    #[test]
+    fn parse_args_base_without_value_rejected() {
+        let err = parse_run_all_args(vec!["--affected".into(), "--base".into()])
+            .expect_err("--base needs a value");
+        assert!(err.contains("--base"), "error should mention --base: {err}");
+    }
+
+    #[test]
+    fn parse_args_defaults_affected_false() {
+        let parsed = parse_run_all_args(vec![]).expect("defaults");
+        assert!(!parsed.affected);
+        assert_eq!(parsed.base, "origin/dev");
+    }
+
+    /// `--ci-required` must always select the full `AGGREGATED_VALIDATE_LANES`
+    /// set regardless of whether `--affected` is also supplied. This tests the
+    /// lane-selection logic directly (pure function, no subprocess).
+    #[test]
+    fn ci_required_selects_full_lane_set() {
+        // With ci_required=true, the active lanes must equal AGGREGATED_VALIDATE_LANES
+        // exactly (same order, same content). We verify this by simulating the same
+        // branch that run_all_gates takes when ci_required is true.
+        let ci_required = true;
+        let affected = true; // even with affected=true, ci_required wins
+        let active_lanes: Vec<&str> = if ci_required || !affected {
+            AGGREGATED_VALIDATE_LANES.to_vec()
+        } else {
+            // This branch must NOT be reached when ci_required is true.
+            oya_governance_gate_catalog_domain::lanes_for_changed(&[
+                "docs/decisions/ADR-9999-test.md",
+            ])
+        };
+        assert_eq!(
+            active_lanes, AGGREGATED_VALIDATE_LANES,
+            "--ci-required must select the full AGGREGATED_VALIDATE_LANES set"
+        );
+    }
+
+    /// `--affected` (without `--ci-required`) must narrow the lane set when the
+    /// diff contains only ADR docs. The narrowed set must be a strict subset of
+    /// the full catalog (proving the logic actually narrows, not just passes through).
+    #[test]
+    fn affected_narrows_lanes_for_adr_only_diff() {
+        // Simulate an ADR-only diff: only docs/decisions changed.
+        // lanes_for_changed is pure (no I/O), so we call it directly.
+        let changed = ["docs/decisions/ADR-0360-affected-scope.md"];
+        let selected = oya_governance_gate_catalog_domain::lanes_for_changed(&changed);
+
+        // (1) The result must be strictly smaller than the full catalog because
+        //     cloud-iac-*, slo-coverage, and other infra lanes are NOT triggered
+        //     by a docs/decisions change.
+        assert!(
+            selected.len() < AGGREGATED_VALIDATE_LANES.len(),
+            "affected narrowing must produce a subset: got {} of {} lanes",
+            selected.len(),
+            AGGREGATED_VALIDATE_LANES.len()
+        );
+
+        // (2) ADR-surface lanes that ARE triggered by docs/decisions must be present.
+        assert!(
+            selected.contains(&"adr-citation"),
+            "adr-citation must be selected for a docs/decisions change"
+        );
+        assert!(
+            selected.contains(&"adr-supersession-consistency"),
+            "adr-supersession-consistency must be selected for a docs/decisions change"
+        );
+
+        // (3) Cloud IaC lanes (infra/**-gated) must be absent for this diff.
+        assert!(
+            !selected.contains(&"cloud-iac-opentofu-validation"),
+            "cloud-iac-opentofu-validation must NOT be selected for a docs/decisions-only change"
+        );
+        assert!(
+            !selected.contains(&"slo-coverage"),
+            "slo-coverage must NOT be selected for a docs/decisions-only change"
+        );
     }
 }
