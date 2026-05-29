@@ -1163,6 +1163,324 @@ mod tests {
         );
     }
 
+    // ── cedar-lint-1: value-type serde round-trip ─────────────────────────────
+
+    /// cedar-lint-1 acceptance: `PolicyLintReport` round-trips through
+    /// `serde_json` and `has_blocking` is true iff any finding is
+    /// `LintSeverity::Error`.
+    #[test]
+    fn lint_report_serde_roundtrip_and_has_blocking_tracks_error_severity() {
+        // A report with one Error finding is blocking.
+        let error_finding = PolicyLintFinding {
+            severity: LintSeverity::Error,
+            rule_indices: vec![0, 2],
+            reason: "rules 0 and 2 conflict: Allow and Deny on identical (principal_role, action, resource_prefix, required_attribute)".to_string(),
+        };
+        let report_with_error = PolicyLintReport {
+            findings: vec![error_finding.clone()],
+        };
+        assert!(report_with_error.has_blocking(), "report with Error finding must be blocking");
+        assert!(!report_with_error.is_clean(), "report with Error finding must not be clean");
+
+        // Round-trip through serde_json.
+        let json = serde_json::to_string(&report_with_error).expect("PolicyLintReport serializes");
+        let roundtrip: PolicyLintReport =
+            serde_json::from_str(&json).expect("PolicyLintReport deserializes");
+        assert_eq!(report_with_error, roundtrip);
+        assert!(roundtrip.has_blocking());
+
+        // A report with only Warning findings is not blocking.
+        let warning_finding = PolicyLintFinding {
+            severity: LintSeverity::Warning,
+            rule_indices: vec![1, 3],
+            reason: "rule 3 is shadowed by rule 1".to_string(),
+        };
+        let report_warning_only = PolicyLintReport {
+            findings: vec![warning_finding],
+        };
+        assert!(!report_warning_only.has_blocking(), "Warning-only report must not be blocking");
+        assert!(!report_warning_only.is_clean(), "Warning-only report must not be clean");
+
+        // An empty report is clean and not blocking.
+        let empty_report = PolicyLintReport { findings: vec![] };
+        assert!(empty_report.is_clean(), "empty report must be clean");
+        assert!(!empty_report.has_blocking(), "empty report must not be blocking");
+
+        // LintSeverity serde: "Error" and "Warning" PascalCase wire values.
+        let error_json = serde_json::to_string(&LintSeverity::Error)
+            .expect("LintSeverity::Error serializes");
+        assert_eq!(error_json, "\"Error\"");
+        let warning_json = serde_json::to_string(&LintSeverity::Warning)
+            .expect("LintSeverity::Warning serializes");
+        assert_eq!(warning_json, "\"Warning\"");
+    }
+
+    // ── cedar-lint-2: conflict + duplicate detection ───────────────────────────
+
+    /// cedar-lint-2 acceptance: a conflicting Allow+Deny pair on identical
+    /// (principal_role, action, resource_prefix, required_attribute) emits one
+    /// Error finding citing both rule indices.
+    #[test]
+    fn lint_detects_conflict_allow_deny_pair_emits_one_error_with_both_indices() {
+        let version = PolicyVersion {
+            policy_id: "pol_conflict_test".to_string(),
+            version: "1.0.0".to_string(),
+            scope: PolicyScope::Global,
+            supersedes: None,
+            rules: vec![
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "editor".to_string(),
+                    action: "doc.write".to_string(),
+                    resource_prefix: "docs:".to_string(),
+                    required_attribute: None,
+                },
+                PolicyRuleInput {
+                    effect: PolicyEffect::Deny,
+                    principal_role: "editor".to_string(),
+                    action: "doc.write".to_string(),
+                    resource_prefix: "docs:".to_string(),
+                    required_attribute: None,
+                },
+            ],
+        };
+        let report = lint_policy_version(&version);
+        let errors: Vec<&PolicyLintFinding> = report
+            .findings
+            .iter()
+            .filter(|f| f.severity == LintSeverity::Error)
+            .collect();
+        assert_eq!(errors.len(), 1, "expected exactly one Error finding for Allow/Deny conflict");
+        assert_eq!(
+            errors[0].rule_indices,
+            vec![0usize, 1],
+            "error finding must cite both rule indices 0 and 1"
+        );
+        assert!(report.has_blocking());
+    }
+
+    /// cedar-lint-2 acceptance: a conflict with a required_attribute on the
+    /// same (role, action, prefix, attr) tuple emits one Error finding.
+    #[test]
+    fn lint_detects_conflict_with_required_attribute_emits_error() {
+        let attr = Some(("tier".to_string(), "premium".to_string()));
+        let version = PolicyVersion {
+            policy_id: "pol_attr_conflict".to_string(),
+            version: "1.0.0".to_string(),
+            scope: PolicyScope::Global,
+            supersedes: None,
+            rules: vec![
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "subscriber".to_string(),
+                    action: "content.read".to_string(),
+                    resource_prefix: "content:premium:".to_string(),
+                    required_attribute: attr.clone(),
+                },
+                PolicyRuleInput {
+                    effect: PolicyEffect::Deny,
+                    principal_role: "subscriber".to_string(),
+                    action: "content.read".to_string(),
+                    resource_prefix: "content:premium:".to_string(),
+                    required_attribute: attr,
+                },
+            ],
+        };
+        let report = lint_policy_version(&version);
+        let errors: Vec<&PolicyLintFinding> = report
+            .findings
+            .iter()
+            .filter(|f| f.severity == LintSeverity::Error)
+            .collect();
+        assert_eq!(errors.len(), 1, "expected one Error for attr-matching conflict");
+        assert_eq!(errors[0].rule_indices, vec![0usize, 1]);
+    }
+
+    /// cedar-lint-2 acceptance: two identical rules (same effect + tuple) emit
+    /// one Error duplicate finding.
+    #[test]
+    fn lint_detects_duplicate_rules_emits_error() {
+        let rule = PolicyRuleInput {
+            effect: PolicyEffect::Allow,
+            principal_role: "reader".to_string(),
+            action: "resource.read".to_string(),
+            resource_prefix: "res:".to_string(),
+            required_attribute: None,
+        };
+        let version = PolicyVersion {
+            policy_id: "pol_dup_test".to_string(),
+            version: "1.0.0".to_string(),
+            scope: PolicyScope::Global,
+            supersedes: None,
+            rules: vec![rule.clone(), rule],
+        };
+        let report = lint_policy_version(&version);
+        let errors: Vec<&PolicyLintFinding> = report
+            .findings
+            .iter()
+            .filter(|f| f.severity == LintSeverity::Error)
+            .collect();
+        assert_eq!(errors.len(), 1, "expected exactly one Error finding for duplicate rules");
+        assert_eq!(errors[0].rule_indices, vec![0usize, 1]);
+    }
+
+    /// cedar-lint-2 acceptance: a policy with no conflicts, duplicates, or
+    /// shadows yields an empty report (is_clean() true).
+    #[test]
+    fn lint_clean_policy_is_clean() {
+        let version = PolicyVersion {
+            policy_id: "pol_clean".to_string(),
+            version: "1.0.0".to_string(),
+            scope: PolicyScope::Global,
+            supersedes: None,
+            rules: vec![
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "admin".to_string(),
+                    action: "tenant.settings.update".to_string(),
+                    resource_prefix: "tenant:".to_string(),
+                    required_attribute: None,
+                },
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "reader".to_string(),
+                    action: "tenant.settings.read".to_string(),
+                    resource_prefix: "tenant:".to_string(),
+                    required_attribute: None,
+                },
+            ],
+        };
+        let report = lint_policy_version(&version);
+        assert!(report.is_clean(), "clean policy must yield is_clean() == true");
+        assert!(!report.has_blocking());
+        assert!(report.findings.is_empty());
+    }
+
+    // ── cedar-lint-3: shadow/unreachable detection ────────────────────────────
+
+    /// cedar-lint-3 acceptance: a later same-effect rule whose resource_prefix
+    /// is subsumed by an earlier rule's broader prefix is flagged as Warning
+    /// (unreachable/shadowed).
+    #[test]
+    fn lint_detects_shadowed_rule_under_broader_prefix_emits_warning() {
+        let version = PolicyVersion {
+            policy_id: "pol_shadow_test".to_string(),
+            version: "1.0.0".to_string(),
+            scope: PolicyScope::Global,
+            supersedes: None,
+            rules: vec![
+                // Earlier broader rule: resource_prefix = "docs:"
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "editor".to_string(),
+                    action: "doc.write".to_string(),
+                    resource_prefix: "docs:".to_string(),
+                    required_attribute: None,
+                },
+                // Later narrower rule: resource_prefix = "docs:project:" (subsumed)
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "editor".to_string(),
+                    action: "doc.write".to_string(),
+                    resource_prefix: "docs:project:".to_string(),
+                    required_attribute: None,
+                },
+            ],
+        };
+        let report = lint_policy_version(&version);
+        let warnings: Vec<&PolicyLintFinding> = report
+            .findings
+            .iter()
+            .filter(|f| f.severity == LintSeverity::Warning)
+            .collect();
+        assert_eq!(warnings.len(), 1, "expected exactly one Warning for shadowed rule");
+        assert_eq!(
+            warnings[0].rule_indices,
+            vec![0usize, 1],
+            "warning must cite earlier rule 0 and shadowed rule 1"
+        );
+    }
+
+    /// cedar-lint-3 acceptance: two rules with sibling (non-prefix) resource
+    /// prefixes do not shadow each other — no shadow finding emitted.
+    #[test]
+    fn lint_sibling_prefixes_not_shadowed() {
+        let version = PolicyVersion {
+            policy_id: "pol_siblings".to_string(),
+            version: "1.0.0".to_string(),
+            scope: PolicyScope::Global,
+            supersedes: None,
+            rules: vec![
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "editor".to_string(),
+                    action: "doc.write".to_string(),
+                    resource_prefix: "docs:projectA:".to_string(),
+                    required_attribute: None,
+                },
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "editor".to_string(),
+                    action: "doc.write".to_string(),
+                    resource_prefix: "docs:projectB:".to_string(),
+                    required_attribute: None,
+                },
+            ],
+        };
+        let report = lint_policy_version(&version);
+        let shadow_warnings: Vec<&PolicyLintFinding> = report
+            .findings
+            .iter()
+            .filter(|f| f.severity == LintSeverity::Warning)
+            .collect();
+        assert!(
+            shadow_warnings.is_empty(),
+            "sibling prefixes must not produce shadow warnings, got: {shadow_warnings:?}"
+        );
+        assert!(report.is_clean());
+    }
+
+    /// cedar-lint-3 acceptance: when earlier rule has `required_attribute =
+    /// Some(...)` and later rule has `required_attribute = None` (broader), the
+    /// later rule is NOT shadowed — no warning emitted.
+    #[test]
+    fn lint_broader_attr_on_later_rule_is_not_shadowed() {
+        let version = PolicyVersion {
+            policy_id: "pol_attr_broader".to_string(),
+            version: "1.0.0".to_string(),
+            scope: PolicyScope::Global,
+            supersedes: None,
+            rules: vec![
+                // Earlier rule: narrower attribute guard
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "editor".to_string(),
+                    action: "doc.write".to_string(),
+                    resource_prefix: "docs:".to_string(),
+                    required_attribute: Some(("tier".to_string(), "premium".to_string())),
+                },
+                // Later rule: same prefix, NO attribute guard (broader) — not shadowed
+                PolicyRuleInput {
+                    effect: PolicyEffect::Allow,
+                    principal_role: "editor".to_string(),
+                    action: "doc.write".to_string(),
+                    resource_prefix: "docs:".to_string(),
+                    required_attribute: None,
+                },
+            ],
+        };
+        let report = lint_policy_version(&version);
+        let shadow_warnings: Vec<&PolicyLintFinding> = report
+            .findings
+            .iter()
+            .filter(|f| f.severity == LintSeverity::Warning)
+            .collect();
+        assert!(
+            shadow_warnings.is_empty(),
+            "later rule with broader (None) attr must not be flagged as shadowed"
+        );
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     fn tenant_scope() -> PolicyScope {
