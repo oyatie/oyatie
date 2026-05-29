@@ -44,6 +44,8 @@ use oya_identity_workload_rest::{
     },
 };
 
+use oya_identity_workload_rest::grpc::proto::claim_value::Value as ProtoClaimValue;
+
 use common::{
     FailingRepository, AUDIENCE, ISSUER, NOW, mint_token, permit_authorizer, provisioned_state,
 };
@@ -436,6 +438,106 @@ async fn authorize_already_verified_principal_default_deny() {
     let records = state.audit().records();
     assert_eq!(records.len(), 1, "exactly one audit record per authorize call");
     assert_eq!(records[0].outcome(), "deny");
+}
+
+// =====================================================================
+// Claims-parity: a claims-gated Cedar policy must yield the same
+// ALLOW/DENY decision over gRPC as over REST (fixes blocker: claims
+// were silently dropped from the bare Authorize RPC, causing a
+// claim-conditioned forbid/permit to diverge between surfaces).
+// =====================================================================
+
+#[tokio::test]
+async fn authorize_claims_gated_permit_returns_allow_when_claim_present() {
+    // Cedar policy: permit only when principal has a claim `env == "prod"`.
+    let claims_policy = CedarWorkloadAuthorizer::from_cedar_policies(
+        r#"
+        @id("permit-acme-kms-decrypt-prod-env")
+        permit (
+          principal is Workload,
+          action == Action::"cloud.kms.Decrypt",
+          resource is Secret
+        ) when {
+          principal.tenant_id == "ten_acme" &&
+          principal.scopes.contains("cloud.kms.decrypt") &&
+          principal has claim_env &&
+          principal.claim_env.contains("prod")
+        };
+        "#,
+    )
+    .expect("cedar parses");
+
+    let minted = mint_token();
+    let mut repo = oya_identity_workload_app::InMemoryWorkloadPrincipalRepository::new();
+    oya_identity_workload_app::provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
+        .unwrap();
+    oya_identity_workload_app::activate(
+        &mut repo,
+        &oya_identity_workload_domain::WorkloadId::new("wl_secrets_sync").unwrap(),
+    )
+    .unwrap();
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo,
+        InMemoryRevocationDenylist::new(),
+        claims_policy,
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        InMemoryAuditSink::new(),
+        || NOW,
+    ));
+    let server = WorkloadGrpcServer::new(state.clone());
+
+    // Build proto ClaimValue for `env = "prod"`.
+    let claim_env_prod = oya_identity_workload_rest::grpc::proto::ClaimValue {
+        value: Some(ProtoClaimValue::Text("prod".to_owned())),
+    };
+
+    // With the matching claim -> ALLOW.
+    let result_with_claim = server
+        .authorize(Request::new(AuthorizeRequest {
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["cloud.kms.decrypt".to_owned()],
+            claims: [("env".to_owned(), claim_env_prod)].into_iter().collect(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await
+        .expect("rpc ok");
+
+    assert_eq!(
+        result_with_claim.into_inner().effect,
+        DecisionEffect::Allow as i32,
+        "claims-gated policy must ALLOW when the required claim is present over gRPC (principal.claim_env.contains('prod'))"
+    );
+
+    // Without the claim -> DENY (claim-gated policy does not fire).
+    let result_without_claim = server
+        .authorize(Request::new(AuthorizeRequest {
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["cloud.kms.decrypt".to_owned()],
+            claims: Default::default(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await
+        .expect("rpc ok");
+
+    assert_eq!(
+        result_without_claim.into_inner().effect,
+        DecisionEffect::Deny as i32,
+        "claims-gated policy must DENY when the required claim is absent over gRPC"
+    );
+
+    // Two audit records, one per authorize call.
+    assert_eq!(state.audit().len(), 2);
+    assert_eq!(state.audit().records()[0].outcome(), "allow");
+    assert_eq!(state.audit().records()[1].outcome(), "deny");
 }
 
 // =====================================================================

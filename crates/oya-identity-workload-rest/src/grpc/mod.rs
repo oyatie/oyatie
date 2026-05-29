@@ -25,6 +25,7 @@ use std::sync::Arc;
 
 use tonic::{Request, Response, Status};
 
+use oya_identity_workload_api::ClaimValueDto;
 use oya_identity_workload_app::{AuthorizeOutcome, RevocationDenylist, WorkloadPrincipalRepository, authorize_with_token};
 use oya_identity_workload_authz_cedar_adapter::WorkloadAuthorizer;
 use oya_identity_workload_domain::{Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, Resource};
@@ -279,7 +280,10 @@ where
             workload_id: req.workload_id.clone(),
             owning_capability: req.owning_capability.clone(),
             scopes: req.scopes.clone(),
-            claims: Default::default(),
+            claims: proto_context_to_domain(&req.claims)
+                .into_iter()
+                .map(|(k, v)| (k, ClaimValueDto::from(&v)))
+                .collect(),
             context: Default::default(),
             action: req.action.clone(),
             resource: {
