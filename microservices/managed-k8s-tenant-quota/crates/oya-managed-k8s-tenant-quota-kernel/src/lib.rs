@@ -690,6 +690,171 @@ fn utilized_pct(used: u32, ceiling: u32) -> u8 {
 }
 
 // ============================================================
+// Pressure band classifier (ADR-0130 SLO/alert inputs)
+// ============================================================
+
+/// The quota dimension that is most constrained (highest utilization pct).
+///
+/// Returned by [`QuotaHeadroom::most_constrained_dimension`].
+///
+/// ## Tie-break rule
+/// When two or more dimensions share the same maximum utilization percentage,
+/// the canonical priority order is `Clusters → Nodes → Vcpu → Ram` (first
+/// highest wins). This order is stable across platforms and Rust versions.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum ConstrainedDimension {
+    /// Cluster-count dimension (`clusters_utilized_pct`).
+    Clusters,
+    /// Node-count dimension (`nodes_utilized_pct`).
+    Nodes,
+    /// vCPU dimension (`vcpu_utilized_pct`).
+    Vcpu,
+    /// RAM dimension (`ram_utilized_pct`).
+    Ram,
+}
+
+impl ConstrainedDimension {
+    /// Return a lowercase ASCII string representation.
+    ///
+    /// Inverse of [`ConstrainedDimension::parse`].
+    #[must_use]
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Clusters => "clusters",
+            Self::Nodes => "nodes",
+            Self::Vcpu => "vcpu",
+            Self::Ram => "ram",
+        }
+    }
+
+    /// Parse from a lowercase ASCII string. Returns `None` for unknown input (fail-closed).
+    #[must_use]
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "clusters" => Some(Self::Clusters),
+            "nodes" => Some(Self::Nodes),
+            "vcpu" => Some(Self::Vcpu),
+            "ram" => Some(Self::Ram),
+            _ => None,
+        }
+    }
+}
+
+/// Quota pressure band derived from the maximum utilization pct across all dimensions.
+///
+/// ## Thresholds
+///
+/// | max utilization pct | Band        |
+/// |---------------------|-------------|
+/// | `< 70`              | `Healthy`   |
+/// | `70 ..< 90`         | `Warning`   |
+/// | `90 ..< 100`        | `Critical`  |
+/// | `== 100`            | `Exhausted` |
+///
+/// Produced by [`classify_pressure`]; consumed by ADR-0130 SLO/alert pipelines.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum QuotaPressure {
+    /// Max utilization pct < 70. All dimensions have comfortable headroom.
+    Healthy,
+    /// Max utilization pct in `[70, 90)`. At least one dimension is approaching saturation.
+    Warning,
+    /// Max utilization pct in `[90, 100)`. At least one dimension is near exhaustion.
+    Critical,
+    /// Max utilization pct == 100. At least one dimension is fully exhausted.
+    Exhausted,
+}
+
+impl QuotaPressure {
+    /// Return a lowercase ASCII string representation.
+    ///
+    /// Inverse of [`QuotaPressure::parse`].
+    #[must_use]
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Healthy => "healthy",
+            Self::Warning => "warning",
+            Self::Critical => "critical",
+            Self::Exhausted => "exhausted",
+        }
+    }
+
+    /// Parse from a lowercase ASCII string. Returns `None` for unknown input (fail-closed).
+    #[must_use]
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "healthy" => Some(Self::Healthy),
+            "warning" => Some(Self::Warning),
+            "critical" => Some(Self::Critical),
+            "exhausted" => Some(Self::Exhausted),
+            _ => None,
+        }
+    }
+}
+
+impl QuotaHeadroom {
+    /// Return the most constrained quota dimension (highest `*_utilized_pct`).
+    ///
+    /// When two or more dimensions share the same maximum utilization percentage,
+    /// the tie-break priority order is `Clusters → Nodes → Vcpu → Ram` (first
+    /// highest wins). This is deterministic and stable across platforms.
+    #[must_use]
+    pub fn most_constrained_dimension(&self) -> ConstrainedDimension {
+        let max_pct = self
+            .clusters_utilized_pct
+            .max(self.nodes_utilized_pct)
+            .max(self.vcpu_utilized_pct)
+            .max(self.ram_utilized_pct);
+
+        // Canonical tie-break order: Clusters → Nodes → Vcpu → Ram.
+        if self.clusters_utilized_pct == max_pct {
+            ConstrainedDimension::Clusters
+        } else if self.nodes_utilized_pct == max_pct {
+            ConstrainedDimension::Nodes
+        } else if self.vcpu_utilized_pct == max_pct {
+            ConstrainedDimension::Vcpu
+        } else {
+            ConstrainedDimension::Ram
+        }
+    }
+}
+
+/// Classify the quota pressure band from a [`QuotaHeadroom`] snapshot.
+///
+/// Computes `max_pct = max(clusters_utilized_pct, nodes_utilized_pct,
+/// vcpu_utilized_pct, ram_utilized_pct)` and maps to a [`QuotaPressure`] band:
+///
+/// | max utilization pct | Band        |
+/// |---------------------|-------------|
+/// | `< 70`              | `Healthy`   |
+/// | `70 ..< 90`         | `Warning`   |
+/// | `90 ..< 100`        | `Critical`  |
+/// | `== 100`            | `Exhausted` |
+///
+/// This function is:
+/// - **Total**: never panics, always returns a value.
+/// - **Deterministic**: same inputs always produce the same output.
+/// - **Zero-alloc on the hot path**: no heap allocation.
+/// - **O(1)**: four integer comparisons.
+#[must_use]
+pub fn classify_pressure(headroom: &QuotaHeadroom) -> QuotaPressure {
+    let max_pct = headroom
+        .clusters_utilized_pct
+        .max(headroom.nodes_utilized_pct)
+        .max(headroom.vcpu_utilized_pct)
+        .max(headroom.ram_utilized_pct);
+
+    if max_pct == 100 {
+        QuotaPressure::Exhausted
+    } else if max_pct >= 90 {
+        QuotaPressure::Critical
+    } else if max_pct >= 70 {
+        QuotaPressure::Warning
+    } else {
+        QuotaPressure::Healthy
+    }
+}
+
+// ============================================================
 // Tests
 // ============================================================
 
@@ -975,5 +1140,251 @@ mod tests {
             decision.is_deny(),
             "evaluate must deny when headroom is zero"
         );
+    }
+
+    // ---- pressure band classifier tests ----
+
+    /// Helper: build a QuotaHeadroom with explicit pct values. `remaining_*` set to
+    /// saturating_sub(100 - pct) as placeholders (value not tested here).
+    fn headroom_with_pcts(
+        clusters_pct: u8,
+        nodes_pct: u8,
+        vcpu_pct: u8,
+        ram_pct: u8,
+    ) -> QuotaHeadroom {
+        QuotaHeadroom {
+            tenant_id: tid("ten_test"),
+            remaining_clusters: 100u32.saturating_sub(clusters_pct as u32),
+            remaining_nodes_per_cluster: 100u32.saturating_sub(nodes_pct as u32),
+            remaining_vcpu_per_cluster: 100u32.saturating_sub(vcpu_pct as u32),
+            remaining_ram_gib_per_cluster: 100u32.saturating_sub(ram_pct as u32),
+            clusters_utilized_pct: clusters_pct,
+            nodes_utilized_pct: nodes_pct,
+            vcpu_utilized_pct: vcpu_pct,
+            ram_utilized_pct: ram_pct,
+        }
+    }
+
+    // --- Band edge tests ---
+
+    /// pct=0 -> Healthy
+    #[test]
+    fn pressure_zero_pct_is_healthy() {
+        let h = headroom_with_pcts(0, 0, 0, 0);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Healthy);
+    }
+
+    /// pct=69 -> Healthy (upper edge of Healthy band)
+    #[test]
+    fn pressure_69_pct_is_healthy() {
+        let h = headroom_with_pcts(69, 0, 0, 0);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Healthy);
+    }
+
+    /// pct=70 -> Warning (lower edge of Warning band)
+    #[test]
+    fn pressure_70_pct_is_warning() {
+        let h = headroom_with_pcts(70, 0, 0, 0);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Warning);
+    }
+
+    /// pct=89 -> Warning (upper edge of Warning band)
+    #[test]
+    fn pressure_89_pct_is_warning() {
+        let h = headroom_with_pcts(89, 0, 0, 0);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Warning);
+    }
+
+    /// pct=90 -> Critical (lower edge of Critical band)
+    #[test]
+    fn pressure_90_pct_is_critical() {
+        let h = headroom_with_pcts(90, 0, 0, 0);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Critical);
+    }
+
+    /// pct=99 -> Critical (upper edge of Critical band)
+    #[test]
+    fn pressure_99_pct_is_critical() {
+        let h = headroom_with_pcts(99, 0, 0, 0);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Critical);
+    }
+
+    /// pct=100 -> Exhausted
+    #[test]
+    fn pressure_100_pct_is_exhausted() {
+        let h = headroom_with_pcts(100, 0, 0, 0);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Exhausted);
+    }
+
+    // --- Each dimension being the constrained one ---
+
+    #[test]
+    fn pressure_driven_by_clusters_dimension() {
+        let h = headroom_with_pcts(95, 10, 10, 10);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Critical);
+        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Clusters);
+    }
+
+    #[test]
+    fn pressure_driven_by_nodes_dimension() {
+        let h = headroom_with_pcts(10, 95, 10, 10);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Critical);
+        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Nodes);
+    }
+
+    #[test]
+    fn pressure_driven_by_vcpu_dimension() {
+        let h = headroom_with_pcts(10, 10, 95, 10);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Critical);
+        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Vcpu);
+    }
+
+    #[test]
+    fn pressure_driven_by_ram_dimension() {
+        let h = headroom_with_pcts(10, 10, 10, 95);
+        assert_eq!(classify_pressure(&h), QuotaPressure::Critical);
+        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Ram);
+    }
+
+    // --- Tie-break determinism ---
+
+    /// All equal -> Clusters wins (first in canonical order).
+    #[test]
+    fn most_constrained_tie_all_equal_returns_clusters() {
+        let h = headroom_with_pcts(75, 75, 75, 75);
+        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Clusters);
+    }
+
+    /// Nodes == Vcpu == Ram tied at max; Clusters lower -> Nodes wins.
+    #[test]
+    fn most_constrained_tie_nodes_vcpu_ram_equal_nodes_wins() {
+        let h = headroom_with_pcts(50, 80, 80, 80);
+        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Nodes);
+    }
+
+    /// Vcpu == Ram tied at max; Clusters and Nodes lower -> Vcpu wins.
+    #[test]
+    fn most_constrained_tie_vcpu_ram_equal_vcpu_wins() {
+        let h = headroom_with_pcts(50, 50, 80, 80);
+        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Vcpu);
+    }
+
+    // --- Serde round-trip ---
+
+    #[test]
+    fn quota_pressure_serde_roundtrip() {
+        for pressure in [
+            QuotaPressure::Healthy,
+            QuotaPressure::Warning,
+            QuotaPressure::Critical,
+            QuotaPressure::Exhausted,
+        ] {
+            let json = serde_json::to_string(&pressure).unwrap();
+            let p2: QuotaPressure = serde_json::from_str(&json).unwrap();
+            assert_eq!(pressure, p2);
+        }
+    }
+
+    #[test]
+    fn constrained_dimension_serde_roundtrip() {
+        for dim in [
+            ConstrainedDimension::Clusters,
+            ConstrainedDimension::Nodes,
+            ConstrainedDimension::Vcpu,
+            ConstrainedDimension::Ram,
+        ] {
+            let json = serde_json::to_string(&dim).unwrap();
+            let d2: ConstrainedDimension = serde_json::from_str(&json).unwrap();
+            assert_eq!(dim, d2);
+        }
+    }
+
+    // --- as_str / parse round-trip ---
+
+    #[test]
+    fn quota_pressure_as_str_parse_roundtrip() {
+        for pressure in [
+            QuotaPressure::Healthy,
+            QuotaPressure::Warning,
+            QuotaPressure::Critical,
+            QuotaPressure::Exhausted,
+        ] {
+            let s = pressure.as_str();
+            let p2 = QuotaPressure::parse(s).expect("parse must succeed for valid as_str output");
+            assert_eq!(pressure, p2);
+        }
+    }
+
+    #[test]
+    fn quota_pressure_parse_unknown_returns_none() {
+        assert!(QuotaPressure::parse("unknown").is_none());
+        assert!(QuotaPressure::parse("").is_none());
+        assert!(QuotaPressure::parse("Healthy").is_none()); // case-sensitive
+    }
+
+    #[test]
+    fn constrained_dimension_as_str_parse_roundtrip() {
+        for dim in [
+            ConstrainedDimension::Clusters,
+            ConstrainedDimension::Nodes,
+            ConstrainedDimension::Vcpu,
+            ConstrainedDimension::Ram,
+        ] {
+            let s = dim.as_str();
+            let d2 = ConstrainedDimension::parse(s)
+                .expect("parse must succeed for valid as_str output");
+            assert_eq!(dim, d2);
+        }
+    }
+
+    #[test]
+    fn constrained_dimension_parse_unknown_returns_none() {
+        assert!(ConstrainedDimension::parse("unknown").is_none());
+        assert!(ConstrainedDimension::parse("").is_none());
+        assert!(ConstrainedDimension::parse("Clusters").is_none()); // case-sensitive
+    }
+
+    // --- classify_pressure on real QuotaHeadroom from project_headroom ---
+
+    /// AC: classify_pressure on a real project_headroom result at ~50% -> Healthy.
+    #[test]
+    fn classify_pressure_on_real_headroom_healthy() {
+        // quota: 5 cl, 10 nodes, 32 vcpu, 128 ram
+        let q = quota("ten_acme");
+        // 2 clusters, max 5 nodes/cl (50%), max 16 vcpu/cl (50%), max 64 ram/cl (50%)
+        let usages = vec![cluster("cl-1", 5, 16, 64), cluster("cl-2", 3, 8, 32)];
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        let h = project_headroom(&q, &summary).unwrap();
+        // clusters: 2/5 = 40%, nodes: 5/10 = 50%, vcpu: 16/32 = 50%, ram: 64/128 = 50%
+        assert_eq!(classify_pressure(&h), QuotaPressure::Healthy);
+    }
+
+    /// AC: classify_pressure at 100% -> Exhausted.
+    #[test]
+    fn classify_pressure_on_real_headroom_exhausted() {
+        let q = quota("ten_acme"); // 5 cl, 10 nodes, 32 vcpu, 128 ram
+        let usages: Vec<_> = (0..5).map(|i| cluster(&format!("cl-{i}"), 10, 32, 128)).collect();
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        let h = project_headroom(&q, &summary).unwrap();
+        assert_eq!(classify_pressure(&h), QuotaPressure::Exhausted);
+    }
+
+    /// AC: classify_pressure at ~75% -> Warning.
+    #[test]
+    fn classify_pressure_on_real_headroom_warning() {
+        // quota: 5 cl, 10 nodes, 32 vcpu, 128 ram
+        // Use 4 clusters (80%), 7 nodes (70%), 16 vcpu (50%), 64 ram (50%)
+        // max = 80% -> Warning
+        let q = quota("ten_acme");
+        let usages = vec![
+            cluster("cl-1", 7, 16, 64),
+            cluster("cl-2", 1, 1, 1),
+            cluster("cl-3", 1, 1, 1),
+            cluster("cl-4", 1, 1, 1),
+        ];
+        let summary = aggregate_usage(tid("ten_acme"), &usages);
+        let h = project_headroom(&q, &summary).unwrap();
+        // clusters: 4/5 = 80%, nodes: 7/10 = 70% -> max is 80% -> Warning
+        assert_eq!(classify_pressure(&h), QuotaPressure::Warning);
     }
 }
