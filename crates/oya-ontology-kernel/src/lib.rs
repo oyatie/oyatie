@@ -618,6 +618,18 @@ impl OntologyEngine {
         self.entity_types
             .get(&ontology_scoped_key(tenant_id, &id.value))
     }
+    /// Return the [`LinkTypeDefinition`] registered for `tenant_id` and `id`,
+    /// or `None` if no such link type has been registered.
+    pub fn link_type(&self, tenant_id: &str, id: &LinkTypeId) -> Option<&LinkTypeDefinition> {
+        self.link_types
+            .get(&ontology_scoped_key(tenant_id, &id.value))
+    }
+    /// Return the [`ActionTypeDefinition`] registered for `tenant_id` and `id`,
+    /// or `None` if no such action type has been registered.
+    pub fn action_type(&self, tenant_id: &str, id: &ActionTypeId) -> Option<&ActionTypeDefinition> {
+        self.action_types
+            .get(&ontology_scoped_key(tenant_id, &id.value))
+    }
     pub fn authorize_action_invocation(
         &self,
         request: ActionInvocationRequest,
