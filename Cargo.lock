@@ -5585,8 +5585,16 @@ dependencies = [
 name = "oya-intelligence-adapter-openai-subscription-adapter"
 version = "0.1.0"
 dependencies = [
+ "bytes",
+ "http-body-util",
+ "hyper 1.10.0",
+ "hyper-util",
  "oya-intelligence-account-domain",
  "oya-intelligence-adapter-openai-subscription-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
