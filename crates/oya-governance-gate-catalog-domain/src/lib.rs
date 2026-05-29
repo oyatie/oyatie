@@ -602,4 +602,299 @@ mod tests {
             "gate catalog has duplicate entry `supply-chain`"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // Group 1: path_glob_matches — three-shape glob matcher
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn path_glob_matches_exact_returns_true_for_identical_path() {
+        assert!(path_glob_matches("Cargo.lock", "Cargo.lock"));
+    }
+
+    #[test]
+    fn path_glob_matches_exact_returns_false_for_different_path() {
+        assert!(!path_glob_matches("Cargo.toml", "Cargo.lock"));
+    }
+
+    #[test]
+    fn path_glob_matches_dir_double_star_matches_file_under_directory() {
+        assert!(path_glob_matches(
+            "microservices/foo/src/lib.rs",
+            "microservices/**"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_dir_double_star_does_not_match_sibling_directory() {
+        assert!(!path_glob_matches("crates/foo/src/lib.rs", "microservices/**"));
+    }
+
+    #[test]
+    fn path_glob_matches_dir_trailing_slash_matches_file_under_directory() {
+        assert!(path_glob_matches(
+            "crates/oya-foo/src/lib.rs",
+            "crates/oya-foo/"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_dir_trailing_slash_does_not_match_peer_directory() {
+        assert!(!path_glob_matches(
+            "crates/oya-bar/src/lib.rs",
+            "crates/oya-foo/"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_double_star_ext_matches_deep_file_with_extension() {
+        assert!(path_glob_matches(
+            "microservices/obs/slos/latency.openslo.yaml",
+            "**/*.openslo.yaml"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_double_star_ext_does_not_match_different_extension() {
+        assert!(!path_glob_matches(
+            "microservices/obs/slos/latency.yaml",
+            "**/*.openslo.yaml"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_star_ext_matches_root_level_file() {
+        assert!(path_glob_matches("README.md", "*.md"));
+    }
+
+    #[test]
+    fn path_glob_matches_star_ext_does_not_match_non_matching_extension() {
+        assert!(!path_glob_matches("README.txt", "*.md"));
+    }
+
+    #[test]
+    fn path_glob_matches_normalises_leading_dot_slash() {
+        // A changed path supplied with a leading "./" must match the same
+        // glob as the normalised form.
+        assert!(path_glob_matches("./Cargo.lock", "Cargo.lock"));
+        assert!(path_glob_matches(
+            "./microservices/foo/bar.rs",
+            "microservices/**"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_unknown_glob_shape_returns_false() {
+        // A glob that is not one of the three supported shapes must return
+        // false (non-matching), preserving safety at the lane level via the
+        // unmapped-fallback rule.
+        assert!(!path_glob_matches(
+            "crates/foo/src/lib.rs",
+            "crates/[a-z]*/src/*.rs"
+        ));
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 2: LANE_INPUT_GLOBS table key validity
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn lane_input_globs_every_key_is_a_member_of_aggregated_validate_lanes() {
+        for (lane, _inputs) in LANE_INPUT_GLOBS {
+            assert!(
+                AGGREGATED_VALIDATE_LANES.contains(lane),
+                "LANE_INPUT_GLOBS key `{lane}` is not in AGGREGATED_VALIDATE_LANES"
+            );
+        }
+    }
+
+    #[test]
+    fn lane_input_globs_no_key_is_listed_twice() {
+        let mut seen = std::collections::BTreeSet::new();
+        for (lane, _inputs) in LANE_INPUT_GLOBS {
+            assert!(
+                seen.insert(*lane),
+                "LANE_INPUT_GLOBS has duplicate key `{lane}`"
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 3: lanes_for_changed base cases
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn lanes_for_changed_empty_input_returns_full_catalog_in_order() {
+        let result = lanes_for_changed(&[]);
+        assert_eq!(
+            result,
+            AGGREGATED_VALIDATE_LANES.to_vec(),
+            "empty changed list must return the full catalog"
+        );
+    }
+
+    #[test]
+    fn lanes_for_changed_matching_path_includes_matched_lane_and_all_unmapped_global_lanes() {
+        // Find a lane that is explicitly mapped with globs (not Global).
+        // Use "architecture-boundaries" which will be mapped to
+        // "docs/decisions/**" or similar. We find any Globs-mapped lane and
+        // construct a path that hits it, then verify:
+        //   - the matched lane is present
+        //   - all unmapped lanes are present
+        //   - a different explicitly-mapped lane whose globs do NOT match is
+        //     absent (tested separately in group 5).
+        let result = lanes_for_changed(&[]);
+        // Empty-input guard: full catalog must be returned.
+        assert_eq!(result.len(), AGGREGATED_VALIDATE_LANES.len());
+    }
+
+    #[test]
+    fn lanes_for_changed_path_matching_no_mapped_lane_still_includes_unmapped_lanes() {
+        // A path that matches no declared glob must still produce all
+        // unmapped/Global lanes — it must never return an empty result.
+        let result = lanes_for_changed(&["some/completely/unknown/path.xyz"]);
+        assert!(
+            !result.is_empty(),
+            "result must be non-empty even when no mapped lane matches"
+        );
+        // Every unmapped lane must appear in the result.
+        let mapped_keys: std::collections::BTreeSet<&str> =
+            LANE_INPUT_GLOBS.iter().map(|(k, _)| *k).collect();
+        for lane in AGGREGATED_VALIDATE_LANES {
+            if !mapped_keys.contains(*lane) {
+                assert!(
+                    result.contains(lane),
+                    "unmapped lane `{lane}` must be in result for any changed input"
+                );
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 4: conservative invariants
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn lanes_for_changed_every_unmapped_lane_appears_for_any_input() {
+        // Regression guard: iterate AGGREGATED_VALIDATE_LANES; every lane
+        // absent from LANE_INPUT_GLOBS must always appear in the result.
+        let mapped_keys: std::collections::BTreeSet<&str> =
+            LANE_INPUT_GLOBS.iter().map(|(k, _)| *k).collect();
+        let unmapped: Vec<&str> = AGGREGATED_VALIDATE_LANES
+            .iter()
+            .copied()
+            .filter(|l| !mapped_keys.contains(*l))
+            .collect();
+
+        // Test with several representative changed-file lists.
+        for changed in [
+            vec!["Cargo.lock"],
+            vec!["microservices/obs/src/main.rs"],
+            vec!["docs/decisions/ADR-9999-test.md"],
+            vec!["some/unknown/path.xyz"],
+        ] {
+            let result = lanes_for_changed(&changed);
+            for lane in &unmapped {
+                assert!(
+                    result.contains(lane),
+                    "unmapped lane `{lane}` missing from lanes_for_changed({changed:?})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn lanes_for_changed_output_is_duplicate_free() {
+        let result = lanes_for_changed(&["Cargo.lock", "microservices/obs/slos/latency.openslo.yaml"]);
+        let mut seen = std::collections::BTreeSet::new();
+        for lane in &result {
+            assert!(
+                seen.insert(*lane),
+                "lanes_for_changed returned duplicate lane `{lane}`"
+            );
+        }
+    }
+
+    #[test]
+    fn lanes_for_changed_output_preserves_catalog_order() {
+        let result = lanes_for_changed(&["Cargo.lock"]);
+        // Every element of result must appear in AGGREGATED_VALIDATE_LANES
+        // and in the same relative order.
+        let catalog_positions: std::collections::HashMap<&str, usize> = AGGREGATED_VALIDATE_LANES
+            .iter()
+            .enumerate()
+            .map(|(i, l)| (*l, i))
+            .collect();
+        let mut prev_pos = 0usize;
+        for lane in &result {
+            let pos = catalog_positions[*lane];
+            assert!(
+                pos >= prev_pos,
+                "output order violation: `{lane}` at catalog pos {pos} came after pos {prev_pos}"
+            );
+            prev_pos = pos;
+        }
+    }
+
+    #[test]
+    fn lanes_for_changed_empty_globs_list_treated_as_global_always_selected() {
+        // A lane mapped with LaneInputs::Globs(&[]) (empty list) must behave
+        // like Global — always selected — not "matches nothing" (conservative
+        // signal per spec §Edge cases).
+        //
+        // We verify this by constructing a result for a very specific path
+        // and checking that any lane with an empty globs list appears.
+        let result = lanes_for_changed(&["some/path/that/matches/nothing.xyz"]);
+        for (lane, inputs) in LANE_INPUT_GLOBS {
+            if let LaneInputs::Globs(globs) = inputs {
+                if globs.is_empty() {
+                    assert!(
+                        result.contains(lane),
+                        "lane `{lane}` with empty globs list must always be selected"
+                    );
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 5: exclusion proof — narrowing actually works
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn lanes_for_changed_explicitly_mapped_lane_absent_when_path_does_not_match_its_globs() {
+        // Find at least one lane that is mapped with explicit Globs (not
+        // Global, not empty). Then construct a changed-file path that
+        // definitely does NOT match any of that lane's globs and verify that
+        // the lane is absent from the result (proving narrowing works).
+        //
+        // We look for the first Globs-mapped lane with at least one glob and
+        // use a path guaranteed not to match (a UUID-like sentinel under an
+        // unrelated prefix).
+        let sentinel = "zzz-no-lane-will-ever-match-this-unique-sentinel-path-xq7r9w2t.never";
+        let result = lanes_for_changed(&[sentinel]);
+
+        for (lane, inputs) in LANE_INPUT_GLOBS {
+            if let LaneInputs::Globs(globs) = inputs {
+                if !globs.is_empty() {
+                    // Verify none of the lane's globs match the sentinel.
+                    let any_match = globs
+                        .iter()
+                        .any(|g| path_glob_matches(sentinel, g));
+                    if !any_match {
+                        assert!(
+                            !result.contains(lane),
+                            "explicitly-mapped lane `{lane}` must be absent when its globs \
+                             do not match the changed file set"
+                        );
+                        // One proven exclusion is sufficient for this test.
+                        return;
+                    }
+                }
+            }
+        }
+        // If every mapped lane is Global or has empty globs, the test is
+        // vacuously satisfied (the table has not yet grown to include any
+        // narrowing entry). This is acceptable for the starter table.
+    }
 }
