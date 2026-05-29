@@ -1106,15 +1106,9 @@ pub fn evaluate_payroll_variance(
                 (prior_clone, bps, anomalous)
             }
             None => {
-                // No prior entry for this payee — not a dropped-payee anomaly
-                // (DroppedPayee is for the inverse: prior present, current absent).
-                // A new payee with no baseline is not itself flagged here;
-                // it contributes 0 variance with a zero prior sentinel.
-                let zero_prior = MoneyAmount {
-                    amount_minor: 0,
-                    currency: total.net_amount.currency.clone(),
-                };
-                (zero_prior, 0_i64, false)
+                // A current-period payee with no prior-period baseline entry is
+                // a strict-mode error: the caller must supply a complete baseline.
+                return Err(PayrollDomainError::MissingBaselineForPayee);
             }
         };
 
