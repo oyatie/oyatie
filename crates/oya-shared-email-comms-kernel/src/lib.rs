@@ -428,6 +428,152 @@ pub fn enforce_deliverability_invariants(
     Ok(())
 }
 
+// ---------- Bounce classification (RFC 3463 + RFC 5321) ----------
+
+/// Bounce severity category derived from RFC 3463 enhanced status codes
+/// or RFC 5321 SMTP reply codes.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub enum BounceCategory {
+    /// Permanent failure — recipient address is definitively unreachable.
+    /// Drives immediate suppression. RFC 3463 class 5.x.x / SMTP 5xx.
+    Hard,
+    /// Repeated temporary failure indicating a persistent mailbox problem
+    /// (e.g. over-quota, policy reject on the recipient side). Drives
+    /// suppression after `SOFT_BOUNCE_SUPPRESS_THRESHOLD` occurrences.
+    Soft,
+    /// Short-lived transient failure — connection refused, greylisting,
+    /// DNS momentarily unavailable. No action; eligible for retry by the
+    /// calling µservice. RFC 3463 class 4.x.x (non-soft sub-classes) /
+    /// SMTP 4xx (non-soft codes).
+    Transient,
+}
+
+impl fmt::Display for BounceCategory {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BounceCategory::Hard => f.write_str("hard"),
+            BounceCategory::Soft => f.write_str("soft"),
+            BounceCategory::Transient => f.write_str("transient"),
+        }
+    }
+}
+
+/// Classify a bounce from an RFC 3463 enhanced status code string of the
+/// form `"X.Y.Z"` where X, Y, Z are unsigned integers.
+///
+/// Classification rules:
+/// - Class `5` (any sub-class) → `Hard`
+/// - Class `4`, subject `2`, detail `1` (`4.2.1`) → `Soft`
+///   (RFC 3463 §3.3: "mailbox disabled, not accepting messages")
+/// - Class `4` (any other) → `Transient`
+/// - Malformed / out-of-bounce-class → `None`
+///
+/// Returns `None` if `code` is not a well-formed `"X.Y.Z"` triple.
+#[must_use]
+pub fn classify_bounce_enhanced(code: &str) -> Option<BounceCategory> {
+    let parts: Vec<&str> = code.split('.').collect();
+    if parts.len() != 3 {
+        return None;
+    }
+    let class: u8 = parts[0].parse().ok()?;
+    let subject: u8 = parts[1].parse().ok()?;
+    let detail: u8 = parts[2].parse().ok()?;
+    match class {
+        5 => Some(BounceCategory::Hard),
+        4 => {
+            if subject == 2 && detail == 1 {
+                Some(BounceCategory::Soft)
+            } else {
+                Some(BounceCategory::Transient)
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Classify a bounce from an RFC 5321 3-digit SMTP reply code.
+///
+/// | Code range         | `BounceCategory` |
+/// |--------------------|-----------------|
+/// | 500–599            | `Hard`          |
+/// | 452                | `Soft`          |
+/// | 400–499 (not 452)  | `Transient`     |
+/// | other              | `None`          |
+///
+/// Returns `None` for codes outside the 4xx–5xx range.
+#[must_use]
+pub fn classify_bounce_smtp(code: u16) -> Option<BounceCategory> {
+    match code {
+        500..=599 => Some(BounceCategory::Hard),
+        452 => Some(BounceCategory::Soft),
+        400..=499 => Some(BounceCategory::Transient),
+        _ => None,
+    }
+}
+
+// ---------- Bounce suppression decision ----------
+
+/// Outcome of evaluating whether to suppress or retry after a bounce.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub enum BounceSuppressionOutcome {
+    /// Caller must add the recipient to the suppression list.
+    /// Maps to `EmailCommsError::RecipientSuppressed` at the adapter layer.
+    Suppress,
+    /// Eligible for retry. Caller should increment soft-bounce count and
+    /// attempt re-delivery after a back-off interval.
+    Retry,
+    /// No suppression or retry action required (transient; infrastructure
+    /// retry is sufficient).
+    NoAction,
+}
+
+impl fmt::Display for BounceSuppressionOutcome {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BounceSuppressionOutcome::Suppress => f.write_str("suppress"),
+            BounceSuppressionOutcome::Retry => f.write_str("retry"),
+            BounceSuppressionOutcome::NoAction => f.write_str("no_action"),
+        }
+    }
+}
+
+/// Number of accumulated soft bounces at which a recipient is promoted to
+/// suppression.
+pub const SOFT_BOUNCE_SUPPRESS_THRESHOLD: u32 = 3;
+
+/// Pure decision: given the bounce category and the number of soft bounces
+/// already recorded for this recipient, return the suppression outcome.
+///
+/// Decision table:
+///
+/// | category  | prior_soft_bounce_count           | outcome   |
+/// |-----------|-----------------------------------|-----------|
+/// | Hard      | any                               | Suppress  |
+/// | Soft      | >= `SOFT_BOUNCE_SUPPRESS_THRESHOLD` | Suppress  |
+/// | Soft      | < `SOFT_BOUNCE_SUPPRESS_THRESHOLD`  | Retry     |
+/// | Transient | any                               | NoAction  |
+///
+/// `Suppress` outcomes map to `EmailCommsError::RecipientSuppressed` at the
+/// adapter layer; this function is the pure decision — the adapter is
+/// responsible for constructing and returning the error variant.
+#[must_use]
+pub fn bounce_suppression_decision(
+    category: BounceCategory,
+    prior_soft_bounce_count: u32,
+) -> BounceSuppressionOutcome {
+    match category {
+        BounceCategory::Hard => BounceSuppressionOutcome::Suppress,
+        BounceCategory::Soft => {
+            if prior_soft_bounce_count >= SOFT_BOUNCE_SUPPRESS_THRESHOLD {
+                BounceSuppressionOutcome::Suppress
+            } else {
+                BounceSuppressionOutcome::Retry
+            }
+        }
+        BounceCategory::Transient => BounceSuppressionOutcome::NoAction,
+    }
+}
+
 // ---------- Real adapter shells (no Noop fallback) ----------
 //
 // Each adapter ships its trait impl up-front. The actual provider
