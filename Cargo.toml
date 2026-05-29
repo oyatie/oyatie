@@ -714,6 +714,8 @@ members = [
   # oya-flags µservice — bespoke Rust OpenFeature server (ADR-0481).
   # Single-crate-per-service pattern per ADR-0509.
   "microservices/oya-flags",
+  # ADR-0508 Phase-1: authenticator-side WebAuthn firmware stub (OpenSK reference)
+  "microservices/oya-authn-device-firmware",
 ]
 resolver = "2"
 
