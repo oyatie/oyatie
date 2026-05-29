@@ -9,7 +9,7 @@
 //!   - WorkflowSpecEmitError implements Display (error messages are human-readable)
 
 use oya_workflow_studio_dsl_emitter_domain::{
-    WorkflowSpecEmitError, WorkflowSpecEdge, WorkflowSpecNode, WorkflowSpecNodeKind, WorkflowSpec,
+    WorkflowSpec, WorkflowSpecEdge, WorkflowSpecEmitError, WorkflowSpecNode, WorkflowSpecNodeKind,
     emit_canonical_json,
 };
 
