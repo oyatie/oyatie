@@ -92,6 +92,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "dependency-seam",
     "license-policy",
     "http-stack",
+    "workspace-topology",
     "plane-class",
     "raci-team-coverage",
     "readme-doc-coverage",

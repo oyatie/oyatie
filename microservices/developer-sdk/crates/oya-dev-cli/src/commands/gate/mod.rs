@@ -765,6 +765,44 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("workspace-topology")) => {
+            match crate::parse_workspace_topology_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_workspace_topology_gate(args) {
+                    Ok(report) => {
+                        for finding in &report.findings {
+                            eprintln!(
+                                "workspace-topology {}: {}",
+                                finding.rule.as_str(),
+                                finding.detail
+                            );
+                        }
+                        let count = report.findings.len();
+                        println!(
+                            "workspace-topology scan: {} members scanned, {} findings ({})",
+                            report.members_scanned,
+                            count,
+                            if report.enforced { "enforce" } else { "report-only" }
+                        );
+                        if report.enforced && count > 0 {
+                            eprintln!(
+                                "workspace-topology validation failed: {count} topology violations"
+                            );
+                            ExitCode::FAILURE
+                        } else {
+                            ExitCode::SUCCESS
+                        }
+                    }
+                    Err(message) => {
+                        eprintln!("workspace-topology validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("license-policy")) => {
             match crate::parse_license_policy_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_license_policy_gate(args) {
