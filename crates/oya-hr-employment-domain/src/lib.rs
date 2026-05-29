@@ -33,6 +33,7 @@ const HR_POLICY_REF_PREFIX: &str = "policy/hr/sensitive-read/";
 const SENSITIVE_HR_READ_SCHEMA_VERSION: u32 = 1;
 const HR_STATUTORY_RULEPACK_SCHEMA_VERSION: u32 = 1;
 const LEAVE_BALANCE_LEDGER_SCHEMA_VERSION: u32 = 1;
+const ONBOARDING_READINESS_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct EmployeeId {
@@ -501,6 +502,163 @@ pub enum HrDomainError {
     InvalidAccrualUnits,
     NegativeLeaveBalance,
     CarryOverCapExceeded,
+    OnboardingItemsRequired,
+    OnboardingDuplicateItem,
+    OnboardingItemNotCleared,
+}
+
+// ---------------------------------------------------------------------------
+// Onboarding readiness domain model
+// ---------------------------------------------------------------------------
+
+/// The kinds of pre-hire onboarding checklist items.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub enum OnboardingChecklistItemKind {
+    RightToWork,
+    BackgroundCheck,
+    EquipmentProvisioning,
+    AccessGrant,
+    MandatoryTraining,
+}
+
+/// A single item on the onboarding checklist.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OnboardingChecklistItem {
+    pub kind: OnboardingChecklistItemKind, // data_class: INTERNAL_ONLY
+    pub is_mandatory: bool,                // data_class: INTERNAL_ONLY
+    pub cleared: bool,                     // data_class: INTERNAL_ONLY
+    pub evidence_ref: Option<String>,      // data_class: INTERNAL_ONLY
+}
+
+/// Input to the onboarding readiness evaluator.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OnboardingReadinessInput {
+    pub employee_id: String,                          // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                            // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,                      // data_class: INTERNAL_ONLY
+    pub checklist_items: Vec<OnboardingChecklistItem>, // data_class: INTERNAL_ONLY
+}
+
+/// The outcome of the onboarding readiness evaluation.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum OnboardingReadinessOutcome {
+    Ready,
+    NotReady,
+}
+
+/// Decision output from `evaluate_onboarding_readiness`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OnboardingReadinessDecision {
+    pub employee_id: Classified<EmployeeId>,                             // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,                                 // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>,                      // data_class: INTERNAL_ONLY
+    pub outcome: OnboardingReadinessOutcome,                              // data_class: INTERNAL_ONLY
+    pub outstanding_mandatory_items: Vec<OnboardingChecklistItemKind>,    // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,                                  // data_class: PUBLIC
+}
+
+/// Pure evaluator: validates identifiers, rejects empty/duplicate checklists,
+/// and determines whether all mandatory items are cleared with evidence.
+///
+/// Returns `Ok(OnboardingReadinessDecision)` on a valid, non-duplicate input.
+/// Returns `Err(HrDomainError)` for invalid identifiers, empty checklist, or
+/// duplicate item kinds.
+pub fn evaluate_onboarding_readiness(
+    input: OnboardingReadinessInput,
+) -> Result<OnboardingReadinessDecision, HrDomainError> {
+    validate_identifier(
+        &input.employee_id,
+        EMPLOYEE_ID_PREFIX,
+        HrDomainError::InvalidEmployeeId,
+    )?;
+    validate_identifier(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        HrDomainError::InvalidTenantId,
+    )?;
+    validate_identifier(
+        &input.legal_entity_id,
+        LEGAL_ENTITY_ID_PREFIX,
+        HrDomainError::InvalidLegalEntityId,
+    )?;
+    if input.checklist_items.is_empty() {
+        return Err(HrDomainError::OnboardingItemsRequired);
+    }
+
+    // Reject duplicate item kinds.
+    let mut seen = std::collections::HashSet::new();
+    for item in &input.checklist_items {
+        if !seen.insert(item.kind) {
+            return Err(HrDomainError::OnboardingDuplicateItem);
+        }
+    }
+
+    // Validate all evidence refs supplied on cleared items (mandatory or not).
+    for item in &input.checklist_items {
+        if let Some(ref ev) = item.evidence_ref {
+            validate_evidence_ref(ev)?;
+        }
+    }
+
+    // Build a lookup of items present in the checklist.
+    let item_map: std::collections::HashMap<OnboardingChecklistItemKind, &OnboardingChecklistItem> =
+        input.checklist_items.iter().map(|i| (i.kind, i)).collect();
+
+    // Canonical mandatory kinds: when the checklist contains any item marked
+    // is_mandatory=true, ALL of these kinds must appear and be fully cleared
+    // with evidence.  If the checklist contains only optional items, this
+    // canonical set is not enforced (nothing blocks a purely-optional list).
+    let canonical_mandatory = [
+        OnboardingChecklistItemKind::RightToWork,
+        OnboardingChecklistItemKind::BackgroundCheck,
+        OnboardingChecklistItemKind::MandatoryTraining,
+    ];
+
+    let has_any_mandatory = input.checklist_items.iter().any(|i| i.is_mandatory);
+
+    let mut outstanding_set = std::collections::HashSet::new();
+
+    // Items present and marked mandatory but not cleared+evidenced.
+    for item in &input.checklist_items {
+        if item.is_mandatory && !(item.cleared && item.evidence_ref.is_some()) {
+            outstanding_set.insert(item.kind);
+        }
+    }
+
+    // When the checklist has at least one mandatory item, canonical mandatory
+    // kinds that are absent from the checklist entirely are also blockers.
+    if has_any_mandatory {
+        for kind in &canonical_mandatory {
+            if !item_map.contains_key(kind) {
+                outstanding_set.insert(*kind);
+            }
+        }
+    }
+
+    let mut outstanding: Vec<OnboardingChecklistItemKind> =
+        outstanding_set.into_iter().collect();
+    outstanding.sort();
+
+    let outcome = if outstanding.is_empty() {
+        OnboardingReadinessOutcome::Ready
+    } else {
+        OnboardingReadinessOutcome::NotReady
+    };
+
+    Ok(OnboardingReadinessDecision {
+        employee_id: internal(EmployeeId {
+            value: input.employee_id,
+        }),
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        legal_entity_id: internal(LegalEntityId {
+            value: input.legal_entity_id,
+        }),
+        outcome,
+        outstanding_mandatory_items: outstanding,
+        schema_version: public(ONBOARDING_READINESS_SCHEMA_VERSION),
+    })
 }
 
 impl Employee {
