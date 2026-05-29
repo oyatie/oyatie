@@ -326,6 +326,7 @@ jobs:
             "readinessProbe:",
             "livenessProbe:",
             "runtimeClassName:",
+            "automountServiceAccountToken:",
             "resources:",
             "securityContext:",
             "topologySpreadConstraints:",
@@ -341,6 +342,30 @@ jobs:
             "oyatie.com/product-goal:",
           ]
           rendered_deployment_required = deployment_required + [
+            "oyatie.com/non-claim:",
+          ]
+          service_account_required = [
+            "apiVersion: v1",
+            "kind: ServiceAccount",
+            "automountServiceAccountToken: {{ .Values.serviceAccount.automountToken }}",
+            "oya.io/tenant-id:",
+            "oya.io/cost-center:",
+            "oya.io/workload-class:",
+            "oya.io/regulatory-pack:",
+            "oyatie.com/dogfood-substrate:",
+            "oyatie.com/product-goal:",
+            "oyatie.com/non-claim:",
+          ]
+          rendered_service_account_required = [
+            "apiVersion: v1",
+            "kind: ServiceAccount",
+            "automountServiceAccountToken: false",
+            "oya.io/tenant-id:",
+            "oya.io/cost-center:",
+            "oya.io/workload-class:",
+            "oya.io/regulatory-pack:",
+            "oyatie.com/dogfood-substrate:",
+            "oyatie.com/product-goal:",
             "oyatie.com/non-claim:",
           ]
           argocd_tenant_label_values = {
@@ -388,6 +413,16 @@ jobs:
               raise "#{path} #{key} selector #{selector_name.inspect} does not match pod label #{pod_name.inspect}" unless selector_name == pod_name
             end
           end
+          validate_rendered_service_account = lambda do |path, doc|
+            raise "#{path} is not a ServiceAccount" unless doc["kind"] == "ServiceAccount"
+            raise "#{path} must disable service account token automount" unless doc["automountServiceAccountToken"] == false
+            labels = doc.dig("metadata", "labels") || {}
+            argocd_tenant_label_values.each do |key, expected|
+              raise "#{path} label #{key} mismatch" unless labels[key] == expected
+            end
+            non_claim = doc.dig("metadata", "annotations", "oyatie.com/non-claim").to_s
+            raise "#{path} missing static rendered serviceaccount non-claim" unless non_claim.include?("static-rendered-serviceaccount-only")
+          end
           ARGV.each do |path|
             text = File.read(path)
             if path.end_with?(".json")
@@ -401,14 +436,24 @@ jobs:
               missing = deployment_required.reject { |needle| text.include?(needle) }
               raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
               validate_template_topology.call(path, text)
-            elsif path.include?("/rendered/") && path.end_with?(".yaml")
+            elsif path.end_with?("/templates/serviceaccount.yaml")
+              missing = service_account_required.reject { |needle| text.include?(needle) }
+              raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+            elsif path.include?("/rendered/") && path.end_with?("/deployment.yaml")
               doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               missing = rendered_deployment_required.reject { |needle| text.include?(needle) }
               raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+              raise "#{path} must disable service account token automount" unless doc.dig("spec", "template", "spec", "automountServiceAccountToken") == false
               validate_rendered_topology.call(path, doc)
+            elsif path.include?("/rendered/") && path.end_with?("/serviceaccount.yaml")
+              doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
+              missing = rendered_service_account_required.reject { |needle| text.include?(needle) }
+              raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+              validate_rendered_service_account.call(path, doc)
             elsif path.end_with?("/values.yaml")
               doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               raise "#{path} must default topologySpread.enabled to true for FD-001 dogfood static snapshots" unless doc.dig("topologySpread", "enabled") == true
+              raise "#{path} must default serviceAccount.automountToken to false for FD-001 dogfood app workloads" unless doc.dig("serviceAccount", "automountToken") == false
             elsif path.end_with?("backbone-microservices-applicationset.yaml")
               doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               raise "#{path} is not an ApplicationSet" unless doc["kind"] == "ApplicationSet"
@@ -449,6 +494,7 @@ jobs:
             evidence/multispectrum/backbone-microservices-rendered-tenant-cost-label-coverage-20260525.json \
             evidence/multispectrum/backbone-microservices-argocd-tenant-metadata-20260525.json \
             evidence/multispectrum/backbone-microservices-cloud-topology-spread-20260525.json \
+            evidence/multispectrum/backbone-microservices-cloud-serviceaccount-hardening-20260525.json \
             specs/proto/backbone/messenger/message_stream.proto \
             specs/proto/backbone/mail/mail.proto \
             specs/proto/backbone/social/social_post_composition.proto \
@@ -466,10 +512,18 @@ jobs:
             microservices/mail/iac/k8s/helm/templates/deployment.yaml \
             microservices/social/iac/k8s/helm/templates/deployment.yaml \
             microservices/community/iac/k8s/helm/templates/deployment.yaml \
+            microservices/messenger/iac/k8s/helm/templates/serviceaccount.yaml \
+            microservices/mail/iac/k8s/helm/templates/serviceaccount.yaml \
+            microservices/social/iac/k8s/helm/templates/serviceaccount.yaml \
+            microservices/community/iac/k8s/helm/templates/serviceaccount.yaml \
             microservices/messenger/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
             microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
             microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
             microservices/community/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
+            microservices/messenger/iac/helm/oyatie-cloud-dogfood/rendered/serviceaccount.yaml \
+            microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/serviceaccount.yaml \
+            microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/serviceaccount.yaml \
+            microservices/community/iac/helm/oyatie-cloud-dogfood/rendered/serviceaccount.yaml \
             registry/catalog/oya-shared-postgres-command-kernel.yaml \
             registry/catalog/oya-shared-postgres-command-adapter-sqlx.yaml \
             registry/catalog/oya-shared-hyperscaler-metrics-kernel.yaml \
