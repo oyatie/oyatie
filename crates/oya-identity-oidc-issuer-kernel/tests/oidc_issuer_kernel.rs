@@ -12,11 +12,11 @@ use std::collections::BTreeMap;
 
 use oya_identity_oidc_issuer_kernel::{
     AccessTokenSpec, AcrLevel, Algorithm, Audience, ClientAssertion, ClockSkewTolerance,
-    ID_TOKEN_CLAIMS_SCHEMA_VERSION, IdTokenSpec, IssuerError, IssuerUrl, JwsSigner,
-    MAX_ACCESS_TOKEN_TTL_SECONDS, MAX_CLOCK_SKEW_SECONDS, MAX_ID_TOKEN_TTL_SECONDS, RefreshRequest,
-    Signature, SigningKey, SigningKeyState, Subject, build_access_token_claims,
-    build_id_token_claims, build_issuer_metadata, build_jwks, check_temporal_window,
-    current_signing_key,
+    ID_TOKEN_CLAIMS_SCHEMA_VERSION, IdTokenSpec, IntrospectionRequest, IntrospectionResponse,
+    IssuerError, IssuerUrl, JwsSigner, MAX_ACCESS_TOKEN_TTL_SECONDS, MAX_CLOCK_SKEW_SECONDS,
+    MAX_ID_TOKEN_TTL_SECONDS, RefreshRequest, Signature, SigningKey, SigningKeyState, Subject,
+    TokenTypeHint, build_access_token_claims, build_id_token_claims, build_introspection_response,
+    build_issuer_metadata, build_jwks, check_temporal_window, current_signing_key,
 };
 
 fn rsa_components() -> BTreeMap<String, String> {
@@ -495,4 +495,102 @@ fn audience_single_and_many_reject_empty() {
     assert!(aud.contains("a"));
     assert!(aud.contains("b"));
     assert!(!aud.contains("c"));
+}
+
+// ── RFC 7662 Token Introspection ─────────────────────────────────────────────
+
+fn access_token_claims_for_introspection() -> oya_identity_oidc_issuer_kernel::AccessTokenClaims {
+    build_access_token_claims(AccessTokenSpec {
+        issuer: issuer(),
+        audience: Audience::single("oya-api").expect("ok"),
+        subject: Subject::new("usr_abc").expect("ok"),
+        tenant_id: "ten_acme".to_owned(),
+        scopes: vec!["openid".to_owned(), "email".to_owned()],
+        issued_at_epoch_seconds: 1_700_000_000,
+        expires_at_epoch_seconds: 1_700_003_600,
+        purpose: None,
+        data_class: None,
+    })
+    .expect("ok")
+}
+
+#[test]
+fn introspection_request_rejects_empty_and_accepts_typed_hints() {
+    // Empty token rejected.
+    assert!(matches!(
+        IntrospectionRequest::validate("", None),
+        Err(IssuerError::MalformedIntrospectionRequest(_))
+    ));
+    // Whitespace-only token rejected.
+    assert!(matches!(
+        IntrospectionRequest::validate("   ", None),
+        Err(IssuerError::MalformedIntrospectionRequest(_))
+    ));
+    // Valid token without hint accepted.
+    let req = IntrospectionRequest::validate("opaque-token", None).expect("ok");
+    assert_eq!(req.token, "opaque-token");
+    assert_eq!(req.token_type_hint, None);
+    // Valid token with access_token hint accepted.
+    let req2 =
+        IntrospectionRequest::validate("tok", Some(TokenTypeHint::AccessToken)).expect("ok");
+    assert_eq!(req2.token_type_hint, Some(TokenTypeHint::AccessToken));
+    // Valid token with refresh_token hint accepted.
+    let req3 =
+        IntrospectionRequest::validate("tok", Some(TokenTypeHint::RefreshToken)).expect("ok");
+    assert_eq!(req3.token_type_hint, Some(TokenTypeHint::RefreshToken));
+}
+
+#[test]
+fn introspection_response_inactive_discloses_nothing() {
+    let resp = IntrospectionResponse::inactive();
+    assert!(!resp.active, "inactive response must have active=false");
+    assert!(resp.sub.is_none());
+    assert!(resp.aud.is_none());
+    assert!(resp.exp.is_none());
+    assert!(resp.iat.is_none());
+    assert!(resp.scope.is_none());
+    assert!(resp.client_id.is_none());
+    assert!(resp.tenant_id.is_none());
+    assert!(resp.token_type.is_none());
+}
+
+#[test]
+fn build_introspection_response_active_token_discloses_claims() {
+    let claims = access_token_claims_for_introspection();
+    let now = 1_700_001_800_i64; // well within validity window
+    let skew = ClockSkewTolerance::new(60).expect("ok");
+    let resp = build_introspection_response(&claims, now, skew).expect("ok");
+    assert!(resp.active);
+    assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
+    assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));
+    assert_eq!(resp.exp, Some(1_700_003_600));
+    assert_eq!(resp.iat, Some(1_700_000_000));
+    assert_eq!(resp.scope.as_deref(), Some("openid email"));
+    assert_eq!(resp.client_id, None, "kernel has no client_id in AccessTokenClaims");
+    assert_eq!(resp.tenant_id.as_deref(), Some("ten_acme"));
+    assert_eq!(resp.token_type.as_deref(), Some("at+jwt"));
+}
+
+#[test]
+fn build_introspection_response_expired_collapses_to_inactive() {
+    let claims = access_token_claims_for_introspection();
+    // now > exp(1_700_003_600) + skew(60) → expired
+    let now = 1_700_003_661_i64;
+    let skew = ClockSkewTolerance::new(60).expect("ok");
+    let resp = build_introspection_response(&claims, now, skew).expect("ok");
+    assert!(!resp.active);
+    assert!(resp.sub.is_none());
+    assert!(resp.exp.is_none());
+}
+
+#[test]
+fn build_introspection_response_not_yet_valid_collapses_to_inactive() {
+    let claims = access_token_claims_for_introspection();
+    // nbf == iat == 1_700_000_000; now + skew(60) < nbf → not yet valid
+    let now = 1_699_999_939_i64; // 1_699_999_939 + 60 = 1_699_999_999 < 1_700_000_000
+    let skew = ClockSkewTolerance::new(60).expect("ok");
+    let resp = build_introspection_response(&claims, now, skew).expect("ok");
+    assert!(!resp.active);
+    assert!(resp.sub.is_none());
+    assert!(resp.exp.is_none());
 }
