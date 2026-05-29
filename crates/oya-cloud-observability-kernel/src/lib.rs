@@ -115,7 +115,7 @@ pub fn admit_budget(
         if plan.plan_id.is_empty() {
             return Err(ObservabilityError::EmptyPlanId);
         }
-        if envelopes.iter().find(|e| e.signal == plan.signal).is_none() {
+        if !envelopes.iter().any(|e| e.signal == plan.signal) {
             return Err(ObservabilityError::NoEnvelopeForSignal {
                 signal: plan.signal,
             });
