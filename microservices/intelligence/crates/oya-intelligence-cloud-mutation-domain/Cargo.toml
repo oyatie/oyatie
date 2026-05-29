@@ -9,8 +9,8 @@ license = "Apache-2.0"
 [dependencies]
 oya-intelligence-capability-domain = { path = "../oya-intelligence-capability-domain" }
 oya-intelligence-policy-domain = { path = "../oya-intelligence-policy-domain" }
-oya-audit-chain-domain = { path = "../../../../crates/oya-audit-chain-domain" }
-oya-data-boundary-kernel = { path = "../../../../crates/oya-data-boundary-kernel" }
+oya-audit-chain-domain = { path = "../../../audit-chain/crates/oya-audit-chain-domain" }
+oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 
 [lib]
 name = "oya_intelligence_cloud_mutation_domain"

@@ -1,0 +1,18 @@
+[package]
+name = "oya-cloud-iac-rest"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-http-router-kernel = { path = "../../../../libs/oya-http-router-kernel" }
+
+[lib]
+name = "oya_cloud_iac_rest"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

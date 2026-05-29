@@ -6,7 +6,7 @@ rust-version.workspace = true
 license = "Apache-2.0"
 
 [dependencies]
-oya-application-app = { path = "../../../../crates/oya-application-app" }
+oya-application-app = { path = "../../../application/crates/oya-application-app" }
 
 [lints]
 workspace = true

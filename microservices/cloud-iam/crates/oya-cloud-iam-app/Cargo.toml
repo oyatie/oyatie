@@ -1,0 +1,16 @@
+[package]
+name = "oya-cloud-iam-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-iam-domain = { path = "../oya-cloud-iam-domain" }
+oya-policy-cedar-domain = { path = "../../../policy/crates/oya-policy-cedar-domain" }
+
+[dev-dependencies]
+oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+
+[lints]
+workspace = true

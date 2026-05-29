@@ -1,0 +1,18 @@
+[package]
+name = "oya-plant-maintenance-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+
+[lib]
+name = "oya_plant_maintenance_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
