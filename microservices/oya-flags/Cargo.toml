@@ -1,0 +1,3 @@
+# microservices/oya-flags/Cargo.toml
+# Per-microservice virtual manifest — DO NOT declare a [workspace] here.
+# The root Cargo.toml is the single workspace root (ADR-0131).

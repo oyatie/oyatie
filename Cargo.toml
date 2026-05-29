@@ -703,6 +703,11 @@ members = [
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter",
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app",
+  # oya-flags µservice — bespoke Rust OpenFeature server (ADR-0481).
+  # Sub-ms evaluation critical path; OFREP protocol surface.
+  "microservices/oya-flags/crates/oya-flags-app",
+  "microservices/oya-flags/crates/oya-flags-kernel",
+  "microservices/oya-flags/crates/oya-flags-rest",
 ]
 resolver = "2"
 
@@ -1026,6 +1031,12 @@ status = "active"
 owner = "council-cloud"
 rationale = "Cloud-cell µservice — per-cell isolation primitive (Bominal ADR-0009 inherited). Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
+status = "active"
+
+[workspace.metadata.oya.microservices.oya-flags]
+owner = "council-platform"
+rationale = "Bespoke Rust OpenFeature flag server — tenant-scoped flag evaluation at sub-ms latency; OFREP protocol surface (ADR-0481)."
+adr_cite = "ADR-0481"
 status = "active"
 
 [workspace.metadata.oya.microservices.ops]

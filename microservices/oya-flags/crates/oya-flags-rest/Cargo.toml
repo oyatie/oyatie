@@ -1,0 +1,24 @@
+[package]
+name = "oya-flags-rest"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# oya-flags REST adapter — OpenFeature provider HTTP surface (ADR-0481).
+# Exposes POST /flags/resolve/boolean (and siblings) per OpenFeature Remote
+# Evaluation Protocol (OFREP). Consumes the kernel evaluation state machine.
+
+[lib]
+name = "oya_flags_rest"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-flags-kernel = { path = "../oya-flags-kernel" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

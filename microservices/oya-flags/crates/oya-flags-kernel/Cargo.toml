@@ -1,0 +1,25 @@
+[package]
+name = "oya-flags-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# oya-flags kernel — pure-Rust OpenFeature evaluation state machine (ADR-0481).
+# No I/O, no HTTP, no async. Sub-ms flag resolution target.
+# Adapter crates provide all storage and transport dependencies.
+
+[lib]
+name = "oya_flags_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
