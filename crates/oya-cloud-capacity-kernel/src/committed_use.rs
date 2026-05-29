@@ -96,6 +96,7 @@ pub enum CommittedUseError {
     EmptyRegionId,
     ZeroCommittedUnits,
     DiscountExceedsFull { discount_bps: u32 },
+    ZeroListRate,
 }
 
 impl CommittedUseError {
@@ -109,6 +110,7 @@ impl CommittedUseError {
             Self::DiscountExceedsFull { discount_bps } => {
                 format!("discount_bps={discount_bps} exceeds 10000 (100%)")
             }
+            Self::ZeroListRate => "list_rate_micros must be non-zero".to_owned(),
         }
     }
 }
@@ -131,6 +133,56 @@ pub fn validate_committed_use_contract(
         });
     }
     Ok(())
+}
+
+// ── Amortization + coverage math ─────────────────────────────────────────────
+
+/// Returns the effective discounted rate in micros after applying `discount_bps`.
+///
+/// - `discount_bps == 0`: returns `list_rate_micros` unchanged.
+/// - `discount_bps == 10000`: returns `0`.
+/// - Saturating arithmetic; values > 10000 bottom at 0 (callers should pre-validate
+///   via [`validate_committed_use_contract`]).
+/// - Returns [`CommittedUseError::ZeroListRate`] when `list_rate_micros == 0`.
+pub fn effective_discounted_rate(
+    list_rate_micros: u128,
+    discount_bps: u32,
+) -> Result<u128, CommittedUseError> {
+    if list_rate_micros == 0 {
+        return Err(CommittedUseError::ZeroListRate);
+    }
+    let discount = list_rate_micros.saturating_mul(discount_bps as u128) / 10_000;
+    Ok(list_rate_micros.saturating_sub(discount))
+}
+
+/// Returns the floor-divided monthly amortization of `total_commit_micros` over `term`.
+///
+/// Uses [`ReservationTerm::months`] as divisor. Remainder is dropped; callers who need
+/// exact reconciliation compute `total_commit_micros % term.months() as u128`.
+///
+/// Defensive guard: returns `total_commit_micros` unchanged if `months()` is ever 0
+/// (impossible with the current enum variants).
+pub fn amortized_monthly_commit_micros(total_commit_micros: u128, term: ReservationTerm) -> u128 {
+    let months = term.months() as u128;
+    if months == 0 {
+        return total_commit_micros;
+    }
+    total_commit_micros / months
+}
+
+/// Returns committed coverage in basis points (0–10000), capped at 10000.
+///
+/// - Returns `0` when `demand_units == 0`.
+/// - Otherwise: `min(reserved_units * 10_000 / demand_units, 10_000)` cast to `u32`.
+/// - Uses `u128` intermediate arithmetic to prevent overflow.
+pub fn committed_coverage_bps(reserved_units: u64, demand_units: u64) -> u32 {
+    if demand_units == 0 {
+        return 0;
+    }
+    let coverage = (reserved_units as u128)
+        .saturating_mul(10_000)
+        / demand_units as u128;
+    coverage.min(10_000) as u32
 }
 
 // ── SpotPool ──────────────────────────────────────────────────────────────────
@@ -442,5 +494,116 @@ mod tests {
             Err(SpotPoolError::SpotExhausted { .. })
         ));
         assert!(admit_spot_request(&cpu_pool, 1).is_ok());
+    }
+
+    // ── effective_discounted_rate tests ───────────────────────────────────────
+
+    #[test]
+    fn discount_zero_bps_returns_list_rate_unchanged() {
+        assert_eq!(effective_discounted_rate(1_000_000, 0).unwrap(), 1_000_000);
+    }
+
+    #[test]
+    fn discount_full_10000_bps_returns_zero() {
+        assert_eq!(effective_discounted_rate(1_000_000, 10_000).unwrap(), 0);
+    }
+
+    #[test]
+    fn discount_partial_bps_applies_correctly() {
+        // 20% discount on 10_000_000 micros -> 8_000_000
+        assert_eq!(effective_discounted_rate(10_000_000, 2_000).unwrap(), 8_000_000);
+    }
+
+    #[test]
+    fn discount_zero_list_rate_returns_error() {
+        assert!(matches!(
+            effective_discounted_rate(0, 500),
+            Err(CommittedUseError::ZeroListRate)
+        ));
+    }
+
+    #[test]
+    fn discount_over_10000_bps_saturates_to_zero() {
+        // bps > 10000 bottoms at 0 via saturating sub
+        assert_eq!(effective_discounted_rate(1_000, 10_001).unwrap(), 0);
+    }
+
+    #[test]
+    fn validate_contract_rejects_discount_over_10000() {
+        // acceptance criterion (c): validate gate still rejects bps > 10000
+        let contract = CommittedUseContract {
+            id: CommittedUseContractId("c1".into()),
+            region: RegionId("kr1".into()),
+            class: CapacityClass::Cpu,
+            committed_units: 100,
+            discount_bps: 10_001,
+            term: ReservationTerm::OneYear,
+        };
+        assert!(matches!(
+            validate_committed_use_contract(&contract),
+            Err(CommittedUseError::DiscountExceedsFull { .. })
+        ));
+    }
+
+    // ── amortized_monthly_commit_micros tests ─────────────────────────────────
+
+    #[test]
+    fn amortization_exact_division_one_year() {
+        // 1200 over 12 months -> 100 per month, no remainder
+        assert_eq!(
+            amortized_monthly_commit_micros(1_200, ReservationTerm::OneYear),
+            100
+        );
+    }
+
+    #[test]
+    fn amortization_with_remainder_drops_remainder() {
+        // 13 over 12 months -> floor(13/12) = 1, remainder 1 dropped
+        assert_eq!(
+            amortized_monthly_commit_micros(13, ReservationTerm::OneYear),
+            1
+        );
+    }
+
+    #[test]
+    fn amortization_three_year_term() {
+        // 3600 over 36 months -> 100 per month
+        assert_eq!(
+            amortized_monthly_commit_micros(3_600, ReservationTerm::ThreeYear),
+            100
+        );
+    }
+
+    #[test]
+    fn amortization_zero_total_returns_zero() {
+        assert_eq!(amortized_monthly_commit_micros(0, ReservationTerm::OneYear), 0);
+    }
+
+    // ── committed_coverage_bps tests ──────────────────────────────────────────
+
+    #[test]
+    fn coverage_saturates_at_10000_when_reserved_equals_demand() {
+        assert_eq!(committed_coverage_bps(100, 100), 10_000);
+    }
+
+    #[test]
+    fn coverage_saturates_at_10000_when_reserved_exceeds_demand() {
+        assert_eq!(committed_coverage_bps(200, 100), 10_000);
+    }
+
+    #[test]
+    fn coverage_partial_below_10000() {
+        // 50 reserved / 100 demand -> 5000 bps (50%)
+        assert_eq!(committed_coverage_bps(50, 100), 5_000);
+    }
+
+    #[test]
+    fn coverage_zero_demand_returns_zero() {
+        assert_eq!(committed_coverage_bps(100, 0), 0);
+    }
+
+    #[test]
+    fn coverage_zero_reserved_returns_zero() {
+        assert_eq!(committed_coverage_bps(0, 100), 0);
     }
 }
