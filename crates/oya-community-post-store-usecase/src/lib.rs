@@ -1,5 +1,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod moderation_queue;
+
 use oya_community_post_store_api::{
     AuthorizedCommunityContext, CastVoteRequest, CommunityApiError, CommunityApiMode,
     CreatePostRequest, ModeratePostRequest, ModerationReceipt, ModerationVerb, PostReceipt,
