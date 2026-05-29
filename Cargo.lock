@@ -6481,6 +6481,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-meter"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "oya-metering-domain"
 version = "0.1.0"
 dependencies = [
