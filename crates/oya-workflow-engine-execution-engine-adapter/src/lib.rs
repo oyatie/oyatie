@@ -698,6 +698,7 @@ mod tests {
                 spec_integrity_ref: "spec-integrity:workflow:v1".to_owned(),
                 replay_epoch_ref: "replay-epoch:execution-adapter:1".to_owned(),
                 scheduler_epoch_ref: "scheduler-epoch:execution-adapter:1".to_owned(),
+                sla_reference_epoch_seconds: 0,
                 command: ExecutionDomainCommandKind::DispatchStep,
                 origin: ExecutionDomainOrigin::WorkerScheduler,
             },

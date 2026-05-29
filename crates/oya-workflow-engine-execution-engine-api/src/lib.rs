@@ -489,6 +489,7 @@ impl ExecutionEngineApiCommandBody {
             spec_integrity_ref: request.spec_integrity_ref.clone(),
             replay_epoch_ref: request.replay_epoch_ref.clone(),
             scheduler_epoch_ref: request.scheduler_epoch_ref.clone(),
+            sla_reference_epoch_seconds: 0,
             command,
             origin: ExecutionDomainOrigin::ApiCommand,
         })
