@@ -44,7 +44,7 @@
     },
     "hyper": {
       "layer_seam": "adapter-only",
-      "rationale": "Canonical HTTP backbone per ADR-0090; isolated in oya-http-runtime-hyper-adapter.",
+      "rationale": "Canonical HTTP backbone per ADR-0090; PREFERRED low-level default for the strategic hyper/axum split (ADR-0090 Amendment 2026-05-29 + specs/http-stack-policy.json). Isolated in oya-http-runtime-hyper-adapter.",
       "policy_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md"
     },
     "hyper-util": {
@@ -59,8 +59,8 @@
     },
     "axum": {
       "layer_seam": "rest-adapter",
-      "rationale": "HTTP server framework for *-rest adapter crates. Pre-approved runtime crate.",
-      "policy_ref": "approved-runtime-dependency-allowlist"
+      "rationale": "SANCTIONED strategic exception for *-rest / control-plane crates (ADR-0509 §6 rest/ mod). Each adopting crate must carry a recorded justification in specs/http-stack-policy.json (justified_crates.axum), enforced by the oya-dev-cli http-stack gate; hyper is the preferred low-level default.",
+      "policy_ref": "specs/http-stack-policy.json"
     },
     "tower": {
       "layer_seam": "infrastructure",

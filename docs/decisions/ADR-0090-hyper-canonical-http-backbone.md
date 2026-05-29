@@ -11,7 +11,8 @@ doc_status: published
 > **Owner:** `council-architecture`
 > **Supersedes:** —
 > **Superseded-by:** —
-> **Related:** ADR-0064
+> **Related:** ADR-0064, ADR-0509 (strategic hyper/axum split — see Amendment 2026-05-29)
+> **Amended:** 2026-05-29 — strategic hyper/axum split codified (hyper preferred at low level; axum sanctioned where it pays; enforced by `oya-check-http-stack`; see Amendment below)
 
 ---
 
@@ -127,3 +128,49 @@ against the current upstream LTS major.minor.
    Layer 4. (slice K'')
 4. Wire `oya-governance-lts-dependency` to cross-check hyper /
    tokio / hyper-util pins on every merge.
+
+## Amendment (2026-05-29) — strategic hyper/axum split (hyper preferred at low level)
+
+**Founder direction 2026-05-29: "axum is ok … hyper preferred (low level preferred)
+where it makes sense. be strategic about axum and hyper use. enforce/codify it."**
+
+ADR-0090's absolute *"hyper everywhere / axum banned"* mandate is replaced by a
+**strategic two-tier policy**. hyper stays the **preferred default**; axum is a
+**sanctioned, justified exception** where its ergonomics materially pay for themselves.
+Both ride the same blessed backbone (hyper + tokio, per the runtime-dependency
+allowlist) — axum is built on hyper + tower — so this is a *within-backbone* choice,
+not a new dependency axis. ADR-0090's core thesis (hyper is the protocol backbone;
+tokio is the runtime; layers 1–4 stay lean) is **preserved**, not retired.
+
+**Selection policy (codified in `specs/http-stack-policy.json`, enforced by the
+`oya-check-http-stack` gate):**
+
+- **Prefer hyper (low-level) — the default.** Use bare hyper (+ the Layer-5
+  `oya-http-runtime-hyper-adapter` / our router·middleware·sse kernels) for:
+  performance/latency-critical data-plane services, proxies & gateways, hot paths,
+  minimal-dependency or long-LTS-surface crates, and anywhere we want to own the
+  routing/middleware kernel. **This is ADR-0090's original thesis and it STANDS here.**
+- **axum — sanctioned strategic exception.** Use axum for control-plane / CRUD-heavy
+  REST services with many endpoints + extractors where axum's router/extractor/`FromRequest`
+  ergonomics materially cut complexity and bug surface vs hand-rolled hyper. axum 0.8
+  (+ tower / tower-http) is blessed in the runtime-dependency allowlist, and ADR-0509 §6
+  (Canonical service layout) prescribes `rest/ # REST handlers (axum)` for the rest mod.
+  On-dev today (7 axum crates, all recorded in `specs/http-stack-policy.json`):
+  `oya-identity-workload-rest`, `oya-cloud-intelligence-rest`/`-app`,
+  `oya-managed-k8s-control-plane-host-app`, `oya-managed-k8s-cluster-lifecycle-app`,
+  `oya-managed-k8s-tenant-quota-app`, and `oya-ci-webhook-gateway-app` (a gateway —
+  recorded as a hyper-migration candidate per the low-level bias).
+- **Bias = low-level.** On a toss-up, choose hyper. axum must be a *deliberate, recorded*
+  pick — justify it in the service's spec/ADR (`http_stack: axum` + one-line rationale),
+  never the reflex default.
+- **Still forbidden:** actix-web, poem, warp, rocket, salvo, ntex, and any other HTTP
+  framework — the dep-tree-bloat / framework-competition reasoning in this ADR applies
+  in full to *those*.
+
+**Enforcement (codify/enforce).** `oya-check-http-stack` (wired into `oya gate run-all`)
+reads `specs/http-stack-policy.json` and each service crate's `Cargo.toml`: ALLOW
+`hyper`/`hyper-util`/`axum`/`tower`/`tower-http`/`tokio`; DENY the forbidden frameworks
+above (hard FAIL); and WARN when a crate adopts axum without a recorded `http_stack`
+rationale, nudging back toward the low-level default. ADR-0090's positive consequences
+(single backbone, no per-µservice framework drift) now hold across *both* sanctioned
+stacks rather than via bare hyper alone.
