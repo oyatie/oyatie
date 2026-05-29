@@ -34,13 +34,16 @@ pub const ENGAGEMENT_CAP: u64 = 10_000;
 
 /// Input to the feed-ranking usecase.
 ///
-/// The caller is responsible for scoping this slice to the authorized context
-/// before passing to [`rank_feed`]. Posts with an empty `post_id` are excluded
-/// from the ranked output.
+/// `scope_ref` must match `ctx.scope_ref` for a post to appear in the ranked output;
+/// [`rank_feed`] enforces cross-scope isolation directly so callers do not need to
+/// pre-filter. Posts with an empty `post_id` are also excluded.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FeedRankInput {
     /// Opaque post identifier; used as stable tiebreak key (lexicographic ascending).
     pub post_id: String,
+    /// Scope this post belongs to (e.g. `"person:alice"` or `"tenant:acme"`).
+    /// [`rank_feed`] drops posts whose `scope_ref` differs from `ctx.scope_ref`.
+    pub scope_ref: String,
     /// Creation timestamp as Unix epoch seconds. Mirrors the `now: u64` time model
     /// used by `story_purge` / `plan_story_purge` in the same crate.
     pub created_at: u64,
@@ -84,7 +87,7 @@ pub fn rank_feed(
 
     let mut ranked: Vec<FeedRankInput> = posts
         .iter()
-        .filter(|p| !p.post_id.is_empty())
+        .filter(|p| !p.post_id.is_empty() && p.scope_ref == ctx.scope_ref)
         .cloned()
         .collect();
 
@@ -117,6 +120,7 @@ mod tests {
     fn make_post(post_id: &str, created_at: u64, engagement_count: u64) -> FeedRankInput {
         FeedRankInput {
             post_id: post_id.into(),
+            scope_ref: "person:u".into(),
             created_at,
             engagement_count,
         }
