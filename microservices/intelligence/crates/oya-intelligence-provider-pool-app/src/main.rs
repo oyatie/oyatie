@@ -544,6 +544,7 @@ fn dispatch_error_to_response(err: &DispatchError) -> HttpResponse {
         DispatchError::AllProvidersExhausted { .. } => (502, "all_providers_exhausted"),
         DispatchError::NonRetryableTransport(_) => (502, "transport_non_retryable"),
         DispatchError::SecretResolutionFailed(_) => (502, "secret_resolution_failed"),
+        DispatchError::QuotaBudgetExceeded { .. } => (429, "quota_budget_exceeded"),
     };
     let detail = json_escape(&err.to_string());
     HttpResponse::new(status)
