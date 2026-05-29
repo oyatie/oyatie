@@ -109,6 +109,7 @@ mod tier_a_gates;
 mod typescript_workspace_gates;
 mod workspace_hygiene_gate;
 mod workspace_manifest;
+mod workspace_topology_gate;
 mod yaml_scan;
 
 pub(crate) use active_artifact_contract_gate::{
@@ -243,6 +244,10 @@ pub(crate) use honest_claims_gate::{
 };
 pub(crate) use http_stack_gate::{
     HttpStackFindingKind, parse_http_stack_validate_args, validate_http_stack_gate,
+};
+pub(crate) use workspace_topology_gate::{
+    parse_workspace_topology_validate_args, validate_workspace_topology_gate,
+    WorkspaceTopologyRule,
 };
 pub(crate) use hyperscaler_arch_invariants_gate::{
     parse_hyperscaler_arch_invariants_validate_args, validate_hyperscaler_arch_invariants_gate,

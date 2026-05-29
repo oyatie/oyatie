@@ -437,6 +437,7 @@ fn validate_packages(
         let relative_parent = relative_path(manifest_parent, repo_root);
         let crates_parent = PathBuf::from("crates").join(&package.name);
         let tools_parent = PathBuf::from("tools").join(&package.name);
+        let libs_parent = PathBuf::from("libs").join(&package.name);
         // Derive the microservices nested path: microservices/<ms>/crates/<name>
         // where <ms> is inferred as the first segment of the crate name after "oya-" prefix.
         // e.g. oya-intelligence-api -> microservices/intelligence/crates/oya-intelligence-api
@@ -465,7 +466,12 @@ fn validate_packages(
         })()
         .unwrap_or(false);
         let parent_matches = match &relative_parent {
-            Some(rel) => rel == &crates_parent || rel == &tools_parent || ms_nested_valid,
+            Some(rel) => {
+                rel == &crates_parent
+                    || rel == &tools_parent
+                    || rel == &libs_parent
+                    || ms_nested_valid
+            }
             None => false,
         };
         if !parent_matches {
@@ -474,10 +480,11 @@ fn validate_packages(
                 .map(|path| path.display().to_string())
                 .unwrap_or_else(|| manifest_parent.display().to_string());
             errors.push(format!(
-                "workspace package {} must live at {} or {}, found {}",
+                "workspace package {} must live at {}, {}, or {}, found {}",
                 package.name,
                 crates_parent.display(),
                 tools_parent.display(),
+                libs_parent.display(),
                 actual
             ));
         }
@@ -1246,6 +1253,26 @@ mod tests {
         assert!(
             !errors.is_empty(),
             "oya-intelligence-api under microservices/managed-k8s-tenant-quota/crates/ should be rejected"
+        );
+    }
+
+    #[test]
+    fn libs_crate_path_passes() {
+        // ADR-0512: libs/<lib> is a valid workspace member location for shared
+        // cross-cutting libraries. Mirrors microservices_nested_crate_path_passes.
+        let (mut pkg, rec) =
+            fixture_package("oya-check-brand-residue", "kernel", &[], "crates");
+        pkg.manifest_path = fixture_repo_root()
+            .join("libs")
+            .join("oya-check-brand-residue")
+            .join("Cargo.toml");
+        let packages = vec![pkg];
+        let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(
+            errors.is_empty(),
+            "libs/oya-check-brand-residue should pass: {errors:?}"
         );
     }
 }
