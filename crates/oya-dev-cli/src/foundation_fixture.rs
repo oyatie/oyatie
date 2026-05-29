@@ -50,6 +50,7 @@ pub(crate) fn publish_capability_invocation_policy(
                 action: "foundry.capability.invoke".into(),
                 resource_prefix: "capability:cap.".into(),
                 required_attribute: None,
+                annotations: vec![],
             }],
         })
         .map(|_| ())
