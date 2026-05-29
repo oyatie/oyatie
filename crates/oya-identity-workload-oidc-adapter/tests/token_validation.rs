@@ -1,15 +1,15 @@
 // ADR-0083 Tier 3: integration tests assert invariants with unwrap/expect.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-//! End-to-end token-validation test against real `ring` crypto: mint an ES256
+//! End-to-end token-validation test against real `aws-lc-rs` crypto: mint an ES256
 //! JWS with a freshly generated key, publish the matching JWK, then prove that
 //! a genuine token validates into an active principal and that a token signed
 //! by a different (untrusted) key is rejected.
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use ring::rand::SystemRandom;
-use ring::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
+use aws_lc_rs::rand::SystemRandom;
+use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
 
 use oya_identity_workload_domain::WorkloadState;
 use oya_identity_workload_oidc_adapter::{
@@ -25,7 +25,7 @@ fn mint(claims_json: &str, kid: &str) -> (String, Jwk) {
     let rng = SystemRandom::new();
     let pkcs8 =
         EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng).expect("pkcs8");
-    let key = EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref(), &rng)
+    let key = EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
         .expect("key");
     let public = key.public_key().as_ref();
     let (x, y) = (&public[1..33], &public[33..65]);
