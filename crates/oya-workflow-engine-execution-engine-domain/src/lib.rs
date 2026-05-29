@@ -12,6 +12,46 @@ pub use oya_workflow_engine_execution_engine_kernel::{
     StepExecutionStatus, WorkflowExecutionStatus, WorkflowRun, WorkflowRunStore,
 };
 
+/// Classification of an SLA timer's deadline relative to a caller-supplied reference instant.
+/// Pure value object — no wall-clock, no I/O.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SlaDeadlineClass {
+    OnTrack,
+    AtRisk,
+    Breached,
+}
+
+impl SlaDeadlineClass {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::OnTrack => "on-track",
+            Self::AtRisk => "at-risk",
+            Self::Breached => "breached",
+        }
+    }
+}
+
+/// Classify an SLA timer's deadline against a caller-supplied reference epoch (seconds).
+///
+/// Thresholds (pure integer arithmetic):
+/// - `reference >= deadline`                             → `Breached`
+/// - `reference >= armed_at + (deadline - armed_at) * 80 / 100` → `AtRisk`
+/// - otherwise                                           → `OnTrack`
+///
+/// No `std::time::SystemTime::now()`, no randomness, no I/O.
+pub fn classify_sla_deadline(timer: &SlaTimer, reference_epoch_seconds: u64) -> SlaDeadlineClass {
+    if reference_epoch_seconds >= timer.deadline_epoch_seconds {
+        return SlaDeadlineClass::Breached;
+    }
+    let window = timer.deadline_epoch_seconds - timer.armed_at_epoch_seconds;
+    let at_risk_at = timer.armed_at_epoch_seconds + window * 80 / 100;
+    if reference_epoch_seconds >= at_risk_at {
+        SlaDeadlineClass::AtRisk
+    } else {
+        SlaDeadlineClass::OnTrack
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ExecutionDomainOrigin {
     ApiCommand,
@@ -63,9 +103,10 @@ pub struct ExecutionEngineDomainRequest {
     pub policy_evidence_ref: String,         // data_class: INTERNAL_ONLY
     pub spec_integrity_ref: String,          // data_class: INTERNAL_ONLY
     pub replay_epoch_ref: String,            // data_class: INTERNAL_ONLY
-    pub scheduler_epoch_ref: String,         // data_class: INTERNAL_ONLY
-    pub command: ExecutionDomainCommandKind, // data_class: INTERNAL_ONLY
-    pub origin: ExecutionDomainOrigin,       // data_class: INTERNAL_ONLY
+    pub scheduler_epoch_ref: String,            // data_class: INTERNAL_ONLY
+    pub sla_reference_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
+    pub command: ExecutionDomainCommandKind,    // data_class: INTERNAL_ONLY
+    pub origin: ExecutionDomainOrigin,          // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -330,6 +371,13 @@ fn domain_audit_refs(request: &ExecutionEngineDomainRequest, outcome: &str) -> V
     }
     if let Some(timer) = &request.sla_timer {
         refs.extend(timer.evidence_refs.clone());
+        if request.command == ExecutionDomainCommandKind::ArmSlaTimer {
+            let class = classify_sla_deadline(timer, request.sla_reference_epoch_seconds);
+            refs.push(format!(
+                "workflow-execution-domain:sla-class:{}",
+                class.as_wire()
+            ));
+        }
     }
     refs.push(format!("workflow-execution-domain:{outcome}"));
     refs.push(format!(
