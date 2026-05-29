@@ -52,6 +52,13 @@ pub fn evaluate_spf_alignment(
     let envelope_norm = normalize(envelope_from_domain);
     let header_norm = normalize(header_from_domain);
 
+    // RFC 7208 §2.6: a null sender (empty envelope-from) must never be
+    // considered aligned with any domain, including another null sender.
+    // Likewise a missing header-from domain must not produce a false positive.
+    if envelope_norm.is_empty() || header_norm.is_empty() {
+        return SpfAlignmentVerdict::Misaligned;
+    }
+
     if envelope_norm == header_norm {
         return SpfAlignmentVerdict::Aligned;
     }
