@@ -139,8 +139,13 @@ fn validate_actor_ref(actor_ref: &str) -> Result<(), ReactionError> {
     }
     // Bot principals must be namespaced: "bot:<non-empty-suffix>"
     // (consistent with validate_bot_principal in lib.rs)
-    if actor_ref.starts_with("bot:") && actor_ref.len() <= "bot:".len() {
-        return Err(ReactionError::InvalidActorRef);
+    // The suffix must be non-empty after trimming — "bot:  " is semantically
+    // equivalent to "bot:" and must be rejected.
+    if actor_ref.starts_with("bot:") {
+        let suffix = &actor_ref["bot:".len()..];
+        if suffix.trim().is_empty() {
+            return Err(ReactionError::InvalidActorRef);
+        }
     }
     Ok(())
 }
