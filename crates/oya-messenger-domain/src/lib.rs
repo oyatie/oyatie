@@ -10,8 +10,10 @@
 
 pub mod delivery_class;
 pub mod governance;
+pub mod reaction;
 pub use delivery_class::{MessageDeliveryClass, MessengerChannelKind};
 pub use governance::*;
+pub use reaction::*;
 
 use std::collections::BTreeSet;
 
