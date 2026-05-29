@@ -5,18 +5,21 @@
 //! full validate -> resolve -> authorize hot path through the REAL adapters and
 //! asserting the fail-closed PEP status mapping + one-audit-record-per-call
 //! invariant (PRD §1.2/§3.4/§3.5/§5, AC-W-13).
+//!
+//! Fixtures are shared with `grpc_authorize_deny.rs` via `tests/common/mod.rs`
+//! so both surfaces provably exercise one shared setup with identical JWKS,
+//! Cedar policies, and provisioned principal.
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+mod common;
+
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
-use base64::Engine as _;
-use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use http_body_util::BodyExt as _;
-use aws_lc_rs::rand::SystemRandom;
-use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
 use serde_json::{Value, json};
 use tower::ServiceExt as _;
 
@@ -31,92 +34,9 @@ use oya_identity_workload_rest::{
     AuditEvent, InMemoryAuditSink, SharedState, WorkloadAuthzState, build_router,
 };
 
-const ISSUER: &str = "https://idp.oyatie.com";
-const AUDIENCE: &str = "oya-cloud-kms";
-const KID: &str = "kid-rest-1";
-const NOW: i64 = 1_700_000_000;
-
-fn now() -> i64 {
-    NOW
-}
-
-fn b64url(bytes: &[u8]) -> String {
-    URL_SAFE_NO_PAD.encode(bytes)
-}
-
-struct MintedToken {
-    token: String,
-    jwk: Jwk,
-}
-
-/// Mint a real ES256 workload JWT for `wl_secrets_sync` (ten_acme).
-fn mint_token() -> MintedToken {
-    let rng = SystemRandom::new();
-    let pkcs8 =
-        EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng).expect("pkcs8");
-    let key_pair = EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
-        .expect("key");
-    let public = key_pair.public_key().as_ref();
-    let x = &public[1..33];
-    let y = &public[33..65];
-    let claims = format!(
-        r#"{{"iss":"{ISSUER}","aud":"{AUDIENCE}","exp":{},"iat":{NOW},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt"}}"#,
-        NOW + 300
-    );
-    let header = format!(r#"{{"alg":"ES256","typ":"JWT","kid":"{KID}"}}"#);
-    let signing_input = format!(
-        "{}.{}",
-        b64url(header.as_bytes()),
-        b64url(claims.as_bytes())
-    );
-    let sig = key_pair.sign(&rng, signing_input.as_bytes()).expect("sign");
-    MintedToken {
-        token: format!("{signing_input}.{}", b64url(sig.as_ref())),
-        jwk: Jwk::ec_p256(KID, b64url(x), b64url(y)),
-    }
-}
-
-/// A permit allowing ten_acme + cloud.kms.decrypt to Decrypt a Secret.
-fn permit_authorizer() -> CedarWorkloadAuthorizer {
-    CedarWorkloadAuthorizer::from_cedar_policies(
-        r#"
-        @id("permit-acme-kms-decrypt")
-        permit (
-          principal is Workload,
-          action == Action::"cloud.kms.Decrypt",
-          resource is Secret
-        ) when {
-          principal.tenant_id == "ten_acme" &&
-          principal.scopes.contains("cloud.kms.decrypt")
-        };
-        "#,
-    )
-    .expect("cedar parses")
-}
-
-type RestState = SharedState<
-    InMemoryWorkloadPrincipalRepository,
-    InMemoryRevocationDenylist,
-    CedarWorkloadAuthorizer,
-    InMemoryAuditSink,
->;
-
-/// Build router state with a provisioned+activated `wl_secrets_sync`.
-fn provisioned_state(jwk: Jwk) -> RestState {
-    let mut repo = InMemoryWorkloadPrincipalRepository::new();
-    provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").expect("provision");
-    activate(&mut repo, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
-    let jwks = Jwks::new().add_key(jwk);
-    std::sync::Arc::new(WorkloadAuthzState::with_clock(
-        repo,
-        InMemoryRevocationDenylist::new(),
-        permit_authorizer(),
-        jwks,
-        ValidationConfig::new(ISSUER, AUDIENCE),
-        InMemoryAuditSink::new(),
-        now,
-    ))
-}
+use common::{
+    AUDIENCE, ISSUER, NOW, FailingRepository, mint_token, permit_authorizer, provisioned_state,
+};
 
 async fn post_json(router: axum::Router, path: &str, body: Value) -> (StatusCode, Value) {
     let request = Request::builder()
@@ -176,14 +96,14 @@ async fn authorize_with_token_policy_deny_is_403_forbidden() {
     let mut repo = InMemoryWorkloadPrincipalRepository::new();
     provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").expect("provision");
     activate(&mut repo, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
-    let state: RestState = std::sync::Arc::new(WorkloadAuthzState::with_clock(
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
         repo,
         InMemoryRevocationDenylist::new(),
         CedarWorkloadAuthorizer::new(),
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
-        now,
+        || NOW,
     ));
     let router = build_router(state);
 
@@ -233,14 +153,14 @@ async fn invalid_token_on_authorize_is_422() {
 async fn unknown_subject_is_403_not_404() {
     let minted = mint_token();
     // Empty repository: the token validates but no persisted principal exists.
-    let state: RestState = std::sync::Arc::new(WorkloadAuthzState::with_clock(
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
         InMemoryWorkloadPrincipalRepository::new(),
         InMemoryRevocationDenylist::new(),
         permit_authorizer(),
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
-        now,
+        || NOW,
     ));
     let router = build_router(state);
 
@@ -259,37 +179,17 @@ async fn unknown_subject_is_403_not_404() {
     assert_eq!(status, StatusCode::FORBIDDEN);
 }
 
-/// A repository whose reads always fail — proves the hot path fail-closes to a
-/// 503, never an allow.
-struct FailingRepository;
-impl WorkloadPrincipalRepository for FailingRepository {
-    fn load(
-        &self,
-        _workload_id: &WorkloadId,
-    ) -> Result<Option<WorkloadPrincipal>, RepositoryError> {
-        Err(RepositoryError::new("induced load failure"))
-    }
-    fn save(&mut self, _principal: &WorkloadPrincipal) -> Result<(), RepositoryError> {
-        Err(RepositoryError::new("induced save failure"))
-    }
-}
-
 #[tokio::test]
 async fn store_unavailable_is_503_fail_closed() {
     let minted = mint_token();
-    let state: SharedState<
-        FailingRepository,
-        InMemoryRevocationDenylist,
-        CedarWorkloadAuthorizer,
-        InMemoryAuditSink,
-    > = std::sync::Arc::new(WorkloadAuthzState::with_clock(
+    let state: SharedState<FailingRepository, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
         FailingRepository,
         InMemoryRevocationDenylist::new(),
         permit_authorizer(),
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
-        now,
+        || NOW,
     ));
     let router = build_router(state);
 

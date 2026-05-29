@@ -579,6 +579,7 @@
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter",
       "allowed_crates": [
+        "oya-identity-workload-rest",
         "oya-messenger-message-stream-grpc",
         "oya-shared-backbone-grpc-generated-adapter"
       ]
@@ -591,6 +592,7 @@
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter build.rs",
       "allowed_crates": [
+        "oya-identity-workload-rest",
         "oya-shared-backbone-grpc-generated-adapter"
       ]
     },
@@ -623,6 +625,7 @@
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter and oya-shared-backbone-grpc-transport-adapter",
       "allowed_crates": [
+        "oya-identity-workload-rest",
         "oya-payments-charge-grpc",
         "oya-shared-backbone-grpc-generated-adapter",
         "oya-shared-backbone-grpc-transport-adapter"
@@ -636,6 +639,7 @@
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter",
       "allowed_crates": [
+        "oya-identity-workload-rest",
         "oya-shared-backbone-grpc-generated-adapter"
       ]
     },
@@ -647,6 +651,7 @@
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter build.rs",
       "allowed_crates": [
+        "oya-identity-workload-rest",
         "oya-shared-backbone-grpc-generated-adapter"
       ]
     },

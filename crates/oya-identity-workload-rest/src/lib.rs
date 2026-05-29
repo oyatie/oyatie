@@ -43,6 +43,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+pub mod grpc;
+
 use std::sync::{Arc, Mutex};
 
 use axum::Json;
@@ -313,6 +315,51 @@ where
     #[must_use]
     pub fn audit(&self) -> &S {
         &self.audit
+    }
+
+    // ------------------------------------------------------------------
+    // Accessors used by the gRPC delivery module (src/grpc/) so it can
+    // delegate to the same state without duplicating fields.
+    // ------------------------------------------------------------------
+
+    /// Borrow the authorizer (read-only shared; used by the gRPC Authorize path).
+    #[must_use]
+    pub(crate) fn authorizer_ref(&self) -> &A {
+        &self.authorizer
+    }
+
+    /// Borrow the JWKS (read-only; used by the gRPC ValidateToken path).
+    #[must_use]
+    pub(crate) fn jwks_ref(&self) -> &Jwks {
+        &self.jwks
+    }
+
+    /// Borrow the validation config (read-only; used by gRPC paths).
+    #[must_use]
+    pub(crate) fn config_ref(&self) -> &ValidationConfig {
+        &self.config
+    }
+
+    /// Return the `now` provider fn (used by gRPC paths for token temporal checks).
+    #[must_use]
+    pub(crate) fn now_provider_ref(&self) -> fn() -> i64 {
+        self.now_provider
+    }
+
+    /// Lock the repository for reading (gRPC delegate; mirrors REST helper).
+    pub(crate) fn repository_lock(
+        &self,
+    ) -> Result<std::sync::MutexGuard<'_, R>, std::sync::PoisonError<std::sync::MutexGuard<'_, R>>>
+    {
+        self.repository.lock()
+    }
+
+    /// Lock the denylist for reading (gRPC delegate; mirrors REST helper).
+    pub(crate) fn denylist_lock(
+        &self,
+    ) -> Result<std::sync::MutexGuard<'_, D>, std::sync::PoisonError<std::sync::MutexGuard<'_, D>>>
+    {
+        self.denylist.lock()
     }
 }
 
@@ -707,7 +754,8 @@ where
 }
 
 /// Build an Active principal from an `/authorize` request's explicit fields.
-fn build_active_principal(
+/// `pub(crate)` so the gRPC delivery module can reuse it without duplicating logic.
+pub(crate) fn build_active_principal(
     request: &AuthorizeRequest,
 ) -> Result<WorkloadPrincipal, ApiErrorEnvelope> {
     let mut principal = WorkloadPrincipal::provision(
