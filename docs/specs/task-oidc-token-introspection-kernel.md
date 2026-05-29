@@ -89,6 +89,25 @@ New `IssuerError` variant:
 MalformedIntrospectionRequest(&'static str),
 ```
 
+### `ActiveIntrospectionClaims` — disclosed claim set carrier
+
+```rust
+/// Disclosed claim set for an active RFC 7662 introspection response.
+/// Passed to [`IntrospectionResponse::active`] to keep the constructor
+/// under the `clippy::too_many_arguments` limit.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ActiveIntrospectionClaims {
+    pub sub: String,
+    pub aud: Vec<String>,
+    pub exp: i64,
+    pub iat: i64,
+    pub scope: Option<String>,
+    pub client_id: Option<String>,
+    pub tenant_id: Option<String>,
+    pub token_type: Option<String>,
+}
+```
+
 ### `IntrospectionResponse` — RFC 7662 value type
 
 ```rust
@@ -123,17 +142,8 @@ impl IntrospectionResponse {
     /// only `{"active": false}` is disclosed for unknown or invalid tokens.
     pub fn inactive() -> Self
 
-    /// Construct an active response with the disclosed claim set.
-    pub fn active(
-        sub: String,
-        aud: Vec<String>,
-        exp: i64,
-        iat: i64,
-        scope: Option<String>,
-        client_id: Option<String>,
-        tenant_id: Option<String>,
-        token_type: Option<String>,
-    ) -> Self
+    /// Construct an active response from the disclosed claim set.
+    pub fn active(claims: ActiveIntrospectionClaims) -> Self
 }
 ```
 
