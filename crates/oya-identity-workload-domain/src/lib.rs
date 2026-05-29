@@ -757,6 +757,96 @@ impl AuthorizationDecision {
     }
 }
 
+/// A single candidate policy outcome produced by a policy engine (e.g. Cedar)
+/// for an authorization request. The `effect` indicates whether the matching
+/// policy was a permit or forbid, and `policy_id` identifies the policy that
+/// produced it. An ordered slice of these is the input to
+/// [`evaluate_decision`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PolicyOutcome {
+    /// The effect of the matching policy: allow (permit) or deny (forbid).
+    pub effect: Effect,
+    /// The identifier of the policy that produced this outcome.
+    pub policy_id: String,
+}
+
+impl PolicyOutcome {
+    /// Construct a permit outcome.
+    #[must_use]
+    pub fn permit(policy_id: impl Into<String>) -> Self {
+        Self {
+            effect: Effect::Allow,
+            policy_id: policy_id.into(),
+        }
+    }
+
+    /// Construct a forbid outcome.
+    #[must_use]
+    pub fn forbid(policy_id: impl Into<String>) -> Self {
+        Self {
+            effect: Effect::Deny,
+            policy_id: policy_id.into(),
+        }
+    }
+}
+
+/// Evaluate an ordered slice of candidate [`PolicyOutcome`]s for `principal`,
+/// folding them into a single [`AuthorizationDecision`] using Cedar-compatible
+/// precedence rules:
+///
+/// 1. **Not-operational short-circuit**: if `principal.state().is_operational()`
+///    is `false`, return
+///    [`AuthorizationDecision::principal_not_operational`] immediately without
+///    examining any outcomes.
+/// 2. **Forbid-wins**: if any outcome has [`Effect::Deny`], the result is the
+///    first such `ExplicitForbid` decision regardless of any permits.
+/// 3. **Explicit permit**: if at least one outcome has [`Effect::Allow`] and
+///    none has [`Effect::Deny`], return the first
+///    [`AuthorizationDecision::permit`].
+/// 4. **Deny-by-default**: if `outcomes` is empty or no outcome matched either
+///    effect, return [`AuthorizationDecision::default_deny`].
+///
+/// This function is total, deterministic, panic-free, and has no I/O or clock.
+#[must_use]
+pub fn evaluate_decision(
+    principal: &WorkloadPrincipal,
+    outcomes: &[PolicyOutcome],
+) -> AuthorizationDecision {
+    // Rule 1: not-operational short-circuit.
+    if !principal.state().is_operational() {
+        return AuthorizationDecision::principal_not_operational(principal.state());
+    }
+
+    // Scan once: track the first forbid and first permit.
+    let mut first_forbid: Option<&str> = None;
+    let mut first_permit: Option<&str> = None;
+
+    for outcome in outcomes {
+        match outcome.effect {
+            Effect::Deny if first_forbid.is_none() => {
+                first_forbid = Some(&outcome.policy_id);
+            }
+            Effect::Allow if first_permit.is_none() => {
+                first_permit = Some(&outcome.policy_id);
+            }
+            _ => {}
+        }
+    }
+
+    // Rule 2: forbid-wins.
+    if let Some(policy_id) = first_forbid {
+        return AuthorizationDecision::forbid(policy_id);
+    }
+
+    // Rule 3: explicit permit.
+    if let Some(policy_id) = first_permit {
+        return AuthorizationDecision::permit(policy_id);
+    }
+
+    // Rule 4: deny-by-default.
+    AuthorizationDecision::default_deny()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -986,5 +1076,156 @@ mod tests {
     fn resource_display_matches_entity_uid_shape() {
         let resource = Resource::new("Bucket", "logs");
         assert_eq!(resource.to_string(), "Bucket::\"logs\"");
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // evaluate_decision: table-driven acceptance tests
+    // ──────────────────────────────────────────────────────────────────────────
+
+    fn provisioned_principal() -> WorkloadPrincipal {
+        WorkloadPrincipal::provision("ten_acme", "wl_ci_runner", "cap.cloud.kms")
+            .expect("valid ids")
+        // stays in Provisioned — not operational
+    }
+
+    fn suspended_principal() -> WorkloadPrincipal {
+        let mut p = active_principal();
+        p.transition_to(WorkloadState::Suspended)
+            .expect("active -> suspended");
+        p
+    }
+
+    fn retired_principal() -> WorkloadPrincipal {
+        let mut p = active_principal();
+        p.transition_to(WorkloadState::Retired)
+            .expect("active -> retired");
+        p
+    }
+
+    /// Rule 1: Provisioned principal → PrincipalNotOperational, no outcomes examined.
+    #[test]
+    fn evaluate_decision_not_operational_provisioned() {
+        let principal = provisioned_principal();
+        let outcomes = vec![PolicyOutcome::permit("p1")];
+        let decision = evaluate_decision(&principal, &outcomes);
+        assert_eq!(decision.effect(), Effect::Deny);
+        assert!(matches!(
+            decision.reason(),
+            DecisionReason::PrincipalNotOperational {
+                state: WorkloadState::Provisioned
+            }
+        ));
+    }
+
+    /// Rule 1: Suspended principal → PrincipalNotOperational.
+    #[test]
+    fn evaluate_decision_not_operational_suspended() {
+        let principal = suspended_principal();
+        let outcomes = vec![PolicyOutcome::permit("p1")];
+        let decision = evaluate_decision(&principal, &outcomes);
+        assert_eq!(decision.effect(), Effect::Deny);
+        assert!(matches!(
+            decision.reason(),
+            DecisionReason::PrincipalNotOperational {
+                state: WorkloadState::Suspended
+            }
+        ));
+    }
+
+    /// Rule 1: Retired principal → PrincipalNotOperational.
+    #[test]
+    fn evaluate_decision_not_operational_retired() {
+        let principal = retired_principal();
+        let outcomes = vec![PolicyOutcome::permit("p1"), PolicyOutcome::forbid("f1")];
+        let decision = evaluate_decision(&principal, &outcomes);
+        assert_eq!(decision.effect(), Effect::Deny);
+        assert!(matches!(
+            decision.reason(),
+            DecisionReason::PrincipalNotOperational {
+                state: WorkloadState::Retired
+            }
+        ));
+    }
+
+    /// Rule 2: forbid-wins — any ExplicitForbid beats any ExplicitPermit.
+    #[test]
+    fn evaluate_decision_forbid_wins_over_permit() {
+        let principal = active_principal();
+        // Permit appears before forbid; forbid still wins.
+        let outcomes = vec![
+            PolicyOutcome::permit("p1"),
+            PolicyOutcome::forbid("f1"),
+        ];
+        let decision = evaluate_decision(&principal, &outcomes);
+        assert_eq!(decision.effect(), Effect::Deny);
+        assert!(matches!(
+            decision.reason(),
+            DecisionReason::ExplicitForbid { policy_id } if policy_id == "f1"
+        ));
+    }
+
+    /// Rule 2: forbid-wins — forbid appearing first also wins over later permit.
+    #[test]
+    fn evaluate_decision_forbid_wins_forbid_first() {
+        let principal = active_principal();
+        let outcomes = vec![
+            PolicyOutcome::forbid("f2"),
+            PolicyOutcome::permit("p2"),
+        ];
+        let decision = evaluate_decision(&principal, &outcomes);
+        assert_eq!(decision.effect(), Effect::Deny);
+        assert!(matches!(
+            decision.reason(),
+            DecisionReason::ExplicitForbid { policy_id } if policy_id == "f2"
+        ));
+    }
+
+    /// Rule 3: permit-only → Allow with first permit policy_id.
+    #[test]
+    fn evaluate_decision_permit_only_allows() {
+        let principal = active_principal();
+        let outcomes = vec![
+            PolicyOutcome::permit("p1"),
+            PolicyOutcome::permit("p2"),
+        ];
+        let decision = evaluate_decision(&principal, &outcomes);
+        assert_eq!(decision.effect(), Effect::Allow);
+        assert!(matches!(
+            decision.reason(),
+            DecisionReason::ExplicitPermit { policy_id } if policy_id == "p1"
+        ));
+    }
+
+    /// Rule 4: empty outcomes → deny-by-default.
+    #[test]
+    fn evaluate_decision_empty_outcomes_default_deny() {
+        let principal = active_principal();
+        let decision = evaluate_decision(&principal, &[]);
+        assert_eq!(decision.effect(), Effect::Deny);
+        assert!(matches!(decision.reason(), DecisionReason::DefaultDeny));
+    }
+
+    /// Rule 4 (variant): no matches at all → deny-by-default (same as empty,
+    /// confirming the empty slice path).
+    #[test]
+    fn evaluate_decision_no_match_default_deny() {
+        let principal = active_principal();
+        // An empty slice is the canonical "no policy matched" input.
+        let decision = evaluate_decision(&principal, &[]);
+        assert!(matches!(decision.reason(), DecisionReason::DefaultDeny));
+        assert!(!decision.is_allow());
+    }
+
+    /// Rule 2 (variant): forbid-with-no-permit → ExplicitForbid, not DefaultDeny.
+    #[test]
+    fn evaluate_decision_forbid_with_no_permit() {
+        let principal = active_principal();
+        let outcomes = vec![PolicyOutcome::forbid("f3")];
+        let decision = evaluate_decision(&principal, &outcomes);
+        assert_eq!(decision.effect(), Effect::Deny);
+        assert!(matches!(
+            decision.reason(),
+            DecisionReason::ExplicitForbid { policy_id } if policy_id == "f3"
+        ));
     }
 }
