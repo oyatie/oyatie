@@ -154,6 +154,24 @@ fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> 
             "bindings",
         ],
     );
+    // CLI tools are top-level orchestrators (same allowed edges as `app`).
+    // Grants `cli` the same dependency roles as `app` so that CLI crates such
+    // as oya-shared-bounded-contexts-check-cli are not rejected as unknown role.
+    insert(
+        "cli",
+        &[
+            "kernel",
+            "domain",
+            "application",
+            "usecase",
+            "adapter",
+            "rest",
+            "grpc",
+            "api",
+            "worker",
+            "bindings",
+        ],
+    );
     table
 }
 
@@ -438,20 +456,14 @@ fn validate_packages(
         let crates_parent = PathBuf::from("crates").join(&package.name);
         let tools_parent = PathBuf::from("tools").join(&package.name);
         let libs_parent = PathBuf::from("libs").join(&package.name);
-        // Derive the microservices nested path: microservices/<ms>/crates/<name>
-        // where <ms> is inferred as the first segment of the crate name after "oya-" prefix.
-        // e.g. oya-intelligence-api -> microservices/intelligence/crates/oya-intelligence-api
-        // Accept microservices/<X>/crates/<name> where <X> followed by '-' is a
-        // hyphen-prefix of the crate name (after "oya-"). Supports BOTH single-
-        // segment microservice names (e.g. "intelligence" for oya-intelligence-api)
-        // AND multi-segment names (e.g. "managed-k8s-tenant-quota" for
-        // oya-managed-k8s-tenant-quota-api) per the flat single-concern doctrine
-        // (ADR-0131/0132). The manifest's `microservice` field is the canonical
-        // identity; this gate just enforces the dir name is a hyphen-prefix of
-        // the crate name. Backward-compatible: existing single-segment layouts
-        // (microservices/intelligence/, microservices/managed/) still pass.
+        // Structural check: microservices/<ms>/crates/<name> is a valid workspace
+        // member location for any crate whose directory name equals its package
+        // name (ADR-0131/0132/0512). No name-prefix requirement is imposed — the
+        // gate enforces structure only (4 segments, segments[0]=="microservices",
+        // segments[2]=="crates", segments[3]==package.name). Microservice dirs
+        // with no relation to the crate name (e.g. legacy crates relocated under
+        // an existing ms umbrella) are accepted as long as dir==name holds.
         let ms_nested_valid = (|| -> Option<bool> {
-            let rest = package.name.strip_prefix("oya-")?;
             let rel = relative_parent.as_ref()?;
             let segments: Vec<&str> = rel.iter().map(|s| s.to_str()).collect::<Option<Vec<_>>>()?;
             if segments.len() != 4
@@ -461,8 +473,7 @@ fn validate_packages(
             {
                 return None;
             }
-            let with_dash = format!("{}-", segments[1]);
-            Some(rest.starts_with(&with_dash))
+            Some(true)
         })()
         .unwrap_or(false);
         let parent_matches = match &relative_parent {
@@ -1235,14 +1246,14 @@ mod tests {
     }
 
     #[test]
-    fn microservices_nested_wrong_ms_dir_rejected() {
-        // Crate misplaced under a dir whose name is NOT a hyphen-prefix of the
-        // crate name should be rejected (the new logic must still enforce the
-        // hyphen-prefix invariant — it's not "any nested location is fine").
+    fn microservices_nested_any_ms_dir_passes() {
+        // Under the relaxed structural rule (ADR-0512 name-prefix dropped), a crate
+        // at microservices/<any-ms>/crates/<name> where dir==name is valid regardless
+        // of whether the ms dir name is related to the crate name.
         let (mut pkg, rec) = fixture_package("oya-intelligence-api", "api", &[], "crates");
         pkg.manifest_path = fixture_repo_root()
             .join("microservices")
-            .join("managed-k8s-tenant-quota") // wrong ms dir for an intelligence crate
+            .join("managed-k8s-tenant-quota") // different ms dir — now accepted
             .join("crates")
             .join("oya-intelligence-api")
             .join("Cargo.toml");
@@ -1251,8 +1262,8 @@ mod tests {
         let (errors, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
-            !errors.is_empty(),
-            "oya-intelligence-api under microservices/managed-k8s-tenant-quota/crates/ should be rejected"
+            errors.is_empty(),
+            "oya-intelligence-api under microservices/managed-k8s-tenant-quota/crates/ should pass under relaxed rule: {errors:?}"
         );
     }
 
