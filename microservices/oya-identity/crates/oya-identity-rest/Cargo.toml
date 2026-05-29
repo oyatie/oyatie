@@ -3,8 +3,8 @@ name = "oya-identity-rest"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
-license.workspace = true
-publish.workspace = false
+license = "Apache-2.0"
+publish = false
 description = "Axum HTTP adapter for oya-identity: exposes OIDC/OAuth endpoints over oya-identity-kernel."
 
 [package.metadata.oya]
@@ -24,7 +24,7 @@ doctest = false
 
 [dependencies]
 oya-identity-kernel = { path = "../oya-identity-kernel" }
-axum = { workspace = true }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }

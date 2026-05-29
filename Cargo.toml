@@ -703,6 +703,10 @@ members = [
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter",
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app",
+  # oya-identity µservice (ADR-0476): kernel/rest/app 3-crate scaffold.
+  "microservices/oya-identity/crates/oya-identity-kernel",
+  "microservices/oya-identity/crates/oya-identity-rest",
+  "microservices/oya-identity/crates/oya-identity-app",
 ]
 resolver = "2"
 
