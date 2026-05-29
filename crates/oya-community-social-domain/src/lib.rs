@@ -172,19 +172,13 @@ pub fn story_sweep(
     }
     let mut acc = BTreeSet::new();
     for post in posts {
-        // Skip non-Story artifacts without error.
-        if post.kind.value != SocialArtifactKind::Story {
-            continue;
+        // Delegate all per-post guards to story_purge (single source of truth):
+        // Err(StoryRequiresTtl)  => non-Story or Story with no TTL  => skip
+        // Err(StoryNotExpired)   => unexpired story                  => skip
+        // Ok(targets)            => expired story                    => accumulate
+        if let Ok(targets) = story_purge(post, now) {
+            acc.extend(targets);
         }
-        // Skip unexpired stories without error.
-        let Some(exp) = post.story_expires_at.value else {
-            continue;
-        };
-        if now < exp {
-            continue;
-        }
-        // Expired story — union its purge targets into the accumulator.
-        acc.extend(story_purge(post, now).unwrap_or_default());
     }
     Ok(acc)
 }
