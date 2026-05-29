@@ -149,13 +149,15 @@ pub fn decide_guardrail_shadow(request: &GuardrailRequest) -> ShadowDecision {
 // False-positive budget accounting
 // ---------------------------------------------------------------------------
 
-/// Error returned by `FpBudget::new` when construction parameters are invalid.
+/// Error returned by `FpBudget::new` or `FpBudget::merge` when parameters are invalid.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FpBudgetError {
     /// `budget_pct` was not in the range `(0.0, 1.0]`.
     InvalidBudgetPct,
     /// `total_evals` was zero, making rate computation undefined.
     ZeroTotalEvals,
+    /// `merge` called on two budgets with different `budget_pct` values.
+    BudgetPctMismatch,
 }
 
 /// Deterministic false-positive-budget accounting for guardrail shadow-mode observations.
@@ -203,6 +205,62 @@ impl FpBudget {
     /// Returns `true` when the observed FP rate meets or exceeds the configured budget.
     pub fn budget_exhausted(&self) -> bool {
         self.observed_fp_rate() >= self.budget_pct
+    }
+
+    /// Returns the remaining headroom as `budget_pct - observed_fp_rate`, clamped to `>= 0.0`.
+    pub fn remaining_headroom(&self) -> f64 {
+        f64::max(0.0, self.budget_pct - self.observed_fp_rate())
+    }
+
+    /// Severity-weighted false-positive aggregate over a slice of `(RiskLevel, count)` pairs.
+    ///
+    /// Returns the sum of `sw.weight_for(level) * count as f64` for each pair.
+    /// The result is independent of `self.observed_fp` and `self.total_evals`.
+    pub fn weighted_fp(&self, sw: &SeverityWeight, findings: &[(RiskLevel, u32)]) -> f64 {
+        findings
+            .iter()
+            .map(|(level, count)| sw.weight_for(*level) * (*count as f64))
+            .sum()
+    }
+
+    /// Merge two non-overlapping observation windows into a single `FpBudget`.
+    ///
+    /// Returns `Err(FpBudgetError::BudgetPctMismatch)` when the two budgets have different
+    /// `budget_pct` values. Returns `Err(FpBudgetError::ZeroTotalEvals)` when the sum of
+    /// `total_evals` is zero. Uses saturating addition to avoid overflow.
+    pub fn merge(&self, other: &FpBudget) -> Result<FpBudget, FpBudgetError> {
+        if (self.budget_pct - other.budget_pct).abs() > f64::EPSILON {
+            return Err(FpBudgetError::BudgetPctMismatch);
+        }
+        let merged_total = self.total_evals.saturating_add(other.total_evals);
+        let merged_fp = self.observed_fp.saturating_add(other.observed_fp);
+        FpBudget::new(merged_fp, merged_total, self.budget_pct)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Severity-weight mapping
+// ---------------------------------------------------------------------------
+
+/// Per-level weights used by `FpBudget::weighted_fp`.
+///
+/// All weights must be non-negative; the caller is responsible for constructing
+/// sensible values. Typical usage: Low=1.0, Medium=2.0, High=3.0.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SeverityWeight {
+    pub low: f64,
+    pub medium: f64,
+    pub high: f64,
+}
+
+impl SeverityWeight {
+    /// Returns the weight for `level`.
+    pub fn weight_for(&self, level: RiskLevel) -> f64 {
+        match level {
+            RiskLevel::Low => self.low,
+            RiskLevel::Medium => self.medium,
+            RiskLevel::High => self.high,
+        }
     }
 }
 
@@ -482,5 +540,120 @@ mod tests {
     fn fp_budget_observed_fp_rate_precision() {
         let budget = FpBudget::new(1, 100, 0.05).unwrap();
         assert!((budget.observed_fp_rate() - 0.01).abs() < f64::EPSILON);
+    }
+
+    // --- remaining_headroom tests ---
+
+    #[test]
+    fn remaining_headroom_at_budget_is_zero() {
+        // 5/100 == 0.05 budget_pct exactly
+        let budget = FpBudget::new(5, 100, 0.05).unwrap();
+        assert!((budget.remaining_headroom() - 0.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn remaining_headroom_below_budget_is_positive() {
+        // 1/100 == 0.01, budget 0.05 -> headroom 0.04
+        let budget = FpBudget::new(1, 100, 0.05).unwrap();
+        assert!(budget.remaining_headroom() > 0.0);
+        assert!((budget.remaining_headroom() - 0.04).abs() < 1e-12);
+    }
+
+    #[test]
+    fn remaining_headroom_over_budget_clamped_to_zero() {
+        // 10/100 == 0.10 > 0.05 budget -> headroom clamped to 0.0
+        let budget = FpBudget::new(10, 100, 0.05).unwrap();
+        assert!((budget.remaining_headroom() - 0.0).abs() < f64::EPSILON);
+    }
+
+    // --- weighted_fp tests ---
+
+    #[test]
+    fn weighted_fp_all_three_levels_unit_counts() {
+        let budget = FpBudget::new(1, 100, 0.05).unwrap();
+        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 3.0 };
+        let findings = [(RiskLevel::Low, 1u32), (RiskLevel::Medium, 1), (RiskLevel::High, 1)];
+        let result = budget.weighted_fp(&sw, &findings);
+        // 1*1 + 2*1 + 3*1 = 6.0
+        assert!((result - 6.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn weighted_fp_zero_counts_returns_zero() {
+        let budget = FpBudget::new(1, 100, 0.05).unwrap();
+        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 3.0 };
+        let findings = [(RiskLevel::Low, 0u32), (RiskLevel::Medium, 0), (RiskLevel::High, 0)];
+        assert!((budget.weighted_fp(&sw, &findings)).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn weighted_fp_empty_slice_returns_zero() {
+        let budget = FpBudget::new(1, 100, 0.05).unwrap();
+        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 3.0 };
+        assert!((budget.weighted_fp(&sw, &[])).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn weighted_fp_high_only() {
+        let budget = FpBudget::new(1, 100, 0.05).unwrap();
+        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 5.0 };
+        let findings = [(RiskLevel::High, 3u32)];
+        // 5.0 * 3 = 15.0
+        assert!((budget.weighted_fp(&sw, &findings) - 15.0).abs() < f64::EPSILON);
+    }
+
+    // --- merge tests ---
+
+    #[test]
+    fn merge_happy_path_sums_observations() {
+        let a = FpBudget::new(3, 50, 0.10).unwrap();
+        let b = FpBudget::new(2, 50, 0.10).unwrap();
+        let merged = a.merge(&b).unwrap();
+        assert_eq!(merged.observed_fp, 5);
+        assert_eq!(merged.total_evals, 100);
+        assert!((merged.budget_pct - 0.10).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn merge_preserves_budget_pct() {
+        let a = FpBudget::new(1, 100, 0.05).unwrap();
+        let b = FpBudget::new(0, 100, 0.05).unwrap();
+        let merged = a.merge(&b).unwrap();
+        assert!((merged.budget_pct - 0.05).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn merge_err_budget_pct_mismatch() {
+        let a = FpBudget::new(1, 100, 0.05).unwrap();
+        let b = FpBudget::new(1, 100, 0.10).unwrap();
+        assert_eq!(a.merge(&b), Err(FpBudgetError::BudgetPctMismatch));
+    }
+
+    #[test]
+    fn merge_err_zero_total_evals() {
+        // Cannot construct FpBudget::new(0, 0, ...) because new() rejects zero totals.
+        // We use the merge path: two budgets with total_evals=0 cannot be constructed.
+        // Instead test the ZeroTotalEvals variant is still reachable via new() directly
+        // to confirm the path exists; merge of two real budgets always has nonzero total.
+        assert_eq!(FpBudget::new(0, 0, 0.05), Err(FpBudgetError::ZeroTotalEvals));
+    }
+
+    #[test]
+    fn merge_zero_observed_fps() {
+        let a = FpBudget::new(0, 100, 0.05).unwrap();
+        let b = FpBudget::new(0, 100, 0.05).unwrap();
+        let merged = a.merge(&b).unwrap();
+        assert_eq!(merged.observed_fp, 0);
+        assert_eq!(merged.total_evals, 200);
+    }
+
+    // --- SeverityWeight tests ---
+
+    #[test]
+    fn severity_weight_for_each_level() {
+        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 4.0 };
+        assert!((sw.weight_for(RiskLevel::Low) - 1.0).abs() < f64::EPSILON);
+        assert!((sw.weight_for(RiskLevel::Medium) - 2.0).abs() < f64::EPSILON);
+        assert!((sw.weight_for(RiskLevel::High) - 4.0).abs() < f64::EPSILON);
     }
 }
