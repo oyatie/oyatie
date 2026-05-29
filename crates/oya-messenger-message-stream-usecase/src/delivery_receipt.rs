@@ -133,14 +133,13 @@ mod tests {
         let ctx = work_ctx("user:alice");
         let s0 = sent_state("user:alice");
 
-        let s1 = acknowledge_delivery(&ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1")
-            .unwrap();
+        let s1 =
+            acknowledge_delivery(&ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1").unwrap();
         assert_eq!(s1.status, DeliveryStatus::Delivered);
         assert_eq!(s1.ordinal, 1);
         assert_eq!(s1.last_idempotency_key, "k1");
 
-        let s2 =
-            acknowledge_delivery(&ctx, &s1, "user:alice", DeliveryStatus::Read, "k2").unwrap();
+        let s2 = acknowledge_delivery(&ctx, &s1, "user:alice", DeliveryStatus::Read, "k2").unwrap();
         assert_eq!(s2.status, DeliveryStatus::Read);
         assert_eq!(s2.ordinal, 2);
         assert_eq!(s2.last_idempotency_key, "k2");
@@ -151,12 +150,11 @@ mod tests {
         let ctx = work_ctx("user:alice");
         let s0 = sent_state("user:alice");
 
-        let s1 = acknowledge_delivery(&ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1")
-            .unwrap();
+        let s1 =
+            acknowledge_delivery(&ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1").unwrap();
         // Replay with same key — must return the already-advanced state unchanged.
         let s1_replay =
-            acknowledge_delivery(&ctx, &s1, "user:alice", DeliveryStatus::Delivered, "k1")
-                .unwrap();
+            acknowledge_delivery(&ctx, &s1, "user:alice", DeliveryStatus::Delivered, "k1").unwrap();
         assert_eq!(s1_replay, s1);
         assert_eq!(s1_replay.ordinal, 1);
     }
@@ -170,9 +168,14 @@ mod tests {
             ordinal: 2,
             last_idempotency_key: "k2".into(),
         };
-        let err =
-            acknowledge_delivery(&ctx, &read_state, "user:alice", DeliveryStatus::Delivered, "k3")
-                .unwrap_err();
+        let err = acknowledge_delivery(
+            &ctx,
+            &read_state,
+            "user:alice",
+            DeliveryStatus::Delivered,
+            "k3",
+        )
+        .unwrap_err();
         assert_eq!(
             err,
             MessengerUsecaseError::IllegalDeliveryTransition {
@@ -192,9 +195,8 @@ mod tests {
             last_idempotency_key: "k1".into(),
         };
         // Attempting Delivered -> Delivered with a new key is a non-forward transition.
-        let err =
-            acknowledge_delivery(&ctx, &s, "user:alice", DeliveryStatus::Delivered, "k2-new")
-                .unwrap_err();
+        let err = acknowledge_delivery(&ctx, &s, "user:alice", DeliveryStatus::Delivered, "k2-new")
+            .unwrap_err();
         assert_eq!(
             err,
             MessengerUsecaseError::IllegalDeliveryTransition {
@@ -228,9 +230,8 @@ mod tests {
     fn principal_mismatch_rejected() {
         let ctx = work_ctx("user:alice");
         let s0 = sent_state("user:bob");
-        let err =
-            acknowledge_delivery(&ctx, &s0, "user:bob", DeliveryStatus::Delivered, "k1")
-                .unwrap_err();
+        let err = acknowledge_delivery(&ctx, &s0, "user:bob", DeliveryStatus::Delivered, "k1")
+            .unwrap_err();
         assert_eq!(err, MessengerUsecaseError::PrincipalMismatch);
     }
 
