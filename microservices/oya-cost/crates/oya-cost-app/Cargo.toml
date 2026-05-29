@@ -1,0 +1,38 @@
+[package]
+name = "oya-cost-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Cost-allocation composition-root binary: wires kernel + REST + PostgreSQL + Pulsar into a runnable µservice process. ADR-0083 layer 12, ADR-0480 D4-D5."
+
+[package.metadata.oya]
+microservice = "oya-cost"
+bounded_context = "cost-allocation-substrate"
+layer = "app"
+owner_team = "council-cost"
+adr_anchors = ["ADR-0083", "ADR-0480"]
+container_image = "ghcr.io/oyatie/oya-cost:<sha> (non_claim: not yet built)"
+data_classification = "INTERNAL_ONLY"
+
+[lib]
+name = "oya_cost_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-cost-app"
+path = "src/main.rs"
+
+[dependencies]
+oya-cost-kernel = { path = "../oya-cost-kernel" }
+oya-cost-rest = { path = "../oya-cost-rest" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { workspace = true }
+
+[lints]
+workspace = true

@@ -4596,6 +4596,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cost-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "oya-cost-kernel",
+ "oya-cost-rest",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-cost-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "oya-cost-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-cost-kernel",
+ "serde",
+ "tracing",
+]
+
+[[package]]
 name = "oya-crm-customer-engagement-domain"
 version = "0.1.0"
 dependencies = [
