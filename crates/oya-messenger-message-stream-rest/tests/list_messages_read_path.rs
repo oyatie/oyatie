@@ -9,33 +9,33 @@
 //! Expected compile result at this commit: ERROR (unresolved items) — RED.
 //! After the impl commit lands these tests must pass — GREEN.
 
+use oya_messenger_message_stream_api::MessengerApiError;
 use oya_messenger_message_stream_rest::{
     // ---- route constants (subtask-1) ----------------------------------------
     LIST_MESSAGES_METHOD,
-    LIST_MESSAGES_ROUTE,
     LIST_MESSAGES_OPERATION_ID,
+    LIST_MESSAGES_ROUTE,
+    ListMessagesResponse,
     // ---- handler structs (subtask-1) ----------------------------------------
     ListMessagesRestRequest,
-    ListMessagesResponse,
     MessageSummary,
-    // ---- handler fn (subtask-1) ---------------------------------------------
-    list_messages,
+    MessengerReadRouteDispatchError,
     // ---- dispatch types + fn (subtask-2) ------------------------------------
     MessengerReadRouteRequest,
     MessengerReadRouteResponse,
-    MessengerReadRouteDispatchError,
-    dispatch_read_route,
     // ---- shared context helpers already present -----------------------------
     MessengerRestContext,
-    RestContextKind,
     MessengerRestError,
-    RouteHandlerStatus,
-    RouteDispatchError,
-    dispatch_contract_only_route,
-    find_openapi_route,
     OPENAPI_ROUTES,
+    RestContextKind,
+    RouteDispatchError,
+    RouteHandlerStatus,
+    dispatch_contract_only_route,
+    dispatch_read_route,
+    find_openapi_route,
+    // ---- handler fn (subtask-1) ---------------------------------------------
+    list_messages,
 };
-use oya_messenger_message_stream_api::MessengerApiError;
 
 fn context() -> MessengerRestContext {
     MessengerRestContext {

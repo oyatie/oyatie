@@ -406,14 +406,7 @@ pub fn post_message(
     if request.channel_id.trim().is_empty() {
         return Err(MessengerRestError::MissingPathChannel);
     }
-    let api_context = AuthorizedMessengerContext {
-        context: map_context(context.context_kind),
-        scope_ref: context.scope_org_id,
-        principal_ref: context.principal_ref,
-        idempotency_key: context.idempotency_key,
-        policy_decision_ref: context.policy_decision_ref,
-        audit_correlation_id: context.request_id,
-    };
+    let api_context = messenger_api_context(context);
     api_context.validate().map_err(MessengerRestError::Api)?;
     let (_, receipt) = send_message(
         &api_context,
