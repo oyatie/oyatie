@@ -23,6 +23,7 @@ on:
       - "crates/oya-shared-backbone-proto-contracts-kernel/**"
       - "crates/oya-shared-backbone-grpc-generated-adapter/**"
       - "crates/oya-shared-backbone-grpc-transport-adapter/**"
+      - "crates/oya-shared-backbone-rest-runtime-adapter/**"
       - "crates/oya-shared-transactional-outbox-kernel/**"
       - "crates/oya-shared-transactional-outbox-adapter-sqlx/**"
       - "crates/oya-shared-transactional-outbox-dispatch-app/**"
@@ -70,6 +71,7 @@ on:
       - "crates/oya-shared-backbone-proto-contracts-kernel/**"
       - "crates/oya-shared-backbone-grpc-generated-adapter/**"
       - "crates/oya-shared-backbone-grpc-transport-adapter/**"
+      - "crates/oya-shared-backbone-rest-runtime-adapter/**"
       - "crates/oya-shared-transactional-outbox-kernel/**"
       - "crates/oya-shared-transactional-outbox-adapter-sqlx/**"
       - "crates/oya-shared-transactional-outbox-dispatch-app/**"
@@ -131,6 +133,7 @@ jobs:
               oya-shared-backbone-proto-contracts-kernel
               oya-shared-backbone-grpc-generated-adapter
               oya-shared-backbone-grpc-transport-adapter
+              oya-shared-backbone-rest-runtime-adapter
               oya-shared-transactional-outbox-kernel
               oya-shared-transactional-outbox-adapter-sqlx
               oya-shared-transactional-outbox-dispatch-app
@@ -159,6 +162,7 @@ jobs:
               oya-shared-backbone-proto-contracts-kernel
               oya-shared-backbone-grpc-generated-adapter
               oya-shared-backbone-grpc-transport-adapter
+              oya-shared-backbone-rest-runtime-adapter
               oya-shared-transactional-outbox-kernel
               oya-shared-transactional-outbox-adapter-sqlx
               oya-shared-transactional-outbox-dispatch-app
@@ -187,6 +191,7 @@ jobs:
               oya-shared-backbone-proto-contracts-kernel
               oya-shared-backbone-grpc-generated-adapter
               oya-shared-backbone-grpc-transport-adapter
+              oya-shared-backbone-rest-runtime-adapter
               oya-shared-transactional-outbox-kernel
               oya-shared-transactional-outbox-adapter-sqlx
               oya-shared-transactional-outbox-dispatch-app
@@ -215,6 +220,7 @@ jobs:
               oya-shared-backbone-proto-contracts-kernel
               oya-shared-backbone-grpc-generated-adapter
               oya-shared-backbone-grpc-transport-adapter
+              oya-shared-backbone-rest-runtime-adapter
               oya-shared-transactional-outbox-kernel
               oya-shared-transactional-outbox-adapter-sqlx
               oya-shared-transactional-outbox-dispatch-app
@@ -302,6 +308,7 @@ jobs:
           ruby -rjson -ryaml -e 'ARGV.each { |path| text = File.read(path); if path.end_with?(".json") then JSON.parse(text) elsif path.end_with?(".proto") then raise "#{path} is empty" if text.empty? elsif path.include?("/templates/") then required = ["apiVersion: gateway.networking.k8s.io/v1", "kind: HTTPRoute", "parentRefs:", "backendRefs:", "oyatie.com/non-claim:"]; missing = required.reject { |needle| text.include?(needle) }; raise "#{path} missing #{missing.join(", ")}" unless missing.empty? else YAML.safe_load(text, permitted_classes: [Symbol], aliases: true) end }; puts "parsed #{ARGV.length} files"' \
             evidence/multispectrum/backbone-microservices-protocol-parity-20260523.json \
             evidence/multispectrum/backbone-microservices-proto-contracts-20260523.json \
+            evidence/multispectrum/backbone-microservices-rest-hyper-runtime-20260525.json \
             specs/proto/backbone/messenger/message_stream.proto \
             specs/proto/backbone/mail/mail.proto \
             specs/proto/backbone/social/social_post_composition.proto \
@@ -325,5 +332,7 @@ jobs:
             registry/catalog/oya-shared-protocol-transport-retry-app.yaml \
             registry/catalog/oya-shared-backbone-proto-contracts-kernel.yaml \
             registry/catalog/oya-shared-backbone-grpc-generated-adapter.yaml \
+            registry/catalog/oya-shared-backbone-grpc-transport-adapter.yaml \
+            registry/catalog/oya-shared-backbone-rest-runtime-adapter.yaml \
             registry/catalog/oya-shared-transactional-outbox-kernel.yaml \
             registry/catalog/oya-shared-transactional-outbox-adapter-sqlx.yaml
