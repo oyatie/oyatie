@@ -1,12 +1,12 @@
 {
   "_schema": {
     "version": "1.0.0",
-    "description": "Plan-acceptance attestation for the ops.oyatie.com plan suite Wave 5 v18 consensus close (commit 5880ce0). This is NOT an evidence-bundle-template.json record (that template is for capability/runbook/IP-merge events, not plan-stage transitions per its own _meta.purpose). It is a plan-acceptance attestation conforming to /specs/evidence-taxonomy.json evidence_record_required_fields with class=documentation.",
+    "description": "Plan-acceptance attestation for the ops.oyatie.com plan set Wave 5 v18 consensus close (commit 5880ce0). This is NOT an evidence-bundle-template.json record (that template is for capability/runbook/IP-merge events, not plan-stage transitions per its own _meta.purpose). It is a plan-acceptance attestation conforming to /specs/evidence-taxonomy.json evidence_record_required_fields with class=documentation.",
     "owner_team": "council-foundry",
     "validation_check": "json-valid + class-in-allowed-set + freshness-current-claim + every-evidence-ref-resolvable"
   },
   "_metadata": {
-    "attestation_id": "ATT-OPS-PORTAL-PLAN-SUITE-2026-05-13",
+    "attestation_id": "ATT-OPS-PORTAL-PLAN-SET-2026-05-13",
     "kind": "plan-acceptance-attestation",
     "status": "draft",
     "created_at": "2026-05-13T00:00:00Z",
@@ -115,7 +115,7 @@
       "summary": "Linus-grade adversarial review against new canonical authority chain produced 10 findings: (1) plans are Markdown not machine-readable, (2) state-machine fields in Markdown tables not JSON, (3) no completion-ledger row pre-this-attestation, (4) rtk-git used for commit violating forbidden_primitives, (5) no claim-matrix produced pre-this-attestation, (6) no evidence-bundle pre-this-attestation, (7) no MPR final report, (8) plans at ralplan-sidecar not canonical milestone tree, (9) HG gates asserted but not bundled, (10) consensus loop outputs in /tmp Markdown not machine-readable",
       "freshness": "2026-05-13",
       "command_or_lane": "manual-self-critique conditioned on /specs/{master-plan-sequencing,hyperscaler-gates,evidence-taxonomy,stop-conditions,final-report-schema}.json",
-      "result": "10 findings; fixes for (3)+(5)+(6) landed via this 3-artifact emission (/evidence/ledger/ops-portal-ledger.json + /registry/claim-matrix/ops-portal.json + this file). Finding (4) historical; remediation = future transitions use grit. Findings (1)+(2)+(8)+(10) accepted as gap with reason: ralplan-sidecar format predates the canonical machine-readable plan-spec format which is itself NOT YET authored (no /specs/plan-spec-schema.json exists). Finding (7) deferred \u2014 MPR final report is per master-plan-completion-loop event, not per-plan-suite event. Finding (9) tracked in claim-matrix gate_coverage_today.",
+      "result": "10 findings; fixes for (3)+(5)+(6) landed via this 3-artifact emission (/evidence/ledger/ops-portal-ledger.json + /registry/claim-matrix/ops-portal.json + this file). Finding (4) historical; remediation = future transitions use grit. Findings (1)+(2)+(8)+(10) accepted as gap with reason: ralplan-sidecar format predates the canonical machine-readable plan-spec format which is itself NOT YET authored (no /specs/plan-spec-schema.json exists). Finding (7) deferred \u2014 MPR final report is per master-plan-completion-loop event, not per-plan-set event. Finding (9) tracked in claim-matrix gate_coverage_today.",
       "artifact_ref": "/registry/claim-matrix/ops-portal.json:gate_coverage_today",
       "known_gap": "findings (1)/(2)/(8)/(10) are systemic across the project \u2014 fixing them requires a canonical plan-spec-schema.json + generator + migration of ALL ralplan sidecars (not just ops). Out of scope for ops-portal audit; tracked as project-level follow-up."
     },
@@ -132,5 +132,5 @@
     }
   ],
   "icm_completion_memory_id": "01KRJ1SC1V30VNR3VD9TB2Q60A",
-  "purpose": "Auto-backfilled purpose for ops-portal-plan-suite-accepted-2026-05-13.json"
+  "purpose": "Auto-backfilled purpose for ops-portal-plan-set-accepted-2026-05-13.json"
 }

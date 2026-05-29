@@ -46,7 +46,7 @@
     "lockfile": "microservices/cloud-iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
     "signature_review": "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
     "signature_review_status": "signed-provider-lock-reviewed-no-vsa",
-    "signature_review_sha256": "3a7fe8a37803b188142eb76a72fb3339de66dd5d4919e2656c4c75407700728c"
+    "signature_review_sha256": "32ccb785482fcee89d8be641ebcfdb032683cfd974f28008e65315dfd2fca7de"
   },
   "modules": [
     {

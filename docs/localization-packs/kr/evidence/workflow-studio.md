@@ -22,7 +22,7 @@ activation_claim: not-active
 - Connects KR workflow and document-template authoring to pack-owned templates without embedding localized content into canonical Studio logic.
 - kr_pack_surface: workflow_templates
 - kr_pack_surface: typst_document_templates
-- kr_pack_surface: enterprise_smb_operating_flows
+- kr_pack_surface: tenant_rbac_operating_flows
 
 ## Non-Claims
 - This KR pack evidence is not active and does not claim production-current legal interpretation.

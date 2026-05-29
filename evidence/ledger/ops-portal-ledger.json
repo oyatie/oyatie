@@ -45,7 +45,7 @@
       "evidence_refs": [
         "git-commit:5880ce0",
         ".omc/plans/ralplan-ops-portal-2026-05-13.md",
-        "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json"
+        "/evidence/ops-portal-plan-set-accepted-2026-05-13.json"
       ],
       "blocked_reason": null
     },
@@ -135,7 +135,7 @@
       "evidence_refs": [
         "git-commit:5880ce0",
         ".omc/plans/ralplan-ops-wave-5-2026-05-13.md",
-        "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json",
+        "/evidence/ops-portal-plan-set-accepted-2026-05-13.json",
         "/tmp/oyatie-wave5-architect-r16-output.md",
         "/tmp/oyatie-wave5-critic-r7-output.md"
       ],

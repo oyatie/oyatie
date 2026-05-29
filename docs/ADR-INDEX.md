@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 322
-- **Numbering:** ADR-0001..ADR-0387 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0385..0386)
-- **Next ADR number:** 0388
-- **Status counts:** Accepted 142, Accepted (amendment) 2, Amended 1, Proposed 91, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 34, superseded 1
+- **Total ADRs:** 326
+- **Numbering:** ADR-0001..ADR-0391 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0385..0386)
+- **Next ADR number:** 0392
+- **Status counts:** Accepted 146, Accepted (amendment) 2, Amended 1, Proposed 91, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 34, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -212,14 +212,14 @@ doc_status: published
 | ADR-0214 | Proposed (target: Accepted upon PR #143 merge to dev) | Cross-Tenant Real-Time Visibility (Consent-Graph + Ontology Projection Extension) | oyatie axis-consent-graph (with axis-ontology + axis-audit-chain consults) | [`ADR-0214-cross-tenant-real-time-visibility.md`](decisions/ADR-0214-cross-tenant-real-time-visibility.md) |
 | ADR-0215 | Accepted | Multi-Context Platform Architecture | council-architecture | [`ADR-0215-multi-context-platform-architecture.md`](decisions/ADR-0215-multi-context-platform-architecture.md) |
 | ADR-0216 | Accepted | Open Integration and Migration-Out Policy | council-architecture | [`ADR-0216-open-integration-and-migration-out-policy.md`](decisions/ADR-0216-open-integration-and-migration-out-policy.md) |
-| ADR-0217 | Accepted | Vertical Slice Rollout Order | council-architecture | [`ADR-0217-vertical-slice-rollout-order.md`](decisions/ADR-0217-vertical-slice-rollout-order.md) |
+| ADR-0217 | Accepted | Service Packaging Rollout Order | council-architecture | [`ADR-0217-vertical-slice-rollout-order.md`](decisions/ADR-0217-vertical-slice-rollout-order.md) |
 | ADR-0218 | Accepted | Tenant Granular Control Surface | council-architecture | [`ADR-0218-tenant-granular-control-surface.md`](decisions/ADR-0218-tenant-granular-control-surface.md) |
 | ADR-0219 | Accepted | No-Code-First UX with Optional AI-Assist | council-architecture | [`ADR-0219-no-code-first-ux-with-optional-ai-assist.md`](decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md) |
 | ADR-0220 | Accepted | Consumer Intelligence Substrate | council-architecture | [`ADR-0220-consumer-intelligence-substrate.md`](decisions/ADR-0220-consumer-intelligence-substrate.md) |
 | ADR-0221 | Accepted | Agentic Development Pipeline Hardening | council-architecture, axis-foundry, council-quality | [`ADR-0221-agentic-development-pipeline-hardening.md`](decisions/ADR-0221-agentic-development-pipeline-hardening.md) |
 | ADR-0222 | Accepted | Saga + compensating-transaction portfolio policy | council-architecture, ops-sre-reliability, axis-workspace | [`ADR-0222-saga-compensation-portfolio-policy.md`](decisions/ADR-0222-saga-compensation-portfolio-policy.md) |
 | ADR-0223 | Accepted | oya git drop-in surface with explicit policy verbs | council-architecture, axis-foundry, ops-sre-reliability | [`ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md`](decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md) |
-| ADR-0234 | Accepted | Social Expansion Planning Contract | communications-service-council | [`ADR-0234-community-social-expansion-planning-contract.md`](decisions/ADR-0234-community-social-expansion-planning-contract.md) |
+| ADR-0234 | Accepted | Social Expansion Planning Contract | communications-service-council | [`ADR-0234-connect-social-expansion-planning-contract.md`](decisions/ADR-0234-connect-social-expansion-planning-contract.md) |
 | ADR-0235 | Accepted | Core Public Contracts | communications-service-council | [`ADR-0235-connect-core-public-contracts.md`](decisions/ADR-0235-connect-core-public-contracts.md) |
 | ADR-0236 | Proposed | OP-11 Corpus Remediation Planning Contract | council-architecture | [`ADR-0236-op11-corpus-remediation-planning-contract.md`](decisions/ADR-0236-op11-corpus-remediation-planning-contract.md) |
 | ADR-0237 | Accepted | dissolution — Strangler-pattern migration | council-architecture | [`ADR-0237-connect-dissolution-strangler-migration.md`](decisions/ADR-0237-connect-dissolution-strangler-migration.md) |
@@ -330,7 +330,7 @@ doc_status: published
 | ADR-0370 | Accepted | Local production-fidelity substrate — multi-node Talos on Apple Silicon | council-architecture | [`ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md`](decisions/ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md) |
 | ADR-0371 | Accepted | Secure control-plane access via Cloudflare Tunnel (L4) + Access | council-architecture | [`ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md`](decisions/ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md) |
 | ADR-0372 | Accepted | Frontend stack — SolidJS/TS app-shell + Rust→WASM compute modules | council-architecture | [`ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md`](decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md) |
-| ADR-0373 | Accepted | cloud-intelligence gateway production design (provider-abstraction, key-pool resilience, audit) | council-architecture | [`ADR-0373-cloud-intelligence-production-design.md`](decisions/ADR-0373-cloud-intelligence-production-design.md) |
+| ADR-0373 | Accepted | cloud-intelligence gateway production design (provider-abstraction, key-pool resilience, audit) | council-architecture | [`ADR-0373-llm-gateway-production-design.md`](decisions/ADR-0373-llm-gateway-production-design.md) |
 | ADR-0374 | Accepted | CI webhook gateway (Forgejo → Jenkins gated pipeline trigger) | council-architecture | [`ADR-0374-ci-webhook-gateway-forgejo-jenkins.md`](decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md) |
 | ADR-0375 | Accepted | Talos + Cluster API + Argo CD fleet substrate (retire Omni / OCI-TF / on-prem) | council-architecture | [`ADR-0375-talos-capi-argocd-fleet-substrate.md`](decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md) |
 | ADR-0376 | Accepted | Oyatie managed-Kubernetes product surface (two-tier: hosted-default + dedicated-premium) | council-architecture | [`ADR-0376-managed-kubernetes-product-surface.md`](decisions/ADR-0376-managed-kubernetes-product-surface.md) |
@@ -341,13 +341,17 @@ doc_status: published
 | ADR-0381 | Proposed | Kaniko → BuildKit migration + multi-node Talos cell topology | ops-platform | [`ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md`](decisions/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md) |
 | ADR-0382 | Proposed | Bare-metal Talos zero-day bring-up via Sidero Metal | ops-platform | [`ADR-0382-bare-metal-talos-zero-day-sidero.md`](decisions/ADR-0382-bare-metal-talos-zero-day-sidero.md) |
 | ADR-0383 | Accepted | Observability stack reconciliation: keep Loki / Tempo / Mimir / Grafana under AGPL-3 | ops-platform | [`ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md`](decisions/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md) |
-| ADR-0384 | Proposed | cloud-intelligence gateway Path B redesign: OAuth subscription-pool replacing static API-key pool | council-architecture | [`ADR-0384-cloud-intelligence-oauth-subscription-pool-redesign.md`](decisions/ADR-0384-cloud-intelligence-oauth-subscription-pool-redesign.md) |
+| ADR-0384 | Proposed | cloud-intelligence gateway Path B redesign: OAuth subscription-pool replacing static API-key pool | council-architecture | [`ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md`](decisions/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md) |
 | ADR-0387 | Proposed | CI Webhook Gateway: Forgejo → Jenkins → GitHub Commit-Status Bridge | council-architecture + ops-platform | [`ADR-0387-ci-webhook-gateway-forgejo-to-jenkins-commit-status.md`](decisions/ADR-0387-ci-webhook-gateway-forgejo-to-jenkins-commit-status.md) |
+| ADR-0388 | Accepted | Doc-axis convention to prevent doc sprawl | founder | [`ADR-0388-doc-axis-convention.md`](decisions/ADR-0388-doc-axis-convention.md) |
+| ADR-0389 | Accepted | cloud-intelligence: Bedrock-on-Talos pattern as a cloud primitive | council-architecture | [`ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md`](decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md) |
+| ADR-0390 | Accepted | cloud-intelligence v1: request pipeline and proof layer | council-architecture | [`ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md`](decisions/ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md) |
+| ADR-0391 | Accepted | N-lane parallel safety proof and unified DevOps console | council-architecture | [`ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md`](decisions/ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0388), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0392), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -375,6 +379,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 322 ADR files (sorted ascending)
+- `decisions/` directory listing — 326 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

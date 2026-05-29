@@ -22,7 +22,7 @@ activation_claim: not-active
 - Connects KR pack operational requirements to Kubernetes deployment and cluster-flow evidence without claiming active tenant operation.
 - kr_pack_surface: operational_runbooks_and_slos
 - kr_pack_surface: data_residency_and_privacy_controls
-- kr_pack_surface: enterprise_smb_operating_flows
+- kr_pack_surface: tenant_rbac_operating_flows
 
 ## Non-Claims
 - This KR pack evidence is not active and does not claim production-current legal interpretation.

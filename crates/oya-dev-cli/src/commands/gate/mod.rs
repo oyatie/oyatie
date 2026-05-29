@@ -1918,8 +1918,8 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::validate_planning_closure_gate(args) {
                     Ok(report) => {
                         println!(
-                            "planning-closure validation passed: {} verticals, {} surfaces, {} regional-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
-                            report.vertical_count,
+                            "planning-closure validation passed: {} packaging axes, {} surfaces, {} regional-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
+                            report.packaging_axis_count,
                             report.surface_count,
                             report.kr_pack_surface_count,
                             report.architecture_rule_count,

@@ -12,7 +12,7 @@
   "purpose": "Focused context setup for agents implementing Oyatie FD-001 without flooding context or relying on stale memory/prose.",
   "current_task_boundary": {
     "target_result": "Execute FD-001 first deliverable to production-grade/hyperscaler-grade exit evidence.",
-    "not_target": "Do not imply FD-001 completes the whole masterplan or later sector verticals.",
+    "not_target": "Do not imply FD-001 completes the whole masterplan or later sector distribution bundles.",
     "stop_condition": "All FD-001 ChangeSets verified, reviewed, promoted, evidence-backed, canonical base plus Korea pack ready, and no placeholders/stubs/thin scaffolds/false signals remain inside accepted scope."
   },
   "context_hierarchy": {
@@ -175,7 +175,7 @@
   "verified_current_facts": {
     "planning_closure_gate": {
       "command": "cargo run -q -p oya-dev-cli --locked -- gate validate planning-closure",
-      "result": "passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "result": "passed: 2 packaging axes, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
       "claim_boundary": "Planning closure green means implementation may start; it does not mean product completion or promotion safety."
     },
     "artifact_parse_check": {
@@ -183,14 +183,14 @@
       "result": "passed"
     },
     "fd001_scope": {
-      "id": "FD-001-enterprise-smb-generic-core",
-      "name": "Enterprise Generic + SMB Generic full-depth production delivery",
+      "id": "FD-001-tenancy-rbac-microservice-core",
+      "name": "Tenant/RBAC-packaged core services full-depth production delivery",
       "delivery_mode": "full_depth_production_hyperscaler_exit",
       "scope_posture": "not_mvp_not_preview_not_reduced_scope",
       "exit_claim_bar": "industry_leading_production_grade_hyperscaler_grade",
-      "verticals": [
-        "enterprise-generic",
-        "smb-generic"
+      "packaging_axes": [
+        "tenancy",
+        "rbac"
       ],
       "required_surfaces": [
         "core",
@@ -661,7 +661,7 @@
         "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md",
         "docs/decisions/ADR-0128-hyperscaler-architecture-invariants.md"
       ],
-      "objective": "Assemble final Enterprise Generic plus SMB Generic exit evidence without unsupported maturity claims.",
+      "objective": "Assemble final Tenant/RBAC-packaged core services plus RBAC packaging exit evidence without unsupported maturity claims.",
       "validation_commands": [
         "./bin/oya verify --ci-required",
         "./bin/oya gate validate hyperscaler-arch-invariants",
@@ -673,7 +673,7 @@
   ],
   "minimum_next_agent_prompt_lines": [
     "Load AGENTS.md, docs/AGENTS.md, specs/root-hub-pointers.json, this context pack, specs/masterplan.json#planning_closure, specs/planning-closure-contract.json, and specs/master-plan-sequencing.json#select_next_ready_item.",
-    "Treat FD-001 as Enterprise Generic plus SMB Generic only, full depth: core, messenger, mail, community, infra, ops-dashboard-control-center, foundry, workflow, ontology, canonical-base, and korea-localization-pack.",
+    "Treat FD-001 as Tenant/RBAC-packaged core services plus RBAC packaging only, full depth: core, messenger, mail, community, infra, ops-dashboard-control-center, foundry, workflow, ontology, canonical-base, and korea-localization-pack.",
     "Do not claim FD-001 is complete because planning-closure is green. Planning closure authorizes implementation; product exit requires verified, reviewed, promoted ChangeSets and evidence.",
     "First claim an isolated Oya VCS ChangeSet. Serialize manifest/workspace, shared API/data/policy/evidence, branch protection, promotion, deployment/bootstrap/image policy work. Parallelize product lanes only after shared locks are green.",
     "Before editing a product lane, load only that lane manifest/contracts plus the relevant existing crates/tests/patterns. Do not flood context with all milestones or all manifests.",

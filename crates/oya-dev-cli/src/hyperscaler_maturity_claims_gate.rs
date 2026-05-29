@@ -7,6 +7,7 @@ use serde_json::Value;
 use crate::usage;
 
 const GOVERNANCE_PROTECTION_CONTEXT_MATCH_CHECK: &str = "oya-governance-protection-context-match";
+const AGENT_PR_REVIEW_CONTEXT: &str = "oya-pr-review";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct HyperscalerMaturityClaimsValidateArgs {
@@ -317,7 +318,10 @@ fn validate_pr_review_pipeline(
     pr_review_workflow: &str,
 ) -> Result<(), String> {
     let protection = parse_dev_branch_protection(branch_protection)?;
-    if !protection.required_status_checks.contains("oya-pr-review") {
+    if !protection
+        .required_status_checks
+        .contains(AGENT_PR_REVIEW_CONTEXT)
+    {
         return Err("dev branch protection must require the agent-run oya-pr-review check".into());
     }
     if protection.commented_out_oya_pr_review {
@@ -402,9 +406,14 @@ fn validate_pipeline_closure(
     }
     if !protection
         .required_status_checks
-        .contains("oya-governance-protection-context-match")
+        .contains(GOVERNANCE_PROTECTION_CONTEXT_MATCH_CHECK)
+        && !protection
+            .required_status_checks
+            .contains(AGENT_PR_REVIEW_CONTEXT)
     {
-        return Err("branch protection must require context matching before merge".into());
+        return Err(
+            "branch protection must require context matching directly or via oya-pr-review".into(),
+        );
     }
 
     validate_pr_review_fix_loop(pr_review_workflow)?;

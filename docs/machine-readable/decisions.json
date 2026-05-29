@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 322,
-    "numbering": "ADR-0001..ADR-0387 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0385..ADR-0386)",
+    "total_adrs": 326,
+    "numbering": "ADR-0001..ADR-0391 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0385..ADR-0386)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0385..ADR-0386"],
-    "next_adr": "ADR-0388",
+    "next_adr": "ADR-0392",
     "status_counts": {
-      "Accepted": 142,
+      "Accepted": 146,
       "Accepted (amendment)": 2,
       "Amended": 1,
       "Proposed": 91,
@@ -2320,7 +2320,7 @@
     {
       "adr": "ADR-0217",
       "number": 217,
-      "title": "Vertical Slice Rollout Order",
+      "title": "Service Packaging Rollout Order",
       "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-18",
@@ -2408,7 +2408,7 @@
       "status": "Accepted",
       "owner": "communications-service-council",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0234-community-social-expansion-planning-contract.md",
+      "path": "decisions/ADR-0234-connect-social-expansion-planning-contract.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0001", "ADR-0029", "ADR-0056", "ADR-0105", "ADR-0123"]
@@ -3736,7 +3736,7 @@
     {
       "adr": "ADR-0373",
       "number": 373,
-      "title": "LLM gateway production design (provider-abstraction, key-pool resilience, audit)",
+      "title": "cloud-intelligence gateway production design (provider-abstraction, key-pool resilience, audit)",
       "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-26",
@@ -3868,7 +3868,7 @@
     {
       "adr": "ADR-0384",
       "number": 384,
-      "title": "LLM gateway Path B redesign: OAuth subscription-pool replacing static API-key pool",
+      "title": "cloud-intelligence gateway Path B redesign: OAuth subscription-pool replacing static API-key pool",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-05-28",
@@ -3888,6 +3888,54 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0112", "ADR-0359", "ADR-0361", "ADR-0363", "ADR-0374"]
+    },
+    {
+      "adr": "ADR-0388",
+      "number": 388,
+      "title": "Doc-axis convention to prevent doc sprawl",
+      "status": "Accepted",
+      "owner": "founder",
+      "date": "2026-05-28",
+      "path": "decisions/ADR-0388-doc-axis-convention.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0364", "ADR-0377"]
+    },
+    {
+      "adr": "ADR-0389",
+      "number": 389,
+      "title": "cloud-intelligence: Bedrock-on-Talos pattern as a cloud primitive",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-28",
+      "path": "decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0364", "ADR-0384", "ADR-0387"]
+    },
+    {
+      "adr": "ADR-0390",
+      "number": 390,
+      "title": "cloud-intelligence v1: request pipeline and proof layer",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-28",
+      "path": "decisions/ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0384", "ADR-0388"]
+    },
+    {
+      "adr": "ADR-0391",
+      "number": 391,
+      "title": "N-lane parallel safety proof and unified DevOps console",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-28",
+      "path": "decisions/ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0388"]
     }
   ]
 }

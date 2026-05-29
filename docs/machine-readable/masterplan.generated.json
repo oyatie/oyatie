@@ -866,7 +866,7 @@
               "verified_by": "cargo nextest -p oya-cloud-intelligence-kernel + oya gate validate design-spec-maturity-claims"
             },
             {
-              "description": "Audit + residency: a Bedrock-ModelInvocationLog-shaped immutable per-invocation audit record (extended with tenant + hashed key-pool/ingress refs) appended to the evidence/audit-chain substrate, with default-OFF prompt/completion body logging and residency-pinned body-spill (AsyncAPI 3.1.0 llm.usage.v1 + llm.audit.v1 channels) — grounded in the brief (Bedrock model-invocation-logging, Cloudflare DLP).",
+              "description": "Audit + residency: a Bedrock-ModelInvocationLog-shaped immutable per-invocation audit record (extended with tenant + hashed key-pool/ingress refs) appended to the evidence/audit-chain substrate, with default-OFF prompt/completion body logging and residency-pinned body-spill (AsyncAPI 3.1.0 cloud-intelligence.usage.v1 + cloud-intelligence.audit.v1 channels) — grounded in the brief (Bedrock model-invocation-logging, Cloudflare DLP).",
               "exit_criteria": "the audit-evidence-emission + data-residency design docs and the AsyncAPI 3.1.0 contract are authored; manifest audit_chain declares the designed posture as a non-runtime claim.",
               "id": "ADR-0373-D3",
               "status": "declared",
@@ -889,56 +889,56 @@
             {
               "description": "oya-cloud-intelligence-kernel rewrite: SubscriptionPool<OAuthSubscription> state machine. Pure (no I/O, no HTTP, no async). Test exhaustively.",
               "exit_criteria": "SubscriptionPool compiles as a pure crate (no tokio, no hyper, no reqwest deps); cargo nextest -p oya-cloud-intelligence-kernel passes with coverage of round-robin, fill-first, cooldown, quota-tracking, and pool-exhausted paths.",
-              "id": "D1",
+              "id": "ADR-0384-D1",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-cloud-intelligence-kernel + cargo clippy -p oya-cloud-intelligence-kernel -- -D warnings"
             },
             {
               "description": "oya-cloud-intelligence-rest adapter rewrite: SubscriptionStore (OpenBao-bound; reads refresh-tokens). Token-refresh logic per provider. Forward streaming + non-streaming responses.",
               "exit_criteria": "SubscriptionStore reads refresh-tokens from OpenBao at startup; per-seat Mutex serializes concurrent refresh attempts; write-through persists rotated refresh-tokens back to OpenBao; SSE streaming and non-streaming forwarding both pass integration tests.",
-              "id": "D2",
+              "id": "ADR-0384-D2",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-cloud-intelligence-rest + oya gate validate honest-claims"
             },
             {
               "description": "Provider adapters — v1 scope: Anthropic (Claude Code OAuth via claude.ai/oauth/authorize + api.anthropic.com/v1/oauth/token) + OpenAI Codex (Sign-in-with-ChatGPT OAuth, callback port 1455, data endpoint chatgpt.com/backend-api/codex/responses). Each implements ProviderAdapter trait with refresh_token, forward_request, parse_rate_headers. Stock reqwest (rustls/ring) for OAuth refresh per OQ-7 downgrade — auth2api evidence shows no TLS-fingerprint impersonation needed for the refresh leg. Gemini adapter (v2) and Cursor adapter (v3) authored in their own amendments. Total provider set ever supported: 4 (Anthropic, Codex, Gemini, Cursor); see memory cloud-intelligence-reference-repo-audit.",
               "exit_criteria": "AnthropicAdapter + CodexAdapter compile; each refresh_token() succeeds against its provider's OAuth endpoint in a spike test; parse_rate_headers() covers Anthropic + OpenAI header schemas; cross-adapter trait surface remains stable for v2 Gemini + v3 Cursor extension.",
-              "id": "D3",
+              "id": "ADR-0384-D3",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-cloud-intelligence-rest (per-adapter integration tests for Anthropic + Codex)"
             },
             {
               "description": "Config schema migration: microservices/cloud-intelligence/k8s/cloud-intelligence.yaml ConfigMap.data.config.json moves from .groups[].keys[] to .providers[].subscriptions[].openbao_refresh_token_path. Backward-compat: existing static-key path stays under providers[].auth_mode: 'static_key'; new code uses auth_mode: 'oauth_subscription'.",
               "exit_criteria": "cloud-intelligence.yaml ConfigMap updated to new schema; gateway boots with both auth_mode: static_key and auth_mode: oauth_subscription groups present; oya gate validate honest-claims green.",
-              "id": "D4",
+              "id": "ADR-0384-D4",
               "status": "declared",
               "verified_by": "cargo test -p oya-cloud-intelligence-rest (config deserialization tests) + kubectl apply --dry-run=client on cloud-intelligence.yaml"
             },
             {
               "description": "SETUP-RUNBOOK rewrite: operator runs claude login / codex login on a host with the respective CLI installed (v1 providers only); extracts refresh_token from each CLI's local credential store; stores at 'bao kv put secret/oya/cloud-intelligence/<provider>/seats/<seat-name> refresh_token=<token>'. Gateway reads via ExternalSecret and refreshes access tokens on demand. Gemini login (v2) and Cursor login (v3) added in their respective amendments.",
               "exit_criteria": "microservices/cloud-intelligence/SETUP-RUNBOOK.md rewritten with OAuth-subscription-pool instructions for v1 providers (Anthropic + Codex); credential file paths verified empirically (OQ-5 resolved); runbook covers both v1 providers with exact bao kv put commands.",
-              "id": "D5",
+              "id": "ADR-0384-D5",
               "status": "declared",
               "verified_by": "Manual review: runbook credential paths match actual CLI output on a test host; oya gate validate honest-claims green on SETUP-RUNBOOK.md"
             },
             {
               "description": "Event-emission to configurable sink — every cloud-intelligence request emits a structured event to (a) ClickHouse OLAP (per ADR-0193) for analytics rollup + (b) Valkey Stream (per canonical primitives) for audit-chain consumption. Pluggable wire-format: {tenant_id, agent_id, seat_id, provider, model, prompt_tokens, completion_tokens, ms_latency, status, request_id}. Sinks subscribe independently (no coupling between analytics + audit + billing consumers). Direction C from idea-refine; informed by CLIProxyAPI's CPA Usage Keeper decoupling pattern.",
               "exit_criteria": "kernel emits per-request events to a EventSink trait; integration test asserts a synthetic request produces the expected event shape on both ClickHouse insert + Valkey Stream XADD.",
-              "id": "D6",
+              "id": "ADR-0384-D6",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-cloud-intelligence-kernel + cargo nextest -p oya-cloud-intelligence-rest (sink integration tests)"
             },
             {
               "description": "Per-tenant Cedar isolation contract — every request's principal includes a tenant attribute; Cedar policy at microservices/cloud-intelligence/policy/cloud-intelligence.cedar adds explicit forbid rules: forbid (principal, action, resource) when principal.tenant != resource.tenant. Adversarial test set: at least 50 Cedar test cases including cross-tenant access attempts, seat-id mismatch, admin-realm cross-tenant impersonation. Cross-tenant access always forbids-wins per ADR-0183 and ADR-0193.",
               "exit_criteria": "microservices/cloud-intelligence/policy/cloud-intelligence.cedar contains the per-tenant forbid rule; cargo nextest -p oya-cloud-intelligence-kernel passes at least 50 adversarial cedar_per_tenant_isolation test cases.",
-              "id": "D7",
+              "id": "ADR-0384-D7",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-cloud-intelligence-kernel cedar_per_tenant_isolation"
             },
             {
               "description": "Envelope encryption for refresh tokens at rest in OpenBao. Per-tenant Data Encryption Key (DEK) lives in OpenBao Transit; refresh tokens stored encrypted under that DEK. Gateway decrypts on token-load; never logs decrypted form. Operator rotation of the Transit Key Encryption Key (KEK) re-wraps DEKs without rewriting refresh tokens. Aligns with ADR-0043 sref://openbao/... and the canonical OpenBao Transit pattern.",
               "exit_criteria": "crates/oya-cloud-intelligence-rest's KeyStore implementation reads refresh tokens via OpenBao Transit decrypt-on-read; integration test asserts the on-disk OpenBao secret is ciphertext, not plaintext.",
-              "id": "D8",
+              "id": "ADR-0384-D8",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-cloud-intelligence-rest transit_envelope_decrypt_roundtrip"
             }
@@ -948,7 +948,7 @@
           "status": "Proposed"
         }
       ],
-      "milestone": "M-LLM-GATEWAY"
+      "milestone": "M-CLOUD-INTELLIGENCE"
     },
     {
       "adrs": [

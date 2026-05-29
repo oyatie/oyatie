@@ -20,9 +20,9 @@ activation_claim: not-active
 
 ## KR Pack Responsibilities
 - Keeps community localization, privacy notices, and trust workflow handoffs pack-owned while community stays pack-neutral.
-- kr_pack_surface: connect_mail_messenger_community_localization
+- kr_pack_surface: messenger_mail_community_localization
 - kr_pack_surface: data_residency_and_privacy_controls
-- kr_pack_surface: enterprise_smb_operating_flows
+- kr_pack_surface: tenant_rbac_operating_flows
 
 ## Non-Claims
 - This KR pack evidence is not active and does not claim production-current legal interpretation.

@@ -20,7 +20,7 @@ activation_claim: not-active
 
 ## KR Pack Responsibilities
 - Anchors KR mail retention, document handoff, and template pack routing without claiming live archive certification.
-- kr_pack_surface: connect_mail_messenger_community_localization
+- kr_pack_surface: messenger_mail_community_localization
 - kr_pack_surface: typst_document_templates
 - kr_pack_surface: audit_chain_evidence
 

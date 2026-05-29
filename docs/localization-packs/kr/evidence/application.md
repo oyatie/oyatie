@@ -22,7 +22,7 @@ activation_claim: not-active
 - Binds tenant entry, pack selection, and Enterprise/SMB workflow launch to the governed KR pack contract without embedding KR rules in canonical application code.
 - kr_pack_surface: pack_manifest
 - kr_pack_surface: regulatory_bindings
-- kr_pack_surface: enterprise_smb_operating_flows
+- kr_pack_surface: tenant_rbac_operating_flows
 - kr_pack_surface: import_export_migration_paths
 
 ## Non-Claims

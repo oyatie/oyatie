@@ -34,16 +34,12 @@
     ]
   },
   "first_deliverable": {
-    "id": "FD-001-enterprise-smb-generic-core",
-    "name": "Tenant RBAC view + Tenant RBAC view full-depth production delivery",
+    "id": "FD-001-tenancy-rbac-microservice-core",
+    "name": "Tenant/RBAC-packaged core microservices full-depth production delivery",
     "delivery_mode": "full_depth_production_hyperscaler_exit",
     "scope_posture": "not_mvp_not_preview_not_reduced_scope",
     "exit_claim_bar": "industry_leading_production_grade_hyperscaler_grade",
     "deferral_policy": "no_deferrals_inside_first_deliverable_scope",
-    "verticals": [
-      "enterprise-generic",
-      "smb-generic"
-    ],
     "required_surfaces": [
       "core",
       "messenger",
@@ -58,16 +54,11 @@
       "korea-localization-pack"
     ],
     "not_in_first_deliverable": [
-      "healthcare",
-      "retail-commerce",
-      "manufacturing",
-      "logistics-delivery",
-      "hospitality",
-      "financial-services",
-      "education",
-      "government"
+      "sector_specific_distribution_bundles",
+      "tenant_specific_custom_packaging_without_rbac_policy",
+      "personal_professional_boundary_merges_for_messenger_or_mail"
     ],
-    "success_shape": "Tenant RBAC view and Tenant RBAC view both exit as complete production-grade products with core tenancy, communications, community, infrastructure, Ops Dashboard / Control Center, Foundry, Workflow, and Ontology proven together at hyperscaler-grade depth before regulated or sector-specific vertical depth begins.",
+    "success_shape": "Core services exit as flat, clean-architecture microservices packaged by tenancy and RBAC, with messenger, community, mail, infrastructure, Ops Dashboard / Control Center, intelligence, Workflow, and Ontology proven together at hyperscaler-grade depth before any sector-specific distribution bundle claims begin; messenger and mail keep strict personal/professional life separation.",
     "exit_requirements": [
       "production_grade_customer_workflows",
       "hyperscaler_grade_architecture_and_system_design",
@@ -90,15 +81,15 @@
         "cedar_policy_fragments",
         "workflow_templates",
         "typst_document_templates",
-        "connect_mail_messenger_community_localization",
-        "enterprise_smb_operating_flows",
+        "messenger_mail_community_localization",
+        "tenant_rbac_operating_flows",
         "audit_chain_evidence",
         "data_residency_and_privacy_controls",
         "import_export_migration_paths",
         "operational_runbooks_and_slos",
         "ops_control_center_localization_runbooks_and_escalation_flows"
       ],
-      "exit_rule": "The first deliverable cannot close on canonical global base alone; it must ship the canonical base plus KR localization pack evidence for the full Tenant RBAC view + Tenant RBAC view scope."
+      "exit_rule": "The first deliverable cannot close on canonical global base alone; it must ship the canonical base plus KR localization pack evidence for the full Tenant/RBAC-packaged microservice scope, including personal/professional separation for messenger and mail."
     },
     "architecture_exit_bar": {
       "clean_architecture_required": true,
@@ -256,7 +247,11 @@
           "reconciliation"
         ]
       }
-    }
+    },
+    "packaging_axes": [
+      "tenancy",
+      "rbac"
+    ]
   },
   "hyperscaler_discipline": {
     "required_dimensions": [

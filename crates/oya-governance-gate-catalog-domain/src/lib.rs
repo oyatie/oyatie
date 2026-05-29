@@ -177,19 +177,20 @@ pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
 pub const DEPENDENCY_SEAM_EVIDENCE: &str =
     "evidence/multispectrum/cs-p13-dependency-seam-1779166052.json";
 
-/// Required hosted status-check commands that are not pure
-/// `oya gate validate <name>` lanes. `oya verify --ci-required` runs these in
-/// addition to `gate run-all` so the local pre-PR pipeline mirrors required CI
-/// instead of giving a stale/partial green signal.
-pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] = &[
-    "cargo fmt --all -- --check",
-    "cargo check --workspace --all-targets --keep-going",
-    "cargo clippy --workspace --all-targets --keep-going -- -D warnings",
-    "cargo nextest run --workspace --no-fail-fast",
-    "cargo run -q -p oya-vcs-admission-gate-app",
-    "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
-    "bash scripts/github-actions-required-secrets-check.sh",
-];
+/// Required non-cargo hosted-status preflight commands that are not pure
+/// `oya gate validate <name>` lanes.
+///
+/// `oya verify --ci-required` owns the cargo required checks (fmt/check/clippy/
+/// nextest) before invoking `gate run-all`, so this list deliberately contains
+/// only the remaining non-cargo protection proof. That avoids replaying the
+/// expensive workspace cargo mirror twice in one local CI-required run.
+///
+/// ADR-0363 retired the oya-vcs admission/provider-execution checks from the
+/// required merge substrate; governance now rides plain git plus oya gate/verify
+/// and the `oya-pr-review` context. Keep this list aligned with the live dev
+/// branch-protection contexts to avoid local CI replaying retired checks.
+pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] =
+    &["bash scripts/github-actions-required-secrets-check.sh"];
 
 /// Catalog of non-`gate validate` commands the legacy `scripts/check.sh`
 /// wired into the pre-merge gate sequence. These cover:
@@ -492,20 +493,15 @@ mod tests {
     }
 
     #[test]
-    fn ci_required_preflight_commands_include_hosted_required_checks() {
-        assert!(
-            CI_REQUIRED_PREFLIGHT_COMMANDS
-                .contains(&"cargo nextest run --workspace --no-fail-fast")
+    fn ci_required_preflight_commands_include_only_non_cargo_extra_proofs() {
+        assert_eq!(
+            CI_REQUIRED_PREFLIGHT_COMMANDS,
+            &["bash scripts/github-actions-required-secrets-check.sh"]
         );
         assert!(
-            CI_REQUIRED_PREFLIGHT_COMMANDS.contains(&"cargo run -q -p oya-vcs-admission-gate-app")
-        );
-        assert!(CI_REQUIRED_PREFLIGHT_COMMANDS.iter().any(|command| {
-            command.contains("oya-vcs-provider-execution-gate-app") && command.contains("--mode ci")
-        }));
-        assert!(
             CI_REQUIRED_PREFLIGHT_COMMANDS
-                .contains(&"bash scripts/github-actions-required-secrets-check.sh")
+                .iter()
+                .all(|command| { !command.starts_with("cargo ") && !command.contains("oya-vcs-") })
         );
     }
 

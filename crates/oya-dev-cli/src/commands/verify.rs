@@ -575,6 +575,7 @@ fn run_adr_shape_advisory(cwd: &Path) -> Result<AdrShapeOutcome, VerifyInvalid> 
         .args([
             "diff",
             "--name-only",
+            "--diff-filter=A",
             "origin/dev...HEAD",
             "--",
             "docs/decisions/ADR-*.md",
@@ -604,7 +605,7 @@ fn run_adr_shape_advisory(cwd: &Path) -> Result<AdrShapeOutcome, VerifyInvalid> 
         .collect();
     if paths.is_empty() {
         let elapsed = start.elapsed().as_secs_f32();
-        println!("{id}: no new ADRs in origin/dev...HEAD");
+        println!("{id}: no newly added ADRs in origin/dev...HEAD");
         println!("--- {id}: PASS ({elapsed:.1}s) ---");
         return Ok(AdrShapeOutcome {
             outcome: StepOutcome {

@@ -11,10 +11,10 @@
   "branch_status": "## codex/fd001-planning-closure-20260519...origin/codex/fd001-planning-closure-20260519 [ahead 54]",
   "ahead_behind_head_vs_upstream": "54\t0",
   "objective_restatement": {
-    "goal": "Execute FD-001 Enterprise Generic + SMB Generic to production-grade/hyperscaler-grade exit, or prove a blocker with evidence.",
-    "required_verticals": [
-      "enterprise-generic",
-      "smb-generic"
+    "goal": "Execute FD-001 Tenant/RBAC-packaged core services to production-grade/hyperscaler-grade exit, or prove a blocker with evidence.",
+    "required_packaging_axes": [
+      "tenancy",
+      "rbac"
     ],
     "required_surfaces": [
       "core",
@@ -43,7 +43,7 @@
   "prompt_to_artifact_checklist": [
     {
       "requirement": "Entry planning closure gate",
-      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence": "planning-closure validation passed: 2 packaging axes, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
       "source": "/tmp/fd001-default-canonical-and-remaining-gates-20260519T171509Z.log",
       "status": "pass"
     },

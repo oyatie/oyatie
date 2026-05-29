@@ -4,6 +4,7 @@ title: "N-lane parallel safety proof and unified DevOps console"
 status: Accepted
 date: 2026-05-28
 authority: founder
+owner: council-architecture
 planning_impact: true
 supersedes: []
 superseded_by: []

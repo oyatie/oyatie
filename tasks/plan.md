@@ -17,7 +17,7 @@ Root-level `SPEC.md` is intentionally not created: repo policy keeps root Markdo
 
 ## Non-negotiable constraints
 
-- First deliverable is `FD-001-enterprise-smb-generic-core`, full-depth production/hyperscaler-grade, not MVP or preview.
+- First deliverable is `FD-001-tenancy-rbac-microservice-core`, full-depth production/hyperscaler-grade, not MVP or preview.
 - Follow the Phase 0 shared-infrastructure order: start with `cloud-iam`, then `cloud-kms`, `cloud-secrets`, `cloud-iac`, network, data, storage, compute, billing, capacity/cell/finops/marketplace/fsh.
 - Use clean architecture: kernel/domain/app/api/adapter/runtime dependencies point inward; business logic stays out of handlers; adapters implement ports without peer-adapter coupling.
 - API-first: public REST/Event/gRPC contracts exist before handlers; public API versions use date carriers.
