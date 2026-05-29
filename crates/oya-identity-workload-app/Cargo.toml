@@ -25,13 +25,13 @@ doctest = false
 
 # TEST-ONLY: the acceptance tests mint a real ES256 workload JWT so the full
 # OIDC -> principal -> Cedar authorize path runs against the REAL adapters (no
-# token stubs). `ring` + `base64` are the same crypto/encoding primitives the
-# OIDC adapter validates with (already in Cargo.lock; OSI-clean per the runtime
-# dependency allowlist). They are NOT workspace `[dependencies]` seam crates and
-# carry no dependency-rationales entry, so this dev-only use stays seam-clean.
+# token stubs). `aws-lc-rs` + `base64` are the crypto/encoding primitives the
+# OIDC adapter validates with (ADR-0506 blessed; ring-API-compatible surface).
+# They are NOT workspace `[dependencies]` seam crates and carry no
+# dependency-rationales entry, so this dev-only use stays seam-clean.
 # These do not appear in the crate's library dependency surface.
 [dev-dependencies]
-ring = "0.17.14"
+aws-lc-rs = "1.17.0"
 base64 = "0.22.1"
 
 [lints]
