@@ -1166,6 +1166,28 @@ pub enum CloudNetworkError {
     DuplicateLoadBalancer,
     DuplicateDnsZone,
     DuplicateCdnDistribution,
+    /// A CIDR string stored directly in an `Ipv4Cidr` or `Ipv6Cidr` value
+    /// field could not be parsed (e.g. bypassed the constructor).
+    InvalidCidrPrefix,
+}
+
+/// The direction + L4 attributes of a network flow to be evaluated against a
+/// [`SecurityGroup`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FlowMatch {
+    pub direction: RuleDirection,    // data_class: PUBLIC
+    pub protocol: IpProtocol,        // data_class: PUBLIC
+    pub port: Option<u16>,           // data_class: PUBLIC
+    pub peer_cidr: RouteDestination, // data_class: PUBLIC
+}
+
+/// Result of evaluating a [`FlowMatch`] against a [`SecurityGroup`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Decision {
+    /// The flow is allowed; `matched_rule` is the first matching rule.
+    Allow { matched_rule: SecurityRule },
+    /// The flow is denied; `matched_rule` is `None` when no rule matched.
+    Deny { matched_rule: Option<SecurityRule> },
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -1564,6 +1586,50 @@ impl Ipv4Cidr {
         parse_ipv4_cidr(&value)?;
         Ok(Self { value })
     }
+
+    /// Returns `true` if `other` is fully contained within `self`.
+    pub fn contains_cidr(&self, other: &Ipv4Cidr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv4_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let (other_addr, other_prefix) =
+            parse_ipv4_cidr(&other.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        if other_prefix < self_prefix {
+            return Ok(false);
+        }
+        let mask = if self_prefix == 0 {
+            0u32
+        } else {
+            u32::MAX << (32 - self_prefix)
+        };
+        Ok((self_addr & mask) == (other_addr & mask))
+    }
+
+    /// Returns `true` if `self` and `other` share at least one address.
+    pub fn overlaps_cidr(&self, other: &Ipv4Cidr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv4_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let (other_addr, other_prefix) =
+            parse_ipv4_cidr(&other.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let prefix = self_prefix.min(other_prefix);
+        let mask = if prefix == 0 {
+            0u32
+        } else {
+            u32::MAX << (32 - prefix)
+        };
+        Ok((self_addr & mask) == (other_addr & mask))
+    }
+
+    /// Returns `true` if `addr` falls within the prefix of `self`.
+    pub fn contains_ip(&self, addr: Ipv4Addr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv4_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let mask = if self_prefix == 0 {
+            0u32
+        } else {
+            u32::MAX << (32 - self_prefix)
+        };
+        Ok((self_addr & mask) == (u32::from(addr) & mask))
+    }
 }
 
 impl Ipv6Cidr {
@@ -1571,6 +1637,50 @@ impl Ipv6Cidr {
         let value = value.into();
         parse_ipv6_cidr(&value)?;
         Ok(Self { value })
+    }
+
+    /// Returns `true` if `other` is fully contained within `self`.
+    pub fn contains_cidr(&self, other: &Ipv6Cidr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv6_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let (other_addr, other_prefix) =
+            parse_ipv6_cidr(&other.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        if other_prefix < self_prefix {
+            return Ok(false);
+        }
+        let mask = if self_prefix == 0 {
+            0u128
+        } else {
+            u128::MAX << (128 - self_prefix)
+        };
+        Ok((self_addr & mask) == (other_addr & mask))
+    }
+
+    /// Returns `true` if `self` and `other` share at least one address.
+    pub fn overlaps_cidr(&self, other: &Ipv6Cidr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv6_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let (other_addr, other_prefix) =
+            parse_ipv6_cidr(&other.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let prefix = self_prefix.min(other_prefix);
+        let mask = if prefix == 0 {
+            0u128
+        } else {
+            u128::MAX << (128 - prefix)
+        };
+        Ok((self_addr & mask) == (other_addr & mask))
+    }
+
+    /// Returns `true` if `addr` falls within the prefix of `self`.
+    pub fn contains_ip(&self, addr: Ipv6Addr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv6_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let mask = if self_prefix == 0 {
+            0u128
+        } else {
+            u128::MAX << (128 - self_prefix)
+        };
+        Ok((self_addr & mask) == (u128::from(addr) & mask))
     }
 }
 
@@ -1842,6 +1952,43 @@ impl SecurityGroup {
             id,
             rules: input.rules,
         })
+    }
+
+    /// Evaluate a [`FlowMatch`] against this group's rules (first-match wins).
+    ///
+    /// Returns `Ok(Decision::Allow { matched_rule })` when the first matching
+    /// rule is found, or `Ok(Decision::Deny { matched_rule: None })` when no
+    /// rule matches.
+    pub fn evaluate(&self, flow: &FlowMatch) -> Result<Decision, CloudNetworkError> {
+        for rule in &self.rules {
+            if !rule_matches(rule, flow)? {
+                continue;
+            }
+            return Ok(Decision::Allow {
+                matched_rule: rule.clone(),
+            });
+        }
+        Ok(Decision::Deny { matched_rule: None })
+    }
+
+    /// Return all (shadowing, shadowed) rule pairs where the first rule fully
+    /// subsumes the second (same direction, protocol compatible, CIDR contains,
+    /// port range contains).
+    pub fn detect_shadowed_rules(
+        &self,
+    ) -> Result<Vec<(SecurityRule, SecurityRule)>, CloudNetworkError> {
+        let mut pairs = Vec::new();
+        let rules = &self.rules;
+        for i in 0..rules.len() {
+            for j in (i + 1)..rules.len() {
+                let a = &rules[i];
+                let b = &rules[j];
+                if rule_subsumes(a, b)? {
+                    pairs.push((a.clone(), b.clone()));
+                }
+            }
+        }
+        Ok(pairs)
     }
 }
 
@@ -3312,6 +3459,67 @@ fn ipv6_overlaps(left: &Ipv6Cidr, right: &Ipv6Cidr) -> Result<bool, CloudNetwork
     Ok((left_addr & mask) == (right_addr & mask))
 }
 
+/// Returns `true` when `rule` matches every dimension of `flow`.
+fn rule_matches(rule: &SecurityRule, flow: &FlowMatch) -> Result<bool, CloudNetworkError> {
+    if rule.direction != flow.direction {
+        return Ok(false);
+    }
+    if rule.protocol != IpProtocol::Any && rule.protocol != flow.protocol {
+        return Ok(false);
+    }
+    match (rule.port_range, flow.port) {
+        (Some((lo, hi)), Some(p)) => {
+            if p < lo || p > hi {
+                return Ok(false);
+            }
+        }
+        (Some(_), None) => return Ok(false),
+        (None, _) => {}
+    }
+    if !cidr_contains_cidr(&rule.cidr, &flow.peer_cidr)? {
+        return Ok(false);
+    }
+    Ok(true)
+}
+
+/// Returns `true` when rule `a` fully subsumes rule `b`:
+/// same direction, compatible protocol (`a` is `Any` or equal), CIDR of `a`
+/// contains CIDR of `b`, and port range of `a` contains port range of `b`.
+fn rule_subsumes(a: &SecurityRule, b: &SecurityRule) -> Result<bool, CloudNetworkError> {
+    if a.direction != b.direction {
+        return Ok(false);
+    }
+    if a.protocol != IpProtocol::Any && a.protocol != b.protocol {
+        return Ok(false);
+    }
+    if !cidr_contains_cidr(&a.cidr, &b.cidr)? {
+        return Ok(false);
+    }
+    // Port range subsumption: a's range must contain b's range.
+    match (a.port_range, b.port_range) {
+        (None, _) => {}
+        (Some(_), None) => return Ok(false),
+        (Some((a_lo, a_hi)), Some((b_lo, b_hi))) => {
+            if a_lo > b_lo || a_hi < b_hi {
+                return Ok(false);
+            }
+        }
+    }
+    Ok(true)
+}
+
+/// Returns `true` if `container` CIDR contains `inner` CIDR.
+fn cidr_contains_cidr(
+    container: &RouteDestination,
+    inner: &RouteDestination,
+) -> Result<bool, CloudNetworkError> {
+    match (container, inner) {
+        (RouteDestination::Ipv4(c), RouteDestination::Ipv4(i)) => c.contains_cidr(i),
+        (RouteDestination::Ipv6(c), RouteDestination::Ipv6(i)) => c.contains_cidr(i),
+        _ => Ok(false),
+    }
+}
+
 fn map_resource_error(error: CloudResourceError) -> CloudNetworkError {
     match error {
         CloudResourceError::InvalidResourceId => CloudNetworkError::InvalidResourceId,
@@ -4451,5 +4659,504 @@ mod tests {
             })
             .expect_err("mesh cell must belong to region");
         assert_eq!(cell_error, CloudNetworkError::InvalidCellId);
+    }
+
+    // ── ST1: Ipv4Cidr containment + overlap ──────────────────────────────────
+
+    #[test]
+    fn ipv4_cidr_contains_cidr_returns_true_when_child_is_fully_inside_parent() {
+        let parent = Ipv4Cidr::new("10.0.0.0/8").unwrap();
+        let child = Ipv4Cidr::new("10.1.2.0/24").unwrap();
+        assert!(
+            parent.contains_cidr(&child).unwrap(),
+            "10.1.2.0/24 is inside 10.0.0.0/8"
+        );
+    }
+
+    #[test]
+    fn ipv4_cidr_contains_cidr_returns_false_when_cidrs_are_disjoint() {
+        let a = Ipv4Cidr::new("10.0.0.0/8").unwrap();
+        let b = Ipv4Cidr::new("192.168.0.0/16").unwrap();
+        assert!(
+            !a.contains_cidr(&b).unwrap(),
+            "10.0.0.0/8 and 192.168.0.0/16 are disjoint"
+        );
+    }
+
+    #[test]
+    fn ipv4_cidr_contains_cidr_returns_true_for_equal_cidrs() {
+        let a = Ipv4Cidr::new("10.0.0.0/16").unwrap();
+        let b = Ipv4Cidr::new("10.0.0.0/16").unwrap();
+        assert!(a.contains_cidr(&b).unwrap(), "a CIDR contains itself");
+    }
+
+    #[test]
+    fn ipv4_cidr_contains_cidr_returns_false_when_child_is_broader_than_parent() {
+        let narrow = Ipv4Cidr::new("10.0.0.0/24").unwrap();
+        let broad = Ipv4Cidr::new("10.0.0.0/16").unwrap();
+        assert!(
+            !narrow.contains_cidr(&broad).unwrap(),
+            "a /24 does not contain a /16"
+        );
+    }
+
+    #[test]
+    fn ipv4_cidr_overlaps_cidr_returns_true_for_partially_overlapping_ranges() {
+        // 10.0.0.0/23 covers 10.0.0.0-10.0.1.255; 10.0.1.0/24 is inside it
+        let a = Ipv4Cidr::new("10.0.0.0/23").unwrap();
+        let b = Ipv4Cidr::new("10.0.1.0/24").unwrap();
+        assert!(
+            a.overlaps_cidr(&b).unwrap(),
+            "10.0.0.0/23 and 10.0.1.0/24 overlap"
+        );
+    }
+
+    #[test]
+    fn ipv4_cidr_overlaps_cidr_returns_false_for_disjoint_ranges() {
+        let a = Ipv4Cidr::new("10.1.0.0/24").unwrap();
+        let b = Ipv4Cidr::new("10.2.0.0/24").unwrap();
+        assert!(
+            !a.overlaps_cidr(&b).unwrap(),
+            "10.1.0.0/24 and 10.2.0.0/24 do not overlap"
+        );
+    }
+
+    #[test]
+    fn ipv4_cidr_overlaps_cidr_returns_true_for_equal_cidrs() {
+        let a = Ipv4Cidr::new("172.16.0.0/12").unwrap();
+        let b = Ipv4Cidr::new("172.16.0.0/12").unwrap();
+        assert!(a.overlaps_cidr(&b).unwrap(), "equal CIDRs overlap");
+    }
+
+    #[test]
+    fn ipv4_cidr_contains_ip_returns_true_for_address_inside_prefix() {
+        let cidr = Ipv4Cidr::new("10.42.0.0/16").unwrap();
+        let addr = "10.42.1.100".parse::<Ipv4Addr>().unwrap();
+        assert!(cidr.contains_ip(addr).unwrap());
+    }
+
+    #[test]
+    fn ipv4_cidr_contains_ip_returns_false_for_address_outside_prefix() {
+        let cidr = Ipv4Cidr::new("10.42.0.0/16").unwrap();
+        let addr = "10.99.1.1".parse::<Ipv4Addr>().unwrap();
+        assert!(!cidr.contains_ip(addr).unwrap());
+    }
+
+    #[test]
+    fn ipv4_cidr_returns_invalid_cidr_prefix_for_malformed_input() {
+        // Malformed CIDR stored directly (bypassing new() which would reject it)
+        let bad = Ipv4Cidr {
+            value: "not-a-cidr".to_string(),
+        };
+        let good = Ipv4Cidr::new("10.0.0.0/8").unwrap();
+        assert_eq!(
+            bad.contains_cidr(&good),
+            Err(CloudNetworkError::InvalidCidrPrefix),
+            "malformed self CIDR returns InvalidCidrPrefix"
+        );
+        assert_eq!(
+            good.contains_cidr(&bad),
+            Err(CloudNetworkError::InvalidCidrPrefix),
+            "malformed other CIDR returns InvalidCidrPrefix"
+        );
+    }
+
+    // ── ST1: Ipv6Cidr containment + overlap ──────────────────────────────────
+
+    #[test]
+    fn ipv6_cidr_contains_cidr_returns_true_when_child_is_fully_inside_parent() {
+        let parent = Ipv6Cidr::new("2001:db8::/32").unwrap();
+        let child = Ipv6Cidr::new("2001:db8:42::/56").unwrap();
+        assert!(
+            parent.contains_cidr(&child).unwrap(),
+            "2001:db8:42::/56 is inside 2001:db8::/32"
+        );
+    }
+
+    #[test]
+    fn ipv6_cidr_contains_cidr_returns_false_when_cidrs_are_disjoint() {
+        let a = Ipv6Cidr::new("2001:db8::/32").unwrap();
+        let b = Ipv6Cidr::new("fd00::/8").unwrap();
+        assert!(
+            !a.contains_cidr(&b).unwrap(),
+            "2001:db8::/32 and fd00::/8 are disjoint"
+        );
+    }
+
+    #[test]
+    fn ipv6_cidr_contains_cidr_returns_true_for_equal_cidrs() {
+        let a = Ipv6Cidr::new("2001:db8:42::/48").unwrap();
+        let b = Ipv6Cidr::new("2001:db8:42::/48").unwrap();
+        assert!(a.contains_cidr(&b).unwrap(), "a CIDR contains itself");
+    }
+
+    #[test]
+    fn ipv6_cidr_contains_cidr_returns_false_when_child_is_broader_than_parent() {
+        let narrow = Ipv6Cidr::new("2001:db8:42::/64").unwrap();
+        let broad = Ipv6Cidr::new("2001:db8:42::/48").unwrap();
+        assert!(
+            !narrow.contains_cidr(&broad).unwrap(),
+            "/64 does not contain /48"
+        );
+    }
+
+    #[test]
+    fn ipv6_cidr_overlaps_cidr_returns_true_for_overlapping_ranges() {
+        let a = Ipv6Cidr::new("2001:db8::/32").unwrap();
+        let b = Ipv6Cidr::new("2001:db8:1::/48").unwrap();
+        assert!(
+            a.overlaps_cidr(&b).unwrap(),
+            "2001:db8::/32 and 2001:db8:1::/48 overlap"
+        );
+    }
+
+    #[test]
+    fn ipv6_cidr_overlaps_cidr_returns_false_for_disjoint_ranges() {
+        let a = Ipv6Cidr::new("2001:db8:1::/48").unwrap();
+        let b = Ipv6Cidr::new("2001:db8:2::/48").unwrap();
+        assert!(
+            !a.overlaps_cidr(&b).unwrap(),
+            "2001:db8:1::/48 and 2001:db8:2::/48 do not overlap"
+        );
+    }
+
+    #[test]
+    fn ipv6_cidr_overlaps_cidr_returns_true_for_equal_cidrs() {
+        let a = Ipv6Cidr::new("fd00::/8").unwrap();
+        let b = Ipv6Cidr::new("fd00::/8").unwrap();
+        assert!(a.overlaps_cidr(&b).unwrap(), "equal CIDRs overlap");
+    }
+
+    #[test]
+    fn ipv6_cidr_contains_ip_returns_true_for_address_inside_prefix() {
+        let cidr = Ipv6Cidr::new("2001:db8:42::/56").unwrap();
+        let addr = "2001:db8:42:1::1".parse::<Ipv6Addr>().unwrap();
+        assert!(cidr.contains_ip(addr).unwrap());
+    }
+
+    #[test]
+    fn ipv6_cidr_contains_ip_returns_false_for_address_outside_prefix() {
+        let cidr = Ipv6Cidr::new("2001:db8:42::/56").unwrap();
+        let addr = "2001:db8:99::1".parse::<Ipv6Addr>().unwrap();
+        assert!(!cidr.contains_ip(addr).unwrap());
+    }
+
+    #[test]
+    fn ipv6_cidr_returns_invalid_cidr_prefix_for_malformed_input() {
+        let bad = Ipv6Cidr {
+            value: "not-valid-ipv6-cidr".to_string(),
+        };
+        let good = Ipv6Cidr::new("fd00::/8").unwrap();
+        assert_eq!(
+            bad.contains_cidr(&good),
+            Err(CloudNetworkError::InvalidCidrPrefix)
+        );
+        assert_eq!(
+            good.contains_cidr(&bad),
+            Err(CloudNetworkError::InvalidCidrPrefix)
+        );
+    }
+
+    // ── ST2: SecurityGroup::evaluate ─────────────────────────────────────────
+
+    fn ingress_tcp_rule(cidr: &str, port_range: Option<(u16, u16)>) -> SecurityRule {
+        SecurityRule {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Tcp,
+            port_range,
+            cidr: RouteDestination::Ipv4(Ipv4Cidr::new(cidr).unwrap()),
+            description: "test ingress tcp rule".to_string(),
+        }
+    }
+
+    fn egress_tcp_rule(cidr: &str, port_range: Option<(u16, u16)>) -> SecurityRule {
+        SecurityRule {
+            direction: RuleDirection::Egress,
+            protocol: IpProtocol::Tcp,
+            port_range,
+            cidr: RouteDestination::Ipv4(Ipv4Cidr::new(cidr).unwrap()),
+            description: "test egress tcp rule".to_string(),
+        }
+    }
+
+    fn ingress_any_rule(cidr: &str) -> SecurityRule {
+        SecurityRule {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Any,
+            port_range: None,
+            cidr: RouteDestination::Ipv4(Ipv4Cidr::new(cidr).unwrap()),
+            description: "test ingress any rule".to_string(),
+        }
+    }
+
+    fn sg_with_rules(rules: Vec<SecurityRule>) -> SecurityGroup {
+        SecurityGroup {
+            id: SecurityGroupId {
+                value: "sg_test".to_string(),
+            },
+            rules,
+        }
+    }
+
+    #[test]
+    fn evaluate_returns_allow_when_ingress_flow_matches_ingress_rule() {
+        let sg = sg_with_rules(vec![ingress_tcp_rule("10.0.0.0/8", Some((443, 443)))]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Tcp,
+            port: Some(443),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.1.2.3/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        assert!(matches!(decision, Decision::Allow { .. }));
+    }
+
+    #[test]
+    fn evaluate_returns_allow_when_egress_flow_matches_egress_rule() {
+        let sg = sg_with_rules(vec![egress_tcp_rule("0.0.0.0/0", Some((80, 80)))]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Egress,
+            protocol: IpProtocol::Tcp,
+            port: Some(80),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("203.0.113.0/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        assert!(matches!(decision, Decision::Allow { .. }));
+    }
+
+    #[test]
+    fn evaluate_returns_deny_with_no_matched_rule_when_no_rule_matches_direction() {
+        // Only an ingress rule exists; egress flow → deny
+        let sg = sg_with_rules(vec![ingress_tcp_rule("0.0.0.0/0", Some((443, 443)))]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Egress,
+            protocol: IpProtocol::Tcp,
+            port: Some(443),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.0.0.1/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        assert!(matches!(decision, Decision::Deny { matched_rule: None }));
+    }
+
+    #[test]
+    fn evaluate_returns_deny_when_port_does_not_match_rule_port_range() {
+        let sg = sg_with_rules(vec![ingress_tcp_rule("10.0.0.0/8", Some((443, 443)))]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Tcp,
+            port: Some(8080),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.1.0.1/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        assert!(matches!(decision, Decision::Deny { matched_rule: None }));
+    }
+
+    #[test]
+    fn evaluate_returns_deny_when_protocol_does_not_match_rule_protocol() {
+        let sg = sg_with_rules(vec![ingress_tcp_rule("10.0.0.0/8", Some((443, 443)))]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Udp,
+            port: Some(443),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.1.0.1/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        assert!(matches!(decision, Decision::Deny { matched_rule: None }));
+    }
+
+    #[test]
+    fn evaluate_returns_deny_when_peer_cidr_is_outside_rule_cidr() {
+        let sg = sg_with_rules(vec![ingress_tcp_rule("10.0.0.0/8", Some((443, 443)))]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Tcp,
+            port: Some(443),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("192.168.1.1/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        assert!(matches!(decision, Decision::Deny { matched_rule: None }));
+    }
+
+    #[test]
+    fn evaluate_returns_allow_for_first_matching_rule_ignoring_later_rules() {
+        // Two ingress rules: first covers 10.0.0.0/8 port 443; second covers 10.0.0.0/8 port 8080.
+        // Flow matches both directions and CIDRs but only port 443.
+        // Correct: first rule wins.
+        let rule_a = ingress_tcp_rule("10.0.0.0/8", Some((443, 443)));
+        let rule_b = ingress_tcp_rule("10.0.0.0/8", Some((8080, 8080)));
+        let sg = sg_with_rules(vec![rule_a.clone(), rule_b]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Tcp,
+            port: Some(443),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.5.0.1/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        match decision {
+            Decision::Allow { matched_rule } => {
+                assert_eq!(matched_rule.port_range, Some((443, 443)));
+            }
+            Decision::Deny { .. } => panic!("expected Allow"),
+        }
+    }
+
+    #[test]
+    fn evaluate_allows_when_rule_protocol_is_any_regardless_of_flow_protocol() {
+        let sg = sg_with_rules(vec![ingress_any_rule("10.0.0.0/8")]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Udp,
+            port: Some(53),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.0.0.1/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        assert!(
+            matches!(decision, Decision::Allow { .. }),
+            "IpProtocol::Any rule matches any flow protocol"
+        );
+    }
+
+    #[test]
+    fn evaluate_allows_when_rule_has_no_port_range_for_portless_flow() {
+        // ICMP rule has no port_range; flow has no port
+        let icmp_rule = SecurityRule {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Icmp,
+            port_range: None,
+            cidr: RouteDestination::Ipv4(Ipv4Cidr::new("0.0.0.0/0").unwrap()),
+            description: "allow all icmp ingress".to_string(),
+        };
+        let sg = sg_with_rules(vec![icmp_rule]);
+        let flow = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Icmp,
+            port: None,
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("8.8.8.8/32").unwrap()),
+        };
+        let decision = sg.evaluate(&flow).unwrap();
+        assert!(matches!(decision, Decision::Allow { .. }));
+    }
+
+    #[test]
+    fn evaluate_allows_for_port_within_range_and_denies_outside_range() {
+        let sg = sg_with_rules(vec![ingress_tcp_rule("10.0.0.0/8", Some((1024, 65535)))]);
+        let inside = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Tcp,
+            port: Some(8080),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.1.0.1/32").unwrap()),
+        };
+        assert!(matches!(
+            sg.evaluate(&inside).unwrap(),
+            Decision::Allow { .. }
+        ));
+
+        let outside = FlowMatch {
+            direction: RuleDirection::Ingress,
+            protocol: IpProtocol::Tcp,
+            port: Some(80),
+            peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.1.0.1/32").unwrap()),
+        };
+        assert!(matches!(
+            sg.evaluate(&outside).unwrap(),
+            Decision::Deny { matched_rule: None }
+        ));
+    }
+
+    // ── ST3: SecurityGroup::detect_shadowed_rules ─────────────────────────────
+
+    #[test]
+    fn detect_shadowed_rules_returns_empty_when_no_rules_are_present() {
+        let sg = sg_with_rules(vec![]);
+        let pairs = sg.detect_shadowed_rules().unwrap();
+        assert!(pairs.is_empty(), "no rules → no shadow pairs");
+    }
+
+    #[test]
+    fn detect_shadowed_rules_returns_empty_for_non_conflicting_disjoint_cidr_rules() {
+        let rule_a = ingress_tcp_rule("10.0.0.0/8", Some((443, 443)));
+        let rule_b = ingress_tcp_rule("192.168.0.0/16", Some((443, 443)));
+        let sg = sg_with_rules(vec![rule_a, rule_b]);
+        let pairs = sg.detect_shadowed_rules().unwrap();
+        assert!(
+            pairs.is_empty(),
+            "disjoint CIDRs with same port/protocol do not shadow each other"
+        );
+    }
+
+    #[test]
+    fn detect_shadowed_rules_finds_shadowed_rule_when_earlier_rule_subsumes_later_rule() {
+        // rule_a: ingress TCP 0.0.0.0/0 port 443-443  → subsumes rule_b
+        // rule_b: ingress TCP 10.0.0.0/8 port 443-443
+        let rule_a = ingress_tcp_rule("0.0.0.0/0", Some((443, 443)));
+        let rule_b = ingress_tcp_rule("10.0.0.0/8", Some((443, 443)));
+        let sg = sg_with_rules(vec![rule_a.clone(), rule_b.clone()]);
+        let pairs = sg.detect_shadowed_rules().unwrap();
+        assert_eq!(pairs.len(), 1, "one shadow pair expected");
+        let (shadowing, shadowed) = &pairs[0];
+        assert_eq!(shadowing.cidr, rule_a.cidr);
+        assert_eq!(shadowed.cidr, rule_b.cidr);
+    }
+
+    #[test]
+    fn detect_shadowed_rules_finds_redundant_identical_rule_pair() {
+        let rule_a = ingress_tcp_rule("10.0.0.0/8", Some((443, 443)));
+        let rule_b = ingress_tcp_rule("10.0.0.0/8", Some((443, 443)));
+        let sg = sg_with_rules(vec![rule_a.clone(), rule_b.clone()]);
+        let pairs = sg.detect_shadowed_rules().unwrap();
+        assert_eq!(pairs.len(), 1, "identical rules: first shadows second");
+        let (shadowing, shadowed) = &pairs[0];
+        assert_eq!(shadowing.port_range, rule_a.port_range);
+        assert_eq!(shadowed.port_range, rule_b.port_range);
+    }
+
+    #[test]
+    fn detect_shadowed_rules_finds_shadow_when_earlier_rule_has_wider_port_range() {
+        // rule_a covers 1024-65535; rule_b covers 8080-8080 — rule_a subsumes rule_b
+        let rule_a = ingress_tcp_rule("10.0.0.0/8", Some((1024, 65535)));
+        let rule_b = ingress_tcp_rule("10.0.0.0/8", Some((8080, 8080)));
+        let sg = sg_with_rules(vec![rule_a.clone(), rule_b.clone()]);
+        let pairs = sg.detect_shadowed_rules().unwrap();
+        assert_eq!(pairs.len(), 1);
+        assert_eq!(pairs[0].0.port_range, Some((1024, 65535)));
+    }
+
+    #[test]
+    fn detect_shadowed_rules_does_not_shadow_when_later_rule_has_wider_port_range() {
+        // rule_a covers 8080-8080; rule_b covers 1024-65535 — rule_a cannot shadow rule_b
+        let rule_a = ingress_tcp_rule("10.0.0.0/8", Some((8080, 8080)));
+        let rule_b = ingress_tcp_rule("10.0.0.0/8", Some((1024, 65535)));
+        let sg = sg_with_rules(vec![rule_a, rule_b]);
+        let pairs = sg.detect_shadowed_rules().unwrap();
+        assert!(
+            pairs.is_empty(),
+            "narrower earlier rule cannot shadow broader later rule"
+        );
+    }
+
+    #[test]
+    fn detect_shadowed_rules_any_protocol_rule_shadows_specific_protocol_rule() {
+        // rule_a: ingress ANY 0.0.0.0/0 (no port) → shadows rule_b: ingress TCP 0.0.0.0/0 port 443
+        let rule_any = ingress_any_rule("0.0.0.0/0");
+        let rule_tcp = ingress_tcp_rule("0.0.0.0/0", Some((443, 443)));
+        let sg = sg_with_rules(vec![rule_any.clone(), rule_tcp.clone()]);
+        let pairs = sg.detect_shadowed_rules().unwrap();
+        assert_eq!(
+            pairs.len(),
+            1,
+            "Any protocol rule with no port restriction shadows TCP port rule"
+        );
+        assert_eq!(pairs[0].0.protocol, IpProtocol::Any);
+        assert_eq!(pairs[0].1.protocol, IpProtocol::Tcp);
+    }
+
+    #[test]
+    fn detect_shadowed_rules_does_not_shadow_across_directions() {
+        // Ingress rule cannot shadow egress rule even if all other fields match
+        let ingress = ingress_tcp_rule("0.0.0.0/0", Some((443, 443)));
+        let egress = egress_tcp_rule("0.0.0.0/0", Some((443, 443)));
+        let sg = sg_with_rules(vec![ingress, egress]);
+        let pairs = sg.detect_shadowed_rules().unwrap();
+        assert!(pairs.is_empty(), "direction mismatch prevents shadowing");
     }
 }
