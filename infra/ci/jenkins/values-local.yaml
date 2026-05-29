@@ -249,14 +249,24 @@ controller:
                 description('ADR-0380 D3: webhook-dispatched gated CI job. Triggered by ci-webhook-gateway (ADR-0374) via Generic Webhook Trigger with token=oya-ci-gate. Pipeline body: infra/ci/jenkins/Jenkinsfile-oya-ci-gate.')
                 triggers {
                   genericTrigger {
-                    genericVariables(
-                      [
-                        [key: 'PR_NUMBER',  value: '$.pull_request.number'],
-                        [key: 'PR_SHA',     value: '$.pull_request.head.sha'],
-                        [key: 'REPO_OWNER', value: '$.repository.owner.login'],
-                        [key: 'REPO_NAME',  value: '$.repository.name']
-                      ]
-                    )
+                    genericVariables {
+                      genericVariable {
+                        key('PR_NUMBER')
+                        value('$.pull_request.number')
+                      }
+                      genericVariable {
+                        key('PR_SHA')
+                        value('$.pull_request.head.sha')
+                      }
+                      genericVariable {
+                        key('REPO_OWNER')
+                        value('$.repository.owner.login')
+                      }
+                      genericVariable {
+                        key('REPO_NAME')
+                        value('$.repository.name')
+                      }
+                    }
                     token('oya-ci-gate')
                     causeString('Forgejo PR #$PR_NUMBER sha=$PR_SHA')
                     printContributedVariables(true)
