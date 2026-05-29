@@ -10,6 +10,9 @@ description = "Pure managed-Kubernetes cluster-lifecycle value objects and fail-
 [dependencies]
 serde = { workspace = true }
 
+[dev-dependencies]
+serde_json = { workspace = true }
+
 [lib]
 name = "oya_managed_k8s_cluster_lifecycle_kernel"
 path = "src/lib.rs"
