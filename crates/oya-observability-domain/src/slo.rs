@@ -211,6 +211,316 @@ pub fn classify_burn_rate(
 }
 
 // ---------------------------------------------------------------------------
+// slo::budget — error-budget / burn-rate computation kernel
+// ---------------------------------------------------------------------------
+
+/// Pure error-budget / burn-rate computation kernel.
+///
+/// Turns raw good/bad event counts plus an [`SLOObjective`] into the
+/// burn-rate and error-budget-remaining inputs that [`classify_burn_rate`]
+/// already consumes, and provides a one-call helper that wires both
+/// together.
+///
+/// No allocation occurs on the hot path; all functions are pure and
+/// deterministic.
+///
+/// # data_class: INTERNAL_ONLY
+pub mod budget {
+    use super::{AlertDecision, SLOObjective, classify_burn_rate};
+
+    // -----------------------------------------------------------------------
+    // BudgetWindow value object
+    // -----------------------------------------------------------------------
+
+    /// A pair of raw good/bad event counts representing one observation window.
+    ///
+    /// `bad_events` is clamped to `total` (i.e. `bad_events > total` saturates
+    /// to `total`) so downstream callers never receive a ratio above 1.0.
+    ///
+    /// # data_class: INTERNAL_ONLY
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub struct BudgetWindow {
+        /// Events that met the SLO (good requests).
+        pub good_events: u64, // data_class: INTERNAL_ONLY
+        /// Events that did not meet the SLO (bad requests).
+        pub bad_events: u64, // data_class: INTERNAL_ONLY
+    }
+
+    impl BudgetWindow {
+        /// Construct a new `BudgetWindow`.
+        ///
+        /// # data_class: INTERNAL_ONLY
+        pub const fn new(good_events: u64, bad_events: u64) -> Self {
+            Self { good_events, bad_events }
+        }
+
+        /// Total event count (`good + bad`), saturating at `u64::MAX`.
+        ///
+        /// # data_class: INTERNAL_ONLY
+        #[inline]
+        pub fn total(&self) -> u64 {
+            self.good_events.saturating_add(self.bad_events)
+        }
+
+        /// Effective bad-event count, clamped to total to guard against
+        /// `bad_events > total` saturation inputs.
+        ///
+        /// # data_class: INTERNAL_ONLY
+        #[inline]
+        fn effective_bad(&self) -> u64 {
+            let total = self.total();
+            self.bad_events.min(total)
+        }
+
+        /// Observed bad-event ratio in [0.0, 1.0].
+        ///
+        /// Returns `0.0` when `total == 0` (fail-open on zero traffic:
+        /// no evidence of failure → full budget).
+        ///
+        /// # data_class: INTERNAL_ONLY
+        #[inline]
+        fn observed_bad_ratio(&self) -> f64 {
+            let total = self.total();
+            if total == 0 {
+                return 0.0;
+            }
+            (self.effective_bad() as f64) / (total as f64)
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // error_budget_remaining_ratio
+    // -----------------------------------------------------------------------
+
+    /// Compute the fraction of the error budget that remains, in [0.0, 1.0].
+    ///
+    /// `1.0` means the full budget is intact; `0.0` means it is fully
+    /// exhausted (or the `target_ratio` is 1.0 so the allowed budget is
+    /// zero — in that case any bad event exhausts the budget immediately,
+    /// and the function returns `0.0`).
+    ///
+    /// When `total == 0` the function returns `1.0` (no failures observed
+    /// → full budget remaining).
+    ///
+    /// The result is clamped to [0.0, 1.0].
+    ///
+    /// # data_class: INTERNAL_ONLY
+    pub fn error_budget_remaining_ratio(objective: SLOObjective, window: BudgetWindow) -> f64 {
+        let allowed_bad_ratio = 1.0 - objective.target_ratio();
+        if allowed_bad_ratio <= 0.0 {
+            // target_ratio == 1.0 → zero tolerance; any bad event exhausts the budget.
+            if window.bad_events == 0 {
+                return 1.0;
+            }
+            return 0.0;
+        }
+
+        let observed = window.observed_bad_ratio();
+        // budget_consumed = observed / allowed; remaining = 1 - consumed
+        let remaining = 1.0 - (observed / allowed_bad_ratio);
+        remaining.clamp(0.0, 1.0)
+    }
+
+    // -----------------------------------------------------------------------
+    // burn_rate
+    // -----------------------------------------------------------------------
+
+    /// Compute the burn rate: observed bad ratio divided by allowed bad ratio.
+    ///
+    /// A burn rate of `1.0` means the SLO is being consumed exactly on pace;
+    /// `14.4` means the window is burning through the error budget 14.4×
+    /// faster than allowed (page-tier threshold).
+    ///
+    /// Returns `0.0` when `total == 0` (zero burn on no traffic).
+    ///
+    /// Returns `f64::INFINITY` when `target_ratio == 1.0` and there are bad
+    /// events (infinite burn rate on a 100%-target SLO with any failures).
+    ///
+    /// # data_class: INTERNAL_ONLY
+    pub fn burn_rate(objective: SLOObjective, window: BudgetWindow) -> f64 {
+        let allowed_bad_ratio = 1.0 - objective.target_ratio();
+        if allowed_bad_ratio <= 0.0 {
+            // Zero tolerance: any bad event → infinite burn; no bad events → 0.
+            if window.bad_events == 0 {
+                return 0.0;
+            }
+            return f64::INFINITY;
+        }
+
+        let observed = window.observed_bad_ratio();
+        if observed == 0.0 {
+            return 0.0;
+        }
+        observed / allowed_bad_ratio
+    }
+
+    // -----------------------------------------------------------------------
+    // classify_budget_windows — one-call helper
+    // -----------------------------------------------------------------------
+
+    /// Classify two observation windows against an SLO objective and return
+    /// the appropriate [`AlertDecision`].
+    ///
+    /// This is a thin adapter that:
+    /// 1. Computes `error_budget_remaining_ratio` from the fast window.
+    /// 2. Computes `burn_rate` for both windows.
+    /// 3. Feeds the results into [`classify_burn_rate`].
+    ///
+    /// The `fast_window` is used to derive `error_budget_consumed`; both
+    /// windows contribute their individual burn rates.
+    ///
+    /// # data_class: INTERNAL_ONLY
+    pub fn classify_budget_windows(
+        objective: SLOObjective,
+        fast_window: BudgetWindow,
+        slow_window: BudgetWindow,
+    ) -> AlertDecision {
+        let budget_remaining = error_budget_remaining_ratio(objective, fast_window);
+        let error_budget_consumed = 1.0 - budget_remaining;
+        let fast_burn = burn_rate(objective, fast_window);
+        let slow_burn = burn_rate(objective, slow_window);
+        classify_burn_rate(error_budget_consumed, fast_burn, slow_burn)
+    }
+
+    // -----------------------------------------------------------------------
+    // Inline unit tests
+    // -----------------------------------------------------------------------
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use crate::slo::{AlertDecision, SLOObjective};
+
+        fn obj(target: f64) -> SLOObjective {
+            SLOObjective::new(target, 3_600).unwrap()
+        }
+
+        // 1. Clean budget: no bad events → remaining = 1.0, burn_rate = 0.0
+        #[test]
+        fn clean_budget_no_bad_events_returns_full_remaining_and_zero_burn() {
+            let w = BudgetWindow::new(1_000, 0);
+            assert_eq!(error_budget_remaining_ratio(obj(0.999), w), 1.0);
+            assert_eq!(burn_rate(obj(0.999), w), 0.0);
+        }
+
+        // 2. Exhausted budget: bad events == allowed → remaining = 0.0
+        #[test]
+        fn exhausted_budget_returns_zero_remaining() {
+            // 99.9% SLO → allowed bad ratio = 0.001
+            // 1 bad out of 1000 total → observed = 0.001 = allowed → consumed = 1.0
+            let w = BudgetWindow::new(999, 1);
+            let remaining = error_budget_remaining_ratio(obj(0.999), w);
+            assert!((remaining - 0.0).abs() < 1e-9, "remaining={remaining}");
+        }
+
+        // 3. Partially consumed budget
+        #[test]
+        fn partial_budget_returns_proportional_remaining() {
+            // 99% SLO → allowed bad ratio = 0.01
+            // 5 bad out of 1000 → observed = 0.005 → consumed = 0.5 → remaining = 0.5
+            let w = BudgetWindow::new(995, 5);
+            let remaining = error_budget_remaining_ratio(obj(0.99), w);
+            assert!((remaining - 0.5).abs() < 1e-9, "remaining={remaining}");
+        }
+
+        // 4. Zero total events → remaining = 1.0, burn = 0.0
+        #[test]
+        fn zero_total_events_returns_full_remaining_and_zero_burn() {
+            let w = BudgetWindow::new(0, 0);
+            assert_eq!(error_budget_remaining_ratio(obj(0.999), w), 1.0);
+            assert_eq!(burn_rate(obj(0.999), w), 0.0);
+        }
+
+        // 5. bad_events > total saturation is handled (bad_events saturates at total)
+        #[test]
+        fn bad_events_exceeding_total_saturates_at_total() {
+            // good=0, bad=u64::MAX → effective bad = total = u64::MAX, ratio = 1.0
+            let w = BudgetWindow::new(0, u64::MAX);
+            // remaining should be 0.0 (fully exhausted / over-budget)
+            let remaining = error_budget_remaining_ratio(obj(0.999), w);
+            assert_eq!(remaining, 0.0, "remaining={remaining}");
+        }
+
+        // 6. target_ratio == 1.0 with no bad events → remaining = 1.0
+        #[test]
+        fn target_ratio_one_no_bad_events_returns_full_remaining() {
+            let w = BudgetWindow::new(1_000, 0);
+            assert_eq!(error_budget_remaining_ratio(obj(1.0), w), 1.0);
+            assert_eq!(burn_rate(obj(1.0), w), 0.0);
+        }
+
+        // 7. target_ratio == 1.0 with any bad events → remaining = 0.0, burn = INFINITY
+        #[test]
+        fn target_ratio_one_with_bad_events_returns_zero_remaining_and_infinite_burn() {
+            let w = BudgetWindow::new(999, 1);
+            assert_eq!(error_budget_remaining_ratio(obj(1.0), w), 0.0);
+            assert_eq!(burn_rate(obj(1.0), w), f64::INFINITY);
+        }
+
+        // 8. PAGE alert fires when both windows exceed page threshold
+        #[test]
+        fn classify_budget_windows_page_fires_on_high_burn_both_windows() {
+            // 99.9% SLO → allowed bad = 0.001
+            // burn rate of 14.4 → observed bad ratio = 14.4 * 0.001 = 0.0144
+            // ~14 bad events out of 972 total → 0.0144 ratio
+            let fast = BudgetWindow::new(958, 14); // ~1.44% bad → burn ≈ 14.4
+            let slow = BudgetWindow::new(958, 14);
+            let decision = classify_budget_windows(obj(0.999), fast, slow);
+            assert_eq!(decision, AlertDecision::Page);
+        }
+
+        // 9. TICKET alert fires when both windows exceed ticket threshold but not page
+        #[test]
+        fn classify_budget_windows_ticket_fires_on_moderate_burn_both_windows() {
+            // 99% SLO → allowed bad = 0.01
+            // burn rate of 7.0 → observed bad ratio = 0.07 → 7 bad out of 100
+            let fast = BudgetWindow::new(93, 7); // 7% bad → burn = 7.0
+            let slow = BudgetWindow::new(93, 7);
+            let decision = classify_budget_windows(obj(0.99), fast, slow);
+            assert_eq!(decision, AlertDecision::Ticket);
+        }
+
+        // 10. No alert when burn rate is low
+        #[test]
+        fn classify_budget_windows_none_on_low_burn() {
+            // 99% SLO → allowed bad = 0.01
+            // 1 bad out of 1000 → burn = 0.1 → no alert
+            let fast = BudgetWindow::new(999, 1);
+            let slow = BudgetWindow::new(999, 1);
+            let decision = classify_budget_windows(obj(0.99), fast, slow);
+            assert_eq!(decision, AlertDecision::None);
+        }
+
+        // 11. Burn rate well above PAGE boundary fires PAGE
+        #[test]
+        fn burn_rate_at_exactly_page_boundary_returns_page() {
+            // 99.9% SLO → allowed bad = 0.001; 15 bad out of 1000 → burn = 15.0
+            // (15.0 > 14.4 PAGE_BURN_RATE_THRESHOLD) and consumed > 2%
+            let fast = BudgetWindow::new(985, 15);
+            let slow = BudgetWindow::new(985, 15);
+            let decision = classify_budget_windows(obj(0.999), fast, slow);
+            assert_eq!(decision, AlertDecision::Page);
+        }
+
+        // 12. Over-budget remaining is clamped to 0.0 (not negative)
+        #[test]
+        fn over_budget_remaining_is_clamped_to_zero_not_negative() {
+            // 500 bad out of 1000 total, SLO = 99.9% → massively over budget
+            let w = BudgetWindow::new(500, 500);
+            let remaining = error_budget_remaining_ratio(obj(0.999), w);
+            assert_eq!(remaining, 0.0);
+        }
+
+        // 13. BudgetWindow total() uses saturating add
+        #[test]
+        fn budget_window_total_saturates_on_overflow() {
+            let w = BudgetWindow::new(u64::MAX, u64::MAX);
+            assert_eq!(w.total(), u64::MAX); // saturating_add
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Inline unit tests (sbr-1 acceptance + classifier hot-path)
 // ---------------------------------------------------------------------------
 
