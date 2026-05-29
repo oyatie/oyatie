@@ -38,6 +38,7 @@
 #![forbid(unsafe_code)]
 #![allow(clippy::result_large_err)]
 
+use std::collections::HashMap;
 use std::fmt;
 
 /// Provider tag — which adapter is active. Always exactly one
@@ -315,11 +316,56 @@ pub trait EmailComms: Send + Sync {
     ) -> Result<SendOutcome, EmailCommsError>;
 }
 
+/// Stable FNV-1a fingerprint over the message identity fields
+/// (from, all recipients sorted, subject, html_body). Used for
+/// idempotency-key conflict detection. Dep-free.
+///
+/// Recipients are sorted before hashing so that the fingerprint is
+/// order-independent (ADR-0149 collapse semantics require that a
+/// re-send with the same logical recipient set collapses regardless
+/// of recipient list order).
+#[must_use]
+fn message_fingerprint(message: &OutboundMessage) -> u64 {
+    const FNV_OFFSET: u64 = 14_695_981_039_346_656_037;
+    const FNV_PRIME: u64 = 1_099_511_628_211;
+
+    #[inline]
+    fn fnv_bytes(h: &mut u64, bytes: impl Iterator<Item = u8>) {
+        for byte in bytes {
+            *h ^= u64::from(byte);
+            *h = h.wrapping_mul(FNV_PRIME);
+        }
+    }
+
+    // Sort recipients for order-independence.
+    let mut sorted_to: Vec<&EmailAddress> = message.to.iter().collect();
+    sorted_to.sort_by_key(|a| a.as_str());
+
+    let mut h = FNV_OFFSET;
+    fnv_bytes(&mut h, message.from.as_str().bytes());
+    for addr in sorted_to {
+        fnv_bytes(&mut h, addr.as_str().bytes());
+    }
+    fnv_bytes(&mut h, message.subject.bytes());
+    fnv_bytes(&mut h, message.html_body.bytes());
+    h
+}
+
 /// Shared deliverability invariant check used by every real
 /// adapter. Centralizing it here means DKIM/SPF/DMARC + suppression
-/// + rate-ceiling rules are uniform across SES, Postal, Mailgun,
+/// + rate-ceiling + idempotency rules are uniform across SES,
+/// Postal, Mailgun, and SMTP.
 ///
-/// SMTP.
+/// # Parameters
+/// - `recent_send_count` — number of sends already recorded in the
+///   current one-minute window for this tenant. Pass `0` if the
+///   caller does not track a window.
+/// - `rate_ceiling` — maximum sends per minute allowed for this
+///   tenant. `0` means uncapped.
+/// - `prior_fingerprints` — map of previously-seen idempotency key
+///   → message fingerprint. Pass `&HashMap::new()` (or
+///   `&Default::default()`) if the caller does not track
+///   idempotency.
 ///
 /// # Errors
 /// See `EmailCommsError`.
@@ -328,6 +374,9 @@ pub fn enforce_deliverability_invariants(
     message: &OutboundMessage,
     suppressed: &[EmailAddress],
     warm_up_complete: bool,
+    recent_send_count: u32,
+    rate_ceiling: u32,
+    prior_fingerprints: &HashMap<String, u64>,
 ) -> Result<(), EmailCommsError> {
     if message.to.is_empty() {
         return Err(EmailCommsError::NoRecipients);
@@ -353,6 +402,23 @@ pub fn enforce_deliverability_invariants(
             message.from.as_str(),
             binding.from_domain,
         )));
+    }
+    // ST1: per-tenant per-minute rate ceiling.
+    if rate_ceiling > 0 && recent_send_count >= rate_ceiling {
+        return Err(EmailCommsError::RateCeilingExceeded {
+            tenant: binding.tenant.clone(),
+            per_minute: rate_ceiling,
+        });
+    }
+    // ST2: idempotency-key conflict detection.
+    let fp = message_fingerprint(message);
+    if let Some(&prior_fp) = prior_fingerprints.get(&message.idempotency_key) {
+        if prior_fp != fp {
+            return Err(EmailCommsError::IdempotencyConflict {
+                key: message.idempotency_key.clone(),
+            });
+        }
+        // Identical re-send: collapse to success (fall through).
     }
     for rcpt in &message.to {
         if suppressed.contains(rcpt) {
@@ -391,7 +457,7 @@ impl EmailComms for SesEmailComms {
         binding: &DeliverabilityBinding,
         message: &OutboundMessage,
     ) -> Result<(), EmailCommsError> {
-        enforce_deliverability_invariants(binding, message, &[], true)
+        enforce_deliverability_invariants(binding, message, &[], true, 0, 0, &HashMap::new())
     }
     fn send(
         &self,
@@ -423,7 +489,7 @@ impl EmailComms for PostalEmailComms {
         binding: &DeliverabilityBinding,
         message: &OutboundMessage,
     ) -> Result<(), EmailCommsError> {
-        enforce_deliverability_invariants(binding, message, &[], true)
+        enforce_deliverability_invariants(binding, message, &[], true, 0, 0, &HashMap::new())
     }
     fn send(
         &self,
@@ -455,7 +521,7 @@ impl EmailComms for MailgunEmailComms {
         binding: &DeliverabilityBinding,
         message: &OutboundMessage,
     ) -> Result<(), EmailCommsError> {
-        enforce_deliverability_invariants(binding, message, &[], true)
+        enforce_deliverability_invariants(binding, message, &[], true, 0, 0, &HashMap::new())
     }
     fn send(
         &self,
@@ -489,7 +555,7 @@ impl EmailComms for SmtpEmailComms {
         binding: &DeliverabilityBinding,
         message: &OutboundMessage,
     ) -> Result<(), EmailCommsError> {
-        enforce_deliverability_invariants(binding, message, &[], true)
+        enforce_deliverability_invariants(binding, message, &[], true, 0, 0, &HashMap::new())
     }
     fn send(
         &self,
@@ -548,7 +614,7 @@ mod tests {
         let mut b = good_binding();
         b.dkim.selector = String::new();
         let m = good_message();
-        let err = enforce_deliverability_invariants(&b, &m, &[], true).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err();
         match err {
             EmailCommsError::DkimBindingMissing(t) => assert_eq!(t.0, "acme"),
             other => panic!("expected DkimBindingMissing, got {other:?}"),
@@ -560,7 +626,7 @@ mod tests {
         let mut b = good_binding();
         b.spf_authorized = false;
         let m = good_message();
-        let err = enforce_deliverability_invariants(&b, &m, &[], true).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err();
         match err {
             EmailCommsError::SpfNotAuthorized(t) => assert_eq!(t.0, "acme"),
             other => panic!("expected SpfNotAuthorized, got {other:?}"),
@@ -572,7 +638,7 @@ mod tests {
         let mut b = good_binding();
         b.dmarc_policy = DmarcPolicy::None;
         let m = good_message();
-        let err = enforce_deliverability_invariants(&b, &m, &[], true).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err();
         match err {
             EmailCommsError::DmarcPolicyForbidden { policy, .. } => {
                 assert_eq!(policy, DmarcPolicy::None);
@@ -586,7 +652,7 @@ mod tests {
         let mut b = good_binding();
         b.dmarc_policy = DmarcPolicy::None;
         let m = good_message();
-        enforce_deliverability_invariants(&b, &m, &[], false).unwrap();
+        enforce_deliverability_invariants(&b, &m, &[], false, 0, 0, &HashMap::new()).unwrap();
     }
 
     #[test]
@@ -594,7 +660,7 @@ mod tests {
         let b = good_binding();
         let m = good_message();
         let supp = vec![EmailAddress::try_new("user@example.com").unwrap()];
-        let err = enforce_deliverability_invariants(&b, &m, &supp, true).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &supp, true, 0, 0, &HashMap::new()).unwrap_err();
         match err {
             EmailCommsError::RecipientSuppressed(addr) => {
                 assert_eq!(addr.as_str(), "user@example.com");
@@ -608,7 +674,7 @@ mod tests {
         let b = good_binding();
         let mut m = good_message();
         m.from = EmailAddress::try_new("no-reply@wrong.com").unwrap();
-        let err = enforce_deliverability_invariants(&b, &m, &[], true).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err();
         match err {
             EmailCommsError::InvalidAddress(_) => {}
             other => panic!("expected InvalidAddress, got {other:?}"),
@@ -621,14 +687,14 @@ mod tests {
         let mut m = good_message();
         m.to.clear();
         assert_eq!(
-            enforce_deliverability_invariants(&b, &m, &[], true).unwrap_err(),
+            enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err(),
             EmailCommsError::NoRecipients
         );
         let mut m2 = good_message();
         m2.subject = String::new();
         m2.html_body = String::new();
         assert_eq!(
-            enforce_deliverability_invariants(&b, &m2, &[], true).unwrap_err(),
+            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &HashMap::new()).unwrap_err(),
             EmailCommsError::EmptyMessage
         );
     }
@@ -660,6 +726,236 @@ mod tests {
                 other => panic!("expected AdapterNotConfigured for {expected}, got {other:?}"),
             }
         }
+    }
+
+    // ---- ST1: per-tenant per-minute rate ceiling ----
+
+    #[test]
+    fn rate_ceiling_at_limit_rejected() {
+        let b = good_binding();
+        let m = good_message();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 10, 10, &HashMap::new())
+            .unwrap_err();
+        match err {
+            EmailCommsError::RateCeilingExceeded { tenant, per_minute } => {
+                assert_eq!(tenant.0, "acme");
+                assert_eq!(per_minute, 10);
+            }
+            other => panic!("expected RateCeilingExceeded, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn rate_ceiling_below_limit_accepted() {
+        let b = good_binding();
+        let m = good_message();
+        enforce_deliverability_invariants(&b, &m, &[], true, 9, 10, &HashMap::new()).unwrap();
+    }
+
+    #[test]
+    fn rate_ceiling_zero_means_uncapped() {
+        let b = good_binding();
+        let m = good_message();
+        // Even an absurdly large count must be accepted when ceiling == 0.
+        enforce_deliverability_invariants(&b, &m, &[], true, 999_999, 0, &HashMap::new())
+            .unwrap();
+    }
+
+    // ---- ST2: idempotency-key conflict detection ----
+
+    #[test]
+    fn idempotency_fresh_key_accepted() {
+        let b = good_binding();
+        let m = good_message();
+        // Empty prior map — fresh key.
+        enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap();
+    }
+
+    #[test]
+    fn idempotency_same_key_identical_message_collapsed() {
+        let b = good_binding();
+        let m = good_message();
+        let fp = message_fingerprint(&m);
+        let mut priors = HashMap::new();
+        priors.insert(m.idempotency_key.clone(), fp);
+        // Identical re-send must succeed (collapse).
+        enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &priors).unwrap();
+    }
+
+    #[test]
+    fn idempotency_same_key_different_message_rejected() {
+        let b = good_binding();
+        let m = good_message();
+        let fp = message_fingerprint(&m);
+        let mut priors = HashMap::new();
+        priors.insert(m.idempotency_key.clone(), fp);
+
+        // Mutate the subject so the fingerprint diverges.
+        let mut m2 = good_message();
+        m2.subject = "A completely different subject".into();
+
+        let err =
+            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
+        match err {
+            EmailCommsError::IdempotencyConflict { key } => {
+                assert_eq!(key, m.idempotency_key);
+            }
+            other => panic!("expected IdempotencyConflict, got {other:?}"),
+        }
+    }
+
+    // ---- ST1 extended: additional rate-ceiling edge cases ----
+
+    #[test]
+    fn rate_ceiling_above_limit_also_rejected_with_correct_per_minute() {
+        // count=15, ceiling=10 — strictly above, not just at-boundary.
+        // Verifies RateCeilingExceeded.per_minute reflects the caller-supplied
+        // ceiling (100) not a hardcoded constant.
+        let b = good_binding();
+        let m = good_message();
+        let err =
+            enforce_deliverability_invariants(&b, &m, &[], true, 15, 10, &HashMap::new())
+                .unwrap_err();
+        match err {
+            EmailCommsError::RateCeilingExceeded { tenant, per_minute } => {
+                assert_eq!(tenant.0, "acme");
+                assert_eq!(per_minute, 10);
+            }
+            other => panic!("expected RateCeilingExceeded, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn rate_ceiling_per_minute_field_reflects_caller_supplied_ceiling() {
+        // Ceiling=100 — confirms the error carries the exact ceiling value,
+        // not a hardcoded constant from a previous test.
+        let b = good_binding();
+        let m = good_message();
+        let err =
+            enforce_deliverability_invariants(&b, &m, &[], true, 100, 100, &HashMap::new())
+                .unwrap_err();
+        match err {
+            EmailCommsError::RateCeilingExceeded { per_minute, .. } => {
+                assert_eq!(per_minute, 100);
+            }
+            other => panic!("expected RateCeilingExceeded, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn rate_ceiling_check_fires_before_idempotency_conflict() {
+        // When both rate ceiling is exceeded AND an idempotency conflict
+        // exists, the rate ceiling error is returned first (ceiling check
+        // precedes idempotency check in enforce_deliverability_invariants).
+        let b = good_binding();
+        let m = good_message();
+        let fp = message_fingerprint(&m);
+        // Store a *different* fingerprint so idempotency would conflict.
+        let mut priors = HashMap::new();
+        priors.insert(m.idempotency_key.clone(), fp.wrapping_add(1));
+        let err =
+            enforce_deliverability_invariants(&b, &m, &[], true, 10, 10, &priors).unwrap_err();
+        match err {
+            EmailCommsError::RateCeilingExceeded { .. } => {}
+            other => panic!("expected RateCeilingExceeded before IdempotencyConflict, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn suppression_check_catches_second_recipient_when_first_is_clean() {
+        // Two-recipient message: first recipient clean, second suppressed.
+        // Verifies the suppression loop iterates all recipients, not just the first.
+        let b = good_binding();
+        let mut m = good_message();
+        let second = EmailAddress::try_new("other@example.com").unwrap();
+        m.to.push(second.clone());
+        let supp = vec![second.clone()];
+        let err =
+            enforce_deliverability_invariants(&b, &m, &supp, true, 0, 0, &HashMap::new())
+                .unwrap_err();
+        match err {
+            EmailCommsError::RecipientSuppressed(addr) => {
+                assert_eq!(addr.as_str(), "other@example.com");
+            }
+            other => panic!("expected RecipientSuppressed for second recipient, got {other:?}"),
+        }
+    }
+
+    // ---- ST2 extended: idempotency fingerprint sensitivity ----
+
+    #[test]
+    fn idempotency_same_key_html_body_change_is_conflict() {
+        // Changing only html_body (not subject) must produce a conflict.
+        // Verifies html_body is included in the fingerprint.
+        let b = good_binding();
+        let m = good_message();
+        let fp = message_fingerprint(&m);
+        let mut priors = HashMap::new();
+        priors.insert(m.idempotency_key.clone(), fp);
+
+        let mut m2 = good_message();
+        m2.html_body = "<p>completely different content</p>".into();
+
+        let err =
+            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
+        match err {
+            EmailCommsError::IdempotencyConflict { key } => {
+                assert_eq!(key, m.idempotency_key);
+            }
+            other => panic!("expected IdempotencyConflict on html_body change, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn idempotency_same_key_recipient_change_is_conflict() {
+        // Changing only the recipient (same key, same subject/body) must
+        // produce a conflict. Verifies the recipient list is in the fingerprint.
+        let b = good_binding();
+        let m = good_message();
+        let fp = message_fingerprint(&m);
+        let mut priors = HashMap::new();
+        priors.insert(m.idempotency_key.clone(), fp);
+
+        let mut m2 = good_message();
+        m2.to = vec![EmailAddress::try_new("different@example.com").unwrap()];
+
+        let err =
+            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
+        match err {
+            EmailCommsError::IdempotencyConflict { key } => {
+                assert_eq!(key, m.idempotency_key);
+            }
+            other => panic!("expected IdempotencyConflict on recipient change, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn idempotency_collapse_is_order_independent_for_recipients() {
+        // ADR-0149 collapse semantics: an identical re-send must collapse to
+        // success regardless of recipient list ordering. Two messages with the
+        // same from/subject/body/recipients but recipients in swapped order
+        // represent the same logical message and must NOT produce a conflict.
+        //
+        // message_fingerprint sorts recipients before hashing (lib.rs:341-342),
+        // so recipient list ordering does not affect the fingerprint. This test
+        // confirms that collapse semantics hold regardless of to[] ordering.
+        let b = good_binding();
+        let rcpt_a = EmailAddress::try_new("alice@example.com").unwrap();
+        let rcpt_b = EmailAddress::try_new("bob@example.com").unwrap();
+
+        let mut m1 = good_message();
+        m1.to = vec![rcpt_a.clone(), rcpt_b.clone()];
+
+        let fp = message_fingerprint(&m1);
+        let mut priors = HashMap::new();
+        priors.insert(m1.idempotency_key.clone(), fp);
+
+        // Same message, recipients in reversed order — must collapse, not conflict.
+        let mut m2 = good_message();
+        m2.to = vec![rcpt_b.clone(), rcpt_a.clone()];
+
+        enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors)
+            .expect("identical re-send with reordered recipients must collapse to Ok, not conflict");
     }
 
     #[test]
