@@ -1,19 +1,35 @@
-//! HMAC-SHA256 webhook signature verification.
+//! Webhook signature verification: HMAC-SHA256 and Ed25519.
+//!
+//! ## HMAC-SHA256 (primary)
 //!
 //! Forgejo (like GitHub) signs each webhook delivery with
 //! `HMAC-SHA256(secret, raw_body)` and sends it as the
 //! `X-Hub-Signature-256: sha256=<hex>` header (Forgejo also sends the
 //! legacy `X-Gitea-Signature` raw-hex header; both are supported).
 //!
-//! Security invariants (ADR-0112 §"Signature handling", carried forward to
-//! the ADR-0363 Forgejo substrate):
+//! ## Ed25519 (best-practice alternative, ADR-0374 §"ed25519 path")
+//!
+//! Forgejo also supports signing webhook deliveries with an ed25519 keypair.
+//! When configured, Forgejo sends the detached signature in the
+//! `X-Forgejo-Signature` header as standard base64 (RFC 4648, no padding
+//! required). The gateway verifies the raw body against the configured
+//! ed25519 public key using `ed25519-dalek` (RustCrypto, MIT/Apache-2.0).
+//!
+//! `verify_any` prefers HMAC-SHA256 when both headers are present; either
+//! path satisfies the security invariants below.
+//!
+//! ## Security invariants (ADR-0112 §"Signature handling")
 //!   1. FAIL CLOSED — verification runs on the RAW body BEFORE JSON parsing,
 //!      dedup, or routing, so an attacker cannot poison downstream state with
 //!      a crafted-but-unsigned payload.
-//!   2. CONSTANT TIME — the digest comparison uses `subtle::ConstantTimeEq`
-//!      so the verifier does not leak the secret via timing.
-//!   3. NO SECRET LOGGING — the secret never appears in `Debug`/`Display`.
+//!   2. CONSTANT TIME — HMAC comparison uses `subtle::ConstantTimeEq`;
+//!      ed25519-dalek verify is internally constant-time per its API contract.
+//!   3. NO SECRET LOGGING — secrets and private keys never appear in
+//!      `Debug`/`Display`.
 
+use base64::Engine as _;
+use base64::engine::general_purpose::STANDARD as B64;
+use ed25519_dalek::{Signature as Ed25519Signature, Verifier, VerifyingKey};
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use subtle::ConstantTimeEq;
@@ -22,10 +38,36 @@ use crate::error::{GatewayError, Result};
 
 type HmacSha256 = Hmac<Sha256>;
 
-/// The canonical Forgejo/GitHub signature header.
+/// The canonical Forgejo/GitHub HMAC-SHA256 signature header.
 pub const SIGNATURE_HEADER: &str = "x-hub-signature-256";
-/// The legacy Gitea/Forgejo raw-hex header (no `sha256=` prefix).
+/// The legacy Gitea/Forgejo raw-hex HMAC header (no `sha256=` prefix).
 pub const LEGACY_SIGNATURE_HEADER: &str = "x-gitea-signature";
+/// Forgejo ed25519 signature header: base64-encoded detached signature over
+/// the raw body. Present when the webhook is configured with an ed25519 keypair
+/// instead of (or in addition to) an HMAC secret.
+pub const ED25519_SIGNATURE_HEADER: &str = "x-forgejo-signature";
+
+// ── Ed25519 public-key wrapper ─────────────────────────────────────────────
+
+/// A Forgejo webhook ed25519 public key. Wraps `ed25519-dalek::VerifyingKey`
+/// and redacts it from `Debug` output to avoid leaking key material.
+#[derive(Clone)]
+pub struct WebhookEd25519Key(VerifyingKey);
+
+impl WebhookEd25519Key {
+    /// Construct from a 32-byte raw public key (ed25519 compressed point).
+    pub fn from_bytes(bytes: &[u8; 32]) -> Result<Self> {
+        VerifyingKey::from_bytes(bytes)
+            .map(WebhookEd25519Key)
+            .map_err(|_| GatewayError::SecretUnavailable)
+    }
+}
+
+impl std::fmt::Debug for WebhookEd25519Key {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("WebhookEd25519Key(<redacted>)")
+    }
+}
 
 /// A webhook HMAC secret. Wraps the bytes so the secret is never accidentally
 /// formatted into a log line.
@@ -97,20 +139,59 @@ pub fn verify_raw_hex(secret: &WebhookSecret, body: &[u8], header_hex: &str) -> 
     }
 }
 
-/// Select the strongest available header and verify it. `prefixed` is the
-/// `X-Hub-Signature-256` value; `legacy` is the `X-Gitea-Signature` value.
-/// At least one MUST be present, or we fail closed with `MissingSignature`.
+/// Select the strongest available header and verify it. Preference order:
+/// 1. `X-Hub-Signature-256` (HMAC-SHA256, prefixed `sha256=<hex>`)
+/// 2. `X-Gitea-Signature` (legacy raw-hex HMAC)
+/// 3. `X-Forgejo-Signature` (ed25519, requires `ed25519_key` to be `Some`)
+///
+/// At least one verifiable header MUST be present, or we fail closed with
+/// `MissingSignature`. If only the ed25519 header is present but no public key
+/// is configured, we fail closed with `SecretUnavailable`.
 pub fn verify_any(
     secret: &WebhookSecret,
     body: &[u8],
     prefixed: Option<&str>,
     legacy: Option<&str>,
+    ed25519_header: Option<&str>,
+    ed25519_key: Option<&WebhookEd25519Key>,
 ) -> Result<()> {
-    match (prefixed, legacy) {
-        (Some(value), _) => verify_prefixed(secret, body, value),
-        (None, Some(value)) => verify_raw_hex(secret, body, value),
-        (None, None) => Err(GatewayError::MissingSignature),
+    match (prefixed, legacy, ed25519_header, ed25519_key) {
+        (Some(value), _, _, _) => verify_prefixed(secret, body, value),
+        (None, Some(value), _, _) => verify_raw_hex(secret, body, value),
+        (None, None, Some(sig), Some(key)) => verify_ed25519(key, body, sig),
+        (None, None, Some(_), None) => Err(GatewayError::SecretUnavailable),
+        (None, None, None, _) => Err(GatewayError::MissingSignature),
     }
+}
+
+// ── Ed25519 signature verification ────────────────────────────────────────
+
+/// Verify a Forgejo ed25519 webhook signature.
+///
+/// `header_value` is the raw `X-Forgejo-Signature` header value: standard
+/// base64-encoded (RFC 4648; with or without padding) 64-byte ed25519
+/// detached signature over the raw body bytes.
+///
+/// Security properties:
+///   - `ed25519-dalek::VerifyingKey::verify` is internally constant-time.
+///   - Returns `MalformedSignature` for any base64 or length error so callers
+///     cannot distinguish "bad base64" from "wrong key" — fail closed.
+pub fn verify_ed25519(
+    key: &WebhookEd25519Key,
+    body: &[u8],
+    header_value: &str,
+) -> Result<()> {
+    let raw = B64
+        .decode(header_value.trim())
+        .map_err(|_| GatewayError::MalformedSignature)?;
+    let sig_bytes: &[u8; 64] = raw
+        .as_slice()
+        .try_into()
+        .map_err(|_| GatewayError::MalformedSignature)?;
+    let sig = Ed25519Signature::from_bytes(sig_bytes);
+    key.0
+        .verify(body, &sig)
+        .map_err(|_| GatewayError::SignatureMismatch)
 }
 
 fn hex_encode(bytes: &[u8]) -> String {
@@ -179,8 +260,92 @@ mod tests {
     #[test]
     fn no_headers_is_missing_signature() {
         let secret = WebhookSecret::new(KAT_SECRET.as_bytes().to_vec());
-        let err = verify_any(&secret, KAT_BODY, None, None).unwrap_err();
+        let err = verify_any(&secret, KAT_BODY, None, None, None, None).unwrap_err();
         assert!(matches!(err, GatewayError::MissingSignature));
+    }
+
+    // ── Ed25519 tests ────────────────────────────────────────────────────
+
+    fn ed25519_keypair() -> (ed25519_dalek::SigningKey, WebhookEd25519Key) {
+        // Deterministic keypair for tests: seed = [0x42; 32].
+        let seed = [0x42u8; 32];
+        let signing_key = ed25519_dalek::SigningKey::from_bytes(&seed);
+        let verifying_key =
+            WebhookEd25519Key::from_bytes(signing_key.verifying_key().as_bytes()).unwrap();
+        (signing_key, verifying_key)
+    }
+
+    fn ed25519_sign(signing_key: &ed25519_dalek::SigningKey, body: &[u8]) -> String {
+        use ed25519_dalek::Signer as _;
+        let sig = signing_key.sign(body);
+        base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
+    }
+
+    #[test]
+    fn ed25519_valid_signature_verifies() {
+        let (sk, vk) = ed25519_keypair();
+        let sig = ed25519_sign(&sk, KAT_BODY);
+        assert!(verify_ed25519(&vk, KAT_BODY, &sig).is_ok());
+    }
+
+    #[test]
+    fn ed25519_tampered_body_fails() {
+        let (sk, vk) = ed25519_keypair();
+        let sig = ed25519_sign(&sk, KAT_BODY);
+        let err = verify_ed25519(&vk, b"tampered", &sig).unwrap_err();
+        assert!(matches!(err, GatewayError::SignatureMismatch));
+    }
+
+    #[test]
+    fn ed25519_bad_base64_is_malformed() {
+        let (_, vk) = ed25519_keypair();
+        let err = verify_ed25519(&vk, KAT_BODY, "not!base64$$").unwrap_err();
+        assert!(matches!(err, GatewayError::MalformedSignature));
+    }
+
+    #[test]
+    fn ed25519_wrong_length_is_malformed() {
+        let (_, vk) = ed25519_keypair();
+        // 32 bytes encoded is too short for a 64-byte ed25519 signature.
+        let short = base64::engine::general_purpose::STANDARD.encode([0u8; 32]);
+        let err = verify_ed25519(&vk, KAT_BODY, &short).unwrap_err();
+        assert!(matches!(err, GatewayError::MalformedSignature));
+    }
+
+    #[test]
+    fn verify_any_falls_through_to_ed25519_when_hmac_absent() {
+        let secret = WebhookSecret::new(Vec::new()); // empty — won't be used
+        let (sk, vk) = ed25519_keypair();
+        let sig = ed25519_sign(&sk, KAT_BODY);
+        assert!(verify_any(&secret, KAT_BODY, None, None, Some(&sig), Some(&vk)).is_ok());
+    }
+
+    #[test]
+    fn verify_any_ed25519_without_key_configured_fails_closed() {
+        let secret = WebhookSecret::new(Vec::new());
+        let (sk, _vk) = ed25519_keypair();
+        let sig = ed25519_sign(&sk, KAT_BODY);
+        let err = verify_any(&secret, KAT_BODY, None, None, Some(&sig), None).unwrap_err();
+        assert!(matches!(err, GatewayError::SecretUnavailable));
+    }
+
+    #[test]
+    fn verify_any_prefers_hmac_over_ed25519() {
+        // Provide a valid HMAC prefixed header + an ed25519 header — HMAC wins.
+        let secret = WebhookSecret::new(KAT_SECRET.as_bytes().to_vec());
+        let (sk, vk) = ed25519_keypair();
+        let ed_sig = ed25519_sign(&sk, KAT_BODY);
+        let hmac_header = format!("sha256={KAT_HEX}");
+        assert!(
+            verify_any(&secret, KAT_BODY, Some(&hmac_header), None, Some(&ed_sig), Some(&vk))
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn ed25519_key_redacted_in_debug() {
+        let (_, vk) = ed25519_keypair();
+        assert_eq!(format!("{vk:?}"), "WebhookEd25519Key(<redacted>)");
     }
 
     #[test]
