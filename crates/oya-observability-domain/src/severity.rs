@@ -58,6 +58,33 @@ impl Severity {
         ]
     }
 
+    /// Map an OTel SeverityNumber integer to its `Severity` bucket.
+    ///
+    /// The OTel spec defines six named levels, each spanning a range of four
+    /// integers (the "severity number ranges"). This function maps any integer
+    /// in a range to the canonical bucket regardless of position within the
+    /// range. Returns `None` for 0 and any value > 24.
+    ///
+    /// | Range | Bucket |
+    /// |-------|--------|
+    /// | 1–4   | Trace  |
+    /// | 5–8   | Debug  |
+    /// | 9–12  | Info   |
+    /// | 13–16 | Warn   |
+    /// | 17–20 | Error  |
+    /// | 21–24 | Fatal  |
+    pub fn from_otel_int(n: u8) -> Option<Self> {
+        match n {
+            1..=4 => Some(Severity::Trace),
+            5..=8 => Some(Severity::Debug),
+            9..=12 => Some(Severity::Info),
+            13..=16 => Some(Severity::Warn),
+            17..=20 => Some(Severity::Error),
+            21..=24 => Some(Severity::Fatal),
+            _ => None,
+        }
+    }
+
     pub fn from_wire_label(label: &str) -> Option<Self> {
         match label {
             "TRACE" => Some(Severity::Trace),
@@ -69,6 +96,16 @@ impl Severity {
             _ => None,
         }
     }
+}
+
+/// Return `true` when `record_severity` meets or exceeds `min_threshold`.
+///
+/// Emitters call this before forwarding a log record to any exporter, using
+/// the configured minimum severity as the threshold. The implementation
+/// delegates to `Ord` which is already derived on `Severity`
+/// (Trace < Debug < Info < Warn < Error < Fatal).
+pub fn should_emit(record_severity: Severity, min_threshold: Severity) -> bool {
+    record_severity >= min_threshold
 }
 
 impl std::fmt::Display for Severity {
@@ -174,5 +211,43 @@ mod tests {
         assert_eq!(all.len(), 6);
         let set: std::collections::BTreeSet<_> = all.iter().copied().collect();
         assert_eq!(set.len(), 6);
+    }
+
+    #[test]
+    fn from_otel_int_bucket_boundaries() {
+        // Last value of Trace range, first value of Debug range.
+        assert_eq!(Severity::from_otel_int(4), Some(Severity::Trace));
+        assert_eq!(Severity::from_otel_int(5), Some(Severity::Debug));
+        // Last value of Error range, first value of Fatal range.
+        assert_eq!(Severity::from_otel_int(20), Some(Severity::Error));
+        assert_eq!(Severity::from_otel_int(21), Some(Severity::Fatal));
+        // Out-of-range sentinels.
+        assert_eq!(Severity::from_otel_int(0), None);
+        assert_eq!(Severity::from_otel_int(25), None);
+    }
+
+    #[test]
+    fn from_otel_int_round_trips_canonical_ints() {
+        for s in Severity::all() {
+            assert_eq!(Severity::from_otel_int(s.as_otel_int()), Some(s));
+        }
+    }
+
+    #[test]
+    fn should_emit_threshold_matrix() {
+        let levels = Severity::all();
+        for &record in &levels {
+            for &threshold in &levels {
+                assert_eq!(
+                    should_emit(record, threshold),
+                    record >= threshold,
+                    "should_emit({record:?}, {threshold:?}) mismatch",
+                );
+            }
+        }
+        // Spot-check the three acceptance criteria.
+        assert!(!should_emit(Severity::Info, Severity::Warn));
+        assert!(should_emit(Severity::Error, Severity::Warn));
+        assert!(should_emit(Severity::Warn, Severity::Warn));
     }
 }
