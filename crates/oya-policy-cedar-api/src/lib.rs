@@ -4,6 +4,12 @@
 //! policy-version binding, request fingerprint idempotency, scope/effect parsing,
 //! and stable public error projection for `cedar.policy.publish` before handing
 //! typed policy publication to the platform Cedar policy kernel.
+//!
+//! ## Modules
+//!
+//! - [`rest`] — axum control-plane REST edge (ADR-0090 amendment).
+
+pub mod rest;
 
 use std::collections::BTreeMap;
 
@@ -787,6 +793,7 @@ fn policy_rule_input_from_ref(
             .required_attribute
             .as_ref()
             .map(|attribute| (attribute.key.clone(), attribute.value.clone())),
+        annotations: Vec::new(),
     })
 }
 
