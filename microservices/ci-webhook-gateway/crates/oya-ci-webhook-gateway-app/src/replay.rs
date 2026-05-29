@@ -163,10 +163,10 @@ impl DeliveryGuard {
     /// Remove all entries whose recorded timestamp is older than `ttl_ms`
     /// relative to `now_unix_millis`.
     ///
-    /// Called opportunistically inside [`record_and_check`] is not mandatory;
-    /// callers may invoke this on a background timer or at the start of each
-    /// `record_and_check` call.  Exposed `pub` so the handler can call it
-    /// periodically if desired.
+    /// Pruning is not required for correctness — [`record_and_check`] already
+    /// treats expired entries as fresh.  It only bounds memory.  Exposed `pub`
+    /// so the handler can call it before each `record_and_check`, or on a
+    /// background timer.
     pub fn prune(&mut self, now_unix_millis: u64) {
         self.seen
             .retain(|_, &mut recorded_at| now_unix_millis.saturating_sub(recorded_at) < self.ttl_ms);
