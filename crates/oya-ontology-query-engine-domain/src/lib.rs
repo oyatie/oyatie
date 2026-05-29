@@ -17,6 +17,12 @@ use oya_ontology_kernel::ObjectGraph;
 /// Hard cap for source-level recursive traversal in this preview foundation.
 pub const MAX_QUERY_DEPTH: u32 = 16;
 
+/// Hard cap on nodes returned in a single query result to bound blast radius.
+pub const MAX_QUERY_RESULT_NODES: usize = 1_000;
+
+/// Hard cap on edges returned in a single query result to bound blast radius.
+pub const MAX_QUERY_RESULT_EDGES: usize = 5_000;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KnowledgeGraphLinkInstance {
     pub tenant_id: String,              // data_class: INTERNAL_ONLY
@@ -44,6 +50,9 @@ pub struct KnowledgeGraphQueryResponse {
     pub nodes: Vec<KnowledgeGraphNode>, // data_class: INTERNAL_ONLY
     pub edges: Vec<KnowledgeGraphEdge>, // data_class: INTERNAL_ONLY
     pub observed_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    /// True when the result was truncated by node or edge cardinality caps.
+    /// Callers must treat a truncated result as incomplete. // data_class: INTERNAL_ONLY
+    pub result_truncated: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -71,7 +80,10 @@ pub enum KnowledgeGraphQueryError {
     InvalidQueryId,
     InvalidEntityId,
     InvalidEdgeTypeId,
+    /// `max_depth` is structurally invalid (e.g. zero).
     InvalidMaxDepth,
+    /// `max_depth` exceeds [`MAX_QUERY_DEPTH`]; reduce the requested depth.
+    DepthCeilingExceeded,
     MissingRootEntity,
     DanglingLinkEndpoint { entity_id: String },
 }
@@ -194,6 +206,7 @@ impl KnowledgeGraphQueryEngine {
         let mut seen_nodes = BTreeSet::from([request.root_entity_id.clone()]);
         let mut nodes = BTreeMap::new();
         let mut edges = BTreeSet::new();
+        let mut result_truncated = false;
         insert_node(
             graph,
             &request.tenant_id,
@@ -201,7 +214,7 @@ impl KnowledgeGraphQueryEngine {
             &mut nodes,
         )?;
 
-        while let Some((entity_id, depth)) = queue.pop_front() {
+        'bfs: while let Some((entity_id, depth)) = queue.pop_front() {
             if depth >= request.max_depth {
                 continue;
             }
@@ -215,8 +228,20 @@ impl KnowledgeGraphQueryEngine {
                 }
                 validate_link_endpoints(graph, link)?;
 
+                // Edge cap: stop before inserting when at limit.
+                if edges.len() >= MAX_QUERY_RESULT_EDGES {
+                    result_truncated = true;
+                    break 'bfs;
+                }
                 edges.insert(link.as_contract_edge());
+
+                // Node cap: stop before inserting when at limit.
+                if nodes.len() >= MAX_QUERY_RESULT_NODES {
+                    result_truncated = true;
+                    break 'bfs;
+                }
                 insert_node(graph, &request.tenant_id, &link.to_entity_id, &mut nodes)?;
+
                 if seen_nodes.insert(link.to_entity_id.clone()) {
                     queue.push_back((link.to_entity_id.clone(), depth + 1));
                 }
@@ -229,6 +254,7 @@ impl KnowledgeGraphQueryEngine {
             nodes: nodes.into_values().collect(),
             edges: edges.into_iter().collect(),
             observed_at_epoch_seconds: request.observed_at_epoch_seconds,
+            result_truncated,
         })
     }
 
@@ -343,11 +369,13 @@ fn validate_edge_type_id(edge_type_id: &str) -> Result<(), KnowledgeGraphQueryEr
 }
 
 fn validate_max_depth(max_depth: u32) -> Result<(), KnowledgeGraphQueryError> {
-    if (1..=MAX_QUERY_DEPTH).contains(&max_depth) {
-        Ok(())
-    } else {
-        Err(KnowledgeGraphQueryError::InvalidMaxDepth)
+    if max_depth == 0 {
+        return Err(KnowledgeGraphQueryError::InvalidMaxDepth);
     }
+    if max_depth > MAX_QUERY_DEPTH {
+        return Err(KnowledgeGraphQueryError::DepthCeilingExceeded);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -594,7 +622,7 @@ mod tests {
                 0,
                 1,
             ),
-            Err(KnowledgeGraphQueryError::InvalidMaxDepth)
+            Err(KnowledgeGraphQueryError::DepthCeilingExceeded)
         );
 
         let engine = KnowledgeGraphQueryEngine::default();
