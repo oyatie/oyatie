@@ -349,6 +349,214 @@ impl fmt::Display for IllegalTransition {
 
 impl std::error::Error for IllegalTransition {}
 
+// =====================================================================
+// Failure reason taxonomy
+// =====================================================================
+
+/// Machine-readable reason code for a control-plane `Failed` transition
+/// (ADR-0376). Carried alongside [`ControlPlaneStatus::Failed`] so that
+/// operators and reconcilers can branch on cause without parsing log strings.
+///
+/// Each variant is tier-scoped or cross-tier as noted.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FailureReason {
+    /// HOSTED-TIER: the tenant control plane's datastore bind exceeded the
+    /// allotted deadline (applies to [`ControlPlaneTier::HostedKamaji`]).
+    DatastoreBindTimeout,
+    /// DEDICATED-TIER: the Talos control-plane installation-media build
+    /// failed (applies to [`ControlPlaneTier::DedicatedTalosSpoke`]).
+    MediaBuildFailed,
+    /// BOTH TIERS: the API-server endpoint was not reachable within the
+    /// provisioning deadline (post-[`ControlPlaneStatus::Provisioning`]).
+    EndpointUnreachable,
+}
+
+impl FailureReason {
+    /// Stable wire/log slug for this failure reason.
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::DatastoreBindTimeout => "datastore_bind_timeout",
+            Self::MediaBuildFailed => "media_build_failed",
+            Self::EndpointUnreachable => "endpoint_unreachable",
+        }
+    }
+
+    /// Parse a failure reason from its stable slug. Returns `None` for any
+    /// unknown value (fail-closed; no panic).
+    #[must_use]
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "datastore_bind_timeout" => Some(Self::DatastoreBindTimeout),
+            "media_build_failed" => Some(Self::MediaBuildFailed),
+            "endpoint_unreachable" => Some(Self::EndpointUnreachable),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for FailureReason {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+// =====================================================================
+// Drain policy value type
+// =====================================================================
+
+/// Validation error for [`DrainPolicy`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DrainPolicyError {
+    /// `max_eviction_seconds` was set to zero; a zero-second eviction window
+    /// is operationally invalid (no time to evict any pod).
+    ZeroEvictionTimeout,
+}
+
+impl fmt::Display for DrainPolicyError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ZeroEvictionTimeout => {
+                f.write_str("drain policy: max_eviction_seconds must be > 0")
+            }
+        }
+    }
+}
+
+impl std::error::Error for DrainPolicyError {}
+
+/// Bounded graceful-drain parameters for a control plane entering
+/// [`ControlPlaneStatus::Draining`]. Pure value type — carries no clock or
+/// I/O references; adapters use these values when driving the drain loop.
+///
+/// Invariant: `max_eviction_seconds > 0`. Construct via [`DrainPolicy::new`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct DrainPolicy {
+    /// Upper-bound on the total eviction time in seconds. Must be > 0.
+    pub max_eviction_seconds: u32,
+    /// Per-pod termination grace period in seconds. `0` means immediate SIGKILL.
+    pub grace_period_seconds: u32,
+    /// Whether to force-terminate pods after `max_eviction_seconds` elapses.
+    /// Corresponds to `kubectl drain --force --ignore-daemonsets` semantics.
+    pub force_after_timeout: bool,
+}
+
+impl DrainPolicy {
+    /// Construct a [`DrainPolicy`], validating the invariants.
+    ///
+    /// # Errors
+    /// Returns [`DrainPolicyError::ZeroEvictionTimeout`] when
+    /// `max_eviction_seconds == 0`.
+    pub fn new(
+        max_eviction_seconds: u32,
+        grace_period_seconds: u32,
+        force_after_timeout: bool,
+    ) -> Result<Self, DrainPolicyError> {
+        let policy = Self {
+            max_eviction_seconds,
+            grace_period_seconds,
+            force_after_timeout,
+        };
+        policy.validate()?;
+        Ok(policy)
+    }
+
+    /// Validate this policy against its invariants.
+    ///
+    /// # Errors
+    /// Returns [`DrainPolicyError::ZeroEvictionTimeout`] when
+    /// `max_eviction_seconds == 0`.
+    pub fn validate(&self) -> Result<(), DrainPolicyError> {
+        if self.max_eviction_seconds == 0 {
+            return Err(DrainPolicyError::ZeroEvictionTimeout);
+        }
+        Ok(())
+    }
+}
+
+// =====================================================================
+// Drain phase sub-state model
+// =====================================================================
+
+/// The three sequential phases a control plane moves through while in
+/// [`ControlPlaneStatus::Draining`]. Legal progression is strictly linear:
+/// `EvictingPods -> AwaitingPodTermination -> FinalizingDeletion`.
+/// Skipping or reversing phases is forbidden by [`DrainPhase::can_proceed_to`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DrainPhase {
+    /// Actively evicting workload pods from the tenant control-plane nodes.
+    EvictingPods,
+    /// Waiting for pod termination grace periods to elapse.
+    AwaitingPodTermination,
+    /// Control-plane infrastructure resources are being deleted.
+    FinalizingDeletion,
+}
+
+impl DrainPhase {
+    /// Stable wire/log slug for this drain phase.
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::EvictingPods => "evicting_pods",
+            Self::AwaitingPodTermination => "awaiting_pod_termination",
+            Self::FinalizingDeletion => "finalizing_deletion",
+        }
+    }
+
+    /// Parse a drain phase from its stable slug. Returns `None` for any
+    /// unknown value (fail-closed; no panic).
+    #[must_use]
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "evicting_pods" => Some(Self::EvictingPods),
+            "awaiting_pod_termination" => Some(Self::AwaitingPodTermination),
+            "finalizing_deletion" => Some(Self::FinalizingDeletion),
+            _ => None,
+        }
+    }
+
+    /// Whether `next` is the legal successor of `self` in the linear drain
+    /// progression. Skipping and reversing both return `false`.
+    #[must_use]
+    pub const fn can_proceed_to(&self, next: Self) -> bool {
+        matches!(
+            (self, next),
+            (Self::EvictingPods, Self::AwaitingPodTermination)
+                | (Self::AwaitingPodTermination, Self::FinalizingDeletion)
+        )
+    }
+}
+
+impl fmt::Display for DrainPhase {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+// =====================================================================
+// transition_to_failed convenience (additive impl block)
+// =====================================================================
+
+impl ControlPlaneStatus {
+    /// Attempt to transition `self` to [`ControlPlaneStatus::Failed`],
+    /// packaging the typed [`FailureReason`] alongside the new status.
+    ///
+    /// Reuses the existing [`Self::transition`] graph check: only non-terminal
+    /// states may fail (terminal states return [`IllegalTransition`]).
+    ///
+    /// # Errors
+    /// Returns [`IllegalTransition`] when called on a terminal state
+    /// ([`ControlPlaneStatus::Deleted`] or [`ControlPlaneStatus::Failed`]).
+    pub fn transition_to_failed(
+        self,
+        reason: FailureReason,
+    ) -> Result<(Self, FailureReason), IllegalTransition> {
+        self.transition(Self::Failed).map(|s| (s, reason))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -502,5 +710,175 @@ mod tests {
         assert_eq!(json, "\"endpoint_ready\"");
         let back: ControlPlaneStatus = serde_json::from_str("\"datastore_bound\"").expect("de");
         assert_eq!(back, ControlPlaneStatus::DatastoreBound);
+    }
+
+    // -----------------------------------------------------------------
+    // FailureReason tests
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn failure_reason_roundtrips_through_slug() {
+        for reason in [
+            FailureReason::DatastoreBindTimeout,
+            FailureReason::MediaBuildFailed,
+            FailureReason::EndpointUnreachable,
+        ] {
+            assert_eq!(
+                FailureReason::parse(reason.as_str()),
+                Some(reason),
+                "roundtrip failed for {reason}"
+            );
+        }
+    }
+
+    #[test]
+    fn failure_reason_parse_unknown_returns_none() {
+        assert_eq!(FailureReason::parse("quota_exceeded"), None);
+        assert_eq!(FailureReason::parse(""), None);
+    }
+
+    #[test]
+    fn failure_reason_serde_uses_snake_case() {
+        let json =
+            serde_json::to_string(&FailureReason::DatastoreBindTimeout).expect("serialize");
+        assert_eq!(json, "\"datastore_bind_timeout\"");
+
+        let back: FailureReason =
+            serde_json::from_str("\"endpoint_unreachable\"").expect("deserialize");
+        assert_eq!(back, FailureReason::EndpointUnreachable);
+    }
+
+    #[test]
+    fn failure_reason_display_matches_slug() {
+        assert_eq!(
+            FailureReason::MediaBuildFailed.to_string(),
+            "media_build_failed"
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // DrainPolicy tests
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn drain_policy_valid_construction() {
+        let policy = DrainPolicy::new(300, 30, true).expect("valid policy");
+        assert_eq!(policy.max_eviction_seconds, 300);
+        assert_eq!(policy.grace_period_seconds, 30);
+        assert!(policy.force_after_timeout);
+        policy.validate().expect("validate should pass");
+    }
+
+    #[test]
+    fn drain_policy_zero_eviction_timeout_rejected() {
+        let err = DrainPolicy::new(0, 30, false).expect_err("zero timeout must be rejected");
+        assert_eq!(err, DrainPolicyError::ZeroEvictionTimeout);
+    }
+
+    #[test]
+    fn drain_policy_zero_grace_period_is_valid() {
+        // grace_period_seconds = 0 means immediate SIGKILL — valid
+        DrainPolicy::new(60, 0, false).expect("zero grace period is valid");
+    }
+
+    #[test]
+    fn drain_policy_error_display() {
+        assert_eq!(
+            DrainPolicyError::ZeroEvictionTimeout.to_string(),
+            "drain policy: max_eviction_seconds must be > 0"
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // DrainPhase tests
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn drain_phase_roundtrips_through_slug() {
+        for phase in [
+            DrainPhase::EvictingPods,
+            DrainPhase::AwaitingPodTermination,
+            DrainPhase::FinalizingDeletion,
+        ] {
+            assert_eq!(
+                DrainPhase::parse(phase.as_str()),
+                Some(phase),
+                "roundtrip failed for {phase}"
+            );
+        }
+        assert_eq!(DrainPhase::parse("cordoning"), None);
+    }
+
+    #[test]
+    fn drain_phase_linear_progression_legal() {
+        assert!(DrainPhase::EvictingPods.can_proceed_to(DrainPhase::AwaitingPodTermination));
+        assert!(
+            DrainPhase::AwaitingPodTermination.can_proceed_to(DrainPhase::FinalizingDeletion)
+        );
+    }
+
+    #[test]
+    fn drain_phase_skip_and_reverse_illegal() {
+        // Skip: EvictingPods -> FinalizingDeletion
+        assert!(!DrainPhase::EvictingPods.can_proceed_to(DrainPhase::FinalizingDeletion));
+        // Reverse: AwaitingPodTermination -> EvictingPods
+        assert!(!DrainPhase::AwaitingPodTermination.can_proceed_to(DrainPhase::EvictingPods));
+        // Reverse: FinalizingDeletion -> AwaitingPodTermination
+        assert!(!DrainPhase::FinalizingDeletion.can_proceed_to(DrainPhase::AwaitingPodTermination));
+        // Self-loop
+        assert!(!DrainPhase::EvictingPods.can_proceed_to(DrainPhase::EvictingPods));
+    }
+
+    #[test]
+    fn drain_phase_serde_uses_snake_case() {
+        let json = serde_json::to_string(&DrainPhase::FinalizingDeletion).expect("serialize");
+        assert_eq!(json, "\"finalizing_deletion\"");
+    }
+
+    // -----------------------------------------------------------------
+    // transition_to_failed tests
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn transition_to_failed_from_every_non_terminal() {
+        for status in [
+            ControlPlaneStatus::Requested,
+            ControlPlaneStatus::DatastoreBound,
+            ControlPlaneStatus::MediaFormed,
+            ControlPlaneStatus::Provisioning,
+            ControlPlaneStatus::EndpointReady,
+            ControlPlaneStatus::Active,
+            ControlPlaneStatus::Draining,
+        ] {
+            let result = status.transition_to_failed(FailureReason::EndpointUnreachable);
+            let (new_status, reason) = result.expect("non-terminal must be able to fail");
+            assert_eq!(new_status, ControlPlaneStatus::Failed);
+            assert_eq!(reason, FailureReason::EndpointUnreachable);
+        }
+    }
+
+    #[test]
+    fn transition_to_failed_from_terminal_is_error() {
+        for terminal in [ControlPlaneStatus::Deleted, ControlPlaneStatus::Failed] {
+            let err = terminal
+                .transition_to_failed(FailureReason::DatastoreBindTimeout)
+                .expect_err("terminal must not be able to fail");
+            assert_eq!(err.from, terminal);
+            assert_eq!(err.to, ControlPlaneStatus::Failed);
+        }
+    }
+
+    #[test]
+    fn transition_to_failed_carries_reason() {
+        for reason in [
+            FailureReason::DatastoreBindTimeout,
+            FailureReason::MediaBuildFailed,
+            FailureReason::EndpointUnreachable,
+        ] {
+            let (_, returned) = ControlPlaneStatus::Active
+                .transition_to_failed(reason)
+                .expect("active can fail");
+            assert_eq!(returned, reason, "reason must be threaded through");
+        }
     }
 }
