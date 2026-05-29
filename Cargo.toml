@@ -663,6 +663,10 @@ members = [
   "microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api",
   "microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-adapter-inmemory",
   "microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-app",
+  # oya-meter: bespoke usage metering µservice (ADR-0479).
+  "microservices/oya-meter/crates/oya-meter-kernel",
+  "microservices/oya-meter/crates/oya-meter-rest",
+  "microservices/oya-meter/crates/oya-meter-app",
   # cloud-intelligence µservice OAuth subscription-pool kernel (ADR-0384 Path B). Stage-4
   # RED: scaffold + failing tests. Parallels the legacy static-API-key kernel at
   # crates/oya-cloud-intelligence-kernel until the OAuth pool reaches parity; a follow-up
