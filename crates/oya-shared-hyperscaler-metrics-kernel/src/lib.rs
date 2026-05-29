@@ -556,6 +556,74 @@ pub fn runtime_telemetry_report(
     }
 }
 
+/// Raw event counts for one observation window (e.g. 1 h or 6 h).
+///
+/// Used as an input to [`assess_multiwindow_burn`] so callers can pass
+/// independently-windowed counters without re-wrapping them in a
+/// [`RequestTelemetryOutcome`] slice.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct WindowEvents {
+    pub total_events: u64,   // data_class: INTERNAL_ONLY
+    pub success_events: u64, // data_class: INTERNAL_ONLY
+}
+
+/// Result of a multi-window-multi-burn-rate (MWMB) evaluation.
+///
+/// The canonical Google SRE MWMB pattern fires an alert ONLY when **both**
+/// the short window and the long window simultaneously exceed the burn-rate
+/// threshold. This AND-gate prevents a short transient spike from producing
+/// a false-positive alert.
+///
+/// `fast_burn_alert` — true IFF both
+/// `short_window.burn_rate_basis_points >= profile.fast_burn_threshold_basis_points`
+/// AND
+/// `long_window.burn_rate_basis_points >= profile.fast_burn_threshold_basis_points`.
+///
+/// `slow_burn_alert` — analogous for `slow_burn_threshold_basis_points`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MultiWindowBurnAssessment {
+    pub short_window: SloBurnAssessment, // data_class: INTERNAL_ONLY
+    pub long_window: SloBurnAssessment,  // data_class: INTERNAL_ONLY
+    pub fast_burn_alert: bool,           // data_class: INTERNAL_ONLY
+    pub slow_burn_alert: bool,           // data_class: INTERNAL_ONLY
+}
+
+/// Evaluate the canonical multi-window-multi-burn-rate (MWMB) alert pattern.
+///
+/// Computes per-window burn-rates via [`assess_slo_burn`] and combines them
+/// with the MWMB AND-gate: an alert fires only when **both** windows exceed
+/// the threshold simultaneously.
+///
+/// # Errors
+///
+/// Returns [`MetricsError::InvalidSloProfile`] when `profile.validate()` fails.
+///
+/// # Panics
+///
+/// Never panics. Zero-traffic windows return `burn_rate_basis_points = 0`
+/// (saturating arithmetic — see [`assess_slo_burn`]).
+pub fn assess_multiwindow_burn(
+    short: WindowEvents,
+    long: WindowEvents,
+    profile: SloBurnProfile,
+) -> Result<MultiWindowBurnAssessment, MetricsError> {
+    let profile = profile.validate()?;
+    let short_window = assess_slo_burn(short.total_events, short.success_events, profile);
+    let long_window = assess_slo_burn(long.total_events, long.success_events, profile);
+    let threshold_fast = u64::from(profile.fast_burn_threshold_basis_points);
+    let threshold_slow = u64::from(profile.slow_burn_threshold_basis_points);
+    let fast_burn_alert = short_window.burn_rate_basis_points >= threshold_fast
+        && long_window.burn_rate_basis_points >= threshold_fast;
+    let slow_burn_alert = short_window.burn_rate_basis_points >= threshold_slow
+        && long_window.burn_rate_basis_points >= threshold_slow;
+    Ok(MultiWindowBurnAssessment {
+        short_window,
+        long_window,
+        fast_burn_alert,
+        slow_burn_alert,
+    })
+}
+
 /// Compute an integer burn-rate assessment from request totals.
 #[must_use]
 pub fn assess_slo_burn(
@@ -987,5 +1055,140 @@ mod tests {
             .validate(),
             Err(MetricsError::InvalidSloProfile { .. })
         ));
+    }
+
+    // -----------------------------------------------------------------------
+    // Multi-window-multi-burn-rate (MWMB) tests
+    // -----------------------------------------------------------------------
+
+    /// Helper: build WindowEvents where `error_rate_per_million` errors are
+    /// injected into `total` requests (saturating).
+    fn window_with_error_rate(total: u64, error_rate_per_million: u64) -> WindowEvents {
+        let error_events = total
+            .saturating_mul(error_rate_per_million)
+            .saturating_div(1_000_000);
+        let success_events = total.saturating_sub(error_events);
+        WindowEvents {
+            total_events: total,
+            success_events,
+        }
+    }
+
+    /// 5% error rate, 999_000 target => error_rate / budget = 50_000 / 1_000 = 50x burn.
+    /// Both thresholds (14x fast = 140_000 bp, 6x slow = 60_000 bp) are exceeded.
+    #[test]
+    fn mwmb_both_windows_hot_fires_fast_and_slow_alert() {
+        // 5 % error rate = 50x burn on a 99.9 % SLO => exceeds both 14x and 6x
+        let hot = window_with_error_rate(10_000, 50_000);
+        let result =
+            assess_multiwindow_burn(hot, hot, SloBurnProfile::default()).unwrap();
+        assert!(
+            result.fast_burn_alert,
+            "fast_burn_alert must fire when both windows are hot"
+        );
+        assert!(
+            result.slow_burn_alert,
+            "slow_burn_alert must fire when both windows are hot"
+        );
+    }
+
+    /// (b) Only the short window is hot; long window is healthy.
+    /// MWMB AND-gate must suppress the alert.
+    #[test]
+    fn mwmb_only_short_window_hot_suppresses_alert() {
+        let hot = window_with_error_rate(10_000, 50_000); // 50x burn
+        let healthy = window_with_error_rate(10_000, 100); // ~0.1x burn (well under threshold)
+        let result =
+            assess_multiwindow_burn(hot, healthy, SloBurnProfile::default()).unwrap();
+        assert!(
+            !result.fast_burn_alert,
+            "fast_burn_alert must be suppressed when only short window is hot"
+        );
+        assert!(
+            !result.slow_burn_alert,
+            "slow_burn_alert must be suppressed when only short window is hot"
+        );
+    }
+
+    /// (c) Only the long window is hot; short window is healthy.
+    /// MWMB AND-gate must suppress the alert.
+    #[test]
+    fn mwmb_only_long_window_hot_suppresses_alert() {
+        let healthy = window_with_error_rate(10_000, 100); // ~0.1x burn
+        let hot = window_with_error_rate(10_000, 50_000); // 50x burn
+        let result =
+            assess_multiwindow_burn(healthy, hot, SloBurnProfile::default()).unwrap();
+        assert!(
+            !result.fast_burn_alert,
+            "fast_burn_alert must be suppressed when only long window is hot"
+        );
+        assert!(
+            !result.slow_burn_alert,
+            "slow_burn_alert must be suppressed when only long window is hot"
+        );
+    }
+
+    /// (d) Zero-traffic windows must produce no alert and must not panic.
+    #[test]
+    fn mwmb_zero_traffic_windows_produce_no_alert() {
+        let zero = WindowEvents {
+            total_events: 0,
+            success_events: 0,
+        };
+        let result =
+            assess_multiwindow_burn(zero, zero, SloBurnProfile::default()).unwrap();
+        assert!(
+            !result.fast_burn_alert,
+            "fast_burn_alert must not fire on zero traffic"
+        );
+        assert!(
+            !result.slow_burn_alert,
+            "slow_burn_alert must not fire on zero traffic"
+        );
+        // burn_rate_basis_points is 0 for zero-traffic windows
+        assert_eq!(result.short_window.burn_rate_basis_points, 0);
+        assert_eq!(result.long_window.burn_rate_basis_points, 0);
+    }
+
+    /// (e) An invalid profile must return MetricsError::InvalidSloProfile.
+    #[test]
+    fn mwmb_invalid_profile_returns_error() {
+        let invalid_profile = SloBurnProfile {
+            target_success_per_million: 1_000_000, // invalid: >= 1M
+            ..SloBurnProfile::default()
+        };
+        let window = WindowEvents {
+            total_events: 100,
+            success_events: 99,
+        };
+        assert!(
+            matches!(
+                assess_multiwindow_burn(window, window, invalid_profile),
+                Err(MetricsError::InvalidSloProfile { .. })
+            ),
+            "assess_multiwindow_burn must propagate InvalidSloProfile"
+        );
+    }
+
+    /// Extra: verify the short_window and long_window assessments are
+    /// independently computed (different inputs, different outputs).
+    #[test]
+    fn mwmb_per_window_assessments_are_independent() {
+        let short = WindowEvents {
+            total_events: 1_000,
+            success_events: 950, // 5% error => 50x burn on 99.9% SLO
+        };
+        let long = WindowEvents {
+            total_events: 6_000,
+            success_events: 5_994, // 0.1% error => ~1x burn on 99.9% SLO
+        };
+        let result =
+            assess_multiwindow_burn(short, long, SloBurnProfile::default()).unwrap();
+        // short window is hot
+        assert!(result.short_window.fast_burn_alert);
+        // long window is not hot
+        assert!(!result.long_window.fast_burn_alert);
+        // combined MWMB alert is suppressed
+        assert!(!result.fast_burn_alert);
     }
 }
