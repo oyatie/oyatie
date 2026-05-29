@@ -16,12 +16,12 @@
 //! | `OYA_CI_WEBHOOK_TARGET_BRANCH`    | `dev`              | Gated base branch                 |
 
 use ed25519_dalek::VerifyingKey;
-use oya_ci_webhook_gateway_app::{AppState, build_router};
+use oya_ci_webhook_gateway_app::{AppState, build_router, replay::DeliveryGuard};
 use oya_ci_webhook_gateway_authz_cedar_adapter::CedarWebhookGate;
 use oya_ci_webhook_gateway_ed25519_adapter::Ed25519Verifier;
 use oya_ci_webhook_gateway_github_adapter::GitHubStatusPoster;
 use oya_ci_webhook_gateway_jenkins_adapter::JenkinsRestClient;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tracing::info;
 
 #[tokio::main]
@@ -75,6 +75,7 @@ async fn main() {
         github_owner,
         github_repo,
         jenkins_job_name: jenkins_job,
+        delivery_guard: Arc::new(Mutex::new(DeliveryGuard::with_default_ttl())),
     };
 
     let app = build_router(state);
