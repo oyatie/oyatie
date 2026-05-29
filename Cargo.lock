@@ -6592,6 +6592,7 @@ name = "oya-managed-k8s-tenant-quota-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -7010,7 +7011,14 @@ dependencies = [
 name = "oya-policy-cedar-api"
 version = "0.1.0"
 dependencies = [
+ "axum",
+ "http-body-util",
  "oya-policy-cedar-domain",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
 ]
 
 [[package]]
