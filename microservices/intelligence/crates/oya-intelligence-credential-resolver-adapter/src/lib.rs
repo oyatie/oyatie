@@ -1,13 +1,26 @@
-//! Intelligence credential-resolver adapter foundation.
+//! Intelligence credential-resolver adapter.
 //!
-//! This crate provides a deterministic metadata-only adapter seam between the
-//! credential resolver usecase and a future credential sidecar. It validates
-//! sidecar configuration and request metadata, builds sidecar request envelopes,
-//! maps sidecar outcome metadata into short-lived opaque `CredentialHandle`s or
-//! sanitized failures, and performs no OpenBao calls, Unix socket I/O, network
-//! I/O, provider SDK work, filesystem access, raw secret material handling,
-//! durable audit-chain emission, or cloud runtime scheduling.
+//! This crate provides two adapter implementations for the `CredentialHandleIssuerPort`:
+//!
+//! 1. **`CredentialResolverAdapter`** — deterministic metadata-only sidecar adapter
+//!    for testing and envelope-only scenarios.  Validates sidecar configuration and
+//!    request metadata, builds sidecar request envelopes, and maps sidecar outcome
+//!    metadata into short-lived opaque `CredentialHandle`s or sanitized failures.
+//!
+//! 2. **`OpenBaoKvAdapter`** — live OpenBao KV-v2 secret-fetch adapter.  Calls
+//!    `GET /v1/secret/data/<seat-path>` over a bare hyper HTTP client (ADR-0090
+//!    hyper preferred) and resolves the returned credential material into a
+//!    short-lived in-memory `CredentialHandle`.  No vault SDK; no raw secret
+//!    material ever stored on the returned handle.
+//!
+//! ADR citations: ADR-0083 (Tier-3 panic-free), ADR-0090 (hyper preferred),
+//!                ADR-0509 (flat-clean-arch), ADR-0131.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
+pub mod openbao_kv;
+pub use openbao_kv::{
+    OpenBaoKvAdapter, OpenBaoKvAdapterConfig, OpenBaoKvConfigError, RedactedToken,
+};
 
 pub use oya_intelligence_credential_resolver_domain::{
     CredentialAudience, CredentialHandle, CredentialHandleIssueRequest, CredentialProvider,
