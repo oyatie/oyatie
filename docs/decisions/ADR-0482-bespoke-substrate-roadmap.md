@@ -9,7 +9,7 @@ doctrine_meta: true
 owner: founder
 supersedes: []
 superseded_by: []
-related: [ADR-0388, ADR-0392, ADR-0409, ADR-0434, ADR-0451, ADR-0474, ADR-0475, ADR-0476, ADR-0477, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0483, ADR-0484, ADR-0506, ADR-0507]
+related: [ADR-0388, ADR-0392, ADR-0409, ADR-0434, ADR-0451, ADR-0474, ADR-0475, ADR-0476, ADR-0477, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0483, ADR-0484, ADR-0506, ADR-0507, ADR-0508]
 amended_by: [kubers-anchor-2026-05-28]
 door: one-way
 milestone: M-BESPOKE-ROADMAP
@@ -87,6 +87,7 @@ granularity. No hard-deadline cutover — quality gates only.
 | oya-wide-column | Cassandra (ADR-0461) | Cassandra parallel | Wide-column NoSQL parity |
 | oya-lakehouse | Iceberg+Lakekeeper (ADR-0413) | Iceberg format compat | Table format parity |
 | oya-clickhouse | ClickHouse (ADR-0193) | ClickHouse parallel | OLAP query engine parity |
+| oya-authn-device (ADR-0508) | OpenSK (Phase-1 reference firmware per ADR-0508) | OpenSK vendored at `tools/opensk-vendored/`; nRF52840 dev dongle for engineers | Tier-3 hardware-readiness + parity-table-green (ADR-0508) + first manufacturing run validated + OpenTitan port verified; cross-ref: oya-webauthn (Tier-2 RP partner, ADR-0507) + oya-crypto (Tier-4 crypto primitive, ADR-0506) |
 
 ### Tier 4 — 60+ months (kernel + OS bespoke)
 
@@ -159,3 +160,19 @@ field when it does not yet exist.
 **Source-side ADRs** that assumed upstream Kubernetes + containerd + Talos-userspace as eternal: amend to note kubers as canonical destination (in-flight). Particularly: ADR-0378 (Talos), ADR-0381 (BuildKit/containerd), ADR-0411 (Crossplane), ADR-0148/0433 (Cilium), all operator ADRs.
 
 See ADR-0484 for full kubers anchor.
+<<<<<<< HEAD
+=======
+
+## Amendment (2026-05-28, oya-authn-device Tier-3 + ADR-0508)
+
+`oya-authn-device` added to the Tier-3 table above. This is the oyatie-branded hardware
+security key destination — bespoke Rust firmware fork of OpenSK, eventually targeting OpenTitan
+SoC for full open-silicon ownership. Bridge = OpenSK vendored at `tools/opensk-vendored/`.
+
+Closed-loop identity family (all three tiers required for full stack ownership):
+- **oya-webauthn** (Tier-2, ADR-0507) — RP/server side: validates authenticator assertions
+- **oya-authn-device** (Tier-3, ADR-0508) — authenticator/hardware side: generates + signs assertions
+- **oya-crypto** (Tier-4, ADR-0506) — crypto primitive layer underpinning both RP and authenticator
+
+See ADR-0508 for full parity table, phasing, and silicon ownership roadmap.
+>>>>>>> origin/feat/adr-0508-opensk-2026-05-28
