@@ -32,6 +32,8 @@ const HR_LEAVE_IMPACT_SCHEMA_VERSION: u32 = 1;
 const RULEPACK_SOURCE_REF_PREFIX: &str = "rulepack-source/";
 const STATUTORY_RULEPACK_SCHEMA_VERSION: u32 = 1;
 const VARIANCE_VERDICT_SCHEMA_VERSION: u32 = 1;
+/// Schema version for `RetroAdjustmentVerdict`.
+pub const RETRO_ADJUSTMENT_SCHEMA_VERSION: u32 = 1;
 /// Sentinel BPS value used for dropped-payee lines (no current amount).
 const DROPPED_PAYEE_SENTINEL_BPS: i64 = -10_000;
 
@@ -498,6 +500,15 @@ pub enum PayrollDomainError {
     /// Returned when `build_group_gl_posting` detects the same `legal_entity_id`
     /// appearing in more than one entry of the same group batch.
     DuplicateLegalEntityInGroup,
+    /// Returned when `evaluate_retro_adjustment` detects that the same payee has
+    /// different currency codes in the original and corrected totals.
+    CurrencyMismatch,
+    /// Returned when the `run_ref` field of `RetroAdjustmentInput` fails the
+    /// `audit/` prefix and path-safety check.
+    InvalidRunRef,
+    /// Returned when `evaluate_retro_adjustment` receives an empty `evidence_refs`
+    /// vec. At least one evidence reference is required.
+    RetroEvidenceRequired,
 }
 
 // ── Variance gate types ────────────────────────────────────────────────────
@@ -560,6 +571,256 @@ pub struct PayrollVarianceVerdict {
     pub evidence_digest: Classified<EvidenceDigest>,           // data_class: INTERNAL_ONLY
     pub evaluated_at: Classified<u64>,                         // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>,                       // data_class: PUBLIC
+}
+
+// ── Retro adjustment types ─────────────────────────────────────────────────
+
+/// Classification of how a payee changed between original and corrected runs.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum RetroPayeeClass {
+    /// Payee present in corrected totals but absent from original.
+    Added,
+    /// Payee present in original totals but absent from corrected.
+    Removed,
+    /// Payee present in both; corrected amount differs from original.
+    Changed,
+    /// Payee present in both; corrected amount equals original (delta = 0).
+    Unchanged,
+}
+
+/// Per-payee signed delta line produced by `evaluate_retro_adjustment`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RetroDeltaLine {
+    pub payee_id: Classified<PayeeId>,             // data_class: INTERNAL_ONLY
+    /// Original amount. For `Added` payees, `amount_minor` is 0.
+    pub original_amount: Classified<MoneyAmount>,  // data_class: FINANCIAL
+    /// Corrected amount. For `Removed` payees, `amount_minor` is 0.
+    pub corrected_amount: Classified<MoneyAmount>, // data_class: FINANCIAL
+    /// Signed delta: `corrected_amount.amount_minor - original_amount.amount_minor`.
+    pub delta_amount: Classified<MoneyAmount>,     // data_class: FINANCIAL
+    pub payee_class: Classified<RetroPayeeClass>,  // data_class: INTERNAL_ONLY
+}
+
+/// Input to `evaluate_retro_adjustment`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RetroAdjustmentInput {
+    /// Payroll run being adjusted. Must have the `prun_` prefix.
+    pub run_id: String,                                        // data_class: INTERNAL_ONLY
+    /// Audit reference for this retro run. Must have the `audit/` prefix.
+    pub run_ref: String,                                       // data_class: INTERNAL_ONLY
+    /// Baseline (original-period) per-payee net totals.
+    pub original_period_totals: Vec<PayeeVarianceTotal>,      // data_class: FINANCIAL
+    /// Corrected per-payee net totals.
+    pub corrected_period_totals: Vec<PayeeVarianceTotal>,     // data_class: FINANCIAL
+    /// Non-empty vec of `audit/` evidence refs. Used for the evidence digest.
+    pub evidence_refs: Vec<String>,                            // data_class: INTERNAL_ONLY
+}
+
+/// Classified verdict returned by `evaluate_retro_adjustment`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RetroAdjustmentVerdict {
+    pub run_id: Classified<PayrollRunId>,                     // data_class: INTERNAL_ONLY
+    /// One line per payee from the union of original and corrected sets.
+    pub lines: Classified<Vec<RetroDeltaLine>>,               // data_class: FINANCIAL
+    /// Sum of all `delta_amount.amount_minor` across all lines.
+    pub run_net_delta: Classified<MoneyAmount>,               // data_class: FINANCIAL
+    /// True iff `run_net_delta` equals sum(corrected) minus sum(original).
+    pub balanced: Classified<bool>,                           // data_class: PUBLIC
+    /// XOR-fold evidence digest (same algorithm as variance verdict).
+    pub evidence_digest: Classified<EvidenceDigest>,          // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,                      // data_class: PUBLIC
+}
+
+pub fn evaluate_retro_adjustment(
+    input: RetroAdjustmentInput,
+) -> Result<RetroAdjustmentVerdict, PayrollDomainError> {
+    // ── Validate scalar fields ────────────────────────────────────────────
+    validate_identifier(
+        &input.run_id,
+        RUN_ID_PREFIX,
+        PayrollDomainError::InvalidRunId,
+    )?;
+    validate_ref(
+        &input.run_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidRunRef,
+    )?;
+    if input.evidence_refs.is_empty() {
+        return Err(PayrollDomainError::RetroEvidenceRequired);
+    }
+    for ev_ref in &input.evidence_refs {
+        validate_ref(ev_ref, AUDIT_REF_PREFIX, PayrollDomainError::InvalidEvidenceRef)?;
+    }
+
+    // ── Validate per-payee totals ─────────────────────────────────────────
+    for total in input
+        .original_period_totals
+        .iter()
+        .chain(input.corrected_period_totals.iter())
+    {
+        validate_identifier(
+            &total.payee_id,
+            PAYEE_ID_PREFIX,
+            PayrollDomainError::InvalidPayeeId,
+        )?;
+        // Allow zero amounts in retro context (e.g., zero-delta payees can
+        // appear with zero original or corrected; the currency must still be 3 chars).
+        if total.net_amount.currency.len() != 3
+            || has_unsafe_text(&total.net_amount.currency)
+        {
+            return Err(PayrollDomainError::InvalidMoney);
+        }
+    }
+
+    // ── Build lookup maps ─────────────────────────────────────────────────
+    let original_map: std::collections::HashMap<&str, &MoneyAmount> = input
+        .original_period_totals
+        .iter()
+        .map(|t| (t.payee_id.as_str(), &t.net_amount))
+        .collect();
+
+    let corrected_map: std::collections::HashMap<&str, &MoneyAmount> = input
+        .corrected_period_totals
+        .iter()
+        .map(|t| (t.payee_id.as_str(), &t.net_amount))
+        .collect();
+
+    // ── Determine currency for the run (from first non-empty total) ───────
+    // All entries must use the same currency; pick it from the first available.
+    let run_currency: String = input
+        .original_period_totals
+        .first()
+        .or_else(|| input.corrected_period_totals.first())
+        .map(|t| t.net_amount.currency.clone())
+        .unwrap_or_else(|| "XXX".to_owned());
+
+    // ── Build delta lines ─────────────────────────────────────────────────
+    let mut lines: Vec<RetroDeltaLine> = Vec::new();
+    let mut run_net_delta_minor: i64 = 0;
+
+    // Process original-period payees first (in input order).
+    for orig_total in &input.original_period_totals {
+        let payee_id_val = PayeeId { value: orig_total.payee_id.clone() };
+        let orig_amount = &orig_total.net_amount;
+
+        match corrected_map.get(orig_total.payee_id.as_str()) {
+            Some(corr_amount) => {
+                // Payee appears in both — check currency consistency.
+                if orig_amount.currency != corr_amount.currency {
+                    return Err(PayrollDomainError::CurrencyMismatch);
+                }
+                let delta_minor = corr_amount.amount_minor.saturating_sub(orig_amount.amount_minor);
+                run_net_delta_minor = run_net_delta_minor.saturating_add(delta_minor);
+                let payee_class = if delta_minor == 0 {
+                    RetroPayeeClass::Unchanged
+                } else {
+                    RetroPayeeClass::Changed
+                };
+                lines.push(RetroDeltaLine {
+                    payee_id: internal(payee_id_val),
+                    original_amount: financial(MoneyAmount {
+                        amount_minor: orig_amount.amount_minor,
+                        currency: orig_amount.currency.clone(),
+                    }),
+                    corrected_amount: financial(MoneyAmount {
+                        amount_minor: corr_amount.amount_minor,
+                        currency: corr_amount.currency.clone(),
+                    }),
+                    delta_amount: financial(MoneyAmount {
+                        amount_minor: delta_minor,
+                        currency: orig_amount.currency.clone(),
+                    }),
+                    payee_class: internal(payee_class),
+                });
+            }
+            None => {
+                // Payee was removed in the corrected run.
+                let delta_minor = 0_i64.saturating_sub(orig_amount.amount_minor);
+                run_net_delta_minor = run_net_delta_minor.saturating_add(delta_minor);
+                lines.push(RetroDeltaLine {
+                    payee_id: internal(payee_id_val),
+                    original_amount: financial(MoneyAmount {
+                        amount_minor: orig_amount.amount_minor,
+                        currency: orig_amount.currency.clone(),
+                    }),
+                    corrected_amount: financial(MoneyAmount {
+                        amount_minor: 0,
+                        currency: orig_amount.currency.clone(),
+                    }),
+                    delta_amount: financial(MoneyAmount {
+                        amount_minor: delta_minor,
+                        currency: orig_amount.currency.clone(),
+                    }),
+                    payee_class: internal(RetroPayeeClass::Removed),
+                });
+            }
+        }
+    }
+
+    // Process added payees (present in corrected but not in original), in corrected input order.
+    for corr_total in &input.corrected_period_totals {
+        if original_map.contains_key(corr_total.payee_id.as_str()) {
+            // Already handled above.
+            continue;
+        }
+        let payee_id_val = PayeeId { value: corr_total.payee_id.clone() };
+        let corr_amount = &corr_total.net_amount;
+        run_net_delta_minor = run_net_delta_minor.saturating_add(corr_amount.amount_minor);
+        lines.push(RetroDeltaLine {
+            payee_id: internal(payee_id_val),
+            original_amount: financial(MoneyAmount {
+                amount_minor: 0,
+                currency: corr_amount.currency.clone(),
+            }),
+            corrected_amount: financial(MoneyAmount {
+                amount_minor: corr_amount.amount_minor,
+                currency: corr_amount.currency.clone(),
+            }),
+            delta_amount: financial(MoneyAmount {
+                amount_minor: corr_amount.amount_minor,
+                currency: corr_amount.currency.clone(),
+            }),
+            payee_class: internal(RetroPayeeClass::Added),
+        });
+    }
+
+    // ── Balanced aggregate check ──────────────────────────────────────────
+    let sum_original: i64 = input
+        .original_period_totals
+        .iter()
+        .map(|t| t.net_amount.amount_minor)
+        .fold(0_i64, i64::saturating_add);
+    let sum_corrected: i64 = input
+        .corrected_period_totals
+        .iter()
+        .map(|t| t.net_amount.amount_minor)
+        .fold(0_i64, i64::saturating_add);
+    let expected_net = sum_corrected.saturating_sub(sum_original);
+    let balanced = run_net_delta_minor == expected_net;
+
+    // ── Evidence digest (XOR-fold, same as variance verdict) ─────────────
+    let mut buf = [0u8; 32];
+    let mut pos = 0usize;
+    for ev_ref in &input.evidence_refs {
+        for byte in ev_ref.as_bytes() {
+            buf[pos % 32] ^= byte;
+            pos += 1;
+        }
+    }
+    let hex_chars: String = buf.iter().map(|b| format!("{b:02x}")).collect();
+    let evidence_digest = format!("{HASH_PREFIX}{hex_chars}");
+
+    Ok(RetroAdjustmentVerdict {
+        run_id: internal(PayrollRunId { value: input.run_id }),
+        lines: financial(lines),
+        run_net_delta: financial(MoneyAmount {
+            amount_minor: run_net_delta_minor,
+            currency: run_currency,
+        }),
+        balanced: Classified::new(balanced, DataClass::Public),
+        evidence_digest: internal(EvidenceDigest { value: evidence_digest }),
+        schema_version: public(RETRO_ADJUSTMENT_SCHEMA_VERSION),
+    })
 }
 
 pub fn trial_close(input: PayrollTrialCloseInput) -> Result<PayrollRun, PayrollDomainError> {
