@@ -4,13 +4,16 @@
 
 use oya_cloud_compute_domain::{CloudComputeCatalog, CloudComputeError};
 use oya_cloud_compute_k8s_api::{
-    CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE, CloudComputeK8sApiAuthorization,
-    CloudComputeK8sApiBoundaryContext, CloudComputeK8sApiError, CloudComputeK8sApiPrincipal,
-    CloudComputeK8sClusterCreateApiRequest, CloudComputeK8sClusterCreateApiStatus,
-    CloudComputeK8sClusterCreateRequest, CloudComputeK8sCreateIdempotencyLedger,
+    CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE, CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+    CloudComputeK8sApiAuthorization, CloudComputeK8sApiBoundaryContext, CloudComputeK8sApiError,
+    CloudComputeK8sApiPrincipal, CloudComputeK8sClusterCreateApiRequest,
+    CloudComputeK8sClusterCreateApiStatus, CloudComputeK8sClusterCreateRequest,
+    CloudComputeK8sClusterDeleteApiRequest, CloudComputeK8sClusterDeleteApiStatus,
+    CloudComputeK8sCreateIdempotencyLedger, CloudComputeK8sDeleteIdempotencyLedger,
     CloudComputeK8sNodePoolCreateRequest, CloudComputeK8sNodePoolFlavorSpec,
     CloudComputeK8sQuotaEnvelope, CloudComputeK8sSecurityGroupRef,
     create_cloud_compute_k8s_cluster_from_api, create_cluster,
+    delete_cloud_compute_k8s_cluster_from_api, delete_cluster,
 };
 
 const CLUSTER_ID: &str = "oya:cloud:region-home:ten_alpha:k8s:prod";
@@ -385,4 +388,306 @@ fn k8s_create_api_maps_invalid_cluster_shape_to_bad_request() {
     assert_eq!(error.cluster_create_status_code(), 400);
     assert_eq!(ledger.len(), 1);
     assert_eq!(catalog.kubernetes_clusters().count(), 0);
+}
+
+// ── Delete surface tests ──────────────────────────────────────────────────────
+
+fn delete_boundary_for(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudComputeK8sApiBoundaryContext {
+    CloudComputeK8sApiBoundaryContext {
+        request_id: request_id.to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        idempotency_key: idempotency_key.to_string(),
+    }
+}
+
+fn delete_authorization_for(
+    principal_id: &str,
+    surfaces: &[&str],
+) -> CloudComputeK8sApiAuthorization {
+    CloudComputeK8sApiAuthorization {
+        tenant_id: "ten_alpha".to_string(),
+        principal_id: principal_id.to_string(),
+        decision_id: format!("authz_del_{principal_id}"),
+        allowed_surfaces: surfaces.iter().map(|s| (*s).to_string()).collect(),
+    }
+}
+
+fn delete_request(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudComputeK8sClusterDeleteApiRequest {
+    CloudComputeK8sClusterDeleteApiRequest {
+        path_cluster_id: CLUSTER_ID.to_string(),
+        boundary: delete_boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_compute"),
+        authorization: delete_authorization_for(
+            "sp_compute",
+            &[CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE],
+        ),
+    }
+}
+
+/// Populate the catalog with one cluster so delete tests have something to find.
+fn catalog_with_cluster() -> (CloudComputeCatalog, CloudComputeK8sCreateIdempotencyLedger) {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut create_ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+    create_cloud_compute_k8s_cluster_from_api(
+        &mut catalog,
+        &mut create_ledger,
+        request("req-setup-delete", "idem-setup-delete"),
+    )
+    .expect("setup cluster create succeeds");
+    (catalog, create_ledger)
+}
+
+#[test]
+fn k8s_delete_api_surface_constants_and_status_codes() {
+    assert_eq!(
+        CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+        "cloud.compute.k8s.cluster.delete"
+    );
+    assert_eq!(CloudComputeK8sClusterDeleteApiStatus::Accepted.code(), 202);
+    assert_eq!(
+        CloudComputeK8sClusterDeleteApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(
+        CloudComputeK8sClusterDeleteApiStatus::Unauthorized.code(),
+        401
+    );
+    assert_eq!(CloudComputeK8sClusterDeleteApiStatus::Forbidden.code(), 403);
+    assert_eq!(CloudComputeK8sClusterDeleteApiStatus::NotFound.code(), 404);
+    assert_eq!(
+        CloudComputeK8sClusterDeleteApiStatus::UnprocessableEntity.code(),
+        422
+    );
+}
+
+#[test]
+fn k8s_delete_api_accepts_valid_teardown_and_projects_draining_state() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+
+    let response = delete_cloud_compute_k8s_cluster_from_api(
+        &catalog,
+        &mut delete_ledger,
+        delete_request("req-del-happy", "idem-del-happy"),
+    )
+    .expect("authorized cluster delete succeeds");
+
+    assert_eq!(response.metadata.request_id, "req-del-happy");
+    assert_eq!(response.data.resource_id, CLUSTER_ID);
+    assert_eq!(response.data.tenant_id, "ten_alpha");
+    assert_eq!(response.data.state, "draining");
+    assert_eq!(delete_ledger.len(), 1);
+}
+
+#[test]
+fn k8s_delete_api_replay_returns_same_response_without_double_teardown() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+
+    let first = delete_cloud_compute_k8s_cluster_from_api(
+        &catalog,
+        &mut delete_ledger,
+        delete_request("req-del-idem-1", "idem-del-replay"),
+    )
+    .expect("first delete accepted");
+
+    let mut retry = delete_request("req-del-idem-2", "idem-del-replay");
+    retry.authorization.decision_id = "authz_del_sp_compute_refreshed".to_string();
+    let second = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, retry)
+        .expect("same idempotency key replays");
+
+    assert_eq!(first, second);
+    assert_eq!(delete_ledger.len(), 1);
+}
+
+#[test]
+fn k8s_delete_api_stable_entrypoint_delegates() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+
+    let response = delete_cluster(
+        &catalog,
+        &mut delete_ledger,
+        delete_request("req-del-alias", "idem-del-alias"),
+    )
+    .expect("stable delete_cluster entrypoint succeeds");
+
+    assert_eq!(response.metadata.request_id, "req-del-alias");
+    assert_eq!(response.data.state, "draining");
+    assert_eq!(delete_ledger.len(), 1);
+}
+
+#[test]
+fn k8s_delete_api_rejects_empty_request_id() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut req = delete_request("req-del-empty-rid", "idem-del-empty-rid");
+    req.boundary.request_id.clear();
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, req)
+        .expect_err("empty request_id rejected");
+
+    assert_eq!(error, CloudComputeK8sApiError::EmptyRequestId);
+    assert_eq!(error.cluster_delete_status_code(), 400);
+    assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn k8s_delete_api_rejects_empty_tenant() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut req = delete_request("req-del-empty-ten", "idem-del-empty-ten");
+    req.boundary.tenant_id.clear();
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, req)
+        .expect_err("empty tenant rejected");
+
+    assert_eq!(error, CloudComputeK8sApiError::EmptyTenantHeader);
+    assert_eq!(error.cluster_delete_status_code(), 400);
+    assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn k8s_delete_api_rejects_empty_idempotency_key() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut req = delete_request("req-del-empty-idem", "idem-del-empty-idem");
+    req.boundary.idempotency_key.clear();
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, req)
+        .expect_err("empty idempotency_key rejected");
+
+    assert_eq!(error, CloudComputeK8sApiError::EmptyIdempotencyKey);
+    assert_eq!(error.cluster_delete_status_code(), 400);
+    assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn k8s_delete_api_rejects_empty_principal_as_unauthorized() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut req = delete_request("req-del-empty-prin", "idem-del-empty-prin");
+    req.principal.principal_id.clear();
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, req)
+        .expect_err("empty principal_id is 401");
+
+    assert_eq!(error, CloudComputeK8sApiError::EmptyPrincipalId);
+    assert_eq!(error.cluster_delete_status_code(), 401);
+    assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn k8s_delete_api_rejects_missing_delete_surface_as_forbidden() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut req = delete_request("req-del-denied", "idem-del-denied");
+    req.authorization.allowed_surfaces = vec![CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string()];
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, req)
+        .expect_err("create surface does not cover delete");
+
+    assert_eq!(
+        error,
+        CloudComputeK8sApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE.to_string(),
+        }
+    );
+    assert_eq!(error.cluster_delete_status_code(), 403);
+    assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn k8s_delete_api_rejects_tenant_mismatch_as_forbidden() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut req = delete_request("req-del-mismatch", "idem-del-mismatch");
+    req.principal.tenant_id = "ten_other".to_string();
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, req)
+        .expect_err("tenant mismatch rejected");
+
+    assert!(matches!(
+        error,
+        CloudComputeK8sApiError::TenantMismatch { .. }
+    ));
+    assert_eq!(error.cluster_delete_status_code(), 403);
+    assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn k8s_delete_api_rejects_unknown_cluster_as_not_found() {
+    let catalog = CloudComputeCatalog::default(); // empty — no cluster
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(
+        &catalog,
+        &mut delete_ledger,
+        delete_request("req-del-missing", "idem-del-missing"),
+    )
+    .expect_err("missing cluster returns 404");
+
+    assert!(matches!(
+        error,
+        CloudComputeK8sApiError::ClusterNotFound { .. }
+    ));
+    assert_eq!(error.cluster_delete_status_code(), 404);
+    assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn k8s_delete_api_rejects_reused_key_for_different_cluster() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+
+    delete_cloud_compute_k8s_cluster_from_api(
+        &catalog,
+        &mut delete_ledger,
+        delete_request("req-del-reuse-1", "idem-del-reuse"),
+    )
+    .expect("initial delete succeeds");
+
+    let mut drifted = delete_request("req-del-reuse-2", "idem-del-reuse");
+    drifted.path_cluster_id = "oya:cloud:region-home:ten_alpha:k8s:other".to_string();
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, drifted)
+        .expect_err("same key different cluster_id is rejected");
+
+    assert_eq!(
+        error,
+        CloudComputeK8sApiError::IdempotencyKeyReused {
+            idempotency_key: "idem-del-reuse".to_string(),
+        }
+    );
+    assert_eq!(error.cluster_delete_status_code(), 422);
+    assert_eq!(delete_ledger.len(), 1);
+}
+
+#[test]
+fn k8s_delete_error_response_request_id_roundtrips_and_matches_create_shape() {
+    let catalog = CloudComputeCatalog::default(); // empty — triggers ClusterNotFound
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+
+    let error = delete_cloud_compute_k8s_cluster_from_api(
+        &catalog,
+        &mut delete_ledger,
+        delete_request("req-del-shape-check", "idem-del-shape-check"),
+    )
+    .expect_err("missing cluster for shape test");
+
+    let response = error.error_response("req-del-shape-check");
+
+    // request_id echoed in error body — same field as create surface uses
+    assert_eq!(response.error.request_id, "req-del-shape-check");
+    // error body shape: code, message, details present
+    assert!(!response.error.code.is_empty());
+    assert!(!response.error.message.is_empty());
+    assert!(!response.error.details.is_empty());
+    assert_eq!(response.error.message_localized, None);
 }
