@@ -3,10 +3,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_cloud_iac_domain::{
-    CellDefinition, CellIsolationTier, CellTopologyPlan, GitOpsController, GitOpsEvidence,
-    GitOpsEvidenceInput, GitOpsHealthStatus, GitOpsSyncStatus, LocalModuleReleaseStatus,
-    LocalOpenTofuModuleCatalog, LocalOpenTofuModuleCatalogEntry, ModuleRegistry, OpenTofuModuleRef,
-    OpenTofuModuleRelease,
+    CellDefinition, CellIsolationTier, CellTopologyPlan, GitOpsController, GitOpsDriftReport,
+    GitOpsDriftVerdict, GitOpsEvidence, GitOpsEvidenceInput, GitOpsHealthStatus, GitOpsSyncStatus,
+    LocalModuleReleaseStatus, LocalOpenTofuModuleCatalog, LocalOpenTofuModuleCatalogEntry,
+    ModuleRegistry, OpenTofuModuleRef, OpenTofuModuleRelease, reconcile_gitops_drift,
 };
 
 fn tenant_namespace_release() -> OpenTofuModuleRelease {
@@ -603,4 +603,141 @@ fn cloud_iac_local_module_catalog_prevents_skeleton_false_greens() {
         .unwrap_err(),
         oya_cloud_iac_domain::CloudIacError::CatalogSkeletonOverclaim
     );
+}
+
+// ---------------------------------------------------------------------------
+// GitOps drift reconciliation tests
+// ---------------------------------------------------------------------------
+
+const SHA_DESIRED: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const SHA_OBSERVED: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+fn desired_evidence(commit_sha: &str) -> GitOpsEvidence {
+    GitOpsEvidence::new(GitOpsEvidenceInput {
+        controller: GitOpsController::ArgoCd,
+        tenant_id: "ten_alpha".to_string(),
+        cell_id: "cell-kr-seoul-1-a-001".to_string(),
+        application_name: "cloud-iac-foundation".to_string(),
+        repository_url: "https://git.oyatie.internal/oyatie/oyatie.git".to_string(),
+        commit_sha: commit_sha.to_string(),
+        sync_status: GitOpsSyncStatus::Synced,
+        health_status: GitOpsHealthStatus::Healthy,
+        evidence_ref: "evidence://cloud-iac/gitops/cloud-iac-foundation/desired".to_string(),
+    })
+    .expect("desired evidence is valid")
+}
+
+fn observed_evidence(
+    commit_sha: &str,
+    sync_status: GitOpsSyncStatus,
+    health_status: GitOpsHealthStatus,
+) -> GitOpsEvidence {
+    GitOpsEvidence::new(GitOpsEvidenceInput {
+        controller: GitOpsController::ArgoCd,
+        tenant_id: "ten_alpha".to_string(),
+        cell_id: "cell-kr-seoul-1-a-001".to_string(),
+        application_name: "cloud-iac-foundation".to_string(),
+        repository_url: "https://git.oyatie.internal/oyatie/oyatie.git".to_string(),
+        commit_sha: commit_sha.to_string(),
+        sync_status,
+        health_status,
+        evidence_ref: "evidence://cloud-iac/gitops/cloud-iac-foundation/observed".to_string(),
+    })
+    .expect("observed evidence is valid")
+}
+
+#[test]
+fn drift_all_aligned_is_in_sync() {
+    let desired = desired_evidence(SHA_DESIRED);
+    let observed = observed_evidence(
+        SHA_DESIRED,
+        GitOpsSyncStatus::Synced,
+        GitOpsHealthStatus::Healthy,
+    );
+    let report = reconcile_gitops_drift(&desired, &observed);
+    assert_eq!(report.verdict, GitOpsDriftVerdict::InSync);
+    assert_eq!(report.observed_commit_sha, SHA_DESIRED);
+    assert_eq!(report.observed_sync_status, GitOpsSyncStatus::Synced);
+    assert_eq!(report.observed_health_status, GitOpsHealthStatus::Healthy);
+    assert_eq!(report.tenant_id, "ten_alpha");
+    assert_eq!(report.cell_id, "cell-kr-seoul-1-a-001");
+    assert_eq!(report.application_name, "cloud-iac-foundation");
+    assert_eq!(report.controller, GitOpsController::ArgoCd);
+}
+
+#[test]
+fn drift_commit_sha_mismatch() {
+    let desired = desired_evidence(SHA_DESIRED);
+    let observed = observed_evidence(
+        SHA_OBSERVED,
+        GitOpsSyncStatus::Synced,
+        GitOpsHealthStatus::Healthy,
+    );
+    let report = reconcile_gitops_drift(&desired, &observed);
+    assert_eq!(report.verdict, GitOpsDriftVerdict::DriftedCommit);
+    assert_eq!(report.observed_commit_sha, SHA_OBSERVED);
+}
+
+#[test]
+fn drift_sync_status_out_of_sync() {
+    let desired = desired_evidence(SHA_DESIRED);
+    let observed = observed_evidence(
+        SHA_DESIRED,
+        GitOpsSyncStatus::OutOfSync,
+        GitOpsHealthStatus::Healthy,
+    );
+    let report = reconcile_gitops_drift(&desired, &observed);
+    assert_eq!(report.verdict, GitOpsDriftVerdict::DriftedSyncStatus);
+    assert_eq!(report.observed_sync_status, GitOpsSyncStatus::OutOfSync);
+}
+
+#[test]
+fn drift_sync_status_unknown() {
+    let desired = desired_evidence(SHA_DESIRED);
+    let observed = observed_evidence(
+        SHA_DESIRED,
+        GitOpsSyncStatus::Unknown,
+        GitOpsHealthStatus::Healthy,
+    );
+    let report = reconcile_gitops_drift(&desired, &observed);
+    assert_eq!(report.verdict, GitOpsDriftVerdict::DriftedSyncStatus);
+    assert_eq!(report.observed_sync_status, GitOpsSyncStatus::Unknown);
+}
+
+#[test]
+fn drift_degraded_health() {
+    let desired = desired_evidence(SHA_DESIRED);
+    let observed = observed_evidence(
+        SHA_DESIRED,
+        GitOpsSyncStatus::Synced,
+        GitOpsHealthStatus::Degraded,
+    );
+    let report = reconcile_gitops_drift(&desired, &observed);
+    assert_eq!(report.verdict, GitOpsDriftVerdict::DegradedHealth);
+    assert_eq!(report.observed_health_status, GitOpsHealthStatus::Degraded);
+}
+
+#[test]
+fn drift_identity_mismatch_beats_commit_drift() {
+    // Even though commit SHAs also differ, IdentityMismatch takes precedence.
+    let desired = desired_evidence(SHA_DESIRED);
+    // Observed has a different application_name (identity mismatch) AND different SHA.
+    let observed = GitOpsEvidence::new(GitOpsEvidenceInput {
+        controller: GitOpsController::ArgoCd,
+        tenant_id: "ten_alpha".to_string(),
+        cell_id: "cell-kr-seoul-1-a-001".to_string(),
+        application_name: "different-application".to_string(),
+        repository_url: "https://git.oyatie.internal/oyatie/oyatie.git".to_string(),
+        commit_sha: SHA_OBSERVED.to_string(),
+        sync_status: GitOpsSyncStatus::Synced,
+        health_status: GitOpsHealthStatus::Healthy,
+        evidence_ref: "evidence://cloud-iac/gitops/different-application/observed".to_string(),
+    })
+    .expect("mismatched-identity observed evidence is valid");
+
+    let report = reconcile_gitops_drift(&desired, &observed);
+    assert_eq!(report.verdict, GitOpsDriftVerdict::IdentityMismatch);
+    // Report carries observed fields regardless
+    assert_eq!(report.application_name, "different-application");
+    assert_eq!(report.observed_commit_sha, SHA_OBSERVED);
 }
