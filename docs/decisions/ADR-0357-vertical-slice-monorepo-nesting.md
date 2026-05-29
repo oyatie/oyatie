@@ -37,3 +37,15 @@ Sequencing: execute as a single dedicated mechanical migration AFTER the wave-3 
 ## Consequences
 
 Positive: hyperscaler-grade vertical-slice locality and navigability; ownership becomes path-evident; closes the ADR-0131 intent-vs-enforcement conflict. Negative/cost: a large one-time path migration (~734 crates) touching `Cargo.toml` members, `registry/catalog` path fields, and the `architecture-boundaries` gate; must be a discrete, well-tested change with `oya verify --ci-required` green before and after. Neutral: package names, dependency graph, and one-version policy are unchanged; the migration is mechanical (git mv + path-field updates), not a code change.
+
+## Prerequisites status (2026-05-29)
+
+The sequencing precondition — wave-3 worktree consolidation — is effectively met:
+
+- Enterprise bundle: landed in `dev` (task #6, PR #181 — Wave-3 cloud foundations + planning SSOT + CI/CD pipeline overhaul, ADR-0360).
+- Workflow bundle: landed in `dev` (task #7).
+- Backbone bundle: PR #363 open (`agent/backbone-microservices-20260523T081210Z`), 30 commits, `cargo check --workspace --all-targets` passes (exit 0), 0 merge conflicts with `dev`. Pending merge only.
+
+Migration plan: `tasks/adr-0357-vertical-slice-nesting-plan.md`
+
+Acceptance unblocked as soon as PR #363 merges to `dev`.
