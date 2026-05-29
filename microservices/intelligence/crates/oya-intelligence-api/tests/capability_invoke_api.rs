@@ -824,6 +824,7 @@ fn publish_invoke_policy(foundation: &mut Foundation, tenant_id: &str, role: &st
                 action: "foundry.capability.invoke".to_string(),
                 resource_prefix: "capability:cap.".to_string(),
                 required_attribute: None,
+                annotations: vec![],
             }],
         })
         .expect("invoke policy is valid");

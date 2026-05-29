@@ -4767,6 +4767,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-contact-center-voice-routing-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-contract-lifecycle-management-contract-obligation-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-cost"
 version = "0.1.0"
 dependencies = [
@@ -4781,8 +4805,53 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-crm-revenue-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-data-boundary-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-data-pipeline-lineage-replay-service"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-data-warehouse-tenant-olap-service"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-design-collaboration-creative-artifact-service"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "oya-dev-cli"
@@ -4949,6 +5018,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-financial-planning-forecast-scenario-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-flags"
 version = "0.1.0"
 dependencies = [
@@ -5025,6 +5106,16 @@ name = "oya-governance-architecture-map-freshness-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-governance-audit-event-emission"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_yaml",
+ "walkdir",
+]
+
+[[package]]
 name = "oya-governance-authoritative-tracked-app"
 version = "0.1.0"
 dependencies = [
@@ -5047,6 +5138,17 @@ name = "oya-governance-banned-primitives-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-governance-byok-disambiguation"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "walkdir",
+]
+
+[[package]]
 name = "oya-governance-bypass-kernel"
 version = "0.1.0"
 
@@ -5055,6 +5157,26 @@ name = "oya-governance-capability-status-lifecycle-app"
 version = "0.1.0"
 dependencies = [
  "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-capability-tier-coverage"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_yaml",
+ "walkdir",
+]
+
+[[package]]
+name = "oya-governance-cedar-coverage"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_yaml",
+ "walkdir",
 ]
 
 [[package]]
@@ -5146,8 +5268,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-governance-naming-justifications"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "toml 0.8.23",
+ "walkdir",
+]
+
+[[package]]
+name = "oya-governance-no-template-stamping"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "walkdir",
+]
+
+[[package]]
 name = "oya-governance-orphan-detection-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-governance-pack-overlay-completeness"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_yaml",
+ "walkdir",
+]
 
 [[package]]
 name = "oya-governance-plan-status-lifecycle-app"
@@ -5212,6 +5367,17 @@ version = "0.1.0"
 [[package]]
 name = "oya-governance-quality-lane-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-governance-substance-bar"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "walkdir",
+]
 
 [[package]]
 name = "oya-governance-sunset-lifecycle-app"
@@ -5448,6 +5614,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-incident-management-sre-incident-command-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-intelligence-account-adapter-inmemory"
 version = "0.1.0"
 dependencies = [
@@ -5602,6 +5780,13 @@ name = "oya-intelligence-adapter-openai-subscription-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-api"
+version = "0.1.0"
+dependencies = [
+ "oya-application-app",
 ]
 
 [[package]]
@@ -6160,6 +6345,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-policy-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-intelligence-capability-domain",
+ "oya-intelligence-policy-domain",
+]
+
+[[package]]
 name = "oya-intelligence-policy-domain"
 version = "0.1.0"
 dependencies = [
@@ -6214,6 +6408,13 @@ version = "0.1.0"
 dependencies = [
  "oya-intelligence-dispatch-usecase",
  "oya-intelligence-model-routing-domain",
+]
+
+[[package]]
+name = "oya-intelligence-rag-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -6382,8 +6583,75 @@ name = "oya-intelligence-write-gate-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-itsm-escalation-policy"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-itsm-incident-room"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-itsm-on-call-schedule"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-itsm-postmortem"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-itsm-service-management-service"
+version = "0.1.0"
+dependencies = [
+ "oya-itsm-escalation-policy",
+ "oya-itsm-incident-room",
+ "oya-itsm-on-call-schedule",
+ "oya-itsm-postmortem",
+ "oya-itsm-status-update",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-itsm-status-update"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-json-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-learning-management-course-progress-service"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "oya-mail-domain"
@@ -6632,6 +6900,22 @@ dependencies = [
  "serde",
  "serde_json",
 ]
+
+[[package]]
+name = "oya-marketing-automation-campaign-journey-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-marketplace-doc-set-scaffold"
+version = "0.1.0"
 
 [[package]]
 name = "oya-meet-domain"
@@ -7039,10 +7323,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-performance-management-review-calibration-service"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-plant-maintenance-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-plant-maintenance-work-order-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -7082,10 +7389,46 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-production-planning-mrp-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-quality-management-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-quality-management-inspection-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-real-estate-lease-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -7341,6 +7684,14 @@ name = "oya-shared-backup-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-shared-bounded-contexts-check-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+]
+
+[[package]]
 name = "oya-shared-compliance-evidence-kernel"
 version = "0.1.0"
 
@@ -7584,6 +7935,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-shuffle-sharding"
+version = "0.1.0"
+
+[[package]]
 name = "oya-sites-domain"
 version = "0.1.0"
 dependencies = [
@@ -7605,6 +7960,18 @@ name = "oya-supply-chain-planning-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-supply-chain-planning-network-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -8023,6 +8390,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-treasury-cash-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-treasury-cash-domain"
 version = "0.1.0"
 dependencies = [
@@ -8069,10 +8448,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-warehouse-fulfillment-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-warehouse-inventory-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-whiteboard-canvas-collaboration-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -8383,11 +8786,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-workplace-integration-doc-set-scaffold"
+version = "0.1.0"
+
+[[package]]
 name = "oya-workspace-chat-api"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
  "oya-messenger-domain",
+]
+
+[[package]]
+name = "oya-workspace-drive-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-drive-domain",
+]
+
+[[package]]
+name = "oya-workspace-forms-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-forms-domain",
+]
+
+[[package]]
+name = "oya-workspace-meet-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-meet-domain",
 ]
 
 [[package]]
