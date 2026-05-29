@@ -37,10 +37,10 @@ use oya_intelligence_provider_pool_app::{
     InMemoryProviderInvocationTransport, InMemorySecretResolver, InMemoryUsageSnapshotSource,
     MetricEvent, MetricsSink, NoOpMetricsSink, PoolError, PoolId, PoolRoutingReason,
     PoolRoutingStrategy, ProviderAccountId, ProviderAccountPool, ProviderCredential,
-    ProviderFamily, ProviderInvocationTransport, ProviderResponse, ProviderTier, RecordingMetricsSink,
-    RequestMetadata, SecretReference, SecretResolutionError, SessionId, StreamScript, TenantId,
-    TransportError, TransportScript, Unimplemented, UnixMillis, UsageSnapshot, UsageSnapshotMap,
-    dispatch_to_pool, dispatch_to_pool_stream,
+    ProviderFamily, ProviderInvocationTransport, ProviderResponse, ProviderTier,
+    RecordingMetricsSink, RequestMetadata, SecretReference, SecretResolutionError, SessionId,
+    StreamScript, TenantId, TransportError, TransportScript, Unimplemented, UnixMillis,
+    UsageSnapshot, UsageSnapshotMap, dispatch_to_pool, dispatch_to_pool_stream,
 };
 use oya_intelligence_provider_pool_kernel::DurationMs;
 
@@ -851,9 +851,7 @@ async fn unresolved_secret_returns_dispatch_error() {
         DispatchError::SecretResolutionFailed(SecretResolutionError::Denied { .. }) => {
             // expected
         }
-        other => panic!(
-            "expected SecretResolutionFailed(Denied), got {other:?}"
-        ),
+        other => panic!("expected SecretResolutionFailed(Denied), got {other:?}"),
     }
 
     // Transport was never called.
@@ -907,8 +905,8 @@ async fn stream_happy_path_yields_ordered_chunks() {
     });
     // Unary script is a no-op — streaming tests only exercise dispatch_stream.
     let unary_script: TransportScript = Arc::new(|account, _, _| Ok(ok_response(account)));
-    let transport = InMemoryProviderInvocationTransport::new(unary_script)
-        .with_stream_script(stream_script);
+    let transport =
+        InMemoryProviderInvocationTransport::new(unary_script).with_stream_script(stream_script);
     let secret = DeniedSecretResolver;
     let metrics = NoOpMetricsSink;
 
@@ -941,11 +939,14 @@ async fn stream_happy_path_yields_ordered_chunks() {
         .map(|r| r.expect("chunk must be Ok"))
         .collect();
 
-    assert_eq!(chunks, vec![
-        Bytes::from_static(b"chunk1"),
-        Bytes::from_static(b"chunk2"),
-        Bytes::from_static(b"chunk3"),
-    ]);
+    assert_eq!(
+        chunks,
+        vec![
+            Bytes::from_static(b"chunk1"),
+            Bytes::from_static(b"chunk2"),
+            Bytes::from_static(b"chunk3"),
+        ]
+    );
 }
 
 /// AC SUB-2: first-byte retryable failure marks account unhealthy and walks
@@ -976,8 +977,8 @@ async fn stream_first_byte_retryable_marks_unhealthy_and_walks_chain() {
         }
     });
     let unary_script: TransportScript = Arc::new(|account, _, _| Ok(ok_response(account)));
-    let transport = InMemoryProviderInvocationTransport::new(unary_script)
-        .with_stream_script(stream_script);
+    let transport =
+        InMemoryProviderInvocationTransport::new(unary_script).with_stream_script(stream_script);
     let secret = DeniedSecretResolver;
     let metrics = NoOpMetricsSink;
 
@@ -1042,8 +1043,8 @@ async fn stream_chain_exhaustion_returns_all_providers_exhausted() {
         })]
     });
     let unary_script: TransportScript = Arc::new(|account, _, _| Ok(ok_response(account)));
-    let transport = InMemoryProviderInvocationTransport::new(unary_script)
-        .with_stream_script(stream_script);
+    let transport =
+        InMemoryProviderInvocationTransport::new(unary_script).with_stream_script(stream_script);
     let secret = DeniedSecretResolver;
     let metrics = NoOpMetricsSink;
 
@@ -1092,8 +1093,8 @@ async fn stream_non_retryable_first_byte_short_circuits() {
         })]
     });
     let unary_script: TransportScript = Arc::new(|account, _, _| Ok(ok_response(account)));
-    let transport = InMemoryProviderInvocationTransport::new(unary_script)
-        .with_stream_script(stream_script);
+    let transport =
+        InMemoryProviderInvocationTransport::new(unary_script).with_stream_script(stream_script);
     let secret = DeniedSecretResolver;
     let metrics = NoOpMetricsSink;
 
@@ -1234,27 +1235,42 @@ async fn metrics_recording_sink_captures_failover_sequence() {
     let events = metrics.snapshot();
 
     // Assert presence and ordering of key events.
-    let attempt_alpha_pos = events.iter().position(|e| {
-        matches!(e, MetricEvent::Attempt { account_id, .. } if account_id == &pid("alpha"))
-    });
+    let attempt_alpha_pos = events.iter().position(
+        |e| matches!(e, MetricEvent::Attempt { account_id, .. } if account_id == &pid("alpha")),
+    );
     let failure_alpha_pos = events.iter().position(|e| {
         matches!(e, MetricEvent::Failure { account_id, retryable: true } if account_id == &pid("alpha"))
     });
     let failover_pos = events.iter().position(|e| {
         matches!(e, MetricEvent::Failover { from, to, depth: 1 } if from == &pid("alpha") && to == &pid("beta"))
     });
-    let attempt_beta_pos = events.iter().position(|e| {
-        matches!(e, MetricEvent::Attempt { account_id, .. } if account_id == &pid("beta"))
-    });
-    let success_beta_pos = events.iter().position(|e| {
-        matches!(e, MetricEvent::Success { account_id, .. } if account_id == &pid("beta"))
-    });
+    let attempt_beta_pos = events.iter().position(
+        |e| matches!(e, MetricEvent::Attempt { account_id, .. } if account_id == &pid("beta")),
+    );
+    let success_beta_pos = events.iter().position(
+        |e| matches!(e, MetricEvent::Success { account_id, .. } if account_id == &pid("beta")),
+    );
 
-    assert!(attempt_alpha_pos.is_some(), "Attempt(alpha) missing from {events:?}");
-    assert!(failure_alpha_pos.is_some(), "Failure(alpha, retryable) missing from {events:?}");
-    assert!(failover_pos.is_some(), "Failover(alpha→beta,depth=1) missing from {events:?}");
-    assert!(attempt_beta_pos.is_some(), "Attempt(beta) missing from {events:?}");
-    assert!(success_beta_pos.is_some(), "Success(beta) missing from {events:?}");
+    assert!(
+        attempt_alpha_pos.is_some(),
+        "Attempt(alpha) missing from {events:?}"
+    );
+    assert!(
+        failure_alpha_pos.is_some(),
+        "Failure(alpha, retryable) missing from {events:?}"
+    );
+    assert!(
+        failover_pos.is_some(),
+        "Failover(alpha→beta,depth=1) missing from {events:?}"
+    );
+    assert!(
+        attempt_beta_pos.is_some(),
+        "Attempt(beta) missing from {events:?}"
+    );
+    assert!(
+        success_beta_pos.is_some(),
+        "Success(beta) missing from {events:?}"
+    );
 
     // Ordering: attempt_alpha < failure_alpha < failover < attempt_beta < success_beta
     let pa = attempt_alpha_pos.unwrap();
