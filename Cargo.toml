@@ -642,6 +642,8 @@ members = [
   "microservices/analytics/crates/oya-analytics-api",
   "microservices/analytics/crates/oya-analytics-app",
   "microservices/analytics/crates/oya-analytics-tenant-bootstrap-app",
+  # oya-billing µservice (ADR-0509 single-crate-per-service, supersedes ADR-0478 3-crate layout)
+  "microservices/oya-billing",
   # Managed-Kubernetes product crates (ADR-0376) — one product, two bounded-contexts
   # under microservices/managed/ (architecture-boundaries infers <ms>=managed from
   # the oya-managed-* prefix). tenant-quota (QuotaDecision port) + control-plane-host
