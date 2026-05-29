@@ -107,10 +107,168 @@ pub fn resolve(
     }
 }
 
+/// Result of a batch ceiling evaluation over multiple (surface, tier) pairs.
+///
+/// Carries per-item [`TenantCeilingVerdict`]s in input order plus an aggregate
+/// `most_restrictive_clamp` that is the **minimum** effective ceiling tier among
+/// all `Clamped` items. `None` when no item was clamped (including the empty
+/// case).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BatchCeilingVerdict {
+    /// Per-request verdict in the same order as the input slice.
+    pub results: Vec<TenantCeilingVerdict>,
+    /// Lowest effective ceiling tier among clamped items; `None` when all
+    /// items are `Permitted` or the input is empty.
+    pub most_restrictive_clamp: Option<AutonomyTier>,
+}
+
+/// Batch resolver over an ordered slice of `(surface, requested_tier)` pairs.
+///
+/// Calls [`resolve`] for each entry in order and accumulates:
+/// - `results`: one [`TenantCeilingVerdict`] per input request, preserving order.
+/// - `most_restrictive_clamp`: the minimum (most restrictive) effective ceiling
+///   tier among all [`TenantCeilingVerdict::Clamped`] items; `None` when every
+///   item is `Permitted` (or the input is empty).
+///
+/// T4Actuate-disabled-by-default semantics are inherited from [`resolve`] and
+/// [`TenantCeiling::default()`].
+pub fn resolve_batch(
+    requests: &[(String, AutonomyTier)],
+    ceiling: &TenantCeiling,
+) -> BatchCeilingVerdict {
+    let mut results = Vec::with_capacity(requests.len());
+    let mut most_restrictive_clamp: Option<AutonomyTier> = None;
+
+    for (surface, requested) in requests {
+        let verdict = resolve(*requested, surface.as_str(), ceiling);
+        if let TenantCeilingVerdict::Clamped(effective) = verdict {
+            most_restrictive_clamp = Some(match most_restrictive_clamp {
+                None => effective,
+                Some(prev) => prev.min(effective),
+            });
+        }
+        results.push(verdict);
+    }
+
+    BatchCeilingVerdict {
+        results,
+        most_restrictive_clamp,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::AutonomyTier;
+
+    // ── resolve_batch tests ───────────────────────────────────────────────
+
+    #[test]
+    fn batch_empty_input_yields_empty_results_and_none_aggregate() {
+        let c = TenantCeiling::default();
+        let verdict = resolve_batch(&[], &c);
+        assert!(verdict.results.is_empty());
+        assert_eq!(verdict.most_restrictive_clamp, None);
+    }
+
+    #[test]
+    fn batch_all_permitted_yields_none_aggregate() {
+        let c = TenantCeiling::default();
+        let requests = vec![
+            ("read".to_string(), AutonomyTier::T1Read),
+            ("write".to_string(), AutonomyTier::T2Suggest),
+            ("execute".to_string(), AutonomyTier::T3PropAct),
+        ];
+        let verdict = resolve_batch(&requests, &c);
+        assert_eq!(verdict.results.len(), 3);
+        assert!(verdict.results.iter().all(|v| *v == TenantCeilingVerdict::Permitted));
+        assert_eq!(verdict.most_restrictive_clamp, None);
+    }
+
+    #[test]
+    fn batch_mixed_permitted_and_clamped_selects_most_restrictive() {
+        // Default ceiling is T3. One surface overridden to T2, another to T4.
+        let c = TenantCeiling::default()
+            .with_surface("restricted", AutonomyTier::T2Suggest)
+            .with_surface("elevated", AutonomyTier::T4Actuate);
+        let requests = vec![
+            // Permitted: T3 within default T3 ceiling
+            ("default-surface".to_string(), AutonomyTier::T3PropAct),
+            // Clamped: T4 against T2 surface → clamped to T2
+            ("restricted".to_string(), AutonomyTier::T4Actuate),
+            // Permitted: T4 within T4 surface ceiling
+            ("elevated".to_string(), AutonomyTier::T4Actuate),
+            // Clamped: T4 against default T3 ceiling → clamped to T3
+            ("another-default".to_string(), AutonomyTier::T4Actuate),
+        ];
+        let verdict = resolve_batch(&requests, &c);
+        assert_eq!(verdict.results.len(), 4);
+        assert_eq!(verdict.results[0], TenantCeilingVerdict::Permitted);
+        assert_eq!(verdict.results[1], TenantCeilingVerdict::Clamped(AutonomyTier::T2Suggest));
+        assert_eq!(verdict.results[2], TenantCeilingVerdict::Permitted);
+        assert_eq!(verdict.results[3], TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct));
+        // Most restrictive clamp is T2 (T2 < T3)
+        assert_eq!(verdict.most_restrictive_clamp, Some(AutonomyTier::T2Suggest));
+    }
+
+    #[test]
+    fn batch_surface_override_raises_ceiling_item_becomes_permitted() {
+        // Without the override, T4 would be clamped. With it, it's Permitted.
+        let c = TenantCeiling::default()
+            .with_surface("elevated", AutonomyTier::T4Actuate);
+        let requests = vec![
+            // Permitted via surface override
+            ("elevated".to_string(), AutonomyTier::T4Actuate),
+            // Clamped: T4 against default T3
+            ("default-surface".to_string(), AutonomyTier::T4Actuate),
+        ];
+        let verdict = resolve_batch(&requests, &c);
+        assert_eq!(verdict.results[0], TenantCeilingVerdict::Permitted);
+        assert_eq!(verdict.results[1], TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct));
+        // Aggregate reflects only the clamped item
+        assert_eq!(verdict.most_restrictive_clamp, Some(AutonomyTier::T3PropAct));
+    }
+
+    #[test]
+    fn batch_aggregate_is_order_independent() {
+        // Same items in different order → same most_restrictive_clamp
+        let c = TenantCeiling::default()
+            .with_surface("low", AutonomyTier::T1Read);
+        let requests_a = vec![
+            ("default-surface".to_string(), AutonomyTier::T4Actuate), // clamped to T3
+            ("low".to_string(), AutonomyTier::T4Actuate),             // clamped to T1
+        ];
+        let requests_b = vec![
+            ("low".to_string(), AutonomyTier::T4Actuate),             // clamped to T1
+            ("default-surface".to_string(), AutonomyTier::T4Actuate), // clamped to T3
+        ];
+        let verdict_a = resolve_batch(&requests_a, &c);
+        let verdict_b = resolve_batch(&requests_b, &c);
+        assert_eq!(verdict_a.most_restrictive_clamp, Some(AutonomyTier::T1Read));
+        assert_eq!(verdict_b.most_restrictive_clamp, Some(AutonomyTier::T1Read));
+    }
+
+    #[test]
+    fn batch_all_clamped_same_tier_yields_that_tier() {
+        let c = TenantCeiling::default(); // T3 global
+        let requests = vec![
+            ("s1".to_string(), AutonomyTier::T4Actuate),
+            ("s2".to_string(), AutonomyTier::T4Actuate),
+        ];
+        let verdict = resolve_batch(&requests, &c);
+        assert!(verdict.results.iter().all(|v| *v == TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct)));
+        assert_eq!(verdict.most_restrictive_clamp, Some(AutonomyTier::T3PropAct));
+    }
+
+    #[test]
+    fn batch_results_len_equals_requests_len() {
+        let c = TenantCeiling::default();
+        let requests: Vec<(String, AutonomyTier)> = (0..5)
+            .map(|i| (format!("surface-{i}"), AutonomyTier::T2Suggest))
+            .collect();
+        let verdict = resolve_batch(&requests, &c);
+        assert_eq!(verdict.results.len(), requests.len());
+    }
 
     // ── default ceiling tests ──────────────────────────────────────────────
 
