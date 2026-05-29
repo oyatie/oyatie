@@ -47,6 +47,7 @@ use oya_cloud_iac_domain::{
 const SHA_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const SHA_B: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
+#[allow(clippy::too_many_arguments)]
 fn make_evidence(
     controller: GitOpsController,
     tenant_id: &str,
@@ -380,7 +381,7 @@ fn drift_report_carries_observed_identity_fields_when_in_sync() {
 #[test]
 fn drift_verdict_derives_clone_debug_eq_partial_eq() {
     let v1 = GitOpsDriftVerdict::InSync;
-    let v2 = v1.clone();
+    let v2 = v1;
     assert_eq!(v1, v2);
     // Debug must not panic and must produce non-empty output
     let debug = format!("{v1:?}");

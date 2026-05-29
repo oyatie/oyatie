@@ -141,6 +141,93 @@ fn identity_mismatch_topology_id() {
     assert!(report.entries.is_empty());
 }
 
+/// Identity mismatch (region differs between topologies) => IdentityMismatch verdict.
+#[test]
+fn identity_mismatch_region() {
+    // Each cell must match its own topology's region; the mismatch is at topology level.
+    let r = make_ref("tenant-namespace", "1.0.0");
+    let desired = {
+        let desired_cell = CellDefinition::new(
+            "ten_oyatie",
+            "us-east-1",
+            "cell-us-east",
+            CellIsolationTier::Foundation,
+            vec![r.clone()],
+            false,
+        )
+        .expect("valid desired cell");
+        let mut plan =
+            CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
+                .expect("valid topology");
+        plan = plan.add_cell(desired_cell).expect("add cell");
+        plan
+    };
+    let observed = {
+        let observed_cell = CellDefinition::new(
+            "ten_oyatie",
+            "eu-west-1",
+            "cell-eu-west",
+            CellIsolationTier::Foundation,
+            vec![r.clone()],
+            false,
+        )
+        .expect("valid observed cell");
+        let mut plan =
+            CellTopologyPlan::new("topo-1", "eu-west-1", "evidence://iac/test/topology")
+                .expect("valid topology");
+        plan = plan.add_cell(observed_cell).expect("add cell");
+        plan
+    };
+
+    let report = compute_iac_plan_diff(&desired, &observed);
+    assert_eq!(report.verdict, IacPlanDiffVerdict::IdentityMismatch);
+    assert!(report.entries.is_empty());
+}
+
+/// Identity mismatch (per-cell tenant_id differs for same cell_id) => IdentityMismatch verdict.
+#[test]
+fn identity_mismatch_cell_tenant_id() {
+    let r = make_ref("tenant-namespace", "1.0.0");
+    // cell_id format requires "cell-<suffix>" where suffix must contain a hyphen.
+    let desired_cell = CellDefinition::new(
+        "ten_desired",
+        "us-east-1",
+        "cell-shared-01",
+        CellIsolationTier::Foundation,
+        vec![r.clone()],
+        false,
+    )
+    .expect("valid desired cell");
+    let observed_cell = CellDefinition::new(
+        "ten_observed",
+        "us-east-1",
+        "cell-shared-01",
+        CellIsolationTier::Foundation,
+        vec![r.clone()],
+        false,
+    )
+    .expect("valid observed cell");
+
+    let desired = {
+        let mut plan =
+            CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
+                .expect("valid topology");
+        plan = plan.add_cell(desired_cell).expect("add cell");
+        plan
+    };
+    let observed = {
+        let mut plan =
+            CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
+                .expect("valid topology");
+        plan = plan.add_cell(observed_cell).expect("add cell");
+        plan
+    };
+
+    let report = compute_iac_plan_diff(&desired, &observed);
+    assert_eq!(report.verdict, IacPlanDiffVerdict::IdentityMismatch);
+    assert!(report.entries.is_empty());
+}
+
 /// Determinism: two calls with identical inputs produce identical results.
 #[test]
 fn determinism() {
