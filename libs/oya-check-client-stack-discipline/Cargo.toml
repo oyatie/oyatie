@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # Pure-fn kernel (port-in-kernel, ADR-0056). Validates that every client
-# surface declared under microservices/<ms>/clients/ conforms to the
+# surface declared under oya/<ms>/clients/ conforms to the
 # native-per-platform discipline from ADR-0185:
 #   - web surface uses exactly one of sveltekit OR leptos (not both)
 #   - mobile surface uses SwiftUI on Apple / Compose on Android (no KMP UI)

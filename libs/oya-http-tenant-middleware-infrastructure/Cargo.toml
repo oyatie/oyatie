@@ -12,7 +12,7 @@ license = "Apache-2.0"
 oya-http-middleware-kernel = { path = "../oya-http-middleware-kernel" }
 # ADR-0095: TenantSlug grammar lives in oya-tenancy-kernel. The middleware
 # is a thin extractor; the kernel owns the validation rules.
-oya-tenancy-kernel = { path = "../../microservices/tenancy/crates/oya-tenancy-kernel" }
+oya-tenancy-kernel = { path = "../../cloud/tenancy/crates/oya-tenancy-kernel" }
 
 [dev-dependencies]
 oya-http-router-kernel = { path = "../oya-http-router-kernel" }

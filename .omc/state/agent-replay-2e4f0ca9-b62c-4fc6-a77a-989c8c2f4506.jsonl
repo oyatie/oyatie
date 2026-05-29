@@ -44,3 +44,4 @@
 {"t":0,"agent":"a997424","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":201295}
 {"t":0,"agent":"a3eaff9","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a3eaff9","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":223569}
+{"t":0,"agent":"a772476","agent_type":"executor","event":"agent_start","parent_mode":"none"}
