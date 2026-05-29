@@ -99,6 +99,63 @@ impl PackTier {
     pub fn requires_aaguid_allowlist(self) -> bool {
         matches!(self, Self::PackRegulated | Self::AcrCritical)
     }
+
+    /// Evaluate whether `credential` may be admitted for this pack tier.
+    ///
+    /// Returns `Ok(())` when all policy checks pass.
+    ///
+    /// # Errors
+    ///
+    /// - `WebauthnError::AttestationLevelInsufficient` — presented conveyance
+    ///   is weaker than the tier requires (`None < Indirect < Direct < Enterprise`).
+    /// - `WebauthnError::AaguidNotAllowlisted` — the tier requires an allowlist
+    ///   and either the AAGUID is zero, no allowlist was supplied, or the AAGUID
+    ///   is absent from the supplied allowlist.
+    ///
+    /// The `aaguid_allowlist` argument is ignored for tiers that do not require
+    /// one (`SandboxOrDev`, `PackStandard`).
+    pub fn admit_credential(
+        self,
+        presented_conveyance: AttestationConveyance,
+        credential: &Credential,
+        aaguid_allowlist: Option<&BTreeSet<Aaguid>>,
+    ) -> Result<(), WebauthnError> {
+        // Step 1: attestation-level check.
+        let required = self.required_attestation();
+        if conveyance_level(presented_conveyance) < conveyance_level(required) {
+            return Err(WebauthnError::AttestationLevelInsufficient {
+                required,
+                actual: presented_conveyance,
+            });
+        }
+
+        // Step 2: AAGUID allowlist check (regulated / critical tiers only).
+        if self.requires_aaguid_allowlist() {
+            if credential.aaguid.is_zero() {
+                return Err(WebauthnError::AaguidNotAllowlisted(Aaguid::ZERO));
+            }
+            match aaguid_allowlist {
+                None => return Err(WebauthnError::AaguidNotAllowlisted(credential.aaguid)),
+                Some(list) if !list.contains(&credential.aaguid) => {
+                    return Err(WebauthnError::AaguidNotAllowlisted(credential.aaguid));
+                }
+                Some(_) => {}
+            }
+        }
+
+        Ok(())
+    }
+}
+
+/// Numeric strength of an attestation conveyance for ordering comparisons.
+/// `None=0 < Indirect=1 < Direct=2 < Enterprise=3`.
+fn conveyance_level(c: AttestationConveyance) -> u8 {
+    match c {
+        AttestationConveyance::None => 0,
+        AttestationConveyance::Indirect => 1,
+        AttestationConveyance::Direct => 2,
+        AttestationConveyance::Enterprise => 3,
+    }
 }
 
 /// Persisted credential record.
