@@ -574,6 +574,153 @@ pub fn bounce_suppression_decision(
     }
 }
 
+// ---------- Inbound DMARC alignment + disposition ----------
+
+/// Alignment mode for DMARC evaluation per RFC 7489 §3.1.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub enum DmarcAlignmentMode {
+    /// Exact domain match required. `sub.example.com` does NOT align with `example.com`.
+    Strict,
+    /// Organizational-domain suffix match. `sub.example.com` aligns with `example.com`
+    /// because they share the same org domain. Single-label domains fall back to exact match.
+    Relaxed,
+}
+
+impl fmt::Display for DmarcAlignmentMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DmarcAlignmentMode::Strict => f.write_str("strict"),
+            DmarcAlignmentMode::Relaxed => f.write_str("relaxed"),
+        }
+    }
+}
+
+/// Concrete inbound message disposition after applying DMARC policy.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub enum DmarcDisposition {
+    /// Deliver the message normally. Maps to DMARC pass, or DMARC fail + `p=none`.
+    Accept,
+    /// Deliver to junk/spam. Maps to DMARC fail + `p=quarantine`.
+    Quarantine,
+    /// Reject the message entirely. Maps to DMARC fail + `p=reject`.
+    Reject,
+}
+
+impl fmt::Display for DmarcDisposition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DmarcDisposition::Accept => f.write_str("accept"),
+            DmarcDisposition::Quarantine => f.write_str("quarantine"),
+            DmarcDisposition::Reject => f.write_str("reject"),
+        }
+    }
+}
+
+/// Inputs for a single inbound DMARC alignment evaluation.
+///
+/// All domain strings are matched case-insensitively per RFC 1035.
+/// Empty strings for `spf_result_domain` or `dkim_result_domain` are
+/// treated as "no result for that mechanism" (alignment fails for that mechanism).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DmarcAlignmentInput {
+    /// The RFC 5322 `From` header domain (the identifier being protected).
+    pub from_domain: String,
+    /// The domain from the SPF authentication result (envelope sender domain).
+    /// Empty string means SPF produced no usable result.
+    pub spf_result_domain: String,
+    /// The DKIM signing domain (`d=` tag from a validated DKIM signature).
+    /// Empty string means DKIM produced no usable result.
+    pub dkim_result_domain: String,
+    /// Alignment strictness mode. RFC 7489 default is `Relaxed`.
+    pub alignment_mode: DmarcAlignmentMode,
+    /// The sender domain's published DMARC policy.
+    pub policy: DmarcPolicy,
+}
+
+/// Result of evaluating DMARC alignment + disposition for one inbound message.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct DmarcEvalVerdict {
+    /// `true` if the message passes DMARC (SPF aligned OR DKIM aligned).
+    pub aligned: bool,
+    /// Whether the SPF result domain aligns with the `From` domain.
+    pub spf_aligned: bool,
+    /// Whether the DKIM `d=` domain aligns with the `From` domain.
+    pub dkim_aligned: bool,
+    /// Concrete disposition derived from the alignment result and DMARC policy.
+    pub disposition: DmarcDisposition,
+}
+
+/// Extract the organizational domain from a fully-qualified domain name.
+///
+/// Uses a simple two-label approximation: strip all labels except the last two.
+/// `mail.sub.example.com` → `example.com`, `example.com` → `example.com`,
+/// `localhost` (single-label) → `localhost`.
+///
+/// This is a best-effort approximation. Production callers that need a full
+/// public-suffix-list-aware eTLD+1 computation should perform that upstream and
+/// pass the result in `DmarcAlignmentInput`; this helper handles the common case.
+fn org_domain(domain: &str) -> &str {
+    let labels: Vec<&str> = domain.split('.').collect();
+    if labels.len() <= 2 {
+        domain
+    } else {
+        // Return everything after the first label.
+        let dot_pos = domain.find('.').unwrap_or(domain.len());
+        &domain[dot_pos + 1..]
+    }
+}
+
+/// Return `true` if `auth_domain` aligns with `from_domain` under the given mode.
+///
+/// Empty `auth_domain` never aligns.
+fn domains_align(from_domain: &str, auth_domain: &str, mode: DmarcAlignmentMode) -> bool {
+    if auth_domain.is_empty() {
+        return false;
+    }
+    let from_lc = from_domain.to_ascii_lowercase();
+    let auth_lc = auth_domain.to_ascii_lowercase();
+    match mode {
+        DmarcAlignmentMode::Strict => from_lc == auth_lc,
+        DmarcAlignmentMode::Relaxed => {
+            org_domain(&from_lc) == org_domain(&auth_lc)
+        }
+    }
+}
+
+/// Evaluate inbound DMARC alignment and produce a disposition.
+///
+/// Per RFC 7489 §3.1: the message passes DMARC if at least one of SPF or DKIM
+/// is *aligned* with the `From` header domain. The concrete `disposition` is then
+/// derived from the pass/fail result and the sender's published DMARC policy.
+///
+/// This function is pure and deterministic — no I/O, no DNS, no network.
+///
+/// # OTel integration
+///
+/// Callers should set span attributes from the returned `DmarcEvalVerdict`:
+/// - `dmarc.aligned` — `verdict.aligned`
+/// - `dmarc.spf_aligned` — `verdict.spf_aligned`
+/// - `dmarc.dkim_aligned` — `verdict.dkim_aligned`
+/// - `dmarc.disposition` — `verdict.disposition.to_string()`
+#[must_use]
+pub fn evaluate_inbound_dmarc(input: &DmarcAlignmentInput) -> DmarcEvalVerdict {
+    let spf_aligned = domains_align(&input.from_domain, &input.spf_result_domain, input.alignment_mode);
+    let dkim_aligned = domains_align(&input.from_domain, &input.dkim_result_domain, input.alignment_mode);
+    let aligned = spf_aligned || dkim_aligned;
+
+    let disposition = if aligned {
+        DmarcDisposition::Accept
+    } else {
+        match input.policy {
+            DmarcPolicy::None => DmarcDisposition::Accept,
+            DmarcPolicy::Quarantine => DmarcDisposition::Quarantine,
+            DmarcPolicy::Reject => DmarcDisposition::Reject,
+        }
+    };
+
+    DmarcEvalVerdict { aligned, spf_aligned, dkim_aligned, disposition }
+}
+
 // ---------- Real adapter shells (no Noop fallback) ----------
 //
 // Each adapter ships its trait impl up-front. The actual provider
