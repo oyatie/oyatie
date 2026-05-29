@@ -8,9 +8,8 @@
 //! 2. `client-stack-discipline` — strict; ADR-0185.
 //!
 //! The runner I/O scans the canonical default paths in the repo
-//! (`microservices/*/manifest.json` for the layered gate;
-//! `microservices/*/clients/*/client-manifest.json` for the client-stack
-//! gate). Arguments are accepted but optional.
+//! (`cloud/*/manifest.json`, `oya/*/manifest.json`, and `microservices/*/manifest.json`
+//! for the layered gate; same roots for `*/clients/*/client-manifest.json`). Arguments are accepted but optional.
 
 use std::collections::BTreeSet;
 use std::fs;
@@ -20,7 +19,8 @@ use std::process::ExitCode;
 use oya_check_client_stack_discipline as client_check;
 use oya_check_layered_architecture_discipline as layered_check;
 
-const DEFAULT_MICROSERVICES_ROOT: &str = "microservices";
+/// Canonical service roots scanned when no explicit `--microservices-root` is given.
+const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
 const DEFAULT_DEFERRED_VIOLATIONS: &str =
     "registry/layered-architecture-discipline/wave-3-i-deferred-manifest-violations.tsv";
 
@@ -49,28 +49,31 @@ fn microservice_name_for(path: &Path, marker: &str) -> Option<String> {
     None
 }
 
-fn list_manifest_paths(root: &Path) -> Vec<PathBuf> {
+fn list_manifest_paths_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
     let mut out = Vec::new();
-    let Ok(entries) = fs::read_dir(root) else {
-        return out;
-    };
-    for entry in entries.flatten() {
-        let dir = entry.path();
-        if !dir.is_dir() {
+    for root in roots {
+        let Ok(entries) = fs::read_dir(root) else {
             continue;
-        }
-        let manifest = dir.join("manifest.json");
-        if manifest.exists() {
-            out.push(manifest);
+        };
+        for entry in entries.flatten() {
+            let dir = entry.path();
+            if !dir.is_dir() {
+                continue;
+            }
+            let manifest = dir.join("manifest.json");
+            if manifest.exists() {
+                out.push(manifest);
+            }
         }
     }
     out
 }
 
-fn walk_client_manifests(root: &Path) -> Vec<PathBuf> {
+fn walk_client_manifests_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
     let mut out = Vec::new();
+    for root in roots {
     let Ok(ms_entries) = fs::read_dir(root) else {
-        return out;
+        continue;
     };
     for ms_entry in ms_entries.flatten() {
         let ms_path = ms_entry.path();
@@ -95,22 +98,29 @@ fn walk_client_manifests(root: &Path) -> Vec<PathBuf> {
             }
         }
     }
+    }
     out
 }
 
 pub(crate) fn run_layered_architecture_discipline(args: Vec<String>) -> ExitCode {
-    let root = PathBuf::from(
-        parse_flag_with_value(&args, "--microservices-root")
-            .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
-    );
+    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
+    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
+        vec![PathBuf::from(r)]
+    } else {
+        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    };
     let deferred_path = PathBuf::from(
         parse_flag_with_value(&args, "--deferred-violations")
             .unwrap_or_else(|| DEFAULT_DEFERRED_VIOLATIONS.to_string()),
     );
 
     let mut manifests = Vec::new();
-    for path in list_manifest_paths(&root) {
-        let microservice = microservice_name_for(&path, "microservices").unwrap_or_default();
+    for path in list_manifest_paths_from_roots(&roots) {
+        // Extract service name from any root marker (cloud, oya, microservices).
+        let microservice = microservice_name_for(&path, "cloud")
+            .or_else(|| microservice_name_for(&path, "oya"))
+            .or_else(|| microservice_name_for(&path, "microservices"))
+            .unwrap_or_default();
         let Ok(contents) = fs::read_to_string(&path) else {
             continue;
         };
@@ -222,13 +232,15 @@ fn read_deferred_layered_violations(path: &Path) -> Result<BTreeSet<(String, Str
 }
 
 pub(crate) fn run_client_stack_discipline(args: Vec<String>) -> ExitCode {
-    let root = PathBuf::from(
-        parse_flag_with_value(&args, "--microservices-root")
-            .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
-    );
+    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
+    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
+        vec![PathBuf::from(r)]
+    } else {
+        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    };
 
     let mut manifests = Vec::new();
-    for path in walk_client_manifests(&root) {
+    for path in walk_client_manifests_from_roots(&roots) {
         // Surface is the parent dir name (e.g. "web-sveltekit", "apple-ios").
         let surface = path
             .parent()

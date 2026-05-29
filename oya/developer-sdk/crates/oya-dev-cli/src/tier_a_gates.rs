@@ -29,7 +29,10 @@ use oya_check_image_signing_discipline as image_check;
 use oya_check_metric_cardinality as metric_check;
 use oya_check_rpo_rto_coverage as rpo_rto_check;
 
-const DEFAULT_MICROSERVICES_ROOT: &str = "microservices";
+/// Canonical service roots scanned when no explicit `--microservices-root` is given.
+/// Order: cloud first (infra services), then oya (application services), then the
+/// legacy microservices/ tree for backward compatibility.
+const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
 const DEFAULT_WORKFLOWS_DIR: &str = ".github/workflows";
 
 fn parse_flag_with_value(args: &[String], flag: &str) -> Option<String> {
@@ -61,6 +64,25 @@ fn microservice_name_for(path: &Path) -> Option<String> {
     None
 }
 
+/// Collect all first-level service directories from a list of root paths.
+/// For `cloud/` and `oya/`, each direct child of the root is a service dir.
+/// For `microservices/`, same pattern. Silently skips roots that don't exist.
+fn service_dirs_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    for root in roots {
+        let Ok(entries) = fs::read_dir(root) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_dir() {
+                out.push(p);
+            }
+        }
+    }
+    out
+}
+
 /// Recursively walk a directory and collect files matching one of
 /// `extensions` (no leading dot).
 fn collect_files(root: &Path, extensions: &[&str]) -> Vec<PathBuf> {
@@ -88,25 +110,16 @@ fn walk(dir: &Path, extensions: &[&str], out: &mut Vec<PathBuf>) {
 // ---------- Gate 1: idempotency-key-coverage ----------
 
 pub(crate) fn run_idempotency_key_coverage(args: Vec<String>) -> ExitCode {
-    let root = PathBuf::from(
-        parse_flag_with_value(&args, "--microservices-root")
-            .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
-    );
+    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
+    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
+        vec![PathBuf::from(r)]
+    } else {
+        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    };
 
     let mut documents = Vec::new();
-    // Glob microservices/*/contracts/openapi/*.yaml
-    let Ok(entries) = fs::read_dir(&root) else {
-        eprintln!(
-            "idempotency-key-coverage: microservices root unreadable: {}",
-            root.display()
-        );
-        return ExitCode::FAILURE;
-    };
-    for entry in entries.flatten() {
-        let p = entry.path();
-        if !p.is_dir() {
-            continue;
-        }
+    // Glob <root>/*/contracts/openapi/*.yaml across all service roots.
+    for p in service_dirs_from_roots(&roots) {
         let ms = p
             .file_name()
             .and_then(|n| n.to_str())
@@ -160,23 +173,14 @@ pub(crate) fn run_idempotency_key_coverage(args: Vec<String>) -> ExitCode {
 // ---------- Gate 2: cursor-pagination-coverage ----------
 
 pub(crate) fn run_cursor_pagination_coverage(args: Vec<String>) -> ExitCode {
-    let root = PathBuf::from(
-        parse_flag_with_value(&args, "--microservices-root")
-            .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
-    );
-    let mut documents = Vec::new();
-    let Ok(entries) = fs::read_dir(&root) else {
-        eprintln!(
-            "cursor-pagination-coverage: microservices root unreadable: {}",
-            root.display()
-        );
-        return ExitCode::FAILURE;
+    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
+    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
+        vec![PathBuf::from(r)]
+    } else {
+        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
     };
-    for entry in entries.flatten() {
-        let p = entry.path();
-        if !p.is_dir() {
-            continue;
-        }
+    let mut documents = Vec::new();
+    for p in service_dirs_from_roots(&roots) {
         let ms = p
             .file_name()
             .and_then(|n| n.to_str())
@@ -228,23 +232,14 @@ pub(crate) fn run_cursor_pagination_coverage(args: Vec<String>) -> ExitCode {
 // ---------- Gate 3: rpo-rto-coverage ----------
 
 pub(crate) fn run_rpo_rto_coverage(args: Vec<String>) -> ExitCode {
-    let root = PathBuf::from(
-        parse_flag_with_value(&args, "--microservices-root")
-            .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
-    );
-    let mut documents = Vec::new();
-    let Ok(entries) = fs::read_dir(&root) else {
-        eprintln!(
-            "rpo-rto-coverage: microservices root unreadable: {}",
-            root.display()
-        );
-        return ExitCode::FAILURE;
+    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
+    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
+        vec![PathBuf::from(r)]
+    } else {
+        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
     };
-    for entry in entries.flatten() {
-        let p = entry.path();
-        if !p.is_dir() {
-            continue;
-        }
+    let mut documents = Vec::new();
+    for p in service_dirs_from_roots(&roots) {
         let ms = p
             .file_name()
             .and_then(|n| n.to_str())
@@ -288,24 +283,15 @@ pub(crate) fn run_rpo_rto_coverage(args: Vec<String>) -> ExitCode {
 // ---------- Gate 4: metric-cardinality ----------
 
 pub(crate) fn run_metric_cardinality(args: Vec<String>) -> ExitCode {
-    let root = PathBuf::from(
-        parse_flag_with_value(&args, "--microservices-root")
-            .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
-    );
+    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
+    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
+        vec![PathBuf::from(r)]
+    } else {
+        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    };
 
     let mut documents = Vec::new();
-    let Ok(entries) = fs::read_dir(&root) else {
-        eprintln!(
-            "metric-cardinality: microservices root unreadable: {}",
-            root.display()
-        );
-        return ExitCode::FAILURE;
-    };
-    for entry in entries.flatten() {
-        let p = entry.path();
-        if !p.is_dir() {
-            continue;
-        }
+    for p in service_dirs_from_roots(&roots) {
         for sm in collect_files(&p, &["yaml"]) {
             let name = sm.file_name().and_then(|n| n.to_str()).unwrap_or_default();
             if !(name == "servicemonitor.yaml" || name == "prometheusrule.yaml") {
@@ -349,24 +335,15 @@ pub(crate) fn run_metric_cardinality(args: Vec<String>) -> ExitCode {
 // ---------- Gate 5: event-schema-versioning ----------
 
 pub(crate) fn run_event_schema_versioning(args: Vec<String>) -> ExitCode {
-    let root = PathBuf::from(
-        parse_flag_with_value(&args, "--microservices-root")
-            .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
-    );
+    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
+    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
+        vec![PathBuf::from(r)]
+    } else {
+        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    };
 
     let mut documents = Vec::new();
-    let Ok(entries) = fs::read_dir(&root) else {
-        eprintln!(
-            "event-schema-versioning: microservices root unreadable: {}",
-            root.display()
-        );
-        return ExitCode::FAILURE;
-    };
-    for entry in entries.flatten() {
-        let p = entry.path();
-        if !p.is_dir() {
-            continue;
-        }
+    for p in service_dirs_from_roots(&roots) {
         let ms = p
             .file_name()
             .and_then(|n| n.to_str())
@@ -412,24 +389,15 @@ pub(crate) fn run_event_schema_versioning(args: Vec<String>) -> ExitCode {
 // ---------- Gate 6: id-discipline ----------
 
 pub(crate) fn run_id_discipline(args: Vec<String>) -> ExitCode {
-    let root = PathBuf::from(
-        parse_flag_with_value(&args, "--microservices-root")
-            .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
-    );
+    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
+    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
+        vec![PathBuf::from(r)]
+    } else {
+        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    };
 
     let mut documents = Vec::new();
-    let Ok(entries) = fs::read_dir(&root) else {
-        eprintln!(
-            "id-discipline: microservices root unreadable: {}",
-            root.display()
-        );
-        return ExitCode::FAILURE;
-    };
-    for entry in entries.flatten() {
-        let p = entry.path();
-        if !p.is_dir() {
-            continue;
-        }
+    for p in service_dirs_from_roots(&roots) {
         let ms = p
             .file_name()
             .and_then(|n| n.to_str())

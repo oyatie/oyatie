@@ -4,15 +4,17 @@
 //! crates, dependency-rule modules. Enforces seven structural invariants:
 //!
 //! - R1: no flat top-level `crates/` directory that contains any `Cargo.toml`
-//!       (vertical-slice canon: code lives under microservices/<ms>/crates/ or libs/).
+//!       (vertical-slice canon: code lives under cloud/<svc>/crates/, oya/<svc>/crates/, or libs/).
 //! - R2: no nested `[workspace]` table in any member `Cargo.toml`
-//!       (single root workspace; no per-microservice workspaces).
+//!       (single root workspace; no per-service workspaces).
 //! - R3: no duplicate `[package].name` across members.
 //! - R4: every `members` entry resolves to an existing dir with a `Cargo.toml`
 //!       (no phantom members).
-//! - R5: every crate dir on disk under `microservices/` and `libs/` (any dir
-//!       with a `[package]` `Cargo.toml`) IS a workspace member (no orphan).
+//! - R5: every crate dir on disk under `cloud/`, `oya/`, `microservices/`, and
+//!       `libs/` (any dir with a `[package]` `Cargo.toml`) IS a workspace member
+//!       (no orphan).
 //! - R6: every member path is under one of the canonical prefixes:
+//!       `cloud/<svc>/crates/<crate>`, `oya/<svc>/crates/<crate>`,
 //!       `microservices/<ms>/crates/<crate>`, `microservices/<ms>` (single-level),
 //!       `libs/<lib>`, or `tools/<name>`.
 //! - R7: every workspace member's crate-dir basename MUST equal its `[package].name`
@@ -293,8 +295,10 @@ fn read_package_name_from_contents(contents: &str) -> Option<String> {
 /// Accepted forms:
 /// - `libs/<lib>`                              (shared library)
 /// - `tools/<name>`                            (governance / tooling app)
-/// - `microservices/<ms>`                      (single-concern service at top of ms dir)
-/// - `microservices/<ms>/crates/<crate>`       (bounded-context crate nested under ms)
+/// - `cloud/<svc>/crates/<crate>`             (cloud-infrastructure service crate)
+/// - `oya/<svc>/crates/<crate>`               (oya application service crate)
+/// - `microservices/<ms>`                      (legacy single-concern service at top of ms dir)
+/// - `microservices/<ms>/crates/<crate>`       (legacy bounded-context crate nested under ms)
 fn check_r6_location(rel_path: &str, findings: &mut Vec<WorkspaceTopologyFinding>) {
     let parts: Vec<&str> = rel_path.split('/').collect();
     let valid = match parts.as_slice() {
@@ -302,9 +306,13 @@ fn check_r6_location(rel_path: &str, findings: &mut Vec<WorkspaceTopologyFinding
         ["libs", _] => true,
         // tools/<name>
         ["tools", _] => true,
-        // microservices/<ms>
+        // cloud/<svc>/crates/<crate>
+        ["cloud", _, "crates", _] => true,
+        // oya/<svc>/crates/<crate>
+        ["oya", _, "crates", _] => true,
+        // microservices/<ms> (legacy)
         ["microservices", _] => true,
-        // microservices/<ms>/crates/<crate>
+        // microservices/<ms>/crates/<crate> (legacy)
         ["microservices", _, "crates", _] => true,
         _ => false,
     };
@@ -313,7 +321,8 @@ fn check_r6_location(rel_path: &str, findings: &mut Vec<WorkspaceTopologyFinding
             rule: WorkspaceTopologyRule::R6InvalidLocation,
             detail: format!(
                 "member `{rel_path}` is not under a canonical prefix \
-                 (expected libs/<lib>, tools/<name>, microservices/<ms>, \
+                 (expected libs/<lib>, tools/<name>, cloud/<svc>/crates/<crate>, \
+                 oya/<svc>/crates/<crate>, microservices/<ms>, \
                  or microservices/<ms>/crates/<crate>)"
             ),
         });
@@ -339,19 +348,70 @@ fn check_r7_dir_name_match(
     }
 }
 
-/// R5: walk `microservices/` and `libs/` under `repo_root` looking for
-/// directories that contain a `Cargo.toml` with a `[package]` section but are
-/// NOT registered as workspace members.
+/// R5: walk `cloud/`, `oya/`, `microservices/`, and `libs/` under `repo_root`
+/// looking for directories that contain a `Cargo.toml` with a `[package]`
+/// section but are NOT registered as workspace members.
 ///
 /// The walk is bounded to a shallow depth to stay fast:
-/// - `microservices/<ms>` (depth 2): direct member or top of a nested bundle.
-/// - `microservices/<ms>/crates/<crate>` (depth 4): nested crate.
+/// - `cloud/<svc>/crates/<crate>` (depth 4): cloud service crate.
+/// - `oya/<svc>/crates/<crate>` (depth 4): oya application crate.
+/// - `microservices/<ms>` (depth 2): legacy direct member.
+/// - `microservices/<ms>/crates/<crate>` (depth 4): legacy nested crate.
 /// - `libs/<lib>` (depth 2).
 fn check_r5_orphan_crates(
     repo_root: &Path,
     member_set: &BTreeSet<String>,
     findings: &mut Vec<WorkspaceTopologyFinding>,
 ) -> Result<(), String> {
+    // "crates-only" roots: only <top>/<svc>/crates/<crate> form is valid (no top-level members).
+    for top in &["cloud", "oya"] {
+        let top_dir = repo_root.join(top);
+        if !top_dir.is_dir() {
+            continue;
+        }
+        let Ok(svc_entries) = fs::read_dir(&top_dir) else {
+            continue;
+        };
+        for svc_entry in svc_entries.flatten() {
+            let svc_path = svc_entry.path();
+            if !svc_path.is_dir() {
+                continue;
+            }
+            let svc_name = match svc_path.file_name().and_then(|n| n.to_str()) {
+                Some(n) => n.to_string(),
+                None => continue,
+            };
+            let crates_dir = svc_path.join("crates");
+            if !crates_dir.is_dir() {
+                continue;
+            }
+            let Ok(crate_entries) = fs::read_dir(&crates_dir) else {
+                continue;
+            };
+            for crate_entry in crate_entries.flatten() {
+                let crate_path = crate_entry.path();
+                if !crate_path.is_dir() {
+                    continue;
+                }
+                let crate_name = match crate_path.file_name().and_then(|n| n.to_str()) {
+                    Some(n) => n.to_string(),
+                    None => continue,
+                };
+                let rel_crate = format!("{top}/{svc_name}/crates/{crate_name}");
+                if is_package_dir(&crate_path) && !member_set.contains(&rel_crate) {
+                    findings.push(WorkspaceTopologyFinding {
+                        rule: WorkspaceTopologyRule::R5OrphanCrate,
+                        detail: format!(
+                            "crate dir `{rel_crate}` has a Cargo.toml with [package] but is not a workspace member"
+                        ),
+                    });
+                }
+            }
+        }
+    }
+
+    // Legacy roots: microservices/ (supports both top-level and crates/ depth)
+    // and libs/ (top-level only).
     for top in &["microservices", "libs"] {
         let top_dir = repo_root.join(top);
         if !top_dir.is_dir() {
@@ -771,6 +831,71 @@ mod tests {
             "detail should mention package name, got: {}",
             r7[0].detail
         );
+        cleanup(&root);
+    }
+
+    // --- cloud/ and oya/ roots ---
+
+    #[test]
+    fn cloud_svc_crates_path_passes_r6() {
+        let root = scratch_root("cloud-r6");
+        let path = "cloud/cloud-billing/crates/oya-cloud-billing-kernel";
+        write_workspace(&root, &[path]);
+        write_member(&root, path, "oya-cloud-billing-kernel");
+        let report = run(&root, true);
+        let r6: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.rule == WorkspaceTopologyRule::R6InvalidLocation)
+            .collect();
+        assert!(r6.is_empty(), "cloud/<svc>/crates/<crate> should pass R6, got: {r6:?}");
+        cleanup(&root);
+    }
+
+    #[test]
+    fn oya_svc_crates_path_passes_r6() {
+        let root = scratch_root("oya-r6");
+        let path = "oya/accounting/crates/oya-accounting-journal-domain";
+        write_workspace(&root, &[path]);
+        write_member(&root, path, "oya-accounting-journal-domain");
+        let report = run(&root, true);
+        let r6: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.rule == WorkspaceTopologyRule::R6InvalidLocation)
+            .collect();
+        assert!(r6.is_empty(), "oya/<svc>/crates/<crate> should pass R6, got: {r6:?}");
+        cleanup(&root);
+    }
+
+    #[test]
+    fn cloud_orphan_crate_detected() {
+        let root = scratch_root("cloud-r5");
+        write_workspace(&root, &["oya/accounting/crates/oya-accounting-journal-domain"]);
+        write_member(
+            &root,
+            "oya/accounting/crates/oya-accounting-journal-domain",
+            "oya-accounting-journal-domain",
+        );
+        // Create an orphan cloud crate not in workspace.
+        let orphan = root
+            .join("cloud")
+            .join("cloud-billing")
+            .join("crates")
+            .join("oya-cloud-billing-kernel");
+        fs::create_dir_all(orphan.join("src")).expect("orphan dir");
+        fs::write(
+            orphan.join("Cargo.toml"),
+            "[package]\nname = \"oya-cloud-billing-kernel\"\nedition = \"2024\"\nversion = \"0.1.0\"\n",
+        )
+        .expect("orphan toml");
+        let report = run(&root, true);
+        let r5: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.rule == WorkspaceTopologyRule::R5OrphanCrate)
+            .collect();
+        assert!(!r5.is_empty(), "expected R5 orphan finding for cloud crate, got: {:?}", report.findings);
         cleanup(&root);
     }
 }

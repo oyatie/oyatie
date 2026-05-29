@@ -46,7 +46,7 @@ const REQUIRED_FORBIDDEN_PATTERNS: &[&str] = &[
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct DesignSpecMaturityClaimsValidateArgs {
     standard_path: PathBuf,
-    microservices_root: PathBuf,
+    service_roots: Vec<PathBuf>,
     deferred_surfaces_path: PathBuf,
     evidence_path: Option<PathBuf>,
 }
@@ -94,7 +94,7 @@ pub(crate) fn parse_design_spec_maturity_claims_validate_args(
 ) -> Result<DesignSpecMaturityClaimsValidateArgs, String> {
     let mut parsed = DesignSpecMaturityClaimsValidateArgs {
         standard_path: PathBuf::from("specs/design-spec-maturity-claims.json"),
-        microservices_root: PathBuf::from("microservices"),
+        service_roots: vec![PathBuf::from("cloud"), PathBuf::from("oya"), PathBuf::from("microservices")],
         deferred_surfaces_path: PathBuf::from(DEFAULT_DEFERRED_SURFACES),
         evidence_path: None,
     };
@@ -105,7 +105,7 @@ pub(crate) fn parse_design_spec_maturity_claims_validate_args(
         };
         match flag.as_str() {
             "--standard" => parsed.standard_path = PathBuf::from(path),
-            "--microservices-root" => parsed.microservices_root = PathBuf::from(path),
+            "--microservices-root" => parsed.service_roots = vec![PathBuf::from(path)],
             "--deferred-surfaces" => parsed.deferred_surfaces_path = PathBuf::from(path),
             "--emit-evidence" => parsed.evidence_path = Some(PathBuf::from(path)),
             _ => return Err(usage()),
@@ -119,13 +119,7 @@ pub(crate) fn validate_design_spec_maturity_claims_gate(
 ) -> Result<DesignSpecMaturityClaimsReport, String> {
     let standard = read_json(&args.standard_path, "design/spec maturity standard")?;
     let rules = validate_standard(&standard)?;
-    let services = discover_services(&args.microservices_root)?;
-    if services.is_empty() {
-        return Err(format!(
-            "microservices root {} contains no service directories",
-            args.microservices_root.display()
-        ));
-    }
+    let services = discover_services_from_roots(&args.service_roots)?;
 
     let cwd = std::env::current_dir().ok();
     let mut reports = Vec::new();
@@ -165,9 +159,14 @@ pub(crate) fn validate_design_spec_maturity_claims_gate(
         .map(|report| report.missing.len())
         .sum::<usize>();
     if let Some(evidence_path) = &args.evidence_path {
+        let roots_display = args.service_roots.iter()
+            .map(|p| p.display().to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+        let roots_display_path = std::path::PathBuf::from(&roots_display);
         let evidence = build_evidence(
             &args.standard_path,
-            &args.microservices_root,
+            &roots_display_path,
             &args.deferred_surfaces_path,
             &rules,
             &reports,
@@ -534,16 +533,21 @@ fn read_deferred_surface_records(path: &Path) -> Result<BTreeSet<(String, String
     Ok(records)
 }
 
-fn discover_services(root: &Path) -> Result<Vec<PathBuf>, String> {
-    let entries = fs::read_dir(root)
-        .map_err(|error| format!("microservices root unreadable {}: {error}", root.display()))?;
+fn discover_services_from_roots(roots: &[PathBuf]) -> Result<Vec<PathBuf>, String> {
     let mut services = Vec::new();
-    for entry in entries {
-        let path = entry
-            .map_err(|error| format!("microservices root entry unreadable: {error}"))?
-            .path();
-        if path.is_dir() {
-            services.push(path);
+    for root in roots {
+        if !root.exists() {
+            continue;
+        }
+        let entries = fs::read_dir(root)
+            .map_err(|error| format!("service root unreadable {}: {error}", root.display()))?;
+        for entry in entries {
+            let path = entry
+                .map_err(|error| format!("service root entry unreadable: {error}"))?
+                .path();
+            if path.is_dir() {
+                services.push(path);
+            }
         }
     }
     services.sort();
