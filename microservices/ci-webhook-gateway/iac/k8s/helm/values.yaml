@@ -51,8 +51,9 @@ image:
 
 service:
   type: ClusterIP
-  port: 8081
-  targetPort: 8081
+  # Port 8099 matches DEFAULT_BIND_ADDR in src/config.rs ("0.0.0.0:8099").
+  port: 8099
+  targetPort: 8099
 
 gateway:
   # Disabled by default so chart installation does not accidentally expose a
@@ -80,20 +81,22 @@ config:
   imagePromotionPolicy: cosign-required
 
 externalSecret:
-  # ExternalSecret pulling credentials from OpenBao via ESO.
+  # ExternalSecret pulls OYA_FORGEJO_WEBHOOK_SECRET from OpenBao via ESO.
+  # Canonical sref: sref://openbao/oya/ci/forgejo-webhook-secret (ADR-0043).
+  # FOUNDER-GATED: OpenBao must be initialized and the secret written at
+  # secret/oya/ci/forgejo-webhook-secret before this ExternalSecret resolves.
   enabled: true
   refreshInterval: 1h
-  openbaoPath: secret/oya/ci-webhook-gateway
+  openbaoPath: secret/oya/ci/forgejo-webhook-secret
   secretName: ci-webhook-gateway-secrets
   nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
 
 jenkins:
-  baseUrl: http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080
-  jobName: oya-ci-gate
-
-github:
-  repoOwner: oya-admin
-  repoName: oyatie
+  # Full HTTP URL the gateway POSTs to kick the oyaCiLane pipeline.
+  # Must be a plain http:// URL (TLS terminates at ingress; in-cluster is plain HTTP).
+  # Maps to OYA_JENKINS_DISPATCH_URL in src/config.rs.
+  # TODO(founder): replace with the live generic-webhook-trigger or build-token endpoint.
+  dispatchUrl: "http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080/generic-webhook-trigger/invoke"
 
 cedar:
   enabled: false
