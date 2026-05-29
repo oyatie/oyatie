@@ -10,12 +10,12 @@ use axum::{
     http::{Request, StatusCode},
 };
 use bytes::Bytes;
-use oya_ci_webhook_gateway_app::{AppState, build_router};
+use oya_ci_webhook_gateway_app::{AppState, build_router, replay::DeliveryGuard};
 use oya_ci_webhook_gateway_kernel::{
     AuthzDecision, CiTriggerEvent, GitHubStatusRequest, JenkinsJob, JobStatus, KernelError,
     MockSignatureVerifier, Result, WebhookAuthzGate, WebhookAuthzRequest,
 };
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tower::util::ServiceExt;
 
 // ---------------------------------------------------------------------------
@@ -146,6 +146,7 @@ async fn full_webhook_flow_returns_202_and_posts_statuses() {
         github_owner: "oyatie".to_owned(),
         github_repo: "oyatie".to_owned(),
         jenkins_job_name: "oyaCiLane".to_owned(),
+        delivery_guard: Arc::new(Mutex::new(DeliveryGuard::with_default_ttl())),
     };
 
     let app = build_router(state);
@@ -194,6 +195,7 @@ async fn ping_event_returns_200_ignored() {
         github_owner: "oyatie".to_owned(),
         github_repo: "oyatie".to_owned(),
         jenkins_job_name: "oyaCiLane".to_owned(),
+        delivery_guard: Arc::new(Mutex::new(DeliveryGuard::with_default_ttl())),
     };
 
     let app = build_router(state);
