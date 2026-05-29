@@ -47,6 +47,8 @@ pub enum ObservabilityError {
     EmptyPlanId,
     NoEnvelopeForSignal { signal: SignalKind },
     EnvelopeExceeded { max: u64, estimated: u64 },
+    // data_class: INTERNAL_ONLY — signal name + numeric thresholds only; no payload
+    AggregateEnvelopeExceeded { signal: SignalKind, max: u64, aggregate: u64 },
 }
 
 impl ObservabilityError {
@@ -58,6 +60,14 @@ impl ObservabilityError {
             }
             Self::EnvelopeExceeded { max, estimated } => {
                 format!("cardinality envelope exceeded: max={max} estimated={estimated}")
+            }
+            Self::AggregateEnvelopeExceeded { signal, max, aggregate } => {
+                format!(
+                    "aggregate cardinality envelope exceeded: signal={} max={} aggregate={}",
+                    signal.name(),
+                    max,
+                    aggregate,
+                )
             }
         }
     }
@@ -81,6 +91,84 @@ pub fn admit_plan(
             estimated: plan.estimated_combinations,
         });
     }
+    Ok(())
+}
+
+/// Aggregate multi-plan cardinality rollup admission.
+///
+/// For each plan the existing `EmptyPlanId` and `NoEnvelopeForSignal` guards are applied
+/// first; the function returns the first such per-plan error encountered.  Plans that
+/// pass per-plan guards are grouped by [`SignalKind`] and their `estimated_combinations`
+/// values are summed per signal using [`u64::saturating_add`] (overflow-safe).  If any
+/// per-signal aggregate exceeds `max_unique_attribute_combinations` from the matching
+/// [`CardinalityEnvelope`], [`ObservabilityError::AggregateEnvelopeExceeded`] is returned.
+///
+/// Pure: no side effects, no I/O, no async.
+pub fn admit_budget(
+    plans: &[EmissionPlan],
+    envelopes: &[CardinalityEnvelope],
+) -> Result<(), ObservabilityError> {
+    // Phase 1: per-plan guard pass (EmptyPlanId + NoEnvelopeForSignal).
+    // We do not check single-plan EnvelopeExceeded here — that is admit_plan's concern.
+    // We only need the two structural guards so that malformed plans are rejected early.
+    for plan in plans {
+        if plan.plan_id.is_empty() {
+            return Err(ObservabilityError::EmptyPlanId);
+        }
+        if !envelopes.iter().any(|e| e.signal == plan.signal) {
+            return Err(ObservabilityError::NoEnvelopeForSignal {
+                signal: plan.signal,
+            });
+        }
+    }
+
+    // Phase 2: accumulate estimated_combinations per signal using saturating_add.
+    // We use a small fixed-size array keyed by SignalKind ordinal to avoid heap allocation.
+    // Order matches the SignalKind variants: Trace=0, Metric=1, Log=2, Profile=3.
+    const N: usize = 4;
+    let signal_index = |s: SignalKind| -> usize {
+        match s {
+            SignalKind::Trace => 0,
+            SignalKind::Metric => 1,
+            SignalKind::Log => 2,
+            SignalKind::Profile => 3,
+        }
+    };
+    let index_signal = |i: usize| -> SignalKind {
+        match i {
+            0 => SignalKind::Trace,
+            1 => SignalKind::Metric,
+            2 => SignalKind::Log,
+            _ => SignalKind::Profile,
+        }
+    };
+
+    let mut aggregates = [0u64; N];
+    let mut seen = [false; N];
+    for plan in plans {
+        let idx = signal_index(plan.signal);
+        aggregates[idx] = aggregates[idx].saturating_add(plan.estimated_combinations);
+        seen[idx] = true;
+    }
+
+    // Phase 3: reject any signal whose aggregate exceeds its envelope.
+    for i in 0..N {
+        if !seen[i] {
+            continue;
+        }
+        let sig = index_signal(i);
+        // Safety: envelope presence was verified in phase 1 for every plan, so every
+        // seen signal has a matching envelope.
+        let envelope = envelopes.iter().find(|e| e.signal == sig).unwrap();
+        if aggregates[i] > envelope.max_unique_attribute_combinations {
+            return Err(ObservabilityError::AggregateEnvelopeExceeded {
+                signal: sig,
+                max: envelope.max_unique_attribute_combinations,
+                aggregate: aggregates[i],
+            });
+        }
+    }
+
     Ok(())
 }
 
@@ -170,5 +258,98 @@ mod tests {
         .map(|k| k.name())
         .collect();
         assert_eq!(s.len(), 4);
+    }
+
+    // --- admit_budget tests (co-3) ---
+    // These tests reference admit_budget and ObservabilityError::AggregateEnvelopeExceeded
+    // which do not exist yet. They will fail to compile until co-1 and co-2 are implemented.
+
+    /// Two plans for the same signal each pass individually but their sum exceeds the envelope.
+    /// Expects AggregateEnvelopeExceeded.
+    #[test]
+    fn aggregate_over_envelope_rejected() {
+        // envelope: Metric max=1000
+        // plan A: 600 (under 1000 individually)
+        // plan B: 600 (under 1000 individually)
+        // sum: 1200 > 1000 → should be rejected
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [
+            plan("p1", SignalKind::Metric, 600),
+            plan("p2", SignalKind::Metric, 600),
+        ];
+        assert!(matches!(
+            admit_budget(&plans, &envelopes),
+            Err(ObservabilityError::AggregateEnvelopeExceeded {
+                signal: SignalKind::Metric,
+                max: 1000,
+                aggregate: 1200,
+            })
+        ));
+    }
+
+    /// Two plans for the same signal whose sum equals the envelope exactly — must pass.
+    #[test]
+    fn aggregate_at_boundary_passes() {
+        // envelope: Metric max=1000
+        // plan A: 500, plan B: 500 → sum = 1000 = max → Ok
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [
+            plan("p1", SignalKind::Metric, 500),
+            plan("p2", SignalKind::Metric, 500),
+        ];
+        assert!(admit_budget(&plans, &envelopes).is_ok());
+    }
+
+    /// A plan for a signal that has no declared envelope returns NoEnvelopeForSignal.
+    #[test]
+    fn aggregate_no_envelope_for_signal_rejected() {
+        // only a Metric envelope; plan uses Log
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [plan("p1", SignalKind::Log, 10)];
+        assert!(matches!(
+            admit_budget(&plans, &envelopes),
+            Err(ObservabilityError::NoEnvelopeForSignal {
+                signal: SignalKind::Log,
+            })
+        ));
+    }
+
+    /// Two plans with u64::MAX estimated_combinations must not panic (saturating_add);
+    /// the saturated sum still exceeds any realistic envelope, so AggregateEnvelopeExceeded
+    /// is returned.
+    #[test]
+    fn aggregate_saturating_add_no_panic() {
+        // saturating_add(u64::MAX, u64::MAX) = u64::MAX (no overflow/panic)
+        // u64::MAX > 1000 → AggregateEnvelopeExceeded
+        let envelopes = [env(SignalKind::Trace, 1000)];
+        let plans = [
+            plan("p1", SignalKind::Trace, u64::MAX),
+            plan("p2", SignalKind::Trace, u64::MAX),
+        ];
+        assert!(matches!(
+            admit_budget(&plans, &envelopes),
+            Err(ObservabilityError::AggregateEnvelopeExceeded { .. })
+        ));
+    }
+
+    /// AggregateEnvelopeExceeded message is stable, low-cardinality, and data-class-safe.
+    /// Contains signal name + the two integers; no plan IDs or attribute values.
+    #[test]
+    fn aggregate_envelope_exceeded_message_format() {
+        let err = ObservabilityError::AggregateEnvelopeExceeded {
+            signal: SignalKind::Metric,
+            max: 1000,
+            aggregate: 1200,
+        };
+        let msg = err.message();
+        assert!(
+            msg.contains("aggregate cardinality envelope exceeded"),
+            "message must contain stable prefix: {msg}"
+        );
+        assert!(msg.contains("signal=metric"), "message must contain signal name: {msg}");
+        assert!(msg.contains("max=1000"), "message must contain max value: {msg}");
+        assert!(msg.contains("aggregate=1200"), "message must contain aggregate value: {msg}");
+        // must NOT leak plan IDs or dynamic payload
+        assert!(!msg.contains("p1"), "message must not contain plan id: {msg}");
     }
 }
