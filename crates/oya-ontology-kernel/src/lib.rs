@@ -585,10 +585,10 @@ impl OntologyEngine {
             ))
             .ok_or(OntologyEngineError::UnknownEntityTypeEndpoint)?;
         // st2: pillar-consistency enforcement (Bominal-ADR-0132)
-        if let (Some(from_pillar), Some(to_pillar)) = (from_def.pillar, to_def.pillar) {
-            if from_pillar != to_pillar {
-                return Err(OntologyEngineError::CrossPillarLink);
-            }
+        if let (Some(from_pillar), Some(to_pillar)) = (from_def.pillar, to_def.pillar)
+            && from_pillar != to_pillar
+        {
+            return Err(OntologyEngineError::CrossPillarLink);
         }
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         if self.link_types.contains_key(&key) {
