@@ -1,0 +1,313 @@
+name: backbone-microservices-ci
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/backbone-microservices-ci.yml"
+      - "specs/proto/backbone/**"
+      - "crates/oya-connect-messenger-domain/**"
+      - "crates/oya-connect-mail-domain/**"
+      - "crates/oya-connect-social-domain/**"
+      - "crates/oya-community-post-store-*/**"
+      - "crates/oya-messenger-message-stream-*/**"
+      - "crates/oya-mail-mailbox-store-*/**"
+      - "crates/oya-social-post-composition-*/**"
+      - "crates/oya-shared-postgres-command-kernel/**"
+      - "crates/oya-shared-postgres-command-adapter-sqlx/**"
+      - "crates/oya-shared-hyperscaler-metrics-kernel/**"
+      - "crates/oya-shared-hyperscaler-metrics-adapter-prometheus/**"
+      - "crates/oya-shared-hyperscaler-metrics-adapter-otlp/**"
+      - "crates/oya-shared-protocol-parity-kernel/**"
+      - "crates/oya-shared-protocol-transport-kernel/**"
+      - "crates/oya-shared-protocol-transport-retry-app/**"
+      - "crates/oya-shared-backbone-proto-contracts-kernel/**"
+      - "crates/oya-shared-backbone-grpc-generated-adapter/**"
+      - "crates/oya-shared-backbone-grpc-transport-adapter/**"
+      - "crates/oya-shared-transactional-outbox-kernel/**"
+      - "crates/oya-shared-transactional-outbox-adapter-sqlx/**"
+      - "crates/oya-shared-transactional-outbox-dispatch-app/**"
+      - "crates/oya-shared-outbox-broker-http-adapter/**"
+      - "crates/oya-shared-transactional-outbox-worker-app/**"
+      - "crates/oya-shared-transactional-outbox-poller-app/**"
+      - "crates/oya-shared-transactional-outbox-runtime-tokio-app/**"
+      - "crates/oya-policy-cedar-domain/**"
+      - "microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/backbone-microservices-applicationset.yaml"
+      - "microservices/messenger/ci/Jenkinsfile"
+      - "microservices/mail/ci/Jenkinsfile"
+      - "microservices/social/ci/Jenkinsfile"
+      - "microservices/community/ci/Jenkinsfile"
+      - "microservices/messenger/manifest.json"
+      - "microservices/mail/manifest.json"
+      - "microservices/social/manifest.json"
+      - "microservices/community/manifest.json"
+      - "tasks/plan.md"
+      - "tasks/todo.md"
+      - "evidence/multispectrum/backbone-microservices-*.json"
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/backbone-microservices-ci.yml"
+      - "specs/proto/backbone/**"
+      - "crates/oya-connect-messenger-domain/**"
+      - "crates/oya-connect-mail-domain/**"
+      - "crates/oya-connect-social-domain/**"
+      - "crates/oya-community-post-store-*/**"
+      - "crates/oya-messenger-message-stream-*/**"
+      - "crates/oya-mail-mailbox-store-*/**"
+      - "crates/oya-social-post-composition-*/**"
+      - "crates/oya-shared-postgres-command-kernel/**"
+      - "crates/oya-shared-postgres-command-adapter-sqlx/**"
+      - "crates/oya-shared-hyperscaler-metrics-kernel/**"
+      - "crates/oya-shared-hyperscaler-metrics-adapter-prometheus/**"
+      - "crates/oya-shared-hyperscaler-metrics-adapter-otlp/**"
+      - "crates/oya-shared-protocol-parity-kernel/**"
+      - "crates/oya-shared-protocol-transport-kernel/**"
+      - "crates/oya-shared-protocol-transport-retry-app/**"
+      - "crates/oya-shared-backbone-proto-contracts-kernel/**"
+      - "crates/oya-shared-backbone-grpc-generated-adapter/**"
+      - "crates/oya-shared-backbone-grpc-transport-adapter/**"
+      - "crates/oya-shared-transactional-outbox-kernel/**"
+      - "crates/oya-shared-transactional-outbox-adapter-sqlx/**"
+      - "crates/oya-shared-transactional-outbox-dispatch-app/**"
+      - "crates/oya-shared-outbox-broker-http-adapter/**"
+      - "crates/oya-shared-transactional-outbox-worker-app/**"
+      - "crates/oya-shared-transactional-outbox-poller-app/**"
+      - "crates/oya-shared-transactional-outbox-runtime-tokio-app/**"
+      - "crates/oya-policy-cedar-domain/**"
+      - "microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/backbone-microservices-applicationset.yaml"
+      - "microservices/messenger/ci/Jenkinsfile"
+      - "microservices/mail/ci/Jenkinsfile"
+      - "microservices/social/ci/Jenkinsfile"
+      - "microservices/community/ci/Jenkinsfile"
+      - "microservices/messenger/manifest.json"
+      - "microservices/mail/manifest.json"
+      - "microservices/social/manifest.json"
+      - "microservices/community/manifest.json"
+      - "tasks/plan.md"
+      - "tasks/todo.md"
+      - "evidence/multispectrum/backbone-microservices-*.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backbone-microservices-ci-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  package-matrix:
+    name: backbone-microservices-ci-${{ matrix.microservice }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - microservice: messenger
+            packages: >-
+              oya-messenger-app
+              oya-connect-messenger-domain
+              oya-messenger-message-stream-api
+              oya-messenger-message-stream-usecase
+              oya-messenger-message-stream-rest
+              oya-messenger-message-stream-grpc
+              oya-messenger-message-stream-adapter-postgres
+              oya-shared-postgres-command-kernel
+              oya-shared-postgres-command-adapter-sqlx
+              oya-shared-hyperscaler-metrics-kernel
+              oya-shared-hyperscaler-metrics-adapter-prometheus
+              oya-shared-hyperscaler-metrics-adapter-otlp
+              oya-shared-protocol-parity-kernel
+              oya-shared-protocol-transport-kernel
+              oya-shared-protocol-transport-retry-app
+              oya-shared-backbone-proto-contracts-kernel
+              oya-shared-backbone-grpc-generated-adapter
+              oya-shared-backbone-grpc-transport-adapter
+              oya-shared-transactional-outbox-kernel
+              oya-shared-transactional-outbox-adapter-sqlx
+              oya-shared-transactional-outbox-dispatch-app
+              oya-shared-outbox-broker-http-adapter
+              oya-shared-transactional-outbox-worker-app
+              oya-shared-transactional-outbox-poller-app
+              oya-shared-transactional-outbox-runtime-tokio-app
+              oya-policy-cedar-domain
+          - microservice: mail
+            packages: >-
+              oya-mail-mailbox-store-app
+              oya-connect-mail-domain
+              oya-mail-mailbox-store-api
+              oya-mail-mailbox-store-usecase
+              oya-mail-mailbox-store-rest
+              oya-mail-mailbox-store-grpc
+              oya-mail-mailbox-store-adapter-postgres
+              oya-shared-postgres-command-kernel
+              oya-shared-postgres-command-adapter-sqlx
+              oya-shared-hyperscaler-metrics-kernel
+              oya-shared-hyperscaler-metrics-adapter-prometheus
+              oya-shared-hyperscaler-metrics-adapter-otlp
+              oya-shared-protocol-parity-kernel
+              oya-shared-protocol-transport-kernel
+              oya-shared-protocol-transport-retry-app
+              oya-shared-backbone-proto-contracts-kernel
+              oya-shared-backbone-grpc-generated-adapter
+              oya-shared-backbone-grpc-transport-adapter
+              oya-shared-transactional-outbox-kernel
+              oya-shared-transactional-outbox-adapter-sqlx
+              oya-shared-transactional-outbox-dispatch-app
+              oya-shared-outbox-broker-http-adapter
+              oya-shared-transactional-outbox-worker-app
+              oya-shared-transactional-outbox-poller-app
+              oya-shared-transactional-outbox-runtime-tokio-app
+              oya-policy-cedar-domain
+          - microservice: social
+            packages: >-
+              oya-social-app
+              oya-connect-social-domain
+              oya-social-post-composition-api
+              oya-social-post-composition-usecase
+              oya-social-post-composition-rest
+              oya-social-post-composition-grpc
+              oya-social-post-composition-adapter-postgres
+              oya-shared-postgres-command-kernel
+              oya-shared-postgres-command-adapter-sqlx
+              oya-shared-hyperscaler-metrics-kernel
+              oya-shared-hyperscaler-metrics-adapter-prometheus
+              oya-shared-hyperscaler-metrics-adapter-otlp
+              oya-shared-protocol-parity-kernel
+              oya-shared-protocol-transport-kernel
+              oya-shared-protocol-transport-retry-app
+              oya-shared-backbone-proto-contracts-kernel
+              oya-shared-backbone-grpc-generated-adapter
+              oya-shared-backbone-grpc-transport-adapter
+              oya-shared-transactional-outbox-kernel
+              oya-shared-transactional-outbox-adapter-sqlx
+              oya-shared-transactional-outbox-dispatch-app
+              oya-shared-outbox-broker-http-adapter
+              oya-shared-transactional-outbox-worker-app
+              oya-shared-transactional-outbox-poller-app
+              oya-shared-transactional-outbox-runtime-tokio-app
+              oya-policy-cedar-domain
+          - microservice: community
+            packages: >-
+              oya-community-post-store-app
+              oya-community-post-store-domain
+              oya-community-post-store-api
+              oya-community-post-store-usecase
+              oya-community-post-store-rest
+              oya-community-post-store-grpc
+              oya-community-post-store-adapter-postgres
+              oya-shared-postgres-command-kernel
+              oya-shared-postgres-command-adapter-sqlx
+              oya-shared-hyperscaler-metrics-kernel
+              oya-shared-hyperscaler-metrics-adapter-prometheus
+              oya-shared-hyperscaler-metrics-adapter-otlp
+              oya-shared-protocol-parity-kernel
+              oya-shared-protocol-transport-kernel
+              oya-shared-protocol-transport-retry-app
+              oya-shared-backbone-proto-contracts-kernel
+              oya-shared-backbone-grpc-generated-adapter
+              oya-shared-backbone-grpc-transport-adapter
+              oya-shared-transactional-outbox-kernel
+              oya-shared-transactional-outbox-adapter-sqlx
+              oya-shared-transactional-outbox-dispatch-app
+              oya-shared-outbox-broker-http-adapter
+              oya-shared-transactional-outbox-worker-app
+              oya-shared-transactional-outbox-poller-app
+              oya-shared-transactional-outbox-runtime-tokio-app
+              oya-policy-cedar-domain
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: backbone-microservices-ci
+      - name: cargo fmt --check for backbone package matrix
+        shell: bash
+        env:
+          PACKAGES: ${{ matrix.packages }}
+        run: |
+          set -euo pipefail
+          args=()
+          for package in ${PACKAGES}; do
+            args+=("-p" "$package")
+          done
+          cargo fmt --check "${args[@]}"
+      - name: cargo check for backbone package matrix
+        shell: bash
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+          PACKAGES: ${{ matrix.packages }}
+        run: |
+          set -euo pipefail
+          args=()
+          for package in ${PACKAGES}; do
+            args+=("-p" "$package")
+          done
+          cargo check "${args[@]}" --all-targets
+      - name: cargo clippy for backbone package matrix
+        shell: bash
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+          PACKAGES: ${{ matrix.packages }}
+        run: |
+          set -euo pipefail
+          args=()
+          for package in ${PACKAGES}; do
+            args+=("-p" "$package")
+          done
+          cargo clippy "${args[@]}" --all-targets -- -D warnings
+      - name: cargo test for backbone package matrix
+        shell: bash
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+          PACKAGES: ${{ matrix.packages }}
+        run: |
+          set -euo pipefail
+          args=()
+          for package in ${PACKAGES}; do
+            args+=("-p" "$package")
+          done
+          cargo test "${args[@]}"
+
+  governance-smoke:
+    name: backbone-microservices-ci-governance-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: cargo-prefix gate
+        run: ./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-
+      - name: Parse backbone evidence, proto contracts, and shared catalog rows
+        run: |
+          ruby -rjson -ryaml -e 'ARGV.each { |path| path.end_with?(".json") ? JSON.parse(File.read(path)) : path.end_with?(".proto") ? File.read(path) : YAML.safe_load(File.read(path), permitted_classes: [Symbol], aliases: true) }; puts "parsed #{ARGV.length} files"' \
+            evidence/multispectrum/backbone-microservices-protocol-parity-20260523.json \
+            evidence/multispectrum/backbone-microservices-proto-contracts-20260523.json \
+            specs/proto/backbone/messenger/message_stream.proto \
+            specs/proto/backbone/mail/mail.proto \
+            specs/proto/backbone/social/social_post_composition.proto \
+            specs/proto/backbone/community/community_post_store.proto \
+            microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/backbone-microservices-applicationset.yaml \
+            registry/catalog/oya-shared-postgres-command-kernel.yaml \
+            registry/catalog/oya-shared-postgres-command-adapter-sqlx.yaml \
+            registry/catalog/oya-shared-hyperscaler-metrics-kernel.yaml \
+            registry/catalog/oya-shared-hyperscaler-metrics-adapter-prometheus.yaml \
+            registry/catalog/oya-shared-hyperscaler-metrics-adapter-otlp.yaml \
+            registry/catalog/oya-shared-protocol-parity-kernel.yaml \
+            registry/catalog/oya-shared-protocol-transport-kernel.yaml \
+            registry/catalog/oya-shared-protocol-transport-retry-app.yaml \
+            registry/catalog/oya-shared-backbone-proto-contracts-kernel.yaml \
+            registry/catalog/oya-shared-backbone-grpc-generated-adapter.yaml \
+            registry/catalog/oya-shared-transactional-outbox-kernel.yaml \
+            registry/catalog/oya-shared-transactional-outbox-adapter-sqlx.yaml
