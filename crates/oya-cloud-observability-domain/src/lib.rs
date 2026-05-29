@@ -422,6 +422,16 @@ pub struct AuditReadResult {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AuditReadSummary {
+    pub total: u64,                                    // data_class: INTERNAL_ONLY
+    pub per_topic: BTreeMap<CloudAuditTopic, u64>,     // data_class: INTERNAL_ONLY
+    pub earliest_epoch_seconds: Option<u64>,           // data_class: INTERNAL_ONLY
+    pub latest_epoch_seconds: Option<u64>,             // data_class: INTERNAL_ONLY
+    pub chain_complete: bool,                          // data_class: INTERNAL_ONLY
+    pub high_watermark_sequence: Option<u64>,          // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudObservabilityError {
     InvalidTenantId,
     InvalidRegion,
@@ -1213,6 +1223,35 @@ impl CloudObservabilityCatalog {
         Ok(AuditReadResult {
             records,
             next_cursor,
+            chain_complete: self.chain_verified,
+            high_watermark_sequence: self.high_watermark_sequence,
+        })
+    }
+
+    pub fn summarize_audit(
+        &self,
+        request: AuditReadRequest,
+    ) -> Result<AuditReadSummary, CloudObservabilityError> {
+        let normalized = NormalizedAuditReadRequest::new(request)?;
+        if normalized.require_complete_chain && !self.chain_verified {
+            return Err(CloudObservabilityError::IncompleteAuditChain);
+        }
+        let mut total: u64 = 0;
+        let mut per_topic: BTreeMap<CloudAuditTopic, u64> = BTreeMap::new();
+        let mut earliest: Option<u64> = None;
+        let mut latest: Option<u64> = None;
+        for record in self.audit_records.values().filter(|r| normalized.matches(r)) {
+            total += 1;
+            *per_topic.entry(record.topic.value).or_insert(0) += 1;
+            let ts = record.occurred_at_epoch_seconds.value;
+            earliest = Some(earliest.map_or(ts, |e| e.min(ts)));
+            latest = Some(latest.map_or(ts, |l| l.max(ts)));
+        }
+        Ok(AuditReadSummary {
+            total,
+            per_topic,
+            earliest_epoch_seconds: earliest,
+            latest_epoch_seconds: latest,
             chain_complete: self.chain_verified,
             high_watermark_sequence: self.high_watermark_sequence,
         })
@@ -2103,6 +2142,178 @@ mod tests {
                 .unwrap_err(),
             CloudObservabilityError::InvalidReadWindow
         );
+    }
+
+    #[test]
+    fn summarize_audit_empty_catalog_returns_zero_totals() {
+        // No records ingested — every field is zero/None.
+        let catalog = CloudObservabilityCatalog::default();
+        let summary = catalog
+            .summarize_audit(AuditReadRequest {
+                tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: None,
+                scope: AuditReadScope::AllTenantAudit,
+                start_epoch_seconds: 1_000,
+                end_epoch_seconds: 1_000 + MAX_AUDIT_READ_WINDOW_SECONDS,
+                topics: Vec::new(),
+                actor: None,
+                resource_id: None,
+                cursor: None,
+                page_size: None,
+                require_complete_chain: false,
+            })
+            .expect("summarize on empty catalog");
+        assert_eq!(summary.total, 0);
+        assert!(summary.per_topic.is_empty());
+        assert_eq!(summary.earliest_epoch_seconds, None);
+        assert_eq!(summary.latest_epoch_seconds, None);
+        assert!(!summary.chain_complete);
+        assert_eq!(summary.high_watermark_sequence, None);
+    }
+
+    #[test]
+    fn summarize_audit_multi_topic_aggregates_correctly() {
+        // chain() has: CloudResourceCreated(t=1000), CloudIamPolicy(t=1010), CloudKmsUse(t=1020)
+        let residency = residency();
+        let mut catalog = CloudObservabilityCatalog::default();
+        catalog
+            .ingest_verified_chain(&chain(), envelopes(), &residency)
+            .expect("ingest");
+
+        let summary = catalog
+            .summarize_audit(AuditReadRequest {
+                tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: None,
+                scope: AuditReadScope::AllTenantAudit,
+                start_epoch_seconds: 900,
+                end_epoch_seconds: 1_100,
+                topics: Vec::new(),
+                actor: None,
+                resource_id: None,
+                cursor: None,
+                page_size: None,
+                require_complete_chain: false,
+            })
+            .expect("summarize all-tenant");
+
+        assert_eq!(summary.total, 3);
+        assert_eq!(summary.per_topic.values().sum::<u64>(), 3);
+        assert_eq!(
+            summary.per_topic[&CloudAuditTopic::CloudResourceCreated],
+            1
+        );
+        assert_eq!(summary.per_topic[&CloudAuditTopic::CloudIamPolicy], 1);
+        assert_eq!(summary.per_topic[&CloudAuditTopic::CloudKmsUse], 1);
+        assert_eq!(summary.earliest_epoch_seconds, Some(1_000));
+        assert_eq!(summary.latest_epoch_seconds, Some(1_020));
+        assert!(summary.chain_complete);
+    }
+
+    #[test]
+    fn summarize_audit_scope_control_plane_excludes_data_plane_security() {
+        // scope=ControlPlaneMutations must exclude CloudKmsUse (DataPlaneSecurity).
+        let residency = residency();
+        let mut catalog = CloudObservabilityCatalog::default();
+        catalog
+            .ingest_verified_chain(&chain(), envelopes(), &residency)
+            .expect("ingest");
+
+        let summary = catalog
+            .summarize_audit(AuditReadRequest {
+                tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: None,
+                scope: AuditReadScope::ControlPlaneMutations,
+                start_epoch_seconds: 900,
+                end_epoch_seconds: 1_100,
+                topics: Vec::new(),
+                actor: None,
+                resource_id: None,
+                cursor: None,
+                page_size: None,
+                require_complete_chain: false,
+            })
+            .expect("summarize control-plane");
+
+        assert_eq!(summary.total, 2);
+        assert_eq!(summary.per_topic.values().sum::<u64>(), 2);
+        assert!(!summary.per_topic.contains_key(&CloudAuditTopic::CloudKmsUse));
+        assert!(summary
+            .per_topic
+            .keys()
+            .all(|t| t.is_control_plane_mutation()));
+        assert_eq!(summary.earliest_epoch_seconds, Some(1_000));
+        assert_eq!(summary.latest_epoch_seconds, Some(1_010));
+    }
+
+    #[test]
+    fn summarize_audit_incomplete_chain_rejected() {
+        // require_complete_chain on a catalog where no chain has been ingested → IncompleteAuditChain.
+        let catalog = CloudObservabilityCatalog::default();
+        let err = catalog
+            .summarize_audit(AuditReadRequest {
+                tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: None,
+                scope: AuditReadScope::AllTenantAudit,
+                start_epoch_seconds: 900,
+                end_epoch_seconds: 1_100,
+                topics: Vec::new(),
+                actor: None,
+                resource_id: None,
+                cursor: None,
+                page_size: None,
+                require_complete_chain: true,
+            })
+            .unwrap_err();
+        assert_eq!(err, CloudObservabilityError::IncompleteAuditChain);
+    }
+
+    #[test]
+    fn summarize_audit_invalid_window_rejected() {
+        let catalog = CloudObservabilityCatalog::default();
+        let err = catalog
+            .summarize_audit(AuditReadRequest {
+                tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: None,
+                scope: AuditReadScope::AllTenantAudit,
+                start_epoch_seconds: 2_000,
+                end_epoch_seconds: 1_000,
+                topics: Vec::new(),
+                actor: None,
+                resource_id: None,
+                cursor: None,
+                page_size: None,
+                require_complete_chain: false,
+            })
+            .unwrap_err();
+        assert_eq!(err, CloudObservabilityError::InvalidReadWindow);
+    }
+
+    #[test]
+    fn summarize_audit_invalid_topic_for_scope_rejected() {
+        // ControlPlaneMutations scope + non-control-plane topic → InvalidAuditTopic.
+        let catalog = CloudObservabilityCatalog::default();
+        let err = catalog
+            .summarize_audit(AuditReadRequest {
+                tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: None,
+                scope: AuditReadScope::ControlPlaneMutations,
+                start_epoch_seconds: 900,
+                end_epoch_seconds: 1_100,
+                topics: vec![CloudAuditTopic::CloudKmsUse],
+                actor: None,
+                resource_id: None,
+                cursor: None,
+                page_size: None,
+                require_complete_chain: false,
+            })
+            .unwrap_err();
+        assert_eq!(err, CloudObservabilityError::InvalidAuditTopic);
     }
 
     #[test]
