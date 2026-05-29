@@ -1,4 +1,13 @@
-# Enterprise Microservices Task List
+# RETIRED — pointer hub only
+
+This file is retired per the markdown-retirement-policy (`/specs/markdown-retirement-policy.json`).
+The worktree `agent/enterprise-microservices-20260523T070244Z` has been pruned (content merged to dev).
+
+Authoritative task tracking: `/specs/masterplan.json`
+Microservice specs: `/specs/microservices/`
+ADR decisions: `docs/decisions/`
+
+## Archived content (non-authoritative)
 
 Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 
