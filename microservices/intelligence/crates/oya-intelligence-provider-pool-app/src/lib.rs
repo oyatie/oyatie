@@ -255,9 +255,7 @@ pub trait ProviderInvocationTransport: Send + Sync {
         account_id: ProviderAccountId,
         provider: ProviderFamily,
         body: Bytes,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
-    >;
+    ) -> Pin<Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>>;
 
     /// Dispatch a streaming (SSE/chunked) invocation against `account_id`.
     ///
@@ -366,9 +364,7 @@ pub trait SecretResolution: Send + Sync {
     fn resolve(
         &self,
         secret_ref: &SecretReference,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>,
-    >;
+    ) -> Pin<Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>>;
 }
 
 // =====================================================================
@@ -401,9 +397,8 @@ impl SecretResolution for InMemorySecretResolver {
     fn resolve(
         &self,
         secret_ref: &SecretReference,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>,
-    > {
+    ) -> Pin<Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>>
+    {
         let result = self
             .map
             .get(secret_ref)
@@ -427,9 +422,8 @@ impl SecretResolution for DeniedSecretResolver {
     fn resolve(
         &self,
         _secret_ref: &SecretReference,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>,
-    > {
+    ) -> Pin<Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>>
+    {
         Box::pin(async move {
             Err(SecretResolutionError::Denied {
                 detail: "always-deny resolver".into(),
@@ -448,9 +442,8 @@ impl SecretResolution for OpenBaoSecretResolver {
     fn resolve(
         &self,
         _secret_ref: &SecretReference,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>,
-    > {
+    ) -> Pin<Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>>
+    {
         let detail = format!(
             "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
             Unimplemented::OpenBaoSecretResolution.as_str(),
@@ -514,11 +507,7 @@ pub trait MetricsSink: Send + Sync {
     fn record_dispatch_success(&self, account_id: &ProviderAccountId, latency_ms: u64);
     fn record_dispatch_failure(&self, account_id: &ProviderAccountId, retryable: bool);
     fn record_failover(&self, from: &ProviderAccountId, to: &ProviderAccountId, depth: usize);
-    fn record_quarantine_transition(
-        &self,
-        account_id: &ProviderAccountId,
-        new_state: HealthState,
-    );
+    fn record_quarantine_transition(&self, account_id: &ProviderAccountId, new_state: HealthState);
 }
 
 /// No-op [`MetricsSink`] — all methods are `#[inline]` empty stubs.
@@ -528,20 +517,13 @@ pub struct NoOpMetricsSink;
 
 impl MetricsSink for NoOpMetricsSink {
     #[inline]
-    fn record_dispatch_attempt(&self, _account_id: &ProviderAccountId, _provider: ProviderFamily) {
-    }
+    fn record_dispatch_attempt(&self, _account_id: &ProviderAccountId, _provider: ProviderFamily) {}
     #[inline]
     fn record_dispatch_success(&self, _account_id: &ProviderAccountId, _latency_ms: u64) {}
     #[inline]
     fn record_dispatch_failure(&self, _account_id: &ProviderAccountId, _retryable: bool) {}
     #[inline]
-    fn record_failover(
-        &self,
-        _from: &ProviderAccountId,
-        _to: &ProviderAccountId,
-        _depth: usize,
-    ) {
-    }
+    fn record_failover(&self, _from: &ProviderAccountId, _to: &ProviderAccountId, _depth: usize) {}
     #[inline]
     fn record_quarantine_transition(
         &self,
@@ -623,11 +605,7 @@ impl MetricsSink for RecordingMetricsSink {
         }
     }
 
-    fn record_quarantine_transition(
-        &self,
-        account_id: &ProviderAccountId,
-        new_state: HealthState,
-    ) {
+    fn record_quarantine_transition(&self, account_id: &ProviderAccountId, new_state: HealthState) {
         if let Ok(mut guard) = self.events.lock() {
             guard.push(MetricEvent::QuarantineTransition {
                 account_id: account_id.clone(),
@@ -920,11 +898,7 @@ pub type TransportScript = Arc<
 /// replayed as a stream. Used by acceptance tests to drive the streaming
 /// dispatch loop deterministically (first-byte failure, happy path, etc.).
 pub type StreamScript = Arc<
-    dyn Fn(
-            &ProviderAccountId,
-            ProviderFamily,
-            &Bytes,
-        ) -> Vec<Result<Bytes, TransportError>>
+    dyn Fn(&ProviderAccountId, ProviderFamily, &Bytes) -> Vec<Result<Bytes, TransportError>>
         + Send
         + Sync,
 >;
@@ -983,9 +957,7 @@ impl ProviderInvocationTransport for InMemoryProviderInvocationTransport {
         account_id: ProviderAccountId,
         provider: ProviderFamily,
         body: Bytes,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
-    > {
+    ) -> Pin<Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>> {
         if let Ok(mut guard) = self.call_log.lock() {
             guard.push(account_id.clone());
         }
@@ -1059,9 +1031,7 @@ impl ProviderInvocationTransport for HyperProviderInvocationTransport {
         _account_id: ProviderAccountId,
         _provider: ProviderFamily,
         _body: Bytes,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
-    > {
+    ) -> Pin<Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>> {
         let detail = format!(
             "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
             Unimplemented::OpenBaoSecretResolution.as_str(),
@@ -1393,13 +1363,10 @@ where
                 // Emit QuarantineTransition if the health state changed to
                 // Degraded or Unhealthy after this failure.
                 let updated_map = health_store.read(tenant_id, pool_id)?;
-                if let Some(updated_health) = updated_map.get(&account_id) {
-                    if updated_health.state != HealthState::Healthy {
-                        metrics.record_quarantine_transition(
-                            &account_id,
-                            updated_health.state,
-                        );
-                    }
+                if let Some(updated_health) = updated_map.get(&account_id)
+                    && updated_health.state != HealthState::Healthy
+                {
+                    metrics.record_quarantine_transition(&account_id, updated_health.state);
                 }
                 failover_depth += 1;
                 prev_failed = Some(account_id);
@@ -1512,8 +1479,7 @@ where
         // without holding a borrow on `transport` across the await boundary.
         // This is appropriate for the in-memory reference adapter (tests/dev);
         // the production hyper adapter is an honest-boundary stub today.
-        let all_items: Vec<Result<Bytes, TransportError>> =
-            raw_stream.collect::<Vec<_>>().await;
+        let all_items: Vec<Result<Bytes, TransportError>> = raw_stream.collect::<Vec<_>>().await;
 
         // Peek the first item to classify first-byte vs. mid-stream.
         match all_items.first() {
@@ -1536,19 +1502,14 @@ where
                     Err(TransportError::Retryable { detail }) => detail.clone(),
                     _ => unreachable!(),
                 };
-                last_retryable = Some(TransportError::Retryable {
-                    detail,
-                });
+                last_retryable = Some(TransportError::Retryable { detail });
                 metrics.record_dispatch_failure(&account_id, true);
                 health_store.record_failure(tenant_id, pool_id, &account_id)?;
                 let updated_map = health_store.read(tenant_id, pool_id)?;
-                if let Some(updated_health) = updated_map.get(&account_id) {
-                    if updated_health.state != HealthState::Healthy {
-                        metrics.record_quarantine_transition(
-                            &account_id,
-                            updated_health.state,
-                        );
-                    }
+                if let Some(updated_health) = updated_map.get(&account_id)
+                    && updated_health.state != HealthState::Healthy
+                {
+                    metrics.record_quarantine_transition(&account_id, updated_health.state);
                 }
                 failover_depth += 1;
                 prev_failed = Some(account_id);
@@ -1847,10 +1808,16 @@ mod tests {
         let events = sink.snapshot();
         assert_eq!(events.len(), 5);
         assert!(matches!(&events[0], MetricEvent::Attempt { account_id, .. } if account_id == &a));
-        assert!(matches!(&events[1], MetricEvent::Failure { account_id, retryable: true } if account_id == &a));
-        assert!(matches!(&events[2], MetricEvent::Failover { from, to, depth: 1 } if from == &a && to == &b));
+        assert!(
+            matches!(&events[1], MetricEvent::Failure { account_id, retryable: true } if account_id == &a)
+        );
+        assert!(
+            matches!(&events[2], MetricEvent::Failover { from, to, depth: 1 } if from == &a && to == &b)
+        );
         assert!(matches!(&events[3], MetricEvent::Attempt { account_id, .. } if account_id == &b));
-        assert!(matches!(&events[4], MetricEvent::Success { account_id, latency_ms: 42 } if account_id == &b));
+        assert!(
+            matches!(&events[4], MetricEvent::Success { account_id, latency_ms: 42 } if account_id == &b)
+        );
     }
 
     #[test]
