@@ -64,6 +64,11 @@ pub const ID_TOKEN_CLAIMS_SCHEMA_VERSION: u32 = 1;
 /// accept long-stale tokens.
 pub const MAX_CLOCK_SKEW_SECONDS: i64 = 300;
 
+/// Hard ceiling on the verification grace period for rotated-out keys (24 hours).
+/// A relying party must finish consuming tokens signed by a rotated-out key within
+/// this window; after that, the key is no longer trusted for verification.
+pub const VERIFICATION_GRACE_SECONDS: i64 = 86_400;
+
 /// Recommended ID-token lifetime ceiling (1 hour). Mirrors the
 /// `MAX_TOKEN_TTL_SECONDS` ceiling in `oya-identity-domain` for symmetry.
 pub const MAX_ID_TOKEN_TTL_SECONDS: i64 = 60 * 60;
@@ -150,6 +155,15 @@ pub enum IssuerError {
         /// Token `nbf`.
         nbf: i64,
     },
+    /// Negative grace period presented (nonsensical).
+    NegativeGracePeriod,
+    /// Grace period exceeded [`VERIFICATION_GRACE_SECONDS`].
+    GracePeriodTooLong {
+        /// Grace period requested.
+        requested_seconds: i64,
+        /// Ceiling enforced.
+        ceiling_seconds: i64,
+    },
 }
 
 impl fmt::Display for IssuerError {
@@ -202,6 +216,16 @@ impl fmt::Display for IssuerError {
             Self::NotYetValid { now, nbf } => {
                 write!(f, "token not yet valid (now={now}, nbf={nbf})")
             }
+            Self::NegativeGracePeriod => {
+                f.write_str("verification grace period must be non-negative")
+            }
+            Self::GracePeriodTooLong {
+                requested_seconds,
+                ceiling_seconds,
+            } => write!(
+                f,
+                "verification grace period {requested_seconds}s exceeds ceiling {ceiling_seconds}s"
+            ),
         }
     }
 }
@@ -639,6 +663,84 @@ pub fn build_jwks(keys: &[SigningKey]) -> Jwks {
 #[must_use]
 pub fn current_signing_key(keys: &[SigningKey]) -> Option<&SigningKey> {
     keys.iter().find(|key| key.state.is_signing())
+}
+
+/// Bounded grace period for verification of rotated-out signing keys.
+///
+/// Construction enforces `0 ≤ value ≤ VERIFICATION_GRACE_SECONDS` so a
+/// misconfigured deployment cannot silently trust a retired key indefinitely.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct VerificationGrace(i64); // data_class: INTERNAL_ONLY
+
+impl VerificationGrace {
+    /// Construct, validating the `0..=VERIFICATION_GRACE_SECONDS` range.
+    ///
+    /// # Errors
+    /// - [`IssuerError::NegativeGracePeriod`] when `seconds < 0`.
+    /// - [`IssuerError::GracePeriodTooLong`] when `seconds > VERIFICATION_GRACE_SECONDS`.
+    pub fn new(seconds: i64) -> Result<Self, IssuerError> {
+        if seconds < 0 {
+            return Err(IssuerError::NegativeGracePeriod);
+        }
+        if seconds > VERIFICATION_GRACE_SECONDS {
+            return Err(IssuerError::GracePeriodTooLong {
+                requested_seconds: seconds,
+                ceiling_seconds: VERIFICATION_GRACE_SECONDS,
+            });
+        }
+        Ok(Self(seconds))
+    }
+
+    /// Return the grace period in seconds.
+    #[must_use]
+    pub fn seconds(self) -> i64 {
+        self.0
+    }
+}
+
+/// Select a signing key for RP-side signature verification, honouring the
+/// rotation grace overlap window.
+///
+/// Complements [`current_signing_key`] (Active-only signer selector) by also
+/// accepting [`SigningKeyState::RotatedOut`] keys within the caller-supplied
+/// grace window. This is the verify-only path: a relying party that holds a
+/// token signed before rotation can still verify it while the old key is
+/// within the grace window.
+///
+/// ## Selection semantics
+///
+/// 1. Locate the first key in `keys` whose `kid` matches. If none → `None`.
+/// 2. [`SigningKeyState::Active`] → always `Some`.
+/// 3. [`SigningKeyState::RotatedOut`]:
+///    - `activated_at_epoch_seconds` is `None` → `None` (no activation record).
+///    - `now_epoch_seconds - activated_at <= grace.seconds()` → `Some`.
+///    - Otherwise → `None`.
+/// 4. [`SigningKeyState::NotYetActive`] or [`SigningKeyState::Retired`] → `None`.
+///
+/// ## Clock
+///
+/// `now_epoch_seconds` is caller-supplied; this function performs no I/O.
+#[must_use]
+pub fn select_verification_key<'a>(
+    keys: &'a [SigningKey],
+    kid: &str,
+    now_epoch_seconds: i64,
+    grace: VerificationGrace,
+) -> Option<&'a SigningKey> {
+    let key = keys.iter().find(|k| k.kid() == kid)?;
+    match key.state() {
+        SigningKeyState::Active => Some(key),
+        SigningKeyState::RotatedOut => {
+            let activated_at = key.activated_at_epoch_seconds()?;
+            let age = now_epoch_seconds.saturating_sub(activated_at);
+            if age <= grace.seconds() {
+                Some(key)
+            } else {
+                None
+            }
+        }
+        SigningKeyState::NotYetActive | SigningKeyState::Retired => None,
+    }
 }
 
 /// OIDC-discovery document per RFC 8414 §3.2 + OpenID Discovery 1.0
@@ -1815,5 +1917,111 @@ mod tests {
         let resp = build_introspection_response(&claims, now, skew).expect("ok");
         assert!(resp.active);
         assert_eq!(resp.scope, None);
+    }
+
+    // ── select_verification_key tests ─────────────────────────────────────────
+
+    fn active_key(kid: &str, activated_at: i64) -> SigningKey {
+        let mut k = SigningKey::provision(kid, Algorithm::Rs256, rsa_components()).expect("ok");
+        k.activate(activated_at).expect("ok");
+        k
+    }
+
+    fn rotated_key(kid: &str, activated_at: i64) -> SigningKey {
+        let mut k = active_key(kid, activated_at);
+        k.rotate_out().expect("ok");
+        k
+    }
+
+    fn retired_key(kid: &str, activated_at: i64) -> SigningKey {
+        let mut k = rotated_key(kid, activated_at);
+        k.retire().expect("ok");
+        k
+    }
+
+    #[test]
+    fn verification_key_active_accept() {
+        let keys = vec![active_key("k1", 1_000)];
+        let grace = VerificationGrace::new(3_600).expect("ok");
+        let found = select_verification_key(&keys, "k1", 999_999, grace);
+        assert_eq!(found.map(|k| k.kid()), Some("k1"));
+    }
+
+    #[test]
+    fn verification_key_rotated_within_grace() {
+        // activated_at=1000, now=1000+3600=4600, grace=3600 → age==grace → accept
+        let keys = vec![rotated_key("k1", 1_000)];
+        let grace = VerificationGrace::new(3_600).expect("ok");
+        let found = select_verification_key(&keys, "k1", 4_600, grace);
+        assert_eq!(found.map(|k| k.kid()), Some("k1"));
+    }
+
+    #[test]
+    fn verification_key_rotated_past_grace() {
+        // activated_at=1000, now=4601, grace=3600 → age=3601 > grace → reject
+        let keys = vec![rotated_key("k1", 1_000)];
+        let grace = VerificationGrace::new(3_600).expect("ok");
+        let found = select_verification_key(&keys, "k1", 4_601, grace);
+        assert!(found.is_none());
+    }
+
+    #[test]
+    fn verification_key_retired_reject() {
+        let keys = vec![retired_key("k1", 1_000)];
+        let grace = VerificationGrace::new(86_400).expect("ok");
+        assert!(select_verification_key(&keys, "k1", 2_000, grace).is_none());
+    }
+
+    #[test]
+    fn verification_key_not_yet_active_reject() {
+        let keys =
+            vec![SigningKey::provision("k1", Algorithm::Rs256, rsa_components()).expect("ok")];
+        let grace = VerificationGrace::new(86_400).expect("ok");
+        assert!(select_verification_key(&keys, "k1", 2_000, grace).is_none());
+    }
+
+    #[test]
+    fn verification_key_unknown_kid() {
+        let keys = vec![active_key("k1", 1_000)];
+        let grace = VerificationGrace::new(3_600).expect("ok");
+        assert!(select_verification_key(&keys, "k-unknown", 2_000, grace).is_none());
+    }
+
+    #[test]
+    fn verification_grace_ceiling_bound() {
+        match VerificationGrace::new(VERIFICATION_GRACE_SECONDS + 1) {
+            Err(IssuerError::GracePeriodTooLong {
+                requested_seconds,
+                ceiling_seconds,
+            }) => {
+                assert_eq!(requested_seconds, VERIFICATION_GRACE_SECONDS + 1);
+                assert_eq!(ceiling_seconds, VERIFICATION_GRACE_SECONDS);
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+
+    #[test]
+    fn verification_grace_at_ceiling_is_ok() {
+        assert!(VerificationGrace::new(VERIFICATION_GRACE_SECONDS).is_ok());
+    }
+
+    #[test]
+    fn verification_grace_negative() {
+        assert_eq!(
+            VerificationGrace::new(-1),
+            Err(IssuerError::NegativeGracePeriod)
+        );
+    }
+
+    #[test]
+    fn verification_grace_zero_exact_boundary() {
+        // grace=0: only now == activated_at is accepted
+        let keys = vec![rotated_key("k1", 1_000)];
+        let grace = VerificationGrace::new(0).expect("ok");
+        // now == activated_at → age=0 ≤ grace(0) → accept
+        assert!(select_verification_key(&keys, "k1", 1_000, grace).is_some());
+        // now > activated_at → age=1 > grace(0) → reject
+        assert!(select_verification_key(&keys, "k1", 1_001, grace).is_none());
     }
 }
