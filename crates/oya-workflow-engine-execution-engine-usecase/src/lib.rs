@@ -1488,6 +1488,13 @@ fn signal_await_invalid_input(input: &SignalAwaitInput) -> Option<SignalAwaitRec
     if !is_safe_ref(&input.signal_name) {
         refs.push("validation:signal-name-invalid".to_owned());
     }
+    if input
+        .timeout_timer
+        .as_ref()
+        .is_some_and(|timer| !is_safe_timer(timer))
+    {
+        refs.push("validation:signal-timeout-timer-invalid".to_owned());
+    }
     if refs.is_empty() {
         return None;
     }
