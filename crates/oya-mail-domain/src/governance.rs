@@ -454,4 +454,183 @@ mod tests {
             DataClassification::Operational(oya_data_boundary_kernel::OperationalDataClass::Audit)
         );
     }
+
+    // -----------------------------------------------------------------------
+    // RFC 7489 §3.1 alignment-mode tests (RED — AlignmentMode + DmarcRecord
+    // + organizational_domain() not yet implemented).
+    // -----------------------------------------------------------------------
+
+    /// RFC 7489 §3.1 relaxed SPF alignment: the Organizational Domain of the
+    /// SPF-authenticated domain (mail.example.com) matches the Organizational
+    /// Domain of the RFC5322.From domain (example.com) — should be ALIGNED.
+    #[test]
+    fn relaxed_spf_alignment_accepts_subdomain_of_same_org_domain() {
+        let record = DmarcRecord {
+            policy: DmarcPolicy::Reject,
+            subdomain_policy: None,
+            spf_alignment: AlignmentMode::Relaxed,
+            dkim_alignment: AlignmentMode::Relaxed,
+        };
+        let v = DmarcVerdict::new_from_record(
+            "example.com".into(),
+            // SPF authenticated domain is a subdomain; relaxed → org-domain match
+            SpfAlignmentInput {
+                authenticated_domain: "mail.example.com".into(),
+                from_domain: "example.com".into(),
+            },
+            // DKIM not present
+            None,
+            &record,
+            "audit-relax-spf".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Accept);
+        assert!(!v.report_only.value);
+    }
+
+    /// RFC 7489 §3.1 strict SPF alignment: the SPF-authenticated domain must
+    /// exactly equal the RFC5322.From domain.  mail.example.com ≠ example.com
+    /// under strict mode → no aligned pass → Reject.
+    #[test]
+    fn strict_spf_alignment_rejects_subdomain_mismatch() {
+        let record = DmarcRecord {
+            policy: DmarcPolicy::Reject,
+            subdomain_policy: None,
+            spf_alignment: AlignmentMode::Strict,
+            dkim_alignment: AlignmentMode::Strict,
+        };
+        let v = DmarcVerdict::new_from_record(
+            "example.com".into(),
+            SpfAlignmentInput {
+                authenticated_domain: "mail.example.com".into(),
+                from_domain: "example.com".into(),
+            },
+            None,
+            &record,
+            "audit-strict-spf".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Reject);
+    }
+
+    /// RFC 7489 §3.1 relaxed DKIM alignment: d= tag is a subdomain sharing the
+    /// same Organizational Domain as From — should be ALIGNED (Accept).
+    #[test]
+    fn relaxed_dkim_alignment_accepts_subdomain_d_tag() {
+        let record = DmarcRecord {
+            policy: DmarcPolicy::Reject,
+            subdomain_policy: None,
+            spf_alignment: AlignmentMode::Relaxed,
+            dkim_alignment: AlignmentMode::Relaxed,
+        };
+        let v = DmarcVerdict::new_from_record(
+            "example.com".into(),
+            // SPF fails alignment
+            SpfAlignmentInput {
+                authenticated_domain: "unrelated.net".into(),
+                from_domain: "example.com".into(),
+            },
+            // DKIM d= is subdomain of same org domain
+            Some(DkimAlignmentInput {
+                d_tag: "smtp.example.com".into(),
+                from_domain: "example.com".into(),
+            }),
+            &record,
+            "audit-relax-dkim".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Accept);
+    }
+
+    /// RFC 7489 §3.1 strict DKIM alignment: d= must exactly equal From domain.
+    /// smtp.example.com ≠ example.com under strict → no aligned pass.
+    #[test]
+    fn strict_dkim_alignment_rejects_subdomain_d_tag() {
+        let record = DmarcRecord {
+            policy: DmarcPolicy::Reject,
+            subdomain_policy: None,
+            spf_alignment: AlignmentMode::Strict,
+            dkim_alignment: AlignmentMode::Strict,
+        };
+        let v = DmarcVerdict::new_from_record(
+            "example.com".into(),
+            SpfAlignmentInput {
+                authenticated_domain: "unrelated.net".into(),
+                from_domain: "example.com".into(),
+            },
+            Some(DkimAlignmentInput {
+                d_tag: "smtp.example.com".into(),
+                from_domain: "example.com".into(),
+            }),
+            &record,
+            "audit-strict-dkim".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Reject);
+    }
+
+    /// RFC 7489 §6.3 subdomain policy (sp=): when the RFC5322.From is a
+    /// subdomain of the policy domain and an explicit sp= is present, sp=
+    /// overrides p= for that message.  p=none + sp=reject → Reject for subdomain.
+    #[test]
+    fn subdomain_policy_overrides_parent_policy_for_subdomain_from() {
+        let record = DmarcRecord {
+            policy: DmarcPolicy::None,
+            subdomain_policy: Some(DmarcPolicy::Reject),
+            spf_alignment: AlignmentMode::Relaxed,
+            dkim_alignment: AlignmentMode::Relaxed,
+        };
+        // From domain is a subdomain of the policy domain; no aligned pass.
+        let v = DmarcVerdict::new_from_record(
+            "sub.example.com".into(),
+            SpfAlignmentInput {
+                authenticated_domain: "unrelated.net".into(),
+                from_domain: "sub.example.com".into(),
+            },
+            None,
+            &record,
+            "audit-sp".into(),
+        )
+        .unwrap();
+        // sp=reject must apply, not p=none
+        assert_eq!(v.action.value, DmarcAction::Reject);
+        // report_only must be false because this is an enforcing sp=reject
+        assert!(!v.report_only.value);
+    }
+
+    /// RFC 7489 §6.3: when sp= is absent and the message is from a subdomain,
+    /// the parent p= applies.  p=none + no sp= → Accept with report_only for
+    /// a non-aligned subdomain message.
+    #[test]
+    fn absent_subdomain_policy_falls_back_to_parent_policy() {
+        let record = DmarcRecord {
+            policy: DmarcPolicy::None,
+            subdomain_policy: None,
+            spf_alignment: AlignmentMode::Relaxed,
+            dkim_alignment: AlignmentMode::Relaxed,
+        };
+        let v = DmarcVerdict::new_from_record(
+            "sub.example.com".into(),
+            SpfAlignmentInput {
+                authenticated_domain: "unrelated.net".into(),
+                from_domain: "sub.example.com".into(),
+            },
+            None,
+            &record,
+            "audit-sp-absent".into(),
+        )
+        .unwrap();
+        assert_eq!(v.action.value, DmarcAction::Accept);
+        assert!(v.report_only.value);
+    }
+
+    /// organizational_domain() must extract the registrable domain component,
+    /// stripping sub-labels per the Public Suffix List semantics used in
+    /// RFC 7489 relaxed alignment.
+    #[test]
+    fn organizational_domain_strips_subdomains() {
+        assert_eq!(organizational_domain("mail.example.com"), "example.com");
+        assert_eq!(organizational_domain("example.com"), "example.com");
+        assert_eq!(organizational_domain("a.b.example.com"), "example.com");
+    }
 }
