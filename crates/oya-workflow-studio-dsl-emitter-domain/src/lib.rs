@@ -5,7 +5,7 @@
 //! transport concerns.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -65,6 +65,8 @@ pub enum WorkflowSpecEmitError {
     SelfLoop(String),
     DanglingEdgeSource(String),
     DanglingEdgeTarget(String),
+    GraphCycle(String),
+    UnreachableNode(String),
     Json(serde_json::Error),
 }
 
@@ -84,7 +86,9 @@ impl PartialEq for WorkflowSpecEmitError {
             | (DuplicateEdge(left), DuplicateEdge(right))
             | (SelfLoop(left), SelfLoop(right))
             | (DanglingEdgeSource(left), DanglingEdgeSource(right))
-            | (DanglingEdgeTarget(left), DanglingEdgeTarget(right)) => left == right,
+            | (DanglingEdgeTarget(left), DanglingEdgeTarget(right))
+            | (GraphCycle(left), GraphCycle(right))
+            | (UnreachableNode(left), UnreachableNode(right)) => left == right,
             (Json(left), Json(right)) => left.to_string() == right.to_string(),
             _ => false,
         }
@@ -193,6 +197,85 @@ impl WorkflowSpec {
                 return Err(WorkflowSpecEmitError::DanglingEdgeTarget(key));
             }
         }
+
+        // --- graph-integrity checks ---
+        // Build forward adjacency list and in-degree map (BTreeMap for determinism).
+        let mut adjacency: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+        let mut in_degree: BTreeMap<&str, usize> = BTreeMap::new();
+        for node in &self.nodes {
+            adjacency.entry(node.id.as_str()).or_default();
+            in_degree.entry(node.id.as_str()).or_insert(0);
+        }
+        for edge in &self.edges {
+            adjacency
+                .entry(edge.from.as_str())
+                .or_default()
+                .push(edge.to.as_str());
+            *in_degree.entry(edge.to.as_str()).or_insert(0) += 1;
+        }
+
+        // Entry nodes: all nodes with in-degree 0 (no incoming edges).
+        let entry_nodes: BTreeSet<&str> = in_degree
+            .iter()
+            .filter(|&(_, &deg)| deg == 0)
+            .map(|(&id, _)| id)
+            .collect();
+
+        // Unreachable-node detection (runs first so nodes only reachable via a cycle
+        // are reported as UnreachableNode rather than GraphCycle).
+        // BFS forward from all entry nodes; any unvisited node is unreachable.
+        let mut visited: BTreeSet<&str> = BTreeSet::new();
+        let mut frontier: Vec<&str> = entry_nodes.iter().copied().collect();
+        while let Some(current) = frontier.pop() {
+            if visited.insert(current) {
+                if let Some(neighbours) = adjacency.get(current) {
+                    for &neighbour in neighbours {
+                        if !visited.contains(neighbour) {
+                            frontier.push(neighbour);
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(first_unreachable) = node_ids
+            .iter()
+            .find(|id| !visited.contains(id.as_str()))
+        {
+            return Err(WorkflowSpecEmitError::UnreachableNode(
+                first_unreachable.clone(),
+            ));
+        }
+
+        // Cycle detection via Kahn's BFS (topological sort).
+        // If any node remains unprocessed after BFS, the graph contains a cycle.
+        let mut queue: BTreeSet<&str> = entry_nodes;
+        let mut processed: usize = 0;
+        let mut in_degree_work = in_degree.clone();
+        while let Some(&current) = queue.iter().next() {
+            queue.remove(current);
+            processed += 1;
+            if let Some(neighbours) = adjacency.get(current) {
+                for &neighbour in neighbours {
+                    let deg = in_degree_work.entry(neighbour).or_insert(0);
+                    *deg = deg.saturating_sub(1);
+                    if *deg == 0 {
+                        queue.insert(neighbour);
+                    }
+                }
+            }
+        }
+        if processed < self.nodes.len() {
+            // First unprocessed node by sorted ID is the reported cycle participant.
+            let first_cycle_node = in_degree_work
+                .iter()
+                .find(|&(_, &deg)| deg > 0)
+                .map(|(&id, _)| id)
+                .unwrap_or("");
+            return Err(WorkflowSpecEmitError::GraphCycle(
+                first_cycle_node.to_string(),
+            ));
+        }
+
         Ok(())
     }
 
@@ -308,6 +391,86 @@ mod tests {
                 "wfn_one".to_string()
             ))
         );
+    }
+
+    #[test]
+    fn validate_clean_dag_passes() {
+        // 3-node linear chain: wfn_a -> wfn_b -> wfn_c
+        let spec = WorkflowSpec::new(
+            "ten_acme",
+            "wfd_chain",
+            "1.0.0",
+            vec![
+                WorkflowSpecNode::new("wfn_a", WorkflowSpecNodeKind::Http, "A"),
+                WorkflowSpecNode::new("wfn_b", WorkflowSpecNodeKind::Transform, "B"),
+                WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Join, "C"),
+            ],
+            vec![
+                WorkflowSpecEdge::new("wfn_a", "wfn_b", None),
+                WorkflowSpecEdge::new("wfn_b", "wfn_c", None),
+            ],
+        );
+        assert_eq!(spec.validate(), Ok(()));
+    }
+
+    #[test]
+    fn validate_cyclic_graph_returns_graph_cycle() {
+        // wfn_a (entry, in-degree 0) -> wfn_b -> wfn_c -> wfn_b (back-edge).
+        // All nodes reachable from wfn_a, so unreachable check passes.
+        // wfn_b and wfn_c form a cycle, so Kahn's BFS processes only wfn_a (1 < 3).
+        let spec = WorkflowSpec::new(
+            "ten_acme",
+            "wfd_cycle",
+            "1.0.0",
+            vec![
+                WorkflowSpecNode::new("wfn_a", WorkflowSpecNodeKind::Http, "A"),
+                WorkflowSpecNode::new("wfn_b", WorkflowSpecNodeKind::Transform, "B"),
+                WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Join, "C"),
+            ],
+            vec![
+                WorkflowSpecEdge::new("wfn_a", "wfn_b", None),
+                WorkflowSpecEdge::new("wfn_b", "wfn_c", None),
+                WorkflowSpecEdge::new("wfn_c", "wfn_b", None),
+            ],
+        );
+        let result = spec.validate();
+        assert!(
+            matches!(result, Err(WorkflowSpecEmitError::GraphCycle(_))),
+            "expected GraphCycle, got {result:?}",
+        );
+    }
+
+    #[test]
+    fn validate_unreachable_node_returns_unreachable_node() {
+        // wfn_a is the sole entry node (in-degree 0, no outgoing edges).
+        // wfn_b and wfn_c form a 2-cycle: both have in-degree > 0, no path from wfn_a.
+        // Unreachable check (runs before cycle check) fires on wfn_b (first sorted).
+        let spec = WorkflowSpec::new(
+            "ten_acme",
+            "wfd_island",
+            "1.0.0",
+            vec![
+                WorkflowSpecNode::new("wfn_a", WorkflowSpecNodeKind::Http, "A"),
+                WorkflowSpecNode::new("wfn_b", WorkflowSpecNodeKind::Transform, "B"),
+                WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Join, "C"),
+            ],
+            vec![
+                WorkflowSpecEdge::new("wfn_b", "wfn_c", None),
+                WorkflowSpecEdge::new("wfn_c", "wfn_b", None),
+            ],
+        );
+        assert_eq!(
+            spec.validate(),
+            Err(WorkflowSpecEmitError::UnreachableNode("wfn_b".to_string())),
+        );
+    }
+
+    #[test]
+    fn validate_is_deterministic() {
+        let spec = workflow_spec();
+        let result1 = spec.validate();
+        let result2 = spec.validate();
+        assert_eq!(result1, result2);
     }
 
     #[test]
