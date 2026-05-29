@@ -338,6 +338,22 @@ jobs:
           rendered_deployment_required = deployment_required + [
             "oyatie.com/non-claim:",
           ]
+          argocd_tenant_label_values = {
+            "oya.io/tenant-id" => "fd001-dogfood",
+            "oya.io/cost-center" => "fd001-backbone",
+            "oya.io/workload-class" => "app",
+            "oya.io/regulatory-pack" => "generic",
+            "oyatie.com/dogfood-substrate" => "oyatie-cloud",
+            "oyatie.com/product-goal" => "fd-001",
+          }
+          argocd_helm_parameters = [
+            "workloadLabels.tenantId",
+            "workloadLabels.costCenter",
+            "workloadLabels.workloadClass",
+            "workloadLabels.regulatoryPack",
+            "workloadLabels.dogfoodSubstrate",
+            "workloadLabels.productGoal",
+          ]
           ARGV.each do |path|
             text = File.read(path)
             if path.end_with?(".json")
@@ -354,6 +370,33 @@ jobs:
               YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               missing = rendered_deployment_required.reject { |needle| text.include?(needle) }
               raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+            elsif path.end_with?("backbone-microservices-applicationset.yaml")
+              doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
+              raise "#{path} is not an ApplicationSet" unless doc["kind"] == "ApplicationSet"
+              elements = doc.dig("spec", "generators", 0, "list", "elements") || []
+              raise "#{path} expected four generator elements" unless elements.length == 4
+              elements.each do |element|
+                argocd_tenant_label_values.each do |key, expected|
+                  field = key.split("/").last.gsub("-", "")
+                  field = "tenantId" if key == "oya.io/tenant-id"
+                  field = "costCenter" if key == "oya.io/cost-center"
+                  field = "workloadClass" if key == "oya.io/workload-class"
+                  field = "regulatoryPack" if key == "oya.io/regulatory-pack"
+                  field = "dogfoodSubstrate" if key == "oyatie.com/dogfood-substrate"
+                  field = "productGoal" if key == "oyatie.com/product-goal"
+                  raise "#{path} #{element["microservice"]} #{field} mismatch" unless element[field] == expected
+                end
+                raise "#{path} missing chart path #{element["chartPath"]}" unless File.directory?(element["chartPath"])
+              end
+              parameter_names = (doc.dig("spec", "template", "spec", "source", "helm", "parameters") || []).map { |parameter| parameter["name"] }
+              missing_parameters = argocd_helm_parameters - parameter_names
+              raise "#{path} missing helm parameters #{missing_parameters.join(", " )}" unless missing_parameters.empty?
+              template_labels = doc.dig("spec", "template", "metadata", "labels") || {}
+              namespace_labels = doc.dig("spec", "template", "spec", "syncPolicy", "managedNamespaceMetadata", "labels") || {}
+              argocd_tenant_label_values.each_key do |label|
+                raise "#{path} missing template label #{label}" unless template_labels.key?(label)
+                raise "#{path} missing namespace label #{label}" unless namespace_labels.key?(label)
+              end
             else
               YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
             end
@@ -365,6 +408,7 @@ jobs:
             evidence/multispectrum/backbone-microservices-rest-hyper-runtime-20260525.json \
             evidence/multispectrum/backbone-microservices-cloud-tenant-workload-labels-20260525.json \
             evidence/multispectrum/backbone-microservices-rendered-tenant-cost-label-coverage-20260525.json \
+            evidence/multispectrum/backbone-microservices-argocd-tenant-metadata-20260525.json \
             specs/proto/backbone/messenger/message_stream.proto \
             specs/proto/backbone/mail/mail.proto \
             specs/proto/backbone/social/social_post_composition.proto \
