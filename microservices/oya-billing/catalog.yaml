@@ -10,6 +10,8 @@ spec:
   role: tenant-service
   context: billing-substrate
   governing_adr: ADR-0478
+  pattern: single-crate-per-service
+  adr: ADR-0509
   data_classes_owned:
     - PII_FINANCIAL
     - PII_USER_DATA
