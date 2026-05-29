@@ -23,6 +23,9 @@
 
 use std::fmt;
 
+pub mod cursor;
+pub mod inmemory;
+
 /// Opaque cursor value (base64-URL-encoded payload).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Cursor(pub String); // data_class: INTERNAL_ONLY
@@ -114,7 +117,7 @@ pub trait CursorPaginationKernel: Send + Sync {
     /// # Errors
     /// - `CursorScopeMismatch` when the cursor's recorded filter set
     ///   does not match the active filter.
-    /// - `SkeletonNotYetImplemented` for the skeleton impl.
+    /// - `CursorMalformed` when the cursor cannot be decoded.
     fn fetch_page(
         &self,
         cursor: Option<&Cursor>,
