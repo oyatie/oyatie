@@ -207,6 +207,189 @@ impl NodePoolOpRequest {
     }
 }
 
+// ---------------------------------------------------------------------------
+// cluster-level provisioning state machine (ADR-0376)
+// ---------------------------------------------------------------------------
+
+/// The lifecycle phase a tenant cluster moves through from creation request
+/// to deletion. Legal transitions are enforced by
+/// [`ClusterLifecycleState::can_transition_to`] /
+/// [`ClusterLifecycleState::transition`].
+///
+/// ## Transition graph
+/// ```text
+/// Requested   -> Provisioning | Failed
+/// Provisioning-> Ready        | Failed
+/// Ready       -> Updating     | Draining | Failed
+/// Updating    -> Ready        | Failed
+/// Draining    -> Deleted      | Failed
+/// Deleted     -> (terminal)
+/// Failed      -> (terminal)
+/// ```
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ClusterLifecycleState {
+    /// Cluster creation accepted; no infrastructure allocated yet.
+    Requested,
+    /// Infrastructure is being allocated and configured.
+    Provisioning,
+    /// Cluster is healthy and serving tenant workloads.
+    Ready,
+    /// In-place upgrade or config change in flight (sub-phase of serving).
+    Updating,
+    /// Cluster is being drained ahead of deletion.
+    Draining,
+    /// Terminal-success: cluster has been torn down.
+    Deleted,
+    /// Fault-terminal: unrecoverable failure; reachable from any non-terminal state.
+    Failed,
+}
+
+impl ClusterLifecycleState {
+    /// The initial state for a freshly-accepted cluster creation request.
+    #[must_use]
+    pub const fn initial() -> Self {
+        Self::Requested
+    }
+
+    /// True for `Deleted` and `Failed` (no outgoing transitions).
+    #[must_use]
+    pub const fn is_terminal(&self) -> bool {
+        matches!(self, Self::Deleted | Self::Failed)
+    }
+
+    /// True when the cluster is serving tenant workloads: `Ready` or `Updating`.
+    #[must_use]
+    pub const fn is_serving(&self) -> bool {
+        matches!(self, Self::Ready | Self::Updating)
+    }
+
+    /// Stable wire/log slug (snake_case).
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Requested => "requested",
+            Self::Provisioning => "provisioning",
+            Self::Ready => "ready",
+            Self::Updating => "updating",
+            Self::Draining => "draining",
+            Self::Deleted => "deleted",
+            Self::Failed => "failed",
+        }
+    }
+
+    /// Parse from wire slug. Returns `None` for unknown values (fail-closed; no panic).
+    #[must_use]
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "requested" => Some(Self::Requested),
+            "provisioning" => Some(Self::Provisioning),
+            "ready" => Some(Self::Ready),
+            "updating" => Some(Self::Updating),
+            "draining" => Some(Self::Draining),
+            "deleted" => Some(Self::Deleted),
+            "failed" => Some(Self::Failed),
+            _ => None,
+        }
+    }
+
+    /// Pure predicate: is `next` a legal successor of `self`?
+    ///
+    /// `Failed` is reachable from any non-terminal state. Terminal states
+    /// (`Deleted`, `Failed`) have no outgoing transitions.
+    #[must_use]
+    pub const fn can_transition_to(&self, next: Self) -> bool {
+        // Any non-terminal state may fault to Failed.
+        if matches!(next, Self::Failed) {
+            return !self.is_terminal();
+        }
+        matches!(
+            (self, next),
+            (Self::Requested, Self::Provisioning)
+                | (Self::Provisioning, Self::Ready)
+                | (Self::Ready, Self::Updating)
+                | (Self::Ready, Self::Draining)
+                | (Self::Updating, Self::Ready)
+                | (Self::Draining, Self::Deleted)
+        )
+    }
+
+    /// Attempt the transition, returning the new state or a typed error.
+    ///
+    /// Never panics; callers fail closed on [`Err(IllegalClusterTransition)`].
+    ///
+    /// # Errors
+    /// Returns [`IllegalClusterTransition`] when `next` is not a legal
+    /// successor of `self` (including any outgoing move from a terminal state).
+    pub fn transition(self, next: Self) -> Result<Self, IllegalClusterTransition> {
+        if self.can_transition_to(next) {
+            Ok(next)
+        } else {
+            Err(IllegalClusterTransition {
+                from: self,
+                to: next,
+            })
+        }
+    }
+}
+
+impl fmt::Display for ClusterLifecycleState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// An attempted cluster lifecycle transition that the state machine forbids.
+/// Carries the offending `from`/`to` pair for fail-closed diagnostics.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct IllegalClusterTransition {
+    /// The state the cluster was in.
+    pub from: ClusterLifecycleState, // data_class: INTERNAL_ONLY
+    /// The illegal target state.
+    pub to: ClusterLifecycleState, // data_class: INTERNAL_ONLY
+}
+
+impl fmt::Display for IllegalClusterTransition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "illegal cluster lifecycle transition: {} -> {}",
+            self.from.as_str(),
+            self.to.as_str()
+        )
+    }
+}
+
+impl std::error::Error for IllegalClusterTransition {}
+
+/// Validate that a cluster satisfies the tier-specific node-floor requirement
+/// before transitioning to [`ClusterLifecycleState::Ready`].
+///
+/// - `Dedicated` tier: `node_count` must be >= [`DEDICATED_NODE_FLOOR`].
+/// - `Hosted` tier: no additional floor constraint (resource-request validation
+///   already checked at admission time).
+///
+/// This is a pure function; callers invoke it before calling
+/// `state.transition(ClusterLifecycleState::Ready)` for dedicated-tier clusters.
+/// The state machine itself does not call this.
+///
+/// # Errors
+/// - [`LifecycleValidationError::ZeroTargetNodeCount`] when `node_count == 0`.
+/// - [`LifecycleValidationError::TargetNodeCountExceedsFloor`] when `node_count < DEDICATED_NODE_FLOOR`
+///   and `tier == DesiredTier::Dedicated`.
+pub fn validate_dedicated_readiness(
+    node_count: u32,
+    tier: DesiredTier,
+) -> Result<(), LifecycleValidationError> {
+    if node_count == 0 {
+        return Err(LifecycleValidationError::ZeroTargetNodeCount);
+    }
+    if matches!(tier, DesiredTier::Dedicated) && node_count < DEDICATED_NODE_FLOOR {
+        return Err(LifecycleValidationError::TargetNodeCountExceedsFloor);
+    }
+    Ok(())
+}
+
 /// Outcome of a drain admission evaluation.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DrainAdmission {
@@ -492,6 +675,331 @@ mod tests {
                 assert!(!reason.is_empty(), "Deny reason must not be empty");
             }
             DrainAdmission::Allow => panic!("expected Deny, got Allow"),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-1] initial() returns Requested
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_initial_is_requested() {
+        assert_eq!(
+            ClusterLifecycleState::initial(),
+            ClusterLifecycleState::Requested
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-2] is_terminal()
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_is_terminal_only_for_deleted_and_failed() {
+        assert!(ClusterLifecycleState::Deleted.is_terminal());
+        assert!(ClusterLifecycleState::Failed.is_terminal());
+        for non_terminal in [
+            ClusterLifecycleState::Requested,
+            ClusterLifecycleState::Provisioning,
+            ClusterLifecycleState::Ready,
+            ClusterLifecycleState::Updating,
+            ClusterLifecycleState::Draining,
+        ] {
+            assert!(
+                !non_terminal.is_terminal(),
+                "{non_terminal} should not be terminal"
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-3] is_serving()
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_is_serving_only_for_ready_and_updating() {
+        assert!(ClusterLifecycleState::Ready.is_serving());
+        assert!(ClusterLifecycleState::Updating.is_serving());
+        for not_serving in [
+            ClusterLifecycleState::Requested,
+            ClusterLifecycleState::Provisioning,
+            ClusterLifecycleState::Draining,
+            ClusterLifecycleState::Deleted,
+            ClusterLifecycleState::Failed,
+        ] {
+            assert!(
+                !not_serving.is_serving(),
+                "{not_serving} should not be serving"
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-4 + cls-5] parse() roundtrip and fail-closed
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_parse_roundtrips_all_variants() {
+        for state in [
+            ClusterLifecycleState::Requested,
+            ClusterLifecycleState::Provisioning,
+            ClusterLifecycleState::Ready,
+            ClusterLifecycleState::Updating,
+            ClusterLifecycleState::Draining,
+            ClusterLifecycleState::Deleted,
+            ClusterLifecycleState::Failed,
+        ] {
+            assert_eq!(
+                ClusterLifecycleState::parse(state.as_str()),
+                Some(state),
+                "roundtrip failed for {state}"
+            );
+        }
+    }
+
+    #[test]
+    fn cluster_lifecycle_parse_unknown_returns_none() {
+        assert_eq!(ClusterLifecycleState::parse("paused"), None);
+        assert_eq!(ClusterLifecycleState::parse(""), None);
+        assert_eq!(ClusterLifecycleState::parse("READY"), None);
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-6] happy path: Requested -> Provisioning -> Ready -> Draining -> Deleted
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_happy_path_create_delete() {
+        let mut s = ClusterLifecycleState::initial();
+        assert_eq!(s, ClusterLifecycleState::Requested);
+        for next in [
+            ClusterLifecycleState::Provisioning,
+            ClusterLifecycleState::Ready,
+            ClusterLifecycleState::Draining,
+            ClusterLifecycleState::Deleted,
+        ] {
+            s = s
+                .transition(next)
+                .unwrap_or_else(|e| panic!("legal transition failed: {e}"));
+        }
+        assert!(s.is_terminal());
+        assert_eq!(s, ClusterLifecycleState::Deleted);
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-7] update cycle: Ready -> Updating -> Ready
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_update_cycle() {
+        let s = ClusterLifecycleState::Ready;
+        let updating = s
+            .transition(ClusterLifecycleState::Updating)
+            .expect("Ready -> Updating must be legal");
+        assert_eq!(updating, ClusterLifecycleState::Updating);
+        assert!(updating.is_serving());
+
+        let back_to_ready = updating
+            .transition(ClusterLifecycleState::Ready)
+            .expect("Updating -> Ready must be legal");
+        assert_eq!(back_to_ready, ClusterLifecycleState::Ready);
+        assert!(back_to_ready.is_serving());
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-8] Failed reachable from every non-terminal state
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_failed_reachable_from_every_non_terminal() {
+        for state in [
+            ClusterLifecycleState::Requested,
+            ClusterLifecycleState::Provisioning,
+            ClusterLifecycleState::Ready,
+            ClusterLifecycleState::Updating,
+            ClusterLifecycleState::Draining,
+        ] {
+            assert!(
+                state.can_transition_to(ClusterLifecycleState::Failed),
+                "{state} should be able to transition to Failed"
+            );
+            let result = state.transition(ClusterLifecycleState::Failed);
+            assert!(
+                result.is_ok(),
+                "{state} -> Failed must succeed, got {result:?}"
+            );
+            assert_eq!(result.unwrap(), ClusterLifecycleState::Failed);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-9] Terminal states have no outgoing transitions
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_terminal_states_have_no_exit() {
+        for terminal in [ClusterLifecycleState::Deleted, ClusterLifecycleState::Failed] {
+            assert!(terminal.is_terminal());
+            for next in [
+                ClusterLifecycleState::Requested,
+                ClusterLifecycleState::Provisioning,
+                ClusterLifecycleState::Ready,
+                ClusterLifecycleState::Updating,
+                ClusterLifecycleState::Draining,
+                ClusterLifecycleState::Deleted,
+                ClusterLifecycleState::Failed,
+            ] {
+                assert!(
+                    !terminal.can_transition_to(next),
+                    "{terminal} must not transition to {next}"
+                );
+                assert!(
+                    terminal.transition(next).is_err(),
+                    "{terminal} -> {next} must return Err"
+                );
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-10 + cls-11] IllegalClusterTransition carries from/to
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_illegal_transition_carries_correct_pair() {
+        let err = ClusterLifecycleState::Requested
+            .transition(ClusterLifecycleState::Ready)
+            .expect_err("Requested -> Ready must be illegal");
+        assert_eq!(err.from, ClusterLifecycleState::Requested);
+        assert_eq!(err.to, ClusterLifecycleState::Ready);
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-12] Serde snake_case roundtrip for every variant
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_serde_snake_case_roundtrip() {
+        let cases = [
+            (ClusterLifecycleState::Requested, "\"requested\""),
+            (ClusterLifecycleState::Provisioning, "\"provisioning\""),
+            (ClusterLifecycleState::Ready, "\"ready\""),
+            (ClusterLifecycleState::Updating, "\"updating\""),
+            (ClusterLifecycleState::Draining, "\"draining\""),
+            (ClusterLifecycleState::Deleted, "\"deleted\""),
+            (ClusterLifecycleState::Failed, "\"failed\""),
+        ];
+        for (state, expected_json) in cases {
+            let serialized = serde_json::to_string(&state)
+                .unwrap_or_else(|e| panic!("serialize {state:?} failed: {e}"));
+            assert_eq!(serialized, expected_json, "JSON for {state:?} mismatch");
+            let roundtripped: ClusterLifecycleState = serde_json::from_str(&serialized)
+                .unwrap_or_else(|e| panic!("deserialize {state:?} failed: {e}"));
+            assert_eq!(roundtripped, state, "round-trip mismatch for {state:?}");
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-13 + cls-14 + cls-15] validate_dedicated_readiness
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn validate_dedicated_readiness_allows_dedicated_at_floor() {
+        // DEDICATED_NODE_FLOOR = 3; exactly at floor must be accepted
+        assert!(
+            validate_dedicated_readiness(DEDICATED_NODE_FLOOR, DesiredTier::Dedicated).is_ok(),
+            "Dedicated at floor must be Ok"
+        );
+        // above floor also accepted
+        assert!(
+            validate_dedicated_readiness(DEDICATED_NODE_FLOOR + 1, DesiredTier::Dedicated).is_ok()
+        );
+    }
+
+    #[test]
+    fn validate_dedicated_readiness_denies_dedicated_below_floor() {
+        // 1 node < DEDICATED_NODE_FLOOR (3) → denied
+        let err = validate_dedicated_readiness(1, DesiredTier::Dedicated)
+            .expect_err("below floor must be rejected");
+        assert!(matches!(
+            err,
+            LifecycleValidationError::TargetNodeCountExceedsFloor
+        ));
+        // 2 nodes also below floor
+        let err2 = validate_dedicated_readiness(2, DesiredTier::Dedicated)
+            .expect_err("2 < floor must be rejected");
+        assert!(matches!(
+            err2,
+            LifecycleValidationError::TargetNodeCountExceedsFloor
+        ));
+    }
+
+    #[test]
+    fn validate_dedicated_readiness_always_allows_hosted() {
+        // Hosted has no additional floor constraint; any non-zero count is fine
+        assert!(validate_dedicated_readiness(1, DesiredTier::Hosted).is_ok());
+        assert!(validate_dedicated_readiness(DEDICATED_NODE_FLOOR - 1, DesiredTier::Hosted).is_ok());
+        assert!(validate_dedicated_readiness(500, DesiredTier::Hosted).is_ok());
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-16] skip transitions are denied
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_skip_transition_denied() {
+        // Requested -> Ready (skip Provisioning)
+        assert!(
+            !ClusterLifecycleState::Requested.can_transition_to(ClusterLifecycleState::Ready),
+            "Requested -> Ready must be illegal (skips Provisioning)"
+        );
+        // Provisioning -> Draining (skip Ready)
+        assert!(
+            !ClusterLifecycleState::Provisioning
+                .can_transition_to(ClusterLifecycleState::Draining),
+            "Provisioning -> Draining must be illegal (skips Ready)"
+        );
+        // Ready -> Deleted (skip Draining)
+        assert!(
+            !ClusterLifecycleState::Ready.can_transition_to(ClusterLifecycleState::Deleted),
+            "Ready -> Deleted must be illegal (skips Draining)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-17] IllegalClusterTransition Display is non-empty and well-formed
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn cluster_lifecycle_illegal_transition_display_well_formed() {
+        let err = ClusterLifecycleState::Requested
+            .transition(ClusterLifecycleState::Deleted)
+            .expect_err("Requested -> Deleted must be illegal");
+        let display = err.to_string();
+        assert!(!display.is_empty(), "Display must not be empty");
+        assert!(
+            display.contains("requested"),
+            "Display must contain 'requested', got: {display}"
+        );
+        assert!(
+            display.contains("deleted"),
+            "Display must contain 'deleted', got: {display}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // [cls-extra] validate_dedicated_readiness rejects zero node_count
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn validate_dedicated_readiness_rejects_zero_node_count() {
+        for tier in [DesiredTier::Hosted, DesiredTier::Dedicated] {
+            let err = validate_dedicated_readiness(0, tier)
+                .expect_err("zero node_count must be rejected");
+            assert!(
+                matches!(err, LifecycleValidationError::ZeroTargetNodeCount),
+                "expected ZeroTargetNodeCount for tier {tier:?}, got {err:?}"
+            );
         }
     }
 }
