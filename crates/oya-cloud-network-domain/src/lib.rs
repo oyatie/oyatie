@@ -1175,10 +1175,10 @@ pub enum CloudNetworkError {
 /// [`SecurityGroup`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FlowMatch {
-    pub direction: RuleDirection,      // data_class: PUBLIC
-    pub protocol: IpProtocol,          // data_class: PUBLIC
-    pub port: Option<u16>,             // data_class: PUBLIC
-    pub peer_cidr: RouteDestination,   // data_class: PUBLIC
+    pub direction: RuleDirection,    // data_class: PUBLIC
+    pub protocol: IpProtocol,        // data_class: PUBLIC
+    pub port: Option<u16>,           // data_class: PUBLIC
+    pub peer_cidr: RouteDestination, // data_class: PUBLIC
 }
 
 /// Result of evaluating a [`FlowMatch`] against a [`SecurityGroup`].
@@ -4687,10 +4687,7 @@ mod tests {
     fn ipv4_cidr_contains_cidr_returns_true_for_equal_cidrs() {
         let a = Ipv4Cidr::new("10.0.0.0/16").unwrap();
         let b = Ipv4Cidr::new("10.0.0.0/16").unwrap();
-        assert!(
-            a.contains_cidr(&b).unwrap(),
-            "a CIDR contains itself"
-        );
+        assert!(a.contains_cidr(&b).unwrap(), "a CIDR contains itself");
     }
 
     #[test]
@@ -4728,10 +4725,7 @@ mod tests {
     fn ipv4_cidr_overlaps_cidr_returns_true_for_equal_cidrs() {
         let a = Ipv4Cidr::new("172.16.0.0/12").unwrap();
         let b = Ipv4Cidr::new("172.16.0.0/12").unwrap();
-        assert!(
-            a.overlaps_cidr(&b).unwrap(),
-            "equal CIDRs overlap"
-        );
+        assert!(a.overlaps_cidr(&b).unwrap(), "equal CIDRs overlap");
     }
 
     #[test]
@@ -5052,7 +5046,10 @@ mod tests {
             port: Some(8080),
             peer_cidr: RouteDestination::Ipv4(Ipv4Cidr::new("10.1.0.1/32").unwrap()),
         };
-        assert!(matches!(sg.evaluate(&inside).unwrap(), Decision::Allow { .. }));
+        assert!(matches!(
+            sg.evaluate(&inside).unwrap(),
+            Decision::Allow { .. }
+        ));
 
         let outside = FlowMatch {
             direction: RuleDirection::Ingress,
@@ -5160,9 +5157,6 @@ mod tests {
         let egress = egress_tcp_rule("0.0.0.0/0", Some((443, 443)));
         let sg = sg_with_rules(vec![ingress, egress]);
         let pairs = sg.detect_shadowed_rules().unwrap();
-        assert!(
-            pairs.is_empty(),
-            "direction mismatch prevents shadowing"
-        );
+        assert!(pairs.is_empty(), "direction mismatch prevents shadowing");
     }
 }
