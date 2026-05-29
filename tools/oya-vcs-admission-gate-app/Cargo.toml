@@ -19,7 +19,7 @@ name = "oya-vcs-admission-gate-app"
 path = "src/main.rs"
 
 [dependencies]
-oya-vcs-admission-gate-kernel = { path = "../../microservices/intelligence/crates/oya-vcs-admission-gate-kernel" }
+oya-vcs-admission-gate-kernel = { path = "../../oya/intelligence/crates/oya-vcs-admission-gate-kernel" }
 serde_json = { workspace = true }
 
 [lints]

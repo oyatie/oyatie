@@ -19,7 +19,7 @@ name = "oya-vcs-provider-execution-gate-app"
 path = "src/main.rs"
 
 [dependencies]
-oya-vcs-provider-execution-gate-kernel = { path = "../../microservices/intelligence/crates/oya-vcs-provider-execution-gate-kernel" }
+oya-vcs-provider-execution-gate-kernel = { path = "../../oya/intelligence/crates/oya-vcs-provider-execution-gate-kernel" }
 serde_json = { workspace = true }
 
 [lints]
