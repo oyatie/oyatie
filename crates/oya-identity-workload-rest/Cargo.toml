@@ -27,11 +27,11 @@ tracing = { workspace = true }
 
 [dev-dependencies]
 # E2E: drive the router with tower::ServiceExt::oneshot and mint a real ES256
-# workload JWT with ring (the same crypto the OIDC adapter validates with;
-# already in Cargo.lock, OSI-clean). Dev-only — NOT a library dependency.
+# workload JWT with aws-lc-rs (ring-API-compatible; ADR-0506 blessed crypto).
+# Dev-only — NOT a library dependency.
 http-body-util = { version = "0.1", default-features = false }
 tower = { version = "0.5", default-features = false, features = ["util"] }
-ring = "0.17.14"
+aws-lc-rs = "1.17.0"
 base64 = "0.22.1"
 
 [lib]
