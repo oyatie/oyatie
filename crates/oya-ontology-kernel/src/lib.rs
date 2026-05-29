@@ -420,6 +420,27 @@ pub enum OntologyEngineError {
     /// every prior property must remain with unchanged `tier`, `data_class`,
     /// and `required` flag. New properties may be introduced freely.
     IncompatibleSchemaEvolution,
+    /// `register_link_instance` was called with a [`LinkTypeId`] that has not
+    /// been registered for the tenant. Register the link type before creating
+    /// instances of it.
+    UnknownLinkType,
+    /// A link instance would violate the [`LinkCardinality`] declared on the
+    /// [`LinkTypeDefinition`]. The `cardinality` field carries the constraint
+    /// that was violated.
+    CardinalityViolation {
+        /// The cardinality constraint that was violated.
+        cardinality: LinkCardinality,
+    },
+}
+
+/// Outcome returned by [`OntologyEngine::register_link_instance`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum LinkInstanceOutcome {
+    /// The instance was freshly inserted into the registry.
+    Registered,
+    /// The identical `(link_type_id, from_entity_id, to_entity_id)` tuple
+    /// already existed; no state change occurred.
+    AlreadyExists,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -427,6 +448,18 @@ pub struct OntologyEngine {
     entity_types: BTreeMap<OntologyScopedKey, EntityTypeDefinition>,
     link_types: BTreeMap<OntologyScopedKey, LinkTypeDefinition>,
     action_types: BTreeMap<OntologyScopedKey, ActionTypeDefinition>,
+    /// Full 4-tuple registry for idempotency checks.
+    /// Key: (tenant_id, link_type_id, from_entity_id, to_entity_id)
+    /// data_class: INTERNAL_ONLY
+    link_instances: BTreeMap<(String, String, String, String), ()>,
+    /// Outbound index: at most one outbound edge per (tenant, link_type, from) for OneToOne.
+    /// Key: (tenant_id, link_type_id, from_entity_id)
+    /// data_class: INTERNAL_ONLY
+    link_outbound: BTreeMap<(String, String, String), ()>,
+    /// Inbound index: at most one inbound edge per (tenant, link_type, to) for OneToOne/OneToMany.
+    /// Key: (tenant_id, link_type_id, to_entity_id)
+    /// data_class: INTERNAL_ONLY
+    link_inbound: BTreeMap<(String, String, String), ()>,
 }
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 struct OntologyScopedKey {
@@ -687,6 +720,81 @@ impl OntologyEngine {
         self.action_types
             .get(&ontology_scoped_key(tenant_id, &id.value))
     }
+
+    /// Register a directed link instance from `from_entity_id` to `to_entity_id`
+    /// under `link_type_id` for `tenant_id`.
+    ///
+    /// # Behaviour
+    ///
+    /// 1. Rejects an unknown `link_type_id` with [`OntologyEngineError::UnknownLinkType`].
+    /// 2. Is **idempotent** for the identical `(link_type_id, from_entity_id, to_entity_id)`
+    ///    tuple — returns `Ok(LinkInstanceOutcome::AlreadyExists)` without mutation.
+    /// 3. Enforces [`LinkCardinality`]:
+    ///    - `OneToOne`: rejects a second outbound from `from_entity_id` **and** a second
+    ///      inbound into `to_entity_id`.
+    ///    - `OneToMany`: rejects a second inbound into `to_entity_id`; fan-out is permitted.
+    ///    - `ManyToMany`: no restriction.
+    pub fn register_link_instance(
+        &mut self,
+        tenant_id: &str,
+        link_type_id: &LinkTypeId,
+        from_entity_id: &str,
+        to_entity_id: &str,
+    ) -> Result<LinkInstanceOutcome, OntologyEngineError> {
+        // Step 1: look up the link type definition.
+        let link_def = self
+            .link_types
+            .get(&ontology_scoped_key(tenant_id, &link_type_id.value))
+            .ok_or(OntologyEngineError::UnknownLinkType)?;
+        let cardinality = link_def.cardinality;
+
+        // Step 2: idempotency — identical 4-tuple already registered.
+        let instance_key = (
+            tenant_id.to_string(),
+            link_type_id.value.clone(),
+            from_entity_id.to_string(),
+            to_entity_id.to_string(),
+        );
+        if self.link_instances.contains_key(&instance_key) {
+            return Ok(LinkInstanceOutcome::AlreadyExists);
+        }
+
+        // Step 3: cardinality enforcement.
+        let outbound_key = (
+            tenant_id.to_string(),
+            link_type_id.value.clone(),
+            from_entity_id.to_string(),
+        );
+        let inbound_key = (
+            tenant_id.to_string(),
+            link_type_id.value.clone(),
+            to_entity_id.to_string(),
+        );
+        match cardinality {
+            LinkCardinality::OneToOne => {
+                if self.link_outbound.contains_key(&outbound_key) {
+                    return Err(OntologyEngineError::CardinalityViolation { cardinality });
+                }
+                if self.link_inbound.contains_key(&inbound_key) {
+                    return Err(OntologyEngineError::CardinalityViolation { cardinality });
+                }
+            }
+            LinkCardinality::OneToMany => {
+                if self.link_inbound.contains_key(&inbound_key) {
+                    return Err(OntologyEngineError::CardinalityViolation { cardinality });
+                }
+            }
+            LinkCardinality::ManyToMany => {}
+        }
+
+        // Step 4: insert into all three indices.
+        self.link_instances.insert(instance_key, ());
+        self.link_outbound.insert(outbound_key, ());
+        self.link_inbound.insert(inbound_key, ());
+
+        Ok(LinkInstanceOutcome::Registered)
+    }
+
     pub fn authorize_action_invocation(
         &self,
         request: ActionInvocationRequest,
