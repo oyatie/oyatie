@@ -487,8 +487,10 @@ pub enum PayrollDomainError {
     /// explicitly set by the caller — a default of zero would silently flag
     /// every payee as anomalous).
     VarianceToleranceRequired,
-    /// Reserved for future strict-mode: a current-period payee that has no
-    /// prior-period baseline entry when the rulepack requires one.
+    /// Returned when `evaluate_payroll_variance` encounters a current-period
+    /// payee that has no matching prior-period baseline entry.  The whole
+    /// verdict is aborted so the caller can decide whether to onboard the
+    /// payee explicitly or relax the baseline requirement.
     MissingBaselineForPayee,
 }
 
