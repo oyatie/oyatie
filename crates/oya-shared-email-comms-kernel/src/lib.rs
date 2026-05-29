@@ -791,6 +791,162 @@ mod tests {
         }
     }
 
+    // ---- ST1 extended: additional rate-ceiling edge cases ----
+
+    #[test]
+    fn rate_ceiling_above_limit_also_rejected_with_correct_per_minute() {
+        // count=15, ceiling=10 — strictly above, not just at-boundary.
+        // Verifies RateCeilingExceeded.per_minute reflects the caller-supplied
+        // ceiling (100) not a hardcoded constant.
+        let b = good_binding();
+        let m = good_message();
+        let err =
+            enforce_deliverability_invariants(&b, &m, &[], true, 15, 10, &HashMap::new())
+                .unwrap_err();
+        match err {
+            EmailCommsError::RateCeilingExceeded { tenant, per_minute } => {
+                assert_eq!(tenant.0, "acme");
+                assert_eq!(per_minute, 10);
+            }
+            other => panic!("expected RateCeilingExceeded, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn rate_ceiling_per_minute_field_reflects_caller_supplied_ceiling() {
+        // Ceiling=100 — confirms the error carries the exact ceiling value,
+        // not a hardcoded constant from a previous test.
+        let b = good_binding();
+        let m = good_message();
+        let err =
+            enforce_deliverability_invariants(&b, &m, &[], true, 100, 100, &HashMap::new())
+                .unwrap_err();
+        match err {
+            EmailCommsError::RateCeilingExceeded { per_minute, .. } => {
+                assert_eq!(per_minute, 100);
+            }
+            other => panic!("expected RateCeilingExceeded, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn rate_ceiling_check_fires_before_idempotency_conflict() {
+        // When both rate ceiling is exceeded AND an idempotency conflict
+        // exists, the rate ceiling error is returned first (ceiling check
+        // precedes idempotency check in enforce_deliverability_invariants).
+        let b = good_binding();
+        let m = good_message();
+        let fp = message_fingerprint(&m);
+        // Store a *different* fingerprint so idempotency would conflict.
+        let mut priors = HashMap::new();
+        priors.insert(m.idempotency_key.clone(), fp.wrapping_add(1));
+        let err =
+            enforce_deliverability_invariants(&b, &m, &[], true, 10, 10, &priors).unwrap_err();
+        match err {
+            EmailCommsError::RateCeilingExceeded { .. } => {}
+            other => panic!("expected RateCeilingExceeded before IdempotencyConflict, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn suppression_check_catches_second_recipient_when_first_is_clean() {
+        // Two-recipient message: first recipient clean, second suppressed.
+        // Verifies the suppression loop iterates all recipients, not just the first.
+        let b = good_binding();
+        let mut m = good_message();
+        let second = EmailAddress::try_new("other@example.com").unwrap();
+        m.to.push(second.clone());
+        let supp = vec![second.clone()];
+        let err =
+            enforce_deliverability_invariants(&b, &m, &supp, true, 0, 0, &HashMap::new())
+                .unwrap_err();
+        match err {
+            EmailCommsError::RecipientSuppressed(addr) => {
+                assert_eq!(addr.as_str(), "other@example.com");
+            }
+            other => panic!("expected RecipientSuppressed for second recipient, got {other:?}"),
+        }
+    }
+
+    // ---- ST2 extended: idempotency fingerprint sensitivity ----
+
+    #[test]
+    fn idempotency_same_key_html_body_change_is_conflict() {
+        // Changing only html_body (not subject) must produce a conflict.
+        // Verifies html_body is included in the fingerprint.
+        let b = good_binding();
+        let m = good_message();
+        let fp = message_fingerprint(&m);
+        let mut priors = HashMap::new();
+        priors.insert(m.idempotency_key.clone(), fp);
+
+        let mut m2 = good_message();
+        m2.html_body = "<p>completely different content</p>".into();
+
+        let err =
+            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
+        match err {
+            EmailCommsError::IdempotencyConflict { key } => {
+                assert_eq!(key, m.idempotency_key);
+            }
+            other => panic!("expected IdempotencyConflict on html_body change, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn idempotency_same_key_recipient_change_is_conflict() {
+        // Changing only the recipient (same key, same subject/body) must
+        // produce a conflict. Verifies the recipient list is in the fingerprint.
+        let b = good_binding();
+        let m = good_message();
+        let fp = message_fingerprint(&m);
+        let mut priors = HashMap::new();
+        priors.insert(m.idempotency_key.clone(), fp);
+
+        let mut m2 = good_message();
+        m2.to = vec![EmailAddress::try_new("different@example.com").unwrap()];
+
+        let err =
+            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
+        match err {
+            EmailCommsError::IdempotencyConflict { key } => {
+                assert_eq!(key, m.idempotency_key);
+            }
+            other => panic!("expected IdempotencyConflict on recipient change, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn idempotency_collapse_is_order_independent_for_recipients() {
+        // ADR-0149 collapse semantics: an identical re-send must collapse to
+        // success regardless of recipient list ordering. Two messages with the
+        // same from/subject/body/recipients but recipients in swapped order
+        // represent the same logical message and must NOT produce a conflict.
+        //
+        // NOTE: This test is expected to FAIL against the current FNV-based
+        // fingerprint implementation because the fingerprint hashes recipients
+        // in iteration order (flat_map over to[]), making it order-sensitive.
+        // The test documents the required ADR-0149 behaviour and is intentionally
+        // RED until the fingerprint is made order-independent.
+        let b = good_binding();
+        let rcpt_a = EmailAddress::try_new("alice@example.com").unwrap();
+        let rcpt_b = EmailAddress::try_new("bob@example.com").unwrap();
+
+        let mut m1 = good_message();
+        m1.to = vec![rcpt_a.clone(), rcpt_b.clone()];
+
+        let fp = message_fingerprint(&m1);
+        let mut priors = HashMap::new();
+        priors.insert(m1.idempotency_key.clone(), fp);
+
+        // Same message, recipients in reversed order — must collapse, not conflict.
+        let mut m2 = good_message();
+        m2.to = vec![rcpt_b.clone(), rcpt_a.clone()];
+
+        enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors)
+            .expect("identical re-send with reordered recipients must collapse to Ok, not conflict");
+    }
+
     #[test]
     fn delivery_event_kind_displays_canonical_strings() {
         assert_eq!(DeliveryEventKind::Sent.to_string(), "sent");
