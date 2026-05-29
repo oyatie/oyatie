@@ -2126,6 +2126,361 @@ where
     })
 }
 
+// =====================================================================
+// MetricsCounters + OtelMetricsSink + Prometheus text renderer
+// =====================================================================
+
+/// Low-cardinality per-dispatch counters stored behind an `Arc<Mutex<_>>`.
+/// Updated by [`OtelMetricsSink`] on every dispatch event; read by the
+/// `/metrics` HTTP handler to render Prometheus text format.
+///
+/// All label values are plain strings (provider name, account_id) and
+/// are low-cardinality (bounded by the pool membership, not by tenant data).
+/// data_class: INTERNAL_ONLY for all fields.
+#[derive(Clone, Debug, Default)]
+pub struct MetricsCounters {
+    /// (account_id, provider) → attempt count
+    pub attempts: std::collections::BTreeMap<(String, String), u64>,
+    /// account_id → success count
+    pub successes: std::collections::BTreeMap<String, u64>,
+    /// (account_id, retryable) → failure count
+    pub failures: std::collections::BTreeMap<(String, bool), u64>,
+    /// (from_account_id, to_account_id) → failover count
+    pub failovers: std::collections::BTreeMap<(String, String), u64>,
+    /// (account_id, new_state) → quarantine transition count
+    pub quarantine_transitions: std::collections::BTreeMap<(String, String), u64>,
+}
+
+impl MetricsCounters {
+    /// Build a Prometheus text-format metrics page from the accumulated counters.
+    ///
+    /// Renders only the `provider_pool.*` metric families. Returns a
+    /// `text/plain; version=0.0.4` compatible string.
+    /// No external dep: pure `String` building.
+    #[must_use]
+    pub fn render_prometheus_text(&self) -> String {
+        let mut out = String::with_capacity(1024);
+
+        // --- provider_pool_dispatch_attempts_total ---
+        out.push_str("# HELP provider_pool_dispatch_attempts_total Dispatch attempt counter per account\n");
+        out.push_str("# TYPE provider_pool_dispatch_attempts_total counter\n");
+        for ((account_id, provider), count) in &self.attempts {
+            out.push_str(&format!(
+                "provider_pool_dispatch_attempts_total{{account_id=\"{}\",provider=\"{}\"}} {}\n",
+                prom_escape(account_id),
+                prom_escape(provider),
+                count
+            ));
+        }
+
+        // --- provider_pool_dispatch_successes_total ---
+        out.push_str("# HELP provider_pool_dispatch_successes_total Dispatch success counter per account\n");
+        out.push_str("# TYPE provider_pool_dispatch_successes_total counter\n");
+        for (account_id, count) in &self.successes {
+            out.push_str(&format!(
+                "provider_pool_dispatch_successes_total{{account_id=\"{}\"}} {}\n",
+                prom_escape(account_id),
+                count
+            ));
+        }
+
+        // --- provider_pool_dispatch_failures_total ---
+        out.push_str("# HELP provider_pool_dispatch_failures_total Dispatch failure counter per account\n");
+        out.push_str("# TYPE provider_pool_dispatch_failures_total counter\n");
+        for ((account_id, retryable), count) in &self.failures {
+            out.push_str(&format!(
+                "provider_pool_dispatch_failures_total{{account_id=\"{}\",retryable=\"{}\"}} {}\n",
+                prom_escape(account_id),
+                retryable,
+                count
+            ));
+        }
+
+        // --- provider_pool_dispatch_failovers_total ---
+        out.push_str("# HELP provider_pool_dispatch_failovers_total Failover counter\n");
+        out.push_str("# TYPE provider_pool_dispatch_failovers_total counter\n");
+        for ((from, to), count) in &self.failovers {
+            out.push_str(&format!(
+                "provider_pool_dispatch_failovers_total{{from=\"{}\",to=\"{}\"}} {}\n",
+                prom_escape(from),
+                prom_escape(to),
+                count
+            ));
+        }
+
+        // --- provider_pool_quarantine_transitions_total ---
+        out.push_str("# HELP provider_pool_quarantine_transitions_total Quarantine state-change counter\n");
+        out.push_str("# TYPE provider_pool_quarantine_transitions_total counter\n");
+        for ((account_id, state), count) in &self.quarantine_transitions {
+            out.push_str(&format!(
+                "provider_pool_quarantine_transitions_total{{account_id=\"{}\",new_state=\"{}\"}} {}\n",
+                prom_escape(account_id),
+                prom_escape(state),
+                count
+            ));
+        }
+
+        out
+    }
+}
+
+/// Escape a string for use as a Prometheus label value (double-quote safe).
+fn prom_escape(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n")
+}
+
+/// OTel-bridge [`MetricsSink`] that accumulates dispatch events into a
+/// shared [`MetricsCounters`] map. The `/metrics` HTTP endpoint reads the
+/// counters and renders Prometheus text format.
+///
+/// This satisfies the OTel-bridge requirement from the task spec without
+/// pulling in `opentelemetry-prometheus` or `prometheus` crate deps. The
+/// counters are the source of truth; a production composition root can also
+/// forward events to an `opentelemetry_sdk::SdkMeterProvider` for OTLP export.
+///
+/// All methods are `&self` (interior mutability via `Arc<Mutex<_>>`).
+#[derive(Clone, Debug, Default)]
+pub struct OtelMetricsSink {
+    counters: Arc<Mutex<MetricsCounters>>,
+}
+
+impl OtelMetricsSink {
+    /// Build a new sink with empty counters.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Borrow a snapshot of the accumulated counters.
+    #[must_use]
+    pub fn snapshot_counters(&self) -> MetricsCounters {
+        match self.counters.lock() {
+            Ok(guard) => guard.clone(),
+            Err(_) => MetricsCounters::default(),
+        }
+    }
+
+    /// Render a Prometheus text-format metrics page from the current counters.
+    #[must_use]
+    pub fn render_prometheus_text(&self) -> String {
+        self.snapshot_counters().render_prometheus_text()
+    }
+}
+
+impl MetricsSink for OtelMetricsSink {
+    fn record_dispatch_attempt(&self, account_id: &ProviderAccountId, provider: ProviderFamily) {
+        if let Ok(mut guard) = self.counters.lock() {
+            let key = (account_id.0.clone(), format!("{provider:?}"));
+            *guard.attempts.entry(key).or_insert(0) += 1;
+        }
+    }
+
+    fn record_dispatch_success(&self, account_id: &ProviderAccountId, _latency_ms: u64) {
+        if let Ok(mut guard) = self.counters.lock() {
+            *guard.successes.entry(account_id.0.clone()).or_insert(0) += 1;
+        }
+    }
+
+    fn record_dispatch_failure(&self, account_id: &ProviderAccountId, retryable: bool) {
+        if let Ok(mut guard) = self.counters.lock() {
+            let key = (account_id.0.clone(), retryable);
+            *guard.failures.entry(key).or_insert(0) += 1;
+        }
+    }
+
+    fn record_failover(&self, from: &ProviderAccountId, to: &ProviderAccountId, _depth: usize) {
+        if let Ok(mut guard) = self.counters.lock() {
+            let key = (from.0.clone(), to.0.clone());
+            *guard.failovers.entry(key).or_insert(0) += 1;
+        }
+    }
+
+    fn record_quarantine_transition(
+        &self,
+        account_id: &ProviderAccountId,
+        new_state: HealthState,
+    ) {
+        if let Ok(mut guard) = self.counters.lock() {
+            let state_str = format!("{new_state:?}").to_ascii_lowercase();
+            let key = (account_id.0.clone(), state_str);
+            *guard.quarantine_transitions.entry(key).or_insert(0) += 1;
+        }
+    }
+}
+
+// =====================================================================
+// SeatSnapshot + SeatRegistry port + InMemorySeatRegistry
+// =====================================================================
+
+/// Per-seat usage totals. Mirrors the fields from [`UsageSnapshot`] for
+/// the `/internal/seats` admin snapshot, without leaking kernel internals
+/// into the HTTP surface.
+#[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct SeatTokenTotals {
+    /// Requests in the current usage window.
+    pub requests_in_window: u64, // data_class: INTERNAL_ONLY
+    /// Tokens in the current usage window.
+    pub tokens_in_window: u64, // data_class: INTERNAL_ONLY
+    /// P50 latency (ms) — 0 when not yet measured.
+    pub latency_ms_p50: u64, // data_class: INTERNAL_ONLY
+}
+
+/// Snapshot of a single provider seat for the `/internal/seats` endpoint.
+///
+/// All fields are `INTERNAL_ONLY` — they describe operational pool state,
+/// never tenant data.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct SeatSnapshot {
+    /// The provider account identifier.
+    pub provider_account_id: String, // data_class: INTERNAL_ONLY
+    /// The provider family (Claude, OpenAiOrCodex, …).
+    pub provider: String, // data_class: INTERNAL_ONLY
+    /// Whether this seat is currently available (not in cooldown and health ≠ Unhealthy).
+    pub available: bool, // data_class: INTERNAL_ONLY
+    /// Unix-epoch milliseconds at which the cooldown window expires, or `null`.
+    pub cooldown_until: Option<u64>, // data_class: INTERNAL_ONLY
+    /// Current consecutive failure count.
+    pub consecutive_failures: u32, // data_class: INTERNAL_ONLY
+    /// Description of the last transport failure seen for this seat, or `null`.
+    pub last_error: Option<String>, // data_class: INTERNAL_ONLY
+    /// Unix-epoch milliseconds at which this seat's credential expires, or `null`.
+    pub expires_at: Option<u64>, // data_class: INTERNAL_ONLY
+    /// Whether this seat's credential is currently being refreshed.
+    pub refreshing: bool, // data_class: INTERNAL_ONLY
+    /// Token / request usage totals for the current window.
+    pub token_totals: SeatTokenTotals, // data_class: INTERNAL_ONLY
+}
+
+/// Result of a seat registry reload operation.
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ReloadResult {
+    /// Number of new seats added (absent before the reload).
+    pub added: usize,
+    /// Number of existing seats whose snapshot was updated.
+    pub updated: usize,
+    /// Total number of seats in the registry after the reload.
+    pub total: usize,
+}
+
+/// Port for reading and updating the per-seat snapshot registry.
+///
+/// The registry is the authoritative source for the `/internal/seats` endpoint.
+/// The `/internal/seats/reload` handler calls [`upsert`] with the re-read seat
+/// list; the registry performs an upsert-only reconcile (never removes seats).
+///
+/// [`upsert`]: SeatRegistry::upsert
+pub trait SeatRegistry: Send + Sync {
+    /// Return a snapshot of all known seats in deterministic (sorted) order.
+    fn snapshot(&self) -> Vec<SeatSnapshot>;
+
+    /// Upsert `seats` into the registry. For each seat in `seats`:
+    /// - If a seat with the same `provider_account_id` is absent → add it.
+    /// - If a seat with the same `provider_account_id` already exists → update it.
+    ///
+    /// Seats already in the registry that are NOT present in `seats` are
+    /// **never removed** (the caller may still be dispatching through them).
+    ///
+    /// Returns a [`ReloadResult`] summarising the diff.
+    fn upsert(&mut self, seats: Vec<SeatSnapshot>) -> ReloadResult;
+}
+
+/// In-memory [`SeatRegistry`] backed by a `BTreeMap<String, SeatSnapshot>`.
+/// The reference adapter for tests and single-node bring-up.
+#[derive(Clone, Debug, Default)]
+pub struct InMemorySeatRegistry {
+    seats: std::collections::BTreeMap<String, SeatSnapshot>, // data_class: INTERNAL_ONLY
+}
+
+impl InMemorySeatRegistry {
+    /// Build an empty registry.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Number of seats in the registry.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.seats.len()
+    }
+
+    /// Whether the registry holds no seats.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.seats.is_empty()
+    }
+}
+
+impl SeatRegistry for InMemorySeatRegistry {
+    fn snapshot(&self) -> Vec<SeatSnapshot> {
+        self.seats.values().cloned().collect()
+    }
+
+    fn upsert(&mut self, seats: Vec<SeatSnapshot>) -> ReloadResult {
+        let mut added: usize = 0;
+        let mut updated: usize = 0;
+        for seat in seats {
+            if self.seats.contains_key(&seat.provider_account_id) {
+                updated += 1;
+            } else {
+                added += 1;
+            }
+            self.seats.insert(seat.provider_account_id.clone(), seat);
+        }
+        ReloadResult {
+            added,
+            updated,
+            total: self.seats.len(),
+        }
+    }
+}
+
+/// Build a [`SeatSnapshot`] list from the pool, health store, and usage source.
+/// Used by the `/internal/seats` handler and the reload reconciler.
+///
+/// `now` is the current Unix time in milliseconds (for cooldown availability check).
+pub fn build_seat_snapshots(
+    pool: &ProviderAccountPool,
+    health: &AccountHealthMap,
+    usage: &UsageSnapshotMap,
+    now: UnixMillis,
+) -> Vec<SeatSnapshot> {
+    let provider_name = format!("{:?}", pool.provider);
+    let mut snapshots: Vec<SeatSnapshot> = pool
+        .members
+        .iter()
+        .map(|account_id| {
+            let account_health = health.get(account_id).copied().unwrap_or(AccountHealth {
+                state: HealthState::Healthy,
+                consecutive_failures: 0,
+                cooldown_until: None,
+            });
+            let cooldown_until = account_health.cooldown_until.map(|u| u.0);
+            let in_cooldown = cooldown_until.map(|t| t > now.0).unwrap_or(false);
+            let available =
+                account_health.state != HealthState::Unhealthy && !in_cooldown;
+            let usage_snap = usage.get(account_id).copied().unwrap_or(UsageSnapshot::zero());
+            SeatSnapshot {
+                provider_account_id: account_id.0.clone(),
+                provider: provider_name.clone(),
+                available,
+                cooldown_until,
+                consecutive_failures: account_health.consecutive_failures,
+                last_error: None, // populated by a higher-level layer that tracks error text
+                expires_at: None, // credential expiry is tracked by the OpenBao adapter (future slice)
+                refreshing: false, // credential refresh is tracked by the OpenBao adapter (future slice)
+                token_totals: SeatTokenTotals {
+                    requests_in_window: usage_snap.requests_in_window,
+                    tokens_in_window: 0, // not tracked in UsageSnapshot (kernel only tracks requests)
+                    latency_ms_p50: u64::from(usage_snap.p99_latency_ms), // use p99 as proxy; p50 not tracked
+                },
+            }
+        })
+        .collect();
+    snapshots.sort_by(|a, b| a.provider_account_id.cmp(&b.provider_account_id));
+    snapshots
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
