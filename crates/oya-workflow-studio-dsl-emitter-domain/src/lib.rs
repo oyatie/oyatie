@@ -251,20 +251,17 @@ impl WorkflowSpec {
         let mut visited: BTreeSet<&str> = BTreeSet::new();
         let mut frontier: Vec<&str> = entry_nodes.iter().copied().collect();
         while let Some(current) = frontier.pop() {
-            if visited.insert(current) {
-                if let Some(neighbours) = adjacency.get(current) {
-                    for &neighbour in neighbours {
-                        if !visited.contains(neighbour) {
-                            frontier.push(neighbour);
-                        }
+            if visited.insert(current)
+                && let Some(neighbours) = adjacency.get(current)
+            {
+                for &neighbour in neighbours {
+                    if !visited.contains(neighbour) {
+                        frontier.push(neighbour);
                     }
                 }
             }
         }
-        if let Some(first_unreachable) = node_ids
-            .iter()
-            .find(|id| !visited.contains(id.as_str()))
-        {
+        if let Some(first_unreachable) = node_ids.iter().find(|id| !visited.contains(id.as_str())) {
             return Err(WorkflowSpecEmitError::UnreachableNode(
                 first_unreachable.clone(),
             ));
