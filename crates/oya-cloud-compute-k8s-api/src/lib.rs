@@ -1,9 +1,14 @@
-//! Cloud Compute managed Kubernetes API boundary for cluster creation.
+//! Cloud Compute managed Kubernetes API boundary for cluster lifecycle.
 //!
 //! This crate owns request boundary normalization, authorization proof checks,
-//! idempotent create semantics, and tenant-safe Kubernetes cluster metadata
-//! projection around the Cloud compute kernel. Cluster reconciliation and
-//! provider adapters live behind later adapter crates.
+//! idempotent create and delete semantics, and tenant-safe Kubernetes cluster
+//! metadata projection around the Cloud compute kernel. Cluster reconciliation
+//! and provider adapters live behind later adapter crates.
+//!
+//! # Surfaces
+//!
+//! - [`CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE`] — `cloud.compute.k8s.cluster.create`
+//! - [`CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE`] — `cloud.compute.k8s.cluster.delete`
 
 use std::collections::BTreeMap;
 
@@ -347,6 +352,11 @@ pub enum CloudComputeK8sApiError {
         data_class: String, // data_class: PUBLIC
     },
     Compute(CloudComputeError), // data_class: INTERNAL_ONLY
+    /// The cluster identified by `path_cluster_id` does not exist in the
+    /// catalog. Used exclusively by the delete surface.
+    ClusterNotFound {
+        cluster_id: String, // data_class: INTERNAL_ONLY
+    },
 }
 
 impl CloudComputeK8sApiError {
@@ -426,6 +436,7 @@ impl CloudComputeK8sApiError {
                     CloudComputeK8sApiErrorCode::ComputeConflict
                 }
             },
+            Self::ClusterNotFound { .. } => CloudComputeK8sApiErrorCode::ComputeNotFound,
         }
     }
 
@@ -454,6 +465,7 @@ impl CloudComputeK8sApiError {
                 CloudComputeK8sApiStatusKind::Forbidden
             }
             Self::IdempotencyKeyReused { .. } => CloudComputeK8sApiStatusKind::UnprocessableEntity,
+            Self::ClusterNotFound { .. } => CloudComputeK8sApiStatusKind::NotFound,
             Self::Compute(error) => cloud_compute_status_kind(error),
             Self::EmptyRequestId
             | Self::EmptyTenantHeader
@@ -505,6 +517,7 @@ impl CloudComputeK8sApiError {
                 "Request data_class must be a known privacy data class"
             }
             Self::Compute(error) => cloud_compute_message(error),
+            Self::ClusterNotFound { .. } => "Kubernetes cluster was not found",
         }
     }
 
@@ -573,6 +586,9 @@ impl CloudComputeK8sApiError {
                 "must be a canonical privacy data-class label",
             )],
             Self::Compute(error) => vec![detail("cloud_compute", cloud_compute_issue(error))],
+            Self::ClusterNotFound { .. } => {
+                vec![detail("path.cluster_id", "no cluster found with this id")]
+            }
         }
     }
 }
@@ -1192,4 +1208,246 @@ fn detail(field: &str, issue: &str) -> CloudComputeK8sApiErrorDetail {
         field: field.to_string(),
         issue: issue.to_string(),
     }
+}
+
+// ── Delete surface ────────────────────────────────────────────────────────────
+
+/// Authorization surface constant for cluster teardown requests.
+pub const CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE: &str = "cloud.compute.k8s.cluster.delete";
+
+/// HTTP status codes for the cluster DELETE boundary.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudComputeK8sClusterDeleteApiStatus {
+    Accepted,
+    BadRequest,
+    Unauthorized,
+    Forbidden,
+    NotFound,
+    UnprocessableEntity,
+}
+
+impl CloudComputeK8sClusterDeleteApiStatus {
+    pub const fn code(self) -> u16 {
+        match self {
+            Self::Accepted => 202,
+            Self::BadRequest => 400,
+            Self::Unauthorized => 401,
+            Self::Forbidden => 403,
+            Self::NotFound => 404,
+            Self::UnprocessableEntity => 422,
+        }
+    }
+}
+
+/// Inbound delete request boundary envelope.
+///
+/// There is no mutable body beyond the cluster identity in the path — the
+/// caller identifies the cluster via `path_cluster_id` alone.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudComputeK8sClusterDeleteApiRequest {
+    pub path_cluster_id: String, // data_class: INTERNAL_ONLY
+    pub boundary: CloudComputeK8sApiBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudComputeK8sApiPrincipal, // data_class: INTERNAL_ONLY
+    pub authorization: CloudComputeK8sApiAuthorization, // data_class: INTERNAL_ONLY
+}
+
+/// Successful delete acceptance response.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudComputeK8sClusterDeleteSuccessResponse {
+    pub data: CloudComputeK8sClusterRecord, // data_class: INTERNAL_ONLY
+    pub metadata: CloudComputeK8sMetadata,  // data_class: INTERNAL_ONLY
+}
+
+impl CloudComputeK8sClusterDeleteSuccessResponse {
+    fn accepted(data: CloudComputeK8sClusterRecord, request_id: impl Into<String>) -> Self {
+        Self {
+            data,
+            metadata: CloudComputeK8sMetadata {
+                request_id: request_id.into(),
+            },
+        }
+    }
+}
+
+type CloudComputeK8sDeleteApiResult =
+    Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError>;
+
+/// Idempotency ledger for cluster delete requests.
+///
+/// Keyed on `(tenant_id, principal_id, "cloud.compute.k8s.cluster.delete",
+/// idempotency_key)`. A replayed key with the same `path_cluster_id`
+/// fingerprint returns the identical response without a second teardown.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudComputeK8sDeleteIdempotencyLedger {
+    entries: BTreeMap<CloudComputeK8sIdempotencyLedgerKey, CloudComputeK8sDeleteLedgerEntry>, // data_class: INTERNAL_ONLY
+}
+
+impl CloudComputeK8sDeleteIdempotencyLedger {
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudComputeK8sDeleteLedgerEntry {
+    path_cluster_id: String,                // data_class: INTERNAL_ONLY
+    result: CloudComputeK8sDeleteApiResult, // data_class: INTERNAL_ONLY
+}
+
+impl CloudComputeK8sApiError {
+    /// Maps this error to the HTTP status for the cluster DELETE surface.
+    pub fn cluster_delete_status(&self) -> CloudComputeK8sClusterDeleteApiStatus {
+        match self.status_kind() {
+            CloudComputeK8sApiStatusKind::BadRequest => {
+                CloudComputeK8sClusterDeleteApiStatus::BadRequest
+            }
+            CloudComputeK8sApiStatusKind::Unauthorized => {
+                CloudComputeK8sClusterDeleteApiStatus::Unauthorized
+            }
+            CloudComputeK8sApiStatusKind::Forbidden => {
+                CloudComputeK8sClusterDeleteApiStatus::Forbidden
+            }
+            CloudComputeK8sApiStatusKind::NotFound => {
+                CloudComputeK8sClusterDeleteApiStatus::NotFound
+            }
+            CloudComputeK8sApiStatusKind::Conflict => {
+                // Conflict maps to 422 on the delete surface (no 409 variant).
+                CloudComputeK8sClusterDeleteApiStatus::UnprocessableEntity
+            }
+            CloudComputeK8sApiStatusKind::UnprocessableEntity => {
+                CloudComputeK8sClusterDeleteApiStatus::UnprocessableEntity
+            }
+        }
+    }
+
+    /// Convenience accessor — returns the numeric HTTP status code for delete.
+    pub fn cluster_delete_status_code(&self) -> u16 {
+        self.cluster_delete_status().code()
+    }
+}
+
+/// Validates all boundary conditions for a delete request without touching the
+/// catalog.
+///
+/// Returns the parsed [`ResourceId`] on success so the caller can use it for
+/// catalog lookup.
+pub fn validate_cloud_compute_k8s_cluster_delete_request(
+    request: &CloudComputeK8sClusterDeleteApiRequest,
+) -> Result<ResourceId, CloudComputeK8sApiError> {
+    validate_boundary(&request.boundary)?;
+    validate_path_cluster_id_only(&request.path_cluster_id)?;
+    let resource_id = validate_cluster_resource_id(&request.path_cluster_id)?;
+    validate_delete_tenant_binding(&request.boundary, &request.principal, &resource_id)?;
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+    )?;
+    Ok(resource_id)
+}
+
+/// Full delete execution: validates, checks idempotency, looks up the cluster,
+/// projects its state to `Deleting`, records the ledger entry, and returns the
+/// typed success response.
+///
+/// The catalog is accessed read-only — actual teardown is the reconciler's
+/// concern. Only the boundary-owned idempotency ledger is mutated.
+pub fn delete_cloud_compute_k8s_cluster_from_api(
+    catalog: &CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    request: CloudComputeK8sClusterDeleteApiRequest,
+) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
+    let resource_id = validate_cloud_compute_k8s_cluster_delete_request(&request)?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+    );
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.path_cluster_id == request.path_cluster_id {
+            return entry.result.clone();
+        }
+        return Err(CloudComputeK8sApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let cluster = catalog
+        .kubernetes_clusters()
+        .find(|c| c.resource_id.value == resource_id)
+        .ok_or_else(|| CloudComputeK8sApiError::ClusterNotFound {
+            cluster_id: request.path_cluster_id.clone(),
+        })?;
+
+    let mut record = cluster_record(cluster.clone());
+    record.state = cluster_state_label(KubernetesClusterState::Draining).to_string();
+
+    let request_id = request.boundary.request_id.clone();
+    let result: CloudComputeK8sDeleteApiResult = Ok(
+        CloudComputeK8sClusterDeleteSuccessResponse::accepted(record, request_id),
+    );
+
+    idempotency_ledger.entries.insert(
+        key,
+        CloudComputeK8sDeleteLedgerEntry {
+            path_cluster_id: request.path_cluster_id,
+            result: result.clone(),
+        },
+    );
+    result
+}
+
+/// Stable planned entrypoint for `cloud.compute.k8s.cluster.delete`.
+///
+/// Delegates to [`delete_cloud_compute_k8s_cluster_from_api`] so the plan
+/// symbol remains stable without adding a second validation path.
+pub fn delete_cluster(
+    catalog: &CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    request: CloudComputeK8sClusterDeleteApiRequest,
+) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
+    delete_cloud_compute_k8s_cluster_from_api(catalog, idempotency_ledger, request)
+}
+
+/// Validates that `path_cluster_id` is non-empty (delete has no body to match
+/// against).
+fn validate_path_cluster_id_only(path_cluster_id: &str) -> Result<(), CloudComputeK8sApiError> {
+    if path_cluster_id.trim().is_empty() {
+        return Err(CloudComputeK8sApiError::EmptyPathClusterId);
+    }
+    Ok(())
+}
+
+/// Validates that the tenant encoded in the cluster resource-id matches both
+/// the boundary tenant header and the authenticated principal tenant.
+///
+/// Returns `EmptyPrincipalId` (401) if the principal id is absent, and
+/// `TenantMismatch` (403) if any tenant comparison fails.
+fn validate_delete_tenant_binding(
+    boundary: &CloudComputeK8sApiBoundaryContext,
+    principal: &CloudComputeK8sApiPrincipal,
+    resource_id: &ResourceId,
+) -> Result<(), CloudComputeK8sApiError> {
+    if principal.principal_id.trim().is_empty() {
+        return Err(CloudComputeK8sApiError::EmptyPrincipalId);
+    }
+    let resource_tenant_id =
+        resource_id
+            .tenant_id()
+            .map_err(|_| CloudComputeK8sApiError::InvalidClusterId {
+                cluster_id: resource_id.value.clone(),
+            })?;
+    if boundary.tenant_id != principal.tenant_id || boundary.tenant_id != resource_tenant_id {
+        return Err(CloudComputeK8sApiError::TenantMismatch {
+            header_tenant_id: boundary.tenant_id.clone(),
+            principal_tenant_id: principal.tenant_id.clone(),
+            resource_tenant_id,
+            body_tenant_id: String::new(),
+        });
+    }
+    Ok(())
 }
