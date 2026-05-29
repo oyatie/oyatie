@@ -328,6 +328,11 @@ jobs:
             "runtimeClassName:",
             "resources:",
             "securityContext:",
+            "topologySpreadConstraints:",
+            "topology.kubernetes.io/zone",
+            "kubernetes.io/hostname",
+            "whenUnsatisfiable: ScheduleAnyway",
+            "maxSkew: 1",
             "oya.io/tenant-id:",
             "oya.io/cost-center:",
             "oya.io/workload-class:",
@@ -354,6 +359,35 @@ jobs:
             "workloadLabels.dogfoodSubstrate",
             "workloadLabels.productGoal",
           ]
+          expected_topology_keys = ["topology.kubernetes.io/zone", "kubernetes.io/hostname"]
+          validate_template_topology = lambda do |path, text|
+            block = text[/topologySpreadConstraints:\n(?<block>.*?)\n      containers:/m, "block"]
+            raise "#{path} missing topologySpreadConstraints block before containers" unless block
+            expected_topology_keys.each do |key|
+              raise "#{path} missing topology key #{key} in topologySpreadConstraints block" unless block.include?("topologyKey: #{key}")
+            end
+            max_skew_count = block.scan(/^\s*- maxSkew: 1$/).length
+            raise "#{path} expected exactly two topology constraints with maxSkew 1, found #{max_skew_count}" unless max_skew_count == 2
+            schedule_anyway_count = block.scan(/^\s*whenUnsatisfiable: ScheduleAnyway$/).length
+            raise "#{path} expected exactly two ScheduleAnyway topology constraints, found #{schedule_anyway_count}" unless schedule_anyway_count == 2
+            selector_count = block.scan(/labelSelector:\n\s+matchLabels:\n\s+app\.kubernetes\.io\/name: \{\{ \.Values\.microservice\.id \| quote \}\}/m).length
+            raise "#{path} expected each topology constraint to select app.kubernetes.io/name from .Values.microservice.id, found #{selector_count}" unless selector_count == 2
+          end
+          validate_rendered_topology = lambda do |path, doc|
+            pod_name = doc.dig("spec", "template", "metadata", "labels", "app.kubernetes.io/name")
+            raise "#{path} missing pod-template app.kubernetes.io/name label" if pod_name.to_s.empty?
+            constraints = doc.dig("spec", "template", "spec", "topologySpreadConstraints") || []
+            raise "#{path} expected topologySpreadConstraints array" unless constraints.is_a?(Array)
+            expected_topology_keys.each do |key|
+              matching = constraints.select { |constraint| constraint["topologyKey"] == key }
+              raise "#{path} expected one topology constraint for #{key}, found #{matching.length}" unless matching.length == 1
+              constraint = matching.first
+              raise "#{path} #{key} maxSkew must be 1" unless constraint["maxSkew"] == 1
+              raise "#{path} #{key} must use ScheduleAnyway" unless constraint["whenUnsatisfiable"] == "ScheduleAnyway"
+              selector_name = constraint.dig("labelSelector", "matchLabels", "app.kubernetes.io/name")
+              raise "#{path} #{key} selector #{selector_name.inspect} does not match pod label #{pod_name.inspect}" unless selector_name == pod_name
+            end
+          end
           ARGV.each do |path|
             text = File.read(path)
             if path.end_with?(".json")
@@ -366,10 +400,15 @@ jobs:
             elsif path.end_with?("/templates/deployment.yaml")
               missing = deployment_required.reject { |needle| text.include?(needle) }
               raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+              validate_template_topology.call(path, text)
             elsif path.include?("/rendered/") && path.end_with?(".yaml")
-              YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
+              doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               missing = rendered_deployment_required.reject { |needle| text.include?(needle) }
               raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+              validate_rendered_topology.call(path, doc)
+            elsif path.end_with?("/values.yaml")
+              doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
+              raise "#{path} must default topologySpread.enabled to true for FD-001 dogfood static snapshots" unless doc.dig("topologySpread", "enabled") == true
             elsif path.end_with?("backbone-microservices-applicationset.yaml")
               doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               raise "#{path} is not an ApplicationSet" unless doc["kind"] == "ApplicationSet"
@@ -409,6 +448,7 @@ jobs:
             evidence/multispectrum/backbone-microservices-cloud-tenant-workload-labels-20260525.json \
             evidence/multispectrum/backbone-microservices-rendered-tenant-cost-label-coverage-20260525.json \
             evidence/multispectrum/backbone-microservices-argocd-tenant-metadata-20260525.json \
+            evidence/multispectrum/backbone-microservices-cloud-topology-spread-20260525.json \
             specs/proto/backbone/messenger/message_stream.proto \
             specs/proto/backbone/mail/mail.proto \
             specs/proto/backbone/social/social_post_composition.proto \
