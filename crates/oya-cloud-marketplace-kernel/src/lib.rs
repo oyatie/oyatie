@@ -171,6 +171,56 @@ pub fn cancel(ent: &mut Entitlement) -> Result<(), MarketplaceError> {
     Ok(())
 }
 
+/// Transition an entitlement from `Active` to `Suspended`.
+///
+/// Returns `Err(InvalidEntitlementTransition)` for any source state other than
+/// `Active`.
+pub fn suspend(ent: &mut Entitlement) -> Result<(), MarketplaceError> {
+    if ent.state != EntitlementState::Active {
+        return Err(MarketplaceError::InvalidEntitlementTransition {
+            from: ent.state,
+            to: EntitlementState::Suspended,
+        });
+    }
+    ent.state = EntitlementState::Suspended;
+    Ok(())
+}
+
+/// Transition an entitlement from `Suspended` back to `Active`.
+///
+/// Re-validates that the offer is still `Published`, not yet expired, and that
+/// the buyer tenant remains in good standing.  Returns the first applicable
+/// error variant when any precondition fails.
+pub fn reinstate(
+    ent: &mut Entitlement,
+    offer: &Offer,
+    now_unix_ms: u64,
+    buyer_in_good_standing: bool,
+) -> Result<(), MarketplaceError> {
+    if ent.state != EntitlementState::Suspended {
+        return Err(MarketplaceError::InvalidEntitlementTransition {
+            from: ent.state,
+            to: EntitlementState::Active,
+        });
+    }
+    if offer.state != OfferState::Published {
+        return Err(MarketplaceError::OfferNotPublished {
+            offer_id: offer.offer_id.clone(),
+            state: offer.state,
+        });
+    }
+    if now_unix_ms >= offer.valid_until_unix_ms {
+        return Err(MarketplaceError::OfferExpired {
+            offer_id: offer.offer_id.clone(),
+        });
+    }
+    if !buyer_in_good_standing {
+        return Err(MarketplaceError::BuyerSuspended);
+    }
+    ent.state = EntitlementState::Active;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -304,6 +354,141 @@ mod tests {
         assert!(matches!(
             validate_offer(&o),
             Err(MarketplaceError::EmptyPublisher)
+        ));
+    }
+
+    // --- suspend tests ---
+
+    #[test]
+    fn suspend_active_succeeds() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Active;
+        assert!(suspend(&mut e).is_ok());
+        assert_eq!(e.state, EntitlementState::Suspended);
+    }
+
+    #[test]
+    fn suspend_pending_rejected() {
+        let mut e = ent(5);
+        // state is Pending by default
+        assert!(matches!(
+            suspend(&mut e),
+            Err(MarketplaceError::InvalidEntitlementTransition {
+                from: EntitlementState::Pending,
+                to: EntitlementState::Suspended,
+            })
+        ));
+    }
+
+    #[test]
+    fn suspend_already_suspended_rejected() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Suspended;
+        assert!(matches!(
+            suspend(&mut e),
+            Err(MarketplaceError::InvalidEntitlementTransition {
+                from: EntitlementState::Suspended,
+                to: EntitlementState::Suspended,
+            })
+        ));
+    }
+
+    #[test]
+    fn suspend_cancelled_rejected() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Cancelled;
+        assert!(matches!(
+            suspend(&mut e),
+            Err(MarketplaceError::InvalidEntitlementTransition {
+                from: EntitlementState::Cancelled,
+                to: EntitlementState::Suspended,
+            })
+        ));
+    }
+
+    // --- reinstate tests ---
+
+    #[test]
+    fn reinstate_suspended_succeeds() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Suspended;
+        let o = offer(OfferState::Published, 2000);
+        assert!(reinstate(&mut e, &o, 1000, true).is_ok());
+        assert_eq!(e.state, EntitlementState::Active);
+    }
+
+    #[test]
+    fn reinstate_from_active_rejected() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Active;
+        let o = offer(OfferState::Published, 2000);
+        assert!(matches!(
+            reinstate(&mut e, &o, 1000, true),
+            Err(MarketplaceError::InvalidEntitlementTransition {
+                from: EntitlementState::Active,
+                to: EntitlementState::Active,
+            })
+        ));
+    }
+
+    #[test]
+    fn reinstate_from_pending_rejected() {
+        let mut e = ent(5);
+        // state is Pending by default
+        let o = offer(OfferState::Published, 2000);
+        assert!(matches!(
+            reinstate(&mut e, &o, 1000, true),
+            Err(MarketplaceError::InvalidEntitlementTransition {
+                from: EntitlementState::Pending,
+                to: EntitlementState::Active,
+            })
+        ));
+    }
+
+    #[test]
+    fn reinstate_from_cancelled_rejected() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Cancelled;
+        let o = offer(OfferState::Published, 2000);
+        assert!(matches!(
+            reinstate(&mut e, &o, 1000, true),
+            Err(MarketplaceError::InvalidEntitlementTransition {
+                from: EntitlementState::Cancelled,
+                to: EntitlementState::Active,
+            })
+        ));
+    }
+
+    #[test]
+    fn reinstate_expired_offer_rejected() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Suspended;
+        let o = offer(OfferState::Published, 1000);
+        assert!(matches!(
+            reinstate(&mut e, &o, 2000, true),
+            Err(MarketplaceError::OfferExpired { .. })
+        ));
+    }
+
+    #[test]
+    fn reinstate_unpublished_offer_rejected() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Suspended;
+        let o = offer(OfferState::Deprecated, 2000);
+        assert!(matches!(
+            reinstate(&mut e, &o, 1000, true),
+            Err(MarketplaceError::OfferNotPublished { .. })
+        ));
+    }
+
+    #[test]
+    fn reinstate_suspended_buyer_rejected() {
+        let mut e = ent(5);
+        e.state = EntitlementState::Suspended;
+        let o = offer(OfferState::Published, 2000);
+        assert!(matches!(
+            reinstate(&mut e, &o, 1000, false),
+            Err(MarketplaceError::BuyerSuspended)
         ));
     }
 }
