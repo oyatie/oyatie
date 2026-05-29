@@ -103,10 +103,10 @@ pub struct ExecutionEngineDomainRequest {
     pub policy_evidence_ref: String,         // data_class: INTERNAL_ONLY
     pub spec_integrity_ref: String,          // data_class: INTERNAL_ONLY
     pub replay_epoch_ref: String,            // data_class: INTERNAL_ONLY
-    pub scheduler_epoch_ref: String,            // data_class: INTERNAL_ONLY
-    pub sla_reference_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
-    pub command: ExecutionDomainCommandKind,    // data_class: INTERNAL_ONLY
-    pub origin: ExecutionDomainOrigin,          // data_class: INTERNAL_ONLY
+    pub scheduler_epoch_ref: String,         // data_class: INTERNAL_ONLY
+    pub sla_reference_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
+    pub command: ExecutionDomainCommandKind, // data_class: INTERNAL_ONLY
+    pub origin: ExecutionDomainOrigin,       // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
