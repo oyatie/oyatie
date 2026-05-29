@@ -5221,9 +5221,9 @@ version = "0.1.0"
 name = "oya-identity-workload-oidc-adapter"
 version = "0.1.0"
 dependencies = [
+ "aws-lc-rs",
  "base64 0.22.1",
  "oya-identity-workload-domain",
- "ring",
  "serde",
  "serde_json",
 ]
