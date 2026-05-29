@@ -41,11 +41,11 @@ serde_json = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-oya-itsm-on-call-schedule = { path = "../on-call-schedule" }
-oya-itsm-escalation-policy = { path = "../escalation-policy" }
-oya-itsm-incident-room = { path = "../incident-room" }
-oya-itsm-status-update = { path = "../status-update" }
-oya-itsm-postmortem = { path = "../postmortem" }
+oya-itsm-on-call-schedule = { path = "../oya-itsm-on-call-schedule" }
+oya-itsm-escalation-policy = { path = "../oya-itsm-escalation-policy" }
+oya-itsm-incident-room = { path = "../oya-itsm-incident-room" }
+oya-itsm-status-update = { path = "../oya-itsm-status-update" }
+oya-itsm-postmortem = { path = "../oya-itsm-postmortem" }
 
 [dev-dependencies]
 serde_json = { workspace = true }
