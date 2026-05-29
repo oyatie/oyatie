@@ -83,7 +83,7 @@ pipeline {
 // (ADR-0363 Forgejo canonical; ADR-0378 Talos substrate).
 def postForgejoStatus(String state, String description) {
   httpRequest(
-    url: "http://forgejo.oya-ci-jenkins.svc.cluster.local:3000/api/v1/repos/${env.REPO_OWNER}/${env.REPO_NAME}/statuses/${env.PR_SHA}",
+    url: "http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/repos/${env.REPO_OWNER}/${env.REPO_NAME}/statuses/${env.PR_SHA}",
     httpMode: 'POST',
     customHeaders: [
       [name: 'Authorization', value: "token ${env.FORGEJO_TOKEN}", maskValue: true],
