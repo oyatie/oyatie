@@ -201,7 +201,7 @@ pub struct CloudStorageObjectGetApiRequest {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudStorageObjectReplayOutcome {
     Replayed {
-        response: CloudStorageObjectPutSuccessResponse,
+        response: Box<CloudStorageObjectPutSuccessResponse>,
     },
     Conflict {
         idempotency_key: String,
@@ -253,7 +253,7 @@ impl CloudStorageObjectPutIdempotencyLedger {
         let entry = self.entries.get(&key)?;
         let outcome = match &entry.result {
             Ok(response) => CloudStorageObjectReplayOutcome::Replayed {
-                response: response.clone(),
+                response: Box::new(response.clone()),
             },
             Err(_) => CloudStorageObjectReplayOutcome::Conflict {
                 idempotency_key: idempotency_key.to_string(),
@@ -689,7 +689,7 @@ pub fn put_cloud_storage_object_from_api(
     let fingerprint = put_fingerprint_for(&request);
     if let Some(entry) = idempotency_ledger.entries.get(&key) {
         return match replay_outcome_for(entry, &fingerprint, &request.boundary.idempotency_key) {
-            CloudStorageObjectReplayOutcome::Replayed { response } => Ok(response),
+            CloudStorageObjectReplayOutcome::Replayed { response } => Ok(*response),
             CloudStorageObjectReplayOutcome::Conflict { idempotency_key } => {
                 Err(CloudStorageObjectApiError::IdempotencyKeyReused { idempotency_key })
             }
@@ -978,7 +978,7 @@ fn replay_outcome_for(
     if entry.fingerprint == *presented_fingerprint {
         match &entry.result {
             Ok(response) => CloudStorageObjectReplayOutcome::Replayed {
-                response: response.clone(),
+                response: Box::new(response.clone()),
             },
             Err(_) => CloudStorageObjectReplayOutcome::Conflict {
                 idempotency_key: idempotency_key.to_string(),
