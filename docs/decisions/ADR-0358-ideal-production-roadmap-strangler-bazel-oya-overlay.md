@@ -6,13 +6,19 @@ date: 2026-05-25
 owners:
   - council-architecture
 supersedes: []
+superseded_by:
+  - ADR-0392
+  - ADR-0408
 amends: []
+amendment_note: "2026-05-29 (founder decision): §2 toolchain build-graph + CI engine reversed from Bazel rules_rust to Buck2. Superseded-by ADR-0392 (Buck2 canonical build graph) + ADR-0408 (Buck2-driven CI/CD). ONLY §2's build-graph/CI engine is reversed; §1 strangler-fig, §3 define-production-100-first, and §4 masterplan planning authority remain in force."
 ---
 # ADR-0358: Ideal 0→100 production roadmap — strangler-fig migration, Bazel rules_rust + oya governance overlay, define-production-100-first
 
 ## Status
 
 Proposed — 2026-05-25.
+
+> **Amendment (2026-05-29, founder decision):** §2's toolchain build-graph + CI engine is **reversed from Bazel `rules_rust` to Buck2** and is **Superseded-by ADR-0392** (Buck2 canonical build graph) and **ADR-0408** (Buck2-driven CI/CD). Only §2's build-graph/CI engine is reversed; §1 (strangler-fig), §3 (define-production-100-first), and §4 (masterplan planning authority) remain in force. The Bazel rationale below (incl. the Buck2/Reindeer objection) is preserved as the superseded record; ADR-0392 §2 confronts and accepts that objection explicitly.
 
 ## Date
 
