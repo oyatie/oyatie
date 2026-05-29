@@ -3416,6 +3416,13 @@ name = "oya-audit-chain-verification-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-billing"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "oya-calendar-domain"
 version = "0.1.0"
 dependencies = [

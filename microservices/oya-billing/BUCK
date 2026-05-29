@@ -1,0 +1,26 @@
+# Buck2 build targets for oya-billing µservice (ADR-0509 single-crate pattern).
+#
+# TODO(ADR-0392): single rust_binary target
+# non_claim: target is a placeholder pending D1-D5 implementation.
+
+rust_binary(
+    name = "oya-billing",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+)
+
+alias(
+    name = "check",
+    actual = ":oya-billing",
+)
+
+alias(
+    name = "test",
+    actual = ":oya-billing",
+)
+
+alias(
+    name = "image",
+    actual = ":oya-billing",
+)
