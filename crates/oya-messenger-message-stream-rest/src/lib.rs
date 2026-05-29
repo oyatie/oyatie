@@ -19,6 +19,10 @@ use oya_shared_postgres_command_kernel::TenantSqlContext;
 pub const POST_MESSAGE_ROUTE: &str = "/channels/{channel_id}/messages";
 pub const POST_MESSAGE_METHOD: &str = "POST";
 
+pub const LIST_MESSAGES_ROUTE: &str = "/channels/{channel_id}/messages";
+pub const LIST_MESSAGES_METHOD: &str = "GET";
+pub const LIST_MESSAGES_OPERATION_ID: &str = "messenger.list_messages";
+
 pub const HEALTH_ROUTE: &str = "/health";
 pub const READY_ROUTE: &str = "/ready";
 pub const PROBE_METHOD: &str = "GET";
@@ -81,9 +85,9 @@ pub const OPENAPI_ROUTES: &[OpenApiRoute] = &[
         handler_status: RouteHandlerStatus::ContractOnly,
     },
     OpenApiRoute {
-        method: "GET",
-        path: "/channels/{channel_id}/messages",
-        handler_status: RouteHandlerStatus::ContractOnly,
+        method: LIST_MESSAGES_METHOD,
+        path: LIST_MESSAGES_ROUTE,
+        handler_status: RouteHandlerStatus::Implemented,
     },
     OpenApiRoute {
         method: POST_MESSAGE_METHOD,
@@ -402,14 +406,7 @@ pub fn post_message(
     if request.channel_id.trim().is_empty() {
         return Err(MessengerRestError::MissingPathChannel);
     }
-    let api_context = AuthorizedMessengerContext {
-        context: map_context(context.context_kind),
-        scope_ref: context.scope_org_id,
-        principal_ref: context.principal_ref,
-        idempotency_key: context.idempotency_key,
-        policy_decision_ref: context.policy_decision_ref,
-        audit_correlation_id: context.request_id,
-    };
+    let api_context = messenger_api_context(context);
     api_context.validate().map_err(MessengerRestError::Api)?;
     let (_, receipt) = send_message(
         &api_context,
@@ -457,6 +454,104 @@ pub fn post_message_write_plan(
         body: plan,
     })
 }
+
+// ---- Read path: list messages -----------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ListMessagesRestRequest {
+    pub channel_id: String,
+    pub page_token: Option<String>,
+    pub limit: Option<u32>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MessageSummary {
+    pub message_id: String,
+    pub author_ref: String,
+    pub channel_id: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ListMessagesResponse {
+    pub channel_id: String,
+    pub items: Vec<MessageSummary>,
+    pub next_page_token: Option<String>,
+}
+
+pub fn list_messages(
+    context: MessengerRestContext,
+    request: ListMessagesRestRequest,
+) -> Result<RestResponse<ListMessagesResponse>, MessengerRestError> {
+    if request.channel_id.trim().is_empty() {
+        return Err(MessengerRestError::MissingPathChannel);
+    }
+    let api_context = messenger_api_context(context);
+    api_context.validate().map_err(MessengerRestError::Api)?;
+    Ok(RestResponse {
+        status_code: 200,
+        body: ListMessagesResponse {
+            channel_id: request.channel_id,
+            items: Vec::new(),
+            next_page_token: None,
+        },
+    })
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum MessengerReadRouteRequest {
+    ListMessages(ListMessagesRestRequest),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum MessengerReadRouteResponse {
+    ListMessages(ListMessagesResponse),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum MessengerReadRouteDispatchError {
+    UnknownRoute,
+    ContractOnly {
+        method: &'static str,
+        path: &'static str,
+    },
+    PayloadMismatch {
+        method: &'static str,
+        path: &'static str,
+    },
+    Handler(MessengerRestError),
+}
+
+pub fn dispatch_read_route(
+    method: &str,
+    path: &str,
+    context: MessengerRestContext,
+    request: MessengerReadRouteRequest,
+) -> Result<RestResponse<MessengerReadRouteResponse>, MessengerReadRouteDispatchError> {
+    let Some(route) = find_openapi_route(method, path) else {
+        return Err(MessengerReadRouteDispatchError::UnknownRoute);
+    };
+    if route.handler_status == RouteHandlerStatus::ContractOnly {
+        return Err(MessengerReadRouteDispatchError::ContractOnly {
+            method: route.method,
+            path: route.path,
+        });
+    }
+    match (route.method, route.path, request) {
+        (
+            LIST_MESSAGES_METHOD,
+            LIST_MESSAGES_ROUTE,
+            MessengerReadRouteRequest::ListMessages(req),
+        ) => list_messages(context, req)
+            .map(|response| RestResponse {
+                status_code: response.status_code,
+                body: MessengerReadRouteResponse::ListMessages(response.body),
+            })
+            .map_err(MessengerReadRouteDispatchError::Handler),
+        (method, path, _) => Err(MessengerReadRouteDispatchError::PayloadMismatch { method, path }),
+    }
+}
+
+// ---- shared helpers ---------------------------------------------------------
 
 fn messenger_api_context(context: MessengerRestContext) -> AuthorizedMessengerContext {
     AuthorizedMessengerContext {
@@ -798,6 +893,115 @@ mod tests {
             Err(MessengerWriteRouteDispatchError::ContractOnly {
                 method: "GET",
                 path: "/channels",
+            })
+        );
+    }
+
+    // ---- list_messages handler tests ----------------------------------------
+
+    fn list_request(channel_id: &str) -> ListMessagesRestRequest {
+        ListMessagesRestRequest {
+            channel_id: channel_id.into(),
+            page_token: None,
+            limit: None,
+        }
+    }
+
+    #[test]
+    fn list_messages_returns_200_with_empty_page() {
+        let response = list_messages(context(), list_request("c")).unwrap();
+        assert_eq!(response.status_code, 200);
+        assert_eq!(response.body.channel_id, "c");
+        assert!(response.body.items.is_empty());
+        assert!(response.body.next_page_token.is_none());
+    }
+
+    #[test]
+    fn list_messages_rejects_empty_channel_id() {
+        let result = list_messages(context(), list_request(""));
+        assert_eq!(result, Err(MessengerRestError::MissingPathChannel));
+    }
+
+    #[test]
+    fn list_messages_rejects_missing_idempotency_key() {
+        let mut ctx = context();
+        ctx.idempotency_key.clear();
+        let result = list_messages(ctx, list_request("c"));
+        assert_eq!(
+            result,
+            Err(MessengerRestError::Api(
+                MessengerApiError::MissingIdempotencyKey
+            ))
+        );
+    }
+
+    #[test]
+    fn list_messages_rejects_missing_policy_decision() {
+        let mut ctx = context();
+        ctx.policy_decision_ref.clear();
+        let result = list_messages(ctx, list_request("c"));
+        assert_eq!(
+            result,
+            Err(MessengerRestError::Api(
+                MessengerApiError::MissingPolicyDecision
+            ))
+        );
+    }
+
+    // ---- dispatch_read_route tests -------------------------------------------
+
+    #[test]
+    fn dispatch_read_route_routes_implemented_get_messages() {
+        let response = dispatch_read_route(
+            LIST_MESSAGES_METHOD,
+            LIST_MESSAGES_ROUTE,
+            context(),
+            MessengerReadRouteRequest::ListMessages(list_request("c")),
+        )
+        .unwrap();
+        assert_eq!(response.status_code, 200);
+        let MessengerReadRouteResponse::ListMessages(page) = response.body;
+        assert_eq!(page.channel_id, "c");
+        assert!(page.items.is_empty());
+    }
+
+    #[test]
+    fn dispatch_read_route_refuses_contract_only_route() {
+        let result = dispatch_read_route(
+            "GET",
+            "/channels",
+            context(),
+            MessengerReadRouteRequest::ListMessages(list_request("c")),
+        );
+        assert_eq!(
+            result,
+            Err(MessengerReadRouteDispatchError::ContractOnly {
+                method: "GET",
+                path: "/channels",
+            })
+        );
+    }
+
+    #[test]
+    fn dispatch_read_route_returns_unknown_for_unregistered_path() {
+        let result = dispatch_read_route(
+            "GET",
+            "/does-not-exist",
+            context(),
+            MessengerReadRouteRequest::ListMessages(list_request("c")),
+        );
+        assert_eq!(result, Err(MessengerReadRouteDispatchError::UnknownRoute));
+    }
+
+    #[test]
+    fn messenger_contract_only_dispatch_also_refuses_list_messages_route() {
+        // After the route flip the GET messages route must be excluded from the
+        // ContractOnly 501 path — it must now return TypedHandlerRequired.
+        assert_eq!(
+            dispatch_contract_only_route(LIST_MESSAGES_METHOD, LIST_MESSAGES_ROUTE),
+            Err(RouteDispatchError::TypedHandlerRequired {
+                method: LIST_MESSAGES_METHOD,
+                path: LIST_MESSAGES_ROUTE,
             })
         );
     }
