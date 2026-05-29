@@ -25,7 +25,7 @@ fn linear_spec() -> WorkflowSpec {
         vec![
             WorkflowSpecNode::new("wfn_a", WorkflowSpecNodeKind::Http, "A"),
             WorkflowSpecNode::new("wfn_b", WorkflowSpecNodeKind::Transform, "B"),
-            WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Join, "C"),
+            WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Transform, "C"),
         ],
         vec![
             WorkflowSpecEdge::new("wfn_a", "wfn_b", None),
@@ -277,7 +277,7 @@ fn canonical_json_of_valid_spec_is_stable() {
     // Any change to serialisation format would break this test intentionally.
     const EXPECTED: &str = concat!(
         r#"{"schema_version":"workflow_spec.v1","tenant_id":"ten_acme","definition_id":"wfd_linear","version":"1.0.0","#,
-        r#""nodes":[{"id":"wfn_a","kind":"http","label":"A"},{"id":"wfn_b","kind":"transform","label":"B"},{"id":"wfn_c","kind":"join","label":"C"}],"#,
+        r#""nodes":[{"id":"wfn_a","kind":"http","label":"A"},{"id":"wfn_b","kind":"transform","label":"B"},{"id":"wfn_c","kind":"transform","label":"C"}],"#,
         r#""edges":[{"from":"wfn_a","to":"wfn_b"},{"from":"wfn_b","to":"wfn_c"}]}"#,
     );
     let json = emit_canonical_json(&linear_spec()).expect("valid spec must emit");
