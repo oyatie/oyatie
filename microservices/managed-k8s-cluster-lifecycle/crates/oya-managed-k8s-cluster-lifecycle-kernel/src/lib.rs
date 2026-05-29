@@ -120,6 +120,8 @@ pub enum LifecycleValidationError {
     EmptyTenantId,
     EmptyClusterName,
     ZeroResource(&'static str),
+    ZeroTargetNodeCount,
+    TargetNodeCountExceedsFloor,
 }
 
 impl fmt::Display for LifecycleValidationError {
@@ -128,6 +130,13 @@ impl fmt::Display for LifecycleValidationError {
             Self::EmptyTenantId => f.write_str("tenant_id must not be empty"),
             Self::EmptyClusterName => f.write_str("cluster_name must not be empty"),
             Self::ZeroResource(field) => write!(f, "resource field {field} must be > 0"),
+            Self::ZeroTargetNodeCount => {
+                f.write_str("target_node_count must be > 0")
+            }
+            Self::TargetNodeCountExceedsFloor => write!(
+                f,
+                "target_node_count must not exceed the ceiling of {NODE_COUNT_CEILING}"
+            ),
         }
     }
 }
@@ -135,20 +144,120 @@ impl fmt::Display for LifecycleValidationError {
 impl std::error::Error for LifecycleValidationError {}
 
 // ---------------------------------------------------------------------------
-// node-pool op surface — types referenced by tests (NOT YET IMPLEMENTED)
+// node-pool op surface
 // ---------------------------------------------------------------------------
-// pub const NODE_COUNT_CEILING: u32
-// pub enum NodePoolAction { ScaleUp, ScaleDown, Cordon, Drain }
-// pub struct NodePoolOpRequest { tenant_id, cluster_name, target_node_count, action }
-// impl NodePoolOpRequest { pub fn new(...) -> Result<Self, LifecycleValidationError> }
-//                        { pub fn validate(&self) -> Result<(), LifecycleValidationError> }
-// pub const HOSTED_NODE_FLOOR: u32
-// pub const DEDICATED_NODE_FLOOR: u32
-// pub enum DrainAdmission { Allow, Deny { reason: String } }
-// pub fn evaluate_drain_admission(current_nodes: u32, drain_target: u32,
-//                                 desired_tier: DesiredTier) -> DrainAdmission
-// LifecycleValidationError::ZeroTargetNodeCount
-// LifecycleValidationError::TargetNodeCountExceedsFloor
+
+/// Hard ceiling on node count for any pool operation.
+pub const NODE_COUNT_CEILING: u32 = 500;
+
+/// Minimum node count for a Hosted-tier pool.
+pub const HOSTED_NODE_FLOOR: u32 = 1;
+
+/// Minimum node count for a Dedicated-tier pool.
+pub const DEDICATED_NODE_FLOOR: u32 = 3;
+
+/// Action requested for a node-pool operation.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NodePoolAction {
+    ScaleUp,
+    ScaleDown,
+    Cordon,
+    Drain,
+}
+
+/// A tenant's request to operate on a node pool in their cluster.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct NodePoolOpRequest {
+    pub tenant_id: String,        // data_class: TENANT_SCOPED
+    pub cluster_name: String,     // data_class: TENANT_SCOPED
+    pub target_node_count: u32,   // data_class: TENANT_SCOPED
+    pub action: NodePoolAction,   // data_class: TENANT_SCOPED
+}
+
+impl NodePoolOpRequest {
+    pub fn new(
+        tenant_id: impl Into<String>,
+        cluster_name: impl Into<String>,
+        target_node_count: u32,
+        action: NodePoolAction,
+    ) -> Result<Self, LifecycleValidationError> {
+        let request = Self {
+            tenant_id: tenant_id.into(),
+            cluster_name: cluster_name.into(),
+            target_node_count,
+            action,
+        };
+        request.validate()?;
+        Ok(request)
+    }
+
+    pub fn validate(&self) -> Result<(), LifecycleValidationError> {
+        if self.tenant_id.trim().is_empty() {
+            return Err(LifecycleValidationError::EmptyTenantId);
+        }
+        if self.cluster_name.trim().is_empty() {
+            return Err(LifecycleValidationError::EmptyClusterName);
+        }
+        if self.target_node_count == 0 {
+            return Err(LifecycleValidationError::ZeroTargetNodeCount);
+        }
+        if self.target_node_count > NODE_COUNT_CEILING {
+            return Err(LifecycleValidationError::TargetNodeCountExceedsFloor);
+        }
+        Ok(())
+    }
+}
+
+/// Outcome of a drain admission evaluation.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum DrainAdmission {
+    Allow,
+    Deny { reason: String },
+}
+
+/// Pure, deterministic drain admission check.
+///
+/// Denies if:
+/// - `drain_target` is zero (would empty the pool)
+/// - `drain_target` >= `current_nodes` (no nodes would remain)
+/// - remaining nodes after drain would fall below the tier floor
+///
+/// Allows otherwise.
+#[must_use]
+pub fn evaluate_drain_admission(
+    current_nodes: u32,
+    drain_target: u32,
+    desired_tier: DesiredTier,
+) -> DrainAdmission {
+    if drain_target == 0 {
+        return DrainAdmission::Deny {
+            reason: "drain_target must be > 0; draining to zero is not permitted".into(),
+        };
+    }
+    if drain_target >= current_nodes {
+        return DrainAdmission::Deny {
+            reason: format!(
+                "drain_target ({drain_target}) must be < current_nodes ({current_nodes}); \
+                 at least one node must remain"
+            ),
+        };
+    }
+    let remaining = current_nodes - drain_target;
+    let floor = match desired_tier {
+        DesiredTier::Hosted => HOSTED_NODE_FLOOR,
+        DesiredTier::Dedicated => DEDICATED_NODE_FLOOR,
+    };
+    if remaining < floor {
+        return DrainAdmission::Deny {
+            reason: format!(
+                "drain would leave {remaining} node(s), below the {tier} floor of {floor}",
+                tier = desired_tier.as_str()
+            ),
+        };
+    }
+    DrainAdmission::Allow
+}
 
 #[cfg(test)]
 mod tests {
