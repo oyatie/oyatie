@@ -191,6 +191,33 @@ pub struct CloudStorageObjectGetApiRequest {
     pub authorization: CloudStorageObjectApiAuthorization, // data_class: INTERNAL_ONLY
 }
 
+/// Typed outcome of inspecting a recorded idempotency ledger entry.
+///
+/// `Replayed` — the recorded entry holds a success response; the same idempotency
+/// key with a matching fingerprint can safely replay the stored result.
+///
+/// `Conflict` — the same idempotency key was recorded but the caller's fingerprint
+/// differs; the caller must return `CloudStorageObjectApiError::IdempotencyKeyReused`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CloudStorageObjectReplayOutcome {
+    Replayed {
+        response: CloudStorageObjectPutSuccessResponse,
+    },
+    Conflict {
+        idempotency_key: String,
+    },
+}
+
+/// Public projection of a recorded ledger entry.
+///
+/// Does not expose private `CloudStorageObjectPutLedgerEntry` or
+/// `CloudStorageObjectRequestFingerprint`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudStorageObjectPutIdempotencyEntry {
+    pub idempotency_key: String,          // data_class: INTERNAL_ONLY
+    pub outcome: CloudStorageObjectReplayOutcome, // data_class: INTERNAL_ONLY
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct CloudStorageObjectPutIdempotencyLedger {
     entries: BTreeMap<CloudStorageObjectIdempotencyLedgerKey, CloudStorageObjectPutLedgerEntry>, // data_class: INTERNAL_ONLY
@@ -203,6 +230,39 @@ impl CloudStorageObjectPutIdempotencyLedger {
 
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
+    }
+
+    /// Return a public projection of the recorded entry for the given composite key,
+    /// or `None` if no entry has been recorded yet.
+    ///
+    /// Does not mutate the ledger. Does not drive the catalog.
+    /// The `outcome` field reflects the *recorded* result, not a re-evaluation.
+    pub fn peek(
+        &self,
+        tenant_id: &str,
+        principal_id: &str,
+        surface: &str,
+        idempotency_key: &str,
+    ) -> Option<CloudStorageObjectPutIdempotencyEntry> {
+        let key = CloudStorageObjectIdempotencyLedgerKey {
+            tenant_id: tenant_id.to_string(),
+            principal_id: principal_id.to_string(),
+            surface: surface.to_string(),
+            idempotency_key: idempotency_key.to_string(),
+        };
+        let entry = self.entries.get(&key)?;
+        let outcome = match &entry.result {
+            Ok(response) => CloudStorageObjectReplayOutcome::Replayed {
+                response: response.clone(),
+            },
+            Err(_) => CloudStorageObjectReplayOutcome::Conflict {
+                idempotency_key: idempotency_key.to_string(),
+            },
+        };
+        Some(CloudStorageObjectPutIdempotencyEntry {
+            idempotency_key: idempotency_key.to_string(),
+            outcome,
+        })
     }
 }
 
@@ -628,12 +688,12 @@ pub fn put_cloud_storage_object_from_api(
     );
     let fingerprint = put_fingerprint_for(&request);
     if let Some(entry) = idempotency_ledger.entries.get(&key) {
-        if entry.fingerprint == fingerprint {
-            return entry.result.clone();
-        }
-        return Err(CloudStorageObjectApiError::IdempotencyKeyReused {
-            idempotency_key: request.boundary.idempotency_key,
-        });
+        return match replay_outcome_for(entry, &fingerprint, &request.boundary.idempotency_key) {
+            CloudStorageObjectReplayOutcome::Replayed { response } => Ok(response),
+            CloudStorageObjectReplayOutcome::Conflict { idempotency_key } => {
+                Err(CloudStorageObjectApiError::IdempotencyKeyReused { idempotency_key })
+            }
+        };
     }
 
     let request_id = request.boundary.request_id.clone();
@@ -906,6 +966,31 @@ fn purpose_label(purpose: KmsPurpose) -> &'static str {
     }
 }
 
+/// Compute the replay outcome for an existing ledger entry against the presented
+/// fingerprint. This is the single source of truth for same-fingerprint vs
+/// different-fingerprint decisions; both `put_cloud_storage_object_from_api` and
+/// `CloudStorageObjectPutIdempotencyLedger::peek` delegate here.
+fn replay_outcome_for(
+    entry: &CloudStorageObjectPutLedgerEntry,
+    presented_fingerprint: &CloudStorageObjectRequestFingerprint,
+    idempotency_key: &str,
+) -> CloudStorageObjectReplayOutcome {
+    if entry.fingerprint == *presented_fingerprint {
+        match &entry.result {
+            Ok(response) => CloudStorageObjectReplayOutcome::Replayed {
+                response: response.clone(),
+            },
+            Err(_) => CloudStorageObjectReplayOutcome::Conflict {
+                idempotency_key: idempotency_key.to_string(),
+            },
+        }
+    } else {
+        CloudStorageObjectReplayOutcome::Conflict {
+            idempotency_key: idempotency_key.to_string(),
+        }
+    }
+}
+
 fn idempotency_key_for(
     boundary: &CloudStorageObjectMutationBoundaryContext,
     principal: &CloudStorageObjectApiPrincipal,
@@ -1154,5 +1239,199 @@ fn detail(field: &str, issue: &str) -> CloudStorageObjectApiErrorDetail {
     CloudStorageObjectApiErrorDetail {
         field: field.to_string(),
         issue: issue.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used, clippy::expect_used)]
+
+    use oya_cloud_storage_domain::{
+        BucketCreate, BucketState, BucketTier, CloudStorageCatalog, EncryptionMode,
+        ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,
+    };
+    use oya_data_boundary_kernel::DataClass;
+
+    use super::{
+        CLOUD_STORAGE_OBJECT_PUT_SURFACE, CloudStorageObjectApiAuthorization,
+        CloudStorageObjectApiError, CloudStorageObjectApiPrincipal,
+        CloudStorageObjectEncryptionBindingRequest, CloudStorageObjectMutationBoundaryContext,
+        CloudStorageObjectPutApiRequest, CloudStorageObjectPutIdempotencyLedger,
+        CloudStorageObjectPutRequest, CloudStorageObjectReplayOutcome,
+        put_cloud_storage_object_from_api,
+    };
+
+    // Region must be in the "region-home" family so StrictHomeRegion residency passes.
+    const BUCKET_ID: &str = "oya:cloud:region-home:ten_unit:bucket:unit-assets";
+    const OBJECT_KEY: &str = "unit/obj.bin";
+
+    fn bucket_create() -> BucketCreate {
+        BucketCreate {
+            resource_id: BUCKET_ID.to_string(),
+            tenant_id: "ten_unit".to_string(),
+            name: "unit-assets".to_string(),
+            region: "region-home".to_string(),
+            residency: oya_residency_domain::ResidencyClass::StrictHomeRegion,
+            tier: BucketTier::Standard,
+            replication: ReplicationPolicyCreate::Regional,
+            encryption: EncryptionMode::SseKms,
+            kms_key: Some("kms/region-home/ten_unit/unit-key".to_string()),
+            object_lock: Some(ObjectLockPolicy {
+                mode: ObjectLockMode::Compliance,
+                retain_until_epoch_seconds: 1_800_000_000,
+                legal_hold: false,
+            }),
+            allowed_data_classes: vec![DataClass::Public, DataClass::PiiIdentifying],
+            state: BucketState::Creating,
+            created_at_epoch_seconds: 1_700_000_000,
+        }
+    }
+
+    fn catalog_with_active_bucket() -> CloudStorageCatalog {
+        let mut catalog = CloudStorageCatalog::default();
+        catalog
+            .create_bucket(bucket_create())
+            .expect("unit bucket creates");
+        catalog
+            .activate_bucket(BUCKET_ID)
+            .expect("unit bucket activates");
+        catalog
+    }
+
+    fn encryption() -> CloudStorageObjectEncryptionBindingRequest {
+        CloudStorageObjectEncryptionBindingRequest {
+            kms_key: "kms/region-home/ten_unit/unit-key".to_string(),
+            kms_key_version: 1,
+            material_ref: "matref/ten_unit/unit/obj".to_string(),
+            ciphertext_ref: "ct/ten_unit/unit/obj".to_string(),
+            kms_encrypt_event_id: "kmsuse_unit_obj_001".to_string(),
+            purpose: "cloud_object_storage".to_string(),
+            shred_proof_ref: None,
+        }
+    }
+
+    fn make_request(request_id: &str, idempotency_key: &str) -> CloudStorageObjectPutApiRequest {
+        CloudStorageObjectPutApiRequest {
+            path_bucket_id: BUCKET_ID.to_string(),
+            path_object_key: OBJECT_KEY.to_string(),
+            boundary: CloudStorageObjectMutationBoundaryContext {
+                request_id: request_id.to_string(),
+                tenant_id: "ten_unit".to_string(),
+                idempotency_key: idempotency_key.to_string(),
+            },
+            principal: CloudStorageObjectApiPrincipal {
+                tenant_id: "ten_unit".to_string(),
+                principal_id: "sp_unit".to_string(),
+            },
+            authorization: CloudStorageObjectApiAuthorization {
+                tenant_id: "ten_unit".to_string(),
+                principal_id: "sp_unit".to_string(),
+                decision_id: "authz_unit_001".to_string(),
+                allowed_surfaces: vec![CLOUD_STORAGE_OBJECT_PUT_SURFACE.to_string()],
+            },
+            body: CloudStorageObjectPutRequest {
+                bucket_id: BUCKET_ID.to_string(),
+                tenant_id: "ten_unit".to_string(),
+                key: OBJECT_KEY.to_string(),
+                size_bytes: 16,
+                etag: "aabbccddeeff00112233445566778899".to_string(),
+                data_class: "PII_IDENTIFYING".to_string(),
+                encryption: encryption(),
+                stored_at_epoch_seconds: 1_700_000_100,
+                last_accessed_at_epoch_seconds: None,
+            },
+        }
+    }
+
+    #[test]
+    fn first_put_records_and_returns_created() {
+        let mut catalog = catalog_with_active_bucket();
+        let mut ledger = CloudStorageObjectPutIdempotencyLedger::default();
+
+        let response =
+            put_cloud_storage_object_from_api(&mut catalog, &mut ledger, make_request("req-u1", "idem-u1"))
+                .expect("first PUT succeeds");
+
+        assert_eq!(ledger.len(), 1);
+        assert_eq!(catalog.objects().count(), 1);
+        assert_eq!(response.data.key, OBJECT_KEY);
+        assert_eq!(response.metadata.request_id, "req-u1");
+    }
+
+    #[test]
+    fn replay_same_fingerprint_no_catalog_mutation() {
+        let mut catalog = catalog_with_active_bucket();
+        let mut ledger = CloudStorageObjectPutIdempotencyLedger::default();
+        let request = make_request("req-u2", "idem-u2");
+
+        let first =
+            put_cloud_storage_object_from_api(&mut catalog, &mut ledger, request.clone())
+                .expect("first PUT succeeds");
+        let second =
+            put_cloud_storage_object_from_api(&mut catalog, &mut ledger, request)
+                .expect("replay succeeds");
+
+        assert_eq!(first, second);
+        assert_eq!(catalog.objects().count(), 1, "catalog not mutated on replay");
+        assert_eq!(ledger.len(), 1, "ledger has exactly one entry");
+    }
+
+    #[test]
+    fn conflict_different_fingerprint_yields_idempotency_key_reused() {
+        let mut catalog = catalog_with_active_bucket();
+        let mut ledger = CloudStorageObjectPutIdempotencyLedger::default();
+        let original = make_request("req-u3", "idem-u3");
+        put_cloud_storage_object_from_api(&mut catalog, &mut ledger, original.clone())
+            .expect("first PUT succeeds");
+
+        let mut drifted = original;
+        drifted.body.etag = "00000000000000000000000000000000".to_string();
+        // etag also lives in path-body binding check as separate field; update body only
+        let err =
+            put_cloud_storage_object_from_api(&mut catalog, &mut ledger, drifted)
+                .expect_err("different fingerprint yields conflict");
+
+        assert_eq!(
+            err,
+            CloudStorageObjectApiError::IdempotencyKeyReused {
+                idempotency_key: "idem-u3".to_string(),
+            }
+        );
+        assert_eq!(catalog.objects().count(), 1, "catalog not mutated on conflict");
+    }
+
+    #[test]
+    fn peek_reflects_each_state() {
+        let mut catalog = catalog_with_active_bucket();
+        let mut ledger = CloudStorageObjectPutIdempotencyLedger::default();
+
+        // Before any PUT, peek returns None.
+        assert!(
+            ledger
+                .peek("ten_unit", "sp_unit", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-u4")
+                .is_none(),
+            "peek returns None before recording"
+        );
+
+        // After first PUT, peek returns Some(Replayed { .. }).
+        put_cloud_storage_object_from_api(&mut catalog, &mut ledger, make_request("req-u4", "idem-u4"))
+            .expect("first PUT succeeds");
+
+        let entry = ledger
+            .peek("ten_unit", "sp_unit", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-u4")
+            .expect("peek returns Some after record");
+        assert_eq!(entry.idempotency_key, "idem-u4");
+        assert!(
+            matches!(entry.outcome, CloudStorageObjectReplayOutcome::Replayed { .. }),
+            "outcome is Replayed after successful PUT"
+        );
+
+        // A different (unknown) key still returns None.
+        assert!(
+            ledger
+                .peek("ten_unit", "sp_unit", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-unknown")
+                .is_none(),
+            "peek returns None for unknown key"
+        );
     }
 }
