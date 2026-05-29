@@ -2,6 +2,7 @@
 id: ADR-0326
 status: Proposed
 date: 2026-05-20
+owner: council-compliance
 owners:
   - council-architecture
   - council-privacy
