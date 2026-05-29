@@ -130,9 +130,7 @@ impl fmt::Display for LifecycleValidationError {
             Self::EmptyTenantId => f.write_str("tenant_id must not be empty"),
             Self::EmptyClusterName => f.write_str("cluster_name must not be empty"),
             Self::ZeroResource(field) => write!(f, "resource field {field} must be > 0"),
-            Self::ZeroTargetNodeCount => {
-                f.write_str("target_node_count must be > 0")
-            }
+            Self::ZeroTargetNodeCount => f.write_str("target_node_count must be > 0"),
             Self::TargetNodeCountExceedsFloor => write!(
                 f,
                 "target_node_count must not exceed the ceiling of {NODE_COUNT_CEILING}"
@@ -169,10 +167,10 @@ pub enum NodePoolAction {
 /// A tenant's request to operate on a node pool in their cluster.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NodePoolOpRequest {
-    pub tenant_id: String,        // data_class: TENANT_SCOPED
-    pub cluster_name: String,     // data_class: TENANT_SCOPED
-    pub target_node_count: u32,   // data_class: TENANT_SCOPED
-    pub action: NodePoolAction,   // data_class: TENANT_SCOPED
+    pub tenant_id: String,      // data_class: TENANT_SCOPED
+    pub cluster_name: String,   // data_class: TENANT_SCOPED
+    pub target_node_count: u32, // data_class: TENANT_SCOPED
+    pub action: NodePoolAction, // data_class: TENANT_SCOPED
 }
 
 impl NodePoolOpRequest {
@@ -385,7 +383,13 @@ mod tests {
         ));
         // exactly at ceiling must be accepted
         assert!(
-            NodePoolOpRequest::new("ten_alpha", "dogfood-a", NODE_COUNT_CEILING, NodePoolAction::ScaleUp).is_ok()
+            NodePoolOpRequest::new(
+                "ten_alpha",
+                "dogfood-a",
+                NODE_COUNT_CEILING,
+                NodePoolAction::ScaleUp
+            )
+            .is_ok()
         );
     }
 
@@ -404,10 +408,7 @@ mod tests {
         for (action, expected_json) in cases {
             let serialized = serde_json::to_string(&action)
                 .unwrap_or_else(|e| panic!("serialize {action:?} failed: {e}"));
-            assert_eq!(
-                serialized, expected_json,
-                "JSON for {action:?} mismatch"
-            );
+            assert_eq!(serialized, expected_json, "JSON for {action:?} mismatch");
             let roundtripped: NodePoolAction = serde_json::from_str(&serialized)
                 .unwrap_or_else(|e| panic!("deserialize {action:?} failed: {e}"));
             assert_eq!(roundtripped, action, "round-trip mismatch for {action:?}");
