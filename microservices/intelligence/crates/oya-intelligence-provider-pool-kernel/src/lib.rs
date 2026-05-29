@@ -165,10 +165,39 @@ pub enum HealthState {
     Unhealthy,
 }
 
+/// Classification of the failure that triggered a quarantine event.
+///
+/// Used by `CooldownPolicy::window_for` to select the per-failure-kind
+/// exponential backoff window.
+///
+/// data_class: INTERNAL_ONLY
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub enum FailureKind {
+    /// HTTP 429 / upstream rate-limit response.
+    UpstreamRateLimit429,
+    /// HTTP 5xx / upstream server error.
+    UpstreamServerError5xx,
+    /// TCP/TLS connection could not be established within deadline.
+    ConnectionTimeout,
+    /// Credential was rejected by the upstream (401/403).
+    AuthFailure,
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AccountHealth {
     pub state: HealthState,        // data_class: INTERNAL_ONLY
     pub consecutive_failures: u32, // data_class: INTERNAL_ONLY
+    /// Absolute epoch (unix-millis) at which the account exits cooldown,
+    /// as computed by the caller from `CooldownPolicy::window_for`.
+    ///
+    /// `None` means the account has not been quarantined.
+    ///
+    /// Routing decisions in `pick_account_with_cooldown` are driven by
+    /// `QuarantineMap`, not this field; the field is informational so callers
+    /// can embed the expiry directly in a health snapshot.
+    ///
+    /// data_class: INTERNAL_ONLY
+    pub cooldown_until: Option<UnixMillis>,
 }
 
 impl AccountHealth {
@@ -176,6 +205,7 @@ impl AccountHealth {
         Self {
             state: HealthState::Healthy,
             consecutive_failures: 0,
+            cooldown_until: None,
         }
     }
 }
@@ -231,10 +261,67 @@ impl CooldownPolicy {
             }
         }
     }
+
+    /// Returns the per-`FailureKind` exponential backoff window for
+    /// `consecutive_failures` (1-indexed; 0 is treated as 1).
+    ///
+    /// Backoff tables (values in milliseconds):
+    ///
+    /// | FailureKind            | f=1    | f=2     | f=3     | f=4+    |
+    /// |------------------------|--------|---------|---------|---------|
+    /// | UpstreamRateLimit429   | 30_000 | 60_000  | 120_000 | 300_000 |
+    /// | UpstreamServerError5xx | 10_000 | 30_000  | 60_000  | 60_000  |
+    /// | ConnectionTimeout      |  5_000 | 15_000  | 30_000  | 30_000  |
+    /// | AuthFailure            | 60_000 | 300_000 | 900_000 | 900_000 |
+    pub fn window_for(kind: FailureKind, consecutive_failures: u32) -> DurationMs {
+        // Treat 0 as first failure tier.
+        let tier = consecutive_failures.max(1) as usize;
+        let ms = match kind {
+            FailureKind::UpstreamRateLimit429 => {
+                const TABLE: [u64; 4] = [30_000, 60_000, 120_000, 300_000];
+                TABLE[(tier - 1).min(TABLE.len() - 1)]
+            }
+            FailureKind::UpstreamServerError5xx => {
+                const TABLE: [u64; 3] = [10_000, 30_000, 60_000];
+                TABLE[(tier - 1).min(TABLE.len() - 1)]
+            }
+            FailureKind::ConnectionTimeout => {
+                const TABLE: [u64; 3] = [5_000, 15_000, 30_000];
+                TABLE[(tier - 1).min(TABLE.len() - 1)]
+            }
+            FailureKind::AuthFailure => {
+                const TABLE: [u64; 3] = [60_000, 300_000, 900_000];
+                TABLE[(tier - 1).min(TABLE.len() - 1)]
+            }
+        };
+        DurationMs(ms)
+    }
 }
 
 pub type UsageSnapshotMap = BTreeMap<ProviderAccountId, UsageSnapshot>;
 pub type AccountHealthMap = BTreeMap<ProviderAccountId, AccountHealth>;
+
+/// Populate `quarantines` from a slice of `PoolMembershipChange` events.
+///
+/// For each `PoolMembershipChange::Quarantined(id)` in `changes`, inserts
+/// `(id, now)` into `quarantines`, overwriting any stale entry.
+/// `Added` and `Removed` variants are ignored.
+///
+/// This is the canonical bridge between the membership-change event surface
+/// and the `QuarantineMap` consumed by `pick_account_with_cooldown`.
+///
+/// data_class: INTERNAL_ONLY
+pub fn populate_quarantine_from_changes(
+    changes: &[PoolMembershipChange],
+    now: UnixMillis,
+    quarantines: &mut QuarantineMap,
+) {
+    for change in changes {
+        if let PoolMembershipChange::Quarantined(id) = change {
+            quarantines.insert(id.clone(), now);
+        }
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PoolRoutingDecision {
@@ -840,6 +927,7 @@ mod tests {
             AccountHealth {
                 state: HealthState::Unhealthy,
                 consecutive_failures: 5,
+                cooldown_until: None,
             },
         );
         health.insert(
@@ -847,6 +935,7 @@ mod tests {
             AccountHealth {
                 state: HealthState::Unhealthy,
                 consecutive_failures: 5,
+                cooldown_until: None,
             },
         );
         let r = pick_account(
@@ -868,6 +957,7 @@ mod tests {
             AccountHealth {
                 state: HealthState::Unhealthy,
                 consecutive_failures: 9,
+                cooldown_until: None,
             },
         );
         let d = pick_account(
@@ -1227,6 +1317,7 @@ mod tests {
             AccountHealth {
                 state: HealthState::Unhealthy,
                 consecutive_failures: 9,
+                cooldown_until: None,
             },
         );
         let d = pick_account(
@@ -1306,6 +1397,7 @@ mod tests {
             AccountHealth {
                 state: HealthState::Degraded,
                 consecutive_failures: 2,
+                cooldown_until: None,
             },
         );
         health.insert(pid("b"), AccountHealth::healthy());
@@ -1340,6 +1432,7 @@ mod tests {
             AccountHealth {
                 state: HealthState::Degraded,
                 consecutive_failures: 1,
+                cooldown_until: None,
             },
         );
         let quarantines = quarantine_at("a", now - 90_000);
@@ -1434,6 +1527,232 @@ mod tests {
             d.reason,
             PoolRoutingReason::FailoverFrom(pid("a")),
             "must emit FailoverFrom(prev) when previous account is in cooldown"
+        );
+    }
+
+    // ── FailureKind + backoff table tests ────────────────────────────────────
+
+    /// AccountHealth::healthy() compiles with the new cooldown_until field
+    /// defaulting to None.
+    #[test]
+    fn account_health_cooldown_until_field_defaults_none() {
+        let h = AccountHealth::healthy();
+        assert_eq!(h.cooldown_until, None);
+        assert_eq!(h.state, HealthState::Healthy);
+        assert_eq!(h.consecutive_failures, 0);
+    }
+
+    /// AccountHealth with an explicit cooldown_until carries the value through.
+    #[test]
+    fn account_health_cooldown_until_set() {
+        let h = AccountHealth {
+            state: HealthState::Unhealthy,
+            consecutive_failures: 3,
+            cooldown_until: Some(UnixMillis(999_000)),
+        };
+        assert_eq!(h.cooldown_until, Some(UnixMillis(999_000)));
+    }
+
+    /// UpstreamRateLimit429 backoff: escalates 30s → 60s → 120s → 300s (cap).
+    #[test]
+    fn failure_kind_backoff_rate_limit() {
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamRateLimit429, 1),
+            DurationMs(30_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamRateLimit429, 2),
+            DurationMs(60_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamRateLimit429, 3),
+            DurationMs(120_000)
+        );
+        // tier 4 and beyond cap at 300 s
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamRateLimit429, 4),
+            DurationMs(300_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamRateLimit429, 100),
+            DurationMs(300_000),
+            "must cap at max tier"
+        );
+    }
+
+    /// UpstreamServerError5xx backoff: 10s → 30s → 60s (cap).
+    #[test]
+    fn failure_kind_backoff_server_error() {
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamServerError5xx, 1),
+            DurationMs(10_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamServerError5xx, 2),
+            DurationMs(30_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamServerError5xx, 3),
+            DurationMs(60_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamServerError5xx, 4),
+            DurationMs(60_000),
+            "must cap at 60 s"
+        );
+    }
+
+    /// ConnectionTimeout backoff: 5s → 15s → 30s (cap).
+    #[test]
+    fn failure_kind_backoff_timeout() {
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::ConnectionTimeout, 1),
+            DurationMs(5_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::ConnectionTimeout, 2),
+            DurationMs(15_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::ConnectionTimeout, 3),
+            DurationMs(30_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::ConnectionTimeout, 99),
+            DurationMs(30_000),
+            "must cap at 30 s"
+        );
+    }
+
+    /// AuthFailure backoff: 60s → 300s → 900s (cap).
+    #[test]
+    fn failure_kind_backoff_auth() {
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::AuthFailure, 1),
+            DurationMs(60_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::AuthFailure, 2),
+            DurationMs(300_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::AuthFailure, 3),
+            DurationMs(900_000)
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::AuthFailure, 10),
+            DurationMs(900_000),
+            "must cap at 900 s"
+        );
+    }
+
+    /// consecutive_failures == 0 is treated as tier 1 (first failure).
+    #[test]
+    fn backoff_zero_failures_treated_as_one() {
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::UpstreamRateLimit429, 0),
+            CooldownPolicy::window_for(FailureKind::UpstreamRateLimit429, 1),
+            "zero failures must map to first-failure tier"
+        );
+        assert_eq!(
+            CooldownPolicy::window_for(FailureKind::AuthFailure, 0),
+            CooldownPolicy::window_for(FailureKind::AuthFailure, 1)
+        );
+    }
+
+    // ── populate_quarantine_from_changes tests ──────────────────────────────
+
+    /// Quarantined entries are inserted into the map at the supplied timestamp.
+    #[test]
+    fn populate_quarantine_from_changes_basic() {
+        let now = UnixMillis(50_000);
+        let changes = vec![
+            PoolMembershipChange::Quarantined(pid("a")),
+            PoolMembershipChange::Quarantined(pid("b")),
+        ];
+        let mut quarantines = QuarantineMap::new();
+        populate_quarantine_from_changes(&changes, now, &mut quarantines);
+        assert_eq!(quarantines.get(&pid("a")), Some(&now));
+        assert_eq!(quarantines.get(&pid("b")), Some(&now));
+        assert_eq!(quarantines.len(), 2);
+    }
+
+    /// Added and Removed variants are ignored by populate_quarantine_from_changes.
+    #[test]
+    fn populate_quarantine_ignores_non_quarantined() {
+        let now = UnixMillis(50_000);
+        let changes = vec![
+            PoolMembershipChange::Added(pid("x")),
+            PoolMembershipChange::Removed(pid("y")),
+            PoolMembershipChange::Quarantined(pid("z")),
+        ];
+        let mut quarantines = QuarantineMap::new();
+        populate_quarantine_from_changes(&changes, now, &mut quarantines);
+        // Only "z" should be in the map.
+        assert!(!quarantines.contains_key(&pid("x")));
+        assert!(!quarantines.contains_key(&pid("y")));
+        assert_eq!(quarantines.get(&pid("z")), Some(&now));
+        assert_eq!(quarantines.len(), 1);
+    }
+
+    /// A stale quarantine entry is overwritten by a fresh Quarantined event.
+    #[test]
+    fn populate_quarantine_overwrites_stale_entry() {
+        let stale = UnixMillis(1_000);
+        let fresh = UnixMillis(90_000);
+        let mut quarantines = QuarantineMap::new();
+        quarantines.insert(pid("a"), stale);
+        let changes = vec![PoolMembershipChange::Quarantined(pid("a"))];
+        populate_quarantine_from_changes(&changes, fresh, &mut quarantines);
+        assert_eq!(
+            quarantines.get(&pid("a")),
+            Some(&fresh),
+            "stale entry must be overwritten"
+        );
+    }
+
+    /// Empty changes slice leaves the map unchanged.
+    #[test]
+    fn populate_quarantine_empty_changes_no_op() {
+        let mut quarantines = QuarantineMap::new();
+        quarantines.insert(pid("a"), UnixMillis(1_000));
+        populate_quarantine_from_changes(&[], UnixMillis(99_000), &mut quarantines);
+        assert_eq!(quarantines.len(), 1, "map must be unchanged for empty input");
+    }
+
+    /// Integration: populate then pick_account_with_cooldown excludes
+    /// the newly quarantined account.
+    #[test]
+    fn populate_then_cooldown_excludes_quarantined() {
+        let now = UnixMillis(100_000);
+        let window = DurationMs(60_000);
+        let p = ProviderAccountPool::new(
+            PoolId("p1".into()),
+            ProviderFamily::Claude,
+            ProviderTier::Pro,
+            TenantId("t1".into()),
+            [pid("a"), pid("b")].into_iter().collect(),
+            PoolRoutingStrategy::RoundRobin,
+            window,
+        );
+        // "a" just got quarantined.
+        let changes = vec![PoolMembershipChange::Quarantined(pid("a"))];
+        let mut quarantines = QuarantineMap::new();
+        populate_quarantine_from_changes(&changes, now, &mut quarantines);
+        let cp = CooldownPolicy::from_pool(&p, now);
+        let d = pick_account_with_cooldown(
+            &p,
+            &RequestMetadata::new("m".into()),
+            &Default::default(),
+            &Default::default(),
+            &quarantines,
+            cp,
+        )
+        .unwrap();
+        assert_eq!(
+            d.account_id,
+            pid("b"),
+            "quarantined account must be excluded from routing"
         );
     }
 }
