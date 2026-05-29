@@ -368,6 +368,42 @@ jobs:
             "oyatie.com/product-goal:",
             "oyatie.com/non-claim:",
           ]
+          network_policy_required = [
+            "apiVersion: networking.k8s.io/v1",
+            "kind: NetworkPolicy",
+            "policyTypes:",
+            "Ingress",
+            "Egress",
+            "podSelector:",
+            "namespaceSelector:",
+            "kubernetes.io/metadata.name:",
+            "oya.io/tenant-id:",
+            "oya.io/cost-center:",
+            "oya.io/workload-class:",
+            "oya.io/regulatory-pack:",
+            "oyatie.com/dogfood-substrate:",
+            "oyatie.com/product-goal:",
+            "oyatie.com/non-claim:",
+          ]
+          rendered_network_policy_required = [
+            "apiVersion: networking.k8s.io/v1",
+            "kind: NetworkPolicy",
+            "policyTypes:",
+            "Ingress",
+            "Egress",
+            "podSelector:",
+            "namespaceSelector:",
+            "kubernetes.io/metadata.name: oya-gateway",
+            "kubernetes.io/metadata.name: kube-system",
+            "kubernetes.io/metadata.name: observability",
+            "oya.io/tenant-id:",
+            "oya.io/cost-center:",
+            "oya.io/workload-class:",
+            "oya.io/regulatory-pack:",
+            "oyatie.com/dogfood-substrate:",
+            "oyatie.com/product-goal:",
+            "oyatie.com/non-claim:",
+          ]
           argocd_tenant_label_values = {
             "oya.io/tenant-id" => "fd001-dogfood",
             "oya.io/cost-center" => "fd001-backbone",
@@ -423,6 +459,30 @@ jobs:
             non_claim = doc.dig("metadata", "annotations", "oyatie.com/non-claim").to_s
             raise "#{path} missing static rendered serviceaccount non-claim" unless non_claim.include?("static-rendered-serviceaccount-only")
           end
+          validate_rendered_network_policy = lambda do |path, doc|
+            raise "#{path} is not a NetworkPolicy" unless doc["kind"] == "NetworkPolicy"
+            labels = doc.dig("metadata", "labels") || {}
+            argocd_tenant_label_values.each do |key, expected|
+              raise "#{path} label #{key} mismatch" unless labels[key] == expected
+            end
+            policy_types = doc.dig("spec", "policyTypes") || []
+            raise "#{path} missing Ingress policy type" unless policy_types.include?("Ingress")
+            raise "#{path} missing Egress policy type" unless policy_types.include?("Egress")
+            app_name = labels["app.kubernetes.io/name"]
+            selector_name = doc.dig("spec", "podSelector", "matchLabels", "app.kubernetes.io/name")
+            raise "#{path} selector #{selector_name.inspect} does not match label #{app_name.inspect}" unless selector_name == app_name
+            ingress_namespaces = (doc.dig("spec", "ingress") || []).flat_map do |rule|
+              (rule["from"] || []).map { |peer| peer.dig("namespaceSelector", "matchLabels", "kubernetes.io/metadata.name") }
+            end.compact
+            raise "#{path} must allow ingress only from oya-gateway namespace by default" unless ingress_namespaces == ["oya-gateway"]
+            egress_namespaces = (doc.dig("spec", "egress") || []).flat_map do |rule|
+              (rule["to"] || []).map { |peer| peer.dig("namespaceSelector", "matchLabels", "kubernetes.io/metadata.name") }
+            end.compact
+            raise "#{path} missing DNS egress namespace" unless egress_namespaces.include?("kube-system")
+            raise "#{path} missing OTLP egress namespace" unless egress_namespaces.include?("observability")
+            non_claim = doc.dig("metadata", "annotations", "oyatie.com/non-claim").to_s
+            raise "#{path} missing static rendered networkpolicy non-claim" unless non_claim.include?("static-rendered-networkpolicy-only")
+          end
           ARGV.each do |path|
             text = File.read(path)
             if path.end_with?(".json")
@@ -439,6 +499,9 @@ jobs:
             elsif path.end_with?("/templates/serviceaccount.yaml")
               missing = service_account_required.reject { |needle| text.include?(needle) }
               raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+            elsif path.end_with?("/templates/networkpolicy.yaml")
+              missing = network_policy_required.reject { |needle| text.include?(needle) }
+              raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
             elsif path.include?("/rendered/") && path.end_with?("/deployment.yaml")
               doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               missing = rendered_deployment_required.reject { |needle| text.include?(needle) }
@@ -450,10 +513,16 @@ jobs:
               missing = rendered_service_account_required.reject { |needle| text.include?(needle) }
               raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
               validate_rendered_service_account.call(path, doc)
+            elsif path.include?("/rendered/") && path.end_with?("/networkpolicy.yaml")
+              doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
+              missing = rendered_network_policy_required.reject { |needle| text.include?(needle) }
+              raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+              validate_rendered_network_policy.call(path, doc)
             elsif path.end_with?("/values.yaml")
               doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               raise "#{path} must default topologySpread.enabled to true for FD-001 dogfood static snapshots" unless doc.dig("topologySpread", "enabled") == true
               raise "#{path} must default serviceAccount.automountToken to false for FD-001 dogfood app workloads" unless doc.dig("serviceAccount", "automountToken") == false
+              raise "#{path} must default networkPolicy.enabled to true for FD-001 dogfood app workload boundaries" unless doc.dig("networkPolicy", "enabled") == true
             elsif path.end_with?("backbone-microservices-applicationset.yaml")
               doc = YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
               raise "#{path} is not an ApplicationSet" unless doc["kind"] == "ApplicationSet"
@@ -495,6 +564,7 @@ jobs:
             evidence/multispectrum/backbone-microservices-argocd-tenant-metadata-20260525.json \
             evidence/multispectrum/backbone-microservices-cloud-topology-spread-20260525.json \
             evidence/multispectrum/backbone-microservices-cloud-serviceaccount-hardening-20260525.json \
+            evidence/multispectrum/backbone-microservices-cloud-networkpolicy-hardening-20260525.json \
             specs/proto/backbone/messenger/message_stream.proto \
             specs/proto/backbone/mail/mail.proto \
             specs/proto/backbone/social/social_post_composition.proto \
@@ -516,6 +586,10 @@ jobs:
             microservices/mail/iac/k8s/helm/templates/serviceaccount.yaml \
             microservices/social/iac/k8s/helm/templates/serviceaccount.yaml \
             microservices/community/iac/k8s/helm/templates/serviceaccount.yaml \
+            microservices/messenger/iac/k8s/helm/templates/networkpolicy.yaml \
+            microservices/mail/iac/k8s/helm/templates/networkpolicy.yaml \
+            microservices/social/iac/k8s/helm/templates/networkpolicy.yaml \
+            microservices/community/iac/k8s/helm/templates/networkpolicy.yaml \
             microservices/messenger/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
             microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
             microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
@@ -524,6 +598,10 @@ jobs:
             microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/serviceaccount.yaml \
             microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/serviceaccount.yaml \
             microservices/community/iac/helm/oyatie-cloud-dogfood/rendered/serviceaccount.yaml \
+            microservices/messenger/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml \
+            microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml \
+            microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml \
+            microservices/community/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml \
             registry/catalog/oya-shared-postgres-command-kernel.yaml \
             registry/catalog/oya-shared-postgres-command-adapter-sqlx.yaml \
             registry/catalog/oya-shared-hyperscaler-metrics-kernel.yaml \
