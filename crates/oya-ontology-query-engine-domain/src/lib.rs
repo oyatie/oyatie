@@ -34,13 +34,14 @@ pub struct KnowledgeGraphLinkInstance {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KnowledgeGraphQueryRequest {
-    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
-    pub query_id: String,                   // data_class: INTERNAL_ONLY
-    pub root_entity_id: String,             // data_class: INTERNAL_ONLY
-    pub edge_type_ids: Vec<String>,         // data_class: INTERNAL_ONLY
-    pub max_depth: u32,                     // data_class: INTERNAL_ONLY
-    pub freshness_floor_epoch_seconds: u64, // data_class: INTERNAL_ONLY
-    pub observed_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub query_id: String,                        // data_class: INTERNAL_ONLY
+    pub root_entity_id: String,                  // data_class: INTERNAL_ONLY
+    pub edge_type_ids: Vec<String>,              // data_class: INTERNAL_ONLY
+    pub max_depth: u32,                          // data_class: INTERNAL_ONLY
+    pub freshness_floor_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+    pub observed_at_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
+    pub consented_edge_type_ids: Vec<String>,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -86,6 +87,9 @@ pub enum KnowledgeGraphQueryError {
     DepthCeilingExceeded,
     MissingRootEntity,
     DanglingLinkEndpoint { entity_id: String },
+    /// A consent grant id in `consented_edge_type_ids` is structurally invalid
+    /// (e.g. missing the `lty_` prefix).
+    MalformedConsentGrantId { id: String },
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -142,6 +146,7 @@ impl KnowledgeGraphQueryRequest {
         max_depth: u32,
         freshness_floor_epoch_seconds: u64,
         observed_at_epoch_seconds: u64,
+        consented_edge_type_ids: Vec<impl Into<String>>,
     ) -> Result<Self, KnowledgeGraphQueryError> {
         let request = Self {
             tenant_id: tenant_id.into(),
@@ -151,6 +156,7 @@ impl KnowledgeGraphQueryRequest {
             max_depth,
             freshness_floor_epoch_seconds,
             observed_at_epoch_seconds,
+            consented_edge_type_ids: consented_edge_type_ids.into_iter().map(Into::into).collect(),
         };
         request.validate()?;
         Ok(request)
@@ -164,11 +170,18 @@ impl KnowledgeGraphQueryRequest {
         for edge_type_id in &self.edge_type_ids {
             validate_edge_type_id(edge_type_id)?;
         }
+        for grant_id in &self.consented_edge_type_ids {
+            validate_consent_grant_id(grant_id)?;
+        }
         Ok(())
     }
 
     fn edge_filter(&self) -> BTreeSet<&str> {
         self.edge_type_ids.iter().map(String::as_str).collect()
+    }
+
+    pub fn consent_filter(&self) -> BTreeSet<&str> {
+        self.consented_edge_type_ids.iter().map(String::as_str).collect()
     }
 }
 
@@ -202,6 +215,7 @@ impl KnowledgeGraphQueryEngine {
         }
 
         let edge_filter = request.edge_filter();
+        let consent_filter = request.consent_filter();
         let mut queue = VecDeque::from([(request.root_entity_id.clone(), 0_u32)]);
         let mut seen_nodes = BTreeSet::from([request.root_entity_id.clone()]);
         let mut nodes = BTreeMap::new();
@@ -224,6 +238,11 @@ impl KnowledgeGraphQueryEngine {
                     continue;
                 }
                 if link.observed_at_epoch_seconds < request.freshness_floor_epoch_seconds {
+                    continue;
+                }
+                if !consent_filter.is_empty()
+                    && !consent_filter.contains(link.edge_type_id.as_str())
+                {
                     continue;
                 }
                 validate_link_endpoints(graph, link)?;
@@ -378,6 +397,16 @@ fn validate_max_depth(max_depth: u32) -> Result<(), KnowledgeGraphQueryError> {
     Ok(())
 }
 
+fn validate_consent_grant_id(grant_id: &str) -> Result<(), KnowledgeGraphQueryError> {
+    if grant_id.starts_with("lty_") && grant_id.len() > "lty_".len() {
+        Ok(())
+    } else {
+        Err(KnowledgeGraphQueryError::MalformedConsentGrantId {
+            id: grant_id.to_string(),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -431,6 +460,7 @@ mod tests {
             max_depth,
             freshness_floor_epoch_seconds,
             12,
+            Vec::<&str>::new(),
         )
         .unwrap()
     }
@@ -576,6 +606,7 @@ mod tests {
                     2,
                     0,
                     2,
+                    Vec::<&str>::new(),
                 )
                 .unwrap(),
             )
@@ -597,6 +628,7 @@ mod tests {
                 1,
                 0,
                 1,
+                Vec::<&str>::new(),
             ),
             Err(KnowledgeGraphQueryError::InvalidTenantId)
         );
@@ -609,6 +641,7 @@ mod tests {
                 1,
                 0,
                 1,
+                Vec::<&str>::new(),
             ),
             Err(KnowledgeGraphQueryError::InvalidQueryId)
         );
@@ -621,6 +654,7 @@ mod tests {
                 MAX_QUERY_DEPTH + 1,
                 0,
                 1,
+                Vec::<&str>::new(),
             ),
             Err(KnowledgeGraphQueryError::DepthCeilingExceeded)
         );
@@ -751,6 +785,7 @@ mod tests {
             1,
             0,
             0,
+            Vec::<&str>::new(),
         )
         .unwrap();
 
@@ -824,6 +859,7 @@ mod tests {
             1,
             0,
             0,
+            Vec::<&str>::new(),
         )
         .unwrap();
 
@@ -884,6 +920,7 @@ mod tests {
             MAX_QUERY_DEPTH + 1,
             0,
             1,
+            Vec::<&str>::new(),
         );
         // DepthCeilingExceeded variant must exist and be returned here
         assert_eq!(
@@ -906,6 +943,7 @@ mod tests {
                 MAX_QUERY_DEPTH,
                 0,
                 1,
+                Vec::<&str>::new(),
             )
             .is_ok(),
             "max_depth == MAX_QUERY_DEPTH must be accepted"
@@ -926,9 +964,306 @@ mod tests {
                 0,
                 0,
                 1,
+                Vec::<&str>::new(),
             ),
             Err(KnowledgeGraphQueryError::InvalidMaxDepth),
             "max_depth == 0 must return InvalidMaxDepth"
+        );
+    }
+
+    // ---- Consent grant scope (ST1 + ST2) — RED tests ----
+    // These tests reference:
+    //   * the `consented_edge_type_ids` parameter added to `KnowledgeGraphQueryRequest::new`
+    //   * the `KnowledgeGraphQueryError::MalformedConsentGrantId` variant
+    //   * the `consent_filter()` helper method on `KnowledgeGraphQueryRequest`
+    //   * the BFS consent gate in `KnowledgeGraphQueryEngine::query_graph_slice`
+    // None of the above exist yet, so these tests MUST fail to compile (red stage).
+
+    /// Builds a consent-scoped graph used by the consent gate tests:
+    ///   ent_root --lty_partner--> ent_b --lty_partner--> ent_c
+    ///   ent_root --lty_member-->  ent_d
+    fn consent_graph() -> ObjectGraph {
+        let mut g = ObjectGraph::default();
+        for (entity_id, entity_type) in [
+            ("ent_root", "ety_account"),
+            ("ent_b", "ety_contact"),
+            ("ent_c", "ety_contact"),
+            ("ent_d", "ety_contact"),
+        ] {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    entity_id.to_string(),
+                    entity_type.to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        g
+    }
+
+    /// Builds the consent-scoped engine for the consent gate tests.
+    fn consent_engine(g: &ObjectGraph) -> KnowledgeGraphQueryEngine {
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        for (from, to, edge_type) in [
+            ("ent_root", "ent_b", "lty_partner"),
+            ("ent_b", "ent_c", "lty_partner"),
+            ("ent_root", "ent_d", "lty_member"),
+        ] {
+            engine
+                .upsert_link(
+                    g,
+                    KnowledgeGraphLinkInstance::new("ten_alpha", from, to, edge_type, 1).unwrap(),
+                )
+                .unwrap();
+        }
+        engine
+    }
+
+    // ST1 acceptance: a malformed consent grant id (no `lty_` prefix) must be
+    // rejected with `MalformedConsentGrantId`.
+    #[test]
+    fn malformed_consent_grant_id_rejected() {
+        let result = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_bad_grant",
+            "ent_root",
+            Vec::<&str>::new(),
+            1,
+            0,
+            1,
+            vec!["bad_id"],
+        );
+        assert_eq!(
+            result,
+            Err(KnowledgeGraphQueryError::MalformedConsentGrantId {
+                id: "bad_id".to_string()
+            }),
+            "a consent grant id without the lty_ prefix must return MalformedConsentGrantId"
+        );
+    }
+
+    // ST1 acceptance: a well-formed consent grant id (`lty_partner`) must be
+    // accepted without error.
+    #[test]
+    fn well_formed_consent_grant_id_accepted() {
+        let result = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_good_grant",
+            "ent_root",
+            Vec::<&str>::new(),
+            1,
+            0,
+            1,
+            vec!["lty_partner"],
+        );
+        assert!(
+            result.is_ok(),
+            "a consent grant id with a valid lty_ prefix must be accepted"
+        );
+    }
+
+    // ST1 acceptance: consent_filter() on a non-empty scope returns the
+    // expected BTreeSet of string slices.
+    #[test]
+    fn consent_filter_returns_set_of_consented_edge_type_ids() {
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_filter_set",
+            "ent_root",
+            Vec::<&str>::new(),
+            1,
+            0,
+            1,
+            vec!["lty_partner", "lty_member"],
+        )
+        .unwrap();
+        let filter = req.consent_filter();
+        assert!(filter.contains("lty_partner"), "consent_filter must contain lty_partner");
+        assert!(filter.contains("lty_member"), "consent_filter must contain lty_member");
+        assert!(!filter.contains("lty_owns"), "consent_filter must not contain lty_owns");
+    }
+
+    // ST2 acceptance: when a non-empty consent scope is supplied, the BFS must
+    // prune edges whose edge_type_id is absent from the scope, so downstream
+    // nodes reachable only via those edges are absent from the response.
+    //
+    // Graph:
+    //   ent_root --lty_partner--> ent_b --lty_partner--> ent_c
+    //   ent_root --lty_member-->  ent_d
+    // Scope: ["lty_partner"]
+    // Expected: ent_b and ent_c present; ent_d absent.
+    //           lty_partner edges present; lty_member edge absent.
+    #[test]
+    fn consent_filter_prunes_non_consented_edges() {
+        let g = consent_graph();
+        let engine = consent_engine(&g);
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_consent_prune",
+            "ent_root",
+            Vec::<&str>::new(),
+            3,
+            0,
+            1,
+            vec!["lty_partner"],
+        )
+        .unwrap();
+
+        let response = engine.query_graph_slice(&g, req).unwrap();
+
+        let node_ids: Vec<&str> = response.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+        assert!(
+            node_ids.contains(&"ent_b"),
+            "ent_b (reached via consented lty_partner) must be in response nodes"
+        );
+        assert!(
+            node_ids.contains(&"ent_c"),
+            "ent_c (reached via consented lty_partner hop) must be in response nodes"
+        );
+        assert!(
+            !node_ids.contains(&"ent_d"),
+            "ent_d (reachable only via non-consented lty_member) must be absent from response nodes"
+        );
+
+        let member_edges: Vec<_> = response
+            .edges
+            .iter()
+            .filter(|e| e.edge_type_id == "lty_member")
+            .collect();
+        assert!(
+            member_edges.is_empty(),
+            "no lty_member edge must appear in response edges when lty_member is not in consent scope"
+        );
+
+        let partner_edges: Vec<_> = response
+            .edges
+            .iter()
+            .filter(|e| e.edge_type_id == "lty_partner")
+            .collect();
+        assert_eq!(
+            partner_edges.len(),
+            2,
+            "both lty_partner edges (root->b, b->c) must appear in response edges"
+        );
+    }
+
+    // ST2 acceptance: an empty consent scope must preserve prior traversal
+    // behaviour — all reachable nodes and edges are returned.
+    //
+    // Graph (same as above):
+    //   ent_root --lty_partner--> ent_b --lty_partner--> ent_c
+    //   ent_root --lty_member-->  ent_d
+    // Scope: [] (empty)
+    // Expected: ent_b, ent_c, and ent_d all present; all 3 edges present.
+    #[test]
+    fn empty_consent_scope_preserves_prior_behavior() {
+        let g = consent_graph();
+        let engine = consent_engine(&g);
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_no_consent_filter",
+            "ent_root",
+            Vec::<&str>::new(),
+            3,
+            0,
+            1,
+            Vec::<&str>::new(),
+        )
+        .unwrap();
+
+        let response = engine.query_graph_slice(&g, req).unwrap();
+
+        let node_ids: Vec<&str> = response.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+        assert!(node_ids.contains(&"ent_b"), "ent_b must be present with empty consent scope");
+        assert!(node_ids.contains(&"ent_c"), "ent_c must be present with empty consent scope");
+        assert!(node_ids.contains(&"ent_d"), "ent_d must be present with empty consent scope");
+
+        assert_eq!(
+            response.edges.len(),
+            3,
+            "all 3 edges must be returned when consent scope is empty"
+        );
+    }
+
+    // ST2 acceptance: consent gate fires before the cardinality cap checks, so
+    // pruned (non-consented) edges do not count toward the cap.  With a small
+    // graph well under caps, result_truncated must remain false.
+    #[test]
+    fn consent_gate_fires_before_cap_check_and_does_not_set_result_truncated() {
+        let g = consent_graph();
+        let engine = consent_engine(&g);
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_consent_no_trunc",
+            "ent_root",
+            Vec::<&str>::new(),
+            3,
+            0,
+            1,
+            vec!["lty_partner"],
+        )
+        .unwrap();
+
+        let response = engine.query_graph_slice(&g, req).unwrap();
+        assert!(
+            !response.result_truncated,
+            "result_truncated must be false when pruning reduces result well below caps"
+        );
+    }
+
+    // ST2 acceptance: consent gate fires after the freshness filter, so a
+    // stale consented edge is still dropped by freshness before the consent
+    // check could pass it through.
+    #[test]
+    fn freshness_filter_still_applies_to_consented_edges() {
+        let mut g = ObjectGraph::default();
+        for (entity_id, entity_type) in [("ent_root", "ety_account"), ("ent_b", "ety_contact")] {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    entity_id.to_string(),
+                    entity_type.to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        // Insert a consented edge that is stale (observed_at = 5, freshness_floor = 10).
+        engine
+            .upsert_link(
+                &g,
+                KnowledgeGraphLinkInstance::new(
+                    "ten_alpha", "ent_root", "ent_b", "lty_partner", 5,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_stale_consented",
+            "ent_root",
+            Vec::<&str>::new(),
+            2,
+            10, // freshness floor is 10
+            1,
+            vec!["lty_partner"], // lty_partner is consented, but observed_at=5 < floor=10
+        )
+        .unwrap();
+
+        let response = engine.query_graph_slice(&g, req).unwrap();
+        let node_ids: Vec<&str> = response.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+        assert!(
+            !node_ids.contains(&"ent_b"),
+            "a consented but stale edge must be pruned by freshness; ent_b must be absent"
         );
     }
 }
