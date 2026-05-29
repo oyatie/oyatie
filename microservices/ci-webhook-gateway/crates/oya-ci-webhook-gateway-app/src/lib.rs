@@ -14,9 +14,7 @@
 //! 2. ed25519 verify raw body bytes.
 //! 3. Cedar authz gate.
 //! 4. `route_forgejo_event` → `CiTriggerEvent`.
-//! 4.5. Replay guard: check + record the delivery key (after verify+authz+route,
-//!      before Step 5 Jenkins trigger). A replay within the TTL short-circuits
-//!      with a benign 200 idempotent acknowledgement; no second Jenkins kickoff.
+//! 4. Replay guard (4.5): check + record the delivery key (after verify+authz+route, before Step 5). A replay within the TTL short-circuits with a benign 200 idempotent ack; no second Jenkins kickoff.
 //! 5. Jenkins `trigger` → `JenkinsJob`.
 //! 6. GitHub `post_all` pending statuses.
 //! 7. Jenkins `poll_status` loop.
