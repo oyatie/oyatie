@@ -30,7 +30,7 @@ oya-cloud-intelligence-authz-cedar-adapter = { path = "../oya-cloud-intelligence
 oya-cloud-intelligence-openbao-adapter = { path = "../oya-cloud-intelligence-openbao-adapter" }
 oya-cloud-intelligence-eventsink-clickhouse-adapter = { path = "../oya-cloud-intelligence-eventsink-clickhouse-adapter" }
 oya-cloud-intelligence-eventsink-valkey-adapter = { path = "../oya-cloud-intelligence-eventsink-valkey-adapter" }
-oya-shared-olap-clickhouse-adapter = { path = "../../../../crates/oya-shared-olap-clickhouse-adapter" }
+oya-shared-olap-clickhouse-adapter = { path = "../../../../libs/oya-shared-olap-clickhouse-adapter" }
 tokio.workspace = true
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }

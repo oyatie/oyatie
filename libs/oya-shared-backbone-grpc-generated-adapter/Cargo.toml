@@ -1,0 +1,39 @@
+[package]
+name = "oya-shared-backbone-grpc-generated-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+build = "build.rs"
+
+[dependencies]
+oya-community-social-app = { path = "../../microservices/community/crates/oya-community-social-app" }
+oya-messenger-app = { path = "../../microservices/messenger/crates/oya-messenger-app" }
+oya-mail-mailbox-store-app = { path = "../../microservices/mail/crates/oya-mail-mailbox-store-app" }
+oya-community-post-store-app = { path = "../../microservices/community/crates/oya-community-post-store-app" }
+oya-community-post-store-api = { path = "../../microservices/community/crates/oya-community-post-store-api" }
+oya-community-post-store-domain = { path = "../../microservices/community/crates/oya-community-post-store-domain" }
+oya-community-post-store-grpc = { path = "../../microservices/community/crates/oya-community-post-store-grpc" }
+oya-mail-mailbox-store-api = { path = "../../microservices/mail/crates/oya-mail-mailbox-store-api" }
+oya-mail-mailbox-store-grpc = { path = "../../microservices/mail/crates/oya-mail-mailbox-store-grpc" }
+oya-messenger-message-stream-api = { path = "../../microservices/messenger/crates/oya-messenger-message-stream-api" }
+oya-messenger-message-stream-grpc = { path = "../../microservices/messenger/crates/oya-messenger-message-stream-grpc" }
+oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
+oya-community-social-post-composition-api = { path = "../../microservices/community/crates/oya-community-social-post-composition-api" }
+oya-community-social-post-composition-grpc = { path = "../../microservices/community/crates/oya-community-social-post-composition-grpc" }
+oya-shared-backbone-proto-contracts-kernel = { path = "../oya-shared-backbone-proto-contracts-kernel" }
+prost.workspace = true
+tonic.workspace = true
+tonic-prost.workspace = true
+
+[build-dependencies]
+protoc-bin-vendored.workspace = true
+tonic-prost-build.workspace = true
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -11,7 +11,7 @@ name = "oya-governance-feature-flag-status-lifecycle-app"
 path = "src/main.rs"
 
 [dependencies]
-oya-governance-lifecycle-kernel = { path = "../../crates/oya-governance-lifecycle-kernel" }
+oya-governance-lifecycle-kernel = { path = "../../libs/oya-governance-lifecycle-kernel" }
 
 [lints]
 workspace = true

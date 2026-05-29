@@ -22,8 +22,8 @@ doctest = false
 
 [dependencies]
 oya-cloud-intelligence-kernel = { path = "../oya-cloud-intelligence-kernel" }
-oya-shared-olap-clickhouse-adapter = { path = "../../../../crates/oya-shared-olap-clickhouse-adapter" }
-oya-shared-olap-client-kernel = { path = "../../../../crates/oya-shared-olap-client-kernel" }
+oya-shared-olap-clickhouse-adapter = { path = "../../../../libs/oya-shared-olap-clickhouse-adapter" }
+oya-shared-olap-client-kernel = { path = "../../../../libs/oya-shared-olap-client-kernel" }
 serde.workspace = true
 tracing.workspace = true
 
