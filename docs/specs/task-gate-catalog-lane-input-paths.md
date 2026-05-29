@@ -96,6 +96,78 @@ duplicates (each lane appears at most once).
   lane is either mapped or falls through to always-selected (no silent drop).
 - Duplicate-free output even if two globs in one lane both match.
 
+## Mod layout (flat-clean-arch, ADR-0509)
+
+This crate uses a single flat file (`src/lib.rs`) with no sub-modules; all new
+symbols are added inline. The flat-clean-arch doctrine (ADR-0509) for a
+kernel-domain crate with no service boundary means there is no
+`domain/usecase/adapter` split — everything lives in the one canonical lib root.
+
+New symbols added in this task (all in `src/lib.rs`):
+
+| Symbol | Visibility | Description |
+|---|---|---|
+| `fn path_glob_matches(path: &str, glob: &str) -> bool` | `pub(crate)` | Pure three-shape glob matcher; exact / dir-prefix / suffix. |
+| `enum LaneInputs` | `pub` | `Global` (always selected) vs `Globs(&'static [&'static str])` (explicit). |
+| `const LANE_INPUT_GLOBS: &[(&str, LaneInputs)]` | `pub` | Starter table: lane name -> input shape. |
+| `fn lanes_for_changed(changed: &[&str]) -> Vec<&'static str>` | `pub` | Returns the affected lane subset for a changed-file list. |
+
+No new files, no sub-modules, no new `mod` declarations.
+
+## Testing strategy
+
+All tests are `#[cfg(test)]` unit tests inside `src/lib.rs` (the house pattern
+for this crate). No integration tests, no snapshot tests, no property-based
+tests (not warranted for a deterministic, bounded data table).
+
+Required test coverage:
+
+1. **`path_glob_matches` shape coverage** — exact, `dir/**`, `dir/` prefix,
+   `**/*.ext`, `*.ext`; positive and negative cases; `./`-prefix normalisation.
+2. **`LANE_INPUT_GLOBS` key validity** — every key in the table is a member of
+   `AGGREGATED_VALIDATE_LANES`; no key is listed twice.
+3. **`lanes_for_changed` base cases** — empty `changed` returns the full
+   catalog; a path matching one mapped lane returns that lane plus all
+   unmapped/global lanes; a path matching no mapped lane returns all
+   unmapped/global lanes (no mapped lane stripped).
+4. **Conservative invariants** — every unmapped lane appears in
+   `lanes_for_changed` for any input (regression: iterate
+   `AGGREGATED_VALIDATE_LANES`, assert each absent-from-table lane is always
+   present in the result); output is duplicate-free; output order matches
+   catalog order.
+5. **Exclusion proof** — a path that clearly does NOT match an explicitly-mapped
+   lane's globs causes that lane to be absent from the result (proving narrowing
+   actually works).
+
+Verification command (warm shared target dir):
+```
+export CARGO_TARGET_DIR=/Users/jasonlee/Developer/source/target
+cargo check -p oya-governance-gate-catalog-domain --all-targets
+cargo nextest run -p oya-governance-gate-catalog-domain
+```
+
+## Observability / SLO touchpoints
+
+None. This crate is a Tier-1 kernel data crate with no service promotion (no
+HTTP/gRPC surface, no OTel emission, no health/readiness endpoint). It is
+OpenSLO-exempt per ADR-0130: SLO authoring is mandatory only for µservices
+promoted past dev, not for kernel library crates. No `*.openslo.yaml` is added
+or modified by this task.
+
+## Crate boundary (explicit)
+
+**In scope (this task may touch):**
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs` — new symbols added.
+- `tasks/gate-catalog-lane-input-paths-plan.md` — plan artifact (read-only reference).
+- `docs/specs/task-gate-catalog-lane-input-paths.md` — this file.
+
+**Explicitly out of scope (must NOT be touched):**
+- `crates/oya-dev-cli/**` — consumer wiring deferred to a later window.
+- Root `Cargo.toml` / workspace `[members]` — no new crate, no new dep.
+- Any other crate or file in the workspace.
+- Existing `AGGREGATED_VALIDATE_LANES` / `AGGREGATED_NON_GATE_COMMANDS` string
+  contents or order — downstream substring lookups depend on them.
+
 ## K8s / cloud-native + contract implications
 
 None directly — this is a pure in-process data table with no runtime surface
@@ -103,6 +175,11 @@ None directly — this is a pure in-process data table with no runtime surface
 exists to make the future `gate run-all` affected-scope path cheaper, which is a
 CI-throughput concern (ADR-0360, ADR-0380 D-follow-on (b)). The crate stays
 OpenSLO-exempt as a kernel data crate (no service promotion).
+
+## OpenAPI / AsyncAPI / proto3
+
+Not applicable. This crate exposes no HTTP, gRPC, or event-bus surface. There
+is no schema file to write or update.
 
 ## Acceptance criteria
 
