@@ -4786,6 +4786,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-flags"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "oya-forms-domain"
 version = "0.1.0"
 dependencies = [
