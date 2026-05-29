@@ -134,6 +134,8 @@ pub enum IssuerError {
     MalformedClientAssertion(&'static str),
     /// Refresh request was missing the `refresh_token` or `client_id` field.
     MalformedRefreshRequest(&'static str),
+    /// Introspection request was malformed (e.g. empty token).
+    MalformedIntrospectionRequest(&'static str),
     /// Token presented was already expired at validation time.
     Expired {
         /// Validation clock.
@@ -192,6 +194,9 @@ impl fmt::Display for IssuerError {
             }
             Self::MalformedRefreshRequest(reason) => {
                 write!(f, "malformed refresh request: {reason}")
+            }
+            Self::MalformedIntrospectionRequest(reason) => {
+                write!(f, "malformed introspection request: {reason}")
             }
             Self::Expired { now, exp } => write!(f, "token expired (now={now}, exp={exp})"),
             Self::NotYetValid { now, nbf } => {
@@ -1185,6 +1190,178 @@ impl RefreshRequest {
     }
 }
 
+/// Hint about the token type presented for introspection (RFC 7662 §2.1).
+/// The kernel accepts only the two standardised values; free-text hint
+/// parsing is an adapter responsibility.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum TokenTypeHint {
+    /// `access_token` hint.
+    AccessToken,
+    /// `refresh_token` hint.
+    RefreshToken,
+}
+
+/// Structural representation of an RFC 7662 §2.1 introspection request.
+/// Validates that the token is non-empty; `token_type_hint` is typed so the
+/// allowed-set constraint is enforced by the type system.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntrospectionRequest {
+    /// The opaque token string to introspect.
+    pub token: String, // data_class: SECRET
+    /// Optional hint about the token type.
+    pub token_type_hint: Option<TokenTypeHint>, // data_class: INTERNAL_ONLY
+}
+
+impl IntrospectionRequest {
+    /// Validate the shape of an introspection request.
+    ///
+    /// # Errors
+    /// Returns [`IssuerError::MalformedIntrospectionRequest`] when `token` is
+    /// empty or whitespace-only.
+    pub fn validate(
+        token: impl Into<String>,
+        token_type_hint: Option<TokenTypeHint>,
+    ) -> Result<Self, IssuerError> {
+        let token = token.into();
+        if token.trim().is_empty() {
+            return Err(IssuerError::MalformedIntrospectionRequest(
+                "token must not be empty",
+            ));
+        }
+        Ok(Self {
+            token,
+            token_type_hint,
+        })
+    }
+}
+
+/// Disclosed claim set for an active RFC 7662 introspection response.
+/// Passed to [`IntrospectionResponse::active`] to avoid the 8-argument
+/// constructor that trips `clippy::too_many_arguments`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ActiveIntrospectionClaims {
+    /// `sub` — subject identifier.
+    pub sub: String, // data_class: PII_IDENTIFYING
+    /// `aud` — intended audience list.
+    pub aud: Vec<String>, // data_class: PUBLIC
+    /// `exp` — expiry (epoch seconds).
+    pub exp: i64, // data_class: INTERNAL_ONLY
+    /// `iat` — issuance time (epoch seconds).
+    pub iat: i64, // data_class: INTERNAL_ONLY
+    /// `scope` — space-separated scope string (None when empty).
+    pub scope: Option<String>, // data_class: INTERNAL_ONLY
+    /// `client_id` — OAuth 2.0 client identifier.
+    pub client_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `tenant_id` — oyatie tenant identifier (ADR-0244 superset).
+    pub tenant_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `token_type` — e.g. `"at+jwt"` for RFC 9068 access tokens.
+    pub token_type: Option<String>, // data_class: PUBLIC
+}
+
+/// RFC 7662 §2.2 introspection response.
+///
+/// Privacy rule: when `active` is `false`, all other fields MUST be absent.
+/// The [`IntrospectionResponse::inactive`] constructor enforces this invariant.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntrospectionResponse {
+    /// Whether the token is currently active (RFC 7662 §2.2).
+    pub active: bool, // data_class: PUBLIC
+    /// `sub` — subject identifier.
+    pub sub: Option<String>, // data_class: PII_IDENTIFYING
+    /// `aud` — intended audience list.
+    pub aud: Option<Vec<String>>, // data_class: PUBLIC
+    /// `exp` — expiry (epoch seconds).
+    pub exp: Option<i64>, // data_class: INTERNAL_ONLY
+    /// `iat` — issuance time (epoch seconds).
+    pub iat: Option<i64>, // data_class: INTERNAL_ONLY
+    /// `scope` — space-separated scope string.
+    pub scope: Option<String>, // data_class: INTERNAL_ONLY
+    /// `client_id` — OAuth 2.0 client identifier.
+    pub client_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `tenant_id` — oyatie tenant identifier (ADR-0244 superset).
+    pub tenant_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `token_type` — e.g. `"at+jwt"` for RFC 9068 access tokens.
+    pub token_type: Option<String>, // data_class: PUBLIC
+}
+
+impl IntrospectionResponse {
+    /// Construct an inactive response.
+    ///
+    /// RFC 7662 §2.2 privacy rule: only `{"active": false}` is disclosed for
+    /// unknown or invalid tokens. All optional fields are explicitly `None`.
+    #[must_use]
+    pub fn inactive() -> Self {
+        Self {
+            active: false,
+            sub: None,
+            aud: None,
+            exp: None,
+            iat: None,
+            scope: None,
+            client_id: None,
+            tenant_id: None,
+            token_type: None,
+        }
+    }
+
+    /// Construct an active response from the disclosed claim set.
+    #[must_use]
+    pub fn active(claims: ActiveIntrospectionClaims) -> Self {
+        Self {
+            active: true,
+            sub: Some(claims.sub),
+            aud: Some(claims.aud),
+            exp: Some(claims.exp),
+            iat: Some(claims.iat),
+            scope: claims.scope,
+            client_id: claims.client_id,
+            tenant_id: claims.tenant_id,
+            token_type: claims.token_type,
+        }
+    }
+}
+
+/// Build an RFC 7662 introspection response from an [`AccessTokenClaims`]
+/// value and the caller's validation clock.
+///
+/// Reuses [`check_temporal_window`] + [`TokenTemporalStatus`] for the
+/// active/inactive verdict. Expired and not-yet-valid tokens collapse to
+/// `{"active": false}` per RFC 7662 §2.2 without leaking error details.
+///
+/// `scope` promotion: an empty `scope` field in the claims is promoted to
+/// `None` (a token with no scope discloses nothing rather than an empty
+/// string).
+///
+/// # Errors
+/// Currently infallible (always returns `Ok`); typed `Result<_, IssuerError>`
+/// for forward compatibility.
+pub fn build_introspection_response(
+    claims: &AccessTokenClaims,
+    now_epoch_seconds: i64,
+    skew: ClockSkewTolerance,
+) -> Result<IntrospectionResponse, IssuerError> {
+    match check_temporal_window(now_epoch_seconds, claims.nbf, claims.exp, skew) {
+        Err(_) => Ok(IntrospectionResponse::inactive()),
+        Ok(TokenTemporalStatus::Valid) => {
+            let scope = if claims.scope.is_empty() {
+                None
+            } else {
+                Some(claims.scope.clone())
+            };
+            Ok(IntrospectionResponse::active(ActiveIntrospectionClaims {
+                sub: claims.sub.clone(),
+                aud: claims.aud.clone(),
+                exp: claims.exp,
+                iat: claims.iat,
+                scope,
+                client_id: None,
+                tenant_id: Some(claims.tenant_id.clone()),
+                token_type: Some(claims.token_type.clone()),
+            }))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1492,5 +1669,151 @@ mod tests {
             Err(IssuerError::MalformedClientAssertion(_))
         ));
         assert_eq!(Signature::new("sig").expect("ok").as_str(), "sig");
+    }
+
+    // --- oidc-introspect-1: IntrospectionRequest ---
+
+    #[test]
+    fn introspection_request_rejects_empty_token() {
+        assert!(matches!(
+            IntrospectionRequest::validate("", None),
+            Err(IssuerError::MalformedIntrospectionRequest(_))
+        ));
+    }
+
+    #[test]
+    fn introspection_request_rejects_whitespace_token() {
+        assert!(matches!(
+            IntrospectionRequest::validate("   ", None),
+            Err(IssuerError::MalformedIntrospectionRequest(_))
+        ));
+    }
+
+    #[test]
+    fn introspection_request_accepts_token_without_hint() {
+        let req = IntrospectionRequest::validate("opaque-token-123", None).expect("ok");
+        assert_eq!(req.token, "opaque-token-123");
+        assert_eq!(req.token_type_hint, None);
+    }
+
+    #[test]
+    fn introspection_request_accepts_token_with_hint() {
+        let req =
+            IntrospectionRequest::validate("tok", Some(TokenTypeHint::AccessToken)).expect("ok");
+        assert_eq!(req.token, "tok");
+        assert_eq!(req.token_type_hint, Some(TokenTypeHint::AccessToken));
+
+        let req2 =
+            IntrospectionRequest::validate("tok2", Some(TokenTypeHint::RefreshToken)).expect("ok");
+        assert_eq!(req2.token_type_hint, Some(TokenTypeHint::RefreshToken));
+    }
+
+    // --- oidc-introspect-2: IntrospectionResponse ---
+
+    #[test]
+    fn introspection_response_inactive_has_no_disclosed_fields() {
+        let resp = IntrospectionResponse::inactive();
+        assert!(!resp.active);
+        assert!(resp.sub.is_none());
+        assert!(resp.aud.is_none());
+        assert!(resp.exp.is_none());
+        assert!(resp.iat.is_none());
+        assert!(resp.scope.is_none());
+        assert!(resp.client_id.is_none());
+        assert!(resp.tenant_id.is_none());
+        assert!(resp.token_type.is_none());
+    }
+
+    #[test]
+    fn introspection_response_active_carries_disclosed_claims() {
+        let resp = IntrospectionResponse::active(ActiveIntrospectionClaims {
+            sub: "usr_abc".to_owned(),
+            aud: vec!["oya-api".to_owned()],
+            exp: 1_700_003_600,
+            iat: 1_700_000_000,
+            scope: Some("openid email".to_owned()),
+            client_id: Some("client-1".to_owned()),
+            tenant_id: Some("ten_acme".to_owned()),
+            token_type: Some("at+jwt".to_owned()),
+        });
+        assert!(resp.active);
+        assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
+        assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));
+        assert_eq!(resp.exp, Some(1_700_003_600));
+        assert_eq!(resp.iat, Some(1_700_000_000));
+        assert_eq!(resp.scope.as_deref(), Some("openid email"));
+        assert_eq!(resp.client_id.as_deref(), Some("client-1"));
+        assert_eq!(resp.tenant_id.as_deref(), Some("ten_acme"));
+        assert_eq!(resp.token_type.as_deref(), Some("at+jwt"));
+    }
+
+    // --- oidc-introspect-3: build_introspection_response ---
+
+    fn sample_access_token_claims(iat: i64, nbf: i64, exp: i64) -> AccessTokenClaims {
+        AccessTokenClaims {
+            iss: "https://identity-kr.oyatie.com".to_owned(),
+            aud: vec!["oya-api".to_owned()],
+            sub: "usr_abc".to_owned(),
+            iat,
+            exp,
+            nbf,
+            scope: "openid email".to_owned(),
+            tenant_id: "ten_acme".to_owned(),
+            purpose: None,
+            data_class: None,
+            token_type: "at+jwt".to_owned(),
+        }
+    }
+
+    #[test]
+    fn build_introspection_response_active_token() {
+        let now = 1_700_001_000_i64;
+        let claims = sample_access_token_claims(1_700_000_000, 1_700_000_000, 1_700_003_600);
+        let skew = ClockSkewTolerance::new(60).expect("ok");
+        let resp = build_introspection_response(&claims, now, skew).expect("ok");
+        assert!(resp.active);
+        assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
+        assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));
+        assert_eq!(resp.exp, Some(1_700_003_600));
+        assert_eq!(resp.iat, Some(1_700_000_000));
+        assert_eq!(resp.scope.as_deref(), Some("openid email"));
+        assert_eq!(resp.client_id, None);
+        assert_eq!(resp.tenant_id.as_deref(), Some("ten_acme"));
+        assert_eq!(resp.token_type.as_deref(), Some("at+jwt"));
+    }
+
+    #[test]
+    fn build_introspection_response_expired_token() {
+        // now > exp + skew → inactive
+        let now = 1_700_003_661_i64; // exp=1_700_003_600, skew=60 → boundary is 1_700_003_660
+        let claims = sample_access_token_claims(1_700_000_000, 1_700_000_000, 1_700_003_600);
+        let skew = ClockSkewTolerance::new(60).expect("ok");
+        let resp = build_introspection_response(&claims, now, skew).expect("ok");
+        assert!(!resp.active);
+        assert!(resp.sub.is_none());
+        assert!(resp.exp.is_none());
+    }
+
+    #[test]
+    fn build_introspection_response_not_yet_valid_token() {
+        // now + skew < nbf → inactive
+        let now = 39_i64; // now + skew(60) = 99 < nbf(100)
+        let claims = sample_access_token_claims(100, 100, 300);
+        let skew = ClockSkewTolerance::new(60).expect("ok");
+        let resp = build_introspection_response(&claims, now, skew).expect("ok");
+        assert!(!resp.active);
+        assert!(resp.sub.is_none());
+        assert!(resp.exp.is_none());
+    }
+
+    #[test]
+    fn build_introspection_response_empty_scope_becomes_none() {
+        let now = 150_i64;
+        let mut claims = sample_access_token_claims(100, 100, 300);
+        claims.scope = String::new();
+        let skew = ClockSkewTolerance::new(0).expect("ok");
+        let resp = build_introspection_response(&claims, now, skew).expect("ok");
+        assert!(resp.active);
+        assert_eq!(resp.scope, None);
     }
 }
