@@ -30,19 +30,20 @@ spec:
         elements:
           - environment: dev
             targetRevision: dev
-            namespace: ci-webhook-gateway
+            # Namespace confirmed from SETUP-RUNBOOK.md §2 and §4 ("gateway namespace oya-ci").
+            namespace: oya-ci
             imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: dev
             replicaCount: "1"
           - environment: staging
             targetRevision: main
-            namespace: ci-webhook-gateway-staging
+            namespace: oya-ci-staging
             imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: staging
             replicaCount: "1"
           - environment: prod
             targetRevision: main
-            namespace: ci-webhook-gateway-prod
+            namespace: oya-ci-prod
             imageDigest: "" # release automation injects ADR-0181 signed digest
             configEnvironment: production
             replicaCount: "1"

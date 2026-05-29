@@ -68,31 +68,25 @@ spec:
               value: {{ .Values.otel.endpoint | quote }}
             - name: OYA_IMAGE_PROMOTION_POLICY
               value: {{ .Values.config.imagePromotionPolicy | quote }}
-            - name: OYA_CI_WEBHOOK_LISTEN_ADDR
+            # OYA_GATEWAY_BIND_ADDR: defaults to 0.0.0.0:8099 in config.rs; set
+            # explicitly so the value matches the containerPort declared above.
+            - name: OYA_GATEWAY_BIND_ADDR
               value: "0.0.0.0:{{ .Values.service.targetPort }}"
-            - name: OYA_CI_WEBHOOK_JENKINS_BASE_URL
-              value: {{ .Values.jenkins.baseUrl | quote }}
-            - name: OYA_CI_WEBHOOK_JENKINS_JOB_NAME
-              value: {{ .Values.jenkins.jobName | quote }}
-            - name: OYA_CI_WEBHOOK_GH_REPO_OWNER
-              value: {{ .Values.github.repoOwner | quote }}
-            - name: OYA_CI_WEBHOOK_GH_REPO_NAME
-              value: {{ .Values.github.repoName | quote }}
-            - name: OYA_CI_WEBHOOK_FORGEJO_ED25519_PUB
+            # OYA_GATEWAY_TARGET_BRANCH: the branch PRs must target to be gated.
+            - name: OYA_GATEWAY_TARGET_BRANCH
+              value: "dev"
+            # OYA_JENKINS_DISPATCH_URL: full HTTP URL the gateway POSTs to kick
+            # the oyaCiLane pipeline (generic-webhook-trigger / build-token endpoint).
+            - name: OYA_JENKINS_DISPATCH_URL
+              value: {{ .Values.jenkins.dispatchUrl | quote }}
+            # OYA_FORGEJO_WEBHOOK_SECRET: HMAC-SHA256 secret injected from OpenBao
+            # via ESO (sref://openbao/oya/ci/forgejo-webhook-secret, ADR-0043).
+            # Gateway fails closed (rejects all deliveries) until this is set.
+            - name: OYA_FORGEJO_WEBHOOK_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.externalSecret.secretName | quote }}
-                  key: forgejo_ed25519_pub
-            - name: OYA_CI_WEBHOOK_JENKINS_API_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.externalSecret.secretName | quote }}
-                  key: jenkins_api_token
-            - name: OYA_CI_WEBHOOK_GH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.externalSecret.secretName | quote }}
-                  key: github_token
+                  key: forgejo_webhook_secret
           readinessProbe:
             httpGet:
               path: /healthz
@@ -101,7 +95,7 @@ spec:
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /livez
+              path: /healthz
               port: http
             initialDelaySeconds: 30
             periodSeconds: 20
