@@ -377,6 +377,7 @@ pub enum CloudCapacityError {
     DuplicateSpotAssignment,
     DuplicateRebalancePlan,
     MeteringRejected,
+    InvalidTransition,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -568,6 +569,36 @@ impl CapacityReservation {
     }
 }
 
+impl CapacityReservation {
+    /// Transition `Active -> Expired`. Requires `now_epoch_seconds >= end_epoch_seconds`.
+    /// Returns `InvalidTimeOrder` for premature expiry and `InvalidTransition` from any
+    /// non-Active state.
+    pub fn expire_at(self, now_epoch_seconds: u64) -> Result<Self, CloudCapacityError> {
+        if self.state.value != CapacityReservationState::Active {
+            return Err(CloudCapacityError::InvalidTransition);
+        }
+        if now_epoch_seconds < self.end_epoch_seconds.value {
+            return Err(CloudCapacityError::InvalidTimeOrder);
+        }
+        Ok(Self {
+            state: internal(CapacityReservationState::Expired),
+            ..self
+        })
+    }
+
+    /// Transition `Active -> Cancelled`. Returns `InvalidTransition` from `Expired` or
+    /// `Cancelled`.
+    pub fn cancel(self) -> Result<Self, CloudCapacityError> {
+        if self.state.value != CapacityReservationState::Active {
+            return Err(CloudCapacityError::InvalidTransition);
+        }
+        Ok(Self {
+            state: internal(CapacityReservationState::Cancelled),
+            ..self
+        })
+    }
+}
+
 impl CommittedUseContract {
     pub fn active(input: CommittedUseCreate) -> Result<Self, CloudCapacityError> {
         validate_tenant_id(&input.tenant_id)?;
@@ -597,6 +628,36 @@ impl CommittedUseContract {
             end_epoch_seconds: internal(input.end_epoch_seconds),
             data_class: financial_class(input.data_class)?,
             schema_version: public(CAPACITY_SCHEMA_VERSION),
+        })
+    }
+}
+
+impl CommittedUseContract {
+    /// Transition `Active -> Expired`. Requires `now_epoch_seconds >= end_epoch_seconds`.
+    /// Returns `InvalidTimeOrder` for premature expiry and `InvalidTransition` from any
+    /// non-Active state.
+    pub fn expire_at(self, now_epoch_seconds: u64) -> Result<Self, CloudCapacityError> {
+        if self.state.value != CommitmentState::Active {
+            return Err(CloudCapacityError::InvalidTransition);
+        }
+        if now_epoch_seconds < self.end_epoch_seconds.value {
+            return Err(CloudCapacityError::InvalidTimeOrder);
+        }
+        Ok(Self {
+            state: internal(CommitmentState::Expired),
+            ..self
+        })
+    }
+
+    /// Transition `Active -> Cancelled`. Returns `InvalidTransition` from `Expired` or
+    /// `Cancelled`.
+    pub fn cancel(self) -> Result<Self, CloudCapacityError> {
+        if self.state.value != CommitmentState::Active {
+            return Err(CloudCapacityError::InvalidTransition);
+        }
+        Ok(Self {
+            state: internal(CommitmentState::Cancelled),
+            ..self
         })
     }
 }
@@ -1618,6 +1679,127 @@ mod tests {
             })
             .expect_err("rebalance cap applies to the largest moved dimension");
         assert_eq!(memory_move_error, CloudCapacityError::InvalidRebalanceMove);
+    }
+
+    // --- CapacityReservation state-transition tests ---
+
+    fn active_reservation() -> CapacityReservation {
+        let sku = CapacitySku::new(sku_create()).expect("sku");
+        CapacityReservation::active(&sku, envelope(), reservation_create()).expect("reservation")
+    }
+
+    #[test]
+    fn reservation_expire_at_on_or_after_end_transitions_to_expired() {
+        let r = active_reservation();
+        let end = r.end_epoch_seconds.value;
+
+        // at exactly end_epoch_seconds
+        let expired_exact = r.clone().expire_at(end).expect("expire at end");
+        assert_eq!(expired_exact.state.value, CapacityReservationState::Expired);
+
+        // after end_epoch_seconds
+        let expired_after = r.expire_at(end + 1).expect("expire after end");
+        assert_eq!(expired_after.state.value, CapacityReservationState::Expired);
+    }
+
+    #[test]
+    fn reservation_expire_at_before_end_is_rejected() {
+        let r = active_reservation();
+        let end = r.end_epoch_seconds.value;
+        let err = r.expire_at(end - 1).expect_err("premature expiry");
+        assert_eq!(err, CloudCapacityError::InvalidTimeOrder);
+    }
+
+    #[test]
+    fn reservation_expire_at_on_already_expired_is_rejected() {
+        let r = active_reservation();
+        let end = r.end_epoch_seconds.value;
+        let expired = r.expire_at(end).expect("first expire");
+        let err = expired.expire_at(end + 1).expect_err("double-expire");
+        assert_eq!(err, CloudCapacityError::InvalidTransition);
+    }
+
+    #[test]
+    fn reservation_cancel_on_active_transitions_to_cancelled() {
+        let r = active_reservation();
+        let cancelled = r.cancel().expect("cancel active");
+        assert_eq!(cancelled.state.value, CapacityReservationState::Cancelled);
+    }
+
+    #[test]
+    fn reservation_double_cancel_is_rejected() {
+        let r = active_reservation();
+        let cancelled = r.cancel().expect("first cancel");
+        let err = cancelled.cancel().expect_err("double-cancel");
+        assert_eq!(err, CloudCapacityError::InvalidTransition);
+    }
+
+    #[test]
+    fn reservation_cancel_after_expire_is_rejected() {
+        let r = active_reservation();
+        let end = r.end_epoch_seconds.value;
+        let expired = r.expire_at(end).expect("expire");
+        let err = expired.cancel().expect_err("cancel after expire");
+        assert_eq!(err, CloudCapacityError::InvalidTransition);
+    }
+
+    // --- CommittedUseContract state-transition tests ---
+
+    fn active_commitment() -> CommittedUseContract {
+        CommittedUseContract::active(commitment_create()).expect("commitment")
+    }
+
+    #[test]
+    fn commitment_expire_at_on_or_after_end_transitions_to_expired() {
+        let c = active_commitment();
+        let end = c.end_epoch_seconds.value;
+
+        let expired_exact = c.clone().expire_at(end).expect("expire at end");
+        assert_eq!(expired_exact.state.value, CommitmentState::Expired);
+
+        let expired_after = c.expire_at(end + 1).expect("expire after end");
+        assert_eq!(expired_after.state.value, CommitmentState::Expired);
+    }
+
+    #[test]
+    fn commitment_expire_at_before_end_is_rejected() {
+        let c = active_commitment();
+        let end = c.end_epoch_seconds.value;
+        let err = c.expire_at(end - 1).expect_err("premature expiry");
+        assert_eq!(err, CloudCapacityError::InvalidTimeOrder);
+    }
+
+    #[test]
+    fn commitment_expire_at_on_already_expired_is_rejected() {
+        let c = active_commitment();
+        let end = c.end_epoch_seconds.value;
+        let expired = c.expire_at(end).expect("first expire");
+        let err = expired.expire_at(end + 1).expect_err("double-expire");
+        assert_eq!(err, CloudCapacityError::InvalidTransition);
+    }
+
+    #[test]
+    fn commitment_cancel_on_active_transitions_to_cancelled() {
+        let c = active_commitment();
+        let cancelled = c.cancel().expect("cancel active");
+        assert_eq!(cancelled.state.value, CommitmentState::Cancelled);
+    }
+
+    #[test]
+    fn commitment_double_cancel_is_rejected() {
+        let c = active_commitment();
+        let cancelled = c.cancel().expect("first cancel");
+        let err = cancelled.cancel().expect_err("double-cancel");
+        assert_eq!(err, CloudCapacityError::InvalidTransition);
+    }
+
+    #[test]
+    fn commitment_cancel_after_expire_is_rejected() {
+        let c = active_commitment();
+        let end = c.end_epoch_seconds.value;
+        let expired = c.expire_at(end).expect("expire");
+        let err = expired.cancel().expect_err("cancel after expire");
+        assert_eq!(err, CloudCapacityError::InvalidTransition);
     }
 
     #[test]
