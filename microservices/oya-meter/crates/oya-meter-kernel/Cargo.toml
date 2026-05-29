@@ -1,0 +1,18 @@
+[package]
+name = "oya-meter-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Pure Rust usage metering kernel: event ingestion + aggregation state machine. No I/O, no async. ADR-0479."
+
+[dependencies]
+
+[lib]
+name = "oya_meter_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -1,0 +1,28 @@
+[package]
+name = "oya-meter-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Composition root for oya-meter: wires kernel + rest into a runnable metering µservice process. ADR-0479."
+
+[dependencies]
+oya-meter-kernel = { path = "../oya-meter-kernel" }
+oya-meter-rest = { path = "../oya-meter-rest" }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros"] }
+tracing = { version = "0.1", default-features = false, features = ["std", "attributes"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["std", "fmt", "json"] }
+
+[lib]
+name = "oya_meter_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-meter-app"
+path = "src/main.rs"
+
+[lints]
+workspace = true
