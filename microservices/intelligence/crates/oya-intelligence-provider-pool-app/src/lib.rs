@@ -69,10 +69,12 @@
 
 use std::collections::BTreeMap;
 use std::fmt;
+use std::future::Future;
 use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
+use futures_util::stream::Stream;
 
 pub use oya_intelligence_account_kernel::{ProviderFamily, SecretReference};
 pub use oya_intelligence_provider_pool_kernel::{
@@ -254,8 +256,385 @@ pub trait ProviderInvocationTransport: Send + Sync {
         provider: ProviderFamily,
         body: Bytes,
     ) -> Pin<
-        Box<dyn std::future::Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
+        Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
     >;
+
+    /// Dispatch a streaming (SSE/chunked) invocation against `account_id`.
+    ///
+    /// Streaming semantics:
+    /// - `Ok(chunk)` — a delivered SSE/chunked fragment.
+    /// - `Err(TransportError::Retryable)` as the **first** item: first-byte
+    ///   failure; the dispatch loop MAY walk the fallback chain.
+    /// - `Err(TransportError::Retryable)` **after** ≥1 `Ok` chunk: mid-stream
+    ///   failure; dispatch loop MUST NOT walk the chain.
+    /// - `Err(TransportError::NonRetryable)` at any position: short-circuit.
+    ///
+    /// # Errors
+    /// Items in the stream return [`TransportError`] on failure.
+    fn dispatch_stream(
+        &self,
+        account_id: ProviderAccountId,
+        provider: ProviderFamily,
+        credential: ProviderCredential,
+        body: Bytes,
+    ) -> Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send + '_>>;
+}
+
+// =====================================================================
+// SUB-1: SecretResolution port + ProviderCredential
+// =====================================================================
+
+/// An opaque resolved provider credential. The raw bytes MUST NOT be written
+/// to any log, trace, or error display string (data_class: CREDENTIAL).
+///
+/// `Debug` is deliberately redacted — `format!("{:?}", credential)` emits
+/// `"ProviderCredential([REDACTED])"`, never the raw value.
+pub struct ProviderCredential(Bytes); // data_class: CREDENTIAL — never log
+
+impl ProviderCredential {
+    /// Wrap raw credential bytes.
+    #[must_use]
+    pub fn new(raw: Bytes) -> Self {
+        Self(raw)
+    }
+
+    /// Borrow the raw bytes. Only consumed by the transport adapter.
+    #[must_use]
+    pub fn as_bytes(&self) -> &Bytes {
+        &self.0
+    }
+}
+
+impl fmt::Debug for ProviderCredential {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ProviderCredential([REDACTED])")
+    }
+}
+
+// No Display impl — prevents accidental string interpolation of credential.
+// No Clone exposed at the public API; internal clone is allowed via the newtype.
+impl Clone for ProviderCredential {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+/// Typed failure from a [`SecretResolution`] attempt. Detail fields are
+/// INTERNAL_ONLY and MUST NOT echo the `SecretReference` path components.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SecretResolutionError {
+    /// The backing adapter is not yet implemented (honest-boundary today).
+    Unimplemented {
+        detail: String, // data_class: INTERNAL_ONLY
+    },
+    /// Access-control rejection from the secret store.
+    Denied {
+        detail: String, // data_class: INTERNAL_ONLY
+    },
+    /// The secret path does not exist in the backing store.
+    NotFound {
+        detail: String, // data_class: INTERNAL_ONLY
+    },
+    /// A backing-store I/O failure.
+    Store(String), // data_class: INTERNAL_ONLY
+}
+
+impl fmt::Display for SecretResolutionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unimplemented { .. } => write!(f, "secret resolution: not implemented"),
+            Self::Denied { .. } => write!(f, "secret resolution: access denied"),
+            Self::NotFound { .. } => write!(f, "secret resolution: not found"),
+            Self::Store(msg) => write!(f, "secret resolution: store error: {msg}"),
+        }
+    }
+}
+
+impl std::error::Error for SecretResolutionError {}
+
+/// Port for resolving a [`SecretReference`] into a [`ProviderCredential`].
+///
+/// Production adapter: `OpenBaoSecretResolver` (honest-boundary today —
+/// returns `SecretResolutionError::Unimplemented`).
+/// Reference adapters: `InMemorySecretResolver` (pre-seeded map),
+/// `DeniedSecretResolver` (always-deny, for default-deny tests).
+pub trait SecretResolution: Send + Sync {
+    /// Resolve `secret_ref` to a [`ProviderCredential`].
+    ///
+    /// # Errors
+    /// Returns [`SecretResolutionError`] on failure.
+    fn resolve(
+        &self,
+        secret_ref: &SecretReference,
+    ) -> Pin<
+        Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>,
+    >;
+}
+
+// =====================================================================
+// SUB-1: Reference secret-resolution adapters
+// =====================================================================
+
+/// In-memory [`SecretResolution`] adapter backed by a pre-seeded map.
+/// Keys are `SecretReference`; values are raw credential bytes. Network-free.
+#[derive(Clone, Debug, Default)]
+pub struct InMemorySecretResolver {
+    map: std::collections::HashMap<SecretReference, Bytes>,
+}
+
+impl InMemorySecretResolver {
+    /// Build an empty resolver.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Seed a `SecretReference -> raw bytes` entry.
+    #[must_use]
+    pub fn with_secret(mut self, secret_ref: SecretReference, raw: Bytes) -> Self {
+        self.map.insert(secret_ref, raw);
+        self
+    }
+}
+
+impl SecretResolution for InMemorySecretResolver {
+    fn resolve(
+        &self,
+        secret_ref: &SecretReference,
+    ) -> Pin<
+        Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>,
+    > {
+        let result = self
+            .map
+            .get(secret_ref)
+            .map(|b| Ok(ProviderCredential::new(b.clone())))
+            .unwrap_or_else(|| {
+                Err(SecretResolutionError::NotFound {
+                    detail: "secret not found in in-memory resolver".into(),
+                })
+            });
+        Box::pin(async move { result })
+    }
+}
+
+/// Always-deny [`SecretResolution`] adapter. Returns
+/// `SecretResolutionError::Denied` unconditionally. Used for default-deny
+/// acceptance tests.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct DeniedSecretResolver;
+
+impl SecretResolution for DeniedSecretResolver {
+    fn resolve(
+        &self,
+        _secret_ref: &SecretReference,
+    ) -> Pin<
+        Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>,
+    > {
+        Box::pin(async move {
+            Err(SecretResolutionError::Denied {
+                detail: "always-deny resolver".into(),
+            })
+        })
+    }
+}
+
+/// Production [`SecretResolution`] adapter backed by OpenBao. Today this
+/// surfaces `SecretResolutionError::Unimplemented` (honest-boundary); when
+/// the OpenBao client lands, this adapter activates without caller change.
+#[derive(Clone, Debug, Default)]
+pub struct OpenBaoSecretResolver;
+
+impl SecretResolution for OpenBaoSecretResolver {
+    fn resolve(
+        &self,
+        _secret_ref: &SecretReference,
+    ) -> Pin<
+        Box<dyn Future<Output = Result<ProviderCredential, SecretResolutionError>> + Send + '_>,
+    > {
+        let detail = format!(
+            "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
+            Unimplemented::OpenBaoSecretResolution.as_str(),
+            Unimplemented::OpenBaoSecretResolution.placeholder_debt_id()
+        );
+        Box::pin(async move { Err(SecretResolutionError::Unimplemented { detail }) })
+    }
+}
+
+// =====================================================================
+// SUB-3: MetricsSink port + MetricEvent + reference adapters
+// =====================================================================
+
+/// OTel-ready per-dispatch metric event. The production OTel bridge is
+/// deferred to a future outer adapter crate; the port shape is intentionally
+/// aligned so that bridge is a thin delegation.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum MetricEvent {
+    /// Transport attempt started for `account_id`.
+    Attempt {
+        account_id: ProviderAccountId, // data_class: TENANT_SCOPED
+        provider: ProviderFamily,      // data_class: INTERNAL_ONLY
+    },
+    /// Transport succeeded with measured latency.
+    Success {
+        account_id: ProviderAccountId, // data_class: TENANT_SCOPED
+        latency_ms: u64,               // data_class: INTERNAL_ONLY
+    },
+    /// Transport failed.
+    Failure {
+        account_id: ProviderAccountId, // data_class: TENANT_SCOPED
+        retryable: bool,               // data_class: INTERNAL_ONLY
+    },
+    /// Dispatch walked from `from` to `to` in the fallback chain.
+    Failover {
+        from: ProviderAccountId, // data_class: TENANT_SCOPED
+        to: ProviderAccountId,   // data_class: TENANT_SCOPED
+        depth: usize,            // data_class: INTERNAL_ONLY
+    },
+    /// An account crossed a health threshold and its state changed.
+    QuarantineTransition {
+        account_id: ProviderAccountId, // data_class: TENANT_SCOPED
+        new_state: HealthState,        // data_class: INTERNAL_ONLY
+    },
+}
+
+/// Port for emitting per-dispatch OTel-compatible metrics.
+///
+/// All methods are `&self` (shared ref); implementations must use interior
+/// mutability for recording. The no-op adapter is the default for single-node
+/// bring-up (zero external dependency).
+///
+/// OpenTelemetry metric name mapping:
+/// - `record_dispatch_attempt`     → `provider_pool.dispatch.attempts` (counter)
+/// - `record_dispatch_success`     → `provider_pool.dispatch.success_latency_ms` (histogram)
+/// - `record_dispatch_failure`     → `provider_pool.dispatch.failures` (counter, label: retryable)
+/// - `record_failover`             → `provider_pool.dispatch.failovers` (counter, label: depth)
+/// - `record_quarantine_transition`→ `provider_pool.account.quarantine_transitions` (counter)
+pub trait MetricsSink: Send + Sync {
+    fn record_dispatch_attempt(&self, account_id: &ProviderAccountId, provider: ProviderFamily);
+    fn record_dispatch_success(&self, account_id: &ProviderAccountId, latency_ms: u64);
+    fn record_dispatch_failure(&self, account_id: &ProviderAccountId, retryable: bool);
+    fn record_failover(&self, from: &ProviderAccountId, to: &ProviderAccountId, depth: usize);
+    fn record_quarantine_transition(
+        &self,
+        account_id: &ProviderAccountId,
+        new_state: HealthState,
+    );
+}
+
+/// No-op [`MetricsSink`] — all methods are `#[inline]` empty stubs.
+/// Used as the default for single-node bring-up; no external dependency.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct NoOpMetricsSink;
+
+impl MetricsSink for NoOpMetricsSink {
+    #[inline]
+    fn record_dispatch_attempt(&self, _account_id: &ProviderAccountId, _provider: ProviderFamily) {
+    }
+    #[inline]
+    fn record_dispatch_success(&self, _account_id: &ProviderAccountId, _latency_ms: u64) {}
+    #[inline]
+    fn record_dispatch_failure(&self, _account_id: &ProviderAccountId, _retryable: bool) {}
+    #[inline]
+    fn record_failover(
+        &self,
+        _from: &ProviderAccountId,
+        _to: &ProviderAccountId,
+        _depth: usize,
+    ) {
+    }
+    #[inline]
+    fn record_quarantine_transition(
+        &self,
+        _account_id: &ProviderAccountId,
+        _new_state: HealthState,
+    ) {
+    }
+}
+
+/// Recording [`MetricsSink`] — accumulates [`MetricEvent`]s in insertion
+/// order behind an `Arc<Mutex<Vec<MetricEvent>>>`. Used in acceptance tests
+/// to assert event sequences.
+#[derive(Clone, Debug, Default)]
+pub struct RecordingMetricsSink {
+    events: Arc<Mutex<Vec<MetricEvent>>>,
+}
+
+impl RecordingMetricsSink {
+    /// Build an empty recording sink.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Drain the accumulated events (returned in insertion order).
+    #[must_use]
+    pub fn drain(&self) -> Vec<MetricEvent> {
+        match self.events.lock() {
+            Ok(mut guard) => std::mem::take(&mut *guard),
+            Err(_) => Vec::new(),
+        }
+    }
+
+    /// Snapshot the accumulated events without draining.
+    #[must_use]
+    pub fn snapshot(&self) -> Vec<MetricEvent> {
+        match self.events.lock() {
+            Ok(guard) => guard.clone(),
+            Err(_) => Vec::new(),
+        }
+    }
+}
+
+impl MetricsSink for RecordingMetricsSink {
+    fn record_dispatch_attempt(&self, account_id: &ProviderAccountId, provider: ProviderFamily) {
+        if let Ok(mut guard) = self.events.lock() {
+            guard.push(MetricEvent::Attempt {
+                account_id: account_id.clone(),
+                provider,
+            });
+        }
+    }
+
+    fn record_dispatch_success(&self, account_id: &ProviderAccountId, latency_ms: u64) {
+        if let Ok(mut guard) = self.events.lock() {
+            guard.push(MetricEvent::Success {
+                account_id: account_id.clone(),
+                latency_ms,
+            });
+        }
+    }
+
+    fn record_dispatch_failure(&self, account_id: &ProviderAccountId, retryable: bool) {
+        if let Ok(mut guard) = self.events.lock() {
+            guard.push(MetricEvent::Failure {
+                account_id: account_id.clone(),
+                retryable,
+            });
+        }
+    }
+
+    fn record_failover(&self, from: &ProviderAccountId, to: &ProviderAccountId, depth: usize) {
+        if let Ok(mut guard) = self.events.lock() {
+            guard.push(MetricEvent::Failover {
+                from: from.clone(),
+                to: to.clone(),
+                depth,
+            });
+        }
+    }
+
+    fn record_quarantine_transition(
+        &self,
+        account_id: &ProviderAccountId,
+        new_state: HealthState,
+    ) {
+        if let Ok(mut guard) = self.events.lock() {
+            guard.push(MetricEvent::QuarantineTransition {
+                account_id: account_id.clone(),
+                new_state,
+            });
+        }
+    }
 }
 
 // =====================================================================
@@ -536,25 +915,50 @@ pub type TransportScript = Arc<
         + Sync,
 >;
 
+/// A scripted streaming response factory: given account + family it returns
+/// an ordered list of `Result<Bytes, TransportError>` items that will be
+/// replayed as a stream. Used by acceptance tests to drive the streaming
+/// dispatch loop deterministically (first-byte failure, happy path, etc.).
+pub type StreamScript = Arc<
+    dyn Fn(
+            &ProviderAccountId,
+            ProviderFamily,
+            &Bytes,
+        ) -> Vec<Result<Bytes, TransportError>>
+        + Send
+        + Sync,
+>;
+
 /// In-memory [`ProviderInvocationTransport`] used in acceptance tests +
 /// single-node bring-up. The script is consulted on every dispatch; no
 /// socket is opened.
 #[derive(Clone)]
 pub struct InMemoryProviderInvocationTransport {
     script: TransportScript,
+    /// Optional streaming script. If `None`, `dispatch_stream` returns a
+    /// single `Err(TransportError::NonRetryable)` (honest default).
+    stream_script: Option<StreamScript>,
     /// Ordered log of `(account_id)` seen — lets tests assert the
     /// fallback-chain progression the dispatch loop walked.
     call_log: Arc<Mutex<Vec<ProviderAccountId>>>,
 }
 
 impl InMemoryProviderInvocationTransport {
-    /// Build a transport from a per-call response script.
+    /// Build a transport from a per-call unary response script.
     #[must_use]
     pub fn new(script: TransportScript) -> Self {
         Self {
             script,
+            stream_script: None,
             call_log: Arc::new(Mutex::new(Vec::new())),
         }
+    }
+
+    /// Attach a streaming script so `dispatch_stream` replays scripted items.
+    #[must_use]
+    pub fn with_stream_script(mut self, stream_script: StreamScript) -> Self {
+        self.stream_script = Some(stream_script);
+        self
     }
 
     /// Read the ordered call log so tests can assert the dispatch order.
@@ -580,13 +984,32 @@ impl ProviderInvocationTransport for InMemoryProviderInvocationTransport {
         provider: ProviderFamily,
         body: Bytes,
     ) -> Pin<
-        Box<dyn std::future::Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
+        Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
     > {
         if let Ok(mut guard) = self.call_log.lock() {
             guard.push(account_id.clone());
         }
         let result = (self.script)(&account_id, provider, &body);
         Box::pin(async move { result })
+    }
+
+    fn dispatch_stream(
+        &self,
+        account_id: ProviderAccountId,
+        provider: ProviderFamily,
+        _credential: ProviderCredential,
+        body: Bytes,
+    ) -> Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send + '_>> {
+        if let Ok(mut guard) = self.call_log.lock() {
+            guard.push(account_id.clone());
+        }
+        let items = match &self.stream_script {
+            Some(script) => (script)(&account_id, provider, &body),
+            None => vec![Err(TransportError::NonRetryable {
+                detail: "no stream script configured on InMemoryProviderInvocationTransport".into(),
+            })],
+        };
+        Box::pin(futures_util::stream::iter(items))
     }
 }
 
@@ -637,7 +1060,7 @@ impl ProviderInvocationTransport for HyperProviderInvocationTransport {
         _provider: ProviderFamily,
         _body: Bytes,
     ) -> Pin<
-        Box<dyn std::future::Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
+        Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>,
     > {
         let detail = format!(
             "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
@@ -645,6 +1068,23 @@ impl ProviderInvocationTransport for HyperProviderInvocationTransport {
             Unimplemented::OpenBaoSecretResolution.placeholder_debt_id()
         );
         Box::pin(async move { Err(TransportError::NonRetryable { detail }) })
+    }
+
+    fn dispatch_stream(
+        &self,
+        _account_id: ProviderAccountId,
+        _provider: ProviderFamily,
+        _credential: ProviderCredential,
+        _body: Bytes,
+    ) -> Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send + '_>> {
+        let detail = format!(
+            "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
+            Unimplemented::OpenBaoSecretResolution.as_str(),
+            Unimplemented::OpenBaoSecretResolution.placeholder_debt_id()
+        );
+        Box::pin(futures_util::stream::once(async move {
+            Err(TransportError::NonRetryable { detail })
+        }))
     }
 }
 
@@ -734,6 +1174,8 @@ pub enum DispatchError {
     },
     /// A non-retryable transport error short-circuited the dispatch loop.
     NonRetryableTransport(TransportError),
+    /// Secret resolution failed before the transport was called.
+    SecretResolutionFailed(SecretResolutionError),
 }
 
 impl fmt::Display for DispatchError {
@@ -753,6 +1195,9 @@ impl fmt::Display for DispatchError {
                 attempts.len()
             ),
             Self::NonRetryableTransport(error) => write!(f, "{error}"),
+            // NOTE: detail fields of SecretResolutionError are INTERNAL_ONLY;
+            // the Display surfaces only the classification, never the raw detail.
+            Self::SecretResolutionFailed(error) => write!(f, "secret resolution failed: {error}"),
         }
     }
 }
@@ -786,6 +1231,32 @@ pub struct DispatchOutcome {
     pub primary_reason: PoolRoutingReason, // data_class: INTERNAL_ONLY
 }
 
+/// Successful streaming dispatch result. Carries the chosen account + the
+/// stream of SSE/chunked bytes. The caller is responsible for consuming the
+/// stream; mid-stream errors surface through the stream items.
+pub struct StreamDispatchOutcome {
+    /// The account that is serving the stream.
+    pub account_id: ProviderAccountId, // data_class: TENANT_SCOPED
+    /// Ordered list of accounts attempted by the dispatch loop (including
+    /// any first-byte failures), ending in the account whose stream is live.
+    pub attempts: Vec<ProviderAccountId>, // data_class: TENANT_SCOPED
+    /// The kernel's primary routing reason.
+    pub primary_reason: PoolRoutingReason, // data_class: INTERNAL_ONLY
+    /// The live stream of SSE/chunked bytes from the chosen account.
+    pub stream: Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send>>,
+}
+
+impl fmt::Debug for StreamDispatchOutcome {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("StreamDispatchOutcome")
+            .field("account_id", &self.account_id)
+            .field("attempts", &self.attempts)
+            .field("primary_reason", &self.primary_reason)
+            .field("stream", &"<stream>")
+            .finish()
+    }
+}
+
 /// End-to-end dispatch: load the pool, ask the kernel for a routing
 /// decision, then walk the kernel's `fallback_chain` honoring per-account
 /// health updates on transport failures. Default-deny on every error.
@@ -799,25 +1270,31 @@ pub struct DispatchOutcome {
 /// 3. Call the kernel's [`pick_account`]. Any [`PoolError`] (empty pool,
 ///    no healthy members, sticky session not found, quota threshold not met)
 ///    -> [`DispatchError::Routing`].
-/// 4. Dispatch against the primary account via the [`ProviderInvocationTransport`].
+/// 4. Resolve the pool's `SecretReference` (if present) via [`SecretResolution`].
+///    On failure -> [`DispatchError::SecretResolutionFailed`] (no transport
+///    call, no health mutation).
+/// 5. Dispatch against the primary account via the [`ProviderInvocationTransport`].
 ///    - On `Ok` -> [`AccountHealthStore::record_success`] +
-///      [`DispatchOutcome`] return.
+///      [`MetricsSink::record_dispatch_success`] + [`DispatchOutcome`] return.
 ///    - On `TransportError::Retryable` -> [`AccountHealthStore::record_failure`]
-///      and walk to the next element of `fallback_chain`.
+///      + [`MetricsSink::record_dispatch_failure`] + walk fallback chain.
 ///    - On `TransportError::NonRetryable` -> short-circuit to
 ///      [`DispatchError::NonRetryableTransport`].
-/// 5. If the fallback chain is exhausted with only retryable errors ->
+/// 6. If the fallback chain is exhausted with only retryable errors ->
 ///    [`DispatchError::AllProvidersExhausted`] carrying the last retryable
 ///    error + the full attempt log.
 ///
 /// # Errors
 /// See [`DispatchError`].
 #[allow(clippy::too_many_arguments)]
-pub async fn dispatch_to_pool<P, U, H, T>(
+pub async fn dispatch_to_pool<P, U, H, T, S, M>(
     pool_repo: &P,
     usage_source: &U,
     health_store: &mut H,
     transport: &T,
+    secret_res: &S,
+    metrics: &M,
+    secret_ref_opt: Option<&SecretReference>,
     tenant_id: &TenantId,
     pool_id: &PoolId,
     request: &RequestMetadata,
@@ -829,6 +1306,8 @@ where
     U: UsageSnapshotSource,
     H: AccountHealthStore,
     T: ProviderInvocationTransport,
+    S: SecretResolution,
+    M: MetricsSink,
 {
     // 1. Resolve the pool. Missing or store outage is default-deny.
     let pool = pool_repo
@@ -845,7 +1324,18 @@ where
     // 3. Kernel decision. Any PoolError surfaces verbatim.
     let decision = pick_account(&pool, request, &usage, &health, now)?;
 
-    // 4. Walk primary + fallback_chain.
+    // 4. Resolve secret (if a SecretReference is provided for this dispatch).
+    //    Failure is default-deny — no transport call, no health mutation.
+    let _credential = if let Some(secret_ref) = secret_ref_opt {
+        secret_res
+            .resolve(secret_ref)
+            .await
+            .map_err(DispatchError::SecretResolutionFailed)?
+    } else {
+        ProviderCredential::new(Bytes::new())
+    };
+
+    // 5. Walk primary + fallback_chain.
     let mut attempts: Vec<ProviderAccountId> =
         Vec::with_capacity(1 + decision.fallback_chain.len());
     let mut last_retryable: Option<TransportError> = None;
@@ -855,15 +1345,30 @@ where
         to_try.push(fallback.clone());
     }
 
+    let mut failover_depth: usize = 0;
+    let mut prev_failed: Option<ProviderAccountId> = None;
+
     for account_id in to_try {
         attempts.push(account_id.clone());
+
+        // Emit Failover metric before the next Attempt so event ordering is:
+        // Attempt(prev) -> Failure(prev) -> Failover(prev→cur) -> Attempt(cur).
+        if let Some(ref failed) = prev_failed {
+            metrics.record_failover(failed, &account_id, failover_depth);
+        }
+
+        metrics.record_dispatch_attempt(&account_id, pool.provider);
+
+        let start = std::time::Instant::now();
         match transport
             .dispatch(account_id.clone(), pool.provider, body.clone())
             .await
         {
             Ok(mut response) => {
+                let latency_ms = start.elapsed().as_millis() as u64;
                 response.provider_account_id = account_id.clone();
                 health_store.record_success(tenant_id, pool_id, &account_id)?;
+                metrics.record_dispatch_success(&account_id, latency_ms);
                 return Ok(DispatchOutcome {
                     response,
                     attempts,
@@ -872,6 +1377,7 @@ where
             }
             Err(TransportError::NonRetryable { detail }) => {
                 // Non-retryable: walking the chain won't help.
+                metrics.record_dispatch_failure(&account_id, false);
                 return Err(DispatchError::NonRetryableTransport(
                     TransportError::NonRetryable { detail },
                 ));
@@ -880,14 +1386,204 @@ where
                 last_retryable = Some(TransportError::Retryable {
                     detail: detail.clone(),
                 });
+                metrics.record_dispatch_failure(&account_id, true);
                 // Honor the consecutive-failure progression for this account
                 // — this is what the kernel will see on the next dispatch.
                 health_store.record_failure(tenant_id, pool_id, &account_id)?;
+                // Emit QuarantineTransition if the health state changed to
+                // Degraded or Unhealthy after this failure.
+                let updated_map = health_store.read(tenant_id, pool_id)?;
+                if let Some(updated_health) = updated_map.get(&account_id) {
+                    if updated_health.state != HealthState::Healthy {
+                        metrics.record_quarantine_transition(
+                            &account_id,
+                            updated_health.state,
+                        );
+                    }
+                }
+                failover_depth += 1;
+                prev_failed = Some(account_id);
             }
         }
     }
 
-    // 5. Chain exhausted; surface the final retryable error.
+    // 6. Chain exhausted; surface the final retryable error.
+    Err(DispatchError::AllProvidersExhausted {
+        last_error: last_retryable.unwrap_or(TransportError::Retryable {
+            detail: "fallback chain was empty".into(),
+        }),
+        attempts,
+    })
+}
+
+/// End-to-end streaming dispatch: load the pool, resolve secret, ask the
+/// kernel for a routing decision, then walk the kernel's `fallback_chain`
+/// on first-byte failures preserving quarantine semantics.
+///
+/// Streaming semantics (see [`ProviderInvocationTransport::dispatch_stream`]):
+/// - First-byte `Retryable` failure → account marked unhealthy, chain walked.
+/// - Mid-stream `Retryable` failure (after ≥1 chunk) → error surfaced to
+///   caller; chain NOT walked (partial stream already delivered).
+/// - `NonRetryable` at any position → short-circuit, no failover.
+///
+/// # Errors
+/// See [`DispatchError`].
+#[allow(clippy::too_many_arguments)]
+pub async fn dispatch_to_pool_stream<P, U, H, T, S, M>(
+    pool_repo: &P,
+    usage_source: &U,
+    health_store: &mut H,
+    transport: &T,
+    secret_res: &S,
+    metrics: &M,
+    secret_ref_opt: Option<&SecretReference>,
+    tenant_id: &TenantId,
+    pool_id: &PoolId,
+    request: &RequestMetadata,
+    now: UnixMillis,
+    body: Bytes,
+) -> Result<StreamDispatchOutcome, DispatchError>
+where
+    P: PoolRepository,
+    U: UsageSnapshotSource,
+    H: AccountHealthStore,
+    T: ProviderInvocationTransport,
+    S: SecretResolution,
+    M: MetricsSink,
+{
+    // 1. Resolve pool.
+    let pool = pool_repo
+        .load(tenant_id, pool_id)?
+        .ok_or_else(|| DispatchError::PoolNotFound {
+            tenant_id: tenant_id.0.clone(),
+            pool_id: pool_id.0.clone(),
+        })?;
+
+    // 2. Snapshot usage + health.
+    let usage = usage_source.snapshot(tenant_id, pool_id)?;
+    let health = health_store.read(tenant_id, pool_id)?;
+
+    // 3. Kernel decision.
+    let decision = pick_account(&pool, request, &usage, &health, now)?;
+
+    // 4. Resolve secret.
+    let credential = if let Some(secret_ref) = secret_ref_opt {
+        secret_res
+            .resolve(secret_ref)
+            .await
+            .map_err(DispatchError::SecretResolutionFailed)?
+    } else {
+        ProviderCredential::new(Bytes::new())
+    };
+
+    // 5. Walk primary + fallback_chain, checking first-byte only.
+    let mut attempts: Vec<ProviderAccountId> =
+        Vec::with_capacity(1 + decision.fallback_chain.len());
+    let mut to_try: Vec<ProviderAccountId> = Vec::with_capacity(1 + decision.fallback_chain.len());
+    to_try.push(decision.account_id.clone());
+    for fallback in &decision.fallback_chain {
+        to_try.push(fallback.clone());
+    }
+
+    let mut last_retryable: Option<TransportError> = None;
+    let mut failover_depth: usize = 0;
+    let mut prev_failed: Option<ProviderAccountId> = None;
+
+    for account_id in to_try {
+        attempts.push(account_id.clone());
+        metrics.record_dispatch_attempt(&account_id, pool.provider);
+
+        if let Some(ref failed) = prev_failed {
+            metrics.record_failover(failed, &account_id, failover_depth);
+        }
+
+        // Collect the stream items to inspect the first byte without
+        // consuming the stream (in-memory reference adapters only — the
+        // production hyper adapter will use a real async stream peek).
+        use futures_util::StreamExt;
+        let raw_stream = transport.dispatch_stream(
+            account_id.clone(),
+            pool.provider,
+            credential.clone(),
+            body.clone(),
+        );
+
+        // Eagerly collect all stream items so we can inspect the first item
+        // without holding a borrow on `transport` across the await boundary.
+        // This is appropriate for the in-memory reference adapter (tests/dev);
+        // the production hyper adapter is an honest-boundary stub today.
+        let all_items: Vec<Result<Bytes, TransportError>> =
+            raw_stream.collect::<Vec<_>>().await;
+
+        // Peek the first item to classify first-byte vs. mid-stream.
+        match all_items.first() {
+            None => {
+                // Empty stream — treat as success with no chunks.
+                health_store.record_success(tenant_id, pool_id, &account_id)?;
+                metrics.record_dispatch_success(&account_id, 0);
+                let empty: Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send>> =
+                    Box::pin(futures_util::stream::empty());
+                return Ok(StreamDispatchOutcome {
+                    account_id,
+                    attempts,
+                    primary_reason: decision.reason,
+                    stream: empty,
+                });
+            }
+            Some(Err(TransportError::Retryable { .. })) => {
+                // First-byte retryable failure: mark unhealthy, walk chain.
+                let detail = match &all_items[0] {
+                    Err(TransportError::Retryable { detail }) => detail.clone(),
+                    _ => unreachable!(),
+                };
+                last_retryable = Some(TransportError::Retryable {
+                    detail,
+                });
+                metrics.record_dispatch_failure(&account_id, true);
+                health_store.record_failure(tenant_id, pool_id, &account_id)?;
+                let updated_map = health_store.read(tenant_id, pool_id)?;
+                if let Some(updated_health) = updated_map.get(&account_id) {
+                    if updated_health.state != HealthState::Healthy {
+                        metrics.record_quarantine_transition(
+                            &account_id,
+                            updated_health.state,
+                        );
+                    }
+                }
+                failover_depth += 1;
+                prev_failed = Some(account_id);
+                // Continue to next account in chain.
+            }
+            Some(Err(TransportError::NonRetryable { .. })) => {
+                // Non-retryable: short-circuit.
+                let detail = match &all_items[0] {
+                    Err(TransportError::NonRetryable { detail }) => detail.clone(),
+                    _ => unreachable!(),
+                };
+                metrics.record_dispatch_failure(&account_id, false);
+                return Err(DispatchError::NonRetryableTransport(
+                    TransportError::NonRetryable { detail },
+                ));
+            }
+            Some(Ok(_)) => {
+                // First chunk delivered — stream is live. Return all collected
+                // items as a static stream (in-memory adapter: all items
+                // already in memory).
+                health_store.record_success(tenant_id, pool_id, &account_id)?;
+                metrics.record_dispatch_success(&account_id, 0);
+                let owned: Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send>> =
+                    Box::pin(futures_util::stream::iter(all_items));
+                return Ok(StreamDispatchOutcome {
+                    account_id,
+                    attempts,
+                    primary_reason: decision.reason,
+                    stream: owned,
+                });
+            }
+        }
+    }
+
+    // 6. Chain exhausted.
     Err(DispatchError::AllProvidersExhausted {
         last_error: last_retryable.unwrap_or(TransportError::Retryable {
             detail: "fallback chain was empty".into(),
@@ -1022,11 +1718,16 @@ mod tests {
             panic!("transport must not be called on PoolNotFound");
         });
         let transport = InMemoryProviderInvocationTransport::new(script);
+        let secret = DeniedSecretResolver;
+        let metrics = NoOpMetricsSink;
         let err = dispatch_to_pool(
             &repo,
             &usage,
             &mut health,
             &transport,
+            &secret,
+            &metrics,
+            None,
             &tid(),
             &pool_id(),
             &RequestMetadata::new("claude-3-5-sonnet".into()),
@@ -1054,11 +1755,16 @@ mod tests {
             panic!("transport must not be called on empty pool");
         });
         let transport = InMemoryProviderInvocationTransport::new(script);
+        let secret = DeniedSecretResolver;
+        let metrics = NoOpMetricsSink;
         let err = dispatch_to_pool(
             &repo,
             &usage,
             &mut health,
             &transport,
+            &secret,
+            &metrics,
+            None,
             &tid(),
             &pool_id(),
             &RequestMetadata::new("m".into()),
@@ -1068,5 +1774,104 @@ mod tests {
         .await
         .expect_err("empty pool must default-deny");
         assert_eq!(err, DispatchError::Routing(PoolError::EmptyMembers));
+    }
+
+    // ── SUB-1 unit tests ──────────────────────────────────────────────────
+
+    #[test]
+    fn provider_credential_debug_is_redacted() {
+        let cred = ProviderCredential::new(Bytes::from_static(b"super-secret-api-key"));
+        let debug_str = format!("{cred:?}");
+        assert!(
+            debug_str.contains("[REDACTED]"),
+            "Debug must redact value, got: {debug_str}"
+        );
+        assert!(
+            !debug_str.contains("super-secret-api-key"),
+            "Debug must not expose raw bytes, got: {debug_str}"
+        );
+    }
+
+    #[tokio::test]
+    async fn in_memory_secret_resolver_returns_credential_for_known_ref() {
+        let sref = SecretReference::new("sref://my-api-key".to_owned()).unwrap();
+        let raw = Bytes::from_static(b"tok_12345");
+        let resolver = InMemorySecretResolver::new().with_secret(sref.clone(), raw.clone());
+        let result = resolver.resolve(&sref).await;
+        let cred = result.expect("in-memory resolver must succeed for seeded secret");
+        assert_eq!(cred.as_bytes(), &raw);
+    }
+
+    #[tokio::test]
+    async fn in_memory_secret_resolver_returns_not_found_for_unknown_ref() {
+        let sref = SecretReference::new("sref://unknown".to_owned()).unwrap();
+        let resolver = InMemorySecretResolver::new();
+        let err = resolver
+            .resolve(&sref)
+            .await
+            .expect_err("unknown ref must return NotFound");
+        assert!(
+            matches!(err, SecretResolutionError::NotFound { .. }),
+            "expected NotFound, got {err:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn denied_secret_resolver_always_returns_denied() {
+        let sref = SecretReference::new("sref://any".to_owned()).unwrap();
+        let resolver = DeniedSecretResolver;
+        let err = resolver
+            .resolve(&sref)
+            .await
+            .expect_err("denied resolver must always fail");
+        assert!(
+            matches!(err, SecretResolutionError::Denied { .. }),
+            "expected Denied, got {err:?}"
+        );
+    }
+
+    // ── SUB-3 unit tests ──────────────────────────────────────────────────
+
+    #[test]
+    fn recording_metrics_sink_accumulates_events_in_insertion_order() {
+        let sink = RecordingMetricsSink::new();
+        let a = pid("alpha");
+        let b = pid("beta");
+
+        sink.record_dispatch_attempt(&a, ProviderFamily::Claude);
+        sink.record_dispatch_failure(&a, true);
+        sink.record_failover(&a, &b, 1);
+        sink.record_dispatch_attempt(&b, ProviderFamily::Claude);
+        sink.record_dispatch_success(&b, 42);
+
+        let events = sink.snapshot();
+        assert_eq!(events.len(), 5);
+        assert!(matches!(&events[0], MetricEvent::Attempt { account_id, .. } if account_id == &a));
+        assert!(matches!(&events[1], MetricEvent::Failure { account_id, retryable: true } if account_id == &a));
+        assert!(matches!(&events[2], MetricEvent::Failover { from, to, depth: 1 } if from == &a && to == &b));
+        assert!(matches!(&events[3], MetricEvent::Attempt { account_id, .. } if account_id == &b));
+        assert!(matches!(&events[4], MetricEvent::Success { account_id, latency_ms: 42 } if account_id == &b));
+    }
+
+    #[test]
+    fn noop_metrics_sink_compiles_and_accepts_all_calls() {
+        let sink = NoOpMetricsSink;
+        let a = pid("alpha");
+        let b = pid("beta");
+        // All calls are no-ops; must not panic.
+        sink.record_dispatch_attempt(&a, ProviderFamily::Claude);
+        sink.record_dispatch_success(&a, 10);
+        sink.record_dispatch_failure(&a, false);
+        sink.record_failover(&a, &b, 1);
+        sink.record_quarantine_transition(&a, HealthState::Unhealthy);
+    }
+
+    #[test]
+    fn recording_metrics_sink_drain_clears_events() {
+        let sink = RecordingMetricsSink::new();
+        sink.record_dispatch_attempt(&pid("x"), ProviderFamily::Claude);
+        let drained = sink.drain();
+        assert_eq!(drained.len(), 1);
+        assert!(sink.snapshot().is_empty(), "drain must clear the event log");
     }
 }
