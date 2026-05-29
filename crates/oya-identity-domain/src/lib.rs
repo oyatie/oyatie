@@ -8,6 +8,12 @@ pub use identity_employment_classification::{
     EmploymentClassification, UnknownEmploymentClassification,
 };
 
+pub mod credential_revocation;
+pub use credential_revocation::{
+    CredentialStatus, RevocationError, RevocationLedger, RevocationReason,
+    UnknownRevocationReason, token_fingerprint,
+};
+
 use std::fmt;
 
 use oya_data_boundary_kernel::{Classified, DataClass, Purpose};
