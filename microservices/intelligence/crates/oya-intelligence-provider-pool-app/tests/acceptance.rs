@@ -41,6 +41,7 @@ use oya_intelligence_provider_pool_app::{
     RecordingMetricsSink, RequestMetadata, SecretReference, SecretResolutionError, SessionId,
     StreamScript, TenantId, TransportError, TransportScript, Unimplemented, UnixMillis,
     UsageSnapshot, UsageSnapshotMap, dispatch_to_pool, dispatch_to_pool_stream,
+    parse_retry_after_ms_pub,
 };
 use oya_intelligence_provider_pool_kernel::DurationMs;
 
@@ -1384,4 +1385,352 @@ async fn metrics_quarantine_transition_recorded_on_threshold_crossing() {
         )),
         "QuarantineTransition(alpha, Degraded) must be emitted after first failure, got: {events_after_first:?}"
     );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 429 / rate-limit rotation tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Build a ProviderResponse with status 429 and the supplied extra headers,
+/// plus the mandatory provider_account_id echo.
+fn rate_limited_response(account: &ProviderAccountId, extra_headers: Vec<(&str, &str)>) -> ProviderResponse {
+    let mut headers = vec![("content-type".to_string(), "application/json".to_string())];
+    for (name, value) in extra_headers {
+        headers.push((name.to_string(), value.to_string()));
+    }
+    ProviderResponse {
+        status: 429,
+        headers,
+        body: Bytes::from_static(b"{\"error\":\"rate_limited\"}"),
+        retry_after_seconds: None,
+        provider_account_id: account.clone(),
+    }
+}
+
+/// AC 429-1: A 429 with `Retry-After: 60` causes the dispatch loop to rotate
+/// to the next seat, record a failure for the rate-limited seat, and return
+/// the successful response from the second seat.
+#[tokio::test]
+async fn dispatch_429_rotates_to_next_seat_and_records_cooldown() {
+    let tenant = ten("ten_acme");
+    let pool_id = pid_pool("pool_claude_pro");
+    let repo = InMemoryPoolRepository::new().with_pool(pool(
+        &tenant,
+        &pool_id,
+        &["seat_a", "seat_b"],
+        PoolRoutingStrategy::RoundRobin,
+    ));
+    let usage = InMemoryUsageSnapshotSource::new();
+    let mut health = InMemoryAccountHealthStore::new();
+
+    // seat_a returns 429 with Retry-After: 60; seat_b returns 200.
+    let script: TransportScript = Arc::new(|account, _provider, _body| {
+        if account == &pid("seat_a") {
+            Ok(rate_limited_response(account, vec![("retry-after", "60")]))
+        } else {
+            Ok(ok_response(account))
+        }
+    });
+    let transport = InMemoryProviderInvocationTransport::new(script);
+    let secret = DeniedSecretResolver;
+    let metrics = RecordingMetricsSink::new();
+
+    let outcome = dispatch_to_pool(
+        &repo,
+        &usage,
+        &mut health,
+        &transport,
+        &secret,
+        &metrics,
+        None,
+        &tenant,
+        &pool_id,
+        &RequestMetadata::new("claude-3-5-sonnet".into()),
+        UnixMillis(1_000_000),
+        Bytes::from_static(b"{}"),
+    )
+    .await
+    .expect("dispatch must converge on seat_b");
+
+    // seat_b served the successful response.
+    assert_eq!(outcome.response.provider_account_id, pid("seat_b"));
+    assert_eq!(outcome.response.status, 200);
+    assert_eq!(outcome.attempts, vec![pid("seat_a"), pid("seat_b")]);
+
+    // seat_a was attempted before seat_b.
+    let call_log = transport.call_log();
+    assert_eq!(call_log, vec![pid("seat_a"), pid("seat_b")]);
+
+    // seat_a must have a failure recorded in the health store.
+    let map = health.read(&tenant, &pool_id).expect("read health");
+    let seat_a_health = map.get(&pid("seat_a")).expect("seat_a must have health entry");
+    assert!(
+        seat_a_health.consecutive_failures >= 1,
+        "seat_a must have at least one failure recorded after 429, got: {seat_a_health:?}"
+    );
+
+    // Metrics: Failure(seat_a, retryable=true) must appear.
+    let events = metrics.snapshot();
+    assert!(
+        events.iter().any(|e| matches!(
+            e,
+            MetricEvent::Failure { account_id, retryable: true } if account_id == &pid("seat_a")
+        )),
+        "Failure(seat_a, retryable=true) must be emitted on 429, got: {events:?}"
+    );
+    // Metrics: Success(seat_b) must appear.
+    assert!(
+        events.iter().any(|e| matches!(
+            e,
+            MetricEvent::Success { account_id, .. } if account_id == &pid("seat_b")
+        )),
+        "Success(seat_b) must be emitted, got: {events:?}"
+    );
+}
+
+/// AC 429-2: `Retry-After-Ms: 30000` is parsed as 30 000 ms (not seconds).
+/// The seat is rotated; the rate-limited seat has a failure recorded.
+#[tokio::test]
+async fn dispatch_429_parses_retry_after_ms_header() {
+    let tenant = ten("ten_acme");
+    let pool_id = pid_pool("pool_claude_pro");
+    let repo = InMemoryPoolRepository::new().with_pool(pool(
+        &tenant,
+        &pool_id,
+        &["seat_a", "seat_b"],
+        PoolRoutingStrategy::RoundRobin,
+    ));
+    let usage = InMemoryUsageSnapshotSource::new();
+    let mut health = InMemoryAccountHealthStore::new();
+
+    // seat_a returns 429 with Retry-After-Ms: 30000; seat_b returns 200.
+    let script: TransportScript = Arc::new(|account, _provider, _body| {
+        if account == &pid("seat_a") {
+            Ok(rate_limited_response(account, vec![("retry-after-ms", "30000")]))
+        } else {
+            Ok(ok_response(account))
+        }
+    });
+    let transport = InMemoryProviderInvocationTransport::new(script);
+    let secret = DeniedSecretResolver;
+    let metrics = NoOpMetricsSink;
+
+    let outcome = dispatch_to_pool(
+        &repo,
+        &usage,
+        &mut health,
+        &transport,
+        &secret,
+        &metrics,
+        None,
+        &tenant,
+        &pool_id,
+        &RequestMetadata::new("m".into()),
+        UnixMillis(2_000_000),
+        Bytes::from_static(b"{}"),
+    )
+    .await
+    .expect("dispatch must converge on seat_b");
+
+    assert_eq!(outcome.response.provider_account_id, pid("seat_b"));
+    assert_eq!(outcome.response.status, 200);
+
+    // seat_a must have a failure recorded.
+    let map = health.read(&tenant, &pool_id).expect("read health");
+    let seat_a_health = map.get(&pid("seat_a")).expect("seat_a must have health entry");
+    assert!(
+        seat_a_health.consecutive_failures >= 1,
+        "seat_a must have a failure after 429+Retry-After-Ms, got: {seat_a_health:?}"
+    );
+}
+
+/// AC 429-3: When the 429 response carries no rate-limit headers, the dispatch
+/// loop falls back to the kernel's `CooldownPolicy::window_for` table.
+/// The seat is still rotated and the failure is recorded.
+#[tokio::test]
+async fn dispatch_429_falls_back_to_kernel_cooldown_when_no_header() {
+    let tenant = ten("ten_acme");
+    let pool_id = pid_pool("pool_claude_pro");
+    let repo = InMemoryPoolRepository::new().with_pool(pool(
+        &tenant,
+        &pool_id,
+        &["seat_a", "seat_b"],
+        PoolRoutingStrategy::RoundRobin,
+    ));
+    let usage = InMemoryUsageSnapshotSource::new();
+    let mut health = InMemoryAccountHealthStore::new();
+
+    // seat_a returns 429 with NO rate-limit headers; seat_b returns 200.
+    let script: TransportScript = Arc::new(|account, _provider, _body| {
+        if account == &pid("seat_a") {
+            // No rate-limit headers — dispatch loop must fall back to kernel policy.
+            Ok(rate_limited_response(account, vec![]))
+        } else {
+            Ok(ok_response(account))
+        }
+    });
+    let transport = InMemoryProviderInvocationTransport::new(script);
+    let secret = DeniedSecretResolver;
+    let metrics = NoOpMetricsSink;
+
+    let outcome = dispatch_to_pool(
+        &repo,
+        &usage,
+        &mut health,
+        &transport,
+        &secret,
+        &metrics,
+        None,
+        &tenant,
+        &pool_id,
+        &RequestMetadata::new("m".into()),
+        UnixMillis(3_000_000),
+        Bytes::from_static(b"{}"),
+    )
+    .await
+    .expect("dispatch must converge on seat_b even without Retry-After header");
+
+    assert_eq!(outcome.response.provider_account_id, pid("seat_b"));
+    assert_eq!(outcome.response.status, 200);
+
+    // seat_a must have a failure recorded (kernel fallback still triggers rotation).
+    let map = health.read(&tenant, &pool_id).expect("read health");
+    let seat_a_health = map.get(&pid("seat_a")).expect("seat_a must have health entry");
+    assert!(
+        seat_a_health.consecutive_failures >= 1,
+        "seat_a must have a failure even with no Retry-After header, got: {seat_a_health:?}"
+    );
+}
+
+/// AC 429-4: When all seats in the pool return 429, the dispatch loop exhausts
+/// the fallback chain and returns DispatchError::AllProvidersExhausted.
+#[tokio::test]
+async fn dispatch_429_chain_exhaustion_all_seats_rate_limited() {
+    let tenant = ten("ten_acme");
+    let pool_id = pid_pool("pool_claude_pro");
+    let repo = InMemoryPoolRepository::new().with_pool(pool(
+        &tenant,
+        &pool_id,
+        &["seat_a", "seat_b"],
+        PoolRoutingStrategy::RoundRobin,
+    ));
+    let usage = InMemoryUsageSnapshotSource::new();
+    let mut health = InMemoryAccountHealthStore::new();
+
+    // All seats return 429.
+    let script: TransportScript = Arc::new(|account, _provider, _body| {
+        Ok(rate_limited_response(account, vec![("retry-after", "120")]))
+    });
+    let transport = InMemoryProviderInvocationTransport::new(script);
+    let secret = DeniedSecretResolver;
+    let metrics = NoOpMetricsSink;
+
+    let err = dispatch_to_pool(
+        &repo,
+        &usage,
+        &mut health,
+        &transport,
+        &secret,
+        &metrics,
+        None,
+        &tenant,
+        &pool_id,
+        &RequestMetadata::new("m".into()),
+        UnixMillis(4_000_000),
+        Bytes::from_static(b"{}"),
+    )
+    .await
+    .expect_err("all-429 pool must return AllProvidersExhausted");
+
+    match err {
+        DispatchError::AllProvidersExhausted { attempts, last_error } => {
+            assert_eq!(attempts, vec![pid("seat_a"), pid("seat_b")]);
+            match last_error {
+                TransportError::Retryable { detail } => {
+                    assert!(
+                        detail.contains("429"),
+                        "last_error detail must mention 429, got: {detail}"
+                    );
+                }
+                other => panic!("expected Retryable last_error, got {other:?}"),
+            }
+        }
+        other => panic!("expected AllProvidersExhausted, got {other:?}"),
+    }
+
+    // Both seats must have failures recorded.
+    let map = health.read(&tenant, &pool_id).expect("read health");
+    for seat in ["seat_a", "seat_b"] {
+        let h = map.get(&pid(seat)).expect("{seat} must have health entry");
+        assert!(
+            h.consecutive_failures >= 1,
+            "{seat} must have at least one failure recorded, got: {h:?}"
+        );
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// parse_retry_after_ms unit tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// retry-after (seconds) takes priority over all other headers.
+#[test]
+fn parse_retry_after_seconds_header_takes_priority() {
+    let headers = vec![
+        ("retry-after".to_string(), "60".to_string()),
+        ("retry-after-ms".to_string(), "999999".to_string()),
+    ];
+    let ms = parse_retry_after_ms_pub(&headers, 1);
+    assert_eq!(ms, 60_000, "retry-after:60 must yield 60_000 ms");
+}
+
+/// retry-after-ms is used when retry-after is absent.
+#[test]
+fn parse_retry_after_ms_header_used_when_no_retry_after() {
+    let headers = vec![
+        ("retry-after-ms".to_string(), "45000".to_string()),
+    ];
+    let ms = parse_retry_after_ms_pub(&headers, 1);
+    assert_eq!(ms, 45_000);
+}
+
+/// anthropic-ratelimit-requests-reset (integer seconds) is the third priority.
+#[test]
+fn parse_anthropic_ratelimit_requests_reset_header() {
+    let headers = vec![
+        ("anthropic-ratelimit-requests-reset".to_string(), "30".to_string()),
+    ];
+    let ms = parse_retry_after_ms_pub(&headers, 1);
+    assert_eq!(ms, 30_000);
+}
+
+/// x-ratelimit-reset-requests (integer seconds) is priority 5.
+#[test]
+fn parse_x_ratelimit_reset_requests_header() {
+    let headers = vec![
+        ("x-ratelimit-reset-requests".to_string(), "15".to_string()),
+    ];
+    let ms = parse_retry_after_ms_pub(&headers, 1);
+    assert_eq!(ms, 15_000);
+}
+
+/// When no recognised header is present, falls back to kernel CooldownPolicy.
+/// For consecutive_failures=1, UpstreamRateLimit429 table yields 30_000 ms.
+#[test]
+fn parse_fallback_to_kernel_cooldown_policy() {
+    let headers: Vec<(String, String)> = vec![];
+    let ms = parse_retry_after_ms_pub(&headers, 1);
+    // CooldownPolicy::window_for(UpstreamRateLimit429, 1) = 30_000 ms.
+    assert_eq!(ms, 30_000, "fallback must use kernel table: 30_000 ms for f=1");
+}
+
+/// HTTP-date values in retry-after are ignored (fall through to fallback).
+#[test]
+fn parse_retry_after_http_date_is_ignored_falls_back_to_kernel() {
+    let headers = vec![
+        ("retry-after".to_string(), "Wed, 21 Oct 2025 07:28:00 GMT".to_string()),
+    ];
+    let ms = parse_retry_after_ms_pub(&headers, 1);
+    // Non-integer retry-after → skip, no other headers → kernel fallback.
+    assert_eq!(ms, 30_000, "HTTP-date retry-after must be ignored; got {ms}");
 }

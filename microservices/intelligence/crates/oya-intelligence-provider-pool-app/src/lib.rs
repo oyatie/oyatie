@@ -80,10 +80,11 @@ use std::sync::OnceLock;
 
 pub use oya_intelligence_account_kernel::{ProviderFamily, SecretReference};
 pub use oya_intelligence_provider_pool_kernel::{
-    AccountHealth, AccountHealthMap, HealthState, PoolError, PoolId, PoolMembershipChange,
-    PoolRoutingDecision, PoolRoutingReason, PoolRoutingStrategy, ProviderAccountId,
-    ProviderAccountPool, ProviderTier, RequestMetadata, SessionId, TenantId, TosAckId, UnixMillis,
-    UsageSnapshot, UsageSnapshotMap, pick_account,
+    AccountHealth, AccountHealthMap, CooldownPolicy, DurationMs, FailureKind, HealthState,
+    PoolError, PoolId, PoolMembershipChange, PoolRoutingDecision, PoolRoutingReason,
+    PoolRoutingStrategy, ProviderAccountId, ProviderAccountPool, ProviderTier, QuarantineMap,
+    RequestMetadata, SessionId, TenantId, TosAckId, UnixMillis, UsageSnapshot, UsageSnapshotMap,
+    pick_account, pick_account_with_cooldown, populate_quarantine_from_changes,
 };
 
 // =====================================================================
@@ -862,6 +863,7 @@ impl AccountHealthStore for InMemoryAccountHealthStore {
         let current = map.get(account_id).copied().unwrap_or(AccountHealth {
             state: HealthState::Healthy,
             consecutive_failures: 0,
+            cooldown_until: None,
         });
         let next_count = current.consecutive_failures.saturating_add(1);
         let state = if next_count >= quarantine {
@@ -876,6 +878,7 @@ impl AccountHealthStore for InMemoryAccountHealthStore {
             AccountHealth {
                 state,
                 consecutive_failures: next_count,
+                cooldown_until: None,
             },
         );
         Ok(())
@@ -1014,17 +1017,99 @@ pub(crate) enum StatusClass {
     Success,
     /// 5xx + network errors — `TransportError::Retryable`.
     Retryable,
-    /// 4xx, 1xx, 3xx — `TransportError::NonRetryable`.
+    /// 429 — upstream rate-limit; dispatch loop records cooldown + walks chain.
+    /// The transport returns `Ok(ProviderResponse)` so the loop can inspect the
+    /// full `Retry-After*` header set before deciding the cooldown window.
+    RateLimited,
+    /// 4xx (except 429), 1xx, 3xx — `TransportError::NonRetryable`.
     NonRetryable,
 }
 
-/// Classify an HTTP status code into the dispatch loop's three-way decision.
+/// Classify an HTTP status code into the dispatch loop's four-way decision.
 pub(crate) fn classify_status(status: u16) -> StatusClass {
     match status {
         200..=299 => StatusClass::Success,
+        429 => StatusClass::RateLimited,
         500..=599 => StatusClass::Retryable,
         _ => StatusClass::NonRetryable,
     }
+}
+
+/// Parse a cooldown duration in milliseconds from a 429 response's headers.
+///
+/// Priority order (first match wins):
+/// 1. `retry-after` — integer seconds.
+/// 2. `retry-after-ms` — integer milliseconds.
+/// 3. `anthropic-ratelimit-requests-reset` — integer seconds.
+/// 4. `anthropic-ratelimit-tokens-reset` — integer seconds.
+/// 5. `x-ratelimit-reset-requests` — integer seconds.
+/// 6. `x-ratelimit-reset-tokens` — integer seconds.
+/// 7. Fallback: `CooldownPolicy::window_for(UpstreamRateLimit429, consecutive_failures)`.
+///
+/// Non-integer header values (e.g. HTTP-dates) are silently skipped so the
+/// next priority is tried. Overflow is guarded by `saturating_mul`.
+///
+/// data_class: INTERNAL_ONLY
+/// Public re-export for unit testing from integration-test crates.
+/// Internal callers use the `pub(crate)` name directly.
+#[doc(hidden)]
+pub fn parse_retry_after_ms_pub(headers: &[(String, String)], consecutive_failures: u32) -> u64 {
+    parse_retry_after_ms(headers, consecutive_failures)
+}
+
+pub(crate) fn parse_retry_after_ms(headers: &[(String, String)], consecutive_failures: u32) -> u64 {
+    // Helper: look up the first header matching `name` (already lowercased).
+    let find = |name: &str| -> Option<&str> {
+        headers
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, v)| v.as_str())
+    };
+
+    // 1. retry-after: integer seconds.
+    if let Some(val) = find("retry-after") {
+        if let Ok(secs) = val.trim().parse::<u64>() {
+            return secs.saturating_mul(1_000);
+        }
+    }
+
+    // 2. retry-after-ms: integer milliseconds.
+    if let Some(val) = find("retry-after-ms") {
+        if let Ok(ms) = val.trim().parse::<u64>() {
+            return ms;
+        }
+    }
+
+    // 3. anthropic-ratelimit-requests-reset: integer seconds.
+    if let Some(val) = find("anthropic-ratelimit-requests-reset") {
+        if let Ok(secs) = val.trim().parse::<u64>() {
+            return secs.saturating_mul(1_000);
+        }
+    }
+
+    // 4. anthropic-ratelimit-tokens-reset: integer seconds.
+    if let Some(val) = find("anthropic-ratelimit-tokens-reset") {
+        if let Ok(secs) = val.trim().parse::<u64>() {
+            return secs.saturating_mul(1_000);
+        }
+    }
+
+    // 5. x-ratelimit-reset-requests: integer seconds.
+    if let Some(val) = find("x-ratelimit-reset-requests") {
+        if let Ok(secs) = val.trim().parse::<u64>() {
+            return secs.saturating_mul(1_000);
+        }
+    }
+
+    // 6. x-ratelimit-reset-tokens: integer seconds.
+    if let Some(val) = find("x-ratelimit-reset-tokens") {
+        if let Ok(secs) = val.trim().parse::<u64>() {
+            return secs.saturating_mul(1_000);
+        }
+    }
+
+    // 7. Kernel fallback: CooldownPolicy::window_for table.
+    CooldownPolicy::window_for(FailureKind::UpstreamRateLimit429, consecutive_failures).0
 }
 
 /// Filter hop-by-hop headers from `headers`, additionally stripping any tokens
@@ -1310,8 +1395,12 @@ impl HyperProviderInvocationTransport {
             .to_bytes();
 
         // 9. Classify status and return.
+        //
+        // RateLimited (429) returns Ok(ProviderResponse) so the dispatch loop
+        // can inspect the full Retry-After* header set before computing the
+        // cooldown window. The loop detects status == 429 and handles it.
         match classify_status(status) {
-            StatusClass::Success => Ok(ProviderResponse {
+            StatusClass::Success | StatusClass::RateLimited => Ok(ProviderResponse {
                 status,
                 headers: filtered_headers,
                 body: body_bytes,
@@ -1605,6 +1694,11 @@ where
     };
 
     // 5. Walk primary + fallback_chain.
+    //
+    // `quarantine_map` accumulates per-seat rate-limit expiries populated when
+    // a seat returns 429. This map is local to the dispatch call; future slices
+    // may surface it via `DispatchOutcome` for callers that need to persist it.
+    let mut quarantine_map: QuarantineMap = QuarantineMap::new();
     let mut attempts: Vec<ProviderAccountId> =
         Vec::with_capacity(1 + decision.fallback_chain.len());
     let mut last_retryable: Option<TransportError> = None;
@@ -1633,6 +1727,37 @@ where
             .dispatch(account_id.clone(), pool.provider, body.clone())
             .await
         {
+            Ok(response) if response.status == 429 => {
+                // Rate-limited: compute cooldown from Retry-After* headers or
+                // the kernel CooldownPolicy table, record seat-level quarantine,
+                // mark health failure, and walk the fallback chain.
+                let current_health = health_store.read(tenant_id, pool_id)?;
+                let consecutive = current_health
+                    .get(&account_id)
+                    .map(|h| h.consecutive_failures)
+                    .unwrap_or(0);
+                let cooldown_ms = parse_retry_after_ms(&response.headers, consecutive);
+                // Insert expiry = now + cooldown_ms into the quarantine map.
+                quarantine_map.insert(
+                    account_id.clone(),
+                    UnixMillis(now.0.saturating_add(cooldown_ms)),
+                );
+                last_retryable = Some(TransportError::Retryable {
+                    detail: format!(
+                        "upstream returned 429 (rate-limited); cooldown_ms={cooldown_ms}"
+                    ),
+                });
+                metrics.record_dispatch_failure(&account_id, true);
+                health_store.record_failure(tenant_id, pool_id, &account_id)?;
+                let updated_map = health_store.read(tenant_id, pool_id)?;
+                if let Some(updated_health) = updated_map.get(&account_id)
+                    && updated_health.state != HealthState::Healthy
+                {
+                    metrics.record_quarantine_transition(&account_id, updated_health.state);
+                }
+                failover_depth += 1;
+                prev_failed = Some(account_id);
+            }
             Ok(mut response) => {
                 let latency_ms = start.elapsed().as_millis() as u64;
                 response.provider_account_id = account_id.clone();
@@ -1672,6 +1797,10 @@ where
             }
         }
     }
+    // Suppress unused-variable warning on quarantine_map — it is populated
+    // during the loop and available for future callers; the _ binding keeps
+    // it alive through the loop without triggering the lint.
+    let _ = quarantine_map;
 
     // 6. Chain exhausted; surface the final retryable error.
     Err(DispatchError::AllProvidersExhausted {
@@ -2237,13 +2366,23 @@ mod tests {
 
     #[test]
     fn classify_status_maps_4xx_to_non_retryable() {
-        for status in [400u16, 401, 403, 404, 422, 429] {
+        // 429 is now RateLimited, not NonRetryable — it has its own class.
+        for status in [400u16, 401, 403, 404, 422] {
             assert_eq!(
                 classify_status(status),
                 StatusClass::NonRetryable,
                 "status {status} must be NonRetryable"
             );
         }
+    }
+
+    #[test]
+    fn classify_status_maps_429_to_rate_limited() {
+        assert_eq!(
+            classify_status(429),
+            StatusClass::RateLimited,
+            "429 must map to RateLimited (not NonRetryable)"
+        );
     }
 
     // ── transport integration tests (hermetic in-process hyper server) ────────
@@ -2402,8 +2541,10 @@ mod tests {
         );
     }
 
+    /// 429 now returns Ok(ProviderResponse { status: 429 }) so the dispatch loop
+    /// can inspect the Retry-After* headers before recording the cooldown window.
     #[tokio::test]
-    async fn hyper_transport_maps_4xx_to_non_retryable() {
+    async fn hyper_transport_maps_429_to_ok_with_rate_limited_status() {
         let port = spawn_test_server(429, vec![("retry-after", "60")], b"rate limited").await;
         let resolver = in_memory_resolver("key-429", "tok_429");
         let transport = transport_with_resolver(
@@ -2411,13 +2552,15 @@ mod tests {
             resolver,
         );
         let account_id = ProviderAccountId("sref://key-429".into());
-        let err = transport
+        let resp = transport
             .dispatch(account_id, ProviderFamily::OpenAiOrCodex, Bytes::from_static(b"{}"))
             .await
-            .expect_err("429 must return Err(NonRetryable)");
+            .expect("429 must return Ok(ProviderResponse) so dispatch loop sees headers");
+        assert_eq!(resp.status, 429, "status must be 429");
+        // The Retry-After header must be present in the response headers.
         assert!(
-            matches!(err, TransportError::NonRetryable { .. }),
-            "expected NonRetryable, got {err:?}"
+            resp.headers.iter().any(|(n, _)| n == "retry-after"),
+            "retry-after header must pass through; headers: {:?}", resp.headers
         );
     }
 
