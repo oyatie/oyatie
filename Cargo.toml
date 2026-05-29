@@ -1040,6 +1040,9 @@ status = "planned"
 # Product/vertical grouping registries are retired. Packaging is computed by tenant/RBAC entitlements.
 
 [workspace.dependencies]
+# Canonical Phase-1 crypto backend (ADR-0506). Drop-in ring replacement backed
+# by AWS-LC (FIPS-validatable BoringSSL fork). Apache-2.0 + ISC — OSI-clean.
+aws-lc-rs = { version = "1", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 prost = "0.14.3"

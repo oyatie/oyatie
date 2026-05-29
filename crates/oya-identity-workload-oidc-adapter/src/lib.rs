@@ -21,8 +21,8 @@
 //!    the key material pins a family (RSA vs EC) and the JWK may pin an exact
 //!    `alg`; a mismatch is refused (RFC 8725 §2.2/§3.1).
 //! 5. The signature verifies against the issuer's JWK (selected by `kid`)
-//!    using **ring** (BoringSSL-backed; constant-time; the blessed crypto
-//!    primitive per the runtime-dependency allowlist).
+//!    using **aws-lc-rs** (AWS-LC-backed; constant-time; the canonical Phase-1
+//!    crypto backend per ADR-0506).
 //! 6. The `iss` claim equals the configured expected issuer.
 //! 7. The `aud` claim contains the configured expected audience.
 //! 8. `exp` is in the future and `nbf`/`iat` (if present) are not in the
@@ -31,21 +31,22 @@
 //! Only after all checks pass are the claims projected into a principal whose
 //! SPIFFE `trust_domain` is rooted at (and equal to) the verified tenant.
 //!
-//! ## Why ring (and not a higher-level JWT crate)
+//! ## Why aws-lc-rs (and not a higher-level JWT crate)
 //!
-//! `ring` (ISC/MIT/OpenSSL license — OSI-clean) is already in the workspace
-//! lockfile and is the hyperscaler-grade, audited crypto primitive named in the
-//! runtime-dependency allowlist. Validating the JWS directly against `ring`
-//! keeps the trusted compute base small and avoids pulling an unvetted
-//! transitive tree. JWKS RSA keys arrive as `n`/`e`; we encode the PKCS#1
-//! `RSAPublicKey` DER that `ring` expects (see [`rsa_pkcs1_der`]).
+//! `aws-lc-rs` (Apache-2.0 + ISC — OSI-clean) is the canonical Phase-1 crypto
+//! backend per ADR-0506. It is backed by AWS-LC (a hardened, FIPS-validatable
+//! fork of BoringSSL) and exports ring-compatible module paths. Validating the
+//! JWS directly against `aws-lc-rs` keeps the trusted compute base small and
+//! avoids pulling an unvetted transitive tree. JWKS RSA keys arrive as `n`/`e`;
+//! we encode the PKCS#1 `RSAPublicKey` DER that `aws-lc-rs` expects (see
+//! [`rsa_pkcs1_der`]).
 
 // ADR-0083 Tier 3: production code stays panic-free; tests may use unwrap/expect.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use ring::signature;
+use aws_lc_rs::signature;
 use serde::Deserialize;
 
 use oya_identity_workload_domain::{
@@ -750,10 +751,10 @@ mod tests {
     use super::*;
 
     // A deterministic, self-contained signing harness: we generate an ES256
-    // key with `ring` at test time, sign a token, and validate it. This proves
+    // key with `aws-lc-rs` at test time, sign a token, and validate it. This proves
     // the full verify path against real crypto without any network/JWKS fetch.
-    use ring::rand::SystemRandom;
-    use ring::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
+    use aws_lc_rs::rand::SystemRandom;
+    use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
 
     fn b64url(bytes: &[u8]) -> String {
         URL_SAFE_NO_PAD.encode(bytes)
