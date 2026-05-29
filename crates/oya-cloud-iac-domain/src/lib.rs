@@ -2,6 +2,26 @@
 //!
 //! This crate intentionally starts as a pure domain crate: no filesystem,
 //! network, provider SDK, OpenTofu CLI, Argo CD API, or Kubernetes client I/O.
+//!
+//! # GitOps drift reconciliation
+//!
+//! [`reconcile_gitops_drift`] compares a _desired_ [`GitOpsEvidence`] (what the
+//! declarative pipeline intends) against an _observed_ [`GitOpsEvidence`] (what
+//! the GitOps controller last reported) and returns a [`GitOpsDriftReport`].
+//!
+//! ## Identity contract
+//!
+//! Both arguments must describe the same
+//! `(controller, tenant_id, cell_id, application_name)` tuple.  If they differ
+//! the report verdict is [`GitOpsDriftVerdict::IdentityMismatch`] regardless of
+//! any other field values.
+//!
+//! ## Drift rank order (applied only when identities match)
+//!
+//! 1. [`GitOpsDriftVerdict::DriftedCommit`] — observed `commit_sha` ≠ desired
+//! 2. [`GitOpsDriftVerdict::DriftedSyncStatus`] — observed `sync_status` ≠ `Synced`
+//! 3. [`GitOpsDriftVerdict::DegradedHealth`] — observed `health_status` ≠ `Healthy`
+//! 4. [`GitOpsDriftVerdict::InSync`] — all fields aligned
 
 #![forbid(unsafe_code)]
 
@@ -691,6 +711,104 @@ impl GitOpsEvidence {
     pub const fn is_converged(&self) -> bool {
         matches!(self.sync_status, GitOpsSyncStatus::Synced)
             && matches!(self.health_status, GitOpsHealthStatus::Healthy)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// GitOps drift reconciliation
+// ---------------------------------------------------------------------------
+
+/// Verdict of a desired-vs-observed GitOps drift comparison.
+///
+/// Variants are ranked: `IdentityMismatch` is checked first; within matching
+/// identities the order is `DriftedCommit` → `DriftedSyncStatus` →
+/// `DegradedHealth` → `InSync`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum GitOpsDriftVerdict {
+    /// All observed fields match the desired state.
+    InSync,
+    /// The observed `commit_sha` differs from the desired `commit_sha`.
+    DriftedCommit,
+    /// The observed `sync_status` is not `Synced`.
+    DriftedSyncStatus,
+    /// The observed `health_status` is not `Healthy`.
+    DegradedHealth,
+    /// The identity tuple `(controller, tenant_id, cell_id, application_name)`
+    /// differs between desired and observed.
+    IdentityMismatch,
+}
+
+/// Report returned by [`reconcile_gitops_drift`].
+///
+/// Always carries the identity tuple and the _observed_ (not desired) status
+/// fields so callers can emit structured telemetry without re-reading either
+/// evidence object.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitOpsDriftReport {
+    /// The drift verdict.
+    pub verdict: GitOpsDriftVerdict,
+    /// The GitOps controller observed (taken from the observed evidence).
+    pub controller: GitOpsController,
+    /// Tenant identifier (taken from the observed evidence).
+    pub tenant_id: String,
+    /// Cell identifier (taken from the observed evidence).
+    pub cell_id: String,
+    /// Application name (taken from the observed evidence).
+    pub application_name: String,
+    /// Commit SHA as last reported by the controller.
+    pub observed_commit_sha: String,
+    /// Sync status as last reported by the controller.
+    pub observed_sync_status: GitOpsSyncStatus,
+    /// Health status as last reported by the controller.
+    pub observed_health_status: GitOpsHealthStatus,
+}
+
+/// Compare a desired GitOps state against an observed GitOps state and return
+/// a typed drift report.
+///
+/// # Identity contract
+/// `desired` and `observed` must describe the same
+/// `(controller, tenant_id, cell_id, application_name)` tuple.
+/// If they differ, the report verdict is
+/// [`GitOpsDriftVerdict::IdentityMismatch`] regardless of any other field
+/// values.
+///
+/// # Drift rank order (applied only when identities match)
+/// 1. `DriftedCommit`     — observed `commit_sha` != desired `commit_sha`
+/// 2. `DriftedSyncStatus` — observed `sync_status` != `GitOpsSyncStatus::Synced`
+/// 3. `DegradedHealth`    — observed `health_status` != `GitOpsHealthStatus::Healthy`
+/// 4. `InSync`            — all fields aligned
+///
+/// This function performs no I/O.
+pub fn reconcile_gitops_drift(
+    desired: &GitOpsEvidence,
+    observed: &GitOpsEvidence,
+) -> GitOpsDriftReport {
+    let verdict = if desired.controller() != observed.controller()
+        || desired.tenant_id() != observed.tenant_id()
+        || desired.cell_id() != observed.cell_id()
+        || desired.application_name() != observed.application_name()
+    {
+        GitOpsDriftVerdict::IdentityMismatch
+    } else if desired.commit_sha() != observed.commit_sha() {
+        GitOpsDriftVerdict::DriftedCommit
+    } else if observed.sync_status() != GitOpsSyncStatus::Synced {
+        GitOpsDriftVerdict::DriftedSyncStatus
+    } else if observed.health_status() != GitOpsHealthStatus::Healthy {
+        GitOpsDriftVerdict::DegradedHealth
+    } else {
+        GitOpsDriftVerdict::InSync
+    };
+
+    GitOpsDriftReport {
+        verdict,
+        controller: observed.controller(),
+        tenant_id: observed.tenant_id().to_string(),
+        cell_id: observed.cell_id().to_string(),
+        application_name: observed.application_name().to_string(),
+        observed_commit_sha: observed.commit_sha().to_string(),
+        observed_sync_status: observed.sync_status(),
+        observed_health_status: observed.health_status(),
     }
 }
 
