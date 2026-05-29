@@ -1,0 +1,14 @@
+# ADR-0488: mold linker via clang for fast Linux link times.
+# macOS: lld is already the rustc default since 1.74 (linker driver = cc/clang -> lld);
+#        no override needed. If overriding ever desired:
+#          [target.x86_64-apple-darwin]
+#          linker = "/usr/bin/clang"
+#          rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[target.aarch64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
