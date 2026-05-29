@@ -168,6 +168,14 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     // ADR-0388: doc-axis convention enforcement — status casing, shadow ideas,
     // docs proliferation, catalog/manifest drift.
     "doc-axis",
+    // M02b/P22 exit-gate quality lanes — check crates and `gate validate`
+    // dispatch arms exist; wired here so `oya gate run-all` dispatches them.
+    // ADR-0231 §"Plane 8 — Statelessness + shardability".
+    "statelessness",
+    "shardability",
+    // ADR-0062 §"performance budgets" + §"competitive benchmark".
+    "perf-budget",
+    "benchmark",
 ];
 
 pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
@@ -558,6 +566,11 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ("mobile-native", LaneInputs::Globs(&["crates/**", "microservices/**"])),
     ("protection-context-match", LaneInputs::Globs(&["crates/**", "microservices/**", "registry/cedar/**"])),
     ("foundation-bypass", LaneInputs::Global),
+    // ── M02b/P22 quality lanes (statelessness / shardability / perf-budget / benchmark) ──
+    ("statelessness", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("shardability", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("perf-budget", LaneInputs::Globs(&["docs/**", "specs/**", "crates/**", "microservices/**"])),
+    ("benchmark", LaneInputs::Globs(&["docs/**", "specs/**", "crates/**", "microservices/**"])),
 ];
 
 /// Returns the subset of `AGGREGATED_VALIDATE_LANES` that should be run given
@@ -1165,6 +1178,32 @@ mod tests {
                 "output order violation: `{lane}` at catalog pos {pos} came after pos {prev_pos}"
             );
             prev_pos = pos;
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 0: new quality-lane acceptance tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn aggregated_validate_lanes_contains_all_four_quality_lanes() {
+        for lane in ["statelessness", "shardability", "perf-budget", "benchmark"] {
+            assert!(
+                AGGREGATED_VALIDATE_LANES.contains(&lane),
+                "quality lane `{lane}` must be present in AGGREGATED_VALIDATE_LANES"
+            );
+        }
+    }
+
+    #[test]
+    fn lane_input_globs_contains_entries_for_all_four_quality_lanes() {
+        let keys: std::collections::BTreeSet<&str> =
+            LANE_INPUT_GLOBS.iter().map(|(k, _)| *k).collect();
+        for lane in ["statelessness", "shardability", "perf-budget", "benchmark"] {
+            assert!(
+                keys.contains(lane),
+                "LANE_INPUT_GLOBS must have an entry for quality lane `{lane}`"
+            );
         }
     }
 
