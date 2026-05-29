@@ -355,7 +355,7 @@ pub enum LaneInputs {
 ///
 /// Leading `./` on `path` is normalised away before matching.
 #[must_use]
-pub fn path_glob_matches(path: &str, glob: &str) -> bool {
+pub(crate) fn path_glob_matches(path: &str, glob: &str) -> bool {
     // Normalise leading "./" from VCS-supplied relative paths.
     let path = path.strip_prefix("./").unwrap_or(path);
 
@@ -373,11 +373,11 @@ pub fn path_glob_matches(path: &str, glob: &str) -> bool {
     // Shape 3: "**/*.ext" — any depth, specific extension
     if let Some(pattern) = glob.strip_prefix("**/") {
         // pattern is now "*.ext" or similar; must have no further wildcards
-        if let Some(ext) = pattern.strip_prefix("*.") {
-            if !ext.contains(['*', '?', '[', ']']) {
-                let suffix = format!(".{ext}");
-                return path.ends_with(suffix.as_str());
-            }
+        if let Some(ext) = pattern.strip_prefix("*.")
+            && !ext.contains(['*', '?', '[', ']'])
+        {
+            let suffix = format!(".{ext}");
+            return path.ends_with(suffix.as_str());
         }
         return false;
     }
@@ -1032,17 +1032,55 @@ mod tests {
 
     #[test]
     fn lanes_for_changed_matching_path_includes_matched_lane_and_all_unmapped_global_lanes() {
-        // Find a lane that is explicitly mapped with globs (not Global).
-        // Use "architecture-boundaries" which will be mapped to
-        // "docs/decisions/**" or similar. We find any Globs-mapped lane and
-        // construct a path that hits it, then verify:
-        //   - the matched lane is present
-        //   - all unmapped lanes are present
-        //   - a different explicitly-mapped lane whose globs do NOT match is
-        //     absent (tested separately in group 5).
-        let result = lanes_for_changed(&[]);
-        // Empty-input guard: full catalog must be returned.
-        assert_eq!(result.len(), AGGREGATED_VALIDATE_LANES.len());
+        // Spec criterion 3 (positive sub-case): a path that matches exactly one
+        // explicitly-mapped lane's globs must yield that lane PLUS every
+        // Global/unmapped lane, while excluding explicitly-mapped lanes the path
+        // does NOT hit.
+        //
+        // `docs/decisions/ADR-9999-test.md` matches `adr-supersession-consistency`
+        // (mapped solely to `docs/decisions/**`) but does NOT match `slo-coverage`
+        // (mapped to `**/*.openslo.yaml` + `microservices/**`).
+        let changed = ["docs/decisions/ADR-9999-test.md"];
+        let result = lanes_for_changed(&changed);
+
+        // (a) The matched lane is present.
+        assert!(
+            result.contains(&"adr-supersession-consistency"),
+            "matched lane `adr-supersession-consistency` must be selected for {changed:?}"
+        );
+
+        // (b) An explicitly-mapped lane whose globs do NOT match is absent —
+        //     proving the positive path still narrows (sanity check the chosen
+        //     path truly does not hit slo-coverage's globs before asserting).
+        let slo_globs: &[&str] = &["**/*.openslo.yaml", "microservices/**"];
+        assert!(
+            !slo_globs
+                .iter()
+                .any(|g| path_glob_matches(changed[0], g)),
+            "fixture invariant: chosen path must not match slo-coverage globs"
+        );
+        assert!(
+            !result.contains(&"slo-coverage"),
+            "non-matching explicitly-mapped lane `slo-coverage` must be excluded"
+        );
+
+        // (c) Every Global-marked and every unmapped lane is still present.
+        let mapped_keys: std::collections::BTreeSet<&str> =
+            LANE_INPUT_GLOBS.iter().map(|(k, _)| *k).collect();
+        let global_keys: std::collections::BTreeSet<&str> = LANE_INPUT_GLOBS
+            .iter()
+            .filter_map(|(k, v)| matches!(v, LaneInputs::Global).then_some(*k))
+            .collect();
+        for lane in AGGREGATED_VALIDATE_LANES {
+            let is_unmapped = !mapped_keys.contains(*lane);
+            let is_global = global_keys.contains(*lane);
+            if is_unmapped || is_global {
+                assert!(
+                    result.contains(lane),
+                    "Global/unmapped lane `{lane}` must always be present in {changed:?}"
+                );
+            }
+        }
     }
 
     #[test]
@@ -1143,13 +1181,13 @@ mod tests {
         // and checking that any lane with an empty globs list appears.
         let result = lanes_for_changed(&["some/path/that/matches/nothing.xyz"]);
         for (lane, inputs) in LANE_INPUT_GLOBS {
-            if let LaneInputs::Globs(globs) = inputs {
-                if globs.is_empty() {
-                    assert!(
-                        result.contains(lane),
-                        "lane `{lane}` with empty globs list must always be selected"
-                    );
-                }
+            if let LaneInputs::Globs(globs) = inputs
+                && globs.is_empty()
+            {
+                assert!(
+                    result.contains(lane),
+                    "lane `{lane}` with empty globs list must always be selected"
+                );
             }
         }
     }
@@ -1172,21 +1210,19 @@ mod tests {
         let result = lanes_for_changed(&[sentinel]);
 
         for (lane, inputs) in LANE_INPUT_GLOBS {
-            if let LaneInputs::Globs(globs) = inputs {
-                if !globs.is_empty() {
-                    // Verify none of the lane's globs match the sentinel.
-                    let any_match = globs
-                        .iter()
-                        .any(|g| path_glob_matches(sentinel, g));
-                    if !any_match {
-                        assert!(
-                            !result.contains(lane),
-                            "explicitly-mapped lane `{lane}` must be absent when its globs \
-                             do not match the changed file set"
-                        );
-                        // One proven exclusion is sufficient for this test.
-                        return;
-                    }
+            if let LaneInputs::Globs(globs) = inputs
+                && !globs.is_empty()
+            {
+                // Verify none of the lane's globs match the sentinel.
+                let any_match = globs.iter().any(|g| path_glob_matches(sentinel, g));
+                if !any_match {
+                    assert!(
+                        !result.contains(lane),
+                        "explicitly-mapped lane `{lane}` must be absent when its globs \
+                         do not match the changed file set"
+                    );
+                    // One proven exclusion is sufficient for this test.
+                    return;
                 }
             }
         }
