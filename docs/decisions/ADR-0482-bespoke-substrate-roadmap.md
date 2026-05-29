@@ -160,8 +160,6 @@ field when it does not yet exist.
 **Source-side ADRs** that assumed upstream Kubernetes + containerd + Talos-userspace as eternal: amend to note kubers as canonical destination (in-flight). Particularly: ADR-0378 (Talos), ADR-0381 (BuildKit/containerd), ADR-0411 (Crossplane), ADR-0148/0433 (Cilium), all operator ADRs.
 
 See ADR-0484 for full kubers anchor.
-<<<<<<< HEAD
-=======
 
 ## Amendment (2026-05-28, oya-authn-device Tier-3 + ADR-0508)
 
@@ -175,4 +173,3 @@ Closed-loop identity family (all three tiers required for full stack ownership):
 - **oya-crypto** (Tier-4, ADR-0506) — crypto primitive layer underpinning both RP and authenticator
 
 See ADR-0508 for full parity table, phasing, and silicon ownership roadmap.
->>>>>>> origin/feat/adr-0508-opensk-2026-05-28
