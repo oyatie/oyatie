@@ -1,0 +1,21 @@
+[package]
+name = "oya-cloud-billing-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-region-domain = { path = "../../../cloud-cell/crates/oya-cloud-region-domain" }
+oya-cloud-resource-domain = { path = "../../../cloud-compute/crates/oya-cloud-resource-domain" }
+oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+oya-metering-domain = { path = "../oya-metering-domain" }
+
+[lib]
+name = "oya_cloud_billing_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

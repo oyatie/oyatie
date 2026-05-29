@@ -1,0 +1,24 @@
+[package]
+name = "oya-cloud-observability-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-iam-domain = { path = "../../../cloud-iam/crates/oya-cloud-iam-domain" }
+oya-cloud-region-domain = { path = "../../../cloud-cell/crates/oya-cloud-region-domain" }
+oya-cloud-resource-domain = { path = "../../../cloud-compute/crates/oya-cloud-resource-domain" }
+oya-audit-chain-domain = { path = "../../../audit-chain/crates/oya-audit-chain-domain" }
+oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+oya-observability-domain = { path = "../oya-observability-domain" }
+oya-residency-domain = { path = "../../../cloud-network/crates/oya-residency-domain" }
+
+[lib]
+name = "oya_cloud_observability_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

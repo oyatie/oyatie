@@ -11,7 +11,7 @@ name = "oya-governance-authoritative-tracked-app"
 path = "src/main.rs"
 
 [dependencies]
-oya-governance-authoritative-tracked-kernel = { path = "../../crates/oya-governance-authoritative-tracked-kernel" }
+oya-governance-authoritative-tracked-kernel = { path = "../../libs/oya-governance-authoritative-tracked-kernel" }
 
 [lints]
 workspace = true
