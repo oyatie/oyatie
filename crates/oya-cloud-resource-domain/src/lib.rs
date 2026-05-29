@@ -314,6 +314,62 @@ impl ResourceState {
     pub const fn is_terminal(self) -> bool {
         matches!(self, Self::Terminated)
     }
+
+    /// Returns the canonical lowercase string label for this state.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Pending => "pending",
+            Self::Running => "running",
+            Self::Stopped => "stopped",
+            Self::Terminated => "terminated",
+            Self::Error => "error",
+        }
+    }
+
+    /// Parses a canonical string label back to a `ResourceState`.
+    /// Returns `None` for any unrecognised input (fail-closed).
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "pending" => Some(Self::Pending),
+            "running" => Some(Self::Running),
+            "stopped" => Some(Self::Stopped),
+            "terminated" => Some(Self::Terminated),
+            "error" => Some(Self::Error),
+            _ => None,
+        }
+    }
+
+    /// Returns `true` iff the resource is actively consuming compute (`Running`).
+    pub const fn is_active(self) -> bool {
+        matches!(self, Self::Running)
+    }
+
+    /// Returns `true` iff the resource is idle but not destroyed (`Stopped`).
+    pub const fn is_quiescent(self) -> bool {
+        matches!(self, Self::Stopped)
+    }
+
+    /// Returns the ordered slice of legal successor states reachable from `self`
+    /// in a single transition, including the self-loop.
+    ///
+    /// This exposes the transition graph defined by the crate-private
+    /// `state_transition_allowed` predicate so callers can introspect reachability
+    /// without holding a [`Resource`] reference.
+    pub const fn allowed_next(self) -> &'static [Self] {
+        match self {
+            Self::Pending => &[Self::Pending, Self::Running, Self::Error, Self::Terminated],
+            Self::Running => &[Self::Running, Self::Stopped, Self::Error, Self::Terminated],
+            Self::Stopped => &[Self::Stopped, Self::Running, Self::Error, Self::Terminated],
+            Self::Error => &[Self::Error, Self::Terminated],
+            Self::Terminated => &[Self::Terminated],
+        }
+    }
+
+    /// Pre-checks whether a transition from `self` to `next` is legal without
+    /// mutating a [`Resource`]. Delegates to the existing transition predicate.
+    pub fn can_transition_to(self, next: Self) -> bool {
+        state_transition_allowed(self, next)
+    }
 }
 
 impl ResourceId {
@@ -883,5 +939,76 @@ mod tests {
         })
         .expect_err("metering tag must match tenant and kind");
         assert_eq!(metering_error, CloudResourceError::InvalidMeteringTag);
+    }
+
+    #[test]
+    fn resource_state_as_str_and_parse_round_trip() {
+        let variants = [
+            ResourceState::Pending,
+            ResourceState::Running,
+            ResourceState::Stopped,
+            ResourceState::Terminated,
+            ResourceState::Error,
+        ];
+        for state in variants {
+            assert_eq!(
+                ResourceState::parse(state.as_str()),
+                Some(state),
+                "parse(as_str({state:?})) must round-trip"
+            );
+        }
+    }
+
+    #[test]
+    fn resource_state_parse_rejects_unknown_inputs() {
+        assert_eq!(ResourceState::parse("bogus"), None);
+        assert_eq!(ResourceState::parse(""), None);
+        assert_eq!(ResourceState::parse("RUNNING"), None);
+        assert_eq!(ResourceState::parse("Pending"), None);
+    }
+
+    #[test]
+    fn resource_state_classifiers_match_only_correct_variant() {
+        assert!(ResourceState::Running.is_active());
+        assert!(!ResourceState::Pending.is_active());
+        assert!(!ResourceState::Stopped.is_active());
+        assert!(!ResourceState::Terminated.is_active());
+        assert!(!ResourceState::Error.is_active());
+
+        assert!(ResourceState::Stopped.is_quiescent());
+        assert!(!ResourceState::Pending.is_quiescent());
+        assert!(!ResourceState::Running.is_quiescent());
+        assert!(!ResourceState::Terminated.is_quiescent());
+        assert!(!ResourceState::Error.is_quiescent());
+    }
+
+    #[test]
+    fn terminated_allowed_next_contains_only_self_loop() {
+        let nexts = ResourceState::Terminated.allowed_next();
+        assert_eq!(nexts, &[ResourceState::Terminated]);
+    }
+
+    #[test]
+    fn transition_graph_allowed_next_agrees_with_can_transition_to_for_all_pairs() {
+        let all_states = [
+            ResourceState::Pending,
+            ResourceState::Running,
+            ResourceState::Stopped,
+            ResourceState::Terminated,
+            ResourceState::Error,
+        ];
+        for &from in &all_states {
+            let nexts = from.allowed_next();
+            for &to in &all_states {
+                let via_predicate = from.can_transition_to(to);
+                let via_graph = nexts.contains(&to);
+                assert_eq!(
+                    via_predicate,
+                    via_graph,
+                    "allowed_next({from:?}) and can_transition_to({from:?}, {to:?}) disagree: \
+                     predicate={via_predicate}, graph={via_graph}"
+                );
+            }
+        }
     }
 }
