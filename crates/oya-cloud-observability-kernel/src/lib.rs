@@ -73,6 +73,25 @@ impl ObservabilityError {
     }
 }
 
+/// Per-signal headroom report entry produced by [`budget_headroom`].
+///
+/// `remaining` is the number of attribute-combination slots still available before the
+/// declared envelope is hit.  `over_budget` is `true` when the aggregate already exceeds
+/// the envelope maximum.  Both fields use saturating arithmetic so neither can wrap.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignalHeadroom {
+    // data_class: INTERNAL_ONLY
+    pub signal: SignalKind, // data_class: INTERNAL_ONLY
+    // data_class: INTERNAL_ONLY
+    pub max: u64, // data_class: INTERNAL_ONLY
+    // data_class: INTERNAL_ONLY
+    pub aggregate: u64, // data_class: INTERNAL_ONLY
+    // data_class: INTERNAL_ONLY
+    pub remaining: u64, // data_class: INTERNAL_ONLY
+    // data_class: INTERNAL_ONLY
+    pub over_budget: bool, // data_class: INTERNAL_ONLY
+}
+
 pub fn admit_plan(
     plan: &EmissionPlan,
     envelopes: &[CardinalityEnvelope],
@@ -170,6 +189,79 @@ pub fn admit_budget(
     }
 
     Ok(())
+}
+
+/// Per-signal cardinality headroom report — a non-throwing companion to [`admit_budget`].
+///
+/// Applies the same Phase-1 structural guards (EmptyPlanId, NoEnvelopeForSignal) and the
+/// same Phase-2 saturating accumulation as `admit_budget`.  Instead of returning an error
+/// on aggregate overage, Phase 3 computes `remaining = max.saturating_sub(aggregate)` and
+/// `over_budget = aggregate > max` for each seen signal and returns the results as a
+/// `Vec<SignalHeadroom>` in deterministic [`SignalKind`] ordinal order.
+///
+/// Pure: no side effects, no I/O, no async.
+pub fn budget_headroom(
+    plans: &[EmissionPlan],
+    envelopes: &[CardinalityEnvelope],
+) -> Result<Vec<SignalHeadroom>, ObservabilityError> {
+    // Phase 1: per-plan structural guards (EmptyPlanId + NoEnvelopeForSignal).
+    for plan in plans {
+        if plan.plan_id.is_empty() {
+            return Err(ObservabilityError::EmptyPlanId);
+        }
+        if !envelopes.iter().any(|e| e.signal == plan.signal) {
+            return Err(ObservabilityError::NoEnvelopeForSignal {
+                signal: plan.signal,
+            });
+        }
+    }
+
+    // Phase 2: accumulate estimated_combinations per signal using saturating_add.
+    // Fixed-size array keyed by SignalKind ordinal: Trace=0, Metric=1, Log=2, Profile=3.
+    const N: usize = 4;
+    let signal_index = |s: SignalKind| -> usize {
+        match s {
+            SignalKind::Trace => 0,
+            SignalKind::Metric => 1,
+            SignalKind::Log => 2,
+            SignalKind::Profile => 3,
+        }
+    };
+    let index_signal = |i: usize| -> SignalKind {
+        match i {
+            0 => SignalKind::Trace,
+            1 => SignalKind::Metric,
+            2 => SignalKind::Log,
+            _ => SignalKind::Profile,
+        }
+    };
+
+    let mut aggregates = [0u64; N];
+    let mut seen = [false; N];
+    for plan in plans {
+        let idx = signal_index(plan.signal);
+        aggregates[idx] = aggregates[idx].saturating_add(plan.estimated_combinations);
+        seen[idx] = true;
+    }
+
+    // Phase 3: build headroom report for each seen signal in ordinal order.
+    let mut report = Vec::new();
+    for i in 0..N {
+        if !seen[i] {
+            continue;
+        }
+        let sig = index_signal(i);
+        // Safety: envelope presence was verified in phase 1 for every plan, so every
+        // seen signal has a matching envelope.
+        let envelope = envelopes.iter().find(|e| e.signal == sig).unwrap();
+        let max = envelope.max_unique_attribute_combinations;
+        let aggregate = aggregates[i];
+        let remaining = max.saturating_sub(aggregate);
+        let over_budget = aggregate > max;
+        report.push(SignalHeadroom { signal: sig, max, aggregate, remaining, over_budget });
+    }
+
+    Ok(report)
 }
 
 #[cfg(test)]
@@ -351,5 +443,128 @@ mod tests {
         assert!(msg.contains("aggregate=1200"), "message must contain aggregate value: {msg}");
         // must NOT leak plan IDs or dynamic payload
         assert!(!msg.contains("p1"), "message must not contain plan id: {msg}");
+    }
+
+    // --- budget_headroom tests ---
+
+    /// Under-budget: aggregate < max → remaining = max - aggregate, over_budget = false.
+    #[test]
+    fn headroom_under_budget() {
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [plan("p1", SignalKind::Metric, 300)];
+        let report = budget_headroom(&plans, &envelopes).unwrap();
+        assert_eq!(report.len(), 1);
+        assert_eq!(
+            report[0],
+            SignalHeadroom {
+                signal: SignalKind::Metric,
+                max: 1000,
+                aggregate: 300,
+                remaining: 700,
+                over_budget: false,
+            }
+        );
+    }
+
+    /// At boundary: aggregate == max → remaining = 0, over_budget = false.
+    #[test]
+    fn headroom_at_boundary() {
+        let envelopes = [env(SignalKind::Log, 500)];
+        let plans = [plan("p1", SignalKind::Log, 500)];
+        let report = budget_headroom(&plans, &envelopes).unwrap();
+        assert_eq!(report.len(), 1);
+        assert_eq!(
+            report[0],
+            SignalHeadroom {
+                signal: SignalKind::Log,
+                max: 500,
+                aggregate: 500,
+                remaining: 0,
+                over_budget: false,
+            }
+        );
+    }
+
+    /// Over budget: aggregate > max → remaining = 0, over_budget = true.
+    #[test]
+    fn headroom_over_budget() {
+        let envelopes = [env(SignalKind::Trace, 200)];
+        let plans = [
+            plan("p1", SignalKind::Trace, 150),
+            plan("p2", SignalKind::Trace, 100),
+        ];
+        let report = budget_headroom(&plans, &envelopes).unwrap();
+        assert_eq!(report.len(), 1);
+        assert_eq!(
+            report[0],
+            SignalHeadroom {
+                signal: SignalKind::Trace,
+                max: 200,
+                aggregate: 250,
+                remaining: 0,
+                over_budget: true,
+            }
+        );
+    }
+
+    /// Saturating arithmetic: two plans each with u64::MAX must not panic.
+    /// aggregate saturates to u64::MAX; over_budget = true (u64::MAX > any reasonable max).
+    #[test]
+    fn headroom_saturating_no_panic() {
+        let envelopes = [env(SignalKind::Profile, 1000)];
+        let plans = [
+            plan("p1", SignalKind::Profile, u64::MAX),
+            plan("p2", SignalKind::Profile, u64::MAX),
+        ];
+        let report = budget_headroom(&plans, &envelopes).unwrap();
+        assert_eq!(report.len(), 1);
+        assert_eq!(report[0].aggregate, u64::MAX); // saturated
+        assert_eq!(report[0].remaining, 0);
+        assert!(report[0].over_budget);
+    }
+
+    /// Multi-signal: Trace + Metric plans produce two entries in deterministic ordinal order.
+    #[test]
+    fn headroom_multi_signal_deterministic_order() {
+        let envelopes = [env(SignalKind::Metric, 800), env(SignalKind::Trace, 500)];
+        let plans = [
+            plan("p1", SignalKind::Metric, 300),
+            plan("p2", SignalKind::Trace, 100),
+        ];
+        let report = budget_headroom(&plans, &envelopes).unwrap();
+        assert_eq!(report.len(), 2);
+        // Trace ordinal=0 comes before Metric ordinal=1
+        assert_eq!(report[0].signal, SignalKind::Trace);
+        assert_eq!(report[0].aggregate, 100);
+        assert_eq!(report[0].remaining, 400);
+        assert!(!report[0].over_budget);
+        assert_eq!(report[1].signal, SignalKind::Metric);
+        assert_eq!(report[1].aggregate, 300);
+        assert_eq!(report[1].remaining, 500);
+        assert!(!report[1].over_budget);
+    }
+
+    /// Structural guard: EmptyPlanId is rejected before any accumulation.
+    #[test]
+    fn headroom_empty_plan_id_rejected() {
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [plan("", SignalKind::Metric, 100)];
+        assert!(matches!(
+            budget_headroom(&plans, &envelopes),
+            Err(ObservabilityError::EmptyPlanId)
+        ));
+    }
+
+    /// Structural guard: NoEnvelopeForSignal is rejected before any accumulation.
+    #[test]
+    fn headroom_no_envelope_for_signal_rejected() {
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [plan("p1", SignalKind::Trace, 100)];
+        assert!(matches!(
+            budget_headroom(&plans, &envelopes),
+            Err(ObservabilityError::NoEnvelopeForSignal {
+                signal: SignalKind::Trace,
+            })
+        ));
     }
 }
