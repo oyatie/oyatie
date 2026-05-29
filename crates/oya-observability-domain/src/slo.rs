@@ -62,27 +62,27 @@ impl SLOObjective {
     /// Construct a new `SLOObjective`.
     ///
     /// Returns `Err(InvalidSLOObjective)` when `target_ratio` is not in (0.0, 1.0].
-    ///
-    /// STUB: always returns Ok regardless of target_ratio — RED.
     pub fn new(target_ratio: f64, window_secs: u64) -> Result<Self, InvalidSLOObjective> {
-        // STUB: validation not yet implemented
-        let _ = target_ratio;
-        let _ = window_secs;
-        todo!("sbr-1: implement SLOObjective::new validation")
+        if target_ratio <= 0.0 || target_ratio > 1.0 {
+            return Err(InvalidSLOObjective {
+                reason: "target_ratio must be in (0.0, 1.0]",
+            });
+        }
+        Ok(Self { target_ratio, window_secs })
     }
 
     /// Return the target reliability ratio.
     ///
     /// # data_class: INTERNAL_ONLY
     pub fn target_ratio(&self) -> f64 {
-        todo!("sbr-1: implement SLOObjective::target_ratio")
+        self.target_ratio
     }
 
     /// Return the rolling measurement window in seconds.
     ///
     /// # data_class: INTERNAL_ONLY
     pub fn window_secs(&self) -> u64 {
-        todo!("sbr-1: implement SLOObjective::window_secs")
+        self.window_secs
     }
 }
 
@@ -102,29 +102,28 @@ impl SLOObjective {
 ///
 /// # data_class: INTERNAL_ONLY (all constants in this module)
 ///
-/// STUB: wrong placeholder values — RED.
 pub mod slo_fields {
     /// Name of the SLO (e.g. `"availability-99.9"`).
     ///
     /// # data_class: INTERNAL_ONLY
-    pub const SLO_NAME: &str = "STUB_SLO_NAME";
+    pub const SLO_NAME: &str = "oyatie.slo.name";
 
     /// Target reliability ratio expressed as a decimal fraction (e.g. `0.999`).
     ///
     /// Maps to OpenSLO `SLO.spec.objectives[].target`.
     ///
     /// # data_class: INTERNAL_ONLY
-    pub const SLO_OBJECTIVE_RATIO: &str = "STUB_SLO_OBJECTIVE_RATIO";
+    pub const SLO_OBJECTIVE_RATIO: &str = "oyatie.slo.objective_ratio";
 
     /// Remaining error-budget fraction (0.0 = exhausted, 1.0 = fully remaining).
     ///
     /// # data_class: INTERNAL_ONLY
-    pub const ERROR_BUDGET_REMAINING: &str = "STUB_ERROR_BUDGET_REMAINING";
+    pub const ERROR_BUDGET_REMAINING: &str = "oyatie.slo.error_budget_remaining";
 
     /// Current burn rate (dimensionless multiplier relative to the target ratio).
     ///
     /// # data_class: INTERNAL_ONLY
-    pub const BURN_RATE: &str = "STUB_BURN_RATE";
+    pub const BURN_RATE: &str = "oyatie.slo.burn_rate";
 }
 
 // ---------------------------------------------------------------------------
@@ -153,25 +152,32 @@ pub enum AlertDecision {
 // Threshold constants (Google SRE multi-window method)
 // ---------------------------------------------------------------------------
 
-/// Page-tier burn-rate threshold.
+/// Page-tier burn-rate threshold (14.4×).
 ///
-/// STUB: wrong value — RED.
-pub const PAGE_BURN_RATE_THRESHOLD: f64 = 0.0;
+/// Per the Google SRE multi-window method: both fast and slow windows must
+/// exceed this multiplier and the budget consumed must exceed
+/// [`PAGE_BUDGET_CONSUMED_MIN`] to fire a page.
+///
+/// # data_class: INTERNAL_ONLY
+pub const PAGE_BURN_RATE_THRESHOLD: f64 = 14.4;
 
-/// Minimum error-budget fraction consumed before firing a page.
+/// Minimum error-budget fraction consumed before firing a page (2%).
 ///
-/// STUB: wrong value — RED.
-pub const PAGE_BUDGET_CONSUMED_MIN: f64 = 0.0;
+/// # data_class: INTERNAL_ONLY
+pub const PAGE_BUDGET_CONSUMED_MIN: f64 = 0.02;
 
-/// Ticket-tier burn-rate threshold.
+/// Ticket-tier burn-rate threshold (6.0×).
 ///
-/// STUB: wrong value — RED.
-pub const TICKET_BURN_RATE_THRESHOLD: f64 = 0.0;
+/// Both fast and slow windows must exceed this multiplier and the budget
+/// consumed must exceed [`TICKET_BUDGET_CONSUMED_MIN`] to open a ticket.
+///
+/// # data_class: INTERNAL_ONLY
+pub const TICKET_BURN_RATE_THRESHOLD: f64 = 6.0;
 
-/// Minimum error-budget fraction consumed before opening a ticket.
+/// Minimum error-budget fraction consumed before opening a ticket (5%).
 ///
-/// STUB: wrong value — RED.
-pub const TICKET_BUDGET_CONSUMED_MIN: f64 = 0.0;
+/// # data_class: INTERNAL_ONLY
+pub const TICKET_BUDGET_CONSUMED_MIN: f64 = 0.05;
 
 // ---------------------------------------------------------------------------
 // classify_burn_rate — pure multi-window classifier (STUB)
@@ -179,15 +185,32 @@ pub const TICKET_BUDGET_CONSUMED_MIN: f64 = 0.0;
 
 /// Pure multi-window multi-burn-rate alert classifier.
 ///
-/// STUB: always returns `AlertDecision::None` — RED.
+/// Implements the Google SRE Workbook "Multiwindow, Multi-Burn-Rate Alerts"
+/// method (Chapter 5). Both the fast window and the slow window burn rates
+/// must exceed a tier's threshold **and** the error-budget consumed must meet
+/// the tier's minimum before that tier fires.  Page is checked before Ticket
+/// so the higher-severity decision always wins.
+///
+/// No allocation occurs on the hot path.
 ///
 /// # data_class: INTERNAL_ONLY (inputs are operational metrics)
 pub fn classify_burn_rate(
-    _error_budget_consumed: f64,
-    _fast_burn_rate: f64,
-    _slow_burn_rate: f64,
+    error_budget_consumed: f64,
+    fast_burn_rate: f64,
+    slow_burn_rate: f64,
 ) -> AlertDecision {
-    // STUB: classifier not yet implemented
+    if fast_burn_rate >= PAGE_BURN_RATE_THRESHOLD
+        && slow_burn_rate >= PAGE_BURN_RATE_THRESHOLD
+        && error_budget_consumed >= PAGE_BUDGET_CONSUMED_MIN
+    {
+        return AlertDecision::Page;
+    }
+    if fast_burn_rate >= TICKET_BURN_RATE_THRESHOLD
+        && slow_burn_rate >= TICKET_BURN_RATE_THRESHOLD
+        && error_budget_consumed >= TICKET_BUDGET_CONSUMED_MIN
+    {
+        return AlertDecision::Ticket;
+    }
     AlertDecision::None
 }
 
