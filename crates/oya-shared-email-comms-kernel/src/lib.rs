@@ -317,24 +317,37 @@ pub trait EmailComms: Send + Sync {
 }
 
 /// Stable FNV-1a fingerprint over the message identity fields
-/// (from, all recipients, subject, html_body). Used for
+/// (from, all recipients sorted, subject, html_body). Used for
 /// idempotency-key conflict detection. Dep-free.
+///
+/// Recipients are sorted before hashing so that the fingerprint is
+/// order-independent (ADR-0149 collapse semantics require that a
+/// re-send with the same logical recipient set collapses regardless
+/// of recipient list order).
 #[must_use]
 fn message_fingerprint(message: &OutboundMessage) -> u64 {
     const FNV_OFFSET: u64 = 14_695_981_039_346_656_037;
     const FNV_PRIME: u64 = 1_099_511_628_211;
-    let mut h = FNV_OFFSET;
-    let bytes = message
-        .from
-        .as_str()
-        .bytes()
-        .chain(message.to.iter().flat_map(|a| a.as_str().bytes()))
-        .chain(message.subject.bytes())
-        .chain(message.html_body.bytes());
-    for byte in bytes {
-        h ^= u64::from(byte);
-        h = h.wrapping_mul(FNV_PRIME);
+
+    #[inline]
+    fn fnv_bytes(h: &mut u64, bytes: impl Iterator<Item = u8>) {
+        for byte in bytes {
+            *h ^= u64::from(byte);
+            *h = h.wrapping_mul(FNV_PRIME);
+        }
     }
+
+    // Sort recipients for order-independence.
+    let mut sorted_to: Vec<&EmailAddress> = message.to.iter().collect();
+    sorted_to.sort_by_key(|a| a.as_str());
+
+    let mut h = FNV_OFFSET;
+    fnv_bytes(&mut h, message.from.as_str().bytes());
+    for addr in sorted_to {
+        fnv_bytes(&mut h, addr.as_str().bytes());
+    }
+    fnv_bytes(&mut h, message.subject.bytes());
+    fnv_bytes(&mut h, message.html_body.bytes());
     h
 }
 
