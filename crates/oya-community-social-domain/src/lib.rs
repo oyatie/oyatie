@@ -135,6 +135,53 @@ pub fn story_purge(post: &SocialPost, now: u64) -> Result<BTreeSet<PurgeTarget>,
         PurgeTarget::OntologyNode,
     ]))
 }
+/// Batch story-expiry sweep scoped to a single context/pillar pair.
+///
+/// # Context guard
+/// Any post whose `context` or `pillar` does not match the supplied values causes the
+/// entire batch to be rejected with `SocialError::CrossContextArtifactRef`, mirroring
+/// the `context_snapshot` guard semantics.
+///
+/// # Artifact filtering
+/// Non-Story artifacts (`FeedPost`, `CollaborativePost`) are silently skipped; they
+/// contribute no purge targets and do not raise `StoryRequiresTtl`.
+///
+/// # Expiry aggregation
+/// Among matching Story posts, only those whose `story_expires_at <= now` contribute
+/// purge targets. Unexpired stories are silently skipped.
+///
+/// # Determinism
+/// The return type is `BTreeSet<PurgeTarget>`. `PurgeTarget` derives `Ord`, so the
+/// ordering is deterministic and stable across invocations; callers may rely on this.
+///
+/// # Empty inputs
+/// An empty slice returns `Ok(BTreeSet::new())`. A batch with no expired stories also
+/// returns `Ok(BTreeSet::new())`.
+pub fn story_sweep(
+    context: SocialContextKind,
+    pillar: OwnershipPillar,
+    posts: &[SocialPost],
+    now: u64,
+) -> Result<BTreeSet<PurgeTarget>, SocialError> {
+    // Context/pillar guard — reject the whole batch on any mismatch.
+    if posts
+        .iter()
+        .any(|p| p.context.value != context || p.pillar.value != pillar)
+    {
+        return Err(SocialError::CrossContextArtifactRef);
+    }
+    let mut acc = BTreeSet::new();
+    for post in posts {
+        // Delegate all per-post guards to story_purge (single source of truth):
+        // Err(StoryRequiresTtl)  => non-Story or Story with no TTL  => skip
+        // Err(StoryNotExpired)   => unexpired story                  => skip
+        // Ok(targets)            => expired story                    => accumulate
+        if let Ok(targets) = story_purge(post, now) {
+            acc.extend(targets);
+        }
+    }
+    Ok(acc)
+}
 fn ne(s: &str) -> Result<(), SocialError> {
     if s.trim().is_empty() {
         Err(SocialError::Invalid)
@@ -164,6 +211,167 @@ mod tests {
             ar_biometric_persisted: false,
         })
         .unwrap()
+    }
+
+    // ── sweep test helpers ────────────────────────────────────────────────────
+
+    /// Build a Personal/Personal Story with a specific expiry and post_id.
+    fn personal_story(post_id: &str, expires_at: u64) -> SocialPost {
+        SocialPost::new(SocialPostCreate {
+            post_id: post_id.into(),
+            creator_ref: "u".into(),
+            scope_ref: "person:u".into(),
+            context: SocialContextKind::Personal,
+            pillar: OwnershipPillar::Personal,
+            kind: SocialArtifactKind::Story,
+            media_refs: vec!["m".into()],
+            story_expires_at: Some(expires_at),
+            collab_owner_refs: vec![],
+            collab_consent_refs: vec![],
+            workflow_consent_ref: None,
+            ar_biometric_persisted: false,
+        })
+        .unwrap()
+    }
+
+    /// Build a Work/Work Story with a specific expiry and post_id.
+    fn work_story(post_id: &str, expires_at: u64) -> SocialPost {
+        SocialPost::new(SocialPostCreate {
+            post_id: post_id.into(),
+            creator_ref: "u".into(),
+            scope_ref: "tenant:t".into(),
+            context: SocialContextKind::Work,
+            pillar: OwnershipPillar::Work,
+            kind: SocialArtifactKind::Story,
+            media_refs: vec!["m".into()],
+            story_expires_at: Some(expires_at),
+            collab_owner_refs: vec![],
+            collab_consent_refs: vec![],
+            workflow_consent_ref: Some("consent-ref".into()),
+            ar_biometric_persisted: false,
+        })
+        .unwrap()
+    }
+
+    /// Build a Personal/Personal FeedPost.
+    fn personal_feed(post_id: &str) -> SocialPost {
+        SocialPost::new(SocialPostCreate {
+            post_id: post_id.into(),
+            creator_ref: "u".into(),
+            scope_ref: "person:u".into(),
+            context: SocialContextKind::Personal,
+            pillar: OwnershipPillar::Personal,
+            kind: SocialArtifactKind::FeedPost,
+            media_refs: vec!["m".into()],
+            story_expires_at: None,
+            collab_owner_refs: vec![],
+            collab_consent_refs: vec![],
+            workflow_consent_ref: None,
+            ar_biometric_persisted: false,
+        })
+        .unwrap()
+    }
+
+    // ── [scs-1] tests ─────────────────────────────────────────────────────────
+
+    /// A post whose context does not match the sweep scope must cause the entire
+    /// batch to be rejected with CrossContextArtifactRef.
+    #[test]
+    fn sweep_mismatched_context_yields_cross_context_artifact_ref() {
+        // work_story is Work/Work; sweeping with Personal context → mismatch
+        let mismatched = work_story("w1", 5);
+        let result = story_sweep(
+            SocialContextKind::Personal,
+            OwnershipPillar::Personal,
+            &[mismatched],
+            100,
+        );
+        assert_eq!(result, Err(SocialError::CrossContextArtifactRef));
+    }
+
+    /// Two stories with the same context/pillar, one expired and one not —
+    /// only the expired story contributes purge targets.
+    #[test]
+    fn sweep_mixed_expiry_returns_only_expired_purge_targets() {
+        let expired = personal_story("s-expired", 10); // expires_at=10
+        let fresh = personal_story("s-fresh", 200); // expires_at=200
+        let now = 100; // expired < now; fresh > now
+
+        let result = story_sweep(
+            SocialContextKind::Personal,
+            OwnershipPillar::Personal,
+            &[expired, fresh],
+            now,
+        )
+        .expect("should not error");
+
+        // Must contain all three purge targets from the expired story
+        assert!(result.contains(&PurgeTarget::CdnObject));
+        assert!(result.contains(&PurgeTarget::SearchIndex));
+        assert!(result.contains(&PurgeTarget::OntologyNode));
+        // Result came only from expired post; set size is 3 (no duplicates from fresh)
+        assert_eq!(result.len(), 3);
+    }
+
+    // ── [scs-2] tests ─────────────────────────────────────────────────────────
+
+    /// A heterogeneous batch containing a FeedPost and an expired Story must
+    /// return purge targets only for the Story; no StoryRequiresTtl error.
+    #[test]
+    fn sweep_heterogeneous_batch_skips_non_story() {
+        let feed = personal_feed("f1");
+        let story = personal_story("s1", 10); // expires_at=10
+        let now = 50; // story is expired
+
+        let result = story_sweep(
+            SocialContextKind::Personal,
+            OwnershipPillar::Personal,
+            &[feed, story],
+            now,
+        );
+
+        // Must succeed — no StoryRequiresTtl raised for the FeedPost
+        assert!(
+            result.is_ok(),
+            "expected Ok but got {:?}",
+            result.unwrap_err()
+        );
+        let targets = result.unwrap();
+        // Exactly three purge targets from the one expired Story
+        assert_eq!(targets.len(), 3);
+        assert!(targets.contains(&PurgeTarget::CdnObject));
+        assert!(targets.contains(&PurgeTarget::SearchIndex));
+        assert!(targets.contains(&PurgeTarget::OntologyNode));
+    }
+
+    // ── [scs-3] tests ─────────────────────────────────────────────────────────
+
+    /// An empty post slice must return Ok(empty set) immediately.
+    #[test]
+    fn sweep_empty_slice_returns_empty_set() {
+        let result = story_sweep(
+            SocialContextKind::Personal,
+            OwnershipPillar::Personal,
+            &[],
+            100,
+        );
+        assert_eq!(result, Ok(BTreeSet::new()));
+    }
+
+    /// A batch where every story is unexpired must return Ok(empty set).
+    #[test]
+    fn sweep_all_unexpired_returns_empty_set() {
+        let s1 = personal_story("s1", 500);
+        let s2 = personal_story("s2", 1000);
+        let now = 100; // both stories still live
+
+        let result = story_sweep(
+            SocialContextKind::Personal,
+            OwnershipPillar::Personal,
+            &[s1, s2],
+            now,
+        );
+        assert_eq!(result, Ok(BTreeSet::new()));
     }
     #[test]
     fn test_personal_post_pillar_immutable() {
