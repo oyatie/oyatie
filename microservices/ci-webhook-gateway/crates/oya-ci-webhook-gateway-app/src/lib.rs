@@ -14,6 +14,7 @@
 //! 2. ed25519 verify raw body bytes.
 //! 3. Cedar authz gate.
 //! 4. `route_forgejo_event` → `CiTriggerEvent`.
+//! 4.5. Replay guard: check + record the delivery key (after verify+authz+route, before Step 5). A replay within the TTL short-circuits with a benign 200 idempotent ack; no second Jenkins kickoff.
 //! 5. Jenkins `trigger` → `JenkinsJob`.
 //! 6. GitHub `post_all` pending statuses.
 //! 7. Jenkins `poll_status` loop.
@@ -25,6 +26,8 @@
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
+
+pub mod replay;
 
 use axum::{
     Router,
@@ -38,7 +41,8 @@ use oya_ci_webhook_gateway_kernel::{
     CommitStatusPoster, JenkinsClient, RouteOutcome, SignatureVerifier, WebhookAuthzGate,
     WebhookAuthzRequest, WebhookSignature, route_forgejo_event,
 };
-use std::sync::Arc;
+use replay::{DeliveryGuard, DeliveryKey, Verdict};
+use std::sync::{Arc, Mutex};
 use tracing::{error, info, warn};
 
 /// Shared application state — all adapters are behind `Arc<dyn Trait>` so the
@@ -53,6 +57,10 @@ pub struct AppState {
     pub github_owner: String,                               // data_class: INTERNAL_ONLY
     pub github_repo: String,                                // data_class: INTERNAL_ONLY
     pub jenkins_job_name: String,                           // data_class: INTERNAL_ONLY
+    /// Delivery-replay / dedup guard.  Shared across all handler instances via
+    /// `Arc<Mutex<_>>`.  The `Mutex` provides interior mutability so the guard
+    /// can live behind the `Clone`-able, `Send + Sync` `AppState`.
+    pub delivery_guard: Arc<Mutex<DeliveryGuard>>,          // data_class: INTERNAL_ONLY
 }
 
 /// Build the axum [`Router`] with all routes and shared state.
@@ -163,6 +171,38 @@ async fn handle_forgejo_webhook(
 
     // Populate repo from app config.
     event.repo = format!("{}/{}", state.github_owner, state.github_repo);
+
+    // Step 4.5 — Replay / dedup guard (after verify+authz+route, before trigger).
+    //
+    // Record-on-receipt: the key is recorded BEFORE Jenkins fires so that a
+    // concurrent replay of the same delivery is deduped even while the first
+    // is still in-flight.  See replay module docs for the retry-on-failure
+    // trade-off.
+    //
+    // Opportunistic prune: run on every call; cost is O(n) over the seen map
+    // which stays small (TTL=5 min, typical delivery rate is low).
+    let now_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0);
+
+    let delivery_key = DeliveryKey::from_parts(
+        &event.delivery_id,
+        &event.head_sha,
+        event.pr_number,
+        event.action,
+    );
+
+    let verdict = {
+        let mut guard = state.delivery_guard.lock().unwrap_or_else(|e| e.into_inner());
+        guard.prune(now_ms);
+        guard.record_and_check(delivery_key, now_ms)
+    };
+
+    if matches!(verdict, Verdict::Replay) {
+        info!(delivery_id, "duplicate delivery, already accepted (idempotent ack)");
+        return (StatusCode::OK, "duplicate delivery, already accepted").into_response();
+    }
 
     // Step 5 — Jenkins trigger.
     let job = match state.jenkins.trigger(&state.jenkins_job_name, &event) {
