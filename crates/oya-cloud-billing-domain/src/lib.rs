@@ -871,6 +871,10 @@ impl CloudBillingLedger {
         self.invoices_by_id.values()
     }
 
+    pub fn get_invoice(&self, id: &InvoiceId) -> Option<&Invoice> {
+        self.invoices_by_id.get(id)
+    }
+
     pub fn transition_invoice(
         &mut self,
         id: &InvoiceId,
@@ -881,6 +885,10 @@ impl CloudBillingLedger {
             .get_mut(id)
             .ok_or(CloudBillingError::InvoiceNotFound)?;
         let from = invoice.state.value;
+        // Same-state re-transition is idempotent (billing de-dup doctrine).
+        if from == target {
+            return Ok(self.invoices_by_id.get(id).expect("just checked"));
+        }
         let legal = matches!(
             (from, target),
             (InvoiceState::Issued, InvoiceState::Paid)
@@ -1545,18 +1553,13 @@ mod tests {
     }
 
     #[test]
-    fn transition_same_state_rejected() {
+    fn transition_same_state_is_idempotent() {
         let (mut ledger, id) = ledger_with_invoice();
-        let err = ledger
+        // Same-state re-transition must succeed and return the unchanged invoice.
+        let inv = ledger
             .transition_invoice(&id, InvoiceState::Issued)
-            .expect_err("same-state is not a legal transition");
-        assert_eq!(
-            err,
-            CloudBillingError::IllegalInvoiceTransition {
-                from: InvoiceState::Issued,
-                to: InvoiceState::Issued,
-            }
-        );
+            .expect("same-state transition is idempotent");
+        assert_eq!(inv.state.value, InvoiceState::Issued);
     }
 
     #[test]
