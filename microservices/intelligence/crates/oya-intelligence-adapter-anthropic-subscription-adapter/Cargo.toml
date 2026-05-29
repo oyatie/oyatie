@@ -14,6 +14,25 @@ doctest = false
 [dependencies]
 oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
 oya-intelligence-adapter-anthropic-subscription-kernel = { path = "../oya-intelligence-adapter-anthropic-subscription-kernel" }
+oya-intelligence-oauth-subscription-kernel = { path = "../oya-intelligence-oauth-subscription-kernel" }
+
+# Async runtime + HTTP stack (ADR-0090: hyper preferred; ADR-0506: aws-lc-rs).
+tokio = { workspace = true, features = ["sync", "time", "net"] }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+hyper-rustls = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+
+# Serialization + observability.
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+futures-util = { version = "0.3", features = ["alloc"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time", "net", "sync"] }
 
 [lints]
 workspace = true

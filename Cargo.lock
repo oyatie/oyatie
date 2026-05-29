@@ -5494,8 +5494,19 @@ dependencies = [
 name = "oya-intelligence-adapter-anthropic-subscription-adapter"
 version = "0.1.0"
 dependencies = [
+ "bytes",
+ "futures-util",
+ "http-body-util",
+ "hyper 1.10.0",
+ "hyper-rustls",
+ "hyper-util",
  "oya-intelligence-account-domain",
  "oya-intelligence-adapter-anthropic-subscription-kernel",
+ "oya-intelligence-oauth-subscription-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
