@@ -709,6 +709,8 @@ members = [
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app",
   # oya-identity µservice: single-crate hyperscaler pattern per ADR-0509.
   "microservices/oya-identity",
+  # oya-cost — K8s cost allocation µservice (ADR-0480, single-crate per ADR-0509).
+  "microservices/oya-cost",
 ]
 resolver = "2"
 
