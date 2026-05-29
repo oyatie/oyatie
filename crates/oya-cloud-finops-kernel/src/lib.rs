@@ -34,6 +34,9 @@ pub use finance::{Currency, JournalEntryStatus, LedgerError, validate_status_tra
 pub mod payroll_period;
 pub use payroll_period::{PayCycleKind, PayrollPeriod, PayslipStatus, UnknownPayrollPeriod};
 
+pub mod savings_portfolio;
+pub use savings_portfolio::{RollupError, SavingsPortfolio, roll_up_savings};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum ReportPeriod {
     Daily,
@@ -55,7 +58,7 @@ impl ReportPeriod {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum RecommendationKind {
     RightsizeInstance,
     ReservedCapacityPurchase,
