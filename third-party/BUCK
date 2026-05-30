@@ -676,6 +676,14 @@ cargo.rust_binary(
     crate = "build_script_build",
     crate_root = "aws-lc-rs-1.17.0.crate/build.rs",
     edition = "2021",
+    # Build script uses cfg!(feature = "aws-lc-sys") at compile time
+    rustc_flags = [
+        '--cfg=feature="aws-lc-sys"',
+        '--cfg=feature="prebuilt-nasm"',
+        '--cfg=feature="ring-io"',
+        '--cfg=feature="ring-sig-verify"',
+        '--cfg=feature="alloc"',
+    ],
     visibility = ["PUBLIC"],
 )
 
@@ -690,6 +698,19 @@ buildscript_run(
         "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
         "CARGO_MANIFEST_LINKS": "aws_lc_rs_1_17_0_sys",
+        # Build script uses cfg!(feature = "aws-lc-sys") — inject via CARGO_FEATURE_*
+        "CARGO_FEATURE_AWS_LC_SYS": "1",
+        "CARGO_FEATURE_PREBUILT_NASM": "1",
+        "CARGO_FEATURE_ALLOC": "1",
+        "CARGO_FEATURE_RING_IO": "1",
+        "CARGO_FEATURE_RING_SIG_VERIFY": "1",
+        # DEP_ vars from aws-lc-sys buildscript (re-exported by aws-lc-rs)
+        # The include path is the OUT_DIR/include from aws-lc-sys
+        "DEP_AWS_LC_0_41_0_INCLUDE": "$(location :aws-lc-sys-0.41-build-script-run[out_dir])/include",
+        "DEP_AWS_LC_0_41_0_CONF": "OPENSSL_NO_ASYNC,OPENSSL_NO_BF,OPENSSL_NO_BLAKE2,OPENSSL_NO_BUF_FREELISTS,OPENSSL_NO_CAMELLIA,OPENSSL_NO_CAPIENG,OPENSSL_NO_CAST,OPENSSL_NO_CMS,OPENSSL_NO_COMP,OPENSSL_NO_CRYPTO_MDEBUG,OPENSSL_NO_CT,OPENSSL_NO_DANE,OPENSSL_NO_DEPRECATED,OPENSSL_NO_DGRAM,OPENSSL_NO_DYNAMIC_ENGINE,OPENSSL_NO_EC_NISTP_64_GCC_128,OPENSSL_NO_EC2M,OPENSSL_NO_EGD,OPENSSL_NO_ENGINE,OPENSSL_NO_GMP,OPENSSL_NO_GOST,OPENSSL_NO_HEARTBEATS,OPENSSL_NO_HW,OPENSSL_NO_IDEA,OPENSSL_NO_JPAKE,OPENSSL_NO_KRB5,OPENSSL_NO_MD2,OPENSSL_NO_MDC2,OPENSSL_NO_OCB,OPENSSL_NO_RC2,OPENSSL_NO_RC5,OPENSSL_NO_RFC3779,OPENSSL_NO_RIPEMD,OPENSSL_NO_RMD160,OPENSSL_NO_SCTP,OPENSSL_NO_SEED,OPENSSL_NO_SM2,OPENSSL_NO_SM3,OPENSSL_NO_SM4,OPENSSL_NO_SRP,OPENSSL_NO_SSL_TRACE,OPENSSL_NO_SSL2,OPENSSL_NO_SSL3,OPENSSL_NO_SSL3_METHOD,OPENSSL_NO_STATIC_ENGINE,OPENSSL_NO_STORE,OPENSSL_NO_TS,OPENSSL_NO_WHIRLPOOL",
+        "CARGO_CFG_TARGET_OS": "macos",
+        "CARGO_CFG_TARGET_ENV": "",
+        "CARGO_CFG_TARGET_FEATURE": "",
     },
 )
 
@@ -733,6 +754,15 @@ cargo.rust_binary(
     crate = "build_script_build",
     crate_root = "aws-lc-sys-0.41.0.crate/builder/main.rs",
     edition = "2021",
+    env = {
+        # aws-lc-sys builder/main.rs uses env!("CARGO_PKG_VERSION") at const time
+        "CARGO_PKG_VERSION": "0.41.0",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "41",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+        "CARGO_PKG_NAME": "aws-lc-sys",
+    },
     visibility = ["PUBLIC"],
     deps = [
         ":cc-1",
@@ -753,6 +783,11 @@ buildscript_run(
         "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
         "CARGO_MANIFEST_LINKS": "aws_lc_0_41_0",
+        "OPT_LEVEL": "3",
+        "DEBUG": "false",
+        "PROFILE": "release",
+        "CC_aarch64-apple-darwin": "/usr/bin/clang",
+        "AR_aarch64-apple-darwin": "/usr/bin/ar",
     },
 )
 
@@ -6155,6 +6190,14 @@ cargo.rust_binary(
     crate = "build_script_build",
     crate_root = "openssl-sys-0.9.116.crate/build/main.rs",
     edition = "2021",
+    env = {
+        "CARGO_PKG_VERSION": "0.9.116",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "9",
+        "CARGO_PKG_VERSION_PATCH": "116",
+        "CARGO_PKG_VERSION_PRE": "",
+        "CARGO_PKG_NAME": "openssl-sys",
+    },
     visibility = ["PUBLIC"],
     deps = [
         ":cc-1",
@@ -6173,6 +6216,16 @@ buildscript_run(
         "CARGO_PKG_VERSION_MINOR": "9",
         "CARGO_PKG_VERSION_PATCH": "116",
         "CARGO_PKG_VERSION_PRE": "",
+        # Point at Homebrew OpenSSL@3 (static build, no pkg-config probe needed)
+        "OPENSSL_DIR": "/opt/homebrew/opt/openssl@3",
+        "OPENSSL_STATIC": "1",
+        "OPENSSL_NO_VENDOR": "1",
+        # cc-rs env vars required by validate_headers
+        "OPT_LEVEL": "3",
+        "DEBUG": "false",
+        "PROFILE": "release",
+        "CC_aarch64-apple-darwin": "/usr/bin/clang",
+        "AR_aarch64-apple-darwin": "/usr/bin/ar",
     },
 )
 
