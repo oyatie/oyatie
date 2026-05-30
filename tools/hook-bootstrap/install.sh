@@ -70,6 +70,9 @@ HOOK_SCRIPTS=(
     userprompt-canonical-primer.sh
     stop-did-you-forget-suggester.sh
     no-cargo-enforcer.sh
+    exfil-guard.sh
+    no-secret-leak.sh
+    injection-content-scanner.sh
     stale-tool-suggester.sh
     pre-dispatch-guide.sh
     spec-version-pin-suggester.sh
@@ -141,7 +144,7 @@ if $CODEX_DETECTED; then
     CODEX_CONTENT='{
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "'"$MARKER"'",
-  "_note": "Project-scoped Codex hooks. Never edit manually — managed by install.sh/uninstall.sh.",
+  "_note": "Project-scoped Codex hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security: added exfil-guard, no-secret-leak, injection-content-scanner.",
   "hooks": {
     "session_start": [
       { "command": "tools/hooks/session-start-context-inject.sh" }
@@ -153,11 +156,18 @@ if $CODEX_DETECTED; then
       { "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
     ],
     "pre_tool_use": [
-      { "command": "tools/hooks/no-cargo-enforcer.sh",    "matcher": "bash" },
+      { "command": "tools/hooks/no-cargo-enforcer.sh",  "matcher": "bash" },
+      { "command": "tools/hooks/exfil-guard.sh",        "matcher": "bash" },
+      { "command": "tools/hooks/no-secret-leak.sh",     "matcher": "bash" },
+      { "command": "tools/hooks/no-secret-leak.sh",     "matcher": "write" },
+      { "command": "tools/hooks/no-secret-leak.sh",     "matcher": "edit" },
       { "command": "tools/hooks/stale-tool-suggester.sh", "matcher": "bash" },
       { "command": "tools/hooks/pre-dispatch-guide.sh",   "matcher": "agent" }
     ],
     "post_tool_use": [
+      { "command": "tools/hooks/injection-content-scanner.sh", "matcher": "bash" },
+      { "command": "tools/hooks/injection-content-scanner.sh", "matcher": "web_fetch" },
+      { "command": "tools/hooks/injection-content-scanner.sh", "matcher": "web_search" },
       { "command": "tools/hooks/spec-version-pin-suggester.sh",  "matcher": "edit" },
       { "command": "tools/hooks/spec-version-pin-suggester.sh",  "matcher": "write" },
       { "command": "tools/hooks/adr-orphan-detect.sh",           "matcher": "edit" },
@@ -204,7 +214,7 @@ if $GEMINI_DETECTED; then
     GEMINI_CONTENT='{
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "'"$MARKER"'",
-  "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh.",
+  "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security: added exfil-guard, no-secret-leak, injection-content-scanner.",
   "hooks": {
     "SessionStart": [
       { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "oya-session-context" }
@@ -216,11 +226,16 @@ if $GEMINI_DETECTED; then
       { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "oya-did-you-forget" }
     ],
     "BeforeTool": [
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh",  "name": "oya-no-cargo" },
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/stale-tool-suggester.sh", "name": "oya-stale-tool" },
-      { "matcher": "agent", "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh",   "name": "oya-pre-dispatch" }
+      { "matcher": "bash",  "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh",    "name": "oya-no-cargo" },
+      { "matcher": "bash",  "type": "command", "command": "tools/hooks/exfil-guard.sh",           "name": "oya-exfil-guard" },
+      { "matcher": "bash",  "type": "command", "command": "tools/hooks/no-secret-leak.sh",        "name": "oya-no-secret-bash" },
+      { "matcher": "write", "type": "command", "command": "tools/hooks/no-secret-leak.sh",        "name": "oya-no-secret-write" },
+      { "matcher": "edit",  "type": "command", "command": "tools/hooks/no-secret-leak.sh",        "name": "oya-no-secret-edit" },
+      { "matcher": "bash",  "type": "command", "command": "tools/hooks/stale-tool-suggester.sh",  "name": "oya-stale-tool" },
+      { "matcher": "agent", "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh",    "name": "oya-pre-dispatch" }
     ],
     "AfterTool": [
+      { "matcher": "bash",  "type": "command", "command": "tools/hooks/injection-content-scanner.sh", "name": "oya-injection-bash" },
       { "matcher": "edit",  "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-edit" },
       { "matcher": "write", "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-write" },
       { "matcher": "edit",  "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-edit" },
