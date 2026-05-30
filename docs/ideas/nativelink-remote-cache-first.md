@@ -40,14 +40,19 @@ Green gate (safe fanout) + NativeLink cache (fast fanout) + llm-gateway (capacit
 
 ## Decided (founder 2026-05-30)
 - **Keyed auth** — NativeLink CAS/AC are AUTHENTICATED, not anonymous (unlike the sccache bucket). Keys from OpenBao/secret (not in-spec). Security-first; avoids the open-cache footgun.
-- **Unified NativeLink binary, split into 2 K8s TIERS** (NativeLink-idiomatic: one image/release/version, role chosen by config):
+- **Unified NativeLink binary, split into 3 K8s TIERS** (one image/release/version; role chosen by config — matches NativeLink's own production guidance: *"in production, CAS and scheduler services run in different processes"*):
   ```
-  Buck2 clients ──gRPC REAPI──▶ nativelink-frontend pods (CAS + AC [+ Scheduler])
-                                   │ S3 assets          │ gRPC work orders
-                                   ▼                    ▼
-                              [ SeaweedFS S3 ]    nativelink-worker pods (execute on Talos)
+  Buck2 clients ─gRPC REAPI─▶ nativelink-cas pods (CAS + AC)  ◀── critical path for EVERY build
+        │                          │ blobs + action results
+        │                          ▼
+        │                     [ SeaweedFS S3 ]
+        └─(Execute; RE only)─▶ nativelink-scheduler (Scheduler + Capabilities; stateful coordinator)
+                                   │ gRPC work orders
+                                   ▼
+                              nativelink-worker pods (execute on Talos; aarch64 farm)
   ```
-  - **`nativelink-frontend`**: CAS + AC + Scheduler services; SeaweedFS-S3-backed, keyed. **MVP = frontend with CAS+AC only** (Scheduler dormant), **no workers** → buck2 CAS+AC, local exec.
-  - **`nativelink-worker`**: executes actions on Talos. **RE phase only** — enable the frontend's Scheduler service + deploy workers (scalable aarch64 build farm); flip `remote_enabled=true` → work orders → workers.
-  - Frontend co-locates CAS+AC+Scheduler (right-sized for one cluster; split CAS-from-Scheduler only if scale demands). Worker is the independently-scaled tier.
+  - **`nativelink-cas`** — CAS + AC; SeaweedFS-S3-backed, keyed; horizontally scalable (stateless in front of S3); on the critical path for ALL builds incl. cache-only. **MVP = this tier ONLY.**
+  - **`nativelink-scheduler`** — Scheduler + Execution + Capabilities; the stateful coordinator (few replicas — Buildbarn runs a *single* scheduler). On the path ONLY for remote execution. **Not deployed until the RE phase.**
+  - **`nativelink-worker`** — executes actions on Talos; many pods, compute-scaled. **RE phase only**; flip `remote_enabled=true` → work orders → workers.
+- **Why split CAS+AC from the Scheduler (consensus 2026-05-30):** three distinct scaling axes (CAS = storage/bandwidth; Scheduler = coordination state; Worker = compute) and three blast radii — **CAS is on every build's path; a Scheduler fault must NOT take down the cache.** That argument holds even at one cluster, so the earlier "co-locate, split only if scale demands" was wrong. It's the documented production pattern: NativeLink runs CAS/scheduler in separate processes; [Buildbarn](https://github.com/buildbarn/bb-deployments) decomposes `bb-storage` / `bb-scheduler` / `bb-worker` / `bb-runner`. **AC stays WITH CAS** (both are storage). The cache-only MVP has no Scheduler at all, so the split costs nothing now — build the CAS tier; stand up scheduler+worker only when `remote_enabled` flips.
 - **Keyed, not anonymous** (above).
