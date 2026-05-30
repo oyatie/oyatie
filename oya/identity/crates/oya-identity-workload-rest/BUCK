@@ -7,14 +7,32 @@ rust_binary(
     crate_root = "build.rs",
     visibility = [],
     deps = [
-        "third-party//:protoc-bin-vendored-3",
-        "third-party//:tonic-prost-build-0.14",
+        "third-party//:protoc-bin-vendored",
+        "third-party//:tonic-prost-build",
     ],
+)
+
+export_file(
+    name = "build.rs",
+    visibility = [],
+)
+
+genrule(
+    name = "oya-identity-workload-rest-manifest-dir",
+    srcs = [
+        ":build.rs",
+        "//oya/identity/contracts/proto:workload.proto",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/contracts/proto && cp $(location :build.rs) $OUT/ && cp $(location //oya/identity/contracts/proto:workload.proto) $OUT/contracts/proto/",
 )
 
 buildscript_run(
     name = "oya-identity-workload-rest-build-script-run",
-    script = ":oya-identity-workload-rest-build-script",
+    buildscript_rule = ":oya-identity-workload-rest-build-script",
+    package_name = "oya-identity-workload-rest",
+    version = "0.1.0",
+    manifest_dir = ":oya-identity-workload-rest-manifest-dir",
 )
 
 rust_library(

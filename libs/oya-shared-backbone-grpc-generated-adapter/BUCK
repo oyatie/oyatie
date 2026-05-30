@@ -7,14 +7,35 @@ rust_binary(
     crate_root = "build.rs",
     visibility = [],
     deps = [
-        "third-party//:protoc-bin-vendored-3",
-        "third-party//:tonic-prost-build-0.14",
+        "third-party//:protoc-bin-vendored",
+        "third-party//:tonic-prost-build",
     ],
+)
+
+export_file(
+    name = "build.rs",
+    visibility = [],
+)
+
+genrule(
+    name = "oya-shared-backbone-grpc-generated-adapter-manifest-dir",
+    srcs = [
+        ":build.rs",
+        "//specs/proto/backbone/messenger:message_stream.proto",
+        "//specs/proto/backbone/mail:mail.proto",
+        "//specs/proto/backbone/social:social_post_composition.proto",
+        "//specs/proto/backbone/community:community_post_store.proto",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/specs/proto/backbone/messenger $OUT/specs/proto/backbone/mail $OUT/specs/proto/backbone/social $OUT/specs/proto/backbone/community && cp $(location :build.rs) $OUT/ && cp $(location //specs/proto/backbone/messenger:message_stream.proto) $OUT/specs/proto/backbone/messenger/ && cp $(location //specs/proto/backbone/mail:mail.proto) $OUT/specs/proto/backbone/mail/ && cp $(location //specs/proto/backbone/social:social_post_composition.proto) $OUT/specs/proto/backbone/social/ && cp $(location //specs/proto/backbone/community:community_post_store.proto) $OUT/specs/proto/backbone/community/",
 )
 
 buildscript_run(
     name = "oya-shared-backbone-grpc-generated-adapter-build-script-run",
-    script = ":oya-shared-backbone-grpc-generated-adapter-build-script",
+    buildscript_rule = ":oya-shared-backbone-grpc-generated-adapter-build-script",
+    package_name = "oya-shared-backbone-grpc-generated-adapter",
+    version = "0.1.0",
+    manifest_dir = ":oya-shared-backbone-grpc-generated-adapter-manifest-dir",
 )
 
 rust_library(

@@ -2,7 +2,10 @@ use std::error::Error;
 use std::path::PathBuf;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let proto_root = PathBuf::from("../../contracts/proto");
+    let manifest_dir = PathBuf::from(
+        std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| "../..".to_string()),
+    );
+    let proto_root = manifest_dir.join("contracts/proto");
     let proto_file = proto_root.join("workload.proto");
 
     println!("cargo:rerun-if-changed={}", proto_root.display());
