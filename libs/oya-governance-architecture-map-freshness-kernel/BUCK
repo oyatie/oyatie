@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-governance-architecture-map-freshness-kernel",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
     crate = "oya_governance_architecture_map_freshness_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

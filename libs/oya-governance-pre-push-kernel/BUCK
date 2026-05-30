@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-governance-pre-push-kernel",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
     crate = "oya_governance_pre_push_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-plant-maintenance-work-order-app",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
     crate = "oya_plant_maintenance_work_order_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -16,7 +16,7 @@ rust_library(
 
 rust_binary(
     name = "oya-plant-maintenance-work-order",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
