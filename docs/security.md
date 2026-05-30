@@ -46,23 +46,30 @@ the intended behaviour.
 Note: `sandbox.network` is a proxy/hostname allowlist, not TLS-inspected. Domain-fronting
 is a residual risk; the allowlist is the primary control.
 
-## Subprocess env scrub
+## Secret handling
 
-Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
-
-```sh
-export CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1
-```
-
-This strips shell environment variables (tokens, secrets) from the env passed to bash
-subprocesses by Claude Code, preventing accidental credential leakage. The variable is
-not set automatically — each contributor must opt in via their shell profile.
+There is **no** Claude Code subprocess env-scrub mechanism (`settings.json` `env` only
+*adds* vars; it cannot strip inherited ones). So this control is operational, not config:
+**keep secrets out of the agent's shell environment** — never `export` `FORGEJO_ADMIN_TOKEN`,
+`OPENBAO_ROOT_TOKEN`, the OpenBao unseal keys, etc. session-wide. Source them just-in-time
+inside the one command that needs them (e.g. the masked Forgejo push reads the token via
+`awk` from the gitignored `.env` and uses it only in that single push URL).
 
 ## Permissions
 
 `permissions.deny` in `.claude/settings.json` blocks Docker tool invocations (Docker
-Inc. tooling is forbidden per ADR-0381). This uses the tool-family deny pattern, not
-arg-validation regex.
+Inc. tooling is forbidden per ADR-0381) using the tool-family deny pattern, not
+arg-validation regex. It **also** denies `Read(...)` of credential paths (`~/.ssh/**`,
+`~/.aws/**`, `**/*.pem`, `**/*.kubeconfig`, `**/secrets/**`, …): the sandbox
+`filesystem.denyRead` covers only the **Bash** tool and its children, so without these
+`Read`-tool deny rules an agent could read those files via the `Read`/`Edit` tools. The
+two layers MERGE into the final boundary — both are required.
+
+> Scope note: project-scope `allowRead`/`allowedDomains` are merge-additive (loosenable by
+> user/local settings). For a hard guarantee, `denyRead` + `allowedDomains` +
+> `disableBypassPermissionsMode` belong in **managed** settings, and
+> `sandbox.failIfUnavailable` should be `true` in CI/managed scope so a missing sandbox
+> fails loud rather than silently running unconfined.
 
 `disableBypassPermissionsMode: "disable"` prevents `--dangerously-skip-permissions`
 from being used to circumvent the permission model.
