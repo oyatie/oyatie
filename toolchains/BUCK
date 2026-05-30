@@ -1,0 +1,28 @@
+load("@prelude//toolchains:rust.bzl", "system_rust_toolchain")
+load("@prelude//toolchains:cxx.bzl", "system_cxx_toolchain")
+load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
+load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain")
+
+# Rust 1.95.0 toolchain — pinned to match rust-toolchain.toml
+# rustc is resolved via rustup shim; PATH must include ~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin
+system_rust_toolchain(
+    name = "rust",
+    default_edition = "2024",
+    visibility = ["PUBLIC"],
+)
+
+system_cxx_toolchain(
+    name = "cxx",
+    visibility = ["PUBLIC"],
+)
+
+system_genrule_toolchain(
+    name = "genrule",
+    visibility = ["PUBLIC"],
+)
+
+# Required by prelude//rust/tools:internal_tools_toolchain
+system_python_bootstrap_toolchain(
+    name = "python_bootstrap",
+    visibility = ["PUBLIC"],
+)
