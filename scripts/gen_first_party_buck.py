@@ -237,14 +237,14 @@ def generate_buck_content(
         lines.append('load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")')
         lines.append("")
 
-    def _render_rule(rule: str, rule_name: str, crate_root: str, extra_attrs: list[str] = None) -> list[str]:
+    def _render_rule(rule: str, rule_name: str, crate_root: str, extra_attrs: list[str] = None, crate_ident: str = None) -> list[str]:
         out = []
         out.append(f"{rule}(")
         out.append(f'    name = "{rule_name}",')
         out.append(f'    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),')
-        if rule == "rust_library":
-            crate_ident = crate_name_to_ident(rule_name)
-            out.append(f'    crate = "{crate_ident}",')
+        if rule in ("rust_library", "rust_test"):
+            ci = crate_ident or crate_name_to_ident(rule_name)
+            out.append(f'    crate = "{ci}",')
         out.append(f'    crate_root = "{crate_root}",')
         if edition != "2024":  # 2024 is the workspace default; only emit for 2021
             out.append(f'    edition = "{edition}",')
@@ -300,6 +300,17 @@ def generate_buck_content(
             extra.append(f'env = {{"OUT_DIR": "$(location :{name}-build-script-run[out_dir])"}},')
 
         lines.extend(_render_rule("rust_library", name, crate_root, extra))
+
+        # Unit-test target (#84): compile the lib in --test mode and run its #[test]s.
+        # Mirrors the lib's srcs/crate/crate_root/deps — deps already include dev-deps
+        # (cargo metadata lumps all kinds), so tests using dev-deps compile. Skip
+        # proc-macro crates (test-mode proc-macro compilation needs special handling).
+        if not is_proc_macro:
+            lines.append("")
+            lines.extend(_render_rule(
+                "rust_test", f"{name}-unittest", crate_root, extra,
+                crate_ident=crate_name_to_ident(name),
+            ))
 
     # Bin targets
     for bt in bin_targets:
