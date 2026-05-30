@@ -69,15 +69,11 @@ HOOK_SCRIPTS=(
     session-start-context-inject.sh
     userprompt-canonical-primer.sh
     stop-did-you-forget-suggester.sh
+    no-cargo-enforcer.sh
     stale-tool-suggester.sh
     pre-dispatch-guide.sh
-    vertical-slice-scope-suggester.sh
-    cargo-verify-on-rust-edit.sh
     spec-version-pin-suggester.sh
-    buildability-line-count.sh
     adr-orphan-detect.sh
-    microservice-quality-bar.sh
-    retired-vcs-surface-inventory.sh
     vacuous-green-gate-detect.sh
 )
 
@@ -154,23 +150,18 @@ if $CODEX_DETECTED; then
       { "command": "tools/hooks/userprompt-canonical-primer.sh" }
     ],
     "stop": [
-      { "command": "tools/hooks/stop-did-you-forget-suggester.sh" },
-      { "command": "tools/hooks/microservice-quality-bar.sh" }
+      { "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
     ],
     "pre_tool_use": [
+      { "command": "tools/hooks/no-cargo-enforcer.sh",    "matcher": "bash" },
       { "command": "tools/hooks/stale-tool-suggester.sh", "matcher": "bash" },
-      { "command": "tools/hooks/pre-dispatch-guide.sh",   "matcher": "agent" },
-      { "command": "tools/hooks/vertical-slice-scope-suggester.sh", "matcher": "write" }
+      { "command": "tools/hooks/pre-dispatch-guide.sh",   "matcher": "agent" }
     ],
     "post_tool_use": [
-      { "command": "tools/hooks/cargo-verify-on-rust-edit.sh",   "matcher": "edit" },
-      { "command": "tools/hooks/cargo-verify-on-rust-edit.sh",   "matcher": "write" },
       { "command": "tools/hooks/spec-version-pin-suggester.sh",  "matcher": "edit" },
       { "command": "tools/hooks/spec-version-pin-suggester.sh",  "matcher": "write" },
-      { "command": "tools/hooks/buildability-line-count.sh",     "matcher": "write" },
       { "command": "tools/hooks/adr-orphan-detect.sh",           "matcher": "edit" },
       { "command": "tools/hooks/adr-orphan-detect.sh",           "matcher": "write" },
-      { "command": "tools/hooks/microservice-quality-bar.sh",    "matcher": "write" },
       { "command": "tools/hooks/vacuous-green-gate-detect.sh",   "matcher": "edit" },
       { "command": "tools/hooks/vacuous-green-gate-detect.sh",   "matcher": "write" }
     ]
@@ -222,23 +213,18 @@ if $GEMINI_DETECTED; then
       { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh", "name": "oya-canonical-primer" }
     ],
     "AfterAgent": [
-      { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "oya-did-you-forget" },
-      { "type": "command", "command": "tools/hooks/microservice-quality-bar.sh",      "name": "oya-quality-bar-stop" }
+      { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "oya-did-you-forget" }
     ],
     "BeforeTool": [
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/stale-tool-suggester.sh",            "name": "oya-stale-tool" },
-      { "matcher": "agent", "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh",              "name": "oya-pre-dispatch" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/vertical-slice-scope-suggester.sh",  "name": "oya-vertical-scope" }
+      { "matcher": "bash",  "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh",  "name": "oya-no-cargo" },
+      { "matcher": "bash",  "type": "command", "command": "tools/hooks/stale-tool-suggester.sh", "name": "oya-stale-tool" },
+      { "matcher": "agent", "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh",   "name": "oya-pre-dispatch" }
     ],
     "AfterTool": [
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/cargo-verify-on-rust-edit.sh",  "name": "oya-cargo-verify-edit" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/cargo-verify-on-rust-edit.sh",  "name": "oya-cargo-verify-write" },
       { "matcher": "edit",  "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-edit" },
       { "matcher": "write", "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-write" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/buildability-line-count.sh",    "name": "oya-buildability" },
       { "matcher": "edit",  "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-edit" },
       { "matcher": "write", "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-write" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/microservice-quality-bar.sh",   "name": "oya-quality-bar-write" },
       { "matcher": "edit",  "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh",  "name": "oya-vacuous-green-edit" },
       { "matcher": "write", "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh",  "name": "oya-vacuous-green-write" }
     ]
