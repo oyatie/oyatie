@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-payments-adapter-adyen",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_payments_adapter_adyen",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/payments/crates/oya-payments-charge-kernel:oya-payments-charge-kernel",
+    ],
+)

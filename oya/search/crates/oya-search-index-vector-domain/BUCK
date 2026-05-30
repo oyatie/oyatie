@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-search-index-vector-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_search_index_vector_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/search/crates/oya-search-crawler-domain:oya-search-crawler-domain",
+        "//oya/search/crates/oya-search-parser-domain:oya-search-parser-domain",
+        "third-party//:serde_json-1",
+    ],
+)

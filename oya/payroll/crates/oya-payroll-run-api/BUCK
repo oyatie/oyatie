@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-payroll-run-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_payroll_run_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+    ],
+)

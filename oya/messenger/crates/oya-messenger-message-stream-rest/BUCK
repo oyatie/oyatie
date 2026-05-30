@@ -1,0 +1,14 @@
+rust_library(
+    name = "oya-messenger-message-stream-rest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_messenger_message_stream_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//oya/messenger/crates/oya-messenger-app:oya-messenger-app",
+        "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
+        "//oya/messenger/crates/oya-messenger-message-stream-usecase:oya-messenger-message-stream-usecase",
+    ],
+)

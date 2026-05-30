@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-managed-k8s-tenant-quota-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_managed_k8s_tenant_quota_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel:oya-managed-k8s-tenant-quota-kernel",
+        "third-party//:serde-1",
+    ],
+)

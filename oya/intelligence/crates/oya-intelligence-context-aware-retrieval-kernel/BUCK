@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-intelligence-context-aware-retrieval-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_context_aware_retrieval_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

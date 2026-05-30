@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-guardrails-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_guardrails_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-guardrails-kernel:oya-intelligence-guardrails-kernel",
+    ],
+)

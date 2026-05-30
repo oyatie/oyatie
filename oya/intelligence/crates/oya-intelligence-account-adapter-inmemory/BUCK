@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-account-adapter-inmemory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_account_adapter_inmemory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+    ],
+)

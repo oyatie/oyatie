@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-ci-webhook-gateway-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ci_webhook_gateway_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+    ],
+)

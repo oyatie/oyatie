@@ -1,0 +1,15 @@
+rust_library(
+    name = "oya-managed-k8s-control-plane-host-adapter-capi",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_managed_k8s_control_plane_host_adapter_capi",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api:oya-managed-k8s-control-plane-host-api",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel:oya-managed-k8s-control-plane-host-kernel",
+        "third-party//:k8s-openapi",
+        "third-party//:kube-3",
+        "third-party//:kube-runtime-3",
+        "third-party//:tokio-1",
+    ],
+)

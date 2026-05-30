@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-shared-cursor-pagination-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_cursor_pagination_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

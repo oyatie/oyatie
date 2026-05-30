@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-cloud-finops-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_finops_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
+        "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
+        "//cloud/cloud-finops/crates/oya-cloud-finops-domain:oya-cloud-finops-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

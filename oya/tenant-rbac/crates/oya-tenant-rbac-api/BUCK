@@ -1,0 +1,14 @@
+rust_library(
+    name = "oya-tenant-rbac-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-application:oya-tenant-rbac-application",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+    ],
+)

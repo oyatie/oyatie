@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-payroll-run-storage-adapter-inmemory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_payroll_run_storage_adapter_inmemory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+    ],
+)

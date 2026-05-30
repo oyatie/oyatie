@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-cloud-iac-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_iac_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

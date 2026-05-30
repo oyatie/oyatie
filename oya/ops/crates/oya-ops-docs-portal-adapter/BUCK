@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-ops-docs-portal-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ops_docs_portal_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ops/crates/oya-ops-docs-portal-kernel:oya-ops-docs-portal-kernel",
+    ],
+)

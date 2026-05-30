@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-governance-sunset-lifecycle-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_sunset_lifecycle_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

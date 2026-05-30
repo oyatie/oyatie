@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-intelligence-jsonl-supervisor-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_jsonl_supervisor_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-supervisor-kernel:oya-intelligence-supervisor-kernel",
+        "third-party//:tempfile-3",
+    ],
+)

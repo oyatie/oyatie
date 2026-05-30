@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-saga-shape",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_saga_shape",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

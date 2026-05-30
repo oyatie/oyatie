@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-api-sse-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_api_sse_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-api-rest-kernel:oya-intelligence-api-rest-kernel",
+    ],
+)

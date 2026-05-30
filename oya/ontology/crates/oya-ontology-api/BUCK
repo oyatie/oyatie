@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-ontology-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ontology_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/ontology/crates/oya-ontology-domain:oya-ontology-domain",
+    ],
+)

@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-messenger-message-stream-grpc",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_messenger_message_stream_grpc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//oya/messenger/crates/oya-messenger-app:oya-messenger-app",
+        "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
+    ],
+)

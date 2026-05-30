@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-governance-agentic-navigability-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_agentic_navigability_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

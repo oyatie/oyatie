@@ -1,0 +1,10 @@
+rust_binary(
+    name = "oya-vcs-admission-gate-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-vcs-admission-gate-kernel:oya-vcs-admission-gate-kernel",
+        "third-party//:serde_json-1",
+    ],
+)

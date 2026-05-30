@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/application/crates/oya-application-app:oya-application-app",
+    ],
+)

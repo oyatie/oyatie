@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-governance-portfolio-citation-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_portfolio_citation_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-tenant-rbac-postgres-rls-storage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_postgres_rls_storage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

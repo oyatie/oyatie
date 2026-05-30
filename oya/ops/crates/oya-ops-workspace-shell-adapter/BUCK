@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-ops-workspace-shell-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ops_workspace_shell_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ops/crates/oya-ops-workspace-shell-kernel:oya-ops-workspace-shell-kernel",
+    ],
+)

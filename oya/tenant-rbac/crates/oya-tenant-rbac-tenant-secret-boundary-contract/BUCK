@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-tenant-rbac-tenant-secret-boundary-contract",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_tenant_secret_boundary_contract",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-admission-policy:oya-tenant-rbac-tenant-admission-policy",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
+    ],
+)

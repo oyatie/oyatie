@@ -1,0 +1,10 @@
+rust_binary(
+    name = "oya-shared-architecture-check-cli",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow-1",
+        "third-party//:clap-4",
+    ],
+)

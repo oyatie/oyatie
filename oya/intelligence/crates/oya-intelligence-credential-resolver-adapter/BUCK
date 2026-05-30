@@ -1,0 +1,21 @@
+rust_library(
+    name = "oya-intelligence-credential-resolver-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_credential_resolver_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-credential-resolver-domain:oya-intelligence-credential-resolver-domain",
+        "//oya/intelligence/crates/oya-intelligence-credential-resolver-usecase:oya-intelligence-credential-resolver-usecase",
+        "third-party//:bytes-1",
+        "third-party//:http-body-util",
+        "third-party//:hyper-1",
+        "third-party//:hyper-util",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+    ],
+)

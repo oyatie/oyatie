@@ -1,0 +1,15 @@
+rust_library(
+    name = "oya-ci-webhook-gateway-jenkins-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ci_webhook_gateway_jenkins_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel:oya-ci-webhook-gateway-kernel",
+        "third-party//:reqwest",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        # UNRESOLVED: httpmock ^0.7
+    ],
+)

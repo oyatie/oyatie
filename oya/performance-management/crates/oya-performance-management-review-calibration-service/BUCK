@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-performance-management-review-calibration-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_performance_management_review_calibration_service",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-performance-management-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/performance-management/crates/oya-performance-management-review-calibration-service:oya-performance-management-review-calibration-service",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

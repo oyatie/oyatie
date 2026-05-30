@@ -1,0 +1,27 @@
+rust_library(
+    name = "oya-intelligence-subagent-runtime-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_subagent_runtime_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-kernel:oya-intelligence-account-kernel",
+        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
+        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-usecase:oya-intelligence-subagent-runtime-usecase",
+        "third-party//:tempfile-3",
+    ],
+)
+
+rust_binary(
+    name = "oya-intelligence-subagent-runtime-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-app:oya-intelligence-subagent-runtime-app",
+        "//oya/intelligence/crates/oya-intelligence-account-kernel:oya-intelligence-account-kernel",
+        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
+        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-usecase:oya-intelligence-subagent-runtime-usecase",
+        "third-party//:tempfile-3",
+    ],
+)

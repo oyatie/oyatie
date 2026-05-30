@@ -1,0 +1,8 @@
+rust_library(
+    name = "oya-workplace-integration-doc-set-scaffold",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workplace_integration_doc_set_scaffold",
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+)

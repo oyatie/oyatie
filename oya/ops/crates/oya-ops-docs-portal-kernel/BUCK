@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-ops-docs-portal-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ops_docs_portal_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

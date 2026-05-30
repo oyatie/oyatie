@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-whiteboard-canvas-collaboration-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_whiteboard_canvas_collaboration_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-whiteboard-canvas-collaboration",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/whiteboard/crates/oya-whiteboard-canvas-collaboration-app:oya-whiteboard-canvas-collaboration-app",
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

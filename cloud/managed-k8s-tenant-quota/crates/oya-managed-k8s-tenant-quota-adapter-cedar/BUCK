@@ -1,0 +1,15 @@
+rust_library(
+    name = "oya-managed-k8s-tenant-quota-adapter-cedar",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_managed_k8s_tenant_quota_adapter_cedar",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api:oya-managed-k8s-tenant-quota-api",
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel:oya-managed-k8s-tenant-quota-kernel",
+        "//oya/identity/crates/oya-identity-workload-authz-cedar-adapter:oya-identity-workload-authz-cedar-adapter",
+        "//oya/identity/crates/oya-identity-workload-domain:oya-identity-workload-domain",
+        "third-party//:cedar-policy-4",
+        "third-party//:serde-1",
+    ],
+)

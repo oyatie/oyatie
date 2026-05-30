@@ -1,0 +1,21 @@
+rust_library(
+    name = "oya-meter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_meter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:tokio-1",
+    ],
+)
+
+rust_binary(
+    name = "oya-meter",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-billing/crates/oya-meter:oya-meter",
+        "third-party//:tokio-1",
+    ],
+)

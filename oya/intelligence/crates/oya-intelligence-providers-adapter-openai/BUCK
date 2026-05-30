@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-intelligence-providers-adapter-openai",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_providers_adapter_openai",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-dispatch-usecase:oya-intelligence-dispatch-usecase",
+        "//oya/intelligence/crates/oya-intelligence-model-routing-domain:oya-intelligence-model-routing-domain",
+    ],
+)

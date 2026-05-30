@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-tenancy-kyb-kyc-verifier-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenancy_kyb_kyc_verifier_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

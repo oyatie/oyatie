@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-shuffle-sharding",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shuffle_sharding",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

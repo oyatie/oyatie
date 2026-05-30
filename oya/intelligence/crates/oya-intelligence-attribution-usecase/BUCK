@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-attribution-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_attribution_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-attribution-domain:oya-intelligence-attribution-domain",
+    ],
+)

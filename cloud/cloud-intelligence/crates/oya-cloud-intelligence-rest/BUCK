@@ -1,0 +1,28 @@
+rust_library(
+    name = "oya-cloud-intelligence-rest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_intelligence_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "third-party//:axum",
+        "third-party//:axum",
+        "third-party//:bytes-1",
+        "third-party//:bytes-1",
+        "third-party//:futures",
+        "third-party//:futures",
+        "third-party//:http-body-util",
+        "third-party//:reqwest",
+        "third-party//:reqwest",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tokio-1",
+        "third-party//:tower",
+        "third-party//:tracing",
+        # UNRESOLVED: httpmock ^0.7
+    ],
+)

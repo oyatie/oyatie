@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-tenant-rbac-audit-chain-emission",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_audit_chain_emission",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/audit-chain/crates/oya-audit-chain-emission-api:oya-audit-chain-emission-api",
+        "//oya/audit-chain/crates/oya-audit-chain-emission-kernel:oya-audit-chain-emission-kernel",
+    ],
+)

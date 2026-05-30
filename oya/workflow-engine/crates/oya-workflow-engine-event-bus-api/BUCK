@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-workflow-engine-event-bus-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_event_bus_api",
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-event-bus-usecase:oya-workflow-engine-event-bus-usecase",
+    ],
+)

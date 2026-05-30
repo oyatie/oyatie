@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-messenger-message-stream-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_messenger_message_stream_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/messenger/crates/oya-messenger-domain:oya-messenger-domain",
+        "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
+    ],
+)

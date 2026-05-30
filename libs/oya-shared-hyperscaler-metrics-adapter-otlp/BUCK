@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-shared-hyperscaler-metrics-adapter-otlp",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_hyperscaler_metrics_adapter_otlp",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "third-party//:opentelemetry",
+        "third-party//:opentelemetry-otlp",
+        "third-party//:opentelemetry_sdk",
+    ],
+)

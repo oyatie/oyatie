@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-cloud-iac-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_iac_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-iac/crates/oya-cloud-iac-domain:oya-cloud-iac-domain",
+    ],
+)

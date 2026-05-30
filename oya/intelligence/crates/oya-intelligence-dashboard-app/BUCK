@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-intelligence-dashboard-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_dashboard_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//oya/intelligence/crates/oya-intelligence-dashboard-kernel:oya-intelligence-dashboard-kernel",
+    ],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-identity-oidc-issuer-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_identity_oidc_issuer_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

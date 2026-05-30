@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-connector-gusto-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_connector_gusto_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-connector-kernel:oya-shared-connector-kernel",
+    ],
+)

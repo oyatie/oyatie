@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-production-planning-mrp-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_production_planning_mrp_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-production-planning-mrp",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/production-planning/crates/oya-production-planning-mrp-app:oya-production-planning-mrp-app",
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

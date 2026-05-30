@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-tenant-rbac-storage-adapter-inmemory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_storage_adapter_inmemory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-application:oya-tenant-rbac-application",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
+    ],
+)

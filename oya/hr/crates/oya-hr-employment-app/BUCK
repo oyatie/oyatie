@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-hr-employment-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_hr_employment_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/hr/crates/oya-hr-employment-domain:oya-hr-employment-domain",
+    ],
+)

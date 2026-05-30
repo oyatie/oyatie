@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-intelligence-attribution-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_attribution_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

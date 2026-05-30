@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-shared-scim-server-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_scim_server_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+    ],
+)

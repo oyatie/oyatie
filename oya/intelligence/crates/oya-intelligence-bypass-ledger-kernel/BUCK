@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-intelligence-bypass-ledger-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_bypass_ledger_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-governance-tos-policy-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_tos_policy_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-kernel:oya-intelligence-account-kernel",
+        "//oya/intelligence/crates/oya-intelligence-provider-pool-kernel:oya-intelligence-provider-pool-kernel",
+    ],
+)

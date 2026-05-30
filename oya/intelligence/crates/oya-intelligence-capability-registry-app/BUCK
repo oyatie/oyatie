@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-intelligence-capability-registry-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_capability_registry_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-capability-registry-domain:oya-intelligence-capability-registry-domain",
+        "//oya/intelligence/crates/oya-intelligence-capability-registry-kernel:oya-intelligence-capability-registry-kernel",
+    ],
+)

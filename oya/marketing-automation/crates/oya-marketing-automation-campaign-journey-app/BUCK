@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-marketing-automation-campaign-journey-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_marketing_automation_campaign_journey_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-marketing-automation-campaign-journey",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/marketing-automation/crates/oya-marketing-automation-campaign-journey-app:oya-marketing-automation-campaign-journey-app",
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

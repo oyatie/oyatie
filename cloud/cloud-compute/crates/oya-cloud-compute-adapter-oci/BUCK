@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-cloud-compute-adapter-oci",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_compute_adapter_oci",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-compute/crates/oya-cloud-compute-domain:oya-cloud-compute-domain",
+        "//cloud/cloud-compute/crates/oya-cloud-resource-domain:oya-cloud-resource-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

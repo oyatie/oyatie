@@ -1,0 +1,21 @@
+rust_library(
+    name = "oya-intelligence-attribution-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_attribution_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-attribution-adapter:oya-intelligence-attribution-adapter",
+        "//oya/intelligence/crates/oya-intelligence-attribution-domain:oya-intelligence-attribution-domain",
+        "//oya/intelligence/crates/oya-intelligence-attribution-kernel:oya-intelligence-attribution-kernel",
+        "//oya/intelligence/crates/oya-intelligence-attribution-usecase:oya-intelligence-attribution-usecase",
+        "//oya/intelligence/crates/oya-intelligence-attribution-worker:oya-intelligence-attribution-worker",
+        "third-party//:bytes-1",
+        "third-party//:futures-util",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+    ],
+)

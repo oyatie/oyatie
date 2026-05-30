@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-tenancy-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenancy_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//cloud/tenancy/crates/oya-tenancy-domain:oya-tenancy-domain",
+    ],
+)

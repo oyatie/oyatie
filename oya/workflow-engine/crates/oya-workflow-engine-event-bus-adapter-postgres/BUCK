@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-workflow-engine-event-bus-adapter-postgres",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_event_bus_adapter_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter:oya-workflow-engine-event-bus-adapter",
+    ],
+)

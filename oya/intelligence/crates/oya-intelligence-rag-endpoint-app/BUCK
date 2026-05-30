@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-intelligence-rag-endpoint-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_rag_endpoint_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-capability-registry-kernel:oya-intelligence-capability-registry-kernel",
+        "//oya/intelligence/crates/oya-intelligence-rag-endpoint-domain:oya-intelligence-rag-endpoint-domain",
+        "//oya/intelligence/crates/oya-intelligence-rag-endpoint-kernel:oya-intelligence-rag-endpoint-kernel",
+    ],
+)

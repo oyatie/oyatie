@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-shared-presence-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_presence_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

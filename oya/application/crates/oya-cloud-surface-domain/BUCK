@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-cloud-surface-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_surface_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

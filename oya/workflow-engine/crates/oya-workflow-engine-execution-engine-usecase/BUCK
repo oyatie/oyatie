@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-workflow-engine-execution-engine-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_execution_engine_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-domain:oya-workflow-engine-execution-engine-domain",
+    ],
+)

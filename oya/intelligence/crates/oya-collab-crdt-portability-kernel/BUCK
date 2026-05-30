@@ -1,0 +1,8 @@
+rust_library(
+    name = "oya-collab-crdt-portability-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_collab_crdt_portability_kernel",
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+)

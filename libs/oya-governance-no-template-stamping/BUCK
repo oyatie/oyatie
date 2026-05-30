@@ -1,0 +1,29 @@
+rust_library(
+    name = "oya-governance-no-template-stamping",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_no_template_stamping",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow-1",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_yaml",
+        "third-party//:walkdir-2",
+    ],
+)
+
+rust_binary(
+    name = "oya-governance-no-template-stamping",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-governance-no-template-stamping:oya-governance-no-template-stamping",
+        "third-party//:anyhow-1",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_yaml",
+        "third-party//:walkdir-2",
+    ],
+)

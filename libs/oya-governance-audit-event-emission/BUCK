@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-governance-audit-event-emission",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_audit_event_emission",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow-1",
+        "third-party//:serde-1",
+        "third-party//:serde_yaml",
+        "third-party//:walkdir-2",
+    ],
+)

@@ -1,0 +1,13 @@
+rust_binary(
+    name = "oya-xtask-metadata-augment",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow-1",
+        "third-party//:clap-4",
+        "third-party//:serde_json-1",
+        "third-party//:tempfile-3",
+        "third-party//:toml_edit",
+    ],
+)

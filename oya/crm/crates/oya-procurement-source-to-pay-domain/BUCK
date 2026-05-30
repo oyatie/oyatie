@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-procurement-source-to-pay-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_procurement_source_to_pay_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

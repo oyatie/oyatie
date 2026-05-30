@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-json-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_json_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

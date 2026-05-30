@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-tenancy-dr-pairing-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenancy_dr_pairing_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

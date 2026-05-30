@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-governance-upstream-api-drift-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_upstream_api_drift_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-kernel:oya-intelligence-account-kernel",
+    ],
+)

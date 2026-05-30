@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-search-rag-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_search_rag_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/search/crates/oya-search-query-domain:oya-search-query-domain",
+        "//oya/search/crates/oya-search-rank-domain:oya-search-rank-domain",
+        "//oya/search/crates/oya-search-serp-domain:oya-search-serp-domain",
+    ],
+)

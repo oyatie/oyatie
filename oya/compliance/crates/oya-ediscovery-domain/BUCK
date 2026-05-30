@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-ediscovery-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ediscovery_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/compliance/crates/oya-retention-domain:oya-retention-domain",
+    ],
+)

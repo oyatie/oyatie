@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-cloud-iam-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_iam_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/policy/crates/oya-policy-cedar-domain:oya-policy-cedar-domain",
+    ],
+)

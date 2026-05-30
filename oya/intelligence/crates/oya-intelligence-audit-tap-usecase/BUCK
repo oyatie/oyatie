@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-intelligence-audit-tap-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_audit_tap_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-cloud-marketplace-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_marketplace_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-intelligence-context-aware-retrieval-worker",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_context_aware_retrieval_worker",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-context-aware-retrieval-adapter:oya-intelligence-context-aware-retrieval-adapter",
+        "//oya/intelligence/crates/oya-intelligence-context-aware-retrieval-usecase:oya-intelligence-context-aware-retrieval-usecase",
+    ],
+)

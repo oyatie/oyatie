@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-assist-draft-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_assist_draft_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-assist-draft-kernel:oya-intelligence-assist-draft-kernel",
+    ],
+)

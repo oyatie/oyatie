@@ -1,0 +1,14 @@
+rust_library(
+    name = "oya-tooling-agent-read",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tooling_agent_read",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_binary(
+    name = "oya-tooling-agent-read",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+)
