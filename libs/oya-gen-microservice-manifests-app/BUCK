@@ -1,0 +1,23 @@
+rust_library(
+    name = "oya-gen-microservice-manifests-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_gen_microservice_manifests_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+    ],
+)
+
+rust_binary(
+    name = "oya-gen-microservice-manifests",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-gen-microservice-manifests-app:oya-gen-microservice-manifests-app",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+    ],
+)

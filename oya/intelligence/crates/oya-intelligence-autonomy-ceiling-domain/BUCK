@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-autonomy-ceiling-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_autonomy_ceiling_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-autonomy-ceiling-kernel:oya-intelligence-autonomy-ceiling-kernel",
+    ],
+)

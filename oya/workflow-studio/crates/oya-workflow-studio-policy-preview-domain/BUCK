@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-workflow-studio-policy-preview-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_studio_policy_preview_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain:oya-workflow-studio-dsl-emitter-domain",
+        "third-party//:serde-1",
+    ],
+)

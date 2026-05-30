@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-cloud-iam-adapter-oci",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_iam_adapter_oci",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+    ],
+)

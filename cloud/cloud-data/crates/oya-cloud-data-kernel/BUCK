@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-cloud-data-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_data_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-ops-workspace-shell-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ops_workspace_shell_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-messenger-message-stream-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_messenger_message_stream_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+    ],
+)

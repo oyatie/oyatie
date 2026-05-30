@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-audit-tap-worker",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_audit_tap_worker",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-audit-tap-adapter:oya-intelligence-audit-tap-adapter",
+    ],
+)

@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-check-step-up-auth-coverage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_step_up_auth_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_yaml",
+        "third-party//:serde_yaml",
+    ],
+)

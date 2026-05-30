@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-shared-transactional-outbox-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_transactional_outbox_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+    ],
+)

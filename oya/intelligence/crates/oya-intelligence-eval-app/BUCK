@@ -1,0 +1,21 @@
+rust_library(
+    name = "oya-intelligence-eval-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_eval_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-eval-adapter:oya-intelligence-eval-adapter",
+        "//oya/intelligence/crates/oya-intelligence-eval-domain:oya-intelligence-eval-domain",
+        "//oya/intelligence/crates/oya-intelligence-eval-kernel:oya-intelligence-eval-kernel",
+        "//oya/intelligence/crates/oya-intelligence-eval-usecase:oya-intelligence-eval-usecase",
+        "//oya/intelligence/crates/oya-intelligence-eval-worker:oya-intelligence-eval-worker",
+        "third-party//:bytes-1",
+        "third-party//:futures-util",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+    ],
+)

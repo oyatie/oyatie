@@ -1,0 +1,14 @@
+rust_library(
+    name = "oya-mail-mailbox-store-rest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_mail_mailbox_store_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//oya/mail/crates/oya-mail-mailbox-store-api:oya-mail-mailbox-store-api",
+        "//oya/mail/crates/oya-mail-mailbox-store-app:oya-mail-mailbox-store-app",
+        "//oya/mail/crates/oya-mail-mailbox-store-usecase:oya-mail-mailbox-store-usecase",
+    ],
+)

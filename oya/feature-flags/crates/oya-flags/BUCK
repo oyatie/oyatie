@@ -1,0 +1,21 @@
+rust_library(
+    name = "oya-flags",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_flags",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:tokio-1",
+    ],
+)
+
+rust_binary(
+    name = "oya-flags",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/feature-flags/crates/oya-flags:oya-flags",
+        "third-party//:tokio-1",
+    ],
+)

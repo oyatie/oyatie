@@ -1,0 +1,25 @@
+rust_library(
+    name = "oya-identity",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_identity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:tokio-1",
+        "third-party//:uuid-1",
+        "third-party//:webauthn-rs",
+    ],
+)
+
+rust_binary(
+    name = "oya-identity",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/identity/crates/oya-identity:oya-identity",
+        "third-party//:tokio-1",
+        "third-party//:uuid-1",
+        "third-party//:webauthn-rs",
+    ],
+)

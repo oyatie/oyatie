@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-tenancy-sub-scope-registry-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenancy_sub_scope_registry_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-shared-protocol-transport-retry-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_protocol_transport_retry_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+    ],
+)

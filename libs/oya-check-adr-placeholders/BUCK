@@ -1,0 +1,14 @@
+rust_library(
+    name = "oya-check-adr-placeholders",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_adr_placeholders",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_binary(
+    name = "oya-check-adr-placeholders",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+)

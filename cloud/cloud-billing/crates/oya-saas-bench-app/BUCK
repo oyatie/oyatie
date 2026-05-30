@@ -1,0 +1,14 @@
+rust_library(
+    name = "oya-saas-bench-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_saas_bench_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel:oya-saas-plugin-marketplace-kernel",
+        "//oya/application/crates/oya-saas-plugin-app:oya-saas-plugin-app",
+        "//oya/workflow-engine/crates/oya-saas-workflow-app:oya-saas-workflow-app",
+        "//oya/workflow-engine/crates/oya-saas-workflow-domain:oya-saas-workflow-domain",
+        "//oya/workflow-engine/crates/oya-saas-workflow-kernel:oya-saas-workflow-kernel",
+    ],
+)

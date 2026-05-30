@@ -1,0 +1,13 @@
+rust_binary(
+    name = "oya-governance-purpose-audit-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-governance-purpose-kernel:oya-governance-purpose-kernel",
+        "third-party//:anyhow-1",
+        "third-party//:glob",
+        "third-party//:serde_json-1",
+        "third-party//:serde_yaml",
+    ],
+)

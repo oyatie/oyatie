@@ -1,0 +1,41 @@
+rust_library(
+    name = "oya-managed-k8s-control-plane-host-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_managed_k8s_control_plane_host_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi:oya-managed-k8s-control-plane-host-adapter-capi",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-inmemory:oya-managed-k8s-control-plane-host-adapter-inmemory",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api:oya-managed-k8s-control-plane-host-api",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel:oya-managed-k8s-control-plane-host-kernel",
+        "third-party//:axum",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-managed-k8s-control-plane-host",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app:oya-managed-k8s-control-plane-host-app",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi:oya-managed-k8s-control-plane-host-adapter-capi",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-inmemory:oya-managed-k8s-control-plane-host-adapter-inmemory",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api:oya-managed-k8s-control-plane-host-api",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel:oya-managed-k8s-control-plane-host-kernel",
+        "third-party//:axum",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

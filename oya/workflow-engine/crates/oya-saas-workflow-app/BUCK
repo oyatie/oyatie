@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-saas-workflow-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_saas_workflow_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-saas-workflow-domain:oya-saas-workflow-domain",
+        "//oya/workflow-engine/crates/oya-saas-workflow-kernel:oya-saas-workflow-kernel",
+    ],
+)

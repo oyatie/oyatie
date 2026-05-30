@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-connector-rippling-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_connector_rippling_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-connector-kernel:oya-shared-connector-kernel",
+    ],
+)

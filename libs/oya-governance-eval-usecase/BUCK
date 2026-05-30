@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-governance-eval-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_eval_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-governance-eval-domain:oya-governance-eval-domain",
+    ],
+)

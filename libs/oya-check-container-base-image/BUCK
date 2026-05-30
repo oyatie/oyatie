@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-container-base-image",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_container_base_image",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

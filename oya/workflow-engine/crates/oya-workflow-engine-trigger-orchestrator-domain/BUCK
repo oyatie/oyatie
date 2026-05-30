@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-workflow-engine-trigger-orchestrator-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_trigger_orchestrator_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-kernel:oya-workflow-engine-trigger-orchestrator-kernel",
+    ],
+)

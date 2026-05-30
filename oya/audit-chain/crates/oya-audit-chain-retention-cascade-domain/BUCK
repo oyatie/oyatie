@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-audit-chain-retention-cascade-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_audit_chain_retention_cascade_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/audit-chain/crates/oya-audit-chain-retention-cascade-api:oya-audit-chain-retention-cascade-api",
+    ],
+)

@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-shared-hyperscaler-metrics-adapter-prometheus",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_hyperscaler_metrics_adapter_prometheus",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "third-party//:prometheus",
+    ],
+)

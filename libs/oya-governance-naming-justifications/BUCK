@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-governance-naming-justifications",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_naming_justifications",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow-1",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_yaml",
+        "third-party//:toml",
+        "third-party//:walkdir-2",
+    ],
+)
+
+rust_binary(
+    name = "oya-governance-naming-justifications",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-governance-naming-justifications:oya-governance-naming-justifications",
+        "third-party//:anyhow-1",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_yaml",
+        "third-party//:toml",
+        "third-party//:walkdir-2",
+    ],
+)

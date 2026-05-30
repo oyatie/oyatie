@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-tenant-rbac-disbursement-evidence",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_disbursement_evidence",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-governance-orphan-detection-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_orphan_detection_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

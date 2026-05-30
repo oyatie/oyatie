@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-http-router-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_http_router_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

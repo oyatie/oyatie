@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-governance-adapter-with-no-importer-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_adapter_with_no_importer_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:tempfile-3",
+    ],
+)

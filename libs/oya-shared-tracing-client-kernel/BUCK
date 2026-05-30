@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-shared-tracing-client-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_tracing_client_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

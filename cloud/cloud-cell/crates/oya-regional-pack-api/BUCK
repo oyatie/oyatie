@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-regional-pack-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_regional_pack_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-cell/crates/oya-regional-pack-domain:oya-regional-pack-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+    ],
+)

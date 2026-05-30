@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-crm-customer-engagement-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_crm_customer_engagement_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

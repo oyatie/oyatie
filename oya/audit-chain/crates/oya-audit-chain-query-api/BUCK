@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-audit-chain-query-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_audit_chain_query_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

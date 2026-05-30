@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-workflow-engine-event-bus-sdk",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_event_bus_sdk",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-event-bus-rest:oya-workflow-engine-event-bus-rest",
+    ],
+)

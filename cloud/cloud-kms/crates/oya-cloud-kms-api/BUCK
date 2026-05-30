@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-cloud-kms-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_kms_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

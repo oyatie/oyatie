@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-governance-pre-push-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_pre_push_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

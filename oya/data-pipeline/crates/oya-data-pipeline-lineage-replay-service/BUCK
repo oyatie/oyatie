@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-data-pipeline-lineage-replay-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_data_pipeline_lineage_replay_service",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-data-pipeline-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/data-pipeline/crates/oya-data-pipeline-lineage-replay-service:oya-data-pipeline-lineage-replay-service",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

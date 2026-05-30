@@ -1,0 +1,6 @@
+rust_binary(
+    name = "oya-adapter-substitution-test-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+)

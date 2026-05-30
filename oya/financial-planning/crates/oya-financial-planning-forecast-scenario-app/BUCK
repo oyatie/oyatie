@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-financial-planning-forecast-scenario-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_financial_planning_forecast_scenario_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-financial-planning-forecast-scenario",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/financial-planning/crates/oya-financial-planning-forecast-scenario-app:oya-financial-planning-forecast-scenario-app",
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

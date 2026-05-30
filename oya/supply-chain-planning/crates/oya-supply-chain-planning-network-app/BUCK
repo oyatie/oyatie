@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-supply-chain-planning-network-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_supply_chain_planning_network_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-supply-chain-planning-network",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/supply-chain-planning/crates/oya-supply-chain-planning-network-app:oya-supply-chain-planning-network-app",
+        "third-party//:clap-4",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-identity-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_identity_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
+    ],
+)

@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-workflow-engine-execution-engine-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_execution_engine_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter:oya-workflow-engine-execution-engine-adapter",
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-rest:oya-workflow-engine-execution-engine-rest",
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-sdk:oya-workflow-engine-execution-engine-sdk",
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-worker:oya-workflow-engine-execution-engine-worker",
+    ],
+)

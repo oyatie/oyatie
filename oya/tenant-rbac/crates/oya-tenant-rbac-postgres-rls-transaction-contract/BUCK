@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-tenant-rbac-postgres-rls-transaction-contract",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_postgres_rls_transaction_contract",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract:oya-tenant-rbac-postgres-rls-write-contract",
+    ],
+)

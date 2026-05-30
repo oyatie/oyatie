@@ -1,0 +1,14 @@
+rust_library(
+    name = "oya-managed-k8s-cluster-lifecycle-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_managed_k8s_cluster_lifecycle_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel:oya-managed-k8s-cluster-lifecycle-kernel",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api:oya-managed-k8s-control-plane-host-api",
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api:oya-managed-k8s-tenant-quota-api",
+        "third-party//:serde-1",
+        "third-party//:tokio-1",
+    ],
+)

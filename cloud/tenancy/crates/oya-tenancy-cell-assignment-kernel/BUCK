@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-tenancy-cell-assignment-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenancy_cell_assignment_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

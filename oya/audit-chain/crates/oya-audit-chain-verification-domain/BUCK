@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-audit-chain-verification-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_audit_chain_verification_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/audit-chain/crates/oya-audit-chain-domain:oya-audit-chain-domain",
+        "//oya/audit-chain/crates/oya-audit-chain-verification-api:oya-audit-chain-verification-api",
+    ],
+)

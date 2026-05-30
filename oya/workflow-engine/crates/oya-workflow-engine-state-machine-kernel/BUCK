@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-workflow-engine-state-machine-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_state_machine_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

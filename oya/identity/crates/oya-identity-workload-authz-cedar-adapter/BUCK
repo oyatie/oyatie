@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-identity-workload-authz-cedar-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_identity_workload_authz_cedar_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/identity/crates/oya-identity-workload-domain:oya-identity-workload-domain",
+        "third-party//:cedar-policy-4",
+    ],
+)

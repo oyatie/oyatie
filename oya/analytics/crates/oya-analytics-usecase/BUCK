@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-analytics-usecase",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_analytics_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "//oya/analytics/crates/oya-analytics-domain:oya-analytics-domain",
+        "third-party//:serde-1",
+    ],
+)

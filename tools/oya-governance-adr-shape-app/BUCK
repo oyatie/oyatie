@@ -1,0 +1,9 @@
+rust_binary(
+    name = "oya-governance-adr-shape-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
+    ],
+)

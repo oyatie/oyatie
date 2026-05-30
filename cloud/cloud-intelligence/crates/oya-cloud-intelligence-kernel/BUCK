@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-cloud-intelligence-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_intelligence_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:tokio-1",
+        # UNRESOLVED: proptest ^1.5
+    ],
+)

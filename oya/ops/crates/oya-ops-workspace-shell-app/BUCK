@@ -1,0 +1,35 @@
+rust_library(
+    name = "oya-ops-workspace-shell-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ops_workspace_shell_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-http-middleware-kernel:oya-http-middleware-kernel",
+        "//libs/oya-http-router-kernel:oya-http-router-kernel",
+        "//libs/oya-http-runtime-hyper-adapter:oya-http-runtime-hyper-adapter",
+        "//oya/ops/crates/oya-ops-workspace-shell-adapter:oya-ops-workspace-shell-adapter",
+        "//oya/ops/crates/oya-ops-workspace-shell-kernel:oya-ops-workspace-shell-kernel",
+        "//oya/ops/crates/oya-ops-workspace-shell-rest:oya-ops-workspace-shell-rest",
+        "//oya/ops/crates/oya-ops-workspace-shell-usecase:oya-ops-workspace-shell-usecase",
+        "third-party//:tokio-1",
+    ],
+)
+
+rust_binary(
+    name = "oya-ops-workspace-shell",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ops/crates/oya-ops-workspace-shell-app:oya-ops-workspace-shell-app",
+        "//libs/oya-http-middleware-kernel:oya-http-middleware-kernel",
+        "//libs/oya-http-router-kernel:oya-http-router-kernel",
+        "//libs/oya-http-runtime-hyper-adapter:oya-http-runtime-hyper-adapter",
+        "//oya/ops/crates/oya-ops-workspace-shell-adapter:oya-ops-workspace-shell-adapter",
+        "//oya/ops/crates/oya-ops-workspace-shell-kernel:oya-ops-workspace-shell-kernel",
+        "//oya/ops/crates/oya-ops-workspace-shell-rest:oya-ops-workspace-shell-rest",
+        "//oya/ops/crates/oya-ops-workspace-shell-usecase:oya-ops-workspace-shell-usecase",
+        "third-party//:tokio-1",
+    ],
+)

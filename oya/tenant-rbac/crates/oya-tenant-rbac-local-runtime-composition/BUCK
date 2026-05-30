@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-tenant-rbac-local-runtime-composition",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_local_runtime_composition",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/accounting/crates/oya-accounting-journal-runtime:oya-accounting-journal-runtime",
+        "//oya/hr/crates/oya-hr-employment-runtime:oya-hr-employment-runtime",
+        "//oya/payroll/crates/oya-payroll-run-runtime:oya-payroll-run-runtime",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-runtime:oya-tenant-rbac-runtime",
+    ],
+)

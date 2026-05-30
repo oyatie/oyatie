@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-cloud-iac-rest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_iac_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-http-router-kernel:oya-http-router-kernel",
+    ],
+)

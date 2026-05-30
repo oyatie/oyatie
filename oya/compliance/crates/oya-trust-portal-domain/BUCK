@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-trust-portal-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_trust_portal_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/compliance/crates/oya-dsr-domain:oya-dsr-domain",
+    ],
+)

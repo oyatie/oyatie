@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-community-post-store-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_community_post_store_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+    ],
+)

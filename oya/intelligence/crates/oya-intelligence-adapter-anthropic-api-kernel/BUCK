@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-adapter-anthropic-api-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_adapter_anthropic_api_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-kernel:oya-intelligence-account-kernel",
+    ],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-governance-pr-traceability-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_pr_traceability_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

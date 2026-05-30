@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-cloud-intelligence-authz-cedar-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_intelligence_authz_cedar_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "third-party//:cedar-policy-4",
+    ],
+)

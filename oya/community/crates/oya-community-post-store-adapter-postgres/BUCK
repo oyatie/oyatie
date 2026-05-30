@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-community-post-store-adapter-postgres",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_community_post_store_adapter_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+    ],
+)

@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-intelligence-adapter-gemini-subscription-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_adapter_gemini_subscription_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//oya/intelligence/crates/oya-intelligence-adapter-gemini-subscription-kernel:oya-intelligence-adapter-gemini-subscription-kernel",
+    ],
+)

@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-managed-k8s-sla-observability-adapter-inmemory",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_managed_k8s_sla_observability_adapter_inmemory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api:oya-managed-k8s-sla-observability-api",
+        "//cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel:oya-managed-k8s-sla-observability-kernel",
+        "third-party//:tokio-1",
+    ],
+)

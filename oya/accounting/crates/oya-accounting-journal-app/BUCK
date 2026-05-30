@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-accounting-journal-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_accounting_journal_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/accounting/crates/oya-accounting-journal-domain:oya-accounting-journal-domain",
+    ],
+)

@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-ci-webhook-gateway-authz-cedar-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_ci_webhook_gateway_authz_cedar_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel:oya-ci-webhook-gateway-kernel",
+        "third-party//:cedar-policy-4",
+    ],
+)

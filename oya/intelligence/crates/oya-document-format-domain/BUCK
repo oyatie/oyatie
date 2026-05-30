@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-document-format-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_document_format_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-collab-runtime-domain:oya-collab-runtime-domain",
+    ],
+)

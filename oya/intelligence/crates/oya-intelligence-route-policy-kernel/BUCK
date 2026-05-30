@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-route-policy-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_route_policy_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+    ],
+)

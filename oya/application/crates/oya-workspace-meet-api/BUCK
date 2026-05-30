@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-workspace-meet-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workspace_meet_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/meet/crates/oya-meet-domain:oya-meet-domain",
+    ],
+)

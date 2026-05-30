@@ -1,0 +1,23 @@
+rust_library(
+    name = "oya-resolve-scorecards-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_resolve_scorecards_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+    ],
+)
+
+rust_binary(
+    name = "oya-resolve-scorecards",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ontology/crates/oya-resolve-scorecards-app:oya-resolve-scorecards-app",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+    ],
+)

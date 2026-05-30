@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-governance-supply-chain-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_governance_supply_chain_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

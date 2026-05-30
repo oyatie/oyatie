@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-identity-workload-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_identity_workload_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

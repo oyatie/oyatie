@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-tenant-rbac-listener-gateway",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenant_rbac_listener_gateway",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-auth-runtime:oya-tenant-rbac-auth-runtime",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest:oya-tenant-rbac-cloud-deployment-manifest",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition:oya-tenant-rbac-local-runtime-composition",
+    ],
+)

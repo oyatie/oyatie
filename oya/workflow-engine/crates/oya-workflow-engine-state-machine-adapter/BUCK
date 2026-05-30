@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-workflow-engine-state-machine-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_state_machine_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-state-machine-kernel:oya-workflow-engine-state-machine-kernel",
+        "//oya/workflow-engine/crates/oya-workflow-engine-state-machine-usecase:oya-workflow-engine-state-machine-usecase",
+    ],
+)

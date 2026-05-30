@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-payments-charge-rest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_payments_charge_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/payments/crates/oya-payments-charge-usecase:oya-payments-charge-usecase",
+    ],
+)

@@ -1,0 +1,15 @@
+rust_library(
+    name = "oya-cloud-intelligence-eventsink-valkey-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_intelligence_eventsink_valkey_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "third-party//:redis",
+        "third-party//:serde-1",
+        "third-party//:tokio-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+    ],
+)

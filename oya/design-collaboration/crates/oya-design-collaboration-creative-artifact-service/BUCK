@@ -1,0 +1,31 @@
+rust_library(
+    name = "oya-design-collaboration-creative-artifact-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_design_collaboration_creative_artifact_service",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_binary(
+    name = "oya-design-collaboration-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/design-collaboration/crates/oya-design-collaboration-creative-artifact-service:oya-design-collaboration-creative-artifact-service",
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:serde_json-1",
+        "third-party//:tokio-1",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

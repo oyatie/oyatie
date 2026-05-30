@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-authn-device-firmware",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_authn_device_firmware",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

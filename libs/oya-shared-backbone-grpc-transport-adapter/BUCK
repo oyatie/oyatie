@@ -1,0 +1,15 @@
+rust_library(
+    name = "oya-shared-backbone-grpc-transport-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_backbone_grpc_transport_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-backbone-grpc-generated-adapter:oya-shared-backbone-grpc-generated-adapter",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//oya/community/crates/oya-community-post-store-domain:oya-community-post-store-domain",
+        "//oya/mail/crates/oya-mail-mailbox-store-api:oya-mail-mailbox-store-api",
+        "third-party//:tokio-1",
+        "third-party//:tonic",
+    ],
+)

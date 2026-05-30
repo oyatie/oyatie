@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-audit-chain-sealing-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_audit_chain_sealing_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

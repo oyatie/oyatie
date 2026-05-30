@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-tenancy-lifecycle-locks-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_tenancy_lifecycle_locks_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

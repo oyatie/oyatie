@@ -1,0 +1,49 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "oya-shared-backbone-grpc-generated-adapter-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+    deps = [
+        "third-party//:protoc-bin-vendored-3",
+        "third-party//:tonic-prost-build-0.14",
+    ],
+)
+
+buildscript_run(
+    name = "oya-shared-backbone-grpc-generated-adapter-build-script-run",
+    script = ":oya-shared-backbone-grpc-generated-adapter-build-script",
+)
+
+rust_library(
+    name = "oya-shared-backbone-grpc-generated-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_backbone_grpc_generated_adapter",
+    crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :oya-shared-backbone-grpc-generated-adapter-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-backbone-proto-contracts-kernel:oya-shared-backbone-proto-contracts-kernel",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//oya/community/crates/oya-community-post-store-api:oya-community-post-store-api",
+        "//oya/community/crates/oya-community-post-store-app:oya-community-post-store-app",
+        "//oya/community/crates/oya-community-post-store-domain:oya-community-post-store-domain",
+        "//oya/community/crates/oya-community-post-store-grpc:oya-community-post-store-grpc",
+        "//oya/community/crates/oya-community-social-app:oya-community-social-app",
+        "//oya/community/crates/oya-community-social-post-composition-api:oya-community-social-post-composition-api",
+        "//oya/community/crates/oya-community-social-post-composition-grpc:oya-community-social-post-composition-grpc",
+        "//oya/mail/crates/oya-mail-mailbox-store-api:oya-mail-mailbox-store-api",
+        "//oya/mail/crates/oya-mail-mailbox-store-app:oya-mail-mailbox-store-app",
+        "//oya/mail/crates/oya-mail-mailbox-store-grpc:oya-mail-mailbox-store-grpc",
+        "//oya/messenger/crates/oya-messenger-app:oya-messenger-app",
+        "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
+        "//oya/messenger/crates/oya-messenger-message-stream-grpc:oya-messenger-message-stream-grpc",
+        "third-party//:prost",
+        "third-party//:protoc-bin-vendored-3",
+        "third-party//:tonic",
+        "third-party//:tonic-prost",
+        "third-party//:tonic-prost-build",
+    ],
+)

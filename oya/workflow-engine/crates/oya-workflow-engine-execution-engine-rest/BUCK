@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-workflow-engine-execution-engine-rest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_workflow_engine_execution_engine_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter:oya-workflow-engine-execution-engine-adapter",
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-api:oya-workflow-engine-execution-engine-api",
+    ],
+)

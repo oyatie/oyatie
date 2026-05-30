@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-connector-epic-fhir-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_connector_epic_fhir_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-connector-kernel:oya-shared-connector-kernel",
+    ],
+)
