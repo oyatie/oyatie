@@ -1,4 +1,7 @@
-[buildscript]
 # Compiles NEON asm and C sources for aarch64 via cc crate.
 # Same pattern as ring — uses pregenerated assembly, no perl needed.
-run = true
+
+[buildscript.run]
+# cc-rs requires OPT_LEVEL; Buck2 buildscript_run only injects it when the toolchain
+# has an explicit -Copt-level= flag (system_rust_toolchain does not).
+env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }

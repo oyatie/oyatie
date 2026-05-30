@@ -1,5 +1,13 @@
-[buildscript]
 # aws-lc-sys build script drives C compilation (CcBuilder path on macOS aarch64 —
 # no cmake needed; pregenerated bindings at src/aarch64_apple_darwin_crypto.rs).
 # default-features must remain ON (founder constraint).
-run = true
+
+[buildscript.build]
+# aws-lc-sys builder/main.rs uses env!("CARGO_PKG_VERSION") at const time.
+# Global cargo_env covers the library rule but the build-script binary also needs them.
+env = { CARGO_PKG_VERSION = "0.41.0", CARGO_PKG_VERSION_MAJOR = "0", CARGO_PKG_VERSION_MINOR = "41", CARGO_PKG_VERSION_PATCH = "0", CARGO_PKG_VERSION_PRE = "", CARGO_PKG_NAME = "aws-lc-sys" }
+
+[buildscript.run]
+# cc-rs requires OPT_LEVEL; Buck2 buildscript_run only injects it when the toolchain
+# has an explicit -Copt-level= flag (system_rust_toolchain does not).
+env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }

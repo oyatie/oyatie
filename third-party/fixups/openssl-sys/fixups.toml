@@ -1,6 +1,10 @@
-[buildscript]
-# openssl-sys build script probes system OpenSSL.
-# run = true so the build script emits rustc-link-lib directives + include path.
-# The buildscript_run action inherits the host environment where Homebrew's
-# pkg-config can locate openssl@3 (/opt/homebrew/opt/openssl@3).
-run = true
+# openssl-sys build script probes system OpenSSL via pkg-config or OPENSSL_DIR.
+
+[buildscript.build]
+# openssl-sys find_normal.rs uses env!("CARGO_PKG_VERSION") at const time.
+env = { CARGO_PKG_VERSION = "0.9.116", CARGO_PKG_VERSION_MAJOR = "0", CARGO_PKG_VERSION_MINOR = "9", CARGO_PKG_VERSION_PATCH = "116", CARGO_PKG_VERSION_PRE = "", CARGO_PKG_NAME = "openssl-sys" }
+
+[buildscript.run]
+# Point at Homebrew OpenSSL@3 (static build, avoids pkg-config PATH dependency).
+# cc-rs vars needed for validate_headers which compiles a test C file.
+env = { OPENSSL_DIR = "/opt/homebrew/opt/openssl@3", OPENSSL_STATIC = "1", OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }
