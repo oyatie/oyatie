@@ -43,7 +43,10 @@ pipeline {
             ASKPASS="${WORKSPACE}/.ci-askpass.sh"
             printf '#!/bin/sh\ncase "$1" in Username*) printf "%%s" "$GIT_USER";; *) printf "%%s" "$GIT_PASS";; esac\n' > "$ASKPASS"
             chmod +x "$ASKPASS"; export GIT_ASKPASS="$ASKPASS"
-            # full fetch (no --depth) so `buck2 ... rdeps` affected can merge-base HEAD vs origin/dev
+            # Full history (the Jenkins SCM clone is shallow → git merge-base finds no
+            # common ancestor → affected-detection fails). Unshallow once; the `|| true`
+            # is a no-op if the repo is already complete. (cf. GitHub Actions fetch-depth: 0.)
+            git fetch --unshallow origin 2>/dev/null || true
             git fetch origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/origin/pr-${PR_NUMBER}"
             git fetch origin "+refs/heads/dev:refs/remotes/origin/dev"
             rm -f "$ASKPASS"
