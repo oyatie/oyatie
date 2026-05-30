@@ -10,6 +10,8 @@
     "cargo-check",
     "cargo-clippy",
     "cargo-nextest",
+    "cargo-deny",
+    "oya-verify",
     "oya-vcs-admission",
     "oya-vcs-provider-execution",
     "oya-governance-supply-chain",

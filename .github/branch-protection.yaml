@@ -43,16 +43,20 @@ branches:
     # check below is.
     required_approving_reviews: 0
     # Canonical contract: these entries are the live dev branch required
-    # commit-status contexts posted by the local/Jenkins bridge. ADR-0363
-    # retired oya-vcs admission/provider-execution as required contexts; the
-    # broad governance lanes are folded under `oya-pr-review` until the
-    # Forgejo/Jenkins substrate publishes one context per lane.
+    # commit-status contexts posted by the Jenkins/Forgejo bridge (ADR-0363).
+    # Phase-1 go-live set: cargo lanes + cargo-deny (OSI/supply-chain gate)
+    # + oya-verify (single rolled-up verify verdict from oyaCiLane.groovy).
+    # NOTE: oya-pr-review is intentionally ABSENT from Phase-1 required checks.
+    # Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet
+    # shipped); requiring it would deadlock every PR. oya-pr-review returns
+    # as a required check in Phase-2 once the reviewer-agent endpoint is live.
     required_status_checks:
       - cargo-fmt
       - cargo-check
       - cargo-clippy
       - cargo-nextest
-      - oya-pr-review
+      - cargo-deny
+      - oya-verify
 
   staging:
     # Auto-promoted from dev by the Jenkins promote-dev-to-staging pipeline

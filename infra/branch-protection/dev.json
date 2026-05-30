@@ -5,12 +5,14 @@
   "required_status_checks": {
     "strict": false,
     "_strict_rationale": "Set to false per ADR-0124 to break the O(N^2) rebase cascade; the merge bridge enforces required status contexts without GitHub-side up-to-date enforcement.",
+    "_oya_pr_review_note": "oya-pr-review is intentionally absent from Phase-1 required contexts. Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet shipped); requiring it would deadlock every PR. Returns as required in Phase-2 once the reviewer-agent endpoint is live.",
     "contexts": [
       "cargo-fmt",
       "cargo-check",
       "cargo-clippy",
       "cargo-nextest",
-      "oya-pr-review"
+      "cargo-deny",
+      "oya-verify"
     ]
   },
   "enforce_admins": true,

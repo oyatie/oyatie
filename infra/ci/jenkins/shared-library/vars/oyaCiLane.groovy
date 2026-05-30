@@ -23,6 +23,7 @@ def call(Map cfg = [:]) {
   // (oya-pr-review is posted separately by the reviewer agent, not this lane.)
   List requiredContexts = [
     'cargo-fmt', 'cargo-check', 'cargo-clippy', 'cargo-nextest',
+    'cargo-deny', 'oya-verify',
     'oya-vcs-admission', 'oya-vcs-provider-execution',
     'oya-governance-supply-chain', 'oya-governance-cohesion',
     'oya-governance-api-semver', 'oya-governance-honest-claims',
@@ -43,7 +44,14 @@ def call(Map cfg = [:]) {
         }
         stage('cargo-deny: license + advisory + bans') {
           // The OSI-strict license gate (blocks BSL/SSPL/source-available) + RustSec.
-          sh 'cargo deny check licenses bans advisories sources'
+          postForgeStatus('cargo-deny', 'pending', 'cargo-deny running')
+          try {
+            sh 'cargo deny check licenses bans advisories sources'
+            postForgeStatus('cargo-deny', 'success', 'cargo-deny green')
+          } catch (err) {
+            postForgeStatus('cargo-deny', 'failure', "cargo-deny failed: ${err}")
+            throw err
+          }
         }
         stage('SAST: opengrep') {
           // Opengrep (LGPL-2.1) + repo-owned rules — NOT the proprietary Semgrep
@@ -54,7 +62,14 @@ def call(Map cfg = [:]) {
           sh 'gitleaks detect --no-banner --redact'
         }
         stage('test: nextest') {
-          sh "./bin/oya verify ${verifyMode}"
+          postForgeStatus('oya-verify', 'pending', 'oya-verify running')
+          try {
+            sh "./bin/oya verify ${verifyMode}"
+            postForgeStatus('oya-verify', 'success', 'oya-verify green')
+          } catch (err) {
+            postForgeStatus('oya-verify', 'failure', "oya-verify failed: ${err}")
+            throw err
+          }
         }
 
         // --- agentic-VCS admission + provider-execution (mandatory) --------
