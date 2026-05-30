@@ -66,12 +66,18 @@ pipeline {
     stage('buck2 affected gate') {
       steps {
         sh '''
-          set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
-          cd "${WORKSPACE}"
-          # buck2-native affected gate: build+test the reverse-dep closure of the PR's
-          # changed files (owner() + rdeps). The rust-ci pod template provides a
-          # buck2-native env (writable HOME; no cargo/sccache wrapper). No oya-dev-cli.
-          sh infra/ci/buck2-affected-gate.sh origin/dev
+          # NOTE: deliberately NO `set -e` here — we must capture the gate's real exit
+          # code even on failure for diagnostics. rust-ci /bin/sh = dash (no pipefail /
+          # PIPESTATUS), so the gate runs in a subshell that writes its rc to a file while
+          # stdout is teed to .gate-output.log (post{failure} posts the tail as a PR
+          # comment) and still streams to the Jenkins console. No oya-dev-cli.
+          cd "${WORKSPACE}" || exit 1
+          rm -f .gate-rc .gate-output.log   # defense-in-depth: never read a stale verdict/log
+          ( sh infra/ci/buck2-affected-gate.sh origin/dev 2>&1; echo "$?" > .gate-rc ) | tee .gate-output.log
+          # Normalize to a clean single integer; missing/garbage rc -> 1 (fail-closed).
+          rc=$(cat .gate-rc 2>/dev/null | head -1 | tr -dc '0-9'); rc=${rc:-1}
+          echo "buck2-affected-gate rc=${rc}"
+          [ "${rc}" = "0" ] || exit "${rc}"
         '''
       }
     }
@@ -84,7 +90,13 @@ pipeline {
     }
     failure {
       withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
-        script { postForgejoStatus('failure', 'buck2 affected gate failed') }
+        script {
+          postForgejoStatus('failure', 'buck2 affected gate failed')
+          // Best-effort diagnostics: post the gate output tail as a PR comment so gate
+          // failures are triageable without Jenkins access. Wrapped in try/catch so a
+          // diagnostics failure can NEVER change the gate verdict (already posted above).
+          try { postForgejoGateLog() } catch (err) { echo "gate-log comment skipped: ${err}" }
+        }
       }
     }
   }
@@ -103,6 +115,30 @@ def postForgejoStatus(String state, String description) {
     requestBody: """{"state":"${state}","context":"oya-ci-gate","description":"${description}"}""",
     validResponseCodes: '200,201',
     consoleLogResponseBody: true,
+    ignoreSslErrors: true
+  )
+}
+
+// Post the tail of the gate output (.gate-output.log, captured by the gate stage) as a
+// Forgejo PR comment, so a gate FAILURE is diagnosable without Jenkins console access.
+// Best-effort: callers wrap this in try/catch — it must never affect the gate verdict.
+def postForgejoGateLog() {
+  if (!env.PR_NUMBER?.trim()) { echo 'postForgejoGateLog: no PR_NUMBER; skipping'; return }
+  def path = "${env.WORKSPACE}/.gate-output.log"
+  if (!fileExists(path)) { echo 'postForgejoGateLog: no .gate-output.log; skipping'; return }
+  def lines = readFile(path).readLines()
+  def keep = lines.size() > 150 ? lines[-150..-1] : lines
+  def body = "**oya-ci-gate FAILED** — buck2 affected gate output (last ${keep.size()} of ${lines.size()} lines):\n\n```\n${keep.join('\n')}\n```"
+  httpRequest(
+    url: "http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/repos/oya-admin/oyatie/issues/${env.PR_NUMBER}/comments",
+    httpMode: 'POST',
+    customHeaders: [
+      [name: 'Authorization', value: "token ${env.FORGEJO_TOKEN}", maskValue: true],
+      [name: 'Content-Type',  value: 'application/json']
+    ],
+    requestBody: groovy.json.JsonOutput.toJson([body: body]),
+    validResponseCodes: '200,201',
+    consoleLogResponseBody: false,
     ignoreSslErrors: true
   )
 }
