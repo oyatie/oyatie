@@ -70,8 +70,6 @@ HOOK_SCRIPTS=(
     userprompt-canonical-primer.sh
     stop-did-you-forget-suggester.sh
     no-cargo-enforcer.sh
-    exfil-guard.sh
-    no-secret-leak.sh
     injection-content-scanner.sh
     stale-tool-suggester.sh
     pre-dispatch-guide.sh
@@ -141,39 +139,67 @@ if $CODEX_DETECTED; then
     log "Codex detected — installing project-scoped .codex/hooks.json..."
     CODEX_HOOKS="$CODEX_DIR/hooks.json"
 
+    # Recommended Codex config (~/.codex/config.toml — do NOT write this automatically;
+    # the user must opt in). Document for the contributor:
+    #   sandbox_mode = "workspace-write"   # confines writes to the workspace
+    #   approval_policy = "on-request"     # agent asks before shell side-effects
+    # See docs/security.md for the full recommended Codex configuration.
     CODEX_CONTENT='{
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "'"$MARKER"'",
-  "_note": "Project-scoped Codex hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security: added exfil-guard, no-secret-leak, injection-content-scanner.",
+  "_note": "Project-scoped Codex hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security redesign: removed exfil-guard + no-secret-leak (bypassable regex — security theater); OS sandbox is the real gate. Removed 4 dead hooks. PascalCase event keys per current Codex schema. Recommended ~/.codex/config.toml: sandbox_mode=workspace-write, approval_policy=on-request.",
   "hooks": {
-    "session_start": [
-      { "command": "tools/hooks/session-start-context-inject.sh" }
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/session-start-context-inject.sh" }
+        ]
+      }
     ],
-    "user_prompt_submit": [
-      { "command": "tools/hooks/userprompt-canonical-primer.sh" }
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh" }
+        ]
+      }
     ],
-    "stop": [
-      { "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
+        ]
+      }
     ],
-    "pre_tool_use": [
-      { "command": "tools/hooks/no-cargo-enforcer.sh",  "matcher": "bash" },
-      { "command": "tools/hooks/exfil-guard.sh",        "matcher": "bash" },
-      { "command": "tools/hooks/no-secret-leak.sh",     "matcher": "bash" },
-      { "command": "tools/hooks/no-secret-leak.sh",     "matcher": "write" },
-      { "command": "tools/hooks/no-secret-leak.sh",     "matcher": "edit" },
-      { "command": "tools/hooks/stale-tool-suggester.sh", "matcher": "bash" },
-      { "command": "tools/hooks/pre-dispatch-guide.sh",   "matcher": "agent" }
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" },
+          { "type": "command", "command": "tools/hooks/stale-tool-suggester.sh" }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh" }
+        ]
+      }
     ],
-    "post_tool_use": [
-      { "command": "tools/hooks/injection-content-scanner.sh", "matcher": "bash" },
-      { "command": "tools/hooks/injection-content-scanner.sh", "matcher": "web_fetch" },
-      { "command": "tools/hooks/injection-content-scanner.sh", "matcher": "web_search" },
-      { "command": "tools/hooks/spec-version-pin-suggester.sh",  "matcher": "edit" },
-      { "command": "tools/hooks/spec-version-pin-suggester.sh",  "matcher": "write" },
-      { "command": "tools/hooks/adr-orphan-detect.sh",           "matcher": "edit" },
-      { "command": "tools/hooks/adr-orphan-detect.sh",           "matcher": "write" },
-      { "command": "tools/hooks/vacuous-green-gate-detect.sh",   "matcher": "edit" },
-      { "command": "tools/hooks/vacuous-green-gate-detect.sh",   "matcher": "write" }
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh" },
+          { "type": "command", "command": "tools/hooks/adr-orphan-detect.sh" },
+          { "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh" }
+        ]
+      },
+      {
+        "matcher": "Bash|WebFetch|WebSearch",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/injection-content-scanner.sh" }
+        ]
+      }
     ]
   }
 }'
@@ -227,10 +253,6 @@ if $GEMINI_DETECTED; then
     ],
     "BeforeTool": [
       { "matcher": "bash",  "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh",    "name": "oya-no-cargo" },
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/exfil-guard.sh",           "name": "oya-exfil-guard" },
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/no-secret-leak.sh",        "name": "oya-no-secret-bash" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/no-secret-leak.sh",        "name": "oya-no-secret-write" },
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/no-secret-leak.sh",        "name": "oya-no-secret-edit" },
       { "matcher": "bash",  "type": "command", "command": "tools/hooks/stale-tool-suggester.sh",  "name": "oya-stale-tool" },
       { "matcher": "agent", "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh",    "name": "oya-pre-dispatch" }
     ],
@@ -571,6 +593,12 @@ else
     ok "Agent skills vendored at tools/agent-skills/ ($SKILL_COUNT_FINAL skills available; see docs/bootstrap.md)"
     ok "Slash commands linked → .claude/commands/ + .gemini/commands/ (if detected)"
     ok "Per-agent skills discovery → .{claude,codex,gemini,hermes}/skills/ (symlink-per-agent; single source)"
+    echo ""
+    echo "Security (subprocess env scrub):"
+    echo "  Add to your shell profile (~/.zshrc or ~/.bashrc):"
+    echo "    export CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1"
+    echo "  This prevents Claude Code from leaking shell env vars (tokens, secrets)"
+    echo "  into bash subprocesses. See docs/security.md for full security model."
     echo ""
     echo "Next steps:"
     echo "  1. direnv allow                    (or add bin/ to PATH manually)"

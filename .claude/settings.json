@@ -1,7 +1,56 @@
 {
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "oya-bootstrap-v1",
-  "_note": "Project-scoped Claude Code hooks. install.sh is the generator; sync edits here back into install.sh for permanence. 2026-05-29 cleanup: added no-cargo-enforcer (Buck2 takeover); removed cargo-verify-on-rust-edit + 3 dead microservices/-path hooks. 2026-05-29 security: added exfil-guard, no-secret-leak (PreToolUse), injection-content-scanner (PostToolUse).",
+  "_note": "Project-scoped Claude Code hooks. install.sh is the generator; sync edits here back into install.sh for permanence. 2026-05-29 security redesign: sandbox block (OS-enforced macOS Seatbelt) replaces bypassable regex exfil-guard + no-secret-leak hooks — those were security theater. Hooks are monitoring/advisory only. CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 strips creds from subprocess env (see install.sh).",
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": false,
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh/**",
+        "~/.aws/**",
+        "~/.config/gcloud/**",
+        "**/secrets/**",
+        "**/*.pem",
+        "**/*.key",
+        "**/id_rsa",
+        "**/id_ed25519",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/*.kubeconfig"
+      ],
+      "denyWrite": [
+        ".env",
+        "**/.env",
+        "**/.env.*"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "localhost",
+        "127.0.0.1",
+        "*.local",
+        "*.internal",
+        "github.com",
+        "*.github.com",
+        "*.githubusercontent.com",
+        "crates.io",
+        "static.crates.io",
+        "index.crates.io",
+        "static.rust-lang.org",
+        "*.rust-lang.org",
+        "api.anthropic.com",
+        "*.anthropic.com"
+      ]
+    }
+  },
+  "permissions": {
+    "deny": [
+      "Bash(docker *)",
+      "Bash(docker:*)"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -29,21 +78,7 @@
         "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" },
-          { "type": "command", "command": "tools/hooks/exfil-guard.sh" },
-          { "type": "command", "command": "tools/hooks/no-secret-leak.sh" },
           { "type": "command", "command": "tools/hooks/stale-tool-suggester.sh" }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/no-secret-leak.sh" }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/no-secret-leak.sh" }
         ]
       },
       {
