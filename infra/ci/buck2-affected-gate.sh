@@ -20,7 +20,7 @@ if ! git rev-parse --verify --quiet "$BASE" >/dev/null 2>&1; then
   exit 1
 fi
 if ! MERGE_BASE=$(git merge-base HEAD "$BASE" 2>&1); then
-  echo "buck2-affected-gate: FATAL merge-base HEAD $BASE: $MERGE_BASE"
+  echo "buck2-affected-gate: FATAL merge-base HEAD $BASE failed (need full history): $MERGE_BASE"
   exit 1
 fi
 CHANGED=$(git diff --name-only "$MERGE_BASE" HEAD)
