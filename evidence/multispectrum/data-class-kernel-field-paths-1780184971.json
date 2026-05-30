@@ -1,0 +1,32 @@
+{
+  "authority": {
+    "adr_handling": "ADR status controls authority; ADR-0384 remains Proposed design input, while Accepted intelligence-direction ADRs govern current planning.",
+    "current_direction": "Provider and subscription pool work is under intelligence, not a standalone llm-gateway surface."
+  },
+  "captured_at": "2026-05-30T23:49:31Z",
+  "captured_at_epoch": 1780184971,
+  "changes_verified": [
+    "Annotated active kernel struct fields with data_class: INTERNAL_ONLY where no ledger entry exists.",
+    "Moved MFL-0008 legacy data-class ledger paths from retired crates/ locations to live libs/ locations.",
+    "Repaired the fd001 data-class taxonomy test root finder and cloud-billing tax app path."
+  ],
+  "claim": "The data-class fitness gate accepts current kernel fields after live-path annotation and ledger alignment.",
+  "commands": [
+    "./bin/oya gate validate data-class",
+    "cargo test -p oya-check-data-class -p oya-cloud-billing-kernel -p oya-managed-k8s-control-plane-host-kernel -p oya-shared-cursor-pagination-kernel -p oya-shared-email-comms-kernel -p oya-shared-tracing-client-kernel -p oya-intelligence-autonomy-ceiling-kernel -p oya-intelligence-capability-registry-kernel -p oya-intelligence-guardrails-kernel -p oya-intelligence-route-policy-kernel -p oya-intelligence-usage-window-kernel -- --nocapture",
+    "cargo test -p oya-dev-cli data_class -- --nocapture",
+    "cargo check -p oya-dev-cli --all-targets",
+    "git diff --check"
+  ],
+  "evidence_id": "data-class-kernel-field-paths",
+  "notes": [
+    "A package-level rustfmt check reports broader historical formatting deltas in package files outside this patch; this PR does not expand formatting scope."
+  ],
+  "results": {
+    "affected_crate_tests": "passed",
+    "data_class_gate": "passed: 2156 fields checked, 1869 annotated, 287 legacy unannotated",
+    "dev_cli_check": "passed",
+    "dev_cli_data_class_tests": "passed",
+    "diff_check": "passed"
+  }
+}

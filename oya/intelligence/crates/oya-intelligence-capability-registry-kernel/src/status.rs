@@ -89,8 +89,8 @@ impl fmt::Display for CapabilityStatus {
 /// produce human-readable diagnostics without re-encoding the rule table.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CapabilityStatusTransitionError {
-    pub from: CapabilityStatus,
-    pub to: CapabilityStatus,
+    pub from: CapabilityStatus, // data_class: INTERNAL_ONLY
+    pub to: CapabilityStatus, // data_class: INTERNAL_ONLY
 }
 
 impl fmt::Display for CapabilityStatusTransitionError {

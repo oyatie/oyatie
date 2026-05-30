@@ -37,15 +37,15 @@ pub enum EnforcementError {
 /// Identifies which window produced the most-restrictive verdict.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VerdictProvenance {
-    pub window_kind: UsageWindowKind,
-    pub window_index: usize,
+    pub window_kind: UsageWindowKind, // data_class: INTERNAL_ONLY
+    pub window_index: usize, // data_class: INTERNAL_ONLY
 }
 
 /// Result of a multi-window aggregation: the most-restrictive verdict and its provenance.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct EnforcedDecision {
-    pub verdict: EnforcementVerdict,
-    pub provenance: VerdictProvenance,
+    pub verdict: EnforcementVerdict, // data_class: INTERNAL_ONLY
+    pub provenance: VerdictProvenance, // data_class: INTERNAL_ONLY
 }
 
 /// Projected exhaustion from a linear burn-rate extrapolation.
@@ -67,11 +67,11 @@ pub enum ExhaustionForecast {
 /// Full forecast result from a linear burn-rate projection.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct UsageForecast {
-    pub exhaustion: ExhaustionForecast,
+    pub exhaustion: ExhaustionForecast, // data_class: INTERNAL_ONLY
     /// Tokens consumed per second (integer floor); 0 when elapsed == 0.
-    pub burn_rate_tokens_per_sec: u64,
+    pub burn_rate_tokens_per_sec: u64, // data_class: INTERNAL_ONLY
     /// Elapsed seconds since window start.
-    pub elapsed_secs: u64,
+    pub elapsed_secs: u64, // data_class: INTERNAL_ONLY
 }
 
 pub struct UsageEnforcement;
