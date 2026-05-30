@@ -33,7 +33,7 @@ pipeline {
     stage('Checkout PR ref') {
       steps {
         sh '''
-          set -euo pipefail
+          set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
           cd "${WORKSPACE}"
           # The cpsScm definition already cloned the dev branch into WORKSPACE.
           # Fetch the PR ref and check out the PR sha for a deterministic gate.
@@ -53,7 +53,7 @@ pipeline {
     stage('oya gate run-all') {
       steps {
         sh '''
-          set -euo pipefail
+          set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
           cd "${WORKSPACE}"
           cargo build -p oya-dev-cli --release
           # Run the full gate. Stage failure is detected by post.failure below
