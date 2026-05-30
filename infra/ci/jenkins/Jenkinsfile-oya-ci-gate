@@ -4,10 +4,12 @@
 // referenced by the pipelineJob('oya-ci-gate') declared in JCasC
 // (infra/ci/jenkins/values-local.yaml configScripts.oya-ci-gate-job).
 //
-// Trigger: the ci-webhook-gateway (ADR-0374) POSTs a Forgejo pull_request payload
-// to Jenkins' Generic Webhook Trigger endpoint with token=oya-ci-gate. The
-// trigger extracts PR_NUMBER / PR_SHA / REPO_OWNER / REPO_NAME from the JSON
-// body and exposes them as env vars to this pipeline.
+// Trigger: the ci-webhook-gateway (ADR-0374) POSTs a FLAT JSON body
+// {pr_number, head_sha, head_ref, kind, revalidation} to Jenkins' Generic
+// Webhook Trigger endpoint with token=oya-ci-gate. The genericTrigger extracts
+// PR_NUMBER ($.pr_number) / GIT_SHA ($.head_sha) / GIT_BRANCH ($.head_ref) and
+// exposes them as env vars. The body carries no repo field, so the repo
+// (oya-admin/oyatie) is hardcoded in postForgejoStatus below.
 //
 // Status posting uses the Forgejo statuses API
 // (POST /repos/{owner}/{repo}/statuses/{sha}) authed by the forgejo-ci-token
@@ -81,7 +83,7 @@ pipeline {
 // (ADR-0363 Forgejo canonical; ADR-0378 Talos substrate).
 def postForgejoStatus(String state, String description) {
   httpRequest(
-    url: "http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/repos/${env.REPO}/statuses/${env.GIT_SHA}",
+    url: "http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/repos/oya-admin/oyatie/statuses/${env.GIT_SHA}",
     httpMode: 'POST',
     customHeaders: [
       [name: 'Authorization', value: "token ${env.FORGEJO_TOKEN}", maskValue: true],
