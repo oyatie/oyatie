@@ -40,7 +40,9 @@ impl Default for PrePushContractValidateArgs {
     fn default() -> Self {
         Self {
             done_definition_doc_path: PathBuf::from("docs/checklists/done-definition-checklist.md"),
-            cli_dispatch_source_path: PathBuf::from("crates/oya-dev-cli/src/lib.rs"),
+            cli_dispatch_source_path: PathBuf::from(
+                "oya/developer-sdk/crates/oya-dev-cli/src/lib.rs",
+            ),
             hook_script_path: PathBuf::from("scripts/hooks/pre-push.sh"),
         }
     }
@@ -112,7 +114,7 @@ mod tests {
         );
         assert_eq!(
             args.cli_dispatch_source_path,
-            PathBuf::from("crates/oya-dev-cli/src/lib.rs")
+            PathBuf::from("oya/developer-sdk/crates/oya-dev-cli/src/lib.rs")
         );
         assert_eq!(
             args.hook_script_path,
