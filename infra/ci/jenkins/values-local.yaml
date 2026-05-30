@@ -253,33 +253,14 @@ controller:
           - script: |
               pipelineJob('oya-ci-gate') {
                 description('ADR-0380 D3: webhook-dispatched gated CI job. Triggered by ci-webhook-gateway (ADR-0374) via Generic Webhook Trigger with token=oya-ci-gate. Pipeline body: infra/ci/jenkins/Jenkinsfile-oya-ci-gate.')
-                triggers {
-                  genericTrigger {
-                    genericVariables {
-                      genericVariable {
-                        key('PR_NUMBER')
-                        value('$.pull_request.number')
-                      }
-                      genericVariable {
-                        key('PR_SHA')
-                        value('$.pull_request.head.sha')
-                      }
-                      genericVariable {
-                        key('REPO_OWNER')
-                        value('$.repository.owner.login')
-                      }
-                      genericVariable {
-                        key('REPO_NAME')
-                        value('$.repository.name')
-                      }
-                    }
-                    token('oya-ci-gate')
-                    causeString('Forgejo PR #$PR_NUMBER sha=$PR_SHA')
-                    printContributedVariables(true)
-                    printPostContent(false)
-                    silentResponse(false)
-                  }
+                parameters {
+                  stringParam('PR_NUMBER', '', 'Forgejo PR number (form param from ci-webhook-gateway buildWithParameters)')
+                  stringParam('GIT_SHA', '', 'PR head commit SHA')
+                  stringParam('GIT_BRANCH', '', 'PR head branch ref')
+                  stringParam('REPO', '', 'owner/repo full name')
+                  stringParam('DELIVERY_ID', '', 'Forgejo webhook delivery id')
                 }
+                authToken('oya-ci-gate')
                 definition {
                   cpsScm {
                     scm {
