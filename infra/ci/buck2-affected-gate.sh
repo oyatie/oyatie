@@ -30,27 +30,42 @@ if [ -z "$CHANGED" ]; then
 fi
 echo "buck2-affected-gate: $(printf '%s\n' "$CHANGED" | wc -l | tr -d ' ') changed file(s) vs $BASE ($MERGE_BASE)"
 
-# owner() of each changed file that buck2 actually tracks. Files owned by no
-# target (docs, .md, CI yaml) contribute nothing -> a docs-only PR yields an
-# empty owner set and passes without building anything.
-OWNERS=""
-for f in $CHANGED; do
-  [ -e "$f" ] || continue
-  o=$("$BUCK2" uquery "owner('$f')" 2>/dev/null || true)
-  [ -n "$o" ] && OWNERS="$OWNERS $o"
-done
-OWNERS=$(printf '%s\n' $OWNERS | sort -u)
-if [ -z "$OWNERS" ]; then
-  echo "buck2-affected-gate: no buck2 targets own the changed files (non-Rust change) -> PASS"
+# Classify. Only docs/non-graph files (e.g. .md/.yaml/.json outside crates) may
+# legitimately map to no target. A *.rs / Cargo.toml / buck-graph file MUST map to
+# a target — FAIL CLOSED if it doesn't (never silently pass a Rust change unbuilt).
+RUST_REL=$(printf '%s\n' "$CHANGED" | grep -E '\.rs$|/Cargo\.toml$|^Cargo\.(toml|lock)$|^\.buckconfig$|(^|/)BUCK$|^toolchains/|^third-party/' || true)
+if [ -z "$RUST_REL" ]; then
+  echo "buck2-affected-gate: no Rust/buck-graph files changed -> NoRust PASS"
   exit 0
 fi
 
-# Affected = the changed targets + everything that depends on them (rdeps closure).
+# owner() per Rust-relevant file. A uquery ERROR (non-zero exit) is a buck2/graph
+# failure and FAILS the gate — it is NOT 'no owner'. (This was the false-pass bug:
+# 2>/dev/null||true swallowed buck2 errors and passed everything.)
+OWNERS=""
+for f in $RUST_REL; do
+  [ -e "$f" ] || continue
+  if ! o=$("$BUCK2" uquery "owner('$f')" 2>/tmp/uqerr); then
+    echo "buck2-affected-gate: FATAL buck2 uquery owner('$f') errored:"; sed 's/^/    /' /tmp/uqerr; exit 1
+  fi
+  [ -n "$o" ] && OWNERS="$OWNERS $o"
+done
+OWNERS=$(printf '%s\n' $OWNERS | sed '/^$/d' | sort -u)
+if [ -z "$OWNERS" ]; then
+  echo "buck2-affected-gate: FATAL Rust/buck files changed but NO owning target found (refusing to false-pass):"
+  printf '    %s\n' $RUST_REL
+  exit 1
+fi
+echo "buck2-affected-gate: $(printf '%s\n' "$OWNERS" | wc -l | tr -d ' ') owning target(s)"
+
+# Affected = changed targets + reverse-dep closure. rdeps error also FAILS closed.
 OWNER_SET=$(printf '%s\n' $OWNERS | paste -sd' ' -)
-AFFECTED=$("$BUCK2" uquery "rdeps(//..., set($OWNER_SET))" 2>/dev/null || true)
+if ! AFFECTED=$("$BUCK2" uquery "rdeps(//..., set($OWNER_SET))" 2>/tmp/rqerr); then
+  echo "buck2-affected-gate: FATAL rdeps query errored:"; sed 's/^/    /' /tmp/rqerr; exit 1
+fi
 N=$(printf '%s\n' "$AFFECTED" | sed '/^$/d' | wc -l | tr -d ' ')
 echo "buck2-affected-gate: $N affected target(s) (owners + reverse-dep closure)"
-if [ "$N" = "0" ]; then echo "PASS (no affected targets)"; exit 0; fi
+if [ "$N" = "0" ]; then echo "buck2-affected-gate: FATAL owners found but rdeps empty (query problem)"; exit 1; fi
 
 # Build then test the affected set. @- reads the newline-delimited target list
 # from stdin, avoiding ARG_MAX limits on large closures.
