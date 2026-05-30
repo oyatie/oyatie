@@ -1,7 +1,7 @@
 {
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "oya-bootstrap-v1",
-  "_note": "Project-scoped Claude Code hooks. install.sh is the generator; sync edits here back into install.sh for permanence. 2026-05-29 security redesign: sandbox block (OS-enforced macOS Seatbelt) replaces bypassable regex exfil-guard + no-secret-leak hooks — those were security theater. Hooks are monitoring/advisory only. CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 strips creds from subprocess env (see install.sh).",
+  "_note": "Project-scoped Claude Code hooks. install.sh is the generator; sync edits here back into install.sh for permanence. 2026-05-29 security redesign: sandbox block (OS-enforced macOS Seatbelt) replaces bypassable regex exfil-guard + no-secret-leak hooks — those were security theater. Hooks are monitoring/advisory only. sandbox.filesystem.denyRead covers the Bash tool + children ONLY — the permissions.deny Read(...) rules below close the Read/Edit-tool credential-read gap (the two layers MERGE).",
   "sandbox": {
     "enabled": true,
     "failIfUnavailable": false,
@@ -22,7 +22,10 @@
       "denyWrite": [
         ".env",
         "**/.env",
-        "**/.env.*"
+        "**/.env.local",
+        "**/.env.*.local",
+        "**/.env.production",
+        "**/.env.development"
       ]
     },
     "network": {
@@ -47,7 +50,18 @@
   "permissions": {
     "deny": [
       "Bash(docker *)",
-      "Bash(docker:*)"
+      "Bash(docker:*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/*.kubeconfig)",
+      "Read(**/secrets/**)"
     ],
     "disableBypassPermissionsMode": "disable"
   },

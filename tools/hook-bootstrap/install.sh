@@ -240,7 +240,7 @@ if $GEMINI_DETECTED; then
     GEMINI_CONTENT='{
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "'"$MARKER"'",
-  "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security: added exfil-guard, no-secret-leak, injection-content-scanner.",
+  "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security redesign: removed exfil-guard + no-secret-leak (bypassable regex — security theater); OS sandbox + permissions deny rules are the real gate; injection-content-scanner retained (advisory only).",
   "hooks": {
     "SessionStart": [
       { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "oya-session-context" }
@@ -594,11 +594,10 @@ else
     ok "Slash commands linked → .claude/commands/ + .gemini/commands/ (if detected)"
     ok "Per-agent skills discovery → .{claude,codex,gemini,hermes}/skills/ (symlink-per-agent; single source)"
     echo ""
-    echo "Security (subprocess env scrub):"
-    echo "  Add to your shell profile (~/.zshrc or ~/.bashrc):"
-    echo "    export CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1"
-    echo "  This prevents Claude Code from leaking shell env vars (tokens, secrets)"
-    echo "  into bash subprocesses. See docs/security.md for full security model."
+    echo "Security: see docs/security.md (OS sandbox + permissions deny rules)."
+    echo "  Keep secrets OUT of the agent's shell env — source them just-in-time inside"
+    echo "  the specific command that needs them; never export session-wide. (There is no"
+    echo "  Claude Code env-scrub mechanism; settings.json 'env' only ADDS vars.)"
     echo ""
     echo "Next steps:"
     echo "  1. direnv allow                    (or add bin/ to PATH manually)"
