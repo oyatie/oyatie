@@ -7,6 +7,6 @@ rust_library(
     deps = [
         "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
         "//oya/intelligence/crates/oya-intelligence-supervisor-kernel:oya-intelligence-supervisor-kernel",
-        "third-party//:tokio-1",
+        "third-party//:tokio",
     ],
 )

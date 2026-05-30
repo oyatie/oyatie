@@ -4,7 +4,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "third-party//:clap-4",
-        "third-party//:clap_complete-4",
+        "third-party//:clap",
+        "third-party//:clap_complete",
     ],
 )

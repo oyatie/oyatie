@@ -8,8 +8,8 @@ rust_library(
         "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
         "//libs/oya-shared-olap-clickhouse-adapter:oya-shared-olap-clickhouse-adapter",
         "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
-        "third-party//:serde-1",
-        "third-party//:tokio-1",
+        "third-party//:serde",
+        "third-party//:tokio",
         "third-party//:tracing",
     ],
 )

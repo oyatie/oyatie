@@ -5,6 +5,6 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-governance-sunset-lifecycle-kernel:oya-governance-sunset-lifecycle-kernel",
-        "third-party//:tempfile-3",
+        "third-party//:tempfile",
     ],
 )

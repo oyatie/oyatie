@@ -47,25 +47,33 @@ BUILDSCRIPT_OVERRIDES = {
 }
 
 
-def load_third_party_names(repo_root: Path) -> list[str]:
-    """Return all library target names from third-party/BUCK."""
+def load_third_party_names(repo_root: Path) -> tuple[list[str], set[str]]:
+    """Return (all_target_names, public_alias_names) from third-party/BUCK."""
     buck_path = repo_root / "third-party" / "BUCK"
     content = buck_path.read_text()
     names = re.findall(r'name = "([^"]+)"', content)
-    return sorted(set(
+    all_names = sorted(set(
         n for n in names
         if not n.endswith(".crate") and "build-script" not in n
     ))
+    # Public aliases: alias() with visibility=["PUBLIC"]
+    alias_pattern = re.compile(
+        r'alias\([^)]*name\s*=\s*"([^"]+)"[^)]*visibility\s*=\s*\["PUBLIC"\][^)]*\)',
+        re.DOTALL,
+    )
+    public_aliases = set(m.group(1) for m in alias_pattern.finditer(content))
+    return all_names, public_aliases
 
 
-def build_tp_resolver(tp_names: list[str]):
+def build_tp_resolver(tp_names: list[str], public_aliases: set[str]):
     """
     Build a function that maps (crate_name, version_req) -> third-party target name.
 
-    Strategy:
-      1. Try exact match: crate_name-<major> where major is parsed from version_req
-      2. Try crate_name (no version suffix alias)
-      3. Try longest prefix match
+    Strategy (PUBLIC aliases preferred — versioned targets have visibility=[]):
+      1. Public alias exact match: normalized crate name (e.g. serde_json -> serde-json... wait, serde_json alias uses underscore)
+      2. Public alias with underscore name
+      3. Versioned public alias fallback
+      4. Versioned non-public (last resort — will be a visibility error but lets build proceed)
     """
     tp_set = set(tp_names)
 
@@ -79,7 +87,14 @@ def build_tp_resolver(tp_names: list[str]):
         normalized = crate_name.replace("_", "-")
         major = _major_from_req(version_req)
 
-        # 1. versioned match
+        # 1. Public alias with normalized name (dash form)
+        if normalized in public_aliases:
+            return normalized
+        # 2. Public alias with original name (underscore form, e.g. clap_complete)
+        if crate_name in public_aliases:
+            return crate_name
+
+        # 3. versioned match (may not be publicly visible, but try)
         if major:
             candidate = f"{normalized}-{major}"
             if candidate in tp_set:
@@ -89,7 +104,7 @@ def build_tp_resolver(tp_names: list[str]):
             if candidate2 in tp_set:
                 return candidate2
 
-        # 2. exact name (short alias without version)
+        # 4. exact name (short alias without version)
         if normalized in tp_set:
             return normalized
         if crate_name in tp_set:
@@ -339,9 +354,9 @@ def main():
     repo_root = REPO_ROOT
     print(f"Repository root: {repo_root}", file=sys.stderr)
 
-    tp_names = load_third_party_names(repo_root)
-    tp_resolve = build_tp_resolver(tp_names)
-    print(f"Loaded {len(tp_names)} third-party targets", file=sys.stderr)
+    tp_names, public_aliases = load_third_party_names(repo_root)
+    tp_resolve = build_tp_resolver(tp_names, public_aliases)
+    print(f"Loaded {len(tp_names)} third-party targets ({len(public_aliases)} public aliases)", file=sys.stderr)
 
     metadata = load_workspace_metadata(repo_root)
     pkgs = metadata["packages"]

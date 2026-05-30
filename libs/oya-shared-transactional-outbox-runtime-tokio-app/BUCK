@@ -8,6 +8,6 @@ rust_library(
         "//libs/oya-shared-transactional-outbox-kernel:oya-shared-transactional-outbox-kernel",
         "//libs/oya-shared-transactional-outbox-poller-app:oya-shared-transactional-outbox-poller-app",
         "//libs/oya-shared-transactional-outbox-worker-app:oya-shared-transactional-outbox-worker-app",
-        "third-party//:tokio-1",
+        "third-party//:tokio",
     ],
 )

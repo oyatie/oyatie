@@ -7,6 +7,6 @@ rust_library(
     deps = [
         "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api:oya-managed-k8s-control-plane-host-api",
         "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel:oya-managed-k8s-control-plane-host-kernel",
-        "third-party//:tokio-1",
+        "third-party//:tokio",
     ],
 )

@@ -6,6 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel:oya-ci-webhook-gateway-kernel",
-        "third-party//:cedar-policy-4",
+        "third-party//:cedar-policy",
     ],
 )

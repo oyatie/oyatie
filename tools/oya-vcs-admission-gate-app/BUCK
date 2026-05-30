@@ -5,6 +5,6 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/intelligence/crates/oya-vcs-admission-gate-kernel:oya-vcs-admission-gate-kernel",
-        "third-party//:serde_json-1",
+        "third-party//:serde_json",
     ],
 )

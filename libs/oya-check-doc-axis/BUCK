@@ -4,4 +4,7 @@ rust_library(
     crate = "oya_check_doc_axis",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:tempfile",
+    ],
 )

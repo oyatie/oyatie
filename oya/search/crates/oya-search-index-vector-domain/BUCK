@@ -7,6 +7,6 @@ rust_library(
     deps = [
         "//oya/search/crates/oya-search-crawler-domain:oya-search-crawler-domain",
         "//oya/search/crates/oya-search-parser-domain:oya-search-parser-domain",
-        "third-party//:serde_json-1",
+        "third-party//:serde_json",
     ],
 )

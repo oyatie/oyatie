@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
         "third-party//:clickhouse",
-        "third-party//:serde-1",
-        "third-party//:serde_json-1",
+        "third-party//:serde",
+        "third-party//:serde_json",
     ],
 )

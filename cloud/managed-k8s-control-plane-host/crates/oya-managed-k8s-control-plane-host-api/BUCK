@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel:oya-managed-k8s-control-plane-host-kernel",
-        "third-party//:serde-1",
-        "third-party//:serde_json-1",
+        "third-party//:serde",
+        "third-party//:serde_json",
     ],
 )
