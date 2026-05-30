@@ -1,0 +1,197 @@
+{
+    "schema_version": "multispectrum-review/v2.4.0",
+    "change_id": "doc-set-scaffold-license-policy-1780183689",
+    "change_class_id": "CC-5",
+    "freshness_unix": 1780183689,
+    "timestamp_iso": "2026-05-30T23:28:09Z",
+    "agent_id": "codex-masterplan-license-policy",
+    "scope": [
+        "oya/marketplace/crates/oya-marketplace-doc-set-scaffold/Cargo.toml",
+        "oya/workplace-integration/crates/oya-workplace-integration-doc-set-scaffold/Cargo.toml"
+    ],
+    "summary": "Adds the repo-standard Apache-2.0 SPDX license field to two documentation-set scaffold package manifests so the license-policy gate can evaluate all package metadata deterministically.",
+    "authority_reviewed": [
+        "specs/root-hub-pointers.json",
+        "docs/AGENTS.md",
+        "specs/master-plan-sequencing.json",
+        "specs/masterplan.json",
+        "docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md",
+        "docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+        "docs/decisions/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md",
+        "docs/decisions/ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md",
+        "docs/decisions/ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md",
+        ".omc/automation/doc-freshness-discipline.md",
+        ".omc/automation/adr-index-pipeline.md",
+        "libs/oya-check-license-policy/src/lib.rs"
+    ],
+    "reference_repo_reviewed": [
+        {
+            "repo": "router-for-me/CLIProxyAPI",
+            "commit": "3a54fb7fcf3a39de620ca250ff9c1dedc79c9549",
+            "notes": "Confirmed current reference shape includes OAuth token management, scheduled auth selection, cooldown queues, and OpenAI/Claude auth refresh code."
+        },
+        {
+            "repo": "CaddyGlow/ccproxy-api",
+            "commit": "9a0e49655f648f3eac7030a673674d1f8469893e",
+            "notes": "Confirmed credential_balancer manager/docs cover pool selection, health state, cooldown, and provider auth-manager registry integration."
+        },
+        {
+            "repo": "AmazingAng/auth2api",
+            "commit": "840fa100e71a3562552cc7d0267f7668db0d7f86",
+            "notes": "Confirmed stock fetch OAuth refresh path and terminal refresh-token error taxonomy remain present."
+        }
+    ],
+    "stale_adr_handling": [
+        "ADR decision records are status-bound rather than date-stale; Proposed ADR-0384 is provenance and design input, while Accepted ADR-0335, ADR-0363, ADR-0390, and ADR-0391 govern the live intelligence direction.",
+        "Generated ADR indexes and projection files were read as derived views only; no generated ADR mirror was hand edited.",
+        "The code change is independent of ADR status transitions and only closes a live license-policy gate finding."
+    ],
+    "nonclaims": [
+        "No provider-pool runtime behavior changes are made in this PR.",
+        "No ADR status transition, generated index edit, or production rollout is claimed.",
+        "Remote CI and reviewer approval are still required before merge."
+    ],
+    "facets": {
+        "F1_linus": {
+            "considered": true,
+            "rigor": "deep",
+            "verdict": "PASS",
+            "findings": [
+                "The smallest durable fix is manifest metadata only; no new abstraction or dependency is introduced."
+            ]
+        },
+        "F2_hyperscaler": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "A deterministic license field keeps package metadata machine-checkable for CI and supply-chain review."
+            ]
+        },
+        "F3_adversarial": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "The license-policy gate was rerun after each manifest fix; the second run passed across 716 packages."
+            ]
+        },
+        "F4_ergonomic": {
+            "considered": true,
+            "rigor": "deep",
+            "verdict": "PASS",
+            "findings": [
+                "The chosen field matches the dominant repo convention, so future package authors see the expected manifest shape."
+            ]
+        },
+        "F5_quality": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "Targeted gate, package metadata, policy tests, diff check, and added-line audit passed."
+            ]
+        },
+        "F6_alternatives": {
+            "considered": true,
+            "rigor": "deep",
+            "verdict": "PASS",
+            "findings": [
+                "Rejected changing the policy allowlist because Apache-2.0 is already allowed and is the dominant in-repo package license."
+            ]
+        },
+        "F7_security": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "No secrets, runtime auth, network boundary, or executable source changes are introduced."
+            ]
+        },
+        "F8_performance": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "Manifest-only metadata change has no runtime performance path."
+            ]
+        },
+        "F9_compliance": {
+            "considered": true,
+            "rigor": "deep",
+            "verdict": "PASS",
+            "findings": [
+                "SPDX license declarations now allow the license-policy gate to prove allowed licensing for both scaffold crates."
+            ]
+        },
+        "F10_testability": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "cargo metadata reports Apache-2.0 for both touched packages."
+            ]
+        },
+        "F11_observability": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "No runtime observability surface is changed; gate output is the observable proof."
+            ]
+        },
+        "F12_reserved": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "Reserved facet not applicable."
+            ]
+        },
+        "F13_maintainability": {
+            "considered": true,
+            "rigor": "scan",
+            "verdict": "PASS",
+            "findings": [
+                "Both documentation-set scaffold crates now follow the same package metadata convention as neighboring workspace crates."
+            ]
+        }
+    },
+    "verification": [
+        {
+            "command": "./bin/oya gate validate license-policy",
+            "status": "passed",
+            "evidence": "/tmp/oyatie-license-policy-validate-2.log",
+            "summary": "license policy validation passed: 716 packages"
+        },
+        {
+            "command": "cargo test -p oya-check-license-policy -- --nocapture",
+            "status": "passed",
+            "evidence": "/tmp/oyatie-license-policy-cargo-test.log",
+            "summary": "3 policy tests passed"
+        },
+        {
+            "command": "cargo metadata --no-deps --format-version 1",
+            "status": "passed",
+            "evidence": "/tmp/oyatie-license-policy-cargo-metadata.json",
+            "summary": "Both touched packages report license Apache-2.0"
+        },
+        {
+            "command": "git diff --check",
+            "status": "passed",
+            "evidence": "terminal output"
+        },
+        {
+            "command": "added-line slop audit",
+            "status": "passed",
+            "evidence": "terminal output",
+            "summary": "No added source or evidence line contains the audited ungrounded-pattern terms."
+        }
+    ],
+    "known_gaps": [
+        "Full gate run-all was not rerun for this narrow metadata PR; prior active baseline still has unrelated supply-chain and stage0-prereqs failures queued separately.",
+        "Remote Jenkins/GitHub checks must run on the pushed PR head before merge."
+    ],
+    "git_sha": "a7e9b40724baad40b5bc050421648cafcd677da8",
+    "worktree_status": "verified-pre-commit-worktree"
+}
