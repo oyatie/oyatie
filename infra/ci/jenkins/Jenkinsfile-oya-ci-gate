@@ -34,33 +34,41 @@ pipeline {
   stages {
     stage('Checkout PR ref') {
       steps {
-        sh '''
-          set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
-          cd "${WORKSPACE}"
-          # The cpsScm definition already cloned the dev branch into WORKSPACE.
-          # Fetch the PR ref and check out the PR sha for a deterministic gate.
-          git fetch --depth 1 origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/origin/pr-${PR_NUMBER}"
-          git checkout "${GIT_SHA}"
-          git --no-pager log --oneline -1
-        '''
+        // Private Forgejo needs auth for the PR-ref fetch; the cpsScm clone's
+        // transient askpass is gone by now. GIT_ASKPASS keeps creds out of argv/console.
+        withCredentials([usernamePassword(credentialsId: 'forgejo-clone', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+          sh '''
+            set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
+            cd "${WORKSPACE}"
+            ASKPASS="${WORKSPACE}/.ci-askpass.sh"
+            printf '#!/bin/sh\ncase "$1" in Username*) printf "%%s" "$GIT_USER";; *) printf "%%s" "$GIT_PASS";; esac\n' > "$ASKPASS"
+            chmod +x "$ASKPASS"; export GIT_ASKPASS="$ASKPASS"
+            # full fetch (no --depth) so `buck2 ... rdeps` affected can merge-base HEAD vs origin/dev
+            git fetch origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/origin/pr-${PR_NUMBER}"
+            git fetch origin "+refs/heads/dev:refs/remotes/origin/dev"
+            rm -f "$ASKPASS"
+            git checkout "${GIT_SHA}"
+            git --no-pager log --oneline -1
+          '''
+        }
       }
     }
     stage('Post pending status') {
       steps {
         withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
-          script { postForgejoStatus('pending', 'oya gate run-all running') }
+          script { postForgejoStatus('pending', 'buck2 affected gate running') }
         }
       }
     }
-    stage('oya gate run-all') {
+    stage('buck2 affected gate') {
       steps {
         sh '''
           set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
           cd "${WORKSPACE}"
-          cargo build -p oya-dev-cli --release
-          # Run the full gate. Stage failure is detected by post.failure below
-          # and reported as the failure commit-status.
-          ./target/release/oya gate run-all
+          # buck2-native affected gate: build+test the reverse-dep closure of the
+          # PR's changed files (owner() + rdeps), via the hermetic toolchain cell.
+          # No cargo, no oya-dev-cli. buck2 is provided by the rust-ci image.
+          sh infra/ci/buck2-affected-gate.sh origin/dev
         '''
       }
     }
@@ -68,12 +76,12 @@ pipeline {
   post {
     success {
       withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
-        script { postForgejoStatus('success', 'oya gate run-all passed') }
+        script { postForgejoStatus('success', 'buck2 affected gate passed') }
       }
     }
     failure {
       withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
-        script { postForgejoStatus('failure', 'oya gate run-all failed') }
+        script { postForgejoStatus('failure', 'buck2 affected gate failed') }
       }
     }
   }
