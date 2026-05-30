@@ -129,6 +129,8 @@ Related sections: [§1 Architecture](#section-1-architecture), [§2 Decisions](#
 39. [TOOLCHAIN.md](TOOLCHAIN.md) - Toolchain: canonical navigation target for this shelf.
 40. [VENDOR-PARTNER-LEDGER.md](VENDOR-PARTNER-LEDGER.md) - Vendor Partner Ledger: canonical navigation target for this shelf.
 41. [bootstrap.md](bootstrap.md) - Bootstrap: canonical navigation target for this shelf.
+42. [buck2-native-ffi-investigation.md](buck2-native-ffi-investigation.md) - Buck2 Native Ffi Investigation: canonical navigation target for this shelf.
+43. [security.md](security.md) - Agent Security Model: canonical navigation target for this shelf.
 
 ### Machine-Readable Root Specs Shelf
 
