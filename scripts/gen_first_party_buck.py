@@ -327,12 +327,14 @@ def generate_buck_content(
         if edition != "2024":
             lines.append(f'    edition = "{edition}",')
         lines.append(f'    visibility = ["PUBLIC"],')
-        if deps_lines:
+        # For binaries in lib+bin crates, always emit deps so the lib is included
+        bin_deps = []
+        if lib_target:
+            bin_deps.append(f'        "//{rel_path}:{name}",')
+        bin_deps.extend(deps_lines)
+        if bin_deps:
             lines.append(f'    deps = [')
-            # For binaries in lib+bin crates, add the lib as a dep too
-            if lib_target:
-                lines.append(f'        "//{rel_path}:{name}",')
-            for d in deps_lines:
+            for d in bin_deps:
                 lines.append(d)
             lines.append(f'    ],')
         lines.append(")")
