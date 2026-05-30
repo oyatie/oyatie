@@ -105,7 +105,11 @@ spec:
             - "-master.port=9333"
             - "-master.volumeSizeLimitMB=1024"
             - "-volume.port=8080"
-            - "-volume.max=10"
+            # 10 was exhausted (all slots used by existing collections), so new
+            # collections (e.g. oya-ci-sccache) could not grow a volume -> S3 PUT
+            # 500 "No writable volumes" -> sccache server-startup timeout in CI.
+            # 50 is disk-aligned: 50Gi PVC / 1 GiB-per-volume (volumeSizeLimitMB=1024).
+            - "-volume.max=50"
             - "-filer"
             - "-filer.port=8888"
             - "-s3"
