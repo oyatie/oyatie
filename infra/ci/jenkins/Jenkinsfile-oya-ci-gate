@@ -68,6 +68,10 @@ pipeline {
         sh '''
           set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
           cd "${WORKSPACE}"
+          # buck2 stores its daemon state under $HOME/.buck; the pod runs as UID 1000
+          # with HOME=/ (root, unwritable) -> "Error creating daemon dir: /.buck ...
+          # Permission denied". Point HOME at the writable workspace.
+          export HOME="${WORKSPACE}"
           # buck2-native affected gate: build+test the reverse-dep closure of the
           # PR's changed files (owner() + rdeps), via the hermetic toolchain cell.
           # No cargo, no oya-dev-cli. buck2 is provided by the rust-ci image.
