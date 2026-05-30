@@ -409,7 +409,7 @@ fn profile_defaults_path() -> PathBuf {
     if relative.exists() {
         return relative;
     }
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    PathBuf::from(option_env!("CARGO_MANIFEST_DIR").unwrap_or("."))
         .ancestors()
         .nth(2)
         .unwrap_or_else(|| Path::new("."))

@@ -1,7 +1,32 @@
-# Compiles platform assembly for stack manipulation (aarch_aapcs64.s on macOS aarch64).
-# Uses cc crate — same pattern as ring/blake3.
+# Compiles platform assembly for stack manipulation.
+# Converted from [buildscript.run] to [[cxx_library]] to avoid the exec-vs-target
+# config mismatch where buildscript_run OUT_DIR is populated under the exec config
+# hash but $(location :...[out_dir]) at binary link time resolves to the target
+# config hash directory, which is empty.
+#
+# ARCH NOTE: srcs below are scoped to cfg(target_arch = "aarch64") — darwin/aarch64 only.
+# Linux aarch64 CI will also match this rule and compile the same .s (correct).
+# Linux x86_64 CI will NOT match and must add an x86_64 section when needed.
+# Windows is not supported in this worktree.
 
-[buildscript.run]
-# cc-rs requires OPT_LEVEL; Buck2 buildscript_run only injects it when the toolchain
-# has an explicit -Copt-level= flag (system_rust_toolchain does not).
-env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }
+buildscript.run = false
+
+# Rust cfgs that build.rs would have emitted via cargo:rustc-cfg=
+['cfg(target_arch = "aarch64")']
+# link_asm intentionally omitted: it triggers #![cfg_attr(link_asm, link(name="psm_s"))]
+# which emits a bare -lpsm_s to the linker. The cxx_library dep below already provides
+# the symbols directly as libpsm-0.1-psm_asm.pic.a — no -lpsm_s search needed.
+cfgs = ["asm", "switchable_stack"]
+
+[['cfg(target_arch = "aarch64")'.cxx_library]]
+name = "psm_asm"
+srcs = ["src/arch/aarch_aapcs64.s"]
+headers = ["src/arch/psm.h", "src/arch/gnu_stack_note.s"]
+# -xassembler-with-cpp allows the .s file to use C preprocessor #include / #define
+compiler_flags = ["-xassembler-with-cpp"]
+preprocessor_flags = [
+    "-DCFG_TARGET_OS_darwin",
+    "-DCFG_TARGET_ARCH_aarch64",
+    "-DCFG_TARGET_ENV_",
+]
+preferred_linkage = "static"

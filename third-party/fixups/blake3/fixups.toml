@@ -1,7 +1,19 @@
-# Compiles NEON asm and C sources for aarch64 via cc crate.
-# Same pattern as ring — uses pregenerated assembly, no perl needed.
+# Compiles NEON C source for aarch64 blake3.
+# Converted from [buildscript.run] to [[cxx_library]] to avoid the same exec-vs-target
+# config mismatch as psm: buildscript_run OUT_DIR is populated under the exec config hash
+# but $(location :...[out_dir]) at binary link time resolves to the empty target-config dir.
+#
+# ARCH NOTE: scoped to cfg(target_arch = "aarch64"). Linux aarch64 CI also matches (correct).
+# x86_64 does not need a native library — blake3 uses pure Rust for x86 dispatch by default.
 
-[buildscript.run]
-# cc-rs requires OPT_LEVEL; Buck2 buildscript_run only injects it when the toolchain
-# has an explicit -Copt-level= flag (system_rust_toolchain does not).
-env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }
+buildscript.run = false
+
+# Rust cfg that build.rs would have emitted for NEON support
+['cfg(target_arch = "aarch64")']
+cfgs = ["blake3_neon"]
+
+[['cfg(target_arch = "aarch64")'.cxx_library]]
+name = "blake3_neon"
+srcs = ["c/blake3_neon.c"]
+headers = ["c/*.h"]
+preferred_linkage = "static"
