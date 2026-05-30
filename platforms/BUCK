@@ -1,0 +1,10 @@
+load("@prelude//platforms:defs.bzl", "execution_platform", "host_configuration")
+
+# Host execution platform for macOS aarch64 (matches rust-toolchain.toml target)
+execution_platform(
+    name = "default",
+    cpu_configuration = host_configuration.cpu,
+    os_configuration = host_configuration.os,
+    use_windows_path_separators = False,
+    visibility = ["PUBLIC"],
+)
