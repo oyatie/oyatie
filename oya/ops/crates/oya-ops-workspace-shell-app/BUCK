@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-ops-workspace-shell-app",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_ops_workspace_shell_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -18,7 +18,7 @@ rust_library(
 
 rust_binary(
     name = "oya-ops-workspace-shell",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [

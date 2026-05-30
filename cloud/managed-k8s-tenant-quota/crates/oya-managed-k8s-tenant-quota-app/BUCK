@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-managed-k8s-tenant-quota-app",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_managed_k8s_tenant_quota_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -23,7 +23,7 @@ rust_library(
 
 rust_binary(
     name = "oya-managed-k8s-tenant-quota",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [

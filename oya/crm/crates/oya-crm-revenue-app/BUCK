@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-crm-revenue-app",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_crm_revenue_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -16,7 +16,7 @@ rust_library(
 
 rust_binary(
     name = "oya-crm-revenue",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
