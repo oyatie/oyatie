@@ -38,7 +38,7 @@ pipeline {
           # The cpsScm definition already cloned the dev branch into WORKSPACE.
           # Fetch the PR ref and check out the PR sha for a deterministic gate.
           git fetch --depth 1 origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/origin/pr-${PR_NUMBER}"
-          git checkout "${PR_SHA}"
+          git checkout "${GIT_SHA}"
           git --no-pager log --oneline -1
         '''
       }
@@ -81,7 +81,7 @@ pipeline {
 // (ADR-0363 Forgejo canonical; ADR-0378 Talos substrate).
 def postForgejoStatus(String state, String description) {
   httpRequest(
-    url: "http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/repos/${env.REPO_OWNER}/${env.REPO_NAME}/statuses/${env.PR_SHA}",
+    url: "http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/repos/${env.REPO}/statuses/${env.GIT_SHA}",
     httpMode: 'POST',
     customHeaders: [
       [name: 'Authorization', value: "token ${env.FORGEJO_TOKEN}", maskValue: true],
