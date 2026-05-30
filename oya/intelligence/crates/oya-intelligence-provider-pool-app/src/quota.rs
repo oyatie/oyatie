@@ -21,6 +21,7 @@
 //! data_class annotations follow the Oyatie catalog:
 //! - `AgentToken` → TENANT_SCOPED (identifies an agent within a tenant)
 //! - budget/remaining counters → INTERNAL_ONLY
+//!
 //! ADR-0083 Tier 3: panic-free in production code; tests use `unwrap`/`expect`.
 
 use std::collections::BTreeMap;

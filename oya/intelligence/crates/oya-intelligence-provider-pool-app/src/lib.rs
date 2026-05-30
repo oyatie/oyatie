@@ -86,11 +86,14 @@ use std::sync::OnceLock;
 
 pub use oya_intelligence_account_kernel::{ProviderFamily, SecretReference};
 pub use oya_intelligence_provider_pool_kernel::{
-    AccountHealth, AccountHealthMap, CooldownPolicy, DurationMs, FailureKind, HealthState,
-    PoolError, PoolId, PoolMembershipChange, PoolRoutingDecision, PoolRoutingReason,
-    PoolRoutingStrategy, ProviderAccountId, ProviderAccountPool, ProviderTier, QuarantineMap,
-    RequestMetadata, SessionId, TenantId, TosAckId, UnixMillis, UsageSnapshot, UsageSnapshotMap,
-    pick_account, pick_account_with_cooldown, populate_quarantine_from_changes,
+    AccountHealth, AccountHealthMap, AgentId, CooldownPolicy, DurationMs, FailureKind,
+    HealthState, LeaseId, OAuthSubscription, PoolError, PoolId, PoolMembershipChange,
+    PoolRoutingDecision, PoolRoutingReason, PoolRoutingStrategy, ProviderAccountId,
+    ProviderAccountPool, ProviderTier, QuarantineMap, RequestMetadata, SeatBlacklistReason,
+    SeatId, SeatLease, SeatOutcome, SessionId, SubscriptionId, SubscriptionPool,
+    SubscriptionPoolError, SubscriptionPoolStrategy, SubscriptionSeatState, TenantId, TosAckId,
+    UnixMillis, UsageSnapshot, UsageSnapshotMap, pick_account, pick_account_with_cooldown,
+    populate_quarantine_from_changes,
 };
 
 // =====================================================================
@@ -1073,45 +1076,45 @@ pub(crate) fn parse_retry_after_ms(headers: &[(String, String)], consecutive_fai
     };
 
     // 1. retry-after: integer seconds.
-    if let Some(val) = find("retry-after") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("retry-after")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 2. retry-after-ms: integer milliseconds.
-    if let Some(val) = find("retry-after-ms") {
-        if let Ok(ms) = val.trim().parse::<u64>() {
-            return ms;
-        }
+    if let Some(val) = find("retry-after-ms")
+        && let Ok(ms) = val.trim().parse::<u64>()
+    {
+        return ms;
     }
 
     // 3. anthropic-ratelimit-requests-reset: integer seconds.
-    if let Some(val) = find("anthropic-ratelimit-requests-reset") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("anthropic-ratelimit-requests-reset")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 4. anthropic-ratelimit-tokens-reset: integer seconds.
-    if let Some(val) = find("anthropic-ratelimit-tokens-reset") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("anthropic-ratelimit-tokens-reset")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 5. x-ratelimit-reset-requests: integer seconds.
-    if let Some(val) = find("x-ratelimit-reset-requests") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("x-ratelimit-reset-requests")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 6. x-ratelimit-reset-tokens: integer seconds.
-    if let Some(val) = find("x-ratelimit-reset-tokens") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("x-ratelimit-reset-tokens")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 7. Kernel fallback: CooldownPolicy::window_for table.
