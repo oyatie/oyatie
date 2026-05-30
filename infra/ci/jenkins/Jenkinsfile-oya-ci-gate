@@ -72,11 +72,21 @@ pipeline {
           # stdout is teed to .gate-output.log (post{failure} posts the tail as a PR
           # comment) and still streams to the Jenkins console. No oya-dev-cli.
           cd "${WORKSPACE}" || exit 1
-          rm -f .gate-rc .gate-output.log   # defense-in-depth: never read a stale verdict/log
+          rm -f .gate-rc .gate-output.log .gate-summary.txt   # defense-in-depth: never read stale state
           ( sh infra/ci/buck2-affected-gate.sh origin/dev 2>&1; echo "$?" > .gate-rc ) | tee .gate-output.log
           # Normalize to a clean single integer; missing/garbage rc -> 1 (fail-closed).
           rc=$(cat .gate-rc 2>/dev/null | head -1 | tr -dc '0-9'); rc=${rc:-1}
           echo "buck2-affected-gate rc=${rc}"
+          if [ "${rc}" != "0" ]; then
+            # Distill the failing target name(s) into a one-line summary for the commit-status
+            # description (the RELIABLE channel — unlike the best-effort comment). Whitelist-
+            # sanitized to target-name chars only, so the status JSON stays valid regardless of
+            # buck2 output content. Patterns deliberately use no quotes/backslashes (Groovy '''
+            # processes \\ escapes).
+            SUM=$(grep -aE "Failed to build|Fail: root//" .gate-output.log 2>/dev/null | grep -aoE "root//[^ ]+" | head -2 | paste -sd' ' -)
+            [ -z "${SUM}" ] && SUM=$(grep -aiE "error|panicked|Tests finished|TESTS FAILED" .gate-output.log 2>/dev/null | tail -1)
+            printf '%s' "${SUM}" | tr -cd 'A-Za-z0-9 /:._-' | tr -s ' ' | cut -c1-200 > .gate-summary.txt
+          fi
           [ "${rc}" = "0" ] || exit "${rc}"
         '''
       }
@@ -91,10 +101,16 @@ pipeline {
     failure {
       withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
         script {
-          postForgejoStatus('failure', 'buck2 affected gate failed')
-          // Best-effort diagnostics: post the gate output tail as a PR comment so gate
-          // failures are triageable without Jenkins access. Wrapped in try/catch so a
-          // diagnostics failure can NEVER change the gate verdict (already posted above).
+          // Enrich the commit-status description with the failing target(s) — the RELIABLE
+          // channel (status posting is proven; the PR comment may fail on token-scope/sandbox).
+          def desc = 'buck2 affected gate failed'
+          try {
+            def sp = "${env.WORKSPACE}/.gate-summary.txt"
+            if (fileExists(sp)) { def s = readFile(sp).trim(); if (s) { desc = ('gate: ' + s).take(240) } }
+          } catch (err) { echo "summary read skipped: ${err}" }
+          postForgejoStatus('failure', desc)
+          // Best-effort: also post the full output tail as a PR comment (richer, but may fail).
+          // Wrapped in try/catch so a diagnostics failure can NEVER change the verdict (above).
           try { postForgejoGateLog() } catch (err) { echo "gate-log comment skipped: ${err}" }
         }
       }
