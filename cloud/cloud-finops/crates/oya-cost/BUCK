@@ -10,7 +10,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-cost",
+    name = "oya-cost-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],

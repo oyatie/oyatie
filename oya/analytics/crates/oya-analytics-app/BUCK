@@ -19,7 +19,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-analytics-app",
+    name = "oya-analytics-app-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
