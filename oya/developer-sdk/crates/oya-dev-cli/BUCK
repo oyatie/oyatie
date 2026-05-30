@@ -198,3 +198,16 @@ rust_binary(
         "third-party//:sha2-0.10",
     ],
 )
+
+# Minimal gate binary: only architecture-boundaries + workspace-topology.
+# Deliberately avoids the full oya-dev-cli dep tree (which includes crypto
+# crates not needed by these two gate lanes).
+rust_binary(
+    name = "oya-gate",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya_gate.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json-1",
+    ],
+)
