@@ -684,6 +684,13 @@ buildscript_run(
     buildscript_rule = ":aws-lc-rs-1-build-script-build",
     package_name = "aws-lc-rs",
     version = "1.17.0",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "17",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+        "CARGO_MANIFEST_LINKS": "aws_lc_rs_1_17_0_sys",
+    },
 )
 
 cargo.rust_library(
@@ -740,6 +747,13 @@ buildscript_run(
     buildscript_rule = ":aws-lc-sys-0.41-build-script-build",
     package_name = "aws-lc-sys",
     version = "0.41.0",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "41",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+        "CARGO_MANIFEST_LINKS": "aws_lc_0_41_0",
+    },
 )
 
 cargo.rust_library(
@@ -6154,6 +6168,12 @@ buildscript_run(
     buildscript_rule = ":openssl-sys-0.9-build-script-build",
     package_name = "openssl-sys",
     version = "0.9.116",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "9",
+        "CARGO_PKG_VERSION_PATCH": "116",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
 )
 
 cargo.rust_library(
@@ -7748,6 +7768,21 @@ buildscript_run(
     buildscript_rule = ":ring-0.17-build-script-build",
     package_name = "ring",
     version = "0.17.14",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "17",
+        "CARGO_PKG_VERSION_PATCH": "14",
+        "CARGO_PKG_VERSION_PRE": "",
+        "CARGO_MANIFEST_LINKS": "ring_core_0_17_14_",
+        # cc-rs requires these standard Cargo build env vars
+        "OPT_LEVEL": "3",
+        "DEBUG": "false",
+        "PROFILE": "release",
+        # Buck2 sandbox PATH may not include /usr/bin; force absolute compiler path.
+        # cc-rs picks up CC_aarch64-apple-darwin or CC over the shim when set.
+        "CC_aarch64-apple-darwin": "/usr/bin/clang",
+        "AR_aarch64-apple-darwin": "/usr/bin/ar",
+    },
 )
 
 cargo.rust_library(
@@ -7758,6 +7793,12 @@ cargo.rust_library(
     edition = "2021",
     env = {
         "OUT_DIR": "$(location :ring-0.17-build-script-run[out_dir])",
+        # ring's src/prefixed.rs uses env!() macros for pkg name+version
+        "CARGO_PKG_NAME": "ring",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "17",
+        "CARGO_PKG_VERSION_PATCH": "14",
+        "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
         "alloc",
