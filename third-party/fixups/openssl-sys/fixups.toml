@@ -1,0 +1,6 @@
+[buildscript]
+# openssl-sys build script probes system OpenSSL.
+# run = true so the build script emits rustc-link-lib directives + include path.
+# The buildscript_run action inherits the host environment where Homebrew's
+# pkg-config can locate openssl@3 (/opt/homebrew/opt/openssl@3).
+run = true

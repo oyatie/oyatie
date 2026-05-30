@@ -1,0 +1,3 @@
+[buildscript]
+# aws-lc-rs build.rs delegates link metadata from aws-lc-sys via DEP_ env vars.
+run = true

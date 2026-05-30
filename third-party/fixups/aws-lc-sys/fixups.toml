@@ -1,0 +1,5 @@
+[buildscript]
+# aws-lc-sys build script drives C compilation (CcBuilder path on macOS aarch64 —
+# no cmake needed; pregenerated bindings at src/aarch64_apple_darwin_crypto.rs).
+# default-features must remain ON (founder constraint).
+run = true
