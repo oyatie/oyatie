@@ -238,6 +238,12 @@ controller:
                       description: "GitHub clone creds (ADR-0381 D1 reuses the gateway-build-git Secret); used by cpsScm + by the PR-ref fetch step"
                       username: "${GH_USERNAME}"
                       password: "${GH_TOKEN}"
+                  - usernamePassword:
+                      scope: GLOBAL
+                      id: "forgejo-clone"
+                      description: "Forgejo git-over-HTTP clone creds (oya-admin + forgejo-ci-token). Used by the oya-ci-gate cpsScm to clone the GATING forge (ADR-0363 Forgejo-of-record): PRs + PR refs (refs/pull/N/head) live on Forgejo, not GitHub."
+                      username: "oya-admin"
+                      password: "${FORGEJO_CI_TOKEN}"
       # ADR-0380 D3: declare the oya-ci-gate pipelineJob via job-dsl. Pipeline
       # body lives in infra/ci/jenkins/Jenkinsfile-oya-ci-gate (cpsScm; cloned
       # from this repo at trigger time, NOT at boot — Jenkins boots cleanly
@@ -279,8 +285,8 @@ controller:
                     scm {
                       git {
                         remote {
-                          url('https://github.com/jason931225/oyatie.git')
-                          credentials('gateway-build-git')
+                          url('http://forgejo.oya-forge.svc.cluster.local:3000/oya-admin/oyatie.git')
+                          credentials('forgejo-clone')
                         }
                         branch('dev')
                         extensions {
@@ -293,7 +299,7 @@ controller:
                       }
                     }
                     scriptPath('infra/ci/jenkins/Jenkinsfile-oya-ci-gate')
-                    lightweight(true)
+                    lightweight(false)
                   }
                 }
               }
