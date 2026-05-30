@@ -10,7 +10,7 @@ rust_library(
         "//cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-adapter-inmemory:oya-managed-k8s-sla-observability-adapter-inmemory",
         "//cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api:oya-managed-k8s-sla-observability-api",
         "//cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel:oya-managed-k8s-sla-observability-kernel",
-        "third-party//:serde_json-1",
-        "third-party//:tokio-1",
+        "third-party//:serde_json",
+        "third-party//:tokio",
     ],
 )

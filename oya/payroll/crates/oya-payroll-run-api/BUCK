@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
         "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
-        "third-party//:serde-1",
-        "third-party//:serde_json-1",
+        "third-party//:serde",
+        "third-party//:serde_json",
     ],
 )

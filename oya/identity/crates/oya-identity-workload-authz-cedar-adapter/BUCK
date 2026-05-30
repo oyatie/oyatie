@@ -6,6 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/identity/crates/oya-identity-workload-domain:oya-identity-workload-domain",
-        "third-party//:cedar-policy-4",
+        "third-party//:cedar-policy",
     ],
 )

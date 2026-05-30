@@ -9,7 +9,7 @@ rust_library(
         "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel:oya-managed-k8s-tenant-quota-kernel",
         "//oya/identity/crates/oya-identity-workload-authz-cedar-adapter:oya-identity-workload-authz-cedar-adapter",
         "//oya/identity/crates/oya-identity-workload-domain:oya-identity-workload-domain",
-        "third-party//:cedar-policy-4",
-        "third-party//:serde-1",
+        "third-party//:cedar-policy",
+        "third-party//:serde",
     ],
 )

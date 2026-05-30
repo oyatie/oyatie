@@ -8,8 +8,8 @@ rust_library(
         "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api:oya-managed-k8s-control-plane-host-api",
         "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel:oya-managed-k8s-control-plane-host-kernel",
         "third-party//:k8s-openapi",
-        "third-party//:kube-3",
-        "third-party//:kube-runtime-3",
-        "third-party//:tokio-1",
+        "third-party//:kube",
+        "third-party//:kube-runtime",
+        "third-party//:tokio",
     ],
 )

@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/observability/crates/oya-observability-domain:oya-observability-domain",
-        "third-party//:tracing-0.1",
-        "third-party//:tracing-subscriber-0.3",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
     ],
 )

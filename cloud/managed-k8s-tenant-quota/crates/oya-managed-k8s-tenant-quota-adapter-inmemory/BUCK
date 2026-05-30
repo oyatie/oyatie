@@ -7,6 +7,6 @@ rust_library(
     deps = [
         "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api:oya-managed-k8s-tenant-quota-api",
         "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel:oya-managed-k8s-tenant-quota-kernel",
-        "third-party//:serde-1",
+        "third-party//:serde",
     ],
 )

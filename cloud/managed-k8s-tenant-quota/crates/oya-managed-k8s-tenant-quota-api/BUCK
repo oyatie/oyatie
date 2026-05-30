@@ -6,6 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel:oya-managed-k8s-tenant-quota-kernel",
-        "third-party//:serde-1",
+        "third-party//:serde",
     ],
 )

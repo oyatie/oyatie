@@ -7,6 +7,6 @@ rust_library(
     deps = [
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
         "third-party//:sqlx",
-        "third-party//:tokio-1",
+        "third-party//:tokio",
     ],
 )

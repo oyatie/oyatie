@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "third-party//:ed25519-dalek-2",
-        "third-party//:sha2-0.10",
+        "third-party//:ed25519-dalek",
+        "third-party//:sha2",
     ],
 )

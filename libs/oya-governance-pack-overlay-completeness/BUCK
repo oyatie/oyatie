@@ -5,9 +5,9 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "third-party//:anyhow-1",
-        "third-party//:serde-1",
+        "third-party//:anyhow",
+        "third-party//:serde",
         "third-party//:serde_yaml",
-        "third-party//:walkdir-2",
+        "third-party//:walkdir",
     ],
 )

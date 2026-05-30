@@ -9,7 +9,7 @@ rust_library(
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
         "//oya/community/crates/oya-community-post-store-domain:oya-community-post-store-domain",
         "//oya/mail/crates/oya-mail-mailbox-store-api:oya-mail-mailbox-store-api",
-        "third-party//:tokio-1",
+        "third-party//:tokio",
         "third-party//:tonic",
     ],
 )

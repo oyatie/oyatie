@@ -12,7 +12,7 @@ rust_library(
         "//oya/ops/crates/oya-ops-workspace-shell-kernel:oya-ops-workspace-shell-kernel",
         "//oya/ops/crates/oya-ops-workspace-shell-rest:oya-ops-workspace-shell-rest",
         "//oya/ops/crates/oya-ops-workspace-shell-usecase:oya-ops-workspace-shell-usecase",
-        "third-party//:tokio-1",
+        "third-party//:tokio",
     ],
 )
 
@@ -30,6 +30,6 @@ rust_binary(
         "//oya/ops/crates/oya-ops-workspace-shell-kernel:oya-ops-workspace-shell-kernel",
         "//oya/ops/crates/oya-ops-workspace-shell-rest:oya-ops-workspace-shell-rest",
         "//oya/ops/crates/oya-ops-workspace-shell-usecase:oya-ops-workspace-shell-usecase",
-        "third-party//:tokio-1",
+        "third-party//:tokio",
     ],
 )

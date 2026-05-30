@@ -18,7 +18,7 @@ rust_library(
         "//oya/mail/crates/oya-mail-mailbox-store-rest:oya-mail-mailbox-store-rest",
         "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
         "//oya/messenger/crates/oya-messenger-message-stream-rest:oya-messenger-message-stream-rest",
-        "third-party//:serde_json-1",
-        "third-party//:tokio-1",
+        "third-party//:serde_json",
+        "third-party//:tokio",
     ],
 )

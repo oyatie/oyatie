@@ -8,7 +8,7 @@ rust_library(
         "//cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel:oya-managed-k8s-cluster-lifecycle-kernel",
         "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api:oya-managed-k8s-control-plane-host-api",
         "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api:oya-managed-k8s-tenant-quota-api",
-        "third-party//:serde-1",
-        "third-party//:tokio-1",
+        "third-party//:serde",
+        "third-party//:tokio",
     ],
 )

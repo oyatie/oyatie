@@ -6,6 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
-        "third-party//:serde-1",
+        "third-party//:serde",
     ],
 )

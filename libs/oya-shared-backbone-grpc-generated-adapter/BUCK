@@ -41,7 +41,7 @@ rust_library(
         "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
         "//oya/messenger/crates/oya-messenger-message-stream-grpc:oya-messenger-message-stream-grpc",
         "third-party//:prost",
-        "third-party//:protoc-bin-vendored-3",
+        "third-party//:protoc-bin-vendored",
         "third-party//:tonic",
         "third-party//:tonic-prost",
         "third-party//:tonic-prost-build",

@@ -8,7 +8,7 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-account-kernel:oya-intelligence-account-kernel",
         "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
         "//oya/intelligence/crates/oya-intelligence-subagent-runtime-usecase:oya-intelligence-subagent-runtime-usecase",
-        "third-party//:tempfile-3",
+        "third-party//:tempfile",
     ],
 )
 
@@ -22,6 +22,6 @@ rust_binary(
         "//oya/intelligence/crates/oya-intelligence-account-kernel:oya-intelligence-account-kernel",
         "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
         "//oya/intelligence/crates/oya-intelligence-subagent-runtime-usecase:oya-intelligence-subagent-runtime-usecase",
-        "third-party//:tempfile-3",
+        "third-party//:tempfile",
     ],
 )

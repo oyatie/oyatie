@@ -25,7 +25,10 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-run-domain:oya-intelligence-run-domain",
         "//oya/intelligence/crates/oya-intelligence-step-domain:oya-intelligence-step-domain",
         "//oya/observability/crates/oya-observability-domain:oya-observability-domain",
+        "//oya/observability/crates/oya-observability-tracing-adapter:oya-observability-tracing-adapter",
         "//oya/ontology/crates/oya-ontology-domain:oya-ontology-domain",
         "//oya/policy/crates/oya-policy-cedar-domain:oya-policy-cedar-domain",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
     ],
 )

@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "third-party//:tokio-1",
-        "third-party//:uuid-1",
+        "third-party//:tokio",
+        "third-party//:uuid",
         "third-party//:webauthn-rs",
     ],
 )
@@ -18,8 +18,8 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/identity/crates/oya-identity:oya-identity",
-        "third-party//:tokio-1",
-        "third-party//:uuid-1",
+        "third-party//:tokio",
+        "third-party//:uuid",
         "third-party//:webauthn-rs",
     ],
 )

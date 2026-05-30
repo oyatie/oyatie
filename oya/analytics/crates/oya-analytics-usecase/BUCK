@@ -7,6 +7,6 @@ rust_library(
     deps = [
         "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
         "//oya/analytics/crates/oya-analytics-domain:oya-analytics-domain",
-        "third-party//:serde-1",
+        "third-party//:serde",
     ],
 )

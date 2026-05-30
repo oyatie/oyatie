@@ -7,8 +7,8 @@ rust_library(
     deps = [
         "third-party//:console_error_panic_hook",
         "third-party//:leptos",
-        "third-party//:serde-1",
-        "third-party//:serde_json-1",
+        "third-party//:serde",
+        "third-party//:serde_json",
         "third-party//:wasm-bindgen",
         "third-party//:wasm-bindgen-futures",
         "third-party//:web-sys",
@@ -16,7 +16,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-application-shell-frontend-prototype",
+    name = "oya-application-shell-frontend-prototype-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
@@ -24,8 +24,8 @@ rust_binary(
         "//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype",
         "third-party//:console_error_panic_hook",
         "third-party//:leptos",
-        "third-party//:serde-1",
-        "third-party//:serde_json-1",
+        "third-party//:serde",
+        "third-party//:serde_json",
         "third-party//:wasm-bindgen",
         "third-party//:wasm-bindgen-futures",
         "third-party//:web-sys",

@@ -7,9 +7,9 @@ rust_library(
     deps = [
         "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
         "third-party//:redis",
-        "third-party//:serde-1",
-        "third-party//:tokio-1",
-        "third-party//:tokio-1",
+        "third-party//:serde",
+        "third-party//:tokio",
+        "third-party//:tokio",
         "third-party//:tracing",
     ],
 )

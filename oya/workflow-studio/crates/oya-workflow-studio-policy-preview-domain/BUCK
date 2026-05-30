@@ -6,6 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain:oya-workflow-studio-dsl-emitter-domain",
-        "third-party//:serde-1",
+        "third-party//:serde",
     ],
 )
