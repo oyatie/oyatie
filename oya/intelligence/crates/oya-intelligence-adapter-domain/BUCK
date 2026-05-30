@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-intelligence-adapter-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_adapter_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain",
+        "//libs/oya-check-cost-budget:oya-check-cost-budget",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+    ],
+)

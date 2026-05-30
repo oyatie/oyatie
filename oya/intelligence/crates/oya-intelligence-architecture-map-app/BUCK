@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-architecture-map-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_architecture_map_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-architecture-map-kernel:oya-intelligence-architecture-map-kernel",
+    ],
+)

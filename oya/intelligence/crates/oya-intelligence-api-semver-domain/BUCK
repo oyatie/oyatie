@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-intelligence-api-semver-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_api_semver_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

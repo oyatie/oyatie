@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-slo-coverage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_slo_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-vendor-recency",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_vendor_recency",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

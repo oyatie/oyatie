@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-check-cost-budget",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_cost_budget",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

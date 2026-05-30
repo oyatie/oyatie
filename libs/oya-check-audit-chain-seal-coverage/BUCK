@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-audit-chain-seal-coverage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_audit_chain_seal_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

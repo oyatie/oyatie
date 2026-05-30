@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-shared-i18n-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_shared_i18n_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

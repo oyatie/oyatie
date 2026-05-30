@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-intelligence-openapi-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_openapi_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

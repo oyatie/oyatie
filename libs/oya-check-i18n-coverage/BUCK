@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-check-i18n-coverage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_i18n_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-i18n-kernel:oya-shared-i18n-kernel",
+    ],
+)

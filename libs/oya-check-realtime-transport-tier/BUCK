@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-check-realtime-transport-tier",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_realtime_transport_tier",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-realtime-transport-kernel:oya-shared-realtime-transport-kernel",
+    ],
+)

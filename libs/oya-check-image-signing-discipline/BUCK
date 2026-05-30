@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-image-signing-discipline",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_image_signing_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

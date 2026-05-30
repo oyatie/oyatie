@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-cedar-fragment-coverage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_cedar_fragment_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

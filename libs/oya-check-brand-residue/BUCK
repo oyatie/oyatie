@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-brand-residue",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_brand_residue",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

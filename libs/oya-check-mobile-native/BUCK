@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-mobile-native",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_mobile_native",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

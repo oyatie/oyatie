@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-intelligence-cargo-prefix-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_cargo_prefix_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

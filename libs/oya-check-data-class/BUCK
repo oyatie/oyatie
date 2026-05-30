@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-data-class",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_data_class",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

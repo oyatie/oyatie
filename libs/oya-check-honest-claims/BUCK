@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-honest-claims",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_honest_claims",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
