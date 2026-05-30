@@ -11466,6 +11466,10 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
         "OUT_DIR": "$(location :psm-0.1-build-script-run[out_dir])",
     },
+    exported_linker_flags = [
+        "-L$(location :psm-0.1-build-script-run[out_dir])",
+        "-lpsm_s",
+    ],
     rustc_flags = ["@$(location :psm-0.1-build-script-run[rustc_flags])"],
     visibility = [],
 )
