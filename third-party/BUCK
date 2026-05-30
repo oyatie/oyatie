@@ -1095,6 +1095,15 @@ buildscript_run(
         "CARGO_PKG_VERSION_MINOR": "17",
         "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
+        ## DEP_AWS_LC_* vars propagated from aws-lc-sys via links = "aws_lc_0_41_0"
+        ## The include path points at aws-lc-sys buildscript_run OUT_DIR at build time.
+        "DEP_AWS_LC_0_41_0_INCLUDE": "$(location :aws-lc-sys-0.41-build-script-main-run[out_dir])/include",
+        "DEP_AWS_LC_0_41_0_LIBCRYPTO": "aws_lc_0_41_0_crypto",
+        ## CARGO_FEATURE_AWS_LC_SYS is required (aws-lc-rs chooses between aws-lc-sys and aws-lc-fips-sys)
+        "CARGO_FEATURE_AWS_LC_SYS": "1",
+        ## Target info needed by build script
+        "CARGO_CFG_TARGET_OS": "macos",
+        "CARGO_CFG_TARGET_ENV": "",
     },
     features = [
         "alloc",
@@ -9128,6 +9137,9 @@ buildscript_run(
         "CARGO_PKG_VERSION_MINOR": "10",
         "CARGO_PKG_VERSION_PATCH": "80",
         "CARGO_PKG_VERSION_PRE": "",
+        "DEP_OPENSSL_CONF": "",
+        "DEP_OPENSSL_INCLUDE": "/opt/homebrew/opt/openssl@3/include",
+        "DEP_OPENSSL_VERSION_NUMBER": "30600020",
     },
     features = ["default"],
     version = "0.10.80",
@@ -17981,6 +17993,7 @@ buildscript_run(
         "CARGO_PKG_VERSION_MINOR": "5",
         "CARGO_PKG_VERSION_PATCH": "5",
         "CARGO_PKG_VERSION_PRE": "",
+        "DEP_OPENSSL_VERSION_NUMBER": "30600020",
     },
     version = "0.5.5",
 )
@@ -18105,6 +18118,7 @@ buildscript_run(
         "CARGO_PKG_VERSION_MINOR": "5",
         "CARGO_PKG_VERSION_PATCH": "5",
         "CARGO_PKG_VERSION_PRE": "",
+        "DEP_OPENSSL_VERSION_NUMBER": "30600020",
     },
     features = ["default"],
     version = "0.5.5",
