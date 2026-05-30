@@ -1,0 +1,31 @@
+{
+  "scope": "active artifact registry path alignment",
+  "timestamp_unix": 1780184396,
+  "change_class_id": "CC-1_registry_path_alignment",
+  "diagnostic_source": "./bin/oya gate validate active-artifact-contract on origin/dev reported artifact_path values not present in HEAD",
+  "authority_reviewed": [
+    "docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md status=Accepted",
+    "docs/decisions/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md status=Proposed design input",
+    "specs/master-plan-sequencing.json",
+    "specs/masterplan.json"
+  ],
+  "reference_repos_reviewed": [
+    "router-for-me/CLIProxyAPI@3a54fb7fcf3a39de620ca250ff9c1dedc79c9549",
+    "CaddyGlow/ccproxy-api@9a0e49655f648f3eac7030a673674d1f8469893e",
+    "AmazingAng/auth2api@840fa100e71a3562552cc7d0267f7668db0d7f86"
+  ],
+  "artifacts": [
+    "registry/artifact-capabilities-registry.json",
+    "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs"
+  ],
+  "verification": [
+    "python3 -m json.tool registry/artifact-capabilities-registry.json",
+    "./bin/oya gate validate active-artifact-contract",
+    "cargo test -p oya-check-active-artifact-contract -- --nocapture",
+    "cargo test -p oya-dev-cli active_artifact_contract_gate_accepts_clean_registry --test gate_cli -- --nocapture",
+    "cargo test -p oya-dev-cli active_artifact_contract_gate_ --test gate_cli -- --nocapture",
+    "cargo check -p oya-dev-cli --all-targets"
+  ],
+  "stale_adr_handling": "ADR status controls authority. Accepted ADR-0335 governs intelligence absorption; Proposed ADR-0384 remains provider-pool design input. This change updates the active registry only and does not hand-edit generated ADR projections or historical evidence.",
+  "closure": "active-artifact-contract now validates registry paths against the live workspace layout."
+}

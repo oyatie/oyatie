@@ -8396,8 +8396,12 @@ fn aac_capabilities(
 fn active_artifact_contract_repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
-        .nth(2)
-        .expect("repo root")
+        .find(|candidate| {
+            candidate
+                .join("specs/artifact-profile-defaults.json")
+                .exists()
+        })
+        .expect("repo root with artifact profile defaults")
         .to_path_buf()
 }
 
