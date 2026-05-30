@@ -25,11 +25,9 @@ suggest() {
 }
 
 # Check 1: Dirty Rust files (5-second budget)
-if command -v cargo >/dev/null 2>&1 && [ ! -f "$REPO_ROOT/tools/hooks/.cargo-verify-disabled" ]; then
-    DIRTY_RS=$(timeout 5 git -C "$REPO_ROOT" status --porcelain 2>/dev/null | grep '\.rs$' | head -5 || true)
-    if [ -n "$DIRTY_RS" ]; then
-        suggest "Uncommitted Rust changes detected. Consider: cargo check --quiet before closing."
-    fi
+DIRTY_RS=$(timeout 5 git -C "$REPO_ROOT" status --porcelain 2>/dev/null | grep '\.rs$' | head -5 || true)
+if [ -n "$DIRTY_RS" ]; then
+    suggest "Uncommitted Rust changes detected. Consider: buck2 build //...[check] before closing (cargo retired — Buck2 takeover)."
 fi
 
 # Check 2: Orphan ADR references in recent diff (5-second budget)
