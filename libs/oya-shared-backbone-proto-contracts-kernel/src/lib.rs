@@ -9,12 +9,12 @@
 #![forbid(unsafe_code)]
 
 pub const MESSENGER_MESSAGE_STREAM_PROTO: &str =
-    include_str!("../../../specs/proto/backbone/messenger/message_stream.proto");
-pub const MAIL_PROTO: &str = include_str!("../../../specs/proto/backbone/mail/mail.proto");
+    include_str!("../specs/proto/backbone/messenger/message_stream.proto");
+pub const MAIL_PROTO: &str = include_str!("../specs/proto/backbone/mail/mail.proto");
 pub const SOCIAL_POST_COMPOSITION_PROTO: &str =
-    include_str!("../../../specs/proto/backbone/social/social_post_composition.proto");
+    include_str!("../specs/proto/backbone/social/social_post_composition.proto");
 pub const COMMUNITY_POST_STORE_PROTO: &str =
-    include_str!("../../../specs/proto/backbone/community/community_post_store.proto");
+    include_str!("../specs/proto/backbone/community/community_post_store.proto");
 
 const COMMON_METADATA_FIELDS: &[&str] = &[
     "tenant_scope_ref",
