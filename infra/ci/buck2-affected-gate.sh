@@ -49,6 +49,28 @@ for f in $RUST_REL; do
   if ! o=$("$BUCK2" uquery "owner('$f')" 2>/tmp/uqerr); then
     echo "buck2-affected-gate: FATAL buck2 uquery owner('$f') errored:"; sed 's/^/    /' /tmp/uqerr; exit 1
   fi
+  # A BUCK file is the package DEFINITION, not a target source, so owner() finds
+  # nothing for it. A BUCK change can add/alter/remove any target in that package,
+  # so the affected set is ALL targets in the package -> expand to the package
+  # target pattern (cell-qualified) rather than treating it as a 'no owner' FATAL.
+  if [ -z "$o" ]; then
+    case "$f" in
+      */BUCK|BUCK)
+        d=$(dirname "$f")
+        case "$d" in
+          third-party)   pat="third-party//:" ;;
+          third-party/*) pat="third-party//${d#third-party/}:" ;;
+          toolchains)    pat="toolchains//:" ;;
+          toolchains/*)  pat="toolchains//${d#toolchains/}:" ;;
+          .)             pat="//:" ;;
+          *)             pat="//$d:" ;;
+        esac
+        if ! o=$("$BUCK2" uquery "$pat" 2>/tmp/uqerr); then
+          echo "buck2-affected-gate: FATAL buck2 uquery '$pat' (BUCK pkg for $f) errored:"; sed 's/^/    /' /tmp/uqerr; exit 1
+        fi
+        ;;
+    esac
+  fi
   [ -n "$o" ] && OWNERS="$OWNERS $o"
 done
 OWNERS=$(printf '%s\n' $OWNERS | sed '/^$/d' | sort -u)
