@@ -1,0 +1,3 @@
+[buildscript]
+# Only links native libs when target == x86_64-pc-windows-msvc; noop on macOS aarch64.
+run = false

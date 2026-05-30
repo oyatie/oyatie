@@ -1,0 +1,4 @@
+[buildscript]
+# Compiles .proto files using tonic_prost_build; protoc binary sourced from
+# protoc-bin-vendored (no host protoc required). run=true required.
+run = true

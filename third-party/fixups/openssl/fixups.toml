@@ -1,0 +1,6 @@
+[buildscript]
+# openssl wrapper crate: build script reads DEP_OPENSSL_* env vars propagated by
+# openssl-sys (version number, include path, lib path) and emits rustc-check-cfg
+# directives for conditional compilation of OpenSSL version guards.
+# run=true so it can read DEP_OPENSSL_VERSION_NUMBER and emit the correct cfg flags.
+run = true
