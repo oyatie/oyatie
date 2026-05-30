@@ -14,6 +14,7 @@ BASE="${1:-origin/dev}"
 BUCK2="${BUCK2:-buck2}"
 
 echo "buck2-affected-gate: start (pwd=$(pwd) base=$BASE head=$(git rev-parse --short HEAD 2>&1))"
+echo "buck2-affected-gate: .buckconfig=$(test -f .buckconfig && echo present || echo MISSING) HOME=${HOME:-unset} buck2=$($BUCK2 --version 2>&1 | head -1)"
 if ! git rev-parse --verify --quiet "$BASE" >/dev/null 2>&1; then
   echo "buck2-affected-gate: FATAL base ref '$BASE' does not resolve in this checkout"
   echo "  remotes: $(git remote 2>&1)  | refs: $(git for-each-ref --format='%(refname)' refs/remotes 2>&1 | paste -sd' ' -)"
