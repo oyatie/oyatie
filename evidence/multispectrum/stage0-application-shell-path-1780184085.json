@@ -1,0 +1,31 @@
+{
+  "scope": "stage0 application shell path alignment",
+  "timestamp_unix": 1780184085,
+  "change_class_id": "CC-1_gate_metadata_alignment",
+  "authority_reviewed": [
+    "docs/decisions/ADR-0061-application-b2b-unified-shell.md status=accepted",
+    "docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md status=Accepted",
+    "docs/decisions/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md status=Proposed design input",
+    "specs/master-plan-sequencing.json",
+    "specs/masterplan.json"
+  ],
+  "reference_repos_reviewed": [
+    "router-for-me/CLIProxyAPI@3a54fb7fcf3a39de620ca250ff9c1dedc79c9549",
+    "CaddyGlow/ccproxy-api@9a0e49655f648f3eac7030a673674d1f8469893e",
+    "AmazingAng/auth2api@840fa100e71a3562552cc7d0267f7668db0d7f86"
+  ],
+  "artifacts": [
+    "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/stage0_application_shell_prereqs.rs",
+    "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs"
+  ],
+  "verification": [
+    "cargo test -p oya-dev-cli application_app_paths_match_current_workspace_layout --lib -- --nocapture",
+    "cargo test -p oya-dev-cli stage0_prereqs_gate_is_dispatched --test gate_cli -- --nocapture",
+    "./bin/oya gate validate stage0-prereqs",
+    "cargo check -p oya-dev-cli --all-targets",
+    "git diff --check",
+    "added-line slop audit passed"
+  ],
+  "stale_adr_handling": "ADR status controls authority. Proposed ADR-0384 informed provider-pool design only; accepted ADRs govern active intelligence direction. Derived indexes and historical evidence were not hand-edited for this gate metadata change.",
+  "closure": "Stage0 prereqs now validate the active Application crate workspace path under oya/application."
+}

@@ -14,15 +14,15 @@ use crate::usage;
 
 const REQUIRED_PATHS: &[&str] = &[
     "Cargo.toml",
-    "crates/oya-application-app/Cargo.toml",
-    "crates/oya-application-app/src/lib.rs",
+    "oya/application/crates/oya-application-app/Cargo.toml",
+    "oya/application/crates/oya-application-app/src/lib.rs",
     "docs/decisions/ADR-0061-application-b2b-unified-shell.md",
 ];
 
 const EXPECTED_APP_EDITION: &str = "2024";
 const EXPECTED_APP_RUST_VERSION: &str = "1.95.0";
 const APP_PACKAGE_NAME: &str = "oya-application-app";
-const APP_WORKSPACE_MEMBER: &str = "crates/oya-application-app";
+const APP_WORKSPACE_MEMBER: &str = "oya/application/crates/oya-application-app";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Stage0PrereqsValidateArgs {
@@ -237,6 +237,18 @@ mod tests {
         let toml = "[workspace]\nresolver = \"3\"\nmembers = [\n  \"crates/x\",\n]\n";
         let members = parse_workspace_members(toml);
         assert_eq!(members, vec!["crates/x"]);
+    }
+
+    #[test]
+    fn application_app_paths_match_current_workspace_layout() {
+        assert_eq!(
+            APP_WORKSPACE_MEMBER,
+            "oya/application/crates/oya-application-app"
+        );
+        assert!(REQUIRED_PATHS.contains(&"oya/application/crates/oya-application-app/Cargo.toml"));
+        assert!(REQUIRED_PATHS.contains(&"oya/application/crates/oya-application-app/src/lib.rs"));
+        assert!(!REQUIRED_PATHS.contains(&"crates/oya-application-app/Cargo.toml"));
+        assert!(!REQUIRED_PATHS.contains(&"crates/oya-application-app/src/lib.rs"));
     }
 
     #[test]
