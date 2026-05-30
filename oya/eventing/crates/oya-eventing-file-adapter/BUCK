@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-eventing-file-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_eventing_file_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/eventing/crates/oya-eventing-domain:oya-eventing-domain",
+    ],
+)

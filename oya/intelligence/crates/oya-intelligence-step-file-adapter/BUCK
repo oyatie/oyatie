@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-intelligence-step-file-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_step_file_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-step-domain:oya-intelligence-step-domain",
+    ],
+)

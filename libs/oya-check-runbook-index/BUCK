@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-runbook-index",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_runbook_index",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

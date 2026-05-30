@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-release-pack",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_release_pack",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

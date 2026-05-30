@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-metric-cardinality",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_metric_cardinality",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

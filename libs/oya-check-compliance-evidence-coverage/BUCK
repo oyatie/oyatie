@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-check-compliance-evidence-coverage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_compliance_evidence_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-compliance-evidence-kernel:oya-shared-compliance-evidence-kernel",
+    ],
+)

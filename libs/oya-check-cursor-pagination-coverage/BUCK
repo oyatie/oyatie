@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-cursor-pagination-coverage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_cursor_pagination_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

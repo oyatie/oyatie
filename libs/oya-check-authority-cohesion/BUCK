@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-authority-cohesion",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_authority_cohesion",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

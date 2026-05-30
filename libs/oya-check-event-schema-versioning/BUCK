@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-event-schema-versioning",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_event_schema_versioning",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

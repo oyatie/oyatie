@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-observability-tracing-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_observability_tracing_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/observability/crates/oya-observability-domain:oya-observability-domain",
+        "third-party//:tracing-0.1",
+        "third-party//:tracing-subscriber-0.3",
+    ],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-data-boundary-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_data_boundary_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

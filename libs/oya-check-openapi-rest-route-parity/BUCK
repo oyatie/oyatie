@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-openapi-rest-route-parity",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_openapi_rest_route_parity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,12 @@
+rust_library(
+    name = "oya-check-dependency-seam",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_dependency_seam",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+        "third-party//:serde_json-1",
+        "third-party//:toml-0.8",
+    ],
+)

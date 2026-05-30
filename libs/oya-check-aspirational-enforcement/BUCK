@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-aspirational-enforcement",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_aspirational_enforcement",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

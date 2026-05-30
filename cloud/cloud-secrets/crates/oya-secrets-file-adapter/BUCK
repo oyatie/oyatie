@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-secrets-file-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_secrets_file_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain",
+    ],
+)

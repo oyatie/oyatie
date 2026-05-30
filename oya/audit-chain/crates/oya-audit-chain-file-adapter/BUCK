@@ -1,0 +1,11 @@
+rust_library(
+    name = "oya-audit-chain-file-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_audit_chain_file_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/audit-chain/crates/oya-audit-chain-domain:oya-audit-chain-domain",
+    ],
+)

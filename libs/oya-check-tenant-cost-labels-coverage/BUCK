@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-tenant-cost-labels-coverage",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_tenant_cost_labels_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-supply-chain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_supply_chain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

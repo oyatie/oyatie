@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-protection-context-match",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_protection_context_match",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

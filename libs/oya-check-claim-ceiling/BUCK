@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-check-claim-ceiling",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_claim_ceiling",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain",
+    ],
+)

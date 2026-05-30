@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-doc-axis",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_doc_axis",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

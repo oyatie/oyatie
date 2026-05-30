@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-otel-trace-propagation",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_otel_trace_propagation",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

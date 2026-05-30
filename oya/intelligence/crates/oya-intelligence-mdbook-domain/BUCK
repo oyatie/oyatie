@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-intelligence-mdbook-domain",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_intelligence_mdbook_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

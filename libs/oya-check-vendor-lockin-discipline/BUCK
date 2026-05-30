@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-vendor-lockin-discipline",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_vendor_lockin_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

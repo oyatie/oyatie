@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-client-stack-discipline",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_client_stack_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-slsa-l3-evidence-grounded",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_slsa_l3_evidence_grounded",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

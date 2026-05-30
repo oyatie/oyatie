@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-quality-lane",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_quality_lane",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

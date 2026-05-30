@@ -1,0 +1,10 @@
+rust_library(
+    name = "oya-check-authz-tier-discipline",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_authz_tier_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde-1",
+    ],
+)

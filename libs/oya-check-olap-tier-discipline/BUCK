@@ -1,0 +1,7 @@
+rust_library(
+    name = "oya-check-olap-tier-discipline",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_check_olap_tier_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
