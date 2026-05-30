@@ -1,4 +1,5 @@
-[buildscript]
 # ring's build.rs compiles C sources + pregenerated aarch64 asm via the cc crate.
 # When .git is absent (packaged crate on crates.io), it uses pregenerated/ asm — no perl needed.
-run = true
+
+[buildscript.run]
+env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }

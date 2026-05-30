@@ -11,6 +11,20 @@ manifest_path = "Cargo.toml"
 # Output directory for generated BUCK rules
 third_party_dir = "third-party"
 
+# Inject standard Cargo package env vars into every generated rule.
+# Several crates use env!("CARGO_PKG_VERSION_*") at compile time (ring, serde_derive,
+# thiserror-impl, ref-cast-impl, aws-lc-sys, openssl-sys, and others). Rather than
+# per-crate fixups, inject globally since Buck2's sandbox doesn't set these automatically.
+cargo_env = [
+    "CARGO_PKG_NAME",
+    "CARGO_PKG_VERSION",
+    "CARGO_PKG_VERSION_MAJOR",
+    "CARGO_PKG_VERSION_MINOR",
+    "CARGO_PKG_VERSION_PATCH",
+    "CARGO_PKG_VERSION_PRE",
+    "CARGO_MANIFEST_LINKS",
+]
+
 [buck]
 file_name = "BUCK"
 
@@ -30,3 +44,4 @@ generated_file_header = """
 ## Run `reindeer buckify` to regenerate.
 ##
 """
+
