@@ -11,10 +11,14 @@
 
 set -uo pipefail
 
+# WHY .tool_input.*: real Claude Code / Codex deliver PreToolUse:Task input as JSON on
+# STDIN with the dispatch prompt nested under tool_input ({"tool_input":{"prompt":"..."}}).
+# Flat .prompt/.description/.input kept for the TOOL_INPUT env fallback. See
+# code.claude.com/docs hooks + developers.openai.com/codex/hooks.
 PROMPT_TEXT=""
 if [ -n "${TOOL_INPUT:-}" ]; then
     if command -v jq >/dev/null 2>&1; then
-        PROMPT_TEXT=$(echo "$TOOL_INPUT" | jq -r '.prompt // .description // .input // ""' 2>/dev/null || echo "")
+        PROMPT_TEXT=$(echo "$TOOL_INPUT" | jq -r '.tool_input.prompt // .tool_input.description // .prompt // .description // .input // ""' 2>/dev/null || echo "")
     else
         PROMPT_TEXT="$TOOL_INPUT"
     fi
@@ -23,7 +27,7 @@ fi
 if [ -z "$PROMPT_TEXT" ] && [ ! -t 0 ]; then
     STDIN_CONTENT=$(cat 2>/dev/null || true)
     if command -v jq >/dev/null 2>&1; then
-        PROMPT_TEXT=$(echo "$STDIN_CONTENT" | jq -r '.prompt // .description // .input // ""' 2>/dev/null || echo "$STDIN_CONTENT")
+        PROMPT_TEXT=$(echo "$STDIN_CONTENT" | jq -r '.tool_input.prompt // .tool_input.description // .prompt // .description // .input // ""' 2>/dev/null || echo "$STDIN_CONTENT")
     else
         PROMPT_TEXT="$STDIN_CONTENT"
     fi
