@@ -4,4 +4,10 @@ rust_library(
     crate = "oya_shared_backbone_proto_contracts_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    mapped_srcs = {
+        "//specs/proto/backbone/messenger:message_stream.proto": "specs/proto/backbone/messenger/message_stream.proto",
+        "//specs/proto/backbone/mail:mail.proto": "specs/proto/backbone/mail/mail.proto",
+        "//specs/proto/backbone/social:social_post_composition.proto": "specs/proto/backbone/social/social_post_composition.proto",
+        "//specs/proto/backbone/community:community_post_store.proto": "specs/proto/backbone/community/community_post_store.proto",
+    },
 )
