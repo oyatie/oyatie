@@ -2,6 +2,8 @@ load("@prelude//toolchains:rust.bzl", "system_rust_toolchain")
 load("@prelude//toolchains:cxx.bzl", "system_cxx_toolchain")
 load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
 load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain")
+load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
+load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
 
 # Rust 1.95.0 toolchain — pinned to match rust-toolchain.toml
 # rustc is resolved via rustup shim; PATH must include ~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin
@@ -48,5 +50,22 @@ system_genrule_toolchain(
 # Required by prelude//rust/tools:internal_tools_toolchain
 system_python_bootstrap_toolchain(
     name = "python_bootstrap",
+    visibility = ["PUBLIC"],
+)
+
+# Test runner toolchains — REQUIRED by `buck2 test`. The prelude resolves
+# toolchains//:test (ExternalRunnerTestToolchainInfo, via noop_test_toolchain — the
+# standard local runner the prelude demo wires) AND toolchains//:remote_test_execution
+# (RemoteTestExecutionToolchainInfo). Without :test, any rust_test target fails to
+# CONFIGURE ("Unknown target `test`"), so the gate's test phase can never run. Local
+# execution (no RE configured) runs tests on the gate pod. Prerequisite for #84 (emit
+# rust_test → gate builds AND TESTS). The RE target is wired now for when NativeLink RE lands.
+noop_test_toolchain(
+    name = "test",
+    visibility = ["PUBLIC"],
+)
+
+remote_test_execution_toolchain(
+    name = "remote_test_execution",
     visibility = ["PUBLIC"],
 )
