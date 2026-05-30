@@ -11,8 +11,18 @@ system_rust_toolchain(
     visibility = ["PUBLIC"],
 )
 
+# Absolute compiler paths (not bare "clang") so the prelude's build-script cc-shim
+# resolves the compiler regardless of the action PATH — root cause of the Linux
+# `exec failed ['clang' ... FileNotFoundError`. /usr/bin/clang + /usr/bin/ar exist on
+# BOTH darwin-arm64 and linux-arm64 → cross-platform-correct. With this, the prelude
+# injects CC/CXX/AR into build scripts (ring/aws-lc-sys/openssl-sys), so their fixups
+# must NOT hardcode per-OS CC. (Hermetic step later: absolute host paths -> cell artifacts.)
 system_cxx_toolchain(
     name = "cxx",
+    compiler = "/usr/bin/clang",
+    compiler_type = "clang",
+    linker = "/usr/bin/clang",
+    archiver = "/usr/bin/ar",
     visibility = ["PUBLIC"],
 )
 

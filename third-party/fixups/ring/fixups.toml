@@ -2,4 +2,7 @@
 # When .git is absent (packaged crate on crates.io), it uses pregenerated/ asm — no perl needed.
 
 [buildscript.run]
-env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }
+# No per-OS CC/AR — the buck2 prelude (cargo_buildscript.bzl) injects target-correct
+# CC/CXX/AR from the cxx toolchain (now absolute clang). OPT_LEVEL etc. are still
+# needed by cc-rs (the prelude does not set them). Cross-platform: no darwin triple.
+env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release" }
