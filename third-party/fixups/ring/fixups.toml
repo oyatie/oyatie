@@ -1,0 +1,4 @@
+[buildscript]
+# ring's build.rs compiles C sources + pregenerated aarch64 asm via the cc crate.
+# When .git is absent (packaged crate on crates.io), it uses pregenerated/ asm — no perl needed.
+run = true

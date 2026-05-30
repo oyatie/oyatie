@@ -670,12 +670,31 @@ http_archive(
     visibility = ["PUBLIC"],
 )
 
+cargo.rust_binary(
+    name = "aws-lc-rs-1-build-script-build",
+    srcs = [":aws-lc-rs-1.17.0.crate"],
+    crate = "build_script_build",
+    crate_root = "aws-lc-rs-1.17.0.crate/build.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+)
+
+buildscript_run(
+    name = "aws-lc-rs-1-build-script-run",
+    buildscript_rule = ":aws-lc-rs-1-build-script-build",
+    package_name = "aws-lc-rs",
+    version = "1.17.0",
+)
+
 cargo.rust_library(
     name = "aws-lc-rs-1",
     srcs = [":aws-lc-rs-1.17.0.crate"],
     crate = "aws_lc_rs",
     crate_root = "aws-lc-rs-1.17.0.crate/src/lib.rs",
     edition = "2021",
+    env = {
+        "OUT_DIR": "$(location :aws-lc-rs-1-build-script-run[out_dir])",
+    },
     features = [
         "alloc",
         "aws-lc-sys",
@@ -684,6 +703,7 @@ cargo.rust_library(
         "ring-io",
         "ring-sig-verify",
     ],
+    rustc_flags = ["@$(location :aws-lc-rs-1-build-script-run[rustc_flags])"],
     visibility = ["PUBLIC"],
     deps = [
         ":aws-lc-sys-0.41",
@@ -700,13 +720,39 @@ http_archive(
     visibility = ["PUBLIC"],
 )
 
+cargo.rust_binary(
+    name = "aws-lc-sys-0.41-build-script-build",
+    srcs = [":aws-lc-sys-0.41.0.crate"],
+    crate = "build_script_build",
+    crate_root = "aws-lc-sys-0.41.0.crate/builder/main.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cc-1",
+        ":cmake-0.1",
+        ":dunce-1",
+        ":fs_extra-1",
+    ],
+)
+
+buildscript_run(
+    name = "aws-lc-sys-0.41-build-script-run",
+    buildscript_rule = ":aws-lc-sys-0.41-build-script-build",
+    package_name = "aws-lc-sys",
+    version = "0.41.0",
+)
+
 cargo.rust_library(
     name = "aws-lc-sys-0.41",
     srcs = [":aws-lc-sys-0.41.0.crate"],
     crate = "aws_lc_sys",
     crate_root = "aws-lc-sys-0.41.0.crate/src/lib.rs",
     edition = "2021",
+    env = {
+        "OUT_DIR": "$(location :aws-lc-sys-0.41-build-script-run[out_dir])",
+    },
     features = ["prebuilt-nasm"],
+    rustc_flags = ["@$(location :aws-lc-sys-0.41-build-script-run[rustc_flags])"],
     visibility = ["PUBLIC"],
 )
 
@@ -1219,6 +1265,133 @@ cargo.rust_library(
         ":regex-1",
         ":smol_str-0.3",
     ],
+)
+
+## cc + shlex + find-msvc-tools: build-script compile deps for ring / aws-lc-sys
+## (pure Rust, no build scripts, added manually — reindeer omits build-only deps)
+
+http_archive(
+    name = "find-msvc-tools-0.1.9.crate",
+    sha256 = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582",
+    strip_prefix = "find-msvc-tools-0.1.9",
+    urls = ["https://static.crates.io/crates/find-msvc-tools/0.1.9/download"],
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "find-msvc-tools-0.1",
+    srcs = [":find-msvc-tools-0.1.9.crate"],
+    crate = "find_msvc_tools",
+    crate_root = "find-msvc-tools-0.1.9.crate/src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "shlex-1.3.0.crate",
+    sha256 = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64",
+    strip_prefix = "shlex-1.3.0",
+    urls = ["https://static.crates.io/crates/shlex/1.3.0/download"],
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "shlex-1",
+    srcs = [":shlex-1.3.0.crate"],
+    crate = "shlex",
+    crate_root = "shlex-1.3.0.crate/src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "cc-1.2.62.crate",
+    sha256 = "a1dce859f0832a7d088c4f1119888ab94ef4b5d6795d1ce05afb7fe159d79f98",
+    strip_prefix = "cc-1.2.62",
+    urls = ["https://static.crates.io/crates/cc/1.2.62/download"],
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "cc-1",
+    srcs = [":cc-1.2.62.crate"],
+    crate = "cc",
+    crate_root = "cc-1.2.62.crate/src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":find-msvc-tools-0.1",
+        ":shlex-1",
+    ],
+)
+
+http_archive(
+    name = "cmake-0.1.58.crate",
+    sha256 = "c0f78a02292a74a88ac736019ab962ece0bc380e3f977bf72e376c5d78ff0678",
+    strip_prefix = "cmake-0.1.58",
+    urls = ["https://static.crates.io/crates/cmake/0.1.58/download"],
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "cmake-0.1",
+    srcs = [":cmake-0.1.58.crate"],
+    crate = "cmake",
+    crate_root = "cmake-0.1.58.crate/src/lib.rs",
+    edition = "2015",
+    visibility = ["PUBLIC"],
+    deps = [":cc-1"],
+)
+
+http_archive(
+    name = "dunce-1.0.5.crate",
+    sha256 = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813",
+    strip_prefix = "dunce-1.0.5",
+    urls = ["https://static.crates.io/crates/dunce/1.0.5/download"],
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "dunce-1",
+    srcs = [":dunce-1.0.5.crate"],
+    crate = "dunce",
+    crate_root = "dunce-1.0.5.crate/src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "fs_extra-1.3.0.crate",
+    sha256 = "42703706b716c37f96a77aea830392ad231f44c9e9a67872fa5548707e11b11c",
+    strip_prefix = "fs_extra-1.3.0",
+    urls = ["https://static.crates.io/crates/fs_extra/1.3.0/download"],
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "fs_extra-1",
+    srcs = [":fs_extra-1.3.0.crate"],
+    crate = "fs_extra",
+    crate_root = "fs_extra-1.3.0.crate/src/lib.rs",
+    edition = "2018",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "pkg-config-0.3.33.crate",
+    sha256 = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e",
+    strip_prefix = "pkg-config-0.3.33",
+    urls = ["https://static.crates.io/crates/pkg-config/0.3.33/download"],
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "pkg-config-0.3",
+    srcs = [":pkg-config-0.3.33.crate"],
+    crate = "pkg_config",
+    crate_root = "pkg-config-0.3.33.crate/src/lib.rs",
+    edition = "2015",
+    visibility = ["PUBLIC"],
 )
 
 http_archive(
@@ -3229,31 +3402,13 @@ http_archive(
     visibility = ["PUBLIC"],
 )
 
-cargo.rust_binary(
-    name = "getrandom-0.2-build-script-build",
-    srcs = [":getrandom-0.2.17.crate"],
-    crate = "build_script_build",
-    crate_root = "getrandom-0.2.17.crate/build.rs",
-    edition = "2018",
-    visibility = ["PUBLIC"],
-)
-
-buildscript_run(
-    name = "getrandom-0.2-build-script-run",
-    buildscript_rule = ":getrandom-0.2-build-script-build",
-    package_name = "getrandom",
-    version = "0.2.17",
-)
-
+## getrandom 0.2.17 has build = false — no build script. Bogus buildscript_run removed.
 cargo.rust_library(
     name = "getrandom-0.2",
     srcs = [":getrandom-0.2.17.crate"],
     crate = "getrandom",
     crate_root = "getrandom-0.2.17.crate/src/lib.rs",
     edition = "2018",
-    env = {
-        "OUT_DIR": "$(location :getrandom-0.2-build-script-run[out_dir])",
-    },
     features = ["std"],
     platform = {
         "linux-arm64": dict(
@@ -3269,7 +3424,6 @@ cargo.rust_library(
             deps = [":libc-0.2"],
         ),
     },
-    rustc_flags = ["@$(location :getrandom-0.2-build-script-run[rustc_flags])"],
     visibility = ["PUBLIC"],
     deps = [":cfg-if-1"],
 )
@@ -5963,12 +6117,55 @@ http_archive(
     visibility = ["PUBLIC"],
 )
 
+## vcpkg — build dep for openssl-sys (pure Rust, no deps, Windows-only at runtime)
+http_archive(
+    name = "vcpkg-0.2.15.crate",
+    sha256 = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426",
+    strip_prefix = "vcpkg-0.2.15",
+    urls = ["https://static.crates.io/crates/vcpkg/0.2.15/download"],
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "vcpkg-0.2",
+    srcs = [":vcpkg-0.2.15.crate"],
+    crate = "vcpkg",
+    crate_root = "vcpkg-0.2.15.crate/src/lib.rs",
+    edition = "2015",
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_binary(
+    name = "openssl-sys-0.9-build-script-build",
+    srcs = [":openssl-sys-0.9.116.crate"],
+    crate = "build_script_build",
+    crate_root = "openssl-sys-0.9.116.crate/build/main.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cc-1",
+        ":pkg-config-0.3",
+        ":vcpkg-0.2",
+    ],
+)
+
+buildscript_run(
+    name = "openssl-sys-0.9-build-script-run",
+    buildscript_rule = ":openssl-sys-0.9-build-script-build",
+    package_name = "openssl-sys",
+    version = "0.9.116",
+)
+
 cargo.rust_library(
     name = "openssl-sys-0.9",
     srcs = [":openssl-sys-0.9.116.crate"],
     crate = "openssl_sys",
     crate_root = "openssl-sys-0.9.116.crate/src/lib.rs",
     edition = "2021",
+    env = {
+        "OUT_DIR": "$(location :openssl-sys-0.9-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :openssl-sys-0.9-build-script-run[rustc_flags])"],
     visibility = ["PUBLIC"],
     deps = [":libc-0.2"],
 )
@@ -7536,12 +7733,32 @@ http_archive(
     visibility = ["PUBLIC"],
 )
 
+cargo.rust_binary(
+    name = "ring-0.17-build-script-build",
+    srcs = [":ring-0.17.14.crate"],
+    crate = "build_script_build",
+    crate_root = "ring-0.17.14.crate/build.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+    deps = [":cc-1"],
+)
+
+buildscript_run(
+    name = "ring-0.17-build-script-run",
+    buildscript_rule = ":ring-0.17-build-script-build",
+    package_name = "ring",
+    version = "0.17.14",
+)
+
 cargo.rust_library(
     name = "ring-0.17",
     srcs = [":ring-0.17.14.crate"],
     crate = "ring",
     crate_root = "ring-0.17.14.crate/src/lib.rs",
     edition = "2021",
+    env = {
+        "OUT_DIR": "$(location :ring-0.17-build-script-run[out_dir])",
+    },
     features = [
         "alloc",
         "default",
@@ -7555,6 +7772,7 @@ cargo.rust_library(
             deps = [":libc-0.2"],
         ),
     },
+    rustc_flags = ["@$(location :ring-0.17-build-script-run[rustc_flags])"],
     visibility = ["PUBLIC"],
     deps = [
         ":cfg-if-1",
