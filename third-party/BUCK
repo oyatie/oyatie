@@ -21,6 +21,7 @@ cargo.rust_library(
     crate_root = "ahash-0.8.12.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "ahash-0.8.12.crate",
         "CARGO_PKG_NAME": "ahash",
         "CARGO_PKG_VERSION": "0.8.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -52,6 +53,7 @@ cargo.rust_binary(
     crate_root = "ahash-0.8.12.crate/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "ahash-0.8.12.crate",
         "CARGO_PKG_NAME": "ahash",
         "CARGO_PKG_VERSION": "0.8.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -103,6 +105,7 @@ cargo.rust_library(
     crate_root = "aho-corasick-1.1.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "aho-corasick-1.1.4.crate",
         "CARGO_PKG_NAME": "aho-corasick",
         "CARGO_PKG_VERSION": "1.1.4",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -133,6 +136,7 @@ cargo.rust_library(
     crate_root = "allocator-api2-0.2.21.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "allocator-api2-0.2.21.crate",
         "CARGO_PKG_NAME": "allocator-api2",
         "CARGO_PKG_VERSION": "0.2.21",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -159,6 +163,7 @@ cargo.rust_library(
     crate_root = "anstream-1.0.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "anstream-1.0.0.crate",
         "CARGO_PKG_NAME": "anstream",
         "CARGO_PKG_VERSION": "1.0.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -205,6 +210,7 @@ cargo.rust_library(
     crate_root = "anstyle-1.0.14.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "anstyle-1.0.14.crate",
         "CARGO_PKG_NAME": "anstyle",
         "CARGO_PKG_VERSION": "1.0.14",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -234,6 +240,7 @@ cargo.rust_library(
     crate_root = "anstyle-parse-1.0.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "anstyle-parse-1.0.0.crate",
         "CARGO_PKG_NAME": "anstyle-parse",
         "CARGO_PKG_VERSION": "1.0.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -264,6 +271,7 @@ cargo.rust_library(
     crate_root = "anstyle-query-1.1.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "anstyle-query-1.1.5.crate",
         "CARGO_PKG_NAME": "anstyle-query",
         "CARGO_PKG_VERSION": "1.1.5",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -297,6 +305,7 @@ cargo.rust_library(
     crate_root = "anstyle-wincon-3.0.11.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "anstyle-wincon-3.0.11.crate",
         "CARGO_PKG_NAME": "anstyle-wincon",
         "CARGO_PKG_VERSION": "3.0.11",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -327,6 +336,7 @@ cargo.rust_library(
     crate_root = "any_spawner-0.3.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "any_spawner-0.3.0.crate",
         "CARGO_PKG_NAME": "any_spawner",
         "CARGO_PKG_VERSION": "0.3.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -367,6 +377,7 @@ cargo.rust_library(
     crate_root = "anyhow-1.0.102.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "anyhow-1.0.102.crate",
         "CARGO_PKG_NAME": "anyhow",
         "CARGO_PKG_VERSION": "1.0.102",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -390,6 +401,7 @@ cargo.rust_binary(
     crate_root = "anyhow-1.0.102.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "anyhow-1.0.102.crate",
         "CARGO_PKG_NAME": "anyhow",
         "CARGO_PKG_VERSION": "1.0.102",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -436,6 +448,7 @@ cargo.rust_library(
     crate_root = "ar_archive_writer-0.5.1.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "ar_archive_writer-0.5.1.crate",
         "CARGO_PKG_NAME": "ar_archive_writer",
         "CARGO_PKG_VERSION": "0.5.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -462,6 +475,7 @@ cargo.rust_library(
     crate_root = "arc-swap-1.9.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "arc-swap-1.9.1.crate",
         "CARGO_PKG_NAME": "arc-swap",
         "CARGO_PKG_VERSION": "1.9.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -488,6 +502,7 @@ cargo.rust_library(
     crate_root = "arrayref-0.3.9.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "arrayref-0.3.9.crate",
         "CARGO_PKG_NAME": "arrayref",
         "CARGO_PKG_VERSION": "0.3.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -513,6 +528,7 @@ cargo.rust_library(
     crate_root = "arrayvec-0.5.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "arrayvec-0.5.2.crate",
         "CARGO_PKG_NAME": "arrayvec",
         "CARGO_PKG_VERSION": "0.5.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -542,6 +558,7 @@ cargo.rust_library(
     crate_root = "arrayvec-0.7.6.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "arrayvec-0.7.6.crate",
         "CARGO_PKG_NAME": "arrayvec",
         "CARGO_PKG_VERSION": "0.7.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -567,6 +584,7 @@ cargo.rust_library(
     crate_root = "ascii-canvas-4.0.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ascii-canvas-4.0.0.crate",
         "CARGO_PKG_NAME": "ascii-canvas",
         "CARGO_PKG_VERSION": "4.0.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -593,6 +611,7 @@ cargo.rust_library(
     crate_root = "asn1-rs-0.6.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "asn1-rs-0.6.2.crate",
         "CARGO_PKG_NAME": "asn1-rs",
         "CARGO_PKG_VERSION": "0.6.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -634,6 +653,7 @@ cargo.rust_library(
     crate_root = "asn1-rs-derive-0.5.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "asn1-rs-derive-0.5.1.crate",
         "CARGO_PKG_NAME": "asn1-rs-derive",
         "CARGO_PKG_VERSION": "0.5.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -666,6 +686,7 @@ cargo.rust_library(
     crate_root = "asn1-rs-impl-0.2.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "asn1-rs-impl-0.2.0.crate",
         "CARGO_PKG_NAME": "asn1-rs-impl",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -697,6 +718,7 @@ cargo.rust_library(
     crate_root = "async-broadcast-0.7.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "async-broadcast-0.7.2.crate",
         "CARGO_PKG_NAME": "async-broadcast",
         "CARGO_PKG_VERSION": "0.7.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -728,6 +750,7 @@ cargo.rust_library(
     crate_root = "async-lock-3.4.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "async-lock-3.4.2.crate",
         "CARGO_PKG_NAME": "async-lock",
         "CARGO_PKG_VERSION": "3.4.2",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -762,6 +785,7 @@ cargo.rust_library(
     crate_root = "async-once-cell-0.5.4.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "async-once-cell-0.5.4.crate",
         "CARGO_PKG_NAME": "async-once-cell",
         "CARGO_PKG_VERSION": "0.5.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -787,6 +811,7 @@ cargo.rust_library(
     crate_root = "async-stream-0.3.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "async-stream-0.3.6.crate",
         "CARGO_PKG_NAME": "async-stream",
         "CARGO_PKG_VERSION": "0.3.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -817,6 +842,7 @@ cargo.rust_library(
     crate_root = "async-stream-impl-0.3.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "async-stream-impl-0.3.6.crate",
         "CARGO_PKG_NAME": "async-stream-impl",
         "CARGO_PKG_VERSION": "0.3.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -848,6 +874,7 @@ cargo.rust_library(
     crate_root = "async-trait-0.1.89.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "async-trait-0.1.89.crate",
         "CARGO_PKG_NAME": "async-trait",
         "CARGO_PKG_VERSION": "0.1.89",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -879,6 +906,7 @@ cargo.rust_library(
     crate_root = "atoi-2.0.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "atoi-2.0.0.crate",
         "CARGO_PKG_NAME": "atoi",
         "CARGO_PKG_VERSION": "2.0.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -909,6 +937,7 @@ cargo.rust_library(
     crate_root = "atomic-waker-1.1.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "atomic-waker-1.1.2.crate",
         "CARGO_PKG_NAME": "atomic-waker",
         "CARGO_PKG_VERSION": "1.1.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -934,6 +963,7 @@ cargo.rust_library(
     crate_root = "attribute-derive-0.10.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "attribute-derive-0.10.5.crate",
         "CARGO_PKG_NAME": "attribute-derive",
         "CARGO_PKG_VERSION": "0.10.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -968,6 +998,7 @@ cargo.rust_library(
     crate_root = "attribute-derive-macro-0.10.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "attribute-derive-macro-0.10.5.crate",
         "CARGO_PKG_NAME": "attribute-derive-macro",
         "CARGO_PKG_VERSION": "0.10.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1004,6 +1035,7 @@ cargo.rust_library(
     crate_root = "autocfg-1.5.1.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "autocfg-1.5.1.crate",
         "CARGO_PKG_NAME": "autocfg",
         "CARGO_PKG_VERSION": "1.5.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1035,6 +1067,7 @@ cargo.rust_library(
     crate_root = "aws-lc-rs-1.17.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "aws-lc-rs-1.17.0.crate",
         "CARGO_PKG_NAME": "aws-lc-rs",
         "CARGO_PKG_VERSION": "1.17.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1067,6 +1100,7 @@ cargo.rust_binary(
     crate_root = "aws-lc-rs-1.17.0.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "aws-lc-rs-1.17.0.crate",
         "CARGO_PKG_NAME": "aws-lc-rs",
         "CARGO_PKG_VERSION": "1.17.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1095,13 +1129,10 @@ buildscript_run(
         "CARGO_PKG_VERSION_MINOR": "17",
         "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
-        ## DEP_AWS_LC_* vars propagated from aws-lc-sys via links = "aws_lc_0_41_0"
-        ## The include path points at aws-lc-sys buildscript_run OUT_DIR at build time.
+        ## DEP_AWS_LC_* propagated from aws-lc-sys (links = "aws_lc_0_41_0")
         "DEP_AWS_LC_0_41_0_INCLUDE": "$(location :aws-lc-sys-0.41-build-script-main-run[out_dir])/include",
         "DEP_AWS_LC_0_41_0_LIBCRYPTO": "aws_lc_0_41_0_crypto",
-        ## CARGO_FEATURE_AWS_LC_SYS is required (aws-lc-rs chooses between aws-lc-sys and aws-lc-fips-sys)
         "CARGO_FEATURE_AWS_LC_SYS": "1",
-        ## Target info needed by build script
         "CARGO_CFG_TARGET_OS": "macos",
         "CARGO_CFG_TARGET_ENV": "",
     },
@@ -1131,6 +1162,7 @@ cargo.rust_library(
     crate_root = "aws-lc-sys-0.41.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "aws-lc-sys-0.41.0.crate",
         "CARGO_PKG_NAME": "aws-lc-sys",
         "CARGO_PKG_VERSION": "0.41.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1151,6 +1183,7 @@ cargo.rust_binary(
     crate_root = "aws-lc-sys-0.41.0.crate/builder/main.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "aws-lc-sys-0.41.0.crate",
         "CARGO_PKG_NAME": "aws-lc-sys",
         "CARGO_PKG_VERSION": "0.41.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1209,6 +1242,7 @@ cargo.rust_library(
     crate_root = "axum-0.8.9.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "axum-0.8.9.crate",
         "CARGO_PKG_NAME": "axum",
         "CARGO_PKG_VERSION": "0.8.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1263,6 +1297,7 @@ cargo.rust_library(
     crate_root = "axum-core-0.5.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "axum-core-0.5.6.crate",
         "CARGO_PKG_NAME": "axum-core",
         "CARGO_PKG_VERSION": "0.5.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1300,6 +1335,7 @@ cargo.rust_library(
     crate_root = "backon-1.6.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "backon-1.6.0.crate",
         "CARGO_PKG_NAME": "backon",
         "CARGO_PKG_VERSION": "1.6.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1337,6 +1373,7 @@ cargo.rust_library(
     crate_root = "base16-0.2.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "base16-0.2.1.crate",
         "CARGO_PKG_NAME": "base16",
         "CARGO_PKG_VERSION": "0.2.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1367,6 +1404,7 @@ cargo.rust_library(
     crate_root = "base64-0.21.7.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "base64-0.21.7.crate",
         "CARGO_PKG_NAME": "base64",
         "CARGO_PKG_VERSION": "0.21.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1403,6 +1441,7 @@ cargo.rust_library(
     crate_root = "base64-0.22.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "base64-0.22.1.crate",
         "CARGO_PKG_NAME": "base64",
         "CARGO_PKG_VERSION": "0.22.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1433,6 +1472,7 @@ cargo.rust_library(
     crate_root = "base64urlsafedata-0.5.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "base64urlsafedata-0.5.5.crate",
         "CARGO_PKG_NAME": "base64urlsafedata",
         "CARGO_PKG_VERSION": "0.5.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1463,6 +1503,7 @@ cargo.rust_library(
     crate_root = "bit-set-0.8.0.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "bit-set-0.8.0.crate",
         "CARGO_PKG_NAME": "bit-set",
         "CARGO_PKG_VERSION": "0.8.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1489,6 +1530,7 @@ cargo.rust_library(
     crate_root = "bit-vec-0.8.0.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "bit-vec-0.8.0.crate",
         "CARGO_PKG_NAME": "bit-vec",
         "CARGO_PKG_VERSION": "0.8.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1514,6 +1556,7 @@ cargo.rust_library(
     crate_root = "bitflags-2.11.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "bitflags-2.11.1.crate",
         "CARGO_PKG_NAME": "bitflags",
         "CARGO_PKG_VERSION": "2.11.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -1559,6 +1602,7 @@ cargo.rust_library(
     crate_root = "blake3-1.8.5.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "blake3-1.8.5.crate",
         "CARGO_PKG_NAME": "blake3",
         "CARGO_PKG_VERSION": "1.8.5",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1602,6 +1646,7 @@ cargo.rust_binary(
     crate_root = "blake3-1.8.5.crate/build.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "blake3-1.8.5.crate",
         "CARGO_PKG_NAME": "blake3",
         "CARGO_PKG_VERSION": "1.8.5",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1654,6 +1699,7 @@ cargo.rust_library(
     crate_root = "block-buffer-0.10.4.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "block-buffer-0.10.4.crate",
         "CARGO_PKG_NAME": "block-buffer",
         "CARGO_PKG_VERSION": "0.10.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -1680,6 +1726,7 @@ cargo.rust_library(
     crate_root = "bstr-1.12.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "bstr-1.12.1.crate",
         "CARGO_PKG_NAME": "bstr",
         "CARGO_PKG_VERSION": "1.12.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1706,6 +1753,7 @@ cargo.rust_library(
     crate_root = "bumpalo-3.20.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "bumpalo-3.20.3.crate",
         "CARGO_PKG_NAME": "bumpalo",
         "CARGO_PKG_VERSION": "3.20.3",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -1732,6 +1780,7 @@ cargo.rust_library(
     crate_root = "byteorder-1.5.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "byteorder-1.5.0.crate",
         "CARGO_PKG_NAME": "byteorder",
         "CARGO_PKG_VERSION": "1.5.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1764,6 +1813,7 @@ cargo.rust_library(
     crate_root = "bytes-1.11.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "bytes-1.11.1.crate",
         "CARGO_PKG_NAME": "bytes",
         "CARGO_PKG_VERSION": "1.11.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1793,6 +1843,7 @@ cargo.rust_library(
     crate_root = "camino-1.2.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "camino-1.2.2.crate",
         "CARGO_PKG_NAME": "camino",
         "CARGO_PKG_VERSION": "1.2.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1812,6 +1863,7 @@ cargo.rust_binary(
     crate_root = "camino-1.2.2.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "camino-1.2.2.crate",
         "CARGO_PKG_NAME": "camino",
         "CARGO_PKG_VERSION": "1.2.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1850,6 +1902,7 @@ cargo.rust_library(
     crate_root = "cc-1.2.62.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "cc-1.2.62.crate",
         "CARGO_PKG_NAME": "cc",
         "CARGO_PKG_VERSION": "1.2.62",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -1901,6 +1954,7 @@ cargo.rust_library(
     crate_root = "cedar-policy-4.11.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "cedar-policy-4.11.0.crate",
         "CARGO_PKG_NAME": "cedar-policy",
         "CARGO_PKG_VERSION": "4.11.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -1940,6 +1994,7 @@ cargo.rust_binary(
     crate_root = "cedar-policy-4.11.0.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "cedar-policy-4.11.0.crate",
         "CARGO_PKG_NAME": "cedar-policy",
         "CARGO_PKG_VERSION": "4.11.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -1990,6 +2045,7 @@ cargo.rust_library(
     crate_root = "cedar-policy-core-4.11.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "cedar-policy-core-4.11.0.crate",
         "CARGO_PKG_NAME": "cedar-policy-core",
         "CARGO_PKG_VERSION": "4.11.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -2036,6 +2092,7 @@ cargo.rust_binary(
     crate_root = "cedar-policy-core-4.11.0.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "cedar-policy-core-4.11.0.crate",
         "CARGO_PKG_NAME": "cedar-policy-core",
         "CARGO_PKG_VERSION": "4.11.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -2087,6 +2144,7 @@ cargo.rust_library(
     crate_root = "cedar-policy-formatter-4.11.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "cedar-policy-formatter-4.11.0.crate",
         "CARGO_PKG_NAME": "cedar-policy-formatter",
         "CARGO_PKG_VERSION": "4.11.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -2121,6 +2179,7 @@ cargo.rust_library(
     crate_root = "cfg-if-1.0.4.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "cfg-if-1.0.4.crate",
         "CARGO_PKG_NAME": "cfg-if",
         "CARGO_PKG_VERSION": "1.0.4",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -2152,6 +2211,7 @@ cargo.rust_library(
     crate_root = "chrono-0.4.44.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "chrono-0.4.44.crate",
         "CARGO_PKG_NAME": "chrono",
         "CARGO_PKG_VERSION": "0.4.44",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2216,6 +2276,7 @@ cargo.rust_library(
     crate_root = "cityhash-rs-1.0.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "cityhash-rs-1.0.1.crate",
         "CARGO_PKG_NAME": "cityhash-rs",
         "CARGO_PKG_VERSION": "1.0.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -2247,6 +2308,7 @@ cargo.rust_library(
     crate_root = "clap-4.6.1.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "clap-4.6.1.crate",
         "CARGO_PKG_NAME": "clap",
         "CARGO_PKG_VERSION": "4.6.1",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -2287,6 +2349,7 @@ cargo.rust_library(
     crate_root = "clap_builder-4.6.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "clap_builder-4.6.0.crate",
         "CARGO_PKG_NAME": "clap_builder",
         "CARGO_PKG_VERSION": "4.6.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -2333,6 +2396,7 @@ cargo.rust_library(
     crate_root = "clap_complete-4.6.5.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "clap_complete-4.6.5.crate",
         "CARGO_PKG_NAME": "clap_complete",
         "CARGO_PKG_VERSION": "4.6.5",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -2360,6 +2424,7 @@ cargo.rust_library(
     crate_root = "clap_derive-4.6.1.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "clap_derive-4.6.1.crate",
         "CARGO_PKG_NAME": "clap_derive",
         "CARGO_PKG_VERSION": "4.6.1",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -2393,6 +2458,7 @@ cargo.rust_library(
     crate_root = "clap_lex-1.1.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "clap_lex-1.1.0.crate",
         "CARGO_PKG_NAME": "clap_lex",
         "CARGO_PKG_VERSION": "1.1.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -2424,6 +2490,7 @@ cargo.rust_library(
     crate_root = "clickhouse-0.13.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "clickhouse-0.13.3.crate",
         "CARGO_PKG_NAME": "clickhouse",
         "CARGO_PKG_VERSION": "0.13.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2469,6 +2536,7 @@ cargo.rust_library(
     crate_root = "clickhouse-derive-0.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "clickhouse-derive-0.2.0.crate",
         "CARGO_PKG_NAME": "clickhouse-derive",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2501,6 +2569,7 @@ cargo.rust_library(
     crate_root = "cmake-0.1.58.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "cmake-0.1.58.crate",
         "CARGO_PKG_NAME": "cmake",
         "CARGO_PKG_VERSION": "0.1.58",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2527,6 +2596,7 @@ cargo.rust_library(
     crate_root = "codee-0.3.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "codee-0.3.5.crate",
         "CARGO_PKG_NAME": "codee",
         "CARGO_PKG_VERSION": "0.3.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2558,6 +2628,7 @@ cargo.rust_library(
     crate_root = "collection_literals-1.0.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "collection_literals-1.0.3.crate",
         "CARGO_PKG_NAME": "collection_literals",
         "CARGO_PKG_VERSION": "1.0.3",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -2583,6 +2654,7 @@ cargo.rust_library(
     crate_root = "colorchoice-1.0.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "colorchoice-1.0.5.crate",
         "CARGO_PKG_NAME": "colorchoice",
         "CARGO_PKG_VERSION": "1.0.5",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -2608,6 +2680,7 @@ cargo.rust_library(
     crate_root = "combine-4.6.7.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "combine-4.6.7.crate",
         "CARGO_PKG_NAME": "combine",
         "CARGO_PKG_VERSION": "4.6.7",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -2653,6 +2726,7 @@ cargo.rust_library(
     crate_root = "concurrent-queue-2.5.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "concurrent-queue-2.5.0.crate",
         "CARGO_PKG_NAME": "concurrent-queue",
         "CARGO_PKG_VERSION": "2.5.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -2680,6 +2754,7 @@ cargo.rust_library(
     crate_root = "config-0.15.23.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "config-0.15.23.crate",
         "CARGO_PKG_NAME": "config",
         "CARGO_PKG_VERSION": "0.15.23",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2723,6 +2798,7 @@ cargo.rust_library(
     crate_root = "console_error_panic_hook-0.1.7.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "console_error_panic_hook-0.1.7.crate",
         "CARGO_PKG_NAME": "console_error_panic_hook",
         "CARGO_PKG_VERSION": "0.1.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2752,6 +2828,7 @@ cargo.rust_library(
     crate_root = "const-str-1.1.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "const-str-1.1.0.crate",
         "CARGO_PKG_NAME": "const-str",
         "CARGO_PKG_VERSION": "1.1.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -2778,6 +2855,7 @@ cargo.rust_library(
     crate_root = "const_format-0.2.36.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "const_format-0.2.36.crate",
         "CARGO_PKG_NAME": "const_format",
         "CARGO_PKG_VERSION": "0.2.36",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2808,6 +2886,7 @@ cargo.rust_library(
     crate_root = "const_format_proc_macros-0.2.34.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "const_format_proc_macros-0.2.34.crate",
         "CARGO_PKG_NAME": "const_format_proc_macros",
         "CARGO_PKG_VERSION": "0.2.34",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2840,6 +2919,7 @@ cargo.rust_library(
     crate_root = "const_str_slice_concat-0.1.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "const_str_slice_concat-0.1.0.crate",
         "CARGO_PKG_NAME": "const_str_slice_concat",
         "CARGO_PKG_VERSION": "0.1.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2865,6 +2945,7 @@ cargo.rust_library(
     crate_root = "constant_time_eq-0.4.2.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "constant_time_eq-0.4.2.crate",
         "CARGO_PKG_NAME": "constant_time_eq",
         "CARGO_PKG_VERSION": "0.4.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2891,6 +2972,7 @@ cargo.rust_library(
     crate_root = "convert_case-0.6.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "convert_case-0.6.0.crate",
         "CARGO_PKG_NAME": "convert_case",
         "CARGO_PKG_VERSION": "0.6.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2917,6 +2999,7 @@ cargo.rust_library(
     crate_root = "convert_case-0.11.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "convert_case-0.11.0.crate",
         "CARGO_PKG_NAME": "convert_case",
         "CARGO_PKG_VERSION": "0.11.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2943,6 +3026,7 @@ cargo.rust_library(
     crate_root = "convert_case_extras-0.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "convert_case_extras-0.2.0.crate",
         "CARGO_PKG_NAME": "convert_case_extras",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -2969,6 +3053,7 @@ cargo.rust_library(
     crate_root = "core-foundation-0.10.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "core-foundation-0.10.1.crate",
         "CARGO_PKG_NAME": "core-foundation",
         "CARGO_PKG_VERSION": "0.10.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3002,6 +3087,7 @@ cargo.rust_library(
     crate_root = "core-foundation-sys-0.8.7.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "core-foundation-sys-0.8.7.crate",
         "CARGO_PKG_NAME": "core-foundation-sys",
         "CARGO_PKG_VERSION": "0.8.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3031,6 +3117,7 @@ cargo.rust_library(
     crate_root = "cpufeatures-0.2.17.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "cpufeatures-0.2.17.crate",
         "CARGO_PKG_NAME": "cpufeatures",
         "CARGO_PKG_VERSION": "0.2.17",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3047,6 +3134,7 @@ cargo.rust_library(
         ),
     },
     visibility = [],
+    deps = [":libc-0.2"],
 )
 
 http_archive(
@@ -3064,6 +3152,7 @@ cargo.rust_library(
     crate_root = "cpufeatures-0.3.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "cpufeatures-0.3.0.crate",
         "CARGO_PKG_NAME": "cpufeatures",
         "CARGO_PKG_VERSION": "0.3.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3072,6 +3161,7 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     visibility = [],
+    deps = [":libc-0.2"],
 )
 
 http_archive(
@@ -3089,6 +3179,7 @@ cargo.rust_library(
     crate_root = "crc-3.4.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "crc-3.4.0.crate",
         "CARGO_PKG_NAME": "crc",
         "CARGO_PKG_VERSION": "3.4.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -3115,6 +3206,7 @@ cargo.rust_library(
     crate_root = "crc-catalog-2.5.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "crc-catalog-2.5.0.crate",
         "CARGO_PKG_NAME": "crc-catalog",
         "CARGO_PKG_VERSION": "2.5.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -3140,6 +3232,7 @@ cargo.rust_library(
     crate_root = "crossbeam-queue-0.3.12.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "crossbeam-queue-0.3.12.crate",
         "CARGO_PKG_NAME": "crossbeam-queue",
         "CARGO_PKG_VERSION": "0.3.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3171,6 +3264,7 @@ cargo.rust_library(
     crate_root = "crossbeam-utils-0.8.21.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "crossbeam-utils-0.8.21.crate",
         "CARGO_PKG_NAME": "crossbeam-utils",
         "CARGO_PKG_VERSION": "0.8.21",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3191,6 +3285,7 @@ cargo.rust_binary(
     crate_root = "crossbeam-utils-0.8.21.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "crossbeam-utils-0.8.21.crate",
         "CARGO_PKG_NAME": "crossbeam-utils",
         "CARGO_PKG_VERSION": "0.8.21",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3231,6 +3326,7 @@ cargo.rust_library(
     crate_root = "crypto-common-0.1.7.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "crypto-common-0.1.7.crate",
         "CARGO_PKG_NAME": "crypto-common",
         "CARGO_PKG_VERSION": "0.1.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3261,6 +3357,7 @@ cargo.rust_library(
     crate_root = "curve25519-dalek-4.1.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "curve25519-dalek-4.1.3.crate",
         "CARGO_PKG_NAME": "curve25519-dalek",
         "CARGO_PKG_VERSION": "4.1.3",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -3318,6 +3415,7 @@ cargo.rust_binary(
     crate_root = "curve25519-dalek-4.1.3.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "curve25519-dalek-4.1.3.crate",
         "CARGO_PKG_NAME": "curve25519-dalek",
         "CARGO_PKG_VERSION": "4.1.3",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -3369,6 +3467,7 @@ cargo.rust_library(
     crate_root = "curve25519-dalek-derive-0.1.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "curve25519-dalek-derive-0.1.1.crate",
         "CARGO_PKG_NAME": "curve25519-dalek-derive",
         "CARGO_PKG_VERSION": "0.1.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3400,6 +3499,7 @@ cargo.rust_library(
     crate_root = "darling-0.23.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "darling-0.23.0.crate",
         "CARGO_PKG_NAME": "darling",
         "CARGO_PKG_VERSION": "0.23.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3433,6 +3533,7 @@ cargo.rust_library(
     crate_root = "darling_core-0.23.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "darling_core-0.23.0.crate",
         "CARGO_PKG_NAME": "darling_core",
         "CARGO_PKG_VERSION": "0.23.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3469,6 +3570,7 @@ cargo.rust_library(
     crate_root = "darling_macro-0.23.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "darling_macro-0.23.0.crate",
         "CARGO_PKG_NAME": "darling_macro",
         "CARGO_PKG_VERSION": "0.23.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3500,6 +3602,7 @@ cargo.rust_library(
     crate_root = "data-encoding-2.11.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "data-encoding-2.11.0.crate",
         "CARGO_PKG_NAME": "data-encoding",
         "CARGO_PKG_VERSION": "2.11.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -3530,6 +3633,7 @@ cargo.rust_library(
     crate_root = "der-parser-9.0.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "der-parser-9.0.0.crate",
         "CARGO_PKG_NAME": "der-parser",
         "CARGO_PKG_VERSION": "9.0.0",
         "CARGO_PKG_VERSION_MAJOR": "9",
@@ -3569,6 +3673,7 @@ cargo.rust_library(
     crate_root = "deranged-0.5.8.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "deranged-0.5.8.crate",
         "CARGO_PKG_NAME": "deranged",
         "CARGO_PKG_VERSION": "0.5.8",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3603,6 +3708,7 @@ cargo.rust_library(
     crate_root = "derive-where-1.6.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "derive-where-1.6.1.crate",
         "CARGO_PKG_NAME": "derive-where",
         "CARGO_PKG_VERSION": "1.6.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -3634,6 +3740,7 @@ cargo.rust_library(
     crate_root = "derive_more-2.1.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "derive_more-2.1.1.crate",
         "CARGO_PKG_NAME": "derive_more",
         "CARGO_PKG_VERSION": "2.1.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -3665,6 +3772,7 @@ cargo.rust_library(
     crate_root = "derive_more-impl-2.1.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "derive_more-impl-2.1.1.crate",
         "CARGO_PKG_NAME": "derive_more-impl",
         "CARGO_PKG_VERSION": "2.1.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -3700,6 +3808,7 @@ cargo.rust_library(
     crate_root = "digest-0.10.7.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "digest-0.10.7.crate",
         "CARGO_PKG_NAME": "digest",
         "CARGO_PKG_VERSION": "0.10.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3739,6 +3848,7 @@ cargo.rust_library(
     crate_root = "displaydoc-0.2.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "displaydoc-0.2.6.crate",
         "CARGO_PKG_NAME": "displaydoc",
         "CARGO_PKG_VERSION": "0.2.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3774,6 +3884,7 @@ cargo.rust_library(
     crate_root = "dotenvy-0.15.7.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "dotenvy-0.15.7.crate",
         "CARGO_PKG_NAME": "dotenvy",
         "CARGO_PKG_VERSION": "0.15.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3799,6 +3910,7 @@ cargo.rust_library(
     crate_root = "drain_filter_polyfill-0.1.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "drain_filter_polyfill-0.1.3.crate",
         "CARGO_PKG_NAME": "drain_filter_polyfill",
         "CARGO_PKG_VERSION": "0.1.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3824,6 +3936,7 @@ cargo.rust_library(
     crate_root = "dunce-1.0.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "dunce-1.0.5.crate",
         "CARGO_PKG_NAME": "dunce",
         "CARGO_PKG_VERSION": "1.0.5",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -3849,6 +3962,7 @@ cargo.rust_library(
     crate_root = "ed25519-2.2.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ed25519-2.2.3.crate",
         "CARGO_PKG_NAME": "ed25519",
         "CARGO_PKG_VERSION": "2.2.3",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -3885,6 +3999,7 @@ cargo.rust_library(
     crate_root = "ed25519-dalek-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ed25519-dalek-2.2.0.crate",
         "CARGO_PKG_NAME": "ed25519-dalek",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -3924,6 +4039,7 @@ cargo.rust_library(
     crate_root = "educe-0.6.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "educe-0.6.0.crate",
         "CARGO_PKG_NAME": "educe",
         "CARGO_PKG_VERSION": "0.6.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -3971,6 +4087,7 @@ cargo.rust_library(
     crate_root = "either-1.16.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "either-1.16.0.crate",
         "CARGO_PKG_NAME": "either",
         "CARGO_PKG_VERSION": "1.16.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -4003,6 +4120,7 @@ cargo.rust_library(
     crate_root = "either_of-0.1.9.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "either_of-0.1.9.crate",
         "CARGO_PKG_NAME": "either_of",
         "CARGO_PKG_VERSION": "0.1.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4036,6 +4154,7 @@ cargo.rust_library(
     crate_root = "ena-0.14.4.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "ena-0.14.4.crate",
         "CARGO_PKG_NAME": "ena",
         "CARGO_PKG_VERSION": "0.14.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4062,6 +4181,7 @@ cargo.rust_library(
     crate_root = "enum-ordinalize-4.3.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "enum-ordinalize-4.3.2.crate",
         "CARGO_PKG_NAME": "enum-ordinalize",
         "CARGO_PKG_VERSION": "4.3.2",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -4089,6 +4209,7 @@ cargo.rust_library(
     crate_root = "enum-ordinalize-derive-4.3.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "enum-ordinalize-derive-4.3.2.crate",
         "CARGO_PKG_NAME": "enum-ordinalize-derive",
         "CARGO_PKG_VERSION": "4.3.2",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -4120,6 +4241,7 @@ cargo.rust_library(
     crate_root = "equivalent-1.0.2.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "equivalent-1.0.2.crate",
         "CARGO_PKG_NAME": "equivalent",
         "CARGO_PKG_VERSION": "1.0.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -4145,6 +4267,7 @@ cargo.rust_library(
     crate_root = "erased-0.1.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "erased-0.1.2.crate",
         "CARGO_PKG_NAME": "erased",
         "CARGO_PKG_VERSION": "0.1.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4170,6 +4293,7 @@ cargo.rust_library(
     crate_root = "errno-0.3.14.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "errno-0.3.14.crate",
         "CARGO_PKG_NAME": "errno",
         "CARGO_PKG_VERSION": "0.3.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4200,6 +4324,7 @@ cargo.rust_library(
     crate_root = "etcetera-0.8.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "etcetera-0.8.0.crate",
         "CARGO_PKG_NAME": "etcetera",
         "CARGO_PKG_VERSION": "0.8.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4230,6 +4355,7 @@ cargo.rust_library(
     crate_root = "event-listener-5.4.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "event-listener-5.4.1.crate",
         "CARGO_PKG_NAME": "event-listener",
         "CARGO_PKG_VERSION": "5.4.1",
         "CARGO_PKG_VERSION_MAJOR": "5",
@@ -4265,6 +4391,7 @@ cargo.rust_library(
     crate_root = "event-listener-strategy-0.5.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "event-listener-strategy-0.5.4.crate",
         "CARGO_PKG_NAME": "event-listener-strategy",
         "CARGO_PKG_VERSION": "0.5.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4298,6 +4425,7 @@ cargo.rust_library(
     crate_root = "fastrand-2.4.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "fastrand-2.4.1.crate",
         "CARGO_PKG_NAME": "fastrand",
         "CARGO_PKG_VERSION": "2.4.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -4328,6 +4456,7 @@ cargo.rust_library(
     crate_root = "find-msvc-tools-0.1.9.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "find-msvc-tools-0.1.9.crate",
         "CARGO_PKG_NAME": "find-msvc-tools",
         "CARGO_PKG_VERSION": "0.1.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4353,6 +4482,7 @@ cargo.rust_library(
     crate_root = "fixedbitset-0.5.7.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "fixedbitset-0.5.7.crate",
         "CARGO_PKG_NAME": "fixedbitset",
         "CARGO_PKG_VERSION": "0.5.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4378,6 +4508,7 @@ cargo.rust_library(
     crate_root = "fnv-1.0.7.crate/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "fnv-1.0.7.crate",
         "CARGO_PKG_NAME": "fnv",
         "CARGO_PKG_VERSION": "1.0.7",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -4407,6 +4538,7 @@ cargo.rust_library(
     crate_root = "foldhash-0.1.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "foldhash-0.1.5.crate",
         "CARGO_PKG_NAME": "foldhash",
         "CARGO_PKG_VERSION": "0.1.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4432,6 +4564,7 @@ cargo.rust_library(
     crate_root = "foldhash-0.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "foldhash-0.2.0.crate",
         "CARGO_PKG_NAME": "foldhash",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4457,6 +4590,7 @@ cargo.rust_library(
     crate_root = "foreign-types-0.3.2.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "foreign-types-0.3.2.crate",
         "CARGO_PKG_NAME": "foreign-types",
         "CARGO_PKG_VERSION": "0.3.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4483,6 +4617,7 @@ cargo.rust_library(
     crate_root = "foreign-types-shared-0.1.1.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "foreign-types-shared-0.1.1.crate",
         "CARGO_PKG_NAME": "foreign-types-shared",
         "CARGO_PKG_VERSION": "0.1.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4508,6 +4643,7 @@ cargo.rust_library(
     crate_root = "form_urlencoded-1.2.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "form_urlencoded-1.2.2.crate",
         "CARGO_PKG_NAME": "form_urlencoded",
         "CARGO_PKG_VERSION": "1.2.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -4539,6 +4675,7 @@ cargo.rust_library(
     crate_root = "fs_extra-1.3.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "fs_extra-1.3.0.crate",
         "CARGO_PKG_NAME": "fs_extra",
         "CARGO_PKG_VERSION": "1.3.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -4570,6 +4707,7 @@ cargo.rust_library(
     crate_root = "futures-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-0.3.32.crate",
         "CARGO_PKG_NAME": "futures",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4613,6 +4751,7 @@ cargo.rust_library(
     crate_root = "futures-channel-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-channel-0.3.32.crate",
         "CARGO_PKG_NAME": "futures-channel",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4655,6 +4794,7 @@ cargo.rust_library(
     crate_root = "futures-core-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-core-0.3.32.crate",
         "CARGO_PKG_NAME": "futures-core",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4685,6 +4825,7 @@ cargo.rust_library(
     crate_root = "futures-executor-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-executor-0.3.32.crate",
         "CARGO_PKG_NAME": "futures-executor",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4720,6 +4861,7 @@ cargo.rust_library(
     crate_root = "futures-intrusive-0.5.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-intrusive-0.5.0.crate",
         "CARGO_PKG_NAME": "futures-intrusive",
         "CARGO_PKG_VERSION": "0.5.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4756,6 +4898,7 @@ cargo.rust_library(
     crate_root = "futures-io-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-io-0.3.32.crate",
         "CARGO_PKG_NAME": "futures-io",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4785,6 +4928,7 @@ cargo.rust_library(
     crate_root = "futures-macro-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-macro-0.3.32.crate",
         "CARGO_PKG_NAME": "futures-macro",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4816,6 +4960,7 @@ cargo.rust_library(
     crate_root = "futures-sink-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-sink-0.3.32.crate",
         "CARGO_PKG_NAME": "futures-sink",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4846,6 +4991,7 @@ cargo.rust_library(
     crate_root = "futures-task-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-task-0.3.32.crate",
         "CARGO_PKG_NAME": "futures-task",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4881,6 +5027,7 @@ cargo.rust_library(
     crate_root = "futures-util-0.3.32.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "futures-util-0.3.32.crate",
         "CARGO_PKG_NAME": "futures-util",
         "CARGO_PKG_VERSION": "0.3.32",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4933,6 +5080,7 @@ cargo.rust_library(
     crate_root = "generic-array-0.14.7.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "generic-array-0.14.7.crate",
         "CARGO_PKG_NAME": "generic-array",
         "CARGO_PKG_VERSION": "0.14.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4954,6 +5102,7 @@ cargo.rust_binary(
     crate_root = "generic-array-0.14.7.crate/build.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "generic-array-0.14.7.crate",
         "CARGO_PKG_NAME": "generic-array",
         "CARGO_PKG_VERSION": "0.14.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -4995,6 +5144,7 @@ cargo.rust_library(
     crate_root = "getrandom-0.2.17.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "getrandom-0.2.17.crate",
         "CARGO_PKG_NAME": "getrandom",
         "CARGO_PKG_VERSION": "0.2.17",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5036,6 +5186,7 @@ cargo.rust_library(
     crate_root = "getrandom-0.3.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "getrandom-0.3.4.crate",
         "CARGO_PKG_NAME": "getrandom",
         "CARGO_PKG_VERSION": "0.3.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5077,6 +5228,7 @@ cargo.rust_library(
     crate_root = "getrandom-0.4.2.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "getrandom-0.4.2.crate",
         "CARGO_PKG_NAME": "getrandom",
         "CARGO_PKG_VERSION": "0.4.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5124,6 +5276,7 @@ cargo.rust_library(
     crate_root = "glob-0.3.3.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "glob-0.3.3.crate",
         "CARGO_PKG_NAME": "glob",
         "CARGO_PKG_VERSION": "0.3.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5149,6 +5302,7 @@ cargo.rust_library(
     crate_root = "gloo-net-0.6.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "gloo-net-0.6.0.crate",
         "CARGO_PKG_NAME": "gloo-net",
         "CARGO_PKG_VERSION": "0.6.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5202,6 +5356,7 @@ cargo.rust_library(
     crate_root = "gloo-utils-0.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "gloo-utils-0.2.0.crate",
         "CARGO_PKG_NAME": "gloo-utils",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5235,6 +5390,7 @@ cargo.rust_library(
     crate_root = "guardian-1.3.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "guardian-1.3.0.crate",
         "CARGO_PKG_NAME": "guardian",
         "CARGO_PKG_VERSION": "1.3.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -5260,6 +5416,7 @@ cargo.rust_library(
     crate_root = "h2-0.4.14.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "h2-0.4.14.crate",
         "CARGO_PKG_NAME": "h2",
         "CARGO_PKG_VERSION": "0.4.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5298,6 +5455,7 @@ cargo.rust_library(
     crate_root = "half-2.7.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "half-2.7.1.crate",
         "CARGO_PKG_NAME": "half",
         "CARGO_PKG_VERSION": "2.7.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -5327,6 +5485,7 @@ cargo.rust_library(
     crate_root = "hashbrown-0.15.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "hashbrown-0.15.5.crate",
         "CARGO_PKG_NAME": "hashbrown",
         "CARGO_PKG_VERSION": "0.15.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5365,6 +5524,7 @@ cargo.rust_library(
     crate_root = "hashbrown-0.16.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "hashbrown-0.16.1.crate",
         "CARGO_PKG_NAME": "hashbrown",
         "CARGO_PKG_VERSION": "0.16.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5403,6 +5563,7 @@ cargo.rust_library(
     crate_root = "hashbrown-0.17.1.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "hashbrown-0.17.1.crate",
         "CARGO_PKG_NAME": "hashbrown",
         "CARGO_PKG_VERSION": "0.17.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5428,6 +5589,7 @@ cargo.rust_library(
     crate_root = "hashlink-0.10.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "hashlink-0.10.0.crate",
         "CARGO_PKG_NAME": "hashlink",
         "CARGO_PKG_VERSION": "0.10.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5454,6 +5616,7 @@ cargo.rust_library(
     crate_root = "heck-0.5.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "heck-0.5.0.crate",
         "CARGO_PKG_NAME": "heck",
         "CARGO_PKG_VERSION": "0.5.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5479,6 +5642,7 @@ cargo.rust_library(
     crate_root = "hex-0.4.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "hex-0.4.3.crate",
         "CARGO_PKG_NAME": "hex",
         "CARGO_PKG_VERSION": "0.4.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5509,6 +5673,7 @@ cargo.rust_library(
     crate_root = "hkdf-0.12.4.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "hkdf-0.12.4.crate",
         "CARGO_PKG_NAME": "hkdf",
         "CARGO_PKG_VERSION": "0.12.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5535,6 +5700,7 @@ cargo.rust_library(
     crate_root = "hmac-0.12.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "hmac-0.12.1.crate",
         "CARGO_PKG_NAME": "hmac",
         "CARGO_PKG_VERSION": "0.12.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5562,6 +5728,7 @@ cargo.rust_library(
     crate_root = "home-0.5.12.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "home-0.5.12.crate",
         "CARGO_PKG_NAME": "home",
         "CARGO_PKG_VERSION": "0.5.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5595,6 +5762,7 @@ cargo.rust_library(
     crate_root = "hostname-0.4.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "hostname-0.4.2.crate",
         "CARGO_PKG_NAME": "hostname",
         "CARGO_PKG_VERSION": "0.4.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5642,6 +5810,7 @@ cargo.rust_library(
     crate_root = "html-escape-0.2.13.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "html-escape-0.2.13.crate",
         "CARGO_PKG_NAME": "html-escape",
         "CARGO_PKG_VERSION": "0.2.13",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5672,6 +5841,7 @@ cargo.rust_library(
     crate_root = "http-1.4.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "http-1.4.1.crate",
         "CARGO_PKG_NAME": "http",
         "CARGO_PKG_VERSION": "1.4.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -5705,6 +5875,7 @@ cargo.rust_library(
     crate_root = "http-body-1.0.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "http-body-1.0.1.crate",
         "CARGO_PKG_NAME": "http-body",
         "CARGO_PKG_VERSION": "1.0.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -5740,6 +5911,7 @@ cargo.rust_library(
     crate_root = "http-body-util-0.1.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "http-body-util-0.1.3.crate",
         "CARGO_PKG_NAME": "http-body-util",
         "CARGO_PKG_VERSION": "0.1.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5773,6 +5945,7 @@ cargo.rust_library(
     crate_root = "httparse-1.10.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "httparse-1.10.1.crate",
         "CARGO_PKG_NAME": "httparse",
         "CARGO_PKG_VERSION": "1.10.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -5796,6 +5969,7 @@ cargo.rust_binary(
     crate_root = "httparse-1.10.1.crate/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "httparse-1.10.1.crate",
         "CARGO_PKG_NAME": "httparse",
         "CARGO_PKG_VERSION": "1.10.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -5842,6 +6016,7 @@ cargo.rust_library(
     crate_root = "httpdate-1.0.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "httpdate-1.0.3.crate",
         "CARGO_PKG_NAME": "httpdate",
         "CARGO_PKG_VERSION": "1.0.3",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -5867,6 +6042,7 @@ cargo.rust_library(
     crate_root = "hydration_context-0.3.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "hydration_context-0.3.0.crate",
         "CARGO_PKG_NAME": "hydration_context",
         "CARGO_PKG_VERSION": "0.3.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -5906,6 +6082,7 @@ cargo.rust_library(
     crate_root = "hyper-1.10.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "hyper-1.10.0.crate",
         "CARGO_PKG_NAME": "hyper",
         "CARGO_PKG_VERSION": "1.10.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -5960,6 +6137,7 @@ cargo.rust_library(
     crate_root = "hyper-rustls-0.27.9.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "hyper-rustls-0.27.9.crate",
         "CARGO_PKG_NAME": "hyper-rustls",
         "CARGO_PKG_VERSION": "0.27.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6009,6 +6187,7 @@ cargo.rust_library(
     crate_root = "hyper-timeout-0.5.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "hyper-timeout-0.5.2.crate",
         "CARGO_PKG_NAME": "hyper-timeout",
         "CARGO_PKG_VERSION": "0.5.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6047,6 +6226,7 @@ cargo.rust_library(
     crate_root = "hyper-util-0.1.20.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "hyper-util-0.1.20.crate",
         "CARGO_PKG_NAME": "hyper-util",
         "CARGO_PKG_VERSION": "0.1.20",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6102,6 +6282,7 @@ cargo.rust_library(
     crate_root = "iana-time-zone-0.1.65.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "iana-time-zone-0.1.65.crate",
         "CARGO_PKG_NAME": "iana-time-zone",
         "CARGO_PKG_VERSION": "0.1.65",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6136,6 +6317,7 @@ cargo.rust_library(
     crate_root = "icu_collections-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_collections-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_collections",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6169,6 +6351,7 @@ cargo.rust_library(
     crate_root = "icu_locale_core-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_locale_core-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_locale_core",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6202,6 +6385,7 @@ cargo.rust_library(
     crate_root = "icu_normalizer-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_normalizer-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_normalizer",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6235,6 +6419,7 @@ cargo.rust_library(
     crate_root = "icu_normalizer_data-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_normalizer_data-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_normalizer_data",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6254,6 +6439,7 @@ cargo.rust_binary(
     crate_root = "icu_normalizer_data-2.2.0.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_normalizer_data-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_normalizer_data",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6292,6 +6478,7 @@ cargo.rust_library(
     crate_root = "icu_properties-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_properties-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_properties",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6326,6 +6513,7 @@ cargo.rust_library(
     crate_root = "icu_properties_data-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_properties_data-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_properties_data",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6345,6 +6533,7 @@ cargo.rust_binary(
     crate_root = "icu_properties_data-2.2.0.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_properties_data-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_properties_data",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6383,6 +6572,7 @@ cargo.rust_library(
     crate_root = "icu_provider-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "icu_provider-2.2.0.crate",
         "CARGO_PKG_NAME": "icu_provider",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6418,6 +6608,7 @@ cargo.rust_library(
     crate_root = "ident_case-1.0.1.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "ident_case-1.0.1.crate",
         "CARGO_PKG_NAME": "ident_case",
         "CARGO_PKG_VERSION": "1.0.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -6443,6 +6634,7 @@ cargo.rust_library(
     crate_root = "idna-1.1.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "idna-1.1.0.crate",
         "CARGO_PKG_NAME": "idna",
         "CARGO_PKG_VERSION": "1.1.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -6478,6 +6670,7 @@ cargo.rust_library(
     crate_root = "idna_adapter-1.2.2.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "idna_adapter-1.2.2.crate",
         "CARGO_PKG_NAME": "idna_adapter",
         "CARGO_PKG_VERSION": "1.2.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -6508,6 +6701,7 @@ cargo.rust_library(
     crate_root = "indexmap-2.14.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "indexmap-2.14.0.crate",
         "CARGO_PKG_NAME": "indexmap",
         "CARGO_PKG_VERSION": "2.14.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6541,6 +6735,7 @@ cargo.rust_library(
     crate_root = "interpolator-0.5.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "interpolator-0.5.0.crate",
         "CARGO_PKG_NAME": "interpolator",
         "CARGO_PKG_VERSION": "0.5.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6567,6 +6762,7 @@ cargo.rust_library(
     crate_root = "ipnet-2.12.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "ipnet-2.12.0.crate",
         "CARGO_PKG_NAME": "ipnet",
         "CARGO_PKG_VERSION": "2.12.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -6596,6 +6792,7 @@ cargo.rust_library(
     crate_root = "is_terminal_polyfill-1.70.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "is_terminal_polyfill-1.70.2.crate",
         "CARGO_PKG_NAME": "is_terminal_polyfill",
         "CARGO_PKG_VERSION": "1.70.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -6622,6 +6819,7 @@ cargo.rust_library(
     crate_root = "itertools-0.13.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "itertools-0.13.0.crate",
         "CARGO_PKG_NAME": "itertools",
         "CARGO_PKG_VERSION": "0.13.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6653,6 +6851,7 @@ cargo.rust_library(
     crate_root = "itertools-0.14.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "itertools-0.14.0.crate",
         "CARGO_PKG_NAME": "itertools",
         "CARGO_PKG_VERSION": "0.14.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6684,6 +6883,7 @@ cargo.rust_library(
     crate_root = "itoa-1.0.18.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "itoa-1.0.18.crate",
         "CARGO_PKG_NAME": "itoa",
         "CARGO_PKG_VERSION": "1.0.18",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -6709,6 +6909,7 @@ cargo.rust_library(
     crate_root = "jiff-0.2.27.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "jiff-0.2.27.crate",
         "CARGO_PKG_NAME": "jiff",
         "CARGO_PKG_VERSION": "0.2.27",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6740,6 +6941,7 @@ cargo.rust_library(
     crate_root = "jobserver-0.1.34.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "jobserver-0.1.34.crate",
         "CARGO_PKG_NAME": "jobserver",
         "CARGO_PKG_VERSION": "0.1.34",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6785,6 +6987,7 @@ cargo.rust_library(
     crate_root = "js-sys-0.3.98.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "js-sys-0.3.98.crate",
         "CARGO_PKG_NAME": "js-sys",
         "CARGO_PKG_VERSION": "0.3.98",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6821,6 +7024,7 @@ cargo.rust_library(
     crate_root = "json-patch-4.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "json-patch-4.2.0.crate",
         "CARGO_PKG_NAME": "json-patch",
         "CARGO_PKG_VERSION": "4.2.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -6856,6 +7060,7 @@ cargo.rust_library(
     crate_root = "jsonpath-rust-1.0.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "jsonpath-rust-1.0.4.crate",
         "CARGO_PKG_NAME": "jsonpath-rust",
         "CARGO_PKG_VERSION": "1.0.4",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -6888,6 +7093,7 @@ cargo.rust_library(
     crate_root = "jsonptr-0.7.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "jsonptr-0.7.1.crate",
         "CARGO_PKG_NAME": "jsonptr",
         "CARGO_PKG_VERSION": "0.7.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6932,6 +7138,7 @@ cargo.rust_library(
     crate_root = "k8s-openapi-0.27.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "k8s-openapi-0.27.1.crate",
         "CARGO_PKG_NAME": "k8s-openapi",
         "CARGO_PKG_VERSION": "0.27.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -6961,6 +7168,7 @@ cargo.rust_binary(
     crate_root = "k8s-openapi-0.27.1.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "k8s-openapi-0.27.1.crate",
         "CARGO_PKG_NAME": "k8s-openapi",
         "CARGO_PKG_VERSION": "0.27.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7008,6 +7216,7 @@ cargo.rust_library(
     crate_root = "keccak-0.1.6.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "keccak-0.1.6.crate",
         "CARGO_PKG_NAME": "keccak",
         "CARGO_PKG_VERSION": "0.1.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7041,6 +7250,7 @@ cargo.rust_library(
     crate_root = "konst-0.2.20.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "konst-0.2.20.crate",
         "CARGO_PKG_NAME": "konst",
         "CARGO_PKG_VERSION": "0.2.20",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7075,6 +7285,7 @@ cargo.rust_library(
     crate_root = "konst_macro_rules-0.2.19.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "konst_macro_rules-0.2.19.crate",
         "CARGO_PKG_NAME": "konst_macro_rules",
         "CARGO_PKG_VERSION": "0.2.19",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7113,6 +7324,7 @@ cargo.rust_library(
     crate_root = "kube-3.1.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "kube-3.1.0.crate",
         "CARGO_PKG_NAME": "kube",
         "CARGO_PKG_VERSION": "3.1.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -7152,6 +7364,7 @@ cargo.rust_library(
     crate_root = "kube-client-3.1.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "kube-client-3.1.0.crate",
         "CARGO_PKG_NAME": "kube-client",
         "CARGO_PKG_VERSION": "3.1.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -7233,6 +7446,7 @@ cargo.rust_library(
     crate_root = "kube-core-3.1.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "kube-core-3.1.0.crate",
         "CARGO_PKG_NAME": "kube-core",
         "CARGO_PKG_VERSION": "3.1.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -7280,6 +7494,7 @@ cargo.rust_library(
     crate_root = "kube-runtime-3.1.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "kube-runtime-3.1.0.crate",
         "CARGO_PKG_NAME": "kube-runtime",
         "CARGO_PKG_VERSION": "3.1.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -7326,6 +7541,7 @@ cargo.rust_library(
     crate_root = "lalrpop-0.22.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "lalrpop-0.22.2.crate",
         "CARGO_PKG_NAME": "lalrpop",
         "CARGO_PKG_VERSION": "0.22.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7373,6 +7589,7 @@ cargo.rust_library(
     crate_root = "lalrpop-util-0.22.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "lalrpop-util-0.22.2.crate",
         "CARGO_PKG_NAME": "lalrpop-util",
         "CARGO_PKG_VERSION": "0.22.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7409,6 +7626,7 @@ cargo.rust_library(
     crate_root = "lazy_static-1.5.0.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "lazy_static-1.5.0.crate",
         "CARGO_PKG_NAME": "lazy_static",
         "CARGO_PKG_VERSION": "1.5.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -7440,6 +7658,7 @@ cargo.rust_library(
     crate_root = "leptos-0.8.19.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "leptos-0.8.19.crate",
         "CARGO_PKG_NAME": "leptos",
         "CARGO_PKG_VERSION": "0.8.19",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7492,6 +7711,7 @@ cargo.rust_binary(
     crate_root = "leptos-0.8.19.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "leptos-0.8.19.crate",
         "CARGO_PKG_NAME": "leptos",
         "CARGO_PKG_VERSION": "0.8.19",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7533,6 +7753,7 @@ cargo.rust_library(
     crate_root = "leptos_config-0.8.10.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "leptos_config-0.8.10.crate",
         "CARGO_PKG_NAME": "leptos_config",
         "CARGO_PKG_VERSION": "0.8.10",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7565,6 +7786,7 @@ cargo.rust_library(
     crate_root = "leptos_dom-0.8.8.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "leptos_dom-0.8.8.crate",
         "CARGO_PKG_NAME": "leptos_dom",
         "CARGO_PKG_VERSION": "0.8.8",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7600,6 +7822,7 @@ cargo.rust_library(
     crate_root = "leptos_hot_reload-0.8.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "leptos_hot_reload-0.8.6.crate",
         "CARGO_PKG_NAME": "leptos_hot_reload",
         "CARGO_PKG_VERSION": "0.8.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7637,6 +7860,7 @@ cargo.rust_library(
     crate_root = "leptos_macro-0.8.16.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "leptos_macro-0.8.16.crate",
         "CARGO_PKG_NAME": "leptos_macro",
         "CARGO_PKG_VERSION": "0.8.16",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7675,6 +7899,7 @@ cargo.rust_binary(
     crate_root = "leptos_macro-0.8.16.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "leptos_macro-0.8.16.crate",
         "CARGO_PKG_NAME": "leptos_macro",
         "CARGO_PKG_VERSION": "0.8.16",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7716,6 +7941,7 @@ cargo.rust_library(
     crate_root = "leptos_server-0.8.7.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "leptos_server-0.8.7.crate",
         "CARGO_PKG_NAME": "leptos_server",
         "CARGO_PKG_VERSION": "0.8.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7762,6 +7988,7 @@ cargo.rust_library(
     crate_root = "libc-0.2.186.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "libc-0.2.186.crate",
         "CARGO_PKG_NAME": "libc",
         "CARGO_PKG_VERSION": "0.2.186",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7785,6 +8012,7 @@ cargo.rust_binary(
     crate_root = "libc-0.2.186.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "libc-0.2.186.crate",
         "CARGO_PKG_NAME": "libc",
         "CARGO_PKG_VERSION": "0.2.186",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7831,6 +8059,7 @@ cargo.rust_library(
     crate_root = "linked-hash-map-0.5.6.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "linked-hash-map-0.5.6.crate",
         "CARGO_PKG_NAME": "linked-hash-map",
         "CARGO_PKG_VERSION": "0.5.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7861,6 +8090,7 @@ cargo.rust_library(
     crate_root = "linked_hash_set-0.1.6.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "linked_hash_set-0.1.6.crate",
         "CARGO_PKG_NAME": "linked_hash_set",
         "CARGO_PKG_VERSION": "0.1.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7887,6 +8117,7 @@ cargo.rust_library(
     crate_root = "linux-raw-sys-0.12.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "linux-raw-sys-0.12.1.crate",
         "CARGO_PKG_NAME": "linux-raw-sys",
         "CARGO_PKG_VERSION": "0.12.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7920,6 +8151,7 @@ cargo.rust_library(
     crate_root = "litemap-0.8.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "litemap-0.8.2.crate",
         "CARGO_PKG_NAME": "litemap",
         "CARGO_PKG_VERSION": "0.8.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7945,6 +8177,7 @@ cargo.rust_library(
     crate_root = "lock_api-0.4.14.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "lock_api-0.4.14.crate",
         "CARGO_PKG_NAME": "lock_api",
         "CARGO_PKG_VERSION": "0.4.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -7975,6 +8208,7 @@ cargo.rust_library(
     crate_root = "log-0.4.30.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "log-0.4.30.crate",
         "CARGO_PKG_NAME": "log",
         "CARGO_PKG_VERSION": "0.4.30",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8001,6 +8235,7 @@ cargo.rust_library(
     crate_root = "logos-0.16.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "logos-0.16.1.crate",
         "CARGO_PKG_NAME": "logos",
         "CARGO_PKG_VERSION": "0.16.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8033,6 +8268,7 @@ cargo.rust_library(
     crate_root = "logos-codegen-0.16.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "logos-codegen-0.16.1.crate",
         "CARGO_PKG_NAME": "logos-codegen",
         "CARGO_PKG_VERSION": "0.16.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8066,6 +8302,7 @@ cargo.rust_library(
     crate_root = "logos-derive-0.16.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "logos-derive-0.16.1.crate",
         "CARGO_PKG_NAME": "logos-derive",
         "CARGO_PKG_VERSION": "0.16.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8093,6 +8330,7 @@ cargo.rust_library(
     crate_root = "lz4_flex-0.11.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "lz4_flex-0.11.6.crate",
         "CARGO_PKG_NAME": "lz4_flex",
         "CARGO_PKG_VERSION": "0.11.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8119,6 +8357,7 @@ cargo.rust_library(
     crate_root = "manyhow-0.11.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "manyhow-0.11.4.crate",
         "CARGO_PKG_NAME": "manyhow",
         "CARGO_PKG_VERSION": "0.11.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8158,6 +8397,7 @@ cargo.rust_library(
     crate_root = "manyhow-macros-0.11.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "manyhow-macros-0.11.4.crate",
         "CARGO_PKG_NAME": "manyhow-macros",
         "CARGO_PKG_VERSION": "0.11.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8189,6 +8429,7 @@ cargo.rust_library(
     crate_root = "matchers-0.2.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "matchers-0.2.0.crate",
         "CARGO_PKG_NAME": "matchers",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8215,6 +8456,7 @@ cargo.rust_library(
     crate_root = "matchit-0.8.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "matchit-0.8.4.crate",
         "CARGO_PKG_NAME": "matchit",
         "CARGO_PKG_VERSION": "0.8.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8241,6 +8483,7 @@ cargo.rust_library(
     crate_root = "md-5-0.10.6.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "md-5-0.10.6.crate",
         "CARGO_PKG_NAME": "md-5",
         "CARGO_PKG_VERSION": "0.10.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8270,6 +8513,7 @@ cargo.rust_library(
     crate_root = "memchr-2.8.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "memchr-2.8.1.crate",
         "CARGO_PKG_NAME": "memchr",
         "CARGO_PKG_VERSION": "2.8.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -8300,6 +8544,7 @@ cargo.rust_library(
     crate_root = "miette-7.6.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "miette-7.6.0.crate",
         "CARGO_PKG_NAME": "miette",
         "CARGO_PKG_VERSION": "7.6.0",
         "CARGO_PKG_VERSION_MAJOR": "7",
@@ -8336,6 +8581,7 @@ cargo.rust_library(
     crate_root = "miette-derive-7.6.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "miette-derive-7.6.0.crate",
         "CARGO_PKG_NAME": "miette-derive",
         "CARGO_PKG_VERSION": "7.6.0",
         "CARGO_PKG_VERSION_MAJOR": "7",
@@ -8367,6 +8613,7 @@ cargo.rust_library(
     crate_root = "mime-0.3.17.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "mime-0.3.17.crate",
         "CARGO_PKG_NAME": "mime",
         "CARGO_PKG_VERSION": "0.3.17",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8392,6 +8639,7 @@ cargo.rust_library(
     crate_root = "minimal-lexical-0.2.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "minimal-lexical-0.2.1.crate",
         "CARGO_PKG_NAME": "minimal-lexical",
         "CARGO_PKG_VERSION": "0.2.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8418,6 +8666,7 @@ cargo.rust_library(
     crate_root = "mio-1.2.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "mio-1.2.1.crate",
         "CARGO_PKG_NAME": "mio",
         "CARGO_PKG_VERSION": "1.2.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -8468,6 +8717,7 @@ cargo.rust_library(
     crate_root = "multimap-0.10.1.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "multimap-0.10.1.crate",
         "CARGO_PKG_NAME": "multimap",
         "CARGO_PKG_VERSION": "0.10.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8493,6 +8743,7 @@ cargo.rust_library(
     crate_root = "new_debug_unreachable-1.0.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "new_debug_unreachable-1.0.6.crate",
         "CARGO_PKG_NAME": "new_debug_unreachable",
         "CARGO_PKG_VERSION": "1.0.6",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -8518,6 +8769,7 @@ cargo.rust_library(
     crate_root = "next_tuple-0.1.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "next_tuple-0.1.0.crate",
         "CARGO_PKG_NAME": "next_tuple",
         "CARGO_PKG_VERSION": "0.1.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8543,6 +8795,7 @@ cargo.rust_library(
     crate_root = "nom-7.1.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "nom-7.1.3.crate",
         "CARGO_PKG_NAME": "nom",
         "CARGO_PKG_VERSION": "7.1.3",
         "CARGO_PKG_VERSION_MAJOR": "7",
@@ -8577,6 +8830,7 @@ cargo.rust_library(
     crate_root = "nonempty-0.12.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "nonempty-0.12.0.crate",
         "CARGO_PKG_NAME": "nonempty",
         "CARGO_PKG_VERSION": "0.12.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8608,6 +8862,7 @@ cargo.rust_library(
     crate_root = "nu-ansi-term-0.50.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "nu-ansi-term-0.50.3.crate",
         "CARGO_PKG_NAME": "nu-ansi-term",
         "CARGO_PKG_VERSION": "0.50.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8649,6 +8904,7 @@ cargo.rust_library(
     crate_root = "num-bigint-0.4.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "num-bigint-0.4.6.crate",
         "CARGO_PKG_NAME": "num-bigint",
         "CARGO_PKG_VERSION": "0.4.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8682,6 +8938,7 @@ cargo.rust_library(
     crate_root = "num-conv-0.2.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "num-conv-0.2.2.crate",
         "CARGO_PKG_NAME": "num-conv",
         "CARGO_PKG_VERSION": "0.2.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8707,6 +8964,7 @@ cargo.rust_library(
     crate_root = "num-integer-0.1.46.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "num-integer-0.1.46.crate",
         "CARGO_PKG_NAME": "num-integer",
         "CARGO_PKG_VERSION": "0.1.46",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8737,6 +8995,7 @@ cargo.rust_library(
     crate_root = "num-traits-0.2.19.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "num-traits-0.2.19.crate",
         "CARGO_PKG_NAME": "num-traits",
         "CARGO_PKG_VERSION": "0.2.19",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8761,6 +9020,7 @@ cargo.rust_binary(
     crate_root = "num-traits-0.2.19.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "num-traits-0.2.19.crate",
         "CARGO_PKG_NAME": "num-traits",
         "CARGO_PKG_VERSION": "0.2.19",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8810,6 +9070,7 @@ cargo.rust_library(
     crate_root = "object-0.37.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "object-0.37.3.crate",
         "CARGO_PKG_NAME": "object",
         "CARGO_PKG_VERSION": "0.37.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8842,6 +9103,7 @@ cargo.rust_binary(
     crate_root = "object-0.37.3.crate/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "object-0.37.3.crate",
         "CARGO_PKG_NAME": "object",
         "CARGO_PKG_VERSION": "0.37.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8904,6 +9166,7 @@ cargo.rust_library(
     crate_root = "oco_ref-0.2.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "oco_ref-0.2.1.crate",
         "CARGO_PKG_NAME": "oco_ref",
         "CARGO_PKG_VERSION": "0.2.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8933,6 +9196,7 @@ cargo.rust_library(
     crate_root = "oid-registry-0.7.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "oid-registry-0.7.1.crate",
         "CARGO_PKG_NAME": "oid-registry",
         "CARGO_PKG_VERSION": "0.7.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -8966,6 +9230,7 @@ cargo.rust_binary(
     crate_root = "oid-registry-0.7.1.crate/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "oid-registry-0.7.1.crate",
         "CARGO_PKG_NAME": "oid-registry",
         "CARGO_PKG_VERSION": "0.7.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9030,6 +9295,7 @@ cargo.rust_library(
     crate_root = "once_cell-1.21.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "once_cell-1.21.4.crate",
         "CARGO_PKG_NAME": "once_cell",
         "CARGO_PKG_VERSION": "1.21.4",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -9061,6 +9327,7 @@ cargo.rust_library(
     crate_root = "once_cell_polyfill-1.70.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "once_cell_polyfill-1.70.2.crate",
         "CARGO_PKG_NAME": "once_cell_polyfill",
         "CARGO_PKG_VERSION": "1.70.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -9087,6 +9354,7 @@ cargo.rust_library(
     crate_root = "openssl-0.10.80.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "openssl-0.10.80.crate",
         "CARGO_PKG_NAME": "openssl",
         "CARGO_PKG_VERSION": "0.10.80",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9117,6 +9385,7 @@ cargo.rust_binary(
     crate_root = "openssl-0.10.80.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "openssl-0.10.80.crate",
         "CARGO_PKG_NAME": "openssl",
         "CARGO_PKG_VERSION": "0.10.80",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9160,6 +9429,7 @@ cargo.rust_library(
     crate_root = "openssl-macros-0.1.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "openssl-macros-0.1.1.crate",
         "CARGO_PKG_NAME": "openssl-macros",
         "CARGO_PKG_VERSION": "0.1.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9191,6 +9461,7 @@ cargo.rust_library(
     crate_root = "openssl-probe-0.2.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "openssl-probe-0.2.1.crate",
         "CARGO_PKG_NAME": "openssl-probe",
         "CARGO_PKG_VERSION": "0.2.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9216,6 +9487,7 @@ cargo.rust_library(
     crate_root = "openssl-sys-0.9.116.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "openssl-sys-0.9.116.crate",
         "CARGO_PKG_NAME": "openssl-sys",
         "CARGO_PKG_VERSION": "0.9.116",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9236,6 +9508,7 @@ cargo.rust_binary(
     crate_root = "openssl-sys-0.9.116.crate/build/main.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "openssl-sys-0.9.116.crate",
         "CARGO_PKG_NAME": "openssl-sys",
         "CARGO_PKG_VERSION": "0.9.116",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9293,6 +9566,7 @@ cargo.rust_library(
     crate_root = "opentelemetry-0.32.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "opentelemetry-0.32.0.crate",
         "CARGO_PKG_NAME": "opentelemetry",
         "CARGO_PKG_VERSION": "0.32.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9333,6 +9607,7 @@ cargo.rust_library(
     crate_root = "opentelemetry-http-0.32.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "opentelemetry-http-0.32.0.crate",
         "CARGO_PKG_NAME": "opentelemetry-http",
         "CARGO_PKG_VERSION": "0.32.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9375,6 +9650,7 @@ cargo.rust_library(
     crate_root = "opentelemetry-otlp-0.32.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "opentelemetry-otlp-0.32.0.crate",
         "CARGO_PKG_NAME": "opentelemetry-otlp",
         "CARGO_PKG_VERSION": "0.32.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9420,6 +9696,7 @@ cargo.rust_library(
     crate_root = "opentelemetry-proto-0.32.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "opentelemetry-proto-0.32.0.crate",
         "CARGO_PKG_NAME": "opentelemetry-proto",
         "CARGO_PKG_VERSION": "0.32.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9462,6 +9739,7 @@ cargo.rust_library(
     crate_root = "opentelemetry_sdk-0.32.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "opentelemetry_sdk-0.32.1.crate",
         "CARGO_PKG_NAME": "opentelemetry_sdk",
         "CARGO_PKG_VERSION": "0.32.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9502,6 +9780,7 @@ cargo.rust_library(
     crate_root = "or_poisoned-0.1.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "or_poisoned-0.1.0.crate",
         "CARGO_PKG_NAME": "or_poisoned",
         "CARGO_PKG_VERSION": "0.1.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9527,6 +9806,7 @@ cargo.rust_library(
     crate_root = "ordered-float-2.10.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "ordered-float-2.10.1.crate",
         "CARGO_PKG_NAME": "ordered-float",
         "CARGO_PKG_VERSION": "2.10.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -9557,6 +9837,7 @@ cargo.rust_library(
     crate_root = "parking-2.2.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "parking-2.2.1.crate",
         "CARGO_PKG_NAME": "parking",
         "CARGO_PKG_VERSION": "2.2.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -9582,6 +9863,7 @@ cargo.rust_library(
     crate_root = "parking_lot-0.12.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "parking_lot-0.12.5.crate",
         "CARGO_PKG_NAME": "parking_lot",
         "CARGO_PKG_VERSION": "0.12.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9612,6 +9894,7 @@ cargo.rust_library(
     crate_root = "parking_lot_core-0.9.12.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "parking_lot_core-0.9.12.crate",
         "CARGO_PKG_NAME": "parking_lot_core",
         "CARGO_PKG_VERSION": "0.9.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9655,6 +9938,7 @@ cargo.rust_binary(
     crate_root = "parking_lot_core-0.9.12.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "parking_lot_core-0.9.12.crate",
         "CARGO_PKG_NAME": "parking_lot_core",
         "CARGO_PKG_VERSION": "0.9.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9693,6 +9977,7 @@ cargo.rust_library(
     crate_root = "paste-1.0.15.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "paste-1.0.15.crate",
         "CARGO_PKG_NAME": "paste",
         "CARGO_PKG_VERSION": "1.0.15",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -9713,6 +9998,7 @@ cargo.rust_binary(
     crate_root = "paste-1.0.15.crate/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "paste-1.0.15.crate",
         "CARGO_PKG_NAME": "paste",
         "CARGO_PKG_VERSION": "1.0.15",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -9751,6 +10037,7 @@ cargo.rust_library(
     crate_root = "pastey-0.1.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "pastey-0.1.1.crate",
         "CARGO_PKG_NAME": "pastey",
         "CARGO_PKG_VERSION": "0.1.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9777,6 +10064,7 @@ cargo.rust_library(
     crate_root = "pathdiff-0.2.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "pathdiff-0.2.3.crate",
         "CARGO_PKG_NAME": "pathdiff",
         "CARGO_PKG_VERSION": "0.2.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -9802,6 +10090,7 @@ cargo.rust_library(
     crate_root = "pem-3.0.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pem-3.0.6.crate",
         "CARGO_PKG_NAME": "pem",
         "CARGO_PKG_VERSION": "3.0.6",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -9832,6 +10121,7 @@ cargo.rust_library(
     crate_root = "percent-encoding-2.3.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "percent-encoding-2.3.2.crate",
         "CARGO_PKG_NAME": "percent-encoding",
         "CARGO_PKG_VERSION": "2.3.2",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -9862,6 +10152,7 @@ cargo.rust_library(
     crate_root = "pest-2.8.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pest-2.8.6.crate",
         "CARGO_PKG_NAME": "pest",
         "CARGO_PKG_VERSION": "2.8.6",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -9896,6 +10187,7 @@ cargo.rust_library(
     crate_root = "pest_derive-2.8.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pest_derive-2.8.6.crate",
         "CARGO_PKG_NAME": "pest_derive",
         "CARGO_PKG_VERSION": "2.8.6",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -9930,6 +10222,7 @@ cargo.rust_library(
     crate_root = "pest_generator-2.8.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pest_generator-2.8.6.crate",
         "CARGO_PKG_NAME": "pest_generator",
         "CARGO_PKG_VERSION": "2.8.6",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -9963,6 +10256,7 @@ cargo.rust_library(
     crate_root = "pest_meta-2.8.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pest_meta-2.8.6.crate",
         "CARGO_PKG_NAME": "pest_meta",
         "CARGO_PKG_VERSION": "2.8.6",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -9990,6 +10284,7 @@ cargo.rust_library(
     crate_root = "petgraph-0.7.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "petgraph-0.7.1.crate",
         "CARGO_PKG_NAME": "petgraph",
         "CARGO_PKG_VERSION": "0.7.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10019,6 +10314,7 @@ cargo.rust_library(
     crate_root = "petgraph-0.8.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "petgraph-0.8.3.crate",
         "CARGO_PKG_NAME": "petgraph",
         "CARGO_PKG_VERSION": "0.8.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10050,6 +10346,7 @@ cargo.rust_library(
     crate_root = "phf_shared-0.11.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "phf_shared-0.11.3.crate",
         "CARGO_PKG_NAME": "phf_shared",
         "CARGO_PKG_VERSION": "0.11.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10080,6 +10377,7 @@ cargo.rust_library(
     crate_root = "pico-args-0.5.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "pico-args-0.5.0.crate",
         "CARGO_PKG_NAME": "pico-args",
         "CARGO_PKG_VERSION": "0.5.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10105,6 +10403,7 @@ cargo.rust_library(
     crate_root = "pin-project-1.1.13.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pin-project-1.1.13.crate",
         "CARGO_PKG_NAME": "pin-project",
         "CARGO_PKG_VERSION": "1.1.13",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -10131,6 +10430,7 @@ cargo.rust_library(
     crate_root = "pin-project-internal-1.1.13.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pin-project-internal-1.1.13.crate",
         "CARGO_PKG_NAME": "pin-project-internal",
         "CARGO_PKG_VERSION": "1.1.13",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -10162,6 +10462,7 @@ cargo.rust_library(
     crate_root = "pin-project-lite-0.2.17.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "pin-project-lite-0.2.17.crate",
         "CARGO_PKG_NAME": "pin-project-lite",
         "CARGO_PKG_VERSION": "0.2.17",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10187,6 +10488,7 @@ cargo.rust_library(
     crate_root = "pkg-config-0.3.33.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "pkg-config-0.3.33.crate",
         "CARGO_PKG_NAME": "pkg-config",
         "CARGO_PKG_VERSION": "0.3.33",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10212,6 +10514,7 @@ cargo.rust_library(
     crate_root = "potential_utf-0.1.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "potential_utf-0.1.5.crate",
         "CARGO_PKG_NAME": "potential_utf",
         "CARGO_PKG_VERSION": "0.1.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10239,6 +10542,7 @@ cargo.rust_library(
     crate_root = "powerfmt-0.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "powerfmt-0.2.0.crate",
         "CARGO_PKG_NAME": "powerfmt",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10264,6 +10568,7 @@ cargo.rust_library(
     crate_root = "ppv-lite86-0.2.21.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ppv-lite86-0.2.21.crate",
         "CARGO_PKG_NAME": "ppv-lite86",
         "CARGO_PKG_VERSION": "0.2.21",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10294,6 +10599,7 @@ cargo.rust_library(
     crate_root = "precomputed-hash-0.1.1.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "precomputed-hash-0.1.1.crate",
         "CARGO_PKG_NAME": "precomputed-hash",
         "CARGO_PKG_VERSION": "0.1.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10319,6 +10625,7 @@ cargo.rust_library(
     crate_root = "pretty-0.12.5.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "pretty-0.12.5.crate",
         "CARGO_PKG_NAME": "pretty",
         "CARGO_PKG_VERSION": "0.12.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10349,6 +10656,7 @@ cargo.rust_library(
     crate_root = "prettyplease-0.2.37.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "prettyplease-0.2.37.crate",
         "CARGO_PKG_NAME": "prettyplease",
         "CARGO_PKG_VERSION": "0.2.37",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10372,6 +10680,7 @@ cargo.rust_binary(
     crate_root = "prettyplease-0.2.37.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "prettyplease-0.2.37.crate",
         "CARGO_PKG_NAME": "prettyplease",
         "CARGO_PKG_VERSION": "0.2.37",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10411,6 +10720,7 @@ cargo.rust_library(
     crate_root = "proc-macro-error-attr2-2.0.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "proc-macro-error-attr2-2.0.0.crate",
         "CARGO_PKG_NAME": "proc-macro-error-attr2",
         "CARGO_PKG_VERSION": "2.0.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -10441,6 +10751,7 @@ cargo.rust_library(
     crate_root = "proc-macro-error2-2.0.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "proc-macro-error2-2.0.1.crate",
         "CARGO_PKG_NAME": "proc-macro-error2",
         "CARGO_PKG_VERSION": "2.0.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -10476,6 +10787,7 @@ cargo.rust_library(
     crate_root = "proc-macro-utils-0.10.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "proc-macro-utils-0.10.0.crate",
         "CARGO_PKG_NAME": "proc-macro-utils",
         "CARGO_PKG_VERSION": "0.10.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10514,6 +10826,7 @@ cargo.rust_library(
     crate_root = "proc-macro2-1.0.106.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "proc-macro2-1.0.106.crate",
         "CARGO_PKG_NAME": "proc-macro2",
         "CARGO_PKG_VERSION": "1.0.106",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -10540,6 +10853,7 @@ cargo.rust_binary(
     crate_root = "proc-macro2-1.0.106.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "proc-macro2-1.0.106.crate",
         "CARGO_PKG_NAME": "proc-macro2",
         "CARGO_PKG_VERSION": "1.0.106",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -10590,6 +10904,7 @@ cargo.rust_library(
     crate_root = "proc-macro2-diagnostics-0.10.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "proc-macro2-diagnostics-0.10.1.crate",
         "CARGO_PKG_NAME": "proc-macro2-diagnostics",
         "CARGO_PKG_VERSION": "0.10.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10619,6 +10934,7 @@ cargo.rust_binary(
     crate_root = "proc-macro2-diagnostics-0.10.1.crate/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "proc-macro2-diagnostics-0.10.1.crate",
         "CARGO_PKG_NAME": "proc-macro2-diagnostics",
         "CARGO_PKG_VERSION": "0.10.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10672,6 +10988,7 @@ cargo.rust_library(
     crate_root = "prometheus-0.13.4.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "prometheus-0.13.4.crate",
         "CARGO_PKG_NAME": "prometheus",
         "CARGO_PKG_VERSION": "0.13.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10699,6 +11016,7 @@ cargo.rust_binary(
     crate_root = "prometheus-0.13.4.crate/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "prometheus-0.13.4.crate",
         "CARGO_PKG_NAME": "prometheus",
         "CARGO_PKG_VERSION": "0.13.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10743,6 +11061,7 @@ cargo.rust_library(
     crate_root = "prost-0.14.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "prost-0.14.3.crate",
         "CARGO_PKG_NAME": "prost",
         "CARGO_PKG_VERSION": "0.14.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10777,6 +11096,7 @@ cargo.rust_library(
     crate_root = "prost-build-0.14.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "prost-build-0.14.3.crate",
         "CARGO_PKG_NAME": "prost-build",
         "CARGO_PKG_VERSION": "0.14.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10822,6 +11142,7 @@ cargo.rust_library(
     crate_root = "prost-derive-0.14.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "prost-derive-0.14.3.crate",
         "CARGO_PKG_NAME": "prost-derive",
         "CARGO_PKG_VERSION": "0.14.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10855,6 +11176,7 @@ cargo.rust_library(
     crate_root = "prost-types-0.14.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "prost-types-0.14.3.crate",
         "CARGO_PKG_NAME": "prost-types",
         "CARGO_PKG_VERSION": "0.14.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -10891,6 +11213,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -10926,6 +11249,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-linux-aarch_64-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-linux-aarch_64-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored-linux-aarch_64",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -10951,6 +11275,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-linux-ppcle_64-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-linux-ppcle_64-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored-linux-ppcle_64",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -10976,6 +11301,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-linux-s390_64-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-linux-s390_64-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored-linux-s390_64",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -11001,6 +11327,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-linux-x86_32-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-linux-x86_32-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored-linux-x86_32",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -11026,6 +11353,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-linux-x86_64-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-linux-x86_64-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored-linux-x86_64",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -11051,6 +11379,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-macos-aarch_64-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-macos-aarch_64-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored-macos-aarch_64",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -11076,6 +11405,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-macos-x86_64-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-macos-x86_64-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored-macos-x86_64",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -11101,6 +11431,7 @@ cargo.rust_library(
     crate_root = "protoc-bin-vendored-win32-3.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "protoc-bin-vendored-win32-3.2.0.crate",
         "CARGO_PKG_NAME": "protoc-bin-vendored-win32",
         "CARGO_PKG_VERSION": "3.2.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -11126,6 +11457,7 @@ cargo.rust_library(
     crate_root = "psm-0.1.31.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "psm-0.1.31.crate",
         "CARGO_PKG_NAME": "psm",
         "CARGO_PKG_VERSION": "0.1.31",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11145,6 +11477,7 @@ cargo.rust_binary(
     crate_root = "psm-0.1.31.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "psm-0.1.31.crate",
         "CARGO_PKG_NAME": "psm",
         "CARGO_PKG_VERSION": "0.1.31",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11192,6 +11525,7 @@ cargo.rust_library(
     crate_root = "pulldown-cmark-0.13.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pulldown-cmark-0.13.4.crate",
         "CARGO_PKG_NAME": "pulldown-cmark",
         "CARGO_PKG_VERSION": "0.13.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11216,6 +11550,7 @@ cargo.rust_binary(
     crate_root = "pulldown-cmark-0.13.4.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "pulldown-cmark-0.13.4.crate",
         "CARGO_PKG_NAME": "pulldown-cmark",
         "CARGO_PKG_VERSION": "0.13.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11254,6 +11589,7 @@ cargo.rust_library(
     crate_root = "pulldown-cmark-to-cmark-22.0.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "pulldown-cmark-to-cmark-22.0.0.crate",
         "CARGO_PKG_NAME": "pulldown-cmark-to-cmark",
         "CARGO_PKG_VERSION": "22.0.0",
         "CARGO_PKG_VERSION_MAJOR": "22",
@@ -11280,6 +11616,7 @@ cargo.rust_library(
     crate_root = "quote-1.0.45.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "quote-1.0.45.crate",
         "CARGO_PKG_NAME": "quote",
         "CARGO_PKG_VERSION": "1.0.45",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -11304,6 +11641,7 @@ cargo.rust_binary(
     crate_root = "quote-1.0.45.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "quote-1.0.45.crate",
         "CARGO_PKG_NAME": "quote",
         "CARGO_PKG_VERSION": "1.0.45",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -11350,6 +11688,7 @@ cargo.rust_library(
     crate_root = "quote-use-0.8.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "quote-use-0.8.4.crate",
         "CARGO_PKG_NAME": "quote-use",
         "CARGO_PKG_VERSION": "0.8.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11379,6 +11718,7 @@ cargo.rust_library(
     crate_root = "quote-use-macros-0.8.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "quote-use-macros-0.8.4.crate",
         "CARGO_PKG_NAME": "quote-use-macros",
         "CARGO_PKG_VERSION": "0.8.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11411,6 +11751,7 @@ cargo.rust_library(
     crate_root = "rand-0.8.6.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "rand-0.8.6.crate",
         "CARGO_PKG_NAME": "rand",
         "CARGO_PKG_VERSION": "0.8.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11462,6 +11803,7 @@ cargo.rust_library(
     crate_root = "rand-0.9.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rand-0.9.4.crate",
         "CARGO_PKG_NAME": "rand",
         "CARGO_PKG_VERSION": "0.9.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11500,6 +11842,7 @@ cargo.rust_library(
     crate_root = "rand_chacha-0.3.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "rand_chacha-0.3.1.crate",
         "CARGO_PKG_NAME": "rand_chacha",
         "CARGO_PKG_VERSION": "0.3.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11530,6 +11873,7 @@ cargo.rust_library(
     crate_root = "rand_chacha-0.9.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rand_chacha-0.9.0.crate",
         "CARGO_PKG_NAME": "rand_chacha",
         "CARGO_PKG_VERSION": "0.9.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11569,6 +11913,7 @@ cargo.rust_library(
     crate_root = "rand_core-0.6.4.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "rand_core-0.6.4.crate",
         "CARGO_PKG_NAME": "rand_core",
         "CARGO_PKG_VERSION": "0.6.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11600,6 +11945,7 @@ cargo.rust_library(
     crate_root = "rand_core-0.9.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rand_core-0.9.5.crate",
         "CARGO_PKG_NAME": "rand_core",
         "CARGO_PKG_VERSION": "0.9.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11630,6 +11976,7 @@ cargo.rust_library(
     crate_root = "reactive_graph-0.2.14.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "reactive_graph-0.2.14.crate",
         "CARGO_PKG_NAME": "reactive_graph",
         "CARGO_PKG_VERSION": "0.2.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11670,6 +12017,7 @@ cargo.rust_binary(
     crate_root = "reactive_graph-0.2.14.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "reactive_graph-0.2.14.crate",
         "CARGO_PKG_NAME": "reactive_graph",
         "CARGO_PKG_VERSION": "0.2.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11719,6 +12067,7 @@ cargo.rust_library(
     crate_root = "reactive_stores-0.4.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "reactive_stores-0.4.3.crate",
         "CARGO_PKG_NAME": "reactive_stores",
         "CARGO_PKG_VERSION": "0.4.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11756,6 +12105,7 @@ cargo.rust_library(
     crate_root = "reactive_stores_macro-0.4.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "reactive_stores_macro-0.4.2.crate",
         "CARGO_PKG_NAME": "reactive_stores_macro",
         "CARGO_PKG_VERSION": "0.4.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11795,6 +12145,7 @@ cargo.rust_library(
     crate_root = "redis-0.27.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "redis-0.27.6.crate",
         "CARGO_PKG_NAME": "redis",
         "CARGO_PKG_VERSION": "0.27.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -11847,6 +12198,7 @@ cargo.rust_library(
     crate_root = "ref-cast-1.0.25.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ref-cast-1.0.25.crate",
         "CARGO_PKG_NAME": "ref-cast",
         "CARGO_PKG_VERSION": "1.0.25",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -11867,6 +12219,7 @@ cargo.rust_binary(
     crate_root = "ref-cast-1.0.25.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ref-cast-1.0.25.crate",
         "CARGO_PKG_NAME": "ref-cast",
         "CARGO_PKG_VERSION": "1.0.25",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -11905,6 +12258,7 @@ cargo.rust_library(
     crate_root = "ref-cast-impl-1.0.25.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ref-cast-impl-1.0.25.crate",
         "CARGO_PKG_NAME": "ref-cast-impl",
         "CARGO_PKG_VERSION": "1.0.25",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -11942,6 +12296,7 @@ cargo.rust_library(
     crate_root = "regex-1.12.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "regex-1.12.3.crate",
         "CARGO_PKG_NAME": "regex",
         "CARGO_PKG_VERSION": "1.12.3",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -11992,6 +12347,7 @@ cargo.rust_library(
     crate_root = "regex-automata-0.4.14.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "regex-automata-0.4.14.crate",
         "CARGO_PKG_NAME": "regex-automata",
         "CARGO_PKG_VERSION": "0.4.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12052,6 +12408,7 @@ cargo.rust_library(
     crate_root = "regex-syntax-0.8.10.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "regex-syntax-0.8.10.crate",
         "CARGO_PKG_NAME": "regex-syntax",
         "CARGO_PKG_VERSION": "0.8.10",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12089,6 +12446,7 @@ cargo.rust_library(
     crate_root = "replace_with-0.1.8.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "replace_with-0.1.8.crate",
         "CARGO_PKG_NAME": "replace_with",
         "CARGO_PKG_VERSION": "0.1.8",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12124,6 +12482,7 @@ cargo.rust_library(
     crate_root = "reqwest-0.13.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "reqwest-0.13.4.crate",
         "CARGO_PKG_NAME": "reqwest",
         "CARGO_PKG_VERSION": "0.13.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12189,6 +12548,7 @@ cargo.rust_library(
     crate_root = "ring-0.17.14.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ring-0.17.14.crate",
         "CARGO_PKG_NAME": "ring",
         "CARGO_PKG_VERSION": "0.17.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12226,6 +12586,7 @@ cargo.rust_binary(
     crate_root = "ring-0.17.14.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ring-0.17.14.crate",
         "CARGO_PKG_NAME": "ring",
         "CARGO_PKG_VERSION": "0.17.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12281,6 +12642,7 @@ cargo.rust_library(
     crate_root = "rstml-0.12.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rstml-0.12.1.crate",
         "CARGO_PKG_NAME": "rstml",
         "CARGO_PKG_VERSION": "0.12.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12319,6 +12681,7 @@ cargo.rust_library(
     crate_root = "rustc-hash-2.1.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustc-hash-2.1.2.crate",
         "CARGO_PKG_NAME": "rustc-hash",
         "CARGO_PKG_VERSION": "2.1.2",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -12348,6 +12711,7 @@ cargo.rust_library(
     crate_root = "rustc-literal-escaper-0.0.7.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustc-literal-escaper-0.0.7.crate",
         "CARGO_PKG_NAME": "rustc-literal-escaper",
         "CARGO_PKG_VERSION": "0.0.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12373,6 +12737,7 @@ cargo.rust_library(
     crate_root = "rustc_version-0.4.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "rustc_version-0.4.1.crate",
         "CARGO_PKG_NAME": "rustc_version",
         "CARGO_PKG_VERSION": "0.4.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12399,6 +12764,7 @@ cargo.rust_library(
     crate_root = "rusticata-macros-4.1.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "rusticata-macros-4.1.0.crate",
         "CARGO_PKG_NAME": "rusticata-macros",
         "CARGO_PKG_VERSION": "4.1.0",
         "CARGO_PKG_VERSION_MAJOR": "4",
@@ -12425,12 +12791,14 @@ cargo.rust_library(
     crate_root = "rustix-1.1.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustix-1.1.4.crate",
         "CARGO_PKG_NAME": "rustix",
         "CARGO_PKG_VERSION": "1.1.4",
         "CARGO_PKG_VERSION_MAJOR": "1",
         "CARGO_PKG_VERSION_MINOR": "1",
         "CARGO_PKG_VERSION_PATCH": "4",
         "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :rustix-1-build-script-run[out_dir])",
     },
     features = [
         "alloc",
@@ -12458,8 +12826,58 @@ cargo.rust_library(
             deps = [":libc-0.2"],
         ),
     },
+    rustc_flags = ["@$(location :rustix-1-build-script-run[rustc_flags])"],
     visibility = [],
     deps = [":bitflags-2"],
+)
+
+cargo.rust_binary(
+    name = "rustix-1-build-script-build",
+    srcs = [":rustix-1.1.4.crate"],
+    crate = "build_script_build",
+    crate_root = "rustix-1.1.4.crate/build.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "rustix-1.1.4.crate",
+        "CARGO_PKG_NAME": "rustix",
+        "CARGO_PKG_VERSION": "1.1.4",
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "1",
+        "CARGO_PKG_VERSION_PATCH": "4",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "alloc",
+        "default",
+        "fs",
+        "std",
+    ],
+    visibility = [],
+)
+
+buildscript_run(
+    name = "rustix-1-build-script-run",
+    package_name = "rustix",
+    buildscript_rule = ":rustix-1-build-script-build",
+    env = {
+        "CARGO_CFG_TARGET_ABI": "",
+        "CARGO_CFG_TARGET_ARCH": "aarch64",
+        "CARGO_CFG_TARGET_ENDIAN": "little",
+        "CARGO_CFG_TARGET_ENV": "",
+        "CARGO_CFG_TARGET_OS": "macos",
+        "CARGO_CFG_TARGET_POINTER_WIDTH": "64",
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "1",
+        "CARGO_PKG_VERSION_PATCH": "4",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "alloc",
+        "default",
+        "fs",
+        "std",
+    ],
+    version = "1.1.4",
 )
 
 http_archive(
@@ -12477,6 +12895,7 @@ cargo.rust_library(
     crate_root = "rustls-0.23.40.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustls-0.23.40.crate",
         "CARGO_PKG_NAME": "rustls",
         "CARGO_PKG_VERSION": "0.23.40",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12517,6 +12936,7 @@ cargo.rust_binary(
     crate_root = "rustls-0.23.40.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustls-0.23.40.crate",
         "CARGO_PKG_NAME": "rustls",
         "CARGO_PKG_VERSION": "0.23.40",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12573,6 +12993,7 @@ cargo.rust_library(
     crate_root = "rustls-native-certs-0.8.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustls-native-certs-0.8.3.crate",
         "CARGO_PKG_NAME": "rustls-native-certs",
         "CARGO_PKG_VERSION": "0.8.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12621,6 +13042,7 @@ cargo.rust_library(
     crate_root = "rustls-pki-types-1.14.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustls-pki-types-1.14.1.crate",
         "CARGO_PKG_NAME": "rustls-pki-types",
         "CARGO_PKG_VERSION": "1.14.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -12652,6 +13074,7 @@ cargo.rust_library(
     crate_root = "rustls-platform-verifier-0.7.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustls-platform-verifier-0.7.0.crate",
         "CARGO_PKG_NAME": "rustls-platform-verifier",
         "CARGO_PKG_VERSION": "0.7.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12717,6 +13140,7 @@ cargo.rust_library(
     crate_root = "rustls-webpki-0.103.13.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "rustls-webpki-0.103.13.crate",
         "CARGO_PKG_NAME": "rustls-webpki",
         "CARGO_PKG_VERSION": "0.103.13",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12756,6 +13180,7 @@ cargo.rust_library(
     crate_root = "rustversion-1.0.22.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "rustversion-1.0.22.crate",
         "CARGO_PKG_NAME": "rustversion",
         "CARGO_PKG_VERSION": "1.0.22",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -12776,6 +13201,7 @@ cargo.rust_binary(
     crate_root = "rustversion-1.0.22.crate/build/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "rustversion-1.0.22.crate",
         "CARGO_PKG_NAME": "rustversion",
         "CARGO_PKG_VERSION": "1.0.22",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -12814,6 +13240,7 @@ cargo.rust_library(
     crate_root = "ryu-1.0.23.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ryu-1.0.23.crate",
         "CARGO_PKG_NAME": "ryu",
         "CARGO_PKG_VERSION": "1.0.23",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -12839,6 +13266,7 @@ cargo.rust_library(
     crate_root = "same-file-1.0.6.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "same-file-1.0.6.crate",
         "CARGO_PKG_NAME": "same-file",
         "CARGO_PKG_VERSION": "1.0.6",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -12872,6 +13300,7 @@ cargo.rust_library(
     crate_root = "schannel-0.1.29.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "schannel-0.1.29.crate",
         "CARGO_PKG_NAME": "schannel",
         "CARGO_PKG_VERSION": "0.1.29",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12898,6 +13327,7 @@ cargo.rust_library(
     crate_root = "scopeguard-1.2.0.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "scopeguard-1.2.0.crate",
         "CARGO_PKG_NAME": "scopeguard",
         "CARGO_PKG_VERSION": "1.2.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -12923,6 +13353,7 @@ cargo.rust_library(
     crate_root = "sealed-0.6.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "sealed-0.6.0.crate",
         "CARGO_PKG_NAME": "sealed",
         "CARGO_PKG_VERSION": "0.6.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12954,6 +13385,7 @@ cargo.rust_library(
     crate_root = "secrecy-0.10.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "secrecy-0.10.3.crate",
         "CARGO_PKG_NAME": "secrecy",
         "CARGO_PKG_VERSION": "0.10.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -12980,6 +13412,7 @@ cargo.rust_library(
     crate_root = "security-framework-3.7.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "security-framework-3.7.0.crate",
         "CARGO_PKG_NAME": "security-framework",
         "CARGO_PKG_VERSION": "3.7.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -13018,6 +13451,7 @@ cargo.rust_library(
     crate_root = "security-framework-sys-2.17.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "security-framework-sys-2.17.0.crate",
         "CARGO_PKG_NAME": "security-framework-sys",
         "CARGO_PKG_VERSION": "2.17.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -13051,6 +13485,7 @@ cargo.rust_library(
     crate_root = "semver-1.0.28.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "semver-1.0.28.crate",
         "CARGO_PKG_NAME": "semver",
         "CARGO_PKG_VERSION": "1.0.28",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13080,6 +13515,7 @@ cargo.rust_library(
     crate_root = "send_wrapper-0.6.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "send_wrapper-0.6.0.crate",
         "CARGO_PKG_NAME": "send_wrapper",
         "CARGO_PKG_VERSION": "0.6.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13116,6 +13552,7 @@ cargo.rust_library(
     crate_root = "serde-1.0.228.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde-1.0.228.crate",
         "CARGO_PKG_NAME": "serde",
         "CARGO_PKG_VERSION": "1.0.228",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13147,6 +13584,7 @@ cargo.rust_binary(
     crate_root = "serde-1.0.228.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde-1.0.228.crate",
         "CARGO_PKG_NAME": "serde",
         "CARGO_PKG_VERSION": "1.0.228",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13201,6 +13639,7 @@ cargo.rust_library(
     crate_root = "serde-value-0.7.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "serde-value-0.7.0.crate",
         "CARGO_PKG_NAME": "serde-value",
         "CARGO_PKG_VERSION": "0.7.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13230,6 +13669,7 @@ cargo.rust_library(
     crate_root = "serde_cbor_2-0.13.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_cbor_2-0.13.0.crate",
         "CARGO_PKG_NAME": "serde_cbor_2",
         "CARGO_PKG_VERSION": "0.13.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13263,6 +13703,7 @@ cargo.rust_library(
     crate_root = "serde_core-1.0.228.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_core-1.0.228.crate",
         "CARGO_PKG_NAME": "serde_core",
         "CARGO_PKG_VERSION": "1.0.228",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13289,6 +13730,7 @@ cargo.rust_binary(
     crate_root = "serde_core-1.0.228.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_core-1.0.228.crate",
         "CARGO_PKG_NAME": "serde_core",
         "CARGO_PKG_VERSION": "1.0.228",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13341,6 +13783,7 @@ cargo.rust_library(
     crate_root = "serde_derive-1.0.228.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_derive-1.0.228.crate",
         "CARGO_PKG_NAME": "serde_derive",
         "CARGO_PKG_VERSION": "1.0.228",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13373,6 +13816,7 @@ cargo.rust_library(
     crate_root = "serde_derive_internals-0.29.1.crate/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_derive_internals-0.29.1.crate",
         "CARGO_PKG_NAME": "serde_derive_internals",
         "CARGO_PKG_VERSION": "0.29.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13409,6 +13853,7 @@ cargo.rust_library(
     crate_root = "serde_json-1.0.150.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_json-1.0.150.crate",
         "CARGO_PKG_NAME": "serde_json",
         "CARGO_PKG_VERSION": "1.0.150",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13443,6 +13888,7 @@ cargo.rust_binary(
     crate_root = "serde_json-1.0.150.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_json-1.0.150.crate",
         "CARGO_PKG_NAME": "serde_json",
         "CARGO_PKG_VERSION": "1.0.150",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13497,6 +13943,7 @@ cargo.rust_library(
     crate_root = "serde_path_to_error-0.1.20.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_path_to_error-0.1.20.crate",
         "CARGO_PKG_NAME": "serde_path_to_error",
         "CARGO_PKG_VERSION": "0.1.20",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13526,6 +13973,7 @@ cargo.rust_library(
     crate_root = "serde_qs-0.15.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_qs-0.15.0.crate",
         "CARGO_PKG_NAME": "serde_qs",
         "CARGO_PKG_VERSION": "0.15.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13557,6 +14005,7 @@ cargo.rust_library(
     crate_root = "serde_spanned-0.6.9.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_spanned-0.6.9.crate",
         "CARGO_PKG_NAME": "serde_spanned",
         "CARGO_PKG_VERSION": "0.6.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13584,6 +14033,7 @@ cargo.rust_library(
     crate_root = "serde_spanned-1.1.1.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_spanned-1.1.1.crate",
         "CARGO_PKG_NAME": "serde_spanned",
         "CARGO_PKG_VERSION": "1.1.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -13614,6 +14064,7 @@ cargo.rust_library(
     crate_root = "serde_urlencoded-0.7.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_urlencoded-0.7.1.crate",
         "CARGO_PKG_NAME": "serde_urlencoded",
         "CARGO_PKG_VERSION": "0.7.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13645,6 +14096,7 @@ cargo.rust_library(
     crate_root = "serde_with-3.20.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_with-3.20.0.crate",
         "CARGO_PKG_NAME": "serde_with",
         "CARGO_PKG_VERSION": "3.20.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -13682,6 +14134,7 @@ cargo.rust_library(
     crate_root = "serde_with_macros-3.20.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_with_macros-3.20.0.crate",
         "CARGO_PKG_NAME": "serde_with_macros",
         "CARGO_PKG_VERSION": "3.20.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -13720,6 +14173,7 @@ cargo.rust_library(
     crate_root = "serde_yaml-0.9.34+deprecated.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "serde_yaml-0.9.34+deprecated.crate",
         "CARGO_PKG_NAME": "serde_yaml",
         "CARGO_PKG_VERSION": "0.9.34+deprecated",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13752,6 +14206,7 @@ cargo.rust_library(
     crate_root = "server_fn-0.8.12.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "server_fn-0.8.12.crate",
         "CARGO_PKG_NAME": "server_fn",
         "CARGO_PKG_VERSION": "0.8.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13801,6 +14256,7 @@ cargo.rust_binary(
     crate_root = "server_fn-0.8.12.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "server_fn-0.8.12.crate",
         "CARGO_PKG_NAME": "server_fn",
         "CARGO_PKG_VERSION": "0.8.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13848,6 +14304,7 @@ cargo.rust_library(
     crate_root = "server_fn_macro-0.8.10.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "server_fn_macro-0.8.10.crate",
         "CARGO_PKG_NAME": "server_fn_macro",
         "CARGO_PKG_VERSION": "0.8.10",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13875,6 +14332,7 @@ cargo.rust_binary(
     crate_root = "server_fn_macro-0.8.10.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "server_fn_macro-0.8.10.crate",
         "CARGO_PKG_NAME": "server_fn_macro",
         "CARGO_PKG_VERSION": "0.8.10",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13914,6 +14372,7 @@ cargo.rust_library(
     crate_root = "server_fn_macro_default-0.8.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "server_fn_macro_default-0.8.5.crate",
         "CARGO_PKG_NAME": "server_fn_macro_default",
         "CARGO_PKG_VERSION": "0.8.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13950,6 +14409,7 @@ cargo.rust_library(
     crate_root = "sha2-0.10.9.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "sha2-0.10.9.crate",
         "CARGO_PKG_NAME": "sha2",
         "CARGO_PKG_VERSION": "0.10.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -13984,6 +14444,7 @@ cargo.rust_library(
     crate_root = "sha3-0.10.9.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "sha3-0.10.9.crate",
         "CARGO_PKG_NAME": "sha3",
         "CARGO_PKG_VERSION": "0.10.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14013,6 +14474,7 @@ cargo.rust_library(
     crate_root = "sharded-slab-0.1.7.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "sharded-slab-0.1.7.crate",
         "CARGO_PKG_NAME": "sharded-slab",
         "CARGO_PKG_VERSION": "0.1.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14039,6 +14501,7 @@ cargo.rust_library(
     crate_root = "shlex-1.3.0.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "shlex-1.3.0.crate",
         "CARGO_PKG_NAME": "shlex",
         "CARGO_PKG_VERSION": "1.3.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14068,6 +14531,7 @@ cargo.rust_library(
     crate_root = "signal-hook-registry-1.4.8.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "signal-hook-registry-1.4.8.crate",
         "CARGO_PKG_NAME": "signal-hook-registry",
         "CARGO_PKG_VERSION": "1.4.8",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14097,6 +14561,7 @@ cargo.rust_library(
     crate_root = "signature-2.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "signature-2.2.0.crate",
         "CARGO_PKG_NAME": "signature",
         "CARGO_PKG_VERSION": "2.2.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -14126,6 +14591,7 @@ cargo.rust_library(
     crate_root = "siphasher-1.0.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "siphasher-1.0.3.crate",
         "CARGO_PKG_NAME": "siphasher",
         "CARGO_PKG_VERSION": "1.0.3",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14155,6 +14621,7 @@ cargo.rust_library(
     crate_root = "slab-0.4.12.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "slab-0.4.12.crate",
         "CARGO_PKG_NAME": "slab",
         "CARGO_PKG_VERSION": "0.4.12",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14184,6 +14651,7 @@ cargo.rust_library(
     crate_root = "slotmap-1.1.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "slotmap-1.1.1.crate",
         "CARGO_PKG_NAME": "slotmap",
         "CARGO_PKG_VERSION": "1.1.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14207,6 +14675,7 @@ cargo.rust_binary(
     crate_root = "slotmap-1.1.1.crate/build.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "slotmap-1.1.1.crate",
         "CARGO_PKG_NAME": "slotmap",
         "CARGO_PKG_VERSION": "1.1.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14254,6 +14723,7 @@ cargo.rust_library(
     crate_root = "smallvec-1.15.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "smallvec-1.15.1.crate",
         "CARGO_PKG_NAME": "smallvec",
         "CARGO_PKG_VERSION": "1.15.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14285,6 +14755,7 @@ cargo.rust_library(
     crate_root = "smol_str-0.3.6.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "smol_str-0.3.6.crate",
         "CARGO_PKG_NAME": "smol_str",
         "CARGO_PKG_VERSION": "0.3.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14316,6 +14787,7 @@ cargo.rust_library(
     crate_root = "socket2-0.6.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "socket2-0.6.4.crate",
         "CARGO_PKG_NAME": "socket2",
         "CARGO_PKG_VERSION": "0.6.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14368,6 +14840,7 @@ cargo.rust_library(
     crate_root = "sqlx-0.8.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "sqlx-0.8.6.crate",
         "CARGO_PKG_NAME": "sqlx",
         "CARGO_PKG_VERSION": "0.8.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14406,6 +14879,7 @@ cargo.rust_library(
     crate_root = "sqlx-core-0.8.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "sqlx-core-0.8.6.crate",
         "CARGO_PKG_NAME": "sqlx-core",
         "CARGO_PKG_VERSION": "0.8.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14478,6 +14952,7 @@ cargo.rust_library(
     crate_root = "sqlx-postgres-0.8.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "sqlx-postgres-0.8.6.crate",
         "CARGO_PKG_NAME": "sqlx-postgres",
         "CARGO_PKG_VERSION": "0.8.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14545,6 +15020,7 @@ cargo.rust_library(
     crate_root = "stable_deref_trait-1.2.1.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "stable_deref_trait-1.2.1.crate",
         "CARGO_PKG_NAME": "stable_deref_trait",
         "CARGO_PKG_VERSION": "1.2.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14570,6 +15046,7 @@ cargo.rust_library(
     crate_root = "stacker-0.1.24.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "stacker-0.1.24.crate",
         "CARGO_PKG_NAME": "stacker",
         "CARGO_PKG_VERSION": "0.1.24",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14602,6 +15079,7 @@ cargo.rust_binary(
     crate_root = "stacker-0.1.24.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "stacker-0.1.24.crate",
         "CARGO_PKG_NAME": "stacker",
         "CARGO_PKG_VERSION": "0.1.24",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14641,6 +15119,7 @@ cargo.rust_library(
     crate_root = "static_assertions-1.1.0.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "static_assertions-1.1.0.crate",
         "CARGO_PKG_NAME": "static_assertions",
         "CARGO_PKG_VERSION": "1.1.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14666,6 +15145,7 @@ cargo.rust_library(
     crate_root = "string_cache-0.8.9.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "string_cache-0.8.9.crate",
         "CARGO_PKG_NAME": "string_cache",
         "CARGO_PKG_VERSION": "0.8.9",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14697,6 +15177,7 @@ cargo.rust_library(
     crate_root = "stringprep-0.1.5.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "stringprep-0.1.5.crate",
         "CARGO_PKG_NAME": "stringprep",
         "CARGO_PKG_VERSION": "0.1.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14727,6 +15208,7 @@ cargo.rust_library(
     crate_root = "strsim-0.11.1.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "strsim-0.11.1.crate",
         "CARGO_PKG_NAME": "strsim",
         "CARGO_PKG_VERSION": "0.11.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14752,6 +15234,7 @@ cargo.rust_library(
     crate_root = "subtle-2.6.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "subtle-2.6.1.crate",
         "CARGO_PKG_NAME": "subtle",
         "CARGO_PKG_VERSION": "2.6.1",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -14777,6 +15260,7 @@ cargo.rust_library(
     crate_root = "syn-2.0.117.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "syn-2.0.117.crate",
         "CARGO_PKG_NAME": "syn",
         "CARGO_PKG_VERSION": "2.0.117",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -14820,6 +15304,7 @@ cargo.rust_library(
     crate_root = "syn_derive-0.2.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "syn_derive-0.2.0.crate",
         "CARGO_PKG_NAME": "syn_derive",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14856,6 +15341,7 @@ cargo.rust_library(
     crate_root = "sync_wrapper-1.0.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "sync_wrapper-1.0.2.crate",
         "CARGO_PKG_NAME": "sync_wrapper",
         "CARGO_PKG_VERSION": "1.0.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -14886,6 +15372,7 @@ cargo.rust_library(
     crate_root = "synstructure-0.13.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "synstructure-0.13.2.crate",
         "CARGO_PKG_NAME": "synstructure",
         "CARGO_PKG_VERSION": "0.13.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14920,6 +15407,7 @@ cargo.rust_library(
     crate_root = "tachys-0.2.15.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tachys-0.2.15.crate",
         "CARGO_PKG_NAME": "tachys",
         "CARGO_PKG_VERSION": "0.2.15",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -14971,6 +15459,7 @@ cargo.rust_binary(
     crate_root = "tachys-0.2.15.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tachys-0.2.15.crate",
         "CARGO_PKG_NAME": "tachys",
         "CARGO_PKG_VERSION": "0.2.15",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15030,6 +15519,7 @@ cargo.rust_library(
     crate_root = "tempfile-3.27.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tempfile-3.27.0.crate",
         "CARGO_PKG_NAME": "tempfile",
         "CARGO_PKG_VERSION": "3.27.0",
         "CARGO_PKG_VERSION_MAJOR": "3",
@@ -15084,6 +15574,7 @@ cargo.rust_library(
     crate_root = "term-1.2.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "term-1.2.1.crate",
         "CARGO_PKG_NAME": "term",
         "CARGO_PKG_VERSION": "1.2.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15118,6 +15609,7 @@ cargo.rust_library(
     crate_root = "thiserror-1.0.69.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "thiserror-1.0.69.crate",
         "CARGO_PKG_NAME": "thiserror",
         "CARGO_PKG_VERSION": "1.0.69",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15138,6 +15630,7 @@ cargo.rust_binary(
     crate_root = "thiserror-1.0.69.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "thiserror-1.0.69.crate",
         "CARGO_PKG_NAME": "thiserror",
         "CARGO_PKG_VERSION": "1.0.69",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15176,6 +15669,7 @@ cargo.rust_library(
     crate_root = "thiserror-2.0.18.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "thiserror-2.0.18.crate",
         "CARGO_PKG_NAME": "thiserror",
         "CARGO_PKG_VERSION": "2.0.18",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -15200,6 +15694,7 @@ cargo.rust_binary(
     crate_root = "thiserror-2.0.18.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "thiserror-2.0.18.crate",
         "CARGO_PKG_NAME": "thiserror",
         "CARGO_PKG_VERSION": "2.0.18",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -15246,6 +15741,7 @@ cargo.rust_library(
     crate_root = "thiserror-impl-1.0.69.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "thiserror-impl-1.0.69.crate",
         "CARGO_PKG_NAME": "thiserror-impl",
         "CARGO_PKG_VERSION": "1.0.69",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15277,6 +15773,7 @@ cargo.rust_library(
     crate_root = "thiserror-impl-2.0.18.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "thiserror-impl-2.0.18.crate",
         "CARGO_PKG_NAME": "thiserror-impl",
         "CARGO_PKG_VERSION": "2.0.18",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -15308,6 +15805,7 @@ cargo.rust_library(
     crate_root = "thread_local-1.1.9.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "thread_local-1.1.9.crate",
         "CARGO_PKG_NAME": "thread_local",
         "CARGO_PKG_VERSION": "1.1.9",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15334,6 +15832,7 @@ cargo.rust_library(
     crate_root = "throw_error-0.3.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "throw_error-0.3.1.crate",
         "CARGO_PKG_NAME": "throw_error",
         "CARGO_PKG_VERSION": "0.3.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15360,6 +15859,7 @@ cargo.rust_library(
     crate_root = "time-0.3.47.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "time-0.3.47.crate",
         "CARGO_PKG_NAME": "time",
         "CARGO_PKG_VERSION": "0.3.47",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15404,6 +15904,7 @@ cargo.rust_library(
     crate_root = "time-core-0.1.8.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "time-core-0.1.8.crate",
         "CARGO_PKG_NAME": "time-core",
         "CARGO_PKG_VERSION": "0.1.8",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15429,6 +15930,7 @@ cargo.rust_library(
     crate_root = "time-macros-0.2.27.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "time-macros-0.2.27.crate",
         "CARGO_PKG_NAME": "time-macros",
         "CARGO_PKG_VERSION": "0.2.27",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15464,6 +15966,7 @@ cargo.rust_library(
     crate_root = "tinystr-0.8.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tinystr-0.8.3.crate",
         "CARGO_PKG_NAME": "tinystr",
         "CARGO_PKG_VERSION": "0.8.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15494,6 +15997,7 @@ cargo.rust_library(
     crate_root = "tinyvec-1.11.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tinyvec-1.11.0.crate",
         "CARGO_PKG_NAME": "tinyvec",
         "CARGO_PKG_VERSION": "1.11.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15526,6 +16030,7 @@ cargo.rust_library(
     crate_root = "tinyvec_macros-0.1.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tinyvec_macros-0.1.1.crate",
         "CARGO_PKG_NAME": "tinyvec_macros",
         "CARGO_PKG_VERSION": "0.1.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15557,6 +16062,7 @@ cargo.rust_library(
     crate_root = "tokio-1.52.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tokio-1.52.3.crate",
         "CARGO_PKG_NAME": "tokio",
         "CARGO_PKG_VERSION": "1.52.3",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15642,6 +16148,7 @@ cargo.rust_library(
     crate_root = "tokio-macros-2.7.0.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tokio-macros-2.7.0.crate",
         "CARGO_PKG_NAME": "tokio-macros",
         "CARGO_PKG_VERSION": "2.7.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -15673,6 +16180,7 @@ cargo.rust_library(
     crate_root = "tokio-rustls-0.26.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tokio-rustls-0.26.4.crate",
         "CARGO_PKG_NAME": "tokio-rustls",
         "CARGO_PKG_VERSION": "0.26.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15708,6 +16216,7 @@ cargo.rust_library(
     crate_root = "tokio-stream-0.1.18.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tokio-stream-0.1.18.crate",
         "CARGO_PKG_NAME": "tokio-stream",
         "CARGO_PKG_VERSION": "0.1.18",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15744,6 +16253,7 @@ cargo.rust_library(
     crate_root = "tokio-util-0.7.18.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "tokio-util-0.7.18.crate",
         "CARGO_PKG_NAME": "tokio-util",
         "CARGO_PKG_VERSION": "0.7.18",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15790,6 +16300,7 @@ cargo.rust_library(
     crate_root = "toml-0.8.23.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "toml-0.8.23.crate",
         "CARGO_PKG_NAME": "toml",
         "CARGO_PKG_VERSION": "0.8.23",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15826,6 +16337,7 @@ cargo.rust_library(
     crate_root = "toml-1.1.2+spec-1.1.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "toml-1.1.2+spec-1.1.0.crate",
         "CARGO_PKG_NAME": "toml",
         "CARGO_PKG_VERSION": "1.1.2+spec-1.1.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15862,6 +16374,7 @@ cargo.rust_library(
     crate_root = "toml_datetime-0.6.11.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "toml_datetime-0.6.11.crate",
         "CARGO_PKG_NAME": "toml_datetime",
         "CARGO_PKG_VERSION": "0.6.11",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15889,6 +16402,7 @@ cargo.rust_library(
     crate_root = "toml_datetime-1.1.1+spec-1.1.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "toml_datetime-1.1.1+spec-1.1.0.crate",
         "CARGO_PKG_NAME": "toml_datetime",
         "CARGO_PKG_VERSION": "1.1.1+spec-1.1.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15925,6 +16439,7 @@ cargo.rust_library(
     crate_root = "toml_edit-0.22.27.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "toml_edit-0.22.27.crate",
         "CARGO_PKG_NAME": "toml_edit",
         "CARGO_PKG_VERSION": "0.22.27",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -15964,6 +16479,7 @@ cargo.rust_library(
     crate_root = "toml_parser-1.1.2+spec-1.1.0.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "toml_parser-1.1.2+spec-1.1.0.crate",
         "CARGO_PKG_NAME": "toml_parser",
         "CARGO_PKG_VERSION": "1.1.2+spec-1.1.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -15991,6 +16507,7 @@ cargo.rust_library(
     crate_root = "toml_write-0.1.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "toml_write-0.1.2.crate",
         "CARGO_PKG_NAME": "toml_write",
         "CARGO_PKG_VERSION": "0.1.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16027,6 +16544,7 @@ cargo.rust_library(
     crate_root = "tonic-0.14.6.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "tonic-0.14.6.crate",
         "CARGO_PKG_NAME": "tonic",
         "CARGO_PKG_VERSION": "0.14.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16082,6 +16600,7 @@ cargo.rust_library(
     crate_root = "tonic-build-0.14.6.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "tonic-build-0.14.6.crate",
         "CARGO_PKG_NAME": "tonic-build",
         "CARGO_PKG_VERSION": "0.14.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16119,6 +16638,7 @@ cargo.rust_library(
     crate_root = "tonic-prost-0.14.6.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "tonic-prost-0.14.6.crate",
         "CARGO_PKG_NAME": "tonic-prost",
         "CARGO_PKG_VERSION": "0.14.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16155,6 +16675,7 @@ cargo.rust_library(
     crate_root = "tonic-prost-build-0.14.6.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "tonic-prost-build-0.14.6.crate",
         "CARGO_PKG_NAME": "tonic-prost-build",
         "CARGO_PKG_VERSION": "0.14.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16197,6 +16718,7 @@ cargo.rust_library(
     crate_root = "tower-0.5.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tower-0.5.3.crate",
         "CARGO_PKG_NAME": "tower",
         "CARGO_PKG_VERSION": "0.5.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16258,6 +16780,7 @@ cargo.rust_library(
     crate_root = "tower-http-0.6.11.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tower-http-0.6.11.crate",
         "CARGO_PKG_NAME": "tower-http",
         "CARGO_PKG_VERSION": "0.6.11",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16312,6 +16835,7 @@ cargo.rust_library(
     crate_root = "tower-layer-0.3.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tower-layer-0.3.3.crate",
         "CARGO_PKG_NAME": "tower-layer",
         "CARGO_PKG_VERSION": "0.3.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16337,6 +16861,7 @@ cargo.rust_library(
     crate_root = "tower-service-0.3.3.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tower-service-0.3.3.crate",
         "CARGO_PKG_NAME": "tower-service",
         "CARGO_PKG_VERSION": "0.3.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16368,6 +16893,7 @@ cargo.rust_library(
     crate_root = "tracing-0.1.44.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tracing-0.1.44.crate",
         "CARGO_PKG_NAME": "tracing",
         "CARGO_PKG_VERSION": "0.1.44",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16406,6 +16932,7 @@ cargo.rust_library(
     crate_root = "tracing-attributes-0.1.31.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tracing-attributes-0.1.31.crate",
         "CARGO_PKG_NAME": "tracing-attributes",
         "CARGO_PKG_VERSION": "0.1.31",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16437,6 +16964,7 @@ cargo.rust_library(
     crate_root = "tracing-core-0.1.36.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tracing-core-0.1.36.crate",
         "CARGO_PKG_NAME": "tracing-core",
         "CARGO_PKG_VERSION": "0.1.36",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16468,6 +16996,7 @@ cargo.rust_library(
     crate_root = "tracing-log-0.2.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tracing-log-0.2.0.crate",
         "CARGO_PKG_NAME": "tracing-log",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16502,6 +17031,7 @@ cargo.rust_library(
     crate_root = "tracing-serde-0.2.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tracing-serde-0.2.0.crate",
         "CARGO_PKG_NAME": "tracing-serde",
         "CARGO_PKG_VERSION": "0.2.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16537,6 +17067,7 @@ cargo.rust_library(
     crate_root = "tracing-subscriber-0.3.23.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "tracing-subscriber-0.3.23.crate",
         "CARGO_PKG_NAME": "tracing-subscriber",
         "CARGO_PKG_VERSION": "0.3.23",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16598,6 +17129,7 @@ cargo.rust_library(
     crate_root = "try-lock-0.2.5.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "try-lock-0.2.5.crate",
         "CARGO_PKG_NAME": "try-lock",
         "CARGO_PKG_VERSION": "0.2.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16623,6 +17155,7 @@ cargo.rust_library(
     crate_root = "typed-arena-2.0.2.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "typed-arena-2.0.2.crate",
         "CARGO_PKG_NAME": "typed-arena",
         "CARGO_PKG_VERSION": "2.0.2",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -16652,6 +17185,7 @@ cargo.rust_library(
     crate_root = "typed-builder-0.23.2.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "typed-builder-0.23.2.crate",
         "CARGO_PKG_NAME": "typed-builder",
         "CARGO_PKG_VERSION": "0.23.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16678,6 +17212,7 @@ cargo.rust_library(
     crate_root = "typed-builder-macro-0.23.2.crate/src/lib.rs",
     edition = "2024",
     env = {
+        "CARGO_MANIFEST_DIR": "typed-builder-macro-0.23.2.crate",
         "CARGO_PKG_NAME": "typed-builder-macro",
         "CARGO_PKG_VERSION": "0.23.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16709,6 +17244,7 @@ cargo.rust_library(
     crate_root = "typenum-1.20.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "typenum-1.20.0.crate",
         "CARGO_PKG_NAME": "typenum",
         "CARGO_PKG_VERSION": "1.20.0",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -16734,6 +17270,7 @@ cargo.rust_library(
     crate_root = "ucd-trie-0.1.7.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "ucd-trie-0.1.7.crate",
         "CARGO_PKG_NAME": "ucd-trie",
         "CARGO_PKG_VERSION": "0.1.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16760,6 +17297,7 @@ cargo.rust_library(
     crate_root = "unicase-2.9.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "unicase-2.9.0.crate",
         "CARGO_PKG_NAME": "unicase",
         "CARGO_PKG_VERSION": "2.9.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -16785,6 +17323,7 @@ cargo.rust_library(
     crate_root = "unicode-bidi-0.3.18.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-bidi-0.3.18.crate",
         "CARGO_PKG_NAME": "unicode-bidi",
         "CARGO_PKG_VERSION": "0.3.18",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16815,6 +17354,7 @@ cargo.rust_library(
     crate_root = "unicode-ident-1.0.24.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-ident-1.0.24.crate",
         "CARGO_PKG_NAME": "unicode-ident",
         "CARGO_PKG_VERSION": "1.0.24",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -16840,6 +17380,7 @@ cargo.rust_library(
     crate_root = "unicode-normalization-0.1.25.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-normalization-0.1.25.crate",
         "CARGO_PKG_NAME": "unicode-normalization",
         "CARGO_PKG_VERSION": "0.1.25",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16870,6 +17411,7 @@ cargo.rust_library(
     crate_root = "unicode-properties-0.1.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-properties-0.1.4.crate",
         "CARGO_PKG_NAME": "unicode-properties",
         "CARGO_PKG_VERSION": "0.1.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16900,6 +17442,7 @@ cargo.rust_library(
     crate_root = "unicode-script-0.5.8.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-script-0.5.8.crate",
         "CARGO_PKG_NAME": "unicode-script",
         "CARGO_PKG_VERSION": "0.5.8",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16925,6 +17468,7 @@ cargo.rust_library(
     crate_root = "unicode-security-0.1.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-security-0.1.2.crate",
         "CARGO_PKG_NAME": "unicode-security",
         "CARGO_PKG_VERSION": "0.1.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -16955,6 +17499,7 @@ cargo.rust_library(
     crate_root = "unicode-segmentation-1.13.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-segmentation-1.13.2.crate",
         "CARGO_PKG_NAME": "unicode-segmentation",
         "CARGO_PKG_VERSION": "1.13.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -16980,6 +17525,7 @@ cargo.rust_library(
     crate_root = "unicode-width-0.1.14.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-width-0.1.14.crate",
         "CARGO_PKG_NAME": "unicode-width",
         "CARGO_PKG_VERSION": "0.1.14",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17009,6 +17555,7 @@ cargo.rust_library(
     crate_root = "unicode-width-0.2.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-width-0.2.2.crate",
         "CARGO_PKG_NAME": "unicode-width",
         "CARGO_PKG_VERSION": "0.2.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17038,6 +17585,7 @@ cargo.rust_library(
     crate_root = "unicode-xid-0.2.6.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "unicode-xid-0.2.6.crate",
         "CARGO_PKG_NAME": "unicode-xid",
         "CARGO_PKG_VERSION": "0.2.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17064,6 +17612,7 @@ cargo.rust_library(
     crate_root = "unsafe-libyaml-0.2.11.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "unsafe-libyaml-0.2.11.crate",
         "CARGO_PKG_NAME": "unsafe-libyaml",
         "CARGO_PKG_VERSION": "0.2.11",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17089,6 +17638,7 @@ cargo.rust_library(
     crate_root = "untrusted-0.7.1.crate/src/untrusted.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "untrusted-0.7.1.crate",
         "CARGO_PKG_NAME": "untrusted",
         "CARGO_PKG_VERSION": "0.7.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17114,6 +17664,7 @@ cargo.rust_library(
     crate_root = "untrusted-0.9.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "untrusted-0.9.0.crate",
         "CARGO_PKG_NAME": "untrusted",
         "CARGO_PKG_VERSION": "0.9.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17139,6 +17690,7 @@ cargo.rust_library(
     crate_root = "url-2.5.8.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "url-2.5.8.crate",
         "CARGO_PKG_NAME": "url",
         "CARGO_PKG_VERSION": "2.5.8",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -17176,6 +17728,7 @@ cargo.rust_library(
     crate_root = "utf8-width-0.1.8.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "utf8-width-0.1.8.crate",
         "CARGO_PKG_NAME": "utf8-width",
         "CARGO_PKG_VERSION": "0.1.8",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17201,6 +17754,7 @@ cargo.rust_library(
     crate_root = "utf8_iter-1.0.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "utf8_iter-1.0.4.crate",
         "CARGO_PKG_NAME": "utf8_iter",
         "CARGO_PKG_VERSION": "1.0.4",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -17226,6 +17780,7 @@ cargo.rust_library(
     crate_root = "utf8parse-0.2.2.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "utf8parse-0.2.2.crate",
         "CARGO_PKG_NAME": "utf8parse",
         "CARGO_PKG_VERSION": "0.2.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17258,6 +17813,7 @@ cargo.rust_library(
     crate_root = "uuid-1.23.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "uuid-1.23.1.crate",
         "CARGO_PKG_NAME": "uuid",
         "CARGO_PKG_VERSION": "1.23.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -17294,6 +17850,7 @@ cargo.rust_library(
     crate_root = "vcpkg-0.2.15.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "vcpkg-0.2.15.crate",
         "CARGO_PKG_NAME": "vcpkg",
         "CARGO_PKG_VERSION": "0.2.15",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17319,6 +17876,7 @@ cargo.rust_library(
     crate_root = "version_check-0.9.5.crate/src/lib.rs",
     edition = "2015",
     env = {
+        "CARGO_MANIFEST_DIR": "version_check-0.9.5.crate",
         "CARGO_PKG_NAME": "version_check",
         "CARGO_PKG_VERSION": "0.9.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17350,6 +17908,7 @@ cargo.rust_library(
     crate_root = "walkdir-2.5.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "walkdir-2.5.0.crate",
         "CARGO_PKG_NAME": "walkdir",
         "CARGO_PKG_VERSION": "2.5.0",
         "CARGO_PKG_VERSION_MAJOR": "2",
@@ -17384,6 +17943,7 @@ cargo.rust_library(
     crate_root = "want-0.3.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "want-0.3.1.crate",
         "CARGO_PKG_NAME": "want",
         "CARGO_PKG_VERSION": "0.3.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17416,6 +17976,7 @@ cargo.rust_library(
     crate_root = "wasm-bindgen-0.2.121.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm-bindgen-0.2.121.crate",
         "CARGO_PKG_NAME": "wasm-bindgen",
         "CARGO_PKG_VERSION": "0.2.121",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17445,6 +18006,7 @@ cargo.rust_binary(
     crate_root = "wasm-bindgen-0.2.121.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm-bindgen-0.2.121.crate",
         "CARGO_PKG_NAME": "wasm-bindgen",
         "CARGO_PKG_VERSION": "0.2.121",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17500,6 +18062,7 @@ cargo.rust_library(
     crate_root = "wasm-bindgen-futures-0.4.71.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm-bindgen-futures-0.4.71.crate",
         "CARGO_PKG_NAME": "wasm-bindgen-futures",
         "CARGO_PKG_VERSION": "0.4.71",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17533,6 +18096,7 @@ cargo.rust_library(
     crate_root = "wasm-bindgen-macro-0.2.121.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm-bindgen-macro-0.2.121.crate",
         "CARGO_PKG_NAME": "wasm-bindgen-macro",
         "CARGO_PKG_VERSION": "0.2.121",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17563,6 +18127,7 @@ cargo.rust_library(
     crate_root = "wasm-bindgen-macro-support-0.2.121.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm-bindgen-macro-support-0.2.121.crate",
         "CARGO_PKG_NAME": "wasm-bindgen-macro-support",
         "CARGO_PKG_VERSION": "0.2.121",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17595,6 +18160,7 @@ cargo.rust_library(
     crate_root = "wasm-bindgen-shared-0.2.121.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm-bindgen-shared-0.2.121.crate",
         "CARGO_PKG_NAME": "wasm-bindgen-shared",
         "CARGO_PKG_VERSION": "0.2.121",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17615,6 +18181,7 @@ cargo.rust_binary(
     crate_root = "wasm-bindgen-shared-0.2.121.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm-bindgen-shared-0.2.121.crate",
         "CARGO_PKG_NAME": "wasm-bindgen-shared",
         "CARGO_PKG_VERSION": "0.2.121",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17655,6 +18222,7 @@ cargo.rust_library(
     dlopen_enable = True,
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm-streams-0.5.0.crate",
         "CARGO_PKG_NAME": "wasm-streams",
         "CARGO_PKG_VERSION": "0.5.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17687,6 +18255,7 @@ cargo.rust_library(
     crate_root = "wasm_split_helpers-0.2.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm_split_helpers-0.2.1.crate",
         "CARGO_PKG_NAME": "wasm_split_helpers",
         "CARGO_PKG_VERSION": "0.2.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17716,6 +18285,7 @@ cargo.rust_library(
     crate_root = "wasm_split_macros-0.2.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "wasm_split_macros-0.2.1.crate",
         "CARGO_PKG_NAME": "wasm_split_macros",
         "CARGO_PKG_VERSION": "0.2.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17754,6 +18324,7 @@ cargo.rust_library(
     crate_root = "web-sys-0.3.98.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "web-sys-0.3.98.crate",
         "CARGO_PKG_NAME": "web-sys",
         "CARGO_PKG_VERSION": "0.3.98",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17947,6 +18518,7 @@ cargo.rust_library(
     crate_root = "webauthn-attestation-ca-0.5.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "webauthn-attestation-ca-0.5.5.crate",
         "CARGO_PKG_NAME": "webauthn-attestation-ca",
         "CARGO_PKG_VERSION": "0.5.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -17974,6 +18546,7 @@ cargo.rust_binary(
     crate_root = "webauthn-attestation-ca-0.5.5.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "webauthn-attestation-ca-0.5.5.crate",
         "CARGO_PKG_NAME": "webauthn-attestation-ca",
         "CARGO_PKG_VERSION": "0.5.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18019,6 +18592,7 @@ cargo.rust_library(
     crate_root = "webauthn-rs-0.5.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "webauthn-rs-0.5.5.crate",
         "CARGO_PKG_NAME": "webauthn-rs",
         "CARGO_PKG_VERSION": "0.5.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18057,6 +18631,7 @@ cargo.rust_library(
     crate_root = "webauthn-rs-core-0.5.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "webauthn-rs-core-0.5.5.crate",
         "CARGO_PKG_NAME": "webauthn-rs-core",
         "CARGO_PKG_VERSION": "0.5.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18098,6 +18673,7 @@ cargo.rust_binary(
     crate_root = "webauthn-rs-core-0.5.5.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "webauthn-rs-core-0.5.5.crate",
         "CARGO_PKG_NAME": "webauthn-rs-core",
         "CARGO_PKG_VERSION": "0.5.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18139,6 +18715,7 @@ cargo.rust_library(
     crate_root = "webauthn-rs-proto-0.5.5.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "webauthn-rs-proto-0.5.5.crate",
         "CARGO_PKG_NAME": "webauthn-rs-proto",
         "CARGO_PKG_VERSION": "0.5.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18172,6 +18749,7 @@ cargo.rust_library(
     crate_root = "webpki-roots-0.26.11.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "webpki-roots-0.26.11.crate",
         "CARGO_PKG_NAME": "webpki-roots",
         "CARGO_PKG_VERSION": "0.26.11",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18200,6 +18778,7 @@ cargo.rust_library(
     crate_root = "webpki-roots-1.0.7.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "webpki-roots-1.0.7.crate",
         "CARGO_PKG_NAME": "webpki-roots",
         "CARGO_PKG_VERSION": "1.0.7",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -18228,6 +18807,7 @@ cargo.rust_library(
     crate_root = "whoami-1.6.1.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "whoami-1.6.1.crate",
         "CARGO_PKG_NAME": "whoami",
         "CARGO_PKG_VERSION": "1.6.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -18253,6 +18833,7 @@ cargo.rust_library(
     crate_root = "winapi-util-0.1.11.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "winapi-util-0.1.11.crate",
         "CARGO_PKG_NAME": "winapi-util",
         "CARGO_PKG_VERSION": "0.1.11",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18279,6 +18860,7 @@ cargo.rust_library(
     crate_root = "windows-link-0.2.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "windows-link-0.2.1.crate",
         "CARGO_PKG_NAME": "windows-link",
         "CARGO_PKG_VERSION": "0.2.1",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18304,6 +18886,7 @@ cargo.rust_library(
     crate_root = "windows-sys-0.48.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "windows-sys-0.48.0.crate",
         "CARGO_PKG_NAME": "windows-sys",
         "CARGO_PKG_VERSION": "0.48.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18337,6 +18920,7 @@ cargo.rust_library(
     crate_root = "windows-sys-0.61.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "windows-sys-0.61.2.crate",
         "CARGO_PKG_NAME": "windows-sys",
         "CARGO_PKG_VERSION": "0.61.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18396,6 +18980,7 @@ cargo.rust_library(
     crate_root = "windows-targets-0.48.5.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "windows-targets-0.48.5.crate",
         "CARGO_PKG_NAME": "windows-targets",
         "CARGO_PKG_VERSION": "0.48.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18429,6 +19014,7 @@ cargo.rust_library(
     crate_root = "windows_x86_64_gnu-0.48.5.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "windows_x86_64_gnu-0.48.5.crate",
         "CARGO_PKG_NAME": "windows_x86_64_gnu",
         "CARGO_PKG_VERSION": "0.48.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18454,6 +19040,7 @@ cargo.rust_library(
     crate_root = "windows_x86_64_msvc-0.48.5.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "windows_x86_64_msvc-0.48.5.crate",
         "CARGO_PKG_NAME": "windows_x86_64_msvc",
         "CARGO_PKG_VERSION": "0.48.5",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18479,6 +19066,7 @@ cargo.rust_library(
     crate_root = "winnow-0.7.15.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "winnow-0.7.15.crate",
         "CARGO_PKG_NAME": "winnow",
         "CARGO_PKG_VERSION": "0.7.15",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18509,6 +19097,7 @@ cargo.rust_library(
     crate_root = "winnow-1.0.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "winnow-1.0.3.crate",
         "CARGO_PKG_NAME": "winnow",
         "CARGO_PKG_VERSION": "1.0.3",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -18542,6 +19131,7 @@ cargo.rust_library(
     crate_root = "writeable-0.6.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "writeable-0.6.3.crate",
         "CARGO_PKG_NAME": "writeable",
         "CARGO_PKG_VERSION": "0.6.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18567,6 +19157,7 @@ cargo.rust_library(
     crate_root = "x509-parser-0.16.0.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "x509-parser-0.16.0.crate",
         "CARGO_PKG_NAME": "x509-parser",
         "CARGO_PKG_VERSION": "0.16.0",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18604,6 +19195,7 @@ cargo.rust_library(
     crate_root = "xxhash-rust-0.8.15.crate/src/lib.rs",
     edition = "2018",
     env = {
+        "CARGO_MANIFEST_DIR": "xxhash-rust-0.8.15.crate",
         "CARGO_PKG_NAME": "xxhash-rust",
         "CARGO_PKG_VERSION": "0.8.15",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18630,6 +19222,7 @@ cargo.rust_library(
     crate_root = "yansi-1.0.1.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "yansi-1.0.1.crate",
         "CARGO_PKG_NAME": "yansi",
         "CARGO_PKG_VERSION": "1.0.1",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -18660,6 +19253,7 @@ cargo.rust_library(
     crate_root = "yoke-0.8.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "yoke-0.8.2.crate",
         "CARGO_PKG_NAME": "yoke",
         "CARGO_PKG_VERSION": "0.8.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18694,6 +19288,7 @@ cargo.rust_library(
     crate_root = "yoke-derive-0.8.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "yoke-derive-0.8.2.crate",
         "CARGO_PKG_NAME": "yoke-derive",
         "CARGO_PKG_VERSION": "0.8.2",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18726,6 +19321,7 @@ cargo.rust_library(
     crate_root = "zerocopy-0.8.49.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zerocopy-0.8.49.crate",
         "CARGO_PKG_NAME": "zerocopy",
         "CARGO_PKG_VERSION": "0.8.49",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18751,6 +19347,7 @@ cargo.rust_binary(
     crate_root = "zerocopy-0.8.49.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zerocopy-0.8.49.crate",
         "CARGO_PKG_NAME": "zerocopy",
         "CARGO_PKG_VERSION": "0.8.49",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18799,6 +19396,7 @@ cargo.rust_library(
     crate_root = "zerocopy-derive-0.8.49.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zerocopy-derive-0.8.49.crate",
         "CARGO_PKG_NAME": "zerocopy-derive",
         "CARGO_PKG_VERSION": "0.8.49",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18830,6 +19428,7 @@ cargo.rust_library(
     crate_root = "zerofrom-0.1.8.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zerofrom-0.1.8.crate",
         "CARGO_PKG_NAME": "zerofrom",
         "CARGO_PKG_VERSION": "0.1.8",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18857,6 +19456,7 @@ cargo.rust_library(
     crate_root = "zerofrom-derive-0.1.7.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zerofrom-derive-0.1.7.crate",
         "CARGO_PKG_NAME": "zerofrom-derive",
         "CARGO_PKG_VERSION": "0.1.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18895,6 +19495,7 @@ cargo.rust_library(
     crate_root = "zeroize-1.8.2.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zeroize-1.8.2.crate",
         "CARGO_PKG_NAME": "zeroize",
         "CARGO_PKG_VERSION": "1.8.2",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -18926,6 +19527,7 @@ cargo.rust_library(
     crate_root = "zeroize_derive-1.4.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zeroize_derive-1.4.3.crate",
         "CARGO_PKG_NAME": "zeroize_derive",
         "CARGO_PKG_VERSION": "1.4.3",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -18957,6 +19559,7 @@ cargo.rust_library(
     crate_root = "zerotrie-0.2.4.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zerotrie-0.2.4.crate",
         "CARGO_PKG_NAME": "zerotrie",
         "CARGO_PKG_VERSION": "0.2.4",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -18991,6 +19594,7 @@ cargo.rust_library(
     crate_root = "zerovec-0.11.6.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zerovec-0.11.6.crate",
         "CARGO_PKG_NAME": "zerovec",
         "CARGO_PKG_VERSION": "0.11.6",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -19025,6 +19629,7 @@ cargo.rust_library(
     crate_root = "zerovec-derive-0.11.3.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zerovec-derive-0.11.3.crate",
         "CARGO_PKG_NAME": "zerovec-derive",
         "CARGO_PKG_VERSION": "0.11.3",
         "CARGO_PKG_VERSION_MAJOR": "0",
@@ -19056,6 +19661,7 @@ cargo.rust_library(
     crate_root = "zmij-1.0.21.crate/src/lib.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zmij-1.0.21.crate",
         "CARGO_PKG_NAME": "zmij",
         "CARGO_PKG_VERSION": "1.0.21",
         "CARGO_PKG_VERSION_MAJOR": "1",
@@ -19075,6 +19681,7 @@ cargo.rust_binary(
     crate_root = "zmij-1.0.21.crate/build.rs",
     edition = "2021",
     env = {
+        "CARGO_MANIFEST_DIR": "zmij-1.0.21.crate",
         "CARGO_PKG_NAME": "zmij",
         "CARGO_PKG_VERSION": "1.0.21",
         "CARGO_PKG_VERSION_MAJOR": "1",

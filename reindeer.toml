@@ -23,6 +23,7 @@ cargo_env = [
     "CARGO_PKG_VERSION_PATCH",
     "CARGO_PKG_VERSION_PRE",
     "CARGO_MANIFEST_LINKS",
+    "CARGO_MANIFEST_DIR",
 ]
 
 [buck]
