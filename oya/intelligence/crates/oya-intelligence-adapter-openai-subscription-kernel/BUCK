@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-intelligence-adapter-openai-subscription-kernel",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
     crate = "oya_intelligence_adapter_openai_subscription_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
