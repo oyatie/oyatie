@@ -14,4 +14,6 @@ env = { CARGO_PKG_VERSION = "0.41.0", CARGO_PKG_VERSION_MAJOR = "0", CARGO_PKG_V
 # and cargo:rustc-link-search=native=<OUT_DIR> so the native C lib links at binary link time.
 rustc_link_lib = true
 rustc_link_search = true
-env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }
+# No per-OS CC/AR — prelude injects target-correct CC/CXX/AR from the cxx toolchain.
+# aws-lc-sys non-FIPS needs no perl/cmake/bindgen (pregenerated bindings + build files).
+env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release" }
