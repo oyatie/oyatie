@@ -19,7 +19,7 @@ buildscript_run(
 
 rust_library(
     name = "oya-identity-workload-rest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"], allow_empty = True),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_identity_workload_rest",
     crate_root = "src/lib.rs",
     env = {"OUT_DIR": "$(location :oya-identity-workload-rest-build-script-run[out_dir])"},
