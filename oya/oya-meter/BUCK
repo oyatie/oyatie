@@ -1,44 +1,10 @@
 # oya-meter Buck2 build targets (placeholder — ADR-0479)
-# Full targets wired when crate implementations land per D1-D5.
-
-rust_library(
-    name = "oya-meter-kernel",
-    srcs = glob(["crates/oya-meter-kernel/src/**/*.rs"]),
-    crate_root = "crates/oya-meter-kernel/src/lib.rs",
-    visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "oya-meter-rest",
-    srcs = glob(["crates/oya-meter-rest/src/**/*.rs"]),
-    crate_root = "crates/oya-meter-rest/src/lib.rs",
-    deps = [":oya-meter-kernel"],
-    visibility = ["PUBLIC"],
-)
-
-rust_binary(
-    name = "oya-meter-app",
-    srcs = glob(["crates/oya-meter-app/src/**/*.rs"]),
-    crate_root = "crates/oya-meter-app/src/main.rs",
-    deps = [
-        ":oya-meter-kernel",
-        ":oya-meter-rest",
-    ],
-    visibility = ["PUBLIC"],
-)
-
-# Convenience aliases
-alias(
-    name = "check",
-    actual = ":oya-meter-app",
-)
-
-alias(
-    name = "test",
-    actual = ":oya-meter-kernel",
-)
-
-alias(
-    name = "image",
-    actual = ":oya-meter-app",
-)
+#
+# No buildable targets yet: the crate implementations (oya-meter-kernel/-rest/-app)
+# have NOT landed (pending D1-D5), so there is no crates/ source to compile. The
+# previous hand-written rust_library/rust_binary targets globbed non-existent
+# crates/**/*.rs, which fails `buck2 build` with "crate has no srcs".
+#
+# When the implementations land, the generator (scripts/gen_first_party_buck.py)
+# emits the real rust_library/rust_binary targets from cargo metadata, as for every
+# other crate. Until then this package intentionally declares no targets.
