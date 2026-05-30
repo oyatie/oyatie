@@ -1,9 +1,7 @@
-# openssl-sys: VENDORED (builds OpenSSL from bundled source via the toolchain cc) —
-# hermetic + cross-platform, no system libssl / homebrew OPENSSL_DIR / pkg-config.
-# Needs perl + make at build time (provided by the agent image, not per-crate env).
+# openssl-sys: probes system OpenSSL via pkg-config. The worker IMAGE provides
+# libssl-dev + pkg-config (platform-hermetic — the controlled image IS the pinned
+# unit; no homebrew OPENSSL_DIR, no vendored/perl, no per-host install).
 # Sourced transitively from webauthn-rs (FIDO2 attestation X.509).
-features = ["vendored"]
-
 [buildscript.build]
 # openssl-sys find_normal.rs uses env!("CARGO_PKG_VERSION") at const time.
 env = { CARGO_PKG_VERSION = "0.9.116", CARGO_PKG_VERSION_MAJOR = "0", CARGO_PKG_VERSION_MINOR = "9", CARGO_PKG_VERSION_PATCH = "116", CARGO_PKG_VERSION_PRE = "", CARGO_PKG_NAME = "openssl-sys" }

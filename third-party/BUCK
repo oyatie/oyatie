@@ -1129,6 +1129,11 @@ buildscript_run(
         "CARGO_PKG_VERSION_MINOR": "17",
         "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
+        # DEP_* propagated from aws-lc-sys (links = "aws_lc_0_41_0") — reindeer
+        # cannot emit the $(location) macro, so it is injected post-buckify.
+        "DEP_AWS_LC_0_41_0_INCLUDE": "$(location :aws-lc-sys-0.41-build-script-main-run[out_dir])/include",
+        "DEP_AWS_LC_0_41_0_LIBCRYPTO": "aws_lc_0_41_0_crypto",
+        "CARGO_FEATURE_AWS_LC_SYS": "1",
     },
     features = [
         "alloc",
@@ -9467,7 +9472,6 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
         "OUT_DIR": "$(location :openssl-sys-0.9-build-script-main-run[out_dir])",
     },
-    features = ["vendored"],
     rustc_flags = ["@$(location :openssl-sys-0.9-build-script-main-run[rustc_flags])"],
     visibility = [],
     deps = [":libc-0.2"],
@@ -9488,7 +9492,6 @@ cargo.rust_binary(
         "CARGO_PKG_VERSION_PATCH": "116",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["vendored"],
     visibility = [],
     deps = [
         ":cc-1",
@@ -9511,7 +9514,6 @@ buildscript_run(
         "OPT_LEVEL": "3",
         "PROFILE": "release",
     },
-    features = ["vendored"],
     version = "0.9.116",
 )
 
