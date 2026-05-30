@@ -14,17 +14,24 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Extract file path from tool input
+# Extract file path from tool input.
+# WHY the .tool_input.* keys: real Claude Code (and Codex) deliver hook input as a
+# JSON object on STDIN with the path nested under tool_input (PostToolUse shape:
+# {"tool_input":{"file_path":"..."}}) — confirmed by code.claude.com/docs hooks
+# reference + developers.openai.com/codex/hooks (both: "all hooks receive JSON on
+# stdin; no env var carries the event data"). The flat .path/.file_path keys are
+# retained for the TOOL_INPUT env path used only by the CI governance harness
+# (tools/governance/adr-0221-governance-gates.sh), so both surfaces keep working.
 FILE_PATH=""
 if [ -n "${TOOL_INPUT:-}" ]; then
     if command -v jq >/dev/null 2>&1; then
-        FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.path // .file_path // ""' 2>/dev/null || echo "")
+        FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.tool_input.file_path // .tool_input.path // .path // .file_path // ""' 2>/dev/null || echo "")
     fi
 fi
 if [ -z "$FILE_PATH" ] && [ ! -t 0 ]; then
     STDIN_CONTENT=$(cat 2>/dev/null || true)
     if command -v jq >/dev/null 2>&1; then
-        FILE_PATH=$(echo "$STDIN_CONTENT" | jq -r '.path // .file_path // ""' 2>/dev/null || echo "$STDIN_CONTENT")
+        FILE_PATH=$(echo "$STDIN_CONTENT" | jq -r '.tool_input.file_path // .tool_input.path // .path // .file_path // ""' 2>/dev/null || echo "$STDIN_CONTENT")
     else
         FILE_PATH="$STDIN_CONTENT"
     fi
