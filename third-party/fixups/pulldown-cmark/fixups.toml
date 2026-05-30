@@ -1,0 +1,4 @@
+[buildscript]
+# Generates test files only when feature="gen-tests" is active (not enabled here).
+# Without that feature the build script is a complete noop.
+run = true

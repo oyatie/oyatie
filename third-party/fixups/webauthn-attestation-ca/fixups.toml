@@ -1,0 +1,4 @@
+[buildscript]
+# Reads DEP_OPENSSL_VERSION_NUMBER from openssl-sys to verify OpenSSL >= 3.0.
+# Panics if the version is too old. run=true required.
+run = true

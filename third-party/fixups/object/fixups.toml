@@ -1,0 +1,3 @@
+[buildscript]
+# Pure rustc version probe — emits cfg(core_error) for rustc >= 1.81.
+run = true

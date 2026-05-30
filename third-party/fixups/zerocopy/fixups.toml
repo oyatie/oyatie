@@ -1,0 +1,3 @@
+[buildscript]
+# Pure cfg-detection build script — runs rustc version/feature probes only, no native compilation.
+run = true
