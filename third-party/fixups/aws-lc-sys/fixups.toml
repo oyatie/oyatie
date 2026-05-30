@@ -10,4 +10,8 @@ env = { CARGO_PKG_VERSION = "0.41.0", CARGO_PKG_VERSION_MAJOR = "0", CARGO_PKG_V
 [buildscript.run]
 # cc-rs requires OPT_LEVEL; Buck2 buildscript_run only injects it when the toolchain
 # has an explicit -Copt-level= flag (system_rust_toolchain does not).
+# rustc_link_lib/rustc_link_search capture cargo:rustc-link-lib=static=aws_lc_0_41_0_crypto
+# and cargo:rustc-link-search=native=<OUT_DIR> so the native C lib links at binary link time.
+rustc_link_lib = true
+rustc_link_search = true
 env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", "CC_aarch64-apple-darwin" = "/usr/bin/clang", "AR_aarch64-apple-darwin" = "/usr/bin/ar" }
