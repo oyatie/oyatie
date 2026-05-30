@@ -68,13 +68,9 @@ pipeline {
         sh '''
           set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
           cd "${WORKSPACE}"
-          # buck2 stores its daemon state under $HOME/.buck; the pod runs as UID 1000
-          # with HOME=/ (root, unwritable). Point HOME at a writable dir OUTSIDE the
-          # repo (inside the repo, .buck interferes with buck2 project-root detection).
-          export HOME=/tmp/buck2-home && mkdir -p "$HOME"
-          # buck2-native affected gate: build+test the reverse-dep closure of the
-          # PR's changed files (owner() + rdeps), via the hermetic toolchain cell.
-          # No cargo, no oya-dev-cli. buck2 is provided by the rust-ci image.
+          # buck2-native affected gate: build+test the reverse-dep closure of the PR's
+          # changed files (owner() + rdeps). The rust-ci pod template provides a
+          # buck2-native env (writable HOME; no cargo/sccache wrapper). No oya-dev-cli.
           sh infra/ci/buck2-affected-gate.sh origin/dev
         '''
       }
