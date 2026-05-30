@@ -13,7 +13,16 @@ set -eu
 BASE="${1:-origin/dev}"
 BUCK2="${BUCK2:-buck2}"
 
-MERGE_BASE=$(git merge-base HEAD "$BASE")
+echo "buck2-affected-gate: start (pwd=$(pwd) base=$BASE head=$(git rev-parse --short HEAD 2>&1))"
+if ! git rev-parse --verify --quiet "$BASE" >/dev/null 2>&1; then
+  echo "buck2-affected-gate: FATAL base ref '$BASE' does not resolve in this checkout"
+  echo "  remotes: $(git remote 2>&1)  | refs: $(git for-each-ref --format='%(refname)' refs/remotes 2>&1 | paste -sd' ' -)"
+  exit 1
+fi
+if ! MERGE_BASE=$(git merge-base HEAD "$BASE" 2>&1); then
+  echo "buck2-affected-gate: FATAL merge-base HEAD $BASE: $MERGE_BASE"
+  exit 1
+fi
 CHANGED=$(git diff --name-only "$MERGE_BASE" HEAD)
 if [ -z "$CHANGED" ]; then
   echo "buck2-affected-gate: no changed files vs $BASE -> PASS"
