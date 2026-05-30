@@ -10,7 +10,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-billing",
+    name = "oya-billing-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],

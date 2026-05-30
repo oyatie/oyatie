@@ -13,7 +13,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-intelligence-pr-review-dispatcher-app",
+    name = "oya-intelligence-pr-review-dispatcher-app-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],

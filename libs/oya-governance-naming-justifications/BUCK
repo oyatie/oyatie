@@ -15,7 +15,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-governance-naming-justifications",
+    name = "oya-governance-naming-justifications-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/cli.rs",
     visibility = ["PUBLIC"],

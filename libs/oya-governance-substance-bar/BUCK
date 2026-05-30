@@ -14,7 +14,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-governance-substance-bar",
+    name = "oya-governance-substance-bar-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/cli.rs",
     visibility = ["PUBLIC"],

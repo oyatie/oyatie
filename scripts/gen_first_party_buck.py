@@ -289,6 +289,13 @@ def generate_buck_content(
     # Bin targets
     for bt in bin_targets:
         bin_name = bt["name"]
+        # Avoid name collision with the lib target (lib uses pkg name with dashes,
+        # bin target may also use pkg name). Append -bin suffix when they clash.
+        if lib_target and bin_name == name:
+            buck_bin_name = f"{bin_name}-bin"
+        else:
+            buck_bin_name = bin_name
+
         src_file = bt.get("src_path", "")
         if src_file:
             bin_crate_root = os.path.relpath(src_file, str(pkg_dir))
@@ -299,7 +306,7 @@ def generate_buck_content(
             lines.append("")
 
         lines.append(f"rust_binary(")
-        lines.append(f'    name = "{bin_name}",')
+        lines.append(f'    name = "{buck_bin_name}",')
         lines.append(f'    srcs = glob(["src/**/*.rs"]),')
         lines.append(f'    crate_root = "{bin_crate_root}",')
         if edition != "2024":
