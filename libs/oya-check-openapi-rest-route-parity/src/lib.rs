@@ -1,7 +1,7 @@
 //! OpenAPI ↔ REST route parity validator.
 //!
 //! Closes drift between:
-//!   - `_ROUTE: &str = "..."` constants in `crates/oya-ops-*-rest/src/lib.rs`
+//!   - `_ROUTE: &str = "..."` constants in `oya/ops/crates/oya-ops-*-rest/src/lib.rs`
 //!   - `paths:` keys in `contracts/*.openapi.yaml`
 //!
 //! Without this, the comment "Routes here MUST stay 1:1 with paths in

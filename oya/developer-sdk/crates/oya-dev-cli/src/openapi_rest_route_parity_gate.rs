@@ -26,9 +26,9 @@ pub(crate) fn parse_openapi_rest_route_parity_validate_args(
     args: Vec<String>,
 ) -> Result<OpenapiRestRouteParityValidateArgs, String> {
     let mut parsed = OpenapiRestRouteParityValidateArgs {
-        crates_dir: PathBuf::from("crates"),
+        crates_dir: PathBuf::from("oya/ops/crates"),
         contracts_dir: PathBuf::from("contracts"),
-        // Default scope: ops slice only. Other µservices (audit-chain,
+        // Default scope: active ops slice only. Other µservices (audit-chain,
         // eventing, secrets, ...) opt into parity via their own gate
         // invocation with a different prefix until the drift across the
         // parallel session is stabilised.
@@ -300,7 +300,7 @@ mod tests {
     #[test]
     fn parse_args_defaults() {
         let args = parse_openapi_rest_route_parity_validate_args(vec![]).unwrap();
-        assert_eq!(args.crates_dir, PathBuf::from("crates"));
+        assert_eq!(args.crates_dir, PathBuf::from("oya/ops/crates"));
         assert_eq!(args.contracts_dir, PathBuf::from("contracts"));
     }
 

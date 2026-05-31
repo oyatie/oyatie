@@ -1,0 +1,37 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "openapi-rest-route-parity-active-ops-crates-1780188763",
+  "change_class_id": "CC-2",
+  "freshness_unix": 1780188763,
+  "timestamp_iso": "2026-05-31T00:52:43Z",
+  "agent_id": "codex-openapi-route-parity",
+  "base_git_sha": "a7e9b4072",
+  "scope": [
+    "oya/developer-sdk/crates/oya-dev-cli/src/openapi_rest_route_parity_gate.rs",
+    "libs/oya-check-openapi-rest-route-parity/src/lib.rs"
+  ],
+  "summary": "Aligns the route-parity gate default REST crate scan root with the active ops REST crates under oya/ops/crates.",
+  "adr_handling": {
+    "policy": "Decision records were treated as status-bound authority; no ADR index, mirror, or projection was edited.",
+    "current_strategy": "This is a CI gate repair before scaled fanout; it does not change the later intelligence provider-pool kernel plan."
+  },
+  "verification": [
+    {
+      "command": "./bin/oya gate validate openapi-rest-route-parity",
+      "result": "pass; 6 REST routes matched 6 OpenAPI paths"
+    },
+    {
+      "command": "cargo test -p oya-check-openapi-rest-route-parity -p oya-dev-cli openapi_rest_route_parity -- --nocapture",
+      "result": "pass; unit and CLI route-parity tests passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    }
+  ],
+  "nonclaims": [
+    "No OpenAPI contract path changed in this lane.",
+    "No REST handler behavior changed in this lane.",
+    "No provider pool behavior changed in this lane."
+  ]
+}
