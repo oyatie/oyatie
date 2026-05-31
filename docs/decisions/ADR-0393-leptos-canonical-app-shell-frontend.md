@@ -16,7 +16,7 @@ related_specs:
 milestone: M-APP-SHELL-FRONTEND
 depends_on: []
 door: two-way
-numbering_note: "decisions.json next_adr is ADR-0392, but ADR-0392 and ADR-0408 are already allocated out-of-band by the Buck2 build/CI reversal lane (branch feat/adr-0392-0408-buck2-reversal-2026-05-29, not yet merged to dev). To avoid a number collision this ADR is deliberately allocated ADR-0393 (the next clean number after the Buck2 ADR-0392 allocation) and its sibling is ADR-0394. The numbering gaps ADR-0377..ADR-0391 and ADR-0395..ADR-0407 are left open and are NOT claimed by this lane; the ADR index will record ADR-0393/ADR-0394 as non-contiguous allocations alongside the existing documented gaps and the Buck2 ADR-0392/ADR-0408 allocations."
+numbering_note: "decisions.json next_adr is ADR-0392, but ADR-0392 and ADR-0408 are already allocated out-of-band by the Buck2 build/CI reversal lane (branch feat/adr-0392-0408-buck2-reversal-2026-05-29, not yet merged to dev). To avoid a number collision this ADR is deliberately allocated ADR-0393 (the next clean number after the Buck2 ADR-0392 allocation) and its sibling is ADR-0394. The numbering gaps ADR-0377..ADR-0391 and ADR numbers 0395..0407 are left open and are NOT claimed by this lane; the ADR index will record ADR-0393/ADR-0394 as non-contiguous allocations alongside the existing documented gaps and the Buck2 ADR-0392/ADR-0408 allocations."
 affected_surfaces:
   crates: [oya-application-shell-frontend-prototype, oya-ops-workspace-shell-rest, oya-ops-workspace-shell-app]
   microservices: [app-shell-frontend]

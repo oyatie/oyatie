@@ -9,7 +9,7 @@ doctrine_meta: true
 owner: founder
 supersedes: []
 superseded_by: []
-related: [ADR-0388, ADR-0392, ADR-0409, ADR-0434, ADR-0451, ADR-0474, ADR-0475, ADR-0476, ADR-0477, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0483, ADR-0484, ADR-0506, ADR-0507, ADR-0508]
+related: [ADR-0388, ADR-0392, ADR-0476, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0506, ADR-0507, ADR-0508]
 amended_by: [kubers-anchor-2026-05-28]
 door: one-way
 milestone: M-BESPOKE-ROADMAP
@@ -51,41 +51,41 @@ granularity. No hard-deadline cutover — quality gates only.
 
 | Bespoke | Supersedes OSS | Bridge during Phase-1 | Cutover criteria |
 |---|---|---|---|
-| oya-vcs (ADR-0409) | Forgejo (ADR-0363) | Parallel-run; tenant opt-in per repo | Feature parity per-feature gates |
-| Rust-native portal (ADR-0434) | Backstage (ADR-0410) | Backstage Catalog YAML spec retained | Same |
-| oya-notify (ADR-0451) | Postal/Haraka alternatives | None — bespoke from day 1 | N/A |
-| oya-errors (ADR-0474) | GlitchTip (ADR-0466) | Phase-1 GlitchTip ingest endpoint | Sentry SDK protocol parity |
-| oya-status (ADR-0475) | Gatus (ADR-0468) | Gatus runs parallel | OpenSLO/Mimir integration parity |
-| oya-identity (ADR-0476) | Keycloak (ADR-0421) | Keycloak parallel-run | Feature parity: OIDC+OAuth2.0+WebAuthn+IdP federation+MFA |
-| oya-code-search (ADR-0477) | Sourcegraph (ADR-0448) | Sourcegraph parallel-run | SCIP indexing + cross-references parity |
-| oya-billing (ADR-0478) | Lago (ADR-0457) | Lago parallel-run; tenant opt-in | Plans + subscriptions + invoicing + payments parity |
-| oya-meter (ADR-0479) | OpenMeter (ADR-0429) | OpenMeter parallel-run | Event ingest + meter aggregation parity |
-| oya-cost (ADR-0480) | OpenCost (ADR-0443) | OpenCost parallel-run | K8s allocation parity |
-| oya-flags (ADR-0481) | flagd (ADR-0428 OpenFeature backing) | flagd parallel-run | OpenFeature protocol compat parity |
+| oya-vcs (oya-vcs roadmap plan) | Forgejo (ADR-0363) | Parallel-run; tenant opt-in per repo | Feature parity per-feature gates |
+| Rust-native portal (Rust-native portal plan) | Backstage (Backstage bridge plan) | Backstage Catalog YAML spec retained | Same |
+| oya-notify (oya-notify plan) | Postal/Haraka alternatives | None — bespoke from day 1 | N/A |
+| oya-errors (oya-errors plan) | GlitchTip (GlitchTip bridge plan) | Phase-1 GlitchTip ingest endpoint | Sentry SDK protocol parity |
+| oya-status (oya-status plan) | Gatus (Gatus bridge plan) | Gatus runs parallel | OpenSLO/Mimir integration parity |
+| oya-identity (ADR-0476) | Keycloak (Phase-1 bridge plan) | Keycloak parallel-run | Feature parity: OIDC+OAuth2.0+WebAuthn+IdP federation+MFA |
+| oya-code-search (oya-code-search plan) | Sourcegraph (Sourcegraph bridge plan) | Sourcegraph parallel-run | SCIP indexing + cross-references parity |
+| oya-billing (ADR-0478) | Lago (Lago Phase-1 plan) | Lago parallel-run; tenant opt-in | Plans + subscriptions + invoicing + payments parity |
+| oya-meter (ADR-0479) | OpenMeter (Phase-1 bridge plan) | OpenMeter parallel-run | Event ingest + meter aggregation parity |
+| oya-cost (ADR-0480) | OpenCost Phase-1 plan | OpenCost parallel-run | K8s allocation parity |
+| oya-flags (ADR-0481) | flagd (OpenFeature backing plan) | flagd parallel-run | OpenFeature protocol compat parity |
 
 ### Tier 2 — 12 → 24 months (mid-term bespoke)
 
 | Bespoke | Supersedes | Bridge | Cutover |
 |---|---|---|---|
-| oya-oncall | Grafana OnCall (ADR-0450) | Grafana OnCall parallel | IRM bundle UX parity |
-| oya-ml | MLflow (ADR-0459) | MLflow parallel; Python compat shim | Experiment + model registry parity |
-| oya-prompt-eval | Promptfoo (ADR-0460) | Promptfoo parallel | LLM eval framework parity |
-| oya-realtime | Centrifugo (ADR-0472) | Centrifugo parallel | WebSocket + presence + multiplexing parity |
-| oya-admin | AppSmith (ADR-0473) | AppSmith parallel | Retool-pattern low-code parity |
-| oya-waf | Coraza (ADR-0454) | Coraza CRS rules compat layer | OWASP CRS evaluation parity |
-| oya-pipelines | Apache Airflow (ADR-0458) | Airflow parallel; DAG compat shim | DAG orchestration parity |
+| oya-oncall | Grafana OnCall (Grafana OnCall bridge plan) | Grafana OnCall parallel | IRM bundle UX parity |
+| oya-ml | MLflow (MLflow bridge plan) | MLflow parallel; Python compat shim | Experiment + model registry parity |
+| oya-prompt-eval | Promptfoo (Promptfoo bridge plan) | Promptfoo parallel | LLM eval framework parity |
+| oya-realtime | Centrifugo (Centrifugo bridge plan) | Centrifugo parallel | WebSocket + presence + multiplexing parity |
+| oya-admin | AppSmith (AppSmith bridge plan) | AppSmith parallel | Retool-pattern low-code parity |
+| oya-waf | Coraza (Coraza WAF bridge plan) | Coraza CRS rules compat layer | OWASP CRS evaluation parity |
+| oya-pipelines | Apache Airflow (Airflow bridge plan) | Airflow parallel; DAG compat shim | DAG orchestration parity |
 | oya-webauthn | webauthn-rs (ADR-0507) | webauthn-rs parallel; MPL-2.0 bridge | Parity table green (ADR-0507) + oya-identity Phase-2 promotion gate |
 
 ### Tier 3 — 24 → 60 months (substrate-level bespoke)
 
 | Bespoke | Supersedes | Bridge | Cutover |
 |---|---|---|---|
-| oya-events | Apache Pulsar (ADR-0397) | Pulsar parallel-run; protocol-compat ingress | Multi-tenant durable event bus parity at FAANG scale |
-| oya-search | OpenSearch (ADR-0419) | OpenSearch parallel; Quickwit-rs hybrid | Full-text + analytics search parity |
-| oya-workflow | Temporal (ADR-0399) | Temporal parallel; SDK shim | Durable execution parity |
-| oya-graph | JanusGraph (ADR-0462) | JanusGraph parallel; TinkerPop compat | Distributed graph parity |
-| oya-wide-column | Cassandra (ADR-0461) | Cassandra parallel | Wide-column NoSQL parity |
-| oya-lakehouse | Iceberg+Lakekeeper (ADR-0413) | Iceberg format compat | Table format parity |
+| oya-events | Apache Pulsar (Pulsar 4.x + Oxia substrate plan) | Pulsar parallel-run; protocol-compat ingress | Multi-tenant durable event bus parity at FAANG scale |
+| oya-search | OpenSearch (OpenSearch bridge plan) | OpenSearch parallel; Quickwit-rs hybrid | Full-text + analytics search parity |
+| oya-workflow | Temporal (Temporal workflow bridge plan) | Temporal parallel; SDK shim | Durable execution parity |
+| oya-graph | JanusGraph (JanusGraph bridge plan) | JanusGraph parallel; TinkerPop compat | Distributed graph parity |
+| oya-wide-column | Cassandra (Cassandra bridge plan) | Cassandra parallel | Wide-column NoSQL parity |
+| oya-lakehouse | Iceberg+Lakekeeper (Iceberg/Lakekeeper lakehouse plan) | Iceberg format compat | Table format parity |
 | oya-clickhouse | ClickHouse (ADR-0193) | ClickHouse parallel | OLAP query engine parity |
 | oya-authn-device (ADR-0508) | OpenSK (Phase-1 reference firmware per ADR-0508) | OpenSK vendored at `tools/opensk-vendored/`; nRF52840 dev dongle for engineers | Tier-3 hardware-readiness + parity-table-green (ADR-0508) + first manufacturing run validated + OpenTitan port verified; cross-ref: oya-webauthn (Tier-2 RP partner, ADR-0507) + oya-crypto (Tier-4 crypto primitive, ADR-0506) |
 
@@ -93,7 +93,7 @@ granularity. No hard-deadline cutover — quality gates only.
 
 | Bespoke | Supersedes | Bridge | Cutover |
 |---|---|---|---|
-| oya-os (ADR-0483) | Talos Linux (ADR-0378, ADR-0382) | Talos parallel for years | Linux capability parity (eBPF, containers, K8s) + Rust microkernel migration |
+| oya-os (oya-os plan) | Talos Linux (ADR-0378, ADR-0382) | Talos parallel for years | Linux capability parity (eBPF, containers, K8s) + Rust microkernel migration |
 | oya-kernel | Linux kernel | Linux substrate underneath; gradual driver migration | POSIX + Linux ABI compat + Rust-native kernel components |
 | oya-hypervisor | KVM/Firecracker/cloud-hypervisor | KVM parallel | TEE + nested virt parity |
 | oya-runtime | containerd | containerd parallel; OCI spec compat | Container runtime parity |
@@ -135,12 +135,12 @@ field when it does not yet exist.
 
 - All future component ADRs must identify their tier placement and bridge strategy.
 - Bridge ADRs (OSS adoptions) must carry `bespoke_replacement_planned: true` in frontmatter.
-- Tier 4 work (oya-os, oya-kernel) is governed by ADR-0483.
+- Tier 4 work (oya-os, oya-kernel) is governed by oya-os plan.
 - No OSS bridge is retired without the corresponding bespoke component passing its parity gate.
 
 ## Amendment (2026-05-28, kubers active development)
 
-**Tier mapping correction**: My original Tier-4 (kernel+OS at 60+ months) was wrong. kubers (`/Users/jasonlee/Developer/kubers`) is being actively built — bespoke Rust translation of Kubernetes + Talos userspace per ADR-0484 + memory `kubers-canonical-substrate`.
+**Tier mapping correction**: My original Tier-4 (kernel+OS at 60+ months) was wrong. kubers (`/Users/jasonlee/Developer/kubers`) is being actively built — bespoke Rust translation of Kubernetes + Talos userspace per kubers anchor plan + memory `kubers-canonical-substrate`.
 
 **Corrected Tier mapping**:
 
@@ -157,9 +157,9 @@ field when it does not yet exist.
 
 **HYPERSCALER_READINESS gate #8** explicitly names `/Users/jasonlee/Developer/source` adoption as required integration target — oyatie IS the explicit kubers customer/integration product.
 
-**Source-side ADRs** that assumed upstream Kubernetes + containerd + Talos-userspace as eternal: amend to note kubers as canonical destination (in-flight). Particularly: ADR-0378 (Talos), ADR-0381 (BuildKit/containerd), ADR-0411 (Crossplane), ADR-0148/0433 (Cilium), all operator ADRs.
+**Source-side ADRs** that assumed upstream Kubernetes + containerd + Talos-userspace as eternal: amend to note kubers as canonical destination (in-flight). Particularly: ADR-0378 (Talos), ADR-0381 (BuildKit/containerd), Crossplane XR plan (Crossplane), ADR-0148/0433 (Cilium), all operator ADRs.
 
-See ADR-0484 for full kubers anchor.
+See kubers anchor plan for full kubers anchor.
 
 ## Amendment (2026-05-28, oya-authn-device Tier-3 + ADR-0508)
 

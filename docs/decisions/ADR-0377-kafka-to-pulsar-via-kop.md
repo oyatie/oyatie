@@ -8,7 +8,7 @@ owner: council-architecture
 planning_impact: true
 supersedes: [ADR-0005]
 superseded_by: []
-related: [ADR-0005, ADR-0195, ADR-0397, ADR-0436]
+related: [ADR-0005, ADR-0195]
 ---
 
 # ADR-0377 — Migrate Kafka to Pulsar via KoP wire-compat
@@ -19,7 +19,7 @@ Accepted — 2026-05-28.
 
 ## Context
 
-ADR-0005 (2022) picked Kafka as the canonical streaming/event backbone using the transactional-outbox pattern. ADR-0195 (2026-05-18) introduced Apache Pulsar with KoP (Kafka-on-Pulsar) wire-compat for the log/broker substrate. ADR-0397 (this session) then confirmed Pulsar 4.x + Oxia as the canonical event-bus, superseding any competing choice.
+ADR-0005 (2022) picked Kafka as the canonical streaming/event backbone using the transactional-outbox pattern. ADR-0195 (2026-05-18) introduced Apache Pulsar with KoP (Kafka-on-Pulsar) wire-compat for the log/broker substrate. The Pulsar 4.x + Oxia substrate plan then confirmed Pulsar 4.x + Oxia as the canonical event-bus, superseding any competing choice.
 
 This leaves standalone Kafka in an ambiguous state: it exists as deployed broker pods on the cluster but holds no canonical role. Two streaming substrates running in parallel wastes cluster footprint and splits operational context. This ADR resolves the ambiguity.
 
@@ -48,7 +48,7 @@ Research basis: `docs/research/kafka-reeval-2026-05-28.md`.
 
 ## Decision
 
-1. **Standalone Kafka is retired.** The cluster runs Pulsar 4.x + Oxia (per ADR-0397) as the sole canonical event-bus and log-broker substrate.
+1. **Standalone Kafka is retired.** The cluster runs Pulsar 4.x + Oxia (per the Pulsar 4.x + Oxia substrate plan) as the sole canonical event-bus and log-broker substrate.
 
 2. **KoP proxy fronts Pulsar for all Kafka clients.** The Kafka-on-Pulsar wire-compat layer provides a Kafka-protocol endpoint. Existing producers and consumers connect without any code changes. Kafka topics are mapped to Pulsar persistent topics under a `kafka/` tenant namespace.
 
@@ -100,6 +100,6 @@ Research basis: `docs/research/kafka-reeval-2026-05-28.md`.
 
 - ADR-0005 — Kafka canonical (eventing backbone + outbox pattern; superseded-in-part)
 - ADR-0195 — Pulsar log-broker substrate (introduced KoP)
-- ADR-0397 — Pulsar 4.x + Oxia canonical event-bus (confirms Pulsar as sole substrate)
-- ADR-0436 — RisingWave consumer (streaming analytics consumer; unaffected by this migration)
+- Pulsar 4.x + Oxia substrate plan — Pulsar 4.x + Oxia canonical event-bus (confirms Pulsar as sole substrate)
+- RisingWave consumer plan — RisingWave consumer (streaming analytics consumer; unaffected by this migration)
 - `docs/research/kafka-reeval-2026-05-28.md` — research basis for this decision

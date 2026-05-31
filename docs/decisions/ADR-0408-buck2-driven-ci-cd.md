@@ -16,7 +16,7 @@ related_specs:
 milestone: M-TOOLCHAIN
 depends_on: [ADR-0392, ADR-0359]
 door: two-way
-numbering_note: "decisions.json next_adr is ADR-0377; this ADR is deliberately allocated ADR-0408 (not the next-sequential number) to resolve the founder-assigned forward-reference for the Buck2 CI/CD reversal of the masterplan P-TOOLCHAIN CI step (sibling of ADR-0392). The numbering gaps ADR-0377..ADR-0391 and ADR-0393..ADR-0407 are left open and are NOT claimed by this lane; the ADR index will record ADR-0408 as a non-contiguous allocation alongside the existing documented gaps."
+numbering_note: "decisions.json next_adr is ADR-0377; this ADR is deliberately allocated ADR-0408 (not the next-sequential number) to resolve the founder-assigned forward-reference for the Buck2 CI/CD reversal of the masterplan P-TOOLCHAIN CI step (sibling of ADR-0392). The numbering gaps ADR-0377..ADR-0391 and ADR numbers 0393..0407 are left open and are NOT claimed by this lane; the ADR index will record ADR-0408 as a non-contiguous allocation alongside the existing documented gaps."
 affected_surfaces:
   crates: []
   microservices: []
