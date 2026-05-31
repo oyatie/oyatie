@@ -82,8 +82,13 @@ fi
 echo "buck2-affected-gate: $(printf '%s\n' "$OWNERS" | wc -l | tr -d ' ') owning target(s)"
 
 # Affected = changed targets + reverse-dep closure. rdeps error also FAILS closed.
-OWNER_SET=$(printf '%s\n' $OWNERS | paste -sd' ' -)
-if ! AFFECTED=$("$BUCK2" uquery "rdeps(//..., set($OWNER_SET))" 2>/tmp/rqerr); then
+# Pass owners via @argfile + the %Ss set placeholder, NOT an inline set(...): a change
+# to a large BUCK package (e.g. third-party/BUCK owns 1689 targets) overflows the inline
+# query string and buck2 errors out (uquery RC=3, no build attempted) — which silently
+# blocked landing ANY third-party change. @argfile + %Ss handles an arbitrary set size
+# (verified: 1689 owners -> 1919 affected). One owner per line.
+printf '%s\n' $OWNERS | sed '/^$/d' > /tmp/gate-owners.txt
+if ! AFFECTED=$("$BUCK2" uquery 'rdeps(//..., %Ss)' @/tmp/gate-owners.txt 2>/tmp/rqerr); then
   echo "buck2-affected-gate: FATAL rdeps query errored:"; sed 's/^/    /' /tmp/rqerr; exit 1
 fi
 N=$(printf '%s\n' "$AFFECTED" | sed '/^$/d' | wc -l | tr -d ' ')
