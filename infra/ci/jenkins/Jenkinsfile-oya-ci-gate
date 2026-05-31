@@ -84,7 +84,10 @@ pipeline {
             # buck2 output content. Patterns deliberately use no quotes/backslashes here, because
             # this whole block is inside a Groovy triple-single-quote string that processes escapes
             # (and a triple-quote in a comment would terminate it -- which is the bug this fixes).
-            SUM=$(grep -aE "Failed to build|Fail: root//" .gate-output.log 2>/dev/null | grep -aoE "root//[^ ]+" | head -2 | paste -sd' ' -)
+            SUM=$(grep -aE "Failed to build|Action failed:|Fail: root//" .gate-output.log 2>/dev/null | grep -aoE "root//[^ ]+" | head -2 | paste -sd' ' -)
+            # If no target named, surface the FIRST SUBSTANTIVE error (link/rustc), not the
+            # generic clang / --explain footer. Patterns avoid brackets/backslashes (Groovy escapes).
+            [ -z "${SUM}" ] && SUM=$(grep -aiE "undefined reference|undefined symbol|error: linking|ld: error|relocation|cannot find|aborting due to" .gate-output.log 2>/dev/null | grep -avE "For more information|--explain|warning:" | head -1)
             [ -z "${SUM}" ] && SUM=$(grep -aiE "error|panicked|Tests finished|TESTS FAILED" .gate-output.log 2>/dev/null | tail -1)
             printf '%s' "${SUM}" | tr -cd 'A-Za-z0-9 /:._-' | tr -s ' ' | cut -c1-200 > .gate-summary.txt
           fi
