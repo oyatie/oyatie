@@ -68,3 +68,5 @@ Jenkins-gate substrate (ADR-0380) and the external merge-queue spec it folds in 
 - Migration of the merge-queue: does Phase 2 retire ADR-0111's separate plan, or implement it?
 
 See [[ci-gate-pipeline-state]], [[affected-gated-migration-engine]] (the Sweep engine becomes a tide client), [[bespoke-over-oss-doctrine]], [[hyperscaler-lens-architectural-filter]].
+
+<!-- gate healthcheck 1e72f139e: verify oya-ci-gate parses+runs+resolves with post{aborted} bridge -->
