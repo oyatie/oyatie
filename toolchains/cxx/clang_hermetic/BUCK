@@ -1,0 +1,80 @@
+load(":defs.bzl", "hermetic_clang_distribution", "hermetic_clang_toolchain")
+
+# ---------------------------------------------------------------------------
+# LLVM 18.1.8 — aarch64-linux-gnu prebuilt binary release
+#
+# Source: https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8
+# Asset:  clang+llvm-18.1.8-aarch64-linux-gnu.tar.xz
+# SHA-256 verified via: sha256sum clang+llvm-18.1.8-aarch64-linux-gnu.tar.xz
+#
+# NOTE (CUT-1): The archive fetch is deferred — buck2 does not download until
+# a build action actually requires the output.  `buck2 cquery` resolves the
+# target graph without triggering the download.  The Linux link-proof (CUT-2)
+# is what actually exercises the fetch + link under the orchestrator.
+# ---------------------------------------------------------------------------
+http_archive(
+    name = "llvm-18-aarch64-linux",
+    sha256 = "4ac0e674c7b0c06a671274b4e4f366c44d4f15e64a9e7abc6a44c61a55d42d1e",
+    strip_prefix = "clang+llvm-18.1.8-aarch64-linux-gnu",
+    urls = [
+        "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-aarch64-linux-gnu.tar.xz",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Wrap the raw archive output into HermeticClangDistributionInfo so the
+# toolchain rule can reference individual binaries via provider fields.
+hermetic_clang_distribution(
+    name = "clang-dist-aarch64-linux",
+    dist = ":llvm-18-aarch64-linux",
+    prefix = "clang+llvm-18.1.8-aarch64-linux-gnu",
+    visibility = ["PUBLIC"],
+)
+
+# ---------------------------------------------------------------------------
+# aarch64-linux-gnu sysroot — Debian Bookworm (gcc-14 baseline)
+#
+# A minimal sysroot containing exactly one coherent set of:
+#   /usr/lib/gcc/aarch64-linux-gnu/14/crtbeginS.o  crtendS.o
+#   /lib/aarch64-linux-gnu/Scrt1.o  crti.o  crtn.o
+#   /usr/include/  (C/C++ system headers)
+#   /usr/lib/aarch64-linux-gnu/  (libc.a, libm.a, libstdc++.a, ...)
+#
+# This collapses GCCInstallationDetector to a single search root and
+# eliminates the duplicate _start/_init/_fini/_IO_stdin_used symbols that
+# caused aws-lc-sys to fail linking on the gate pod.
+#
+# Source: built via debootstrap/multistrap from debian:bookworm + gcc-14 cross
+# packages.  The tarball is hosted on the project's self-hosted artifact store.
+#
+# NOTE (CUT-1): SHA-256 below is a placeholder.  The real hash + URL are
+# finalized at CUT-2 proof time when the orchestrator provisions the sysroot
+# tarball.  Replace PLACEHOLDER_SHA256 and the URL before enabling CUT-2.
+# ---------------------------------------------------------------------------
+http_archive(
+    name = "aarch64-linux-sysroot",
+    sha256 = "PLACEHOLDER_SHA256_REPLACE_AT_CUT2",
+    strip_prefix = "aarch64-linux-gnu-sysroot",
+    urls = [
+        "https://artifacts.internal.oyatie.dev/toolchains/sysroots/aarch64-linux-gnu-bookworm-gcc14-sysroot-v1.tar.xz",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# ---------------------------------------------------------------------------
+# The hermetic CXX toolchain target (CUT-1: additive, non-default)
+#
+# To exercise on Linux (CUT-2) pass:
+#   -c toolchain.cxx=toolchains//cxx/clang_hermetic:cxx_hermetic_linux
+# or use a select() wrapper in toolchains/BUCK.
+# The default toolchains//:cxx remains system_cxx_toolchain until CUT-3.
+# ---------------------------------------------------------------------------
+hermetic_clang_toolchain(
+    name = "cxx_hermetic_linux",
+    distribution = ":clang-dist-aarch64-linux",
+    sysroot = ":aarch64-linux-sysroot",
+    target = "aarch64-unknown-linux-gnu",
+    gcc_version = "14",
+    link_style = "static",
+    visibility = ["PUBLIC"],
+)
