@@ -6400,6 +6400,7 @@ name = "oya-intelligence-provider-pool-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-intelligence-account-kernel",
+ "proptest",
 ]
 
 [[package]]
