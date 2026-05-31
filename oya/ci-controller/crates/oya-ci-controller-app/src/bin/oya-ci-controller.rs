@@ -27,6 +27,15 @@ use tracing::info;
 
 #[tokio::main]
 async fn main() {
+    // rustls 0.23 links both aws-lc-rs and ring (the third-party fixup enables
+    // both backends), so its process-level CryptoProvider auto-detection is
+    // ambiguous and panics. Install the aws-lc-rs provider (workspace-canonical;
+    // root Cargo.toml: "NEVER ring") as the process default before any TLS use
+    // (kube API client + Forgejo reqwest client).
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .expect("install process-default rustls CryptoProvider (aws-lc-rs)");
+
     tracing_subscriber::fmt()
         .json()
         .with_env_filter(std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_owned()))

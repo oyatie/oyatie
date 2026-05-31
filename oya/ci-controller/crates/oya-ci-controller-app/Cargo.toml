@@ -34,6 +34,10 @@ tracing-subscriber = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 futures = "0.3"
+# Explicit rustls dep so the binary's main() can install the aws-lc-rs
+# CryptoProvider as the process default (rustls 0.23 links both aws-lc-rs + ring,
+# making auto-detection ambiguous). Used only by the binary, not the lib.
+rustls = { workspace = true }
 
 [lints]
 workspace = true

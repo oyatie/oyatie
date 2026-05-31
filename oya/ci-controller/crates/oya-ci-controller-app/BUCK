@@ -36,6 +36,7 @@ rust_binary(
         "third-party//:k8s-openapi",
         "third-party//:kube",
         "third-party//:kube-runtime",
+        "third-party//:rustls-0.23",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:tokio",
