@@ -2,11 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Accepted |
+| Status | ~~Accepted~~ **Superseded** |
 | Date | 2026-05-18 |
 | Deciders | axis-governance, axis-cloud-k8s, axis-observability |
 | Supersedes | — |
-| Superseded by | — |
+| Superseded by | ADR-0515 (2026-05-31) — scratch base + buck2-native OCI replaces distroless; see ADR-0515 §Supersession. |
 | Related | ADR-0064 (canonical-base + localization), ADR-0131 (per-µservice flat layout), ADR-0083 (kernel-tier invariants) |
 
 ## Context
