@@ -430,10 +430,14 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
 // ---------------------------------------------------------------------------
 
 /// Seam for posting Forgejo commit-status updates.
+///
+/// Async: the controller is fully async (tokio/kube/axum); the adapter uses
+/// async `reqwest::Client`. `#[async_trait]` keeps the seam `dyn`-compatible.
+#[async_trait::async_trait]
 pub trait ForgejoStatusPoster: Send + Sync {
     /// POST a status to `POST /api/v1/repos/<owner>/<repo>/statuses/<sha>`.
     /// Returns `Err(KernelError::DownstreamTransport)` on non-2xx or transport error.
-    fn post(
+    async fn post(
         &self,
         sha: &str,
         state: ForgejoState,

@@ -41,7 +41,7 @@ pub struct ForgejoCommitStatusPoster {
     repo_owner: String,   // data_class: INTERNAL_ONLY
     repo_name: String,    // data_class: INTERNAL_ONLY
     token: String,        // data_class: INTERNAL_ONLY
-    client: reqwest::blocking::Client,
+    client: reqwest::Client,
 }
 
 impl ForgejoCommitStatusPoster {
@@ -52,7 +52,7 @@ impl ForgejoCommitStatusPoster {
             repo_owner: repo_owner.to_owned(),
             repo_name: repo_name.to_owned(),
             token: token.to_owned(),
-            client: reqwest::blocking::Client::new(),
+            client: reqwest::Client::new(),
         }
     }
 
@@ -69,8 +69,9 @@ impl ForgejoCommitStatusPoster {
     }
 }
 
+#[async_trait::async_trait]
 impl ForgejoStatusPoster for ForgejoCommitStatusPoster {
-    fn post(
+    async fn post(
         &self,
         sha: &str,
         state: ForgejoState,
@@ -106,6 +107,7 @@ impl ForgejoStatusPoster for ForgejoCommitStatusPoster {
             .header("Content-Type", "application/json")
             .json(&body)
             .send()
+            .await
             .map_err(|e| {
                 KernelError::DownstreamTransport(format!("forgejo status post: {e}"))
             })?;

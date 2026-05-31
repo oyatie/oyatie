@@ -202,15 +202,9 @@ pub async fn reconcile(
             let poster = Arc::clone(&ctx.forgejo_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
-            let post_result = tokio::task::spawn_blocking(move || {
-                poster.post(&sha, ForgejoState::Pending, "oya-ci-gate", &desc, None)
-            })
-            .await
-            .unwrap_or_else(|e| {
-                Err(oya_ci_controller_kernel::KernelError::DownstreamTransport(
-                    format!("spawn_blocking join: {e}"),
-                ))
-            });
+            let post_result = poster
+                .post(&sha, ForgejoState::Pending, "oya-ci-gate", &desc, None)
+                .await;
 
             match post_result {
                 Ok(()) => {
@@ -244,15 +238,7 @@ pub async fn reconcile(
             let poster = Arc::clone(&ctx.forgejo_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
-            let post_result = tokio::task::spawn_blocking(move || {
-                poster.post(&sha, state, context, &desc, None)
-            })
-            .await
-            .unwrap_or_else(|e| {
-                Err(oya_ci_controller_kernel::KernelError::DownstreamTransport(
-                    format!("spawn_blocking join: {e}"),
-                ))
-            });
+            let post_result = poster.post(&sha, state, context, &desc, None).await;
 
             match post_result {
                 Ok(()) => {

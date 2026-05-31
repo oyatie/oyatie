@@ -883,7 +883,7 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     proc_macro = True,
-    visibility = [],
+    visibility = ["PUBLIC"],
     deps = [
         ":proc-macro2-1",
         ":quote-1",
