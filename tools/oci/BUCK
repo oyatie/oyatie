@@ -1,0 +1,27 @@
+# tools/oci/BUCK
+#
+# Build-host OCI tooling for buck2-native OCI image assembly.
+#
+# oya-oci-assemble: Rust binary that reads a base OCI-layout tarball + one or
+# more application layer tar.gz files and emits a complete OCI Image Layout
+# directory (OCI spec 1.0) with a recomputed manifest, config, and index.
+# Runs on the build host (darwin aarch64 or linux aarch64); exec_dep in the
+# oci_image rule (tools/oci/defs.bzl).
+#
+# ADDITIVE: the gateway Dockerfile/BuildKit path is untouched.
+
+rust_binary(
+    name = "oya-oci-assemble",
+    srcs = glob(["crates/oya-oci-assemble/src/**/*.rs"]),
+    crate_root = "crates/oya-oci-assemble/src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow",
+        "third-party//:clap",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:tempfile",
+        "third-party//:walkdir",
+    ],
+)

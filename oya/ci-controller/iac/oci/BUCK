@@ -1,0 +1,126 @@
+# oya/ci-controller/iac/oci/BUCK
+#
+# Buck2-native OCI image for oya-ci-controller.
+#
+# First buck2-native OCI image in the monorepo.  Retires the BuildKit/Dockerfile
+# image path for this service (ADR-0514 anti-pattern: "Dockerfile-based BuildKit
+# image builds → buck2-native OCI images").  ADDITIVE: the gateway Dockerfile
+# is untouched; it migrates separately.
+#
+# Targets:
+#   :distroless-base       — http_archive fetching the base OCI layout tarball
+#   :controller-layer      — genrule packaging the buck2-built binary as a layer
+#   :controller-oci        — oci_image assembling the final image layout
+#
+# Darwin/Linux split:
+#   - On darwin (aarch64): buck2 cquery + audit providers resolve cleanly;
+#     the assembled OCI layout is inspectable.  The binary inside is Mach-O
+#     (host-arch) — NOT runnable in a Linux container.  The push step is
+#     intentionally gated to Linux CI only.
+#   - On linux (aarch64, CI pod): the binary is ELF aarch64-linux — correct
+#     for deployment.  Run push-and-sign.sh after the image is assembled.
+#
+# Base image:
+#   gcr.io/distroless/static-debian12:nonroot  (ADR-0146 canonical)
+#   Pinned to a specific digest-tagged tarball exported via crane export.
+#   SHA256 is the sha256 of the *tarball* (the http_archive input), not the
+#   OCI manifest digest.  Bump this when Google publishes a new CVE-patched
+#   weekly rebuild.
+#
+# Push target: see push-and-sign.sh (linux CI only).
+#   Registry: registry.oya-registry.svc.cluster.local:5000
+#   Cosign: --key k8s://oya-ci/cosign-key  (ADR-0181 + verify-image-signed.yaml)
+
+load("//tools/oci:defs.bzl", "oci_image")
+
+# ── Base image ────────────────────────────────────────────────────────────────
+#
+# Distroless static-debian12:nonroot OCI layout tarball.
+#
+# To regenerate this pin (on a host with crane available):
+#   crane export gcr.io/distroless/static-debian12:nonroot \
+#     distroless-static-nonroot-aarch64.tar
+#   sha256sum distroless-static-nonroot-aarch64.tar
+#
+# The tarball is stored in the Oyatie artifact registry under:
+#   registry.oya-registry.svc.cluster.local:5000/build-inputs/
+# and mirrored to the Forgejo artifact store for offline builds.
+#
+# Q1 (open): confirm the controller binary links fully static (musl) before
+# promoting base to gcr.io/distroless/static-debian12:nonroot.  Default-safe
+# is cc-debian12:nonroot (ships libgcc); static-debian12:nonroot is the ADR-0146
+# canonical.  For the FIRST CUT both targets are scaffolded; the assembler
+# accepts either tarball format.
+http_archive(
+    name = "distroless-base",
+    # Single URL: the bundled prelude http_archive accepts exactly one url.
+    # Primary source: in-cluster artifact mirror (offline-capable; no GCR egress
+    # required from CI pod).  Stage the tarball with:
+    #   crane export gcr.io/distroless/static-debian12:nonroot \
+    #     distroless-static-nonroot-aarch64-20260101.tar
+    #   sha256sum distroless-static-nonroot-aarch64-20260101.tar  # → update sha256 below
+    #   crane push distroless-static-nonroot-aarch64-20260101.tar \
+    #     registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-20260101.tar
+    urls = [
+        "http://registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-20260101.tar",
+    ],
+    # sha256 of the OCI layout tarball (NOT the image manifest digest).
+    # PLACEHOLDER: replace with the real sha256 after the first crane export+push.
+    # Analysis resolves cleanly on darwin; the fetch is deferred until buck2 build.
+    sha256 = "0000000000000000000000000000000000000000000000000000000000000000",
+    # The tarball is an OCI image layout tar; expose root dir as DefaultInfo.
+    type = "tar",
+    visibility = ["PUBLIC"],
+)
+
+# ── Application layer ─────────────────────────────────────────────────────────
+#
+# Package the buck2-built oya-ci-controller binary into a tar.gz layer.
+# The binary is placed at /usr/local/bin/oya-ci-controller inside the layer,
+# matching the Dockerfile COPY path convention.
+#
+# On darwin: the binary is Mach-O; the layer is valid tar.gz but the image is
+# not runnable on Linux.  On linux CI: the binary is aarch64-linux ELF.
+genrule(
+    name = "controller-layer",
+    srcs = [
+        "//oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller",
+    ],
+    out = "controller-layer.tar.gz",
+    cmd = """
+set -euo pipefail
+BINARY=$(location //oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller)
+LAYER_DIR="$TMP/layer-root/usr/local/bin"
+mkdir -p "$LAYER_DIR"
+cp "$BINARY" "$LAYER_DIR/oya-ci-controller"
+chmod 0755 "$LAYER_DIR/oya-ci-controller"
+# Reproducible tar: fixed mtime, no uid/gid names, deterministic ordering.
+tar --create \\
+    --gzip \\
+    --mtime="2026-01-01 00:00:00" \\
+    --owner=0 \\
+    --group=0 \\
+    --numeric-owner \\
+    --sort=name \\
+    -C "$TMP/layer-root" \\
+    -f "$OUT" \\
+    .
+""",
+    visibility = ["PUBLIC"],
+)
+
+# ── OCI image ─────────────────────────────────────────────────────────────────
+#
+# Assembled OCI Image Layout directory.  Depends on oya-oci-assemble (the
+# build-host Rust tool in tools/oci/) which is compiled by buck2 and injected
+# as an exec_dep via the oci_image rule.
+oci_image(
+    name = "controller-oci",
+    base = ":distroless-base",
+    layers = [":controller-layer"],
+    entrypoint = ["/usr/local/bin/oya-ci-controller"],
+    user = "65532:65532",
+    exposed_ports = ["8081/tcp"],
+    image_title = "oya-ci-controller",
+    visibility = ["PUBLIC"],
+)

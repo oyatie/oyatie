@@ -701,6 +701,7 @@ members = [
   "oya/workflow-studio/crates/oya-workflow-studio-policy-preview-domain",
   "oya/workflow-studio/crates/oya-workflow-studio-visual-canvas-kernel",
   "oya/workplace-integration/crates/oya-workplace-integration-doc-set-scaffold",
+  "tools/oci/crates/oya-oci-assemble",
   "tools/oya-adapter-substitution-test-app",
   "tools/oya-governance-adapter-with-no-importer-app",
   "tools/oya-governance-adr-shape-app",
