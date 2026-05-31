@@ -3,10 +3,10 @@
 //! # Overview
 //!
 //! Each `AdrDecisionRecord` (parsed from frontmatter by the caller) is checked
-//! against the lifecycle invariants below. Table-style ADRs that could not be
-//! parsed from YAML frontmatter MUST be passed in with `status = ""` and
-//! `AdrParseWarning::TableStyle` recorded by the caller — they are explicitly
-//! skipped with a `Warn` rather than silently passing.
+//! against the lifecycle invariants below. Parse-failed ADRs (files that are
+//! neither YAML-frontmatter nor any recognised inline-metadata format) are
+//! passed in via `parse_warnings` and emitted as `Warn` violations rather than
+//! being silently ignored.
 //!
 //! # Rules
 //!
@@ -15,20 +15,23 @@
 //! | L1   | Error    | STATUS-VOCAB: status must be canonical or qualified canonical |
 //! | L2   | Error    | TERMINAL-REQUIRES-LINK: Superseded/Rejected/Deprecated needs superseded_by |
 //! | L3   | Error    | RECIPROCITY: supersedes/superseded_by must be bidirectional |
-//! | L4   | Error    | DANGLING: every ADR-id in supersedes/superseded_by/related resolves |
+//! | L4   | Error/Warn | DANGLING: supersedes/superseded_by refs → Error; related refs → Warn |
 //! | L5   | Warn     | HOLLOW-SUPERSEDED: Superseded ADR with < 80 body words |
 //! | L6   | (stub)   | GOVERNS-ANCHOR: reserved for `governs:` frontmatter drift (not yet active) |
 //!
-//! # Table-style ADR handling
+//! # L4 corpus membership
 //!
-//! Older ADRs (e.g. ADR-0146) express metadata via a markdown TABLE
-//! (`| Status | Accepted |`) rather than YAML frontmatter. The
-//! `AdrDecisionRecord` parser in this crate only reads YAML frontmatter;
-//! table-style ADRs therefore arrive with `status = ""` and zero
-//! supersedes/superseded_by/related vectors. Rather than silently passing
-//! them (which would let real violations evade L1/L2), the lifecycle gate
-//! accepts an explicit `AdrParseWarning::TableStyle` list and emits a `Warn`
-//! violation for each so they are visible in gate output.
+//! L4 resolves references against a **filename-derived** `known_ids` set passed
+//! in by the caller. This ensures that table-style and other non-YAML ADRs
+//! (whose filenames exist on disk) are never false-flagged as dangling targets,
+//! even when their metadata could not be fully parsed.
+//!
+//! # L4 severity split
+//!
+//! A dangling reference from `supersedes` or `superseded_by` is a hard
+//! integrity error (Severity::Error). A dangling reference from `related` is
+//! advisory — it legitimately points to planned or aspirational ADRs —
+//! (Severity::Warn).
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -425,18 +428,34 @@ fn is_adr_id_ref(entry: &str) -> bool {
     adr_id_of(entry).is_some()
 }
 
+/// Which frontmatter field a reference originated from.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum RefSource {
+    /// From `supersedes` or `superseded_by` — hard integrity link.
+    Supersession,
+    /// From `related` — soft "see also" link.
+    Related,
+}
+
 fn check_l4(
     record: &AdrDecisionRecord,
-    corpus_ids: &BTreeSet<String>,
+    known_ids: &BTreeSet<String>,
     violations: &mut Vec<LifecycleViolation>,
 ) {
-    let all_refs = record
+    // Check supersedes + superseded_by as hard (Error) references.
+    let hard_refs = record
         .supersedes
         .iter()
         .chain(record.superseded_by.iter())
-        .chain(record.related.iter());
+        .map(|r| (r, RefSource::Supersession));
 
-    for raw in all_refs {
+    // Check related as soft (Warn) references.
+    let soft_refs = record
+        .related
+        .iter()
+        .map(|r| (r, RefSource::Related));
+
+    for (raw, source) in hard_refs.chain(soft_refs) {
         if !is_adr_id_ref(raw) {
             // Non-ADR path reference — exempt per design.
             continue;
@@ -444,19 +463,33 @@ fn check_l4(
         let Some(ref_id) = adr_id_of(raw) else {
             continue;
         };
-        if !corpus_ids.contains(&ref_id) {
-            violations.push(LifecycleViolation::error(
-                &record.id,
-                LifecycleRule::L4Dangling,
-                format!(
-                    "{} references {ref_id} (from {:?}) but {ref_id} is not in the ADR corpus",
-                    record.id, raw
-                ),
-                Some(format!(
-                    "Either add ADR-file for {ref_id} or remove the reference from {}'s frontmatter",
-                    record.id
-                )),
+        if !known_ids.contains(&ref_id) {
+            let detail = format!(
+                "{} references {ref_id} (from {:?}) but {ref_id} is not in the ADR corpus",
+                record.id, raw
+            );
+            let fix = Some(format!(
+                "Either add ADR-file for {ref_id} or remove the reference from {}'s frontmatter",
+                record.id
             ));
+            match source {
+                RefSource::Supersession => {
+                    violations.push(LifecycleViolation::error(
+                        &record.id,
+                        LifecycleRule::L4Dangling,
+                        detail,
+                        fix,
+                    ));
+                }
+                RefSource::Related => {
+                    violations.push(LifecycleViolation::warn(
+                        &record.id,
+                        LifecycleRule::L4Dangling,
+                        detail,
+                        fix,
+                    ));
+                }
+            }
         }
     }
 }
@@ -541,12 +574,17 @@ fn check_l5(
 ///
 /// # Parameters
 ///
-/// * `records` — the parsed ADR records (YAML-frontmatter ADRs only).
+/// * `records` — the parsed ADR records (all formats — YAML-frontmatter,
+///   table-style, list-style, etc.).
 /// * `bodies` — map from ADR id to the full file body text (including
 ///   frontmatter). Used for L5 word-count. Pass an empty map to skip L5.
-/// * `parse_warnings` — ADRs that could not be parsed from YAML frontmatter
-///   (e.g. table-style). These generate `Warn` violations rather than being
-///   silently ignored.
+/// * `parse_warnings` — ADRs that could not be fully parsed (neither YAML
+///   frontmatter nor any recognised inline-metadata format). These generate
+///   `Warn` violations rather than being silently ignored.
+/// * `known_ids` — the **filename-derived** set of all ADR ids present on
+///   disk (build from `adr_id_from_filename` over every `ADR-*.md` path).
+///   L4 resolves references against this set, ensuring table-style and other
+///   non-YAML ADRs are never false-flagged as dangling targets.
 ///
 /// # Returns
 ///
@@ -556,29 +594,29 @@ pub fn validate_lifecycle<'a, R>(
     records: R,
     bodies: &BTreeMap<String, &str>,
     parse_warnings: &[AdrParseWarning],
+    known_ids: &BTreeSet<String>,
 ) -> LifecycleResult
 where
     R: IntoIterator<Item = &'a AdrDecisionRecord>,
 {
     let records_vec: Vec<&AdrDecisionRecord> = records.into_iter().collect();
 
-    // Build lookup map and corpus id set.
+    // Build lookup map for L3 cross-record checks.
     let record_map: BTreeMap<String, &AdrDecisionRecord> = records_vec
         .iter()
         .map(|r| (r.id.clone(), *r))
         .collect();
-    let corpus_ids: BTreeSet<String> = record_map.keys().cloned().collect();
 
     let mut violations: Vec<LifecycleViolation> = Vec::new();
 
-    // Emit Warn for table-style (un-parseable) ADRs.
+    // Emit Warn for un-parseable ADRs.
     for pw in parse_warnings {
         violations.push(LifecycleViolation::warn(
             &pw.adr_id,
             LifecycleRule::L1StatusVocab,
             format!("ADR {} could not be lifecycle-checked: {}", pw.adr_id, pw.reason),
             Some(
-                "Convert the metadata table to YAML frontmatter (--- ... ---) to enable full lifecycle governance".into(),
+                "Convert the metadata to YAML frontmatter (--- ... ---) to enable full lifecycle governance".into(),
             ),
         ));
     }
@@ -587,7 +625,7 @@ where
     for record in &records_vec {
         check_l1(record, &mut violations);
         check_l2(record, &mut violations);
-        check_l4(record, &corpus_ids, &mut violations);
+        check_l4(record, known_ids, &mut violations);
         if let Some(body) = bodies.get(&record.id) {
             check_l5(record, body, &mut violations);
         }
@@ -670,14 +708,16 @@ mod tests {
     }
 
     fn run(records: &[AdrDecisionRecord]) -> LifecycleResult {
-        validate_lifecycle(records.iter(), &BTreeMap::new(), &[])
+        let known_ids: BTreeSet<String> = records.iter().map(|r| r.id.clone()).collect();
+        validate_lifecycle(records.iter(), &BTreeMap::new(), &[], &known_ids)
     }
 
     fn run_with_bodies<'a>(
         records: &'a [AdrDecisionRecord],
         bodies: &BTreeMap<String, &'a str>,
     ) -> LifecycleResult {
-        validate_lifecycle(records.iter(), bodies, &[])
+        let known_ids: BTreeSet<String> = records.iter().map(|r| r.id.clone()).collect();
+        validate_lifecycle(records.iter(), bodies, &[], &known_ids)
     }
 
     fn errors(result: &LifecycleResult) -> Vec<&LifecycleViolation> {
@@ -916,14 +956,65 @@ mod tests {
     }
 
     #[test]
-    fn l4_checks_related_field_for_dangling_adr_ids() {
+    fn l4_related_dangling_is_warn_not_error() {
+        // A dangling reference from `related` must be Warn (FIX 2).
         let a = with_related(record("ADR-0001", "Accepted"), &["ADR-9998"]);
+        let result = run(&[a]);
+        // Must not be an Error.
+        let l4_errs: Vec<_> = errors(&result)
+            .into_iter()
+            .filter(|v| v.rule == LifecycleRule::L4Dangling)
+            .collect();
+        assert!(l4_errs.is_empty(), "dangling ADR-id in related must NOT be an Error");
+        // Must be a Warn.
+        let l4_warns: Vec<_> = warnings(&result)
+            .into_iter()
+            .filter(|v| v.rule == LifecycleRule::L4Dangling)
+            .collect();
+        assert!(!l4_warns.is_empty(), "dangling ADR-id in related must emit a Warn");
+        assert_eq!(l4_warns[0].severity, Severity::Warn);
+    }
+
+    #[test]
+    fn l4_supersedes_dangling_is_error() {
+        // A dangling reference from `supersedes` must be Error (FIX 2).
+        let a = with_supersedes(record("ADR-0001", "Accepted"), &["ADR-9997"]);
         let result = run(&[a]);
         let l4_errs: Vec<_> = errors(&result)
             .into_iter()
             .filter(|v| v.rule == LifecycleRule::L4Dangling)
             .collect();
-        assert!(!l4_errs.is_empty(), "dangling ADR-id in related should fail L4");
+        assert!(!l4_errs.is_empty(), "dangling ADR-id in supersedes must be an Error");
+        assert_eq!(l4_errs[0].severity, Severity::Error);
+    }
+
+    #[test]
+    fn l4_known_ids_includes_table_style_adr() {
+        // A reference to a table-style ADR (known by filename, not parsed as
+        // a record) must NOT be flagged as dangling (FIX 1).
+        //
+        // ADR-0001 supersedes ADR-0146 (a table-style ADR).  We pass
+        // ADR-0146 in known_ids but NOT in records, simulating the real
+        // corpus scenario where ADR-0146 was parsed from its table metadata
+        // and contributed to known_ids by filename.
+        let a = with_supersedes(record("ADR-0001", "Accepted"), &["ADR-0146"]);
+        let known_ids: BTreeSet<String> =
+            ["ADR-0001".to_string(), "ADR-0146".to_string()].into_iter().collect();
+        // Only pass ADR-0001 as a record; ADR-0146 is only in known_ids.
+        let result = validate_lifecycle(
+            [&a].into_iter().copied(),
+            &BTreeMap::new(),
+            &[],
+            &known_ids,
+        );
+        let l4_errs: Vec<_> = errors(&result)
+            .into_iter()
+            .filter(|v| v.rule == LifecycleRule::L4Dangling)
+            .collect();
+        assert!(
+            l4_errs.is_empty(),
+            "reference to a table-style ADR present in known_ids must NOT be flagged as dangling"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -988,10 +1079,12 @@ mod tests {
     #[test]
     fn table_style_adr_emits_warn_not_silently_skipped() {
         let pw = AdrParseWarning::table_style("ADR-0146");
+        let known_ids: BTreeSet<String> = ["ADR-0146".to_string()].into_iter().collect();
         let result = validate_lifecycle(
             std::iter::empty::<&AdrDecisionRecord>(),
             &BTreeMap::new(),
             &[pw],
+            &known_ids,
         );
         let table_warns: Vec<_> = warnings(&result)
             .into_iter()
@@ -1007,10 +1100,12 @@ mod tests {
     #[test]
     fn table_style_adr_warn_is_not_an_error() {
         let pw = AdrParseWarning::table_style("ADR-0146");
+        let known_ids: BTreeSet<String> = ["ADR-0146".to_string()].into_iter().collect();
         let result = validate_lifecycle(
             std::iter::empty::<&AdrDecisionRecord>(),
             &BTreeMap::new(),
             &[pw],
+            &known_ids,
         );
         assert!(
             result.is_clean(),
