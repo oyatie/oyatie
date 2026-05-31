@@ -589,7 +589,7 @@
     },
     {
       "artifact_id": "oya-ops-workspace-shell-kernel-manifest",
-      "artifact_path": "crates/oya-ops-workspace-shell-kernel/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-workspace-shell-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -608,7 +608,7 @@
     },
     {
       "artifact_id": "oya-ops-docs-portal-kernel-manifest",
-      "artifact_path": "crates/oya-ops-docs-portal-kernel/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-docs-portal-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -673,7 +673,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "crates/oya-check-cedar-fragment-coverage",
+          "checker_crate": "libs/oya-check-cedar-fragment-coverage",
           "command": "oya gate validate cedar-fragment-coverage"
         },
         "enforcement": {
@@ -687,7 +687,7 @@
     },
     {
       "artifact_id": "oya-check-cedar-fragment-coverage-manifest",
-      "artifact_path": "crates/oya-check-cedar-fragment-coverage/Cargo.toml",
+      "artifact_path": "libs/oya-check-cedar-fragment-coverage/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
@@ -706,7 +706,7 @@
     },
     {
       "artifact_id": "oya-ops-workspace-shell-adapter-manifest",
-      "artifact_path": "crates/oya-ops-workspace-shell-adapter/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-workspace-shell-adapter/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -725,7 +725,7 @@
     },
     {
       "artifact_id": "oya-ops-docs-portal-adapter-manifest",
-      "artifact_path": "crates/oya-ops-docs-portal-adapter/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-docs-portal-adapter/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -744,7 +744,7 @@
     },
     {
       "artifact_id": "oya-ops-workspace-shell-usecase-manifest",
-      "artifact_path": "crates/oya-ops-workspace-shell-usecase/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-workspace-shell-usecase/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -763,7 +763,7 @@
     },
     {
       "artifact_id": "oya-ops-docs-portal-usecase-manifest",
-      "artifact_path": "crates/oya-ops-docs-portal-usecase/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-docs-portal-usecase/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -782,7 +782,7 @@
     },
     {
       "artifact_id": "oya-ops-workspace-shell-rest-manifest",
-      "artifact_path": "crates/oya-ops-workspace-shell-rest/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-workspace-shell-rest/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -801,7 +801,7 @@
     },
     {
       "artifact_id": "oya-ops-docs-portal-rest-manifest",
-      "artifact_path": "crates/oya-ops-docs-portal-rest/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-docs-portal-rest/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -820,7 +820,7 @@
     },
     {
       "artifact_id": "oya-intelligence-architecture-map-kernel-manifest",
-      "artifact_path": "microservices/intelligence/crates/oya-intelligence-architecture-map-kernel/Cargo.toml",
+      "artifact_path": "oya/intelligence/crates/oya-intelligence-architecture-map-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -839,7 +839,7 @@
     },
     {
       "artifact_id": "oya-check-openapi-rest-route-parity-manifest",
-      "artifact_path": "crates/oya-check-openapi-rest-route-parity/Cargo.toml",
+      "artifact_path": "libs/oya-check-openapi-rest-route-parity/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
@@ -858,7 +858,7 @@
     },
     {
       "artifact_id": "oya-intelligence-architecture-map-app-manifest",
-      "artifact_path": "microservices/intelligence/crates/oya-intelligence-architecture-map-app/Cargo.toml",
+      "artifact_path": "oya/intelligence/crates/oya-intelligence-architecture-map-app/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -896,7 +896,7 @@
     },
     {
       "artifact_id": "oya-http-router-kernel-manifest",
-      "artifact_path": "crates/oya-http-router-kernel/Cargo.toml",
+      "artifact_path": "libs/oya-http-router-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -915,7 +915,7 @@
     },
     {
       "artifact_id": "oya-http-middleware-kernel-manifest",
-      "artifact_path": "crates/oya-http-middleware-kernel/Cargo.toml",
+      "artifact_path": "libs/oya-http-middleware-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -934,7 +934,7 @@
     },
     {
       "artifact_id": "oya-http-sse-kernel-manifest",
-      "artifact_path": "crates/oya-http-sse-kernel/Cargo.toml",
+      "artifact_path": "libs/oya-http-sse-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -953,7 +953,7 @@
     },
     {
       "artifact_id": "oya-http-runtime-hyper-adapter-manifest",
-      "artifact_path": "crates/oya-http-runtime-hyper-adapter/Cargo.toml",
+      "artifact_path": "libs/oya-http-runtime-hyper-adapter/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -991,7 +991,7 @@
     },
     {
       "artifact_id": "oya-ops-workspace-shell-app-manifest",
-      "artifact_path": "crates/oya-ops-workspace-shell-app/Cargo.toml",
+      "artifact_path": "oya/ops/crates/oya-ops-workspace-shell-app/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -1010,7 +1010,7 @@
     },
     {
       "artifact_id": "oya-http-tenant-middleware-infrastructure-manifest",
-      "artifact_path": "crates/oya-http-tenant-middleware-infrastructure/Cargo.toml",
+      "artifact_path": "libs/oya-http-tenant-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -1029,7 +1029,7 @@
     },
     {
       "artifact_id": "oya-http-latency-budget-middleware-infrastructure-manifest",
-      "artifact_path": "crates/oya-http-latency-budget-middleware-infrastructure/Cargo.toml",
+      "artifact_path": "libs/oya-http-latency-budget-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -1048,7 +1048,7 @@
     },
     {
       "artifact_id": "oya-http-telemetry-middleware-infrastructure-manifest",
-      "artifact_path": "crates/oya-http-telemetry-middleware-infrastructure/Cargo.toml",
+      "artifact_path": "libs/oya-http-telemetry-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -1397,7 +1397,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
           "command": "oya check settings-drift --template templates/foundry-supervisor/claude.toml --accounts registry/accounts/claude*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1405,11 +1405,11 @@
           ]
         },
         "validation": {
-          "validator": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/claude*.toml",
             "templates/foundry-supervisor/claude.toml"
@@ -1417,7 +1417,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1480,7 +1480,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
           "command": "oya check settings-drift --template templates/foundry-supervisor/codex.toml --accounts registry/accounts/codex*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1488,11 +1488,11 @@
           ]
         },
         "validation": {
-          "validator": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/codex*.toml",
             "templates/foundry-supervisor/codex.toml"
@@ -1500,7 +1500,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1563,7 +1563,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
           "command": "oya check settings-drift --template templates/foundry-supervisor/gemini.toml --accounts registry/accounts/gemini*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1571,11 +1571,11 @@
           ]
         },
         "validation": {
-          "validator": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/gemini*.toml",
             "templates/foundry-supervisor/gemini.toml"
@@ -1583,7 +1583,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1629,7 +1629,7 @@
     },
     {
       "artifact_id": "foundry-supervisor-kernel",
-      "artifact_path": "microservices/intelligence/crates/oya-intelligence-supervisor-kernel",
+      "artifact_path": "oya/intelligence/crates/oya-intelligence-supervisor-kernel",
       "artifact_format": "rust-crate",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
@@ -1718,7 +1718,7 @@
     },
     {
       "artifact_id": "foundry-settings-template-kernel",
-      "artifact_path": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel",
+      "artifact_path": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
       "artifact_format": "rust-crate",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
@@ -1821,7 +1821,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
           "command": "oya check settings-drift --workspace",
           "verifies": [
             "all rendered per-account files match their template blake3",
@@ -1838,7 +1838,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile (VerifyOnly mode)",
+          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile (VerifyOnly mode)",
           "safe_unattended": [
             "re-render drifted files"
           ],
@@ -1884,7 +1884,7 @@
     },
     {
       "artifact_id": "foundry-settings-template-drift-adapter",
-      "artifact_path": "microservices/intelligence/crates/oya-intelligence-settings-template-adapter/src/lib.rs",
+      "artifact_path": "oya/intelligence/crates/oya-intelligence-settings-template-adapter/src/lib.rs",
       "artifact_format": "rust-source",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
@@ -1900,7 +1900,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "microservices/intelligence/crates/oya-intelligence-settings-template-adapter",
+          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-adapter",
           "command": "cargo test -p oya-intelligence-settings-template-adapter",
           "verifies": [
             "exit 0 on no-drift fixture",
