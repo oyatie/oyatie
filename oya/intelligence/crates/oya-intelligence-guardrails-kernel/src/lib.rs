@@ -108,7 +108,7 @@ pub fn decide_guardrail(request: &GuardrailRequest) -> GuardrailDecision {
 /// This type carries no enforcement — it is purely observational.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ShadowDecision {
-    pub would_deny: bool,
+    pub would_deny: bool, // data_class: INTERNAL_ONLY
     pub would_deny_reasons: Vec<String>, // data_class: INTERNAL_ONLY
     pub evidence_refs: Vec<String>,      // data_class: INTERNAL_ONLY
 }
@@ -168,8 +168,8 @@ pub enum FpBudgetError {
 /// `budget_pct` is a fraction in `(0.0, 1.0]` (e.g. `0.05` = 5 % budget).
 #[derive(Clone, Debug, PartialEq)]
 pub struct FpBudget {
-    pub observed_fp: u32,
-    pub total_evals: u32,
+    pub observed_fp: u32, // data_class: INTERNAL_ONLY
+    pub total_evals: u32, // data_class: INTERNAL_ONLY
     pub budget_pct: f64, // data_class: INTERNAL_ONLY
 }
 
@@ -248,9 +248,9 @@ impl FpBudget {
 /// sensible values. Typical usage: Low=1.0, Medium=2.0, High=3.0.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SeverityWeight {
-    pub low: f64,
-    pub medium: f64,
-    pub high: f64,
+    pub low: f64, // data_class: INTERNAL_ONLY
+    pub medium: f64, // data_class: INTERNAL_ONLY
+    pub high: f64, // data_class: INTERNAL_ONLY
 }
 
 impl SeverityWeight {
