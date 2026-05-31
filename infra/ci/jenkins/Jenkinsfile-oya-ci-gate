@@ -81,8 +81,9 @@ pipeline {
             # Distill the failing target name(s) into a one-line summary for the commit-status
             # description (the RELIABLE channel — unlike the best-effort comment). Whitelist-
             # sanitized to target-name chars only, so the status JSON stays valid regardless of
-            # buck2 output content. Patterns deliberately use no quotes/backslashes (Groovy '''
-            # processes \\ escapes).
+            # buck2 output content. Patterns deliberately use no quotes/backslashes here, because
+            # this whole block is inside a Groovy triple-single-quote string that processes escapes
+            # (and a triple-quote in a comment would terminate it -- which is the bug this fixes).
             SUM=$(grep -aE "Failed to build|Fail: root//" .gate-output.log 2>/dev/null | grep -aoE "root//[^ ]+" | head -2 | paste -sd' ' -)
             [ -z "${SUM}" ] && SUM=$(grep -aiE "error|panicked|Tests finished|TESTS FAILED" .gate-output.log 2>/dev/null | tail -1)
             printf '%s' "${SUM}" | tr -cd 'A-Za-z0-9 /:._-' | tr -s ' ' | cut -c1-200 > .gate-summary.txt
