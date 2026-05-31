@@ -37,6 +37,7 @@ uncited-acronym	ACV
 uncited-acronym	AD
 uncited-acronym	ADA
 uncited-acronym	ADC
+uncited-acronym	ADD
 uncited-acronym	ADDED
 uncited-acronym	ADDS
 uncited-acronym	ADEA
@@ -84,6 +85,8 @@ uncited-acronym	AKS
 uncited-acronym	ALB
 uncited-acronym	ALE
 uncited-acronym	ALERT
+uncited-acronym	ALG
+uncited-acronym	ALGORITHM
 uncited-acronym	ALLERGIES
 uncited-acronym	ALLERGY
 uncited-acronym	ALLOCATED
@@ -124,6 +127,7 @@ uncited-acronym	APP
 uncited-acronym	APPEND
 uncited-acronym	APPI
 uncited-acronym	APPLICATION
+uncited-acronym	APPLIED
 uncited-acronym	APPRENTICE
 uncited-acronym	APPROVAL
 uncited-acronym	APPROVE
@@ -171,12 +175,14 @@ uncited-acronym	ATS
 uncited-acronym	ATT
 uncited-acronym	ATTRIBUTION
 uncited-acronym	AUD
+uncited-acronym	AUDIENCE
 uncited-acronym	AUDIT
 uncited-acronym	AUDITABLE
 uncited-acronym	AUDITOR
 uncited-acronym	AUM
 uncited-acronym	AUP
 uncited-acronym	AUSTRAC
+uncited-acronym	AUTHENTICATED
 uncited-acronym	AUTHZ
 uncited-acronym	AUTOSHARDING
 uncited-acronym	AV
@@ -251,6 +257,7 @@ uncited-acronym	BOUNDED
 uncited-acronym	BPM
 uncited-acronym	BPOM
 uncited-acronym	BPR
+uncited-acronym	BPS
 uncited-acronym	BREAK
 uncited-acronym	BRL
 uncited-acronym	BROKEN
@@ -265,7 +272,9 @@ uncited-acronym	BSS
 uncited-acronym	BST
 uncited-acronym	BT
 uncited-acronym	BTP
+uncited-acronym	BUCK
 uncited-acronym	BUDAT
+uncited-acronym	BUILD
 uncited-acronym	BUILT
 uncited-acronym	BUKRS
 uncited-acronym	BUSINESS
@@ -415,10 +424,12 @@ uncited-acronym	COBIT
 uncited-acronym	COBRA
 uncited-acronym	COC
 uncited-acronym	CODE
+uncited-acronym	CODEX
 uncited-acronym	COE
 uncited-acronym	COEX
 uncited-acronym	COFEPRIS
 uncited-acronym	COGS
+uncited-acronym	COLLAPSE
 uncited-acronym	COLUMN
 uncited-acronym	COMMENT
 uncited-acronym	COMMERCE
@@ -472,6 +483,7 @@ uncited-acronym	CRIME
 uncited-acronym	CRISIS
 uncited-acronym	CRITICAL
 uncited-acronym	CRL
+uncited-acronym	CRLF
 uncited-acronym	CRM
 uncited-acronym	CRO
 uncited-acronym	CROSS
@@ -551,6 +563,8 @@ uncited-acronym	DELETED
 uncited-acronym	DELIBERATELY
 uncited-acronym	DELMIA
 uncited-acronym	DENIED
+uncited-acronym	DEP
+uncited-acronym	DESC
 uncited-acronym	DESPU
 uncited-acronym	DESTROYED
 uncited-acronym	DETECTED
@@ -632,6 +646,7 @@ uncited-acronym	DS
 uncited-acronym	DSA
 uncited-acronym	DSCR
 uncited-acronym	DSL
+uncited-acronym	DSN
 uncited-acronym	DSQL
 uncited-acronym	DSS
 uncited-acronym	DST
@@ -691,6 +706,7 @@ uncited-acronym	EEOC
 uncited-acronym	EET
 uncited-acronym	EEXIST
 uncited-acronym	EFB
+uncited-acronym	EFFECT
 uncited-acronym	EFI
 uncited-acronym	EFT
 uncited-acronym	EFTA
@@ -715,6 +731,7 @@ uncited-acronym	EMAIL
 uncited-acronym	EMEA
 uncited-acronym	EMERGENCY
 uncited-acronym	EMIR
+uncited-acronym	EMPLOYED
 uncited-acronym	EMPLOYEE
 uncited-acronym	EMR
 uncited-acronym	EMS
@@ -724,12 +741,14 @@ uncited-acronym	END
 uncited-acronym	ENEX
 uncited-acronym	ENFORCEMENT
 uncited-acronym	ENG
+uncited-acronym	ENGAGEMENT
 uncited-acronym	ENGINE
 uncited-acronym	ENHANCED
 uncited-acronym	ENS
 uncited-acronym	ENTER
 uncited-acronym	ENV
 uncited-acronym	EOD
+uncited-acronym	EOF
 uncited-acronym	EOL
 uncited-acronym	EOR
 uncited-acronym	EOS
@@ -742,6 +761,7 @@ uncited-acronym	ER
 uncited-acronym	ERISA
 uncited-acronym	ERM
 uncited-acronym	ERP
+uncited-acronym	ERR
 uncited-acronym	ES
 uncited-acronym	ESC
 uncited-acronym	ESG
@@ -822,6 +842,7 @@ uncited-acronym	FD
 uncited-acronym	FDIC
 uncited-acronym	FE
 uncited-acronym	FEC
+uncited-acronym	FEEDS
 uncited-acronym	FEMA
 uncited-acronym	FERPA
 uncited-acronym	FETA
@@ -906,6 +927,8 @@ uncited-acronym	FULL
 uncited-acronym	FULLY
 uncited-acronym	FUNCTION
 uncited-acronym	FUTURE
+uncited-acronym	FW
+uncited-acronym	FWD
 uncited-acronym	FX
 uncited-acronym	FY
 uncited-acronym	FYI
@@ -966,6 +989,7 @@ uncited-acronym	GPG
 uncited-acronym	GPS
 uncited-acronym	GPT
 uncited-acronym	GRAC
+uncited-acronym	GRACE
 uncited-acronym	GRACEFULLY
 uncited-acronym	GRAPH
 uncited-acronym	GRC
@@ -1055,6 +1079,7 @@ uncited-acronym	HSBC
 uncited-acronym	HSE
 uncited-acronym	HSR
 uncited-acronym	HSTS
+uncited-acronym	HTAB
 uncited-acronym	HTTPS
 uncited-acronym	HU
 uncited-acronym	HUD
@@ -1088,6 +1113,7 @@ uncited-acronym	ICCSN
 uncited-acronym	ICE
 uncited-acronym	ICICI
 uncited-acronym	ICM
+uncited-acronym	ICMP
 uncited-acronym	ICO
 uncited-acronym	ICP
 uncited-acronym	ICS
@@ -1110,6 +1136,7 @@ uncited-acronym	IEMS
 uncited-acronym	IETF
 uncited-acronym	IF
 uncited-acronym	IFC
+uncited-acronym	IFF
 uncited-acronym	IFRS
 uncited-acronym	IFS
 uncited-acronym	IFSC
@@ -1131,6 +1158,7 @@ uncited-acronym	IMC
 uncited-acronym	IMDA
 uncited-acronym	IME
 uncited-acronym	IMMEDIATE
+uncited-acronym	IMPL
 uncited-acronym	IMPLEMENTATION
 uncited-acronym	IMPLEMENTED
 uncited-acronym	IMPROVE
@@ -1195,6 +1223,7 @@ uncited-acronym	ISMAP
 uncited-acronym	ISP
 uncited-acronym	ISS
 uncited-acronym	ISSB
+uncited-acronym	ISSUER
 uncited-acronym	IST
 uncited-acronym	ITA
 uncited-acronym	ITAM
@@ -1246,7 +1275,9 @@ uncited-acronym	JUDICIAL
 uncited-acronym	JURISDICTION
 uncited-acronym	JUSTIFICATION
 uncited-acronym	JVM
+uncited-acronym	JWK
 uncited-acronym	JWKS
+uncited-acronym	JWS
 uncited-acronym	KAB
 uncited-acronym	KAKAO
 uncited-acronym	KB
@@ -1358,6 +1389,7 @@ uncited-acronym	LOPDGDD
 uncited-acronym	LOTO
 uncited-acronym	LOW
 uncited-acronym	LP
+uncited-acronym	LPM
 uncited-acronym	LRE
 uncited-acronym	LRU
 uncited-acronym	LS
@@ -1381,6 +1413,7 @@ uncited-acronym	MADR
 uncited-acronym	MAGI
 uncited-acronym	MAIL
 uncited-acronym	MAJOR
+uncited-acronym	MALFORMED
 uncited-acronym	MANDATORY
 uncited-acronym	MANDT
 uncited-acronym	MANIFEST
@@ -1404,6 +1437,7 @@ uncited-acronym	MDG
 uncited-acronym	MDM
 uncited-acronym	MDN
 uncited-acronym	MDR
+uncited-acronym	MECHANICAL
 uncited-acronym	MED
 uncited-acronym	MEDI
 uncited-acronym	MEDICAL
@@ -1480,6 +1514,7 @@ uncited-acronym	MUFG
 uncited-acronym	MV
 uncited-acronym	MW
 uncited-acronym	MWF
+uncited-acronym	MWMB
 uncited-acronym	MX
 uncited-acronym	MXN
 uncited-acronym	MY
@@ -1496,6 +1531,7 @@ uncited-acronym	NAFDAC
 uncited-acronym	NAICS
 uncited-acronym	NAIH
 uncited-acronym	NAPAS
+uncited-acronym	NARROW
 uncited-acronym	NAS
 uncited-acronym	NAT
 uncited-acronym	NATE
@@ -1566,6 +1602,7 @@ uncited-acronym	NNNN
 uncited-acronym	NOC
 uncited-acronym	NOFOLLOW
 uncited-acronym	NOK
+uncited-acronym	NON
 uncited-acronym	NONE
 uncited-acronym	NOTE
 uncited-acronym	NOTHING
@@ -1632,6 +1669,7 @@ uncited-acronym	OHS
 uncited-acronym	OID
 uncited-acronym	OJK
 uncited-acronym	OKE
+uncited-acronym	OKP
 uncited-acronym	OKR
 uncited-acronym	OM
 uncited-acronym	OMB
@@ -1650,6 +1688,8 @@ uncited-acronym	OOPP
 uncited-acronym	OOPSLA
 uncited-acronym	OP
 uncited-acronym	OPEN
+uncited-acronym	OPENAPI
+uncited-acronym	OPENSSL
 uncited-acronym	OPERA
 uncited-acronym	OPERATIONAL
 uncited-acronym	OPERATIONS
@@ -1696,11 +1736,13 @@ uncited-acronym	PA
 uncited-acronym	PACK
 uncited-acronym	PACMSE
 uncited-acronym	PACS
+uncited-acronym	PAGE
 uncited-acronym	PAID
 uncited-acronym	PAM
 uncited-acronym	PAN
 uncited-acronym	PAR
 uncited-acronym	PARALLEL
+uncited-acronym	PARC
 uncited-acronym	PARENT
 uncited-acronym	PART
 uncited-acronym	PARTIAL
@@ -1829,6 +1871,7 @@ uncited-acronym	PRK
 uncited-acronym	PRM
 uncited-acronym	PROD
 uncited-acronym	PRODUCTION
+uncited-acronym	PROGRESS
 uncited-acronym	PROMOTION
 uncited-acronym	PROOF
 uncited-acronym	PROTECTED
@@ -1902,7 +1945,11 @@ uncited-acronym	RE
 uncited-acronym	READ
 uncited-acronym	READABLE
 uncited-acronym	READY
+uncited-acronym	REAPI
 uncited-acronym	RECEIPT
+uncited-acronym	RECENCY
+uncited-acronym	RECOMMENDATION
+uncited-acronym	RECOMMENDATIONS
 uncited-acronym	RED
 uncited-acronym	REDACTED
 uncited-acronym	REDACTION
@@ -1930,6 +1977,7 @@ uncited-acronym	REQUIRE
 uncited-acronym	REQUIRES
 uncited-acronym	RERUNNABLE
 uncited-acronym	RESCOPED
+uncited-acronym	RESEARCH
 uncited-acronym	RESEARCHER
 uncited-acronym	RESELLER
 uncited-acronym	RESERVATIONS
@@ -1981,6 +2029,7 @@ uncited-acronym	ROSC
 uncited-acronym	ROUGE
 uncited-acronym	ROUND
 uncited-acronym	ROUTE
+uncited-acronym	ROUTES
 uncited-acronym	RP
 uncited-acronym	RPA
 uncited-acronym	RPC
@@ -2053,6 +2102,7 @@ uncited-acronym	SCM
 uncited-acronym	SCOPE
 uncited-acronym	SCORM
 uncited-acronym	SCP
+uncited-acronym	SCREAMING
 uncited-acronym	SCRIPTING
 uncited-acronym	SCTP
 uncited-acronym	SD
@@ -2073,6 +2123,7 @@ uncited-acronym	SEBI
 uncited-acronym	SEC
 uncited-acronym	SECOND
 uncited-acronym	SECONDARY
+uncited-acronym	SECONDS
 uncited-acronym	SECRETS
 uncited-acronym	SECURITY
 uncited-acronym	SEE
@@ -2117,12 +2168,14 @@ uncited-acronym	SIEM
 uncited-acronym	SIG
 uncited-acronym	SIGINT
 uncited-acronym	SIGKILL
+uncited-acronym	SIGNATURE
 uncited-acronym	SIGNING
 uncited-acronym	SIGTERM
 uncited-acronym	SIL
 uncited-acronym	SIM
 uncited-acronym	SIN
 uncited-acronym	SINGAPORE
+uncited-acronym	SINGLEFLIGHT
 uncited-acronym	SIP
 uncited-acronym	SIPC
 uncited-acronym	SIS
@@ -2145,6 +2198,7 @@ uncited-acronym	SMS
 uncited-acronym	SMT
 uncited-acronym	SMU
 uncited-acronym	SN
+uncited-acronym	SNAKE
 uncited-acronym	SNAP
 uncited-acronym	SNS
 uncited-acronym	SNU
@@ -2210,6 +2264,7 @@ uncited-acronym	STATUS
 uncited-acronym	STC
 uncited-acronym	STCG
 uncited-acronym	STD
+uncited-acronym	STDIN
 uncited-acronym	STEP
 uncited-acronym	STIG
 uncited-acronym	STILL
@@ -2296,7 +2351,9 @@ uncited-acronym	THEIR
 uncited-acronym	THEN
 uncited-acronym	THIS
 uncited-acronym	THK
+uncited-acronym	TICKET
 uncited-acronym	TIERED
+uncited-acronym	TIERS
 uncited-acronym	TIR
 uncited-acronym	TISAX
 uncited-acronym	TL
@@ -2342,6 +2399,7 @@ uncited-acronym	TSTZRANGE
 uncited-acronym	TT
 uncited-acronym	TTF
 uncited-acronym	TTFB
+uncited-acronym	TTFT
 uncited-acronym	TTI
 uncited-acronym	TTM
 uncited-acronym	TTS
@@ -2383,6 +2441,7 @@ uncited-acronym	UNKNOWN
 uncited-acronym	UNLESS
 uncited-acronym	UNREADY
 uncited-acronym	UNTOUCHED
+uncited-acronym	UNTRUSTED
 uncited-acronym	UODO
 uncited-acronym	UOOM
 uncited-acronym	UOOU
@@ -2412,6 +2471,7 @@ uncited-acronym	UUID
 uncited-acronym	UV
 uncited-acronym	VA
 uncited-acronym	VAD
+uncited-acronym	VALID
 uncited-acronym	VALIDATION
 uncited-acronym	VASP
 uncited-acronym	VAT
@@ -2474,6 +2534,7 @@ uncited-acronym	WCAG
 uncited-acronym	WEA
 uncited-acronym	WEAK
 uncited-acronym	WEAKEST
+uncited-acronym	WEIGHT
 uncited-acronym	WER
 uncited-acronym	WET
 uncited-acronym	WFH
@@ -2484,6 +2545,7 @@ uncited-acronym	WHERE
 uncited-acronym	WHIP
 uncited-acronym	WHY
 uncited-acronym	WIB
+uncited-acronym	WILL
 uncited-acronym	WIN
 uncited-acronym	WINS
 uncited-acronym	WIP
@@ -2498,6 +2560,7 @@ uncited-acronym	WORKED
 uncited-acronym	WORKER
 uncited-acronym	WORKFLOW
 uncited-acronym	WORM
+uncited-acronym	WOULD
 uncited-acronym	WRBTR
 uncited-acronym	WRI
 uncited-acronym	WS
@@ -2515,10 +2578,12 @@ uncited-acronym	XI
 uncited-acronym	XII
 uncited-acronym	XLSX
 uncited-acronym	XMPP
+uncited-acronym	XOR
 uncited-acronym	XPS
 uncited-acronym	XTTS
 uncited-acronym	XXE
 uncited-acronym	YELLOW
+uncited-acronym	YET
 uncited-acronym	YNAB
 uncited-acronym	YOUR
 uncited-acronym	YOURS

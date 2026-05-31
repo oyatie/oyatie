@@ -34,7 +34,7 @@ skip-list), **presubmit (cheap, local-darwin) vs postsubmit (authoritative gate-
 - [ ] Concurrent subsystem PRs don't conflict at merge — mitigate by serializing the merge step
       / rebase-on-merge.
 
-## MVP Scope
+## Initial Delivery Scope
 **In:** `pipeline` over remaining `#84` subsystems → append-emit (`scripts/emit_rust_tests.py`)
 → local `buck2 test //unit/...` (darwin presubmit) → land-loop (open PR → poll `oya-ci-gate` →
 on RED, parse the status-summary, quarantine the named crate via `KNOWN_FAILING` + revert +

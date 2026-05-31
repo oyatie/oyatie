@@ -7,7 +7,7 @@ How might we make the buck2 CI gate (and the agent fleet) fast by **warming a sh
 ```
                           gRPC REAPI
 ┌──────────────┐   1. CAS (blobs by hash) ─────────────> ┌─ NativeLink CAS ──────┐ ┐
-│    Buck2     │   2. Action Cache (action→result) ────> │  NativeLink AC        │ ├ CACHE-FIRST (MVP)
+│    Buck2     │   2. Action Cache (action→result) ────> │  NativeLink AC        │ ├ CACHE-FIRST (PHASE 1)
 │ (gate pod / │                                          └───────────────────────┘ ┘  local exec
 │  laptop)    │   3. Remote Execution ────────────────>  ┌─ NativeLink Scheduler ┐    RE PHASE (later)
 └──────────────┘                                         │  + worker pool        │
@@ -26,7 +26,7 @@ Deploy **NativeLink cache-only on Talos** (CAS + Action Cache, backed by Seaweed
 - [ ] **Action-key determinism across pods** — same pinned aarch64 image + `.buckconfig` + de-cargo'd env ⇒ stable keys ⇒ hits.
 - [ ] **In-cluster gRPC + tls** pod → NativeLink reachable.
 
-## MVP Scope
+## Initial Cache-First Scope
 **In:** NativeLink CAS+AC (oya-ci ns, SeaweedFS-backed) + `[buck2_re_client]` endpoint + cache-only `CommandExecutorConfig` in `toolchains//` + the 2-pod hit + cold→warm speedup measurement.
 **Out:** Scheduler/RE, worker autoscaling, cross-arch RE.
 
@@ -36,7 +36,7 @@ Deploy **NativeLink cache-only on Talos** (CAS + Action Cache, backed by Seaweed
 - **Changing the green gate's local buck2** — cache augments it; no gate-logic change.
 
 ## How it compounds
-Green gate (safe fanout) + NativeLink cache (fast fanout) + llm-gateway (capacity) = the agentic-dev infra trio. RE-later makes the **Talos cluster the build farm** — aarch64-native, hyperscaler-optimal endgame. See [[build-platform-optimization]], [[post-foundation-roadmap]].
+Green gate (safe fanout) + NativeLink cache (fast fanout) + intelligence provider-pool capacity = the agentic-dev infra trio. RE-later makes the **Talos cluster the build farm** — aarch64-native, hyperscaler-optimal endgame. See [[build-platform-optimization]], [[post-foundation-roadmap]].
 
 ## Decided (founder 2026-05-30)
 - **Keyed auth** — NativeLink CAS/AC are AUTHENTICATED, not anonymous (unlike the sccache bucket). Keys from OpenBao/secret (not in-spec). Security-first; avoids the open-cache footgun.
@@ -51,8 +51,8 @@ Green gate (safe fanout) + NativeLink cache (fast fanout) + llm-gateway (capacit
                                    ▼
                               nativelink-worker pods (execute on Talos; aarch64 farm)
   ```
-  - **`nativelink-cas`** — CAS + AC; SeaweedFS-S3-backed, keyed; horizontally scalable (stateless in front of S3); on the critical path for ALL builds incl. cache-only. **MVP = this tier ONLY.**
+  - **`nativelink-cas`** — CAS + AC; SeaweedFS-S3-backed, keyed; horizontally scalable (stateless in front of S3); on the critical path for ALL builds incl. cache-only. **Phase 1 = this tier only.**
   - **`nativelink-scheduler`** — Scheduler + Execution + Capabilities; the stateful coordinator (few replicas — Buildbarn runs a *single* scheduler). On the path ONLY for remote execution. **Not deployed until the RE phase.**
   - **`nativelink-worker`** — executes actions on Talos; many pods, compute-scaled. **RE phase only**; flip `remote_enabled=true` → work orders → workers.
-- **Why split CAS+AC from the Scheduler (consensus 2026-05-30):** three distinct scaling axes (CAS = storage/bandwidth; Scheduler = coordination state; Worker = compute) and three blast radii — **CAS is on every build's path; a Scheduler fault must NOT take down the cache.** That argument holds even at one cluster, so the earlier "co-locate, split only if scale demands" was wrong. It's the documented production pattern: NativeLink runs CAS/scheduler in separate processes; [Buildbarn](https://github.com/buildbarn/bb-deployments) decomposes `bb-storage` / `bb-scheduler` / `bb-worker` / `bb-runner`. **AC stays WITH CAS** (both are storage). The cache-only MVP has no Scheduler at all, so the split costs nothing now — build the CAS tier; stand up scheduler+worker only when `remote_enabled` flips.
+- **Why split CAS+AC from the Scheduler (consensus 2026-05-30):** three distinct scaling axes (CAS = storage/bandwidth; Scheduler = coordination state; Worker = compute) and three blast radii — **CAS is on every build's path; a Scheduler fault must NOT take down the cache.** That argument holds even at one cluster, so the earlier "co-locate, split only if scale demands" was wrong. It's the documented production pattern: NativeLink runs CAS/scheduler in separate processes; [Buildbarn](https://github.com/buildbarn/bb-deployments) decomposes `bb-storage` / `bb-scheduler` / `bb-worker` / `bb-runner`. **AC stays WITH CAS** (both are storage). The cache-only phase has no Scheduler at all, so the split costs nothing now — build the CAS tier; stand up scheduler+worker only when `remote_enabled` flips.
 - **Keyed, not anonymous** (above).
