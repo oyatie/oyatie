@@ -2,12 +2,21 @@
 
 | Field | Value |
 | --- | --- |
-| Status | ~~Accepted~~ **Superseded** |
+| Status | Accepted |
 | Date | 2026-05-18 |
 | Deciders | axis-governance, axis-cloud-k8s, axis-observability |
 | Supersedes | — |
-| Superseded by | ADR-0515 (2026-05-31) — scratch base + buck2-native OCI replaces distroless; see ADR-0515 §Supersession. |
+| Superseded by | — |
+| Amended by | ADR-0515 (2026-05-31) |
 | Related | ADR-0064 (canonical-base + localization), ADR-0131 (per-µservice flat layout), ADR-0083 (kernel-tier invariants) |
+
+## Amendment note — ADR-0515 (2026-05-31)
+
+Amended by ADR-0515 (2026-05-31): the `static-debian12:nonroot` base is **REAFFIRMED**; the
+binary MUST be `aarch64-unknown-linux-musl` fully-static (this ADR assumed static binaries but
+the buck2 build had been producing dynamic-glibc binaries — that gap is closed by ADR-0515);
+image assembly is now buck2-native (bespoke Rust OCI assembler in `tools/oci/`), not BuildKit.
+The `oya gate validate container-base-image` lane continues to enforce this base unchanged.
 
 ## Context
 
