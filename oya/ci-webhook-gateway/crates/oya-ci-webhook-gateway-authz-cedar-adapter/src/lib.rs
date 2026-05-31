@@ -3,7 +3,7 @@
 //! Cedar authorization adapter for the CI webhook gateway (ADR-0387 D6).
 //!
 //! Implements [`WebhookAuthzGate`] using the `cedar-policy` engine and the
-//! bundled policy at `microservices/ci-webhook-gateway/policy/ci-webhook-gateway.cedar`.
+//! bundled policy at `oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar`.
 //!
 //! ## Security invariants (ADR-0183)
 //!
@@ -33,7 +33,7 @@ use oya_ci_webhook_gateway_kernel::{AuthzDecision, WebhookAuthzGate, WebhookAuth
 /// Stage-4 per the forbidden-path constraint; a follow-up PR will update it.
 ///
 /// Tracked under: registry/placeholder-debt/adr-follow-ups.yaml#ci-webhook-gateway-cedar-action-namespace
-const _BUNDLED_SKELETON: &str = include_str!("../policy/ci-webhook-gateway.cedar");
+const _BUNDLED_SKELETON: &str = include_str!("../../../policy/ci-webhook-gateway.cedar");
 
 /// Stage-5 corrected policy: same semantics as the skeleton but using Cedar's
 /// canonical `Action::` namespace so it compiles under cedar-policy 4.x.
