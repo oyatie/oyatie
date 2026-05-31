@@ -1227,6 +1227,12 @@ buildscript_run(
         "LDFLAGS": "-nostartfiles",
         "OPT_LEVEL": "3",
         "PROFILE": "release",
+        # musl-static (#83 musl lane): compile bcm.c against MUSL headers. -nostdlibinc
+        # drops glibc /usr/include (whose stdlib.h redirects strtol->__isoc23_strtol, a
+        # glibc-2.38 symbol undefined when linking musl). cc-crate target-suffixed env =>
+        # only applies to aarch64-musl builds; gnu/darwin builds unaffected.
+        "CC_aarch64_unknown_linux_musl": "clang",
+        "CFLAGS_aarch64_unknown_linux_musl": "--target=aarch64-unknown-linux-musl -nostdlibinc -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
     },
     features = ["prebuilt-nasm"],
     rustc_link_lib = True,
@@ -11517,6 +11523,7 @@ cxx_library(
         # links green on aarch64-linux with -DCFG_TARGET_OS_linux. NOTE: `reindeer buckify`
         # regenerates from the static fixup and WILL wipe this select (TOML can't express it) --
         # re-apply post-buckify (see third-party/fixups/psm/fixups.toml).
+        # The linux branch covers both gnu and musl (both carry os/constraints:linux).
         "prelude//os:linux": [
             "-DCFG_TARGET_OS_linux",
             "-DCFG_TARGET_ARCH_aarch64",

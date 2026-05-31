@@ -1,4 +1,4 @@
-# aws-lc-sys build script drives C compilation (CcBuilder path on macOS aarch64 —
+# aws-lc-sys build script drives C compilation (CcBuilder path on macOS aarch64 --
 # no cmake needed; pregenerated bindings at src/aarch64_apple_darwin_crypto.rs).
 # default-features must remain ON (founder constraint).
 
@@ -14,7 +14,7 @@ env = { CARGO_PKG_VERSION = "0.41.0", CARGO_PKG_VERSION_MAJOR = "0", CARGO_PKG_V
 # and cargo:rustc-link-search=native=<OUT_DIR> so the native C lib links at binary link time.
 rustc_link_lib = true
 rustc_link_search = true
-# No per-OS CC/AR — prelude injects target-correct CC/CXX/AR from the cxx toolchain.
+# No per-OS CC/AR -- prelude injects target-correct CC/CXX/AR from the cxx toolchain.
 # aws-lc-sys non-FIPS needs no perl/cmake/bindgen (pregenerated bindings + build files).
 #
 # LDFLAGS=-nostartfiles: aws-lc-sys's cc_builder compiler feature-test
@@ -28,3 +28,43 @@ rustc_link_search = true
 # set → clean link, probe still runs. Compile steps are -c (flag ignored), so it is scoped to the
 # probe link. Verified on rust-ci clang 19.1.7. Durable class-wide fix = a prelude patch.
 env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", LDFLAGS = "-nostartfiles" }
+
+# ---------------------------------------------------------------------------
+# musl C build env for aws-lc-sys 0.41 (//platforms:linux-aarch64-musl)
+#
+# HAND-EDIT CLASS: durable fixup -- same class as buck2 fixups #93/#91/#96.
+# regen-third-party.sh must re-apply this after every reindeer run.
+#
+# These env vars cannot be expressed as plain fixups.toml env entries because
+# they require $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)
+# which is a Buck2 macro only valid inside third-party/BUCK rule attributes.
+# They must be injected into aws-lc-sys-0.41-build-script-main-run via the
+# hand-edit patch (scripts/ci/third-party-buckify-handedits.patch).
+#
+# Intended env additions in aws-lc-sys-0.41-build-script-main-run:
+#   select({"//platforms:libc_musl": {
+#     "AWS_LC_SYS_TARGET_CC": "clang",
+#     "AWS_LC_SYS_CMAKE_BUILDER": "0",
+#     "AWS_LC_SYS_TARGET_CFLAGS":
+#       "--target=aarch64-unknown-linux-musl"
+#       " --sysroot=$(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)"
+#       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include"
+#       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
+#     "CC_aarch64_unknown_linux_musl": "clang",
+#     "AR_aarch64_unknown_linux_musl": "llvm-ar",
+#     "CFLAGS_aarch64_unknown_linux_musl":
+#       "--target=aarch64-unknown-linux-musl -nostdinc"
+#       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include"
+#       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
+#   }, "DEFAULT": {}})
+#
+# Rationale:
+#   AWS_LC_SYS_TARGET_CC=clang     -- force CcBuilder (not cmake); clang for musl ABI
+#   AWS_LC_SYS_CMAKE_BUILDER=0     -- disable cmake path; use cc (CcBuilder) path
+#   AWS_LC_SYS_TARGET_CFLAGS       -- target triple + sysroot + UAPI headers
+#   CC_aarch64_unknown_linux_musl  -- cc-rs triple-prefixed CC fallback
+#   AR_aarch64_unknown_linux_musl  -- llvm-ar for musl static archive creation
+#   CFLAGS_aarch64_unknown_linux_musl -- -nostdinc suppresses host system headers;
+#                                        -isystem adds musl + UAPI headers explicitly
+#                                        (aws-lc-sys needs linux/random.h for getrandom)
+# ---------------------------------------------------------------------------
