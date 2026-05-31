@@ -34,10 +34,6 @@ load(
     "HeaderMode",
 )
 load(
-    "@prelude//cxx:linker.bzl",
-    "is_pdb_generated",
-)
-load(
     "@prelude//linking:link_info.bzl",
     "LinkStyle",
 )
@@ -71,14 +67,12 @@ HermeticClangDistributionInfo = provider(
 def _hermetic_clang_dist_impl(ctx: AnalysisContext) -> list[Provider]:
     """Wraps an http_archive output into HermeticClangDistributionInfo.
 
-    The archive unpacks to a directory whose structure is:
-      clang+llvm-18.1.8-aarch64-linux-gnu/
-        bin/clang-18
-        bin/clang++   -> clang-18
-        bin/ld.lld
-        bin/llvm-ar
-        ...
-    The prefix attr below names that top-level directory.
+    The archive's http_archive uses strip_prefix to remove the top-level
+    clang+llvm-<ver>-<triple>/ directory, so the dist output's immediate
+    children are bin/, lib/, include/, .... Tools are therefore referenced
+    relative to the dist root (bin/clang, ...) with NO prefix re-prepended.
+    (A prior bug double-counted strip_prefix AND a prefix attr, yielding
+    <out>/clang+llvm-.../bin/clang while the real path is <out>/bin/clang.)
     """
     dist_out = ctx.attrs.dist[DefaultInfo].default_outputs[0]
 
@@ -95,14 +89,14 @@ def _hermetic_clang_dist_impl(ctx: AnalysisContext) -> list[Provider]:
     return [
         ctx.attrs.dist[DefaultInfo],
         HermeticClangDistributionInfo(
-            clang = _tool(ctx.attrs.prefix + "/bin/clang"),
-            clangxx = _tool(ctx.attrs.prefix + "/bin/clang++"),
-            lld = _tool(ctx.attrs.prefix + "/bin/ld.lld"),
-            llvm_ar = _tool(ctx.attrs.prefix + "/bin/llvm-ar"),
-            llvm_ranlib = _tool(ctx.attrs.prefix + "/bin/llvm-ranlib"),
-            llvm_nm = _tool(ctx.attrs.prefix + "/bin/llvm-nm"),
-            llvm_objcopy = _tool(ctx.attrs.prefix + "/bin/llvm-objcopy"),
-            llvm_strip = _tool(ctx.attrs.prefix + "/bin/llvm-strip"),
+            clang = _tool("bin/clang"),
+            clangxx = _tool("bin/clang++"),
+            lld = _tool("bin/ld.lld"),
+            llvm_ar = _tool("bin/llvm-ar"),
+            llvm_ranlib = _tool("bin/llvm-ranlib"),
+            llvm_nm = _tool("bin/llvm-nm"),
+            llvm_objcopy = _tool("bin/llvm-objcopy"),
+            llvm_strip = _tool("bin/llvm-strip"),
         ),
     ]
 
@@ -110,7 +104,6 @@ hermetic_clang_distribution = rule(
     impl = _hermetic_clang_dist_impl,
     attrs = {
         "dist": attrs.dep(providers = [DefaultInfo]),
-        "prefix": attrs.string(doc = "Top-level directory name inside the unpacked archive, e.g. 'clang+llvm-18.1.8-aarch64-linux-gnu'"),
     },
 )
 
@@ -124,8 +117,14 @@ def _hermetic_clang_toolchain_impl(ctx: AnalysisContext) -> list[Provider]:
 
     # --sysroot and --gcc-install-dir collapse GCCInstallationDetector to
     # exactly one CRT search root, eliminating the double-CRT link error.
-    sysroot_arg = cmd_args(sysroot_out, format = "--sysroot={}")
-    gcc_install_arg = cmd_args(sysroot_out, format = "--gcc-install-dir={}/usr/lib/gcc/aarch64-linux-gnu/{}".format("{}", ctx.attrs.gcc_version))
+    # hidden: ensure the sysroot dir (+ any other_outputs) materializes into
+    # every compile/link action carrying these flags (esp. under remote exec).
+    _sysroot_hidden = [
+        ctx.attrs.sysroot[DefaultInfo].default_outputs,
+        ctx.attrs.sysroot[DefaultInfo].other_outputs,
+    ]
+    sysroot_arg = cmd_args(sysroot_out, format = "--sysroot={}", hidden = _sysroot_hidden)
+    gcc_install_arg = cmd_args(sysroot_out, format = "--gcc-install-dir={}/usr/lib/gcc/aarch64-linux-gnu/{}".format("{}", ctx.attrs.gcc_version), hidden = _sysroot_hidden)
 
     target_flag = "--target={}".format(ctx.attrs.target)
 
