@@ -139,12 +139,28 @@ exec sh infra/ci/buck2-affected-gate.sh origin/{base_ref} origin/pr-{pr_number}"
             allow_privilege_escalation: Some(false),
             read_only_root_filesystem: Some(false), // gate needs /tmp, /home/jenkins/agent
             run_as_non_root: Some(true),
+            // rust-ci image has no non-root USER; pin uid 1000 (the build-pod uid)
+            // so runAsNonRoot is satisfiable.
+            run_as_user: Some(1000),
             capabilities: Some(k8s_openapi::api::core::v1::Capabilities {
                 drop: Some(vec!["ALL".to_owned()]),
                 ..Default::default()
             }),
             ..Default::default()
         }),
+        // Writable emptyDir workspaces (uid 1000 can't mkdir under root-owned /).
+        volume_mounts: Some(vec![
+            k8s_openapi::api::core::v1::VolumeMount {
+                name: "workspace".to_owned(),
+                mount_path: "/workspace".to_owned(),
+                ..Default::default()
+            },
+            k8s_openapi::api::core::v1::VolumeMount {
+                name: "home".to_owned(),
+                mount_path: "/home/jenkins/agent".to_owned(),
+                ..Default::default()
+            },
+        ]),
         ..Default::default()
     };
 
@@ -155,12 +171,28 @@ exec sh infra/ci/buck2-affected-gate.sh origin/{base_ref} origin/pr-{pr_number}"
         containers: vec![container],
         security_context: Some(k8s_openapi::api::core::v1::PodSecurityContext {
             run_as_non_root: Some(true),
+            run_as_user: Some(1000),
+            run_as_group: Some(1000),
+            // fs_group chowns the emptyDir workspaces to gid 1000 so uid 1000 can write.
+            fs_group: Some(1000),
             seccomp_profile: Some(k8s_openapi::api::core::v1::SeccompProfile {
                 type_: "RuntimeDefault".to_owned(),
                 ..Default::default()
             }),
             ..Default::default()
         }),
+        volumes: Some(vec![
+            k8s_openapi::api::core::v1::Volume {
+                name: "workspace".to_owned(),
+                empty_dir: Some(k8s_openapi::api::core::v1::EmptyDirVolumeSource::default()),
+                ..Default::default()
+            },
+            k8s_openapi::api::core::v1::Volume {
+                name: "home".to_owned(),
+                empty_dir: Some(k8s_openapi::api::core::v1::EmptyDirVolumeSource::default()),
+                ..Default::default()
+            },
+        ]),
         ..Default::default()
     };
 
