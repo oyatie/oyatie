@@ -6,7 +6,7 @@ date: 2026-05-28
 authority: founder
 milestone: M-IDENTITY-V2
 planning_impact: true
-supersedes: [ADR-0421]
+supersedes: []
 superseded_by: []
 related: [ADR-0421, ADR-0394, ADR-0083, ADR-0411, ADR-0434, ADR-0416, ADR-0406, ADR-0509]
 ---

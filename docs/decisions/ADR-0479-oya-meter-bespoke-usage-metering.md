@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-28
 authority: founder
 planning_impact: true
-supersedes: [ADR-0429]
+supersedes: []
 superseded_by: []
 milestone: M-METERING-V2
 related: [ADR-0429, ADR-0478, ADR-0193, ADR-0397, ADR-0083, ADR-0411, ADR-0403, ADR-0420, ADR-0449, ADR-0131, ADR-0132, ADR-0509]

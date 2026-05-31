@@ -2,6 +2,7 @@
 id: ADR-0054
 status: Deprecated
 doc_status: published
+superseded_by: [ADR-0116]
 ---
 
 # ADR-0054: Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback)
