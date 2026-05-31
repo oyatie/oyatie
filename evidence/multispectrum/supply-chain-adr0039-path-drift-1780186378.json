@@ -1,0 +1,44 @@
+{
+  "evidence_id": "supply-chain-adr0039-path-drift-2026-05-31",
+  "captured_at": "2026-05-31T00:00:00-04:00",
+  "lane": "supply-chain",
+  "claim": "The supply-chain gate now reads the active ADR-0039 Rust command source when deriving static Trivy and cosign evidence.",
+  "grounding": {
+    "planning_authority": "specs/masterplan.json",
+    "active_direction": "intelligence provider/account pool work remains under intelligence, not a standalone llm-gateway track.",
+    "adr_handling": [
+      "ADR-0335 status Accepted: former Foundry responsibilities are absorbed by intelligence.",
+      "ADR-0363 status Accepted: plain git plus Jenkins plus Forgejo is the coordination substrate and oya remains a governance-gate engine.",
+      "ADR-0384 status Proposed: OAuth subscription-pool design is design input, not controlling execution authority by itself.",
+      "ADR-0390 status Accepted: SubscriptionPool and SeatLease are part of the cloud-intelligence request pipeline proof plan.",
+      "ADR-0391 status Accepted: pool concurrency proof and N-lane safety are required evidence surfaces."
+    ],
+    "reference_repositories_reviewed": [
+      {
+        "path": "/tmp/oyatie-reference-repos-20260530/CLIProxyAPI",
+        "commit": "3a54fb7fcf3a39de620ca250ff9c1dedc79c9549",
+        "relevance": "OAuth CLI proxy patterns and usage/account event separation inform the provider pool design only."
+      },
+      {
+        "path": "/tmp/oyatie-reference-repos-20260530/ccproxy-api",
+        "commit": "9a0e49655f648f3eac7030a673674d1f8469893e",
+        "relevance": "Provider adapter and credential-balancing concepts inform test seams only."
+      },
+      {
+        "path": "/tmp/oyatie-reference-repos-20260530/auth2api",
+        "commit": "840fa100e71a3562552cc7d0267f7668db0d7f86",
+        "relevance": "Account-manager routing patterns inform provider pool invariants only."
+      }
+    ]
+  },
+  "change": {
+    "default_adr0039_rust_source": "oya/developer-sdk/crates/oya-dev-cli/src/commands/supply_chain.rs",
+    "reason": "The prior gate default pointed at the retired pre-restructure crate path, so repository-root validation did not include the active Rust command surface containing the Trivy and cosign ADR-0039 evidence strings."
+  },
+  "verification": [
+    "./bin/oya gate validate supply-chain",
+    "./bin/oya gate validate supply-chain --require-adr0039-evidence",
+    "cargo test -p oya-check-supply-chain -- --nocapture",
+    "cargo test -p oya-dev-cli supply_chain -- --nocapture"
+  ]
+}
