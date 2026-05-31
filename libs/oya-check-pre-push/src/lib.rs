@@ -61,7 +61,7 @@ pub struct PrePushContractEvidence<'a> {
     /// mention `CANONICAL_PRE_PUSH_COMMAND` as a required check.
     pub done_definition_doc: &'a str, // data_class: INTERNAL_ONLY
     /// Top-level dev-CLI dispatch source
-    /// (`crates/oya-dev-cli/src/lib.rs`); must contain
+    /// (`oya/developer-sdk/crates/oya-dev-cli/src/lib.rs`); must contain
     /// `VERIFY_SUBCOMMAND_MATCH_ARM` AND `NATIVE_VERIFY_DISPATCH_TOKEN`
     /// so the canonical command is provably wired through to native
     /// Rust dispatch with no `.sh` subprocess interposed.

@@ -1,0 +1,190 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "pre-push-contract-dev-cli-path",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-pre-push-contract-dev-cli-path-20260530",
+  "timestamp_iso": "2026-05-30T23:19:32.784987Z",
+  "freshness_unix": 1780183172,
+  "git_sha": "a7e9b40724ba",
+  "scope": "pre-push-contract gate dev CLI dispatch source path",
+  "claimed_scopes": [
+    "oya/developer-sdk/crates/oya-dev-cli/src/pre_push_contract_gate.rs",
+    "oya/developer-sdk/crates/oya-dev-cli/src/lib.rs",
+    "libs/oya-check-pre-push/src/lib.rs"
+  ],
+  "authority_review": {
+    "stale_adr_handling": [
+      "Root hub and docs/AGENTS.md make plain git + Jenkins + oya gate the live governance path after ADR-0363; retired agentic VCS/grit-era instructions in archived stale documents were not followed.",
+      "ADR-0335 is Accepted and makes intelligence the canonical AI substrate after Foundry absorption; this change does not touch provider-pool behavior but preserves the gate path needed for intelligence fanout PR readiness.",
+      "ADR-0384 is Proposed/stale-named design provenance for the pure SubscriptionPool shape only; accepted/current ADR-0390/0391 and PR #438 place provider-pool work under intelligence rather than llm-gateway/cloud-intelligence paths.",
+      "ADR-0364 and docs/DOC-CATALOG mark ADR indexes/masterplan projections as generated surfaces; generated ADR mirrors/indexes were not edited."
+    ],
+    "plans_reviewed": [
+      "specs/root-hub-pointers.json: masterplan and agent_durable_goal pointers",
+      "specs/master-plan-sequencing.json: plain-git/Jenkins authority and stale document archive rule",
+      "specs/masterplan.json: FD-001 required intelligence surface and IP-001 provider-account-pool entry",
+      ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-001-provider-account-pool-kernel.md: stale planning-closed ProviderAccountPool contract reconciled with PR #438 pure SubscriptionPool implementation",
+      "docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md",
+      "docs/decisions/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md",
+      "docs/decisions/ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md",
+      "docs/decisions/ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md"
+    ],
+    "reference_repos_reviewed": [
+      "/tmp/ref-repos/CLIProxyAPI (router-for-me/CLIProxyAPI): OAuth subscription-pool reference for round-robin/fill-first/cooldown semantics used by PR #438.",
+      "/tmp/ref-repos/auth2api (AmazingAng/auth2api): stock OAuth refresh and refresh-token exhaustion taxonomy used by ADR-0384/PR #438.",
+      "/tmp/ref-repos/gpt-load (tbphp/gpt-load): static pool failure threshold/cooldown restoration precedent.",
+      "/tmp/ref-repos/one-api (songquanpeng/one-api): OpenAI-compatible provider routing facade precedent.",
+      "/tmp/ref-repos/quotio (nguyenphutrong/quotio): operator-visible quota/account UX precedent."
+    ]
+  },
+  "summary": "Repaired the pre-push-contract gate default dev-CLI dispatch source from the retired root crates path to the active oya/developer-sdk path, and aligned the CLI usage/doc comment. This clears the pre-push-contract lane failure observed in affected run-all without adding an alternate path or compatibility shim.",
+  "verification": [
+    {
+      "command": "test -f oya/developer-sdk/crates/oya-dev-cli/src/lib.rs && test ! -f crates/oya-dev-cli/src/lib.rs",
+      "result": "pass: active dev-cli path exists; retired root crates path is absent"
+    },
+    {
+      "command": "./bin/oya gate validate pre-push-contract",
+      "result": "pass: command=oya verify --ci-required, native-verify-dispatch-token=commands::verify::run, verify-subcommand=wired, hook=wired"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli pre_push_contract -- --nocapture",
+      "result": "pass: 4 pre_push_contract_gate tests passed; integration test binaries filtered to 0 matching tests"
+    },
+    {
+      "command": "cargo test -p oya-check-pre-push -- --nocapture",
+      "result": "pass: 7 unit tests passed; doctests 0"
+    },
+    {
+      "command": "cargo check -p oya-dev-cli -p oya-check-pre-push --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "targeted rustfmt check on pre_push_contract_gate.rs and oya-check-pre-push lib.rs",
+      "result": "pass"
+    },
+    {
+      "command": "rustfmt check on oya-dev-cli lib.rs",
+      "result": "baseline gap: unrelated existing workspace_topology_gate import ordering in lib.rs prevents a file-level rustfmt claim; git diff --check covers this PR line"
+    },
+    {
+      "command": "cargo clippy -p oya-check-pre-push --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --no-deps --all-targets -- -D warnings",
+      "result": "baseline gap: unrelated existing workspace_topology_gate doc-overindented-list-items diagnostics; not introduced by this change"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "added-line slop vocabulary audit",
+      "result": "pass: no matches in added lines"
+    },
+    {
+      "command": "./bin/oya gate run-all --affected --base origin/dev",
+      "result": "partial: 11/15 lanes passed; pre-push-contract passed; remaining failures are unrelated baselines supply-chain, license-policy, stage0-prereqs, and vendor-lockin-discipline (fixed separately in PR #439)"
+    }
+  ],
+  "remaining_risks": [
+    "Affected run-all still fails unrelated baseline lanes; this PR only claims the pre-push-contract lane.",
+    "The vendor-lockin-discipline baseline remains red on origin/dev until PR #439 merges.",
+    "Full oya-dev-cli clippy/fmt remains blocked by unrelated existing diagnostics outside the touched pre-push gate code."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "One stale path correction removes a false red gate; no alternate path, shim, or compatibility branch added."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Keeps the local pre-push governance gate executable so scaled PR fanout remains safety-gated."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "pre-push-contract failed on a missing retired crates/oya-dev-cli/src/lib.rs path before; now passes against the active oya/developer-sdk path.",
+      "findings": [
+        "Concrete gate validation proves the path repair instead of masking the error."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 2,
+      "findings": [
+        "CLI help and kernel doc comment now point contributors at the active dev-cli source path."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted tests, gate validation, cargo check, diff-check, slop audit, and affected run-all evidence were collected."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Create a compatibility file at crates/oya-dev-cli/src/lib.rs",
+        "Pass an override flag in run-all",
+        "Update the default path to the active dev-cli source"
+      ],
+      "selected_rationale": "Updating the default path fixes the authority at the source and avoids resurrecting retired root-crate layout.",
+      "rejected_reasons": [
+        "Compatibility file would recreate stale topology.",
+        "Override flags would hide the broken default and leave normal gate users with a false red."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "governance gate integrity",
+      "findings": [
+        "No secrets or runtime authorization paths touched; preserves native verify dispatch inspection."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Path-only gate runner/doc update; no runtime hot path."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "data_class_touched": [],
+      "findings": [
+        "Improves governance compliance by making the pre-push-contract validator read the live source path."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "Three-line source/doc path update plus evidence; revert is straightforward."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "findings": [
+        "Confirmed active oya/developer-sdk dev-cli path exists and retired root crates path is absent before changing the default."
+      ]
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "findings": [
+        "Clears a safety-prerequisite baseline gate needed for the CI-gated, intelligence-provider-pool fanout sequence."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A1_naming": "Uses active oya/developer-sdk path; no llm-gateway/foundry naming introduced.",
+    "A2_documentation": "Evidence records stale ADR handling, reference repo context, and generated-index non-editing.",
+    "A3_structure": "No topology changes; points the gate at the existing dev-cli source.",
+    "A4_architecture": "Preserves kernel/runner split: oya-check-pre-push remains pure, oya-dev-cli runner owns I/O.",
+    "A5_dependency": "No dependency changes.",
+    "A6_tests": "pre-push-contract gate, unit tests, kernel tests, cargo check, diff-check, and affected run-all collected.",
+    "A7_governance": "Plain git isolated worktree with multispectrum evidence; PR to dev is the governance entrypoint."
+  }
+}
