@@ -11523,6 +11523,7 @@ cxx_library(
         # links green on aarch64-linux with -DCFG_TARGET_OS_linux. NOTE: `reindeer buckify`
         # regenerates from the static fixup and WILL wipe this select (TOML can't express it) --
         # re-apply post-buckify (see third-party/fixups/psm/fixups.toml).
+        # The linux branch covers both gnu and musl (both carry os/constraints:linux).
         "prelude//os:linux": [
             "-DCFG_TARGET_OS_linux",
             "-DCFG_TARGET_ARCH_aarch64",
