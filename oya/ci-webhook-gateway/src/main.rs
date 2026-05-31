@@ -16,8 +16,8 @@ use std::sync::Arc;
 
 use oya_ci_webhook_gateway_app::{
     WEBHOOK_PATH,
-    config::{self, GatewayConfig},
-    dispatch::{JenkinsDispatcher, PipelineKickoff},
+    config::{self, DispatcherKind, GatewayConfig},
+    dispatch::{ControllerDispatcher, GateRunBody, JenkinsDispatcher, PipelineKickoff},
     receiver::{ReceiverState, router},
 };
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -43,18 +43,38 @@ async fn main() -> std::process::ExitCode {
             config::ENV_WEBHOOK_SECRET
         );
     }
-    if config.jenkins_dispatch_url.is_none() {
+    if config.dispatcher_kind == DispatcherKind::Jenkins && config.jenkins_dispatch_url.is_none() {
         tracing::warn!(
             "{} is unset: PR events will verify + route but dispatch will return \
              a typed transport error (no silent success).",
             config::ENV_JENKINS_DISPATCH_URL
         );
     }
+    if config.dispatcher_kind == DispatcherKind::Controller && config.controller_url.is_none() {
+        tracing::warn!(
+            "{} is unset: controller dispatcher selected but URL not configured; \
+             PR dispatch will return a typed transport error (no silent success).",
+            config::ENV_CONTROLLER_URL
+        );
+    }
 
-    let dispatcher = Arc::new(JenkinsDispatcher::new(
-        config.jenkins_dispatch_url.clone(),
-        kick_jenkins,
-    ));
+    let dispatcher: Arc<dyn oya_ci_webhook_gateway_app::dispatch::PipelineDispatcher> =
+        match config.dispatcher_kind {
+            DispatcherKind::Jenkins => {
+                tracing::info!("dispatcher: jenkins");
+                Arc::new(JenkinsDispatcher::new(
+                    config.jenkins_dispatch_url.clone(),
+                    kick_jenkins,
+                ))
+            }
+            DispatcherKind::Controller => {
+                tracing::info!("dispatcher: controller (oya-ci-controller /gate-run)");
+                Arc::new(ControllerDispatcher::new(
+                    config.controller_url.clone(),
+                    post_controller,
+                ))
+            }
+        };
 
     // Resolve optional ed25519 public key from OYA_WEBHOOK_ED25519_PUBKEY
     // (base64-encoded 32-byte ed25519 verifying key). When absent, the gateway
@@ -173,6 +193,63 @@ fn kick_jenkins(url: String, kickoff: PipelineKickoff) -> std::result::Result<()
             } else {
                 Err(format!(
                     "Jenkins kick non-2xx: {}",
+                    head.lines().next().unwrap_or("<no status line>")
+                ))
+            }
+        })
+    })
+}
+
+/// POST the gate-run body to the oya-ci-controller `/gate-run` endpoint.
+///
+/// Uses the same minimal HTTP/1.1-over-TCP transport as `kick_jenkins` — no
+/// extra dependencies (in-cluster plain HTTP; TLS terminates at the mesh
+/// ingress). Returns `Err(reason)` on any transport/parse/non-2xx outcome.
+fn post_controller(url: String, body: GateRunBody) -> std::result::Result<(), String> {
+    let (host, port, path) = parse_http_url(&url)?;
+    let json_body = serde_json::json!({
+        "pr_number": body.pr_number,
+        "head_sha": body.head_sha,
+        "base_ref": body.base_ref,
+    })
+    .to_string();
+
+    let handle = tokio::runtime::Handle::try_current()
+        .map_err(|e| format!("no tokio runtime for controller post: {e}"))?;
+    let request = format!(
+        "POST {path} HTTP/1.1\r\nHost: {host}\r\nContent-Type: application/json\r\n\
+         Content-Length: {len}\r\nConnection: close\r\n\r\n{json_body}",
+        len = json_body.len(),
+    );
+
+    tokio::task::block_in_place(|| {
+        handle.block_on(async move {
+            let mut stream = TcpStream::connect((host.as_str(), port))
+                .await
+                .map_err(|e| format!("connect {host}:{port}: {e}"))?;
+            stream
+                .write_all(request.as_bytes())
+                .await
+                .map_err(|e| format!("write: {e}"))?;
+            let mut buf = Vec::with_capacity(256);
+            let mut chunk = [0u8; 256];
+            let n = stream
+                .read(&mut chunk)
+                .await
+                .map_err(|e| format!("read: {e}"))?;
+            buf.extend_from_slice(&chunk[..n]);
+            let head = String::from_utf8_lossy(&buf);
+            let status_ok = head
+                .split_whitespace()
+                .nth(1)
+                .and_then(|code| code.parse::<u16>().ok())
+                .map(|code| (200..300).contains(&code))
+                .unwrap_or(false);
+            if status_ok {
+                Ok(())
+            } else {
+                Err(format!(
+                    "controller /gate-run non-2xx: {}",
                     head.lines().next().unwrap_or("<no status line>")
                 ))
             }

@@ -49,9 +49,10 @@ pub mod event;
 pub mod receiver;
 pub mod signature;
 
-pub use config::GatewayConfig;
+pub use config::{DispatcherKind, GatewayConfig};
 pub use dispatch::{
-    DispatchReceipt, DispatchSubject, JenkinsDispatcher, PipelineDispatcher, PipelineKickoff,
+    ControllerDispatcher, DispatchReceipt, DispatchSubject, GateRunBody, JenkinsDispatcher,
+    PipelineDispatcher, PipelineKickoff,
 };
 pub use error::{GatewayError, PipelineStage, Result};
 pub use event::{
