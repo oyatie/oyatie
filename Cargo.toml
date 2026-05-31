@@ -211,6 +211,10 @@ members = [
   "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
   "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-jenkins-adapter",
   "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel",
+  "oya/ci-controller/crates/oya-ci-controller-kernel",
+  "oya/ci-controller/crates/oya-ci-controller-forgejo-adapter",
+  "oya/ci-controller/crates/oya-ci-controller-k8s-adapter",
+  "oya/ci-controller/crates/oya-ci-controller-app",
   "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app",
   "cloud/cloud-billing/crates/oya-billing",
   "cloud/cloud-billing/crates/oya-cloud-billing-domain",
@@ -1102,6 +1106,11 @@ hyper-rustls = { version = "0.27", default-features = false, features = ["http1"
 # Axum HTTP framework (ADR-0090 sanctioned-with-justification; isolated to app/adapter layers).
 # Used by ci-webhook-gateway and similar microservices that expose HTTP surfaces.
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+# reqwest HTTP client — workspace pin so all crates share one resolved version.
+# Used by ci-controller-forgejo-adapter (status poster) and gateway adapters.
+# blocking feature: adapter layers that implement synchronous kernel traits.
+# rustls: TLS via aws-lc-rs/rustls (no native-tls / OpenSSL dep).
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }
 # Tower middleware stack — utility layer for axum/hyper service composition.
 tower = { version = "0.5", default-features = false, features = ["util"] }
 # RustCrypto HMAC + SHA-2 + constant-time comparison (ci-webhook-gateway webhook verification).

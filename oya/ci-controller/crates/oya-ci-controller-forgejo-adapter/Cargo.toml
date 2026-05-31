@@ -1,0 +1,30 @@
+[package]
+name = "oya-ci-controller-forgejo-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Forgejo commit-status poster adapter for the oya-ci controller.
+# Implements kernel::ForgejoStatusPoster via reqwest blocking HTTP.
+# Posts to the Forgejo Statuses API: POST /api/v1/repos/<owner>/<repo>/statuses/<sha>.
+# Lifted from Jenkinsfile-oya-ci-gate:131-144 postForgejoStatus.
+
+[lib]
+name = "oya_ci_controller_forgejo_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-ci-controller-kernel = { path = "../oya-ci-controller-kernel" }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+httpmock = "0.7"
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
