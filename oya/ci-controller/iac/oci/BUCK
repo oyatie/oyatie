@@ -9,25 +9,35 @@
 #
 # Targets:
 #   :distroless-base       — http_archive fetching the base OCI layout tarball
-#   :controller-layer      — genrule packaging the buck2-built binary as a layer
+#   :controller-layer      — genrule packaging the musl-static binary as a layer
 #   :controller-oci        — oci_image assembling the final image layout
+#
+# Musl / static build:
+#   The controller binary is built fully-static via the aarch64-unknown-linux-musl
+#   toolchain (//platforms:linux-aarch64-musl).  The base image is therefore
+#   gcr.io/distroless/static-debian12:nonroot — no libgcc/glibc stubs needed.
+#   Build the image with:
+#     buck2 build root//oya/ci-controller/iac/oci:controller-oci \
+#       --target-platforms //platforms:linux-aarch64-musl
+#   The --target-platforms flag propagates to all transitive deps, so
+#   //oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller is
+#   automatically compiled with aarch64-unknown-linux-musl + link-self-contained=yes.
 #
 # Darwin/Linux split:
 #   - On darwin (aarch64): buck2 cquery + audit providers resolve cleanly;
 #     the assembled OCI layout is inspectable.  The binary inside is Mach-O
 #     (host-arch) — NOT runnable in a Linux container.  The push step is
 #     intentionally gated to Linux CI only.
-#   - On linux (aarch64, CI pod): the binary is ELF aarch64-linux — correct
-#     for deployment.  Run push-and-sign.sh after the image is assembled.
+#   - On linux (aarch64, CI pod): pass --target-platforms //platforms:linux-aarch64-musl
+#     to get the static ELF.  Run push-and-sign.sh after assembly.
 #
 # Base image:
-#   gcr.io/distroless/cc-debian12:nonroot  (cc variant ships libgcc/glibc stubs
-#   required by the dynamically-linked controller binary — aws-lc-sys links
-#   libc+libgcc via the system toolchain; static-debian12 would crashloop).
-#   Matches the sibling gateway (oya/ci-webhook-gateway/Dockerfile uses cc-debian12).
-#   Pinned to a specific OCI layout tarball staged via `crane pull --format oci`.
-#   SHA256 is the sha256 of the *tarball* (the http_archive input), not the
-#   OCI manifest digest.  Bump when Google publishes a new CVE-patched weekly build.
+#   gcr.io/distroless/static-debian12:nonroot  (ADR-0146 canonical; founder decision
+#   2026-05-31).  The static variant carries no libc/libgcc — correct for a fully-
+#   static musl binary.  Pinned to a specific OCI layout tarball staged via
+#   `crane pull --format oci`.  SHA256 is the sha256 of the *tarball* (the
+#   http_archive input), not the OCI manifest digest.  Bump when Google publishes
+#   a new CVE-patched weekly rebuild.
 #
 # Push target: see push-and-sign.sh (linux CI only).
 #   Registry: registry.oya-registry.svc.cluster.local:5000
@@ -37,18 +47,19 @@ load("//tools/oci:defs.bzl", "oci_image")
 
 # ── Base image ────────────────────────────────────────────────────────────────
 #
-# Distroless cc-debian12:nonroot OCI layout tarball.
-# cc-debian12 ships libgcc_s + glibc loader required by the dynamically-linked
-# oya-ci-controller binary (aws-lc-sys C compilation + host toolchain = glibc dep).
+# Distroless static-debian12:nonroot OCI layout tarball.
+# The static variant ships no libc/libgcc — correct for the fully-static
+# aarch64-linux-musl controller binary (link-self-contained=yes; +crt-static
+# is the musl-target default).
 #
 # To stage/regenerate this pin (on a host with crane available):
-#   crane pull --format oci gcr.io/distroless/cc-debian12:nonroot \
-#     /tmp/distroless-cc-nonroot-aarch64-20260101
-#   tar -cf distroless-cc-nonroot-aarch64-20260101.tar \
-#     -C /tmp/distroless-cc-nonroot-aarch64-20260101 .
-#   sha256sum distroless-cc-nonroot-aarch64-20260101.tar  # → update sha256 below
-#   crane push distroless-cc-nonroot-aarch64-20260101.tar \
-#     registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-cc-nonroot-aarch64-20260101.tar
+#   crane pull --format oci gcr.io/distroless/static-debian12:nonroot \
+#     /tmp/distroless-static-nonroot-aarch64-20260101
+#   tar -cf distroless-static-nonroot-aarch64-20260101.tar \
+#     -C /tmp/distroless-static-nonroot-aarch64-20260101 .
+#   sha256sum distroless-static-nonroot-aarch64-20260101.tar  # → update sha256 below
+#   crane push distroless-static-nonroot-aarch64-20260101.tar \
+#     registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-20260101.tar
 #
 # NOTE: use `crane pull --format oci` (not `crane export`) — export produces a
 # flat rootfs tar with no OCI layout; pull --format oci produces the required
@@ -63,7 +74,7 @@ http_archive(
     # Primary source: in-cluster artifact mirror (offline-capable; no GCR egress
     # required from CI pod).  Stage with `crane pull --format oci` (see above).
     urls = [
-        "http://registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-cc-nonroot-aarch64-20260101.tar",
+        "http://registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-20260101.tar",
     ],
     # sha256 of the OCI layout tarball (NOT the image manifest digest).
     # PLACEHOLDER: replace with the real sha256 after the first crane pull+push.
@@ -81,8 +92,12 @@ http_archive(
 # The binary is placed at /usr/local/bin/oya-ci-controller inside the layer,
 # matching the Dockerfile COPY path convention.
 #
+# The binary resolved here is the musl-static ELF when this target is built
+# with --target-platforms //platforms:linux-aarch64-musl (which propagates the
+# platform to the transitive dep on the controller rust_binary).
+#
 # On darwin: the binary is Mach-O; the layer is valid tar.gz but the image is
-# not runnable on Linux.  On linux CI: the binary is aarch64-linux ELF.
+# not runnable on Linux.  Always build with --target-platforms on Linux CI.
 genrule(
     name = "controller-layer",
     srcs = [

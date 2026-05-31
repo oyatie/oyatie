@@ -22,10 +22,26 @@ path for this service per ADR-0514.  ADDITIVE: the gateway Dockerfile is untouch
 
 ## Base image
 
-`gcr.io/distroless/cc-debian12:nonroot` — the `cc` variant ships `libgcc_s` and
-the glibc dynamic loader required by the dynamically-linked controller binary
-(aws-lc-sys compiles C and links libc/libgcc via the system toolchain).
-Matches the sibling gateway (`oya/ci-webhook-gateway/Dockerfile`).
+`gcr.io/distroless/static-debian12:nonroot` — the `static` variant carries no
+libc or libgcc, which is correct for a fully-static musl binary.  The controller
+is compiled with `aarch64-unknown-linux-musl` + `link-self-contained=yes`
+(`+crt-static` is the musl-target default), so it has zero shared-library
+dependencies.  Founder decision 2026-05-31; ADR-0146 canonical.
+
+## Building the musl image
+
+The OCI target must be built with the musl platform so the transitive
+`rust_binary` dep resolves to the musl toolchain:
+
+```sh
+buck2 build root//oya/ci-controller/iac/oci:controller-oci \
+  --target-platforms //platforms:linux-aarch64-musl
+```
+
+The `--target-platforms` flag propagates to all transitive deps; the
+`//oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller`
+`rust_binary` is automatically compiled with
+`aarch64-unknown-linux-musl` + `-Clink-self-contained=yes -Clinker=rust-lld`.
 
 ## Base digest staging and bump procedure
 
@@ -37,19 +53,19 @@ To stage or bump the base (requires `crane` on PATH):
 ```sh
 # 1. Pull as OCI layout (NOT crane export — that yields a flat rootfs with no index.json)
 crane pull --format oci \
-  gcr.io/distroless/cc-debian12:nonroot \
-  /tmp/distroless-cc-nonroot-aarch64-$(date +%Y%m%d)
+  gcr.io/distroless/static-debian12:nonroot \
+  /tmp/distroless-static-nonroot-aarch64-$(date +%Y%m%d)
 
 # 2. Tar the layout directory
-tar -cf distroless-cc-nonroot-aarch64-$(date +%Y%m%d).tar \
-  -C /tmp/distroless-cc-nonroot-aarch64-$(date +%Y%m%d) .
+tar -cf distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar \
+  -C /tmp/distroless-static-nonroot-aarch64-$(date +%Y%m%d) .
 
 # 3. Capture sha256
-sha256sum distroless-cc-nonroot-aarch64-$(date +%Y%m%d).tar
+sha256sum distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar
 
 # 4. Push to in-cluster build-inputs registry
-crane push distroless-cc-nonroot-aarch64-$(date +%Y%m%d).tar \
-  registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-cc-nonroot-aarch64-$(date +%Y%m%d).tar
+crane push distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar \
+  registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar
 
 # 5. Update BUCK:
 #   - urls[0]: new filename with date
