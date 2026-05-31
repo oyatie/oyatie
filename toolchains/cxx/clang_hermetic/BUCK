@@ -92,11 +92,11 @@ hermetic_clang_toolchain(
 # Founder: obtain the real sha256 before merging:
 #   curl -fsSL -o aarch64-linux-musl-cross.tgz https://musl.cc/aarch64-linux-musl-cross.tgz
 #   sha256sum aarch64-linux-musl-cross.tgz
-# Then replace PLACEHOLDER_MUSL_SYSROOT_SHA256 with the 64-hex result.
+# Then replace c909817856d6ceda86aa510894fa3527eac7989f0ef6e87b5721c58737a06c38 with the 64-hex result.
 # ---------------------------------------------------------------------------
 http_archive(
     name = "aarch64-musl-sysroot",
-    sha256 = "PLACEHOLDER_MUSL_SYSROOT_SHA256",
+    sha256 = "c909817856d6ceda86aa510894fa3527eac7989f0ef6e87b5721c58737a06c38",
     strip_prefix = "aarch64-linux-musl-cross",
     urls = [
         "https://musl.cc/aarch64-linux-musl-cross.tgz",
