@@ -43,24 +43,12 @@ hermetic_clang_distribution(
 # eliminates the duplicate _start/_init/_fini/_IO_stdin_used symbols that
 # caused aws-lc-sys to fail linking on the gate pod.
 #
-# MUST match the gate: the panic showed /usr/lib/gcc/aarch64-linux-gnu/14/, so
-# the gate image is Debian TRIXIE (gcc-14) — NOT bookworm (gcc-12). Build the
-# sysroot from trixie (debootstrap trixie + gcc-14) OR tar the rust-ci pod's own
-# /lib/aarch64-linux-gnu + /usr/lib/{aarch64-linux-gnu,gcc/aarch64-linux-gnu/14}
-# + /usr/include, so gcc_version="14" and --gcc-install-dir resolve to a real
-# crtbegin.o (else clang silently ignores the flag and re-detects two roots).
-# Hosted on the project's self-hosted artifact store.
-#
 # NOTE (CUT-1): SHA-256 below is a placeholder.  The real hash + URL are
-# finalized at CUT-2 proof time when the orchestrator provisions the sysroot
-# tarball.  Replace PLACEHOLDER_SHA256 and the URL before enabling CUT-2.
+# finalized at CUT-2 proof time.  Replace PLACEHOLDER_SHA256 and the URL
+# before enabling CUT-2.
 # ---------------------------------------------------------------------------
 http_archive(
     name = "aarch64-linux-sysroot",
-    # CUT-2 placeholder: 64-hex zeros so ANALYSIS (which format-checks the digest,
-    # length must be 64) passes and the hermetic toolchain rule can be analyzed on
-    # darwin. The real digest is filled at CUT-2 proof time; a DOWNLOAD against this
-    # zero-hash fails loudly (fail-closed) until then — by design, never silent.
     sha256 = "0000000000000000000000000000000000000000000000000000000000000000",
     strip_prefix = "aarch64-linux-gnu-sysroot",
     urls = [
@@ -84,5 +72,88 @@ hermetic_clang_toolchain(
     target = "aarch64-unknown-linux-gnu",
     gcc_version = "14",
     link_style = "static",
+    visibility = ["PUBLIC"],
+)
+
+# ---------------------------------------------------------------------------
+# aarch64-linux-musl sysroot — musl-cross-make release from musl.cc
+#
+# URL: https://musl.cc/aarch64-linux-musl-cross.tgz
+#
+# Contents after strip_prefix="aarch64-linux-musl-cross":
+#   aarch64-linux-musl/include/        musl libc headers
+#   aarch64-linux-musl/lib/            musl libc.a, crt1.o, crti.o, crtn.o,
+#                                      rcrt1.o, Scrt1.o, libc_nonshared.a
+#   lib/gcc/aarch64-linux-musl/<ver>/  libgcc.a, crtbegin.o, crtend.o
+#   aarch64-linux-musl/include/linux/  Linux UAPI headers (linux/random.h,
+#                                      linux/ioctl.h, ...) required by
+#                                      aws-lc-sys (getrandom -> GRND_RANDOM)
+#
+# Founder: obtain the real sha256 before merging:
+#   curl -fsSL -o aarch64-linux-musl-cross.tgz https://musl.cc/aarch64-linux-musl-cross.tgz
+#   sha256sum aarch64-linux-musl-cross.tgz
+# Then replace PLACEHOLDER_MUSL_SYSROOT_SHA256 with the 64-hex result.
+# ---------------------------------------------------------------------------
+http_archive(
+    name = "aarch64-musl-sysroot",
+    sha256 = "PLACEHOLDER_MUSL_SYSROOT_SHA256",
+    strip_prefix = "aarch64-linux-musl-cross",
+    urls = [
+        "https://musl.cc/aarch64-linux-musl-cross.tgz",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# ---------------------------------------------------------------------------
+# Hermetic CXX toolchain for fully-static musl builds (additive, non-default)
+#
+# Activated when building for //platforms:linux-aarch64-musl.
+# Uses the same hermetic clang+lld distribution as :cxx_hermetic_linux but
+# targets aarch64-unknown-linux-musl and uses the musl sysroot above.
+#
+# Compiler flags:
+#   -nostdlibinc       suppress clang built-in + standard includes
+#                      (musl sysroot has no GCC installation)
+#   -isystem .../include          musl libc headers
+#   -isystem .../include/linux    Linux UAPI headers (aws-lc-sys needs
+#                                 linux/random.h for getrandom)
+#
+# Linker flags:
+#   -static            fully-static binary (no dynamic interpreter)
+#
+# NOTE: Rust's link-self-contained=yes (in toolchains/BUCK) means rustc
+# handles the final link using its own bundled CRT objects.  This CXX
+# toolchain is used only for C compilation (aws-lc-sys/ring build scripts)
+# and static archive creation.
+#
+# Explicit toolchain override (until select() default lands):
+#   buck2 build <target> \
+#     --target-platforms //platforms:linux-aarch64-musl \
+#     -c toolchain.cxx=toolchains//cxx/clang_hermetic:cxx_hermetic_linux_musl
+# ---------------------------------------------------------------------------
+hermetic_clang_toolchain(
+    name = "cxx_hermetic_linux_musl",
+    distribution = ":clang-dist-aarch64-linux",
+    sysroot = ":aarch64-musl-sysroot",
+    target = "aarch64-unknown-linux-musl",
+    gcc_version = "",
+    link_style = "static",
+    c_compiler_flags = [
+        "-nostdlibinc",
+        "-isystem",
+        "$(location :aarch64-musl-sysroot)/aarch64-linux-musl/include",
+        "-isystem",
+        "$(location :aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
+    ],
+    cxx_compiler_flags = [
+        "-nostdlibinc",
+        "-isystem",
+        "$(location :aarch64-musl-sysroot)/aarch64-linux-musl/include",
+        "-isystem",
+        "$(location :aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
+    ],
+    linker_flags = [
+        "-static",
+    ],
     visibility = ["PUBLIC"],
 )
