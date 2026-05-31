@@ -47,7 +47,47 @@ is hard-gated to `windows && x86_64`; on aarch64-linux it is a no-op. The failin
 path is CcBuilder→`memcmp_check`, which never references nasm. Dropping the feature
 is optional hygiene, NOT the fix.
 
-## Recommended direction
+## ⚠ DIAGNOSIS CORRECTED — CONFIRMED 2026-05-31 (the hermetic cell does NOT fix this)
+
+The gcc-two-roots theory below is **REFUTED** by direct experiment on the rust-ci
+image (clang 19.1.7, ONE gcc-14 install). Bare clang — even with the exact
+aws-lc-sys feature-test flags, double `--target`, and `-fuse-ld=lld` — links a
+CLEAN single CRT set. The real trigger is the **buck2 prelude's build-script
+cc-shim**, confirmed by reading the generated `__cc_shim.sh` + the prelude source
+`rust/cargo_buildscript.bzl` and reproduced exactly:
+
+- `$CC` (`__cc_shim.sh`) = `clang --ld-path=<__ld_shim.sh> -fno-sanitize=all "$@"`.
+- `$LD`/`__ld_shim.sh` (cargo_buildscript.bzl:303-309 + `_make_cc_shim` line 183) =
+  `<linker_info.linker = clang> <linker_flags> <rust_linker_flags>` then wraps every
+  arg it receives in `-Wl,`.
+- When a build script LINKS AN EXECUTABLE via `$CC` (aws-lc-sys's `memcmp_invalid_
+  stripped_check` does — it links+runs a probe), the OUTER clang computes the full ld
+  line (Scrt1.o/crti.o/crtbeginS.o + obj + libs) and invokes `__ld_shim.sh` as `ld`.
+  `__ld_shim.sh` re-invokes clang AS A DRIVER, which **adds its OWN CRT startfiles
+  again** → duplicate `_start`/`_init`/`__dso_handle`/... → link fails.
+
+CONFIRMED (probe4, rust-ci pod): `clang --ld-path=<clang-redriver-shim> t.c -o x`
+reproduces the EXACT duplicate symbols from the gate; adding `-nostartfiles
+-nodefaultlibs` to the inner clang makes it link clean.
+
+WHY Linux-only / aws-lc-sys-only: darwin ld64 tolerates it; and almost no other
+build script links an EXECUTABLE via `$CC` (they compile to `.o`; rustc does the
+real link via a different path). It is a LATENT prelude issue for the
+"$CC-links-an-executable" case, surfaced first by aws-lc-sys.
+
+CONSEQUENCE: a HERMETIC clang+sysroot would double-add CRT identically — so the
+hermetic cell (CUT-1, built + analysis-verified on branch feat/hermetic-toolchain-cell)
+is **decoupled from #93**: it remains valid #83 doctrine (pinned, zero-drift,
+ld-prime/wild) but is NOT the fix for the aws-lc-sys blocker. The real fix must stop
+the `__ld_shim`'s clang from re-adding startfiles, at one of: the PRELUDE
+(vendor/override `_make_cc_shim` to pass `-nostartfiles -nodefaultlibs` to the
+`__ld_shim` clang — the correct, class-wide fix), or the aws-lc-sys crate (avoid the
+executable-linking feature-test via the CMake builder / a skip env — targeted but
+per-crate). Toolchain-level `linker_flags += -nostartfiles` is UNSAFE because the
+same flags also feed normal cxx/binary links (which NEED startfiles). See the
+re-surfaced founder decision.
+
+## Recommended direction (ORIGINAL — superseded by the correction above for #93)
 
 Build a buck2-native HERMETIC TOOLCHAIN CELL: pin a downloaded clang+lld
 distribution and a single coherent aarch64-linux-gnu sysroot as `http_archive`
