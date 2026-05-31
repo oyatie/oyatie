@@ -102,9 +102,9 @@ pub fn finalize_line(line: &LineItem) -> Result<u128, BillingError> {
 /// Aggregated totals for a finalized invoice.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct InvoiceTotals {
-    pub subtotal_micros: u128,
-    pub tax_micros: u128,
-    pub total_micros: u128,
+    pub subtotal_micros: u128, // data_class: INTERNAL_ONLY
+    pub tax_micros: u128,      // data_class: INTERNAL_ONLY
+    pub total_micros: u128,    // data_class: INTERNAL_ONLY
 }
 
 /// Aggregate a slice of `LineItem`s into `InvoiceTotals`.
@@ -239,11 +239,14 @@ mod tests {
     #[test]
     fn aggregate_empty_lines_returns_zero() {
         let result = aggregate_invoice(&[], 1_000).unwrap();
-        assert_eq!(result, InvoiceTotals {
-            subtotal_micros: 0,
-            tax_micros: 0,
-            total_micros: 0,
-        });
+        assert_eq!(
+            result,
+            InvoiceTotals {
+                subtotal_micros: 0,
+                tax_micros: 0,
+                total_micros: 0,
+            }
+        );
     }
 
     // (b) any line missing tax_profile_ref fails the whole aggregate
@@ -334,10 +337,11 @@ mod tests {
     // Additional: invalid line (zero quantity) propagated
     #[test]
     fn aggregate_propagates_zero_quantity_error() {
-        let lines = vec![
-            line("L1", UsageUnit::Cpu, 0, 100, Some("p")),
-        ];
-        assert!(matches!(aggregate_invoice(&lines, 500), Err(BillingError::ZeroQuantity)));
+        let lines = vec![line("L1", UsageUnit::Cpu, 0, 100, Some("p"))];
+        assert!(matches!(
+            aggregate_invoice(&lines, 500),
+            Err(BillingError::ZeroQuantity)
+        ));
     }
 
     // Additional: zero tax rate

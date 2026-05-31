@@ -59,21 +59,21 @@ pub enum RouteError {
 /// Input record for weighted selection. Caller supplies cost and compliance
 /// metadata alongside the account so the selector stays I/O-free.
 pub struct RouteCandidate<'a> {
-    pub account: &'a ProviderAccount,
-    pub cost_micros: u64,
-    pub residency_region: String,
-    pub privacy_boundary: String,
-    pub model_affinity: bool,
+    pub account: &'a ProviderAccount, // data_class: INTERNAL_ONLY
+    pub cost_micros: u64, // data_class: INTERNAL_ONLY
+    pub residency_region: String, // data_class: INTERNAL_ONLY
+    pub privacy_boundary: String, // data_class: INTERNAL_ONLY
+    pub model_affinity: bool, // data_class: INTERNAL_ONLY
 }
 
 /// Scoring evidence produced during weighted selection (unit-testable directly).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RouteScore {
-    pub account_id: AccountId,
-    pub cost_micros: u64,
-    pub budget_headroom_micros: u64,
-    pub model_affinity: bool,
-    pub failover_rank: usize,
+    pub account_id: AccountId, // data_class: INTERNAL_ONLY
+    pub cost_micros: u64, // data_class: INTERNAL_ONLY
+    pub budget_headroom_micros: u64, // data_class: INTERNAL_ONLY
+    pub model_affinity: bool, // data_class: INTERNAL_ONLY
+    pub failover_rank: usize, // data_class: INTERNAL_ONLY
 }
 
 pub struct RoutePolicy;

@@ -39,9 +39,9 @@ pub enum TenantCeilingVerdict {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantCeiling {
     /// Global fallback when no surface-specific ceiling is set.
-    pub global: AutonomyTier,
+    pub global: AutonomyTier, // data_class: INTERNAL_ONLY
     /// Per-surface ceiling overrides.
-    pub surfaces: HashMap<String, AutonomyTier>,
+    pub surfaces: HashMap<String, AutonomyTier>, // data_class: INTERNAL_ONLY
 }
 
 impl Default for TenantCeiling {
@@ -116,10 +116,10 @@ pub fn resolve(
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BatchCeilingVerdict {
     /// Per-request verdict in the same order as the input slice.
-    pub results: Vec<TenantCeilingVerdict>,
+    pub results: Vec<TenantCeilingVerdict>, // data_class: INTERNAL_ONLY
     /// Lowest effective ceiling tier among clamped items; `None` when all
     /// items are `Permitted` or the input is empty.
-    pub most_restrictive_clamp: Option<AutonomyTier>,
+    pub most_restrictive_clamp: Option<AutonomyTier>, // data_class: INTERNAL_ONLY
 }
 
 /// Batch resolver over an ordered slice of `(surface, requested_tier)` pairs.

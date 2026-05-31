@@ -19,10 +19,10 @@ use crate::{CapabilityId, CapabilityStatus};
 pub struct RegistryViews {
     /// Capabilities visible to MCP discovery endpoints
     /// (i.e. [`CapabilityStatus::is_discoverable`] is `true`).
-    pub discoverable: BTreeMap<CapabilityId, CapabilityStatus>,
+    pub discoverable: BTreeMap<CapabilityId, CapabilityStatus>, // data_class: INTERNAL_ONLY
     /// Capabilities that may be invoked by an authorised principal
     /// (i.e. [`CapabilityStatus::is_invocable`] is `true`).
-    pub invocable: BTreeMap<CapabilityId, CapabilityStatus>,
+    pub invocable: BTreeMap<CapabilityId, CapabilityStatus>, // data_class: INTERNAL_ONLY
 }
 
 /// Partition an iterator of `(CapabilityId, CapabilityStatus)` pairs into
