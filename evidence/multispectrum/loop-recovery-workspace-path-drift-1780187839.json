@@ -1,0 +1,61 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "loop-recovery-workspace-path-drift-1780187839",
+  "change_class_id": "CC-2",
+  "freshness_unix": 1780187839,
+  "timestamp_iso": "2026-05-31T00:37:19Z",
+  "agent_id": "codex-loop-recovery-path-drift",
+  "base_git_sha": "a7e9b4072",
+  "scope": [
+    "cloud/cloud-intelligence/crates/oya-cloud-intelligence-authz-cedar-adapter/src/lib.rs",
+    "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter/src/lib.rs",
+    "oya/identity/crates/oya-identity-workload-rest/build.rs",
+    "libs/oya-shared-backbone-grpc-generated-adapter/build.rs",
+    "libs/oya-shared-backbone-proto-contracts-kernel/src/lib.rs"
+  ],
+  "summary": "Repoints build-time Cedar and proto includes from retired local layouts to active repository contract locations so the loop-recovery score-card can enumerate the Rust workspace.",
+  "adr_handling": {
+    "policy": "Decision records were treated as status-bound authority; no derived ADR index or projection was edited.",
+    "applied_to_current_strategy": "The intelligence provider-pool direction remains under accepted governance ADRs, while ADR-0384 is design input for the later pure provider pool kernel lane. This gate-unblock lane only repairs active source paths."
+  },
+  "reference_repo_context": {
+    "reviewed": [
+      "router-for-me/CLIProxyAPI@3a54fb7fcf3a39de620ca250ff9c1dedc79c9549",
+      "CaddyGlow/ccproxy-api@9a0e49655f648f3eac7030a673674d1f8469893e",
+      "AmazingAng/auth2api@840fa100e71a3562552cc7d0267f7668db0d7f86"
+    ],
+    "relevance": "They inform the later intelligence provider/account routing design, not this compile-path repair."
+  },
+  "verification": [
+    {
+      "command": "cargo check -p oya-identity-workload-rest",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p oya-shared-backbone-proto-contracts-kernel -p oya-shared-backbone-grpc-generated-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p oya-cloud-intelligence-authz-cedar-adapter -p oya-ci-webhook-gateway-authz-cedar-adapter -p oya-identity-workload-rest -p oya-shared-backbone-proto-contracts-kernel -p oya-shared-backbone-grpc-generated-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo nextest list --profile ci --workspace",
+      "result": "pass; workspace test enumeration completed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-cloud-intelligence-authz-cedar-adapter -p oya-ci-webhook-gateway-authz-cedar-adapter -p oya-identity-workload-rest -p oya-shared-backbone-proto-contracts-kernel -p oya-shared-backbone-grpc-generated-adapter -- --nocapture",
+      "result": "pass; 76 tests passed across changed Rust packages"
+    }
+  ],
+  "nonclaims": [
+    "No provider pool behavior changed in this lane.",
+    "No ADR lifecycle state changed in this lane.",
+    "No cloud IaC gate failures are claimed fixed by this lane."
+  ],
+  "composed_gate_note": "On an origin/dev-only branch, ./bin/oya gate validate loop-recovery-patterns reaches a supply-chain evidence prerequisite covered by prior PR #447. The composed diagnostics stack must be used for final lane validation."
+}
