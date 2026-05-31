@@ -1,6 +1,6 @@
 # mold linker implementation — 2026-05-28
 
-Cross-ref: ADR-0488
+Cross-ref: ADR-0392 (Proposed; build-graph/linker-parity input)
 
 ## Implementation
 
@@ -35,4 +35,13 @@ Verify with `mold --version` (require ≥ 2.0).
 
 ## Cross-reference
 
-- ADR-0488 (`feat/adr-0488-mold-linker-2026-05-28`)
+- ADR-0392 (Proposed) records that Buck2 and cargo must preserve Rust
+  toolchain/linker parity with `.cargo/config.toml`, including `mold + clang`
+  where configured.
+
+## ADR status handling
+
+ADR records are interpreted by their frontmatter status and supersession fields,
+not by calendar age. The previous pointer named a missing `docs/decisions/` record, so this note
+now cites the existing status-bearing record that covers the linker-parity
+decision.
