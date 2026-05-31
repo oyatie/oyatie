@@ -16,4 +16,15 @@ rustc_link_lib = true
 rustc_link_search = true
 # No per-OS CC/AR — prelude injects target-correct CC/CXX/AR from the cxx toolchain.
 # aws-lc-sys non-FIPS needs no perl/cmake/bindgen (pregenerated bindings + build files).
-env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release" }
+#
+# LDFLAGS=-nostartfiles: aws-lc-sys's cc_builder compiler feature-test
+# (memcmp_invalid_stripped_check) LINKS an executable via $CC. Under buck2 the build-script
+# $CC is the prelude cc-shim `clang --ld-path=__ld_shim.sh`; __ld_shim re-invokes clang as the
+# link driver, which RE-ADDS the C-runtime startfiles on top of the complete ld line the outer
+# clang already passed → `ld.lld: duplicate symbol: _start/_init/...` on aarch64-linux (darwin
+# ld64 tolerates it; almost no other build script links an executable via $CC). aws-lc-sys
+# explicitly respects LDFLAGS for this probe (cc_builder.rs, "parity with CMake" for custom-linker
+# setups), so -nostartfiles makes the OUTER clang omit its CRT; the inner __ld_shim clang adds one
+# set → clean link, probe still runs. Compile steps are -c (flag ignored), so it is scoped to the
+# probe link. Verified on rust-ci clang 19.1.7. Durable class-wide fix = a prelude patch.
+env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", LDFLAGS = "-nostartfiles" }
