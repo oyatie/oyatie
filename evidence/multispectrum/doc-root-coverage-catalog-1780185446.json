@@ -1,0 +1,40 @@
+{
+  "schema": "oyatie.evidence.doc-root-coverage-catalog.v1",
+  "created_unix": 1780185446,
+  "scope": "root docs catalog coverage",
+  "intent": "Restore machine-readable catalog and README coverage for active root docs so the governance gate can advance.",
+  "paths_added_to_catalog": [
+    "docs/buck2-native-ffi-investigation.md",
+    "docs/security.md"
+  ],
+  "authority_notes": [
+    "This patch only reconciles live documentation coverage; it does not change ADR status or derived ADR indexes.",
+    "The next foundation build remains under intelligence provider pool work, with reference repositories treated as design input only."
+  ],
+  "validation": [
+    {
+      "command": "./bin/oya gate validate doc-catalog",
+      "result": "passed: 43 documents"
+    },
+    {
+      "command": "./bin/oya gate validate readme-doc-coverage",
+      "result": "passed: 43 documents"
+    },
+    {
+      "command": "cargo test -p oya-check-doc-catalog -p oya-check-readme-coverage -- --nocapture",
+      "result": "passed: 13 tests"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli doc_catalog -- --nocapture",
+      "result": "passed: 7 filtered gate_cli tests"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli readme_doc_coverage -- --nocapture",
+      "result": "passed: 3 filtered gate_cli tests"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ]
+}

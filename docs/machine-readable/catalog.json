@@ -822,6 +822,48 @@
       ],
       "agent_authoring_allowed": false
     },
+    "doc.agent_security_model": {
+      "path": "docs/security.md",
+      "owner_team": [
+        "axis-foundry",
+        "ops-security"
+      ],
+      "tier": "cross-cutting",
+      "update_trigger": [
+        "agent sandbox contract change",
+        "permission model contract change"
+      ],
+      "update_cadence": "quarterly",
+      "dependent_docs": [
+        "doc.agent_instruction_sources",
+        "doc.security_program",
+        "doc.toolchain"
+      ],
+      "validation_check": [
+        "doc-catalog-self-coverage",
+        "readme-doc-coverage"
+      ],
+      "agent_authoring_allowed": false
+    },
+    "doc.buck2_native_ffi_investigation": {
+      "path": "docs/buck2-native-ffi-investigation.md",
+      "owner_team": "axis-foundry",
+      "tier": "cross-cutting",
+      "update_trigger": [
+        "Buck2 native-FFI investigation change",
+        "Buck2 cutover evidence change"
+      ],
+      "update_cadence": "per Buck2 cutover change + quarterly",
+      "dependent_docs": [
+        "doc.toolchain",
+        "doc.release_management"
+      ],
+      "validation_check": [
+        "doc-catalog-self-coverage",
+        "readme-doc-coverage"
+      ],
+      "agent_authoring_allowed": true
+    },
     "doc.mistakes_ledger": {
       "path": "docs/MISTAKES-LEDGER.md",
       "owner_team": "council-architecture",
