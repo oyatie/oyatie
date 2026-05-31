@@ -19,6 +19,9 @@ use crate::{
     read_catalog_records, required_field, scalar_value, usage,
 };
 
+const DEFAULT_ADR0039_RUST_PATH: &str =
+    "oya/developer-sdk/crates/oya-dev-cli/src/commands/supply_chain.rs";
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct SupplyChainValidateArgs {
     registry_dir: PathBuf,
@@ -47,7 +50,7 @@ pub(crate) fn parse_supply_chain_validate_args(
         deny_config_path: PathBuf::from("deny.toml"),
         check_script_path: None,
         adr0039_script_path: PathBuf::from("scripts/supply-chain-adr0039.sh"),
-        adr0039_rust_path: PathBuf::from("crates/oya-dev-cli/src/commands/supply_chain.rs"),
+        adr0039_rust_path: PathBuf::from(DEFAULT_ADR0039_RUST_PATH),
         workflows_dir: PathBuf::from(".github/workflows"),
         release_images_path: PathBuf::from("registry/release/images.yaml"),
         branch_protection_path: PathBuf::from(".github/branch-protection.yaml"),
@@ -762,4 +765,33 @@ fn admission_policy_wired(admission_policy_path: &Path) -> Result<bool, String> 
     Ok(contents.contains("verifyimages")
         && contents.contains("keyless")
         && contents.contains("rekor"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn supply_chain_args_default_to_active_adr0039_rust_source() {
+        let parsed = parse_supply_chain_validate_args(Vec::new()).expect("args parse");
+
+        assert_eq!(
+            parsed.adr0039_rust_path,
+            PathBuf::from(DEFAULT_ADR0039_RUST_PATH)
+        );
+    }
+
+    #[test]
+    fn supply_chain_args_accept_explicit_adr0039_rust_source() {
+        let parsed = parse_supply_chain_validate_args(vec![
+            "--adr0039-rust".to_string(),
+            "custom/supply_chain.rs".to_string(),
+        ])
+        .expect("args parse");
+
+        assert_eq!(
+            parsed.adr0039_rust_path,
+            PathBuf::from("custom/supply_chain.rs")
+        );
+    }
 }
