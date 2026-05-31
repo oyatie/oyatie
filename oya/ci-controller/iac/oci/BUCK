@@ -21,11 +21,13 @@
 #     for deployment.  Run push-and-sign.sh after the image is assembled.
 #
 # Base image:
-#   gcr.io/distroless/static-debian12:nonroot  (ADR-0146 canonical)
-#   Pinned to a specific digest-tagged tarball exported via crane export.
+#   gcr.io/distroless/cc-debian12:nonroot  (cc variant ships libgcc/glibc stubs
+#   required by the dynamically-linked controller binary — aws-lc-sys links
+#   libc+libgcc via the system toolchain; static-debian12 would crashloop).
+#   Matches the sibling gateway (oya/ci-webhook-gateway/Dockerfile uses cc-debian12).
+#   Pinned to a specific OCI layout tarball staged via `crane pull --format oci`.
 #   SHA256 is the sha256 of the *tarball* (the http_archive input), not the
-#   OCI manifest digest.  Bump this when Google publishes a new CVE-patched
-#   weekly rebuild.
+#   OCI manifest digest.  Bump when Google publishes a new CVE-patched weekly build.
 #
 # Push target: see push-and-sign.sh (linux CI only).
 #   Registry: registry.oya-registry.svc.cluster.local:5000
@@ -35,40 +37,40 @@ load("//tools/oci:defs.bzl", "oci_image")
 
 # ── Base image ────────────────────────────────────────────────────────────────
 #
-# Distroless static-debian12:nonroot OCI layout tarball.
+# Distroless cc-debian12:nonroot OCI layout tarball.
+# cc-debian12 ships libgcc_s + glibc loader required by the dynamically-linked
+# oya-ci-controller binary (aws-lc-sys C compilation + host toolchain = glibc dep).
 #
-# To regenerate this pin (on a host with crane available):
-#   crane export gcr.io/distroless/static-debian12:nonroot \
-#     distroless-static-nonroot-aarch64.tar
-#   sha256sum distroless-static-nonroot-aarch64.tar
+# To stage/regenerate this pin (on a host with crane available):
+#   crane pull --format oci gcr.io/distroless/cc-debian12:nonroot \
+#     /tmp/distroless-cc-nonroot-aarch64-20260101
+#   tar -cf distroless-cc-nonroot-aarch64-20260101.tar \
+#     -C /tmp/distroless-cc-nonroot-aarch64-20260101 .
+#   sha256sum distroless-cc-nonroot-aarch64-20260101.tar  # → update sha256 below
+#   crane push distroless-cc-nonroot-aarch64-20260101.tar \
+#     registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-cc-nonroot-aarch64-20260101.tar
+#
+# NOTE: use `crane pull --format oci` (not `crane export`) — export produces a
+# flat rootfs tar with no OCI layout; pull --format oci produces the required
+# index.json + blobs/sha256/ tree.
 #
 # The tarball is stored in the Oyatie artifact registry under:
 #   registry.oya-registry.svc.cluster.local:5000/build-inputs/
 # and mirrored to the Forgejo artifact store for offline builds.
-#
-# Q1 (open): confirm the controller binary links fully static (musl) before
-# promoting base to gcr.io/distroless/static-debian12:nonroot.  Default-safe
-# is cc-debian12:nonroot (ships libgcc); static-debian12:nonroot is the ADR-0146
-# canonical.  For the FIRST CUT both targets are scaffolded; the assembler
-# accepts either tarball format.
 http_archive(
     name = "distroless-base",
     # Single URL: the bundled prelude http_archive accepts exactly one url.
     # Primary source: in-cluster artifact mirror (offline-capable; no GCR egress
-    # required from CI pod).  Stage the tarball with:
-    #   crane export gcr.io/distroless/static-debian12:nonroot \
-    #     distroless-static-nonroot-aarch64-20260101.tar
-    #   sha256sum distroless-static-nonroot-aarch64-20260101.tar  # → update sha256 below
-    #   crane push distroless-static-nonroot-aarch64-20260101.tar \
-    #     registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-20260101.tar
+    # required from CI pod).  Stage with `crane pull --format oci` (see above).
     urls = [
-        "http://registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-20260101.tar",
+        "http://registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-cc-nonroot-aarch64-20260101.tar",
     ],
     # sha256 of the OCI layout tarball (NOT the image manifest digest).
-    # PLACEHOLDER: replace with the real sha256 after the first crane export+push.
+    # PLACEHOLDER: replace with the real sha256 after the first crane pull+push.
     # Analysis resolves cleanly on darwin; the fetch is deferred until buck2 build.
     sha256 = "0000000000000000000000000000000000000000000000000000000000000000",
-    # The tarball is an OCI image layout tar; expose root dir as DefaultInfo.
+    # The tarball is an OCI image layout tar; the prelude unpacks it to a dir
+    # which oya-oci-assemble accepts directly (is_dir branch in unpack_base).
     type = "tar",
     visibility = ["PUBLIC"],
 )
@@ -94,17 +96,18 @@ LAYER_DIR="$TMP/layer-root/usr/local/bin"
 mkdir -p "$LAYER_DIR"
 cp "$BINARY" "$LAYER_DIR/oya-ci-controller"
 chmod 0755 "$LAYER_DIR/oya-ci-controller"
-# Reproducible tar: fixed mtime, no uid/gid names, deterministic ordering.
+# Reproducible layer: fixed tar entry mtime + pipe through `gzip -n` so the
+# gzip member header MTIME field is zeroed and filename is omitted.
+# `tar --gzip` sets the gzip header MTIME to the wall clock at compression
+# time (ignoring --mtime), causing digest churn.  The pipe form avoids this.
 tar --create \\
-    --gzip \\
     --mtime="2026-01-01 00:00:00" \\
     --owner=0 \\
     --group=0 \\
     --numeric-owner \\
     --sort=name \\
     -C "$TMP/layer-root" \\
-    -f "$OUT" \\
-    .
+    . | gzip -n > "$OUT"
 """,
     visibility = ["PUBLIC"],
 )

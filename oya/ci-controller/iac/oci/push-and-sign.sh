@@ -24,6 +24,12 @@
 #   REPOSITORY       Override repository name (default: oya-ci-controller)
 #   COSIGN_KEY       Path or k8s:// ref for cosign signing key
 #                    (default: k8s://oya-ci/cosign-key — projected by ESO from OpenBao)
+#   COSIGN_PASSWORD  Passphrase for the cosign private key (projected by ESO
+#                    alongside COSIGN_KEY from OpenBao oya/ci/cosign-key).
+#                    Required in non-DRY_RUN mode when the key is password-protected.
+#                    Source from the ESO-projected secret mount, e.g.:
+#                      export COSIGN_PASSWORD="$(cat /var/run/secrets/cosign/password)"
+#                    For unencrypted keys set COSIGN_PASSWORD="" explicitly.
 #   DRY_RUN          Set to "1" to print commands without executing (default: "")
 #
 # Outputs:
@@ -59,6 +65,13 @@ REPOSITORY="${REPOSITORY:-oya-ci-controller}"
 COSIGN_KEY="${COSIGN_KEY:-k8s://oya-ci/cosign-key}"
 DRY_RUN="${DRY_RUN:-}"
 
+# COSIGN_PASSWORD: passphrase for the ESO-projected cosign private key.
+# Source from the projected secret before calling this script, e.g.:
+#   export COSIGN_PASSWORD="$(cat /var/run/secrets/cosign/password)"
+# Exported here so cosign reads it from the environment (non-interactive CI).
+# Tolerate unset for unencrypted keys (empty string is valid for cosign).
+export COSIGN_PASSWORD="${COSIGN_PASSWORD:-}"
+
 IMAGE_REF="${REGISTRY}/${REPOSITORY}:${TAG}"
 
 # ── OS guard ─────────────────────────────────────────────────────────────────
@@ -90,12 +103,39 @@ run() {
   fi
 }
 
+# ── COSIGN_PASSWORD assertion ─────────────────────────────────────────────────
+#
+# The ESO ExternalSecret projects a `password` property alongside the private
+# key from OpenBao oya/ci/cosign-key.  Without COSIGN_PASSWORD exported, cosign
+# prompts for a passphrase on stdin and a non-interactive CI step hangs.
+# In non-DRY_RUN mode, assert the variable is set (empty string is accepted for
+# unencrypted keys; the key type determines whether it is used).
+if [[ -z "$DRY_RUN" ]]; then
+  if [[ ! -v COSIGN_PASSWORD ]]; then
+    echo "ERROR: COSIGN_PASSWORD is not set. Export it before calling this script:" >&2
+    echo "  export COSIGN_PASSWORD=\"\$(cat /var/run/secrets/cosign/password)\"" >&2
+    echo "  For unencrypted keys: export COSIGN_PASSWORD=\"\"" >&2
+    exit 1
+  fi
+fi
+
 # ── Push ─────────────────────────────────────────────────────────────────────
+#
+# crane push takes a tarball (docker save / OCI tar) or a directory for
+# OCI Image Layout directories.  The go-containerregistry crane push command
+# accepts an OCI Image Layout directory directly (not just tarballs) when the
+# path is a directory — the library detects the format.  However, `--platform`
+# is not a valid flag for `crane push` (platform is a pull/index concern);
+# drop it here.  The layout produced by oya-oci-assemble is already
+# single-platform (linux/arm64 config from the base + the app layer).
+#
+# If a future crane version breaks OCI-layout-dir push, the fallback is:
+#   tar -cf - -C "${OCI_LAYOUT_DIR}" . | crane push - "${IMAGE_REF}" --insecure
+# (piped tarball form; crane push reads a tar from stdin when given "-").
 
 echo "==> Pushing OCI layout to ${IMAGE_REF}"
 run crane push "${OCI_LAYOUT_DIR}" "${IMAGE_REF}" \
-  --insecure \
-  --platform linux/arm64
+  --insecure
 
 # Resolve the pushed digest (sha256:<hex>) from the registry.
 echo "==> Resolving pushed digest"
@@ -112,6 +152,7 @@ echo "    digest: ${PUSHED_DIGEST}"
 # Sign by DIGEST (not tag) per ADR-0181 and the Kyverno ClusterPolicy
 # verify-oya-registry-images-signed (infra/kyverno/policies/verify-image-signed.yaml).
 # Key is projected by ESO from OpenBao (oya/ci/cosign-key).
+# COSIGN_PASSWORD is already exported above.
 
 echo "==> Cosign signing ${IMAGE_WITH_DIGEST}"
 run cosign sign \

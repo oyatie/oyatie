@@ -2,9 +2,9 @@
 //
 // oya-oci-assemble — build-host OCI Image Layout assembler.
 //
-// Reads a base OCI Image Layout tarball (produced by an http_archive rule that
-// fetches a distroless base) plus one or more application layer tar.gz files,
-// and emits a complete OCI Image Layout directory tree (OCI spec 1.0):
+// Reads a base OCI Image Layout (from a buck2 http_archive-unpacked directory
+// OR a tarball) plus one or more application layer tar.gz files, and emits a
+// complete OCI Image Layout directory tree (OCI spec 1.0):
 //
 //   <out>/
 //     oci-layout          ({"imageLayoutVersion":"1.0.0"})
@@ -15,10 +15,16 @@
 //         <manifest-digest>  (image manifest JSON)
 //         <layer-digest>     (each layer tar.gz blob, linked or copied)
 //
+// Base input: the bundled prelude's http_archive ALWAYS unpacks the archive to
+// a directory (default_output is a dir, not the raw tar).  So --base may be
+// either an already-unpacked OCI layout directory OR a tarball.  When --base
+// is a directory, unpack_base() skips the tar step and calls find_oci_root()
+// directly.  When it is a file, it runs `tar -xf` as before.
+//
 // Usage (driven by the oci_image Starlark rule):
 //
 //   oya-oci-assemble \
-//     --base   <path/to/base-oci-layout.tar> \
+//     --base   <path/to/base-oci-layout-dir-or-tarball> \
 //     --layer  <path/to/app-layer.tar.gz> \
 //     --out    <path/to/output-dir> \
 //     --entrypoint /usr/local/bin/oya-ci-controller \
@@ -27,9 +33,11 @@
 //     --title  oya-ci-controller
 //
 // The assembler:
-//   1. Unpacks the base OCI layout tarball into a temp dir.
+//   1. Resolves --base: if a directory, find the OCI layout root directly;
+//      if a file, unpack into a temp dir first.
 //   2. Reads the base index.json → manifest → config to extract base layers
 //      and the existing image config (OS, arch, base layer DiffIDs).
+//      For multi-arch index manifests, selects linux/arm64 by platform.
 //   3. Copies all base blobs into <out>/blobs/sha256/.
 //   4. For each --layer file: copies it into blobs/sha256/ under its sha256
 //      digest; appends the DiffID (uncompressed sha256) to the config.
@@ -41,9 +49,10 @@
 //
 // NOTE: computing the DiffID (uncompressed sha256) of a compressed layer
 // requires decompressing it.  This assembler invokes the host `gunzip -c`
-// pipe via std::process::Command to avoid a flate2 third-party dep that is
-// not yet in the workspace.  This is acceptable for a build-host exec_dep
-// tool (not product code).
+// pipe via std::process::Command.  The build layer is produced by `tar | gzip -n`
+// (MTIME=0, deterministic) so the compressed digest is byte-stable across builds.
+// Host gunzip/tar are undeclared buck2 action inputs — acceptable for a
+// build-host exec_dep tool (not product code) but noted as a hermeticity gap.
 
 use std::{
     collections::HashMap,
@@ -232,11 +241,29 @@ fn ingest_json_blob(value: &Value, blobs_dir: &Path, media_type: &str) -> Result
     })
 }
 
-// ── Unpack base tarball ───────────────────────────────────────────────────────
+// ── Unpack base tarball or directory ─────────────────────────────────────────
 
-/// Unpack the base OCI layout tarball into a temp directory using the host
-/// `tar` command.  Returns the path to the unpacked layout root.
+/// Resolve the base OCI layout root from --base.
+///
+/// The bundled prelude's http_archive ALWAYS unpacks the archive and passes the
+/// resulting directory as default_outputs[0].  So --base is typically an
+/// already-unpacked directory.  When it is a directory, skip tar extraction and
+/// call find_oci_root() directly.  When it is a file (tarball), unpack first.
 fn unpack_base(base: &Path, work_dir: &Path) -> Result<PathBuf> {
+    if base.is_dir() {
+        // http_archive already unpacked: find the OCI layout root directly.
+        return find_oci_root(base).with_context(|| {
+            format!(
+                "base directory {} does not contain an OCI Image Layout \
+                 (no oci-layout marker found). \
+                 Ensure the base was staged with `crane pull --format oci`, \
+                 not `crane export` (which yields a flat rootfs with no index.json).",
+                base.display()
+            )
+        });
+    }
+
+    // Base is a file (tarball): unpack into a temp subdir.
     let unpack_dir = work_dir.join("base-layout");
     fs::create_dir_all(&unpack_dir)?;
 
@@ -260,7 +287,14 @@ fn unpack_base(base: &Path, work_dir: &Path) -> Result<PathBuf> {
 
     // The tarball may produce either the layout root directly or a single
     // subdirectory. Find the oci-layout marker.
-    find_oci_root(&unpack_dir)
+    find_oci_root(&unpack_dir).with_context(|| {
+        format!(
+            "no oci-layout marker found after unpacking {}. \
+             Ensure the base was staged with `crane pull --format oci`, \
+             not `crane export` (which yields a flat rootfs with no index.json).",
+            base.display()
+        )
+    })
 }
 
 /// Walk up to 2 levels to find the directory containing `oci-layout`.
@@ -300,14 +334,46 @@ fn main() -> Result<()> {
 
     // 3. Read base index.json.
     let base_index_path = base_root.join("index.json");
-    let base_index: OciIndex = serde_json::from_reader(
+    let base_index_value: Value = serde_json::from_reader(
         fs::File::open(&base_index_path)
             .with_context(|| format!("open base index.json {}", base_index_path.display()))?,
     )?;
+    let base_index: OciIndex = serde_json::from_value(base_index_value.clone())
+        .context("parse base index.json as OciIndex")?;
     if base_index.manifests.is_empty() {
         bail!("base index.json has no manifests");
     }
-    let base_manifest_desc = &base_index.manifests[0];
+
+    // Select the manifest: for a multi-arch image index prefer linux/arm64;
+    // for a single-manifest index accept the sole entry regardless of platform.
+    let base_manifest_desc: &OciDescriptor = if base_index.manifests.len() == 1 {
+        &base_index.manifests[0]
+    } else {
+        // Scan for a manifest whose platform matches linux/arm64.
+        let manifests_arr = base_index_value
+            .get("manifests")
+            .and_then(|v| v.as_array())
+            .context("base index.json manifests must be an array")?;
+        let mut found: Option<usize> = None;
+        for (i, m) in manifests_arr.iter().enumerate() {
+            let os = m.get("platform").and_then(|p| p.get("os")).and_then(|v| v.as_str()).unwrap_or("");
+            let arch = m.get("platform").and_then(|p| p.get("architecture")).and_then(|v| v.as_str()).unwrap_or("");
+            if os == "linux" && arch == "arm64" {
+                found = Some(i);
+                break;
+            }
+        }
+        match found {
+            Some(i) => &base_index.manifests[i],
+            None => bail!(
+                "base index.json has {} manifests but none match linux/arm64; \
+                 stage a single-arch aarch64 OCI layout (crane pull --format oci \
+                 --platform linux/arm64 ...)",
+                base_index.manifests.len()
+            ),
+        }
+    };
+
     let base_manifest_hex = base_manifest_desc
         .digest
         .strip_prefix("sha256:")
