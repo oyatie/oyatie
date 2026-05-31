@@ -1,0 +1,13 @@
+rust_library(
+    name = "oya-ci-controller-forgejo-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_ci_controller_forgejo_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

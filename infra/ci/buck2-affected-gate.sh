@@ -6,30 +6,47 @@
 # `uquery owner()` + `rdeps()`. Replaces the cargo-era `oya verify --affected`.
 # No oya-dev-cli dependency.
 #
-# Usage:  buck2-affected-gate.sh [base-ref]   (default base: origin/dev)
+# Usage:  buck2-affected-gate.sh <base-ref> [head-ref]
+#         base-ref  — the merge-base anchor (e.g. origin/dev)
+#         head-ref  — the tip to diff (default: HEAD)
+#
+# The 1-arg form (buck2-affected-gate.sh origin/dev) is BACKWARD-COMPATIBLE:
+# HEAD is the PR checkout in the Jenkins bridge path, so omitting head-ref
+# keeps the existing Jenkins call unchanged.
+#
+# The 2-arg form (buck2-affected-gate.sh origin/dev origin/pr-N) is used by
+# the controller Job, where the working tree is trunk (dev) and the PR ref
+# is fetched as data via `git fetch origin refs/pull/N/head:refs/remotes/origin/pr-N`.
+#
 # Exit 0 = pass (incl. non-Rust / no-affected PRs); non-zero = build/test failure.
 set -eu
 
 BASE="${1:-origin/dev}"
+HEAD_REF="${2:-HEAD}"
 BUCK2="${BUCK2:-buck2}"
 
-echo "buck2-affected-gate: start (pwd=$(pwd) base=$BASE head=$(git rev-parse --short HEAD 2>&1))"
+echo "buck2-affected-gate: start (pwd=$(pwd) base=$BASE head-ref=$HEAD_REF resolved=$(git rev-parse --short "$HEAD_REF" 2>&1))"
 echo "buck2-affected-gate: .buckconfig=$(test -f .buckconfig && echo present || echo MISSING) HOME=${HOME:-unset} buck2=$($BUCK2 --version 2>&1 | head -1)"
 if ! git rev-parse --verify --quiet "$BASE" >/dev/null 2>&1; then
   echo "buck2-affected-gate: FATAL base ref '$BASE' does not resolve in this checkout"
   echo "  remotes: $(git remote 2>&1)  | refs: $(git for-each-ref --format='%(refname)' refs/remotes 2>&1 | paste -sd' ' -)"
   exit 1
 fi
-if ! MERGE_BASE=$(git merge-base HEAD "$BASE" 2>&1); then
-  echo "buck2-affected-gate: FATAL merge-base HEAD $BASE failed (need full history): $MERGE_BASE"
+if ! git rev-parse --verify --quiet "$HEAD_REF" >/dev/null 2>&1; then
+  echo "buck2-affected-gate: FATAL head ref '$HEAD_REF' does not resolve in this checkout"
+  echo "  remotes: $(git remote 2>&1)  | refs: $(git for-each-ref --format='%(refname)' refs/remotes 2>&1 | paste -sd' ' -)"
   exit 1
 fi
-CHANGED=$(git diff --name-only "$MERGE_BASE" HEAD)
+if ! MERGE_BASE=$(git merge-base "$HEAD_REF" "$BASE" 2>&1); then
+  echo "buck2-affected-gate: FATAL merge-base $HEAD_REF $BASE failed (need full history): $MERGE_BASE"
+  exit 1
+fi
+CHANGED=$(git diff --name-only "$MERGE_BASE" "$HEAD_REF")
 if [ -z "$CHANGED" ]; then
-  echo "buck2-affected-gate: no changed files vs $BASE -> PASS"
+  echo "buck2-affected-gate: no changed files vs $BASE ($HEAD_REF) -> PASS"
   exit 0
 fi
-echo "buck2-affected-gate: $(printf '%s\n' "$CHANGED" | wc -l | tr -d ' ') changed file(s) vs $BASE ($MERGE_BASE)"
+echo "buck2-affected-gate: $(printf '%s\n' "$CHANGED" | wc -l | tr -d ' ') changed file(s) vs $BASE..${HEAD_REF} (merge-base $MERGE_BASE)"
 
 # Classify. Only docs/non-graph files (e.g. .md/.yaml/.json outside crates) may
 # legitimately map to no target. A *.rs / Cargo.toml / buck-graph file MUST map to
