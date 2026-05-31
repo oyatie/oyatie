@@ -1,0 +1,37 @@
+{
+  "schema": "oyatie.evidence.glossary-vocabulary-retired-token.v1",
+  "created_unix": 1780185828,
+  "scope": "glossary vocabulary governance lane",
+  "intent": "Remove retired launch vocabulary from active idea docs and refresh the warning baseline exposed after the hard-stop term was removed.",
+  "changed_docs": [
+    "docs/ideas/affected-gated-migration-engine.md",
+    "docs/ideas/nativelink-remote-cache-first.md"
+  ],
+  "direction_alignment": [
+    "NativeLink fanout capacity wording now points at intelligence provider-pool capacity rather than standalone llm-gateway naming.",
+    "Reference repositories remain design input only; accepted ADR status remains controlling."
+  ],
+  "baseline_update": {
+    "path": "registry/glossary-vocabulary/warning-baseline.tsv",
+    "source_command": "./bin/oya gate validate glossary-vocabulary --write-baseline /tmp/glossary-baseline.tsv --write-warning-report /tmp/glossary-sources.tsv",
+    "added_warning_count": 65
+  },
+  "validation": [
+    {
+      "command": "./bin/oya gate validate glossary-vocabulary",
+      "result": "passed: 2346 documents, 3194 casing warnings, 2603 uncited acronym warnings"
+    },
+    {
+      "command": "cargo test -p oya-check-glossary-vocabulary -- --nocapture",
+      "result": "passed: 19 tests"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli glossary_vocabulary -- --nocapture",
+      "result": "passed: 6 filtered gate_cli tests"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ]
+}
