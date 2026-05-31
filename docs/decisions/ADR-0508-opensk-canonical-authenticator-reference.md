@@ -7,7 +7,7 @@ date: 2026-05-28
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0482, ADR-0507, ADR-0506, ADR-0483, ADR-0484]
+related: [ADR-0482, ADR-0507, ADR-0506]
 door: two-way
 ---
 
@@ -36,7 +36,7 @@ authenticator silicon:
 - Microsoft: Pluton — silicon root of trust co-designed with AMD/Intel/Qualcomm; shipped in
   all modern Surface and Windows 11 hardware.
 
-For oyatie's multi-decade kernel + OS + platform ambition (ADR-0482, ADR-0483), owning the
+For oyatie's multi-decade kernel + OS + platform ambition (ADR-0482, oya-os plan), owning the
 authenticator hardware is the canonical destination. A closed-loop identity stack — where
 oyatie controls both the RP validation logic AND the authenticator firmware AND eventually the
 authenticator silicon — is the only path consistent with the bespoke-over-oss doctrine and the
@@ -169,8 +169,8 @@ the low-cost developer provisioning path.
   this ADR is the authenticator-side counterpart)
 - ADR-0482 — Bespoke Substrate Roadmap (Tier 1-4); `oya-authn-device` added as Tier-3 entry
 - ADR-0506 — aws-lc-rs + oya-crypto Tier-4 (crypto primitive sibling to oya-authn-device)
-- ADR-0483 — oya-os long-term vision; silicon ownership aligns with this ADR's Phase-4
-- ADR-0484 — kubers anchor; kubers Phase-B Rust kernel = silicon ownership unlock partner
+- oya-os plan — oya-os long-term vision; silicon ownership aligns with this ADR's Phase-4
+- kubers anchor plan — kubers anchor; kubers Phase-B Rust kernel = silicon ownership unlock partner
 - [[bespoke-over-oss-doctrine]] — Phase-1 OSS bridge → Tier-N bespoke pattern
 - [[hyperscaler-lens-architectural-filter]] — pre-check table above
 - [[kubers-canonical-substrate]] — kubers Phase-B is the silicon ownership ambition this ADR's

@@ -1,0 +1,169 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "adr-citation-mold-linker-active-record-1780189063",
+  "change_class_id": "CC-5",
+  "freshness_unix": 1780189063,
+  "timestamp_iso": "2026-05-31T00:57:43Z",
+  "agent_id": "codex-masterplan-adr-citation",
+  "scope": [
+    "docs/decisions/ADR-0377-kafka-to-pulsar-via-kop.md",
+    "docs/decisions/ADR-0393-leptos-canonical-app-shell-frontend.md",
+    "docs/decisions/ADR-0394-bespoke-rust-idp-central-hub.md",
+    "docs/decisions/ADR-0408-buck2-driven-ci-cd.md",
+    "docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md",
+    "docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md",
+    "docs/decisions/ADR-0479-oya-meter-bespoke-usage-metering.md",
+    "docs/decisions/ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md",
+    "docs/decisions/ADR-0481-oya-flags-bespoke-feature-flag-server.md",
+    "docs/decisions/ADR-0482-bespoke-substrate-roadmap.md",
+    "docs/decisions/ADR-0508-opensk-canonical-authenticator-reference.md",
+    "docs/research/mold-linker-impl-2026-05-28.md",
+    "evidence/multispectrum/adr-citation-mold-linker-active-record-1780189063.json"
+  ],
+  "summary": "Repoints active documents away from non-existent ADR tokens and toward existing status-bearing records or explicit non-ADR planning provenance.",
+  "nonclaims": [
+    "No generated ADR index, mirror, or machine-readable decision registry was edited.",
+    "No new ADR record, registry exception, broader Buck2 adoption claim, or migration completion claim is introduced.",
+    "ADR-0392 is cited with its current Proposed status and only as the existing linker-parity record.",
+    "Predecessor plans without status-bearing ADR records are retained only as planning provenance."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Active documents were normalized in place; no new abstraction or registry exception was added."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Existing ADR records remain authoritative; predecessor plans without records are named as non-ADR provenance."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "The repair removes non-existent ADR tokens instead of treating them as allowed citations."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "The note states the ADR status rule inline so future edits do not infer authority from numbering or dates."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Target validation is adr-citation plus JSON and diff hygiene."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Rejected creating missing ADR records or editing generated indexes; existing records and plain planning provenance cover the needed history."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "No secrets, credentials, policy code, or runtime path changed."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "No performance claim was expanded; the existing research note remains a documentation artifact."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Status-bound ADR handling is documented without altering canonical registries."
+      ]
+    },
+    "F10_testability": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "The adr-citation lane directly validates the corrected reference."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "This evidence file records the expanded changed scope and validation commands."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Reserved facet not applicable."
+      ]
+    },
+    "F13_maintainability": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "The repair avoids adding new allowlists and keeps the correction local to the active note."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "./bin/oya gate validate adr-citation",
+      "status": "passed",
+      "evidence": "ADR citation validation passed: 2346 documents, 273270 citations, 408 allowed ADRs"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/adr-citation-mold-linker-active-record-1780189063.json",
+      "status": "passed",
+      "evidence": "JSON parsed successfully"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "No whitespace errors reported"
+    },
+    {
+      "command": "staged added-line slop audit",
+      "status": "passed",
+      "evidence": "No staged added source or evidence lines contained the banned audit terms"
+    },
+    {
+      "command": "./bin/oya gate validate adr-supersession-consistency",
+      "status": "blocked-preexisting",
+      "evidence": "Gate reports one-directional supersession links already present on origin/dev: ADR-0377->ADR-0005 and ADR-0512->ADR-0357/ADR-0509. This branch does not add those supersedes edges."
+    }
+  ],
+  "known_gaps": [
+    "Remote Jenkins and reviewer gates still decide merge readiness after PR publication.",
+    "adr-supersession-consistency has existing one-directional supersession links outside this ADR-citation repair scope."
+  ],
+  "git_sha": "pre-commit",
+  "worktree_status": "validated-staged-pending-commit"
+}
