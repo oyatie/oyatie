@@ -1,0 +1,29 @@
+{
+  "evidence_id": "aspirational-enforcement-active-check-root-2026-05-31",
+  "captured_at": "2026-05-31T00:00:00-04:00",
+  "lane": "aspirational-enforcement",
+  "claim": "The aspirational-enforcement gate now discovers active check crates from libs and no longer treats Phase-2 governance lane contexts as current dev branch required-status claims.",
+  "grounding": {
+    "planning_authority": "specs/masterplan.json",
+    "stale_adr_handling": [
+      "ADRs remain status-bound decision records; Accepted ADR-0363 and the branch-protection manifest govern the current CI substrate.",
+      "ADR-0090 remains Accepted; its amendment text now cites the active dev-cli http-stack gate instead of a non-existent check crate.",
+      "ADR-0135 remains Accepted; its branch-protection section now records that the aspirational-enforcement lane is reported by Jenkins and rolled up by oya-verify in Phase 1, not a standalone required context yet."
+    ],
+    "reference_repositories_reviewed": [
+      "/tmp/oyatie-reference-repos-20260530/CLIProxyAPI@3a54fb7fcf3a39de620ca250ff9c1dedc79c9549",
+      "/tmp/oyatie-reference-repos-20260530/ccproxy-api@9a0e49655f648f3eac7030a673674d1f8469893e",
+      "/tmp/oyatie-reference-repos-20260530/auth2api@840fa100e71a3562552cc7d0267f7668db0d7f86"
+    ]
+  },
+  "change": {
+    "default_check_crate_root": "libs",
+    "reason": "The repository's active oya-check-* crates live under libs after the workspace layout change; the retired root crates directory is absent."
+  },
+  "verification": [
+    "./bin/oya gate validate aspirational-enforcement",
+    "cargo test -p oya-check-aspirational-enforcement -- --nocapture",
+    "cargo test -p oya-dev-cli aspirational_enforcement -- --nocapture",
+    "git diff --check"
+  ]
+}

@@ -39,7 +39,7 @@ pub(crate) fn parse_aspirational_enforcement_validate_args(
             PathBuf::from("specs"),
             PathBuf::from("registry"),
         ],
-        crates_dir: PathBuf::from("crates"),
+        crates_dir: PathBuf::from("libs"),
         workflows_dir: PathBuf::from(".github/workflows"),
         quality_lanes: PathBuf::from("registry/quality/lanes.yaml"),
         branch_protection: PathBuf::from(".github/branch-protection.yaml"),
@@ -494,4 +494,27 @@ fn render_violations(violations: Vec<AspirationalViolation>) -> String {
         ));
     }
     rendered
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn aspirational_enforcement_args_default_to_active_check_crate_root() {
+        let parsed = parse_aspirational_enforcement_validate_args(Vec::new()).expect("args parse");
+
+        assert_eq!(parsed.crates_dir, PathBuf::from("libs"));
+    }
+
+    #[test]
+    fn aspirational_enforcement_args_accept_explicit_check_crate_root() {
+        let parsed = parse_aspirational_enforcement_validate_args(vec![
+            "--crates-dir".to_string(),
+            "custom-check-crates".to_string(),
+        ])
+        .expect("args parse");
+
+        assert_eq!(parsed.crates_dir, PathBuf::from("custom-check-crates"));
+    }
 }

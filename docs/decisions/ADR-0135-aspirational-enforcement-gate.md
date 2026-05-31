@@ -91,10 +91,12 @@ work unless their concrete gates are active and green.
 
 ## Branch Protection
 
-The branch protection required check is `oya-governance-aspirational-enforcement`.
-The workflow name, workflow job key, branch-protection context, quality-lane
-registry entry, and CI-lanes documentation row use that same value so
-`oya-governance-protection-context-match` can detect drift.
+The lane context is `oya-governance-aspirational-enforcement`.
+In the current ADR-0363 Phase-1 branch-protection model, that lane is not yet a
+standalone dev `required_status_checks` entry; Jenkins reports the lane and the
+required `oya-verify` roll-up owns merge blocking. The workflow name, workflow
+job key, quality-lane registry entry, and CI-lanes documentation row use that
+same value so `oya-governance-protection-context-match` can detect drift.
 
 ## Rejected Alternatives
 
