@@ -1,3 +1,18 @@
+// =============================================================================
+// RETIRED — this Jenkins gate pipeline is RETIRED.
+//
+// It is SUPERSEDED by the bespoke oya-ci-controller (plank + crier) gate loop,
+// which is wired through the ci-webhook-gateway with dispatcher.kind=controller.
+//   - controller: oya/ci-controller
+//   - gateway:    oya/ci-webhook-gateway
+//
+// This file is kept for REFERENCE / ROLLBACK ONLY. It MUST NOT be wired as the
+// branch-protection required status context. The live required status context
+// "oya-ci-gate" is now POSTED BY THE CONTROLLER (crier), not by this pipeline.
+// Re-enabling this pipeline would cause two producers to race on the same
+// "oya-ci-gate" context — do not do so without first detaching the controller.
+// =============================================================================
+
 // ADR-0380 D3: oya-ci-gate pipeline body.
 //
 // Loaded via cpsScm from this repo (path: infra/ci/jenkins/Jenkinsfile-oya-ci-gate),

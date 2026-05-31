@@ -88,9 +88,13 @@ genrule(
 
 # ── Application layer ─────────────────────────────────────────────────────────
 #
-# Package the buck2-built ci-webhook-gateway binary into a tar.gz layer.
+# Package the buck2-built ci-webhook-gateway binary into a tar+zstd layer.
 # The binary is placed at /usr/local/bin/oya-ci-webhook-gateway inside the layer,
 # matching the Dockerfile COPY path + ENTRYPOINT and the k8s Deployment contract.
+#
+# This frequently-pulled runtime image uses zstd (faster decompress + better
+# ratio than gzip; modern containerd understands the tar+zstd media type).  The
+# upstream distroless :distroless-base layer stays gzip and is untouched.
 #
 # The binary resolved here is the musl-static ELF when this target is built
 # with --target-platforms //platforms:linux-aarch64-musl (which propagates the
@@ -103,7 +107,7 @@ genrule(
     srcs = [
         "//oya/ci-webhook-gateway:ci-webhook-gateway-v2",
     ],
-    out = "gateway-layer.tar.gz",
+    out = "gateway-layer.tar.zst",
     cmd = """
 set -euo pipefail
 BINARY=$(location //oya/ci-webhook-gateway:ci-webhook-gateway-v2)
@@ -111,10 +115,11 @@ LAYER_DIR="$TMP/layer-root/usr/local/bin"
 mkdir -p "$LAYER_DIR"
 cp "$BINARY" "$LAYER_DIR/oya-ci-webhook-gateway"
 chmod 0755 "$LAYER_DIR/oya-ci-webhook-gateway"
-# Reproducible layer: fixed tar entry mtime + pipe through `gzip -n` so the
-# gzip member header MTIME field is zeroed and filename is omitted.
-# `tar --gzip` sets the gzip header MTIME to the wall clock at compression
-# time (ignoring --mtime), causing digest churn.  The pipe form avoids this.
+# Reproducible layer: fixed tar entry mtime + pipe through `zstd`.  zstd output
+# is deterministic by default (it embeds no timestamp/filename, so there is no
+# gzip-style MTIME trick to undo).  -19 is a high compression level; -T0 uses
+# all cores.  The OCI DiffID is the sha256 of the UNCOMPRESSED tar stream, so it
+# is byte-identical to the gzip case — only the compressed blob differs.
 tar --create \\
     --mtime="2026-01-01 00:00:00" \\
     --owner=0 \\
@@ -122,7 +127,7 @@ tar --create \\
     --numeric-owner \\
     --sort=name \\
     -C "$TMP/layer-root" \\
-    . | gzip -n > "$OUT"
+    . | zstd -19 -T0 -f -o "$OUT"
 """,
     visibility = ["PUBLIC"],
 )

@@ -68,7 +68,7 @@ require_cmd() {
   fi
 }
 require_cmd curl
-require_cmd jq
+require_cmd python3
 
 if [[ -z "${FORGEJO_TOKEN:-}" ]]; then
   echo "FORGEJO_TOKEN is required (Forgejo access token with repo admin scope)." >&2
@@ -107,14 +107,19 @@ echo "[arm-auto-merge] required status check context: ${REQUIRED_CONTEXT}"
 # Desired branch-protection payload: enforce the single gate context.
 # (branch_name is only required for the create/POST shape; PATCH ignores it.)
 desired_payload() {
-  jq -n \
-    --arg branch "${PROTECTED_BRANCH}" \
-    --arg ctx "${REQUIRED_CONTEXT}" \
-    '{
-       branch_name: $branch,
-       enable_status_check: true,
-       status_check_contexts: [ $ctx ]
-     }'
+  # Build the JSON with python3 (stdlib only). The branch name and required
+  # context are passed via EXPORTED env vars and read with os.environ — they are
+  # never interpolated into the python source string.
+  PROTECTED_BRANCH="${PROTECTED_BRANCH}" \
+  REQUIRED_CONTEXT="${REQUIRED_CONTEXT}" \
+  python3 -c '
+import json, os
+print(json.dumps({
+    "branch_name": os.environ["PROTECTED_BRANCH"],
+    "enable_status_check": True,
+    "status_check_contexts": [os.environ["REQUIRED_CONTEXT"]],
+}))
+'
 }
 
 if [[ ${DRY_RUN} -eq 1 ]]; then
@@ -160,7 +165,15 @@ fi
 
 # 3) Print the effective status-check fields (no token, no secrets).
 echo "[arm-auto-merge] effective rule (status-check fields):"
-jq '{branch_name, enable_status_check, status_check_contexts}' <<<"${result_body}"
+python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+print(json.dumps({
+    "branch_name": d.get("branch_name"),
+    "enable_status_check": d.get("enable_status_check"),
+    "status_check_contexts": d.get("status_check_contexts"),
+}, indent=2))
+' <<<"${result_body}"
 
 echo "[arm-auto-merge] gate armed: '${REQUIRED_CONTEXT}' is now a required status check on '${PROTECTED_BRANCH}'."
 echo "[arm-auto-merge] PRs can now enable Auto Merge (when checks pass); see docs/ci/auto-merge-flow.md"

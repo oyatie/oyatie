@@ -3,8 +3,9 @@
 // oya-oci-assemble — build-host OCI Image Layout assembler.
 //
 // Reads a base OCI Image Layout (from a buck2 http_archive-unpacked directory
-// OR a tarball) plus one or more application layer tar.gz files, and emits a
-// complete OCI Image Layout directory tree (OCI spec 1.0):
+// OR a tarball) plus one or more application layer tar files (gzip- or
+// zstd-compressed), and emits a complete OCI Image Layout directory tree
+// (OCI spec 1.0):
 //
 //   <out>/
 //     oci-layout          ({"imageLayoutVersion":"1.0.0"})
@@ -13,7 +14,7 @@
 //       sha256/
 //         <config-digest>    (image config JSON)
 //         <manifest-digest>  (image manifest JSON)
-//         <layer-digest>     (each layer tar.gz blob, linked or copied)
+//         <layer-digest>     (each layer tar+gzip/tar+zstd blob, linked or copied)
 //
 // Base input: the bundled prelude's http_archive ALWAYS unpacks the archive to
 // a directory (default_output is a dir, not the raw tar).  So --base may be
@@ -48,10 +49,25 @@
 //   8. Writes oci-layout marker.
 //
 // NOTE: computing the DiffID (uncompressed sha256) of a compressed layer
-// requires decompressing it.  This assembler invokes the host `gunzip -c`
-// pipe via std::process::Command.  The build layer is produced by `tar | gzip -n`
-// (MTIME=0, deterministic) so the compressed digest is byte-stable across builds.
-// Host gunzip/tar are undeclared buck2 action inputs — acceptable for a
+// requires decompressing it.  Application layers may be either gzip or zstd:
+// the decompressor + OCI layer media type are picked per-file from the layer
+// file name (see layer_media_and_diff_id).  A name ending in .tar.zst/.tzst is
+// treated as tar+zstd and decompressed via the host `zstd -dc` pipe; a name
+// ending in .tar.gz/.tgz (or anything else, for backward compatibility) is
+// treated as tar+gzip and decompressed via the host `gunzip -c` pipe.  Both are
+// invoked via std::process::Command.
+//
+// Per-use rationale (not a blanket switch): the application layers (ci-controller,
+// ci-webhook-gateway) are frequently-pulled runtime images, where zstd's faster
+// decompress + better ratio matter and modern containerd understands the
+// tar+zstd media type.  The upstream distroless BASE layer stays gzip (untouched).
+//
+// In every case the DiffID is the sha256 of the UNCOMPRESSED tar stream, so it is
+// byte-identical whether the layer was compressed with gzip or zstd; the build
+// layer is produced deterministically (`tar | gzip -n` zeroes the gzip MTIME;
+// zstd embeds no timestamp/filename) so the compressed digest is also byte-stable
+// across builds.
+// Host zstd/gunzip/tar are undeclared buck2 action inputs — acceptable for a
 // build-host exec_dep tool (not product code) but noted as a hermeticity gap.
 
 use std::{
@@ -85,7 +101,8 @@ struct Cli {
     #[arg(long)]
     base: PathBuf,
 
-    /// Application layer tar.gz files to append (may be repeated).
+    /// Application layer tar files to append; gzip (.tar.gz/.tgz) or zstd
+    /// (.tar.zst/.tzst), media type picked per-file (may be repeated).
     #[arg(long = "layer")]
     layers: Vec<PathBuf>,
 
@@ -196,6 +213,64 @@ fn diff_id_of_gz(path: &Path) -> Result<String> {
         bail!("gunzip -c {} exited with {}", path.display(), status);
     }
     Ok(format!("sha256:{}", encode_hex(&hasher.finalize())))
+}
+
+/// Compute the sha256 of the *uncompressed* content of a zstd file.
+/// This is the OCI DiffID (sha256 of the uncompressed tar stream) and is
+/// byte-identical to the gzip case for the same tar input.
+/// Decompresses via `zstd -dc` on the host to avoid a zstd dep.
+fn diff_id_of_zst(path: &Path) -> Result<String> {
+    let mut child = Command::new("zstd")
+        .args(["-dc", &path.to_string_lossy()])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .with_context(|| {
+            format!(
+                "spawn zstd -dc {} (is zstd on PATH?)",
+                path.display()
+            )
+        })?;
+
+    let stdout = child.stdout.take().expect("zstd stdout");
+    let mut hasher = Sha256::new();
+    let mut reader = io::BufReader::new(stdout);
+    let mut buf = [0u8; 65536];
+    loop {
+        let n = reader.read(&mut buf)?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buf[..n]);
+    }
+    let status = child.wait()?;
+    if !status.success() {
+        bail!("zstd -dc {} exited with {}", path.display(), status);
+    }
+    Ok(format!("sha256:{}", encode_hex(&hasher.finalize())))
+}
+
+/// OCI layer media type for a gzip-compressed tar layer.
+const MEDIA_TYPE_TAR_GZIP: &str = "application/vnd.oci.image.layer.v1.tar+gzip";
+/// OCI layer media type for a zstd-compressed tar layer.
+const MEDIA_TYPE_TAR_ZSTD: &str = "application/vnd.oci.image.layer.v1.tar+zstd";
+
+/// Pick the (media_type, DiffID decompressor) for a layer from its file name.
+///
+/// A name ending in `.tar.zst`/`.tzst` → tar+zstd, decompressed via
+/// `diff_id_of_zst`.  A name ending in `.tar.gz`/`.tgz` → tar+gzip, decompressed
+/// via `diff_id_of_gz`.  Anything else falls back to gzip for backward
+/// compatibility (the original behavior before zstd support).
+fn layer_media_and_diff_id(path: &Path) -> (&'static str, fn(&Path) -> Result<String>) {
+    let name = path.to_string_lossy();
+    if name.ends_with(".tar.zst") || name.ends_with(".tzst") {
+        (MEDIA_TYPE_TAR_ZSTD, diff_id_of_zst)
+    } else if name.ends_with(".tar.gz") || name.ends_with(".tgz") {
+        (MEDIA_TYPE_TAR_GZIP, diff_id_of_gz)
+    } else {
+        // Backward-compatible default: treat unknown extensions as gzip.
+        (MEDIA_TYPE_TAR_GZIP, diff_id_of_gz)
+    }
 }
 
 /// Write bytes to a blob path under <blobs_dir>/<hex> (strips "sha256:" prefix).
@@ -440,15 +515,15 @@ fn main() -> Result<()> {
 
     // 8. Ingest each app layer.
     for layer_path in &cli.layers {
-        let desc = ingest_blob(
-            layer_path,
-            &blobs_dir,
-            "application/vnd.oci.image.layer.v1.tar+gzip",
-        )
-        .with_context(|| format!("ingest layer {}", layer_path.display()))?;
+        // Pick the OCI media type + DiffID decompressor per-file from the layer
+        // file name (gzip or zstd; defaults to gzip for unknown extensions).
+        let (media_type, diff_id_fn) = layer_media_and_diff_id(layer_path);
+
+        let desc = ingest_blob(layer_path, &blobs_dir, media_type)
+            .with_context(|| format!("ingest layer {}", layer_path.display()))?;
 
         // Compute DiffID (sha256 of uncompressed tar stream).
-        let diff_id = diff_id_of_gz(layer_path)
+        let diff_id = diff_id_fn(layer_path)
             .with_context(|| format!("compute DiffID for {}", layer_path.display()))?;
         diff_ids.push(diff_id);
         layer_descriptors.push(desc);
