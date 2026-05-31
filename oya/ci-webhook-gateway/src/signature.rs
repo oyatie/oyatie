@@ -30,13 +30,58 @@
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD as B64;
 use ed25519_dalek::{Signature as Ed25519Signature, Verifier, VerifyingKey};
-use hmac::{Hmac, Mac};
-use sha2::Sha256;
-use subtle::ConstantTimeEq;
+use sha2::{Digest, Sha256};
 
 use crate::error::{GatewayError, Result};
 
-type HmacSha256 = Hmac<Sha256>;
+/// Constant-time equality for byte slices (no `subtle` dep).
+///
+/// Compares length first (leaks length, which is fine for fixed-size HMAC
+/// digests) then XORs all bytes and checks the accumulator in one branch.
+fn ct_eq_bytes(a: &[u8], b: &[u8]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let diff: u8 = a.iter().zip(b.iter()).fold(0u8, |acc, (&x, &y)| acc | (x ^ y));
+    diff == 0
+}
+
+/// HMAC-SHA256 block size (64 bytes for SHA-256).
+const SHA256_BLOCK: usize = 64;
+
+/// Compute HMAC-SHA256(key, msg) using only `sha2` — no `hmac` crate dep.
+///
+/// Standard RFC 2104 construction: H((key XOR opad) || H((key XOR ipad) || msg)).
+/// `pub(crate)` so tests in `receiver.rs` can use it via `crate::signature::hmac_sha256`.
+pub(crate) fn hmac_sha256(key: &[u8], msg: &[u8]) -> [u8; 32] {
+    // If key > block size, hash it first; then zero-pad to block size.
+    let mut k = [0u8; SHA256_BLOCK];
+    if key.len() > SHA256_BLOCK {
+        let hk = Sha256::digest(key);
+        k[..32].copy_from_slice(&hk);
+    } else {
+        k[..key.len()].copy_from_slice(key);
+    }
+
+    let mut ipad = [0x36u8; SHA256_BLOCK];
+    let mut opad = [0x5cu8; SHA256_BLOCK];
+    for i in 0..SHA256_BLOCK {
+        ipad[i] ^= k[i];
+        opad[i] ^= k[i];
+    }
+
+    // inner = SHA256(ipad || msg)
+    let mut inner = Sha256::new();
+    inner.update(&ipad);
+    inner.update(msg);
+    let inner_hash = inner.finalize();
+
+    // outer = SHA256(opad || inner)
+    let mut outer = Sha256::new();
+    outer.update(&opad);
+    outer.update(&inner_hash);
+    outer.finalize().into()
+}
 
 /// The canonical Forgejo/GitHub HMAC-SHA256 signature header.
 pub const SIGNATURE_HEADER: &str = "x-hub-signature-256";
@@ -100,11 +145,7 @@ fn compute_hex(secret: &WebhookSecret, body: &[u8]) -> Result<String> {
     if secret.is_empty() {
         return Err(GatewayError::SecretUnavailable);
     }
-    // `new_from_slice` only errors on a zero-length key, which we reject above.
-    let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
-        .map_err(|_| GatewayError::SecretUnavailable)?;
-    mac.update(body);
-    let digest = mac.finalize().into_bytes();
+    let digest = hmac_sha256(secret.as_bytes(), body);
     Ok(hex_encode(&digest))
 }
 
@@ -131,8 +172,7 @@ pub fn verify_raw_hex(secret: &WebhookSecret, body: &[u8], header_hex: &str) -> 
     let expected = compute_hex(secret, body)?;
     // Constant-time compare on the lowercased hex bytes.
     let provided = header_hex.to_ascii_lowercase();
-    let matches: bool = expected.as_bytes().ct_eq(provided.as_bytes()).into();
-    if matches {
+    if ct_eq_bytes(expected.as_bytes(), provided.as_bytes()) {
         Ok(())
     } else {
         Err(GatewayError::SignatureMismatch)

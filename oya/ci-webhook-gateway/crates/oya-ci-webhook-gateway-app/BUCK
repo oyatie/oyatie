@@ -26,6 +26,30 @@ rust_library(
     ],
 )
 
+rust_test(
+    name = "oya-ci-webhook-gateway-app-tests",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_ci_webhook_gateway_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter:oya-ci-webhook-gateway-authz-cedar-adapter",
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-ed25519-adapter:oya-ci-webhook-gateway-ed25519-adapter",
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter:oya-ci-webhook-gateway-github-adapter",
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-jenkins-adapter:oya-ci-webhook-gateway-jenkins-adapter",
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel:oya-ci-webhook-gateway-kernel",
+        "third-party//:axum",
+        "third-party//:bytes",
+        "third-party//:ed25519-dalek",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tower",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
 rust_binary(
     name = "ci-webhook-gateway",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
