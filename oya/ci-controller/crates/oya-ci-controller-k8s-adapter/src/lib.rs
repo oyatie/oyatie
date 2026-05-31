@@ -99,12 +99,24 @@ pub fn build_gate_job(spec: &GateRunSpec) -> Job {
     // diffs merge-base(origin/pr-N, origin/dev)..origin/pr-N.
     //
     // A PR MUST NOT be able to alter the script/Job that gates it.
+    // Clone runs in a TRUSTED init container holding the clone token. The token
+    // is passed via `git -c http.extraHeader` (one-shot — NOT persisted to
+    // .git/config), so it never leaks into the shared workspace the untrusted
+    // main container reads. clone_url carries NO embedded credentials.
+    let clone_cmd = format!(
+        r#"set -euo pipefail
+AUTH="http.extraHeader=Authorization: token ${{FORGEJO_CLONE_TOKEN}}"
+git -c "$AUTH" clone --depth=1 --branch {base_ref} {clone_url} /workspace/repo
+cd /workspace/repo
+git -c "$AUTH" fetch --unshallow
+git -c "$AUTH" fetch origin refs/pull/{pr_number}/head:refs/remotes/origin/pr-{pr_number}"#,
+    );
+    // The gate runs in the UNTRUSTED main container on the pre-cloned workspace —
+    // NO token, NO network clone. Working tree = dev (trunk); the PR ref is
+    // origin/pr-N (data only). A PR MUST NOT alter the script/Job that gates it.
     let gate_cmd = format!(
         r#"set -euo pipefail
-git clone --depth=1 --branch {base_ref} {clone_url} /workspace/repo
 cd /workspace/repo
-git fetch --unshallow
-git fetch origin refs/pull/{pr_number}/head:refs/remotes/origin/pr-{pr_number}
 exec sh infra/ci/buck2-affected-gate.sh origin/{base_ref} origin/pr-{pr_number}"#,
     );
 
@@ -164,10 +176,65 @@ exec sh infra/ci/buck2-affected-gate.sh origin/{base_ref} origin/pr-{pr_number}"
         ..Default::default()
     };
 
+    // TRUSTED clone init container: holds the clone token (env only; passed to
+    // git via one-shot `-c http.extraHeader`, never written to .git/config), and
+    // completes BEFORE the untrusted main container starts — so PR build scripts
+    // can never read it. (Interim: reuses forgejo-ci-token; a dedicated read-only
+    // clone token is the hardening follow-up.)
+    let clone_container = Container {
+        name: "clone".to_owned(),
+        image: Some(spec.image.clone()),
+        command: Some(vec!["/bin/sh".to_owned(), "-c".to_owned(), clone_cmd]),
+        env: Some(vec![
+            EnvVar {
+                name: "HOME".to_owned(),
+                value: Some("/home/jenkins/agent".to_owned()),
+                ..Default::default()
+            },
+            EnvVar {
+                name: "FORGEJO_CLONE_TOKEN".to_owned(),
+                value_from: Some(k8s_openapi::api::core::v1::EnvVarSource {
+                    secret_key_ref: Some(k8s_openapi::api::core::v1::SecretKeySelector {
+                        name: "forgejo-ci-token".to_owned(),
+                        key: "token".to_owned(),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        ]),
+        security_context: Some(k8s_openapi::api::core::v1::SecurityContext {
+            allow_privilege_escalation: Some(false),
+            read_only_root_filesystem: Some(false),
+            run_as_non_root: Some(true),
+            run_as_user: Some(1000),
+            capabilities: Some(k8s_openapi::api::core::v1::Capabilities {
+                drop: Some(vec!["ALL".to_owned()]),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }),
+        volume_mounts: Some(vec![
+            k8s_openapi::api::core::v1::VolumeMount {
+                name: "workspace".to_owned(),
+                mount_path: "/workspace".to_owned(),
+                ..Default::default()
+            },
+            k8s_openapi::api::core::v1::VolumeMount {
+                name: "home".to_owned(),
+                mount_path: "/home/jenkins/agent".to_owned(),
+                ..Default::default()
+            },
+        ]),
+        ..Default::default()
+    };
+
     let pod_spec = PodSpec {
         restart_policy: Some("Never".to_owned()),
         service_account_name: Some(spec.runner_service_account.clone()),
         automount_service_account_token: Some(false),
+        init_containers: Some(vec![clone_container]),
         containers: vec![container],
         security_context: Some(k8s_openapi::api::core::v1::PodSecurityContext {
             run_as_non_root: Some(true),
