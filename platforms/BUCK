@@ -28,8 +28,8 @@ constraint_value(
 platform(
     name = "linux-aarch64-musl",
     constraint_values = [
-        "prelude//cpu:arm64",
-        "prelude//os:linux",
+        "prelude//cpu/constraints:arm64",
+        "prelude//os/constraints:linux",
         ":libc_musl",
     ],
     visibility = ["PUBLIC"],
