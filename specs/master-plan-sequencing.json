@@ -302,7 +302,7 @@
   ],
   "chained_enforcement_contract": {
     "adr_citation": "ADR-0133",
-    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-governance-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted Forgejo/Jenkins enforcement deployment remains a GitOps verification gap.",
+    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-governance-banned-primitives is planned for hosted branch-protection enforcement; it is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records, while hosted Forgejo/Jenkins enforcement deployment remains a GitOps verification gap.",
     "status": "source-corpus and sanitized command-log corpus detector active in CS-FITNESS-001; hosted enforcement verification pending before production reliance"
   },
   "repo_state_protocol": [
