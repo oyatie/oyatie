@@ -1,9 +1,14 @@
 {{- if .Values.networkPolicy.enabled }}
 # NetworkPolicy for the oya-ci controller.
-# Ingress: monitoring namespace only (/healthz + /metrics).
+# Ingress: monitoring namespace (/healthz + /metrics) + ci namespace (POST /gate-run).
 # Egress: kube-apiserver (Job/Pod watch+create), Forgejo (status post + clone),
 #         OpenBao (ESO token sync), OTel collector, DNS.
 # ADR-0387: ci-gate substrate.
+#
+# POST /gate-run is protected by X-Gate-Run-Token (shared-secret, projected from
+# OpenBao via ESO). The NetworkPolicy further restricts callers to the same
+# namespace (oya-ci) so that workloads in other namespaces cannot even reach the
+# port, providing defence-in-depth even if the token were somehow leaked.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -31,11 +36,28 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Prometheus / OTel scrape from monitoring namespace
+    # Prometheus / OTel scrape from monitoring namespace (/healthz + /metrics).
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: {{ .Values.networkPolicy.ingress.monitoringNamespaceName | quote }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.port }}
+    # POST /gate-run from the same namespace (ci-webhook-gateway ControllerDispatcher
+    # runs in oya-ci). The X-Gate-Run-Token auth provides application-layer
+    # defence-in-depth; this rule provides network-layer isolation.
+    # Gate runner Pods (oya.io/ci-controller=oya-ci-gate) are excluded by the
+    # gate-jobs-isolation NetworkPolicy (ingress: []) which takes precedence
+    # for pods matching that selector.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.config.namespace | quote }}
+          podSelector:
+            matchExpressions:
+              - key: oya.io/ci-controller
+                operator: DoesNotExist
       ports:
         - protocol: TCP
           port: {{ .Values.service.port }}

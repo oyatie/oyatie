@@ -95,6 +95,14 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.externalSecret.secretName | quote }}
                   key: token
+            # OYA_CI_GATE_RUN_TOKEN — shared secret for POST /gate-run auth.
+            # Sourced from OpenBao via ESO (gate-run-token Secret).
+            # Callers must present this value in the X-Gate-Run-Token header.
+            - name: OYA_CI_GATE_RUN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gateRunTokenSecret.secretName | quote }}
+                  key: token
           readinessProbe:
             httpGet:
               path: /healthz

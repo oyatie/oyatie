@@ -1,0 +1,72 @@
+{{- if .Values.networkPolicy.enabled }}
+# NetworkPolicy: gate runner Pods (untrusted PR code isolation).
+#
+# Gate Jobs are spawned by the controller in the same `oya-ci` namespace.
+# They execute untrusted PR code (buck2 affected-gate). This policy enforces:
+#
+# INGRESS: deny all — no Pod may initiate a connection to a gate runner.
+# EGRESS:
+#   - DNS (kube-system) — name resolution for package registries / Forgejo.
+#   - Forgejo (oya-forge) — git clone of the PR ref (fetch step in gate_cmd).
+#   - Public internet egress is NOT granted here; a cluster-level Cilium/Calico
+#     egress policy must allow/deny outbound by namespace label independently.
+#
+# CRITICAL: gate runner Pods MUST NOT reach:
+#   - The oya-ci-controller Service (POST /gate-run or any other endpoint).
+#   - OpenBao (secret store).
+#   - The Forgejo API token endpoint beyond what git-clone requires.
+#   - Any other in-cluster service.
+#
+# ADR-0387: ci-gate substrate; trust boundary enforcement.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-gate-jobs-isolation" .Values.microservice.id | trunc 63 | trimSuffix "-" | quote }}
+  namespace: {{ .Values.config.namespace | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/managed-by: Helm
+    oyatie.com/adr-0349: argocd-managed
+    oyatie.com/network-boundary: gate-job-isolation
+    oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+    oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+    oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+    oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+    oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
+    oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
+  annotations:
+    oyatie.com/non-claim: {{ .Values.networkPolicy.nonClaim | quote }}
+spec:
+  # Selects gate runner Pods by their immutable label (set at Job creation).
+  podSelector:
+    matchLabels:
+      oya.io/ci-controller: oya-ci-gate
+  policyTypes:
+    - Ingress
+    - Egress
+  # INGRESS: deny all — gate runners are never connection targets.
+  ingress: []
+  egress:
+    # DNS — required for git clone host resolution.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.egress.dnsNamespaceName | quote }}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Forgejo git server — git clone (port 3000 in-cluster HTTP).
+    # NOTE: this grants HTTP to the Forgejo pod, NOT the Forgejo API token.
+    # The gate runner container NEVER receives FORGEJO_CI_TOKEN (enforced in
+    # build_gate_job: the env list explicitly omits it).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.egress.forgejoNamespaceName | quote }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.egress.forgejoPort }}
+{{- end }}
