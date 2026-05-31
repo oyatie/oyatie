@@ -116,6 +116,13 @@ pipeline {
         }
       }
     }
+    aborted {
+      // A timeout/abort MUST still post a TERMINAL status, else the gate is stuck 'pending'
+      // forever and the PR can never resolve. Bridge hardening (oya-ci #87).
+      withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
+        script { postForgejoStatus('failure', 'buck2 affected gate aborted: timeout or abort') }
+      }
+    }
   }
 }
 
