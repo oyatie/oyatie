@@ -23,11 +23,11 @@ system_rust_toolchain(
     name = "rust",
     default_edition = "2024",
     rustc_target_triple = select({
-        "//platforms:libc_musl": "aarch64-unknown-linux-musl",
+        "root//platforms:libc_musl": "aarch64-unknown-linux-musl",
         "DEFAULT": "aarch64-unknown-linux-gnu",
     }),
     rustc_flags = select({
-        "//platforms:libc_musl": [
+        "root//platforms:libc_musl": [
             "-C link-self-contained=yes",
             "-C linker=rust-lld",
         ],
