@@ -6,7 +6,7 @@ date: 2026-05-28
 authority: founder
 milestone: M-BILLING-ENGINE-V2
 planning_impact: true
-supersedes: [ADR-0457]
+supersedes: []
 superseded_by: []
 related: [ADR-0457, ADR-0429, ADR-0443, ADR-0083, ADR-0411, ADR-0451, ADR-0509]
 ---

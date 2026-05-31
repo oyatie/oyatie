@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-28
 authority: founder
 planning_impact: true
-supersedes: [ADR-0443]
+supersedes: []
 superseded_by: []
 milestone: M-COST-ALLOCATION-V2
 related: [ADR-0443, ADR-0479, ADR-0193, ADR-0407, ADR-0083, ADR-0411, ADR-0423, ADR-0509]
