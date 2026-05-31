@@ -39,6 +39,19 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.service.port }}
+    # ci-webhook-gateway → controller /gate-run dispatch (forgejo→gateway→controller).
+    # The gateway pod (app.kubernetes.io/name=ci-webhook-gateway) in the oya-ci
+    # namespace reaches the controller on the service port (8081).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.ingress.gatewayNamespaceName | quote }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.networkPolicy.ingress.gatewayPodName | quote }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.port }}
   egress:
     # DNS
     - to:

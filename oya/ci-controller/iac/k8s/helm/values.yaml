@@ -36,6 +36,11 @@ networkPolicy:
   nonClaim: static-networkpolicy-template-only-no-live-cni-admission-traffic-flow-or-network-isolation-proof
   ingress:
     monitoringNamespaceName: observability
+    # ci-webhook-gateway → controller /gate-run dispatch. The gateway runs in the
+    # same namespace (oya-ci); allow its pod (app.kubernetes.io/name=ci-webhook-gateway)
+    # to reach the controller on the service port (8081).
+    gatewayNamespaceName: oya-ci
+    gatewayPodName: ci-webhook-gateway
   egress:
     dnsNamespaceName: kube-system
     # kube-apiserver egress (Job/Pod watch + create)

@@ -1,0 +1,144 @@
+# oya/ci-webhook-gateway/iac/oci/BUCK
+#
+# Buck2-native OCI image for oya-ci-webhook-gateway.
+#
+# Mirrors oya/ci-controller/iac/oci/BUCK.  Retires the BuildKit/Dockerfile image
+# path for this service (ADR-0514 anti-pattern: "Dockerfile-based BuildKit image
+# builds → buck2-native OCI images").  ADDITIVE: the gateway Dockerfile is
+# untouched until this target is wired into push/deploy; it migrates separately.
+#
+# Targets:
+#   :distroless-base       — genrule pulling the base OCI layout via the OCI
+#                            distribution API (tools/oci/pull-oci-base.py)
+#   :gateway-layer         — genrule packaging the musl-static binary as a layer
+#   :gateway-oci           — oci_image assembling the final image layout
+#
+# Musl / static build:
+#   The gateway binary is built fully-static via the aarch64-unknown-linux-musl
+#   toolchain (//platforms:linux-aarch64-musl).  The base image is therefore
+#   gcr.io/distroless/static-debian12:nonroot — no libgcc/glibc stubs needed.
+#   Build the image with:
+#     buck2 build root//oya/ci-webhook-gateway/iac/oci:gateway-oci \
+#       --target-platforms //platforms:linux-aarch64-musl
+#   The --target-platforms flag propagates to all transitive deps, so
+#   //oya/ci-webhook-gateway:ci-webhook-gateway-v2 is automatically compiled with
+#   aarch64-unknown-linux-musl + link-self-contained=yes.
+#
+#   NOTE: the original BuildKit Dockerfile compiles `--bin oya-ci-webhook-gateway`
+#   from src/main.rs against gcr.io/distroless/cc-debian12 (glibc + libgcc).  The
+#   buck2-native path instead compiles the same src/main.rs entrypoint
+#   (//oya/ci-webhook-gateway:ci-webhook-gateway-v2) fully-static against musl and
+#   ships the static-debian12 base — no cc runtime needed.  The in-container binary
+#   path (/usr/local/bin/oya-ci-webhook-gateway) and the exposed port (8099) are
+#   preserved so the k8s Deployment / entrypoint contract is unchanged.
+#
+# Darwin/Linux split:
+#   - On darwin (aarch64): buck2 cquery + audit providers resolve cleanly;
+#     the assembled OCI layout is inspectable.  The binary inside is Mach-O
+#     (host-arch) — NOT runnable in a Linux container.  The push step is
+#     intentionally gated to Linux CI only.
+#   - On linux (aarch64, CI pod): pass --target-platforms //platforms:linux-aarch64-musl
+#     to get the static ELF.  Run push-and-sign.sh after assembly (see the
+#     controller's push-and-sign.sh for the canonical pattern).
+#
+# Base image:
+#   gcr.io/distroless/static-debian12  (ADR-0146 canonical; founder decision
+#   2026-05-31).  The static variant carries no libc/libgcc — correct for a fully-
+#   static musl binary.  Pinned by the immutable arm64 manifest DIGEST passed to
+#   tools/oci/pull-oci-base.py (see the :distroless-base genrule below).  Bump
+#   the digest when Google publishes a new CVE-patched weekly rebuild.  The digest
+#   is intentionally identical to the controller's so both images share the base.
+#
+# Push target: see the controller's push-and-sign.sh for the canonical pattern
+# (linux CI only).
+#   Registry: registry.oya-registry.svc.cluster.local:5000
+#   Cosign: --key k8s://oya-ci/cosign-key  (ADR-0181 + verify-image-signed.yaml)
+
+load("//tools/oci:defs.bzl", "oci_image")
+
+# ── Base image ────────────────────────────────────────────────────────────────
+#
+# Distroless static-debian12 OCI layout, pulled at build time.
+# The static variant ships no libc/libgcc — correct for the fully-static
+# aarch64-linux-musl gateway binary (link-self-contained=yes; +crt-static is the
+# musl-target default).
+#
+# To re-pin (bump to a new CVE-patched rebuild), resolve the linux/arm64 child
+# manifest digest of the desired tag and update the DIGEST argument below:
+#   crane digest --platform linux/arm64 gcr.io/distroless/static-debian12:nonroot
+# The puller verifies sha256(manifest_bytes) == DIGEST, so a stale or wrong
+# digest fails the build deterministically.  Keep this digest in lock-step with
+# oya/ci-controller/iac/oci/BUCK so both services share one base layer.
+#
+# The base layout is pulled at build time by the stdlib-only python3 puller
+# tools/oci/pull-oci-base.py, which speaks the OCI distribution API directly
+# (anon bearer token → manifest-by-digest → config + layer blobs) and writes
+# the oci-layout / index.json / blobs/sha256 tree that oya-oci-assemble reads
+# via find_oci_root().  The arm64 manifest digest is pinned (immutable); the
+# puller verifies sha256(manifest_bytes) == DIGEST.  Bump the digest when
+# Google publishes a CVE-patched weekly rebuild of distroless/static-debian12.
+#
+# INTERIM: network-in-genrule; hermetic destination = pre-staged pinned tarball via in-cluster file-server
+genrule(
+    name = "distroless-base",
+    out = "oci-layout",
+    cmd = "python3 $(location //tools/oci:pull-oci-base.py) gcr.io distroless/static-debian12 sha256:82043e1cb4913437a9e90c2425b164d96031469894edc6011eed045001ba7181 $OUT",
+    visibility = ["PUBLIC"],
+)
+
+# ── Application layer ─────────────────────────────────────────────────────────
+#
+# Package the buck2-built ci-webhook-gateway binary into a tar.gz layer.
+# The binary is placed at /usr/local/bin/oya-ci-webhook-gateway inside the layer,
+# matching the Dockerfile COPY path + ENTRYPOINT and the k8s Deployment contract.
+#
+# The binary resolved here is the musl-static ELF when this target is built
+# with --target-platforms //platforms:linux-aarch64-musl (which propagates the
+# platform to the transitive dep on the gateway rust_binary).
+#
+# On darwin: the binary is Mach-O; the layer is valid tar.gz but the image is
+# not runnable on Linux.  Always build with --target-platforms on Linux CI.
+genrule(
+    name = "gateway-layer",
+    srcs = [
+        "//oya/ci-webhook-gateway:ci-webhook-gateway-v2",
+    ],
+    out = "gateway-layer.tar.gz",
+    cmd = """
+set -euo pipefail
+BINARY=$(location //oya/ci-webhook-gateway:ci-webhook-gateway-v2)
+LAYER_DIR="$TMP/layer-root/usr/local/bin"
+mkdir -p "$LAYER_DIR"
+cp "$BINARY" "$LAYER_DIR/oya-ci-webhook-gateway"
+chmod 0755 "$LAYER_DIR/oya-ci-webhook-gateway"
+# Reproducible layer: fixed tar entry mtime + pipe through `gzip -n` so the
+# gzip member header MTIME field is zeroed and filename is omitted.
+# `tar --gzip` sets the gzip header MTIME to the wall clock at compression
+# time (ignoring --mtime), causing digest churn.  The pipe form avoids this.
+tar --create \\
+    --mtime="2026-01-01 00:00:00" \\
+    --owner=0 \\
+    --group=0 \\
+    --numeric-owner \\
+    --sort=name \\
+    -C "$TMP/layer-root" \\
+    . | gzip -n > "$OUT"
+""",
+    visibility = ["PUBLIC"],
+)
+
+# ── OCI image ─────────────────────────────────────────────────────────────────
+#
+# Assembled OCI Image Layout directory.  Depends on oya-oci-assemble (the
+# build-host Rust tool in tools/oci/) which is compiled by buck2 and injected
+# as an exec_dep via the oci_image rule.
+oci_image(
+    name = "gateway-oci",
+    base = ":distroless-base",
+    layers = [":gateway-layer"],
+    entrypoint = ["/usr/local/bin/oya-ci-webhook-gateway"],
+    user = "65532:65532",
+    exposed_ports = ["8099/tcp"],
+    image_title = "oya-ci-webhook-gateway",
+    visibility = ["PUBLIC"],
+)

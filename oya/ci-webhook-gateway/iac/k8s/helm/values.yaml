@@ -33,6 +33,10 @@ networkPolicy:
     dnsNamespaceName: kube-system
     jenkinsNamespaceName: oya-ci-jenkins
     jenkinsPort: 8080
+    # oya-ci-controller /gate-run dispatch (controller DispatcherKind). The
+    # controller runs in this same namespace (oya-ci) on TCP 8081.
+    controllerNamespaceName: oya-ci
+    controllerPort: 8081
     openbaoNamespaceName: oya-secrets
     openbaoPort: 8200
     githubApiPort: 443
@@ -40,13 +44,16 @@ networkPolicy:
     otelPort: 4317
 
 image:
-  registry: registry.oyatie.dev
-  repository: oya-ci-webhook-gateway
-  tag: "0.1.0"
+  # Dev substrate: in-cluster registry, plain :dev tag (digest TBD by integrator).
+  # cosign.required is false for the dev lane so the chart renders without a
+  # pinned sha256 digest; release automation flips this on for staging/prod.
+  registry: registry.oya-registry.svc.cluster.local:5000
+  repository: ci-webhook-gateway
+  tag: "dev"
   digest: ""
   pullPolicy: IfNotPresent
   cosign:
-    required: true
+    required: false
     policy: ADR-0181
 
 service:
@@ -91,10 +98,21 @@ externalSecret:
   secretName: ci-webhook-gateway-secrets
   nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
 
+# Dispatcher selection. Maps to OYA_CI_DISPATCHER (DispatcherKind) in src/config.rs.
+# "controller" routes deliveries to the bespoke oya-ci-controller /gate-run path;
+# "jenkins" (default in config.rs) routes to jenkins.dispatchUrl below.
+dispatcher:
+  # "controller" | "jenkins". Unrecognised/blank falls back to jenkins in config.rs.
+  kind: controller
+  # OYA_CI_CONTROLLER_URL — base URL of the oya-ci-controller /gate-run endpoint.
+  # Only consulted when kind == controller. In-cluster plain HTTP on :8081.
+  controllerUrl: "http://oya-ci-controller.oya-ci.svc.cluster.local:8081"
+
 jenkins:
   # Full HTTP URL the gateway POSTs to kick the oyaCiLane pipeline.
   # Must be a plain http:// URL (TLS terminates at ingress; in-cluster is plain HTTP).
   # Maps to OYA_JENKINS_DISPATCH_URL in src/config.rs.
+  # Only consulted when dispatcher.kind == jenkins.
   # TODO(founder): replace with the live generic-webhook-trigger or build-token endpoint.
   dispatchUrl: "http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080/generic-webhook-trigger/invoke"
 
