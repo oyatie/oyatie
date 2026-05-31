@@ -28,8 +28,8 @@ system_rust_toolchain(
     }),
     rustc_flags = select({
         "root//platforms:libc_musl": [
-            "-C link-self-contained=yes",
-            "-C linker=rust-lld",
+            "-Clink-self-contained=yes",
+            "-Clinker=rust-lld",
         ],
         "DEFAULT": [],
     }),
