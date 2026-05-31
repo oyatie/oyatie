@@ -1,0 +1,285 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "intelligence-provider-pool-kernel",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-intelligence-provider-pool-kernel-20260530",
+  "timestamp_iso": "2026-05-30T23:04:38.474377Z",
+  "freshness_unix": 1780182278,
+  "git_sha": "a7e9b40724ba",
+  "scope": "oya/intelligence provider-pool pure SubscriptionPool kernel plus app composition seam",
+  "claimed_scopes": [
+    "Cargo.lock",
+    "oya/intelligence/crates/oya-intelligence-provider-pool-kernel/Cargo.toml",
+    "oya/intelligence/crates/oya-intelligence-provider-pool-kernel/src/lib.rs",
+    "oya/intelligence/crates/oya-intelligence-provider-pool-kernel/tests/subscription_pool_proptest_invariants.rs",
+    "oya/intelligence/crates/oya-intelligence-provider-pool-app/src/lib.rs",
+    "oya/intelligence/crates/oya-intelligence-provider-pool-app/src/quota.rs",
+    "oya/intelligence/crates/oya-intelligence-provider-pool-app/tests/quota_fairness.rs",
+    "oya/intelligence/crates/oya-intelligence-provider-pool-app/tests/subscription_pool_kernel_exports.rs"
+  ],
+  "authority_review": {
+    "stale_adr_handling": [
+      "ADR-0335 status Accepted makes intelligence the canonical AI substrate after Foundry absorption.",
+      "ADR-0363 status Accepted makes plain git + Jenkins + oya gate the live governance path and retires bespoke VCS wrappers.",
+      "ADR-0384 status Proposed is design-provenance only for the pure SubscriptionPool D1 shape; stale llm-gateway/cloud-intelligence names were not used as target paths.",
+      "ADR-0390 status Accepted binds SeatLease/lease/complete and pool proof semantics; implementation lands under intelligence provider-pool kernel.",
+      "ADR-0391 status Accepted binds no-double-SeatLease and lease_count+free_count invariants for future proof lanes."
+    ],
+    "plans_reviewed": [
+      "specs/microservices/intelligence.json",
+      ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/INDEX.md",
+      ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-001-provider-account-pool-kernel.md",
+      "tasks/intel-provider-pool-cooldown-rotation-plan.md",
+      "tasks/pooling-kernel-cooldown-window-plan.md",
+      "tasks/subscription-pool-proxy-sse-openbao-metrics-plan.md",
+      "docs/specs/task-subscription-pool-proxy-sse-openbao-metrics.md"
+    ],
+    "reference_repos_reviewed": [
+      "/tmp/ref-repos/CLIProxyAPI sdk/cliproxy/auth/selector.go, status.go, scheduler.go: round-robin/fill-first account selection, unavailable/cooldown state, Retry-After error shape",
+      "/tmp/ref-repos/auth2api src/auth/oauth.ts and src/auth/refresh-errors.ts: stock fetch OAuth refresh and terminal refresh-token exhaustion taxonomy",
+      "/tmp/ref-repos/gpt-load internal/keypool/provider.go: atomic rotation, success reset, failure-count threshold to invalid/blacklisted state",
+      "/tmp/ref-repos/one-api channel/status/quota refs: provider-channel status and quota/balance surface for later admin/console seams",
+      "/tmp/ref-repos/quotio README and Quotio/Services/StatusBarMenuBuilder.swift: quota/account UI and round-robin/fill-first operator-facing concepts"
+    ]
+  },
+  "summary": "Added a pure intelligence SubscriptionPool value/state machine alongside the existing ProviderAccountPool routing kernel, then hardened its ADR-0390/0391 proof surface with unit and proptest state-machine coverage. Seats lease as Reserved, complete with typed outcomes, stale/replayed leases are rejected, cooldown/blacklist transitions use existing FailureKind backoff, quota floor is enforced, failure counts reset only on success, and count/unique-lease invariants are asserted across generated operation sequences. The provider-pool app crate now re-exports the pure SubscriptionPool/SeatLease API so composition/proxy lanes can depend on the intelligence app boundary instead of reaching around it; a dedicated app integration test proves the re-exported seam can lease and complete a subscription seat.",
+  "verification": [
+    {
+      "command": "cargo test -p oya-intelligence-provider-pool-kernel subscription_pool -- --nocapture (RED before implementation)",
+      "result": "failed with missing AgentId/SeatId/SubscriptionPool/OAuthSubscription/SeatOutcome types, proving tests described absent API"
+    },
+    {
+      "command": "cargo test -p oya-intelligence-provider-pool-kernel subscription_pool -- --nocapture",
+      "result": "pass: 13 subscription_pool unit tests covering lease reservation, completion, cooldown, round-robin, fill-first, blacklist, quota floor, duplicate/provider rejection, stale/replayed lease rejection, monotonic failure counts, and ADR-0390/0391 count/unique-lease invariants"
+    },
+    {
+      "command": "cargo test -p oya-intelligence-provider-pool-kernel --test subscription_pool_proptest_invariants -- --nocapture",
+      "result": "pass: 3 integration tests, including 2 proptest properties over 200 generated cases each for state-machine lease invariants and failure-count reset semantics"
+    },
+    {
+      "command": "cargo test -p oya-intelligence-provider-pool-kernel -- --nocapture",
+      "result": "pass: 62 unit tests plus 3 integration/proptest tests"
+    },
+    {
+      "command": "cargo fmt -p oya-intelligence-provider-pool-kernel --check",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p oya-intelligence-provider-pool-kernel --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo clippy -p oya-intelligence-provider-pool-kernel --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "result": "pass: 716 packages, 716 catalog records, 1103 dependency edges; report-only pre-existing tenant-boundary diagnostics printed"
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "blocked by unrelated baseline UnknownUnannotatedField in cloud/cloud-billing InvoiceTotals.subtotal_micros"
+    },
+    {
+      "command": "scoped declaration-field data_class script for added SubscriptionPool declarations",
+      "result": "pass: new SubscriptionPool declaration fields carry data_class annotations"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "jq empty evidence/multispectrum/intelligence-provider-pool-kernel-1780179951.json",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --name-only -- oya/intelligence/crates/oya-intelligence-provider-pool-kernel | xargs -r rg -n \"llm-gateway|cloud-intelligence|oya-cloud-intelligence|oya-llm-gateway\"",
+      "result": "pass: changed provider-pool source/manifest files contain no stale gateway naming; evidence keeps historical ADR names only for stale-ADR handling rationale"
+    },
+    {
+      "command": "python3 slop-word audit over added lines in oya/intelligence/crates/oya-intelligence-provider-pool-kernel and oya/intelligence/crates/oya-intelligence-provider-pool-app",
+      "result": "pass: added provider-pool kernel/app lines contain no fallback/workaround/bypass/skip wording"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/intelligence-provider-pool-kernel-1780179951.json --severity error",
+      "result": "blocked by broad existing baseline: dependency-seam validation reported 591 blocking diagnostics across repo-wide subchecks (6 subchecks, 1 pass, 1 skipped, 4 fail)"
+    },
+    {
+      "command": "rustfmt --edition 2021 --check oya/intelligence/crates/oya-intelligence-provider-pool-app/tests/subscription_pool_kernel_exports.rs",
+      "result": "pass: new app-boundary integration test is rustfmt-clean; package-wide app fmt check remains an unrelated existing formatting baseline and was not used as a completion claim"
+    },
+    {
+      "command": "cargo test -p oya-intelligence-provider-pool-app --test subscription_pool_kernel_exports -- --nocapture",
+      "result": "pass: 1 test validates app re-exports can construct SubscriptionPool, add OAuthSubscription, lease a SeatLease, complete it, and observe quota usage"
+    },
+    {
+      "command": "cargo test -p oya-intelligence-provider-pool-app --test quota_fairness -- --nocapture",
+      "result": "pass: 15 existing quota fairness tests after minimal clippy clone-on-copy cleanup"
+    },
+    {
+      "command": "cargo check -p oya-intelligence-provider-pool-app --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo clippy -p oya-intelligence-provider-pool-app --all-targets -- -D warnings",
+      "result": "pass after minimal app lint fixes in quota docs, retry-after parsing, and quota_fairness tests"
+    },
+    {
+      "command": "cargo test -p oya-intelligence-provider-pool-kernel -- --nocapture (rerun after app seam)",
+      "result": "pass: 62 unit tests plus 3 integration/proptest tests"
+    },
+    {
+      "command": "rustfmt --edition 2021 --check app test + cargo fmt -p kernel --check + git diff --check + jq evidence + stale-name grep + added-line slop audit",
+      "result": "pass: formatting/checksum/audit bundle passed for changed provider-pool scopes; slop audit found no added fallback/workaround/bypass/skip wording"
+    }
+  ],
+  "remaining_risks": [
+    "Full data-class gate currently fails on a pre-existing cloud-billing baseline row outside this changeset; scoped added-field validation passed.",
+    "This slice is kernel/proof-only: app-layer OpenBao resolution, provider transport, SSE streaming, and formal Loom concurrency plumbing remain planned follow-up work.",
+    "Repo-wide dependency-seam gate currently reports 591 broad blocking diagnostics outside the narrow provider-pool kernel validation path; kept as a governance baseline blocker rather than masking it.",
+    "The proptest harness is a test-only dependency on an already locked proof crate; runtime dependency surface remains unchanged.",
+    "The provider-pool app crate has pre-existing package-wide rustfmt drift; this PR avoids broad formatting churn and validates only the new app integration test with rustfmt plus diff-check/clippy for touched app code."
+  ],
+  "mistakes_ledger_review": {
+    "search_terms": [
+      "provider pool",
+      "subscription pool",
+      "cooldown",
+      "lease",
+      "SeatLease",
+      "OAuth",
+      "quota",
+      "pool exhausted",
+      "double allocation",
+      "data-class"
+    ],
+    "matched_rows": [
+      "MFL-0008 data class annotation missing on new struct field in kernel crate"
+    ],
+    "mitigation": "new kernel declaration fields include data_class annotations and a scoped declaration-field check passed"
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The change adds one value/state machine where the data shape removes ad hoc in-flight bookkeeping from app code: Reserved is a state, SeatLease is a value, complete consumes the lease."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Matches common gateway pool primitives observed locally: CLIProxyAPI round-robin/fill-first account selection and cooldown errors, auth2api terminal refresh-token exhaustion, gpt-load success reset/failure threshold blacklisting, one-api channel status/quota, and quotio quota/account visibility."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": true,
+      "diagnostic_asserted": "pre-implementation cargo test failed on absent SubscriptionPool API; post-implementation tests prove reserved seats are not leased twice, stale/replayed leases cannot complete, blacklisted seats are ineligible, quota floor exhausts the pool, and generated operation sequences preserve lease/count invariants",
+      "findings": [
+        "Added unit tests cover reservation, completion, cooldown, round-robin, fill-first, blacklist, invariant counts, quota floor, stale/replayed lease rejection, and terminal repeated-failure blacklisting.",
+        "Added proptest integration coverage over generated lease/complete/advance sequences to assert active lease uniqueness, seat map identity, tracked lease/state agreement, and seat_count == reserved_count + free_count.",
+        "Added proptest coverage that failure_count only resets on success and reaches terminal blacklist after threshold exhaustion."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 12,
+      "findings": [
+        "The public API mirrors existing kernel value objects and reuses ProviderFamily, ProviderAccountId, UsageSnapshot, FailureKind, DurationMs, UnixMillis, and SecretReference.",
+        "The app crate now re-exports SubscriptionPool/SeatLease values, giving downstream composition lanes a stable app boundary import path."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Kernel cargo test, fmt, check, clippy, architecture-boundaries, diff check, stale-name grep, added-line slop-word audit, and scoped data_class validation passed for this slice.",
+        "App cargo check, clippy -D warnings, subscription_pool_kernel_exports test, and quota_fairness test passed; package-wide app rustfmt baseline remains existing drift, so only the new app test was rustfmt-checked.",
+        "Focused subscription_pool verification now covers 13 unit tests plus 3 integration/proptest tests."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Port legacy cloud SubscriptionPool with Arc<Mutex>/Drop guard",
+        "Only extend ProviderAccountPool pick_account_with_cooldown",
+        "Add pure intelligence SubscriptionPool beside ProviderAccountPool and integrate later",
+        "Stop at unit tests without property coverage"
+      ],
+      "selected_rationale": "A pure intelligence SubscriptionPool reconciles ADR-0384/0390 lease semantics with existing ProviderAccountPool without app-layer I/O or stale paths.",
+      "rejected_reasons": [
+        "Legacy Arc<Mutex>/Drop guard brings concurrency mechanics into the pure value kernel too early.",
+        "Only extending pick_account would not model Reserved leases or SeatOutcome completion required by ADR-0390.",
+        "Stopping at unit tests would leave ADR-0390/0391 proof-layer intent weaker than the existing legacy cloud reference."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "secret-handling-and-resource-exhaustion",
+      "findings": [
+        "Raw OAuth tokens are not represented; seats carry only SecretReference. PoolExhausted is explicit when no eligible seat exists.",
+        "Forged/stale leases cannot complete a reserved seat unless the active LeaseId matches the seat state."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Selection is deterministic over BTreeMap seat order with O(n) scan per lease and no heap allocation beyond existing seat-id snapshot vector."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "data_class_touched": [
+        "TENANT_SCOPED",
+        "INTERNAL_ONLY",
+        "SECRET_REF"
+      ],
+      "findings": [
+        "New kernel declaration fields are annotated; full data-class gate is blocked by unrelated cloud-billing baseline."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "Additive kernel API plus app re-export seam; removal would be limited to provider-pool kernel Cargo.toml/Cargo.lock/src/tests and app pub-use/test/lint-cleanup lines before downstream proxy integration."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Kernel exposes explicit state/count query methods for future app metrics without adding logging or I/O."
+      ]
+    },
+    "F12_reserved": {
+      "considered": false,
+      "not_applicable_reason": "Reserved facet in v2.4.0 roster."
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No stale llm-gateway/cloud-intelligence target names were added; ADR-0384 names were treated as historical design-provenance under accepted intelligence ADRs."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "findings": [
+        "Assumption checked: the next foundation build belongs under intelligence; ADR-0335 and specs/microservices/intelligence.json support that placement."
+      ]
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "findings": [
+        "This is the serialization bottleneck before app proxy/OpenBao/SSE work: pure kernel first, proof-hardened kernel second, app composition seam third, then provider transport and admin/console lanes.",
+        "The app re-export keeps the intelligence provider-pool kernel usable through the composition crate while preserving ADR-0384 phase-1 constraints: no I/O, no secrets, exhaustively testable."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A1_naming": "New code uses intelligence provider-pool kernel names only; changed-file stale gateway-name grep is clean.",
+    "A2_documentation": "Evidence records ADR/plan/reference repo review, including stale-ADR handling; no generated ADR index/mirror was edited.",
+    "A3_structure": "Additive kernel change plus provider-pool app re-export/test seam under oya/intelligence/crates; no stale llm-gateway/cloud-intelligence target paths were introduced.",
+    "A4_architecture": "No I/O, HTTP, async, OpenBao client, or provider transport entered the kernel.",
+    "A5_dependency": "No new runtime dependency added; test-only proptest dev-dependency reuses the already locked proof crate used by the legacy cloud kernel.",
+    "A6_tests": "RED-first subscription_pool tests added; proof-hardening expands the focused suite to 13 unit tests plus 3 integration/proptest tests, full kernel suite passes, and app-boundary re-export plus quota_fairness tests pass.",
+    "A7_governance": "Plain git isolated worktree; architecture-boundaries passed; changed-line stale-name and slop audits passed; data-class and dependency-seam global lanes have unrelated baseline failures captured."
+  }
+}

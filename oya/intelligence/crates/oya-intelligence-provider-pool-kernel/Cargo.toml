@@ -14,5 +14,8 @@ doctest = false
 [dependencies]
 oya-intelligence-account-kernel = { path = "../oya-intelligence-account-kernel" }
 
+[dev-dependencies]
+proptest = "1.5"
+
 [lints]
 workspace = true

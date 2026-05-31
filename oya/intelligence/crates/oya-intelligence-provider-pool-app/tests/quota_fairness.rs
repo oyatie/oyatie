@@ -249,8 +249,8 @@ fn agent_isolation_separate_budgets() {
     let budget = AgentQuotaBudget { budget_tokens: 500, window_reset_unix_ms: 0 };
 
     let mut store = InMemoryAgentQuotaStore::new();
-    store.set_budget(tenant.clone(), a.clone(), budget.clone());
-    store.set_budget(tenant.clone(), b.clone(), budget.clone());
+    store.set_budget(tenant.clone(), a.clone(), budget);
+    store.set_budget(tenant.clone(), b.clone(), budget);
 
     // Exhaust agent_a's budget entirely.
     store.reserve(&tenant, &a, 500).expect("exhaust agent_a");
@@ -273,8 +273,8 @@ fn tenant_isolation_separate_budgets() {
     let budget = AgentQuotaBudget { budget_tokens: 200, window_reset_unix_ms: 0 };
 
     let mut store = InMemoryAgentQuotaStore::new();
-    store.set_budget(tenant_x.clone(), ag.clone(), budget.clone());
-    store.set_budget(tenant_y.clone(), ag.clone(), budget.clone());
+    store.set_budget(tenant_x.clone(), ag.clone(), budget);
+    store.set_budget(tenant_y.clone(), ag.clone(), budget);
 
     // Exhaust tenant_x's budget.
     store.reserve(&tenant_x, &ag, 200).expect("exhaust tenant_x");
