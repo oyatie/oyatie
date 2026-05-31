@@ -9,6 +9,17 @@
 # oci_image rule (tools/oci/defs.bzl).
 #
 # ADDITIVE: the gateway Dockerfile/BuildKit path is untouched.
+#
+# pull-oci-base.py: stdlib-only python3 puller that fetches a pinned distroless
+# base image from an OCI distribution registry and writes an OCI Image Layout
+# directory (oci-layout + index.json + blobs/sha256/) that oya-oci-assemble
+# consumes via find_oci_root().  Exposed as an export_file so genrules can
+# reference it via $(location //tools/oci:pull-oci-base.py).
+
+export_file(
+    name = "pull-oci-base.py",
+    visibility = ["PUBLIC"],
+)
 
 rust_binary(
     name = "oya-oci-assemble",

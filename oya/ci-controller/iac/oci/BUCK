@@ -8,7 +8,8 @@
 # is untouched; it migrates separately.
 #
 # Targets:
-#   :distroless-base       — http_archive fetching the base OCI layout tarball
+#   :distroless-base       — genrule pulling the base OCI layout via the OCI
+#                            distribution API (tools/oci/pull-oci-base.py)
 #   :controller-layer      — genrule packaging the musl-static binary as a layer
 #   :controller-oci        — oci_image assembling the final image layout
 #
@@ -32,12 +33,11 @@
 #     to get the static ELF.  Run push-and-sign.sh after assembly.
 #
 # Base image:
-#   gcr.io/distroless/static-debian12:nonroot  (ADR-0146 canonical; founder decision
+#   gcr.io/distroless/static-debian12  (ADR-0146 canonical; founder decision
 #   2026-05-31).  The static variant carries no libc/libgcc — correct for a fully-
-#   static musl binary.  Pinned to a specific OCI layout tarball staged via
-#   `crane pull --format oci`.  SHA256 is the sha256 of the *tarball* (the
-#   http_archive input), not the OCI manifest digest.  Bump when Google publishes
-#   a new CVE-patched weekly rebuild.
+#   static musl binary.  Pinned by the immutable arm64 manifest DIGEST passed to
+#   tools/oci/pull-oci-base.py (see the :distroless-base genrule below).  Bump
+#   the digest when Google publishes a new CVE-patched weekly rebuild.
 #
 # Push target: see push-and-sign.sh (linux CI only).
 #   Registry: registry.oya-registry.svc.cluster.local:5000
@@ -47,42 +47,30 @@ load("//tools/oci:defs.bzl", "oci_image")
 
 # ── Base image ────────────────────────────────────────────────────────────────
 #
-# Distroless static-debian12:nonroot OCI layout tarball.
+# Distroless static-debian12 OCI layout, pulled at build time.
 # The static variant ships no libc/libgcc — correct for the fully-static
 # aarch64-linux-musl controller binary (link-self-contained=yes; +crt-static
 # is the musl-target default).
 #
-# To stage/regenerate this pin (on a host with crane available):
-#   crane pull --format oci gcr.io/distroless/static-debian12:nonroot \
-#     /tmp/distroless-static-nonroot-aarch64-20260101
-#   tar -cf distroless-static-nonroot-aarch64-20260101.tar \
-#     -C /tmp/distroless-static-nonroot-aarch64-20260101 .
-#   sha256sum distroless-static-nonroot-aarch64-20260101.tar  # → update sha256 below
-#   crane push distroless-static-nonroot-aarch64-20260101.tar \
-#     registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-20260101.tar
+# To re-pin (bump to a new CVE-patched rebuild), resolve the linux/arm64 child
+# manifest digest of the desired tag and update the DIGEST argument below:
+#   crane digest --platform linux/arm64 gcr.io/distroless/static-debian12:nonroot
+# The puller verifies sha256(manifest_bytes) == DIGEST, so a stale or wrong
+# digest fails the build deterministically.
 #
-# NOTE: use `crane pull --format oci` (not `crane export`) — export produces a
-# flat rootfs tar with no OCI layout; pull --format oci produces the required
-# index.json + blobs/sha256/ tree.
+# The base layout is pulled at build time by the stdlib-only python3 puller
+# tools/oci/pull-oci-base.py, which speaks the OCI distribution API directly
+# (anon bearer token → manifest-by-digest → config + layer blobs) and writes
+# the oci-layout / index.json / blobs/sha256 tree that oya-oci-assemble reads
+# via find_oci_root().  The arm64 manifest digest is pinned (immutable); the
+# puller verifies sha256(manifest_bytes) == DIGEST.  Bump the digest when
+# Google publishes a CVE-patched weekly rebuild of distroless/static-debian12.
 #
-# The tarball is stored in the Oyatie artifact registry under:
-#   registry.oya-registry.svc.cluster.local:5000/build-inputs/
-# and mirrored to the Forgejo artifact store for offline builds.
-http_archive(
+# INTERIM: network-in-genrule; hermetic destination = pre-staged pinned tarball via in-cluster file-server
+genrule(
     name = "distroless-base",
-    # Single URL: the bundled prelude http_archive accepts exactly one url.
-    # Primary source: in-cluster artifact mirror (offline-capable; no GCR egress
-    # required from CI pod).  Stage with `crane pull --format oci` (see above).
-    urls = [
-        "http://registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-20260101.tar",
-    ],
-    # sha256 of the OCI layout tarball (NOT the image manifest digest).
-    # PLACEHOLDER: replace with the real sha256 after the first crane pull+push.
-    # Analysis resolves cleanly on darwin; the fetch is deferred until buck2 build.
-    sha256 = "0000000000000000000000000000000000000000000000000000000000000000",
-    # The tarball is an OCI image layout tar; the prelude unpacks it to a dir
-    # which oya-oci-assemble accepts directly (is_dir branch in unpack_base).
-    type = "tar",
+    out = "oci-layout",
+    cmd = "python3 $(location //tools/oci:pull-oci-base.py) gcr.io distroless/static-debian12 sha256:82043e1cb4913437a9e90c2425b164d96031469894edc6011eed045001ba7181 $OUT",
     visibility = ["PUBLIC"],
 )
 
