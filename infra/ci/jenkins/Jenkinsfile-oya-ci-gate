@@ -78,18 +78,20 @@ pipeline {
           rc=$(cat .gate-rc 2>/dev/null | head -1 | tr -dc '0-9'); rc=${rc:-1}
           echo "buck2-affected-gate rc=${rc}"
           if [ "${rc}" != "0" ]; then
-            # Distill the failing target name(s) into a one-line summary for the commit-status
-            # description (the RELIABLE channel — unlike the best-effort comment). Whitelist-
-            # sanitized to target-name chars only, so the status JSON stays valid regardless of
-            # buck2 output content. Patterns deliberately use no quotes/backslashes here, because
-            # this whole block is inside a Groovy triple-single-quote string that processes escapes
-            # (and a triple-quote in a comment would terminate it -- which is the bug this fixes).
-            SUM=$(grep -aE "Failed to build|Action failed:|Fail: root//" .gate-output.log 2>/dev/null | grep -aoE "root//[^ ]+" | head -2 | paste -sd' ' -)
-            # If no target named, surface the FIRST SUBSTANTIVE error (link/rustc), not the
-            # generic clang / --explain footer. Patterns avoid brackets/backslashes (Groovy escapes).
-            [ -z "${SUM}" ] && SUM=$(grep -aiE "undefined reference|undefined symbol|error: linking|ld: error|relocation|cannot find|aborting due to" .gate-output.log 2>/dev/null | grep -avE "For more information|--explain|warning:" | head -1)
-            [ -z "${SUM}" ] && SUM=$(grep -aiE "error|panicked|Tests finished|TESTS FAILED" .gate-output.log 2>/dev/null | tail -1)
-            printf '%s' "${SUM}" | tr -cd 'A-Za-z0-9 /:._-' | tr -s ' ' | cut -c1-200 > .gate-summary.txt
+            # Distill the ROOT CAUSE into a one-line commit-status summary (the RELIABLE channel —
+            # the best-effort PR comment often does not post). Prefer the target of the actual
+            # failing ACTION (buck2 prints "Action failed: <cell>//...") over the top-level
+            # "Failed to build root//..." target — the latter is just a binary that failed because
+            # a dependency (e.g. third-party//:openssl-0.10) failed, so it hid the real culprit.
+            # Match ANY cell (root//, third-party//, ...), not only root//. Then APPEND the first
+            # substantive error message so the status shows what actually broke. Patterns use NO
+            # quotes/backslashes (this is inside a Groovy triple-single-quote string that processes
+            # escapes; bare brackets [] are fine, but a backslash or a stray triple-quote is not).
+            TGT=$(grep -aE "Action failed:" .gate-output.log 2>/dev/null | grep -aoE "[a-z0-9_.-]+//[^ )]+" | head -1)
+            [ -z "${TGT}" ] && TGT=$(grep -aE "Failed to build|Fail: " .gate-output.log 2>/dev/null | grep -aoE "[a-z0-9_.-]+//[^ )']+" | head -1)
+            ERR=$(grep -aiE "cannot find|undefined reference|undefined symbol|error: linking|ld.lld: error|ld: error|multiple definition|relocation|panicked|aborting due to|mismatched types|TESTS FAILED" .gate-output.log 2>/dev/null | grep -avE "For more information|--explain|use -v|^warning:" | head -1)
+            SUM=$(printf '%s | %s' "${TGT}" "${ERR}")
+            printf '%s' "${SUM}" | tr -cd 'A-Za-z0-9 |/:._-' | tr -s ' ' | cut -c1-230 > .gate-summary.txt
           fi
           [ "${rc}" = "0" ] || exit "${rc}"
         '''
