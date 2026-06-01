@@ -1,0 +1,50 @@
+# =============================================================================
+# RuntimeClass: gvisor  (FALLBACK isolation for oya-ci gate-runner pods)
+# =============================================================================
+#
+# WHEN TO USE THIS INSTEAD OF kata-cloud-hypervisor:
+#   Kata's microVM needs hardware virtualization (/dev/kvm) inside the Talos
+#   guest. On the current local substrate (Talos arm64 inside Apple
+#   Virtualization.framework) nested virt is NOT guaranteed:
+#     - It requires macOS 15+ AND an M3-or-newer chip, AND the macOS hypervisor
+#       wrapper (vfkit / UTM-vz) must explicitly enable the nested-virt flag
+#       (vfkit: `--nested-virtualization` / `-n`, merged 2025-06-25; UTM-vz:
+#       on by default >=4.6). If the host is M1/M2 or macOS <15, KVM never
+#       reaches the guest and Kata CANNOT run.
+#   gVisor (runsc) is a userspace application kernel: it intercepts syscalls in
+#   a Go-based sentry and needs NO KVM, so it runs on ANY node, including a
+#   nested-virt-less arm64 Talos guest. It is the closest viable VM-grade
+#   isolation when Kata is unavailable.
+#
+# HANDLER: `runsc` (the gVisor containerd-shim handler, same convention as the
+# repo's existing oya/governance .../runtime-classes/gvisor-runtime-class.yaml).
+#
+# TALOS NOTE: gVisor is NOT one of the bundled official siderolabs extensions.
+# There is no `siderolabs/gvisor` system extension as of 2026-05-31; running
+# gVisor on Talos requires either a custom system extension that drops the
+# `runsc` + `containerd-shim-runsc-v1` binaries into the rootfs and a CRI
+# config fragment under /etc/cri/conf.d/, or building runsc into a custom
+# image. Treat this as a fallback that still needs an extension build; it is
+# NOT zero-config. (Kata, by contrast, IS an official siderolabs extension.)
+#
+# This file is provided so the controller chart can switch isolation strategy
+# by changing ONE value (podRuntime.runtimeClassName: gvisor) without editing
+# code. Do not apply it unless a runsc-providing extension is installed.
+# -----------------------------------------------------------------------------
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+  labels:
+    app.kubernetes.io/part-of: oya-ci-controller
+    oyatie/runtime-class: gvisor
+    oyatie/adr: ADR-0147
+    oyatie/status: fallback-no-kvm
+handler: runsc
+overhead:
+  podFixed:
+    cpu: "50m"
+    memory: "64Mi"
+scheduling:
+  nodeSelector:
+    oyatie/runtime-class-supported: gvisor

@@ -1,0 +1,34 @@
+# async-trait: proc-macro crate (dyn-compatible async seam traits). No build script,
+# no native code — nothing for reindeer to fix up at build time.
+#
+# This file exists ONLY to document a durable hand-edit (no buildscript/env keys).
+#
+# ---------------------------------------------------------------------------
+# PUBLIC visibility on the versioned library `:async-trait-0.1`
+#
+# HAND-EDIT CLASS: durable fixup — re-applied post-buckify from
+# scripts/ci/third-party-buckify-handedits.patch (same class as psm/aws-lc-sys/openssl).
+# A reindeer `visibility = [...]` FIXUP CANNOT express this; see the note below.
+#
+# Intended edit in the `cargo.rust_library(name = "async-trait-0.1", ...)` rule:
+#       visibility = []   ->   visibility = ["PUBLIC"]
+#
+# Why a fixup CANNOT do it (verified against reindeer src @ 8d7a8c8):
+#   - The fixups `visibility` key (src/fixups/config.rs `FixupConfig::visibility`)
+#     only sets the visibility of the top-level *alias* rule (`alias(name = "async-trait",
+#     actual = ":async-trait-0.1")`), NOT the versioned `cargo.rust_library` itself. Its
+#     doc: "Limit an exposed crate's `alias`'s `visibility` ... only has an effect for
+#     top-level crates" — it can only NARROW an already-public alias, never promote a lib.
+#   - For a non-root, non-split package the versioned `cargo.rust_library.visibility`
+#     is HARDCODED to `Visibility::Private` (src/buckify.rs ~1154) → renders `[]`.
+#   - reindeer.toml here does NOT set `buck.split`.
+#   - A `visibility` fixup on a package reindeer does not classify as public is rejected
+#     ("only public packages can have a visibility fixup", src/unused.rs:91) and aborts
+#     buckify, so it is not even a safe no-op.
+#
+# Consumers: oya/ci-controller/crates/oya-ci-controller-kernel/BUCK and
+# oya/ci-controller/crates/oya-ci-controller-forgejo-adapter/BUCK depend on the VERSIONED
+# target `third-party//:async-trait-0.1` directly (the controller's async seam traits,
+# e.g. ForgejoStatusPoster). Reindeer's PUBLIC alias is the unversioned `:async-trait`;
+# the versioned lib stays private. Hence the post-buckify hand-edit on `:async-trait-0.1`.
+# ---------------------------------------------------------------------------

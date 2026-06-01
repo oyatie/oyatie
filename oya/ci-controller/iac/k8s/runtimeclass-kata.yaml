@@ -1,0 +1,91 @@
+# =============================================================================
+# RuntimeClass: kata-cloud-hypervisor  (VM-isolation for oya-ci gate-runner pods)
+# =============================================================================
+#
+# WHY: oya-ci gate-runner Job pods execute UNTRUSTED PR code. They must be
+# isolated from the node kernel by a hardware-VM boundary (a per-pod microVM),
+# not merely by runc + seccomp/user-namespace. The controller chart already
+# pins `runtimeClassName: kata-cloud-hypervisor`
+# (oya/ci-controller/iac/k8s/helm/values.yaml -> podRuntime.runtimeClassName),
+# but the cluster currently has NO RuntimeClass of that name registered (the
+# Kata extension was dropped for the interim single-node deploy), so any pod
+# that references it fails admission/scheduling.
+#
+# HANDLER (authoritative, verified at source 2026-05-31):
+#   The siderolabs/kata-containers Talos system extension ships a containerd
+#   CRI config fragment (/etc/cri/conf.d/10-kata-containers.part) that registers
+#   exactly ONE runtime handler named `kata`:
+#
+#     [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.kata]
+#       runtime_type = "io.containerd.kata.v2"
+#       privileged_without_host_devices = true
+#       pod_annotations = ["io.katacontainers.*"]
+#     [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.kata.options]
+#       ConfigPath = "/usr/local/share/kata-containers/configuration.toml"
+#
+#   Source: https://github.com/siderolabs/extensions/blob/main/container-runtime/kata-containers/10-kata-containers.part
+#   The extension's pkg.yaml copies ONLY cloud-hypervisor (`./opt/kata/bin/cloud-hypervisor`)
+#   + virtiofsd into the rootfs, so the bundled VMM is Cloud Hypervisor (CLH),
+#   NOT QEMU/Firecracker. Therefore the K8s RuntimeClass `handler` MUST be the
+#   literal string `kata` (the containerd runtime handler), regardless of the
+#   human-friendly RuntimeClass `metadata.name`.
+#   Source: https://github.com/siderolabs/extensions/blob/main/container-runtime/kata-containers/pkg.yaml
+#
+# NAMING: this repo's platform invariant (ADR-0147, pinned across 10+
+# microservices) is `runtimeClassName: kata-cloud-hypervisor`. We therefore
+# name the primary RuntimeClass `kata-cloud-hypervisor` and alias it onto the
+# extension's `kata` handler. This is the SAME aliasing pattern already shipped
+# at infra/talos/kata-runtimeclass.yaml; this file is the controller-scoped
+# copy so the ci-controller chart is self-contained for GitOps.
+#
+# APPLY / GITOPS: ship at ArgoCD sync-wave "0" (cluster-scoped, must exist
+# before any gate Job references it). RuntimeClass is a cluster-scoped resource
+# — it has no namespace.
+#
+# PRECONDITION (make-or-break): the Talos node must have the kata extension
+# installed AND `/dev/kvm` present inside the Talos guest (nested virt). On the
+# current single control-plane arm64 node neither is true yet — see
+# runtimeclass-kata-enablement.md before relying on this class. If KVM is not
+# reachable, use the gVisor fallback class below instead.
+# -----------------------------------------------------------------------------
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata-cloud-hypervisor       # the name the ci-controller chart pins via runtimeClassName
+  labels:
+    app.kubernetes.io/part-of: oya-ci-controller
+    oyatie/runtime-class: kata-cloud-hypervisor
+    oyatie/vmm: cloud-hypervisor
+    oyatie/adr: ADR-0147
+handler: kata                        # Talos siderolabs/kata-containers extension handler (CLH-backed)
+overhead:
+  # Per-pod sandbox (guest kernel + CLH + virtiofsd) memory/cpu reservation so
+  # the scheduler accounts for the microVM. Matches infra/talos/kata-runtimeclass.yaml.
+  podFixed:
+    memory: "160Mi"
+    cpu: "250m"
+scheduling:
+  # Only schedule Kata pods onto nodes that actually carry the extension +
+  # KVM. The Talos worker patch sets this label (infra/talos/worker.patch.yaml:
+  # machine.nodeLabels). On a single CP-only node you must either label that
+  # node or drop this nodeSelector.
+  nodeSelector:
+    katacontainers.io/kata-runtime: "true"
+---
+# -----------------------------------------------------------------------------
+# Compatibility alias: plain `kata`.
+# The siderolabs extension README and any upstream chart that pins the bare
+# `kata` RuntimeClass expect a class literally named `kata`. Cheap to ship; lets
+# the upstream smoke pod (kubectl ... runtimeClassName: kata) work unchanged.
+# -----------------------------------------------------------------------------
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata
+  labels:
+    app.kubernetes.io/part-of: oya-ci-controller
+    oyatie/runtime-class: kata
+handler: kata
+scheduling:
+  nodeSelector:
+    katacontainers.io/kata-runtime: "true"

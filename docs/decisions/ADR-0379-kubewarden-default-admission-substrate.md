@@ -1,12 +1,12 @@
 ---
 id: ADR-0379
-status: Accepted
+status: Superseded
 planning_impact: false
 deciders: founder, council-architecture, ops-security, axis-cloud-k8s
 date: 2026-05-27
 owner: council-architecture
 supersedes: [ADR-0183]
-superseded_by: []
+superseded_by: [ADR-0519]
 related: [ADR-0183, ADR-0148, ADR-0181, ADR-0023, ADR-0039, ADR-0378]
 related_specs: [/specs/platform-architecture.json, /specs/cloud-production-quality-kits-target.json]
 door: two-way
@@ -30,8 +30,13 @@ purpose: >
 # ADR-0379 — Kubewarden as the default Kubernetes admission/policy substrate (supersedes ADR-0183)
 
 ## Status
-Accepted (2026-05-27). Supersedes ADR-0183 (Cedar vs Kyverno policy-engine separation).
-The two-engine SEPARATION it established is retained; the admission engine is changed
+**SUPERSEDED by ADR-0519 (2026-05-31)** — layered admission: in-tree VAP+CEL+MAP becomes the
+default substrate; Kubewarden is demoted to an optional Rust/WASM escalation; the
+signature-verification residue moves to a bespoke-Rust cosign-verify webhook. The
+Cedar-vs-admission separation below is carried forward unchanged by ADR-0519.
+
+Originally Accepted (2026-05-27). Superseded ADR-0183 (Cedar vs Kyverno policy-engine separation).
+The two-engine SEPARATION it established is retained; the admission engine was changed
 from Kyverno to Kubewarden. Cedar remains the universal application-layer policy engine.
 
 ## Context

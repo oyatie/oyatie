@@ -32,6 +32,7 @@ use oya_intelligence_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_pre
 
 mod active_artifact_contract_gate;
 mod adr_0145_gates;
+mod adr_lifecycle_gate;
 // ADR-0364 D2/D3/D4: generative ADR planning front-matter parser + the
 // completeness and masterplan-drift gates.
 mod adr_planning_completeness_gate;
@@ -428,6 +429,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--deferred-surfaces <registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
         + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
         + "\n       oya gate validate adr-planning-completeness [--decisions-dir <docs/decisions>]"
+        + "\n       oya gate validate adr-lifecycle [--decisions-dir <docs/decisions>] [--strict]"
         + "\n       oya gate validate masterplan-drift [--decisions-dir <docs/decisions>] [--masterplan <docs/machine-readable/masterplan.generated.json>]"
         + "\n       oya gate validate canonical-base-neutrality [--repo-root <.>] [--root <path>]... [--exclude-root <path>]... [--self-test]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"

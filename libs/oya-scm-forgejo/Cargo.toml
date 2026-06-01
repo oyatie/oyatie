@@ -1,0 +1,30 @@
+[package]
+name = "oya-scm-forgejo"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Forgejo adapter implementing oya-scm::Scm (ADR-0517).
+# Default/interim SCM backend for the Oyatie CI stack.
+# All Forgejo API HTTP calls are isolated here; CI kernels depend only on Scm.
+# Reuses the Forgejo JSON patterns from oya-ci-webhook-gateway-kernel and
+# oya-ci-webhook-gateway-github-adapter; centralises them in one place.
+
+[lib]
+name = "oya_scm_forgejo"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-scm = { path = "../oya-scm" }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,13 +1,14 @@
 ---
 id: ADR-0509
 title: "Hyperscaler service decomposition pattern (single-crate-per-service + mod-based subsystems)"
-status: Accepted
+status: Superseded
 date: 2026-05-28
 authority: founder
 owner: council-architecture
 planning_impact: true
 supersedes: []
-superseded_by: []
+superseded_by:
+  - ADR-0512
 related: [ADR-0392, ADR-0476, ADR-0478, ADR-0479, ADR-0480, ADR-0481]
 ---
 
@@ -15,7 +16,9 @@ related: [ADR-0392, ADR-0476, ADR-0478, ADR-0479, ADR-0480, ADR-0481]
 
 ## Status
 
-Accepted — 2026-05-28.
+~~Accepted~~ **Superseded by ADR-0512** — 2026-05-29. ADR-0512 (canonical monorepo pattern)
+supersedes this ADR; the single-crate-per-service rule is refined to crate=bounded-context by
+ADR-0512. See ADR-0512 §Supersedes.
 
 This ADR supersedes the **per-use-case clean-architecture convention** established by PR #289
 (`microservices/intelligence/crates/oya-intelligence-*`). That convention is hereby legacy.

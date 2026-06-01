@@ -187,11 +187,9 @@ mod tests {
     use crate::event::CiEvent;
     use axum::body::to_bytes;
     use axum::http::Request;
-    use hmac::{Hmac, Mac};
-    use sha2::Sha256;
     use std::future::Future;
     use std::pin::Pin;
-    use tower::ServiceExt; // for `oneshot`
+    use tower::util::ServiceExt; // for `oneshot`
 
     const SECRET: &str = "test-webhook-secret";
 
@@ -241,9 +239,7 @@ mod tests {
     }
 
     fn sign(body: &[u8]) -> String {
-        let mut mac = <Hmac<Sha256>>::new_from_slice(SECRET.as_bytes()).unwrap();
-        mac.update(body);
-        let digest = mac.finalize().into_bytes();
+        let digest = crate::signature::hmac_sha256(SECRET.as_bytes(), body);
         let hex: String = digest.iter().map(|b| format!("{b:02x}")).collect();
         format!("sha256={hex}")
     }
@@ -255,6 +251,8 @@ mod tests {
                 target_branch: "dev".to_owned(),
                 jenkins_dispatch_url: Some("http://jenkins/build".to_owned()),
                 secret_present: true,
+                dispatcher_kind: crate::config::DispatcherKind::Jenkins,
+                controller_url: None,
             }),
             secret: Arc::new(WebhookSecret::new(SECRET.as_bytes().to_vec())),
             ed25519_key: None,

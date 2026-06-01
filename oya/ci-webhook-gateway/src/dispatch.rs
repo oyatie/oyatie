@@ -208,6 +208,103 @@ where
     }
 }
 
+/// The bespoke oya-ci-controller dispatcher: kicks the `/gate-run` endpoint on
+/// the controller (ADR-0374 Phase-B — bespoke-Prow plank role). Mirrors the
+/// shape of `JenkinsDispatcher` exactly; only the URL env var and the request
+/// body shape differ.
+///
+/// Only `PullRequest` events POST to `/gate-run`; board-projection events
+/// (IssueSnapshot, PushSnapshot) are returned as receipts without a network
+/// call, mirroring the Jenkins path.
+///
+/// The `post` closure is injected so tests can assert the outgoing request body
+/// without a live controller.
+pub struct ControllerDispatcher<P> {
+    post: P,
+    controller_url: Option<String>,
+}
+
+impl<P> ControllerDispatcher<P>
+where
+    P: Fn(String, GateRunBody) -> std::result::Result<(), String> + Send + Sync,
+{
+    /// `controller_url` is the base URL of the oya-ci-controller (e.g.
+    /// `http://oya-ci-controller.oya-ci.svc:8080`). The `/gate-run` path is
+    /// appended automatically. `post` performs the transport (injected for
+    /// tests).
+    pub fn new(controller_url: Option<String>, post: P) -> Self {
+        ControllerDispatcher { post, controller_url }
+    }
+}
+
+impl<P> PipelineDispatcher for ControllerDispatcher<P>
+where
+    P: Fn(String, GateRunBody) -> std::result::Result<(), String> + Send + Sync,
+{
+    fn dispatch<'a>(
+        &'a self,
+        event: &'a CiEvent,
+    ) -> Pin<Box<dyn Future<Output = Result<DispatchReceipt>> + Send + 'a>> {
+        Box::pin(async move {
+            let receipt = receipt_for(event);
+
+            if !matches!(event, CiEvent::PullRequest(_)) {
+                return Ok(receipt);
+            }
+
+            let kickoff = PipelineKickoff::from_event(event);
+            let body = GateRunBody::from_kickoff(&kickoff);
+
+            let Some(base_url) = self.controller_url.clone() else {
+                return Err(GatewayError::DispatchTransport(
+                    "controller dispatch URL not configured (OYA_CI_CONTROLLER_URL); \
+                     refusing to claim a kick that did not happen"
+                        .to_owned(),
+                ));
+            };
+            let url = format!("{base_url}/gate-run");
+            (self.post)(url, body).map_err(GatewayError::DispatchTransport)?;
+
+            Ok(receipt)
+        })
+    }
+}
+
+/// The JSON body POSTed to the controller's `POST /gate-run`.
+///
+/// Shape mirrors `GateRunRequest` in `oya-ci-controller-app`:
+/// `{"pr_number": N, "head_sha": "...", "base_ref": "dev"}`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GateRunBody {
+    pub pr_number: u64,
+    pub head_sha: String,
+    pub base_ref: String,
+}
+
+impl GateRunBody {
+    fn from_kickoff(kickoff: &PipelineKickoff) -> Self {
+        match kickoff {
+            PipelineKickoff::PullRequest {
+                pr_number,
+                head_sha,
+                ..
+            } => GateRunBody {
+                pr_number: *pr_number,
+                head_sha: head_sha.clone(),
+                base_ref: "dev".to_owned(),
+            },
+            // Only PullRequest kickoffs reach the controller; this arm is
+            // unreachable in normal operation (the dispatcher early-returns for
+            // non-PR events above). Provide a safe fallback rather than panic.
+            _ => GateRunBody {
+                pr_number: 0,
+                head_sha: String::new(),
+                base_ref: "dev".to_owned(),
+            },
+        }
+    }
+}
+
 fn receipt_for(event: &CiEvent) -> DispatchReceipt {
     match event {
         CiEvent::PullRequest(event) => DispatchReceipt {
@@ -494,5 +591,120 @@ mod tests {
             }
             other => panic!("expected unimplemented, got {other:?}"),
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // ControllerDispatcher tests
+    // -----------------------------------------------------------------------
+
+    #[tokio::test]
+    async fn controller_dispatch_posts_gate_run_and_reports_boundary() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let calls2 = calls.clone();
+        let dispatcher = ControllerDispatcher::new(
+            Some("http://oya-ci-controller.oya-ci.svc:8080".to_owned()),
+            move |url, body| {
+                calls2.fetch_add(1, Ordering::SeqCst);
+                assert!(url.ends_with("/gate-run"), "url={url}");
+                assert!(url.contains("oya-ci-controller"));
+                assert_eq!(body.pr_number, 99);
+                assert_eq!(body.head_sha, "deadbeef");
+                assert_eq!(body.base_ref, "dev");
+                Ok(())
+            },
+        );
+        let receipt = dispatcher
+            .dispatch(&pr_event(PrAction::Opened))
+            .await
+            .unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        assert_eq!(
+            receipt.subject,
+            DispatchSubject::PullRequest { pr_number: 99 }
+        );
+        assert_eq!(receipt.kicked_through, PipelineStage::GateRunAll);
+        assert_eq!(receipt.boundary, Some(PipelineStage::ReviewerGate));
+    }
+
+    #[tokio::test]
+    async fn controller_dispatch_missing_url_is_transport_error_not_silent_success() {
+        let dispatcher = ControllerDispatcher::new(None, |_url, _body| Ok(()));
+        let err = dispatcher
+            .dispatch(&pr_event(PrAction::Opened))
+            .await
+            .unwrap_err();
+        assert!(matches!(err, GatewayError::DispatchTransport(_)));
+    }
+
+    #[tokio::test]
+    async fn controller_dispatch_post_failure_propagates_as_transport_error() {
+        let dispatcher = ControllerDispatcher::new(
+            Some("http://oya-ci-controller.oya-ci.svc:8080".to_owned()),
+            |_url, _body| Err("connection refused".to_owned()),
+        );
+        let err = dispatcher
+            .dispatch(&pr_event(PrAction::Opened))
+            .await
+            .unwrap_err();
+        match err {
+            GatewayError::DispatchTransport(why) => assert!(why.contains("connection refused")),
+            other => panic!("expected transport error, got {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn controller_dispatch_issue_snapshot_no_post() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let calls2 = calls.clone();
+        let dispatcher = ControllerDispatcher::new(
+            Some("http://oya-ci-controller.oya-ci.svc:8080".to_owned()),
+            move |_url, _body| {
+                calls2.fetch_add(1, Ordering::SeqCst);
+                Ok(())
+            },
+        );
+        let receipt = dispatcher.dispatch(&issue_event()).await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+        assert_eq!(
+            receipt.subject,
+            DispatchSubject::Issue { issue_number: 108 }
+        );
+        assert_eq!(receipt.kicked_through, PipelineStage::BoardProjection);
+    }
+
+    #[tokio::test]
+    async fn controller_dispatch_push_snapshot_no_post() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let calls2 = calls.clone();
+        let dispatcher = ControllerDispatcher::new(
+            Some("http://oya-ci-controller.oya-ci.svc:8080".to_owned()),
+            move |_url, _body| {
+                calls2.fetch_add(1, Ordering::SeqCst);
+                Ok(())
+            },
+        );
+        let receipt = dispatcher.dispatch(&push_event()).await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+        assert_eq!(
+            receipt.subject,
+            DispatchSubject::Push {
+                reference: "refs/heads/claims/ADR-0377-D2".to_owned()
+            }
+        );
+        assert_eq!(receipt.kicked_through, PipelineStage::BoardProjection);
+    }
+
+    #[test]
+    fn gate_run_body_maps_pr_kickoff_correctly() {
+        let kickoff = PipelineKickoff::PullRequest {
+            pr_number: 42,
+            head_ref: "feat/foo".to_owned(),
+            head_sha: "abc12345".to_owned(),
+            revalidation: true,
+        };
+        let body = GateRunBody::from_kickoff(&kickoff);
+        assert_eq!(body.pr_number, 42);
+        assert_eq!(body.head_sha, "abc12345");
+        assert_eq!(body.base_ref, "dev");
     }
 }

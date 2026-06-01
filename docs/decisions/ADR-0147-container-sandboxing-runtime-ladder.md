@@ -1,6 +1,6 @@
 ---
 id: ADR-0147
-status: Amended
+status: Accepted
 deciders: council-architecture, ops-security, ops-sre-reliability, axis-cell-substrate, axis-meet, axis-docs, axis-translate, axis-drive, axis-social, axis-shorts, axis-anonymous, axis-network, axis-notes, axis-slides
 date: 2026-05-18
 amended_date: 2026-05-18

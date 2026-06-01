@@ -2003,6 +2003,12 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 args.collect(),
             )
         }
+        // ADR lifecycle gate (L1-L5): status-vocab, terminal-requires-link,
+        // reciprocity, dangling-refs, hollow-superseded. Delegates to
+        // oya_check_adr_index::lifecycle::validate_lifecycle.
+        (Some("validate"), Some("adr-lifecycle")) => {
+            crate::adr_lifecycle_gate::run_adr_lifecycle(args.collect())
+        }
         // ADR-0364 D4: masterplan drift gate. Wraps `gen masterplan --check`:
         // the committed projection must equal the regenerated projection.
         (Some("validate"), Some("masterplan-drift")) => {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/hooks/adr-orphan-detect.sh
 #
-# Trigger:  Claude Code PostToolUse(Edit|Write) where target is .md or .json
+# Trigger:  Codex PostToolUse(Edit|Write) / Gemini AfterTool(edit|write) where target is .md or .json
 # Purpose:  After editing a markdown or JSON file, scan for ADR-NNNN references and
 #           check whether the corresponding docs/decisions/ADR-NNNN-*.md file exists.
 #           Report orphaned references as advisory output.
@@ -14,10 +14,10 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# WHY .tool_input.*: real Claude Code / Codex deliver hook input as JSON on STDIN
+# WHY .tool_input.*: Codex-compatible hook runners deliver hook input as JSON on STDIN
 # with the edited path nested under tool_input ({"tool_input":{"file_path":"..."}}).
 # The flat .path/.file_path keys are kept for the TOOL_INPUT env path used by the CI
-# governance harness only. See code.claude.com/docs hooks + developers.openai.com/codex/hooks.
+# governance harness only.
 FILE_PATH=""
 if [ -n "${TOOL_INPUT:-}" ]; then
     if command -v jq >/dev/null 2>&1; then

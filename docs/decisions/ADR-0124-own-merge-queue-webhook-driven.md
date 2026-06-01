@@ -1,7 +1,7 @@
 ---
 adr_id: ADR-0124
 title: Own merge-queue policy — webhook-driven, GitHub-merge-queue-free
-status: accepted
+status: Accepted
 date: 2026-05-17
 owner: jason931225
 deciders: jason931225

@@ -1,34 +1,85 @@
 {
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "oya-bootstrap-v1",
-  "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh.",
+  "_note": "Project-scoped Gemini hooks. Never edit manually \u2014 managed by install.sh/uninstall.sh. Hooks use the current settings.json event/group schema and avoid retired wrapper command hints; OS sandbox + permissions deny rules are the real gate; injection-content-scanner retained (advisory only).",
   "hooks": {
     "SessionStart": [
-      { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "oya-session-context" }
-    ],
-    "BeforeAgent": [
-      { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh", "name": "oya-canonical-primer" }
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/session-start-context-inject.sh",
+            "name": "project-session-context"
+          }
+        ]
+      }
     ],
     "AfterAgent": [
-      { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "oya-did-you-forget" },
-      { "type": "command", "command": "tools/hooks/microservice-quality-bar.sh",      "name": "oya-quality-bar-stop" }
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/stop-did-you-forget-suggester.sh",
+            "name": "project-did-you-forget"
+          }
+        ]
+      }
     ],
     "BeforeTool": [
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/stale-tool-suggester.sh",            "name": "oya-stale-tool" },
-      { "matcher": "agent", "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh",              "name": "oya-pre-dispatch" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/vertical-slice-scope-suggester.sh",  "name": "oya-vertical-scope" }
+      {
+        "matcher": "run_shell_command|bash|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/no-cargo-enforcer.sh",
+            "name": "project-no-cargo"
+          }
+        ]
+      },
+      {
+        "matcher": "agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/pre-dispatch-guide.sh",
+            "name": "project-pre-dispatch"
+          }
+        ]
+      }
     ],
     "AfterTool": [
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/cargo-verify-on-rust-edit.sh",  "name": "oya-cargo-verify-edit" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/cargo-verify-on-rust-edit.sh",  "name": "oya-cargo-verify-write" },
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-edit" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-write" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/buildability-line-count.sh",    "name": "oya-buildability" },
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-edit" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-write" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/microservice-quality-bar.sh",   "name": "oya-quality-bar-write" },
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh",  "name": "oya-vacuous-green-edit" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh",  "name": "oya-vacuous-green-write" }
+      {
+        "matcher": "run_shell_command|bash|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/injection-content-scanner.sh",
+            "name": "project-injection-shell"
+          }
+        ]
+      },
+      {
+        "matcher": "write_file|replace|edit|write|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/spec-version-pin-suggester.sh",
+            "name": "project-spec-version"
+          },
+          {
+            "type": "command",
+            "command": "tools/hooks/adr-orphan-detect.sh",
+            "name": "project-adr-orphan"
+          },
+          {
+            "type": "command",
+            "command": "tools/hooks/vacuous-green-gate-detect.sh",
+            "name": "project-vacuous-green"
+          }
+        ]
+      }
     ]
   }
 }
