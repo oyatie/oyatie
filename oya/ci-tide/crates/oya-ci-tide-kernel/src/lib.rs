@@ -265,6 +265,15 @@ pub struct Review {
     pub reviewer: String,
     /// Review state (`APPROVED`, `REQUEST_CHANGES`, `COMMENT`, etc.).
     pub state: ReviewState,
+    /// Forgejo review submission timestamp, when present. RFC3339 strings sort
+    /// lexicographically for the normalized UTC values returned by Forgejo.
+    pub submitted_at: Option<String>,
+    /// Forgejo review id, used to break timestamp ties when present.
+    pub id: Option<u64>,
+    /// Cross-page API order assigned by the adapter as reviews are returned.
+    /// Larger values are later in the API result stream and are authoritative
+    /// only when timestamp/id metadata is absent or tied.
+    pub api_order: u64,
 }
 
 /// Review state vocabulary (Forgejo mirrors GitHub's).
@@ -354,12 +363,10 @@ pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), Ine
         });
     }
 
-    // Rule 2 — sufficient approving reviews.
-    let approvals = input
-        .reviews
-        .iter()
-        .filter(|r| r.state == ReviewState::Approved)
-        .count() as u32;
+    // Rule 2 — sufficient distinct latest approving reviews. Later reviews from
+    // the same reviewer supersede older approvals, so REQUEST_CHANGES /
+    // DISMISSED states cannot be bypassed by a stale approval on another page.
+    let approvals = latest_approving_review_count(input.reviews);
     if approvals < input.config.approval_policy.min_approvals {
         return Err(IneligibleReason::InsufficientApprovals {
             actual: approvals,
@@ -387,6 +394,47 @@ pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), Ine
     Ok(())
 }
 
+fn latest_approving_review_count(reviews: &[Review]) -> u32 {
+    let mut latest: Vec<&Review> = Vec::new();
+
+    for review in reviews {
+        match latest
+            .iter()
+            .position(|existing| existing.reviewer == review.reviewer)
+        {
+            Some(index) => {
+                if review_is_later(review, latest[index]) {
+                    latest[index] = review;
+                }
+            }
+            None => latest.push(review),
+        }
+    }
+
+    latest
+        .into_iter()
+        .filter(|review| review.state == ReviewState::Approved)
+        .count() as u32
+}
+
+fn review_is_later(candidate: &Review, current: &Review) -> bool {
+    match (&candidate.submitted_at, &current.submitted_at) {
+        (Some(candidate_ts), Some(current_ts)) if candidate_ts != current_ts => {
+            return candidate_ts > current_ts;
+        }
+        _ => {}
+    }
+
+    match (candidate.id, current.id) {
+        (Some(candidate_id), Some(current_id)) if candidate_id != current_id => {
+            return candidate_id > current_id;
+        }
+        _ => {}
+    }
+
+    candidate.api_order > current.api_order
+}
+
 // ---------------------------------------------------------------------------
 // ForgejoClient trait seam — I/O boundary
 // ---------------------------------------------------------------------------
@@ -401,11 +449,7 @@ pub trait ForgejoClient: Send + Sync {
     /// Get the combined commit status for the given SHA, filtered to the
     /// `required_context`. Returns `CommitStatusState::Missing` when no
     /// status exists for that context.
-    fn get_commit_status(
-        &self,
-        sha: &str,
-        required_context: &str,
-    ) -> Result<CommitStatusState>;
+    fn get_commit_status(&self, sha: &str, required_context: &str) -> Result<CommitStatusState>;
 
     /// List all reviews on a pull request.
     fn list_reviews(&self, pr_number: u64) -> Result<Vec<Review>>;
@@ -459,6 +503,9 @@ mod tests {
             .map(|i| Review {
                 reviewer: format!("reviewer-{i}"),
                 state: ReviewState::Approved,
+                submitted_at: Some(format!("2026-06-01T00:00:{i:02}Z")),
+                id: Some(i as u64),
+                api_order: i as u64,
             })
             .collect()
     }
@@ -610,10 +657,16 @@ mod tests {
             Review {
                 reviewer: "alice".to_owned(),
                 state: ReviewState::Comment,
+                submitted_at: None,
+                id: None,
+                api_order: 0,
             },
             Review {
                 reviewer: "bob".to_owned(),
                 state: ReviewState::RequestChanges,
+                submitted_at: None,
+                id: None,
+                api_order: 1,
             },
         ];
         let input = input_all_green(&pr, &reviews, &cfg);
@@ -624,6 +677,60 @@ mod tests {
                 required: 1
             })
         );
+    }
+
+    #[test]
+    fn later_request_changes_from_same_reviewer_invalidates_stale_approval() {
+        let cfg = default_config();
+        let pr = approved_pr();
+        let reviews = vec![
+            Review {
+                reviewer: "alice".to_owned(),
+                state: ReviewState::Approved,
+                submitted_at: Some("2026-06-01T00:00:00Z".to_owned()),
+                id: Some(10),
+                api_order: 0,
+            },
+            Review {
+                reviewer: "alice".to_owned(),
+                state: ReviewState::RequestChanges,
+                submitted_at: Some("2026-06-01T00:01:00Z".to_owned()),
+                id: Some(11),
+                api_order: 1,
+            },
+        ];
+        let input = input_all_green(&pr, &reviews, &cfg);
+        assert_eq!(
+            is_mergeable(&input),
+            Err(IneligibleReason::InsufficientApprovals {
+                actual: 0,
+                required: 1
+            })
+        );
+    }
+
+    #[test]
+    fn review_api_order_breaks_cross_page_metadata_ties() {
+        let cfg = default_config();
+        let pr = approved_pr();
+        let reviews = vec![
+            Review {
+                reviewer: "alice".to_owned(),
+                state: ReviewState::RequestChanges,
+                submitted_at: None,
+                id: None,
+                api_order: 0,
+            },
+            Review {
+                reviewer: "alice".to_owned(),
+                state: ReviewState::Approved,
+                submitted_at: None,
+                id: None,
+                api_order: 51,
+            },
+        ];
+        let input = input_all_green(&pr, &reviews, &cfg);
+        assert_eq!(is_mergeable(&input), Ok(()));
     }
 
     // --- Rule 3: not mergeable ---
@@ -756,7 +863,10 @@ mod tests {
                     None
                 }
             });
-            assert!(cfg.dry_run, "expected dry_run=true for OYA_TIDE_DRY_RUN={val}");
+            assert!(
+                cfg.dry_run,
+                "expected dry_run=true for OYA_TIDE_DRY_RUN={val}"
+            );
         }
     }
 
