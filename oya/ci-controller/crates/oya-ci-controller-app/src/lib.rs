@@ -49,18 +49,14 @@ use k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
 use kube::{
     Api, Client,
     api::{ListParams, Patch, PatchParams},
-    runtime::{
-        Controller,
-        controller::Action,
-        watcher,
-    },
+    runtime::{Controller, controller::Action, watcher},
 };
 use oya_ci_controller_k8s_adapter::{
     ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, gate_job_list_params,
     observe_job,
 };
 use oya_ci_controller_kernel::{
-    ForgejoStatusPoster, ForgejoState, GateRun, GateRunSpec, JobSpawner, ReconcileDecision,
+    ForgejoState, ForgejoStatusPoster, GateRun, GateRunSpec, JobSpawner, ReconcileDecision,
     map_job_to_status,
 };
 use serde::{Deserialize, Serialize};
@@ -123,16 +119,8 @@ pub async fn reconcile(
     job: Arc<Job>,
     ctx: Arc<ControllerState>,
 ) -> std::result::Result<Action, ReconcileError> {
-    let job_name = job
-        .metadata
-        .name
-        .as_deref()
-        .unwrap_or("<unnamed>");
-    let namespace = job
-        .metadata
-        .namespace
-        .as_deref()
-        .unwrap_or(&ctx.namespace);
+    let job_name = job.metadata.name.as_deref().unwrap_or("<unnamed>");
+    let namespace = job.metadata.namespace.as_deref().unwrap_or(&ctx.namespace);
 
     let labels = job.metadata.labels.as_ref();
     let head_sha = labels
@@ -148,8 +136,7 @@ pub async fn reconcile(
 
     // ---- Step 1: fetch owned Pods -----------------------------------------
     let pod_api: Api<Pod> = Api::namespaced(ctx.client.clone(), namespace);
-    let pod_lp = ListParams::default()
-        .labels(&format!("job-name={job_name}"));
+    let pod_lp = ListParams::default().labels(&format!("job-name={job_name}"));
     let pods = match pod_api.list(&pod_lp).await {
         Ok(list) => list.items,
         Err(e) => {
@@ -173,7 +160,10 @@ pub async fn reconcile(
     // Determine whether this observation has a waiting pod reason (for cycle
     // tracking). If so, increment and persist the counter before making the
     // kernel decision so that the next reconcile sees the updated value.
-    let has_waiting_reason = observation.pod_reasons.iter().any(|r| r.is_pull_or_container_error());
+    let has_waiting_reason = observation
+        .pod_reasons
+        .iter()
+        .any(|r| r.is_pull_or_container_error());
     if has_waiting_reason {
         let next_cycles = waiting_cycles.saturating_add(1);
         patch_waiting_cycles(&ctx.client, namespace, job_name, next_cycles).await;
@@ -244,15 +234,14 @@ pub async fn reconcile(
             let poster = Arc::clone(&ctx.forgejo_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
-            let post_result = tokio::task::spawn_blocking(move || {
-                poster.post(&sha, state, context, &desc, None)
-            })
-            .await
-            .unwrap_or_else(|e| {
-                Err(oya_ci_controller_kernel::KernelError::DownstreamTransport(
-                    format!("spawn_blocking join: {e}"),
-                ))
-            });
+            let post_result =
+                tokio::task::spawn_blocking(move || poster.post(&sha, state, context, &desc, None))
+                    .await
+                    .unwrap_or_else(|e| {
+                        Err(oya_ci_controller_kernel::KernelError::DownstreamTransport(
+                            format!("spawn_blocking join: {e}"),
+                        ))
+                    });
 
             match post_result {
                 Ok(()) => {
@@ -318,12 +307,7 @@ async fn patch_status_annotation(
 
 /// Patch the `oya.io/ci-waiting-cycles` annotation on the Job.
 /// Best-effort: log on failure but never block the reconcile verdict.
-async fn patch_waiting_cycles(
-    client: &Client,
-    namespace: &str,
-    job_name: &str,
-    cycles: u32,
-) {
+async fn patch_waiting_cycles(client: &Client, namespace: &str, job_name: &str, cycles: u32) {
     let api: Api<Job> = Api::namespaced(client.clone(), namespace);
     let patch = json!({
         "metadata": {
@@ -354,11 +338,7 @@ async fn patch_waiting_cycles(
 // ---------------------------------------------------------------------------
 
 /// Capped-exponential-backoff error policy for the kube-rs Controller.
-pub fn error_policy(
-    job: Arc<Job>,
-    err: &ReconcileError,
-    _ctx: Arc<ControllerState>,
-) -> Action {
+pub fn error_policy(job: Arc<Job>, err: &ReconcileError, _ctx: Arc<ControllerState>) -> Action {
     let job_name = job.metadata.name.as_deref().unwrap_or("<unnamed>");
     warn!(job = job_name, error = %err, "reconcile error — backing off");
     Action::requeue(Duration::from_secs(30))
@@ -377,9 +357,8 @@ pub async fn run_controller(state: ControllerState) {
     let ctx = Arc::new(state);
 
     let job_api: Api<Job> = Api::namespaced(client.clone(), &namespace);
-    let watcher_config = watcher::Config::default().labels(
-        oya_ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR,
-    );
+    let watcher_config =
+        watcher::Config::default().labels(oya_ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR);
 
     info!(namespace = %namespace, "starting oya-ci controller");
 
@@ -497,21 +476,14 @@ async fn handle_gate_run(
             .into_response();
     }
 
-    // Validate base_ref against a strict git-ref charset — it is interpolated into the gate
-    // Job's shell command in the TRUSTED trunk-clone step, so an unvalidated value is a
-    // shell-injection that would defeat trunk-sourcing. (head_sha is hex-guarded above.)
-    if req.base_ref.is_empty()
-        || req.base_ref.starts_with('-')
-        || req.base_ref.contains("..")
-        || !req
-            .base_ref
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '/' | '-'))
-    {
-        warn!(pr = req.pr_number, base_ref = %req.base_ref, "gate-run: invalid base_ref");
+    // The current Forgejo-native weekly gate only accepts PRs targeting dev.
+    // This keeps /gate-run aligned with the plain-git + Forgejo-PR-against-dev
+    // contract and avoids accidentally spawning a gate Job for another branch.
+    if req.base_ref != "dev" {
+        warn!(pr = req.pr_number, base_ref = %req.base_ref, "gate-run: unsupported base_ref");
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"error": "base_ref must be a valid git ref (alphanumerics and ._/- only; no leading '-' or '..')"})),
+            Json(json!({"error": "base_ref must be dev for oya-ci gate runs"})),
         )
             .into_response();
     }
@@ -591,7 +563,6 @@ async fn handle_gate_run(
 // ---------------------------------------------------------------------------
 
 pub use futures::StreamExt;
-
 
 // ---------------------------------------------------------------------------
 // Tests — /gate-run contract and restart-safe idempotency
