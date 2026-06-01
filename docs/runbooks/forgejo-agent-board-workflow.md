@@ -152,6 +152,28 @@ the scoped files, Forgejo PR or access blocker, exact verification commands,
 not-tested gaps, and whether any cross-lane contract changed. Lane D consumes
 that handoff when producing the shared multispectrum and verification records.
 
+Lane C discovery notes should record the Forgejo base URL, repository owner,
+repository name, target branch, protected status contexts, and credential
+variable names only. If a worktree still has a GitHub `origin`, the lane must
+add or select the self-hosted Forgejo remote before pushing or opening a pull
+request, and the handoff must name the remote used without using GitHub PR or
+merge commands. Never paste token values, bearer strings, webhook secrets, or
+raw authorization headers into runbooks, evidence, PR descriptions, or team
+mailbox updates; store redacted transcripts and name the redaction method
+instead.
+
+Because the repository default toolchain may differ from the weekly execution
+contract, Rust lanes must prefix local verification with
+`RUSTUP_TOOLCHAIN=1.96.0` and use edition 2024 formatting. A lane that cannot
+run the affected Buck2 `test`, `build`, `[check]`, or `[clippy.txt]` target must
+report that as a blocker or not-tested gap instead of substituting `cargo` or a
+different Rust edition.
+
+Live actions remain sandbox-only unless the leader explicitly authorizes a
+production mutation after the evidence gates pass. Production `dev` branch
+mutation, Jenkins deletion, or CI cutover is outside the worker-lane default
+scope.
+
 ## Editing and verification discipline
 
 After a successful claim:
