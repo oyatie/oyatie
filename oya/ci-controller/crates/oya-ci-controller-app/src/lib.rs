@@ -591,3 +591,134 @@ async fn handle_gate_run(
 // ---------------------------------------------------------------------------
 
 pub use futures::StreamExt;
+
+
+// ---------------------------------------------------------------------------
+// Tests — /gate-run contract and restart-safe idempotency
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use oya_ci_controller_kernel::{GateRunSpec, JobHandle, KernelError, Result as KernelResult};
+    use std::{
+        sync::Mutex,
+        task::{Context, Poll},
+    };
+    use tower::Service;
+
+    #[derive(Default)]
+    struct RecordingSpawner {
+        calls: Mutex<Vec<GateRunSpec>>,
+        already_exists: bool,
+    }
+
+    impl JobSpawner for RecordingSpawner {
+        fn spawn(&self, spec: &GateRunSpec) -> KernelResult<JobHandle> {
+            self.calls
+                .lock()
+                .map_err(|e| KernelError::DownstreamTransport(format!("lock poisoned: {e}")))?
+                .push(spec.clone());
+            Ok(JobHandle {
+                job_name: spec.run.job_name(),
+                namespace: spec.namespace.clone(),
+                already_exists: self.already_exists,
+            })
+        }
+    }
+
+    fn test_state(spawner: Arc<RecordingSpawner>) -> ServerState {
+        ServerState {
+            controller_namespace: "oya-ci".to_owned(),
+            job_spawner: spawner,
+            gate_spec_config: GateSpecConfig {
+                image: "registry.local/rust-ci:dev".to_owned(),
+                forge_clone_url: "http://forgejo.local/oya-admin/oyatie.git".to_owned(),
+                active_deadline_seconds: 3600,
+                ttl_seconds_after_finished: 600,
+                namespace: "oya-ci".to_owned(),
+                runner_service_account: "oya-ci-gate-runner".to_owned(),
+                repo: "oya-admin/oyatie".to_owned(),
+            },
+        }
+    }
+
+    async fn route_request(router: &mut Router, body: &'static str) -> axum::response::Response {
+        futures::future::poll_fn(|cx: &mut Context<'_>| match router.poll_ready(cx) {
+            Poll::Ready(Ok(())) => Poll::Ready(()),
+            Poll::Ready(Err(err)) => panic!("router not ready: {err}"),
+            Poll::Pending => Poll::Pending,
+        })
+        .await;
+
+        router
+            .call(
+                Request::builder()
+                    .method("POST")
+                    .uri("/gate-run")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body))
+                    .expect("request builds"),
+            )
+            .await
+            .expect("route call succeeds")
+    }
+
+    #[tokio::test]
+    async fn gate_run_defaults_to_dev_and_spawns_deterministic_job() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response = route_request(
+            &mut router,
+            r#"{"pr_number":42,"head_sha":"abcdef1234567890"}"#,
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+        let calls = spawner.calls.lock().expect("calls lock");
+        assert_eq!(calls.len(), 1);
+        assert_eq!(calls[0].run.base_ref, "dev");
+        assert_eq!(calls[0].run.delivery_id, "gate-run-pr42-abcdef12");
+        assert_eq!(calls[0].run.job_name(), "oya-ci-gate-pr42-abcdef12");
+    }
+
+    #[tokio::test]
+    async fn gate_run_duplicate_job_is_idempotent_ok() {
+        let spawner = Arc::new(RecordingSpawner {
+            calls: Mutex::new(Vec::new()),
+            already_exists: true,
+        });
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response = route_request(
+            &mut router,
+            r#"{"pr_number":7,"head_sha":"1234567890abcdef","base_ref":"dev"}"#,
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let calls = spawner.calls.lock().expect("calls lock");
+        assert_eq!(calls.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn gate_run_rejects_non_dev_base_ref_for_weekly_forgejo_gate() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response = route_request(
+            &mut router,
+            r#"{"pr_number":42,"head_sha":"abcdef1234567890","base_ref":"main"}"#,
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let calls = spawner.calls.lock().expect("calls lock");
+        assert!(calls.is_empty(), "invalid branch must not spawn a Job");
+    }
+}
