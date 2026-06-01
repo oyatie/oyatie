@@ -95,6 +95,18 @@ externalSecret:
   refreshInterval: "1h"
   nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
 
+# Shared-secret for POST /gate-run authentication (X-Gate-Run-Token header).
+# ESO pulls this from OpenBao and syncs it into the `gate-run-token` Secret.
+# Only the ci-webhook-gateway ControllerDispatcher (running in oya-ci namespace)
+# is granted access to this Secret via RBAC. Gate runner Pods never see it.
+gateRunTokenSecret:
+  enabled: true
+  secretName: gate-run-token
+  # OpenBao KV path: secret/oya/ci/gate-run-token, field "token"
+  openbaoPath: "secret/oya/ci/gate-run-token"
+  refreshInterval: "1h"
+  nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
+
 config:
   namespace: oya-ci
   forgejoBase: "http://forgejo.oya-forge.svc.cluster.local:3000"

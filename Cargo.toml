@@ -121,6 +121,8 @@ members = [
   "libs/oya-http-telemetry-middleware-infrastructure",
   "libs/oya-http-tenant-middleware-infrastructure",
   "libs/oya-json-kernel",
+  "libs/oya-scm",
+  "libs/oya-scm-forgejo",
   "libs/oya-shared-architecture-check-cli",
   "libs/oya-shared-audit-chain-client-kernel",
   "libs/oya-shared-backbone-grpc-generated-adapter",

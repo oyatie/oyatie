@@ -426,6 +426,59 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
 }
 
 // ---------------------------------------------------------------------------
+// GateRunToken — shared-secret auth for POST /gate-run
+// ---------------------------------------------------------------------------
+
+/// Opaque shared-secret token checked on POST /gate-run.
+///
+/// Callers (the ci-webhook-gateway / ControllerDispatcher) must present this
+/// token in the `X-Gate-Run-Token` HTTP header. Anonymous callers are rejected
+/// with HTTP 401. The token arrives in the controller via the projected
+/// `gate-run-token` Kubernetes Secret (ESO-synced from OpenBao
+/// `secret/oya/ci/gate-run-token`).
+///
+/// Comparison is constant-time (XOR fold) to resist timing side-channels.
+#[derive(Clone)]
+pub struct GateRunToken {
+    token: Vec<u8>, // data_class: INTERNAL_ONLY — never log, never serialize
+}
+
+impl GateRunToken {
+    /// Construct from raw bytes (decoded from the env var / secret).
+    pub fn new(token: Vec<u8>) -> Self {
+        Self { token }
+    }
+
+    /// Constant-time equality check. Returns `true` iff the supplied value
+    /// matches the stored token byte-for-byte.
+    ///
+    /// Both length inequality AND value inequality are handled without early
+    /// exit: the fold runs over `max(self, other)` length using `get`-or-zero
+    /// to keep the branch count constant.
+    pub fn verify(&self, candidate: &[u8]) -> bool {
+        let n = self.token.len().max(candidate.len());
+        // XOR-fold: accumulate all differing bits.
+        let diff = (0..n).fold(0u8, |acc, i| {
+            let a = self.token.get(i).copied().unwrap_or(0);
+            let b = candidate.get(i).copied().unwrap_or(0);
+            acc | (a ^ b)
+        });
+        // Length must also match to be valid.
+        let len_diff = (self.token.len() ^ candidate.len()) as u8;
+        (diff | len_diff) == 0
+    }
+}
+
+/// Redact the token in `Debug` output — it must never appear in logs.
+impl std::fmt::Debug for GateRunToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GateRunToken")
+            .field("token", &"[REDACTED]")
+            .finish()
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Trait seams (I/O boundary — implemented by adapter crates)
 // ---------------------------------------------------------------------------
 
@@ -748,6 +801,55 @@ mod tests {
         assert_eq!(ForgejoState::Success.as_str(), "success");
         assert_eq!(ForgejoState::Failure.as_str(), "failure");
         assert_eq!(ForgejoState::Error.as_str(), "error");
+    }
+
+    // ---- GateRunToken constant-time verify ---------------------------------
+
+    #[test]
+    fn gate_run_token_correct_value_returns_true() {
+        let tok = GateRunToken::new(b"super-secret-abc".to_vec());
+        assert!(tok.verify(b"super-secret-abc"));
+    }
+
+    #[test]
+    fn gate_run_token_wrong_value_returns_false() {
+        let tok = GateRunToken::new(b"super-secret-abc".to_vec());
+        assert!(!tok.verify(b"wrong-value-here"));
+    }
+
+    #[test]
+    fn gate_run_token_empty_candidate_returns_false() {
+        let tok = GateRunToken::new(b"secret".to_vec());
+        assert!(!tok.verify(b""));
+    }
+
+    #[test]
+    fn gate_run_token_prefix_match_returns_false() {
+        let tok = GateRunToken::new(b"secretXYZ".to_vec());
+        assert!(!tok.verify(b"secret"));
+    }
+
+    #[test]
+    fn gate_run_token_suffix_match_returns_false() {
+        let tok = GateRunToken::new(b"secret".to_vec());
+        assert!(!tok.verify(b"secretXYZ"));
+    }
+
+    #[test]
+    fn gate_run_token_off_by_one_bit_returns_false() {
+        // Flip the last bit of the token value.
+        let tok = GateRunToken::new(vec![0b10101010u8; 16]);
+        let mut candidate = vec![0b10101010u8; 16];
+        *candidate.last_mut().unwrap() ^= 0x01;
+        assert!(!tok.verify(&candidate));
+    }
+
+    #[test]
+    fn gate_run_token_debug_redacts_value() {
+        let tok = GateRunToken::new(b"do-not-log-me".to_vec());
+        let s = format!("{tok:?}");
+        assert!(s.contains("[REDACTED]"), "debug should redact: {s}");
+        assert!(!s.contains("do-not-log-me"), "debug must not leak token: {s}");
     }
 
     // ---- GateRun job_name --------------------------------------------------

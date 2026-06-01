@@ -16,10 +16,12 @@
 //! | `OYA_CI_GATE_ACTIVE_DEADLINE_SECS`     | `3600`                                                                   | Gate Job active deadline (seconds)             |
 //! | `OYA_CI_GATE_TTL_AFTER_FINISHED_SECS`  | `86400`                                                                  | Gate Job TTL after finished for GC (seconds)   |
 //! | `OYA_CI_GATE_RUNNER_SA`                | `oya-ci-gate-runner`                                                     | Low-privilege SA for gate runner Pods          |
+//! | `OYA_CI_GATE_RUN_TOKEN`                | (required)                                                               | Shared secret for POST /gate-run auth          |
 
 use oya_ci_controller_app::{
     ControllerState, GateSpecConfig, ServerState, StreamExt, build_router, run_controller,
 };
+use oya_ci_controller_kernel::GateRunToken;
 use oya_ci_controller_forgejo_adapter::ForgejoCommitStatusPoster;
 use oya_ci_controller_k8s_adapter::K8sJobSpawner;
 use std::sync::Arc;
@@ -51,6 +53,10 @@ async fn main() {
         env_or("OYA_CI_CONTROLLER_FORGEJO_REPO_OWNER", "oya-admin");
     let forgejo_repo_name = env_or("OYA_CI_CONTROLLER_FORGEJO_REPO_NAME", "oyatie");
     let forgejo_token = env_required("FORGEJO_CI_TOKEN");
+    // Shared-secret for POST /gate-run authentication.
+    // Sourced from the `gate-run-token` projected Secret (ESO → OpenBao
+    // `secret/oya/ci/gate-run-token`, field "token").
+    let gate_run_token_str = env_required("OYA_CI_GATE_RUN_TOKEN");
     let grace_cycles: u32 = env_or("OYA_CI_CONTROLLER_GRACE_CYCLES", "12")
         .parse()
         .unwrap_or(12);
@@ -107,10 +113,13 @@ async fn main() {
         repo: format!("{forgejo_repo_owner}/{forgejo_repo_name}"),
     };
 
+    let gate_run_token = Arc::new(GateRunToken::new(gate_run_token_str.into_bytes()));
+
     let server_state = ServerState {
         controller_namespace: namespace.clone(),
         job_spawner,
         gate_spec_config,
+        gate_run_token,
     };
 
     info!(listen_addr = %listen_addr, namespace = %namespace, "oya-ci-controller starting");

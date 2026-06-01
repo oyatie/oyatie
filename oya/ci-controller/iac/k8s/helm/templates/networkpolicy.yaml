@@ -1,9 +1,14 @@
 {{- if .Values.networkPolicy.enabled }}
 # NetworkPolicy for the oya-ci controller.
-# Ingress: monitoring namespace only (/healthz + /metrics).
+# Ingress: monitoring namespace (/healthz + /metrics) + ci namespace (POST /gate-run).
 # Egress: kube-apiserver (Job/Pod watch+create), Forgejo (status post + clone),
 #         OpenBao (ESO token sync), OTel collector, DNS.
 # ADR-0387: ci-gate substrate.
+#
+# POST /gate-run is protected by X-Gate-Run-Token (shared-secret, projected from
+# OpenBao via ESO). The NetworkPolicy further restricts callers to the named
+# ci-webhook-gateway pod in oya-ci so that other workloads cannot even reach the
+# port, providing defence-in-depth even if the token were somehow leaked.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -31,7 +36,7 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Prometheus / OTel scrape from monitoring namespace
+    # Prometheus / OTel scrape from monitoring namespace (/healthz + /metrics).
     - from:
         - namespaceSelector:
             matchLabels:
@@ -39,9 +44,9 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.service.port }}
-    # ci-webhook-gateway → controller /gate-run dispatch (forgejo→gateway→controller).
-    # The gateway pod (app.kubernetes.io/name=ci-webhook-gateway) in the oya-ci
-    # namespace reaches the controller on the service port (8081).
+    # POST /gate-run enters through ci-webhook-gateway (forgejo→gateway→controller).
+    # X-Gate-Run-Token provides application-layer defence-in-depth; this rule keeps
+    # the network path least-privilege by allowing only the gateway pod on 8081.
     - from:
         - namespaceSelector:
             matchLabels:

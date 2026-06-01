@@ -39,5 +39,10 @@ futures = "0.3"
 # making auto-detection ambiguous). Used only by the binary, not the lib.
 rustls = { workspace = true }
 
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+serde_json = { workspace = true }
+tower = { version = "0.5", features = ["util"] }
+
 [lints]
 workspace = true
