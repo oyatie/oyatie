@@ -13,7 +13,7 @@
     "leader_ack": "ACK-readback sent after claim with Lane D scope and no .omx/ultragoal mutation commitment.",
     "protocol": "coordinated"
   },
-  "decision_log_row": "Lane D records honest verification baseline and blockers instead of patching implementation-lane source or weakening Buck2/Rust 1.96 gates.",
+  "decision_log_row": "Lane D refreshed final evidence from the integrated leader verification log, superseding old rustfmt drift while preserving ring/Forgejo blockers.",
   "facets": {
     "A1_naming": {
       "considered": true,
@@ -91,8 +91,8 @@
       "considered": true,
       "diagnostic_asserted": "ring buildscript cc-rs exits non-zero compiling sha256-armv8-ios64.S on local aarch64-apple-darwin",
       "failing_fixture_added": false,
-      "failing_fixture_id": "full adapter check/clippy ring buildscript failure captured in /tmp/worker4-verification/buck2-check.log",
-      "passing_fixture_id": "buck2 kernel tests: tide 26 passed, controller 18 passed"
+      "failing_fixture_id": "leader integrated app/adapter Buck2 envelope ring buildscript failure in /tmp/oyatie-leader-verify-20260601T020106Z.log",
+      "passing_fixture_id": "integrated leader buck2 kernel tests: tide 28 passed, controller 18 passed"
     },
     "F4_ergonomic": {
       "considered": true,
@@ -149,7 +149,8 @@
     "M1_challenge_assumption": {
       "considered": true,
       "findings": [
-        "Assumption challenged: full Lane A/B verification could be green locally. Result: kernel green, full adapter envelope blocked by ring buildscript and rustfmt drift."
+        "Assumption challenged: full Lane A/B verification could be green locally. Result: kernel green, full adapter envelope blocked by ring buildscript and rustfmt drift.",
+        "Updated from leader integrated verification: Rustfmt drift is resolved; app/adapter Buck2 blockers remain due to third-party ring buildscript before target diagnostics."
       ]
     },
     "M2_zoomed_out_fit": {
@@ -159,8 +160,8 @@
       ]
     }
   },
-  "freshness_unix": 1780278929,
-  "git_sha": "ee434dd622e8043d486e9fd72edaa7549d718833",
+  "freshness_unix": 1780279446,
+  "git_sha": "f81d18042545a8faf0081302c0c5dd09fb82e655",
   "implementation_summary": [
     "Created Lane D verification notes under .omx/verification/2026-06-01-lane-d/.",
     "Created this multispectrum evidence artifact as the weekly oya-ci verification baseline.",
@@ -182,7 +183,62 @@
     "No Forgejo PR opened by Lane D; evidence-only commit prepared locally for leader integration.",
     "Audit-chain append not performed because evidence/audit-chain.jsonl is outside stated Lane D write scope.",
     "Full adapter/app Buck2 check/clippy blocked by local ring buildscript failure.",
-    "rustfmt --edition 2024 over A/B source files reports formatting drift outside Lane D scope."
+    "Full adapter/app Buck2 test/check/clippy remains blocked by third-party ring buildscript on local aarch64 macOS per leader integrated verification log.",
+    "Forgejo PR/push not opened because only GitHub origin is configured in clean leader worktree and Forgejo remote/API/token path is unavailable; GitHub PR/merge remains forbidden.",
+    "Worker-2 task JSON result is stale relative to integrated tree: dev-only /gate-run behavior and tests are present; empty audit commit 28c5bd20c was not required for tree integration."
+  ],
+  "leader_addenda": [
+    {
+      "active_blockers": [
+        "third-party ring buildscript blocks app/adapter Buck2 gates",
+        "Forgejo remote/API/token path not configured; no Forgejo PR/push opened"
+      ],
+      "checks": [
+        {
+          "command": "git diff --check ee434dd62..HEAD",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS git diff --check on integrated branch f81d1804.",
+          "status": "passed"
+        },
+        {
+          "command": "RUSTUP_TOOLCHAIN=1.96.0 rustfmt --edition 2024 --check <changed tide/controller Rust files>",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS rustfmt; supersedes earlier Lane D rustfmt drift blocker.",
+          "status": "passed"
+        },
+        {
+          "command": "python3 -m json.tool evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json && python3 -m json.tool .omx/verification/2026-06-01-lane-d/verification-notes.json",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS JSON sanity on existing Lane D evidence artifacts before addendum.",
+          "status": "passed"
+        },
+        {
+          "command": "scripts/evidence-secret-scan.sh evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json .omx/verification/2026-06-01-lane-d/verification-notes.json",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS no credential-shape tokens across 2 targets before addendum.",
+          "status": "passed"
+        },
+        {
+          "command": "RUSTUP_TOOLCHAIN=1.96.0 buck2 test //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS tide kernel 28 tests and controller kernel 18 tests.",
+          "status": "passed"
+        },
+        {
+          "command": "RUSTUP_TOOLCHAIN=1.96.0 buck2 test/build check/clippy affected app/adapter envelope",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: controller app test/check/clippy and tide adapter check fail before app/adapter diagnostics in third-party//:ring-0.17-build-script-run assembling sha256-armv8-ios64.S with -mmacosx-version-min=26.5 on local aarch64 macOS.",
+          "status": "blocked"
+        },
+        {
+          "command": "Forgejo PR/push via plain git + Forgejo",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; Forgejo remote/API/token path not configured; GitHub PR/merge intentionally not used.",
+          "status": "blocked"
+        }
+      ],
+      "created_at": "2026-06-01T02:04:06Z",
+      "id": "leader-evidence-addendum-20260601T020106Z",
+      "integrated_branch_head": "f81d18042545a8faf0081302c0c5dd09fb82e655",
+      "source_log": "/tmp/oyatie-leader-verify-20260601T020106Z.log",
+      "superseded_blockers": [
+        "lane-a-b-rustfmt-drift"
+      ],
+      "worker_2_correction": "Integrated tree already contains dev-only /gate-run behavior and tests; worker-2 final empty audit commit 28c5bd20c was not needed for tree integration, but task-2 JSON result is stale."
+    }
   ],
   "mandatory_artifacts": {
     "adr_cite": "/private/tmp/oyatie-weekly-oya-ci-team-20260601/.omx/plans/ralplan-week-parallel-lanes-20260601.md",
@@ -199,7 +255,14 @@
       "RUSTUP_TOOLCHAIN=1.96.0 buck2 build/check/clippy full Lane A+B target envelope",
       "python3 -m json.tool evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json && python3 -m json.tool .omx/verification/2026-06-01-lane-d/verification-notes.json",
       "bash scripts/evidence-secret-scan.sh evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json .omx/verification/2026-06-01-lane-d/verification-notes.json",
-      "git diff --check after Lane D evidence edits"
+      "git diff --check after Lane D evidence edits",
+      "git diff --check ee434dd62..HEAD",
+      "RUSTUP_TOOLCHAIN=1.96.0 rustfmt --edition 2024 --check <changed tide/controller Rust files>",
+      "python3 -m json.tool evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json && python3 -m json.tool .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "scripts/evidence-secret-scan.sh evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "RUSTUP_TOOLCHAIN=1.96.0 buck2 test //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "RUSTUP_TOOLCHAIN=1.96.0 buck2 test/build check/clippy affected app/adapter envelope",
+      "Forgejo PR/push via plain git + Forgejo"
     ],
     "logs": [
       "/tmp/worker4-preflight.log",
@@ -211,7 +274,8 @@
       "/tmp/worker4-verification/buck2-clippy.log",
       "/tmp/worker4-verification/json-sanity.log",
       "/tmp/worker4-verification/secret-scan.log",
-      "/tmp/worker4-verification/post-evidence-git-diff-check.log"
+      "/tmp/worker4-verification/post-evidence-git-diff-check.log",
+      "/tmp/oyatie-leader-verify-20260601T020106Z.log"
     ],
     "toolchain": "RUSTUP_TOOLCHAIN=1.96.0; rustfmt --edition 2024; buck2 2b6f2339eb903743a21606ddb93ea669",
     "verification_notes": ".omx/verification/2026-06-01-lane-d/verification-notes.json"
@@ -224,7 +288,7 @@
     "read-only plan reference: .omx/plans/ralplan-week-parallel-lanes-20260601.md"
   ],
   "session_id": "execute-omx-plans-ral-aa8c5503/worker-4/task-4",
-  "timestamp_iso": "2026-06-01T01:55:29Z",
+  "timestamp_iso": "2026-06-01T02:04:06Z",
   "verification": [
     {
       "command": "RUSTUP_TOOLCHAIN=1.96.0 rustc --version && cargo --version && rustfmt --version; buck2 --version",
@@ -270,6 +334,41 @@
       "command": "git diff --check after Lane D evidence edits",
       "evidence": "/tmp/worker4-verification/post-evidence-git-diff-check.log: no whitespace errors",
       "status": "passed"
+    },
+    {
+      "command": "git diff --check ee434dd62..HEAD",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS git diff --check on integrated branch f81d1804.",
+      "status": "passed"
+    },
+    {
+      "command": "RUSTUP_TOOLCHAIN=1.96.0 rustfmt --edition 2024 --check <changed tide/controller Rust files>",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS rustfmt; supersedes earlier Lane D rustfmt drift blocker.",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json && python3 -m json.tool .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS JSON sanity on existing Lane D evidence artifacts before addendum.",
+      "status": "passed"
+    },
+    {
+      "command": "scripts/evidence-secret-scan.sh evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS no credential-shape tokens across 2 targets before addendum.",
+      "status": "passed"
+    },
+    {
+      "command": "RUSTUP_TOOLCHAIN=1.96.0 buck2 test //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: PASS tide kernel 28 tests and controller kernel 18 tests.",
+      "status": "passed"
+    },
+    {
+      "command": "RUSTUP_TOOLCHAIN=1.96.0 buck2 test/build check/clippy affected app/adapter envelope",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: controller app test/check/clippy and tide adapter check fail before app/adapter diagnostics in third-party//:ring-0.17-build-script-run assembling sha256-armv8-ios64.S with -mmacosx-version-min=26.5 on local aarch64 macOS.",
+      "status": "blocked"
+    },
+    {
+      "command": "Forgejo PR/push via plain git + Forgejo",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; Forgejo remote/API/token path not configured; GitHub PR/merge intentionally not used.",
+      "status": "blocked"
     }
   ]
 }
