@@ -8,50 +8,158 @@ cleanup() {
 }
 trap cleanup EXIT
 
-primer_output="$tmpdir/primer.out"
-bash "$repo_root/tools/hooks/userprompt-canonical-primer.sh" >"$primer_output"
-grep -q 'plain git for VCS work' "$primer_output"
-grep -q './bin/oya verify --ci-required' "$primer_output"
-grep -q 'oya gate run-all' "$primer_output"
-if grep -Eq 'oya git for|policy ratchet compatibility|current policy ratchet' "$primer_output"; then
-  echo "primer still advertises retired governance hook surfaces" >&2
+session_context_output="$tmpdir/session-context.json"
+bash "$repo_root/tools/hooks/session-start-context-inject.sh" >"$session_context_output"
+python3 - "$session_context_output" >"$tmpdir/session-context.txt" <<'PYCTX'
+import json
+import pathlib
+import sys
+payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+print(payload["hookSpecificOutput"]["additionalContext"])
+PYCTX
+grep -q 'specs/canonical-primitives.json' "$tmpdir/session-context.txt"
+grep -q 'OpenAPI 3.2.0' "$tmpdir/session-context.txt"
+grep -q 'AsyncAPI 3.1.0' "$tmpdir/session-context.txt"
+if grep -q 'tools/hooks/_canonical-primitives.md' "$tmpdir/session-context.txt"; then
+  echo "session-start hook still points at retired markdown canonical primitives" >&2
+  exit 1
+fi
+if grep -Eiq 'oya[[:space:]]+(git|vcs|gate|verify)|\.\/bin\/oya|bin/oya|oya --help|Oya CLI|oya CLI' "$tmpdir/session-context.txt"; then
+  echo "session-start hook still emits retired wrapper command guidance" >&2
+  cat "$tmpdir/session-context.txt" >&2
+  exit 1
+fi
+if [ -e "$repo_root/tools/hooks/stale-tool-suggester.sh" ]; then
+  echo "stale-tool-suggester hook should be deleted with retired wrapper command guidance" >&2
   exit 1
 fi
 
-plain_git_output="$tmpdir/plain-git.out"
-TOOL_INPUT='{"command":"git status --short"}' \
-  bash "$repo_root/tools/hooks/stale-tool-suggester.sh" >"$plain_git_output" 2>&1
-if [ -s "$plain_git_output" ]; then
-  echo "plain git should not trigger stale-tool-suggester" >&2
-  cat "$plain_git_output" >&2
+no_cargo_output="$tmpdir/no-cargo.out"
+set +e
+printf '%s\n' '{"tool_input":{"command":"cargo test --workspace"}}' \
+  | bash "$repo_root/tools/hooks/no-cargo-enforcer.sh" >"$no_cargo_output" 2>&1
+no_cargo_status=$?
+set -e
+if [ "$no_cargo_status" -ne 0 ]; then
+  echo "no-cargo hook must be advisory/non-blocking, got exit $no_cargo_status" >&2
+  cat "$no_cargo_output" >&2
   exit 1
 fi
+grep -q 'cargo build/check/test/clippy/run/bench' "$no_cargo_output"
+grep -q 'advisory only' "$no_cargo_output"
 
-retired_git_output="$tmpdir/retired-git.out"
-TOOL_INPUT='{"command":"oya git status --short"}' \
-  bash "$repo_root/tools/hooks/stale-tool-suggester.sh" >"$retired_git_output" 2>&1
-grep -q 'Retired VCS surface detected' "$retired_git_output"
-grep -q 'Use plain git for VCS work' "$retired_git_output"
+python3 - "$repo_root" <<'PY'
+import json
+import pathlib
+import re
+import sys
 
-retired_vcs_output="$tmpdir/retired-vcs.out"
-TOOL_INPUT='{"command":"oya vcs status"}' \
-  bash "$repo_root/tools/hooks/stale-tool-suggester.sh" >"$retired_vcs_output" 2>&1
-grep -q 'Retired VCS surface detected' "$retired_vcs_output"
-grep -q 'Use plain git for VCS work' "$retired_vcs_output"
+repo = pathlib.Path(sys.argv[1])
+manifest_path = repo / "specs/agent-hook-runtime-manifest.json"
+with manifest_path.open(encoding="utf-8") as handle:
+    manifest = json.load(handle)
 
-inventory_output="$tmpdir/inventory.out"
-bash "$repo_root/tools/hooks/retired-vcs-surface-inventory.sh" >"$inventory_output"
-grep -q 'retired VCS surface inventory: no oya git/oya vcs invocations found' "$inventory_output"
+config_paths = [
+    repo / entry["path"]
+    for entry in manifest["config_files"]
+    if entry.get("first_class") is True
+]
+allowed_hooks = {
+    entry["path"]
+    for entry in manifest["runtime_hooks"]
+}
+pre_errors = []
+missing = []
+unlisted = []
+referenced = set()
+
+claude_settings = repo / ".claude/settings.json"
+if claude_settings.is_file():
+    with claude_settings.open(encoding="utf-8") as handle:
+        claude_data = json.load(handle)
+    if claude_data.get("hooks"):
+        pre_errors.append(
+            "Claude project runtime hooks are intentionally disabled; OMC owns Claude hook orchestration"
+        )
+
+def walk(value):
+    if isinstance(value, dict):
+        command = value.get("command")
+        if isinstance(command, str) and command.startswith("tools/hooks/"):
+            referenced.add(command)
+            target = repo / command
+            if not target.is_file():
+                missing.append(f"{command} referenced by active hook config")
+            if command not in allowed_hooks:
+                unlisted.append(f"{command} referenced by active hook config but absent from {manifest_path.name}")
+        for child in value.values():
+            walk(child)
+    elif isinstance(value, list):
+        for child in value:
+            walk(child)
+
+for config in config_paths:
+    with config.open(encoding="utf-8") as handle:
+        data = json.load(handle)
+    if config.name == "hooks.json" and "UserPromptSubmit" in data.get("hooks", {}):
+        pre_errors.append("Codex UserPromptSubmit hook is intentionally disabled; SessionStart carries canonical context")
+    if config.name == "settings.json" and config.parent.name == ".gemini" and "BeforeAgent" in data.get("hooks", {}):
+        pre_errors.append("Gemini BeforeAgent hook is intentionally disabled; SessionStart carries canonical context")
+    walk(data)
+
+unreferenced = sorted(allowed_hooks - referenced)
+non_executable = sorted(
+    path for path in allowed_hooks
+    if (repo / path).is_file() and not (repo / path).stat().st_mode & 0o111
+)
+forbidden_patterns = [
+    (re.compile(r"\b(?:curl|wget|gh|ssh|scp|nc)\b"), "network/remote command"),
+    (re.compile(r"\bcodex\s+exec\b|\bclaude\s+(?:-p|--print|code|mcp|exec)\b|\bgemini\s+(?:-p|--prompt|exec)\b"), "agent recursion"),
+    (re.compile(r"\bgit\s+push\b"), "git push mutation"),
+    (re.compile(r"\brm\s+-rf\b"), "destructive cleanup"),
+    (re.compile(r"\.omc|\.omx", re.IGNORECASE), "OMC/OMX runtime coupling"),
+    (re.compile(r"_canonical-primitives\.md"), "retired markdown canonical primitives"),
+    (re.compile(r"\boya\s+(?:git|vcs|gate|verify)\b|\./bin/oya|\bbin/oya\b|\boya --help\b|Oya CLI|oya CLI", re.IGNORECASE), "retired wrapper command guidance"),
+]
+forbidden_hits = []
+for hook in sorted(allowed_hooks):
+    target = repo / hook
+    if not target.is_file():
+        continue
+    text = target.read_text(encoding="utf-8")
+    for pattern, label in forbidden_patterns:
+        if pattern.search(text):
+            forbidden_hits.append(f"{hook}: {label}")
+
+errors = pre_errors + missing + unlisted
+errors += [f"{path} declared in {manifest_path.name} but not referenced by first-class hook configs" for path in unreferenced]
+errors += [f"{path} is declared as a runtime hook but is not executable" for path in non_executable]
+errors += forbidden_hits
+
+if errors:
+    for item in errors:
+        print(item, file=sys.stderr)
+    sys.exit(1)
+PY
 
 if rg -n \
-  'Preferred drop-in surface: oya git|policy ratchet compatibility|policy-ratchet|route through `oya git`|Top-level subcommands: git|oya-git cutover|migrate plain git/drop-in docs toward oya git' \
+  'Preferred drop-in surface: oya git|policy ratchet compatibility|policy-ratchet|route through `oya git`|Top-level subcommands: git|oya-git cutover|migrate plain git/drop-in docs toward oya git|oya[[:space:]]+(git|vcs|gate|verify)|\.\/bin\/oya|bin/oya|oya --help|Oya CLI|oya CLI' \
   "$repo_root/tools/hooks" \
   "$repo_root/tools/hook-bootstrap" \
   "$repo_root/.codex/hooks.json" \
   "$repo_root/.claude/settings.json" \
   "$repo_root/.gemini/settings.json"; then
-  echo "active governance hook surface still contains stale VCS guidance" >&2
+  echo "active governance hook surface still contains retired wrapper guidance" >&2
   exit 1
 fi
 
-echo "governance hook retired VCS surface tests passed"
+if rg -n '_canonical-primitives\.md' \
+  "$repo_root/tools/hooks" \
+  "$repo_root/tools/hook-bootstrap" \
+  "$repo_root/tools/agent-skills/AGENTS.md" \
+  "$repo_root/tools/agent-skills/INHERITANCE.md"; then
+  echo "active hook guidance still references retired markdown canonical primitives" >&2
+  exit 1
+fi
+
+echo "governance hook retired VCS/wrapper surface tests passed"

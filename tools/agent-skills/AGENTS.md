@@ -8,7 +8,7 @@ A collection of skills for Claude.ai and Claude Code for senior software enginee
 
 ## Oyatie Doctrine References
 
-When this vendored skill guidance is used inside Oyatie, root `CLAUDE.md`, `docs/AGENTS.md`, and `tools/hooks/_canonical-primitives.md` overlay this inherited base and win on conflict.
+When this vendored skill guidance is used inside Oyatie, root `CLAUDE.md`, `docs/AGENTS.md`, and `specs/canonical-primitives.json` overlay this inherited base and win on conflict.
 
 ADR-0346: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix before success; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
 

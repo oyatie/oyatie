@@ -1,67 +1,124 @@
 #!/usr/bin/env bash
 # tools/hooks/session-start-context-inject.sh
 #
-# Trigger:  Claude Code SessionStart
-# Purpose:  Inject canonical primitives cheat sheet into the new session's context.
-#           Stdout from SessionStart hooks becomes agent context in Claude Code.
-# Behavior: Prints a formatted primitives summary sourced from
-#           tools/hooks/_canonical-primitives.md (single source of truth).
+# Trigger:  Codex/Gemini SessionStart
+# Purpose:  Inject canonical primitives into the new session's context.
+# Behavior: Emits JSON hook output with additionalContext rendered from
+#           specs/canonical-primitives.json (single source of truth), while
+#           omitting retired wrapper command hints from hook output.
 # Non-blocking guarantee: exits 0 always; never modifies any project state.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-PRIMITIVES="$REPO_ROOT/tools/hooks/_canonical-primitives.md"
+PRIMITIVES_JSON="$REPO_ROOT/specs/canonical-primitives.json"
 
-echo "============================================================"
-echo " OYATIE CANONICAL PRIMITIVES — session context (2026-05-18)"
-echo "============================================================"
-echo ""
+if command -v python3 >/dev/null 2>&1; then
+  PRIMITIVES_JSON="$PRIMITIVES_JSON" python3 <<'PY'
+import json
+import os
+import sys
 
-if [ -f "$PRIMITIVES" ]; then
-    cat "$PRIMITIVES"
+path = os.environ["PRIMITIVES_JSON"]
+
+lines = [
+    "============================================================",
+    " OYATIE CANONICAL PRIMITIVES — session context",
+    "============================================================",
+    "",
+]
+
+try:
+    with open(path, encoding="utf-8") as handle:
+        data = json.load(handle)
+    meta = data.get("_meta", {})
+    version = meta.get("version", "unknown")
+    updated_at = meta.get("updated_at", "unknown")
+    lines.append(f"Source: specs/canonical-primitives.json (version {version}, updated {updated_at})")
+    lines.append("Hook note: retired wrapper command hints are intentionally not emitted; use plain git and CI/controller/reviewer status.")
+    purpose = meta.get("purpose")
+    if purpose:
+        lines.append(f"Purpose: {purpose}")
+    lines.append("")
+
+    for section in data.get("sections", []):
+        title = section.get("title", "Untitled")
+        section_lines = [str(line) for line in section.get("lines", [])]
+        if not section_lines:
+            continue
+        lines.append(f"## {title}")
+        for line in section_lines:
+            lines.append(f"- {line}")
+        authority = section.get("authority") or []
+        if authority:
+            lines.append(f"  Authority: {', '.join(authority)}")
+        supersedes = section.get("supersedes") or []
+        if supersedes:
+            lines.append(f"  Supersedes: {', '.join(supersedes)}")
+        lines.append("")
+
+    pointers = data.get("pointers") or {}
+    if pointers:
+        lines.append("## Pointers")
+        note = pointers.get("_note")
+        if note:
+            lines.append(f"- {note}")
+        for key, value in pointers.items():
+            if key == "_note":
+                continue
+            text = f"{key}: {value}"
+            lines.append(f"- {text}")
+except Exception:
+    lines.extend([
+        "Canonical primitives JSON exists but could not be rendered: specs/canonical-primitives.json",
+        "Fallback: plain git for VCS; CI/controller/reviewer status for merge readiness; OpenAPI 3.2.0 + AsyncAPI 3.1.0.",
+    ])
+
+lines.extend([
+    "",
+    "============================================================",
+    " LIFECYCLE SKILL MAP",
+    "============================================================",
+    "",
+    "Vendored skills at tools/agent-skills/skills/ (MIT — Addy Osmani and contributors)",
+    "",
+    "Define:  interview-me | idea-refine | spec-driven-development",
+    "Plan:    planning-and-task-breakdown",
+    "Build:   incremental-implementation | test-driven-development | source-driven-development",
+    "         doubt-driven-development | context-engineering | api-and-interface-design",
+    "         frontend-ui-engineering",
+    "Verify:  browser-testing-with-devtools | debugging-and-error-recovery",
+    "Review:  code-review-and-quality | code-simplification | security-and-hardening",
+    "         performance-optimization",
+    "Ship:    git-workflow-and-versioning | ci-cd-and-automation | deprecation-and-migration",
+    "         documentation-and-adrs | shipping-and-launch",
+    "",
+    "Persona agents (tools/agent-skills/agents/):",
+    "  review   → code-reviewer",
+    "  security → security-auditor",
+    "  tests    → test-engineer",
+    "",
+    "Discovery rule: invoke the skill matching the task phase BEFORE producing output.",
+    "Process skills (Define/Plan) come before implementation skills (Build/Verify/Ship).",
+    "",
+    "============================================================",
+    " Hooks are GUIDANCE only. CI/controller gates enforce.",
+    " ADR-0221: hooks are guidance infrastructure, not enforcement infrastructure.",
+    "============================================================",
+])
+
+print(json.dumps({
+    "hookSpecificOutput": {
+        "hookEventName": "SessionStart",
+        "additionalContext": "\n".join(lines),
+    }
+}, ensure_ascii=False))
+PY
 else
-    # Fallback inline summary when file not found (should not happen in normal use)
-    echo "VCS:       plain git — the oya git wrapper and oya vcs ratchet are RETIRED (ADR-0363)"
-    echo "VCS flow:  isolated branch -> PR against dev -> Jenkins CI + oya gate run-all + reviewer APPROVE; substrate = git+Jenkins+self-hosted Forgejo"
-    echo "Contracts: OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3"
-    echo "AI:        microservices/intelligence/ (consumer) | microservices/intelligence/ (internal)"
-    echo "Taxonomy:  plugin-app-store / marketplace / community — 3 distinct µservices"
-    echo "Quality:   100+ artifacts per µservice (ADR-0212)"
-    echo ""
-    echo "See tools/hooks/_canonical-primitives.md for full reference."
+  cat <<'JSON'
+{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"OYATIE CANONICAL PRIMITIVES — session context\nSource: specs/canonical-primitives.json\nHook note: retired wrapper command hints are intentionally not emitted; use plain git and CI/controller/reviewer status.\nContracts: OpenAPI 3.2.0 + AsyncAPI 3.1.0.\nHooks are GUIDANCE only. CI/controller gates enforce."}}
+JSON
 fi
-
-echo ""
-echo "============================================================"
-echo " LIFECYCLE SKILL MAP"
-echo "============================================================"
-echo ""
-echo "Vendored skills at tools/agent-skills/skills/ (MIT — Addy Osmani and contributors)"
-echo ""
-echo "Define:  interview-me | idea-refine | spec-driven-development"
-echo "Plan:    planning-and-task-breakdown"
-echo "Build:   incremental-implementation | test-driven-development | source-driven-development"
-echo "         doubt-driven-development | context-engineering | api-and-interface-design"
-echo "         frontend-ui-engineering"
-echo "Verify:  browser-testing-with-devtools | debugging-and-error-recovery"
-echo "Review:  code-review-and-quality | code-simplification | security-and-hardening"
-echo "         performance-optimization"
-echo "Ship:    git-workflow-and-versioning | ci-cd-and-automation | deprecation-and-migration"
-echo "         documentation-and-adrs | shipping-and-launch"
-echo ""
-echo "Persona agents (tools/agent-skills/agents/):"
-echo "  review   → code-reviewer"
-echo "  security → security-auditor"
-echo "  tests    → test-engineer"
-echo ""
-echo "Discovery rule: invoke the skill matching the task phase BEFORE producing output."
-echo "Process skills (Define/Plan) come before implementation skills (Build/Verify/Ship)."
-echo ""
-echo "============================================================"
-echo " Hooks are GUIDANCE only. CI gates (registry/quality/lanes.yaml) enforce."
-echo " ADR-0221: hooks are guidance infrastructure, not enforcement infrastructure."
-echo "============================================================"
 
 exit 0

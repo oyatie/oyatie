@@ -26,7 +26,7 @@
 | `CLAUDE.md` (root) | Project-level rules | Root hub redirect, coordination_surface=governance_pipeline, retired-tooling ADR-0116 citation, layered substrate-ADR list. Adds inheritance pointer to `tools/agent-skills/`. |
 | `/specs/root-hub-pointers.json` | Discovery entry | Machine-readable authority; sits ABOVE `docs/AGENTS.md` in the chain. |
 | `/specs/multispectrum-review.json` | Review rigor | F1..F13 facets + A-family + M1/M2 meta. Oyatie's evidence file is mandatory; upstream `/ship` slash command alone is insufficient. |
-| `tools/hooks/*.sh` | Hook implementation | Encouragement-oriented (exit 0 on rule path); reference vendored skill names via `tools/hooks/_canonical-primitives.md`. Upstream `hooks/` is informational only. |
+| `tools/hooks/*.sh` | Hook implementation | Encouragement-oriented (exit 0 on rule path); reference canonical primitives via `specs/canonical-primitives.json`. Upstream `hooks/` is informational only. |
 | `microservices/` ADR governance | Architecture | ADRs 0145+ are oyatie-specific; not derivable from upstream. |
 
 ## Authority chain (oyatie wins on conflict)
@@ -74,7 +74,7 @@ The daily `.github/workflows/sync-agent-skills.yml` workflow:
 
 | You want | Read |
 |---|---|
-| Which skill to use for a task | `tools/agent-skills/AGENTS.md` § Intent→Skill Mapping + `tools/hooks/_canonical-primitives.md` § Lifecycle Skill Map |
+| Which skill to use for a task | `tools/agent-skills/AGENTS.md` § Intent→Skill Mapping + `specs/canonical-primitives.json` |
 | The skill itself | `tools/agent-skills/skills/<name>/SKILL.md` |
 | A persona to dispatch | `tools/agent-skills/agents/<role>.md` |
 | Oyatie governance rules | `docs/AGENTS.md` |
