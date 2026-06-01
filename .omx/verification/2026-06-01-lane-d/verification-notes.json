@@ -1,0 +1,105 @@
+{
+  "blockers": [
+    {
+      "details": "Full adapter/app check and clippy envelope currently fails in third-party ring buildscript on local aarch64-apple-darwin before Lane D edits; kernel targets pass.",
+      "id": "full-adapter-buck2-ring-buildscript",
+      "status": "blocked"
+    },
+    {
+      "details": "rustfmt --edition 2024 over Lane A/B Rust files reports formatting diffs. Lane D cannot edit those source files under assigned scope.",
+      "id": "lane-a-b-rustfmt-drift",
+      "status": "blocked"
+    },
+    {
+      "details": "evidence/audit-chain.jsonl exists but is outside Lane D assigned write scope; leader/owner must decide whether Lane D scope includes appending audit rows.",
+      "id": "audit-chain-row-out-of-scope",
+      "status": "not-written"
+    }
+  ],
+  "commands": [
+    {
+      "command": "RUSTUP_TOOLCHAIN=1.96.0 rustc --version && cargo --version && rustfmt --version; buck2 --version",
+      "evidence": "/tmp/worker4-preflight.log: rustc 1.96.0, cargo 1.96.0, rustfmt 1.9.0-stable, buck2 available; HEAD ee434dd6",
+      "status": "passed"
+    },
+    {
+      "command": "RUSTUP_TOOLCHAIN=1.96.0 rustfmt --edition 2024 --check $(find oya/ci-tide oya/ci-controller -name *.rs)",
+      "evidence": "/tmp/worker4-verification/rustfmt.log: formatting drift reported in Lane A/B-owned oya/ci-controller and oya/ci-tide files; Lane D did not edit those files.",
+      "status": "failed"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "/tmp/worker4-verification/git-diff-check.log: no whitespace errors before Lane D evidence files.",
+      "status": "passed"
+    },
+    {
+      "command": "RUSTUP_TOOLCHAIN=1.96.0 buck2 test //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "evidence": "/tmp/worker4-verification/buck2-test.log: tide kernel 26 passed; controller kernel 18 passed.",
+      "status": "passed"
+    },
+    {
+      "command": "RUSTUP_TOOLCHAIN=1.96.0 buck2 build //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel ...[check] ...[clippy.txt]",
+      "evidence": "/tmp/worker4-verification/buck2-kernel-build-check-clippy.log: BUILD SUCCEEDED for kernel build/check/clippy targets.",
+      "status": "passed"
+    },
+    {
+      "command": "RUSTUP_TOOLCHAIN=1.96.0 buck2 build/check/clippy full Lane A+B target envelope",
+      "evidence": "/tmp/worker4-verification/buck2-check.log and buck2-clippy.log: blocked in third-party ring-0.17 buildscript compiling pregenerated/sha256-armv8-ios64.S with macOS min 26.5; not caused by Lane D evidence edits. /tmp/worker4-verification/buck2-build.log also records one zsh target-splitting invocation error before the corrected check/clippy run.",
+      "status": "failed"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json && python3 -m json.tool .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "evidence": "/tmp/worker4-verification/json-sanity.log: json valid",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/evidence-secret-scan.sh evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "evidence": "/tmp/worker4-verification/secret-scan.log: PASS \u2014 no credential-shape tokens detected across 2 targets",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check after Lane D evidence edits",
+      "evidence": "/tmp/worker4-verification/post-evidence-git-diff-check.log: no whitespace errors",
+      "status": "passed"
+    }
+  ],
+  "constraints_observed": [
+    "Forgejo-only plain git/Forgejo PRs against dev; no GitHub PR/merge action performed.",
+    "Rust commands used RUSTUP_TOOLCHAIN=1.96.0 and rustfmt --edition 2024.",
+    "No oya git/vcs commands used; no Jenkins cutover or deletion attempted.",
+    "No .omx/ultragoal files mutated by worker-4."
+  ],
+  "created_at": "2026-06-01T01:55:29Z",
+  "git_sha": "ee434dd622e8043d486e9fd72edaa7549d718833",
+  "lane": "D-governance-buck2-verification",
+  "plan_ref": "/private/tmp/oyatie-weekly-oya-ci-team-20260601/.omx/plans/ralplan-week-parallel-lanes-20260601.md",
+  "schema_version": "oyaci-lane-d-verification/v1",
+  "subagents": [
+    {
+      "id": "019e80de-da07-7d30-b68c-9903cb104673",
+      "integrated_findings": [
+        "Use templates/checklists/pre-pr-multispectrum.json and specs/multispectrum-review.json as evidence contract anchors.",
+        "Run evidence secret scan on emitted evidence.",
+        "Record audit-chain linkage gap because audit-chain row is outside Lane D write scope."
+      ],
+      "name": "Euler",
+      "task": "Review probe"
+    },
+    {
+      "id": "019e80de-dd4c-7412-a688-05a8d54ef591",
+      "integrated_findings": [
+        "Create one new evidence/multispectrum weekly oya-ci artifact.",
+        "Create .omx/verification notes even though .omx is ignored; force-add only verification file.",
+        "Avoid oya/ci-tide and oya/ci-controller edits; do not run broad gate run-all concurrently."
+      ],
+      "name": "Pascal",
+      "task": "Change-slice probe"
+    }
+  ],
+  "task_id": "4",
+  "worker": "worker-4",
+  "write_scope": [
+    "evidence/multispectrum/**",
+    ".omx/verification/**"
+  ]
+}
