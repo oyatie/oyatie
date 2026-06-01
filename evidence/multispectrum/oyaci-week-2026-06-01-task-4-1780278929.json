@@ -196,7 +196,10 @@
       "git diff --check",
       "RUSTUP_TOOLCHAIN=1.96.0 buck2 test //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
       "RUSTUP_TOOLCHAIN=1.96.0 buck2 build //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel ...[check] ...[clippy.txt]",
-      "RUSTUP_TOOLCHAIN=1.96.0 buck2 build/check/clippy full Lane A+B target envelope"
+      "RUSTUP_TOOLCHAIN=1.96.0 buck2 build/check/clippy full Lane A+B target envelope",
+      "python3 -m json.tool evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json && python3 -m json.tool .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "bash scripts/evidence-secret-scan.sh evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "git diff --check after Lane D evidence edits"
     ],
     "logs": [
       "/tmp/worker4-preflight.log",
@@ -205,7 +208,10 @@
       "/tmp/worker4-verification/buck2-test.log",
       "/tmp/worker4-verification/buck2-kernel-build-check-clippy.log",
       "/tmp/worker4-verification/buck2-check.log",
-      "/tmp/worker4-verification/buck2-clippy.log"
+      "/tmp/worker4-verification/buck2-clippy.log",
+      "/tmp/worker4-verification/json-sanity.log",
+      "/tmp/worker4-verification/secret-scan.log",
+      "/tmp/worker4-verification/post-evidence-git-diff-check.log"
     ],
     "toolchain": "RUSTUP_TOOLCHAIN=1.96.0; rustfmt --edition 2024; buck2 2b6f2339eb903743a21606ddb93ea669",
     "verification_notes": ".omx/verification/2026-06-01-lane-d/verification-notes.json"
@@ -249,6 +255,21 @@
       "command": "RUSTUP_TOOLCHAIN=1.96.0 buck2 build/check/clippy full Lane A+B target envelope",
       "evidence": "/tmp/worker4-verification/buck2-check.log and buck2-clippy.log: blocked in third-party ring-0.17 buildscript compiling pregenerated/sha256-armv8-ios64.S with macOS min 26.5; not caused by Lane D evidence edits. /tmp/worker4-verification/buck2-build.log also records one zsh target-splitting invocation error before the corrected check/clippy run.",
       "status": "failed"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json && python3 -m json.tool .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "evidence": "/tmp/worker4-verification/json-sanity.log: json valid",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/evidence-secret-scan.sh evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json .omx/verification/2026-06-01-lane-d/verification-notes.json",
+      "evidence": "/tmp/worker4-verification/secret-scan.log: PASS \u2014 no credential-shape tokens detected across 2 targets",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check after Lane D evidence edits",
+      "evidence": "/tmp/worker4-verification/post-evidence-git-diff-check.log: no whitespace errors",
+      "status": "passed"
     }
   ]
 }
