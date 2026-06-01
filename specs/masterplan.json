@@ -5925,7 +5925,8 @@
         "authoring_adrs": [
           "ADR-0349",
           "ADR-0358",
-          "ADR-0359"
+          "ADR-0359",
+          "ADR-0514"
         ],
         "sub_phases": [
           {

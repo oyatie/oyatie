@@ -1,24 +1,32 @@
 ---
 id: ADR-0358
-status: Proposed
+status: Accepted
 planning_impact: true
 date: 2026-05-25
 owners:
   - council-architecture
 supersedes: []
-superseded_by:
+superseded_by: []
+amends: []
+amended_by:
   - ADR-0392
   - ADR-0408
-amends: []
-amendment_note: "2026-05-29 (founder decision): §2 toolchain build-graph + CI engine reversed from Bazel rules_rust to Buck2. Superseded-by ADR-0392 (Buck2 canonical build graph) + ADR-0408 (Buck2-driven CI/CD). ONLY §2's build-graph/CI engine is reversed; §1 strangler-fig, §3 define-production-100-first, and §4 masterplan planning authority remain in force."
+amendment_note: "2026-05-29 (founder decision): §2 toolchain build-graph + CI engine reversed from Bazel rules_rust to Buck2. Amended-by ADR-0392 (Buck2 canonical build graph) + ADR-0408 (Buck2-driven CI/CD) — §2 only. §1 strangler-fig, §3 define-production-100-first, and §4 masterplan planning authority remain in force. Neither ADR-0392 nor ADR-0408 fully supersedes ADR-0358 (they each reverse only §2); this ADR remains Accepted with §2 amended."
 ---
 # ADR-0358: Ideal 0→100 production roadmap — strangler-fig migration, Bazel rules_rust + oya governance overlay, define-production-100-first
 
 ## Status
 
-Proposed — 2026-05-25.
+Accepted — 2026-05-25. **Amended by ADR-0392 + ADR-0408 (§2 only).**
 
-> **Amendment (2026-05-29, founder decision):** §2's toolchain build-graph + CI engine is **reversed from Bazel `rules_rust` to Buck2** and is **Superseded-by ADR-0392** (Buck2 canonical build graph) and **ADR-0408** (Buck2-driven CI/CD). Only §2's build-graph/CI engine is reversed; §1 (strangler-fig), §3 (define-production-100-first), and §4 (masterplan planning authority) remain in force. The Bazel rationale below (incl. the Buck2/Reindeer objection) is preserved as the superseded record; ADR-0392 §2 confronts and accepts that objection explicitly.
+> **Amendment (2026-05-29, founder decision):** §2's toolchain build-graph + CI engine is
+> **reversed from Bazel `rules_rust` to Buck2** and is **amended by ADR-0392** (Buck2 canonical
+> build graph) and **ADR-0408** (Buck2-driven CI/CD). Only §2's build-graph/CI engine is reversed;
+> §1 (strangler-fig), §3 (define-production-100-first), and §4 (masterplan planning authority)
+> remain in force. Neither ADR-0392 nor ADR-0408 fully supersedes this ADR — each reverses only
+> §2; this ADR remains **Accepted** with §2 amended. The Bazel rationale below (incl. the
+> Buck2/Reindeer objection) is preserved as the superseded record; ADR-0392 §2 confronts and
+> accepts that objection explicitly.
 
 ## Date
 

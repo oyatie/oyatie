@@ -1,8 +1,38 @@
 # ring's build.rs compiles C sources + pregenerated aarch64 asm via the cc crate.
-# When .git is absent (packaged crate on crates.io), it uses pregenerated/ asm — no perl needed.
+# When .git is absent (packaged crate on crates.io), it uses pregenerated/ asm -- no perl needed.
 
 [buildscript.run]
-# No per-OS CC/AR — the buck2 prelude (cargo_buildscript.bzl) injects target-correct
+# No per-OS CC/AR -- the buck2 prelude (cargo_buildscript.bzl) injects target-correct
 # CC/CXX/AR from the cxx toolchain (now absolute clang). OPT_LEVEL etc. are still
 # needed by cc-rs (the prelude does not set them). Cross-platform: no darwin triple.
 env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release" }
+
+# ---------------------------------------------------------------------------
+# musl C build env for ring 0.17 (//platforms:linux-aarch64-musl)
+#
+# HAND-EDIT CLASS: durable fixup -- same class as buck2 fixups #93/#91/#96.
+# regen-third-party.sh must re-apply this after every reindeer run.
+#
+# These env vars require $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)
+# and must be injected into ring-0.17-build-script-run via the hand-edit patch
+# (scripts/ci/third-party-buckify-handedits.patch).
+#
+# Intended env additions in ring-0.17-build-script-run:
+#   select({"//platforms:libc_musl": {
+#     "CC_aarch64_unknown_linux_musl": "clang",
+#     "AR_aarch64_unknown_linux_musl": "llvm-ar",
+#     "CFLAGS_aarch64_unknown_linux_musl":
+#       "--target=aarch64-unknown-linux-musl -nostdlibinc"
+#       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include"
+#       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
+#   }, "DEFAULT": {}})
+#
+# Rationale:
+#   CC_aarch64_unknown_linux_musl  -- cc-rs triple-prefixed CC for musl target
+#   AR_aarch64_unknown_linux_musl  -- llvm-ar for static archive creation
+#   CFLAGS_aarch64_unknown_linux_musl:
+#     -nostdlibinc    ring's build.rs sets this itself for aarch64+musl+clang but
+#                     cc-rs needs the isystem paths to find musl headers
+#     -isystem .../include          musl libc headers
+#     -isystem .../include/linux    Linux UAPI headers
+# ---------------------------------------------------------------------------

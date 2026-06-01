@@ -6,6 +6,13 @@ date: 2026-05-30
 owners:
   - council-architecture
   - founder
+supersedes:
+  - ADR-0511
+  - ADR-0380
+  - ADR-0111
+amends:
+  - ADR-0349
+superseded_by: []
 relates:
   - ADR-0380
   - ADR-0111
@@ -106,3 +113,30 @@ unchanged; the gateway is retained.
 
 **Process rule:** the Phase-1 cutover (replacing the live gate) is a deliberate, founder-gated step,
 verified by a parallel-run (both gates green on the same PRs) before deleting the Jenkins path.
+
+## Supersession
+
+This ADR formally supersedes three prior decisions and amends one:
+
+- **Supersedes ADR-0511** ("CI orchestration = Argo Workflows"): ADR-0511 was Proposed but never
+  Accepted. The bespoke-Rust oya-ci controller is the chosen CI-orchestration direction; Argo
+  Workflows (a CNCF OSS adoption) is superseded in favour of the bespoke-over-OSS doctrine that
+  governs this codebase. The correct half of ADR-0511 — self-hosted, k8s-native CI orchestration,
+  no GitHub Actions SPOF — is retained in spirit; only the chosen implementation changes.
+
+- **Supersedes ADR-0380** ("CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo
+  gating"): ADR-0380 established the Jenkins-farm gate path (generic-webhook-trigger + Groovy
+  pipeline + ephemeral agent pods). That path is being retired as described in Phase 1 of this ADR.
+  The five failure modes documented in this ADR's Context section are precisely the ADR-0380 Jenkins
+  path. On Phase-1 cutover (deletion of the Jenkins gate path), ADR-0380's gate design is fully
+  retired; ADR-0513's oya-ci-controller is the replacement.
+
+- **Supersedes (folds) ADR-0111** ("Merge queue: projected-merge-state + fix-at-any-stage"): the
+  merge-queue algorithm defined in ADR-0111 is subsumed by the `tide` phase of oya-ci (Phase 2).
+  The projected-merge-state invariants, fix-at-any-stage re-validation, and fairness rules from
+  ADR-0111 are the specification input for `oya-ci-merge`; they are not separately implemented.
+
+- **Amends ADR-0349** ("Jenkins (LTS) + ArgoCD canonical CI/CD substrate"): this ADR retires ONLY
+  the Jenkins-CI half of ADR-0349. ArgoCD-CD remains the canonical GitOps CD substrate per
+  ADR-0349 and ADR-0375 and is NOT affected by this supersession. ADR-0349's ArgoCD decisions,
+  OpenTofu module homes, cosign-verify policy, and audit-chain emitter integration are unchanged.

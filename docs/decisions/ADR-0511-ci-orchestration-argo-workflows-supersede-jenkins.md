@@ -1,7 +1,7 @@
 ---
 id: ADR-0511
 title: "CI orchestration = Argo Workflows (k8s-native); Jenkins transitory; supersede Proposed ADR-0359"
-status: Proposed
+status: Superseded
 authority: founder
 deciders: founder, council-architecture
 date: 2026-05-29
@@ -9,7 +9,7 @@ owner: council-architecture
 planning_impact: true
 door: two-way
 supersedes: [ADR-0359]
-superseded_by: []
+superseded_by: [ADR-0513]
 amends: []
 related: [ADR-0359, ADR-0358, ADR-0349, ADR-0361, ADR-0363, ADR-0366, ADR-0367, ADR-0369, ADR-0111, ADR-0181, ADR-0387, ADR-0510]
 related_specs: [/specs/ci-farm-substrate-canonical.json, /specs/hyperscaler-architecture-invariants.json]
@@ -23,6 +23,9 @@ purpose: Name Argo Workflows as the destination CI orchestrator (CNCF, k8s-nativ
 # ADR-0511: CI orchestration = Argo Workflows (k8s-native); Jenkins transitory; supersede Proposed ADR-0359
 
 ## Status
+
+~~Proposed~~ **Superseded by ADR-0513** (2026-05-31) — the bespoke-Rust oya-ci controller is the
+chosen CI-orchestration direction over Argo Workflows; see ADR-0513 §Supersession.
 
 Proposed — 2026-05-29. **DRAFT for founder review — do NOT auto-merge.**
 

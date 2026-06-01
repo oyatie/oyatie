@@ -1,0 +1,31 @@
+[package]
+name = "oya-oci-assemble"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Build-host tool: assembles an OCI Image Layout directory from a base
+# OCI-layout tarball + application layer tar.gz files.  Recomputes the
+# manifest, config, and index with correct sha256 digests.
+#
+# Used as an exec_dep by the oci_image Starlark rule (tools/oci/defs.bzl).
+# Runs on darwin aarch64 (assemble/inspect) and linux aarch64 (assemble +
+# push via push-and-sign.sh).  ADR-0514 buck2-native OCI destination.
+
+[[bin]]
+name = "oya-oci-assemble"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true
+tempfile.workspace = true
+walkdir.workspace = true
+
+[lints]
+workspace = true

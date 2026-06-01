@@ -1,6 +1,6 @@
 ---
 id: ADR-0042
-status: superseded
+status: Superseded
 doc_status: published
 superseded_by: [ADR-0383]
 ---

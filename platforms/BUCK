@@ -1,5 +1,40 @@
 load("@prelude//platforms:defs.bzl", "execution_platform", "host_configuration")
 
+# ---------------------------------------------------------------------------
+# libc constraint — selects musl vs glibc ABI at the platform level.
+# Default is glibc (existing behaviour unchanged).
+# ---------------------------------------------------------------------------
+constraint_setting(
+    name = "libc",
+    visibility = ["PUBLIC"],
+)
+
+constraint_value(
+    name = "libc_glibc",
+    constraint_setting = ":libc",
+    visibility = ["PUBLIC"],
+)
+
+constraint_value(
+    name = "libc_musl",
+    constraint_setting = ":libc",
+    visibility = ["PUBLIC"],
+)
+
+# ---------------------------------------------------------------------------
+# linux-aarch64-musl: fully-static target platform.
+# Use with: buck2 build <target> --target-platforms //platforms:linux-aarch64-musl
+# ---------------------------------------------------------------------------
+platform(
+    name = "linux-aarch64-musl",
+    constraint_values = [
+        "prelude//cpu/constraints:arm64",
+        "prelude//os/constraints:linux",
+        ":libc_musl",
+    ],
+    visibility = ["PUBLIC"],
+)
+
 # Host execution platform for macOS aarch64 (matches rust-toolchain.toml target)
 execution_platform(
     name = "default",

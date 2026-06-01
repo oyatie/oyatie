@@ -1,6 +1,6 @@
 ---
 id: ADR-0034
-status: accepted
+status: Accepted
 doc_status: published
 ---
 

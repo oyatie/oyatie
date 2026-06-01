@@ -7,6 +7,8 @@ date: 2026-05-28
 owner: ops-platform
 supersedes: []
 superseded_by: []
+amended_by:
+  - ADR-0515
 related: [ADR-0378, ADR-0349, ADR-0380, ADR-0148, ADR-0083, ADR-0375]
 related_specs: [/specs/deployment-ops-contract.json]
 milestone: M-LOCAL-CI-SUBSTRATE
@@ -47,6 +49,10 @@ purpose: >
 # ADR-0381: Kaniko → BuildKit migration + multi-node Talos cell topology
 
 ## Status
+
+**Amended by ADR-0515** (2026-05-31) — the image-build portion (Kaniko→BuildKit, D1) is superseded
+by ADR-0515's buck2-native OCI assembler; the multi-node Talos cell topology decisions (D2-D4)
+remain canonical and are unaffected.
 
 Proposed (2026-05-28). This ADR captures the decision-space + recommended choice
 + hyperscaler-lens validation for two substrate corrections caught mid-cycle in

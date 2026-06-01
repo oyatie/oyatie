@@ -50,6 +50,9 @@ spec:
       automountServiceAccountToken: {{ .Values.serviceAccount.automountToken }}
       securityContext:
         runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -75,8 +78,18 @@ spec:
             # OYA_GATEWAY_TARGET_BRANCH: the branch PRs must target to be gated.
             - name: OYA_GATEWAY_TARGET_BRANCH
               value: "dev"
+            # OYA_CI_DISPATCHER: selects DispatcherKind in config.rs — "controller"
+            # routes deliveries to the bespoke oya-ci-controller /gate-run path;
+            # "jenkins" (or blank/unrecognised) keeps the legacy Jenkins path.
+            - name: OYA_CI_DISPATCHER
+              value: {{ .Values.dispatcher.kind | quote }}
+            # OYA_CI_CONTROLLER_URL: base URL of the oya-ci-controller /gate-run
+            # endpoint. Only consulted when OYA_CI_DISPATCHER=controller.
+            - name: OYA_CI_CONTROLLER_URL
+              value: {{ .Values.dispatcher.controllerUrl | quote }}
             # OYA_JENKINS_DISPATCH_URL: full HTTP URL the gateway POSTs to kick
             # the oyaCiLane pipeline (generic-webhook-trigger / build-token endpoint).
+            # Only consulted when OYA_CI_DISPATCHER=jenkins.
             - name: OYA_JENKINS_DISPATCH_URL
               value: {{ .Values.jenkins.dispatchUrl | quote }}
             # OYA_FORGEJO_WEBHOOK_SECRET: HMAC-SHA256 secret injected from OpenBao
@@ -102,8 +115,13 @@ spec:
           resources:
 {{ toYaml .Values.resources | indent 12 }}
           securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
             capabilities:
               drop:
                 - ALL

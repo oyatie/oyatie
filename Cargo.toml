@@ -121,6 +121,8 @@ members = [
   "libs/oya-http-telemetry-middleware-infrastructure",
   "libs/oya-http-tenant-middleware-infrastructure",
   "libs/oya-json-kernel",
+  "libs/oya-scm",
+  "libs/oya-scm-forgejo",
   "libs/oya-shared-architecture-check-cli",
   "libs/oya-shared-audit-chain-client-kernel",
   "libs/oya-shared-backbone-grpc-generated-adapter",
@@ -211,6 +213,13 @@ members = [
   "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
   "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-jenkins-adapter",
   "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel",
+  "oya/ci-controller/crates/oya-ci-controller-kernel",
+  "oya/ci-controller/crates/oya-ci-controller-forgejo-adapter",
+  "oya/ci-controller/crates/oya-ci-controller-k8s-adapter",
+  "oya/ci-controller/crates/oya-ci-controller-app",
+  "oya/ci-tide/crates/oya-ci-tide-kernel",
+  "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter",
+  "oya/ci-tide/crates/oya-ci-tide-app",
   "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app",
   "cloud/cloud-billing/crates/oya-billing",
   "cloud/cloud-billing/crates/oya-cloud-billing-domain",
@@ -694,6 +703,7 @@ members = [
   "oya/workflow-studio/crates/oya-workflow-studio-policy-preview-domain",
   "oya/workflow-studio/crates/oya-workflow-studio-visual-canvas-kernel",
   "oya/workplace-integration/crates/oya-workplace-integration-doc-set-scaffold",
+  "tools/oci/crates/oya-oci-assemble",
   "tools/oya-adapter-substitution-test-app",
   "tools/oya-governance-adapter-with-no-importer-app",
   "tools/oya-governance-adr-shape-app",
@@ -1102,6 +1112,12 @@ hyper-rustls = { version = "0.27", default-features = false, features = ["http1"
 # Axum HTTP framework (ADR-0090 sanctioned-with-justification; isolated to app/adapter layers).
 # Used by ci-webhook-gateway and similar microservices that expose HTTP surfaces.
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+# reqwest HTTP client — workspace pin so all crates share one resolved version.
+# Used by ci-controller-forgejo-adapter (status poster), ci-tide-forgejo-adapter
+# (Forgejo status/merge API), and gateway adapters. Destination is hyper-direct per line 1094.
+# blocking feature: adapter layers implementing synchronous kernel traits.
+# rustls: TLS via aws-lc-rs/rustls (no native-tls / OpenSSL dep).
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }
 # Tower middleware stack — utility layer for axum/hyper service composition.
 tower = { version = "0.5", default-features = false, features = ["util"] }
 # RustCrypto HMAC + SHA-2 + constant-time comparison (ci-webhook-gateway webhook verification).

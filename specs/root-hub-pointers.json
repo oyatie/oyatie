@@ -145,6 +145,20 @@
       "migration_phase": "complete",
       "purpose": "This file itself — canonical machine-readable pointer registry. Self-reference present so every spec has a discoverable entry_point row (per OP-11 no-stubs-no-defer)."
     },
+    "canonical_primitives": {
+      "kind": "spec",
+      "current_path": "/specs/canonical-primitives.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Machine-readable source of truth for the canonical-primitives session-context payload rendered by tools/hooks/session-start-context-inject.sh; supersedes the retired hand-maintained markdown cheat sheet."
+    },
+    "agent_hook_runtime_manifest": {
+      "kind": "spec",
+      "current_path": "/specs/agent-hook-runtime-manifest.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Machine-readable manifest for the first-class non-OMC/non-OMX project hook runtime across Codex and Gemini; declares allowed runtime hooks, side-effect boundaries, OMC/Claude ownership boundary, bootstrap exception policy, and retired hook surfaces."
+    },
     "doc_catalog": {
       "kind": "registry",
       "current_path": "docs/DOC-CATALOG.md",

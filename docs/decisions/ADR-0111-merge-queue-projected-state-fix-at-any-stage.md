@@ -1,11 +1,11 @@
 ---
-status: Proposed
+status: Superseded
 planning_impact: true
 deciders: council-foundry-vcs, council-architecture
 date: 2026-05-16
 owner: council-foundry-vcs
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0513]
 related:
   - ADR-0110-changeset-state-machine.md
   - ADR-0112-webhook-driven-foundry-agent-invocation.md
@@ -14,6 +14,11 @@ purpose: Define the merge-queue algorithm (projected-merge-state diff validation
 ---
 
 # ADR-0111: Merge queue: projected-merge-state + fix-at-any-stage
+
+## Status
+
+~~Proposed~~ **Superseded by ADR-0513** (2026-05-31) — the merge-queue algorithm defined here is
+folded into the `tide` phase of oya-ci; see ADR-0513 §Supersession.
 
 ## Context
 

@@ -1,11 +1,11 @@
 ---
 id: ADR-0136
-status: Accepted
+status: Superseded
 deciders: council-architecture, council-product, council-privacy, axis-foundry, axis-foundry-runtime, axis-foundry-supervisor, axis-foundry-eval, axis-foundry-evidence, axis-foundry-guardrails, axis-foundry-providers, ops-sre-reliability
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0247]
 related: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0137, ADR-0138]
 related_memory: [feedback_no_silent_regression, feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145), feedback_bominal_inheritance_precedence, feedback_quality_performance_scalability_bar, feedback_flat_product_catalog]
 related_specs:

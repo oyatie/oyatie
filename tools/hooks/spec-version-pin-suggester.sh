@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/hooks/spec-version-pin-suggester.sh
 #
-# Trigger:  Claude Code PostToolUse(Edit|Write) where target matches contracts/*.{yaml,yml,json}
+# Trigger:  Codex PostToolUse(Edit|Write) / Gemini AfterTool(edit|write) where target matches contracts/*.{yaml,yml,json}
 # Purpose:  After editing a contract file, check spec versions and suggest corrections
 #           if OpenAPI != 3.2.0 or AsyncAPI != 3.1.0. Advisory only.
 # Behavior: Greps the written file for version declarations. If wrong version found,
@@ -15,11 +15,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Extract file path from tool input.
-# WHY the .tool_input.* keys: real Claude Code (and Codex) deliver hook input as a
+# WHY the .tool_input.* keys: Codex-compatible hook runners deliver hook input as a
 # JSON object on STDIN with the path nested under tool_input (PostToolUse shape:
-# {"tool_input":{"file_path":"..."}}) — confirmed by code.claude.com/docs hooks
-# reference + developers.openai.com/codex/hooks (both: "all hooks receive JSON on
-# stdin; no env var carries the event data"). The flat .path/.file_path keys are
+# {"tool_input":{"file_path":"..."}}). The flat .path/.file_path keys are
 # retained for the TOOL_INPUT env path used only by the CI governance harness
 # (tools/governance/adr-0221-governance-gates.sh), so both surfaces keep working.
 FILE_PATH=""

@@ -1,12 +1,12 @@
 ---
 id: ADR-0380
-status: Accepted (amendment)
+status: Superseded
 planning_impact: true
 deciders: founder, ops-platform, council-architecture
 date: 2026-05-28
 owner: ops-platform
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0513]
 related: [ADR-0374, ADR-0378, ADR-0379, ADR-0363, ADR-0349, ADR-0359, ADR-0361, ADR-0148, ADR-0360, ADR-0111]
 related_specs: [/specs/deployment-ops-contract.json]
 milestone: M-LOCAL-CI-SUBSTRATE
@@ -55,6 +55,10 @@ purpose: >
 # ADR-0380 — CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo gating
 
 ## Status
+
+~~Accepted (amendment)~~ **Superseded by ADR-0513** (2026-05-31) — the Jenkins-farm gate path
+established here is retired by oya-ci; see ADR-0513 §Supersession.
+
 Accepted (2026-05-28), Amended (2026-05-28). Builds on ADR-0374 (CI webhook gateway,
 deployed PR #233), ADR-0378 (vfkit + Talos canonical substrate), ADR-0379 (Kubewarden
 default), and ADR-0363 (git + Jenkins + Forgejo substrate doctrine). Sequences the

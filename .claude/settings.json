@@ -1,7 +1,7 @@
 {
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "oya-bootstrap-v1",
-  "_note": "Project-scoped Claude Code hooks. install.sh is the generator; sync edits here back into install.sh for permanence. 2026-05-29 security redesign: sandbox block (OS-enforced macOS Seatbelt) replaces bypassable regex exfil-guard + no-secret-leak hooks — those were security theater. Hooks are monitoring/advisory only. sandbox.filesystem.denyRead covers the Bash tool + children ONLY — the permissions.deny Read(...) rules below close the Read/Edit-tool credential-read gap (the two layers MERGE).",
+  "_note": "Project-scoped Claude Code settings. Runtime hook commands are intentionally omitted so OMC owns Claude hook orchestration without project-level non-OMC hook conflicts; Codex/Gemini project hooks are declared in specs/agent-hook-runtime-manifest.json.",
   "sandbox": {
     "enabled": true,
     "failIfUnavailable": false,
@@ -64,59 +64,5 @@
       "Read(**/secrets/**)"
     ],
     "disableBypassPermissionsMode": "disable"
-  },
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/session-start-context-inject.sh" }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh" }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" },
-          { "type": "command", "command": "tools/hooks/stale-tool-suggester.sh" }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh" },
-          { "type": "command", "command": "tools/hooks/adr-orphan-detect.sh" },
-          { "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh" }
-        ]
-      },
-      {
-        "matcher": "Bash|WebFetch|WebSearch",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/injection-content-scanner.sh" }
-        ]
-      }
-    ]
   }
 }

@@ -20,6 +20,8 @@ owners:
   - council-security
 supersedes: []
 superseded_by: []
+amended_by:
+  - ADR-0513
 amends:
   - ADR-0028-cloud-microservice-architecture.md (the cloud-microservice architecture declared K8s + IaaS + control-plane primitives; this ADR layers two named CI/CD substrate primitives — Jenkins for self-hostable CI and ArgoCD for declarative GitOps CD — onto that architecture so every microservice gains a canonical CI/CD chain rather than an ad-hoc per-context deployment script set. The architecture is preserved verbatim; Jenkins + ArgoCD become the canonical CI/CD layer per microservice without changing the underlying K8s + cell topology)
   - ADR-0181-cosign-signed-artifacts-and-modules.md (the cosign-signed artifact discipline is preserved verbatim; this ADR clarifies that ArgoCD's image-fetch path MUST verify cosign signatures before sync per the existing image-promotion-pipeline contract — ArgoCD becomes the post-pipeline runtime enforcer for the signed-image discipline, not a new gate)
@@ -179,6 +181,9 @@ purpose: >
 # ADR-0349: Jenkins (LTS) + ArgoCD canonical self-hostable CI/CD substrate (Jenkins augments GitHub Actions for self-hostable contexts; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164)
 
 ## Status
+
+**Amended by ADR-0513** (2026-05-31) — the Jenkins-CI portion of this ADR is retired by ADR-0513;
+ArgoCD-CD remains canonical and is unaffected.
 
 Proposed on 2026-05-21.
 

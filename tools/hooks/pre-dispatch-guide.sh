@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/hooks/pre-dispatch-guide.sh
 #
-# Trigger:  Claude Code PreToolUse(Agent) or PreToolUse(Task)
+# Trigger:  Codex PreToolUse(Task) / Gemini BeforeTool(agent)
 # Purpose:  When an agent dispatch is too sparse (short prompt, missing evidence
 #           pointers), offer a structured guidance reminder. Encouragement, not blockage.
 # Behavior: Reads dispatch prompt from $TOOL_INPUT or stdin. If prompt is <200 chars
@@ -11,10 +11,10 @@
 
 set -uo pipefail
 
-# WHY .tool_input.*: real Claude Code / Codex deliver PreToolUse:Task input as JSON on
+# WHY .tool_input.*: Codex-compatible hook runners deliver PreToolUse:Task input as JSON on
 # STDIN with the dispatch prompt nested under tool_input ({"tool_input":{"prompt":"..."}}).
-# Flat .prompt/.description/.input kept for the TOOL_INPUT env fallback. See
-# code.claude.com/docs hooks + developers.openai.com/codex/hooks.
+# Flat .prompt/.description/.input keys are kept for the TOOL_INPUT env fallback
+# used by local tests and compatibility runners.
 PROMPT_TEXT=""
 if [ -n "${TOOL_INPUT:-}" ]; then
     if command -v jq >/dev/null 2>&1; then

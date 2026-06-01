@@ -1,0 +1,25 @@
+[package]
+name = "oya-scm"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# SCM-agnostic trait kernel for the Oyatie CI stack (ADR-0517).
+# Pure-Rust; no I/O deps. Defines the Scm trait + neutral types (PullRequest,
+# CommitStatus, Review, MergeMethod, ChangeSet) and a MockScm test double.
+# ForgejoScm (oya-scm-forgejo) is the default/interim adapter.
+
+[lib]
+name = "oya_scm"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true }
+
+[dev-dependencies]
+
+[lints]
+workspace = true

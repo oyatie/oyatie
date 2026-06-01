@@ -14,6 +14,14 @@ pub const ENV_WEBHOOK_SECRET: &str = "OYA_FORGEJO_WEBHOOK_SECRET";
 /// Env var carrying the Jenkins dispatch base URL (the generic-webhook-trigger
 /// or build-token endpoint that kicks the `oyaCiLane` pipeline).
 pub const ENV_JENKINS_DISPATCH_URL: &str = "OYA_JENKINS_DISPATCH_URL";
+/// Env var selecting which dispatcher to use: `jenkins` (default) or
+/// `controller`. Absent / blank / unrecognised all default to `jenkins` so
+/// this change is purely additive and behaviour-preserving.
+pub const ENV_CI_DISPATCHER: &str = "OYA_CI_DISPATCHER";
+/// Env var carrying the oya-ci-controller `/gate-run` base URL (e.g.
+/// `http://oya-ci-controller.oya-ci.svc:8080`). Only consulted when
+/// `OYA_CI_DISPATCHER=controller`.
+pub const ENV_CONTROLLER_URL: &str = "OYA_CI_CONTROLLER_URL";
 /// Env var carrying the branch the gateway gates PRs against (default `dev`).
 pub const ENV_TARGET_BRANCH: &str = "OYA_GATEWAY_TARGET_BRANCH";
 /// Env var carrying the bind address (default `0.0.0.0:8099`).
@@ -23,6 +31,25 @@ pub const ENV_BIND_ADDR: &str = "OYA_GATEWAY_BIND_ADDR";
 /// RFC 4648 base64, with or without padding). When unset the HMAC path is the
 /// only accepted signature scheme.
 pub const ENV_WEBHOOK_ED25519_PUBKEY: &str = "OYA_FORGEJO_WEBHOOK_ED25519_PUBKEY";
+
+/// Which dispatcher the gateway should use to kick the downstream pipeline.
+/// Default is `Jenkins` — the existing, stable path. `Controller` is the new
+/// bespoke path, opt-in via `OYA_CI_DISPATCHER=controller`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DispatcherKind {
+    Jenkins,
+    Controller,
+}
+
+impl DispatcherKind {
+    /// Parse from the env-var string value. Unrecognised / blank → `Jenkins`.
+    pub fn from_str(s: &str) -> Self {
+        match s.trim().to_ascii_lowercase().as_str() {
+            "controller" => DispatcherKind::Controller,
+            _ => DispatcherKind::Jenkins,
+        }
+    }
+}
 
 /// The default branch the gateway gates PRs against, per ADR-0363 (dev is the
 /// PR target; promotion to staging/production is fast-forward).
@@ -40,6 +67,11 @@ pub struct GatewayConfig {
     /// transport error instead of silently succeeding.
     pub jenkins_dispatch_url: Option<String>,
     pub secret_present: bool,
+    /// Which dispatcher to use. Defaults to `Jenkins` (additive / reversible).
+    pub dispatcher_kind: DispatcherKind,
+    /// `None` when `OYA_CI_CONTROLLER_URL` is unset. Only consulted when
+    /// `dispatcher_kind == Controller`.
+    pub controller_url: Option<String>,
 }
 
 impl GatewayConfig {
@@ -52,11 +84,18 @@ impl GatewayConfig {
         let secret_present = get(ENV_WEBHOOK_SECRET)
             .map(|v| !v.trim().is_empty())
             .unwrap_or(false);
+        let dispatcher_kind = get(ENV_CI_DISPATCHER)
+            .as_deref()
+            .map(DispatcherKind::from_str)
+            .unwrap_or(DispatcherKind::Jenkins);
+        let controller_url = get(ENV_CONTROLLER_URL).filter(|v| !v.trim().is_empty());
         GatewayConfig {
             bind_addr,
             target_branch,
             jenkins_dispatch_url,
             secret_present,
+            dispatcher_kind,
+            controller_url,
         }
     }
 
@@ -110,6 +149,9 @@ mod tests {
         assert_eq!(cfg.target_branch, "dev");
         assert!(cfg.jenkins_dispatch_url.is_none());
         assert!(!cfg.secret_present);
+        // Default dispatcher must be Jenkins so the change is additive.
+        assert_eq!(cfg.dispatcher_kind, DispatcherKind::Jenkins);
+        assert!(cfg.controller_url.is_none());
     }
 
     #[test]
@@ -124,6 +166,30 @@ mod tests {
         let cfg = GatewayConfig::from_lookup(lookup(map));
         assert!(cfg.jenkins_dispatch_url.is_some());
         assert!(cfg.secret_present);
+    }
+
+    #[test]
+    fn dispatcher_kind_controller_selected_by_env() {
+        let mut map = HashMap::new();
+        map.insert(ENV_CI_DISPATCHER, "controller");
+        map.insert(
+            ENV_CONTROLLER_URL,
+            "http://oya-ci-controller.oya-ci.svc:8080",
+        );
+        let cfg = GatewayConfig::from_lookup(lookup(map));
+        assert_eq!(cfg.dispatcher_kind, DispatcherKind::Controller);
+        assert_eq!(
+            cfg.controller_url.as_deref(),
+            Some("http://oya-ci-controller.oya-ci.svc:8080")
+        );
+    }
+
+    #[test]
+    fn unrecognised_dispatcher_value_falls_back_to_jenkins() {
+        let mut map = HashMap::new();
+        map.insert(ENV_CI_DISPATCHER, "bogus");
+        let cfg = GatewayConfig::from_lookup(lookup(map));
+        assert_eq!(cfg.dispatcher_kind, DispatcherKind::Jenkins);
     }
 
     #[test]

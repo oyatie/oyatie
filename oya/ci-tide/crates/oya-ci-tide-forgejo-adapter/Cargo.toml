@@ -1,0 +1,25 @@
+[package]
+name = "oya-ci-tide-forgejo-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Forgejo API client adapter for the oya-ci tide component.
+# Implements kernel::ForgejoClient via reqwest blocking HTTP.
+# Mirrors oya-ci-controller-forgejo-adapter pattern (ADR-0513 Phase 2).
+
+[lib]
+name = "oya_ci_tide_forgejo_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-ci-tide-kernel = { path = "../oya-ci-tide-kernel" }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

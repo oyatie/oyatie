@@ -1,6 +1,6 @@
 ---
 id: ADR-0316
-status: Proposed
+status: Superseded
 planning_impact: true
 date: 2026-05-20
 owners:

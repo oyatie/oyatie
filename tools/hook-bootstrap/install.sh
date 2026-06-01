@@ -2,9 +2,10 @@
 # tools/hook-bootstrap/install.sh
 #
 # Purpose: Idempotent single-command bootstrap for the oyatie contributor environment.
-#          Installs: (a) hook entries in .claude/settings.json (project-scoped),
-#          (b) optionally project-scoped .codex/hooks.json if Codex detected,
-#          (c) optionally project-scoped .gemini/settings.json if Gemini detected,
+#          Installs: (a) project-scoped .codex/hooks.json if Codex detected,
+#          (b) project-scoped .gemini/settings.json if Gemini detected,
+#          (c) verifies .claude/settings.json carries no project runtime hooks
+#              because OMC owns Claude hook orchestration,
 #          (d) vendors agent-skills from addyosmani/agent-skills if reachable,
 #          (e) suggests direnv allow or prints manual PATH instructions.
 # (Hermes CLI detection was dropped per ADR-0335 Wave 15I + ADR-0247 D-10 — Hermes name retired.)
@@ -15,8 +16,9 @@
 #   ./tools/hook-bootstrap/install.sh --skip-skills # skip agent-skills fetch (offline)
 #   ./tools/hook-bootstrap/install.sh --sync-skills # check drift; scheduled workflow owns re-vendor PRs
 #
-# Reproducibility: writes only to .claude/settings.json, .codex/hooks.json (if Codex
-# detected), .gemini/settings.json (if Gemini detected), and tools/agent-skills/.
+# Reproducibility: writes only to .claude/settings.json (settings boundary only; no
+# runtime hooks), .codex/hooks.json (if Codex detected), .gemini/settings.json (if
+# Gemini detected), and tools/agent-skills/.
 # Never writes to user-level (~/.claude, ~/.codex, ~/.gemini).
 # Non-blocking: exits 0 on success; exits 1 only on hard errors (malformed settings.json,
 # missing executable bits on hook scripts).
@@ -67,11 +69,9 @@ echo ""
 HOOKS_DIR="$REPO_ROOT/tools/hooks"
 HOOK_SCRIPTS=(
     session-start-context-inject.sh
-    userprompt-canonical-primer.sh
     stop-did-you-forget-suggester.sh
     no-cargo-enforcer.sh
     injection-content-scanner.sh
-    stale-tool-suggester.sh
     pre-dispatch-guide.sh
     spec-version-pin-suggester.sh
     adr-orphan-detect.sh
@@ -95,35 +95,58 @@ for script in "${HOOK_SCRIPTS[@]}"; do
 done
 ok "Hook scripts verified (${#HOOK_SCRIPTS[@]} scripts)"
 
-# ── Install .claude/settings.json ───────────────────────────────────────────
+# ── Enforce Claude/OMC hook boundary ────────────────────────────────────────
 
 CLAUDE_DIR="$REPO_ROOT/.claude"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 
-log "Installing hooks into .claude/settings.json..."
+log "Checking .claude/settings.json OMC hook boundary..."
 
 if $DRY_RUN; then
-    dry "Would write $SETTINGS_FILE with ${#HOOK_SCRIPTS[@]} hook entries (marker: $MARKER)"
+    dry "Would ensure $SETTINGS_FILE exists with marker '$MARKER' and no project runtime hooks"
     dry "Would create $CLAUDE_DIR if missing"
 else
     mkdir -p "$CLAUDE_DIR"
+    if command -v python3 >/dev/null 2>&1; then
+        CLAUDE_BOUNDARY_RESULT=$(python3 - "$SETTINGS_FILE" "$MARKER" <<'PYEOF'
+import json
+import pathlib
+import sys
 
-    # If settings.json exists and already has our marker, it's idempotent — skip
-    if [ -f "$SETTINGS_FILE" ] && grep -q "\"$MARKER\"" "$SETTINGS_FILE" 2>/dev/null; then
-        ok ".claude/settings.json already contains bootstrap hooks (idempotent)"
-    else
-        # Write the canonical settings.json (source-of-truth version in repo)
-        CANONICAL_SETTINGS="$REPO_ROOT/.claude/settings.json"
-        if [ -f "$CANONICAL_SETTINGS" ] && [ "$CANONICAL_SETTINGS" != "$SETTINGS_FILE" ]; then
-            cp "$CANONICAL_SETTINGS" "$SETTINGS_FILE"
-        fi
-        # If settings.json already exists (not from us), merge our hooks block
-        if [ -f "$SETTINGS_FILE" ] && ! grep -q "\"$MARKER\"" "$SETTINGS_FILE" 2>/dev/null; then
-            # settings.json exists without our marker — it's the one we just wrote or a pre-existing one
-            ok ".claude/settings.json written with bootstrap hooks"
+path = pathlib.Path(sys.argv[1])
+marker = sys.argv[2]
+
+if path.exists():
+    with path.open(encoding="utf-8") as handle:
+        data = json.load(handle)
+else:
+    data = {}
+
+removed_hooks = "hooks" in data
+data.pop("hooks", None)
+data["_managed_by"] = "tools/hook-bootstrap/install.sh"
+data["_marker"] = marker
+data["_note"] = (
+    "Project-scoped Claude Code settings. Runtime hook commands are intentionally "
+    "omitted so OMC owns Claude hook orchestration without project-level non-OMC "
+    "hook conflicts; Codex/Gemini project hooks are declared in "
+    "specs/agent-hook-runtime-manifest.json."
+)
+
+with path.open("w", encoding="utf-8") as handle:
+    json.dump(data, handle, indent=2)
+    handle.write("\n")
+
+print("removed-hooks" if removed_hooks else "clean")
+PYEOF
+)
+        if [ "$CLAUDE_BOUNDARY_RESULT" = "removed-hooks" ]; then
+            ok ".claude/settings.json stripped of project runtime hooks (OMC owns Claude hooks)"
         else
-            ok ".claude/settings.json written with bootstrap hooks"
+            ok ".claude/settings.json has no project runtime hooks (OMC boundary clean)"
         fi
+    else
+        warn "python3 not available; cannot verify .claude/settings.json hook boundary automatically"
     fi
 fi
 
@@ -156,13 +179,6 @@ if $CODEX_DETECTED; then
         ]
       }
     ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh" }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [
@@ -174,8 +190,7 @@ if $CODEX_DETECTED; then
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" },
-          { "type": "command", "command": "tools/hooks/stale-tool-suggester.sh" }
+          { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" }
         ]
       },
       {
@@ -233,37 +248,59 @@ if $GEMINI_DETECTED; then
 
     # Event-name mapping (Gemini → equivalent Claude event):
     #   SessionStart   = SessionStart
-    #   BeforeAgent    = UserPromptSubmit
     #   AfterAgent     = Stop
     #   BeforeTool     = PreToolUse
     #   AfterTool      = PostToolUse
     GEMINI_CONTENT='{
   "_managed_by": "tools/hook-bootstrap/install.sh",
   "_marker": "'"$MARKER"'",
-  "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security redesign: removed exfil-guard + no-secret-leak (bypassable regex — security theater); OS sandbox + permissions deny rules are the real gate; injection-content-scanner retained (advisory only).",
+  "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh. Hooks use the current settings.json event/group schema and avoid retired wrapper command hints; OS sandbox + permissions deny rules are the real gate; injection-content-scanner retained (advisory only).",
   "hooks": {
     "SessionStart": [
-      { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "oya-session-context" }
-    ],
-    "BeforeAgent": [
-      { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh", "name": "oya-canonical-primer" }
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "project-session-context" }
+        ]
+      }
     ],
     "AfterAgent": [
-      { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "oya-did-you-forget" }
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "project-did-you-forget" }
+        ]
+      }
     ],
     "BeforeTool": [
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh",    "name": "oya-no-cargo" },
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/stale-tool-suggester.sh",  "name": "oya-stale-tool" },
-      { "matcher": "agent", "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh",    "name": "oya-pre-dispatch" }
+      {
+        "matcher": "run_shell_command|bash|Bash",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh", "name": "project-no-cargo" }
+        ]
+      },
+      {
+        "matcher": "agent|Task",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh", "name": "project-pre-dispatch" }
+        ]
+      }
     ],
     "AfterTool": [
-      { "matcher": "bash",  "type": "command", "command": "tools/hooks/injection-content-scanner.sh", "name": "oya-injection-bash" },
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-edit" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-write" },
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-edit" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-write" },
-      { "matcher": "edit",  "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh",  "name": "oya-vacuous-green-edit" },
-      { "matcher": "write", "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh",  "name": "oya-vacuous-green-write" }
+      {
+        "matcher": "run_shell_command|bash|Bash",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/injection-content-scanner.sh", "name": "project-injection-shell" }
+        ]
+      },
+      {
+        "matcher": "write_file|replace|edit|write|Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "project-spec-version" },
+          { "type": "command", "command": "tools/hooks/adr-orphan-detect.sh", "name": "project-adr-orphan" },
+          { "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh", "name": "project-vacuous-green" }
+        ]
+      }
     ]
   }
 }'
@@ -560,7 +597,7 @@ if command -v direnv >/dev/null 2>&1; then
         dry "Would suggest: direnv allow $REPO_ROOT"
     else
         info "direnv detected. Run: direnv allow"
-        info "  This adds bin/ to PATH so \`oya\` resolves without the full cargo invocation."
+        info "  This adds bin/ to PATH for repo-local helper scripts when needed."
     fi
 else
     info "direnv not installed. Add bin/ to PATH manually:"
@@ -577,9 +614,8 @@ echo ""
 if $DRY_RUN; then
     ok "[dry-run] No changes written. Remove --dry-run to apply."
 else
-    ok "${#HOOK_SCRIPTS[@]} hooks installed → .claude/settings.json"
-    ok "CLI wrapper available → bin/oya"
-    ok "Shell completions at → tools/completions/{bash,zsh,fish}"
+    ok "Claude Code project hook boundary clean → .claude/settings.json (no runtime hooks; OMC owns Claude hooks)"
+    ok "${#HOOK_SCRIPTS[@]} runtime hooks available for Codex/Gemini configs"
     if $CODEX_DETECTED; then
         ok "Codex hooks installed → .codex/hooks.json"
     fi
@@ -592,7 +628,7 @@ else
     SKILL_COUNT_FINAL=$(find "$REPO_ROOT/tools/agent-skills/skills" -maxdepth 1 -type d 2>/dev/null | tail -n +2 | wc -l | tr -d ' ' || echo "0")
     ok "Agent skills vendored at tools/agent-skills/ ($SKILL_COUNT_FINAL skills available; see docs/bootstrap.md)"
     ok "Slash commands linked → .claude/commands/ + .gemini/commands/ (if detected)"
-    ok "Per-agent skills discovery → .{claude,codex,gemini,hermes}/skills/ (symlink-per-agent; single source)"
+    ok "Per-agent skills discovery → .{claude,codex,gemini}/skills/ (symlink-per-agent; single source)"
     echo ""
     echo "Security: see docs/security.md (OS sandbox + permissions deny rules)."
     echo "  Keep secrets OUT of the agent's shell env — source them just-in-time inside"
@@ -601,10 +637,9 @@ else
     echo ""
     echo "Next steps:"
     echo "  1. direnv allow                    (or add bin/ to PATH manually)"
-    echo "  2. oya --help                      (verify CLI wrapper)"
-    echo "  3. git status --short              (plain VCS surface)"
-    echo "  4. ./bin/oya verify --ci-required  (local governance verifier)"
-    echo "  5. See docs/bootstrap.md for full contributor guide"
+    echo "  2. git status --short              (plain VCS surface)"
+    echo "  3. Check CI/controller status plus reviewer approval before merge"
+    echo "  4. See docs/bootstrap.md for full contributor guide"
 fi
 echo ""
 

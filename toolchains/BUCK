@@ -5,18 +5,41 @@ load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain")
 load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
 load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
 
+# ---------------------------------------------------------------------------
 # Rust 1.95.0 toolchain — pinned to match rust-toolchain.toml
-# rustc is resolved via rustup shim; PATH must include ~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin
+#
+# For the musl platform (//platforms:linux-aarch64-musl) the toolchain
+# selects aarch64-unknown-linux-musl as the rustc target triple.
+#
+# musl linker strategy: -C link-self-contained=yes -C linker=rust-lld
+#   * link-self-contained=yes: rustc bundles all CRT objects + libgcc stubs
+#     from the bundled musl-aware sysroot, bypassing the host gcc toolchain.
+#     This avoids the aarch64 static-pie segfault (rust#95926).
+#   * crt-static is the DEFAULT for musl targets (target_feature +crt-static
+#     is set automatically); no explicit +crt-static flag needed here.
+#   * Do NOT route through mold or gcc for musl — both produce broken binaries.
+# ---------------------------------------------------------------------------
 system_rust_toolchain(
     name = "rust",
     default_edition = "2024",
+    rustc_target_triple = select({
+        "root//platforms:libc_musl": "aarch64-unknown-linux-musl",
+        "DEFAULT": "aarch64-unknown-linux-gnu",
+    }),
+    rustc_flags = select({
+        "root//platforms:libc_musl": [
+            "-Clink-self-contained=yes",
+            "-Clinker=rust-lld",
+        ],
+        "DEFAULT": [],
+    }),
     visibility = ["PUBLIC"],
 )
 
 # Absolute compiler paths (not bare "clang") so the prelude's build-script cc-shim
 # resolves the compiler regardless of the action PATH — root cause of the Linux
 # `exec failed ['clang' ... FileNotFoundError`. /usr/bin/clang + /usr/bin/ar exist on
-# BOTH darwin-arm64 and linux-arm64 → cross-platform-correct. With this, the prelude
+# BOTH darwin-arm64 and linux-arm64 -> cross-platform-correct. With this, the prelude
 # injects CC/CXX/AR into build scripts (ring/aws-lc-sys/openssl-sys), so their fixups
 # must NOT hardcode per-OS CC. (Hermetic step later: absolute host paths -> cell artifacts.)
 system_cxx_toolchain(
@@ -59,7 +82,7 @@ system_python_bootstrap_toolchain(
 # (RemoteTestExecutionToolchainInfo). Without :test, any rust_test target fails to
 # CONFIGURE ("Unknown target `test`"), so the gate's test phase can never run. Local
 # execution (no RE configured) runs tests on the gate pod. Prerequisite for #84 (emit
-# rust_test → gate builds AND TESTS). The RE target is wired now for when NativeLink RE lands.
+# rust_test -> gate builds AND TESTS). The RE target is wired now for when NativeLink RE lands.
 noop_test_toolchain(
     name = "test",
     visibility = ["PUBLIC"],

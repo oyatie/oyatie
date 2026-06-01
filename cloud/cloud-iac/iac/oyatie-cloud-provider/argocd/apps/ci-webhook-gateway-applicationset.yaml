@@ -73,9 +73,15 @@ spec:
     spec:
       project: oya-oyatie-cloud-provider-tenants
       source:
+        # DURABILITY PRE-SYNC: https://git.oyatie.internal/oyatie/oyatie.git MUST
+        # resolve to the live Forgejo remote (ADR-0363 Forgejo-of-record) before the
+        # first ArgoCD sync — ArgoCD cannot clone this source until that internal DNS
+        # + Forgejo repo mirror is live, so the initial reconcile will fail otherwise.
         repoURL: https://git.oyatie.internal/oyatie/oyatie.git
         targetRevision: '{{ .targetRevision }}'
-        path: microservices/ci-webhook-gateway/iac/k8s/helm
+        # CI services moved under oya/ (ADR-0131 flat layout); chart now lives at
+        # oya/ci-webhook-gateway/iac/k8s/helm (was microservices/ci-webhook-gateway/...).
+        path: oya/ci-webhook-gateway/iac/k8s/helm
         helm:
           releaseName: ci-webhook-gateway
           valueFiles:
@@ -105,6 +111,13 @@ spec:
               value: fd-001
             - name: otel.endpoint
               value: http://otel-collector.observability.svc.cluster.local:4317
+            # Dispatch to the bespoke oya-ci-controller (plank + crier) gate loop,
+            # not Jenkins. Matches dispatcher.* keys/defaults in
+            # oya/ci-webhook-gateway/iac/k8s/helm/values.yaml.
+            - name: dispatcher.kind
+              value: controller
+            - name: dispatcher.controllerUrl
+              value: http://oya-ci-controller.oya-ci.svc.cluster.local:8081
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{ .namespace }}'

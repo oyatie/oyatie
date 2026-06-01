@@ -1,8 +1,10 @@
 ---
 id: ADR-0116
-status: accepted
+status: Accepted
 planning_impact: true
 doc_status: published
+supersedes: [ADR-0054]
+superseded_by: []
 ---
 
 # ADR-0116: Retire external agent-coordination tooling (grit, rtk, icm, vox) in favour of the Foundry pipeline

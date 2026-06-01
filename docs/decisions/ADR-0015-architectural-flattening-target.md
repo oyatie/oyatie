@@ -1,6 +1,6 @@
 ---
 id: ADR-0015
-status: accepted
+status: Accepted
 doc_status: published
 superseded_by: [ADR-0131]
 supersession_note: "Partial — ADR-0131 supersedes only the docs-vs-crates top-level split for per-service ownership; ADR-0015's BC and layer rules remain in force, so status stays accepted."
@@ -16,6 +16,8 @@ supersession_note: "Partial — ADR-0131 supersedes only the docs-vs-crates top-
 > **Related:** ADR-0001, ADR-0002, ADR-0006, ADR-0011, ADR-0014, ADR-0017, ADR-0105, ADR-0106
 
 > **ADR-0106 amendment note (2026-05-16):** this older title/body uses the pre-ADR-0106 terms `application`/`runtime`. Current canonical roles are defined by ADR-0105 + ADR-0106: `usecase` replaces `application`, `app` is the deployable/composition-root layer, and `app -> app` remains forbidden. Shared orchestration belongs in `usecase`.
+
+> **Partial supersession note:** Partially superseded by ADR-0131 (per-µservice flat layout) — amended-in-part, not fully retired. ADR-0131 supersedes only the docs-vs-crates top-level split for per-service ownership; ADR-0015's BC and layer rules remain in force.
 
 ---
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # tools/hooks/vacuous-green-gate-detect.sh
 #
-# Trigger:  Claude Code PostToolUse(Edit|Write) where target is registry/quality/lanes.yaml
-#           or under crates/oya-check-*/
+# Trigger:  Codex PostToolUse(Edit|Write) / Gemini AfterTool(edit|write) where target is registry/quality/lanes.yaml
+#           or under governance check crates
 # Purpose:  Detect potential vacuous-green test patterns: gates that pass with zero
 #           assertions or trivially true bodies. Advisory measurement, not enforcement.
 # Behavior: Greps the edited file for known vacuous-green heuristics:
@@ -15,10 +15,10 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# WHY .tool_input.*: real Claude Code / Codex deliver hook input as JSON on STDIN
+# WHY .tool_input.*: Codex-compatible hook runners deliver hook input as JSON on STDIN
 # with the edited path nested under tool_input ({"tool_input":{"file_path":"..."}}).
 # The flat .path/.file_path keys are kept for the TOOL_INPUT env path used by the CI
-# governance harness only. See code.claude.com/docs hooks + developers.openai.com/codex/hooks.
+# governance harness only.
 FILE_PATH=""
 if [ -n "${TOOL_INPUT:-}" ]; then
     if command -v jq >/dev/null 2>&1; then
@@ -38,8 +38,8 @@ if [ -z "$FILE_PATH" ]; then
     exit 0
 fi
 
-# Only act on lanes.yaml or oya-check-* crate files
-if ! echo "$FILE_PATH" | grep -qE 'registry/quality/lanes\.yaml|crates/oya-check-' 2>/dev/null; then
+# Only act on lanes.yaml or governance check crate files
+if ! echo "$FILE_PATH" | grep -qE 'registry/quality/lanes\.yaml|crates/[^/]*check-' 2>/dev/null; then
     exit 0
 fi
 
