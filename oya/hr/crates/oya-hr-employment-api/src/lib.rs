@@ -12,9 +12,10 @@ use oya_hr_employment_app::{
     LeavePayrollImpactOutcome, OnboardEmployeeCommand, SensitiveHrReadOutcome,
 };
 use oya_hr_employment_domain::{
-    EmployeeCreate, EmploymentStatus, HrLifecycleKind, Jurisdiction, LeaveDecision,
-    LeavePayrollImpactInput, LeaveRoutingMode, LegalEntityWorkforceSnapshot, PayrollImpactKind,
-    SensitiveHrDataKind, SensitiveHrReadInput, SensitiveReadDecisionStatus,
+    BackendParityClaimStatus, EmployeeCreate, EmploymentStatus, HrBackendParityCapability,
+    HrBackendParityProfile, HrBackendParityProfileInput, HrLifecycleKind, Jurisdiction,
+    LeaveDecision, LeavePayrollImpactInput, LeaveRoutingMode, LegalEntityWorkforceSnapshot,
+    PayrollImpactKind, SensitiveHrDataKind, SensitiveHrReadInput, SensitiveReadDecisionStatus,
     SensitiveReadLegalBasis, SensitiveReadPurpose, TenantTierSnapshot,
 };
 use serde::{Deserialize, Serialize};
@@ -41,6 +42,82 @@ impl ApiErrorEnvelope {
                 message: message.into(),
                 details,
             },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// Internal preview command DTO for building an HR backend parity profile from
+/// curated audit evidence. This is not an externally consumable public API
+/// response; outbound summaries redact tenant and raw evidence references.
+pub struct HrBackendParityProfileRequest {
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub profile_evidence_ref: String,      // data_class: INTERNAL_ONLY
+    pub source_evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
+}
+
+impl HrBackendParityProfileRequest {
+    pub fn into_domain_input(self) -> HrBackendParityProfileInput {
+        HrBackendParityProfileInput {
+            tenant_id: self.tenant_id,
+            profile_evidence_ref: self.profile_evidence_ref,
+            source_evidence_refs: self.source_evidence_refs,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HrBackendParityCapabilityResponse {
+    pub capability: HrBackendParityCapabilityDto, // data_class: PUBLIC
+    pub claim_status: BackendParityClaimStatusDto, // data_class: PUBLIC
+    pub evidence_ref_count: usize,                // data_class: PUBLIC
+    pub tenant_scoped: bool,                      // data_class: PUBLIC
+    pub data_class_declared: bool,                // data_class: PUBLIC
+    pub idempotency_contract: bool,               // data_class: PUBLIC
+    pub audit_evidence_required: bool,            // data_class: PUBLIC
+    pub residency_scope_declared: bool,           // data_class: PUBLIC
+    pub observability_contract: bool,             // data_class: PUBLIC
+    pub kubernetes_native_contract_ready: bool,   // data_class: PUBLIC
+    pub production_runtime_claimed: bool,         // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// Redacted HR backend parity summary DTO. Raw tenant and evidence references
+/// remain internal domain/app state and are exposed only as counts/nonclaims.
+pub struct HrBackendParityProfileResponse {
+    pub capabilities: Vec<HrBackendParityCapabilityResponse>, // data_class: INTERNAL_ONLY
+    pub nonclaims: Vec<String>,                               // data_class: PUBLIC
+    pub schema_version: u32,                                  // data_class: PUBLIC
+}
+
+impl HrBackendParityProfileResponse {
+    pub fn from_profile(profile: &HrBackendParityProfile) -> Self {
+        Self {
+            capabilities: profile
+                .capabilities
+                .value
+                .iter()
+                .map(|capability| HrBackendParityCapabilityResponse {
+                    capability: capability.capability.value.into(),
+                    claim_status: capability.claim_status.value.into(),
+                    evidence_ref_count: capability.evidence_refs.value.len(),
+                    tenant_scoped: capability.tenant_scoped.value,
+                    data_class_declared: capability.data_class_declared.value,
+                    idempotency_contract: capability.idempotency_contract.value,
+                    audit_evidence_required: capability.audit_evidence_required.value,
+                    residency_scope_declared: capability.residency_scope_declared.value,
+                    observability_contract: capability.observability_contract.value,
+                    kubernetes_native_contract_ready: capability
+                        .kubernetes_native_contract_ready
+                        .value,
+                    production_runtime_claimed: capability.production_runtime_claimed.value,
+                })
+                .collect(),
+            nonclaims: profile.nonclaims.value.clone(),
+            schema_version: profile.schema_version.value,
         }
     }
 }
@@ -258,6 +335,62 @@ impl SensitiveReadPolicyDecisionResponse {
                 .label()
                 .to_owned(),
             schema_version: outcome.audit_envelope.schema_version.value,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum BackendParityClaimStatusDto {
+    ContractReady,
+    EvidenceOnly,
+    ExplicitNonclaim,
+}
+
+impl From<BackendParityClaimStatus> for BackendParityClaimStatusDto {
+    fn from(value: BackendParityClaimStatus) -> Self {
+        match value {
+            BackendParityClaimStatus::ContractReady => Self::ContractReady,
+            BackendParityClaimStatus::EvidenceOnly => Self::EvidenceOnly,
+            BackendParityClaimStatus::ExplicitNonclaim => Self::ExplicitNonclaim,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum HrBackendParityCapabilityDto {
+    WorkforceCore,
+    OrganizationJobPosition,
+    LifecycleOnboardingOffboarding,
+    TimeAttendanceAbsence,
+    BenefitsCompensation,
+    TalentPerformanceLearning,
+    LaborStatutoryCompliance,
+    SensitiveHrPrivacy,
+    AnalyticsWorkforcePlanning,
+    IntegrationEvents,
+    CloudKubernetesReadiness,
+}
+
+impl From<HrBackendParityCapability> for HrBackendParityCapabilityDto {
+    fn from(value: HrBackendParityCapability) -> Self {
+        match value {
+            HrBackendParityCapability::WorkforceCore => Self::WorkforceCore,
+            HrBackendParityCapability::OrganizationJobPosition => Self::OrganizationJobPosition,
+            HrBackendParityCapability::LifecycleOnboardingOffboarding => {
+                Self::LifecycleOnboardingOffboarding
+            }
+            HrBackendParityCapability::TimeAttendanceAbsence => Self::TimeAttendanceAbsence,
+            HrBackendParityCapability::BenefitsCompensation => Self::BenefitsCompensation,
+            HrBackendParityCapability::TalentPerformanceLearning => Self::TalentPerformanceLearning,
+            HrBackendParityCapability::LaborStatutoryCompliance => Self::LaborStatutoryCompliance,
+            HrBackendParityCapability::SensitiveHrPrivacy => Self::SensitiveHrPrivacy,
+            HrBackendParityCapability::AnalyticsWorkforcePlanning => {
+                Self::AnalyticsWorkforcePlanning
+            }
+            HrBackendParityCapability::IntegrationEvents => Self::IntegrationEvents,
+            HrBackendParityCapability::CloudKubernetesReadiness => Self::CloudKubernetesReadiness,
         }
     }
 }

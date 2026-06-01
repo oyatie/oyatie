@@ -12,14 +12,17 @@
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_payroll_run_domain::{
     EmployeeId, EvidenceDigest, EvidenceRef, HrLeaveImpactIntake, HrLeaveImpactIntakeInput,
-    HrLeaveImpactKind, JournalId, LeaveRequestId, LegalEntityId, PayeeId, PayrollDomainError,
+    HrLeaveImpactKind, JournalId, LeaveRequestId, LegalEntityId, PayeeId,
+    PayrollBackendParityProfile, PayrollBackendParityProfileInput, PayrollDomainError,
     PayrollJournalDraft, PayrollJournalInput, PayrollRun, PayrollRunId, PayrollTrialCloseInput,
-    TenantId, build_payroll_journal, ingest_hr_leave_impact, trial_close,
+    TenantId, build_payroll_backend_parity_profile, build_payroll_journal, ingest_hr_leave_impact,
+    trial_close,
 };
 
 const PAYROLL_CLOSE_TOPIC: &str = "audit.payroll.run.close";
 const PAYROLL_ACCOUNTING_TOPIC: &str = "tenant_rbac.payroll.accounting.journal_draft";
 const PAYROLL_HR_LEAVE_IMPACT_TOPIC: &str = "integration.payroll.hr.leave-impact-intake";
+const PAYROLL_BACKEND_PARITY_PROFILE_TOPIC: &str = "metadata.payroll.backend-parity.profile";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PayrollAuditEnvelope {
@@ -70,6 +73,19 @@ pub struct PayrollAccountingDispatchEnvelope {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollBackendParityProfileEnvelope {
+    pub topic: Classified<String>,       // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub profile_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub capability_count: Classified<usize>, // data_class: PUBLIC
+    pub kubernetes_ready_contract_count: Classified<usize>, // data_class: PUBLIC
+    pub nonclaims: Classified<Vec<String>>, // data_class: PUBLIC
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub payload_data_class: Classified<DataClass>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TrialCloseOutcome {
     pub run: PayrollRun, // data_class: PII_IDENTIFYING + FINANCIAL
     pub audit_envelope: PayrollAuditEnvelope, // data_class: INTERNAL_ONLY
@@ -88,6 +104,12 @@ pub struct HrLeaveImpactIntakeOutcome {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollBackendParityProfileOutcome {
+    pub profile: PayrollBackendParityProfile, // data_class: INTERNAL_ONLY + FINANCIAL
+    pub parity_envelope: PayrollBackendParityProfileEnvelope, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PayrollAppError {
     Domain(PayrollDomainError),
 }
@@ -96,6 +118,17 @@ impl From<PayrollDomainError> for PayrollAppError {
     fn from(error: PayrollDomainError) -> Self {
         Self::Domain(error)
     }
+}
+
+pub fn prepare_payroll_backend_parity_profile(
+    input: PayrollBackendParityProfileInput,
+) -> Result<PayrollBackendParityProfileOutcome, PayrollAppError> {
+    let profile = build_payroll_backend_parity_profile(input)?;
+    let parity_envelope = payroll_backend_parity_profile_envelope(&profile);
+    Ok(PayrollBackendParityProfileOutcome {
+        profile,
+        parity_envelope,
+    })
 }
 
 pub fn close_trial_run(
@@ -129,6 +162,31 @@ pub fn prepare_hr_leave_impact_intake(
         intake,
         intake_envelope,
     })
+}
+
+fn payroll_backend_parity_profile_envelope(
+    profile: &PayrollBackendParityProfile,
+) -> PayrollBackendParityProfileEnvelope {
+    let kubernetes_ready_contract_count = profile
+        .capabilities
+        .value
+        .iter()
+        .filter(|capability| capability.kubernetes_native_contract_ready.value)
+        .count();
+    PayrollBackendParityProfileEnvelope {
+        topic: internal(PAYROLL_BACKEND_PARITY_PROFILE_TOPIC.to_owned()),
+        tenant_id: internal(profile.tenant_id.value.clone()),
+        profile_evidence_ref: internal(profile.profile_evidence_ref.value.clone()),
+        capability_count: public(profile.capabilities.value.len()),
+        kubernetes_ready_contract_count: public(kubernetes_ready_contract_count),
+        nonclaims: public(profile.nonclaims.value.clone()),
+        idempotency_key: internal(format!(
+            "{}:{}:payroll-backend-parity-profile",
+            profile.tenant_id.value.value, profile.profile_evidence_ref.value.value
+        )),
+        payload_data_class: internal(DataClass::InternalOnly),
+        schema_version: public(profile.schema_version.value),
+    }
 }
 
 fn close_audit_envelope(run: &PayrollRun) -> PayrollAuditEnvelope {

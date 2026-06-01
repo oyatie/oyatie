@@ -11,20 +11,22 @@
 
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_hr_employment_domain::{
-    AuditEvidenceRef, Employee, EmployeeCreate, EmployeeId, EmployeeLifecycleEvent, HrDomainError,
-    HrLifecycleKind, Jurisdiction, LaborComplianceObligation, LaborComplianceObligationKind,
+    AuditEvidenceRef, Employee, EmployeeCreate, EmployeeId, EmployeeLifecycleEvent,
+    HrBackendParityProfile, HrBackendParityProfileInput, HrDomainError, HrLifecycleKind,
+    Jurisdiction, LaborComplianceObligation, LaborComplianceObligationKind,
     LaborComplianceWorkflowStep, LeaveDecision, LeavePayrollImpactInput, LeavePayrollImpactPlan,
     LeaveRequestId, LeaveRoutingMode, LegalEntityId, LegalEntityWorkforceSnapshot,
     PayrollImpactKind, PolicyRef, SensitiveHrDataKind, SensitiveHrReadDecision,
     SensitiveHrReadInput, SensitiveReadDecisionStatus, SensitiveReadLegalBasis,
-    SensitiveReadPurpose, TenantId, WorkflowRef, evaluate_labor_compliance,
-    evaluate_sensitive_hr_read, plan_leave_payroll_impact,
+    SensitiveReadPurpose, TenantId, WorkflowRef, build_hr_backend_parity_profile,
+    evaluate_labor_compliance, evaluate_sensitive_hr_read, plan_leave_payroll_impact,
 };
 
 const HR_LIFECYCLE_TOPIC: &str = "audit.hr.employment.lifecycle";
 const HR_COMPLIANCE_WORKFLOW_TOPIC: &str = "workflow.hr.compliance.dispatch";
 const HR_LEAVE_PAYROLL_IMPACT_TOPIC: &str = "integration.hr.payroll.leave-impact";
 const HR_SENSITIVE_READ_TOPIC: &str = "audit.hr.sensitive-read.policy";
+const HR_BACKEND_PARITY_PROFILE_TOPIC: &str = "metadata.hr.backend-parity.profile";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HrAuditEnvelope {
@@ -96,6 +98,19 @@ pub struct HrSensitiveReadEnvelope {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrBackendParityProfileEnvelope {
+    pub topic: Classified<String>,       // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub profile_evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub capability_count: Classified<usize>, // data_class: PUBLIC
+    pub kubernetes_ready_contract_count: Classified<usize>, // data_class: PUBLIC
+    pub nonclaims: Classified<Vec<String>>, // data_class: PUBLIC
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub payload_data_class: Classified<DataClass>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OnboardEmployeeCommand {
     pub employee: EmployeeCreate,        // data_class: PII_IDENTIFYING
     pub event_id: String,                // data_class: INTERNAL_ONLY
@@ -122,6 +137,12 @@ pub struct LeavePayrollImpactOutcome {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrBackendParityProfileOutcome {
+    pub profile: HrBackendParityProfile, // data_class: INTERNAL_ONLY
+    pub parity_envelope: HrBackendParityProfileEnvelope, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SensitiveHrReadOutcome {
     pub decision: SensitiveHrReadDecision, // data_class: SENSITIVE_PIPA_ART23
     pub audit_envelope: HrSensitiveReadEnvelope, // data_class: SENSITIVE_PIPA_ART23
@@ -136,6 +157,17 @@ impl From<HrDomainError> for HrAppError {
     fn from(error: HrDomainError) -> Self {
         Self::Domain(error)
     }
+}
+
+pub fn prepare_hr_backend_parity_profile(
+    input: HrBackendParityProfileInput,
+) -> Result<HrBackendParityProfileOutcome, HrAppError> {
+    let profile = build_hr_backend_parity_profile(input)?;
+    let parity_envelope = hr_backend_parity_profile_envelope(&profile);
+    Ok(HrBackendParityProfileOutcome {
+        profile,
+        parity_envelope,
+    })
 }
 
 pub fn onboard_employee(
@@ -182,6 +214,31 @@ pub fn prepare_sensitive_hr_read_envelope(
         decision,
         audit_envelope,
     })
+}
+
+fn hr_backend_parity_profile_envelope(
+    profile: &HrBackendParityProfile,
+) -> HrBackendParityProfileEnvelope {
+    let kubernetes_ready_contract_count = profile
+        .capabilities
+        .value
+        .iter()
+        .filter(|capability| capability.kubernetes_native_contract_ready.value)
+        .count();
+    HrBackendParityProfileEnvelope {
+        topic: internal(HR_BACKEND_PARITY_PROFILE_TOPIC.to_owned()),
+        tenant_id: internal(profile.tenant_id.value.clone()),
+        profile_evidence_ref: internal(profile.profile_evidence_ref.value.clone()),
+        capability_count: public(profile.capabilities.value.len()),
+        kubernetes_ready_contract_count: public(kubernetes_ready_contract_count),
+        nonclaims: public(profile.nonclaims.value.clone()),
+        idempotency_key: internal(format!(
+            "{}:{}:hr-backend-parity-profile",
+            profile.tenant_id.value.value, profile.profile_evidence_ref.value.value
+        )),
+        payload_data_class: internal(DataClass::InternalOnly),
+        schema_version: public(profile.schema_version.value),
+    }
 }
 
 fn lifecycle_audit_envelope(event: &EmployeeLifecycleEvent) -> HrAuditEnvelope {

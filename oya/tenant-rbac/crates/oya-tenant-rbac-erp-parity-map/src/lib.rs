@@ -349,7 +349,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         first_write_owner: "hr-employment",
         tier: ParityTier::ComposedCoverage,
-        status: "hr-payroll-foundations-landed-with-runtime-storage-and-statutory-source-nonclaims",
+        status: "hr-payroll-preview-backend-parity-coverage-contracts-with-runtime-storage-and-statutory-source-nonclaims",
         evidence_refs: &[
             "evidence/multispectrum/cs-ent-hr-domain-foundation-1779520348.json",
             "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-1779532800.json",
@@ -364,6 +364,8 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
             "evidence/multispectrum/cs-ent-payroll-runtime-adapter-foundation-1779535800.json",
             "evidence/multispectrum/cs-ent-payroll-storage-adapter-inmemory-1779540000.json",
             "evidence/multispectrum/cs-ent-payroll-statutory-rulepack-manifest-1779543600.json",
+            "root//oya/hr/crates/oya-hr-employment-domain:backend-parity-tests",
+            "root//oya/payroll/crates/oya-payroll-run-domain:backend-parity-tests",
         ],
         cloud_integration_ready: false,
         production_runtime_claimed: false,

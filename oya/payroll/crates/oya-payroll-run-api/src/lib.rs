@@ -9,9 +9,10 @@
 #![forbid(unsafe_code)]
 
 use oya_payroll_run_domain::{
-    HrLeaveImpactIntake, HrLeaveImpactIntakeInput, HrLeaveImpactKind, MoneyAmount, PayeeClass,
-    PayeeInput, PayrollJournalInput, PayrollJournalLineInput, PayrollTrialCloseInput,
-    WageLedgerEntryInput, WageLineKind,
+    BackendParityClaimStatus, HrLeaveImpactIntake, HrLeaveImpactIntakeInput, HrLeaveImpactKind,
+    MoneyAmount, PayeeClass, PayeeInput, PayrollBackendParityCapability,
+    PayrollBackendParityProfile, PayrollBackendParityProfileInput, PayrollJournalInput,
+    PayrollJournalLineInput, PayrollTrialCloseInput, WageLedgerEntryInput, WageLineKind,
 };
 use serde::{Deserialize, Serialize};
 
@@ -37,6 +38,87 @@ impl ApiErrorEnvelope {
                 message: message.into(),
                 details,
             },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// Internal preview command DTO for building a payroll backend parity profile
+/// from curated audit evidence. This is not an externally consumable public API
+/// response; outbound summaries redact tenant and raw evidence references.
+pub struct PayrollBackendParityProfileRequest {
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub profile_evidence_ref: String,      // data_class: INTERNAL_ONLY
+    pub source_evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
+}
+
+impl PayrollBackendParityProfileRequest {
+    pub fn into_domain_input(self) -> PayrollBackendParityProfileInput {
+        PayrollBackendParityProfileInput {
+            tenant_id: self.tenant_id,
+            profile_evidence_ref: self.profile_evidence_ref,
+            source_evidence_refs: self.source_evidence_refs,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PayrollBackendParityCapabilityResponse {
+    pub capability: PayrollBackendParityCapabilityDto, // data_class: PUBLIC
+    pub claim_status: BackendParityClaimStatusDto,     // data_class: PUBLIC
+    pub evidence_ref_count: usize,                     // data_class: PUBLIC
+    pub tenant_scoped: bool,                           // data_class: PUBLIC
+    pub data_class_declared: bool,                     // data_class: PUBLIC
+    pub idempotency_contract: bool,                    // data_class: PUBLIC
+    pub audit_evidence_required: bool,                 // data_class: PUBLIC
+    pub residency_scope_declared: bool,                // data_class: PUBLIC
+    pub observability_contract: bool,                  // data_class: PUBLIC
+    pub kubernetes_native_contract_ready: bool,        // data_class: PUBLIC
+    pub production_runtime_claimed: bool,              // data_class: PUBLIC
+    pub live_money_movement_claimed: bool,             // data_class: PUBLIC
+    pub tax_filing_submission_claimed: bool,           // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// Redacted payroll backend parity summary DTO. Raw tenant and evidence
+/// references remain internal domain/app state and are exposed only as
+/// counts/nonclaims.
+pub struct PayrollBackendParityProfileResponse {
+    pub capabilities: Vec<PayrollBackendParityCapabilityResponse>, // data_class: INTERNAL_ONLY
+    pub nonclaims: Vec<String>,                                    // data_class: PUBLIC
+    pub schema_version: u32,                                       // data_class: PUBLIC
+}
+
+impl PayrollBackendParityProfileResponse {
+    pub fn from_profile(profile: &PayrollBackendParityProfile) -> Self {
+        Self {
+            capabilities: profile
+                .capabilities
+                .value
+                .iter()
+                .map(|capability| PayrollBackendParityCapabilityResponse {
+                    capability: capability.capability.value.into(),
+                    claim_status: capability.claim_status.value.into(),
+                    evidence_ref_count: capability.evidence_refs.value.len(),
+                    tenant_scoped: capability.tenant_scoped.value,
+                    data_class_declared: capability.data_class_declared.value,
+                    idempotency_contract: capability.idempotency_contract.value,
+                    audit_evidence_required: capability.audit_evidence_required.value,
+                    residency_scope_declared: capability.residency_scope_declared.value,
+                    observability_contract: capability.observability_contract.value,
+                    kubernetes_native_contract_ready: capability
+                        .kubernetes_native_contract_ready
+                        .value,
+                    production_runtime_claimed: capability.production_runtime_claimed.value,
+                    live_money_movement_claimed: capability.live_money_movement_claimed.value,
+                    tax_filing_submission_claimed: capability.tax_filing_submission_claimed.value,
+                })
+                .collect(),
+            nonclaims: profile.nonclaims.value.clone(),
+            schema_version: profile.schema_version.value,
         }
     }
 }
@@ -257,6 +339,70 @@ impl PayrollJournalLineRequest {
             account_code: self.account_code,
             debit_minor: self.debit_minor,
             credit_minor: self.credit_minor,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum BackendParityClaimStatusDto {
+    ContractReady,
+    EvidenceOnly,
+    ExplicitNonclaim,
+}
+
+impl From<BackendParityClaimStatus> for BackendParityClaimStatusDto {
+    fn from(value: BackendParityClaimStatus) -> Self {
+        match value {
+            BackendParityClaimStatus::ContractReady => Self::ContractReady,
+            BackendParityClaimStatus::EvidenceOnly => Self::EvidenceOnly,
+            BackendParityClaimStatus::ExplicitNonclaim => Self::ExplicitNonclaim,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum PayrollBackendParityCapabilityDto {
+    GrossToNetRunControls,
+    EarningsDeductionsTaxModel,
+    TimeLeavePayrollIntake,
+    RetroOffCycleReversal,
+    StatutoryExportEvidence,
+    PayslipDisbursementSeam,
+    AccountingGlExport,
+    GroupLegalEntityRollup,
+    VarianceAnomalyRollback,
+    AuditIdempotencyTenantResidency,
+    CloudKubernetesReadiness,
+}
+
+impl From<PayrollBackendParityCapability> for PayrollBackendParityCapabilityDto {
+    fn from(value: PayrollBackendParityCapability) -> Self {
+        match value {
+            PayrollBackendParityCapability::GrossToNetRunControls => Self::GrossToNetRunControls,
+            PayrollBackendParityCapability::EarningsDeductionsTaxModel => {
+                Self::EarningsDeductionsTaxModel
+            }
+            PayrollBackendParityCapability::TimeLeavePayrollIntake => Self::TimeLeavePayrollIntake,
+            PayrollBackendParityCapability::RetroOffCycleReversal => Self::RetroOffCycleReversal,
+            PayrollBackendParityCapability::StatutoryExportEvidence => {
+                Self::StatutoryExportEvidence
+            }
+            PayrollBackendParityCapability::PayslipDisbursementSeam => {
+                Self::PayslipDisbursementSeam
+            }
+            PayrollBackendParityCapability::AccountingGlExport => Self::AccountingGlExport,
+            PayrollBackendParityCapability::GroupLegalEntityRollup => Self::GroupLegalEntityRollup,
+            PayrollBackendParityCapability::VarianceAnomalyRollback => {
+                Self::VarianceAnomalyRollback
+            }
+            PayrollBackendParityCapability::AuditIdempotencyTenantResidency => {
+                Self::AuditIdempotencyTenantResidency
+            }
+            PayrollBackendParityCapability::CloudKubernetesReadiness => {
+                Self::CloudKubernetesReadiness
+            }
         }
     }
 }
