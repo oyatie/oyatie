@@ -32,6 +32,21 @@ by the `oya-governance-protection-context-match` gate.
 - **Commit-status proof**: POSTed `cargo-check=success` to a commit → the
   combined status reads `success` (exactly what branch-protection consults).
 
+## 2026-06-01 Lane C operator note
+
+For the weekly oya-ci parallel-lane run, this Forgejo substrate remains
+Forgejo-only for pull requests against `dev`. If a local worktree still has a
+GitHub `origin`, add or select the self-hosted Forgejo remote before pushing; do
+not open GitHub PRs or use GitHub merge commands for this lane. Record credential
+variable names and redacted transcripts only, never token values or raw
+authorization headers. Jenkins remains the bridge until Phase-1 parallel-run
+evidence and founder/operator approval authorize a cutover.
+
+Lane D should compare `infra/branch-protection/dev.json` with the Jenkins
+reported-context inventory when building the shared evidence packet. Lane C does
+not own `infra/ci/**`, so status-context producer changes require a separate
+integration-approved scope.
+
 ## Remaining (this task → its follow-ups)
 1. Create the live `forgejo-ci-token` Jenkins credential (kubectl, see template).
 2. End-to-end: a real PR through Jenkins posts all 14 → Forgejo auto-merges on green.
