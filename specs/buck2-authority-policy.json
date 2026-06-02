@@ -109,6 +109,7 @@
   "automated_chain": [
     "scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
     "buck2 build //:buck2-authority-policy-check",
+    "//:phase0-ci-enforcement-baseline-catalog-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "cloud-ci/oya-ci oya-ci-required required context after live producer cutover"
   ],
@@ -132,6 +133,7 @@
     "scripts/supply-chain-adr0039.sh",
     "scripts/hooks/pre-push.sh",
     "scripts/ci/enforce-buck2-authority.py",
+    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
     "scripts/ci/oya-ci-post.sh",
     "scripts/ci/regen-third-party.sh",
     "scripts/gen_first_party_buck.py",

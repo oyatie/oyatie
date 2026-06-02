@@ -55,6 +55,7 @@ genrule(
         ".github/branch-protection.yaml": ".github/branch-protection.yaml",
         "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
         "infra/ci/jenkins/reported-status-contexts.json": "infra/ci/jenkins/reported-status-contexts.json",
+        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
         "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
         "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md": "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
@@ -156,5 +157,25 @@ genrule(
     },
     out = "buck2-authority-policy-check.json",
     cmd = "OYA_REPO_ROOT=$PWD python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+# P0.0 baseline catalog closure: every checked-in executable fixture under
+# specs/fixtures/phase0-ci-enforcement-baseline must be listed by the baseline
+# packet and reachable through Buck2, not operator memory. The fixture glob is
+# intentional: newly added fixtures must enter the Buck action sandbox even when
+# the baseline forgets to catalog them.
+genrule(
+    name = "phase0-ci-enforcement-baseline-catalog-check",
+    srcs = {
+        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+        "specs/phase0-ci-enforcement-baseline.json": "specs/phase0-ci-enforcement-baseline.json",
+        "specs/phase0-ci-enforcement-result-schema.json": "specs/phase0-ci-enforcement-result-schema.json",
+        "specs/phase0-override-packet-schema.json": "specs/phase0-override-packet-schema.json",
+        "specs/phase0-trusted-target-inventory-schema.json": "specs/phase0-trusted-target-inventory-schema.json",
+        "specs/toolchain-tenant-isolation-fixtures.json": "specs/toolchain-tenant-isolation-fixtures.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])},
+    out = "phase0-ci-enforcement-baseline-catalog-check.json",
+    cmd = "OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
     visibility = ["PUBLIC"],
 )

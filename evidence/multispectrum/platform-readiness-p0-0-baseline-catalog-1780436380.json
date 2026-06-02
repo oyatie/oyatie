@@ -1,0 +1,146 @@
+{
+  "schema_version": "2026-06-02",
+  "slice": "P0.0 baseline fixture catalog closure",
+  "claim_boundary": {
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "branch_protection_authority": false,
+    "live_cloud_ci_required_context_proven": false,
+    "tenant_facing_claim": false,
+    "production_ready_claim": false
+  },
+  "requirements": [
+    "AC-0.0/T0.0 baseline fixture packet must enumerate executable fixtures",
+    "AC-0.16 automatable checks must map to gate/controller/generated registry/fixture",
+    "AC-0.17 no green/live/secure/production-ready claim without evidence",
+    "Founder directive: scripts, CI, CD, and build lanes use Buck2; Cargo only for final release artifact optimization evidence"
+  ],
+  "changes": [
+    "Added scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py fail-closed catalog validator",
+    "Added //:phase0-ci-enforcement-baseline-catalog-check Buck2 genrule with glob([\"specs/fixtures/phase0-ci-enforcement-baseline/*.json\"])",
+    "Updated specs/phase0-ci-enforcement-baseline.json to enumerate all 15 baseline fixtures and 11 RED/GREEN policy pairs",
+    "Mapped the catalog check into specs/phase0-automation-matrix.json and specs/buck2-authority-policy.json"
+  ],
+  "red_then_green_evidence": {
+    "initial_red_command": "python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py before baseline update",
+    "initial_red_result": "RED: missing tc-0.0-current-red-gap-result.json, trusted-target inventory fixtures, false-green result bundle, and RED/GREEN coverage for candidate-sourced target inventory",
+    "green_command": "python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "green_result": {
+      "verdict": "PASS",
+      "fixture_count": 15,
+      "required_red_green_pairs": 11,
+      "result_bundle_fixtures": 2,
+      "trusted_target_inventory_fixtures": 2,
+      "claim_boundary": {
+        "p0_0_green": false,
+        "phase0_complete": false
+      }
+    },
+    "buck_glob_fail_closed_proof": {
+      "setup": "Created temporary specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.99-temp-omitted-catalog-fixture.json without adding it to the baseline catalog, then removed it after the proof.",
+      "command": "buck2 build //:phase0-ci-enforcement-baseline-catalog-check --show-output",
+      "expected_result": "RED while temporary fixture exists, GREEN after removal",
+      "red_result": {
+        "buck2_exit_code": 3,
+        "build_id": "41ad5998-a398-4a3c-9f0f-27048f29c8ad",
+        "observed_errors": [
+          "fixture_set.all_fixture_paths missing actual fixture: specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.99-temp-omitted-catalog-fixture.json",
+          "tc-0.0.99-temp-omitted-catalog-fixture.json: RED expected_verdict fixture is not covered by required_red_green_pairs",
+          "tc-0.0.99-temp-omitted-catalog-fixture.json: expected_verdict fixture is not reachable from any catalog execution bucket"
+        ],
+        "sandbox_evidence": "Buck2 genrule SRCS included the temporary fixture through glob([\"specs/fixtures/phase0-ci-enforcement-baseline/*.json\"])."
+      },
+      "green_after_removal_build_id": "5a909cac-47ed-412a-989c-684f611bfdd0",
+      "latest_green_build_id": "929cd9ab-b967-4550-95d7-a5d8ed775383"
+    }
+  },
+  "verification": [
+    {
+      "command": "python3 -m json.tool specs/phase0-ci-enforcement-baseline.json >/dev/null && python3 -m json.tool specs/phase0-automation-matrix.json >/dev/null && python3 -m json.tool specs/buck2-authority-policy.json >/dev/null",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 -m py_compile scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "result": "PASS",
+      "summary": {
+        "command_scan_files": 126,
+        "command_scan_globs": 2,
+        "authority_context": "oya-ci-required"
+      }
+    },
+    {
+      "command": "temporary omitted fixture + buck2 build //:phase0-ci-enforcement-baseline-catalog-check --show-output",
+      "result": "EXPECTED RED THEN GREEN",
+      "red_build_id": "41ad5998-a398-4a3c-9f0f-27048f29c8ad",
+      "green_build_id": "5a909cac-47ed-412a-989c-684f611bfdd0",
+      "claim_boundary": "fail-closed mechanics only; no live cloud-ci authority claim",
+      "green_build_id_after_review_fix": "929cd9ab-b967-4550-95d7-a5d8ed775383"
+    },
+    {
+      "command": "buck2 build //:phase0-ci-enforcement-baseline-catalog-check --show-output",
+      "result": "PASS",
+      "build_id": "929cd9ab-b967-4550-95d7-a5d8ed775383",
+      "output": "buck-out/v2/art/root/39893c7e49283da4/__phase0-ci-enforcement-baseline-catalog-check__/out/phase0-ci-enforcement-baseline-catalog-check.json",
+      "note": "Final fresh green run after review-requested Buck glob fix and script reachability tightening."
+    },
+    {
+      "command": "buck2 build //:buck2-authority-policy-check --show-output",
+      "result": "PASS",
+      "build_id": "b8308ddb-0f0a-49e3-931b-3f74097e3b2e",
+      "output": "buck-out/v2/art/root/39893c7e49283da4/__buck2-authority-policy-check__/out/buck2-authority-policy-check.json"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "gh api repos/jason931225/oyatie/branches/dev/protection --jq .required_status_checks",
+      "result": "LIVE GAP OBSERVED",
+      "required_contexts": [
+        "cargo-fmt",
+        "cargo-check",
+        "cargo-clippy",
+        "cargo-nextest",
+        "oya-pr-review"
+      ],
+      "strict": false,
+      "non_claim": "no oya-ci-required or cloud-ci-required context is required live yet"
+    }
+  ],
+  "official_research_sources": [
+    {
+      "url": "https://doc.rust-lang.org/cargo/reference/profiles.html",
+      "used_for": "Cargo release/profile knobs are release-artifact optimization inputs only"
+    },
+    {
+      "url": "https://doc.rust-lang.org/rustc/codegen-options/",
+      "used_for": "rustc codegen knobs for size/LTO/panic/strip/codegen-units"
+    },
+    {
+      "url": "https://doc.rust-lang.org/rustc/profile-guided-optimization.html",
+      "used_for": "PGO must be representative and release-artifact scoped"
+    },
+    {
+      "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html",
+      "used_for": "allocator substitution requires safety/measurement review"
+    },
+    {
+      "url": "https://buck2.build/docs/prelude/rules/rust/rust_library/",
+      "used_for": "Buck2 Rust graph/check authority"
+    },
+    {
+      "url": "https://buck2.build/docs/prelude/rules/rust/rust_test/",
+      "used_for": "Buck2 Rust test authority"
+    }
+  ],
+  "review": {
+    "initial_code_review_verdict": "REQUEST_CHANGES",
+    "blocking_issue": "Buck target used hardcoded fixture srcs and would not see a newly omitted fixture inside the action sandbox.",
+    "fix": "Changed BUCK srcs to include fixture glob and proved omitted fixture fails the Buck target."
+  },
+  "remaining_gap": "Live protected branch still requires legacy cargo-* contexts; this packet is local/static Buck2-gated evidence, not P0.0 green or Phase-0 exit authority."
+}
