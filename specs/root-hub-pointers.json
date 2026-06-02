@@ -1116,6 +1116,13 @@
       "migration_phase": "phase0-p0.0-red-gap-packet",
       "purpose": "JSON Schema for P0.0 cloud-ci override packets. Requires affected required contexts, degraded gate ids, TTL, reviewer acknowledgment, audit-chain event, owner, blast radius, revert/fix follow-up, and no-new-oya-CLI marker so temporary gate disable/degrade paths cannot become untracked authority."
     },
+    "phase0_trusted_target_inventory_schema": {
+      "kind": "schema",
+      "current_path": "/specs/phase0-trusted-target-inventory-schema.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-p0.0-red-gap-packet",
+      "purpose": "JSON Schema for P0.0 trusted Buck2 target inventories. Requires target lists from trusted dev/controller state before candidate checkout, candidate bytes as untrusted input, and non-claim boundary fields so candidate-authored target discovery cannot shrink required context scope."
+    },
     "toolchain_tenant_isolation_fixtures": {
       "kind": "spec",
       "current_path": "/specs/toolchain-tenant-isolation-fixtures.json",

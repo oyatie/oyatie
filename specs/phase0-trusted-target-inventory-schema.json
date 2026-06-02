@@ -1,0 +1,113 @@
+{
+  "$id": "https://docs.oyatie.com/specs/phase0-trusted-target-inventory-schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T20:08:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-toolchain + platform-security + platform-governance",
+    "related_acceptance_criteria": [
+      "AC-0.0",
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "spec_id": "EXE-PHASE0-TRUSTED-TARGET-INVENTORY-SCHEMA",
+    "status": "trusted_target_inventory_schema_not_live_authority",
+    "updated_at": "2026-06-02T20:08:00Z",
+    "version": "0.1.0"
+  },
+  "additionalProperties": false,
+  "description": "Schema for local P0.0 trusted Buck2 target inventory fixtures. The inventory must be captured from trusted dev/controller state before candidate checkout; conformance is local/static evidence only until cloud-ci/oya-ci posts the protected required context.",
+  "properties": {
+    "candidate_sha": {
+      "minLength": 40,
+      "maxLength": 40,
+      "pattern": "^[0-9a-fA-F]{40}$",
+      "type": "string"
+    },
+    "claim_boundary": {
+      "additionalProperties": false,
+      "properties": {
+        "p0_0_green": {
+          "type": "boolean"
+        },
+        "phase0_complete": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "p0_0_green",
+        "phase0_complete"
+      ],
+      "type": "object"
+    },
+    "inventory_source": {
+      "enum": [
+        "trusted_dev_or_controller_state",
+        "candidate_pr_bytes"
+      ]
+    },
+    "captured_before_candidate_checkout": {
+      "type": "boolean"
+    },
+    "candidate_checkout_after_inventory": {
+      "type": "boolean"
+    },
+    "no_candidate_authored_discovery": {
+      "type": "boolean"
+    },
+    "build_targets": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "test_targets": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "expected_verdict": {
+      "enum": [
+        "GREEN",
+        "RED"
+      ]
+    },
+    "expected_violations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "fixture_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_test": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "candidate_sha",
+    "claim_boundary",
+    "inventory_source",
+    "captured_before_candidate_checkout",
+    "candidate_checkout_after_inventory",
+    "no_candidate_authored_discovery",
+    "build_targets",
+    "test_targets",
+    "expected_verdict",
+    "expected_violations",
+    "fixture_id",
+    "source_test"
+  ],
+  "title": "Phase0TrustedTargetInventory",
+  "type": "object"
+}

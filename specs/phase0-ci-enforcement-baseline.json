@@ -200,6 +200,11 @@
     ],
     "result_schema": "specs/phase0-ci-enforcement-result-schema.json",
     "override_packet_schema": "specs/phase0-override-packet-schema.json",
+    "trusted_target_inventory_schema": "specs/phase0-trusted-target-inventory-schema.json",
+    "trusted_target_inventory_fixture_paths": [
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json"
+    ],
     "tenant_fixture_contract": "specs/toolchain-tenant-isolation-fixtures.json"
   },
   "gap_packet": {
@@ -208,7 +213,10 @@
       "evidence": "RED fixtures include candidate-sourced producer/gate definitions and candidate-deleted trusted-target inventory; live required context evidence is still absent.",
       "fix_path": "controller job clones trusted gate catalog separately and passes candidate SHA/tree as input",
       "required_policy": "candidate PR tree is data under test only; producer/gate definitions come from trusted trunk/controller state",
-      "status": "GAP"
+      "status": "GAP",
+      "local_target_status": "k8s gate job captures trusted Buck2 build/test target inventories from dev/controller state before candidate checkout; schema, GOOD fixture, BAD candidate-sourced fixture, and kernel evaluator now cover the local contract",
+      "trusted_target_inventory_schema": "specs/phase0-trusted-target-inventory-schema.json",
+      "blocking_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json"
     },
     "no_oya_cli_authority": {
       "allowed_use": "oya verify/oya gate may remain local migration evidence only",

@@ -494,6 +494,119 @@ fn phase0_full_hex_sha_is_valid(value: &str) -> bool {
     value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
 }
 
+/// Violation classes emitted by [`evaluate_phase0_trusted_target_inventory`].
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Phase0TrustedTargetInventoryViolation {
+    MissingOrMalformedInventory,
+    InvalidCandidateSha,
+    TargetInventoryNotTrusted,
+    InventoryNotCapturedBeforeCandidateCheckout,
+    CandidateCanAuthorTargetInventory,
+    EmptyRequiredTargets,
+    MalformedBuck2Target,
+    GreenClaimBoundaryWithoutLiveAuthority,
+}
+
+impl Phase0TrustedTargetInventoryViolation {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Phase0TrustedTargetInventoryViolation::MissingOrMalformedInventory => {
+                "missing_or_malformed_inventory"
+            }
+            Phase0TrustedTargetInventoryViolation::InvalidCandidateSha => "invalid_candidate_sha",
+            Phase0TrustedTargetInventoryViolation::TargetInventoryNotTrusted => {
+                "target_inventory_not_trusted"
+            }
+            Phase0TrustedTargetInventoryViolation::InventoryNotCapturedBeforeCandidateCheckout => {
+                "inventory_not_captured_before_candidate_checkout"
+            }
+            Phase0TrustedTargetInventoryViolation::CandidateCanAuthorTargetInventory => {
+                "candidate_can_author_target_inventory"
+            }
+            Phase0TrustedTargetInventoryViolation::EmptyRequiredTargets => "empty_required_targets",
+            Phase0TrustedTargetInventoryViolation::MalformedBuck2Target => "malformed_buck2_target",
+            Phase0TrustedTargetInventoryViolation::GreenClaimBoundaryWithoutLiveAuthority => {
+                "green_claim_boundary_without_live_authority"
+            }
+        }
+    }
+}
+
+/// Result of evaluating the local T0.0.1a trusted target inventory contract.
+/// Empty violations means the checked-in target-inventory fixture has the
+/// destination shape; it is not live required-context evidence.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Phase0TrustedTargetInventoryVerdict {
+    pub violations: BTreeSet<Phase0TrustedTargetInventoryViolation>,
+}
+
+impl Phase0TrustedTargetInventoryVerdict {
+    pub fn is_green(&self) -> bool {
+        self.violations.is_empty()
+    }
+}
+
+pub fn evaluate_phase0_trusted_target_inventory(
+    inventory: &Value,
+) -> Phase0TrustedTargetInventoryVerdict {
+    let mut violations = BTreeSet::new();
+    if !inventory.is_object() {
+        violations.insert(Phase0TrustedTargetInventoryViolation::MissingOrMalformedInventory);
+        return Phase0TrustedTargetInventoryVerdict { violations };
+    }
+
+    let candidate_sha = inventory["candidate_sha"].as_str().unwrap_or_default();
+    if !phase0_full_hex_sha_is_valid(candidate_sha) {
+        violations.insert(Phase0TrustedTargetInventoryViolation::InvalidCandidateSha);
+    }
+
+    if inventory["inventory_source"].as_str() != Some("trusted_dev_or_controller_state") {
+        violations.insert(Phase0TrustedTargetInventoryViolation::TargetInventoryNotTrusted);
+    }
+    if inventory["captured_before_candidate_checkout"].as_bool() != Some(true)
+        || inventory["candidate_checkout_after_inventory"].as_bool() != Some(true)
+    {
+        violations.insert(
+            Phase0TrustedTargetInventoryViolation::InventoryNotCapturedBeforeCandidateCheckout,
+        );
+    }
+    if inventory["no_candidate_authored_discovery"].as_bool() != Some(true) {
+        violations.insert(Phase0TrustedTargetInventoryViolation::CandidateCanAuthorTargetInventory);
+    }
+
+    for field in ["build_targets", "test_targets"] {
+        match inventory[field].as_array() {
+            Some(targets) if !targets.is_empty() => {
+                if targets.iter().any(|target| {
+                    target
+                        .as_str()
+                        .is_none_or(|target| !phase0_buck2_target_label_is_valid(target))
+                }) {
+                    violations.insert(Phase0TrustedTargetInventoryViolation::MalformedBuck2Target);
+                }
+            }
+            _ => {
+                violations.insert(Phase0TrustedTargetInventoryViolation::EmptyRequiredTargets);
+            }
+        }
+    }
+
+    let claims_p0_green = inventory["claim_boundary"]["p0_0_green"].as_bool() == Some(true);
+    let claims_phase0_complete =
+        inventory["claim_boundary"]["phase0_complete"].as_bool() == Some(true);
+    if claims_p0_green || claims_phase0_complete {
+        violations
+            .insert(Phase0TrustedTargetInventoryViolation::GreenClaimBoundaryWithoutLiveAuthority);
+    }
+
+    Phase0TrustedTargetInventoryVerdict { violations }
+}
+
+fn phase0_buck2_target_label_is_valid(value: &str) -> bool {
+    let target = value.strip_prefix("root").unwrap_or(value);
+    target.starts_with("//") && target.contains(':') && !target.contains(char::is_whitespace)
+}
+
 pub fn phase0_context_is_required_authority(context: &str) -> bool {
     PHASE0_REQUIRED_CI_CONTEXTS.contains(&context)
 }
@@ -1922,7 +2035,8 @@ mod phase0_ci_enforcement_baseline_tests {
         evaluate_phase0_aggregate_exit, evaluate_phase0_automation_rows,
         evaluate_phase0_automation_rows_with_required_ids, evaluate_phase0_ci_policy,
         evaluate_phase0_ci_result_bundle, evaluate_phase0_claim_ceiling,
-        phase0_context_is_required_authority, tenant_surface_separation_is_complete,
+        evaluate_phase0_trusted_target_inventory, phase0_context_is_required_authority,
+        tenant_surface_separation_is_complete,
     };
 
     fn repo_root() -> PathBuf {
@@ -2479,6 +2593,42 @@ mod phase0_ci_enforcement_baseline_tests {
     }
 
     #[test]
+    fn phase0_target_inventory_rejects_candidate_authored_target_discovery() {
+        let inventory = json!({
+            "candidate_sha": "2222222222222222222222222222222222222222",
+            "claim_boundary": {
+                "p0_0_green": true,
+                "phase0_complete": true
+            },
+            "inventory_source": "candidate_pr_bytes",
+            "captured_before_candidate_checkout": false,
+            "candidate_checkout_after_inventory": false,
+            "no_candidate_authored_discovery": false,
+            "build_targets": [],
+            "test_targets": ["not-a-buck2-target"]
+        });
+        let violations: BTreeSet<&str> = evaluate_phase0_trusted_target_inventory(&inventory)
+            .violations
+            .iter()
+            .map(|violation| violation.as_str())
+            .collect();
+
+        for expected in [
+            "target_inventory_not_trusted",
+            "inventory_not_captured_before_candidate_checkout",
+            "candidate_can_author_target_inventory",
+            "empty_required_targets",
+            "malformed_buck2_target",
+            "green_claim_boundary_without_live_authority",
+        ] {
+            assert!(
+                violations.contains(expected),
+                "candidate-authored target inventory should emit {expected}, got {violations:?}"
+            );
+        }
+    }
+
+    #[test]
     fn phase0_result_bundle_rejects_false_green_local_authority() {
         let bundle = json!({
             "candidate_sha": "1111111111111111111111111111111111111111",
@@ -2657,12 +2807,20 @@ mod phase0_ci_enforcement_baseline_tests {
         let root_hub = load_json("specs/root-hub-pointers.json");
         let result_schema = load_json("specs/phase0-ci-enforcement-result-schema.json");
         let override_schema = load_json("specs/phase0-override-packet-schema.json");
+        let target_inventory_schema =
+            load_json("specs/phase0-trusted-target-inventory-schema.json");
         let baseline = load_json("specs/phase0-ci-enforcement-baseline.json");
         let good_ci_fixture = load_json(
             "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
         );
         let bad_override_fixture = load_json(
             "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
+        );
+        let good_target_inventory_fixture = load_json(
+            "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+        );
+        let bad_target_inventory_fixture = load_json(
+            "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
         );
         let red_result_fixture = load_json(
             "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
@@ -2705,11 +2863,72 @@ mod phase0_ci_enforcement_baseline_tests {
             root_hub["entry_points"]["phase0_override_packet_schema"].is_object(),
             "root hub should expose the P0.0 override packet schema"
         );
+        assert!(
+            root_hub["entry_points"]["phase0_trusted_target_inventory_schema"].is_object(),
+            "root hub should expose the P0.0 trusted target inventory schema"
+        );
         assert_eq!(
             string_at(&baseline, &["fixture_set", "override_packet_schema"]),
             Some("specs/phase0-override-packet-schema.json"),
             "baseline fixture set must point at the override packet schema"
         );
+        assert_eq!(
+            string_at(
+                &baseline,
+                &["fixture_set", "trusted_target_inventory_schema"]
+            ),
+            Some("specs/phase0-trusted-target-inventory-schema.json"),
+            "baseline fixture set must point at the trusted target inventory schema"
+        );
+        let target_inventory_fixture_paths = string_array_at(
+            &baseline,
+            &["fixture_set", "trusted_target_inventory_fixture_paths"],
+        );
+        assert!(
+            target_inventory_fixture_paths.contains(&"specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json")
+                && target_inventory_fixture_paths.contains(&"specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json"),
+            "baseline must register GOOD and BAD trusted target inventory fixtures"
+        );
+        for field in [
+            "candidate_sha",
+            "inventory_source",
+            "captured_before_candidate_checkout",
+            "candidate_checkout_after_inventory",
+            "no_candidate_authored_discovery",
+            "build_targets",
+            "test_targets",
+            "claim_boundary",
+        ] {
+            assert!(
+                string_array_at(&target_inventory_schema, &["required"]).contains(&field),
+                "trusted target inventory schema must require {field}"
+            );
+            assert!(
+                field_is_present_and_non_empty(&good_target_inventory_fixture, field),
+                "GOOD target inventory fixture must satisfy required field {field}"
+            );
+        }
+        assert_declared_schema_keys(
+            &good_target_inventory_fixture,
+            &target_inventory_schema,
+            "tc-0.0.1a-good-trusted-target-inventory",
+        );
+        assert!(
+            evaluate_phase0_trusted_target_inventory(&good_target_inventory_fixture).is_green(),
+            "GOOD trusted target inventory fixture should satisfy the local target inventory contract"
+        );
+        let bad_target_inventory_violations: BTreeSet<&str> =
+            evaluate_phase0_trusted_target_inventory(&bad_target_inventory_fixture)
+                .violations
+                .iter()
+                .map(|violation| violation.as_str())
+                .collect();
+        for expected in expected_violation_set(&bad_target_inventory_fixture) {
+            assert!(
+                bad_target_inventory_violations.contains(expected.as_str()),
+                "BAD target inventory fixture should emit {expected}, got {bad_target_inventory_violations:?}"
+            );
+        }
         let result_bundle_fixture_paths =
             string_array_at(&baseline, &["fixture_set", "result_bundle_fixture_paths"]);
         assert!(
