@@ -450,6 +450,7 @@ pub enum Phase0AutomationRatchetViolation {
     EmptyRegistry,
     MissingEvaluatorConfiguration,
     MissingOrEmptyRequiredField,
+    MissingRequiredRowId,
     DuplicateRowId,
     UnknownClassification,
     BlockingInvariantMappedToOyaCli,
@@ -466,6 +467,7 @@ impl Phase0AutomationRatchetViolation {
             Phase0AutomationRatchetViolation::MissingOrEmptyRequiredField => {
                 "missing_or_empty_required_field"
             }
+            Phase0AutomationRatchetViolation::MissingRequiredRowId => "missing_required_row_id",
             Phase0AutomationRatchetViolation::DuplicateRowId => "duplicate_row_id",
             Phase0AutomationRatchetViolation::UnknownClassification => "unknown_classification",
             Phase0AutomationRatchetViolation::BlockingInvariantMappedToOyaCli => {
@@ -497,6 +499,23 @@ pub fn evaluate_phase0_automation_rows(
     rows: &[Value],
     required_fields: &[String],
     allowed_classifications: &BTreeSet<String>,
+) -> Phase0AutomationRatchetVerdict {
+    evaluate_phase0_automation_rows_with_required_ids(
+        rows,
+        required_fields,
+        allowed_classifications,
+        &BTreeSet::new(),
+    )
+}
+
+/// Evaluate AC-0.16 automation-ratchet rows and require specific row ids when
+/// the caller is checking a generated or target registry rather than a small
+/// RED/GREEN fixture.
+pub fn evaluate_phase0_automation_rows_with_required_ids(
+    rows: &[Value],
+    required_fields: &[String],
+    allowed_classifications: &BTreeSet<String>,
+    required_row_ids: &BTreeSet<String>,
 ) -> Phase0AutomationRatchetVerdict {
     let mut violations = BTreeSet::new();
     let mut ids = BTreeSet::new();
@@ -540,6 +559,12 @@ pub fn evaluate_phase0_automation_rows(
             violations.insert(
                 Phase0AutomationRatchetViolation::EnforceableOrAutomatableMarkedHumanJudgment,
             );
+        }
+    }
+
+    for required_id in required_row_ids {
+        if !ids.contains(required_id) {
+            violations.insert(Phase0AutomationRatchetViolation::MissingRequiredRowId);
         }
     }
 
@@ -1745,7 +1770,8 @@ mod phase0_ci_enforcement_baseline_tests {
     use super::{
         PHASE0_REQUIRED_AGGREGATE_EXIT_SUBCONDITIONS, PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES,
         Phase0CiPolicyInput, Phase0OverrideEvidence, contains_oya_cli_authority,
-        evaluate_phase0_aggregate_exit, evaluate_phase0_automation_rows, evaluate_phase0_ci_policy,
+        evaluate_phase0_aggregate_exit, evaluate_phase0_automation_rows,
+        evaluate_phase0_automation_rows_with_required_ids, evaluate_phase0_ci_policy,
         evaluate_phase0_claim_ceiling, phase0_context_is_required_authority,
         tenant_surface_separation_is_complete,
     };
@@ -1845,6 +1871,13 @@ mod phase0_ci_enforcement_baseline_tests {
             .collect()
     }
 
+    fn optional_string_set(json: &Value, path: &[&str]) -> BTreeSet<String> {
+        optional_string_array_at(json, path)
+            .into_iter()
+            .map(str::to_owned)
+            .collect()
+    }
+
     fn expected_violation_set(json: &Value) -> BTreeSet<String> {
         optional_string_array_at(json, &["expected_violations"])
             .into_iter()
@@ -1912,15 +1945,30 @@ mod phase0_ci_enforcement_baseline_tests {
         required_fields: &[&str],
         allowed_classifications: &BTreeSet<String>,
     ) -> BTreeSet<String> {
+        evaluate_automation_rows_with_required_ids(
+            rows,
+            required_fields,
+            allowed_classifications,
+            &BTreeSet::new(),
+        )
+    }
+
+    fn evaluate_automation_rows_with_required_ids(
+        rows: &[&Value],
+        required_fields: &[&str],
+        allowed_classifications: &BTreeSet<String>,
+        required_row_ids: &BTreeSet<String>,
+    ) -> BTreeSet<String> {
         let owned_rows: Vec<Value> = rows.iter().map(|row| (*row).clone()).collect();
         let owned_required_fields: Vec<String> = required_fields
             .iter()
             .map(|field| (*field).to_owned())
             .collect();
-        evaluate_phase0_automation_rows(
+        evaluate_phase0_automation_rows_with_required_ids(
             &owned_rows,
             &owned_required_fields,
             allowed_classifications,
+            required_row_ids,
         )
         .violations
         .into_iter()
@@ -2539,26 +2587,24 @@ mod phase0_ci_enforcement_baseline_tests {
         let automation_matrix = load_json("specs/phase0-automation-matrix.json");
         let required_fields = string_array_at(&automation_matrix, &["required_row_fields"]);
         let allowed_classifications = required_string_set(&automation_matrix, &["classifications"]);
+        let required_row_ids = required_string_set(&automation_matrix, &["required_seed_row_ids"]);
         let rows = object_array_at(&automation_matrix, &["seed_rows"]);
 
-        let row_violations =
-            evaluate_automation_rows(&rows, &required_fields, &allowed_classifications);
+        let row_violations = evaluate_automation_rows_with_required_ids(
+            &rows,
+            &required_fields,
+            &allowed_classifications,
+            &required_row_ids,
+        );
         assert!(
             row_violations.is_empty(),
             "automation matrix seed rows should satisfy the executable row contract, got {row_violations:?}"
         );
 
         let row_ids: BTreeSet<_> = rows.iter().filter_map(|row| row["id"].as_str()).collect();
-        for required_id in [
-            "AC-0.0-cloud-ci-required-context",
-            "AC-0.0-tenant-pipeline-isolation",
-            "AC-0.12-aggregate-exit-gate",
-            "AC-0.16-automation-ratchet",
-            "AC-0.17-claim-ceiling",
-            "AC-0.17-performance-budget-claim",
-        ] {
+        for required_id in &required_row_ids {
             assert!(
-                row_ids.contains(required_id),
+                row_ids.contains(required_id.as_str()),
                 "automation matrix must carry an explicit row for {required_id}"
             );
         }
@@ -2581,6 +2627,12 @@ mod phase0_ci_enforcement_baseline_tests {
                     .any(|path| path.contains("bad-missing-field")),
             "automation fixtures must cover GOOD, missing/unknown/duplicate, and oya-CLI BAD cases"
         );
+        assert!(
+            fixture_paths
+                .iter()
+                .any(|path| path.contains("bad-missing-required-row")),
+            "automation fixtures must cover required-row omission"
+        );
     }
 
     #[test]
@@ -2596,8 +2648,13 @@ mod phase0_ci_enforcement_baseline_tests {
         for fixture_path in fixture_paths {
             let fixture = load_json(fixture_path);
             let rows = object_array_at(&fixture, &["rows"]);
-            let observed_violations =
-                evaluate_automation_rows(&rows, &required_fields, &allowed_classifications);
+            let required_row_ids = optional_string_set(&fixture, &["required_row_ids"]);
+            let observed_violations = evaluate_automation_rows_with_required_ids(
+                &rows,
+                &required_fields,
+                &allowed_classifications,
+                &required_row_ids,
+            );
             let expected_violations = expected_violation_set(&fixture);
 
             match fixture["expected_verdict"].as_str() {
@@ -2645,6 +2702,58 @@ mod phase0_ci_enforcement_baseline_tests {
         assert!(
             !verdict.is_green(),
             "empty or unconfigured automation input must not false-green AC-0.16"
+        );
+    }
+
+    #[test]
+    fn phase0_automation_ratchet_rejects_missing_required_row_ids() {
+        let allowed_classifications: BTreeSet<String> = ["automated_blocking_now"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+        let required_fields = vec![
+            "id".to_owned(),
+            "source_artifact".to_owned(),
+            "requirement".to_owned(),
+            "classification".to_owned(),
+            "owner".to_owned(),
+            "target_gate_or_controller".to_owned(),
+            "blocking_fixture".to_owned(),
+            "retirement_phase".to_owned(),
+            "evidence_path".to_owned(),
+            "no_new_oya_cli_surface".to_owned(),
+        ];
+        let rows = vec![json!({
+            "id": "present-row",
+            "source_artifact": "inline-test",
+            "requirement": "present row should not satisfy missing required id",
+            "classification": "automated_blocking_now",
+            "owner": "platform-toolchain",
+            "target_gate_or_controller": "oya-ci-controller",
+            "blocking_fixture": "inline-test",
+            "retirement_phase": "phase0",
+            "evidence_path": "inline-test",
+            "no_new_oya_cli_surface": true
+        })];
+        let required_row_ids: BTreeSet<String> = ["present-row", "missing-row"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+        let verdict = evaluate_phase0_automation_rows_with_required_ids(
+            &rows,
+            &required_fields,
+            &allowed_classifications,
+            &required_row_ids,
+        );
+        let violations: BTreeSet<&str> = verdict
+            .violations
+            .iter()
+            .map(|violation| violation.as_str())
+            .collect();
+
+        assert!(
+            violations.contains("missing_required_row_id"),
+            "required automation row ids must fail closed when omitted, got {violations:?}"
         );
     }
 

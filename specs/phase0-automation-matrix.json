@@ -30,7 +30,8 @@
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-human-judgment-with-retirement-path.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-operator-checklist-for-automatable-rule.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json",
-      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json"
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-required-row.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-automation-ratchet",
     "required_red_green_pairs": [
@@ -48,6 +49,11 @@
         "green": "tc-0.16-good-human-judgment-with-retirement-path.json",
         "red": "tc-0.16-bad-oya-cli-authority.json",
         "tc_id": "TC-0.16.3"
+      },
+      {
+        "green": "tc-0.16-good-human-judgment-with-retirement-path.json",
+        "red": "tc-0.16-bad-missing-required-row.json",
+        "tc_id": "TC-0.16.1"
       }
     ]
   },
@@ -84,6 +90,18 @@
     "retirement_phase",
     "evidence_path",
     "no_new_oya_cli_surface"
+  ],
+  "required_seed_row_ids": [
+    "AC-0.0-cloud-ci-required-context",
+    "AC-0.0-buck2-authority-no-cargo-regression",
+    "ADR-0363-oya-cli-retirement",
+    "ADR-0513-tide-ownership",
+    "P0.6-pack-root-classifier",
+    "AC-0.17-claim-ceiling",
+    "AC-0.17-performance-budget-claim",
+    "AC-0.0-tenant-pipeline-isolation",
+    "AC-0.12-aggregate-exit-gate",
+    "AC-0.16-automation-ratchet"
   ],
   "seed_rows": [
     {
