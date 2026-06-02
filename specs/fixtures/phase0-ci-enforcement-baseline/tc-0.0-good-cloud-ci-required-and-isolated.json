@@ -22,8 +22,15 @@
   "fixture_id": "TC-0.0-GOOD-cloud-ci-required-and-isolated",
   "override_packet": {
     "action": "temporarily_disable_or_degrade_gate",
+    "affected_contexts": [
+      "oya-ci-required"
+    ],
+    "degraded_gate_ids": [
+      "cloud-ci-required-context"
+    ],
     "audit_chain_event": "EVT-P0-OVERRIDE-EXAMPLE",
     "blast_radius_statement": "dev protected branch only; no tenant release promotion",
+    "no_new_oya_cli_surface": true,
     "owner": "platform-toolchain",
     "revert_or_fix_follow_up": "protected-flow revert/fix PR restores oya-ci-required before TTL",
     "reviewer_acknowledgment": "reviewer-agent-approved-or-human-breakglass-ack",

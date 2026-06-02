@@ -195,6 +195,7 @@
       }
     ],
     "result_schema": "specs/phase0-ci-enforcement-result-schema.json",
+    "override_packet_schema": "specs/phase0-override-packet-schema.json",
     "tenant_fixture_contract": "specs/toolchain-tenant-isolation-fixtures.json"
   },
   "gap_packet": {
@@ -213,10 +214,11 @@
     },
     "overall_verdict": "P0.0_RED_blocked_until_cloud_ci_required_context_is_live",
     "override_kill_switch": {
-      "fix_path": "add controller-enforced override packet schema and required BAD/GOOD tests",
+      "fix_path": "wire specs/phase0-override-packet-schema.json into the live cloud-ci/oya-ci controller before any protected-flow override can affect a required context",
       "fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
-      "required_contract": "TTL, reviewer acknowledgment, audit-chain event, named owner, blast-radius statement, and protected-flow revert/fix follow-up",
-      "status": "GAP"
+      "required_contract": "action, affected required context, degraded gate id, TTL, reviewer acknowledgment, audit-chain event, named owner, blast-radius statement, protected-flow revert/fix follow-up, and no new oya CLI surface",
+      "status": "GAP",
+      "local_target_status": "schema, GOOD fixture, BAD fixture, and kernel evaluator require action, affected context, degraded gate id, TTL, reviewer acknowledgment, audit event, owner, blast radius, revert/fix follow-up, and no new oya CLI surface"
     },
     "required_context": {
       "checked_in_contexts": [

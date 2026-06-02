@@ -251,22 +251,30 @@ pub const PHASE0_REQUIRED_AGGREGATE_EXIT_SUBCONDITIONS: [&str; 32] = [
 /// Override evidence required when a gate is temporarily disabled or degraded.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Phase0OverrideEvidence {
+    pub action_present: bool,
+    pub affected_contexts_present: bool,
+    pub degraded_gate_ids_present: bool,
     pub ttl_present: bool,
     pub reviewer_acknowledgment_present: bool,
     pub audit_chain_event_present: bool,
     pub owner_present: bool,
     pub blast_radius_statement_present: bool,
     pub revert_or_fix_follow_up_present: bool,
+    pub no_new_oya_cli_surface: bool,
 }
 
 impl Phase0OverrideEvidence {
     pub const fn is_complete(&self) -> bool {
-        self.ttl_present
+        self.action_present
+            && self.affected_contexts_present
+            && self.degraded_gate_ids_present
+            && self.ttl_present
             && self.reviewer_acknowledgment_present
             && self.audit_chain_event_present
             && self.owner_present
             && self.blast_radius_statement_present
             && self.revert_or_fix_follow_up_present
+            && self.no_new_oya_cli_surface
     }
 }
 
@@ -2015,6 +2023,17 @@ mod phase0_ci_enforcement_baseline_tests {
                 .as_str()
                 .map(str::to_owned),
             override_evidence: override_packet.is_object().then(|| Phase0OverrideEvidence {
+                action_present: has_non_empty_string(override_packet, &["action"]),
+                affected_contexts_present: !optional_string_array_at(
+                    override_packet,
+                    &["affected_contexts"],
+                )
+                .is_empty(),
+                degraded_gate_ids_present: !optional_string_array_at(
+                    override_packet,
+                    &["degraded_gate_ids"],
+                )
+                .is_empty(),
                 ttl_present: has_non_empty_string(override_packet, &["ttl_expires_at"]),
                 reviewer_acknowledgment_present: has_non_empty_string(
                     override_packet,
@@ -2033,6 +2052,8 @@ mod phase0_ci_enforcement_baseline_tests {
                     override_packet,
                     &["revert_or_fix_follow_up"],
                 ),
+                no_new_oya_cli_surface: override_packet["no_new_oya_cli_surface"].as_bool()
+                    == Some(true),
             }),
             tenant_separated_surfaces: optional_string_array_at(
                 tenant_model,
@@ -2271,6 +2292,52 @@ mod phase0_ci_enforcement_baseline_tests {
     }
 
     #[test]
+    fn phase0_override_evidence_requires_controller_packet_contract() {
+        let incomplete_override = Phase0OverrideEvidence {
+            action_present: true,
+            affected_contexts_present: false,
+            degraded_gate_ids_present: false,
+            ttl_present: true,
+            reviewer_acknowledgment_present: true,
+            audit_chain_event_present: true,
+            owner_present: true,
+            blast_radius_statement_present: true,
+            revert_or_fix_follow_up_present: true,
+            no_new_oya_cli_surface: true,
+        };
+        assert!(
+            !incomplete_override.is_complete(),
+            "override evidence must name affected contexts and degraded gate ids"
+        );
+
+        let input = Phase0CiPolicyInput {
+            protected_required_contexts: vec!["oya-ci-required".to_owned()],
+            producer_kind: Some("oya-ci-controller".to_owned()),
+            producer_controller: Some("oya-ci-controller".to_owned()),
+            producer_command: Some("cloud-ci controller posts status".to_owned()),
+            candidate_bytes_policy: Some("untrusted_input_only".to_owned()),
+            gate_definition_source: Some("trusted_dev_or_controller_state".to_owned()),
+            override_evidence: Some(incomplete_override),
+            tenant_separated_surfaces: PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES
+                .iter()
+                .map(|surface| (*surface).to_owned())
+                .collect(),
+            tenant_shared_surfaces: vec![],
+            internal_bypass_without_breakglass: false,
+        };
+        let violations: BTreeSet<&str> = evaluate_phase0_ci_policy(&input)
+            .violations
+            .iter()
+            .map(|violation| violation.as_str())
+            .collect();
+
+        assert!(
+            violations.contains("override_missing_ttl_reviewer_audit_or_revert"),
+            "missing controller override schema fields must fail closed, got {violations:?}"
+        );
+    }
+
+    #[test]
     fn phase0_policy_rejects_empty_contexts_and_missing_trusted_producer() {
         let empty_context_input = Phase0CiPolicyInput {
             protected_required_contexts: vec![],
@@ -2404,6 +2471,14 @@ mod phase0_ci_enforcement_baseline_tests {
         let claim_map = load_json("specs/phase0-claim-evidence-map.json");
         let root_hub = load_json("specs/root-hub-pointers.json");
         let result_schema = load_json("specs/phase0-ci-enforcement-result-schema.json");
+        let override_schema = load_json("specs/phase0-override-packet-schema.json");
+        let baseline = load_json("specs/phase0-ci-enforcement-baseline.json");
+        let good_ci_fixture = load_json(
+            "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+        );
+        let bad_override_fixture = load_json(
+            "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
+        );
         let red_result_fixture = load_json(
             "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
         );
@@ -2438,6 +2513,47 @@ mod phase0_ci_enforcement_baseline_tests {
             root_hub["entry_points"]["phase0_ci_enforcement_result_schema"].is_object(),
             "root hub should expose the P0.0 structured result schema"
         );
+        assert!(
+            root_hub["entry_points"]["phase0_override_packet_schema"].is_object(),
+            "root hub should expose the P0.0 override packet schema"
+        );
+        assert_eq!(
+            string_at(&baseline, &["fixture_set", "override_packet_schema"]),
+            Some("specs/phase0-override-packet-schema.json"),
+            "baseline fixture set must point at the override packet schema"
+        );
+        for field in [
+            "action",
+            "affected_contexts",
+            "degraded_gate_ids",
+            "ttl_expires_at",
+            "reviewer_acknowledgment",
+            "audit_chain_event",
+            "owner",
+            "blast_radius_statement",
+            "revert_or_fix_follow_up",
+            "no_new_oya_cli_surface",
+        ] {
+            assert!(
+                string_array_at(&override_schema, &["required"]).contains(&field),
+                "override schema must require {field}"
+            );
+            assert!(
+                field_is_present_and_non_empty(&good_ci_fixture["override_packet"], field),
+                "GOOD override fixture must satisfy required override field {field}"
+            );
+        }
+        assert_declared_schema_keys(
+            &good_ci_fixture["override_packet"],
+            &override_schema,
+            "tc-0.0-good-cloud-ci-required-and-isolated.override_packet",
+        );
+        assert!(
+            expected_violation_set(&bad_override_fixture)
+                .contains("override_missing_ttl_reviewer_audit_or_revert"),
+            "BAD override fixture must expect the override packet violation"
+        );
+
         assert!(
             string_array_at(&result_schema, &["required"]).contains(&"candidate_sha")
                 && string_array_at(&result_schema, &["required"]).contains(&"producer")

@@ -1109,6 +1109,13 @@
       "migration_phase": "phase0-p0.0-red-gap-packet",
       "purpose": "JSON Schema for P0.0 cloud-ci enforcement result fixtures. Requires full candidate SHA, producer, observed verdict, fixture results, provenance, and claim-boundary fields so branch-protection authority cannot be inferred from local-only evidence."
     },
+    "phase0_override_packet_schema": {
+      "kind": "schema",
+      "current_path": "/specs/phase0-override-packet-schema.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-p0.0-red-gap-packet",
+      "purpose": "JSON Schema for P0.0 cloud-ci override packets. Requires affected required contexts, degraded gate ids, TTL, reviewer acknowledgment, audit-chain event, owner, blast radius, revert/fix follow-up, and no-new-oya-CLI marker so temporary gate disable/degrade paths cannot become untracked authority."
+    },
     "toolchain_tenant_isolation_fixtures": {
       "kind": "spec",
       "current_path": "/specs/toolchain-tenant-isolation-fixtures.json",

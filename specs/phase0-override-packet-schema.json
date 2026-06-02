@@ -1,0 +1,91 @@
+{
+  "$id": "https://docs.oyatie.com/specs/phase0-override-packet-schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T19:50:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-toolchain + platform-security + platform-governance",
+    "related_acceptance_criteria": [
+      "AC-0.0",
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "spec_id": "EXE-PHASE0-OVERRIDE-PACKET-SCHEMA",
+    "status": "override_packet_schema_not_live_authority",
+    "updated_at": "2026-06-02T19:50:00Z",
+    "version": "0.1.0"
+  },
+  "additionalProperties": false,
+  "description": "Schema for temporary gate-disable or gate-degradation override packets in the P0.0 cloud-ci/oya-ci controller path. Conformance is local/static evidence only until the live protected required context is posted by trusted cloud-ci/oya-ci.",
+  "properties": {
+    "action": {
+      "enum": [
+        "temporarily_disable_or_degrade_gate"
+      ]
+    },
+    "affected_contexts": {
+      "items": {
+        "enum": [
+          "cloud-ci-required",
+          "oya-ci-required"
+        ]
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "degraded_gate_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "ttl_expires_at": {
+      "description": "UTC timestamp after which the override is invalid.",
+      "minLength": 20,
+      "pattern": "^20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+      "type": "string"
+    },
+    "reviewer_acknowledgment": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "audit_chain_event": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "owner": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "blast_radius_statement": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "revert_or_fix_follow_up": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "no_new_oya_cli_surface": {
+      "const": true,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "action",
+    "affected_contexts",
+    "degraded_gate_ids",
+    "ttl_expires_at",
+    "reviewer_acknowledgment",
+    "audit_chain_event",
+    "owner",
+    "blast_radius_statement",
+    "revert_or_fix_follow_up",
+    "no_new_oya_cli_surface"
+  ],
+  "title": "Phase0OverridePacket",
+  "type": "object"
+}

@@ -108,7 +108,7 @@
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 + specs/fixtures/phase0-ci-enforcement-baseline/",
       "classification": "automated_blocking_now",
       "current_gap_packet": "specs/phase0-ci-enforcement-baseline.json#gap_packet",
-      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle",
+      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle + specs/phase0-override-packet-schema.json",
       "id": "AC-0.0-cloud-ci-required-context",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain",
