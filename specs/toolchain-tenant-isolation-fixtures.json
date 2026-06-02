@@ -9,7 +9,7 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-TOOLCHAIN-TENANT-ISOLATION-FIXTURES",
     "status": "fixture-contract-not-live-enforcement",
-    "updated_at": "2026-06-02T15:03:11Z",
+    "updated_at": "2026-06-02T19:11:00Z",
     "version": "0.1.0"
   },
   "claim_boundary": "Specifies RED/GREEN tenant-isolation fixtures for cloud-ci/cloud-cd toolchain lanes; does not claim live tenant isolation until the cloud-ci required context runs these fixtures on candidate SHAs.",
@@ -47,6 +47,19 @@
         "oyatie-internal",
         "customer-a",
         "customer-b"
+      ],
+      "separate_surfaces": [
+        "identity",
+        "secret_scope",
+        "runner_pool",
+        "workspace_volume",
+        "cache_namespace",
+        "artifact_namespace",
+        "log_evidence_namespace",
+        "release_ledger",
+        "deploy_target",
+        "status_callback_identity",
+        "audit_event_stream"
       ]
     }
   ],

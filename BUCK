@@ -22,6 +22,8 @@ genrule(
         "docs/decisions/ADR-0408-buck2-driven-ci-cd.md": "docs/decisions/ADR-0408-buck2-driven-ci-cd.md",
         "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md": "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
         "docs/decisions/ADR-0515-buck2-native-oci-static-musl-base.md": "docs/decisions/ADR-0515-buck2-native-oci-static-musl-base.md",
+        "docs/TOOLCHAIN.md": "docs/TOOLCHAIN.md",
+        "docs/standards/code-style.md": "docs/standards/code-style.md",
         "docs/standards/rust-release-optimization.md": "docs/standards/rust-release-optimization.md",
         "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
         "infra/ci/buck2-affected-gate.sh": "infra/ci/buck2-affected-gate.sh",

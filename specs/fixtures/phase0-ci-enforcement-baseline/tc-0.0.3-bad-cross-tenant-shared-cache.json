@@ -9,7 +9,7 @@
     ],
     "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
-    "updated_at": "2026-06-02T15:03:11Z"
+    "updated_at": "2026-06-02T19:12:00Z"
   },
   "expected_verdict": "RED",
   "expected_violations": [
@@ -17,6 +17,7 @@
     "untrusted_or_legacy_status_producer",
     "candidate_bytes_can_weaken_gate",
     "candidate_sourced_gate_definition",
+    "tenant_surface_separation_incomplete",
     "tenant_surfaces_shared",
     "internal_bypass_without_breakglass"
   ],

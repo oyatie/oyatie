@@ -17,7 +17,7 @@
       },
       {
         "name": "rustc Book \u2014 Profile-guided Optimization",
-        "url": "https://doc.rust-lang.org/nightly/rustc/profile-guided-optimization.html",
+        "url": "https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html",
         "used_for": "PGO measurement workflow boundaries for the narrow production release optimization exception."
       },
       {
@@ -143,6 +143,8 @@
     "scripts/validate-foundry-phase00-evidence.mjs",
     "tools/hooks/no-cargo-enforcer.sh",
     "Makefile",
+    "docs/TOOLCHAIN.md",
+    "docs/standards/code-style.md",
     "docs/standards/rust-release-optimization.md"
   ],
   "description": "P0.0 non-claim policy for preventing Cargo regression in active CI/CD/build/script lanes. This file is not a green readiness claim; it defines local/static enforcement and the target controller chain.",
@@ -202,6 +204,16 @@
       "oci_image(",
       "cloud-intelligence-oci",
       "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-app:cloud-intelligence"
+    ],
+    "docs/TOOLCHAIN.md": [
+      "2026-06-02 Buck2 authority amendment",
+      "Buck2 affected build/test/gate targets",
+      "Cargo metadata may feed generated registry data only; it is not lane authority"
+    ],
+    "docs/standards/code-style.md": [
+      "Buck2 is the active CI/CD/build/test authority for Rust.",
+      "documented production release artifact optimization measurement",
+      "Buck2 graph-generation exception"
     ],
     "docs/standards/rust-release-optimization.md": [
       "Use Buck2 for all CI, CD, scripts, and build/test lanes.",

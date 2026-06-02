@@ -111,7 +111,7 @@ operator-only Cargo invocation.
 
 - Cargo Book — Profiles: <https://doc.rust-lang.org/stable/cargo/reference/profiles.html>
 - rustc Book — Codegen Options: <https://doc.rust-lang.org/stable/rustc/codegen-options/>
-- rustc Book — Profile-guided Optimization: <https://doc.rust-lang.org/nightly/rustc/profile-guided-optimization.html>
+- rustc Book — Profile-guided Optimization: <https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html>
 - Rust `GlobalAlloc`: <https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html>
 - Rust Reference — `global_allocator`: <https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute>
 - Buck2 build command: <https://buck2.build/docs/users/commands/build/>

@@ -243,6 +243,7 @@ pub struct Phase0CiPolicyInput {
     pub candidate_bytes_policy: Option<String>,
     pub gate_definition_source: Option<String>,
     pub override_evidence: Option<Phase0OverrideEvidence>,
+    pub tenant_separated_surfaces: Vec<String>,
     pub tenant_shared_surfaces: Vec<String>,
     pub internal_bypass_without_breakglass: bool,
 }
@@ -256,6 +257,7 @@ pub enum Phase0CiPolicyViolation {
     CandidateBytesCanWeakenGate,
     CandidateSourcedGateDefinition,
     OverrideMissingTtlReviewerAuditOrRevert,
+    TenantSurfaceSeparationIncomplete,
     TenantSurfacesShared,
     InternalBypassWithoutBreakglass,
 }
@@ -281,6 +283,9 @@ impl Phase0CiPolicyViolation {
             Phase0CiPolicyViolation::OverrideMissingTtlReviewerAuditOrRevert => {
                 "override_missing_ttl_reviewer_audit_or_revert"
             }
+            Phase0CiPolicyViolation::TenantSurfaceSeparationIncomplete => {
+                "tenant_surface_separation_incomplete"
+            }
             Phase0CiPolicyViolation::TenantSurfacesShared => "tenant_surfaces_shared",
             Phase0CiPolicyViolation::InternalBypassWithoutBreakglass => {
                 "internal_bypass_without_breakglass"
@@ -305,6 +310,39 @@ impl Phase0CiPolicyVerdict {
 
 pub fn phase0_context_is_required_authority(context: &str) -> bool {
     PHASE0_REQUIRED_CI_CONTEXTS.contains(&context)
+}
+
+fn tenant_surface_separation_is_complete(separated_surfaces: &[String]) -> bool {
+    PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES
+        .iter()
+        .all(|required| tenant_surface_is_separated(required, separated_surfaces))
+}
+
+fn tenant_surface_is_separated(required_surface: &str, separated_surfaces: &[String]) -> bool {
+    separated_surfaces.iter().any(|surface| {
+        let surface = surface.as_str();
+        surface == required_surface
+            || tenant_surface_aliases(required_surface)
+                .iter()
+                .any(|alias| surface == *alias)
+    })
+}
+
+fn tenant_surface_aliases(required_surface: &str) -> &'static [&'static str] {
+    match required_surface {
+        "identity" => &["identity"],
+        "secrets" => &["secret_scope", "secret_lease", "secrets"],
+        "runners" => &["runner_pool", "runners"],
+        "workspaces" => &["workspace_volume", "workspaces"],
+        "caches" => &["cache_namespace", "caches"],
+        "artifacts" => &["artifact_namespace", "artifacts"],
+        "logs_evidence" => &["log_evidence_namespace", "logs_evidence"],
+        "release_ledgers" => &["release_ledger", "release_ledgers"],
+        "deploy_targets" => &["deploy_target", "deploy_targets"],
+        "status_callbacks" => &["status_callback_identity", "status_callbacks"],
+        "audit_events" => &["audit_event_stream", "audit_events"],
+        _ => &[],
+    }
 }
 
 pub fn evaluate_phase0_ci_policy(input: &Phase0CiPolicyInput) -> Phase0CiPolicyVerdict {
@@ -356,6 +394,9 @@ pub fn evaluate_phase0_ci_policy(input: &Phase0CiPolicyInput) -> Phase0CiPolicyV
         violations.insert(Phase0CiPolicyViolation::OverrideMissingTtlReviewerAuditOrRevert);
     }
 
+    if !tenant_surface_separation_is_complete(&input.tenant_separated_surfaces) {
+        violations.insert(Phase0CiPolicyViolation::TenantSurfaceSeparationIncomplete);
+    }
     if !input.tenant_shared_surfaces.is_empty() {
         violations.insert(Phase0CiPolicyViolation::TenantSurfacesShared);
     }
@@ -1662,7 +1703,7 @@ mod phase0_ci_enforcement_baseline_tests {
         PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES, Phase0CiPolicyInput, Phase0OverrideEvidence,
         contains_oya_cli_authority, evaluate_phase0_aggregate_exit,
         evaluate_phase0_automation_rows, evaluate_phase0_ci_policy, evaluate_phase0_claim_ceiling,
-        phase0_context_is_required_authority,
+        phase0_context_is_required_authority, tenant_surface_separation_is_complete,
     };
 
     fn repo_root() -> PathBuf {
@@ -1901,6 +1942,17 @@ mod phase0_ci_enforcement_baseline_tests {
                     &["revert_or_fix_follow_up"],
                 ),
             }),
+            tenant_separated_surfaces: optional_string_array_at(
+                tenant_model,
+                &["separate_surfaces"],
+            )
+            .into_iter()
+            .chain(optional_string_array_at(
+                tenant_model,
+                &["partitioned_surfaces"],
+            ))
+            .map(str::to_owned)
+            .collect(),
             tenant_shared_surfaces: optional_string_array_at(tenant_model, &["shared_surfaces"])
                 .into_iter()
                 .map(str::to_owned)
@@ -2101,6 +2153,32 @@ mod phase0_ci_enforcement_baseline_tests {
     }
 
     #[test]
+    fn phase0_policy_rejects_missing_tenant_surface_separation() {
+        let partial_tenant_input = Phase0CiPolicyInput {
+            protected_required_contexts: vec!["oya-ci-required".to_owned()],
+            producer_kind: Some("minimal_rust_bridge_adapter".to_owned()),
+            producer_controller: Some("oya-ci-controller".to_owned()),
+            producer_command: None,
+            candidate_bytes_policy: Some("untrusted_input_only".to_owned()),
+            gate_definition_source: Some("trusted_dev_or_controller_state".to_owned()),
+            override_evidence: None,
+            tenant_separated_surfaces: vec!["identity".to_owned(), "secret_scope".to_owned()],
+            tenant_shared_surfaces: vec![],
+            internal_bypass_without_breakglass: false,
+        };
+
+        let verdict = evaluate_phase0_ci_policy(&partial_tenant_input);
+        assert!(
+            !verdict.is_green()
+                && verdict
+                    .violations
+                    .iter()
+                    .any(|violation| violation.as_str() == "tenant_surface_separation_incomplete"),
+            "partial tenant separation evidence must be RED"
+        );
+    }
+
+    #[test]
     fn phase0_policy_rejects_empty_contexts_and_missing_trusted_producer() {
         let empty_context_input = Phase0CiPolicyInput {
             protected_required_contexts: vec![],
@@ -2110,6 +2188,10 @@ mod phase0_ci_enforcement_baseline_tests {
             candidate_bytes_policy: Some("untrusted_input_only".to_owned()),
             gate_definition_source: Some("trusted_dev_or_controller_state".to_owned()),
             override_evidence: None,
+            tenant_separated_surfaces: PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES
+                .iter()
+                .map(|surface| (*surface).to_owned())
+                .collect(),
             tenant_shared_surfaces: vec![],
             internal_bypass_without_breakglass: false,
         };
@@ -2131,6 +2213,10 @@ mod phase0_ci_enforcement_baseline_tests {
             candidate_bytes_policy: None,
             gate_definition_source: None,
             override_evidence: None,
+            tenant_separated_surfaces: PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES
+                .iter()
+                .map(|surface| (*surface).to_owned())
+                .collect(),
             tenant_shared_surfaces: vec![],
             internal_bypass_without_breakglass: false,
         };
@@ -2182,6 +2268,15 @@ mod phase0_ci_enforcement_baseline_tests {
                         has_non_empty_string(fixture, &["breakglass"])
                             && has_non_empty_string(fixture, &["separation_model"]),
                         "GREEN tenant fixture must specify breakglass and separation model"
+                    );
+                    let separated_surfaces: Vec<String> =
+                        optional_string_array_at(fixture, &["separate_surfaces"])
+                            .into_iter()
+                            .map(str::to_owned)
+                            .collect();
+                    assert!(
+                        tenant_surface_separation_is_complete(&separated_surfaces),
+                        "GREEN tenant fixture must enumerate every separated P0.0 surface"
                     );
                 }
                 Some("RED") => {
