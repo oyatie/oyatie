@@ -353,6 +353,147 @@ impl Phase0CiPolicyVerdict {
     }
 }
 
+/// Violation classes emitted by [`evaluate_phase0_ci_result_bundle`].
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Phase0CiResultBundleViolation {
+    MissingOrMalformedResultBundle,
+    InvalidCandidateSha,
+    MissingCloudCiRequiredContext,
+    UntrustedOrLegacyStatusProducer,
+    CandidateBytesCanWeakenResult,
+    CandidateSourcedGateDefinition,
+    FixtureResultMismatch,
+    GreenBundleWithoutGreenFixtureResults,
+    GreenClaimBoundaryWithoutLiveAuthority,
+    RedBundleClaimsGreenBoundary,
+}
+
+impl Phase0CiResultBundleViolation {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Phase0CiResultBundleViolation::MissingOrMalformedResultBundle => {
+                "missing_or_malformed_result_bundle"
+            }
+            Phase0CiResultBundleViolation::InvalidCandidateSha => "invalid_candidate_sha",
+            Phase0CiResultBundleViolation::MissingCloudCiRequiredContext => {
+                "missing_cloud_ci_required_context"
+            }
+            Phase0CiResultBundleViolation::UntrustedOrLegacyStatusProducer => {
+                "untrusted_or_legacy_status_producer"
+            }
+            Phase0CiResultBundleViolation::CandidateBytesCanWeakenResult => {
+                "candidate_bytes_can_weaken_result"
+            }
+            Phase0CiResultBundleViolation::CandidateSourcedGateDefinition => {
+                "candidate_sourced_gate_definition"
+            }
+            Phase0CiResultBundleViolation::FixtureResultMismatch => "fixture_result_mismatch",
+            Phase0CiResultBundleViolation::GreenBundleWithoutGreenFixtureResults => {
+                "green_bundle_without_green_fixture_results"
+            }
+            Phase0CiResultBundleViolation::GreenClaimBoundaryWithoutLiveAuthority => {
+                "green_claim_boundary_without_live_authority"
+            }
+            Phase0CiResultBundleViolation::RedBundleClaimsGreenBoundary => {
+                "red_bundle_claims_green_boundary"
+            }
+        }
+    }
+}
+
+/// Result of evaluating the P0.0 structured result bundle. Empty violations
+/// means the bundle is internally consistent and sourced from the target
+/// cloud-ci authority shape; it still does not prove live branch protection.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Phase0CiResultBundleVerdict {
+    pub violations: BTreeSet<Phase0CiResultBundleViolation>,
+}
+
+impl Phase0CiResultBundleVerdict {
+    pub fn is_green(&self) -> bool {
+        self.violations.is_empty()
+    }
+}
+
+pub fn evaluate_phase0_ci_result_bundle(bundle: &Value) -> Phase0CiResultBundleVerdict {
+    let mut violations = BTreeSet::new();
+    if !bundle.is_object() {
+        violations.insert(Phase0CiResultBundleViolation::MissingOrMalformedResultBundle);
+        return Phase0CiResultBundleVerdict { violations };
+    }
+
+    let candidate_sha = bundle["candidate_sha"].as_str().unwrap_or_default();
+    if !phase0_full_hex_sha_is_valid(candidate_sha) {
+        violations.insert(Phase0CiResultBundleViolation::InvalidCandidateSha);
+    }
+
+    let required_context = bundle["required_context"].as_str().unwrap_or_default();
+    if !phase0_context_is_required_authority(required_context) {
+        violations.insert(Phase0CiResultBundleViolation::MissingCloudCiRequiredContext);
+    }
+
+    let producer = &bundle["producer"];
+    let producer_kind = producer["kind"].as_str().unwrap_or_default();
+    let producer_context = producer["context"].as_str().unwrap_or_default();
+    if producer["trusted_control_state"].as_bool() != Some(true)
+        || !matches!(
+            producer_kind,
+            "minimal_rust_bridge_adapter" | "oya-ci-controller"
+        )
+        || producer_context != required_context
+        || !phase0_context_is_required_authority(producer_context)
+    {
+        violations.insert(Phase0CiResultBundleViolation::UntrustedOrLegacyStatusProducer);
+    }
+    if producer["candidate_bytes_policy"].as_str() != Some("untrusted_input_only") {
+        violations.insert(Phase0CiResultBundleViolation::CandidateBytesCanWeakenResult);
+    }
+    if producer["gate_definition_source"].as_str() != Some("trusted_dev_or_controller_state") {
+        violations.insert(Phase0CiResultBundleViolation::CandidateSourcedGateDefinition);
+    }
+
+    let observed_verdict = bundle["observed_verdict"].as_str().unwrap_or_default();
+    let fixture_results = match bundle["fixture_results"].as_array() {
+        Some(results) if !results.is_empty() => results,
+        _ => {
+            violations.insert(Phase0CiResultBundleViolation::MissingOrMalformedResultBundle);
+            return Phase0CiResultBundleVerdict { violations };
+        }
+    };
+
+    let mut all_fixture_results_green = true;
+    for fixture in fixture_results {
+        let expected = fixture["expected_verdict"].as_str().unwrap_or_default();
+        let observed = fixture["observed_verdict"].as_str().unwrap_or_default();
+        if expected.is_empty() || observed.is_empty() || expected != observed {
+            violations.insert(Phase0CiResultBundleViolation::FixtureResultMismatch);
+        }
+        if observed != "GREEN" || expected != "GREEN" {
+            all_fixture_results_green = false;
+        }
+    }
+
+    let claims_p0_green = bundle["claim_boundary"]["p0_0_green"].as_bool() == Some(true);
+    let claims_phase0_complete =
+        bundle["claim_boundary"]["phase0_complete"].as_bool() == Some(true);
+
+    if observed_verdict == "GREEN" && !all_fixture_results_green {
+        violations.insert(Phase0CiResultBundleViolation::GreenBundleWithoutGreenFixtureResults);
+    }
+    if observed_verdict == "GREEN" && !violations.is_empty() && claims_p0_green {
+        violations.insert(Phase0CiResultBundleViolation::GreenClaimBoundaryWithoutLiveAuthority);
+    }
+    if observed_verdict == "RED" && (claims_p0_green || claims_phase0_complete) {
+        violations.insert(Phase0CiResultBundleViolation::RedBundleClaimsGreenBoundary);
+    }
+
+    Phase0CiResultBundleVerdict { violations }
+}
+
+fn phase0_full_hex_sha_is_valid(value: &str) -> bool {
+    value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
+}
+
 pub fn phase0_context_is_required_authority(context: &str) -> bool {
     PHASE0_REQUIRED_CI_CONTEXTS.contains(&context)
 }
@@ -1780,8 +1921,8 @@ mod phase0_ci_enforcement_baseline_tests {
         Phase0CiPolicyInput, Phase0OverrideEvidence, contains_oya_cli_authority,
         evaluate_phase0_aggregate_exit, evaluate_phase0_automation_rows,
         evaluate_phase0_automation_rows_with_required_ids, evaluate_phase0_ci_policy,
-        evaluate_phase0_claim_ceiling, phase0_context_is_required_authority,
-        tenant_surface_separation_is_complete,
+        evaluate_phase0_ci_result_bundle, evaluate_phase0_claim_ceiling,
+        phase0_context_is_required_authority, tenant_surface_separation_is_complete,
     };
 
     fn repo_root() -> PathBuf {
@@ -2338,6 +2479,50 @@ mod phase0_ci_enforcement_baseline_tests {
     }
 
     #[test]
+    fn phase0_result_bundle_rejects_false_green_local_authority() {
+        let bundle = json!({
+            "candidate_sha": "1111111111111111111111111111111111111111",
+            "claim_boundary": {
+                "p0_0_green": true,
+                "phase0_complete": true
+            },
+            "fixture_results": [
+                {
+                    "expected_verdict": "RED",
+                    "fixture_id": "inline-red-fixture",
+                    "observed_verdict": "GREEN",
+                    "violations": []
+                }
+            ],
+            "observed_verdict": "GREEN",
+            "producer": {
+                "candidate_bytes_policy": "may_execute_candidate_repository_code",
+                "context": "missing",
+                "gate_definition_source": "candidate_pr_bytes_or_legacy_bridge",
+                "kind": "gap_packet_current_state",
+                "trusted_control_state": false
+            },
+            "provenance": {
+                "recorded_at": "2026-06-02T19:55:00Z",
+                "sources": ["inline false-green fixture"]
+            },
+            "required_context": "missing"
+        });
+        let violations: BTreeSet<&str> = evaluate_phase0_ci_result_bundle(&bundle)
+            .violations
+            .iter()
+            .map(|violation| violation.as_str())
+            .collect();
+
+        assert!(
+            violations.contains("green_claim_boundary_without_live_authority")
+                && violations.contains("fixture_result_mismatch")
+                && violations.contains("missing_cloud_ci_required_context"),
+            "false-green local result bundle must be blocked, got {violations:?}"
+        );
+    }
+
+    #[test]
     fn phase0_policy_rejects_empty_contexts_and_missing_trusted_producer() {
         let empty_context_input = Phase0CiPolicyInput {
             protected_required_contexts: vec![],
@@ -2482,6 +2667,9 @@ mod phase0_ci_enforcement_baseline_tests {
         let red_result_fixture = load_json(
             "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
         );
+        let false_green_result_fixture = load_json(
+            "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json",
+        );
 
         let automation_text = automation_matrix.to_string();
         assert!(
@@ -2521,6 +2709,13 @@ mod phase0_ci_enforcement_baseline_tests {
             string_at(&baseline, &["fixture_set", "override_packet_schema"]),
             Some("specs/phase0-override-packet-schema.json"),
             "baseline fixture set must point at the override packet schema"
+        );
+        let result_bundle_fixture_paths =
+            string_array_at(&baseline, &["fixture_set", "result_bundle_fixture_paths"]);
+        assert!(
+            result_bundle_fixture_paths.contains(&"specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json")
+                && result_bundle_fixture_paths.contains(&"specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"),
+            "baseline must register current RED and false-green structured result fixtures"
         );
         for field in [
             "action",
@@ -2601,6 +2796,48 @@ mod phase0_ci_enforcement_baseline_tests {
                 && red_result_fixture["provenance"].is_object(),
             "current red result fixture must match the declared structured-result object/array shape"
         );
+        let current_result_verdict = evaluate_phase0_ci_result_bundle(&red_result_fixture);
+        assert!(
+            !current_result_verdict.is_green()
+                && current_result_verdict
+                    .violations
+                    .iter()
+                    .any(|violation| { violation.as_str() == "missing_cloud_ci_required_context" })
+                && current_result_verdict.violations.iter().any(|violation| {
+                    violation.as_str() == "untrusted_or_legacy_status_producer"
+                }),
+            "current result bundle must stay RED until trusted required context exists, got {:?}",
+            current_result_verdict
+                .violations
+                .iter()
+                .map(|violation| violation.as_str())
+                .collect::<Vec<_>>()
+        );
+        assert_declared_schema_keys(
+            &false_green_result_fixture,
+            &result_schema,
+            "tc-0.0.4-bad-result-bundle-false-green",
+        );
+        let false_green_violations: BTreeSet<&str> =
+            evaluate_phase0_ci_result_bundle(&false_green_result_fixture)
+                .violations
+                .iter()
+                .map(|violation| violation.as_str())
+                .collect();
+        for expected in [
+            "missing_cloud_ci_required_context",
+            "untrusted_or_legacy_status_producer",
+            "candidate_bytes_can_weaken_result",
+            "candidate_sourced_gate_definition",
+            "fixture_result_mismatch",
+            "green_bundle_without_green_fixture_results",
+            "green_claim_boundary_without_live_authority",
+        ] {
+            assert!(
+                false_green_violations.contains(expected),
+                "false-green result fixture should emit {expected}, got {false_green_violations:?}"
+            );
+        }
     }
 
     #[test]

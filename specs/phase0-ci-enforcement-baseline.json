@@ -141,6 +141,10 @@
       "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json"
     ],
     "current_red_result_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+    "result_bundle_fixture_paths": [
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"
+    ],
     "fixture_directory": "specs/fixtures/phase0-ci-enforcement-baseline",
     "required_red_green_pairs": [
       {
@@ -242,7 +246,9 @@
       "current_red_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
       "fix_path": "cloud-ci/oya-ci producer emits a conforming result bundle for every candidate SHA and posts the required protected context from trusted control state",
       "required_schema": "specs/phase0-ci-enforcement-result-schema.json",
-      "status": "GAP"
+      "status": "GAP",
+      "local_target_status": "schema-conforming current RED bundle and false-green RED fixture are evaluated by the kernel; live status posting remains unproven",
+      "blocking_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"
     },
     "tenant_pipeline_isolation": {
       "fix_path": "run tenant A/B negative fixtures through required cloud-ci/oya-ci context before any live isolation claim",
