@@ -89,7 +89,7 @@ pub const BLOCKING_LABEL_PREFIXES: &[&str] = &["hold", "do-not-merge"];
 pub enum MergeMethod {
     /// `merge` — create a merge commit.
     Merge,
-    /// `rebase` — rebase then fast-forward (default; preserves linear history).
+    /// `rebase` — rebase then fast-forward (preserves linear history).
     Rebase,
     /// `squash` — squash all commits into one.
     Squash,
@@ -105,13 +105,12 @@ impl MergeMethod {
         }
     }
 
-    /// Parse from env-var string. Unrecognised / blank → `Rebase`.
+    /// Parse from env-var string. P0.0 Tide scheduling is squash-only; any
+    /// value resolves to `Squash` until a future spec safely widens the merge
+    /// method policy with tests.
     pub fn from_str(s: &str) -> Self {
-        match s.trim().to_ascii_lowercase().as_str() {
-            "merge" => MergeMethod::Merge,
-            "squash" => MergeMethod::Squash,
-            _ => MergeMethod::Rebase,
-        }
+        let _ = s;
+        MergeMethod::Squash
     }
 }
 
@@ -141,13 +140,15 @@ pub struct TideConfig {
     pub repo_name: String,
     /// Base branch to poll PRs against (default: `dev`).
     pub base_branch: String,
-    /// Required commit-status context that must be `success` (default: `oya-ci-required`).
+    /// Required commit-status context that must be `success`; hard-pinned to
+    /// `oya-ci-required` for P0.0 merge authority.
     pub required_status_context: String,
     /// Approval policy (default: 1 approving review).
     pub approval_policy: ApprovalPolicy,
     /// Poll interval in seconds (default: 60).
     pub poll_interval_secs: u64,
-    /// Merge method (default: `rebase`).
+    /// Merge method (default: `squash`, matching the Forgejo/GitHub P0.0
+    /// auto-merge-after-CI bridge contract).
     pub merge_method: MergeMethod,
     /// Safety guard: when `true` tide logs "WOULD MERGE" but never calls the
     /// merge API. Defaults to `true` — must be explicitly set to `false` to
@@ -170,19 +171,14 @@ impl TideConfig {
         let base_branch = get("OYA_TIDE_BASE_BRANCH")
             .filter(|v| !v.trim().is_empty())
             .unwrap_or_else(|| DEFAULT_BASE_BRANCH.to_owned());
-        let required_status_context = get("OYA_TIDE_REQUIRED_STATUS_CONTEXT")
-            .filter(|v| !v.trim().is_empty())
-            .unwrap_or_else(|| DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned());
+        let required_status_context = DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned();
         let min_approvals: u32 = get("OYA_TIDE_MIN_APPROVALS")
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(DEFAULT_MIN_APPROVALS);
         let poll_interval_secs: u64 = get("OYA_TIDE_POLL_INTERVAL_SECS")
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(DEFAULT_POLL_INTERVAL_SECS);
-        let merge_method = get("OYA_TIDE_MERGE_METHOD")
-            .as_deref()
-            .map(MergeMethod::from_str)
-            .unwrap_or(MergeMethod::Rebase);
+        let merge_method = MergeMethod::Squash;
         // dry_run defaults to true; must be explicitly "false" to enable live merging.
         let dry_run = get("OYA_TIDE_DRY_RUN")
             .map(|v| v.trim().to_ascii_lowercase() != "false")
@@ -411,8 +407,9 @@ pub trait ForgejoClient: Send + Sync {
 
     /// Merge a pull request using the given method.
     ///
-    /// Returns `Ok(())` on 200/204, `Err(TideError::Downstream)` otherwise.
-    fn merge_pull(&self, pr_number: u64, method: MergeMethod) -> Result<()>;
+    /// Returns `Ok(())` on successful immediate or scheduled merge,
+    /// `Err(TideError::Downstream)` otherwise.
+    fn merge_pull(&self, pr_number: u64, method: MergeMethod, head_sha: &str) -> Result<()>;
 }
 
 // ---------------------------------------------------------------------------
@@ -434,7 +431,7 @@ mod tests {
             required_status_context: DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned(),
             approval_policy: ApprovalPolicy { min_approvals: 1 },
             poll_interval_secs: DEFAULT_POLL_INTERVAL_SECS,
-            merge_method: MergeMethod::Rebase,
+            merge_method: MergeMethod::Squash,
             dry_run: true,
         }
     }
@@ -760,9 +757,9 @@ mod tests {
     }
 
     #[test]
-    fn merge_method_defaults_to_rebase() {
+    fn merge_method_defaults_to_squash() {
         let cfg = TideConfig::from_lookup(|_| None);
-        assert_eq!(cfg.merge_method, MergeMethod::Rebase);
+        assert_eq!(cfg.merge_method, MergeMethod::Squash);
     }
 
     #[test]
@@ -776,7 +773,7 @@ mod tests {
     }
 
     #[test]
-    fn configured_required_status_context_overrides_phase0_default() {
+    fn configured_required_status_context_cannot_override_phase0_default() {
         let cfg = TideConfig::from_lookup(|key| {
             if key == "OYA_TIDE_REQUIRED_STATUS_CONTEXT" {
                 Some("cloud-ci-required".to_owned())
@@ -785,18 +782,32 @@ mod tests {
             }
         });
 
-        assert_eq!(cfg.required_status_context, "cloud-ci-required");
+        assert_eq!(cfg.required_status_context, "oya-ci-required");
+    }
+
+    #[test]
+    fn configured_merge_method_cannot_override_phase0_squash_default() {
+        for method in ["merge", "rebase", "rebase-merge", "squash"] {
+            let cfg = TideConfig::from_lookup(|key| {
+                if key == "OYA_TIDE_MERGE_METHOD" {
+                    Some(method.to_owned())
+                } else {
+                    None
+                }
+            });
+            assert_eq!(cfg.merge_method, MergeMethod::Squash);
+        }
     }
 
     // --- MergeMethod / ReviewState parsing ---
 
     #[test]
     fn merge_method_parses_correctly() {
-        assert_eq!(MergeMethod::from_str("merge"), MergeMethod::Merge);
+        assert_eq!(MergeMethod::from_str("merge"), MergeMethod::Squash);
         assert_eq!(MergeMethod::from_str("squash"), MergeMethod::Squash);
-        assert_eq!(MergeMethod::from_str("rebase"), MergeMethod::Rebase);
-        assert_eq!(MergeMethod::from_str("bogus"), MergeMethod::Rebase);
-        assert_eq!(MergeMethod::from_str(""), MergeMethod::Rebase);
+        assert_eq!(MergeMethod::from_str("rebase"), MergeMethod::Squash);
+        assert_eq!(MergeMethod::from_str("bogus"), MergeMethod::Squash);
+        assert_eq!(MergeMethod::from_str(""), MergeMethod::Squash);
     }
 
     #[test]

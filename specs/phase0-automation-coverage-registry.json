@@ -15,7 +15,7 @@
     "spec_id": "EXE-PHASE0-AUTOMATION-COVERAGE-REGISTRY",
     "status": "local_static_coverage_registry_not_live_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-02T21:10:00Z"
+    "updated_at": "2026-06-02T22:05:00Z"
   },
   "description": "Local/static AC-0.16 coverage registry binding declared Phase-0 acceptance criteria, selected ADR amendments, operating-contract requirements, and governance work items to automation-matrix rows. This prevents seed-row omission from false-greening the automation ratchet; it is not live required-context evidence.",
   "claim_boundary": {
@@ -60,6 +60,7 @@
       "mapped_row_ids": [
         "AC-0.0-cloud-ci-required-context",
         "AC-0.0-buck2-authority-no-cargo-regression",
+        "AC-0.0-auto-merge-after-ci",
         "AC-0.0-tenant-pipeline-isolation"
       ],
       "owner": "platform-toolchain"

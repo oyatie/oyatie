@@ -57,6 +57,20 @@ genrule(
         "infra/ci/jenkins/reported-status-contexts.json": "infra/ci/jenkins/reported-status-contexts.json",
         "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+        "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
+        "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
+        "scripts/check-sequential-pr-merge-conflicts.sh": "scripts/check-sequential-pr-merge-conflicts.sh",
+        "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+        "scripts/tests/phase0_auto_merge_after_ci_contract_check.py": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+        "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
+        "docs/ci/forge-of-record.md": "docs/ci/forge-of-record.md",
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md": "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
+        "specs/phase0-auto-merge-after-ci.json": "specs/phase0-auto-merge-after-ci.json",
+        "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-kernel:lib-src",
+        "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-app:lib-src",
+        "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:lib-src",
         "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
         "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md": "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
         "docs/decisions/ADR-0392-buck2-canonical-build-graph.md": "docs/decisions/ADR-0392-buck2-canonical-build-graph.md",
@@ -156,7 +170,7 @@ genrule(
         "oya/workplace-integration/ci/Jenkinsfile": "oya/workplace-integration/ci/Jenkinsfile",
     },
     out = "buck2-authority-policy-check.json",
-    cmd = "OYA_REPO_ROOT=$PWD python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json > $OUT",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -176,6 +190,65 @@ genrule(
         "specs/toolchain-tenant-isolation-fixtures.json": "specs/toolchain-tenant-isolation-fixtures.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])},
     out = "phase0-ci-enforcement-baseline-catalog-check.json",
-    cmd = "OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# P0.0 auto-merge-after-CI bridge check: Forgejo dry-run payload must use the
+# cloud-ci/oya-ci required context, schedule merge after checks pass, and pin the
+# PR head SHA. This is local/static evidence, not a live Forgejo mutation.
+genrule(
+    name = "forgejo-auto-merge-after-ci-check",
+    srcs = {
+        "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+        "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
+        "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
+        "docs/ci/forge-of-record.md": "docs/ci/forge-of-record.md",
+    },
+    out = "forgejo-auto-merge-after-ci-check.txt",
+    cmd = "bash scripts/tests/forgejo_auto_merge_after_ci.test.sh > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+# P0.0 GitHub bootstrap mirror auto-merge check: live scheduling must refuse
+# required-context drift and non-squash merge methods before arming auto-merge.
+# This is local/static evidence over a fake gh CLI, not a live GitHub mutation.
+genrule(
+    name = "github-auto-merge-after-ci-check",
+    srcs = {
+        "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+        "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
+        "scripts/check-sequential-pr-merge-conflicts.sh": "scripts/check-sequential-pr-merge-conflicts.sh",
+        "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
+    },
+    out = "github-auto-merge-after-ci-check.txt",
+    cmd = "(bash scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh && bash scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh) > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+# P0.0 auto-merge-after-CI contract check: closes the checked-in Forgejo/GitHub
+# auto-merge contract over scripts, docs, Tide adapter code, and Buck2 policy.
+genrule(
+    name = "phase0-auto-merge-after-ci-contract-check",
+    srcs = {
+        "scripts/tests/phase0_auto_merge_after_ci_contract_check.py": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+        "specs/phase0-auto-merge-after-ci.json": "specs/phase0-auto-merge-after-ci.json",
+        "specs/buck2-authority-policy.json": "specs/buck2-authority-policy.json",
+        "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
+        "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
+        "scripts/check-sequential-pr-merge-conflicts.sh": "scripts/check-sequential-pr-merge-conflicts.sh",
+        "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+        "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+        "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
+        "docs/ci/forge-of-record.md": "docs/ci/forge-of-record.md",
+        "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-kernel:lib-src",
+        "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-app:lib-src",
+        "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:lib-src",
+    },
+    out = "phase0-auto-merge-after-ci-contract-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py > $OUT",
     visibility = ["PUBLIC"],
 )

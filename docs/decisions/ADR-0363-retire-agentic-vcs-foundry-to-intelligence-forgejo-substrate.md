@@ -74,7 +74,7 @@ Narrow the toolchain to its **differentiated core**:
 - **Keep the agentic-VCS substrate / `oya vcs` / `oya git`** — rejected: reinvents git + Forgejo + Jenkins natives; ~13 crates dormant with 0 deployment ("don't reinvent the wheel"; "use git as is").
 - **Fold Governance into Intelligence** — rejected: layering violation (a validator cannot live inside what it validates).
 - **Stand up a `vcs` microservice** — rejected: no live domain; 2 gates are governance, the rest is dormant.
-- **Build a merge queue now** — rejected: Forgejo lacks one but auto-merge + required checks suffice at current scale; adopt (not build) later only if volume demands.
+- **Build a separate merge queue in this ADR** — rejected in this substrate ADR: Forgejo lacks one and this ADR should not revive the retired agentic-VCS surface. The 2026-06-02 amendment below supersedes the timing only by assigning Tide / merge-queue ownership to cloud-ci/oya-ci Phase 0, not to `oya` CLI or a local operator procedure.
 - **GitHub merge-queue/branch-protection as the substrate** — rejected: contradicts the self-hosted/OSI posture (ADR-0173/0247/0248); GitHub is bootstrap-only.
 
 ## Consequences
@@ -127,3 +127,25 @@ for Buck2/Reindeer graph generation and cannot satisfy build/test/merge authorit
 This amendment is enforced locally by `specs/buck2-authority-policy.json` and the
 Buck2 target `//:buck2-authority-policy-check`; live Phase-0 exit still requires the
 cloud-ci/oya-ci `oya-ci-required` required context and evidence packet.
+
+## 2026-06-02 auto-merge-after-CI and Tide ownership amendment
+
+Founder directive on 2026-06-02 supersedes this ADR's earlier "merge queue:
+deferred" wording for the active Phase-0 platform-readiness lane. Tide / merge
+queue ownership now belongs inside cloud-ci/oya-ci, not in local operator
+procedure and not in the `oya` CLI. Phase 0 must carry an executable admission
+contract for automatic merge after CI, with Phase 1+ expanding projected-state,
+batching, auto-rebase, and regeneration.
+
+Forgejo and the GitHub bootstrap mirror must both converge to auto-merge after
+CI with the same target invariant: required context `oya-ci-required`, head-SHA
+pinning before arming auto-merge, mergeability/conflict checks before arming,
+and Buck2-owned CI/build/test execution. GitHub uses
+`scripts/trigger-next-queue-automerge.sh` and `gh pr merge --auto
+--match-head-commit`; Forgejo uses `scripts/ci/arm-auto-merge.sh` and the PR
+merge endpoint fields `merge_when_checks_succeed=true`,
+`delete_branch_after_merge=true`, and `head_commit_id=<expected sha>`.
+
+No green or live-enforcement claim is implied by this amendment until trusted
+cloud-ci/oya-ci posts `oya-ci-required` on the candidate SHA and branch
+protection requires that context on the live forge.

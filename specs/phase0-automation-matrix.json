@@ -17,7 +17,7 @@
     "spec_id": "EXE-PHASE0-AUTOMATION-MATRIX",
     "status": "seed-contract-not-green",
     "version": "0.1.0",
-    "updated_at": "2026-06-02T21:10:00Z"
+    "updated_at": "2026-06-02T22:05:00Z"
   },
   "classifications": [
     "automated_blocking_now",
@@ -80,7 +80,8 @@
   "known_gaps_before_green": [
     "Local static coverage registry/evaluator now covers declared AC-0.* and Phase-0 governance subjects; AC-0.12 remains RED until live cloud-ci/oya-ci evaluates the registry and required context on the candidate SHA.",
     "Checked-in branch-protection target now names oya-ci-required, but live GitHub branch protection still lacks cloud-ci-required/oya-ci-required and live producer evidence; P0.0 must replace live authority with cloud-ci/oya-ci required context before any green/enforcement claim.",
-    "Manual reviewer approval remains operator/procedure evidence until a non-501 reviewer status producer is live and required."
+    "Manual reviewer approval remains operator/procedure evidence until a non-501 reviewer status producer is live and required.",
+    "Auto-merge-after-CI is now specified and locally checked for Forgejo plus the GitHub bootstrap mirror, but live Forgejo reachability and GitHub required-context convergence remain RED gap evidence until oya-ci-required is live and required."
   ],
   "non_negotiables": [
     "No new oya CLI commands or protected-branch authority are introduced by this matrix.",
@@ -102,6 +103,7 @@
   "required_seed_row_ids": [
     "AC-0.0-cloud-ci-required-context",
     "AC-0.0-buck2-authority-no-cargo-regression",
+    "AC-0.0-auto-merge-after-ci",
     "ADR-0363-oya-cli-retirement",
     "ADR-0513-tide-ownership",
     "P0.6-pack-root-classifier",
@@ -155,6 +157,19 @@
       "evidence_path": "evidence/multispectrum/platform-readiness-p0-0-buck2-authority-*.json + evidence/ci/jenkins/{cloud,oya}/*/buck2-authority-bridge.json when Jenkins runs",
       "no_new_oya_cli_surface": true,
       "claim_boundary": "Local/static scanner and Buck2 target block checked-in Cargo regressions, including service Jenkinsfiles. This is not P0.0 green or protected-branch authority until trusted cloud-ci/oya-ci posts required oya-ci-required on candidate SHA."
+    },
+    {
+      "id": "AC-0.0-auto-merge-after-ci",
+      "source_artifact": "Founder directive 2026-06-02 + .omx/plans/prd-platform-readiness.md#AC-0.0",
+      "requirement": "Forgejo and GitHub bootstrap PRs must be armed for automatic merge after CI only when oya-ci-required is the required context, the PR head SHA is pinned, and mergeability/conflict guards pass.",
+      "classification": "automated_advisory_until_p0_0",
+      "owner": "platform-toolchain + platform-governance",
+      "target_gate_or_controller": "cloud-ci/oya-ci Tide admission controller + //:phase0-auto-merge-after-ci-contract-check + //:forgejo-auto-merge-after-ci-check + scripts/trigger-next-queue-automerge.sh",
+      "blocking_fixture": "specs/phase0-auto-merge-after-ci.json + scripts/tests/phase0_auto_merge_after_ci_contract_check.py + scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+      "retirement_phase": "P0.0 live cloud-ci/oya-ci required-context cutover; GitHub bootstrap mirror path retires after Forgejo-of-record cutover",
+      "evidence_path": "evidence/multispectrum/platform-readiness-p0-0-auto-merge-after-ci-*.json + docs/ci/auto-merge-flow.md + docs/ci/forge-of-record.md",
+      "no_new_oya_cli_surface": true,
+      "claim_boundary": "Local/Buck2 checks enforce the checked-in contract. This is not a live auto-merge or P0.0 green claim until oya-ci-required is live, trusted, posted on the candidate SHA, and required by live branch protection."
     },
     {
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 and #T0.16",
