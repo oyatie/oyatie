@@ -46,8 +46,8 @@ branches:
     # P0.0 local target: one required context posted by trusted
     # cloud-ci/oya-ci control state. This file is not a live-enforcement
     # claim until the ruleset is applied and oya-ci-controller posts the
-    # candidate-SHA status. Legacy cargo/* and oya-verify lanes are feedback
-    # only, not protected-branch merge or Phase-0 exit authority.
+    # candidate-SHA status. Legacy tool-specific lanes are historical feedback only, not
+    # protected-branch merge or Phase-0 exit authority.
     # NOTE: oya-pr-review is intentionally ABSENT from required checks.
     # Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet
     # shipped); requiring it would deadlock every PR. It can return only after

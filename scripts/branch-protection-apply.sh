@@ -63,7 +63,7 @@ require_cmd() {
 
 require_cmd gh
 require_cmd jq
-require_cmd cargo
+require_cmd buck2
 
 if [[ -n "${GITHUB_ACTIONS:-}" && -z "${GH_TOKEN:-}" ]]; then
   echo "::error::OYA_BRANCH_PROTECTION_READ_TOKEN is required; GitHub branch-protection status-check APIs require Administration read permission, which GITHUB_TOKEN cannot request." >&2
@@ -126,7 +126,7 @@ fi
 
 fetch_live
 print_delta
-cargo run -q -p oya-dev-cli -- gate validate protection-context-match \
+buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate protection-context-match \
   --branch "$branch" \
   --applied-branch-protection "$config" \
   --live-required-contexts "$live"

@@ -335,7 +335,7 @@
       "cloud_control_plane_shape": "Resource hierarchy Organization -> Account -> Project -> Region -> Cell -> Resource Group -> Resource; ORN orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}; control plane is API Gateway -> Resource Registry -> Operation Ledger -> Workflow/Reconciler -> OpenTofu/Operators/Argo, where OpenTofu and Argo are backend mechanisms, not the public API. Source: _meta.session_directives_2026_05_25.cloud_control_plane_directives.",
       "cloud_foundations_status": {
         "scope": "metadata-only local foundations for cloud-iac/iam/kms/secrets/network/data/storage/compute/billing/capacity per their manifests",
-        "anchor_verification": "All five mandatory oya verify --ci-required steps pass on the cloud-foundation anchor: cargo fmt, cargo check --workspace, cargo clippy --workspace -D warnings, cargo nextest run --workspace (4472 passed / 1 skipped), and gate run-all (103 lanes).",
+        "anchor_verification": "Superseded 2026-06-02 by Buck2 authority policy: the cloud-foundation anchor requires buck2 graph/load, build, test, and lint targets plus local governance evidence; Cargo mirror lanes and legacy local verifier are not protected-branch authority.",
         "pre_existing_advisory_blocker": "D-7 ADR-shape advisory currently fails on 27 pre-existing lettered ADRs (ADR-0322..ADR-0349) that use '## A. Context' rather than the canonical '## Context' heading the ADR-shape gate requires. Tracked as a separate doc-convention normalization; it predates and is orthogonal to cloud-service consolidation."
       },
       "worktree_consolidation_plan": {
@@ -417,7 +417,7 @@
   "planning_closure": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
     "authority": {
       "current_path": "/specs/masterplan.json",
       "root_hub_pointer": "/specs/root-hub-pointers.json#entry_points.masterplan",
@@ -750,7 +750,7 @@
       ],
       "current_gate_evidence": {
         "status": "local-green-online-audit-strict-evidence-pass",
-        "gate": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
+        "gate": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
         "result": "6 pass, 0 skipped, 0 diagnostics, 0 blocking",
         "evidence_refs": [
           "/evidence/fd001/cs-p13-dependency-seam-report.json",
@@ -1186,7 +1186,7 @@
     "authority_cutover": {
       "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
       "legacy_surfaces": "grit/icm/rtk/vox/omx/omc are compatibility/provenance only and cannot satisfy forward promotion authority",
-      "admission_lane": "cargo run -q -p oya-vcs-admission-gate-app"
+      "admission_lane": "Buck2-built cloud-ci admission gate target (exact target registered by cloud-ci controller; Cargo invocation retired)"
     },
     "ci_admission_lane": {
       "workflow_job": "oya-vcs-admission",
@@ -5859,7 +5859,7 @@
       "build_graph": "Bazel rules_rust (crate_universe; Cargo.toml stays dependency SSOT)",
       "remote": "remote build execution + hermetic remote cache (sccache->SeaweedFS today; bazel RBE target)",
       "affected_targets": "bazel query rdeps for presubmit affected-target selection (Google TAP model)",
-      "oya_role": "governance/verify orchestrator delegating build/test to bazel query/test; retires duplicated cargo-mirror verify/run-all",
+      "oya_role": "governance evidence orchestrator delegating build/test to Buck2 query/build/test; retires duplicated Cargo mirror verify/run-all",
       "rejected": "Buck2 (Reindeer vendoring hostile to Git/code-review; less OSS-battle-tested)",
       "ci_orchestrator": "Jenkins LTS = sole CI (GitHub Actions completely replaced per ADR-0359); JCasC + ephemeral Kata K8s agents; Jenkins GitHub App reports PR commit statuses; ArgoCD = deploy substrate",
       "github_actions": "retired \u2014 .github/workflows removed; branch-protection required checks switch to Jenkins-reported statuses (ADR-0359)"
@@ -5882,7 +5882,7 @@
           "dr_exit": "Multi-region DR with RTO/RPO matrix per service + per-compliance-pack (ADR-0343); >=1 executed cross-region failover drill per region pair (evidence, not claim).",
           "security_exit": "Cedar default-deny universal gate (ADR-0243); tenant isolation proven for BOTH shared (logical: cell+Cedar+per-tenant-encryption) and dedicated (physical cell pinning); cosign-signed images verified at admission via Kubewarden (ADR-0181); 0 critical/high CVE (trivy); no raw secret/PII in logs; audit-chain emission live (ADR-0263).",
           "cost_exit": "FinOps per-tenant cost attribution + OpenCost/FOCUS export live (ADR-0344); mandatory quota/metering/billing resource contract per resource type.",
-          "ci_cd_exit": "Jenkins = sole CI, green (ADR-0359); ArgoCD progressive delivery (canary -> bake -> automatic metric-gated rollback) proven on cloud-* deploys; merge-queue speculative+batch (ADR-0111); local oya verify mirror green (ADR-0346).",
+          "ci_cd_exit": "cloud-ci/oya-ci required context plus Buck2 build/test/lint graph evidence; ArgoCD progressive delivery (canary -> bake -> automatic metric-gated rollback) proven on cloud-* deploys; merge-queue speculative+batch (ADR-0111); local governance evidence is bridge-only and not exit authority.",
           "master_exit_rule": "100 = the full cloud-* substrate LIVE across shared+dedicated deployment, multi-region hyperscale, KR-compliant, with ALL exit gates GREEN on measured evidence. Until then every production/hyperscaler-maturity claim stays blocked_until_required_evidence_is_green (hyperscaler-gates.json).",
           "quality_evidence_kits": [
             "overload/fairness/load-shedding (request-cost classes, retry budgets, queue limits) \u2014 AWS load-shedding",
@@ -5921,7 +5921,7 @@
         "title": "CI/CD + oya toolchain overhaul \u2014 Jenkins replaces GitHub Actions; Bazel rules_rust build graph; oya governance overlay",
         "status": "proposed",
         "parallel": "yes",
-        "deliverable": "Jenkins becomes the sole self-hostable CI (no GitHub Actions / no Actions-budget dependency); merge-queue speculative+batch (ADR-0111); progressive delivery canary/bake/auto-rollback (ArgoCD+Argo Rollouts, ADR-0343/0349); Bazel rules_rust build graph + RBE; oya rebuilt as governance overlay. Local oya verify mirror (ADR-0346) gates throughout.",
+        "deliverable": "cloud-ci/oya-ci becomes the destination required context, with Jenkins only as bridge where present; merge-queue speculative+batch (ADR-0111); progressive delivery canary/bake/auto-rollback (ArgoCD+Argo Rollouts, ADR-0343/0349); Buck2 build graph + remote execution/cache; oya remains governance evidence overlay. Local governance mirrors are bridge evidence only.",
         "authoring_adrs": [
           "ADR-0349",
           "ADR-0358",
@@ -5983,9 +5983,9 @@
         "rationale": "hyperscaler vertical-slice locality; flat 750-crate dir is the navigability anti-pattern"
       },
       {
-        "choice": "bespoke oya verify full-local-CI-mirror (ADR-0346)",
-        "verdict": "CHANGE -> Bazel affected-targets + RBE; oya as governance overlay (ADR-0358)",
-        "rationale": "full-local-mirror does not scale; Google TAP runs affected targets only; dedup doubled cargo mirrors"
+        "choice": "bespoke full-local governance mirror (ADR-0346; superseded for authority by Buck2/cloud-ci)",
+        "verdict": "CHANGE -> Buck2 affected-targets + remote execution/cache; oya as governance overlay (ADR-0358/0392/0408)",
+        "rationale": "full-local-mirror does not scale; affected-target CI runs the impacted graph only; duplicated Cargo mirrors are retired"
       },
       {
         "choice": "big-bundle worktree consolidation",

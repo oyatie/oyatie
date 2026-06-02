@@ -9,7 +9,8 @@
     "related_specs": [
       "/specs/hyperscaler-production-readiness-claim-contract.json",
       "/specs/phase0-claim-evidence-map.json",
-      "/specs/bespoke-cloud-toolchain-services.json"
+      "/specs/bespoke-cloud-toolchain-services.json",
+      "/specs/buck2-authority-policy.json"
     ],
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.16",
     "source_request": "Founder refinement: anything enforceable or automatable must be enforced/automated; no new oya CLI surface.",
@@ -97,6 +98,18 @@
       "retirement_phase": "P0.0",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
       "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context"
+    },
+    {
+      "id": "AC-0.0-buck2-authority-no-cargo-regression",
+      "source_artifact": "Founder directive 2026-06-02 + specs/buck2-authority-policy.json",
+      "requirement": "Active scripts, CI, CD, and build lanes must use Buck2. Cargo executable lanes are forbidden except production release image/binary optimization evidence and metadata-only Buck2 graph generation.",
+      "classification": "automated_advisory_until_p0_0",
+      "owner": "platform-toolchain + platform-governance",
+      "target_gate_or_controller": "//:buck2-authority-policy-check + cloud-ci/oya-ci oya-ci-required producer",
+      "blocking_fixture": "specs/buck2-authority-policy.json forbidden command/context scanner + ADR amendment markers",
+      "retirement_phase": "P0.0 live cloud-ci/oya-ci required-context cutover",
+      "evidence_path": "evidence/multispectrum/platform-readiness-p0-0-buck2-authority-*.json",
+      "no_new_oya_cli_surface": true
     },
     {
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 and #T0.16",

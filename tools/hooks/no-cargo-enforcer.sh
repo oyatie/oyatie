@@ -1,33 +1,27 @@
 #!/usr/bin/env bash
-# no-cargo-enforcer (PreToolUse:Bash) — Buck2 is the canonical build & verify tool.
-# Founder directive 2026-05-29: "stop using cargo". Buck2 takeover (memory: canonical-monorepo-pattern).
-# ADVISES on: cargo build|check|test|nextest|clippy|run|bench  (buck2 replaces these)
-# ALLOWS:  cargo metadata|install|vendor|--version|tree|search  (buckify + reindeer inputs)
-# Non-blocking guarantee: exits 0 always; governance gates enforce, hooks guide.
+# no-cargo-enforcer (PreToolUse:Bash) — Buck2 is the canonical build, test,
+# script, CI, and CD execution tool. Non-blocking hook; governance policy enforces.
 set -uo pipefail
 
 payload="$(cat)"
 
-# Extract the Bash command from the PreToolUse tool_input JSON (fall back to raw payload).
 cmd="$(printf '%s' "$payload" | python3 -c 'import sys,json
 try:
     print(json.load(sys.stdin).get("tool_input",{}).get("command",""))
 except Exception:
     print("")' 2>/dev/null || true)"
 
-# cargo, optional toolchain (+stable), then a build/verify subcommand → advisory.
-if printf '%s' "$cmd" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench)([[:space:]]|$)'; then
+if printf '%s' "$cmd" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench|deny|cyclonedx|install)([[:space:]]|$)'; then
   {
-    echo "ℹ [no-cargo-enforcer] 'cargo build/check/test/clippy/run/bench' is RETIRED."
-    echo "Buck2 is the canonical build & verify tool (founder 2026-05-29: 'stop using cargo'; memory: canonical-monorepo-pattern)."
-    echo "Use instead:"
-    echo "    buck2 build //...           # build"
-    echo "    buck2 build //...[check]    # type-check  (cargo-check equiv: rustc --emit=metadata)"
-    echo "    buck2 test  //...           # test"
-    echo "    buck2 build //...[clippy]   # clippy"
-    echo "    buck2 build //... --filter lint   # rustfmt"
-    echo "Still allowed: cargo metadata / cargo install / cargo vendor (buckify + reindeer inputs)."
-    echo "This hook is advisory only; command semantics are not changed by the hook."
+    echo "ℹ [no-cargo-enforcer] Cargo executable lanes are retired for active scripts/CI/CD/build."
+    echo "Use Buck2 instead:"
+    echo "    buck2 build //..."
+    echo "    buck2 test  //..."
+    echo "    infra/ci/buck2-affected-gate.sh origin/dev HEAD"
+    echo "Allowed exceptions are narrow and evidence-labeled:"
+    echo "    1. production release image/binary optimization only (release profile, target triple, size/codegen/allocator evidence, non-claim label)"
+    echo "    2. cargo metadata/vendor for Buck2/Reindeer graph generation only; never merge authority"
+    echo "This hook is advisory only; scripts/ci/enforce-buck2-authority.py is the automated scanner."
   } >&2
 fi
 exit 0

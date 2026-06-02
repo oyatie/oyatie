@@ -9,7 +9,7 @@
     "contexts": [
       "oya-ci-required"
     ],
-    "_phase0_target_note": "P0.0 target required context is oya-ci-required, posted by oya-ci-controller from trusted controller/trunk state. Legacy cargo/* and oya-verify contexts may remain migration feedback only, not protected-branch merge or Phase-0 exit authority."
+    "_phase0_target_note": "P0.0 target required context is oya-ci-required, posted by oya-ci-controller from trusted controller/trunk state. Legacy tool-specific contexts may remain historical feedback only, not protected-branch merge or Phase-0 exit authority."
   },
   "enforce_admins": true,
   "_required_pull_request_reviews_rationale": "GitHub human approving reviews are not merge authority for dev. oya-pr-review is future/non-live reviewer evidence only until its producer is live and explicitly required; keep this null so branch-protection re-application cannot recreate the hidden requiresApprovingReviews=true/count=0 blocker that stalls the next queue.",

@@ -49,19 +49,15 @@ use k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
 use kube::{
     Api, Client,
     api::{ListParams, Patch, PatchParams},
-    runtime::{
-        Controller,
-        controller::Action,
-        watcher,
-    },
+    runtime::{Controller, controller::Action, watcher},
 };
 use oya_ci_controller_k8s_adapter::{
     ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, gate_job_list_params,
     observe_job,
 };
 use oya_ci_controller_kernel::{
-    ForgejoStatusPoster, ForgejoState, GATE_CONTEXT, GateRun, GateRunSpec, GateRunToken, JobSpawner,
-    ReconcileDecision, map_job_to_status,
+    ForgejoState, ForgejoStatusPoster, GATE_CONTEXT, GateRun, GateRunSpec, GateRunToken,
+    JobSpawner, ReconcileDecision, map_job_to_status,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -123,16 +119,8 @@ pub async fn reconcile(
     job: Arc<Job>,
     ctx: Arc<ControllerState>,
 ) -> std::result::Result<Action, ReconcileError> {
-    let job_name = job
-        .metadata
-        .name
-        .as_deref()
-        .unwrap_or("<unnamed>");
-    let namespace = job
-        .metadata
-        .namespace
-        .as_deref()
-        .unwrap_or(&ctx.namespace);
+    let job_name = job.metadata.name.as_deref().unwrap_or("<unnamed>");
+    let namespace = job.metadata.namespace.as_deref().unwrap_or(&ctx.namespace);
 
     let labels = job.metadata.labels.as_ref();
     let head_sha = labels
@@ -148,8 +136,7 @@ pub async fn reconcile(
 
     // ---- Step 1: fetch owned Pods -----------------------------------------
     let pod_api: Api<Pod> = Api::namespaced(ctx.client.clone(), namespace);
-    let pod_lp = ListParams::default()
-        .labels(&format!("job-name={job_name}"));
+    let pod_lp = ListParams::default().labels(&format!("job-name={job_name}"));
     let pods = match pod_api.list(&pod_lp).await {
         Ok(list) => list.items,
         Err(e) => {
@@ -173,7 +160,10 @@ pub async fn reconcile(
     // Determine whether this observation has a waiting pod reason (for cycle
     // tracking). If so, increment and persist the counter before making the
     // kernel decision so that the next reconcile sees the updated value.
-    let has_waiting_reason = observation.pod_reasons.iter().any(|r| r.is_pull_or_container_error());
+    let has_waiting_reason = observation
+        .pod_reasons
+        .iter()
+        .any(|r| r.is_pull_or_container_error());
     if has_waiting_reason {
         let next_cycles = waiting_cycles.saturating_add(1);
         patch_waiting_cycles(&ctx.client, namespace, job_name, next_cycles).await;
@@ -304,12 +294,7 @@ async fn patch_status_annotation(
 
 /// Patch the `oya.io/ci-waiting-cycles` annotation on the Job.
 /// Best-effort: log on failure but never block the reconcile verdict.
-async fn patch_waiting_cycles(
-    client: &Client,
-    namespace: &str,
-    job_name: &str,
-    cycles: u32,
-) {
+async fn patch_waiting_cycles(client: &Client, namespace: &str, job_name: &str, cycles: u32) {
     let api: Api<Job> = Api::namespaced(client.clone(), namespace);
     let patch = json!({
         "metadata": {
@@ -340,11 +325,7 @@ async fn patch_waiting_cycles(
 // ---------------------------------------------------------------------------
 
 /// Capped-exponential-backoff error policy for the kube-rs Controller.
-pub fn error_policy(
-    job: Arc<Job>,
-    err: &ReconcileError,
-    _ctx: Arc<ControllerState>,
-) -> Action {
+pub fn error_policy(job: Arc<Job>, err: &ReconcileError, _ctx: Arc<ControllerState>) -> Action {
     let job_name = job.metadata.name.as_deref().unwrap_or("<unnamed>");
     warn!(job = job_name, error = %err, "reconcile error — backing off");
     Action::requeue(Duration::from_secs(30))
@@ -363,9 +344,8 @@ pub async fn run_controller(state: ControllerState) {
     let ctx = Arc::new(state);
 
     let job_api: Api<Job> = Api::namespaced(client.clone(), &namespace);
-    let watcher_config = watcher::Config::default().labels(
-        oya_ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR,
-    );
+    let watcher_config =
+        watcher::Config::default().labels(oya_ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR);
 
     info!(namespace = %namespace, "starting oya-ci controller");
 
@@ -499,7 +479,10 @@ async fn handle_gate_run(
 
     match presented {
         None => {
-            warn!(pr = req.pr_number, "gate-run: missing X-Gate-Run-Token header — rejected");
+            warn!(
+                pr = req.pr_number,
+                "gate-run: missing X-Gate-Run-Token header — rejected"
+            );
             return (
                 StatusCode::UNAUTHORIZED,
                 Json(json!({"error": "missing X-Gate-Run-Token"})),
@@ -507,7 +490,10 @@ async fn handle_gate_run(
                 .into_response();
         }
         Some(candidate) if !state.gate_run_token.verify(candidate) => {
-            warn!(pr = req.pr_number, "gate-run: invalid X-Gate-Run-Token — rejected");
+            warn!(
+                pr = req.pr_number,
+                "gate-run: invalid X-Gate-Run-Token — rejected"
+            );
             return (
                 StatusCode::UNAUTHORIZED,
                 Json(json!({"error": "invalid X-Gate-Run-Token"})),
@@ -681,8 +667,7 @@ mod tests {
     ) -> (StatusCode, String) {
         let router = build_router(state);
         let body_bytes = serde_json::to_vec(&body).unwrap();
-        let mut req_builder = Request::post("/gate-run")
-            .header("content-type", "application/json");
+        let mut req_builder = Request::post("/gate-run").header("content-type", "application/json");
         if let Some(tok) = token_header {
             req_builder = req_builder.header(GATE_RUN_TOKEN_HEADER, tok);
         }
@@ -731,8 +716,7 @@ mod tests {
             "head_sha": "abc12345def67890abc12345def67890abc12345",
             "base_ref": "dev",
         });
-        let (status, text) =
-            send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
+        let (status, text) = send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
         assert_eq!(status, StatusCode::CREATED, "body: {text}");
         assert!(text.contains("job_name"), "body: {text}");
         assert!(
@@ -756,8 +740,7 @@ mod tests {
                 "pr_number": 7,
                 "head_sha": bad_sha,
             });
-            let (status, text) =
-                send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
+            let (status, text) = send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
             assert_eq!(
                 status,
                 StatusCode::BAD_REQUEST,
@@ -776,8 +759,7 @@ mod tests {
             "pr_number": 1,
             "head_sha": "abcdef1234567890abcdef1234567890abcdef12",
         });
-        let (status, _) =
-            send_gate_run(test_server_state(), Some(truncated), body).await;
+        let (status, _) = send_gate_run(test_server_state(), Some(truncated), body).await;
         assert_eq!(status, StatusCode::UNAUTHORIZED);
     }
 

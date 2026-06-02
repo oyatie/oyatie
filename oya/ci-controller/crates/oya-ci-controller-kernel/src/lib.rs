@@ -1905,6 +1905,64 @@ mod phase0_ci_enforcement_baseline_tests {
     }
 
     #[test]
+    fn buck2_authority_policy_is_registered_and_forbids_legacy_cargo_contexts() {
+        let root_hub = load_json("specs/root-hub-pointers.json");
+        assert_eq!(
+            root_hub["entry_points"]["buck2_authority_policy"]["current_path"].as_str(),
+            Some("/specs/buck2-authority-policy.json")
+        );
+
+        let automation = load_json("specs/phase0-automation-matrix.json");
+        let seed_ids: BTreeSet<&str> = object_array_at(&automation, &["seed_rows"])
+            .into_iter()
+            .filter_map(|row| row["id"].as_str())
+            .collect();
+        assert!(seed_ids.contains("AC-0.0-buck2-authority-no-cargo-regression"));
+
+        let policy = load_json("specs/buck2-authority-policy.json");
+        assert_eq!(
+            string_at(&policy, &["target_authority", "required_context"]),
+            Some("oya-ci-required")
+        );
+        assert_eq!(
+            policy["claim_boundary"]["phase0_complete"].as_bool(),
+            Some(false)
+        );
+
+        let forbidden_contexts: BTreeSet<&str> =
+            string_array_at(&policy, &["forbidden_status_contexts"])
+                .into_iter()
+                .collect();
+        for context in [
+            "cargo-fmt",
+            "cargo-check",
+            "cargo-clippy",
+            "cargo-nextest",
+            "cargo-deny",
+            "oya-verify",
+        ] {
+            assert!(
+                forbidden_contexts.contains(context),
+                "{context} must remain a forbidden protected-branch context"
+            );
+        }
+
+        let exceptions: BTreeSet<&str> = object_array_at(&policy, &["allowed_cargo_exceptions"])
+            .into_iter()
+            .filter_map(|row| row["id"].as_str())
+            .collect();
+        assert!(exceptions.contains("production-release-image-binary-optimization"));
+        assert!(exceptions.contains("buck2-graph-metadata-only"));
+
+        let automated_chain = string_array_at(&policy, &["automated_chain"]);
+        assert!(
+            automated_chain
+                .iter()
+                .any(|entry| entry.contains("//:buck2-authority-policy-check"))
+        );
+    }
+
+    #[test]
     fn phase0_baseline_is_red_gap_packet_and_not_completion_evidence() {
         let baseline = load_json("specs/phase0-ci-enforcement-baseline.json");
 

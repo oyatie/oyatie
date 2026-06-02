@@ -16,10 +16,7 @@ cat > "$tmp_dir/live-missing.json" <<'JSON'
 {
   "strict": false,
   "contexts": [
-    "cargo-fmt",
-    "cargo-check",
-    "cargo-clippy",
-    "cargo-nextest"
+    "legacy-feedback"
   ]
 }
 JSON
@@ -96,7 +93,7 @@ run_automerge_success() {
 run_automerge_fail_closed missing "$tmp_dir/live-missing.json"
 grep -Fq "live branch-protection required contexts drift" "$tmp_dir/missing.err"
 grep -Fq "missing_from_live=" "$tmp_dir/missing.err"
-grep -Fq "oya-pr-review" "$tmp_dir/missing.err"
+grep -Fq "oya-ci-required" "$tmp_dir/missing.err"
 
 run_automerge_fail_closed forbidden "$tmp_dir/live-missing.json"
 grep -Fq "Administration read permission" "$tmp_dir/forbidden.err"

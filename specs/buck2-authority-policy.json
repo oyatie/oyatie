@@ -1,0 +1,225 @@
+{
+  "$id": "https://docs.oyatie.com/specs/buck2-authority-policy.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "official_references": [
+      {
+        "name": "Cargo Book \u2014 Profiles",
+        "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
+        "used_for": "Release profile knobs and custom profile selection for the narrow production release optimization exception."
+      },
+      {
+        "name": "rustc Book \u2014 Codegen Options",
+        "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
+        "used_for": "opt-level, LTO, codegen-units, panic strategy, split debuginfo, strip, and related release codegen behavior."
+      },
+      {
+        "name": "Rust alloc::alloc::GlobalAlloc",
+        "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html",
+        "used_for": "Allocator replacement safety constraints and measurement caveats."
+      },
+      {
+        "name": "Rust Reference \u2014 global_allocator",
+        "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
+        "used_for": "Crate-graph singleton rule and placement for the global allocator attribute."
+      },
+      {
+        "name": "Buck2 docs \u2014 build command",
+        "url": "https://buck2.build/docs/users/commands/build/",
+        "used_for": "Buck2 build command authority for build lanes."
+      },
+      {
+        "name": "Buck2 docs \u2014 test command",
+        "url": "https://buck2.build/docs/users/commands/test/",
+        "used_for": "Buck2 test command authority for test lanes."
+      }
+    ],
+    "owner_team": "platform-toolchain + platform-governance",
+    "related_adrs": [
+      "ADR-0346",
+      "ADR-0361",
+      "ADR-0392",
+      "ADR-0408",
+      "ADR-0513",
+      "ADR-0515",
+      "ADR-0360",
+      "ADR-0363",
+      "ADR-0511"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0 + AC-0.0 + AC-0.12 + AC-0.16 + AC-0.17",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0 + T0.12 + T0.16 + T0.17",
+    "source_request": "Founder directive 2026-06-02: scripts, CI, CD, and build use Buck2; do not regress to Cargo; only production release image/binary optimization may use Cargo.",
+    "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
+    "status": "p0_0_static_policy_target_not_live_required_context",
+    "version": "0.1.0"
+  },
+  "adr_amendment_files": [
+    "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+    "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
+    "docs/decisions/ADR-0392-buck2-canonical-build-graph.md",
+    "docs/decisions/ADR-0408-buck2-driven-ci-cd.md",
+    "docs/decisions/ADR-0515-buck2-native-oci-static-musl-base.md",
+    "docs/decisions/ADR-0360-ci-pipeline-optimization-program.md",
+    "docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+    "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md"
+  ],
+  "allowed_cargo_exceptions": [
+    {
+      "allowed_subcommands": [
+        "build",
+        "rustc"
+      ],
+      "authority_ceiling": "release-artifact optimization evidence only; cannot satisfy CI/CD/build verification, branch protection, or Phase-0 exit",
+      "id": "production-release-image-binary-optimization",
+      "required_markers": [
+        "--release or --profile release-*",
+        "target triple",
+        "binary size before/after",
+        "allocator or codegen setting under test",
+        "commit SHA",
+        "non-claim label that this is not CI merge authority"
+      ],
+      "scope": "Production release images or binaries only, for optimized binary size, codegen, linking, and memory allocator measurements."
+    },
+    {
+      "allowed_subcommands": [
+        "metadata",
+        "vendor"
+      ],
+      "authority_ceiling": "metadata input only; not executable build/test authority",
+      "id": "buck2-graph-metadata-only",
+      "required_markers": [
+        "no binary/test/run/check/fmt/clippy output",
+        "generated BUCK review",
+        "Buck2 verification after regen"
+      ],
+      "scope": "Cargo.toml/Cargo.lock metadata extraction for Reindeer/Buck2 third-party graph generation only."
+    }
+  ],
+  "automated_chain": [
+    "scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+    "buck2 build //:buck2-authority-policy-check",
+    "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+    "cloud-ci/oya-ci oya-ci-required required context after live producer cutover"
+  ],
+  "claim_boundary": {
+    "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "command_scan_files": [
+    ".github/workflows/backbone-microservices-ci.yml",
+    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+    "infra/ci/buck2-affected-gate.sh",
+    "infra/ci/jenkins/farmwide-seed.groovy",
+    "infra/ci/jenkins/codegen-measure-seed.groovy",
+    "infra/ci/jenkins/parallel-lanes-seed.groovy",
+    "infra/ci/jenkins/smoke-seed.groovy",
+    "infra/ci/jenkins/agent-image/Dockerfile",
+    "scripts/branch-protection-apply.sh",
+    "scripts/onprem-bring-up.sh",
+    "scripts/install-trivy-ci.sh",
+    "scripts/supply-chain-adr0039.sh",
+    "scripts/hooks/pre-push.sh",
+    "scripts/ci/oya-ci-post.sh",
+    "scripts/ci/regen-third-party.sh",
+    "scripts/gen_first_party_buck.py",
+    "scripts/agent-pre-push-validate.sh",
+    "scripts/build/build-and-push-cloud-intelligence.sh",
+    "cloud/cloud-intelligence/iac/oci/BUCK",
+    "scripts/asyncapi-lint.mjs",
+    "scripts/proto-lint.mjs",
+    "scripts/validate-adr-shape.mjs",
+    "scripts/validate-foundry-phase00-evidence.mjs",
+    "tools/hooks/no-cargo-enforcer.sh",
+    "Makefile",
+    "docs/standards/rust-release-optimization.md"
+  ],
+  "description": "P0.0 non-claim policy for preventing Cargo regression in active CI/CD/build/script lanes. This file is not a green readiness claim; it defines local/static enforcement and the target controller chain.",
+  "forbidden_cargo_subcommands": [
+    "fmt",
+    "check",
+    "clippy",
+    "test",
+    "nextest",
+    "build",
+    "run",
+    "bench",
+    "deny",
+    "cyclonedx",
+    "install"
+  ],
+  "forbidden_status_contexts": [
+    "cargo-fmt",
+    "cargo-check",
+    "cargo-clippy",
+    "cargo-nextest",
+    "cargo-deny",
+    "oya-verify"
+  ],
+  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
+  "required_adr_amendment_text": "2026-06-02 Buck2 authority amendment",
+  "required_anchors": {
+    ".github/workflows/backbone-microservices-ci.yml": [
+      "buck2",
+      "infra/ci/buck2-affected-gate.sh",
+      "scripts/ci/enforce-buck2-authority.py"
+    ],
+    "BUCK": [
+      "buck2-authority-policy-check"
+    ],
+    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": [
+      "oya-ci-required",
+      "infra/ci/buck2-affected-gate.sh",
+      "scripts/ci/enforce-buck2-authority.py"
+    ],
+    "scripts/agent-pre-push-validate.sh": [
+      "buck2",
+      "infra/ci/buck2-affected-gate.sh",
+      "scripts/ci/enforce-buck2-authority.py"
+    ],
+    "scripts/build/build-and-push-cloud-intelligence.sh": [
+      "buck2",
+      "cloud/cloud-intelligence/iac/oci:cloud-intelligence-oci",
+      "tools/oci/push-oci-image.py"
+    ],
+    "scripts/ci/oya-ci-post.sh": [
+      "oya-ci-required",
+      "infra/ci/buck2-affected-gate.sh",
+      "scripts/ci/enforce-buck2-authority.py"
+    ],
+    "cloud/cloud-intelligence/iac/oci/BUCK": [
+      "oci_image(",
+      "cloud-intelligence-oci",
+      "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-app:cloud-intelligence"
+    ],
+    "docs/standards/rust-release-optimization.md": [
+      "Use Buck2 for all CI, CD, scripts, and build/test lanes.",
+      "release optimization evidence only; not CI merge authority",
+      "If a release optimization is selected, encode it into the Buck2 toolchain/target graph"
+    ]
+  },
+  "status_context_scan_files": [
+    ".github/workflows/backbone-microservices-ci.yml",
+    ".github/branch-protection.yaml",
+    "infra/branch-protection/dev.json",
+    "infra/ci/jenkins/reported-status-contexts.json",
+    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+    "scripts/ci/oya-ci-post.sh",
+    "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh"
+  ],
+  "target_authority": {
+    "not_authority": [
+      "cargo-* contexts",
+      "oya-verify",
+      "oya gate",
+      "local hooks",
+      "operator procedure"
+    ],
+    "producer": "cloud-ci/oya-ci controller or trusted bridge that runs Buck2 targets from trusted trunk/controller state",
+    "required_context": "oya-ci-required"
+  },
+  "title": "Buck2AuthorityPolicy"
+}

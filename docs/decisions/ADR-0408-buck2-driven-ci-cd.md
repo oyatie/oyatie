@@ -75,3 +75,22 @@ The bespoke `oya` governance overlay is unaffected at the engine level: Buck2 kn
 ## Consequences
 
 Positive: presubmit affected-target selection becomes graph-exact (sourced from Buck2's dependency graph, not a cargo-mirror heuristic), which is more precise than the selection it subsumes; one self-hostable CI surface (Jenkins, ADR-0359) drives one Rust-native engine (Buck2, ADR-0392) against one self-hostable RBE (NativeLink) — all hyperscaler-lens-clean; cache-backed image builds shorten the delivery loop while keeping the cosign promotion ladder (ADR-0181) and merge queue (ADR-0111) intact. Negative/cost: Jenkins pipelines + JCasC must be rewired from the Bazel-CI plan to Buck2 (`cquery`/`build`/`test` stages); NativeLink RBE must be operated; the Reindeer buckify step (ADR-0392 §2) becomes a CI prerequisite stage; no CI-performance claim may be made until the migration lands green. Neutral: ADR-0359 (Jenkins-sole-CI), ADR-0349 (ArgoCD), ADR-0181 (image promotion), ADR-0111 (merge queue), and the oya governance overlay + verdict-cache are unchanged; the Bazel-CI specs are superseded inputs awaiting a separate generated-artifact update; this ADR is doctrine, not the migration execution.
+
+## 2026-06-02 Buck2 authority amendment
+
+Founder directive on 2026-06-02 supersedes any earlier wording in this ADR that
+made Cargo, Cargo-named status contexts, `oya verify`, or `oya gate` active
+scripts/CI/CD/build authority. Active scripts, CI, CD, and build/test lanes use
+Buck2. The protected-branch target context is `oya-ci-required` from trusted
+cloud-ci/oya-ci controller or bridge state, and `oya verify` / `oya gate` may be
+local or bridge governance evidence only.
+
+Cargo is allowed only for the documented production release image/binary
+optimization exception: release profile or custom release profile, target triple,
+binary-size/codegen/allocator evidence, commit SHA, and an explicit non-claim label
+that the run is not CI merge authority. Cargo metadata/vendor remains permitted only
+for Buck2/Reindeer graph generation and cannot satisfy build/test/merge authority.
+
+This amendment is enforced locally by `specs/buck2-authority-policy.json` and the
+Buck2 target `//:buck2-authority-policy-check`; live Phase-0 exit still requires the
+cloud-ci/oya-ci `oya-ci-required` required context and evidence packet.
