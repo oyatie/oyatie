@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T00:00:00Z",
+    "doc_class": "Fixture",
+    "owner_team": "platform-toolchain + platform-security",
+    "related_acceptance_criteria": [
+      "AC-0.0"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "updated_at": "2026-06-02T15:03:11Z"
+  },
+  "branch_protection": {
+    "required_contexts": [
+      "oya-verify"
+    ],
+    "strict": false
+  },
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "missing_cloud_ci_required_context",
+    "legacy_oya_cli_required_context",
+    "untrusted_or_legacy_status_producer",
+    "candidate_bytes_can_weaken_gate",
+    "candidate_sourced_gate_definition"
+  ],
+  "fixture_id": "TC-0.0.1-BAD-legacy-oya-cli-authority",
+  "producer_contract": {
+    "candidate_bytes_policy": "may_execute_candidate_repository_code",
+    "command": "./bin/oya verify --ci-required",
+    "context": "oya-verify",
+    "kind": "legacy_local_cli"
+  },
+  "purpose": "Proves a protected-branch required context mapped to a legacy oya CLI invocation is not accepted as merge or Phase-0 exit authority.",
+  "tc_ids": [
+    "TC-0.0.1"
+  ]
+}

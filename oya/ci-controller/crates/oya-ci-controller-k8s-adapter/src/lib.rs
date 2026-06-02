@@ -20,10 +20,12 @@
 //! ## Trunk-sourcing (security invariant)
 //!
 //! The Job's init/main container:
-//! 1. Clones `dev` from Forgejo (trusted gate script on disk)
+//! 1. Clones `dev` from Forgejo (trusted control state / gate command source)
 //! 2. Fetches PR ref as DATA (untrusted)
-//! 3. Runs `sh infra/ci/buck2-affected-gate.sh origin/dev` — uses dev's script,
-//!    NOT the PR's copy. A PR cannot weaken its own gate.
+//! 3. Captures trusted build/test target inventories before checking out the
+//!    candidate bytes, then runs the candidate against those immutable label
+//!    sets. Candidate code cannot remove targets from the required context,
+//!    change the status context, producer, or branch-protection mapping.
 //!
 //! ## ADR-0083 Tier-3
 //!
@@ -44,8 +46,8 @@ use kube::{
     api::{ListParams, PostParams},
 };
 use oya_ci_controller_kernel::{
-    ForgejoState, JobCondition, JobConditionType, JobHandle, JobObservation, JobSpawner,
-    KernelError, PodReason, Result as KernelResult, GateRunSpec,
+    ForgejoState, GATE_CONTEXT, GateRunSpec, JobCondition, JobConditionType, JobHandle,
+    JobObservation, JobSpawner, KernelError, PodReason, Result as KernelResult,
 };
 use std::collections::BTreeMap;
 
@@ -61,6 +63,11 @@ pub const LABEL_PART_OF: &str = "app.kubernetes.io/part-of";
 
 pub const ANNOT_CI_BASE_REF: &str = "oya.io/ci-base-ref";
 pub const ANNOT_CI_STATUS_POSTED: &str = "oya.io/ci-forgejo-status-posted";
+pub const ANNOT_CI_REQUIRED_CONTEXT: &str = "oya.io/ci-required-context";
+pub const ANNOT_CI_PRODUCER_KIND: &str = "oya.io/ci-producer-kind";
+pub const ANNOT_CI_PRODUCER_CONTROLLER: &str = "oya.io/ci-producer-controller";
+pub const ANNOT_CI_CANDIDATE_BYTES_POLICY: &str = "oya.io/ci-candidate-bytes-policy";
+pub const ANNOT_CI_GATE_DEFINITION_SOURCE: &str = "oya.io/ci-gate-definition-source";
 
 /// Value for the LABEL_CI_CONTROLLER label — the watcher selector.
 pub const CI_CONTROLLER_VALUE: &str = "oya-ci-gate";
@@ -77,9 +84,9 @@ pub const WATCHER_LABEL_SELECTOR: &str = "oya.io/ci-controller=oya-ci-gate";
 /// The Job:
 /// - Has `backoffLimit: 0` (fail-closed)
 /// - Runs a single container that clones dev from Forgejo, fetches the PR
-///   ref as data, then runs `sh infra/ci/buck2-affected-gate.sh origin/dev`
-///   using dev's TRUSTED copy of the script.
-/// - Injects `FORGEJO_CI_TOKEN` from the `forgejo-ci-token` Secret.
+///   ref as untrusted candidate data, snapshots trusted build/test target
+///   inventories, then runs the candidate tree against those immutable
+///   inventories.
 /// - Sets `HOME=/home/jenkins/agent` (matches rust-ci image expectations).
 pub fn build_gate_job(spec: &GateRunSpec) -> Job {
     let job_name = spec.run.job_name();
@@ -88,37 +95,70 @@ pub fn build_gate_job(spec: &GateRunSpec) -> Job {
     let base_ref = &spec.run.base_ref;
     let clone_url = &spec.forge_clone_url;
 
-    // The gate command (TRUNK-SOURCED security invariant):
-    // 1. Clone dev (trusted gate script + infra arrive here)
-    // 2. Fetch the PR ref as DATA only — never checkout to HEAD
-    // 3. Run gate script from dev's trusted copy with 2-arg form:
-    //    buck2-affected-gate.sh <base-ref> <head-ref>
-    //
-    // Working tree = dev (trunk). The PR ref is available as
-    // origin/pr-<N> after the fetch; passed as head-ref so the script
-    // diffs merge-base(origin/pr-N, origin/dev)..origin/pr-N.
-    //
-    // A PR MUST NOT be able to alter the script/Job that gates it.
+    // The gate command (TRUNK/CONTROLLER-SOURCED security invariant):
+    // 1. Clone dev so controller-owned gate commands and metadata are fixed.
+    // 2. Fetch the PR ref as untrusted candidate bytes.
+    // 3. Snapshot trusted build/test target inventories before candidate
+    //    checkout.
+    // 4. Checkout the candidate only after the gate command and target labels
+    //    are fixed, then run the candidate tree against those immutable lists.
+    //    A PR can change code under test, but deleting/omitting a trusted
+    //    target makes the required context fail instead of silently shrinking
+    //    scope.
     let gate_cmd = format!(
         r#"set -euo pipefail
 git clone --depth=1 --branch {base_ref} {clone_url} /workspace/repo
 cd /workspace/repo
 git fetch --unshallow
 git fetch origin refs/pull/{pr_number}/head:refs/remotes/origin/pr-{pr_number}
-exec sh infra/ci/buck2-affected-gate.sh origin/{base_ref} origin/pr-{pr_number}"#,
+buck2 targets //... | sort -u > /workspace/trusted-build-targets.txt
+buck2 uquery 'kind(".*test.*", //...)' | sort -u > /workspace/trusted-test-targets.txt
+test -s /workspace/trusted-build-targets.txt
+test -s /workspace/trusted-test-targets.txt
+resolved_sha="$(git rev-parse refs/remotes/origin/pr-{pr_number})"
+test "$resolved_sha" = "{sha}"
+git checkout --detach {sha}
+xargs -a /workspace/trusted-build-targets.txt buck2 build
+xargs -a /workspace/trusted-test-targets.txt buck2 test"#,
     );
 
     // Labels (immutable identity — used as the watcher selector)
     let mut labels: BTreeMap<String, String> = BTreeMap::new();
-    labels.insert(LABEL_CI_CONTROLLER.to_owned(), CI_CONTROLLER_VALUE.to_owned());
+    labels.insert(
+        LABEL_CI_CONTROLLER.to_owned(),
+        CI_CONTROLLER_VALUE.to_owned(),
+    );
     labels.insert(LABEL_CI_PR_NUMBER.to_owned(), pr_number.to_string());
     labels.insert(LABEL_CI_HEAD_SHA.to_owned(), sha.clone());
-    labels.insert(LABEL_CI_DELIVERY_ID.to_owned(), spec.run.delivery_id.clone());
+    labels.insert(
+        LABEL_CI_DELIVERY_ID.to_owned(),
+        spec.run.delivery_id.clone(),
+    );
     labels.insert(LABEL_PART_OF.to_owned(), "oyatie-microservices".to_owned());
 
     // Annotations (mutable bookkeeping)
     let mut annotations: BTreeMap<String, String> = BTreeMap::new();
     annotations.insert(ANNOT_CI_BASE_REF.to_owned(), base_ref.clone());
+    annotations.insert(
+        ANNOT_CI_REQUIRED_CONTEXT.to_owned(),
+        GATE_CONTEXT.to_owned(),
+    );
+    annotations.insert(
+        ANNOT_CI_PRODUCER_KIND.to_owned(),
+        "oya-ci-controller".to_owned(),
+    );
+    annotations.insert(
+        ANNOT_CI_PRODUCER_CONTROLLER.to_owned(),
+        "oya-ci-controller".to_owned(),
+    );
+    annotations.insert(
+        ANNOT_CI_CANDIDATE_BYTES_POLICY.to_owned(),
+        "untrusted_input_only".to_owned(),
+    );
+    annotations.insert(
+        ANNOT_CI_GATE_DEFINITION_SOURCE.to_owned(),
+        "trusted_dev_or_controller_state".to_owned(),
+    );
 
     let container = Container {
         name: "gate".to_owned(),
@@ -128,13 +168,11 @@ exec sh infra/ci/buck2-affected-gate.sh origin/{base_ref} origin/pr-{pr_number}"
         // The gate Job runs untrusted PR code; a token in the container env
         // would allow a malicious PR to exfiltrate it and post arbitrary
         // commit statuses. Only the controller (crier) holds the token.
-        env: Some(vec![
-            EnvVar {
-                name: "HOME".to_owned(),
-                value: Some("/home/jenkins/agent".to_owned()),
-                ..Default::default()
-            },
-        ]),
+        env: Some(vec![EnvVar {
+            name: "HOME".to_owned(),
+            value: Some("/home/jenkins/agent".to_owned()),
+            ..Default::default()
+        }]),
         security_context: Some(k8s_openapi::api::core::v1::SecurityContext {
             allow_privilege_escalation: Some(false),
             read_only_root_filesystem: Some(false), // gate needs /tmp, /home/jenkins/agent
@@ -233,9 +271,7 @@ impl JobSpawner for K8sJobSpawner {
                     already_exists: true,
                 })
             }
-            Err(e) => Err(KernelError::DownstreamTransport(format!(
-                "job create: {e}"
-            ))),
+            Err(e) => Err(KernelError::DownstreamTransport(format!("job create: {e}"))),
         }
     }
 }
@@ -359,4 +395,127 @@ fn extract_pod_reasons(pod: &k8s_openapi::api::core::v1::Pod) -> Vec<PodReason> 
 /// Build a [`ListParams`] that filters only oya-ci-gate Jobs.
 pub fn gate_job_list_params() -> ListParams {
     ListParams::default().labels(WATCHER_LABEL_SELECTOR)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use oya_ci_controller_kernel::{GateRun, GateRunSpec};
+
+    fn gate_spec() -> GateRunSpec {
+        GateRunSpec {
+            run: GateRun {
+                pr_number: 42,
+                head_sha: "abcdef1234567890abcdef1234567890abcdef12".to_owned(),
+                delivery_id: "delivery-1".to_owned(),
+                base_ref: "dev".to_owned(),
+                repo: "oya-admin/oyatie".to_owned(),
+            },
+            image: "registry.local/rust-ci:dev".to_owned(),
+            forge_clone_url: "http://forgejo.local/oya-admin/oyatie.git".to_owned(),
+            active_deadline_seconds: 3600,
+            ttl_seconds_after_finished: 600,
+            namespace: "oya-ci".to_owned(),
+            runner_service_account: "oya-ci-gate-runner".to_owned(),
+        }
+    }
+
+    #[test]
+    fn gate_job_carries_required_context_and_trusted_producer_metadata() {
+        let job = build_gate_job(&gate_spec());
+        let annotations = job
+            .metadata
+            .annotations
+            .as_ref()
+            .expect("gate job should carry annotations");
+
+        assert_eq!(
+            annotations
+                .get(ANNOT_CI_REQUIRED_CONTEXT)
+                .map(String::as_str),
+            Some(GATE_CONTEXT)
+        );
+        assert_eq!(
+            annotations.get(ANNOT_CI_PRODUCER_KIND).map(String::as_str),
+            Some("oya-ci-controller")
+        );
+        assert_eq!(
+            annotations
+                .get(ANNOT_CI_PRODUCER_CONTROLLER)
+                .map(String::as_str),
+            Some("oya-ci-controller")
+        );
+        assert_eq!(
+            annotations
+                .get(ANNOT_CI_CANDIDATE_BYTES_POLICY)
+                .map(String::as_str),
+            Some("untrusted_input_only")
+        );
+        assert_eq!(
+            annotations
+                .get(ANNOT_CI_GATE_DEFINITION_SOURCE)
+                .map(String::as_str),
+            Some("trusted_dev_or_controller_state")
+        );
+    }
+
+    #[test]
+    fn gate_job_uses_controller_owned_required_matrix_not_affected_only_bridge() {
+        let job = build_gate_job(&gate_spec());
+        let pod_spec = job
+            .spec
+            .as_ref()
+            .and_then(|spec| spec.template.spec.as_ref())
+            .expect("gate job should carry pod spec");
+        let command = pod_spec.containers[0]
+            .command
+            .as_ref()
+            .expect("gate container should carry command")
+            .join("\n");
+
+        assert!(
+            command.contains("git clone --depth=1 --branch dev"),
+            "gate should start from trusted base branch"
+        );
+        assert!(
+            command.contains("git fetch origin refs/pull/42/head:refs/remotes/origin/pr-42"),
+            "gate should fetch candidate bytes as an explicit PR ref"
+        );
+        assert!(
+            command.contains("buck2 targets //... | sort -u > /workspace/trusted-build-targets.txt")
+                && command.contains(
+                    "buck2 uquery 'kind(\".*test.*\", //...)' | sort -u > /workspace/trusted-test-targets.txt"
+                )
+                && command.contains("test -s /workspace/trusted-build-targets.txt")
+                && command.contains("test -s /workspace/trusted-test-targets.txt"),
+            "gate should snapshot trusted build/test inventories before candidate checkout"
+        );
+        assert!(
+            command.contains("resolved_sha=\"$(git rev-parse refs/remotes/origin/pr-42)\"")
+                && command.contains(
+                    "test \"$resolved_sha\" = \"abcdef1234567890abcdef1234567890abcdef12\""
+                )
+                && command.contains(
+                    "git checkout --detach abcdef1234567890abcdef1234567890abcdef12"
+                ),
+            "gate should verify the fetched PR ref matches the exact candidate SHA before checkout"
+        );
+        assert!(
+            command.contains("xargs -a /workspace/trusted-build-targets.txt buck2 build")
+                && command.contains("xargs -a /workspace/trusted-test-targets.txt buck2 test")
+                && !command.contains("buck2 build //...[check]")
+                && !command.contains("buck2 test //..."),
+            "gate should run the candidate against trusted inventories, not candidate-selected target globs"
+        );
+        assert!(
+            !command.contains("buck2-affected-gate.sh") && !command.contains("oya "),
+            "required context must not delegate to affected-only bridge or oya CLI"
+        );
+
+        let env = pod_spec.containers[0].env.as_ref().expect("env exists");
+        assert!(
+            env.iter().all(|var| var.name != "FORGEJO_CI_TOKEN"),
+            "runner job must not receive status-posting credentials"
+        );
+    }
 }

@@ -52,12 +52,11 @@ use kube::{
     runtime::{Controller, controller::Action, watcher},
 };
 use oya_ci_controller_k8s_adapter::{
-    ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, gate_job_list_params,
-    observe_job,
+    ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, observe_job,
 };
 use oya_ci_controller_kernel::{
-    ForgejoState, ForgejoStatusPoster, GateRun, GateRunSpec, JobSpawner, ReconcileDecision,
-    map_job_to_status,
+    ForgejoState, ForgejoStatusPoster, GATE_CONTEXT, GateRun, GateRunSpec, JobSpawner,
+    ReconcileDecision, map_job_to_status,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -193,7 +192,7 @@ pub async fn reconcile(
             let sha = head_sha.clone();
             let desc = description.clone();
             let post_result = tokio::task::spawn_blocking(move || {
-                poster.post(&sha, ForgejoState::Pending, "oya-ci-gate", &desc, None)
+                poster.post(&sha, ForgejoState::Pending, GATE_CONTEXT, &desc, None)
             })
             .await
             .unwrap_or_else(|e| {
@@ -462,16 +461,23 @@ async fn handle_metrics(_state: State<ServerState>) -> impl IntoResponse {
 ///
 /// Returns 200 (already exists — idempotent) or 201 (created).
 /// Returns 400 on invalid input, 500 on spawner failure.
+fn is_full_hex_commit_sha(value: &str) -> bool {
+    value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
+}
+
 async fn handle_gate_run(
     State(state): State<ServerState>,
     Json(req): Json<GateRunRequest>,
 ) -> impl IntoResponse {
-    // Validate head_sha is at least 8 hex chars (minimum for a meaningful short-sha).
-    if req.head_sha.len() < 8 || !req.head_sha.chars().all(|c| c.is_ascii_hexdigit()) {
+    // P0.0 required-context evidence must bind to the exact candidate commit.
+    // Short SHAs are intentionally rejected because they can be ambiguous and
+    // cannot prove that the protected required status was posted to the
+    // candidate SHA.
+    if !is_full_hex_commit_sha(&req.head_sha) {
         warn!(pr = req.pr_number, sha = %req.head_sha, "gate-run: invalid head_sha");
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"error": "head_sha must be at least 8 hex characters"})),
+            Json(json!({"error": "head_sha must be exactly 40 hex characters"})),
         )
             .into_response();
     }
@@ -618,25 +624,27 @@ mod tests {
         }
     }
 
-    async fn route_request(router: &mut Router, body: &'static str) -> axum::response::Response {
-        futures::future::poll_fn(|cx: &mut Context<'_>| match router.poll_ready(cx) {
-            Poll::Ready(Ok(())) => Poll::Ready(()),
-            Poll::Ready(Err(err)) => panic!("router not ready: {err}"),
-            Poll::Pending => Poll::Pending,
+    async fn route_request(router: &mut Router, body: &str) -> axum::response::Response {
+        futures::future::poll_fn(|cx: &mut Context<'_>| {
+            match <Router as Service<Request<Body>>>::poll_ready(router, cx) {
+                Poll::Ready(Ok(())) => Poll::Ready(()),
+                Poll::Ready(Err(err)) => panic!("router not ready: {err}"),
+                Poll::Pending => Poll::Pending,
+            }
         })
         .await;
 
-        router
-            .call(
-                Request::builder()
-                    .method("POST")
-                    .uri("/gate-run")
-                    .header("content-type", "application/json")
-                    .body(Body::from(body))
-                    .expect("request builds"),
-            )
-            .await
-            .expect("route call succeeds")
+        <Router as Service<Request<Body>>>::call(
+            router,
+            Request::builder()
+                .method("POST")
+                .uri("/gate-run")
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_owned()))
+                .expect("request builds"),
+        )
+        .await
+        .expect("route call succeeds")
     }
 
     #[tokio::test]
@@ -646,7 +654,7 @@ mod tests {
 
         let response = route_request(
             &mut router,
-            r#"{"pr_number":42,"head_sha":"abcdef1234567890"}"#,
+            r#"{"pr_number":42,"head_sha":"abcdef1234567890abcdef1234567890abcdef12"}"#,
         )
         .await;
 
@@ -668,7 +676,7 @@ mod tests {
 
         let response = route_request(
             &mut router,
-            r#"{"pr_number":7,"head_sha":"1234567890abcdef","base_ref":"dev"}"#,
+            r#"{"pr_number":7,"head_sha":"1234567890abcdef1234567890abcdef12345678","base_ref":"dev"}"#,
         )
         .await;
 
@@ -678,13 +686,37 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn gate_run_rejects_short_or_non_hex_candidate_sha() {
+        let spawner = Arc::new(RecordingSpawner::default());
+
+        for bad_sha in [
+            "abcdef1",
+            "abcdef12",
+            "abcdef1234567890abcdef1234567890abcdef1",
+            "abcdef1234567890abcdef1234567890abcdeg12",
+        ] {
+            let mut router = build_router(test_state(Arc::clone(&spawner)));
+            let body = format!(r#"{{"pr_number":42,"head_sha":"{bad_sha}","base_ref":"dev"}}"#);
+            let response = route_request(&mut router, &body).await;
+            assert_eq!(
+                response.status(),
+                StatusCode::BAD_REQUEST,
+                "{bad_sha} should be rejected"
+            );
+        }
+
+        let calls = spawner.calls.lock().expect("calls lock");
+        assert!(calls.is_empty(), "invalid SHAs must not spawn a Job");
+    }
+
+    #[tokio::test]
     async fn gate_run_rejects_non_dev_base_ref_for_weekly_forgejo_gate() {
         let spawner = Arc::new(RecordingSpawner::default());
         let mut router = build_router(test_state(Arc::clone(&spawner)));
 
         let response = route_request(
             &mut router,
-            r#"{"pr_number":42,"head_sha":"abcdef1234567890","base_ref":"main"}"#,
+            r#"{"pr_number":42,"head_sha":"abcdef1234567890abcdef1234567890abcdef12","base_ref":"main"}"#,
         )
         .await;
 
