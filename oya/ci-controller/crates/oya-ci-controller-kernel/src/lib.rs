@@ -482,6 +482,7 @@ pub enum Phase0ClaimCeilingViolation {
     ForbiddenLocalOrOyaEvidenceForMechanicalClaim,
     ProductionReadinessClaimWithoutTypedEvidence,
     PerformanceClaimWithoutBudgetOrMeasuredResult,
+    UnknownRegulatedTerm,
 }
 
 impl Phase0ClaimCeilingViolation {
@@ -514,6 +515,7 @@ impl Phase0ClaimCeilingViolation {
             Phase0ClaimCeilingViolation::PerformanceClaimWithoutBudgetOrMeasuredResult => {
                 "performance_claim_without_budget_or_measured_result"
             }
+            Phase0ClaimCeilingViolation::UnknownRegulatedTerm => "unknown_regulated_term",
         }
     }
 }
@@ -601,6 +603,11 @@ pub fn evaluate_phase0_claim_ceiling(
                 BTreeSet::new()
             }
         };
+        for term in &terms {
+            if !regulated_vocabulary.contains(term) {
+                violations.insert(Phase0ClaimCeilingViolation::UnknownRegulatedTerm);
+            }
+        }
         covered_terms.extend(terms.iter().cloned());
         let evidence = claim_row_evidence(row);
         if tier == "mechanically_enforced"
@@ -2484,6 +2491,7 @@ mod phase0_ci_enforcement_baseline_tests {
             "low-latency",
             "scalable",
             "capacity-ready",
+            "capacity",
         ] {
             assert!(
                 regulated_vocabulary.contains(term),
@@ -2511,6 +2519,13 @@ mod phase0_ci_enforcement_baseline_tests {
             }
             let tier = row["claim_tier"].as_str().unwrap_or_default();
             assert!(allowed_tiers.contains(tier), "unknown claim tier {tier}");
+            for term in string_array_at(row, &["regulated_terms"]) {
+                assert!(
+                    regulated_vocabulary.contains(term),
+                    "claim row {:?} uses unregistered regulated term {term}",
+                    row["id"].as_str()
+                );
+            }
             assert!(
                 row.get("current_allowed_tier").is_none()
                     && row.get("evidence_present").is_none()
@@ -2534,8 +2549,11 @@ mod phase0_ci_enforcement_baseline_tests {
                     .any(|path| path.contains("bad-ungrounded"))
                 && fixture_paths
                     .iter()
-                    .any(|path| path.contains("bad-performance")),
-            "claim fixtures must cover GOOD, ungrounded-claim, and performance-budget BAD cases"
+                    .any(|path| path.contains("bad-performance"))
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-unknown-regulated-term")),
+            "claim fixtures must cover GOOD, ungrounded-claim, performance-budget BAD, and unknown-term BAD cases"
         );
     }
 
@@ -2654,6 +2672,39 @@ mod phase0_ci_enforcement_baseline_tests {
         assert!(
             malformed_violations.contains("missing_or_malformed_regulated_terms"),
             "non-string regulated_terms entries must fail closed, got {malformed_violations:?}"
+        );
+
+        let unknown_term = json!({
+            "text": "The cloud-ci gate is magic-fast.",
+            "claim_rows": [{
+                "id": "BAD-unknown-regulated-term",
+                "artifact": "inline-test",
+                "claim_text": "magic-fast",
+                "claim_tier": "production_ready",
+                "allowed_language_now": "not allowed",
+                "regulated_terms": ["magic-fast"],
+                "current_evidence": [{
+                    "claim_contract_result": true,
+                    "evidence_domains": ["CI-MERGE"],
+                    "required_evidence": {
+                        "required_context": "inline-test"
+                    },
+                    "provenance": {
+                        "source": "inline-test"
+                    }
+                }],
+                "owner": "platform-sre"
+            }]
+        });
+        let unknown_violations: BTreeSet<&str> =
+            evaluate_phase0_claim_ceiling(&unknown_term, &regulated_vocabulary, &allowed_tiers)
+                .violations
+                .iter()
+                .map(|violation| violation.as_str())
+                .collect();
+        assert!(
+            unknown_violations.contains("unknown_regulated_term"),
+            "claim rows must not introduce unregistered regulated vocabulary, got {unknown_violations:?}"
         );
     }
 

@@ -20,7 +20,8 @@
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-good-performance-spec-ready-with-budget.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-ungrounded-production-ready.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-local-oya-authority-claim.json",
-      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json"
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-unknown-regulated-term.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-claim-ceiling",
     "required_red_green_pairs": [
@@ -38,6 +39,11 @@
         "green": "tc-0.17-good-performance-spec-ready-with-budget.json",
         "red": "tc-0.17-bad-performance-without-budget.json",
         "tc_id": "TC-0.17.4"
+      },
+      {
+        "green": "tc-0.17-good-target-non-claim-with-owner.json",
+        "red": "tc-0.17-bad-unknown-regulated-term.json",
+        "tc_id": "TC-0.17.1-unknown-regulated-term"
       }
     ]
   },
@@ -81,7 +87,8 @@
     "performant",
     "low-latency",
     "scalable",
-    "capacity-ready"
+    "capacity-ready",
+    "capacity"
   ],
   "seed_claim_rows": [
     {
