@@ -20,7 +20,7 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-PHASE0-AUTO-MERGE-AFTER-CI",
     "status": "p0_0_target_contract_not_live_green",
-    "updated_at": "2026-06-02T22:53:00Z",
+    "updated_at": "2026-06-02T23:20:00Z",
     "version": "0.1.0"
   },
   "description": "P0.0 executable target contract for Forgejo and GitHub bootstrap auto-merge after CI. This file is not a live enforcement claim; it defines the script/spec/test chain that prevents regressions to stale contexts, Cargo authority, unpinned PR heads, or operator-only auto-merge procedure.",
@@ -61,7 +61,10 @@
     ],
     "fetch_remote_option": "--fetch-remote",
     "bootstrap_split_fetch_remote": "github-mirror when origin is Forgejo, otherwise GITHUB_FETCH_REMOTE/origin",
-    "script_rejects_missing_conflict_guard_fetch_remote": true
+    "script_rejects_missing_conflict_guard_fetch_remote": true,
+    "conflict_guard_order": "after live branch-protection/review/head checks and before gh pr merge --auto",
+    "script_rejects_conflict_before_auto_merge": true,
+    "trigger_conflict_guard_test": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh"
   },
   "forgejo": {
     "forge_role": "target_forge_of_record",
@@ -111,7 +114,8 @@
       "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests"
     ],
     "authority_policy_check": "//:buck2-authority-policy-check",
-    "github_bootstrap_test": "//:github-auto-merge-after-ci-check"
+    "github_bootstrap_test": "//:github-auto-merge-after-ci-check",
+    "github_conflict_guard_test": "//:github-auto-merge-after-ci-check"
   },
   "non_authority_surfaces": [
     "local oya verify output",

@@ -57,6 +57,7 @@ genrule(
         "infra/ci/jenkins/reported-status-contexts.json": "infra/ci/jenkins/reported-status-contexts.json",
         "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
         "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
         "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
@@ -218,13 +219,14 @@ genrule(
     name = "github-auto-merge-after-ci-check",
     srcs = {
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
         "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
         "scripts/check-sequential-pr-merge-conflicts.sh": "scripts/check-sequential-pr-merge-conflicts.sh",
         "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
     },
     out = "github-auto-merge-after-ci-check.txt",
-    cmd = "(bash scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh && bash scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh) > $OUT",
+    cmd = "(bash scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh && bash scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh && bash scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh) > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -241,6 +243,7 @@ genrule(
         "scripts/check-sequential-pr-merge-conflicts.sh": "scripts/check-sequential-pr-merge-conflicts.sh",
         "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
         "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
         "docs/ci/forge-of-record.md": "docs/ci/forge-of-record.md",

@@ -52,6 +52,10 @@ def main() -> int:
         failures.append("github.allowed_merge_methods must be ['squash']")
     if github.get("script_rejects_non_squash_merge_method") is not True:
         failures.append("github.script_rejects_non_squash_merge_method must be true")
+    if github.get("script_rejects_conflict_before_auto_merge") is not True:
+        failures.append("github.script_rejects_conflict_before_auto_merge must be true")
+    if github.get("trigger_conflict_guard_test") != "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh":
+        failures.append("github.trigger_conflict_guard_test must name the trigger-level conflict guard test")
     if forgejo.get("schedule_field") != "merge_when_checks_succeed":
         failures.append("forgejo.schedule_field must be merge_when_checks_succeed")
     if forgejo.get("head_pin_field") != "head_commit_id":
@@ -128,6 +132,12 @@ def main() -> int:
     github_test = read("scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh")
     require_contains(github_test, "--merge-method is fixed to squash", "github trigger test", failures)
 
+    github_conflict_test = read("scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh")
+    require_contains(github_conflict_test, "sequential PR merge simulation passed: 1 PRs modeled", "github conflict guard test", failures)
+    require_contains(github_conflict_test, "dry-run: gh pr merge 455 --squash --auto --match-head-commit", "github conflict guard test", failures)
+    require_contains(github_conflict_test, "::error::sequential merge conflict at PR #455", "github conflict guard test", failures)
+    require_contains(github_conflict_test, "conflict scenario invoked gh pr merge", "github conflict guard test", failures)
+
     conflict_test = read("scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh")
     require_contains(conflict_test, "--fetch-remote github-mirror", "conflict guard test", failures)
     require_contains(conflict_test, "failed to fetch PR #455 head from remote origin", "conflict guard test", failures)
@@ -147,6 +157,7 @@ def main() -> int:
         "scripts/check-sequential-pr-merge-conflicts.sh",
         "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
         "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
         "docs/ci/auto-merge-flow.md",
@@ -177,6 +188,7 @@ def main() -> int:
             "tide_squash_only": True,
             "tide_full_sha_guard_declared": True,
             "conflict_guard_declared": True,
+            "trigger_conflict_guard_tested": True,
             "buck2_policy_scan_covered": True,
             "p0_0_green": False,
             "phase0_complete": False,

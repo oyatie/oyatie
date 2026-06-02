@@ -166,6 +166,7 @@
     "scripts/trigger-next-queue-automerge.sh",
     "scripts/check-sequential-pr-merge-conflicts.sh",
     "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+    "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
     "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
     "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
     "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
