@@ -73,7 +73,7 @@ pub const DEFAULT_REPO_NAME: &str = "oyatie";
 pub const DEFAULT_BASE_BRANCH: &str = "dev";
 
 /// Default required commit-status context (must match branch-protection rule).
-pub const DEFAULT_REQUIRED_STATUS_CONTEXT: &str = "oya-ci-gate";
+pub const DEFAULT_REQUIRED_STATUS_CONTEXT: &str = "oya-ci-required";
 
 /// Default minimum approving reviews required.
 pub const DEFAULT_MIN_APPROVALS: u32 = 1;
@@ -141,7 +141,7 @@ pub struct TideConfig {
     pub repo_name: String,
     /// Base branch to poll PRs against (default: `dev`).
     pub base_branch: String,
-    /// Required commit-status context that must be `success` (default: `oya-ci-gate`).
+    /// Required commit-status context that must be `success` (default: `oya-ci-required`).
     pub required_status_context: String,
     /// Approval policy (default: 1 approving review).
     pub approval_policy: ApprovalPolicy,
@@ -401,11 +401,7 @@ pub trait ForgejoClient: Send + Sync {
     /// Get the combined commit status for the given SHA, filtered to the
     /// `required_context`. Returns `CommitStatusState::Missing` when no
     /// status exists for that context.
-    fn get_commit_status(
-        &self,
-        sha: &str,
-        required_context: &str,
-    ) -> Result<CommitStatusState>;
+    fn get_commit_status(&self, sha: &str, required_context: &str) -> Result<CommitStatusState>;
 
     /// List all reviews on a pull request.
     fn list_reviews(&self, pr_number: u64) -> Result<Vec<Review>>;
@@ -756,7 +752,10 @@ mod tests {
                     None
                 }
             });
-            assert!(cfg.dry_run, "expected dry_run=true for OYA_TIDE_DRY_RUN={val}");
+            assert!(
+                cfg.dry_run,
+                "expected dry_run=true for OYA_TIDE_DRY_RUN={val}"
+            );
         }
     }
 
@@ -771,8 +770,22 @@ mod tests {
         let cfg = TideConfig::from_lookup(|_| None);
         assert_eq!(cfg.base_branch, DEFAULT_BASE_BRANCH);
         assert_eq!(cfg.required_status_context, DEFAULT_REQUIRED_STATUS_CONTEXT);
+        assert_eq!(cfg.required_status_context, "oya-ci-required");
         assert_eq!(cfg.approval_policy.min_approvals, DEFAULT_MIN_APPROVALS);
         assert_eq!(cfg.poll_interval_secs, DEFAULT_POLL_INTERVAL_SECS);
+    }
+
+    #[test]
+    fn configured_required_status_context_overrides_phase0_default() {
+        let cfg = TideConfig::from_lookup(|key| {
+            if key == "OYA_TIDE_REQUIRED_STATUS_CONTEXT" {
+                Some("cloud-ci-required".to_owned())
+            } else {
+                None
+            }
+        });
+
+        assert_eq!(cfg.required_status_context, "cloud-ci-required");
     }
 
     // --- MergeMethod / ReviewState parsing ---

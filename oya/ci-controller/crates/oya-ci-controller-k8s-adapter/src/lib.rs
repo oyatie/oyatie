@@ -46,8 +46,8 @@ use kube::{
     api::{ListParams, PostParams},
 };
 use oya_ci_controller_kernel::{
-    ForgejoState, JobCondition, JobConditionType, JobHandle, JobObservation, JobSpawner,
-    KernelError, PodReason, Result as KernelResult, GateRunSpec,
+    ForgejoState, GateRunSpec, JobCondition, JobConditionType, JobHandle, JobObservation,
+    JobSpawner, KernelError, PodReason, Result as KernelResult,
 };
 use std::collections::BTreeMap;
 
@@ -134,10 +134,16 @@ xargs -a /workspace/trusted-test-targets.txt buck2 test"#,
 
     // Labels (immutable identity — used as the watcher selector)
     let mut labels: BTreeMap<String, String> = BTreeMap::new();
-    labels.insert(LABEL_CI_CONTROLLER.to_owned(), CI_CONTROLLER_VALUE.to_owned());
+    labels.insert(
+        LABEL_CI_CONTROLLER.to_owned(),
+        CI_CONTROLLER_VALUE.to_owned(),
+    );
     labels.insert(LABEL_CI_PR_NUMBER.to_owned(), pr_number.to_string());
     labels.insert(LABEL_CI_HEAD_SHA.to_owned(), sha.clone());
-    labels.insert(LABEL_CI_DELIVERY_ID.to_owned(), spec.run.delivery_id.clone());
+    labels.insert(
+        LABEL_CI_DELIVERY_ID.to_owned(),
+        spec.run.delivery_id.clone(),
+    );
     labels.insert(LABEL_PART_OF.to_owned(), "oyatie-microservices".to_owned());
 
     // Annotations (mutable bookkeeping)
@@ -152,13 +158,11 @@ xargs -a /workspace/trusted-test-targets.txt buck2 test"#,
         // The gate Job runs untrusted PR code; a token in the container env
         // would allow a malicious PR to exfiltrate it and post arbitrary
         // commit statuses. Only the controller (crier) holds the token.
-        env: Some(vec![
-            EnvVar {
-                name: "HOME".to_owned(),
-                value: Some("/home/jenkins/agent".to_owned()),
-                ..Default::default()
-            },
-        ]),
+        env: Some(vec![EnvVar {
+            name: "HOME".to_owned(),
+            value: Some("/home/jenkins/agent".to_owned()),
+            ..Default::default()
+        }]),
         security_context: Some(k8s_openapi::api::core::v1::SecurityContext {
             allow_privilege_escalation: Some(false),
             read_only_root_filesystem: Some(false), // gate needs /tmp, /home/jenkins/agent
@@ -297,6 +301,173 @@ xargs -a /workspace/trusted-test-targets.txt buck2 test"#,
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use oya_ci_controller_kernel::{GateRun, GateRunSpec};
+
+    const HEAD_SHA: &str = "ABCDEF1234567890ABCDEF1234567890ABCDEF12";
+    const HEAD_SHA_LOWER: &str = "abcdef1234567890abcdef1234567890abcdef12";
+
+    fn sample_spec() -> GateRunSpec {
+        GateRunSpec {
+            run: GateRun {
+                pr_number: 42,
+                head_sha: HEAD_SHA.to_owned(),
+                delivery_id: format!("gate-run-pr42-{HEAD_SHA_LOWER}"),
+                base_ref: "dev".to_owned(),
+                repo: "oya-admin/oyatie".to_owned(),
+            },
+            image: "registry.local/rust-ci:dev".to_owned(),
+            forge_clone_url: "http://forgejo.local/oya-admin/oyatie.git".to_owned(),
+            active_deadline_seconds: 3600,
+            ttl_seconds_after_finished: 86400,
+            namespace: "oya-ci".to_owned(),
+            runner_service_account: "oya-ci-gate-runner".to_owned(),
+        }
+    }
+
+    fn pod_spec(job: &Job) -> &PodSpec {
+        job.spec.as_ref().unwrap().template.spec.as_ref().unwrap()
+    }
+
+    fn main_gate_container(job: &Job) -> &Container {
+        &pod_spec(job).containers[0]
+    }
+
+    fn clone_init_container(job: &Job) -> &Container {
+        &pod_spec(job).init_containers.as_ref().unwrap()[0]
+    }
+
+    fn command_text(container: &Container) -> String {
+        container.command.as_ref().unwrap().join("\n")
+    }
+
+    fn env_names(container: &Container) -> Vec<&str> {
+        container
+            .env
+            .as_deref()
+            .unwrap_or_default()
+            .iter()
+            .map(|env| env.name.as_str())
+            .collect()
+    }
+
+    #[test]
+    fn build_gate_job_preserves_full_candidate_sha_in_name_and_labels() {
+        let spec = sample_spec();
+        let job = build_gate_job(&spec);
+        let labels = job.metadata.labels.as_ref().unwrap();
+
+        assert_eq!(
+            job.metadata.name.as_deref(),
+            Some("oya-ci-pr42-abcdef1234567890abcdef1234567890abcdef12")
+        );
+        assert!(job.metadata.name.as_ref().unwrap().len() <= 63);
+        assert_eq!(
+            labels.get(LABEL_CI_HEAD_SHA).map(String::as_str),
+            Some(HEAD_SHA_LOWER)
+        );
+        assert_eq!(
+            labels.get(LABEL_CI_PR_NUMBER).map(String::as_str),
+            Some("42")
+        );
+        assert_eq!(
+            labels.get(LABEL_CI_DELIVERY_ID).map(String::as_str),
+            Some("gate-run-pr42-abcdef1234567890abcdef1234567890abcdef12")
+        );
+    }
+
+    #[test]
+    fn build_gate_job_keeps_clone_token_out_of_untrusted_gate_container() {
+        let job = build_gate_job(&sample_spec());
+        let main = main_gate_container(&job);
+        let clone = clone_init_container(&job);
+        let main_command = command_text(main);
+        let clone_command = command_text(clone);
+
+        assert!(!env_names(main).contains(&"FORGEJO_CLONE_TOKEN"));
+        assert!(!main_command.contains("FORGEJO_CLONE_TOKEN"));
+        assert!(!main_command.contains("http.extraHeader"));
+        assert!(env_names(clone).contains(&"FORGEJO_CLONE_TOKEN"));
+        assert!(clone_command.contains("http.extraHeader"));
+        assert!(clone_command.contains("git -c \"$AUTH\" clone"));
+    }
+
+    #[test]
+    fn build_gate_job_captures_trusted_targets_before_candidate_checkout() {
+        let job = build_gate_job(&sample_spec());
+        let command = command_text(main_gate_container(&job));
+        let build_targets = command
+            .find("buck2 targets //... | sort -u > /workspace/trusted-build-targets.txt")
+            .unwrap();
+        let test_targets = command
+            .find("buck2 uquery 'kind(\".*test.*\", //...)' | sort -u > /workspace/trusted-test-targets.txt")
+            .unwrap();
+        let assert_build_targets = command
+            .find("test -s /workspace/trusted-build-targets.txt")
+            .unwrap();
+        let assert_test_targets = command
+            .find("test -s /workspace/trusted-test-targets.txt")
+            .unwrap();
+        let checkout = command.find("git checkout --detach ").unwrap();
+        let build_run = command
+            .find("xargs -a /workspace/trusted-build-targets.txt buck2 build")
+            .unwrap();
+        let test_run = command
+            .find("xargs -a /workspace/trusted-test-targets.txt buck2 test")
+            .unwrap();
+
+        for snapshot_step in [
+            build_targets,
+            test_targets,
+            assert_build_targets,
+            assert_test_targets,
+        ] {
+            assert!(
+                snapshot_step < checkout,
+                "trusted target inventories must be fixed before candidate checkout"
+            );
+        }
+        assert!(
+            checkout < build_run && checkout < test_run,
+            "candidate can only run against pre-captured trusted target inventories"
+        );
+    }
+
+    #[test]
+    fn build_gate_job_verifies_exact_pr_sha_before_checkout() {
+        let job = build_gate_job(&sample_spec());
+        let command = command_text(main_gate_container(&job));
+        let resolve = command
+            .find("resolved_sha=\"$(git rev-parse refs/remotes/origin/pr-42)\"")
+            .unwrap();
+        let exact_sha_check = command
+            .find("test \"$resolved_sha\" = \"abcdef1234567890abcdef1234567890abcdef12\"")
+            .unwrap();
+        let checkout = command
+            .find("git checkout --detach abcdef1234567890abcdef1234567890abcdef12")
+            .unwrap();
+
+        assert!(
+            resolve < exact_sha_check && exact_sha_check < checkout,
+            "the fetched PR ref must resolve to the exact candidate SHA before checkout"
+        );
+    }
+
+    #[test]
+    fn build_gate_job_disables_service_account_token_automount() {
+        let job = build_gate_job(&sample_spec());
+        let pod_spec = pod_spec(&job);
+
+        assert_eq!(pod_spec.automount_service_account_token, Some(false));
+        assert_eq!(
+            pod_spec.service_account_name.as_deref(),
+            Some("oya-ci-gate-runner")
+        );
+    }
+}
+
 // ---------------------------------------------------------------------------
 // K8sJobSpawner — implements kernel::JobSpawner
 // ---------------------------------------------------------------------------
@@ -345,9 +516,7 @@ impl JobSpawner for K8sJobSpawner {
                     already_exists: true,
                 })
             }
-            Err(e) => Err(KernelError::DownstreamTransport(format!(
-                "job create: {e}"
-            ))),
+            Err(e) => Err(KernelError::DownstreamTransport(format!("job create: {e}"))),
         }
     }
 }

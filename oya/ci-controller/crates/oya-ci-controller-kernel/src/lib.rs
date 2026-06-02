@@ -22,6 +22,7 @@
 use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -363,6 +364,488 @@ pub fn evaluate_phase0_ci_policy(input: &Phase0CiPolicyInput) -> Phase0CiPolicyV
     }
 
     Phase0CiPolicyVerdict { violations }
+}
+
+/// Phase-0 automation-ratchet violation classes.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Phase0AutomationRatchetViolation {
+    EmptyRegistry,
+    MissingEvaluatorConfiguration,
+    MissingOrEmptyRequiredField,
+    DuplicateRowId,
+    UnknownClassification,
+    BlockingInvariantMappedToOyaCli,
+    EnforceableOrAutomatableMarkedHumanJudgment,
+}
+
+impl Phase0AutomationRatchetViolation {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Phase0AutomationRatchetViolation::EmptyRegistry => "empty_registry",
+            Phase0AutomationRatchetViolation::MissingEvaluatorConfiguration => {
+                "missing_evaluator_configuration"
+            }
+            Phase0AutomationRatchetViolation::MissingOrEmptyRequiredField => {
+                "missing_or_empty_required_field"
+            }
+            Phase0AutomationRatchetViolation::DuplicateRowId => "duplicate_row_id",
+            Phase0AutomationRatchetViolation::UnknownClassification => "unknown_classification",
+            Phase0AutomationRatchetViolation::BlockingInvariantMappedToOyaCli => {
+                "blocking_invariant_mapped_to_oya_cli"
+            }
+            Phase0AutomationRatchetViolation::EnforceableOrAutomatableMarkedHumanJudgment => {
+                "enforceable_or_automatable_marked_human_judgment"
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Phase0AutomationRatchetVerdict {
+    pub violations: BTreeSet<Phase0AutomationRatchetViolation>,
+}
+
+impl Phase0AutomationRatchetVerdict {
+    pub fn is_green(&self) -> bool {
+        self.violations.is_empty()
+    }
+}
+
+/// Evaluate AC-0.16 automation-ratchet rows from a controller/gate-owned JSON
+/// registry. This is intentionally pure-domain logic: callers are responsible
+/// for loading the generated registry or fixture bytes from trusted
+/// trunk/controller state.
+pub fn evaluate_phase0_automation_rows(
+    rows: &[Value],
+    required_fields: &[String],
+    allowed_classifications: &BTreeSet<String>,
+) -> Phase0AutomationRatchetVerdict {
+    let mut violations = BTreeSet::new();
+    let mut ids = BTreeSet::new();
+
+    if rows.is_empty() {
+        violations.insert(Phase0AutomationRatchetViolation::EmptyRegistry);
+    }
+    if required_fields.is_empty() || allowed_classifications.is_empty() {
+        violations.insert(Phase0AutomationRatchetViolation::MissingEvaluatorConfiguration);
+    }
+
+    for row in rows {
+        for required_field in required_fields {
+            if !json_field_is_present_and_non_empty(row, required_field) {
+                violations.insert(Phase0AutomationRatchetViolation::MissingOrEmptyRequiredField);
+            }
+        }
+
+        if let Some(id) = row["id"].as_str() {
+            if !ids.insert(id.to_owned()) {
+                violations.insert(Phase0AutomationRatchetViolation::DuplicateRowId);
+            }
+        }
+
+        let classification = row["classification"].as_str().unwrap_or_default();
+        if !allowed_classifications.contains(classification) {
+            violations.insert(Phase0AutomationRatchetViolation::UnknownClassification);
+        }
+
+        if row["no_new_oya_cli_surface"].as_bool() != Some(true)
+            || row["target_gate_or_controller"]
+                .as_str()
+                .is_some_and(contains_oya_cli_authority)
+        {
+            violations.insert(Phase0AutomationRatchetViolation::BlockingInvariantMappedToOyaCli);
+        }
+
+        if classification == "not_automatable_human_judgment"
+            && row["enforceable_or_automatable"].as_bool() == Some(true)
+        {
+            violations.insert(
+                Phase0AutomationRatchetViolation::EnforceableOrAutomatableMarkedHumanJudgment,
+            );
+        }
+    }
+
+    Phase0AutomationRatchetVerdict { violations }
+}
+
+/// Phase-0 claim-ceiling violation classes.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Phase0ClaimCeilingViolation {
+    MissingOrMalformedFixture,
+    EmptyRegulatedVocabulary,
+    EmptyAllowedClaimTiers,
+    MissingOrMalformedClaimRows,
+    MissingOrMalformedRegulatedTerms,
+    RegulatedVocabularyWithoutClaimRow,
+    MissingOrEmptyClaimRowField,
+    UnknownClaimTier,
+    ForbiddenLocalOrOyaEvidenceForMechanicalClaim,
+    ProductionReadinessClaimWithoutTypedEvidence,
+    PerformanceClaimWithoutBudgetOrMeasuredResult,
+}
+
+impl Phase0ClaimCeilingViolation {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Phase0ClaimCeilingViolation::MissingOrMalformedFixture => {
+                "missing_or_malformed_fixture"
+            }
+            Phase0ClaimCeilingViolation::EmptyRegulatedVocabulary => "empty_regulated_vocabulary",
+            Phase0ClaimCeilingViolation::EmptyAllowedClaimTiers => "empty_allowed_claim_tiers",
+            Phase0ClaimCeilingViolation::MissingOrMalformedClaimRows => {
+                "missing_or_malformed_claim_rows"
+            }
+            Phase0ClaimCeilingViolation::MissingOrMalformedRegulatedTerms => {
+                "missing_or_malformed_regulated_terms"
+            }
+            Phase0ClaimCeilingViolation::RegulatedVocabularyWithoutClaimRow => {
+                "regulated_vocabulary_without_claim_row"
+            }
+            Phase0ClaimCeilingViolation::MissingOrEmptyClaimRowField => {
+                "missing_or_empty_claim_row_field"
+            }
+            Phase0ClaimCeilingViolation::UnknownClaimTier => "unknown_claim_tier",
+            Phase0ClaimCeilingViolation::ForbiddenLocalOrOyaEvidenceForMechanicalClaim => {
+                "forbidden_local_or_oya_evidence_for_mechanical_claim"
+            }
+            Phase0ClaimCeilingViolation::ProductionReadinessClaimWithoutTypedEvidence => {
+                "production_readiness_claim_without_typed_evidence"
+            }
+            Phase0ClaimCeilingViolation::PerformanceClaimWithoutBudgetOrMeasuredResult => {
+                "performance_claim_without_budget_or_measured_result"
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Phase0ClaimCeilingVerdict {
+    pub violations: BTreeSet<Phase0ClaimCeilingViolation>,
+}
+
+impl Phase0ClaimCeilingVerdict {
+    pub fn is_green(&self) -> bool {
+        self.violations.is_empty()
+    }
+}
+
+/// Evaluate AC-0.17 claim-ceiling fixtures or generated claim rows. The caller
+/// supplies the regulated vocabulary and allowed tiers from trusted
+/// controller/trunk-owned specs.
+pub fn evaluate_phase0_claim_ceiling(
+    fixture: &Value,
+    regulated_vocabulary: &BTreeSet<String>,
+    allowed_tiers: &BTreeSet<String>,
+) -> Phase0ClaimCeilingVerdict {
+    let mut violations = BTreeSet::new();
+    if !fixture.is_object() {
+        violations.insert(Phase0ClaimCeilingViolation::MissingOrMalformedFixture);
+    }
+    if regulated_vocabulary.is_empty() {
+        violations.insert(Phase0ClaimCeilingViolation::EmptyRegulatedVocabulary);
+    }
+    if allowed_tiers.is_empty() {
+        violations.insert(Phase0ClaimCeilingViolation::EmptyAllowedClaimTiers);
+    }
+
+    let text = fixture["text"].as_str().unwrap_or_default();
+    let text_present = !text.trim().is_empty();
+    let observed_terms = regulated_terms_in_text(text, regulated_vocabulary);
+    let rows = match fixture.get("claim_rows").and_then(Value::as_array) {
+        Some(rows) => rows.iter().collect::<Vec<_>>(),
+        None => {
+            violations.insert(Phase0ClaimCeilingViolation::MissingOrMalformedClaimRows);
+            Vec::new()
+        }
+    };
+
+    if !text_present && rows.is_empty() {
+        violations.insert(Phase0ClaimCeilingViolation::MissingOrMalformedFixture);
+    }
+
+    if !observed_terms.is_empty() && rows.is_empty() {
+        violations.insert(Phase0ClaimCeilingViolation::RegulatedVocabularyWithoutClaimRow);
+    }
+
+    let mut covered_terms = BTreeSet::new();
+    for row in rows {
+        if !row.is_object() {
+            violations.insert(Phase0ClaimCeilingViolation::MissingOrMalformedClaimRows);
+            continue;
+        }
+
+        for field in [
+            "id",
+            "artifact",
+            "claim_text",
+            "claim_tier",
+            "allowed_language_now",
+            "regulated_terms",
+            "current_evidence",
+            "owner",
+        ] {
+            if !json_field_is_present_and_non_empty(row, field) {
+                violations.insert(Phase0ClaimCeilingViolation::MissingOrEmptyClaimRowField);
+            }
+        }
+
+        let tier = row["claim_tier"].as_str().unwrap_or_default();
+        if !allowed_tiers.contains(tier) {
+            violations.insert(Phase0ClaimCeilingViolation::UnknownClaimTier);
+        }
+
+        let terms = match claim_row_terms(row) {
+            Ok(terms) => terms,
+            Err(violation) => {
+                violations.insert(violation);
+                BTreeSet::new()
+            }
+        };
+        covered_terms.extend(terms.iter().cloned());
+        let evidence = claim_row_evidence(row);
+        if tier == "mechanically_enforced"
+            && (contains_oya_cli_authority(&evidence) || contains_oya_cli_authority(text))
+        {
+            violations
+                .insert(Phase0ClaimCeilingViolation::ForbiddenLocalOrOyaEvidenceForMechanicalClaim);
+        }
+        if matches!(tier, "production_ready" | "hyperscaler_grade")
+            && !claim_row_has_typed_readiness_evidence(row)
+        {
+            violations
+                .insert(Phase0ClaimCeilingViolation::ProductionReadinessClaimWithoutTypedEvidence);
+        }
+
+        let performance_claim = terms.iter().any(|term| {
+            matches!(
+                term.as_str(),
+                "performance" | "performant" | "low-latency" | "capacity" | "capacity-ready"
+            )
+        });
+        if performance_claim
+            && matches!(tier, "production_ready" | "hyperscaler_grade")
+            && !claim_row_has_typed_performance_evidence(row)
+        {
+            violations
+                .insert(Phase0ClaimCeilingViolation::PerformanceClaimWithoutBudgetOrMeasuredResult);
+        }
+    }
+
+    for observed_term in observed_terms {
+        if !covered_terms.contains(&observed_term) {
+            violations.insert(Phase0ClaimCeilingViolation::RegulatedVocabularyWithoutClaimRow);
+        }
+    }
+
+    Phase0ClaimCeilingVerdict { violations }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Phase0AggregateExitVerdict {
+    pub false_or_missing_subconditions: BTreeSet<String>,
+}
+
+impl Phase0AggregateExitVerdict {
+    pub fn is_green(&self) -> bool {
+        self.false_or_missing_subconditions.is_empty()
+    }
+}
+
+/// Evaluate the AC-0.12 aggregate exit shape. The aggregate is green only when
+/// the trusted subcondition object is non-empty and every subcondition is
+/// exactly boolean `true`.
+pub fn evaluate_phase0_aggregate_exit(subconditions: &Value) -> Phase0AggregateExitVerdict {
+    let mut false_or_missing_subconditions = BTreeSet::new();
+    let Some(conditions) = subconditions.as_object() else {
+        false_or_missing_subconditions.insert("<subconditions-object>".to_owned());
+        return Phase0AggregateExitVerdict {
+            false_or_missing_subconditions,
+        };
+    };
+
+    if conditions.is_empty() {
+        false_or_missing_subconditions.insert("<non-empty-subconditions>".to_owned());
+    }
+
+    for (name, value) in conditions {
+        if value.as_bool() != Some(true) {
+            false_or_missing_subconditions.insert(name.clone());
+        }
+    }
+
+    Phase0AggregateExitVerdict {
+        false_or_missing_subconditions,
+    }
+}
+
+pub fn contains_oya_cli_authority(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    if lower.contains("oya --")
+        || lower.contains("`oya`")
+        || lower.contains("oya cli")
+        || lower.contains("legacy oya cli invocation")
+        || contains_oya_executable_path(&lower)
+    {
+        return true;
+    }
+
+    let normalized: String = lower
+        .chars()
+        .map(|ch| if ch.is_ascii_alphanumeric() { ch } else { ' ' })
+        .collect();
+    let tokens: Vec<&str> = normalized.split_whitespace().collect();
+    tokens.windows(2).any(|window| {
+        window[0] == "oya" && matches!(window[1], "gate" | "verify" | "vcs" | "git" | "cli")
+    })
+}
+
+fn contains_oya_executable_path(lower: &str) -> bool {
+    ["./oya", "./bin/oya", "/bin/oya"]
+        .into_iter()
+        .any(|needle| {
+            lower.match_indices(needle).any(|(index, _)| {
+                lower[index + needle.len()..]
+                    .chars()
+                    .next()
+                    .is_none_or(|ch| !ch.is_ascii_alphanumeric() && ch != '-' && ch != '_')
+            })
+        })
+}
+
+fn json_field_is_present_and_non_empty(row: &Value, field: &str) -> bool {
+    match &row[field] {
+        Value::String(value) => !value.trim().is_empty(),
+        Value::Bool(_) => true,
+        Value::Array(values) => !values.is_empty(),
+        Value::Object(values) => !values.is_empty(),
+        _ => false,
+    }
+}
+
+fn regulated_terms_in_text(text: &str, vocabulary: &BTreeSet<String>) -> BTreeSet<String> {
+    let lower = text.to_ascii_lowercase();
+    vocabulary
+        .iter()
+        .filter(|term| lower.contains(&term.to_ascii_lowercase()))
+        .cloned()
+        .collect()
+}
+
+fn claim_row_terms(
+    row: &Value,
+) -> std::result::Result<BTreeSet<String>, Phase0ClaimCeilingViolation> {
+    let Some(values) = row["regulated_terms"].as_array() else {
+        return Err(Phase0ClaimCeilingViolation::MissingOrMalformedRegulatedTerms);
+    };
+    if values.is_empty() {
+        return Err(Phase0ClaimCeilingViolation::MissingOrMalformedRegulatedTerms);
+    }
+
+    let mut terms = BTreeSet::new();
+    for value in values {
+        let Some(term) = value
+            .as_str()
+            .map(str::trim)
+            .filter(|term| !term.is_empty())
+        else {
+            return Err(Phase0ClaimCeilingViolation::MissingOrMalformedRegulatedTerms);
+        };
+        terms.insert(term.to_owned());
+    }
+    Ok(terms)
+}
+
+fn claim_row_evidence(row: &Value) -> String {
+    row["current_evidence"]
+        .as_array()
+        .map(|values| {
+            values
+                .iter()
+                .map(|value| {
+                    value
+                        .as_str()
+                        .map(str::to_owned)
+                        .unwrap_or_else(|| value.to_string())
+                })
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .unwrap_or_default()
+}
+
+fn claim_row_has_typed_performance_evidence(row: &Value) -> bool {
+    row["current_evidence"]
+        .as_array()
+        .is_some_and(|items| items.iter().any(is_typed_performance_evidence))
+}
+
+fn claim_row_has_typed_readiness_evidence(row: &Value) -> bool {
+    row["current_evidence"]
+        .as_array()
+        .is_some_and(|items| items.iter().any(is_typed_readiness_evidence))
+}
+
+fn is_typed_readiness_evidence(value: &Value) -> bool {
+    let Some(object) = value.as_object() else {
+        return false;
+    };
+    let contract_result = object
+        .get("claim_contract_result")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    let evidence_domains = object
+        .get("evidence_domains")
+        .and_then(Value::as_array)
+        .is_some_and(|domains| {
+            !domains.is_empty()
+                && domains.iter().all(|domain| {
+                    domain
+                        .as_str()
+                        .is_some_and(|value| !value.trim().is_empty())
+                })
+        });
+    let required_evidence =
+        object
+            .get("required_evidence")
+            .is_some_and(|required| match required {
+                Value::Array(values) => !values.is_empty(),
+                Value::Object(values) => !values.is_empty(),
+                _ => false,
+            });
+    let provenance = object
+        .get("provenance")
+        .is_some_and(|provenance| match provenance {
+            Value::Object(values) => !values.is_empty(),
+            _ => false,
+        });
+
+    contract_result && evidence_domains && required_evidence && provenance
+}
+
+fn is_typed_performance_evidence(value: &Value) -> bool {
+    let Some(object) = value.as_object() else {
+        return false;
+    };
+    let measured = object
+        .get("measured_result")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    let latency_budget = ["p50_ms", "p95_ms", "p99_ms"].into_iter().all(|field| {
+        object
+            .get(field)
+            .and_then(Value::as_f64)
+            .is_some_and(|v| v >= 0.0)
+    });
+    let has_load_profile =
+        object
+            .get("load_profile")
+            .is_some_and(|load_profile| match load_profile {
+                Value::String(value) => !value.trim().is_empty(),
+                Value::Object(values) => !values.is_empty(),
+                _ => false,
+            });
+
+    measured && latency_budget && has_load_profile
 }
 
 // ---------------------------------------------------------------------------
@@ -1090,7 +1573,10 @@ mod tests {
         let tok = GateRunToken::new(b"do-not-log-me".to_vec());
         let s = format!("{tok:?}");
         assert!(s.contains("[REDACTED]"), "debug should redact: {s}");
-        assert!(!s.contains("do-not-log-me"), "debug must not leak token: {s}");
+        assert!(
+            !s.contains("do-not-log-me"),
+            "debug must not leak token: {s}"
+        );
     }
 
     // ---- GateRun job_name --------------------------------------------------
@@ -1163,11 +1649,13 @@ mod tests {
 mod phase0_ci_enforcement_baseline_tests {
     use std::{collections::BTreeSet, fs, path::PathBuf};
 
-    use serde_json::Value;
+    use serde_json::{Value, json};
 
     use super::{
         PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES, Phase0CiPolicyInput, Phase0OverrideEvidence,
-        evaluate_phase0_ci_policy, phase0_context_is_required_authority,
+        contains_oya_cli_authority, evaluate_phase0_aggregate_exit,
+        evaluate_phase0_automation_rows, evaluate_phase0_ci_policy, evaluate_phase0_claim_ceiling,
+        phase0_context_is_required_authority,
     };
 
     fn repo_root() -> PathBuf {
@@ -1282,15 +1770,6 @@ mod phase0_ci_enforcement_baseline_tests {
         }
     }
 
-    fn contains_oya_cli_authority(value: &str) -> bool {
-        let lower = value.to_ascii_lowercase();
-        lower.contains("oya gate")
-            || lower.contains("oya verify")
-            || lower.contains("oya --")
-            || lower.contains("`oya`")
-            || lower.contains("legacy oya cli invocation")
-    }
-
     fn is_full_hex_sha(value: &str) -> bool {
         value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
     }
@@ -1341,75 +1820,20 @@ mod phase0_ci_enforcement_baseline_tests {
         required_fields: &[&str],
         allowed_classifications: &BTreeSet<String>,
     ) -> BTreeSet<String> {
-        let mut violations = BTreeSet::new();
-        let mut ids = BTreeSet::new();
-
-        for row in rows {
-            for required_field in required_fields {
-                if !field_is_present_and_non_empty(row, required_field) {
-                    violations.insert("missing_or_empty_required_field".to_owned());
-                }
-            }
-
-            if let Some(id) = row["id"].as_str() {
-                if !ids.insert(id.to_owned()) {
-                    violations.insert("duplicate_row_id".to_owned());
-                }
-            }
-
-            let classification = row["classification"].as_str().unwrap_or_default();
-            if !allowed_classifications.contains(classification) {
-                violations.insert("unknown_classification".to_owned());
-            }
-
-            if row["no_new_oya_cli_surface"].as_bool() != Some(true) {
-                violations.insert("blocking_invariant_mapped_to_oya_cli".to_owned());
-            }
-            if row["target_gate_or_controller"]
-                .as_str()
-                .is_some_and(contains_oya_cli_authority)
-            {
-                violations.insert("blocking_invariant_mapped_to_oya_cli".to_owned());
-            }
-
-            if classification == "not_automatable_human_judgment"
-                && row["enforceable_or_automatable"].as_bool() == Some(true)
-            {
-                violations
-                    .insert("enforceable_or_automatable_marked_human_judgment".to_owned());
-            }
-        }
-
-        violations
-    }
-
-    fn regulated_terms_in_text(text: &str, vocabulary: &BTreeSet<String>) -> BTreeSet<String> {
-        let lower = text.to_ascii_lowercase();
-        vocabulary
+        let owned_rows: Vec<Value> = rows.iter().map(|row| (*row).clone()).collect();
+        let owned_required_fields: Vec<String> = required_fields
             .iter()
-            .filter(|term| lower.contains(&term.to_ascii_lowercase()))
-            .cloned()
-            .collect()
-    }
-
-    fn claim_row_terms(row: &Value) -> BTreeSet<String> {
-        optional_string_array_at(row, &["regulated_terms"])
-            .into_iter()
-            .map(str::to_owned)
-            .collect()
-    }
-
-    fn claim_row_evidence(row: &Value) -> String {
-        row["current_evidence"]
-            .as_array()
-            .map(|values| {
-                values
-                    .iter()
-                    .filter_map(Value::as_str)
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            })
-            .unwrap_or_default()
+            .map(|field| (*field).to_owned())
+            .collect();
+        evaluate_phase0_automation_rows(
+            &owned_rows,
+            &owned_required_fields,
+            allowed_classifications,
+        )
+        .violations
+        .into_iter()
+        .map(|violation| violation.as_str().to_owned())
+        .collect()
     }
 
     fn evaluate_claim_fixture(
@@ -1417,81 +1841,15 @@ mod phase0_ci_enforcement_baseline_tests {
         regulated_vocabulary: &BTreeSet<String>,
         allowed_tiers: &BTreeSet<String>,
     ) -> BTreeSet<String> {
-        let mut violations = BTreeSet::new();
-        let text = fixture["text"].as_str().unwrap_or_default();
-        let observed_terms = regulated_terms_in_text(text, regulated_vocabulary);
-        let rows = object_array_at(fixture, &["claim_rows"]);
-
-        if !observed_terms.is_empty() && rows.is_empty() {
-            violations.insert("regulated_vocabulary_without_claim_row".to_owned());
-        }
-
-        let mut covered_terms = BTreeSet::new();
-        for row in rows {
-            for field in [
-                "id",
-                "artifact",
-                "claim_text",
-                "claim_tier",
-                "allowed_language_now",
-                "regulated_terms",
-                "current_evidence",
-                "owner",
-            ] {
-                if !field_is_present_and_non_empty(row, field) {
-                    violations.insert("missing_or_empty_claim_row_field".to_owned());
-                }
-            }
-
-            let tier = row["claim_tier"].as_str().unwrap_or_default();
-            if !allowed_tiers.contains(tier) {
-                violations.insert("unknown_claim_tier".to_owned());
-            }
-
-            covered_terms.extend(claim_row_terms(row));
-            let evidence = claim_row_evidence(row);
-            if tier == "mechanically_enforced"
-                && (contains_oya_cli_authority(&evidence) || contains_oya_cli_authority(text))
-            {
-                violations.insert(
-                    "forbidden_local_or_oya_evidence_for_mechanical_claim".to_owned(),
-                );
-            }
-
-            let terms = claim_row_terms(row);
-            let performance_claim = terms.iter().any(|term| {
-                matches!(
-                    term.as_str(),
-                    "performance" | "performant" | "low-latency" | "capacity" | "capacity-ready"
-                )
-            });
-            if performance_claim
-                && matches!(tier, "production_ready" | "hyperscaler_grade")
-                && !(evidence.contains("p50")
-                    && evidence.contains("p95")
-                    && evidence.contains("p99")
-                    && evidence.contains("load")
-                    && evidence.contains("measured_result"))
-            {
-                violations.insert("performance_claim_without_budget_or_measured_result".to_owned());
-            }
-        }
-
-        for observed_term in observed_terms {
-            if !covered_terms.contains(&observed_term) {
-                violations.insert("regulated_vocabulary_without_claim_row".to_owned());
-            }
-        }
-
-        violations
+        evaluate_phase0_claim_ceiling(fixture, regulated_vocabulary, allowed_tiers)
+            .violations
+            .into_iter()
+            .map(|violation| violation.as_str().to_owned())
+            .collect()
     }
 
     fn aggregate_exit_is_green(subconditions: &Value) -> bool {
-        subconditions
-            .as_object()
-            .is_some_and(|conditions| {
-                !conditions.is_empty() && conditions.values().all(|value| value.as_bool() == Some(true))
-            })
+        evaluate_phase0_aggregate_exit(subconditions).is_green()
     }
 
     fn phase0_policy_input_for_fixture(fixture: &Value) -> Phase0CiPolicyInput {
@@ -1879,7 +2237,8 @@ mod phase0_ci_enforcement_baseline_tests {
 
     #[test]
     fn phase0_aggregate_exit_gate_fixtures_prevent_vacuous_green() {
-        let good = load_json("specs/fixtures/phase0-exit-gate/tc-0.12-good-all-subconditions-green.json");
+        let good =
+            load_json("specs/fixtures/phase0-exit-gate/tc-0.12-good-all-subconditions-green.json");
         assert_eq!(good["expected_verdict"].as_str(), Some("GREEN"));
         assert!(
             aggregate_exit_is_green(&good["subconditions"]),
@@ -1949,10 +2308,7 @@ mod phase0_ci_enforcement_baseline_tests {
             "automation matrix seed rows should satisfy the executable row contract, got {row_violations:?}"
         );
 
-        let row_ids: BTreeSet<_> = rows
-            .iter()
-            .filter_map(|row| row["id"].as_str())
-            .collect();
+        let row_ids: BTreeSet<_> = rows.iter().filter_map(|row| row["id"].as_str()).collect();
         for required_id in [
             "AC-0.0-cloud-ci-required-context",
             "AC-0.0-tenant-pipeline-isolation",
@@ -1967,7 +2323,8 @@ mod phase0_ci_enforcement_baseline_tests {
             );
         }
 
-        let fixture_paths = string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
+        let fixture_paths =
+            string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
         assert!(
             fixture_paths
                 .iter()
@@ -1976,8 +2333,12 @@ mod phase0_ci_enforcement_baseline_tests {
         );
         assert!(
             fixture_paths.iter().any(|path| path.contains("good-"))
-                && fixture_paths.iter().any(|path| path.contains("bad-oya-cli"))
-                && fixture_paths.iter().any(|path| path.contains("bad-missing-field")),
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-oya-cli"))
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-missing-field")),
             "automation fixtures must cover GOOD, missing/unknown/duplicate, and oya-CLI BAD cases"
         );
     }
@@ -1987,7 +2348,8 @@ mod phase0_ci_enforcement_baseline_tests {
         let automation_matrix = load_json("specs/phase0-automation-matrix.json");
         let required_fields = string_array_at(&automation_matrix, &["required_row_fields"]);
         let allowed_classifications = required_string_set(&automation_matrix, &["classifications"]);
-        let fixture_paths = string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
+        let fixture_paths =
+            string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
 
         let mut seen_green = false;
         let mut seen_red = false;
@@ -2023,12 +2385,33 @@ mod phase0_ci_enforcement_baseline_tests {
             }
         }
 
-        assert!(seen_green && seen_red, "automation fixtures must include RED and GREEN cases");
+        assert!(
+            seen_green && seen_red,
+            "automation fixtures must include RED and GREEN cases"
+        );
+    }
+
+    #[test]
+    fn phase0_automation_ratchet_public_api_fails_closed_on_empty_input() {
+        let verdict = evaluate_phase0_automation_rows(&[], &[], &BTreeSet::<String>::new());
+        let violations: BTreeSet<&str> = verdict
+            .violations
+            .iter()
+            .map(|violation| violation.as_str())
+            .collect();
+
+        assert!(violations.contains("empty_registry"));
+        assert!(violations.contains("missing_evaluator_configuration"));
+        assert!(
+            !verdict.is_green(),
+            "empty or unconfigured automation input must not false-green AC-0.16"
+        );
     }
 
     #[test]
     fn phase0_claim_evidence_map_rows_are_normalized_and_fixture_backed() {
-        let claim_contract = load_json("specs/hyperscaler-production-readiness-claim-contract.json");
+        let claim_contract =
+            load_json("specs/hyperscaler-production-readiness-claim-contract.json");
         let claim_map = load_json("specs/phase0-claim-evidence-map.json");
         let allowed_tiers: BTreeSet<String> = object_array_at(&claim_contract, &["claim_tiers"])
             .into_iter()
@@ -2088,15 +2471,20 @@ mod phase0_ci_enforcement_baseline_tests {
         );
         assert!(
             fixture_paths.iter().any(|path| path.contains("good-"))
-                && fixture_paths.iter().any(|path| path.contains("bad-ungrounded"))
-                && fixture_paths.iter().any(|path| path.contains("bad-performance")),
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-ungrounded"))
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-performance")),
             "claim fixtures must cover GOOD, ungrounded-claim, and performance-budget BAD cases"
         );
     }
 
     #[test]
     fn phase0_claim_ceiling_fixtures_execute_red_green_cases() {
-        let claim_contract = load_json("specs/hyperscaler-production-readiness-claim-contract.json");
+        let claim_contract =
+            load_json("specs/hyperscaler-production-readiness-claim-contract.json");
         let claim_map = load_json("specs/phase0-claim-evidence-map.json");
         let regulated_vocabulary = required_string_set(&claim_map, &["regulated_vocabulary"]);
         let allowed_tiers: BTreeSet<String> = object_array_at(&claim_contract, &["claim_tiers"])
@@ -2139,6 +2527,227 @@ mod phase0_ci_enforcement_baseline_tests {
             }
         }
 
-        assert!(seen_green && seen_red, "claim fixtures must include RED and GREEN cases");
+        assert!(
+            seen_green && seen_red,
+            "claim fixtures must include RED and GREEN cases"
+        );
+    }
+
+    #[test]
+    fn phase0_claim_ceiling_public_api_fails_closed_on_empty_and_malformed_inputs() {
+        let empty_verdict =
+            evaluate_phase0_claim_ceiling(&json!({}), &BTreeSet::new(), &BTreeSet::new());
+        let empty_violations: BTreeSet<&str> = empty_verdict
+            .violations
+            .iter()
+            .map(|violation| violation.as_str())
+            .collect();
+        for expected in [
+            "missing_or_malformed_fixture",
+            "empty_regulated_vocabulary",
+            "empty_allowed_claim_tiers",
+            "missing_or_malformed_claim_rows",
+        ] {
+            assert!(
+                empty_violations.contains(expected),
+                "empty fixture should fail closed with {expected}, got {empty_violations:?}"
+            );
+        }
+
+        let regulated_vocabulary: BTreeSet<String> = [
+            "performance",
+            "production-ready",
+            "mechanically enforced",
+            "green",
+        ]
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+        let allowed_tiers: BTreeSet<String> = ["production_ready", "mechanically_enforced"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+
+        let malformed_terms = json!({
+            "text": "The gate is production-ready and performance-verified.",
+            "claim_rows": [{
+                "id": "BAD-malformed-regulated-terms",
+                "artifact": "inline-test",
+                "claim_text": "production-ready performance",
+                "claim_tier": "production_ready",
+                "allowed_language_now": "not allowed",
+                "regulated_terms": ["performance", 42],
+                "current_evidence": [{
+                    "measured_result": true,
+                    "p50_ms": 1.0,
+                    "p95_ms": 2.0,
+                    "p99_ms": 3.0,
+                    "load_profile": "synthetic"
+                }],
+                "owner": "platform-sre"
+            }]
+        });
+        let malformed_violations: BTreeSet<&str> =
+            evaluate_phase0_claim_ceiling(&malformed_terms, &regulated_vocabulary, &allowed_tiers)
+                .violations
+                .iter()
+                .map(|violation| violation.as_str())
+                .collect();
+        assert!(
+            malformed_violations.contains("missing_or_malformed_regulated_terms"),
+            "non-string regulated_terms entries must fail closed, got {malformed_violations:?}"
+        );
+    }
+
+    #[test]
+    fn phase0_claim_ceiling_requires_typed_performance_evidence_for_readiness_claims() {
+        let regulated_vocabulary: BTreeSet<String> =
+            ["performance", "production-ready", "low-latency"]
+                .into_iter()
+                .map(str::to_owned)
+                .collect();
+        let allowed_tiers: BTreeSet<String> = ["production_ready"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+
+        let string_only = json!({
+            "text": "The cloud-ci gate is low-latency and production-ready.",
+            "claim_rows": [{
+                "id": "BAD-string-only-performance-evidence",
+                "artifact": "inline-test",
+                "claim_text": "low-latency production-ready performance",
+                "claim_tier": "production_ready",
+                "allowed_language_now": "not allowed",
+                "regulated_terms": ["performance", "production-ready", "low-latency"],
+                "current_evidence": [
+                    "contains p50 p95 p99 load measured_result words, but no typed result"
+                ],
+                "owner": "platform-sre"
+            }]
+        });
+        let string_only_violations: BTreeSet<&str> =
+            evaluate_phase0_claim_ceiling(&string_only, &regulated_vocabulary, &allowed_tiers)
+                .violations
+                .iter()
+                .map(|violation| violation.as_str())
+                .collect();
+        assert!(
+            string_only_violations.contains("performance_claim_without_budget_or_measured_result")
+        );
+
+        let typed_evidence = json!({
+            "text": "The cloud-ci gate is low-latency and production-ready.",
+            "claim_rows": [{
+                "id": "GOOD-typed-performance-evidence",
+                "artifact": "inline-test",
+                "claim_text": "low-latency production-ready performance",
+                "claim_tier": "production_ready",
+                "allowed_language_now": "allowed only with measured typed evidence",
+                "regulated_terms": ["performance", "production-ready", "low-latency"],
+                "current_evidence": [{
+                    "claim_contract_result": true,
+                    "evidence_domains": ["PERF-CAPACITY", "CI-MERGE"],
+                    "required_evidence": {
+                        "performance_budget_baseline": "inline-test",
+                        "p95_p99_latency_by_operation": "inline-test"
+                    },
+                    "provenance": {
+                        "source": "inline-test"
+                    },
+                    "measured_result": true,
+                    "p50_ms": 1.0,
+                    "p95_ms": 2.0,
+                    "p99_ms": 3.0,
+                    "load_profile": {
+                        "requests_per_second": 10,
+                        "duration_seconds": 60
+                    }
+                }],
+                "owner": "platform-sre"
+            }]
+        });
+        let typed_violations: BTreeSet<&str> =
+            evaluate_phase0_claim_ceiling(&typed_evidence, &regulated_vocabulary, &allowed_tiers)
+                .violations
+                .iter()
+                .map(|violation| violation.as_str())
+                .collect();
+        assert!(
+            !typed_violations.contains("performance_claim_without_budget_or_measured_result"),
+            "typed measured performance evidence should satisfy the performance-budget branch, got {typed_violations:?}"
+        );
+        assert!(
+            typed_violations.is_empty(),
+            "typed readiness + performance evidence should satisfy the synthetic production-ready claim row, got {typed_violations:?}"
+        );
+    }
+
+    #[test]
+    fn phase0_claim_ceiling_rejects_string_only_non_performance_readiness_claims() {
+        let regulated_vocabulary: BTreeSet<String> =
+            ["secure", "tenant-facing", "production-ready"]
+                .into_iter()
+                .map(str::to_owned)
+                .collect();
+        let allowed_tiers: BTreeSet<String> = ["production_ready"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+        let fixture = json!({
+            "text": "The cloud-ci gate is secure, tenant-facing, and production-ready.",
+            "claim_rows": [{
+                "id": "BAD-string-only-non-performance-readiness",
+                "artifact": "inline-test",
+                "claim_text": "secure tenant-facing production-ready",
+                "claim_tier": "production_ready",
+                "allowed_language_now": "not allowed",
+                "regulated_terms": ["secure", "tenant-facing", "production-ready"],
+                "current_evidence": [
+                    "operator note says this looks ready"
+                ],
+                "owner": "platform-sre"
+            }]
+        });
+        let violations: BTreeSet<&str> =
+            evaluate_phase0_claim_ceiling(&fixture, &regulated_vocabulary, &allowed_tiers)
+                .violations
+                .iter()
+                .map(|violation| violation.as_str())
+                .collect();
+
+        assert!(
+            violations.contains("production_readiness_claim_without_typed_evidence"),
+            "non-performance readiness claims also require typed claim-contract evidence, got {violations:?}"
+        );
+    }
+
+    #[test]
+    fn phase0_oya_cli_authority_detection_covers_punctuation_and_paths() {
+        for forbidden in [
+            "oya CLI required status",
+            "./bin/oya verify --ci-required",
+            "oya-gate run-all",
+            "oya vcs promote",
+            "oya git done",
+            "legacy oya CLI invocation",
+        ] {
+            assert!(
+                contains_oya_cli_authority(forbidden),
+                "{forbidden:?} should be classified as oya CLI authority"
+            );
+        }
+
+        for allowed in [
+            "oya-ci-required",
+            "oya-ci-controller",
+            "oya-admin/oyatie",
+            "cloud-ci/oya-ci required context",
+        ] {
+            assert!(
+                !contains_oya_cli_authority(allowed),
+                "{allowed:?} should remain valid cloud-ci/oya-ci service wording"
+            );
+        }
     }
 }
