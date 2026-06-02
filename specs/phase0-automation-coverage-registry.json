@@ -14,7 +14,8 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.16",
     "spec_id": "EXE-PHASE0-AUTOMATION-COVERAGE-REGISTRY",
     "status": "local_static_coverage_registry_not_live_context",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "updated_at": "2026-06-02T21:10:00Z"
   },
   "description": "Local/static AC-0.16 coverage registry binding declared Phase-0 acceptance criteria, selected ADR amendments, operating-contract requirements, and governance work items to automation-matrix rows. This prevents seed-row omission from false-greening the automation ratchet; it is not live required-context evidence.",
   "claim_boundary": {
@@ -228,11 +229,12 @@
     {
       "id": "FOUNDER-buck2-authority",
       "category": "founder_directive",
-      "source_artifact": "Founder directive 2026-06-02 + specs/buck2-authority-policy.json",
+      "source_artifact": "Founder directive 2026-06-02 + specs/buck2-authority-policy.json + cloud/*/ci/Jenkinsfile + oya/*/ci/Jenkinsfile",
       "mapped_row_ids": [
         "AC-0.0-buck2-authority-no-cargo-regression"
       ],
-      "owner": "platform-toolchain"
+      "owner": "platform-toolchain + platform-governance",
+      "coverage_note": "Mapped row now requires Buck2 policy/build/test anchors in every active service Jenkinsfile glob and keeps Cargo release optimization evidence outside merge authority."
     },
     {
       "id": "ADR-0363",

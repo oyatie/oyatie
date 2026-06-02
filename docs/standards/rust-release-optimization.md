@@ -94,6 +94,9 @@ execution authority:
 
 - Reintroducing Cargo check/clippy/test/nextest/bench/install style commands in
   CI/CD/scripts/build/test lanes under the label of release optimization.
+- Treating convenience subcommands such as cargo-chef, cargo-leptos, cargo-pgo,
+  cargo-llvm-cov, cargo-fuzz, or cargo-mutants as active CI/CD/build authority;
+  wrappers must be Buck2 targets or deletion-tagged bridges with retirement paths.
 - Treating smaller binaries as automatically better when the change removes backtrace,
   profiling, or debug-symbol evidence needed by operations.
 - Using `target-cpu = "native"` in a shared image built on one CPU class and deployed on

@@ -1,5 +1,5 @@
 ---
-purpose: "Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0 (unit / integration / contract / e2e / property / fuzz), mandates `cargo nextest run --workspace --all-features --no-fail-fast` as the evidence run."
+purpose: "Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0 (unit / integration / contract / e2e / property / fuzz), mandates Buck2 test evidence (`buck2 test //... --show-output` or the trusted target inventory selected by cloud-ci/oya-ci) as the evidence run."
 doc_status: published
 ---
 
@@ -13,10 +13,9 @@ date: 2026-05-12
 purpose: |
   Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0
   (unit / integration / contract / e2e / property / fuzz), mandates
-  `cargo nextest run --workspace --all-features --no-fail-fast` as the evidence run,
-  requires `proptest` / `quickcheck` for invariants, `cargo-mutants` for mutation
-  testing on kernel/domain code, `cargo-fuzz` for unsafe and FFI surfaces, sets the
-  `cargo-llvm-cov` coverage budget, and codifies the 14-day flaky-test SLA. Resolves
+  `buck2 test //... --show-output` (or the trusted cloud-ci/oya-ci Buck2 target inventory) as the evidence run,
+  requires `proptest` / `quickcheck` for invariants, deletion-tagged mutation/fuzz/coverage
+  adapters to be invoked through Buck2 targets, and codifies the 14-day flaky-test SLA. Resolves
   the `standards/testing.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
@@ -61,13 +60,13 @@ The hyperscaler consensus in 2025–2026 is an expanded pyramid:
 
 | Tier | Where it lives | Runner | Frequency |
 |---|---|---|---|
-| Unit | `#[cfg(test)] mod tests` in same file | `cargo nextest` | every PR |
-| Integration | `tests/` directory of each crate | `cargo nextest` | every PR |
-| Contract | `tests/contract/` per consumer/provider; `contracts/` schemas | `cargo nextest` + pact-style verifier | every PR |
-| E2E | `oya-foundry-e2e-*` runtime | `cargo nextest` w/ env tag | merge-queue + nightly |
-| Property | `proptest` or `quickcheck` inside `tests/properties/` | `cargo nextest` | every PR (short config); nightly (long config) |
-| Fuzz | `fuzz/` per crate; `cargo-fuzz` | `cargo fuzz run` | nightly + on diff to unsafe surfaces |
-| Mutation | n/a | `cargo-mutants` | nightly on kernel/domain |
+| Unit | `#[cfg(test)] mod tests` in same file | `buck2 test` | every PR |
+| Integration | `tests/` directory of each crate | `buck2 test` | every PR |
+| Contract | `tests/contract/` per consumer/provider; `contracts/` schemas | `buck2 test` + pact-style verifier target | every PR |
+| E2E | `oya-foundry-e2e-*` runtime | Buck2 e2e test target w/ env tag | merge-queue + nightly |
+| Property | `proptest` or `quickcheck` inside `tests/properties/` | `buck2 test` | every PR (short config); nightly (long config) |
+| Fuzz | `fuzz/` per crate; Buck2-wrapped fuzz harness | Buck2 fuzz target (deletion-tagged bridge until native) | nightly + on diff to unsafe surfaces |
+| Mutation | n/a | Buck2 mutation target (deletion-tagged bridge until native) | nightly on kernel/domain |
 
 Sources:
 [Frontiers — Test Pyramid 2.0](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2025.1695965/full),
@@ -80,22 +79,15 @@ Per [`docs/AGENTS.md`](../AGENTS.md) D9, every PR's `## Verification`
 section MUST paste the output of:
 
 ```sh
-cargo nextest run --workspace --all-features --no-fail-fast
+buck2 test //... --show-output
 ```
 
 Rules:
 
-1. `--no-fail-fast` is **mandatory** so the full failure surface is
-   captured in one run (hyperscaler convention; avoids whack-a-mole).
-2. `--all-features` ensures conditional code paths compile and are exercised.
-3. Local dev loop SHOULD use `bacon nextest` for fast feedback; the
-   evidence run is the canonical artifact (per AGENTS.md §During-change
-   discipline).
-4. The run MUST emit JUnit + JSON to `target/nextest/` for CI archival.
-
-`cargo-nextest` is the workspace standard test runner — parallel by default,
-fault-isolated per test, retries supported, slow-test detection. Source:
-[nextest book](https://nexte.st/).
+1. The cloud-ci/oya-ci controller snapshots trusted Buck2 test targets from trunk/controller state before candidate checkout.
+2. The evidence run MUST execute the full selected Buck2 target inventory; affected-only subsets are feedback, never merge or Phase-0 exit authority.
+3. Local fast feedback MAY use narrower Buck2 targets, but PR evidence names the exact Buck2 targets and Build ID.
+4. Any deletion-tagged bridge for nextest/fuzz/mutation/coverage MUST be invoked by a Buck2 target and carry a retirement path; raw Cargo commands are not CI/build/test authority.
 
 ## 3. Unit tests
 
@@ -132,7 +124,7 @@ breaks**. Both are mandatory on specific surfaces.
 - Counterexamples MUST be checked in to `tests/properties/regressions.txt`
   and converted into a unit test the next PR.
 
-### 5.2 Fuzz tests (`cargo-fuzz` + libFuzzer)
+### 5.2 Fuzz tests (Buck2-wrapped fuzz harness + libFuzzer)
 
 Mandatory on:
 
@@ -152,7 +144,7 @@ with the minimized reproducer.
 
 Source: [AWS — How Kani is used](https://aws.amazon.com/blogs/opensource/how-open-source-projects-are-using-kani-to-write-better-software-in-rust/).
 
-## 6. Mutation testing — `cargo-mutants`
+## 6. Mutation testing — Buck2-wrapped mutation harness
 
 Run nightly against `oya-*-kernel` and `oya-*-domain` crates. Target:
 **≥ 80% caught mutants** on kernel/domain. Application-layer mutation
@@ -179,7 +171,7 @@ each consumer crate run a contract test that:
 Adding a consumer without a contract test = `oya-governance-contract-coverage`
 fail.
 
-## 8. Coverage budget — `cargo-llvm-cov`
+## 8. Coverage budget — Buck2-wrapped coverage harness
 
 - Workspace target: **≥ 80% line coverage** on changed files (delta
   coverage), **≥ 70%** absolute on kernel/domain crates.
@@ -208,16 +200,14 @@ Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-06:
 
 Per [`docs/AGENTS.md`](../AGENTS.md) Done-Definition:
 
-- **D9** — `cargo nextest run --workspace --all-features --no-fail-fast`
-  passes.
-- **D10** — `cargo clippy --workspace --all-features --all-targets --
-  -D warnings` passes.
-- **D11** — `cargo deny check` passes.
+- **D9** — Buck2 test evidence passes (`buck2 test //... --show-output` or trusted cloud-ci/oya-ci target inventory).
+- **D10** — Buck2 lint/static-analysis targets pass; raw Cargo lint commands are not CI authority.
+- **D11** — Buck2-invoked dependency/license/advisory policy targets pass.
 - **D13** — performance changes carry benchmark + ≥ 2 stress scenarios.
 
 This standard adds:
 
-- `oya-governance-test-evidence` — nextest evidence pasted in PR.
+- `oya-governance-test-evidence` — Buck2 test evidence pasted in PR.
 - `oya-governance-fuzz-coverage` — fuzz harness mandatory where named.
 - `oya-governance-mutation-budget` — nightly mutation budget on
   kernel/domain.
@@ -226,7 +216,7 @@ This standard adds:
 ## 11. Anti-patterns
 
 1. **Disabling a test with `#[ignore]` without a `MISTAKES-LEDGER` row.**
-2. **Running `cargo test` instead of `cargo nextest` for evidence.**
+2. **Running raw Cargo test/lint/check commands for CI evidence instead of Buck2 targets.**
 3. **Property test with low case-count to "save CI time"** — use the
    nightly long config instead, not a degraded PR config.
 4. **Adding `unsafe` without a fuzz harness.**
@@ -236,7 +226,7 @@ This standard adds:
 ## 12. Sources scanned
 
 - [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
-  Domain 2 "Testing" + Domain 3 (cargo-nextest, cargo-fuzz, Kani).
+  Domain 2 "Testing" + Domain 3 (nextest/fuzz/Kani surfaced through Buck2 targets).
 - [Frontiers — Test Pyramid 2.0](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2025.1695965/full).
 - [nextest book](https://nexte.st/).
 - [proptest](https://docs.rs/proptest), [quickcheck](https://docs.rs/quickcheck).

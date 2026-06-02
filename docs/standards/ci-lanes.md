@@ -50,14 +50,14 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 
 | Lane | Purpose |
 |---|---|
-| `cargo-fmt` | `cargo fmt --all -- --check` |
-| `cargo-check` | `cargo check --workspace --all-targets --keep-going` |
-| `cargo-clippy` | `cargo clippy --workspace --all-targets --keep-going -D warnings` |
-| `cargo-nextest` | `cargo nextest run --workspace --no-fail-fast` |
-| `cargo-deny` | per ADR-0013 license + advisory check |
+| `buck2-rustfmt` | Buck2-invoked formatting target (deletion-tagged bridge while rustfmt is wrapped) |
+| `buck2-build` | `buck2 build //...` or trusted controller-sourced Buck2 build target inventory |
+| `buck2-clippy` | Buck2-invoked lint/static-analysis target; raw Cargo lint commands are not CI authority |
+| `buck2-test` | `buck2 test //...` or trusted controller-sourced Buck2 test target inventory |
+| `buck2-dependency-policy` | Buck2-invoked license + advisory check per ADR-0013 |
 | `oya-foundation-demo-smoke` | `oya demo` foundation smoke path exercises tenant, MCP, audit, run, step, outbox, and secret flows |
 | `machine-readable-json-parse` | every docs/machine-readable JSON file parses before merge |
-| `cargo-machete` | unused-deps |
+| `buck2-unused-deps` | Buck2-invoked unused-dependency policy target |
 | `pnpm-typecheck` | TS workspace typecheck |
 | `pnpm-test` | TS unit + integration |
 | `oya-governance-supply-chain` | Trivy 4-layer + Cosign per ADR-0039 |

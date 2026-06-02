@@ -131,6 +131,7 @@
     "scripts/install-trivy-ci.sh",
     "scripts/supply-chain-adr0039.sh",
     "scripts/hooks/pre-push.sh",
+    "scripts/ci/enforce-buck2-authority.py",
     "scripts/ci/oya-ci-post.sh",
     "scripts/ci/regen-third-party.sh",
     "scripts/gen_first_party_buck.py",
@@ -145,7 +146,20 @@
     "Makefile",
     "docs/TOOLCHAIN.md",
     "docs/standards/code-style.md",
-    "docs/standards/rust-release-optimization.md"
+    "docs/standards/rust-release-optimization.md",
+    "docs/standards/testing.md",
+    "docs/standards/ci-lanes.md",
+    "docs/standards/release-management.md",
+    "docs/standards/multi-agent-tool-map.md",
+    "docs/security.md",
+    "cloud/cloud-intelligence/Dockerfile",
+    "oya/ci-webhook-gateway/Dockerfile",
+    "oya/governance/iac/build/Dockerfile.distroless-rust",
+    "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json"
+  ],
+  "command_scan_globs": [
+    "cloud/*/ci/Jenkinsfile",
+    "oya/*/ci/Jenkinsfile"
   ],
   "description": "P0.0 non-claim policy for preventing Cargo regression in active CI/CD/build/script lanes. This file is not a green readiness claim; it defines local/static enforcement and the target controller chain.",
   "forbidden_cargo_subcommands": [
@@ -159,7 +173,13 @@
     "bench",
     "deny",
     "cyclonedx",
-    "install"
+    "install",
+    "chef",
+    "leptos",
+    "llvm-cov",
+    "fuzz",
+    "mutants",
+    "pgo"
   ],
   "forbidden_status_contexts": [
     "cargo-fmt",
@@ -169,7 +189,7 @@
     "cargo-deny",
     "oya-verify"
   ],
-  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence for binary-size, codegen, linking, PGO, or memory allocator measurements. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
+  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Active Jenkins service CI lanes under cloud/*/ci and oya/*/ci are scanned and must invoke Buck2 policy/build/test targets, not Cargo. Active Dockerfile and client-manifest command surfaces are scanned and must be Buck2 artifact/runtime wrappers, not Cargo compile/test/install lanes. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install/chef/leptos/llvm-cov/fuzz/mutants/pgo invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence for binary-size, codegen, linking, PGO, or memory allocator measurements. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
   "required_adr_amendment_text": "2026-06-02 Buck2 authority amendment",
   "required_anchors": {
     ".github/workflows/backbone-microservices-ci.yml": [
@@ -178,7 +198,59 @@
       "scripts/ci/enforce-buck2-authority.py"
     ],
     "BUCK": [
-      "buck2-authority-policy-check"
+      "buck2-authority-policy-check",
+      "cloud/*/ci/Jenkinsfile",
+      "oya/*/ci/Jenkinsfile"
+    ],
+    "cloud/cloud-intelligence/iac/oci/BUCK": [
+      "oci_image(",
+      "cloud-intelligence-oci",
+      "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-app:cloud-intelligence"
+    ],
+    "docs/TOOLCHAIN.md": [
+      "2026-06-02 Buck2 authority amendment",
+      "Buck2 affected build/test/gate targets",
+      "Cargo metadata may feed generated registry data only; it is not lane authority"
+    ],
+    "docs/security.md": [
+      "blocks raw Cargo executable authority",
+      "Cargo metadata/vendor only as Buck2 graph-generation inputs",
+      "buck2 build //:buck2-authority-policy-check"
+    ],
+    "docs/standards/ci-lanes.md": [
+      "buck2-build",
+      "buck2-test",
+      "Buck2-invoked"
+    ],
+    "docs/standards/code-style.md": [
+      "Buck2 is the active CI/CD/build/test authority for Rust.",
+      "documented production release artifact optimization measurement",
+      "Buck2 graph-generation exception"
+    ],
+    "docs/standards/multi-agent-tool-map.md": [
+      "buck2 build //...",
+      "buck2 test //... --show-output",
+      "Buck2-invoked lint/static-analysis target"
+    ],
+    "docs/standards/release-management.md": [
+      "Buck2 formatting/static-style target",
+      "Buck2 test target inventory",
+      "Buck2-invoked dependency/license/advisory policy targets"
+    ],
+    "docs/standards/rust-release-optimization.md": [
+      "Use Buck2 for all CI, CD, scripts, and build/test lanes.",
+      "release optimization evidence only; not CI merge authority",
+      "If a release optimization is selected, encode it into the Buck2 toolchain/target graph",
+      "Profile-guided optimization is a release-exception candidate",
+      "Avoid `target-cpu = \"native\"` for shared production images",
+      "Do not make the `cargo-pgo` convenience subcommand or its installer step an",
+      "cargo-chef, cargo-leptos, cargo-pgo",
+      "wrappers must be Buck2 targets"
+    ],
+    "docs/standards/testing.md": [
+      "buck2 test //... --show-output",
+      "trusted cloud-ci/oya-ci Buck2 target inventory",
+      "raw Cargo commands are not CI/build/test authority"
     ],
     "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": [
       "oya-ci-required",
@@ -200,30 +272,53 @@
       "infra/ci/buck2-affected-gate.sh",
       "scripts/ci/enforce-buck2-authority.py"
     ],
-    "cloud/cloud-intelligence/iac/oci/BUCK": [
-      "oci_image(",
-      "cloud-intelligence-oci",
-      "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-app:cloud-intelligence"
+    "cloud/cloud-intelligence/Dockerfile": [
+      "buck2 build root//cloud/cloud-intelligence/iac/oci:cloud-intelligence-oci",
+      "not build authority",
+      "does not compile",
+      "Buck2-produced binary"
     ],
-    "docs/TOOLCHAIN.md": [
-      "2026-06-02 Buck2 authority amendment",
-      "Buck2 affected build/test/gate targets",
-      "Cargo metadata may feed generated registry data only; it is not lane authority"
+    "oya/ci-webhook-gateway/Dockerfile": [
+      "buck2 build root//oya/ci-webhook-gateway/iac/oci:gateway-oci",
+      "--target-platforms //platforms:linux-aarch64-musl",
+      "not build authority",
+      "not compile Rust",
+      "Buck2-produced musl/static binary"
     ],
-    "docs/standards/code-style.md": [
-      "Buck2 is the active CI/CD/build/test authority for Rust.",
-      "documented production release artifact optimization measurement",
-      "Buck2 graph-generation exception"
+    "oya/governance/iac/build/Dockerfile.distroless-rust": [
+      "CI/CD/scripts/build lanes must compile",
+      "through Buck2 targets",
+      "does not invoke Cargo",
+      "Production release optimization experiments that use Cargo remain separate"
     ],
-    "docs/standards/rust-release-optimization.md": [
-      "Use Buck2 for all CI, CD, scripts, and build/test lanes.",
-      "release optimization evidence only; not CI merge authority",
-      "If a release optimization is selected, encode it into the Buck2 toolchain/target graph",
-      "Profile-guided optimization is a release-exception candidate",
-      "Avoid `target-cpu = \"native\"` for shared production images",
-      "Do not make the `cargo-pgo` convenience subcommand or its installer step an"
+    "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json": [
+      "\"preferred_dev_runner\": \"buck2\"",
+      "buck2 run root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
+      "buck2 build root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype"
     ]
   },
+  "required_glob_anchors": [
+    {
+      "anchors": [
+        "scripts/ci/enforce-buck2-authority.py",
+        "buck2 build //:buck2-authority-policy-check",
+        "infra/ci/buck2-affected-gate.sh",
+        "bridge_only_not_branch_protection_authority",
+        "\"branch_protection_authority\": false"
+      ],
+      "glob": "cloud/*/ci/Jenkinsfile"
+    },
+    {
+      "anchors": [
+        "scripts/ci/enforce-buck2-authority.py",
+        "buck2 build //:buck2-authority-policy-check",
+        "infra/ci/buck2-affected-gate.sh",
+        "bridge_only_not_branch_protection_authority",
+        "\"branch_protection_authority\": false"
+      ],
+      "glob": "oya/*/ci/Jenkinsfile"
+    }
+  ],
   "status_context_scan_files": [
     ".github/workflows/backbone-microservices-ci.yml",
     ".github/branch-protection.yaml",

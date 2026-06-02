@@ -11,7 +11,7 @@ try:
 except Exception:
     print("")' 2>/dev/null || true)"
 
-if printf '%s' "$cmd" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench|deny|cyclonedx|install)([[:space:]]|$)'; then
+if printf '%s' "$cmd" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench|deny|cyclonedx|install|chef|leptos|llvm-cov|fuzz|mutants|pgo)([[:space:]]|$)'; then
   {
     echo "ℹ [no-cargo-enforcer] Cargo executable lanes are retired for active scripts/CI/CD/build."
     echo "Use Buck2 instead:"

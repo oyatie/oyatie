@@ -39,6 +39,29 @@ def iter_lines(path: Path):
         yield index, line
 
 
+def expand_policy_paths(policy: dict, file_key: str, glob_key: str) -> list[str]:
+    paths: list[str] = []
+    seen: set[str] = set()
+    for file_name in policy.get(file_key, []):
+        if file_name not in seen:
+            paths.append(file_name)
+            seen.add(file_name)
+    for pattern in policy.get(glob_key, []):
+        matches = sorted(
+            path.as_posix()
+            for path in REPO_ROOT.glob(pattern)
+            if path.is_file()
+        )
+        if not matches:
+            paths.append(f"<missing-glob:{pattern}>")
+            continue
+        for file_name in matches:
+            if file_name not in seen:
+                paths.append(file_name)
+                seen.add(file_name)
+    return paths
+
+
 def forbidden_cargo_regex(subcommands: list[str]) -> re.Pattern[str]:
     joined = "|".join(re.escape(cmd) for cmd in subcommands)
     return re.compile(
@@ -64,7 +87,13 @@ def main() -> int:
     failures: list[str] = []
     cargo_re = forbidden_cargo_regex(policy["forbidden_cargo_subcommands"])
 
-    for file_name in policy["command_scan_files"]:
+    command_scan_files = expand_policy_paths(
+        policy, "command_scan_files", "command_scan_globs"
+    )
+    for file_name in command_scan_files:
+        if file_name.startswith("<missing-glob:"):
+            failures.append(f"command-scan glob matched no files: {file_name[14:-1]}")
+            continue
         file_path = rel(file_name)
         if not file_path.is_file():
             failures.append(f"missing command-scan file: {file_name}")
@@ -98,6 +127,22 @@ def main() -> int:
             if anchor not in text:
                 failures.append(f"{file_name}: missing required Buck2 authority anchor {anchor!r}")
 
+    for group in policy.get("required_glob_anchors", []):
+        pattern = group["glob"]
+        anchors = group["anchors"]
+        matches = sorted(path for path in REPO_ROOT.glob(pattern) if path.is_file())
+        if not matches:
+            failures.append(f"required-anchor glob matched no files: {pattern}")
+            continue
+        for file_path in matches:
+            file_name = file_path.relative_to(REPO_ROOT).as_posix()
+            text = file_path.read_text(errors="replace")
+            for anchor in anchors:
+                if anchor not in text:
+                    failures.append(
+                        f"{file_name}: missing required Buck2 authority anchor {anchor!r}"
+                    )
+
     amendment = policy["required_adr_amendment_text"]
     for file_name in policy["adr_amendment_files"]:
         file_path = rel(file_name)
@@ -129,7 +174,8 @@ def main() -> int:
             {
                 "verdict": "PASS",
                 "policy": str(policy_path.relative_to(REPO_ROOT)),
-                "command_scan_files": len(policy["command_scan_files"]),
+                "command_scan_files": len(command_scan_files),
+                "command_scan_globs": len(policy.get("command_scan_globs", [])),
                 "status_context_scan_files": len(policy["status_context_scan_files"]),
                 "adr_amendment_files": len(policy["adr_amendment_files"]),
                 "authority_context": policy["target_authority"]["required_context"],
