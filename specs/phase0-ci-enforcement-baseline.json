@@ -237,6 +237,7 @@
         "oya-ci-required"
       ],
       "fix_path": "apply the local target branch-protection rules only after a trusted cloud-ci/oya-ci producer posts oya-ci-required on the candidate SHA",
+      "local_target_status": "checked-in target branch-protection evidence names oya-ci-required and rejects oya-verify authority; live GitHub branch protection/status rollup remains absent and therefore RED",
       "live_github_contexts": [
         "cargo-fmt",
         "cargo-check",
@@ -260,6 +261,7 @@
     },
     "tenant_pipeline_isolation": {
       "fix_path": "run tenant A/B negative fixtures through required cloud-ci/oya-ci context before any live isolation claim",
+      "local_target_status": "toolchain tenant-isolation contract, required 11-surface model, GOOD/BAD fixtures, and kernel evaluator cover the local target; live cloud-ci/oya-ci required-context execution remains unproven",
       "required_contract_path": "specs/toolchain-tenant-isolation-fixtures.json",
       "required_surfaces": [
         "identity",

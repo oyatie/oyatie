@@ -2554,6 +2554,13 @@ mod phase0_ci_enforcement_baseline_tests {
                 Some("GAP"),
                 "{gap_key} must remain explicit until a trusted cloud-ci context is live"
             );
+            assert!(
+                field_is_present_and_non_empty(
+                    &baseline["gap_packet"][gap_key],
+                    "local_target_status"
+                ),
+                "{gap_key} must carry a local target status so blank gap-packet rows cannot hide unevaluated P0.0 work"
+            );
         }
 
         let checked_in_contexts = string_array_at(
