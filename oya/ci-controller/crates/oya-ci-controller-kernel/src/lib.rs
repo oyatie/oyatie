@@ -211,6 +211,43 @@ pub const PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES: [&str; 11] = [
     "audit_events",
 ];
 
+/// AC-0.12 subconditions that must all be present and true before any
+/// Phase-0 aggregate-exit target can evaluate green.
+pub const PHASE0_REQUIRED_AGGREGATE_EXIT_SUBCONDITIONS: [&str; 32] = [
+    "AC-0.0_green",
+    "AC-0.1_green",
+    "AC-0.2_green",
+    "AC-0.3_green",
+    "AC-0.4_green",
+    "AC-0.5_green",
+    "AC-0.6_green",
+    "AC-0.7_green",
+    "AC-0.8_green",
+    "AC-0.9_green",
+    "AC-0.10_green",
+    "AC-0.10b_xfail_marker_present_and_classified",
+    "AC-0.11_green",
+    "AC-0.12_green_self_check",
+    "AC-0.13_phase0_coverage_equality_and_divergence_measured",
+    "AC-0.14_every_gate_has_bad_good_fixtures_passing",
+    "AC-0.15_merge_conflict_foundation_and_tide_placement_live",
+    "AC-0.16_automation_ratchet_green",
+    "AC-0.17_claim_ceiling_green",
+    "service_inventory_published",
+    "p0_6_structural_migrations_landed_with_trunk_green",
+    "cross_artifact_agreement_gate_live",
+    "language_discipline_gate_live",
+    "p0_0_full_required_context_proven",
+    "p0_0_tenant_pipeline_isolation_proven",
+    "every_phase0_pr_has_multispectrum_evidence",
+    "every_phase0_pr_has_reviewer_verdict",
+    "branch_protection_enforcement_claims_use_live_non_501_producers_only",
+    "p0_6_packet_manifests_closed_when_applicable",
+    "p0_7_decision_propagation_packets_closed_when_applicable",
+    "p0_9_generated_artifact_registry_and_merge_readiness_closed_when_applicable",
+    "affected_only_checks_not_exit_authority",
+];
+
 /// Override evidence required when a gate is temporarily disabled or degraded.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Phase0OverrideEvidence {
@@ -700,8 +737,8 @@ impl Phase0AggregateExitVerdict {
 }
 
 /// Evaluate the AC-0.12 aggregate exit shape. The aggregate is green only when
-/// the trusted subcondition object is non-empty and every subcondition is
-/// exactly boolean `true`.
+/// the trusted subcondition object contains every required Phase-0
+/// subcondition and each subcondition is exactly boolean `true`.
 pub fn evaluate_phase0_aggregate_exit(subconditions: &Value) -> Phase0AggregateExitVerdict {
     let mut false_or_missing_subconditions = BTreeSet::new();
     let Some(conditions) = subconditions.as_object() else {
@@ -713,6 +750,12 @@ pub fn evaluate_phase0_aggregate_exit(subconditions: &Value) -> Phase0AggregateE
 
     if conditions.is_empty() {
         false_or_missing_subconditions.insert("<non-empty-subconditions>".to_owned());
+    }
+
+    for required in PHASE0_REQUIRED_AGGREGATE_EXIT_SUBCONDITIONS {
+        if !conditions.contains_key(required) {
+            false_or_missing_subconditions.insert(required.to_owned());
+        }
     }
 
     for (name, value) in conditions {
@@ -1700,10 +1743,11 @@ mod phase0_ci_enforcement_baseline_tests {
     use serde_json::{Value, json};
 
     use super::{
-        PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES, Phase0CiPolicyInput, Phase0OverrideEvidence,
-        contains_oya_cli_authority, evaluate_phase0_aggregate_exit,
-        evaluate_phase0_automation_rows, evaluate_phase0_ci_policy, evaluate_phase0_claim_ceiling,
-        phase0_context_is_required_authority, tenant_surface_separation_is_complete,
+        PHASE0_REQUIRED_AGGREGATE_EXIT_SUBCONDITIONS, PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES,
+        Phase0CiPolicyInput, Phase0OverrideEvidence, contains_oya_cli_authority,
+        evaluate_phase0_aggregate_exit, evaluate_phase0_automation_rows, evaluate_phase0_ci_policy,
+        evaluate_phase0_claim_ceiling, phase0_context_is_required_authority,
+        tenant_surface_separation_is_complete,
     };
 
     fn repo_root() -> PathBuf {
@@ -2404,11 +2448,30 @@ mod phase0_ci_enforcement_baseline_tests {
             aggregate_exit_is_green(&good["subconditions"]),
             "all-true aggregate fixture should be GREEN"
         );
+        let good_subconditions: BTreeSet<_> = good["subconditions"]
+            .as_object()
+            .expect("good aggregate fixture subconditions object")
+            .keys()
+            .map(String::as_str)
+            .collect();
+        let required_subconditions: BTreeSet<_> = PHASE0_REQUIRED_AGGREGATE_EXIT_SUBCONDITIONS
+            .iter()
+            .copied()
+            .collect();
+        assert_eq!(
+            good_subconditions, required_subconditions,
+            "GREEN aggregate fixture must mirror the executable AC-0.12 required subcondition set"
+        );
 
         let bad = load_json(
             "specs/fixtures/phase0-exit-gate/tc-0.12-bad-single-false-subconditions.json",
         );
         let subcondition_names = string_array_at(&bad, &["subcondition_names"]);
+        let bad_fixture_subconditions: BTreeSet<_> = subcondition_names.iter().copied().collect();
+        assert_eq!(
+            bad_fixture_subconditions, required_subconditions,
+            "single-false aggregate fixture must enumerate every executable AC-0.12 subcondition"
+        );
         let mut seen_forced_false = BTreeSet::new();
         for case in object_array_at(&bad, &["cases"]) {
             let forced_false = string_at(case, &["forced_false"])
@@ -2438,6 +2501,23 @@ mod phase0_ci_enforcement_baseline_tests {
                 "aggregate exit negative fixture must force {subcondition} false"
             );
         }
+
+        let missing = load_json(
+            "specs/fixtures/phase0-exit-gate/tc-0.12-bad-missing-required-subcondition.json",
+        );
+        assert_eq!(missing["expected_verdict"].as_str(), Some("RED"));
+        let missing_verdict = evaluate_phase0_aggregate_exit(&missing["subconditions"]);
+        assert!(
+            missing_verdict
+                .false_or_missing_subconditions
+                .contains("every_phase0_pr_has_reviewer_verdict"),
+            "omitting a required AC-0.12 subcondition must make aggregate exit RED, got {:?}",
+            missing_verdict.false_or_missing_subconditions
+        );
+        assert!(
+            !missing_verdict.is_green(),
+            "all-present true subset must not false-green the aggregate exit gate"
+        );
 
         let current_red = load_json(
             "specs/fixtures/phase0-exit-gate/tc-0.12-current-red-p0-0-live-context-missing.json",
