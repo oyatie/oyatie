@@ -16,7 +16,8 @@
     "source_request": "Founder refinement: anything enforceable or automatable must be enforced/automated; no new oya CLI surface.",
     "spec_id": "EXE-PHASE0-AUTOMATION-MATRIX",
     "status": "seed-contract-not-green",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "updated_at": "2026-06-02T20:20:00Z"
   },
   "classifications": [
     "automated_blocking_now",
@@ -31,7 +32,9 @@
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-operator-checklist-for-automatable-rule.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json",
-      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-required-row.json"
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-required-row.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-coverage-registry.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-coverage-row.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-automation-ratchet",
     "required_red_green_pairs": [
@@ -55,6 +58,11 @@
         "red": "tc-0.16-bad-missing-required-row.json",
         "tc_id": "TC-0.16.1"
       }
+    ],
+    "coverage_registry_path": "specs/phase0-automation-coverage-registry.json",
+    "coverage_fixture_paths": [
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-coverage-registry.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-coverage-row.json"
     ]
   },
   "gate_contract": {
@@ -70,7 +78,7 @@
     ]
   },
   "known_gaps_before_green": [
-    "Seed rows are not exhaustive; AC-0.12 remains RED until generated coverage proves every Phase-0 rule has a row.",
+    "Local static coverage registry/evaluator now covers declared AC-0.* and Phase-0 governance subjects; AC-0.12 remains RED until live cloud-ci/oya-ci evaluates the registry and required context on the candidate SHA.",
     "Checked-in branch-protection target now names oya-ci-required, but live GitHub branch protection still lacks cloud-ci-required/oya-ci-required and live producer evidence; P0.0 must replace live authority with cloud-ci/oya-ci required context before any green/enforcement claim.",
     "Manual reviewer approval remains operator/procedure evidence until a non-501 reviewer status producer is live and required."
   ],
@@ -101,7 +109,25 @@
     "AC-0.17-performance-budget-claim",
     "AC-0.0-tenant-pipeline-isolation",
     "AC-0.12-aggregate-exit-gate",
-    "AC-0.16-automation-ratchet"
+    "AC-0.16-automation-ratchet",
+    "AC-0.1-service-inventory",
+    "AC-0.2-status-enum-drift",
+    "AC-0.3-adr-hygiene",
+    "AC-0.4-language-discipline",
+    "AC-0.5-d1-contract-files",
+    "AC-0.6-effective-dating-kernel",
+    "AC-0.7-service-layout-sprawl",
+    "AC-0.8-cross-artifact-agreement",
+    "AC-0.9-structural-lock-revert",
+    "AC-0.10-d1-consistency-token",
+    "AC-0.10b-d1-read-your-writes-xfail",
+    "AC-0.11-who-gates-gates",
+    "AC-0.13-buck2-cargo-coverage",
+    "AC-0.14-red-green-fixture-contract",
+    "AC-0.15-merge-conflict-foundation",
+    "P0.7-decision-propagation-packets",
+    "P0.9-generated-artifact-registry",
+    "PROCESS-reviewer-multispectrum-evidence"
   ],
   "seed_rows": [
     {
@@ -224,6 +250,222 @@
       "retirement_phase": "AC-0.16/P0 exit",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.16",
       "target_gate_or_controller": "cloud-ci-automation-ratchet"
+    },
+    {
+      "id": "AC-0.1-service-inventory",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.1",
+      "requirement": "Generated service/crate inventory must cover every closed-world root and fail on drift or service-like roots outside the allowlist.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-architecture + platform-toolchain",
+      "target_gate_or_controller": "service-inventory generator + cloud-ci inventory drift gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.1",
+      "retirement_phase": "P0.1",
+      "evidence_path": "specs/service-inventory.json + inventory drift evidence bundle",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.2-status-enum-drift",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.2",
+      "requirement": "Three-axis status enum must be the source of truth for manifest/PRD status fields and status drift must block.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-governance",
+      "target_gate_or_controller": "status-enum registry + status-drift Rust gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.2",
+      "retirement_phase": "P0.2",
+      "evidence_path": "status enum registry + status-drift fixture bundle",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.3-adr-hygiene",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.3",
+      "requirement": "ADR numbering/supersession hygiene must block duplicate or stale canonical decisions, including ADR-0377 and ADR-0511/0513 reconciliation.",
+      "classification": "automated_blocking_now",
+      "owner": "council-architecture + platform-governance",
+      "target_gate_or_controller": "ADR citation/index/supersession Rust gates",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.3",
+      "retirement_phase": "P0.3/P0.7",
+      "evidence_path": "docs/decisions/ + ADR index/citation evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.4-language-discipline",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.4",
+      "requirement": "Language discipline must block new shell/python test sprawl outside the allowlist and preserve offender inventory.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-toolchain",
+      "target_gate_or_controller": "language-discipline allowlist gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.4",
+      "retirement_phase": "P0.3",
+      "evidence_path": "language-discipline allowlist + offender inventory evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.5-d1-contract-files",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.5",
+      "requirement": "A2a/A2b D1 contract files must exist, lint valid, and be referenced by the D1 conformance path.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-architecture",
+      "target_gate_or_controller": "D1 contract lint gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.5",
+      "retirement_phase": "P0.4",
+      "evidence_path": "D1 contract files + lint evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.6-effective-dating-kernel",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.6",
+      "requirement": "Ontology/effective-dating kernel must expose the bitemporal type and pass unit/property fixtures.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-ontology",
+      "target_gate_or_controller": "effective-dating kernel tests + fixture-backed Rust gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.6",
+      "retirement_phase": "P0.5",
+      "evidence_path": "ontology/effective-dating kernel test evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.7-service-layout-sprawl",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.7",
+      "requirement": "Post-migration services must live only under canonical oya/ or cloud/ layout while packs/regional-packs remain only authorized shared roots and legacy roots are removed after verified-empty migration.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-architecture",
+      "target_gate_or_controller": "service layout/sprawl classifier gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.7",
+      "retirement_phase": "P0.6",
+      "evidence_path": "service-root classifier + migration evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.8-cross-artifact-agreement",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.8",
+      "requirement": "Every decision must carry the required ADR/spec/masterplan/roadmap agreement set or be blocked.",
+      "classification": "automated_blocking_now",
+      "owner": "council-architecture",
+      "target_gate_or_controller": "cross-artifact-agreement Rust gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.8",
+      "retirement_phase": "P0.7",
+      "evidence_path": "cross-artifact agreement fixture/evidence bundle",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.9-structural-lock-revert",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.9",
+      "requirement": "Structural work must stay serialized with structural-lock/revert fixtures and protected-flow revert evidence; advisory lock output cannot be claimed as mechanical before P0.0 required context.",
+      "classification": "automated_advisory_until_p0_0",
+      "owner": "platform-governance + platform-toolchain",
+      "target_gate_or_controller": "structural-lock/revert admission gate + cloud-ci required context",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.9",
+      "retirement_phase": "P0.6.0 then Phase 1 projected-state",
+      "evidence_path": "structural-lock/revert fixtures + multispectrum evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.10-d1-consistency-token",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.10",
+      "requirement": "A2a mutation-result contract must carry the consistency_token field and D1 conformance reference without freezing Phase-2 topology.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-architecture",
+      "target_gate_or_controller": "D1 contract consistency-token lint gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.10",
+      "retirement_phase": "P0.4/Phase 2 conformance",
+      "evidence_path": "D1 contract lint + conformance-stub evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.10b-d1-read-your-writes-xfail",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.10b",
+      "requirement": "The in-memory read-your-writes test must be executable and correctly XFAIL-classified until the real Phase-2 mechanism lands.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-architecture",
+      "target_gate_or_controller": "D1 read-your-writes XFAIL classifier",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.10b",
+      "retirement_phase": "P0.4/Phase 2 flip",
+      "evidence_path": "D1 XFAIL fixture/evidence bundle",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.11-who-gates-gates",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.11",
+      "requirement": "Every integrity gate must prove its own known-bad fixture and avoid vacuous pass behavior.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-governance + platform-toolchain",
+      "target_gate_or_controller": "who-gates-the-gates fixture meta-test",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.11",
+      "retirement_phase": "AC-0.11/P0 exit",
+      "evidence_path": "known-bad fixture evidence for gate crates",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.13-buck2-cargo-coverage",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.13",
+      "requirement": "Phase-0 Buck2/Cargo reconciliation must prove coverage equality, measure divergence, and start burndown without treating Cargo as CI authority.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-toolchain",
+      "target_gate_or_controller": "Buck2 target coverage generator + divergence registry gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.13",
+      "retirement_phase": "AC-0.13 Phase-0 portion",
+      "evidence_path": "Buck2 coverage registry + divergence evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.14-red-green-fixture-contract",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.14",
+      "requirement": "Every enforcement/drift/protocol gate must ship BAD/GOOD fixtures that are deterministic, isolated, self-explaining, fast, and fixture-backed.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-governance",
+      "target_gate_or_controller": "red-green fixture contract gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.14",
+      "retirement_phase": "AC-0.14/P0 exit",
+      "evidence_path": "fixture registry + gate evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "AC-0.15-merge-conflict-foundation",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.15",
+      "requirement": "Phase 0 must publish conflict taxonomy, generated-artifact registry, merge-tree readiness fixtures, and one-lane-one-path/path-overlap claims without claiming Phase-1 Tide batching.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-governance + platform-toolchain",
+      "target_gate_or_controller": "merge-tree readiness + generated-artifact registry gates",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15",
+      "retirement_phase": "AC-0.15/P0 exit",
+      "evidence_path": "specs/generated-artifact-registry.json + merge-tree fixture evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "P0.7-decision-propagation-packets",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.7",
+      "requirement": "Decision propagation packets must reconcile ADR/spec/masterplan/register deltas including toolchain authority contradictions.",
+      "classification": "automated_blocking_now",
+      "owner": "council-architecture",
+      "target_gate_or_controller": "decision-propagation packet registry gate",
+      "blocking_fixture": ".omx/plans/prd-platform-readiness.md#P0.7",
+      "retirement_phase": "P0.7",
+      "evidence_path": "P0.7 packet manifests + ADR/spec parity evidence",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "P0.9-generated-artifact-registry",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.9",
+      "requirement": "Generated artifacts must be registered with generator/source/output/commit-policy/regeneration/verification/owner fields; stale or hand-edited generated outputs block.",
+      "classification": "automated_blocking_now",
+      "owner": "platform-toolchain",
+      "target_gate_or_controller": "generated-artifact registry drift gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15 + .omx/plans/prd-platform-readiness.md#P0.9",
+      "retirement_phase": "P0.9",
+      "evidence_path": "specs/generated-artifact-registry.json + stale-output fixtures",
+      "no_new_oya_cli_surface": true
+    },
+    {
+      "id": "PROCESS-reviewer-multispectrum-evidence",
+      "source_artifact": "docs/AGENTS.md + .omx/plans/prd-platform-readiness.md#AC-0.12",
+      "requirement": "Every Phase-0 PR must carry multispectrum evidence and reviewer verdict; branch-protection enforcement is claimed only for live non-501 producers.",
+      "classification": "not_automatable_human_judgment",
+      "owner": "council-architecture + platform-governance",
+      "target_gate_or_controller": "required reviewer status target in cloud-ci/oya-ci; manual reviewer verdict is temporary until non-501 producer is live",
+      "blocking_fixture": "docs/AGENTS.md review/evidence protocol + .omx/plans/test-spec-phase0.md#T0.12",
+      "retirement_phase": "P0.0/P1 reviewer-status producer cutover",
+      "evidence_path": "PR body Code Review section + evidence/multispectrum/*.json + future reviewer-status producer evidence",
+      "no_new_oya_cli_surface": true
     }
   ],
   "title": "Phase0AutomationMatrix"

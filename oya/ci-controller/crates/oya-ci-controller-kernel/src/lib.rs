@@ -833,6 +833,136 @@ pub fn evaluate_phase0_automation_rows_with_required_ids(
     Phase0AutomationRatchetVerdict { violations }
 }
 
+/// Phase-0 automation coverage-registry violation classes.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Phase0AutomationCoverageViolation {
+    MissingOrMalformedCoverageRegistry,
+    EmptyRequiredCoverageSubjectIds,
+    EmptyCoverageSubjects,
+    MissingRequiredCoverageSubjectId,
+    DuplicateCoverageSubjectId,
+    CoverageSubjectWithoutMappedRows,
+    CoverageMappedRowMissing,
+    GreenClaimBoundaryWithoutLiveAuthority,
+}
+
+impl Phase0AutomationCoverageViolation {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Phase0AutomationCoverageViolation::MissingOrMalformedCoverageRegistry => {
+                "missing_or_malformed_coverage_registry"
+            }
+            Phase0AutomationCoverageViolation::EmptyRequiredCoverageSubjectIds => {
+                "empty_required_coverage_subject_ids"
+            }
+            Phase0AutomationCoverageViolation::EmptyCoverageSubjects => "empty_coverage_subjects",
+            Phase0AutomationCoverageViolation::MissingRequiredCoverageSubjectId => {
+                "missing_required_coverage_subject_id"
+            }
+            Phase0AutomationCoverageViolation::DuplicateCoverageSubjectId => {
+                "duplicate_coverage_subject_id"
+            }
+            Phase0AutomationCoverageViolation::CoverageSubjectWithoutMappedRows => {
+                "coverage_subject_without_mapped_rows"
+            }
+            Phase0AutomationCoverageViolation::CoverageMappedRowMissing => {
+                "coverage_mapped_row_missing"
+            }
+            Phase0AutomationCoverageViolation::GreenClaimBoundaryWithoutLiveAuthority => {
+                "green_claim_boundary_without_live_authority"
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Phase0AutomationCoverageVerdict {
+    pub violations: BTreeSet<Phase0AutomationCoverageViolation>,
+}
+
+impl Phase0AutomationCoverageVerdict {
+    pub fn is_green(&self) -> bool {
+        self.violations.is_empty()
+    }
+}
+
+/// Evaluate the AC-0.16 coverage registry that binds declared Phase-0
+/// coverage subjects to automation-matrix row ids. Empty/missing coverage
+/// stays RED so the automation ratchet cannot pass by enumerating only a small
+/// seed subset. This is a local/static contract until the live cloud-ci
+/// required context evaluates the registry on the candidate SHA.
+pub fn evaluate_phase0_automation_coverage_registry(
+    registry: &Value,
+    automation_row_ids: &BTreeSet<String>,
+) -> Phase0AutomationCoverageVerdict {
+    let mut violations = BTreeSet::new();
+    if !registry.is_object() {
+        violations.insert(Phase0AutomationCoverageViolation::MissingOrMalformedCoverageRegistry);
+        return Phase0AutomationCoverageVerdict { violations };
+    }
+
+    let required_subject_ids = registry["required_subject_ids"].as_array();
+    if required_subject_ids.is_none_or(|ids| ids.is_empty()) {
+        violations.insert(Phase0AutomationCoverageViolation::EmptyRequiredCoverageSubjectIds);
+    }
+
+    let coverage_subjects = registry["coverage_subjects"].as_array();
+    if coverage_subjects.is_none_or(|subjects| subjects.is_empty()) {
+        violations.insert(Phase0AutomationCoverageViolation::EmptyCoverageSubjects);
+    }
+
+    let mut covered_subject_ids = BTreeSet::new();
+    if let Some(subjects) = coverage_subjects {
+        for subject in subjects {
+            let subject_id = subject["id"].as_str().unwrap_or_default();
+            if subject_id.is_empty() || !covered_subject_ids.insert(subject_id.to_owned()) {
+                violations.insert(Phase0AutomationCoverageViolation::DuplicateCoverageSubjectId);
+            }
+
+            let mapped_row_ids = subject["mapped_row_ids"].as_array();
+            if mapped_row_ids.is_none_or(|ids| ids.is_empty()) {
+                violations
+                    .insert(Phase0AutomationCoverageViolation::CoverageSubjectWithoutMappedRows);
+                continue;
+            }
+
+            if let Some(mapped_ids) = mapped_row_ids {
+                for mapped_id in mapped_ids {
+                    if mapped_id
+                        .as_str()
+                        .is_none_or(|id| !automation_row_ids.contains(id))
+                    {
+                        violations
+                            .insert(Phase0AutomationCoverageViolation::CoverageMappedRowMissing);
+                    }
+                }
+            }
+        }
+    }
+
+    if let Some(required_ids) = required_subject_ids {
+        for required_id in required_ids {
+            if required_id
+                .as_str()
+                .is_none_or(|id| !covered_subject_ids.contains(id))
+            {
+                violations
+                    .insert(Phase0AutomationCoverageViolation::MissingRequiredCoverageSubjectId);
+            }
+        }
+    }
+
+    let claims_p0_green = registry["claim_boundary"]["p0_0_green"].as_bool() == Some(true);
+    let claims_phase0_complete =
+        registry["claim_boundary"]["phase0_complete"].as_bool() == Some(true);
+    if claims_p0_green || claims_phase0_complete {
+        violations
+            .insert(Phase0AutomationCoverageViolation::GreenClaimBoundaryWithoutLiveAuthority);
+    }
+
+    Phase0AutomationCoverageVerdict { violations }
+}
+
 /// Phase-0 claim-ceiling violation classes.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Phase0ClaimCeilingViolation {
@@ -2032,9 +2162,9 @@ mod phase0_ci_enforcement_baseline_tests {
     use super::{
         PHASE0_REQUIRED_AGGREGATE_EXIT_SUBCONDITIONS, PHASE0_REQUIRED_TENANT_PIPELINE_SURFACES,
         Phase0CiPolicyInput, Phase0OverrideEvidence, contains_oya_cli_authority,
-        evaluate_phase0_aggregate_exit, evaluate_phase0_automation_rows,
-        evaluate_phase0_automation_rows_with_required_ids, evaluate_phase0_ci_policy,
-        evaluate_phase0_ci_result_bundle, evaluate_phase0_claim_ceiling,
+        evaluate_phase0_aggregate_exit, evaluate_phase0_automation_coverage_registry,
+        evaluate_phase0_automation_rows, evaluate_phase0_automation_rows_with_required_ids,
+        evaluate_phase0_ci_policy, evaluate_phase0_ci_result_bundle, evaluate_phase0_claim_ceiling,
         evaluate_phase0_trusted_target_inventory, phase0_context_is_required_authority,
         tenant_surface_separation_is_complete,
     };
@@ -3161,6 +3291,12 @@ mod phase0_ci_enforcement_baseline_tests {
         let allowed_classifications = required_string_set(&automation_matrix, &["classifications"]);
         let required_row_ids = required_string_set(&automation_matrix, &["required_seed_row_ids"]);
         let rows = object_array_at(&automation_matrix, &["seed_rows"]);
+        let coverage_registry_path = string_at(
+            &automation_matrix,
+            &["fixture_set", "coverage_registry_path"],
+        )
+        .expect("automation matrix must point at a coverage registry");
+        let coverage_registry = load_json(coverage_registry_path);
 
         let row_violations = evaluate_automation_rows_with_required_ids(
             &rows,
@@ -3180,6 +3316,19 @@ mod phase0_ci_enforcement_baseline_tests {
                 "automation matrix must carry an explicit row for {required_id}"
             );
         }
+        let row_id_strings: BTreeSet<String> = row_ids.iter().map(|id| (*id).to_owned()).collect();
+        let coverage_verdict =
+            evaluate_phase0_automation_coverage_registry(&coverage_registry, &row_id_strings);
+        assert!(
+            coverage_verdict.is_green(),
+            "automation coverage registry should map every declared subject to committed rows, got {:?}",
+            coverage_verdict.violations
+        );
+        assert_eq!(
+            string_at(&coverage_registry, &["claim_boundary", "authority"]),
+            Some("local_static_coverage_registry_not_live_context"),
+            "coverage registry must keep local/static authority boundary explicit"
+        );
 
         let fixture_paths =
             string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
@@ -3204,6 +3353,25 @@ mod phase0_ci_enforcement_baseline_tests {
                 .iter()
                 .any(|path| path.contains("bad-missing-required-row")),
             "automation fixtures must cover required-row omission"
+        );
+        let coverage_fixture_paths = string_array_at(
+            &automation_matrix,
+            &["fixture_set", "coverage_fixture_paths"],
+        );
+        assert!(
+            coverage_fixture_paths
+                .iter()
+                .all(|fixture_path| repo_root().join(fixture_path).is_file()),
+            "automation matrix coverage fixtures must reference only committed fixture files"
+        );
+        assert!(
+            coverage_fixture_paths
+                .iter()
+                .any(|path| path.contains("good-coverage"))
+                && coverage_fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-missing-coverage-row")),
+            "automation coverage fixtures must cover GOOD and missing-coverage-row BAD cases"
         );
     }
 
@@ -3257,6 +3425,60 @@ mod phase0_ci_enforcement_baseline_tests {
         assert!(
             seen_green && seen_red,
             "automation fixtures must include RED and GREEN cases"
+        );
+    }
+
+    #[test]
+    fn phase0_automation_coverage_fixtures_execute_red_green_cases() {
+        let automation_matrix = load_json("specs/phase0-automation-matrix.json");
+        let fixture_paths = string_array_at(
+            &automation_matrix,
+            &["fixture_set", "coverage_fixture_paths"],
+        );
+
+        let mut seen_green = false;
+        let mut seen_red = false;
+        for fixture_path in fixture_paths {
+            let fixture = load_json(fixture_path);
+            let row_ids = required_string_set(&fixture, &["row_ids"]);
+            let observed_violations =
+                evaluate_phase0_automation_coverage_registry(&fixture, &row_ids);
+            let expected_violations = expected_violation_set(&fixture);
+
+            match fixture["expected_verdict"].as_str() {
+                Some("GREEN") => {
+                    seen_green = true;
+                    assert!(
+                        observed_violations.is_green(),
+                        "{fixture_path} should be GREEN, got {:?}",
+                        observed_violations.violations
+                    );
+                }
+                Some("RED") => {
+                    seen_red = true;
+                    assert!(
+                        !observed_violations.is_green(),
+                        "{fixture_path} should be RED"
+                    );
+                    let observed: BTreeSet<&str> = observed_violations
+                        .violations
+                        .iter()
+                        .map(|violation| violation.as_str())
+                        .collect();
+                    for expected in expected_violations {
+                        assert!(
+                            observed.contains(expected.as_str()),
+                            "{fixture_path} expected violation {expected}, got {observed:?}"
+                        );
+                    }
+                }
+                other => panic!("{fixture_path} has unsupported expected_verdict {other:?}"),
+            }
+        }
+
+        assert!(
+            seen_green && seen_red,
+            "automation coverage fixtures must include RED and GREEN cases"
         );
     }
 
@@ -3327,6 +3549,42 @@ mod phase0_ci_enforcement_baseline_tests {
             violations.contains("missing_required_row_id"),
             "required automation row ids must fail closed when omitted, got {violations:?}"
         );
+    }
+
+    #[test]
+    fn phase0_automation_coverage_rejects_missing_subject_and_missing_row() {
+        let row_ids: BTreeSet<String> = ["present-row"].into_iter().map(str::to_owned).collect();
+        let registry = json!({
+            "claim_boundary": {
+                "authority": "local_static_coverage_registry_not_live_context",
+                "p0_0_green": true,
+                "phase0_complete": true
+            },
+            "required_subject_ids": ["required-subject", "missing-subject"],
+            "coverage_subjects": [
+                {
+                    "id": "required-subject",
+                    "mapped_row_ids": ["missing-row"]
+                }
+            ]
+        });
+        let verdict = evaluate_phase0_automation_coverage_registry(&registry, &row_ids);
+        let violations: BTreeSet<&str> = verdict
+            .violations
+            .iter()
+            .map(|violation| violation.as_str())
+            .collect();
+
+        for expected in [
+            "missing_required_coverage_subject_id",
+            "coverage_mapped_row_missing",
+            "green_claim_boundary_without_live_authority",
+        ] {
+            assert!(
+                violations.contains(expected),
+                "coverage registry should emit {expected}, got {violations:?}"
+            );
+        }
     }
 
     #[test]

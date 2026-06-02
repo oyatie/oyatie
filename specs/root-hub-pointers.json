@@ -1164,6 +1164,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-p0.0-buck2-authority",
       "purpose": "P0.0 Buck2 authority policy: active scripts/CI/CD/build lanes use Buck2; Cargo is restricted to production release image/binary optimization evidence and metadata-only Buck2 graph generation."
+    },
+    "phase0_automation_coverage_registry": {
+      "kind": "spec",
+      "current_path": "/specs/phase0-automation-coverage-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-p0.0-red-gap-packet",
+      "purpose": "Local/static AC-0.16 coverage registry mapping declared Phase-0 acceptance criteria, selected ADR amendments, operating-contract requirements, and governance work items to automation-matrix rows so seed-row omission cannot false-green the automation ratchet."
     }
   },
   "by_kind": {

@@ -1,0 +1,304 @@
+{
+  "$id": "https://docs.oyatie.com/specs/phase0-automation-coverage-registry.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T20:20:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-governance + platform-toolchain + council-architecture",
+    "related_acceptance_criteria": [
+      "AC-0.12",
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#AC-0.16",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.16",
+    "spec_id": "EXE-PHASE0-AUTOMATION-COVERAGE-REGISTRY",
+    "status": "local_static_coverage_registry_not_live_context",
+    "version": "0.1.0"
+  },
+  "description": "Local/static AC-0.16 coverage registry binding declared Phase-0 acceptance criteria, selected ADR amendments, operating-contract requirements, and governance work items to automation-matrix rows. This prevents seed-row omission from false-greening the automation ratchet; it is not live required-context evidence.",
+  "claim_boundary": {
+    "authority": "local_static_coverage_registry_not_live_context",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "required_subject_ids": [
+    "AC-0.0",
+    "AC-0.1",
+    "AC-0.2",
+    "AC-0.3",
+    "AC-0.4",
+    "AC-0.5",
+    "AC-0.6",
+    "AC-0.7",
+    "AC-0.8",
+    "AC-0.9",
+    "AC-0.10",
+    "AC-0.10b",
+    "AC-0.11",
+    "AC-0.12",
+    "AC-0.13",
+    "AC-0.14",
+    "AC-0.15",
+    "AC-0.16",
+    "AC-0.17",
+    "FOUNDER-buck2-authority",
+    "ADR-0363",
+    "ADR-0513",
+    "P0.6-pack-root-classifier",
+    "P0.7-decision-propagation",
+    "P0.9-generated-artifact-registry",
+    "PROCESS-reviewer-multispectrum-evidence",
+    "PERF-CAPACITY-claim-budget"
+  ],
+  "coverage_subjects": [
+    {
+      "id": "AC-0.0",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
+      "mapped_row_ids": [
+        "AC-0.0-cloud-ci-required-context",
+        "AC-0.0-buck2-authority-no-cargo-regression",
+        "AC-0.0-tenant-pipeline-isolation"
+      ],
+      "owner": "platform-toolchain"
+    },
+    {
+      "id": "AC-0.1",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.1",
+      "mapped_row_ids": [
+        "AC-0.1-service-inventory"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.2",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.2",
+      "mapped_row_ids": [
+        "AC-0.2-status-enum-drift"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.3",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.3",
+      "mapped_row_ids": [
+        "AC-0.3-adr-hygiene"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.4",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.4",
+      "mapped_row_ids": [
+        "AC-0.4-language-discipline"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.5",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.5",
+      "mapped_row_ids": [
+        "AC-0.5-d1-contract-files"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.6",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.6",
+      "mapped_row_ids": [
+        "AC-0.6-effective-dating-kernel"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.7",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.7",
+      "mapped_row_ids": [
+        "AC-0.7-service-layout-sprawl"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.8",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.8",
+      "mapped_row_ids": [
+        "AC-0.8-cross-artifact-agreement"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.9",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.9",
+      "mapped_row_ids": [
+        "AC-0.9-structural-lock-revert"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.10",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.10",
+      "mapped_row_ids": [
+        "AC-0.10-d1-consistency-token"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.10b",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.10b",
+      "mapped_row_ids": [
+        "AC-0.10b-d1-read-your-writes-xfail"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.11",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.11",
+      "mapped_row_ids": [
+        "AC-0.11-who-gates-gates"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.12",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.12",
+      "mapped_row_ids": [
+        "AC-0.12-aggregate-exit-gate"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.13",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.13",
+      "mapped_row_ids": [
+        "AC-0.13-buck2-cargo-coverage"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.14",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.14",
+      "mapped_row_ids": [
+        "AC-0.14-red-green-fixture-contract"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.15",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.15",
+      "mapped_row_ids": [
+        "AC-0.15-merge-conflict-foundation"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.16",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.16",
+      "mapped_row_ids": [
+        "AC-0.16-automation-ratchet"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "AC-0.17",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.17",
+      "mapped_row_ids": [
+        "AC-0.17-claim-ceiling"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "FOUNDER-buck2-authority",
+      "category": "founder_directive",
+      "source_artifact": "Founder directive 2026-06-02 + specs/buck2-authority-policy.json",
+      "mapped_row_ids": [
+        "AC-0.0-buck2-authority-no-cargo-regression"
+      ],
+      "owner": "platform-toolchain"
+    },
+    {
+      "id": "ADR-0363",
+      "category": "adr_amendment",
+      "source_artifact": "docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+      "mapped_row_ids": [
+        "ADR-0363-oya-cli-retirement"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "ADR-0513",
+      "category": "adr_amendment",
+      "source_artifact": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+      "mapped_row_ids": [
+        "ADR-0513-tide-ownership"
+      ],
+      "owner": "platform-toolchain"
+    },
+    {
+      "id": "P0.6-pack-root-classifier",
+      "category": "phase_work_item",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.6",
+      "mapped_row_ids": [
+        "P0.6-pack-root-classifier"
+      ],
+      "owner": "platform-architecture"
+    },
+    {
+      "id": "P0.7-decision-propagation",
+      "category": "phase_work_item",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.7",
+      "mapped_row_ids": [
+        "P0.7-decision-propagation-packets"
+      ],
+      "owner": "council-architecture"
+    },
+    {
+      "id": "P0.9-generated-artifact-registry",
+      "category": "phase_work_item",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.9",
+      "mapped_row_ids": [
+        "P0.9-generated-artifact-registry"
+      ],
+      "owner": "platform-toolchain"
+    },
+    {
+      "id": "PROCESS-reviewer-multispectrum-evidence",
+      "category": "operating_contract",
+      "source_artifact": "docs/AGENTS.md + .omx/plans/prd-platform-readiness.md#AC-0.12",
+      "mapped_row_ids": [
+        "PROCESS-reviewer-multispectrum-evidence",
+        "AC-0.12-aggregate-exit-gate"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "PERF-CAPACITY-claim-budget",
+      "category": "claim_constraint",
+      "source_artifact": "specs/hyperscaler-production-readiness-claim-contract.json#PERF-CAPACITY",
+      "mapped_row_ids": [
+        "AC-0.17-performance-budget-claim"
+      ],
+      "owner": "platform-sre"
+    }
+  ],
+  "expected_verdict": "GREEN",
+  "expected_violations": []
+}
