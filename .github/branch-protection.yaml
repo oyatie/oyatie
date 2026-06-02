@@ -1,7 +1,8 @@
-# Branch-protection canonical record — the deployed ruleset on
-# github.com/jason931225/oyatie reflects this file exactly. Drift is
-# caught by the `oya-governance-protection-context-match` lane
-# (per-pr CI).
+# Branch-protection shadow/target record for dev/staging/production.
+# As of the P0.0 gap packet, live GitHub dev protection does not reflect
+# this file exactly; drift is recorded in
+# specs/phase0-ci-enforcement-baseline.json. This file is not Phase-0
+# exit authority until a trusted cloud-ci/oya-ci required context is live.
 #
 # Pipeline topology (per feedback_branch_pipeline_final_final,
 # 2026-05-12):
@@ -39,24 +40,20 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     # Reviews are agent-run and fully automated. GitHub human approving
-    # reviews are not the merge authority; the required `oya-pr-review`
-    # check below is.
+    # reviews are not merge authority; `oya-pr-review` is future reviewer
+    # evidence only until its producer is live and explicitly required.
     required_approving_reviews: 0
-    # Canonical contract: these entries are the live dev branch required
-    # commit-status contexts posted by the Jenkins/Forgejo bridge (ADR-0363).
-    # Phase-1 go-live set: cargo lanes + cargo-deny (OSI/supply-chain gate)
-    # + oya-verify (single rolled-up verify verdict from oyaCiLane.groovy).
-    # NOTE: oya-pr-review is intentionally ABSENT from Phase-1 required checks.
+    # P0.0 local target: one required context posted by trusted
+    # cloud-ci/oya-ci control state. This file is not a live-enforcement
+    # claim until the ruleset is applied and oya-ci-controller posts the
+    # candidate-SHA status. Legacy cargo/* and oya-verify lanes are feedback
+    # only, not protected-branch merge or Phase-0 exit authority.
+    # NOTE: oya-pr-review is intentionally ABSENT from required checks.
     # Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet
-    # shipped); requiring it would deadlock every PR. oya-pr-review returns
-    # as a required check in Phase-2 once the reviewer-agent endpoint is live.
+    # shipped); requiring it would deadlock every PR. It can return only after
+    # the reviewer-agent endpoint is live and explicitly classified.
     required_status_checks:
-      - cargo-fmt
-      - cargo-check
-      - cargo-clippy
-      - cargo-nextest
-      - cargo-deny
-      - oya-verify
+      - oya-ci-required
 
   staging:
     # Auto-promoted from dev by the Jenkins promote-dev-to-staging pipeline
