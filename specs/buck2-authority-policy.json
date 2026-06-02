@@ -16,6 +16,11 @@
         "used_for": "opt-level, LTO, codegen-units, panic strategy, split debuginfo, strip, and related release codegen behavior."
       },
       {
+        "name": "rustc Book \u2014 Profile-guided Optimization",
+        "url": "https://doc.rust-lang.org/nightly/rustc/profile-guided-optimization.html",
+        "used_for": "PGO measurement workflow boundaries for the narrow production release optimization exception."
+      },
+      {
         "name": "Rust alloc::alloc::GlobalAlloc",
         "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html",
         "used_for": "Allocator replacement safety constraints and measurement caveats."
@@ -79,9 +84,12 @@
         "binary size before/after",
         "allocator or codegen setting under test",
         "commit SHA",
-        "non-claim label that this is not CI merge authority"
+        "non-claim label that this is not CI merge authority",
+        "representative workload or explicit non-representative label for PGO/allocator experiments",
+        "debug-symbol/backtrace/profiling retention decision when strip or panic settings change",
+        "Buck2 toolchain/target/OCI handoff plan for any selected optimization"
       ],
-      "scope": "Production release images or binaries only, for optimized binary size, codegen, linking, and memory allocator measurements."
+      "scope": "Production release images or binaries only, for optimized binary size, codegen, linking, PGO, and memory allocator measurements."
     },
     {
       "allowed_subcommands": [
@@ -159,7 +167,7 @@
     "cargo-deny",
     "oya-verify"
   ],
-  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
+  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence for binary-size, codegen, linking, PGO, or memory allocator measurements. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
   "required_adr_amendment_text": "2026-06-02 Buck2 authority amendment",
   "required_anchors": {
     ".github/workflows/backbone-microservices-ci.yml": [
@@ -198,7 +206,10 @@
     "docs/standards/rust-release-optimization.md": [
       "Use Buck2 for all CI, CD, scripts, and build/test lanes.",
       "release optimization evidence only; not CI merge authority",
-      "If a release optimization is selected, encode it into the Buck2 toolchain/target graph"
+      "If a release optimization is selected, encode it into the Buck2 toolchain/target graph",
+      "Profile-guided optimization is a release-exception candidate",
+      "Avoid `target-cpu = \"native\"` for shared production images",
+      "Do not make the `cargo-pgo` convenience subcommand or its installer step an"
     ]
   },
   "status_context_scan_files": [
