@@ -1118,6 +1118,10 @@ axum = { version = "0.8", default-features = false, features = ["http1", "json",
 # blocking feature: adapter layers implementing synchronous kernel traits.
 # rustls: TLS via aws-lc-rs/rustls (no native-tls / OpenSSL dep).
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }
+# Direct rustls workspace pin for controller binaries/crates that depend on
+# rustls types without pulling native-tls or OpenSSL. aws_lc_rs keeps the
+# crypto backend aligned with the Phase-1 aws-lc-rs seam.
+rustls = { version = "0.23", default-features = false, features = ["std", "tls12", "aws_lc_rs"] }
 # Tower middleware stack — utility layer for axum/hyper service composition.
 tower = { version = "0.5", default-features = false, features = ["util"] }
 # RustCrypto HMAC + SHA-2 + constant-time comparison (ci-webhook-gateway webhook verification).

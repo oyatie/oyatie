@@ -20,10 +20,12 @@
 //! ## Trunk-sourcing (security invariant)
 //!
 //! The Job's init/main container:
-//! 1. Clones `dev` from Forgejo (trusted gate script on disk)
-//! 2. Fetches PR ref as DATA (untrusted)
-//! 3. Runs `sh infra/ci/buck2-affected-gate.sh origin/dev` — uses dev's script,
-//!    NOT the PR's copy. A PR cannot weaken its own gate.
+//! 1. Clones `dev` from Forgejo in a trusted init container.
+//! 2. Fetches PR ref as DATA (untrusted).
+//! 3. Captures trusted build/test target inventories before checking out the
+//!    candidate bytes, then runs the candidate against those immutable label
+//!    sets. A PR cannot weaken its own required context by editing gate logic,
+//!    status context, or target discovery.
 //!
 //! ## ADR-0083 Tier-3
 //!
@@ -76,27 +78,29 @@ pub const WATCHER_LABEL_SELECTOR: &str = "oya.io/ci-controller=oya-ci-gate";
 ///
 /// The Job:
 /// - Has `backoffLimit: 0` (fail-closed)
-/// - Runs a single container that clones dev from Forgejo, fetches the PR
-///   ref as data, then runs `sh infra/ci/buck2-affected-gate.sh origin/dev`
-///   using dev's TRUSTED copy of the script.
-/// - Injects `FORGEJO_CI_TOKEN` from the `forgejo-ci-token` Secret.
+/// - Runs a trusted init container that clones dev from Forgejo and fetches the
+///   PR ref as data, then a tokenless main container that snapshots trusted
+///   build/test target inventories, verifies the exact candidate SHA, and runs
+///   the candidate against those immutable inventories.
+/// - Injects the clone token only into the trusted init container.
 /// - Sets `HOME=/home/jenkins/agent` (matches rust-ci image expectations).
 pub fn build_gate_job(spec: &GateRunSpec) -> Job {
     let job_name = spec.run.job_name();
-    let sha = &spec.run.head_sha;
+    let sha = spec.run.head_sha.to_ascii_lowercase();
     let pr_number = spec.run.pr_number;
     let base_ref = &spec.run.base_ref;
     let clone_url = &spec.forge_clone_url;
 
-    // The gate command (TRUNK-SOURCED security invariant):
-    // 1. Clone dev (trusted gate script + infra arrive here)
-    // 2. Fetch the PR ref as DATA only — never checkout to HEAD
-    // 3. Run gate script from dev's trusted copy with 2-arg form:
-    //    buck2-affected-gate.sh <base-ref> <head-ref>
-    //
-    // Working tree = dev (trunk). The PR ref is available as
-    // origin/pr-<N> after the fetch; passed as head-ref so the script
-    // diffs merge-base(origin/pr-N, origin/dev)..origin/pr-N.
+    // The gate command (TRUNK/CONTROLLER-SOURCED security invariant):
+    // 1. Clone dev and fetch the PR ref in a trusted init container.
+    // 2. The tokenless main container snapshots trusted build/test target
+    //    inventories before candidate checkout.
+    // 3. It verifies the fetched PR ref resolves to the exact requested SHA.
+    // 4. It checks out the candidate only after the gate command and target
+    //    labels are fixed, then runs the candidate tree against immutable
+    //    target lists. A PR can change code under test, but deleting/omitting a
+    //    trusted target makes the required context fail instead of silently
+    //    shrinking scope.
     //
     // A PR MUST NOT be able to alter the script/Job that gates it.
     // Clone runs in a TRUSTED init container holding the clone token. The token
@@ -117,7 +121,15 @@ git -c "$AUTH" fetch origin refs/pull/{pr_number}/head:refs/remotes/origin/pr-{p
     let gate_cmd = format!(
         r#"set -euo pipefail
 cd /workspace/repo
-exec sh infra/ci/buck2-affected-gate.sh origin/{base_ref} origin/pr-{pr_number}"#,
+buck2 targets //... | sort -u > /workspace/trusted-build-targets.txt
+buck2 uquery 'kind(".*test.*", //...)' | sort -u > /workspace/trusted-test-targets.txt
+test -s /workspace/trusted-build-targets.txt
+test -s /workspace/trusted-test-targets.txt
+resolved_sha="$(git rev-parse refs/remotes/origin/pr-{pr_number})"
+test "$resolved_sha" = "{sha}"
+git checkout --detach {sha}
+xargs -a /workspace/trusted-build-targets.txt buck2 build
+xargs -a /workspace/trusted-test-targets.txt buck2 test"#,
     );
 
     // Labels (immutable identity — used as the watcher selector)
@@ -325,7 +337,8 @@ impl JobSpawner for K8sJobSpawner {
                 already_exists: false,
             }),
             Err(kube::Error::Api(err)) if err.code == 409 => {
-                // Conflict = already exists — idempotent
+                // Conflict = already exists for the exact PR + full candidate
+                // SHA identity encoded in GateRun::job_name().
                 Ok(JobHandle {
                     job_name,
                     namespace,
