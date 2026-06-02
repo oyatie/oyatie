@@ -53,11 +53,19 @@ paths:
   /healthz:
     get:
       tags: [internal]
-      summary: Liveness probe
+      summary: Lightweight health probe
       security: []
       responses:
         '200':
           description: ok
+  /livez:
+    get:
+      tags: [internal]
+      summary: Kubernetes liveness probe
+      security: []
+      responses:
+        '200':
+          description: alive
   /readyz:
     get:
       tags: [internal]
@@ -265,6 +273,79 @@ paths:
         '503':
           $ref: '#/components/responses/Unavailable'
 
+  /admin/v1/tenants/{tenant_id}/providers/{provider}/pool:
+    get:
+      tags: [admin]
+      summary: Tenant-scoped provider subscription-pool status
+      description: |
+        Returns secret-redacted status for one tenant/provider pool. This is the
+        static boot-time LLM proxy + tenant-scoped subscription-pooling surface:
+        it exposes seat counts and readiness only, never provider credential
+        handles, OAuth refresh tokens, or API keys.
+      operationId: getTenantProviderPoolStatus
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+        - $ref: '#/components/parameters/TenantIdPath'
+        - $ref: '#/components/parameters/ProviderPath'
+      responses:
+        '200':
+          description: Tenant/provider pool status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantProviderPoolStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions:
+    post:
+      tags: [admin]
+      summary: Register a tenant-scoped provider subscription handle
+      description: |
+        Adds an opaque secret handle to a tenant/provider pool. The request accepts
+        OAuth-subscription or API-key credential modes, but the value must be a
+        handle reference to OpenBao/KMS-backed storage; raw provider credentials
+        are rejected and are never echoed in the response.
+      operationId: registerTenantProviderSubscription
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/SubscriptionRegistrationIdempotencyKey'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+        - $ref: '#/components/parameters/TenantIdPath'
+        - $ref: '#/components/parameters/ProviderPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantProviderSubscriptionRegistrationRequest'
+      responses:
+        '201':
+          description: Subscription handle registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantProviderSubscriptionRegistrationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Duplicate seat_id already exists in the tenant/provider pool.
+
 components:
   securitySchemes:
     ingressBearer:
@@ -305,6 +386,41 @@ components:
         type: string
         format: uuid
       description: Required on mutating admin ops; 24h window.
+    SubscriptionRegistrationIdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+        pattern: '^[A-Za-z0-9_-]{1,128}$'
+      description: |
+        Required bounded ASCII operation key for subscription registration. This
+        endpoint treats duplicate seat_id as the replay/conflict guard rather than
+        implementing the global UUID replay-window idempotency contract.
+    AdminTenantHeader:
+      name: X-Oya-Admin-Tenant
+      in: header
+      schema:
+        type: string
+      description: Optional admin tenant assertion. When supplied, it must match the tenant_id path segment.
+    TenantIdPath:
+      name: tenant_id
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      description: Tenant whose provider pool is being administered.
+    ProviderPath:
+      name: provider
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [anthropic, codex]
+      description: Provider pool. `anthropic` covers Claude subscriptions; `codex` covers OpenAI/Codex subscriptions.
   headers:
     RetryAfter:
       schema: { type: integer }
@@ -550,3 +666,35 @@ components:
         keys_loaded: { type: integer }
         refreshed_at: { type: string, format: date-time }
         source: { type: string, const: openbao }
+    TenantProviderPoolStatus:
+      type: object
+      required: [tenant_id, provider, total_seats, ready]
+      properties:
+        tenant_id: { type: string }
+        provider: { type: string, enum: [anthropic, codex] }
+        total_seats: { type: integer, minimum: 0 }
+        ready:
+          type: boolean
+          description: True when at least one seat is selectable in this tenant/provider pool.
+    TenantProviderSubscriptionRegistrationRequest:
+      type: object
+      required: [seat_id, subscription_id, credential_mode, secret_handle]
+      properties:
+        seat_id: { type: string, minLength: 1 }
+        subscription_id: { type: string, minLength: 1 }
+        credential_mode:
+          type: string
+          enum: [oauth_subscription, api_key]
+        secret_handle:
+          type: string
+          minLength: 1
+          pattern: '^(vault://|kms://|sref://openbao/).+'
+          description: Opaque OpenBao/KMS-backed handle only; raw provider credentials are rejected.
+    TenantProviderSubscriptionRegistrationResponse:
+      type: object
+      required: [tenant_id, provider, seat_id, status]
+      properties:
+        tenant_id: { type: string }
+        provider: { type: string, enum: [anthropic, codex] }
+        seat_id: { type: string }
+        status: { type: string, enum: [registered] }

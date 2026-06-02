@@ -7,7 +7,8 @@
 //! - [`OAuthSubscription`] + [`SubscriptionState`] state machine
 //!   (Authorized -> ActiveUntilExpiry -> RefreshingToken ->
 //!   Active | Cooldown | Blacklisted).
-//! - [`SubscriptionPool`] + [`SelectionStrategy`] (RoundRobin, FillFirst).
+//! - [`SubscriptionPool`] + [`SelectionStrategy`] (RoundRobin, FillFirst,
+//!   TimeNormalizedQuotaPercent).
 //! - [`SeatLease`] — RAII guard preventing same-seat double-allocation.
 //! - [`AuthzGate`] trait — kernel-level seam for the Cedar adapter
 //!   (D7 per-tenant forbid-wins isolation).
@@ -121,6 +122,17 @@ impl fmt::Display for Provider {
     }
 }
 
+/// Credential transport mode attached to a seat.
+///
+/// The kernel stores only an opaque secret handle for either mode; provider
+/// adapters decide whether that handle resolves to an OAuth refresh token,
+/// provider access token, API key, or future credential material.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub enum CredentialMode {
+    OAuthSubscription,
+    ApiKey,
+}
+
 // ---------------------------------------------------------------------------
 // SubscriptionState — the OAuth-pool state machine
 // ---------------------------------------------------------------------------
@@ -170,6 +182,135 @@ pub enum BlacklistReason {
     OperatorAction,
 }
 
+/// Quota window type for a provider subscription.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub enum QuotaWindowKind {
+    FiveHour,
+    Weekly,
+}
+
+/// Sliding/fixed provider quota metadata for one seat.
+///
+/// `used_units` deliberately represents provider-normalized quota units rather
+/// than tokens so Anthropic/Codex adapters can map their provider-specific
+/// accounting into the same kernel selector.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct QuotaWindow {
+    pub kind: QuotaWindowKind, // data_class: INTERNAL_ONLY
+    capacity_units: u64,       // data_class: INTERNAL_ONLY
+    used_units: u64,           // data_class: INTERNAL_ONLY
+    reset_at: Instant,         // data_class: INTERNAL_ONLY
+    window_duration: Duration,
+}
+
+impl QuotaWindow {
+    pub fn new(
+        kind: QuotaWindowKind,
+        capacity_units: u64,
+        used_units: u64,
+        reset_at: Instant,
+        window_duration: Duration,
+    ) -> Self {
+        Self {
+            kind,
+            capacity_units,
+            used_units,
+            reset_at,
+            window_duration,
+        }
+    }
+
+    pub fn capacity_units(&self) -> u64 {
+        self.capacity_units
+    }
+
+    pub fn reset_at(&self) -> Instant {
+        self.reset_at
+    }
+
+    pub fn window_duration(&self) -> Duration {
+        self.window_duration
+    }
+
+    pub fn used_units(&self, now: Instant) -> u64 {
+        if self.has_reset(now) {
+            0
+        } else {
+            self.used_units
+        }
+    }
+
+    fn has_capacity_for(&self, now: Instant, inflight_units: u64, estimated_units: u64) -> bool {
+        self.projected_units(now, inflight_units, estimated_units) <= self.capacity_units
+    }
+
+    fn projected_units(&self, now: Instant, inflight_units: u64, estimated_units: u64) -> u64 {
+        self.used_units(now)
+            .saturating_add(inflight_units)
+            .saturating_add(estimated_units)
+    }
+
+    fn record_usage(&mut self, now: Instant, actual_units: u64) {
+        if self.has_reset(now) {
+            self.reset_at = self.effective_reset_at(now);
+            self.used_units = actual_units;
+        } else {
+            self.used_units = self.used_units.saturating_add(actual_units);
+        }
+    }
+
+    fn time_normalized_score(
+        &self,
+        now: Instant,
+        inflight_units: u64,
+        estimated_units: u64,
+    ) -> f64 {
+        if self.capacity_units == 0 {
+            return f64::NEG_INFINITY;
+        }
+
+        let target_usage_percent = self.elapsed_fraction(now);
+        let projected_usage_percent = self.projected_units(now, inflight_units, estimated_units)
+            as f64
+            / self.capacity_units as f64;
+        target_usage_percent - projected_usage_percent
+    }
+
+    fn elapsed_fraction(&self, now: Instant) -> f64 {
+        if self.window_duration.is_zero() {
+            return 1.0;
+        }
+
+        let effective_reset_at = self.effective_reset_at(now);
+        let Some(window_start) = effective_reset_at.checked_sub(self.window_duration) else {
+            return 0.0;
+        };
+        let elapsed = now
+            .checked_duration_since(window_start)
+            .unwrap_or(Duration::ZERO);
+        (elapsed.as_secs_f64() / self.window_duration.as_secs_f64()).clamp(0.0, 1.0)
+    }
+
+    fn has_reset(&self, now: Instant) -> bool {
+        now >= self.reset_at
+    }
+
+    fn effective_reset_at(&self, now: Instant) -> Instant {
+        if self.window_duration.is_zero() || now < self.reset_at {
+            return self.reset_at;
+        }
+
+        let mut reset_at = self.reset_at;
+        while now >= reset_at {
+            let Some(next_reset_at) = reset_at.checked_add(self.window_duration) else {
+                return reset_at;
+            };
+            reset_at = next_reset_at;
+        }
+        reset_at
+    }
+}
+
 /// A single OAuth subscription (one tenant seat for one provider).
 #[derive(Clone)]
 pub struct OAuthSubscription {
@@ -178,9 +319,12 @@ pub struct OAuthSubscription {
     pub subscription_id: SubscriptionId, // data_class: INTERNAL_ONLY
     pub provider: Provider,              // data_class: INTERNAL_ONLY
     pub state: SubscriptionState,        // data_class: INTERNAL_ONLY
-    /// Opaque handle. The actual refresh token is stored envelope-encrypted in
-    /// OpenBao (D8) and never enters the kernel.
-    refresh_token_handle: String, // data_class: INTERNAL_ONLY
+    pub credential_mode: CredentialMode, // data_class: INTERNAL_ONLY
+    /// Opaque handle. The actual provider credential is stored
+    /// envelope-encrypted in OpenBao (D8) and never enters the kernel.
+    credential_secret_handle: String, // data_class: INTERNAL_ONLY
+    quota_windows: Vec<QuotaWindow>,     // data_class: INTERNAL_ONLY
+    inflight_units: u64,                 // data_class: INTERNAL_ONLY
     pub failure_count: u32,              // data_class: INTERNAL_ONLY
 }
 
@@ -201,15 +345,73 @@ impl OAuthSubscription {
             subscription_id,
             provider,
             state,
-            refresh_token_handle: refresh_token_handle.into(),
+            credential_mode: CredentialMode::OAuthSubscription,
+            credential_secret_handle: refresh_token_handle.into(),
+            quota_windows: Vec::new(),
+            inflight_units: 0,
             failure_count,
         }
+    }
+
+    pub fn with_credential_mode(mut self, credential_mode: CredentialMode) -> Self {
+        self.credential_mode = credential_mode;
+        self
+    }
+
+    pub fn with_quota_windows(
+        mut self,
+        quota_windows: impl IntoIterator<Item = QuotaWindow>,
+    ) -> Self {
+        self.quota_windows = quota_windows.into_iter().collect();
+        self
+    }
+
+    pub fn credential_mode(&self) -> CredentialMode {
+        self.credential_mode
     }
 
     /// Return the opaque refresh-token handle (non-plaintext; actual token
     /// lives in OpenBao envelope-encrypted storage).
     pub fn refresh_token_handle(&self) -> &str {
-        &self.refresh_token_handle
+        &self.credential_secret_handle
+    }
+
+    /// Return the opaque credential handle. This is a secret-reference handle,
+    /// not plaintext credential material.
+    pub fn credential_secret_handle(&self) -> &str {
+        &self.credential_secret_handle
+    }
+
+    pub fn quota_windows(&self) -> &[QuotaWindow] {
+        &self.quota_windows
+    }
+
+    fn has_quota_capacity(&self, now: Instant, estimated_units: u64) -> bool {
+        self.quota_windows
+            .iter()
+            .all(|window| window.has_capacity_for(now, self.inflight_units, estimated_units))
+    }
+
+    fn reserve_units(&mut self, estimated_units: u64) {
+        self.inflight_units = self.inflight_units.saturating_add(estimated_units);
+    }
+
+    fn release_units(&mut self, reserved_units: u64) {
+        self.inflight_units = self.inflight_units.saturating_sub(reserved_units);
+    }
+
+    fn record_usage(&mut self, now: Instant, actual_units: u64) {
+        for window in &mut self.quota_windows {
+            window.record_usage(now, actual_units);
+        }
+    }
+
+    fn time_normalized_score(&self, now: Instant, estimated_units: u64) -> f64 {
+        self.quota_windows
+            .iter()
+            .map(|window| window.time_normalized_score(now, self.inflight_units, estimated_units))
+            .reduce(f64::min)
+            .unwrap_or(0.0)
     }
 }
 
@@ -221,7 +423,10 @@ impl fmt::Debug for OAuthSubscription {
             .field("subscription_id", &self.subscription_id)
             .field("provider", &self.provider)
             .field("state", &self.state)
-            .field("refresh_token_handle", &"<REDACTED>")
+            .field("credential_mode", &self.credential_mode)
+            .field("credential_secret_handle", &"<REDACTED>")
+            .field("quota_windows", &self.quota_windows)
+            .field("inflight_units", &self.inflight_units)
             .field("failure_count", &self.failure_count)
             .finish()
     }
@@ -312,6 +517,10 @@ pub enum SelectionStrategy {
     /// first becomes ineligible (cooldown/blacklist). Matches gpt-load's
     /// keypool default. Useful when one seat has higher capacity.
     FillFirst,
+    /// Pick the eligible seat most behind its time-normalized quota drain.
+    /// A five-hour window that is 80% elapsed but only 20% consumed should be
+    /// drained faster than one that is 20% elapsed and 20% consumed.
+    TimeNormalizedQuotaPercent,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -320,6 +529,7 @@ pub enum SubscriptionPoolError {
     InvalidAgentId,
     InvalidSeatId,
     InvalidSubscriptionId,
+    DuplicateSeat,
     NoEligibleSeat,
     ForbiddenByPolicy,
 }
@@ -327,26 +537,38 @@ pub enum SubscriptionPoolError {
 /// RAII lease on a single seat. Prevents double-allocation of the same seat
 /// to two concurrent requests. Call [`SeatLease::complete`] to record the
 /// outcome and release the seat. If dropped without calling `complete`, the
-/// seat is released with [`SeatOutcome::ServerError5xx`] (safe fallback).
+/// seat is released with [`SeatOutcome::Released`] and no failure penalty.
 pub struct SeatLease {
     seat_id: SeatId,                    // data_class: INTERNAL_ONLY
     pool: Arc<Mutex<SubscriptionPool>>, // data_class: INTERNAL_ONLY
     completed: bool,
+    reserved_units: u64,
 }
 
 impl SeatLease {
     /// Record the upstream outcome and release this lease.
-    pub fn complete(
+    pub fn complete(self, outcome: SeatOutcome, now: Instant) -> Result<(), SubscriptionPoolError> {
+        let reserved_units = self.reserved_units;
+        self.complete_with_usage(outcome, now, reserved_units)
+    }
+
+    /// Record the upstream outcome, reconcile actual quota usage, and release
+    /// this lease. `actual_units` is only counted for successful requests.
+    pub fn complete_with_usage(
         mut self,
         outcome: SeatOutcome,
         now: Instant,
+        actual_units: u64,
     ) -> Result<(), SubscriptionPoolError> {
         self.completed = true;
         let mut pool = self
             .pool
             .lock()
             .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
-        pool.release_lease(&self.seat_id);
+        pool.release_lease(&self.seat_id, self.reserved_units);
+        if outcome == SeatOutcome::Ok {
+            pool.record_usage(&self.seat_id, now, actual_units)?;
+        }
         pool.record_outcome(&self.seat_id, outcome, now)
     }
 
@@ -360,7 +582,7 @@ impl Drop for SeatLease {
         if !self.completed
             && let Ok(mut pool) = self.pool.lock()
         {
-            pool.release_lease(&self.seat_id);
+            pool.release_lease(&self.seat_id, self.reserved_units);
             // Record Released (no-op outcome) — the seat is returned to the
             // pool without any penalty. Callers that want to record a failure
             // must call complete() explicitly before the lease is dropped.
@@ -415,12 +637,37 @@ impl SubscriptionPool {
             return Err(SubscriptionPoolError::ForbiddenByPolicy);
         }
         let seat_id = subscription.seat_id.clone();
+        if self.seats.contains_key(&seat_id) {
+            return Err(SubscriptionPoolError::DuplicateSeat);
+        }
         self.seats.insert(seat_id, subscription);
         Ok(())
     }
 
     pub fn seat_count(&self) -> usize {
         self.seats.len()
+    }
+
+    pub fn credential_secret_handle_for_seat(&self, seat_id: &SeatId) -> Option<String> {
+        self.seats
+            .get(seat_id)
+            .map(|seat| seat.credential_secret_handle().to_string())
+    }
+
+    /// Return the [`CredentialMode`] of the named seat, if present. Mirrors
+    /// [`credential_secret_handle_for_seat`](Self::credential_secret_handle_for_seat)
+    /// so proxy callers can branch on OAuth vs API-key transport per seat.
+    pub fn credential_mode_for_seat(&self, seat_id: &SeatId) -> Option<CredentialMode> {
+        self.seats.get(seat_id).map(|seat| seat.credential_mode())
+    }
+
+    /// Return true when at least one seat can be selected without considering
+    /// per-agent authorization. Readiness uses this to avoid marking an empty,
+    /// cooling, or blacklisted pool ready.
+    pub fn has_eligible_seat(&self, now: Instant) -> bool {
+        self.seats
+            .values()
+            .any(|seat| Self::is_eligible(&seat.state, now) && seat.has_quota_capacity(now, 1))
     }
 
     /// Acquire a [`SeatLease`] for the next eligible seat. The leased seat is
@@ -435,24 +682,57 @@ impl SubscriptionPool {
         gate: &dyn AuthzGate,
         now: Instant,
     ) -> Result<SeatLease, SubscriptionPoolError> {
+        Self::lease_with_estimate(pool_ref, agent_id, gate, now, 1)
+    }
+
+    /// Acquire a [`SeatLease`] and reserve the estimated provider quota units.
+    pub fn lease_with_estimate(
+        pool_ref: &Arc<Mutex<SubscriptionPool>>,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+        estimated_units: u64,
+    ) -> Result<SeatLease, SubscriptionPoolError> {
         let seat_id = {
             let mut pool = pool_ref
                 .lock()
                 .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
-            let sid = pool.select_excluding_leased(agent_id, gate, now)?;
-            pool.leased_seats.insert(sid.clone());
+            let sid = pool.select_excluding_leased(agent_id, gate, now, estimated_units)?;
+            pool.reserve_lease(&sid, estimated_units)?;
             sid
         };
         Ok(SeatLease {
             seat_id,
             pool: Arc::clone(pool_ref),
             completed: false,
+            reserved_units: estimated_units,
         })
     }
 
     /// Internal: release a seat from the leased set.
-    pub(crate) fn release_lease(&mut self, seat_id: &SeatId) {
+    pub(crate) fn release_lease(&mut self, seat_id: &SeatId, reserved_units: u64) {
         self.leased_seats.remove(seat_id);
+        if let Some(seat) = self.seats.get_mut(seat_id) {
+            seat.release_units(reserved_units);
+        }
+    }
+
+    pub fn seat_inflight_units(&self, seat_id: &SeatId) -> Option<u64> {
+        self.seats.get(seat_id).map(|seat| seat.inflight_units)
+    }
+
+    pub fn seat_window_used_units(
+        &self,
+        seat_id: &SeatId,
+        kind: QuotaWindowKind,
+        now: Instant,
+    ) -> Option<u64> {
+        self.seats
+            .get(seat_id)?
+            .quota_windows
+            .iter()
+            .find(|window| window.kind == kind)
+            .map(|window| window.used_units(now))
     }
 
     /// Select the next eligible seat for an inbound request (D1).
@@ -464,6 +744,27 @@ impl SubscriptionPool {
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
+    ) -> Result<SeatId, SubscriptionPoolError> {
+        self.select_with_estimate(agent_id, gate, now, 1)
+    }
+
+    pub fn select_with_estimate(
+        &mut self,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+        estimated_units: u64,
+    ) -> Result<SeatId, SubscriptionPoolError> {
+        self.select_candidate(agent_id, gate, now, estimated_units, false)
+    }
+
+    fn select_candidate(
+        &mut self,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+        estimated_units: u64,
+        exclude_leased: bool,
     ) -> Result<SeatId, SubscriptionPoolError> {
         let request = AuthzRequest {
             principal_tenant: &self.tenant_id,
@@ -486,8 +787,7 @@ impl SubscriptionPool {
         match self.strategy {
             SelectionStrategy::FillFirst => {
                 for sid in &seat_ids {
-                    let seat = &self.seats[sid];
-                    if Self::is_eligible(&seat.state, now) {
+                    if self.is_selectable(sid, now, estimated_units, exclude_leased) {
                         return Ok(sid.clone());
                     }
                 }
@@ -497,15 +797,65 @@ impl SubscriptionPool {
                 for offset in 0..n {
                     let idx = (self.round_robin_cursor + offset) % n;
                     let sid = &seat_ids[idx];
-                    let seat = &self.seats[sid];
-                    if Self::is_eligible(&seat.state, now) {
+                    if self.is_selectable(sid, now, estimated_units, exclude_leased) {
                         self.round_robin_cursor = (idx + 1) % n;
                         return Ok(sid.clone());
                     }
                 }
                 Err(SubscriptionPoolError::NoEligibleSeat)
             }
+            SelectionStrategy::TimeNormalizedQuotaPercent => {
+                let mut best: Option<(usize, SeatId, f64)> = None;
+                for offset in 0..n {
+                    let idx = (self.round_robin_cursor + offset) % n;
+                    let sid = &seat_ids[idx];
+                    if !self.is_selectable(sid, now, estimated_units, exclude_leased) {
+                        continue;
+                    }
+                    let score = self.seats[sid].time_normalized_score(now, estimated_units);
+                    let should_replace = best
+                        .as_ref()
+                        .map(|(_, _, best_score)| score > *best_score)
+                        .unwrap_or(true);
+                    if should_replace {
+                        best = Some((idx, sid.clone(), score));
+                    }
+                }
+
+                if let Some((idx, sid, _)) = best {
+                    self.round_robin_cursor = (idx + 1) % n;
+                    Ok(sid)
+                } else {
+                    Err(SubscriptionPoolError::NoEligibleSeat)
+                }
+            }
         }
+    }
+
+    fn reserve_lease(
+        &mut self,
+        seat_id: &SeatId,
+        estimated_units: u64,
+    ) -> Result<(), SubscriptionPoolError> {
+        let Some(seat) = self.seats.get_mut(seat_id) else {
+            return Err(SubscriptionPoolError::NoEligibleSeat);
+        };
+        self.leased_seats.insert(seat_id.clone());
+        seat.reserve_units(estimated_units);
+        Ok(())
+    }
+
+    fn record_usage(
+        &mut self,
+        seat_id: &SeatId,
+        now: Instant,
+        actual_units: u64,
+    ) -> Result<(), SubscriptionPoolError> {
+        let Some(seat) = self.seats.get_mut(seat_id) else {
+            return Err(SubscriptionPoolError::NoEligibleSeat);
+        };
+        seat.record_usage(now, actual_units);
+        Ok(())
     }
 
     /// Record an upstream outcome against a seat so the state machine can
@@ -590,54 +940,26 @@ impl SubscriptionPool {
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
+        estimated_units: u64,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        let request = AuthzRequest {
-            principal_tenant: &self.tenant_id,
-            principal_agent: agent_id,
-            action: AuthzAction::SelectSeat,
-            resource_tenant: &self.tenant_id,
-            resource_provider: self.provider,
+        self.select_candidate(agent_id, gate, now, estimated_units, true)
+    }
+
+    fn is_selectable(
+        &self,
+        seat_id: &SeatId,
+        now: Instant,
+        estimated_units: u64,
+        exclude_leased: bool,
+    ) -> bool {
+        if exclude_leased && self.leased_seats.contains(seat_id) {
+            return false;
+        }
+
+        let Some(seat) = self.seats.get(seat_id) else {
+            return false;
         };
-        if gate.decide(&request) == AuthzDecision::Forbid {
-            return Err(SubscriptionPoolError::ForbiddenByPolicy);
-        }
-
-        if self.seats.is_empty() {
-            return Err(SubscriptionPoolError::NoEligibleSeat);
-        }
-
-        let seat_ids: Vec<SeatId> = self.seats.keys().cloned().collect();
-        let n = seat_ids.len();
-
-        match self.strategy {
-            SelectionStrategy::FillFirst => {
-                for sid in &seat_ids {
-                    if self.leased_seats.contains(sid) {
-                        continue;
-                    }
-                    let seat = &self.seats[sid];
-                    if Self::is_eligible(&seat.state, now) {
-                        return Ok(sid.clone());
-                    }
-                }
-                Err(SubscriptionPoolError::NoEligibleSeat)
-            }
-            SelectionStrategy::RoundRobin => {
-                for offset in 0..n {
-                    let idx = (self.round_robin_cursor + offset) % n;
-                    let sid = &seat_ids[idx];
-                    if self.leased_seats.contains(sid) {
-                        continue;
-                    }
-                    let seat = &self.seats[sid];
-                    if Self::is_eligible(&seat.state, now) {
-                        self.round_robin_cursor = (idx + 1) % n;
-                        return Ok(sid.clone());
-                    }
-                }
-                Err(SubscriptionPoolError::NoEligibleSeat)
-            }
-        }
+        Self::is_eligible(&seat.state, now) && seat.has_quota_capacity(now, estimated_units)
     }
 
     fn is_eligible(state: &SubscriptionState, now: Instant) -> bool {
@@ -669,4 +991,376 @@ pub enum SeatOutcome {
     /// (e.g. a future was cancelled). Treated as a no-op by the pool —
     /// no penalty is applied and failure_count is not incremented.
     Released,
+}
+
+// ---------------------------------------------------------------------------
+// Opaque secret-handle validators (shared)
+// ---------------------------------------------------------------------------
+
+/// Heuristic: does `value` look like a JWT (three dot-separated segments with a
+/// `eyJ` JSON-base64 header)? Used to reject raw bearer tokens that must never
+/// be stored as opaque secret handles.
+pub fn looks_like_jwt(value: &str) -> bool {
+    value.split('.').count() == 3 && value.starts_with("eyJ")
+}
+
+/// Validate that `handle` is an opaque secret-store reference rather than a raw
+/// credential. Accepts only `vault://`, `kms://`, or `sref://openbao/` schemes
+/// and rejects empty/whitespace/control/path-traversal inputs as well as obvious
+/// raw secrets (`sk-`, `bearer `, `raw-secret`, `refresh-token`, JWTs).
+///
+/// Single source of truth for both the REST runtime-registration path and the
+/// app boot-time config path.
+pub fn is_secret_handle_reference(handle: &str) -> bool {
+    let trimmed = handle.trim();
+    if trimmed.is_empty()
+        || trimmed != handle
+        || trimmed.contains("..")
+        || trimmed.chars().any(char::is_whitespace)
+        || trimmed.chars().any(char::is_control)
+    {
+        return false;
+    }
+    let lowered = trimmed.to_ascii_lowercase();
+    let has_allowed_scheme = lowered.starts_with("vault://")
+        || lowered.starts_with("kms://")
+        || lowered.starts_with("sref://openbao/");
+    has_allowed_scheme
+        && !trimmed.starts_with("sk-")
+        && !lowered.starts_with("bearer ")
+        && !lowered.contains("raw-secret")
+        && !lowered.contains("refresh-token")
+        && !looks_like_jwt(trimmed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct AllowGate;
+
+    impl AuthzGate for AllowGate {
+        fn decide(&self, _request: &AuthzRequest<'_>) -> AuthzDecision {
+            AuthzDecision::Allow
+        }
+    }
+
+    fn tenant(value: &str) -> TenantId {
+        TenantId::new(value).expect("valid tenant")
+    }
+
+    fn agent(value: &str) -> AgentId {
+        AgentId::new(value).expect("valid agent")
+    }
+
+    fn seat(value: &str) -> SeatId {
+        SeatId::new(value).expect("valid seat")
+    }
+
+    fn subscription_id(value: impl Into<String>) -> SubscriptionId {
+        SubscriptionId::new(value).expect("valid subscription")
+    }
+
+    fn active_subscription(
+        tenant_id: TenantId,
+        seat_id: SeatId,
+        provider: Provider,
+        credential_secret_handle: &str,
+    ) -> OAuthSubscription {
+        OAuthSubscription::new(
+            tenant_id,
+            seat_id.clone(),
+            subscription_id(format!("sub-{}", seat_id.as_str())),
+            provider,
+            SubscriptionState::Active,
+            credential_secret_handle,
+            0,
+        )
+    }
+
+    #[test]
+    fn credential_mode_metadata_never_leaks_secret_handles_in_debug() {
+        let api_key = active_subscription(
+            tenant("tenant-a"),
+            seat("seat-api"),
+            Provider::Anthropic,
+            "sk-ant-api03-really-secret",
+        )
+        .with_credential_mode(CredentialMode::ApiKey);
+        let oauth = active_subscription(
+            tenant("tenant-a"),
+            seat("seat-oauth"),
+            Provider::Codex,
+            "refresh-token-really-secret",
+        )
+        .with_credential_mode(CredentialMode::OAuthSubscription);
+
+        assert_eq!(api_key.credential_mode(), CredentialMode::ApiKey);
+        assert_eq!(oauth.credential_mode(), CredentialMode::OAuthSubscription);
+        assert_eq!(
+            api_key.credential_secret_handle(),
+            "sk-ant-api03-really-secret"
+        );
+
+        let api_debug = format!("{api_key:?}");
+        let oauth_debug = format!("{oauth:?}");
+        assert!(api_debug.contains("credential_mode"));
+        assert!(api_debug.contains("<REDACTED>"));
+        assert!(oauth_debug.contains("<REDACTED>"));
+        assert!(!api_debug.contains("sk-ant-api03-really-secret"));
+        assert!(!oauth_debug.contains("refresh-token-really-secret"));
+    }
+
+    #[test]
+    fn tenant_and_provider_isolation_still_rejects_foreign_seats() {
+        let mut pool = SubscriptionPool::new(
+            tenant("tenant-a"),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        );
+
+        let wrong_tenant = active_subscription(
+            tenant("tenant-b"),
+            seat("seat-b"),
+            Provider::Anthropic,
+            "vault://tenant-b/anthropic",
+        );
+        let wrong_provider = active_subscription(
+            tenant("tenant-a"),
+            seat("seat-codex"),
+            Provider::Codex,
+            "vault://tenant-a/codex",
+        );
+
+        assert_eq!(
+            pool.add_seat(wrong_tenant),
+            Err(SubscriptionPoolError::ForbiddenByPolicy)
+        );
+        assert_eq!(
+            pool.add_seat(wrong_provider),
+            Err(SubscriptionPoolError::ForbiddenByPolicy)
+        );
+        assert_eq!(pool.seat_count(), 0);
+    }
+
+    #[test]
+    fn time_normalized_quota_percent_prefers_near_reset_underused_seat() {
+        let now = Instant::now();
+        let five_hours = Duration::from_secs(5 * 60 * 60);
+        let mut pool = SubscriptionPool::new(
+            tenant("tenant-a"),
+            Provider::Anthropic,
+            SelectionStrategy::TimeNormalizedQuotaPercent,
+        );
+
+        let about_to_reset = active_subscription(
+            tenant("tenant-a"),
+            seat("seat-z-about-to-reset"),
+            Provider::Anthropic,
+            "vault://tenant-a/about-to-reset",
+        )
+        .with_quota_windows([QuotaWindow::new(
+            QuotaWindowKind::FiveHour,
+            100,
+            20,
+            now + Duration::from_secs(60 * 60),
+            five_hours,
+        )]);
+        let early_window = active_subscription(
+            tenant("tenant-a"),
+            seat("seat-a-early-window"),
+            Provider::Anthropic,
+            "vault://tenant-a/early-window",
+        )
+        .with_quota_windows([QuotaWindow::new(
+            QuotaWindowKind::FiveHour,
+            100,
+            20,
+            now + Duration::from_secs(4 * 60 * 60),
+            five_hours,
+        )]);
+
+        pool.add_seat(early_window).expect("seat accepted");
+        pool.add_seat(about_to_reset).expect("seat accepted");
+
+        assert_eq!(
+            pool.select(&agent("agent-a"), &AllowGate, now)
+                .expect("seat selected"),
+            seat("seat-z-about-to-reset")
+        );
+    }
+
+    #[test]
+    fn hard_quota_window_exhaustion_makes_seat_ineligible_until_reset() {
+        let now = Instant::now();
+        let five_hours = Duration::from_secs(5 * 60 * 60);
+        let mut pool = SubscriptionPool::new(
+            tenant("tenant-a"),
+            Provider::Codex,
+            SelectionStrategy::TimeNormalizedQuotaPercent,
+        );
+
+        let exhausted = active_subscription(
+            tenant("tenant-a"),
+            seat("seat-exhausted"),
+            Provider::Codex,
+            "vault://tenant-a/codex-exhausted",
+        )
+        .with_quota_windows([QuotaWindow::new(
+            QuotaWindowKind::FiveHour,
+            100,
+            100,
+            now + Duration::from_secs(60 * 60),
+            five_hours,
+        )]);
+        pool.add_seat(exhausted).expect("seat accepted");
+
+        assert!(!pool.has_eligible_seat(now));
+        assert_eq!(
+            pool.select(&agent("agent-a"), &AllowGate, now),
+            Err(SubscriptionPoolError::NoEligibleSeat)
+        );
+        assert!(pool.has_eligible_seat(now + Duration::from_secs(60 * 60 + 1)));
+    }
+
+    #[test]
+    fn lease_estimate_reserves_inflight_units_and_completion_reconciles_actual_usage() {
+        let now = Instant::now();
+        let five_hours = Duration::from_secs(5 * 60 * 60);
+        let pool = Arc::new(Mutex::new(SubscriptionPool::new(
+            tenant("tenant-a"),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        )));
+        for sid in ["seat-a", "seat-b"] {
+            let sub = active_subscription(
+                tenant("tenant-a"),
+                seat(sid),
+                Provider::Anthropic,
+                &format!("vault://tenant-a/{sid}"),
+            )
+            .with_quota_windows([QuotaWindow::new(
+                QuotaWindowKind::FiveHour,
+                100,
+                0,
+                now + five_hours,
+                five_hours,
+            )]);
+            pool.lock()
+                .expect("pool lock")
+                .add_seat(sub)
+                .expect("add seat");
+        }
+
+        let first =
+            SubscriptionPool::lease_with_estimate(&pool, &agent("agent-a"), &AllowGate, now, 90)
+                .expect("first lease");
+        assert_eq!(first.seat_id(), &seat("seat-a"));
+        assert_eq!(
+            pool.lock()
+                .expect("pool lock")
+                .seat_inflight_units(&seat("seat-a")),
+            Some(90)
+        );
+
+        let second =
+            SubscriptionPool::lease_with_estimate(&pool, &agent("agent-b"), &AllowGate, now, 90)
+                .expect("second lease");
+        assert_eq!(second.seat_id(), &seat("seat-b"));
+
+        first
+            .complete_with_usage(SeatOutcome::Ok, now, 70)
+            .expect("complete first");
+        assert_eq!(
+            pool.lock()
+                .expect("pool lock")
+                .seat_inflight_units(&seat("seat-a")),
+            Some(0)
+        );
+        assert_eq!(
+            pool.lock().expect("pool lock").seat_window_used_units(
+                &seat("seat-a"),
+                QuotaWindowKind::FiveHour,
+                now
+            ),
+            Some(70)
+        );
+        drop(second);
+    }
+
+    #[test]
+    fn usage_recorded_after_reset_counts_against_the_new_window() {
+        let now = Instant::now();
+        let five_hours = Duration::from_secs(5 * 60 * 60);
+        let pool = Arc::new(Mutex::new(SubscriptionPool::new(
+            tenant("tenant-a"),
+            Provider::Codex,
+            SelectionStrategy::TimeNormalizedQuotaPercent,
+        )));
+        let sid = seat("seat-reset");
+        let sub = active_subscription(
+            tenant("tenant-a"),
+            sid.clone(),
+            Provider::Codex,
+            "vault://tenant-a/reset",
+        )
+        .with_quota_windows([QuotaWindow::new(
+            QuotaWindowKind::FiveHour,
+            100,
+            100,
+            now - Duration::from_secs(1),
+            five_hours,
+        )]);
+        pool.lock()
+            .expect("pool lock")
+            .add_seat(sub)
+            .expect("add seat");
+
+        assert!(pool.lock().expect("pool lock").has_eligible_seat(now));
+        let lease =
+            SubscriptionPool::lease_with_estimate(&pool, &agent("agent-a"), &AllowGate, now, 10)
+                .expect("lease after reset");
+        lease
+            .complete_with_usage(SeatOutcome::Ok, now, 10)
+            .expect("complete after reset");
+
+        let mut locked = pool.lock().expect("pool lock");
+        assert_eq!(
+            locked.seat_window_used_units(&sid, QuotaWindowKind::FiveHour, now),
+            Some(10)
+        );
+        assert_eq!(
+            locked.select_with_estimate(&agent("agent-a"), &AllowGate, now, 91),
+            Err(SubscriptionPoolError::NoEligibleSeat)
+        );
+    }
+
+    #[test]
+    fn cooldown_blocks_selection_until_timer_expires() {
+        let now = Instant::now();
+        let mut pool = SubscriptionPool::new(
+            tenant("tenant-a"),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        );
+        let sid = seat("seat-cooling");
+        pool.add_seat(active_subscription(
+            tenant("tenant-a"),
+            sid.clone(),
+            Provider::Anthropic,
+            "vault://tenant-a/cooling",
+        ))
+        .expect("seat accepted");
+
+        assert!(pool.has_eligible_seat(now));
+        pool.record_outcome(&sid, SeatOutcome::RateLimited429, now)
+            .expect("rate limit recorded");
+        assert!(!pool.has_eligible_seat(now + Duration::from_secs(30)));
+        assert!(pool.has_eligible_seat(now + Duration::from_secs(61)));
+        assert_eq!(
+            pool.select(&agent("agent-a"), &AllowGate, now + Duration::from_secs(61))
+                .expect("seat selected after cooldown"),
+            sid
+        );
+    }
 }
