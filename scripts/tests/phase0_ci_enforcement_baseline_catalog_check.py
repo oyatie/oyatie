@@ -206,6 +206,48 @@ def main() -> int:
         if claim_boundary.get("phase0_complete") is not False:
             failures.append("claim_boundary.phase0_complete must remain false in the RED gap packet")
 
+    automation_mapping = baseline.get("automation_mapping")
+    if not isinstance(automation_mapping, dict):
+        failures.append("automation_mapping: expected object")
+    else:
+        if automation_mapping.get("source_app_binding_check_target") != "//:phase0-required-status-source-check":
+            failures.append("automation_mapping.source_app_binding_check_target must be //:phase0-required-status-source-check")
+        if automation_mapping.get("source_app_binding_check_script") != "scripts/ci/assert-required-status-source.py":
+            failures.append("automation_mapping.source_app_binding_check_script must be scripts/ci/assert-required-status-source.py")
+        if automation_mapping.get("source_app_binding_test") != "scripts/tests/phase0_required_status_source_check.test.sh":
+            failures.append("automation_mapping.source_app_binding_test must be scripts/tests/phase0_required_status_source_check.test.sh")
+
+    source_fixture_dir_value = fixture_set.get("required_status_source_fixture_directory")
+    if not isinstance(source_fixture_dir_value, str):
+        failures.append("fixture_set.required_status_source_fixture_directory: expected string")
+        source_fixture_dir = REPO_ROOT / "<missing-required-status-source>"
+    else:
+        source_fixture_dir = repo_path(source_fixture_dir_value)
+    actual_source_fixture_paths = sorted(
+        rel(path) for path in source_fixture_dir.glob("*.json") if path.is_file()
+    )
+    listed_source_fixture_paths = sorted(
+        str(item)
+        for item in as_list(
+            fixture_set.get("required_status_source_fixture_paths"),
+            "fixture_set.required_status_source_fixture_paths",
+            failures,
+        )
+        if isinstance(item, str)
+    )
+    for item in sorted(set(actual_source_fixture_paths) - set(listed_source_fixture_paths)):
+        failures.append(f"fixture_set.required_status_source_fixture_paths missing actual fixture: {item}")
+    for item in sorted(set(listed_source_fixture_paths) - set(actual_source_fixture_paths)):
+        failures.append(f"fixture_set.required_status_source_fixture_paths lists missing fixture: {item}")
+    for value in listed_source_fixture_paths:
+        path = repo_path(value)
+        if not path.is_file():
+            failures.append(f"fixture_set.required_status_source_fixture_paths: missing path {value}")
+            continue
+        data = load_json(path)
+        if data.get("contexts") is None:
+            failures.append(f"{value}: required-status source fixture must include contexts")
+
     if failures:
         print("phase0-ci-baseline-catalog: RED", file=sys.stderr)
         for failure in failures:
@@ -222,6 +264,7 @@ def main() -> int:
                 "required_red_green_pairs": pair_count,
                 "result_bundle_fixtures": len(fixture_set.get("result_bundle_fixture_paths", [])),
                 "trusted_target_inventory_fixtures": len(fixture_set.get("trusted_target_inventory_fixture_paths", [])),
+                "required_status_source_fixtures": len(actual_source_fixture_paths),
                 "claim_boundary": {
                     "p0_0_green": False,
                     "phase0_complete": False,

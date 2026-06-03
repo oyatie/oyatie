@@ -31,6 +31,8 @@ genrule(
         "scripts/ci/oya-ci-post.sh": "scripts/ci/oya-ci-post.sh",
         "scripts/ci/assert-pr-required-context.py": "scripts/ci/assert-pr-required-context.py",
         "scripts/tests/phase0_required_context_rollup_check.test.sh": "scripts/tests/phase0_required_context_rollup_check.test.sh",
+        "scripts/ci/assert-required-status-source.py": "scripts/ci/assert-required-status-source.py",
+        "scripts/tests/phase0_required_status_source_check.test.sh": "scripts/tests/phase0_required_status_source_check.test.sh",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -199,9 +201,25 @@ genrule(
         "specs/phase0-override-packet-schema.json": "specs/phase0-override-packet-schema.json",
         "specs/phase0-trusted-target-inventory-schema.json": "specs/phase0-trusted-target-inventory-schema.json",
         "specs/toolchain-tenant-isolation-fixtures.json": "specs/toolchain-tenant-isolation-fixtures.json",
-    } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])},
+    } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])} | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-ci-enforcement-baseline-catalog-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# P0.0 required-status source binding check: GitHub branch-protection
+# required_status_checks.checks must bind oya-ci-required to the trusted
+# cloud-ci/oya-ci source app before any green claim. This target is fixture-only
+# local evidence; the live dev read remains a RED artifact until the app is bound.
+genrule(
+    name = "phase0-required-status-source-check",
+    srcs = {
+        "scripts/ci/assert-required-status-source.py": "scripts/ci/assert-required-status-source.py",
+        "scripts/tests/phase0_required_status_source_check.test.sh": "scripts/tests/phase0_required_status_source_check.test.sh",
+    } | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
+    out = "phase0-required-status-source-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_required_status_source_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 

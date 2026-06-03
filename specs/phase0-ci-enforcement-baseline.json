@@ -23,7 +23,7 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-PHASE0-CI-ENFORCEMENT-BASELINE",
     "status": "p0_0_red_gap_packet",
-    "updated_at": "2026-06-02T22:53:00Z",
+    "updated_at": "2026-06-03T01:01:03Z",
     "version": "0.1.0"
   },
   "automation_mapping": {
@@ -32,7 +32,10 @@
     "no_new_oya_cli_surface": true,
     "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context produced by oya-ci-controller or minimal Rust bridge adapter",
     "catalog_check_target": "//:phase0-ci-enforcement-baseline-catalog-check",
-    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py"
+    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "source_app_binding_check_target": "//:phase0-required-status-source-check",
+    "source_app_binding_check_script": "scripts/ci/assert-required-status-source.py",
+    "source_app_binding_test": "scripts/tests/phase0_required_status_source_check.test.sh"
   },
   "claim_boundary": {
     "allowed_language_now": "gap packet / target / specified fixture contract only",
@@ -46,7 +49,7 @@
     ],
     "p0_0_green": false,
     "phase0_complete": false,
-    "reason": "Checked-in branch-protection target and bridge metadata now name oya-ci-required, the P0.0 fixture catalog is closed by a Buck2 target, and live GitHub dev required-status checks were synced to oya-ci-required on 2026-06-02. P0.0 remains RED because live producer evidence does not yet prove oya-ci-required is posted from trusted cloud-ci/oya-ci control state on the candidate SHA, live Forgejo convergence is unavailable from this environment, and tenant-isolation negative tests are specified as fixtures but not yet run by a live required cloud-ci context."
+    "reason": "Checked-in branch-protection target and bridge metadata name oya-ci-required, the P0.0 fixture catalog is closed by Buck2 targets, and live GitHub dev required-status contexts include oya-ci-required. P0.0 remains RED because live required_status_checks.checks binds oya-ci-required to app_id=null instead of a trusted cloud-ci/oya-ci source app, live producer evidence does not prove candidate-SHA posting from trusted cloud-ci/oya-ci control state, live Forgejo convergence is unavailable from this environment, and tenant-isolation negative tests are specified as fixtures but not yet run by a live required cloud-ci context."
   },
   "current_state_evidence": {
     "active_bridge_status_producer": {
@@ -80,7 +83,27 @@
       ],
       "strict": false,
       "observed_at": "2026-06-02T22:52:00Z",
-      "gap": "required-status context drift closed for GitHub dev; still not a Phase-0 green claim until trusted cloud-ci/oya-ci posts oya-ci-required on candidate SHAs and Forgejo converges."
+      "gap": "required-status context drift closed for GitHub dev; still not a Phase-0 green claim until trusted cloud-ci/oya-ci posts oya-ci-required on candidate SHAs and Forgejo converges.",
+      "checks": [
+        {
+          "context": "oya-ci-required",
+          "app_id": null
+        }
+      ],
+      "source_app_binding": {
+        "status": "RED",
+        "reason": "missing_required_status_source_app",
+        "required_context": "oya-ci-required",
+        "observed_app_id": null,
+        "trusted_source_app": "cloud-ci/oya-ci",
+        "live_read_artifact": "evidence/multispectrum/platform-readiness-p0-0-required-status-source-live-dev-1780448463.json",
+        "checker": "scripts/ci/assert-required-status-source.py",
+        "buck2_target": "//:phase0-required-status-source-check",
+        "claim_boundary": {
+          "p0_0_green": false,
+          "phase0_complete": false
+        }
+      }
     },
     "observed_at": "2026-06-02T22:52:00Z",
     "reported_status_metadata": {
@@ -104,6 +127,17 @@
       },
       "gap": "Live GitHub required-status checks now match oya-ci-required and repo auto-merge settings allow squash auto-merge/delete-branch. Live Forgejo auto-merge was not mutated because Forgejo DNS timed out locally; trusted cloud-ci/oya-ci producer evidence remains unproven.",
       "forgejo_mergeability_guard": "scripts/ci/arm-auto-merge.sh refreshes PR, requires exact head.sha match, and requires mergeable=true before POST /pulls/{index}/merge"
+    },
+    "required_status_source_binding": {
+      "classification": "checked_in_and_live_read_only_red_gap_not_phase0_green",
+      "path": "scripts/ci/assert-required-status-source.py",
+      "test": "scripts/tests/phase0_required_status_source_check.test.sh",
+      "fixture_directory": "specs/fixtures/phase0-required-status-source",
+      "buck2_target": "//:phase0-required-status-source-check",
+      "official_reference": "https://docs.github.com/rest/branches/branch-protection#update-status-check-protection",
+      "gap": "Live GitHub dev required status check is context-required but source-app-unbound (app_id=null), so it cannot prove trusted cloud-ci/oya-ci source identity.",
+      "p0_0_green": false,
+      "phase0_complete": false
     }
   },
   "description": "P0.0 baseline and gap packet for Prow/cloud-ci enforcement plus tenant-isolation fixtures. This file is evidence of the current P0.0 state, not a Phase-0 completion claim.",
@@ -118,7 +152,7 @@
     },
     {
       "source": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
-      "used_for": "Protected branches require named status checks and can bind an expected status-check source app."
+      "used_for": "Protected branches require named status checks; required_status_checks.checks[].app_id is the source-app binding used to prevent any-app or untrusted-app status spoofing."
     },
     {
       "source": "https://docs.aws.amazon.com/whitepapers/latest/saas-architecture-fundamentals/tenant-isolation.html",
@@ -215,7 +249,17 @@
     ],
     "tenant_fixture_contract": "specs/toolchain-tenant-isolation-fixtures.json",
     "catalog_check_target": "//:phase0-ci-enforcement-baseline-catalog-check",
-    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py"
+    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "required_status_source_fixture_directory": "specs/fixtures/phase0-required-status-source",
+    "required_status_source_fixture_paths": [
+      "specs/fixtures/phase0-required-status-source/good-bound-expected-source-app.json",
+      "specs/fixtures/phase0-required-status-source/bad-contexts-only-no-checks-array.json",
+      "specs/fixtures/phase0-required-status-source/bad-null-source-app.json",
+      "specs/fixtures/phase0-required-status-source/bad-wildcard-any-source-app.json",
+      "specs/fixtures/phase0-required-status-source/bad-wrong-source-app.json",
+      "specs/fixtures/phase0-required-status-source/bad-missing-required-context.json",
+      "specs/fixtures/phase0-required-status-source/bad-required-context-not-in-checks-array.json"
+    ]
   },
   "gap_packet": {
     "candidate_pr_untrusted": {

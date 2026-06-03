@@ -136,14 +136,15 @@
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 + specs/fixtures/phase0-ci-enforcement-baseline/ + //:phase0-ci-enforcement-baseline-catalog-check",
       "classification": "automated_blocking_now",
       "current_gap_packet": "specs/phase0-ci-enforcement-baseline.json#gap_packet",
-      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle + specs/phase0-override-packet-schema.json + specs/phase0-trusted-target-inventory-schema.json",
+      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + specs/fixtures/phase0-required-status-source/ + scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py + scripts/ci/assert-required-status-source.py + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle + specs/phase0-override-packet-schema.json + specs/phase0-trusted-target-inventory-schema.json",
       "id": "AC-0.0-cloud-ci-required-context",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain",
       "requirement": "Protected branch merge/exit authority must be a Prow-shaped cloud-ci/oya-ci required context sourced from trusted trunk/controller state; affected-only/buck2-only/local oya output is not authority.",
       "retirement_phase": "P0.0",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
-      "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context + //:phase0-ci-enforcement-baseline-catalog-check"
+      "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context + //:phase0-ci-enforcement-baseline-catalog-check + //:phase0-required-status-source-check",
+      "claim_boundary": "Local/static and live-read-only RED evidence now detects app_id=null or untrusted required-status source-app binding. This is not P0.0 green or protected-branch authority until trusted cloud-ci/oya-ci posts and is source-bound for required oya-ci-required on candidate SHAs."
     },
     {
       "id": "AC-0.0-buck2-authority-no-cargo-regression",
