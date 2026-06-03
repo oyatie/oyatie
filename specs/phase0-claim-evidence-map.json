@@ -12,7 +12,7 @@
     "spec_id": "EXE-PHASE0-CLAIM-EVIDENCE-MAP",
     "status": "seed-contract-not-green",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T02:53:41Z"
+    "updated_at": "2026-06-03T05:10:00Z"
   },
   "description": "Seed claim/evidence map for Phase 0. This is not a readiness claim: it prevents empty promises by labeling current regulated language as target/spec/enforced/production/hyperscaler tiers and by identifying the evidence still required before stronger claims are allowed.",
   "fixture_set": {
@@ -22,7 +22,11 @@
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-ungrounded-production-ready.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-local-oya-authority-claim.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json",
-      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-unknown-regulated-term.json"
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-unknown-regulated-term.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-production-ready-tier-without-measured-result.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-hyperscaler-tier-without-measured-result.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-capacity-breakpoint-only.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-combined-budget-result-entry.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-claim-ceiling",
     "required_red_green_pairs": [
@@ -45,6 +49,26 @@
         "green": "tc-0.17-good-target-non-claim-with-owner.json",
         "red": "tc-0.17-bad-unknown-regulated-term.json",
         "tc_id": "TC-0.17.1-unknown-regulated-term"
+      },
+      {
+        "green": "tc-0.17-good-target-non-claim-with-owner.json",
+        "red": "tc-0.17-bad-production-ready-tier-without-measured-result.json",
+        "tc_id": "TC-0.17.2-production-ready-tier-only"
+      },
+      {
+        "green": "tc-0.17-good-target-non-claim-with-owner.json",
+        "red": "tc-0.17-bad-hyperscaler-tier-without-measured-result.json",
+        "tc_id": "TC-0.17.3-hyperscaler-tier-only"
+      },
+      {
+        "green": "tc-0.17-good-performance-spec-ready-with-budget.json",
+        "red": "tc-0.17-bad-capacity-breakpoint-only.json",
+        "tc_id": "TC-0.17.4-capacity-breakpoint-single-signal"
+      },
+      {
+        "green": "tc-0.17-good-performance-spec-ready-with-budget.json",
+        "red": "tc-0.17-bad-combined-budget-result-entry.json",
+        "tc_id": "TC-0.17.4-combined-budget-result-single-entry"
       }
     ]
   },
@@ -58,10 +82,13 @@
       "advisory/local/legacy oya output is presented as mechanical enforcement",
       "production-ready or hyperscaler-grade is asserted program-wide rather than per service/plane",
       "retired/done/superseded is claimed while untracked live references remain"
-    ]
+    ],
+    "local_static_target": "//:phase0-claim-ceiling-check",
+    "claim_boundary": "Local/static fixture gate only; not live cloud-ci required-context authority, production readiness, hyperscaler-grade readiness, P0.0 green, or Phase-0 completion."
   },
   "known_gaps_before_green": [
-    "Seed rows are not exhaustive; the claim-ceiling gate must discover and require rows for all regulated terms in authoritative artifacts.",
+    "Local static claim-ceiling checker and //:phase0-claim-ceiling-check now cover the seed claim rows and declared AC-0.17 BAD/GREEN fixtures, but live cloud-ci/oya-ci must run the gate on candidate SHAs before any Phase-0 green/enforcement claim.",
+    "Seed rows are not exhaustive; the live claim-ceiling gate must discover and require rows for all regulated terms in authoritative artifacts before AC-0.12 can go green.",
     "No production_ready or hyperscaler_grade claim is currently allowed for the program as a whole.",
     "Current live enforcement evidence is advisory/bridge until P0.0 cloud-ci required context is live."
   ],

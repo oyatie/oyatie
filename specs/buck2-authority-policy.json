@@ -59,7 +59,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T03:29:00Z"
+    "updated_at": "2026-06-03T05:10:00Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -117,6 +117,7 @@
     "//:phase0-tenant-isolation-fixture-check",
     "//:phase0-override-kill-switch-check",
     "//:phase0-automation-ratchet-check",
+    "//:phase0-claim-ceiling-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "//:phase0-auto-merge-after-ci-contract-check",
     "//:forgejo-auto-merge-after-ci-check",
@@ -200,7 +201,11 @@
     "scripts/ci/assert-automation-ratchet.py",
     "scripts/tests/phase0_automation_ratchet_check.test.sh",
     "specs/phase0-automation-matrix.json",
-    "specs/phase0-automation-coverage-registry.json"
+    "specs/phase0-automation-coverage-registry.json",
+    "scripts/ci/assert-claim-ceiling.py",
+    "scripts/tests/phase0_claim_ceiling_check.test.sh",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/hyperscaler-production-readiness-claim-contract.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -261,7 +266,12 @@
       "phase0-automation-ratchet-check",
       "phase0_automation_ratchet_check.test.sh",
       "assert-automation-ratchet.py",
-      "phase0-automation-coverage-registry.json"
+      "phase0-automation-coverage-registry.json",
+      "phase0-claim-ceiling-check",
+      "phase0_claim_ceiling_check.test.sh",
+      "assert-claim-ceiling.py",
+      "phase0-claim-evidence-map.json",
+      "hyperscaler-production-readiness-claim-contract.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -612,6 +622,57 @@
       "local_static_coverage_registry_not_live_context",
       "p0_0_green",
       "phase0_complete"
+    ],
+    "scripts/ci/assert-claim-ceiling.py": [
+      "claim-ceiling local/static fixture evidence only",
+      "regulated_vocabulary_without_claim_row",
+      "unknown_claim_tier",
+      "forbidden_local_or_oya_evidence_for_mechanical_claim",
+      "performance_claim_without_budget_or_measured_result",
+      "unknown_regulated_term",
+      "claim_ceiling_live",
+      "production_ready",
+      "hyperscaler_grade",
+      "p0_0_green",
+      "phase0_complete",
+      "budget_only_entries",
+      "measured_result_only_entries"
+    ],
+    "scripts/tests/phase0_claim_ceiling_check.test.sh": [
+      "bad-missing-claim-row.json",
+      "bad-unknown-tier-missing-owner.json",
+      "bad-mechanical-local-oya.json",
+      "bad-performance-no-budget.json",
+      "bad-performance-domain-only.json",
+      "bad-production-ready-tier-only.json",
+      "bad-hyperscaler-tier-only.json",
+      "bad-capacity-breakpoint-only.json",
+      "bad-performance-combined-entry.json",
+      "bad-unknown-regulated-term.json",
+      "bad-red-fixture-made-good.json",
+      "phase0 claim-ceiling fixture checks passed"
+    ],
+    "specs/phase0-claim-evidence-map.json": [
+      "AC-0.17",
+      "cloud-ci-claim-ceiling",
+      "phase0-claim-ceiling-check",
+      "regulated_vocabulary",
+      "target_non_claim",
+      "spec_ready",
+      "mechanically enforced",
+      "production_ready",
+      "hyperscaler_grade",
+      "tc-0.17-bad-production-ready-tier-without-measured-result.json",
+      "tc-0.17-bad-hyperscaler-tier-without-measured-result.json",
+      "tc-0.17-bad-capacity-breakpoint-only.json",
+      "tc-0.17-bad-combined-budget-result-entry.json"
+    ],
+    "specs/hyperscaler-production-readiness-claim-contract.json": [
+      "No new oya CLI surface",
+      "Mechanically enforced means branch-protected cloud-ci required context",
+      "production_ready",
+      "hyperscaler_grade",
+      "PERF-CAPACITY"
     ]
   },
   "required_glob_anchors": [

@@ -1,0 +1,28 @@
+{
+  "claim_rows": [
+    {
+      "allowed_language_now": "secure",
+      "artifact": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-production-ready-tier-without-measured-result.json",
+      "claim_text": "secure control plane",
+      "claim_tier": "production_ready",
+      "current_evidence": [
+        "security review planned"
+      ],
+      "id": "BAD-production-ready-tier-without-measured-result",
+      "missing_for_next_tier": [
+        "budget plus measured-result evidence missing"
+      ],
+      "owner": "platform-sre + platform-security",
+      "regulated_terms": [
+        "secure"
+      ]
+    }
+  ],
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "performance_claim_without_budget_or_measured_result"
+  ],
+  "fixture_id": "TC-0.17-BAD-production-ready-tier-without-measured-result",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.17.2",
+  "text": "The local fixture uses a production_ready claim tier without budget plus measured-result evidence."
+}

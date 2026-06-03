@@ -17,7 +17,7 @@
     "spec_id": "EXE-PHASE0-AUTOMATION-MATRIX",
     "status": "seed-contract-not-green",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T03:30:00Z"
+    "updated_at": "2026-06-03T04:02:00Z"
   },
   "classifications": [
     "automated_blocking_now",
@@ -251,28 +251,30 @@
       "target_gate_or_controller": "service-root-classifier Rust gate"
     },
     {
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.17",
+      "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/ + scripts/tests/phase0_claim_ceiling_check.test.sh",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/hyperscaler-production-readiness-claim-contract.json + specs/phase0-claim-evidence-map.json",
+      "evidence_path": "specs/hyperscaler-production-readiness-claim-contract.json + specs/phase0-claim-evidence-map.json + scripts/ci/assert-claim-ceiling.py + scripts/tests/phase0_claim_ceiling_check.test.sh + //:phase0-claim-ceiling-check",
       "id": "AC-0.17-claim-ceiling",
       "no_new_oya_cli_surface": true,
       "owner": "platform-sre + platform-security + platform-toolchain",
       "requirement": "Regulated readiness/enforcement/security/completion vocabulary must have live evidence or target/non-claim labeling.",
       "retirement_phase": "P0.7/AC-0.17",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.17",
-      "target_gate_or_controller": "cloud-ci-claim-ceiling"
+      "target_gate_or_controller": "cloud-ci-claim-ceiling + //:phase0-claim-ceiling-check",
+      "claim_boundary": "Local/static fixture gate proves seed claim rows and declared BAD/GREEN claim-ceiling fixtures only. This is not live required-context authority, production readiness, hyperscaler-grade readiness, P0.0 green, or Phase-0 completion."
     },
     {
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.17",
+      "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json + scripts/tests/phase0_claim_ceiling_check.test.sh",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/hyperscaler-production-readiness-claim-contract.json#PERF-CAPACITY + specs/phase0-claim-evidence-map.json",
+      "evidence_path": "specs/hyperscaler-production-readiness-claim-contract.json#PERF-CAPACITY + specs/phase0-claim-evidence-map.json + scripts/ci/assert-claim-ceiling.py + //:phase0-claim-ceiling-check",
       "id": "AC-0.17-performance-budget-claim",
       "no_new_oya_cli_surface": true,
       "owner": "platform-sre + platform-toolchain",
       "requirement": "Any performance, production-ready, or hyperscaler-grade claim must map to explicit SLI/budget/measurement evidence; advisory benchmarks cannot be authority.",
       "retirement_phase": "P0.7/AC-0.17 for claim blocking; Phase 1/2 for measured service budget gates",
       "source_artifact": "specs/hyperscaler-production-readiness-claim-contract.json#PERF-CAPACITY",
-      "target_gate_or_controller": "cloud-ci-claim-ceiling now; cloud-ci-performance-budget release-promotion gate as Phase-1/2 service evidence matures"
+      "target_gate_or_controller": "cloud-ci-claim-ceiling + //:phase0-claim-ceiling-check now; cloud-ci-performance-budget release-promotion gate as Phase-1/2 service evidence matures",
+      "claim_boundary": "Local/static claim-ceiling fixture gate blocks production-ready/hyperscaler-grade performance claims without budget or measured-result evidence. This is not live performance readiness or production readiness."
     },
     {
       "blocking_fixture": "specs/toolchain-tenant-isolation-fixtures.json + specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",

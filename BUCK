@@ -45,6 +45,10 @@ genrule(
         "scripts/tests/phase0_automation_ratchet_check.test.sh": "scripts/tests/phase0_automation_ratchet_check.test.sh",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "scripts/ci/assert-claim-ceiling.py": "scripts/ci/assert-claim-ceiling.py",
+        "scripts/tests/phase0_claim_ceiling_check.test.sh": "scripts/tests/phase0_claim_ceiling_check.test.sh",
+        "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
+        "specs/hyperscaler-production-readiness-claim-contract.json": "specs/hyperscaler-production-readiness-claim-contract.json",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -235,6 +239,24 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-automation-ratchet/*.json"])},
     out = "phase0-automation-ratchet-check.txt",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_automation_ratchet_check.test.sh > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.17 claim-ceiling fixture check: local/static coverage that
+# regulated readiness/enforcement/security/completion language maps to allowed
+# evidence tiers or explicit target/non-claim labels. This never claims live
+# required-context authority, production readiness, or hyperscaler-grade status.
+genrule(
+    name = "phase0-claim-ceiling-check",
+    srcs = {
+        "scripts/ci/assert-claim-ceiling.py": "scripts/ci/assert-claim-ceiling.py",
+        "scripts/tests/phase0_claim_ceiling_check.test.sh": "scripts/tests/phase0_claim_ceiling_check.test.sh",
+        "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
+        "specs/hyperscaler-production-readiness-claim-contract.json": "specs/hyperscaler-production-readiness-claim-contract.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-claim-ceiling/*.json"])},
+    out = "phase0-claim-ceiling-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_claim_ceiling_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 

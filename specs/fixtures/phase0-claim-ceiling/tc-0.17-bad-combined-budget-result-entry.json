@@ -1,0 +1,29 @@
+{
+  "claim_rows": [
+    {
+      "allowed_language_now": "production-ready",
+      "artifact": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-combined-budget-result-entry.json",
+      "claim_text": "production-ready performance claim",
+      "claim_tier": "production_ready",
+      "current_evidence": [
+        "p95 budget and load result"
+      ],
+      "id": "BAD-combined-budget-result-entry",
+      "missing_for_next_tier": [
+        "separate budget evidence entry and separate measured-result evidence entry required"
+      ],
+      "owner": "platform-sre",
+      "regulated_terms": [
+        "performance",
+        "production-ready"
+      ]
+    }
+  ],
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "performance_claim_without_budget_or_measured_result"
+  ],
+  "fixture_id": "TC-0.17-BAD-combined-budget-result-entry",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.17.4",
+  "text": "A single current_evidence entry that mentions both a p95 budget and a load result is not separately attributable budget plus measured-result evidence."
+}
