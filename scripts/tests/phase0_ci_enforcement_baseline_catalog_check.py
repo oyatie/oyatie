@@ -20,6 +20,16 @@ REPO_ROOT = Path(os.environ.get("OYA_REPO_ROOT", Path(__file__).resolve().parent
 
 BASELINE_DEFAULT = "specs/phase0-ci-enforcement-baseline.json"
 
+STALE_REQUIRED_CONTEXT_PHRASES = [
+    "live GitHub branch protection still lacks cloud-ci-required/oya-ci-required",
+    "current branch protection still lacks cloud-ci-required/oya-ci-required",
+]
+
+REQUIRED_CONTEXT_NARRATIVE_DOCS = [
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+]
+
 
 def repo_path(path: str | Path) -> Path:
     p = Path(path)
@@ -216,6 +226,18 @@ def main() -> int:
             failures.append("automation_mapping.source_app_binding_check_script must be scripts/ci/assert-required-status-source.py")
         if automation_mapping.get("source_app_binding_test") != "scripts/tests/phase0_required_status_source_check.test.sh":
             failures.append("automation_mapping.source_app_binding_test must be scripts/tests/phase0_required_status_source_check.test.sh")
+
+    for doc in REQUIRED_CONTEXT_NARRATIVE_DOCS:
+        path = repo_path(doc)
+        if not path.is_file():
+            failures.append(f"required-context narrative doc missing: {doc}")
+            continue
+        text = path.read_text()
+        for phrase in STALE_REQUIRED_CONTEXT_PHRASES:
+            if phrase in text:
+                failures.append(
+                    f"{doc}: stale required-context gap phrase must be replaced with current context-present/source-app-unbound wording"
+                )
 
     source_fixture_dir_value = fixture_set.get("required_status_source_fixture_directory")
     if not isinstance(source_fixture_dir_value, str):

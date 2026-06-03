@@ -197,6 +197,8 @@ genrule(
     srcs = {
         "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
         "specs/phase0-ci-enforcement-baseline.json": "specs/phase0-ci-enforcement-baseline.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
         "specs/phase0-ci-enforcement-result-schema.json": "specs/phase0-ci-enforcement-result-schema.json",
         "specs/phase0-override-packet-schema.json": "specs/phase0-override-packet-schema.json",
         "specs/phase0-trusted-target-inventory-schema.json": "specs/phase0-trusted-target-inventory-schema.json",

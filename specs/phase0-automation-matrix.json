@@ -79,7 +79,7 @@
   },
   "known_gaps_before_green": [
     "Local static coverage registry/evaluator now covers declared AC-0.* and Phase-0 governance subjects; AC-0.12 remains RED until live cloud-ci/oya-ci evaluates the registry and required context on the candidate SHA.",
-    "Checked-in branch-protection target now names oya-ci-required, but live GitHub branch protection still lacks cloud-ci-required/oya-ci-required and live producer evidence; P0.0 must replace live authority with cloud-ci/oya-ci required context before any green/enforcement claim.",
+    "Checked-in and live GitHub branch-protection contexts now name oya-ci-required, but live required_status_checks.checks binds it to app_id=null, PR #455 has no candidate-SHA checks reported, and live producer evidence is still missing; P0.0 must replace advisory/live-read evidence with trusted cloud-ci/oya-ci required-context production before any green/enforcement claim.",
     "Manual reviewer approval remains operator/procedure evidence until a non-501 reviewer status producer is live and required.",
     "Auto-merge-after-CI is now specified and locally checked for Forgejo plus the GitHub bootstrap mirror, but live Forgejo reachability and GitHub required-context convergence remain RED gap evidence until oya-ci-required is live and required."
   ],

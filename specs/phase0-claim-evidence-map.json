@@ -120,7 +120,7 @@
       "claim_tier": "spec_ready",
       "current_evidence": [
         "P0.0/AC-0.0/T0.0 specify required cloud-ci context and negative fixtures",
-        "Live rebaseline shows current branch protection still lacks cloud-ci-required/oya-ci-required; reported status metadata / legacy bridge inventory still includes oya-verify and affected-only paths",
+        "Live rebaseline shows branch protection now includes oya-ci-required, but required_status_checks.checks binds it to app_id=null and PR #455 reports no candidate-SHA checks; reported status metadata / legacy bridge inventory still includes oya-verify and affected-only paths",
         "specs/phase0-ci-enforcement-baseline.json records current P0.0 RED gap packet and T0.0 fixture paths"
       ],
       "id": "CLAIM-P0-mechanically-enforced",
