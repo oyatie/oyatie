@@ -10,8 +10,79 @@ trap 'rm -rf "$tmp_dir"' EXIT
 check="scripts/ci/assert-service-root-classifier.py"
 inventory="specs/service-inventory.json"
 packets="specs/phase0-structural-packets.json"
+matrix="specs/phase0-automation-matrix.json"
+coverage="specs/phase0-automation-coverage-registry.json"
 good_fixture="specs/fixtures/phase0-service-root-classifier/tc-service-root-good-seed.json"
 red_fixture="specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-layout-sprawl.json"
+
+python3 - <<'PY' "$matrix" "$coverage"
+import json
+import sys
+
+matrix_path, coverage_path = sys.argv[1:]
+matrix = json.load(open(matrix_path))
+coverage = json.load(open(coverage_path))
+
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+
+row = next(
+    (candidate for candidate in matrix["seed_rows"] if candidate.get("id") == "AC-0.1-service-inventory"),
+    None,
+)
+expect(row is not None, "AC-0.1 service-inventory row missing")
+expect(
+    row.get("target_gate_or_controller") == "//:service-root-classifier-check",
+    "AC-0.1 service-inventory row must map to exact Buck2 target",
+)
+expect(
+    row.get("verification_command") == "buck2 build //:service-root-classifier-check",
+    "AC-0.1 service-inventory row must record exact verification command",
+)
+claim_boundary = row.get("claim_boundary", "")
+expect(
+    "full nested crate coverage" in claim_boundary,
+    "AC-0.1 service-inventory row must preserve nested-coverage non-claim",
+)
+expect(
+    "not live required-context authority" in claim_boundary,
+    "AC-0.1 service-inventory row must preserve live-authority non-claim",
+)
+expect(
+    "post-migration pure split" in claim_boundary,
+    "AC-0.1 service-inventory row must preserve post-migration non-claim",
+)
+expect(
+    row.get("no_new_oya_cli_surface") is True,
+    "AC-0.1 service-inventory row must refuse new oya CLI authority",
+)
+
+subject = next(
+    (candidate for candidate in coverage["coverage_subjects"] if candidate.get("id") == "AC-0.1"),
+    None,
+)
+expect(subject is not None, "AC-0.1 coverage subject missing")
+expect(
+    subject.get("verification_command") == "buck2 build //:service-root-classifier-check",
+    "AC-0.1 coverage subject must record exact verification command",
+)
+coverage_note = subject.get("coverage_note", "")
+expect(
+    "//:service-root-classifier-check" in coverage_note,
+    "AC-0.1 coverage subject must name the exact Buck2 target",
+)
+expect(
+    "full nested crate coverage" in coverage_note,
+    "AC-0.1 coverage subject must preserve nested-coverage non-claim",
+)
+expect(
+    "live required-context authority false" in coverage_note,
+    "AC-0.1 coverage subject must preserve live-authority non-claim",
+)
+PY
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$check" --inventory "$inventory" --packets "$packets" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"

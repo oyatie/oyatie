@@ -505,6 +505,8 @@ genrule(
     srcs = {
         "scripts/ci/assert-service-root-classifier.py": "scripts/ci/assert-service-root-classifier.py",
         "scripts/tests/service_root_classifier_check.test.sh": "scripts/tests/service_root_classifier_check.test.sh",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/service-inventory.json": "specs/service-inventory.json",
         "specs/phase0-structural-packets.json": "specs/phase0-structural-packets.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-service-root-classifier/*.json", "oya/*", "cloud/*", "libs/*", "packs/*", "regional-packs/*", "platforms/*"])},

@@ -324,11 +324,13 @@
       "requirement": "Generated service/crate inventory must cover every closed-world root and fail on drift or service-like roots outside the allowlist.",
       "classification": "automated_blocking_now",
       "owner": "platform-architecture + platform-toolchain",
-      "target_gate_or_controller": "Buck2-local service-inventory drift/classifier gate //:service-root-classifier-check",
+      "target_gate_or_controller": "//:service-root-classifier-check",
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.1 + specs/fixtures/phase0-service-root-classifier/",
       "retirement_phase": "P0.1",
       "evidence_path": "specs/service-inventory.json + specs/fixtures/phase0-service-root-classifier/ + //:service-root-classifier-check",
-      "no_new_oya_cli_surface": true
+      "no_new_oya_cli_surface": true,
+      "claim_boundary": "Buck2-local service inventory and service-root classifier evidence only; not live required-context authority; full nested crate coverage, post-migration pure split, P0.0 green, and Phase-0 completion remain false until the trusted cloud-ci/oya-ci context proves them.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
     },
     {
       "id": "AC-0.2-status-enum-drift",

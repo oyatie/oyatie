@@ -77,7 +77,8 @@
         "AC-0.1-service-inventory"
       ],
       "owner": "platform-governance",
-      "coverage_note": "Maps AC-0.1 to //:service-root-classifier-check, specs/service-inventory.json, and service-root RED/GREEN fixtures. The seed inventory covers direct child directories under the closed-world roots while explicitly leaving full nested crate coverage and live required-context authority false."
+      "coverage_note": "Maps AC-0.1 to //:service-root-classifier-check, specs/service-inventory.json, and service-root RED/GREEN fixtures. The seed inventory covers direct child directories under the closed-world roots while explicitly leaving full nested crate coverage and live required-context authority false.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
     },
     {
       "id": "AC-0.2",
