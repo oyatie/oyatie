@@ -1,5 +1,5 @@
 ---
-purpose: "Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0 (unit / integration / contract / e2e / property / fuzz), mandates Buck2 test evidence (`buck2 test //... --show-output` or the trusted target inventory selected by cloud-ci/oya-ci) as the evidence run."
+purpose: "Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0, mandates Buck2 test evidence, Buck2-native LLVM source-based coverage, and dual Cargo+Buck2 local mutation ergonomics."
 doc_status: published
 ---
 
@@ -14,8 +14,10 @@ purpose: |
   Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0
   (unit / integration / contract / e2e / property / fuzz), mandates
   `buck2 test //... --show-output` (or the trusted cloud-ci/oya-ci Buck2 target inventory) as the evidence run,
-  requires `proptest` / `quickcheck` for invariants, deletion-tagged mutation/fuzz/coverage
-  adapters to be invoked through Buck2 targets, and codifies the 14-day flaky-test SLA. Resolves
+  requires `proptest` / `quickcheck` for invariants, Buck2-native LLVM source-based coverage
+  for coverage evidence, dual Cargo+Buck2 manifests for local mutation testing, deletion-tagged
+  mutation/fuzz bridges to be invoked through Buck2 targets for CI authority, and codifies the
+  14-day flaky-test SLA. Resolves
   the `standards/testing.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
@@ -66,7 +68,7 @@ The hyperscaler consensus in 2025–2026 is an expanded pyramid:
 | E2E | `oya-foundry-e2e-*` runtime | Buck2 e2e test target w/ env tag | merge-queue + nightly |
 | Property | `proptest` or `quickcheck` inside `tests/properties/` | `buck2 test` | every PR (short config); nightly (long config) |
 | Fuzz | `fuzz/` per crate; Buck2-wrapped fuzz harness | Buck2 fuzz target (deletion-tagged bridge until native) | nightly + on diff to unsafe surfaces |
-| Mutation | n/a | Buck2 mutation target (deletion-tagged bridge until native) | nightly on kernel/domain |
+| Mutation | Cargo workspace manifests retained beside Buck2 targets | Local `cargo mutants`; CI/nightly Buck2 mutation target wrapper | local dev + nightly on kernel/domain |
 
 Sources:
 [Frontiers — Test Pyramid 2.0](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2025.1695965/full),
@@ -87,7 +89,9 @@ Rules:
 1. The cloud-ci/oya-ci controller snapshots trusted Buck2 test targets from trunk/controller state before candidate checkout.
 2. The evidence run MUST execute the full selected Buck2 target inventory; affected-only subsets are feedback, never merge or Phase-0 exit authority.
 3. Local fast feedback MAY use narrower Buck2 targets, but PR evidence names the exact Buck2 targets and Build ID.
-4. Any deletion-tagged bridge for nextest/fuzz/mutation/coverage MUST be invoked by a Buck2 target and carry a retirement path; raw Cargo commands are not CI/build/test authority.
+4. Coverage evidence MUST come from a Buck2 target that builds/runs LLVM source-based coverage instrumentation (`rustc -C instrument-coverage` plus `llvm-profdata`/`llvm-cov` or a Buck2 rule wrapping that pipeline). Tarpaulin is not the canonical coverage surface for this monorepo and MUST NOT be added as required CI/PR evidence.
+5. Mutation testing MAY run locally through Cargo (`cargo mutants` or `cargo nextest`-backed cargo-mutants) because the workspace intentionally keeps `Cargo.toml` / `Cargo.lock` beside Buck2 targets for developer ergonomics. Local Cargo mutation output is advisory until captured by a Buck2 target or trusted cloud-ci/oya-ci lane.
+6. Any deletion-tagged bridge for nextest/fuzz/mutation MUST be invoked by a Buck2 target and carry a retirement path; raw Cargo commands are not CI/build/test authority.
 
 ## 3. Unit tests
 
@@ -144,11 +148,23 @@ with the minimized reproducer.
 
 Source: [AWS — How Kani is used](https://aws.amazon.com/blogs/opensource/how-open-source-projects-are-using-kani-to-write-better-software-in-rust/).
 
-## 6. Mutation testing — Buck2-wrapped mutation harness
+## 6. Mutation testing — dual Cargo+Buck2 harness
 
 Run nightly against `oya-*-kernel` and `oya-*-domain` crates. Target:
 **≥ 80% caught mutants** on kernel/domain. Application-layer mutation
 testing is optional (high cost, low signal).
+
+Oyatie intentionally maintains a dual-build Rust setup:
+
+- `Cargo.toml` / `Cargo.lock` stay present for local Rust-native workflows,
+  including `cargo mutants`, `cargo nextest`, IDE metadata, and crate
+  ecosystem compatibility.
+- Buck2 `BUCK` targets remain the build/test/CI authority. Where crates.io
+  dependencies enter Buck2, reindeer-style generation or an equivalent
+  generated-BUCK path owns the third-party crate graph.
+- Local Cargo mutation testing is encouraged for fast kernel/domain feedback,
+  but PR merge evidence cites the Buck2 target or cloud-ci/oya-ci lane that
+  captured the mutation run.
 
 Findings categories:
 
@@ -156,6 +172,20 @@ Findings categories:
 - **Missed** (mutant survives): file an issue; either add a test or
   document why the surviving mutation is semantically equivalent.
 - **Unviable** (mutant doesn't compile): ignored.
+
+Source-backed rationale:
+
+- The Cargo workspace model supports common commands across all workspace
+  members, shared `Cargo.lock`, and shared workspace metadata:
+  <https://doc.rust-lang.org/cargo/reference/workspaces.html>.
+- Buck2's own bootstrapping path can build with Cargo or Buck2 and uses
+  reindeer to generate `BUCK` files for Rust crates from crates.io:
+  <https://buck2.build/docs/about/bootstrapping/>.
+- Reindeer describes itself as tooling for importing Rust crates and generating
+  Buck build rules for monorepos: <https://github.com/facebookincubator/reindeer>.
+- `cargo-mutants` is the local Rust mutation tool of record for this dual-build
+  path; it runs against non-flaky tests under `cargo test` or `cargo nextest run`:
+  <https://mutants.rs/>.
 
 ## 7. Contract tests
 
@@ -171,7 +201,7 @@ each consumer crate run a contract test that:
 Adding a consumer without a contract test = `oya-governance-contract-coverage`
 fail.
 
-## 8. Coverage budget — Buck2-wrapped coverage harness
+## 8. Coverage budget — Buck2-native LLVM source-based coverage
 
 - Workspace target: **≥ 80% line coverage** on changed files (delta
   coverage), **≥ 70%** absolute on kernel/domain crates.
@@ -180,8 +210,33 @@ fail.
 - Coverage is **advisory** at PR time and **enforced** at wave-gate
   reviews; a regression of >5 percentage points blocks the wave.
 
+Coverage is generated natively through Buck2, not Tarpaulin:
+
+1. Buck2 owns the coverage target inventory and the Build ID for the evidence
+   run.
+2. The coverage rule instruments Rust compilation with `-C instrument-coverage`.
+3. Tests run under `LLVM_PROFILE_FILE` so each test shard emits `.profraw`
+   profiles without clobbering parallel shards.
+4. The rule merges profiles with `llvm-profdata` and emits text/HTML/JSON
+   reports through `llvm-cov`.
+5. The PR or wave-gate evidence records the Buck2 target, Build ID, report path,
+   changed-file delta, and excluded generated paths.
+
 The lane `oya-governance-coverage-delta` runs on every PR and emits
 a comment with deltas; merge-blocking is reserved for the wave gate.
+
+Source-backed rationale:
+
+- `rustc` supports instrumentation-based coverage through
+  `-C instrument-coverage` and records counters plus coverage maps for Rust
+  libraries and binaries:
+  <https://doc.rust-lang.org/rustc/instrument-coverage.html>.
+- LLVM source-based coverage uses the `llvm-profdata` merge step and
+  `llvm-cov` report/export step:
+  <https://clang.llvm.org/docs/SourceBasedCodeCoverage.html>.
+- Buck2 exposes target-based build/test/run commands; the repository coverage
+  workflow MUST be expressed as Buck2 targets rather than ad-hoc local commands:
+  <https://buck2.build/docs/users/commands/>.
 
 ## 9. Flaky-test 14-day SLA
 
@@ -191,7 +246,8 @@ Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-06:
    row is filed (class: `mechanical` if there is a fix; `cultural`
    otherwise).
 2. The fix SLA is **14 calendar days**.
-   escalates; day 14: the lane `oya-governance-flaky-sla` opens a
+3. Day 7 escalates to the owning team; day 14: the lane
+   `oya-governance-flaky-sla` opens a
    blocking PR check on the owning crate.
 4. Resolution requires either fix (delete `#[ignore]`) or retirement
    (delete the test with ADR-tracked rationale).
@@ -217,10 +273,12 @@ This standard adds:
 
 1. **Disabling a test with `#[ignore]` without a `MISTAKES-LEDGER` row.**
 2. **Running raw Cargo test/lint/check commands for CI evidence instead of Buck2 targets.**
-3. **Property test with low case-count to "save CI time"** — use the
+3. **Adding Tarpaulin as the monorepo coverage authority** instead of Buck2-native LLVM source-based coverage.
+4. **Treating local Cargo mutation testing as merge authority** instead of local advisory feedback or Buck2/cloud-ci captured evidence.
+5. **Property test with low case-count to "save CI time"** — use the
    nightly long config instead, not a degraded PR config.
-4. **Adding `unsafe` without a fuzz harness.**
-5. **Integration test hitting a real provider** — use the
+6. **Adding `unsafe` without a fuzz harness.**
+7. **Integration test hitting a real provider** — use the
    `ProviderAdapter` trait + a fake.
 
 ## 12. Sources scanned
@@ -231,5 +289,8 @@ This standard adds:
 - [nextest book](https://nexte.st/).
 - [proptest](https://docs.rs/proptest), [quickcheck](https://docs.rs/quickcheck).
 - [cargo-mutants](https://mutants.rs/), [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz).
-- [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov).
+- [rustc instrumentation-based coverage](https://doc.rust-lang.org/rustc/instrument-coverage.html).
+- [LLVM source-based coverage](https://clang.llvm.org/docs/SourceBasedCodeCoverage.html).
+- [Buck2 commands](https://buck2.build/docs/users/commands/) and
+  [Buck2 bootstrapping / reindeer](https://buck2.build/docs/about/bootstrapping/).
 - ADR-0003 (audit chain), ADR-0015 (flat crates).

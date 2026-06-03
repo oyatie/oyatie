@@ -1,0 +1,171 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-rust-testing-standard",
+  "claim_boundary": {
+    "coverage_runner_implemented": false,
+    "hyperscaler_grade": false,
+    "live_required_context_execution_proven": false,
+    "mutation_lane_implemented": false,
+    "note": "Documentation/standards record only. This does not implement a coverage runner, mutation lane, live cloud-ci required context, protected branch source binding, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness.",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false
+  },
+  "facets": {
+    "A1_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "Preserves no-new-oya-CLI rule and Buck2/cloud-ci authority boundary."
+      ]
+    },
+    "A2_documentation_structure": {
+      "considered": true,
+      "findings": [
+        "Updated existing testing standard rather than creating doc sprawl."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "The standard requires coverage evidence artifacts to name reports and deltas."
+      ]
+    },
+    "F11_reversibility": {
+      "considered": true,
+      "findings": [
+        "Single-doc standard change is reversible; no dependency or runner introduced."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "Future implementation must wire Buck2 coverage and mutation targets; this slice records policy only."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Kept the change to one existing standard rather than adding a new doc surface.",
+        "Recorded explicit non-authority boundaries for Tarpaulin and local Cargo mutation output."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Coverage is target-owned by Buck2 with Build ID/report path evidence, matching monorepo authority patterns.",
+        "Dual Cargo+Buck2 preserves local Rust ergonomics without weakening cloud-ci merge authority."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Rejected Tarpaulin as canonical monorepo coverage authority.",
+        "Rejected treating local cargo-mutants output as merge authority unless captured by Buck2/cloud-ci."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Local developers retain Cargo workspace workflows for mutation testing and IDE metadata.",
+        "PR evidence still has a single Buck2/cloud-ci authority path."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Focused grep and Markdown structure checks validate anchors and numbering.",
+        "Evidence JSON/audit-chain parse and secret scan are part of verification."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected adding a new ADR for this small standard clarification; docs/standards/testing.md already owns test coverage/mutation policy.",
+        "Rejected editing P0.0 AC evidence artifacts because this guidance is cross-cutting Rust testing standard policy, not AC-0.12 evidence."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "No secrets, tenant data, or runtime credentials touched."
+      ],
+      "secrets_touched": false,
+      "tenant_data_touched": false
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance readiness claim; coverage/mutation policy is evidence discipline only."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Coverage reports require Buck2 target, Build ID, report path, changed-file delta, and generated-path exclusions."
+      ]
+    }
+  },
+  "freshness_unix": 1780469548,
+  "git_sha": "eab8c6d55c74c91a56e05d9fcbf79abd11d4f9fb",
+  "known_gaps": [
+    "No Buck2 coverage runner target is implemented in this slice.",
+    "No Buck2 mutation lane is implemented in this slice.",
+    "PR #455 remains blocked on live cloud-ci/oya-ci required context and source-app binding."
+  ],
+  "official_sources": [
+    {
+      "name": "rustc Book \u2014 Instrumentation-based Code Coverage",
+      "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+      "used_for": "-C instrument-coverage, LLVM_PROFILE_FILE, coverage maps/counters"
+    },
+    {
+      "name": "LLVM \u2014 Source-based Code Coverage",
+      "url": "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+      "used_for": "llvm-profdata merge and llvm-cov report/export pipeline"
+    },
+    {
+      "name": "Buck2 \u2014 Commands",
+      "url": "https://buck2.build/docs/users/commands/",
+      "used_for": "Buck2 target-based build/test/run evidence surface"
+    },
+    {
+      "name": "Buck2 \u2014 Bootstrapping",
+      "url": "https://buck2.build/docs/about/bootstrapping/",
+      "used_for": "Buck2 bootstrapping and reindeer-generated BUCK files from crates.io"
+    },
+    {
+      "name": "Reindeer",
+      "url": "https://github.com/facebookincubator/reindeer",
+      "used_for": "Rust crates to Buck build rule generation context"
+    },
+    {
+      "name": "Cargo Book \u2014 Workspaces",
+      "url": "https://doc.rust-lang.org/cargo/reference/workspaces.html",
+      "used_for": "dual Cargo workspace manifest ergonomics and shared Cargo.lock model"
+    },
+    {
+      "name": "cargo-mutants",
+      "url": "https://mutants.rs/",
+      "used_for": "local Cargo/nextest mutation testing behavior"
+    }
+  ],
+  "schema_version": "multispectrum-review/v2.4.0",
+  "scope": [
+    "docs/standards/testing.md",
+    "evidence/multispectrum/platform-readiness-p0-0-rust-testing-standard-1780469548.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "session_id": "omx-1780449440528-15gm8q",
+  "summary": "Recorded the Rust testing standard requested by the user: coverage evidence should be Buck2-native LLVM source-based coverage rather than Tarpaulin, while local mutation testing may use Cargo through the maintained dual Cargo.toml + Buck2/reindeer-compatible setup; Buck2/cloud-ci remains CI and merge authority.",
+  "timestamp_iso": "2026-06-03T06:52:29Z",
+  "timestamp_unix": 1780469548,
+  "verification_plan": [
+    "grep docs/standards/testing.md for Buck2-native LLVM source-based coverage, Tarpaulin non-authority, dual Cargo+Buck2, reindeer, cargo mutants",
+    "python JSON parse evidence and audit-chain after append",
+    "evidence-secret-scan on new evidence and audit-chain",
+    "git diff --check"
+  ]
+}
