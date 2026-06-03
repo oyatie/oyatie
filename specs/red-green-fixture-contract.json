@@ -25,7 +25,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 18,
+  "minimum_entry_count": 19,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -512,12 +512,39 @@
           "contains": "full_manifest_prd_conformance_proven"
         }
       ]
+    },
+    {
+      "id": "adr-hygiene",
+      "automation_matrix_row_id": "AC-0.3-adr-hygiene",
+      "buck2_target": "//:adr-hygiene-check",
+      "test_paths": [
+        "scripts/tests/adr_hygiene_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-adr-hygiene/tc-adr-hygiene-good-renumbered-superseded-clean.json",
+          "contains": "TC-0.3-GOOD-renumbered-superseded-clean"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/adr_hygiene_check.test.sh",
+          "contains": "duplicate_adr_number"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-adr-hygiene.py",
+          "contains": "full_adr_index_regenerated"
+        }
+      ]
     }
   ],
   "automated_chain": [
     "scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json",
     "//:service-root-classifier-check",
     "//:status-enum-drift-check",
+    "//:adr-hygiene-check",
     "buck2 build //:phase0-red-green-fixture-contract-check"
   ]
 }

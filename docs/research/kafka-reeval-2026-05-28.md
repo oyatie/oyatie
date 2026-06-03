@@ -42,6 +42,6 @@ No new ADR is needed for the doctrine check itself; this doc serves as the resea
 
 ## Open ADR numbers
 
-Next available ADR number as of 2026-05-28: **ADR-0377** (ADR-0376 is the last filed).
+Original proposed ADR number was **ADR-0377** (ADR-0376 was the last filed on 2026-05-28); AC-0.3 later renumbered the Kafka/Pulsar decision to **ADR-0520** because ADR-0377 is assigned to the Forgejo board projection decision.
 
-Proposed: `docs/decisions/ADR-0377-migrate-event-backbone-kafka-to-pulsar.md`
+Accepted: `docs/decisions/ADR-0520-kafka-to-pulsar-via-kop.md`

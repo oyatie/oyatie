@@ -121,6 +121,7 @@
     "//:phase0-merge-conflict-foundation-check",
     "//:service-root-classifier-check",
     "//:status-enum-drift-check",
+    "//:adr-hygiene-check",
     "//:phase0-automation-ratchet-check",
     "//:phase0-claim-ceiling-check",
     "//:rust-testing-standard-check",
@@ -240,7 +241,10 @@
     "specs/phase0-structural-packets.json",
     "scripts/ci/assert-status-enum-drift.py",
     "scripts/tests/status_enum_drift_check.test.sh",
-    "specs/status-enum-registry.json"
+    "specs/status-enum-registry.json",
+    "specs/adr-hygiene-registry.json",
+    "scripts/tests/adr_hygiene_check.test.sh",
+    "scripts/ci/assert-adr-hygiene.py"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -342,7 +346,11 @@
       "status-enum-drift-check",
       "assert-status-enum-drift.py",
       "status_enum_drift_check.test.sh",
-      "status-enum-registry.json"
+      "status-enum-registry.json",
+      "adr-hygiene-registry.json",
+      "adr_hygiene_check.test.sh",
+      "assert-adr-hygiene.py",
+      "adr-hygiene-check"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",

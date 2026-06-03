@@ -96,7 +96,8 @@
       "mapped_row_ids": [
         "AC-0.3-adr-hygiene"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.3 to //:adr-hygiene-check, specs/adr-hygiene-registry.json, ADR-0377 renumbering evidence, ADR-0511->ADR-0513 supersession validation, and superseded-reference RED/GREEN fixtures. Local/static seed evidence only; full ADR index regeneration and live required-context authority remain false."
     },
     {
       "id": "AC-0.4",

@@ -1,5 +1,7 @@
 ---
-id: ADR-0377
+id: ADR-0520
+renumbered_from: ADR-0377
+renumbering_reason: "AC-0.3 duplicate ADR-0377 hygiene fix; ADR-0377 remains assigned to the Forgejo board projection decision."
 title: "Migrate Kafka to Pulsar via KoP wire-compat"
 status: Accepted
 date: 2026-05-28
@@ -11,7 +13,7 @@ superseded_by: []
 related: [ADR-0005, ADR-0195]
 ---
 
-# ADR-0377 — Migrate Kafka to Pulsar via KoP wire-compat
+# ADR-0520 — Migrate Kafka to Pulsar via KoP wire-compat
 
 ## Status
 

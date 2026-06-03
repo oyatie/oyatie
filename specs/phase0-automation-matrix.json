@@ -346,10 +346,10 @@
       "requirement": "ADR numbering/supersession hygiene must block duplicate or stale canonical decisions, including ADR-0377 and ADR-0511/0513 reconciliation.",
       "classification": "automated_blocking_now",
       "owner": "council-architecture + platform-governance",
-      "target_gate_or_controller": "ADR citation/index/supersession Rust gates",
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.3",
+      "target_gate_or_controller": "Buck2-local ADR hygiene gate //:adr-hygiene-check (duplicate ADR id, supersession, and active-doc stale-reference lint seed evidence)",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.3 + specs/fixtures/phase0-adr-hygiene/",
       "retirement_phase": "P0.3/P0.7",
-      "evidence_path": "docs/decisions/ + ADR index/citation evidence",
+      "evidence_path": "specs/adr-hygiene-registry.json + specs/fixtures/phase0-adr-hygiene/ + //:adr-hygiene-check",
       "no_new_oya_cli_surface": true
     },
     {

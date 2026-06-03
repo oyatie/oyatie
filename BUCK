@@ -83,6 +83,11 @@ genrule(
         "scripts/ci/assert-status-enum-drift.py": "scripts/ci/assert-status-enum-drift.py",
         "scripts/tests/status_enum_drift_check.test.sh": "scripts/tests/status_enum_drift_check.test.sh",
         "specs/status-enum-registry.json": "specs/status-enum-registry.json",
+        "scripts/ci/assert-adr-hygiene.py": "scripts/ci/assert-adr-hygiene.py",
+        "scripts/tests/adr_hygiene_check.test.sh": "scripts/tests/adr_hygiene_check.test.sh",
+        "specs/adr-hygiene-registry.json": "specs/adr-hygiene-registry.json",
+        "docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md": "docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md",
+        "docs/decisions/ADR-0520-kafka-to-pulsar-via-kop.md": "docs/decisions/ADR-0520-kafka-to-pulsar-via-kop.md",
         "specs/fixtures/phase0-status-enum-drift/tc-status-enum-good-aligned.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-good-aligned.json",
         "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-invalid-status-value.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-invalid-status-value.json",
         "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-spec-without-code.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-spec-without-code.json",
@@ -449,6 +454,32 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-status-enum-drift/*.json", "oya/real-estate/**", "oya/analytics/**"])},
     out = "status-enum-drift-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/status_enum_drift_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-status-enum-drift.py --registry specs/status-enum-registry.json --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.3 ADR hygiene check: local/static evidence for duplicate ADR-number
+# rejection, ADR-0511 -> ADR-0513 supersession, and active-doc stale
+# canonical-reference linting. This never regenerates the full ADR index, posts
+# statuses, or claims Phase-0 completion.
+genrule(
+    name = "adr-hygiene-check",
+    srcs = {
+        "scripts/ci/assert-adr-hygiene.py": "scripts/ci/assert-adr-hygiene.py",
+        "scripts/tests/adr_hygiene_check.test.sh": "scripts/tests/adr_hygiene_check.test.sh",
+        "specs/adr-hygiene-registry.json": "specs/adr-hygiene-registry.json",
+        "docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md": "docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md",
+        "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md": "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "docs/decisions/ADR-0520-kafka-to-pulsar-via-kop.md": "docs/decisions/ADR-0520-kafka-to-pulsar-via-kop.md",
+        "docs/research/kafka-reeval-2026-05-28.md": "docs/research/kafka-reeval-2026-05-28.md",
+        "docs/standards/logging-tracing.md": "docs/standards/logging-tracing.md",
+    } | {path: path for path in glob(["specs/fixtures/phase0-adr-hygiene/*.json", "docs/decisions/ADR-*.md", "docs/standards/*.md", "specs/*.json"])},
+    out = "adr-hygiene-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/adr_hygiene_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-adr-hygiene.py --registry specs/adr-hygiene-registry.json --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
