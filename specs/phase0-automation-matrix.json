@@ -293,7 +293,8 @@
       "retirement_phase": "P0.0",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
       "target_gate_or_controller": "cloud-ci tenant-isolation fixture gate + //:phase0-tenant-isolation-fixture-check",
-      "claim_boundary": "Local/static fixture gate proves the checked-in GOOD/BAD tenant-pipeline isolation contract only. This is not live tenant isolation, security readiness, tenant-facing readiness, P0.0 green, or Phase-0 completion until trusted cloud-ci/oya-ci runs the gate on candidate SHAs."
+      "claim_boundary": "Local/static fixture gate proves the checked-in GOOD/BAD tenant-pipeline isolation contract only; not live tenant isolation; not security readiness; not tenant-facing readiness; not P0.0 green; not Phase-0 completion until trusted cloud-ci/oya-ci runs the gate on candidate SHAs.",
+      "verification_command": "buck2 build //:phase0-tenant-isolation-fixture-check"
     },
     {
       "blocking_fixture": "specs/fixtures/phase0-exit-gate/",
