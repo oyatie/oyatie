@@ -1276,6 +1276,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "P0.0-local-static-seed",
       "purpose": "AC-0.11 local/static registry for known-bad fixture coverage, self-mutation tests, and non-vacuous integrity-gate proof boundaries."
+    },
+    "oya_ci_prow_capability_parity": {
+      "kind": "spec",
+      "current_path": "/specs/oya-ci-prow-capability-parity.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-p0.0-buck2-authority",
+      "purpose": "Enforceable upstream Kubernetes Prow feature/capability parity and improvement registry for the Rust, Forgejo-native oya-ci reimplementation; records full target parity, explicit superseded/out-of-scope upstream components, and non-claim boundaries until trusted cloud-ci/oya-ci posts source-bound oya-ci-required."
     }
   },
   "by_kind": {
@@ -1317,6 +1324,7 @@
   },
   "pointers": {
     "buck2_authority_policy": "specs/buck2-authority-policy.json",
-    "generated_artifact_registry": "specs/generated-artifact-registry.json"
+    "generated_artifact_registry": "specs/generated-artifact-registry.json",
+    "oya_ci_prow_capability_parity": "specs/oya-ci-prow-capability-parity.json"
   }
 }

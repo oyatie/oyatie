@@ -1433,8 +1433,15 @@
       "local hooks",
       "operator procedure"
     ],
-    "producer": "cloud-ci/oya-ci controller or trusted bridge that runs Buck2 targets from trusted trunk/controller state",
+    "producer": "cloud-ci/oya-ci Rust Prow reimplementation controller or trusted source-bound bridge that runs Buck2 targets from trusted trunk/controller state",
     "required_context": "oya-ci-required"
   },
-  "title": "Buck2AuthorityPolicy"
+  "title": "Buck2AuthorityPolicy",
+  "upstream_prow_baseline": {
+    "repository": "https://github.com/kubernetes-sigs/prow",
+    "docs": "https://docs.prow.k8s.io/docs/",
+    "architecture_docs": "https://docs.prow.k8s.io/docs/overview/architecture/",
+    "tide_docs": "https://docs.prow.k8s.io/docs/components/core/tide/",
+    "contract": "cloud-ci/oya-ci is a Rust reimplementation and improvement of upstream Kubernetes Prow/Tide, not a greenfield CI invention; we adopt the proven Prow component/capability model while replacing GitHub/GCS/Groovy coupling with Forgejo-native, Buck2-native, self-hosted Rust services."
+  }
 }

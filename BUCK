@@ -43,8 +43,11 @@ genrule(
         "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
         "scripts/ci/assert-automation-ratchet.py": "scripts/ci/assert-automation-ratchet.py",
         "scripts/tests/phase0_automation_ratchet_check.test.sh": "scripts/tests/phase0_automation_ratchet_check.test.sh",
+        "scripts/tests/buck2_authority_policy_check.test.sh": "scripts/tests/buck2_authority_policy_check.test.sh",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "specs/oya-ci-prow-capability-parity.json": "specs/oya-ci-prow-capability-parity.json",
+        "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
         "scripts/ci/assert-claim-ceiling.py": "scripts/ci/assert-claim-ceiling.py",
         "scripts/tests/phase0_claim_ceiling_check.test.sh": "scripts/tests/phase0_claim_ceiling_check.test.sh",
         "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
@@ -305,6 +308,27 @@ genrule(
     },
     out = "buck2-authority-policy-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+# P0.0 Buck2-authority parity fixture guard: mutation-style RED/GREEN checks
+# for upstream Prow parity rows, explicit upstream waivers, live-authority
+# boundaries, and root-hub discoverability. Fixture mode narrows broad
+# repository scans so this target stays sandboxable; the full scan remains
+# //:buck2-authority-policy-check above.
+genrule(
+    name = "buck2-authority-policy-fixture-check",
+    srcs = {
+        "scripts/ci/enforce-buck2-authority.py": "scripts/ci/enforce-buck2-authority.py",
+        "scripts/tests/buck2_authority_policy_check.test.sh": "scripts/tests/buck2_authority_policy_check.test.sh",
+        "specs/buck2-authority-policy.json": "specs/buck2-authority-policy.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "specs/oya-ci-prow-capability-parity.json": "specs/oya-ci-prow-capability-parity.json",
+        "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
+    },
+    out = "buck2-authority-policy-fixture-check.txt",
+    cmd = "BUCK2_AUTHORITY_FIXTURE_MODE=1 PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD bash scripts/tests/buck2_authority_policy_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 
