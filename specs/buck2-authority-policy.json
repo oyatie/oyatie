@@ -829,7 +829,10 @@
       "d1-seam-contracts-registry.json",
       "AC-0.11-who-gates-gates",
       "//:who-gates-gates-check",
-      "who-gates-gates-registry.json"
+      "who-gates-gates-registry.json",
+      "AC-0.10-d1-consistency-token",
+      "buck2 build //:d1-seam-contracts-check",
+      "phase0_consistency_token_presence_required"
     ],
     "specs/phase0-automation-coverage-registry.json": [
       "AC-0.0-trusted-target-inventory",
@@ -854,7 +857,10 @@
       "d1-seam-contracts-registry.json",
       "AC-0.11",
       "//:who-gates-gates-check",
-      "who-gates-gates-registry.json"
+      "who-gates-gates-registry.json",
+      "AC-0.10",
+      "consistency_token",
+      "buck2 build //:d1-seam-contracts-check"
     ],
     "scripts/ci/assert-claim-ceiling.py": [
       "claim-ceiling local/static fixture evidence only",
@@ -1184,7 +1190,10 @@
     "scripts/tests/d1_seam_contracts_check.rs": [
       "a2a_contract_rejects_proto_required_consistency_token",
       "a2b_contract_rejects_missing_idempotency_key",
-      "bad_fixture_reports_missing_consistency_token"
+      "bad_fixture_reports_missing_consistency_token",
+      "automation_matrix_maps_ac010_to_d1_seam_gate",
+      "AC-0.10-d1-consistency-token",
+      "buck2 build //:d1-seam-contracts-check"
     ],
     "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": [
       "syntax = \"proto3\";",

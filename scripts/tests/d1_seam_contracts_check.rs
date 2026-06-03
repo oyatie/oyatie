@@ -114,3 +114,31 @@ fn registry_rejects_phase0_completion_claim() {
         failures
     );
 }
+
+#[test]
+fn automation_matrix_maps_ac010_to_d1_seam_gate() {
+    let matrix = read_repo_file("specs/phase0-automation-matrix.json");
+    let coverage = read_repo_file("specs/phase0-automation-coverage-registry.json");
+    let compact_matrix = matrix
+        .chars()
+        .filter(|ch| !ch.is_whitespace())
+        .collect::<String>();
+    let compact_coverage = coverage
+        .chars()
+        .filter(|ch| !ch.is_whitespace())
+        .collect::<String>();
+    assert!(compact_matrix.contains("\"id\":\"AC-0.10-d1-consistency-token\""));
+    assert!(
+        compact_matrix.contains("\"target_gate_or_controller\":\"//:d1-seam-contracts-check\"")
+    );
+    assert!(
+        matrix.contains("\"verification_command\": \"buck2 build //:d1-seam-contracts-check\"")
+    );
+    assert!(compact_matrix.contains("consistency_token"));
+    assert!(compact_matrix.contains("\"live_required_context_execution_proven\":false"));
+    assert!(compact_matrix.contains("\"p0_0_green\":false"));
+    assert!(compact_matrix.contains("\"phase0_complete\":false"));
+    assert!(compact_coverage.contains("\"id\":\"AC-0.10\""));
+    assert!(compact_coverage.contains("//:d1-seam-contracts-check"));
+    assert!(compact_coverage.contains("consistency_token"));
+}

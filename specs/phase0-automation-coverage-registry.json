@@ -166,7 +166,8 @@
       "mapped_row_ids": [
         "AC-0.10-d1-consistency-token"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.10 to //:d1-seam-contracts-check, specs/d1-seam-contracts-registry.json, A2a MutationResult optional consistency_token validation, and BAD fixtures for missing consistency_token/proto-required topology freezing. Coverage is local/static D1 seam-contract evidence only; live D1 read-your-writes conformance, required-context authority, P0.0 green, Phase-0 completion, production readiness, and hyperscaler-grade readiness remain false. Verification command: buck2 build //:d1-seam-contracts-check."
     },
     {
       "id": "AC-0.10b",

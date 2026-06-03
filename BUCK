@@ -590,6 +590,8 @@ genrule(
         "scripts/ci/assert-d1-seam-contracts.rs": "scripts/ci/assert-d1-seam-contracts.rs",
         "scripts/tests/d1_seam_contracts_check.rs": "scripts/tests/d1_seam_contracts_check.rs",
         "specs/d1-seam-contracts-registry.json": "specs/d1-seam-contracts-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["specs/fixtures/phase0-d1-seam-contracts/*.json"])},

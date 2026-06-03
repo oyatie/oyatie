@@ -437,11 +437,26 @@
       "requirement": "A2a mutation-result contract must carry the consistency_token field and D1 conformance reference without freezing Phase-2 topology.",
       "classification": "automated_blocking_now",
       "owner": "platform-architecture",
-      "target_gate_or_controller": "D1 contract consistency-token lint gate",
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.10",
+      "target_gate_or_controller": "//:d1-seam-contracts-check",
+      "blocking_fixture": "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-missing-consistency-token.json + specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-proto-required-or-frozen-topology.json + .omx/plans/test-spec-phase0.md#T0.10",
       "retirement_phase": "P0.4/Phase 2 conformance",
-      "evidence_path": "D1 contract lint + conformance-stub evidence",
-      "no_new_oya_cli_surface": true
+      "evidence_path": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto + specs/d1-seam-contracts-registry.json + specs/fixtures/phase0-d1-seam-contracts/*.json + scripts/ci/assert-d1-seam-contracts.rs + scripts/tests/d1_seam_contracts_check.rs + Buck2 output for //:d1-seam-contracts-check",
+      "no_new_oya_cli_surface": true,
+      "verification_command": "buck2 build //:d1-seam-contracts-check",
+      "coverage_note": "Local/static AC-0.10 consistency-token lint evidence only: maps the A2a MutationResult proto-optional consistency_token requirement and Phase-0 fixture-required token presence to //:d1-seam-contracts-check. It does not execute live D1 read-your-writes conformance, prove live required-context authority, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness.",
+      "claim_boundary": {
+        "local_static_fixture_evidence_only": true,
+        "mutation_result_consistency_token_optional": true,
+        "phase0_consistency_token_presence_required": true,
+        "live_d1_conformance_executed": false,
+        "status_mutation_performed": false,
+        "protected_branch_authority_proven": false,
+        "live_required_context_execution_proven": false,
+        "p0_0_green": false,
+        "phase0_complete": false,
+        "production_ready": false,
+        "hyperscaler_grade": false
+      }
     },
     {
       "id": "AC-0.10b-d1-read-your-writes-xfail",
