@@ -173,8 +173,9 @@
       "blocking_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json",
       "owner": "platform-toolchain + platform-security + platform-governance",
       "retirement_phase": "P0.0 live cloud-ci/oya-ci required-context cutover",
-      "claim_boundary": "Local/static fixture gate proves the checked-in structured result-bundle schema and RED/false-green fixtures only. This is not live status output, protected-branch authority, P0.0 green, or Phase-0 completion until trusted cloud-ci/oya-ci posts the required context on candidate SHAs.",
-      "no_new_oya_cli_surface": true
+      "claim_boundary": "Local/static fixture gate proves the checked-in structured result-bundle schema and RED/false-green fixtures only; not live status output; not protected-branch authority; not P0.0 green; not Phase-0 completion until trusted cloud-ci/oya-ci posts the required context on candidate SHAs.",
+      "no_new_oya_cli_surface": true,
+      "verification_command": "buck2 build //:phase0-result-bundle-output-check"
     },
     {
       "id": "AC-0.0-buck2-authority-no-cargo-regression",

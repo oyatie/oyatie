@@ -8,9 +8,55 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 check="scripts/ci/assert-result-bundle-output.py"
+matrix="specs/phase0-automation-matrix.json"
+coverage="specs/phase0-automation-coverage-registry.json"
 schema="specs/phase0-ci-enforcement-result-schema.json"
 current_red="specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json"
 false_green="specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"
+
+
+python3 - <<'PY' "$matrix" "$coverage"
+import json
+import sys
+
+matrix = json.load(open(sys.argv[1]))
+coverage = json.load(open(sys.argv[2]))
+rows = {row.get("id"): row for row in matrix.get("seed_rows", [])}
+subjects = {subject.get("id"): subject for subject in coverage.get("coverage_subjects", [])}
+
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+
+row = rows.get("AC-0.0-structured-result-bundle")
+expect(row is not None, "AC-0.0 structured result-bundle row missing")
+target = row.get("target_gate_or_controller", "")
+expect("cloud-ci/oya-ci result bundle emitter" in target, "AC-0.0 result bundle row must preserve live cloud-ci/oya-ci emitter")
+expect("//:phase0-result-bundle-output-check" in target, "AC-0.0 result bundle row must name local Buck2 target")
+expect(
+    row.get("verification_command") == "buck2 build //:phase0-result-bundle-output-check",
+    "AC-0.0 result bundle row must record Buck2 local verification command",
+)
+claim_boundary = row.get("claim_boundary", "")
+expect("not live status output" in claim_boundary, "AC-0.0 result bundle claim boundary must preserve live-output non-claim")
+expect("not protected-branch authority" in claim_boundary, "AC-0.0 result bundle claim boundary must preserve protected-branch non-claim")
+expect("not P0.0 green" in claim_boundary, "AC-0.0 result bundle claim boundary must preserve P0.0 non-claim")
+expect(row.get("no_new_oya_cli_surface") is True, "AC-0.0 result bundle must not add an oya CLI surface")
+
+subject = subjects.get("AC-0.0")
+expect(subject is not None, "AC-0.0 coverage subject missing")
+expect("AC-0.0-structured-result-bundle" in subject.get("mapped_row_ids", []), "AC-0.0 coverage must map result bundle row")
+commands = subject.get("verification_commands", {})
+expect(
+    commands.get("AC-0.0-structured-result-bundle") == "buck2 build //:phase0-result-bundle-output-check",
+    "AC-0.0 coverage subject must record result-bundle Buck2 local verification command",
+)
+coverage_note = subject.get("coverage_note", "")
+expect("structured result bundles" in coverage_note, "AC-0.0 coverage note must name structured result bundles")
+expect("not P0.0 green" in coverage_note, "AC-0.0 coverage note must preserve P0.0 non-claim")
+PY
 
 python3 "$check" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"

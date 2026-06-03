@@ -780,6 +780,8 @@ genrule(
     srcs = {
         "scripts/ci/assert-result-bundle-output.py": "scripts/ci/assert-result-bundle-output.py",
         "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-ci-enforcement-result-schema.json": "specs/phase0-ci-enforcement-result-schema.json",
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json",

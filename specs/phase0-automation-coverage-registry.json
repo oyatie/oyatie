@@ -69,7 +69,8 @@
       "owner": "platform-toolchain",
       "coverage_note": "Maps all AC-0.0 local/static and live-read RED gate rows, including trusted target inventory, structured result bundles, override/kill-switch, tenant isolation, required context, auto-merge, and Buck2 authority. This is coverage mapping only, not P0.0 green.",
       "verification_commands": {
-        "AC-0.0-trusted-target-inventory": "buck2 build //:phase0-trusted-target-inventory-check"
+        "AC-0.0-trusted-target-inventory": "buck2 build //:phase0-trusted-target-inventory-check",
+        "AC-0.0-structured-result-bundle": "buck2 build //:phase0-result-bundle-output-check"
       }
     },
     {
