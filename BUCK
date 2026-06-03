@@ -53,6 +53,9 @@ genrule(
         "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
         "scripts/ci/assert-rust-testing-standard.py": "scripts/ci/assert-rust-testing-standard.py",
         "scripts/tests/rust_testing_standard_check.test.sh": "scripts/tests/rust_testing_standard_check.test.sh",
+        "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
+        "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh": "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+        "specs/rust-llvm-coverage-runner-contract.json": "specs/rust-llvm-coverage-runner-contract.json",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -260,6 +263,24 @@ genrule(
     },
     out = "rust-testing-standard-check.txt",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_testing_standard_check.test.sh > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# Rust LLVM coverage-runner contract check: local/static target-shape coverage
+# for future Buck2-native source-based coverage lanes. This validates the
+# rustc/LLVM/Buck2 evidence contract and explicit non-claim boundary; it does
+# not run tests, generate coverage reports, post statuses, or claim live Phase-0
+# authority.
+genrule(
+    name = "rust-llvm-coverage-runner-contract-check",
+    srcs = {
+        "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
+        "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh": "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+        "specs/rust-llvm-coverage-runner-contract.json": "specs/rust-llvm-coverage-runner-contract.json",
+    },
+    out = "rust-llvm-coverage-runner-contract-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 

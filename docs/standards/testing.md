@@ -211,7 +211,9 @@ fail.
 - Coverage is **advisory** at PR time and **enforced** at wave-gate
   reviews; a regression of >5 percentage points blocks the wave.
 
-Coverage is generated natively through Buck2, not Tarpaulin:
+Coverage is generated natively through Buck2, not Tarpaulin. The local/static
+contract target `//:rust-llvm-coverage-runner-contract-check` validates the
+required runner shape before a live coverage runner is wired into cloud-ci:
 
 1. Buck2 owns the coverage target inventory and the Build ID for the evidence
    run.

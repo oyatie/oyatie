@@ -59,7 +59,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T07:17:43Z"
+    "updated_at": "2026-06-03T07:38:03Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -120,6 +120,7 @@
     "//:phase0-automation-ratchet-check",
     "//:phase0-claim-ceiling-check",
     "//:rust-testing-standard-check",
+    "//:rust-llvm-coverage-runner-contract-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "//:phase0-auto-merge-after-ci-contract-check",
     "//:forgejo-auto-merge-after-ci-check",
@@ -211,7 +212,10 @@
     "specs/phase0-claim-evidence-map.json",
     "specs/hyperscaler-production-readiness-claim-contract.json",
     "scripts/ci/assert-rust-testing-standard.py",
-    "scripts/tests/rust_testing_standard_check.test.sh"
+    "scripts/tests/rust_testing_standard_check.test.sh",
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
+    "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+    "specs/rust-llvm-coverage-runner-contract.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -284,7 +288,11 @@
       "hyperscaler-production-readiness-claim-contract.json",
       "rust-testing-standard-check",
       "assert-rust-testing-standard.py",
-      "rust_testing_standard_check.test.sh"
+      "rust_testing_standard_check.test.sh",
+      "rust-llvm-coverage-runner-contract-check",
+      "assert-rust-llvm-coverage-runner-contract.py",
+      "rust_llvm_coverage_runner_contract_check.test.sh",
+      "rust-llvm-coverage-runner-contract.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -349,7 +357,9 @@
       "reindeer-style generation",
       "generated-BUCK path",
       "Adding Tarpaulin as the monorepo coverage authority",
-      "Treating local Cargo mutation testing as merge authority"
+      "Treating local Cargo mutation testing as merge authority",
+      "//:rust-llvm-coverage-runner-contract-check",
+      "required runner shape"
     ],
     "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": [
       "oya-ci-required",
@@ -749,6 +759,49 @@
       "local_cargo_mutation_not_advisory",
       "missing_reindeer_generated_buck",
       "forbidden_true_claim_p0_0_green"
+    ],
+    "specs/rust-llvm-coverage-runner-contract.json": [
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not required CI/PR coverage evidence",
+      "//:rust-llvm-coverage-runner-contract-check",
+      "trusted cloud-ci/oya-ci Buck2 target inventory",
+      "rustc -C instrument-coverage",
+      "rustc_flags",
+      "LLVM_PROFILE_FILE",
+      "%m-%p",
+      ".profraw",
+      "llvm-profdata",
+      "-sparse",
+      "llvm-cov",
+      "Buck2 Build ID",
+      "changed-file delta",
+      "excluded generated paths",
+      "coverage_report_generated",
+      "coverage_budget_enforced",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": [
+      "local/static contract evidence only",
+      "rustc -C instrument-coverage",
+      "LLVM_PROFILE_FILE",
+      "llvm-profdata",
+      "llvm-cov",
+      "coverage_report_generated",
+      "coverage_budget_enforced",
+      "p0_0_green",
+      "phase0_complete",
+      "raw_cargo_command_present_in_contract"
+    ],
+    "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh": [
+      "coverage_runner_contract_proven\": true",
+      "coverage_report_generated\": false",
+      "missing_instrument_coverage_flag",
+      "missing_llvm_profile_file_env",
+      "missing_profile_collision_guard",
+      "missing_llvm_profdata_tool",
+      "missing_llvm_cov_tool",
+      "tarpaulin_noncanonical_boundary_missing"
     ]
   },
   "required_glob_anchors": [
