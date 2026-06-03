@@ -9,8 +9,75 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 check="scripts/ci/assert-adr-hygiene.py"
 registry="specs/adr-hygiene-registry.json"
+matrix="specs/phase0-automation-matrix.json"
+coverage="specs/phase0-automation-coverage-registry.json"
 good_fixture="specs/fixtures/phase0-adr-hygiene/tc-adr-hygiene-good-renumbered-superseded-clean.json"
 red_fixture="specs/fixtures/phase0-adr-hygiene/tc-adr-hygiene-bad-duplicate-adr-number.json"
+
+python3 - <<'PY' "$matrix" "$coverage"
+import json
+import sys
+
+matrix_path, coverage_path = sys.argv[1:]
+matrix = json.load(open(matrix_path))
+coverage = json.load(open(coverage_path))
+
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+
+row = next(
+    (candidate for candidate in matrix["seed_rows"] if candidate.get("id") == "AC-0.3-adr-hygiene"),
+    None,
+)
+expect(row is not None, "AC-0.3 ADR hygiene row missing")
+expect(
+    row.get("target_gate_or_controller") == "//:adr-hygiene-check",
+    "AC-0.3 ADR hygiene row must map to exact Buck2 target",
+)
+expect(
+    row.get("verification_command") == "buck2 build //:adr-hygiene-check",
+    "AC-0.3 ADR hygiene row must record exact verification command",
+)
+claim_boundary = row.get("claim_boundary", "")
+expect(
+    "full ADR index regeneration" in claim_boundary,
+    "AC-0.3 ADR hygiene row must preserve full-index non-claim",
+)
+expect(
+    "not live required-context authority" in claim_boundary,
+    "AC-0.3 ADR hygiene row must preserve live-authority non-claim",
+)
+expect(
+    row.get("no_new_oya_cli_surface") is True,
+    "AC-0.3 ADR hygiene row must refuse new oya CLI authority",
+)
+
+subject = next(
+    (candidate for candidate in coverage["coverage_subjects"] if candidate.get("id") == "AC-0.3"),
+    None,
+)
+expect(subject is not None, "AC-0.3 coverage subject missing")
+expect(
+    subject.get("verification_command") == "buck2 build //:adr-hygiene-check",
+    "AC-0.3 coverage subject must record exact verification command",
+)
+coverage_note = subject.get("coverage_note", "")
+expect(
+    "//:adr-hygiene-check" in coverage_note,
+    "AC-0.3 coverage subject must name the exact Buck2 target",
+)
+expect(
+    "full ADR index regeneration" in coverage_note,
+    "AC-0.3 coverage subject must preserve full-index non-claim",
+)
+expect(
+    "live required-context authority remain false" in coverage_note,
+    "AC-0.3 coverage subject must preserve live-authority non-claim",
+)
+PY
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$check" --registry "$registry" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"
