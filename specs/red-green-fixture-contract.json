@@ -25,7 +25,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 22,
+  "minimum_entry_count": 23,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -642,6 +642,44 @@
         {
           "path": "specs/effective-dating-kernel-registry.json",
           "contains": "live_required_context_execution_proven"
+        }
+      ]
+    },
+    {
+      "id": "cross-artifact-agreement",
+      "automation_matrix_row_id": "AC-0.8-cross-artifact-agreement",
+      "buck2_target": "//:cross-artifact-agreement-check",
+      "test_paths": [
+        "scripts/tests/cross_artifact_agreement_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-good-cross-artifact-agreement.json",
+          "contains": "\"expected_verdict\": \"PASS\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-masterplan-roadmap.json",
+          "contains": "missing_masterplan_artifact"
+        },
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-unreconciled-idea-refine-output.json",
+          "contains": "idea_refine_output_unreconciled"
+        },
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-generated-decisions-divergence.json",
+          "contains": "generated_decisions_json_diverged"
+        },
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-register-packet.json",
+          "contains": "missing_decision_propagation_packet_P0.7-D18-merge-conflict-elimination"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-cross-artifact-agreement.rs",
+          "contains": "protection, adds an `oya` CLI surface, or proves Phase-0 completion"
         }
       ]
     }

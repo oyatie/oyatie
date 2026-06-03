@@ -106,6 +106,15 @@ genrule(
         "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json",
         "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json",
         "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json",
+        "scripts/ci/assert-cross-artifact-agreement.rs": "scripts/ci/assert-cross-artifact-agreement.rs",
+        "scripts/tests/cross_artifact_agreement_check.rs": "scripts/tests/cross_artifact_agreement_check.rs",
+        "specs/cross-artifact-agreement-registry.json": "specs/cross-artifact-agreement-registry.json",
+        "specs/decision-propagation-packets.json": "specs/decision-propagation-packets.json",
+        "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-good-cross-artifact-agreement.json": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-good-cross-artifact-agreement.json",
+        "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-masterplan-roadmap.json": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-masterplan-roadmap.json",
+        "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-unreconciled-idea-refine-output.json": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-unreconciled-idea-refine-output.json",
+        "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-generated-decisions-divergence.json": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-generated-decisions-divergence.json",
+        "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-register-packet.json": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-register-packet.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json": "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
@@ -418,6 +427,8 @@ genrule(
         "scripts/tests/d1_seam_contracts_check.rs": "scripts/tests/d1_seam_contracts_check.rs",
         "scripts/ci/assert-effective-dating-kernel.rs": "scripts/ci/assert-effective-dating-kernel.rs",
         "scripts/tests/effective_dating_kernel_check.rs": "scripts/tests/effective_dating_kernel_check.rs",
+        "scripts/ci/assert-cross-artifact-agreement.rs": "scripts/ci/assert-cross-artifact-agreement.rs",
+        "scripts/tests/cross_artifact_agreement_check.rs": "scripts/tests/cross_artifact_agreement_check.rs",
         "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
@@ -579,6 +590,32 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-effective-dating-kernel/*.json"])},
     out = "effective-dating-kernel-check.json",
     cmd = "mkdir -p $TMP/effective-dating-kernel && rustc --edition=2021 -D warnings scripts/tests/effective_dating_kernel_check.rs --test -o $TMP/effective-dating-kernel/effective_dating_kernel_check && OYA_REPO_ROOT=$PWD $TMP/effective-dating-kernel/effective_dating_kernel_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-effective-dating-kernel.rs -o $TMP/effective-dating-kernel/assert-effective-dating-kernel && $TMP/effective-dating-kernel/assert-effective-dating-kernel --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.8 cross-artifact agreement check: Rust/Buck2 local/static
+# evidence that backlog decision register #1..#21 has executable
+# ADR/spec/masterplan/roadmap propagation packets, with fixture-backed REDs
+# for missing agreement entries, generated artifact divergence, unreconciled
+# idea-refine output, and packet omissions. This never posts statuses, adds an
+# oya CLI surface, or claims Phase-0 completion.
+genrule(
+    name = "cross-artifact-agreement-check",
+    srcs = {
+        "scripts/ci/assert-cross-artifact-agreement.rs": "scripts/ci/assert-cross-artifact-agreement.rs",
+        "scripts/tests/cross_artifact_agreement_check.rs": "scripts/tests/cross_artifact_agreement_check.rs",
+        "specs/cross-artifact-agreement-registry.json": "specs/cross-artifact-agreement-registry.json",
+        "specs/decision-propagation-packets.json": "specs/decision-propagation-packets.json",
+        "docs/decisions/ADR-0365-automated-adr-lifecycle-and-propagation.md": "docs/decisions/ADR-0365-automated-adr-lifecycle-and-propagation.md",
+        "docs/machine-readable/masterplan.generated.json": "docs/machine-readable/masterplan.generated.json",
+        "docs/machine-readable/board-sync.generated.json": "docs/machine-readable/board-sync.generated.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-cross-artifact-agreement/*.json"])},
+    out = "cross-artifact-agreement-check.json",
+    cmd = "mkdir -p $TMP/cross-artifact-agreement && rustc --edition=2021 -D warnings scripts/tests/cross_artifact_agreement_check.rs --test -o $TMP/cross-artifact-agreement/cross_artifact_agreement_check && OYA_REPO_ROOT=$PWD $TMP/cross-artifact-agreement/cross_artifact_agreement_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-cross-artifact-agreement.rs -o $TMP/cross-artifact-agreement/assert-cross-artifact-agreement && $TMP/cross-artifact-agreement/assert-cross-artifact-agreement --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
