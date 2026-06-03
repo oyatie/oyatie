@@ -20,7 +20,7 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-PHASE0-AUTO-MERGE-AFTER-CI",
     "status": "p0_0_target_contract_not_live_green",
-    "updated_at": "2026-06-02T23:58:00Z",
+    "updated_at": "2026-06-03T00:17:11Z",
     "version": "0.1.0"
   },
   "description": "P0.0 executable target contract for Forgejo and GitHub bootstrap auto-merge after CI. This file is not a live enforcement claim; it defines the script/spec/test chain that prevents regressions to stale contexts, Cargo authority, unpinned PR heads, or operator-only auto-merge procedure.",
@@ -66,7 +66,25 @@
     "script_rejects_conflict_before_auto_merge": true,
     "trigger_non_dry_run_merge_path_tested": true,
     "trigger_non_dry_run_merge_path_evidence_scope": "local_sequencing_regression_guard_not_live_authority_proof",
-    "trigger_conflict_guard_test": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh"
+    "trigger_conflict_guard_test": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+    "required_context_rollup_check": "scripts/ci/assert-pr-required-context.py",
+    "required_context_rollup_test": "scripts/tests/phase0_required_context_rollup_check.test.sh",
+    "required_context_rollup_fixtures": [
+      "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-failure.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-completed-failure.json",
+      "specs/fixtures/phase0-required-context-rollup/good-nested-cloud-ci-oya-ci-success.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-missing-producer.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-untrusted-producer.json"
+    ],
+    "live_no_checks_reported_failure_reason": "no_status_checks_reported",
+    "script_detects_missing_live_required_context": true,
+    "trusted_required_context_producer": "cloud-ci/oya-ci",
+    "script_rejects_missing_required_context_producer": true,
+    "script_rejects_untrusted_required_context_producer": true,
+    "required_context_rollup_live_read_artifact": "evidence/multispectrum/platform-readiness-p0-0-required-context-rollup-live-pr455-1780447662.json"
   },
   "forgejo": {
     "forge_role": "target_forge_of_record",
@@ -117,7 +135,8 @@
     ],
     "authority_policy_check": "//:buck2-authority-policy-check",
     "github_bootstrap_test": "//:github-auto-merge-after-ci-check",
-    "github_conflict_guard_test": "//:github-auto-merge-after-ci-check"
+    "github_conflict_guard_test": "//:github-auto-merge-after-ci-check",
+    "github_required_context_rollup_test": "//:github-auto-merge-after-ci-check"
   },
   "non_authority_surfaces": [
     "local oya verify output",

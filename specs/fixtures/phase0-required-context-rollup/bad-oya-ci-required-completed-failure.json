@@ -1,0 +1,11 @@
+{
+  "headRefOid": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "statusCheckRollup": [
+    {
+      "name": "oya-ci-required",
+      "status": "COMPLETED",
+      "conclusion": "FAILURE",
+      "workflow": "cloud-ci/oya-ci"
+    }
+  ]
+}

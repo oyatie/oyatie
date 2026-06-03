@@ -139,6 +139,8 @@
     "scripts/ci/enforce-buck2-authority.py",
     "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
     "scripts/ci/oya-ci-post.sh",
+    "scripts/tests/phase0_required_context_rollup_check.test.sh",
+    "scripts/ci/assert-pr-required-context.py",
     "scripts/ci/regen-third-party.sh",
     "scripts/gen_first_party_buck.py",
     "scripts/agent-pre-push-validate.sh",
@@ -223,7 +225,8 @@
       "buck2-authority-policy-check",
       "cloud/*/ci/Jenkinsfile",
       "github-auto-merge-after-ci-check",
-      "oya/*/ci/Jenkinsfile"
+      "oya/*/ci/Jenkinsfile",
+      "phase0_required_context_rollup_check.test.sh"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -408,6 +411,29 @@
       "--fetch-remote github-mirror",
       "failed to fetch PR #455 head from remote origin",
       "check-sequential-pr-merge-conflicts fetch-remote tests passed"
+    ],
+    "scripts/ci/assert-pr-required-context.py": [
+      "oya-ci-required",
+      "no_status_checks_reported",
+      "missing_required_context",
+      "required_context_not_success",
+      "status-rollup evidence only; this checker never posts statuses",
+      "cloud-ci/oya-ci",
+      "missing_required_context_producer",
+      "untrusted_required_context_producer",
+      "required_context_trusted_producer"
+    ],
+    "scripts/tests/phase0_required_context_rollup_check.test.sh": [
+      "good-oya-ci-required-success.json",
+      "bad-no-checks-reported.json",
+      "no_status_checks_reported",
+      "required_context_not_success",
+      "bad-oya-ci-required-completed-failure.json",
+      "good-nested-cloud-ci-oya-ci-success.json",
+      "missing_required_context_producer",
+      "untrusted_required_context_producer",
+      "bad-oya-ci-required-success-missing-producer.json",
+      "bad-oya-ci-required-success-untrusted-producer.json"
     ]
   },
   "required_glob_anchors": [

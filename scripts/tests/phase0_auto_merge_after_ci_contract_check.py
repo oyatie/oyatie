@@ -60,6 +60,27 @@ def main() -> int:
         failures.append("github.trigger_non_dry_run_merge_path_evidence_scope must label local evidence scope")
     if github.get("trigger_conflict_guard_test") != "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh":
         failures.append("github.trigger_conflict_guard_test must name the trigger-level conflict guard test")
+    if github.get("required_context_rollup_check") != "scripts/ci/assert-pr-required-context.py":
+        failures.append("github.required_context_rollup_check must name the non-mutating rollup checker")
+    if github.get("required_context_rollup_test") != "scripts/tests/phase0_required_context_rollup_check.test.sh":
+        failures.append("github.required_context_rollup_test must name the rollup fixture test")
+    if github.get("trusted_required_context_producer") != "cloud-ci/oya-ci":
+        failures.append("github.trusted_required_context_producer must be cloud-ci/oya-ci")
+    if github.get("script_rejects_missing_required_context_producer") is not True:
+        failures.append("github.script_rejects_missing_required_context_producer must be true")
+    if github.get("script_rejects_untrusted_required_context_producer") is not True:
+        failures.append("github.script_rejects_untrusted_required_context_producer must be true")
+    if github.get("live_no_checks_reported_failure_reason") != "no_status_checks_reported":
+        failures.append("github.live_no_checks_reported_failure_reason must be no_status_checks_reported")
+    if github.get("script_detects_missing_live_required_context") is not True:
+        failures.append("github.script_detects_missing_live_required_context must be true")
+    for fixture in [
+        "specs/fixtures/phase0-required-context-rollup/good-nested-cloud-ci-oya-ci-success.json",
+        "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-missing-producer.json",
+        "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-untrusted-producer.json",
+    ]:
+        if fixture not in github.get("required_context_rollup_fixtures", []):
+            failures.append(f"github.required_context_rollup_fixtures missing {fixture}")
     if forgejo.get("schedule_field") != "merge_when_checks_succeed":
         failures.append("forgejo.schedule_field must be merge_when_checks_succeed")
     if forgejo.get("head_pin_field") != "head_commit_id":
@@ -80,6 +101,8 @@ def main() -> int:
     buck2_enforcement = spec.get("buck2_enforcement", {})
     if buck2_enforcement.get("github_bootstrap_test") != "//:github-auto-merge-after-ci-check":
         failures.append("buck2_enforcement.github_bootstrap_test must be //:github-auto-merge-after-ci-check")
+    if buck2_enforcement.get("github_required_context_rollup_test") != "//:github-auto-merge-after-ci-check":
+        failures.append("buck2_enforcement.github_required_context_rollup_test must be //:github-auto-merge-after-ci-check")
 
     trigger = read("scripts/trigger-next-queue-automerge.sh")
     require_contains(trigger, "--auto --match-head-commit", "github trigger", failures)
@@ -136,6 +159,24 @@ def main() -> int:
     github_test = read("scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh")
     require_contains(github_test, "--merge-method is fixed to squash", "github trigger test", failures)
 
+    rollup_check = read("scripts/ci/assert-pr-required-context.py")
+    require_contains(rollup_check, "no_status_checks_reported", "required context rollup check", failures)
+    require_contains(rollup_check, "missing_required_context", "required context rollup check", failures)
+    require_contains(rollup_check, "required_context_not_success", "required context rollup check", failures)
+    require_contains(rollup_check, "cloud-ci/oya-ci", "required context rollup check", failures)
+    require_contains(rollup_check, "missing_required_context_producer", "required context rollup check", failures)
+    require_contains(rollup_check, "untrusted_required_context_producer", "required context rollup check", failures)
+    require_contains(rollup_check, "required_context_trusted_producer", "required context rollup check", failures)
+    require_contains(rollup_check, "status-rollup evidence only; this checker never posts statuses", "required context rollup check", failures)
+
+    rollup_test = read("scripts/tests/phase0_required_context_rollup_check.test.sh")
+    require_contains(rollup_test, "bad-no-checks-reported.json", "required context rollup test", failures)
+    require_contains(rollup_test, "no_status_checks_reported", "required context rollup test", failures)
+    require_contains(rollup_test, "required_context_not_success", "required context rollup test", failures)
+    require_contains(rollup_test, "good-nested-cloud-ci-oya-ci-success.json", "required context rollup test", failures)
+    require_contains(rollup_test, "missing_required_context_producer", "required context rollup test", failures)
+    require_contains(rollup_test, "untrusted_required_context_producer", "required context rollup test", failures)
+
     github_conflict_test = read("scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh")
     require_contains(github_conflict_test, "sequential PR merge simulation passed: 1 PRs modeled", "github conflict guard test", failures)
     require_contains(github_conflict_test, "dry-run: gh pr merge 455 --squash --auto --match-head-commit", "github conflict guard test", failures)
@@ -167,6 +208,8 @@ def main() -> int:
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
         "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+        "scripts/tests/phase0_required_context_rollup_check.test.sh",
+        "scripts/ci/assert-pr-required-context.py",
         "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
         "docs/ci/auto-merge-flow.md",
         "docs/ci/forge-of-record.md",
@@ -199,6 +242,7 @@ def main() -> int:
             "trigger_conflict_guard_tested": True,
             "trigger_non_dry_run_merge_path_tested": True,
             "trigger_non_dry_run_merge_path_scope_labeled": True,
+            "required_context_rollup_check_tested": True,
             "buck2_policy_scan_covered": True,
             "p0_0_green": False,
             "phase0_complete": False,

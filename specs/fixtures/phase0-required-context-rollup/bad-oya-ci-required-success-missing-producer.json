@@ -1,0 +1,9 @@
+{
+  "headRefOid": "ffffffffffffffffffffffffffffffffffffffff",
+  "statusCheckRollup": [
+    {
+      "name": "oya-ci-required",
+      "state": "SUCCESS"
+    }
+  ]
+}
