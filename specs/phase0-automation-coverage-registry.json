@@ -175,7 +175,8 @@
       "mapped_row_ids": [
         "AC-0.10b-d1-read-your-writes-xfail"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.10b to //:d1-read-your-writes-xfail-check, specs/d1-read-your-writes-xfail-registry.json, and RED/XFAIL fixtures. Coverage is local/static XFAIL classification evidence only; live D1 conformance, required-context authority, P0.0 green, Phase-0 completion, production readiness, and hyperscaler-grade readiness remain false."
     },
     {
       "id": "AC-0.11",

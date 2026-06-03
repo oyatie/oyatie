@@ -168,7 +168,11 @@
     "//:structural-lock-revert-check",
     "scripts/ci/assert-structural-lock-revert.rs",
     "scripts/tests/structural_lock_revert_check.rs",
-    "specs/structural-lock-revert-registry.json"
+    "specs/structural-lock-revert-registry.json",
+    "//:d1-read-your-writes-xfail-check",
+    "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+    "scripts/tests/d1_read_your_writes_xfail_check.rs",
+    "specs/d1-read-your-writes-xfail-registry.json"
   ],
   "claim_boundary": {
     "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
@@ -305,7 +309,14 @@
     "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json",
     "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
     "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
-    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json"
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json",
+    "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+    "scripts/tests/d1_read_your_writes_xfail_check.rs",
+    "specs/d1-read-your-writes-xfail-registry.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -1228,6 +1239,55 @@
     ],
     "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json": [
       "clock_skew_determinism_missing",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/d1-read-your-writes-xfail-registry.json": [
+      "d1_read_your_writes_xfail_measured",
+      "//:d1-read-your-writes-xfail-check",
+      "expected_failure_until_phase2_mechanism_lands",
+      "live_d1_conformance_executed",
+      "p0_0_green",
+      "phase0_complete",
+      "hyperscaler_grade"
+    ],
+    "scripts/ci/assert-d1-read-your-writes-xfail.rs": [
+      "AC-0.10b D1 read-your-writes XFAIL classifier",
+      "FALSE_CLAIMS",
+      "d1_read_your_writes_xfail_measured",
+      "missing_consistency_token",
+      "xfail_misclassified_as_pass",
+      "phase2_green_claim_without_live_evidence",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/d1_read_your_writes_xfail_check.rs": [
+      "checked_in_registry_buck_and_fixtures_pass",
+      "good_fixture_is_xfail_without_policy_violations",
+      "pass_classification_without_phase2_is_rejected",
+      "missing_consistency_token_is_rejected",
+      "live_phase2_claim_without_authority_is_rejected"
+    ],
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json": [
+      "expected_failure_until_phase2_mechanism_lands",
+      "consistency_token",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json": [
+      "xfail_misclassified_as_pass",
+      "consistency_token",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json": [
+      "missing_consistency_token",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json": [
+      "phase2_green_claim_without_live_evidence",
+      "live_d1_conformance_claimed",
       "p0_0_green",
       "phase0_complete"
     ]

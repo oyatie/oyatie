@@ -123,6 +123,13 @@ genrule(
         "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
         "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
         "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json",
+        "scripts/ci/assert-d1-read-your-writes-xfail.rs": "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+        "scripts/tests/d1_read_your_writes_xfail_check.rs": "scripts/tests/d1_read_your_writes_xfail_check.rs",
+        "specs/d1-read-your-writes-xfail-registry.json": "specs/d1-read-your-writes-xfail-registry.json",
+        "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json",
+        "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json",
+        "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json",
+        "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json": "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
@@ -439,6 +446,8 @@ genrule(
         "scripts/tests/cross_artifact_agreement_check.rs": "scripts/tests/cross_artifact_agreement_check.rs",
         "scripts/ci/assert-structural-lock-revert.rs": "scripts/ci/assert-structural-lock-revert.rs",
         "scripts/tests/structural_lock_revert_check.rs": "scripts/tests/structural_lock_revert_check.rs",
+        "scripts/ci/assert-d1-read-your-writes-xfail.rs": "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+        "scripts/tests/d1_read_your_writes_xfail_check.rs": "scripts/tests/d1_read_your_writes_xfail_check.rs",
         "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
@@ -647,6 +656,27 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-structural-lock-revert/*.json"])},
     out = "structural-lock-revert-check.json",
     cmd = "mkdir -p $TMP/structural-lock-revert && rustc --edition=2021 -D warnings scripts/tests/structural_lock_revert_check.rs --test -o $TMP/structural-lock-revert/structural_lock_revert_check && OYA_REPO_ROOT=$PWD $TMP/structural-lock-revert/structural_lock_revert_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-structural-lock-revert.rs -o $TMP/structural-lock-revert/assert-structural-lock-revert && $TMP/structural-lock-revert/assert-structural-lock-revert --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.10b D1 read-your-writes XFAIL check: Rust/Buck2 local/static
+# evidence that the in-memory probe stays consistency-token aware and XFAIL
+# classified until Phase-2 live D1 conformance evidence lands. This never posts
+# statuses, mutates branch protection, adds an `oya` CLI surface, or claims
+# P0.0 green / Phase-0 completion.
+genrule(
+    name = "d1-read-your-writes-xfail-check",
+    srcs = {
+        "scripts/ci/assert-d1-read-your-writes-xfail.rs": "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+        "scripts/tests/d1_read_your_writes_xfail_check.rs": "scripts/tests/d1_read_your_writes_xfail_check.rs",
+        "specs/d1-read-your-writes-xfail-registry.json": "specs/d1-read-your-writes-xfail-registry.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-d1-read-your-writes-xfail/*.json"])},
+    out = "d1-read-your-writes-xfail-check.json",
+    cmd = "mkdir -p $TMP/d1-read-your-writes-xfail && rustc --edition=2021 -D warnings scripts/tests/d1_read_your_writes_xfail_check.rs --test -o $TMP/d1-read-your-writes-xfail/d1_read_your_writes_xfail_check && OYA_REPO_ROOT=$PWD $TMP/d1-read-your-writes-xfail/d1_read_your_writes_xfail_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-d1-read-your-writes-xfail.rs -o $TMP/d1-read-your-writes-xfail/assert-d1-read-your-writes-xfail && $TMP/d1-read-your-writes-xfail/assert-d1-read-your-writes-xfail --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,

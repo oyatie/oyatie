@@ -449,11 +449,13 @@
       "requirement": "The in-memory read-your-writes test must be executable and correctly XFAIL-classified until the real Phase-2 mechanism lands.",
       "classification": "automated_blocking_now",
       "owner": "platform-architecture",
-      "target_gate_or_controller": "D1 read-your-writes XFAIL classifier",
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.10b",
+      "target_gate_or_controller": "//:d1-read-your-writes-xfail-check",
+      "blocking_fixture": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json + specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json + specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json + .omx/plans/test-spec-phase0.md#T0.10b",
       "retirement_phase": "P0.4/Phase 2 flip",
-      "evidence_path": "D1 XFAIL fixture/evidence bundle",
-      "no_new_oya_cli_surface": true
+      "evidence_path": "specs/d1-read-your-writes-xfail-registry.json + specs/fixtures/phase0-d1-read-your-writes-xfail/*.json + scripts/ci/assert-d1-read-your-writes-xfail.rs + scripts/tests/d1_read_your_writes_xfail_check.rs + Buck2 output for //:d1-read-your-writes-xfail-check",
+      "no_new_oya_cli_surface": true,
+      "verification_command": "buck2 build //:d1-read-your-writes-xfail-check",
+      "coverage_note": "Local/static XFAIL classifier only: proves the in-memory read-your-writes probe is executable, consistency-token aware, and fail-closed until Phase-2 live D1 conformance evidence lands. It does not prove live required-context authority, live D1 conformance, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness."
     },
     {
       "id": "AC-0.11-who-gates-gates",

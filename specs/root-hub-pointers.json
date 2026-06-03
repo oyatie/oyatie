@@ -1262,6 +1262,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "P0.0-local-static-seed",
       "purpose": "AC-0.9 registry for serialized structural-lock/revert admission discipline, protected-flow revert evidence, RED/GREEN fixtures, and advisory-until-required-context non-claim boundaries."
+    },
+    "d1_read_your_writes_xfail_registry": {
+      "kind": "spec",
+      "current_path": "/specs/d1-read-your-writes-xfail-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "P0.0-local-static-seed",
+      "purpose": "AC-0.10b local/static registry for executable D1 read-your-writes XFAIL classification, consistency-token-required fixtures, and non-claim boundaries until Phase-2 live D1 conformance lands."
     }
   },
   "by_kind": {

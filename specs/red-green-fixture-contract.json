@@ -26,7 +26,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 24,
+  "minimum_entry_count": 25,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -725,6 +725,44 @@
           "contains": "\"mechanical_structural_lock_proven\": false"
         }
       ]
+    },
+    {
+      "id": "d1-read-your-writes-xfail",
+      "automation_matrix_row_id": "AC-0.10b-d1-read-your-writes-xfail",
+      "buck2_target": "//:d1-read-your-writes-xfail-check",
+      "test_paths": [
+        "scripts/tests/d1_read_your_writes_xfail_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json",
+          "contains": "expected_failure_until_phase2_mechanism_lands"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json",
+          "contains": "xfail_misclassified_as_pass"
+        },
+        {
+          "path": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json",
+          "contains": "missing_consistency_token"
+        },
+        {
+          "path": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json",
+          "contains": "phase2_green_claim_without_live_evidence"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+          "contains": "no live D1 conformance, status mutation, live required-context authority, P0.0 green"
+        },
+        {
+          "path": "specs/d1-read-your-writes-xfail-registry.json",
+          "contains": "live_d1_conformance_executed"
+        }
+      ]
     }
   ],
   "automated_chain": [
@@ -734,6 +772,7 @@
     "//:adr-hygiene-check",
     "//:d1-seam-contracts-check",
     "//:effective-dating-kernel-check",
+    "//:d1-read-your-writes-xfail-check",
     "buck2 build //:phase0-red-green-fixture-contract-check"
   ]
 }
