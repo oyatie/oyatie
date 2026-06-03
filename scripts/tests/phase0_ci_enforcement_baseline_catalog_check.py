@@ -226,6 +226,12 @@ def main() -> int:
             failures.append("automation_mapping.source_app_binding_check_script must be scripts/ci/assert-required-status-source.py")
         if automation_mapping.get("source_app_binding_test") != "scripts/tests/phase0_required_status_source_check.test.sh":
             failures.append("automation_mapping.source_app_binding_test must be scripts/tests/phase0_required_status_source_check.test.sh")
+        if automation_mapping.get("tenant_isolation_check_target") != "//:phase0-tenant-isolation-fixture-check":
+            failures.append("automation_mapping.tenant_isolation_check_target must be //:phase0-tenant-isolation-fixture-check")
+        if automation_mapping.get("tenant_isolation_check_script") != "scripts/ci/assert-tenant-pipeline-isolation.py":
+            failures.append("automation_mapping.tenant_isolation_check_script must be scripts/ci/assert-tenant-pipeline-isolation.py")
+        if automation_mapping.get("tenant_isolation_test") != "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh":
+            failures.append("automation_mapping.tenant_isolation_test must be scripts/tests/phase0_tenant_isolation_fixture_check.test.sh")
 
     for doc in REQUIRED_CONTEXT_NARRATIVE_DOCS:
         path = repo_path(doc)

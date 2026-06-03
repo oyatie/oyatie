@@ -33,6 +33,8 @@ genrule(
         "scripts/tests/phase0_required_context_rollup_check.test.sh": "scripts/tests/phase0_required_context_rollup_check.test.sh",
         "scripts/ci/assert-required-status-source.py": "scripts/ci/assert-required-status-source.py",
         "scripts/tests/phase0_required_status_source_check.test.sh": "scripts/tests/phase0_required_status_source_check.test.sh",
+        "scripts/ci/assert-tenant-pipeline-isolation.py": "scripts/ci/assert-tenant-pipeline-isolation.py",
+        "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -206,6 +208,24 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])} | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-ci-enforcement-baseline-catalog-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# P0.0 tenant-pipeline isolation fixture check: local/static GOOD/BAD coverage
+# for the 11 required separation surfaces. This does not claim live tenant
+# isolation until trusted cloud-ci/oya-ci runs the gate on candidate SHAs.
+genrule(
+    name = "phase0-tenant-isolation-fixture-check",
+    srcs = {
+        "scripts/ci/assert-tenant-pipeline-isolation.py": "scripts/ci/assert-tenant-pipeline-isolation.py",
+        "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+        "specs/toolchain-tenant-isolation-fixtures.json": "specs/toolchain-tenant-isolation-fixtures.json",
+        "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
+    },
+    out = "phase0-tenant-isolation-fixture-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_tenant_isolation_fixture_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 

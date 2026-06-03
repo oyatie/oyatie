@@ -23,7 +23,7 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-PHASE0-CI-ENFORCEMENT-BASELINE",
     "status": "p0_0_red_gap_packet",
-    "updated_at": "2026-06-03T01:01:03Z",
+    "updated_at": "2026-06-03T01:40:00Z",
     "version": "0.1.0"
   },
   "automation_mapping": {
@@ -35,7 +35,10 @@
     "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
     "source_app_binding_check_target": "//:phase0-required-status-source-check",
     "source_app_binding_check_script": "scripts/ci/assert-required-status-source.py",
-    "source_app_binding_test": "scripts/tests/phase0_required_status_source_check.test.sh"
+    "source_app_binding_test": "scripts/tests/phase0_required_status_source_check.test.sh",
+    "tenant_isolation_check_target": "//:phase0-tenant-isolation-fixture-check",
+    "tenant_isolation_check_script": "scripts/ci/assert-tenant-pipeline-isolation.py",
+    "tenant_isolation_test": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh"
   },
   "claim_boundary": {
     "allowed_language_now": "gap packet / target / specified fixture contract only",
@@ -138,6 +141,24 @@
       "gap": "Live GitHub dev required status check is context-required but source-app-unbound (app_id=null), so it cannot prove trusted cloud-ci/oya-ci source identity.",
       "p0_0_green": false,
       "phase0_complete": false
+    },
+    "tenant_pipeline_isolation_fixture_gate": {
+      "classification": "checked_in_local_static_fixture_gate_not_live_required_context_evidence",
+      "path": "scripts/ci/assert-tenant-pipeline-isolation.py",
+      "test": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+      "buck2_target": "//:phase0-tenant-isolation-fixture-check",
+      "contract": "specs/toolchain-tenant-isolation-fixtures.json",
+      "baseline_good_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+      "baseline_bad_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
+      "required_surface_count": 11,
+      "local_fixture_contract_proven": true,
+      "live_required_context_execution_proven": false,
+      "claim_boundary": {
+        "p0_0_green": false,
+        "phase0_complete": false,
+        "tenant_facing_ready": false,
+        "security_ready": false
+      }
     }
   },
   "description": "P0.0 baseline and gap packet for Prow/cloud-ci enforcement plus tenant-isolation fixtures. This file is evidence of the current P0.0 state, not a Phase-0 completion claim.",
@@ -259,7 +280,10 @@
       "specs/fixtures/phase0-required-status-source/bad-wrong-source-app.json",
       "specs/fixtures/phase0-required-status-source/bad-missing-required-context.json",
       "specs/fixtures/phase0-required-status-source/bad-required-context-not-in-checks-array.json"
-    ]
+    ],
+    "tenant_isolation_check_target": "//:phase0-tenant-isolation-fixture-check",
+    "tenant_isolation_check_script": "scripts/ci/assert-tenant-pipeline-isolation.py",
+    "tenant_isolation_test": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh"
   },
   "gap_packet": {
     "candidate_pr_untrusted": {
@@ -311,7 +335,7 @@
     },
     "tenant_pipeline_isolation": {
       "fix_path": "run tenant A/B negative fixtures through required cloud-ci/oya-ci context before any live isolation claim",
-      "local_target_status": "toolchain tenant-isolation contract, required 11-surface model, GOOD/BAD fixtures, and kernel evaluator cover the local target; live cloud-ci/oya-ci required-context execution remains unproven",
+      "local_target_status": "toolchain tenant-isolation contract, required 11-surface model, GOOD/BAD fixtures, Rust kernel evaluator, and //:phase0-tenant-isolation-fixture-check cover the local target; live cloud-ci/oya-ci required-context execution remains unproven",
       "required_contract_path": "specs/toolchain-tenant-isolation-fixtures.json",
       "required_surfaces": [
         "identity",

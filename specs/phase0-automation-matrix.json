@@ -235,14 +235,15 @@
     {
       "blocking_fixture": "specs/toolchain-tenant-isolation-fixtures.json + specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/toolchain-tenant-isolation-fixtures.json",
+      "evidence_path": "specs/toolchain-tenant-isolation-fixtures.json + scripts/ci/assert-tenant-pipeline-isolation.py + scripts/tests/phase0_tenant_isolation_fixture_check.test.sh + //:phase0-tenant-isolation-fixture-check",
       "id": "AC-0.0-tenant-pipeline-isolation",
       "no_new_oya_cli_surface": true,
       "owner": "platform-security + platform-toolchain",
       "requirement": "Internal and customer tenant pipeline identities, secrets, runners, workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, and audit events must be separated before any isolation/tenant-facing claim.",
       "retirement_phase": "P0.0",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
-      "target_gate_or_controller": "cloud-ci tenant-isolation fixture gate"
+      "target_gate_or_controller": "cloud-ci tenant-isolation fixture gate + //:phase0-tenant-isolation-fixture-check",
+      "claim_boundary": "Local/static fixture gate proves the checked-in GOOD/BAD tenant-pipeline isolation contract only. This is not live tenant isolation, security readiness, tenant-facing readiness, P0.0 green, or Phase-0 completion until trusted cloud-ci/oya-ci runs the gate on candidate SHAs."
     },
     {
       "blocking_fixture": "specs/fixtures/phase0-exit-gate/",

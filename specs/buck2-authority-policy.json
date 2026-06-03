@@ -111,6 +111,7 @@
     "buck2 build //:buck2-authority-policy-check",
     "//:phase0-ci-enforcement-baseline-catalog-check",
     "//:phase0-required-status-source-check",
+    "//:phase0-tenant-isolation-fixture-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "//:phase0-auto-merge-after-ci-contract-check",
     "//:forgejo-auto-merge-after-ci-check",
@@ -182,7 +183,9 @@
     "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs",
     "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs",
     "scripts/tests/phase0_required_status_source_check.test.sh",
-    "scripts/ci/assert-required-status-source.py"
+    "scripts/ci/assert-required-status-source.py",
+    "scripts/ci/assert-tenant-pipeline-isolation.py",
+    "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -231,7 +234,9 @@
       "oya/*/ci/Jenkinsfile",
       "phase0_required_context_rollup_check.test.sh",
       "phase0-required-status-source-check",
-      "phase0_required_status_source_check.test.sh"
+      "phase0_required_status_source_check.test.sh",
+      "phase0-tenant-isolation-fixture-check",
+      "phase0_tenant_isolation_fixture_check.test.sh"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -455,6 +460,24 @@
       "wildcard_required_status_source_app",
       "wrong_required_status_source_app",
       "expected_source_app_id_not_configured"
+    ],
+    "scripts/ci/assert-tenant-pipeline-isolation.py": [
+      "tenant-isolation fixture evidence only",
+      "identity",
+      "secrets",
+      "runners",
+      "logs_evidence",
+      "tenant_surface_separation_incomplete",
+      "tenant_surfaces_shared",
+      "internal_bypass_without_breakglass",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": [
+      "bad-contract-missing-audit-events.json",
+      "bad-good-fixture-shared-cache.json",
+      "bad-red-fixture-missing-expected-tenant-violation.json",
+      "phase0 tenant-isolation fixture checks passed"
     ]
   },
   "required_glob_anchors": [
