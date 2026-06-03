@@ -39,6 +39,8 @@ genrule(
         "scripts/tests/phase0_override_kill_switch_check.test.sh": "scripts/tests/phase0_override_kill_switch_check.test.sh",
         "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
         "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+        "scripts/ci/assert-result-bundle-output.py": "scripts/ci/assert-result-bundle-output.py",
+        "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -216,6 +218,24 @@ genrule(
 )
 
 
+# P0.0 structured result-bundle fixture check: local/static coverage
+# that schema-conforming RED/false-green result bundles cannot imply live
+# required-context authority or Phase-0 completion. This never posts statuses.
+genrule(
+    name = "phase0-result-bundle-output-check",
+    srcs = {
+        "scripts/ci/assert-result-bundle-output.py": "scripts/ci/assert-result-bundle-output.py",
+        "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
+        "specs/phase0-ci-enforcement-result-schema.json": "specs/phase0-ci-enforcement-result-schema.json",
+        "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+        "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json",
+    },
+    out = "phase0-result-bundle-output-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_result_bundle_output_check.test.sh > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
 # P0.0 trusted target-inventory fixture check: local/static GOOD/BAD
 # coverage that candidate PR bytes cannot author the required Buck2 target
 # inventory. This does not claim live cloud-ci/controller target authority.
@@ -224,6 +244,8 @@ genrule(
     srcs = {
         "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
         "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+        "scripts/ci/assert-result-bundle-output.py": "scripts/ci/assert-result-bundle-output.py",
+        "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
         "specs/phase0-trusted-target-inventory-schema.json": "specs/phase0-trusted-target-inventory-schema.json",
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",

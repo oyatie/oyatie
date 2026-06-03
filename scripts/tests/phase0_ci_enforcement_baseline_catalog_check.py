@@ -244,6 +244,12 @@ def main() -> int:
             failures.append("automation_mapping.trusted_target_inventory_check_script must be scripts/ci/assert-trusted-target-inventory.py")
         if automation_mapping.get("trusted_target_inventory_test") != "scripts/tests/phase0_trusted_target_inventory_check.test.sh":
             failures.append("automation_mapping.trusted_target_inventory_test must be scripts/tests/phase0_trusted_target_inventory_check.test.sh")
+        if automation_mapping.get("result_bundle_check_target") != "//:phase0-result-bundle-output-check":
+            failures.append("automation_mapping.result_bundle_check_target must be //:phase0-result-bundle-output-check")
+        if automation_mapping.get("result_bundle_check_script") != "scripts/ci/assert-result-bundle-output.py":
+            failures.append("automation_mapping.result_bundle_check_script must be scripts/ci/assert-result-bundle-output.py")
+        if automation_mapping.get("result_bundle_test") != "scripts/tests/phase0_result_bundle_output_check.test.sh":
+            failures.append("automation_mapping.result_bundle_test must be scripts/tests/phase0_result_bundle_output_check.test.sh")
 
     for doc in REQUIRED_CONTEXT_NARRATIVE_DOCS:
         path = repo_path(doc)
@@ -303,6 +309,7 @@ def main() -> int:
                 "fixture_count": len(actual_fixture_paths),
                 "required_red_green_pairs": pair_count,
                 "result_bundle_fixtures": len(fixture_set.get("result_bundle_fixture_paths", [])),
+                "result_bundle_check_target": automation_mapping.get("result_bundle_check_target"),
                 "trusted_target_inventory_fixtures": len(fixture_set.get("trusted_target_inventory_fixture_paths", [])),
                 "trusted_target_inventory_check_target": automation_mapping.get("trusted_target_inventory_check_target"),
                 "required_status_source_fixtures": len(actual_source_fixture_paths),

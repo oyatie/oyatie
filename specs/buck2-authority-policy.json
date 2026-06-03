@@ -59,7 +59,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T02:35:04Z"
+    "updated_at": "2026-06-03T02:53:41Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -112,6 +112,7 @@
     "buck2 build //:buck2-authority-policy-check",
     "//:phase0-ci-enforcement-baseline-catalog-check",
     "//:phase0-required-status-source-check",
+    "//:phase0-result-bundle-output-check",
     "//:phase0-trusted-target-inventory-check",
     "//:phase0-tenant-isolation-fixture-check",
     "//:phase0-override-kill-switch-check",
@@ -192,7 +193,9 @@
     "scripts/ci/assert-override-kill-switch.py",
     "scripts/tests/phase0_override_kill_switch_check.test.sh",
     "scripts/ci/assert-trusted-target-inventory.py",
-    "scripts/tests/phase0_trusted_target_inventory_check.test.sh"
+    "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+    "scripts/ci/assert-result-bundle-output.py",
+    "scripts/tests/phase0_result_bundle_output_check.test.sh"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -247,7 +250,9 @@
       "phase0_override_kill_switch_check.test.sh",
       "phase0-override-kill-switch-check",
       "phase0-trusted-target-inventory-check",
-      "phase0_trusted_target_inventory_check.test.sh"
+      "phase0_trusted_target_inventory_check.test.sh",
+      "phase0-result-bundle-output-check",
+      "phase0_result_bundle_output_check.test.sh"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -529,6 +534,34 @@
       "bad-good-fixture-candidate-source.json",
       "bad-red-fixture-missing-expected-trusted-target-violation.json",
       "phase0 trusted target-inventory fixture checks passed"
+    ],
+    "scripts/ci/assert-result-bundle-output.py": [
+      "structured result-bundle fixture evidence only",
+      "status_mutation_performed",
+      "protected_branch_authority_proven",
+      "trusted_status_producer_live",
+      "missing_cloud_ci_required_context",
+      "untrusted_or_legacy_status_producer",
+      "candidate_bytes_can_weaken_result",
+      "candidate_sourced_gate_definition",
+      "green_claim_boundary_without_live_authority",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_result_bundle_output_check.test.sh": [
+      "bad-schema-missing-producer.json",
+      "bad-schema-context-enum.json",
+      "bad-current-red-claims-green.json",
+      "bad-current-red-live-looking-producer.json",
+      "bad-current-red-empty-fixture-results.json",
+      "bad-false-green-boundary-not-exercised.json",
+      "bad-false-green-fixture-result-matches-red.json",
+      "bad-schema-sha-pattern.json",
+      "bad-current-red-extra-top-level-field.json",
+      "bad-current-red-invalid-sha.json",
+      "bad-current-red-empty-provenance-sources.json",
+      "bad-false-green-red-expected-nonempty-violations.json",
+      "phase0 result-bundle output fixture checks passed"
     ]
   },
   "required_glob_anchors": [
