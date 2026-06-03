@@ -8,9 +8,54 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 check="scripts/ci/assert-trusted-target-inventory.py"
+matrix="specs/phase0-automation-matrix.json"
+coverage="specs/phase0-automation-coverage-registry.json"
 schema="specs/phase0-trusted-target-inventory-schema.json"
 good="specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json"
 bad="specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json"
+
+
+python3 - <<'PY' "$matrix" "$coverage"
+import json
+import sys
+
+matrix = json.load(open(sys.argv[1]))
+coverage = json.load(open(sys.argv[2]))
+rows = {row.get("id"): row for row in matrix.get("seed_rows", [])}
+subjects = {subject.get("id"): subject for subject in coverage.get("coverage_subjects", [])}
+
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+
+row = rows.get("AC-0.0-trusted-target-inventory")
+expect(row is not None, "AC-0.0 trusted target-inventory row missing")
+target = row.get("target_gate_or_controller", "")
+expect("cloud-ci/oya-ci trusted target inventory controller" in target, "AC-0.0 trusted target row must preserve live cloud-ci/oya-ci controller")
+expect("//:phase0-trusted-target-inventory-check" in target, "AC-0.0 trusted target row must name local Buck2 target")
+expect(
+    row.get("verification_command") == "buck2 build //:phase0-trusted-target-inventory-check",
+    "AC-0.0 trusted target row must record Buck2 local verification command",
+)
+claim_boundary = row.get("claim_boundary", "")
+expect("not live controller target authority" in claim_boundary, "AC-0.0 trusted target claim boundary must preserve live-controller non-claim")
+expect("not P0.0 green" in claim_boundary, "AC-0.0 trusted target claim boundary must preserve P0.0 non-claim")
+expect(row.get("no_new_oya_cli_surface") is True, "AC-0.0 trusted target inventory must not add an oya CLI surface")
+
+subject = subjects.get("AC-0.0")
+expect(subject is not None, "AC-0.0 coverage subject missing")
+expect("AC-0.0-trusted-target-inventory" in subject.get("mapped_row_ids", []), "AC-0.0 coverage must map trusted target row")
+commands = subject.get("verification_commands", {})
+expect(
+    commands.get("AC-0.0-trusted-target-inventory") == "buck2 build //:phase0-trusted-target-inventory-check",
+    "AC-0.0 coverage subject must record trusted-target Buck2 local verification command",
+)
+coverage_note = subject.get("coverage_note", "")
+expect("trusted target inventory" in coverage_note, "AC-0.0 coverage note must name trusted target inventory")
+expect("not P0.0 green" in coverage_note, "AC-0.0 coverage note must preserve P0.0 non-claim")
+PY
 
 python3 "$check" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"

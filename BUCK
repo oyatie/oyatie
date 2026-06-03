@@ -798,6 +798,8 @@ genrule(
     srcs = {
         "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
         "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "scripts/ci/assert-result-bundle-output.py": "scripts/ci/assert-result-bundle-output.py",
         "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
         "specs/phase0-trusted-target-inventory-schema.json": "specs/phase0-trusted-target-inventory-schema.json",
