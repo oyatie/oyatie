@@ -360,13 +360,14 @@
       "requirement": "Language discipline must block new shell/python test sprawl outside the allowlist and preserve offender inventory.",
       "classification": "automated_blocking_now",
       "owner": "platform-toolchain",
-      "target_gate_or_controller": "Rust/Buck2 language-discipline allowlist gate //:language-discipline-check",
+      "target_gate_or_controller": "//:language-discipline-check",
       "blocking_fixture": "specs/fixtures/phase0-language-discipline/*.json + scripts/tests/language_discipline_check.rs",
       "retirement_phase": "P0.3",
       "evidence_path": "specs/language-discipline-registry.json + scripts/ci/assert-language-discipline.rs + scripts/tests/language_discipline_check.rs + //:language-discipline-check",
       "no_new_oya_cli_surface": true,
       "coverage_note": "Local/static AC-0.4 language-discipline seed evidence only: Rust/Buck2 fixture gate blocks new candidate-authored .py/.sh files outside the bootstrap shell allowlist, preserves the seven-entry T0.4 cloud_*_check.py backlog inventory with current-head presence flags, and keeps live required-context/P0.0/Phase-0 readiness authority false.",
-      "claim_boundary": "No live PR scan, no status mutation, no protected-branch authority, no P0.0 green, no Phase-0 completion, no production-ready or hyperscaler-grade claim."
+      "claim_boundary": "No live PR scan, no status mutation, no protected-branch authority, no P0.0 green, no Phase-0 completion, no production-ready or hyperscaler-grade claim.",
+      "verification_command": "buck2 build //:language-discipline-check"
     },
     {
       "id": "AC-0.5-d1-contract-files",

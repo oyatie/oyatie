@@ -574,6 +574,8 @@ genrule(
         "scripts/ci/assert-language-discipline.rs": "scripts/ci/assert-language-discipline.rs",
         "scripts/tests/language_discipline_check.rs": "scripts/tests/language_discipline_check.rs",
         "specs/language-discipline-registry.json": "specs/language-discipline-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-language-discipline/*.json"])},
     out = "language-discipline-check.json",
     cmd = "mkdir -p $TMP/language-discipline && rustc --edition=2021 -D warnings scripts/tests/language_discipline_check.rs --test -o $TMP/language-discipline/language_discipline_check && OYA_REPO_ROOT=$PWD $TMP/language-discipline/language_discipline_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-language-discipline.rs -o $TMP/language-discipline/assert-language-discipline && $TMP/language-discipline/assert-language-discipline --json > $OUT",
