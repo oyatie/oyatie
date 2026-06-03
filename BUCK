@@ -68,6 +68,18 @@ genrule(
         "scripts/ci/assert-phase0-merge-conflict-foundation.py": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
         "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
         "specs/generated-artifact-registry.json": "specs/generated-artifact-registry.json",
+        "scripts/ci/assert-service-root-classifier.py": "scripts/ci/assert-service-root-classifier.py",
+        "scripts/tests/service_root_classifier_check.test.sh": "scripts/tests/service_root_classifier_check.test.sh",
+        "specs/service-inventory.json": "specs/service-inventory.json",
+        "specs/phase0-structural-packets.json": "specs/phase0-structural-packets.json",
+        "specs/fixtures/phase0-service-root-classifier/tc-service-root-good-seed.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-good-seed.json",
+        "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-missing-inventory-entry.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-missing-inventory-entry.json",
+        "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-outside-closed-world.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-outside-closed-world.json",
+        "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-layout-sprawl.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-layout-sprawl.json",
+        "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-real-token-live-field.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-real-token-live-field.json",
+        "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-structural-packet-family.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-structural-packet-family.json",
+        "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-duplicate-service.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-duplicate-service.json",
+        "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-underscore-crate.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-underscore-crate.json",
         "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json",
         "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json",
         "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-generated-artifact-unregistered.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-generated-artifact-unregistered.json",
@@ -389,6 +401,28 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-merge-conflict-foundation/*.json", "third-party/fixups/**/*.toml"])},
     out = "phase0-merge-conflict-foundation-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_merge_conflict_foundation_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-phase0-merge-conflict-foundation.py --registry specs/generated-artifact-registry.json --json > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.1/P0.6/AC-0.7 service-root classifier check: local/static seed
+# inventory evidence for closed-world roots, structural packet readiness,
+# service-layout sprawl fixtures, retired REAL status-token rejection, duplicate
+# service roots, and kebab-case crate naming. This never posts statuses, proves
+# post-migration pure split, or claims Phase-0 completion.
+genrule(
+    name = "service-root-classifier-check",
+    srcs = {
+        "scripts/ci/assert-service-root-classifier.py": "scripts/ci/assert-service-root-classifier.py",
+        "scripts/tests/service_root_classifier_check.test.sh": "scripts/tests/service_root_classifier_check.test.sh",
+        "specs/service-inventory.json": "specs/service-inventory.json",
+        "specs/phase0-structural-packets.json": "specs/phase0-structural-packets.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-service-root-classifier/*.json", "oya/*", "cloud/*", "libs/*", "packs/*", "regional-packs/*", "platforms/*"])},
+    out = "service-root-classifier-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/service_root_classifier_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-service-root-classifier.py --inventory specs/service-inventory.json --packets specs/phase0-structural-packets.json --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
     visibility = ["PUBLIC"],
 )
 

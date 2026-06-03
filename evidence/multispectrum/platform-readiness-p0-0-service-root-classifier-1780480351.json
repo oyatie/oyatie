@@ -1,0 +1,124 @@
+{
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "change_id": "platform-readiness-p0-0-service-root-classifier",
+  "change_class_id": "CC-5",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T09:52:31Z",
+  "timestamp_unix": 1780480351,
+  "freshness_unix": 1780480251,
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha": "49964e65aae61229927a004f6d63d16f448e652e",
+  "scope": "AC-0.1/P0.6/AC-0.7 local/static service-root classifier: closed-world direct-child service/library/pack inventory, structural packet seed families, service-layout sprawl fixtures, retired REAL status-token rejection, duplicate-root rejection, and kebab-case crate naming evidence.",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/buck2-authority-policy.json",
+    "specs/service-inventory.json",
+    "specs/phase0-structural-packets.json",
+    "specs/red-green-fixture-contract.json",
+    ".omx/plans/test-spec-phase0.md#T0.1",
+    ".omx/plans/test-spec-phase0.md#T0.7"
+  ],
+  "claim_boundary": {
+    "service_inventory_published": true,
+    "service_root_classifier_measured": true,
+    "closed_world_root_count": 8,
+    "inventory_entry_count": 296,
+    "observed_direct_child_dir_count": 296,
+    "structural_packet_catalog_published": true,
+    "structural_packet_count": 6,
+    "fixture_count": 8,
+    "expected_green_fixture_count": 1,
+    "expected_red_fixture_count": 7,
+    "red_green_entry_count": 17,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "full_service_inventory_coverage_proven": false,
+    "post_migration_pure_split_proven": false,
+    "structural_shards_executed": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "implementation_summary": [
+    "Added specs/service-inventory.json as a Buck2-local seed inventory for 296 direct-child directories across closed-world roots oya/, cloud/, libs/, packs/, regional-packs/, and empty/absent legacy roots services/, platforms/, microservices/.",
+    "Added specs/phase0-structural-packets.json with P0.6a/P0.6b oya/P0.6b cloud/P0.6b libs/P0.6c flat-layout/P0.6d kebab-case packet families while keeping structural_shards_executed=false.",
+    "Added eight GOOD/BAD fixtures covering missing inventory entries, outside closed-world roots, legacy layout sprawl, retired REAL live-field token use, missing structural packet family, duplicate service roots, and underscore crate names.",
+    "Added scripts/ci/assert-service-root-classifier.py, scripts/tests/service_root_classifier_check.test.sh, and //:service-root-classifier-check without adding a new CLI surface.",
+    "Registered the gate with the AC-0.14 red/green fixture contract, AC-0.16 automation matrix/coverage registry, Buck2 authority policy, and root-hub pointers."
+  ],
+  "observed_measurement": {
+    "closed_world_root_count": 8,
+    "inventory_entry_count": 296,
+    "observed_direct_child_dir_count": 296,
+    "fixture_count": 8,
+    "expected_red_fixture_count": 7,
+    "expected_green_fixture_count": 1,
+    "structural_packet_count": 6,
+    "red_green_entry_count": 17,
+    "automation_ratchet_row_count": 32,
+    "buck2_authority_command_scan_files": 185,
+    "observed_bad_fixture_violations": [
+      "duplicate_service_across_roots",
+      "retired_real_token_live_field",
+      "retired_real_token_live_field:maturity_status",
+      "service_inventory_entry_missing",
+      "service_layout_sprawl",
+      "service_root_outside_closed_world",
+      "structural_packet_missing_required_family",
+      "structural_packet_missing_required_family:P0.6d-BNF-",
+      "underscore_crate_name"
+    ],
+    "failures": []
+  },
+  "verification": [
+    {
+      "artifact_dir": "/tmp/p0-0-service-root-classifier-red-1780479438",
+      "command": "missing service-root classifier checker/Buck2 target RED probe",
+      "script_exit_code": 2,
+      "buck2_exit_code": 3,
+      "buck2_build_id": "3f4b01bb-0b47-4f3b-8537-77314469b9e2",
+      "expected_failure": true,
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-service-root-classifier-final-1780480251",
+      "command": "final git diff, JSON parse, py_compile, direct service-root checker, shell BAD mutations, red-green registry/shell, automation ratchet/shell, Buck2 authority policy, root-hub parse, Buck2 build, and Buck2 target bundle",
+      "buck2_build_ids": [
+        "f4717de0-2e08-44e8-b369-72d2ed2f7ed7",
+        "561947eb-2cfc-478e-85af-b66ede20864b"
+      ],
+      "observed": {
+        "service_inventory_entries": 296,
+        "service_fixtures": 8,
+        "structural_packets": 6,
+        "red_green_entries": 17,
+        "automation_rows": 32
+      },
+      "status": "passed"
+    }
+  ],
+  "review_facets": {
+    "F1_correctness": "PASS: checker reports 296 direct-child inventory entries matching 296 observed directories, eight fixtures, six structural packets, and zero failures.",
+    "F2_security": "PASS: local JSON/text checks only; no credentials, network calls, status posting, branch-protection mutation, or provider merge action.",
+    "F3_reliability": "PASS: BAD regressions cover missing inventory, outside closed-world roots, sprawl, retired live-field REAL token use, missing structural packet family, duplicate roots, underscore names, and forbidden p0_0_green=true.",
+    "F4_operability": "PASS: //:service-root-classifier-check emits JSON and the dependent red/green, ratchet, and Buck2 authority targets pass.",
+    "F5_observability": "PASS: output includes root/inventory/fixture/packet/red-green counts plus per-fixture observed violations.",
+    "F6_maintainability": "PASS: data-driven specs and fixtures keep future structural shards reviewable without introducing a new oya CLI surface.",
+    "F7_performance": "PASS: static filesystem/JSON checks plus Buck2 genrules; no expensive compile or live CI call.",
+    "F8_architecture": "PASS: keeps service roots closed-world and classifies packs/regional-packs as authorized shared roots rather than service roots.",
+    "F9_compliance": "PASS: claim boundary preserves live required-context, P0.0 green, Phase-0 completion, production-ready, and hyperscaler-grade non-claims.",
+    "F10_test_adequacy": "PASS: RED-before-GREEN absence captured, shell mutation tests exercise fail-closed behavior, and Buck2 build/test bundle refreshed."
+  },
+  "residual_risks": [
+    "This is direct-child seed inventory only; full nested crate/service coverage remains explicitly unproven.",
+    "Post-migration pure split remains false until structural shards move or retire legacy service-shaped paths and trusted cloud-ci/oya-ci evidence runs.",
+    "Live required context oya-ci-required is still absent on the PR head at the time of this local/static evidence emission."
+  ],
+  "verdict": "PASS_LOCAL_STATIC_ONLY"
+}

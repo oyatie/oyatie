@@ -1192,6 +1192,20 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-ac-0.15-p0.9-seed",
       "purpose": "AC-0.15/P0.9 seed registry for generated artifacts, source/regeneration ownership, merge-tree readiness fixtures, one-lane-one-path/path-overlap fail-closed cases, and explicit non-claims for full-repo generated-output coverage and Phase-1 Tide batching."
+    },
+    "service_inventory": {
+      "kind": "spec",
+      "current_path": "/specs/service-inventory.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-ac-0.1-p0.6-seed",
+      "purpose": "AC-0.1/P0.6/AC-0.7 local/static closed-world service, library, and pack root inventory seed used by //:service-root-classifier-check. Direct-child root coverage only; full nested crate inventory, post-migration pure split, and live required-context authority remain false."
+    },
+    "phase0_structural_packets": {
+      "kind": "spec",
+      "current_path": "/specs/phase0-structural-packets.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-p0.6-seed",
+      "purpose": "P0.6 structural packet seed catalog for root inventory, oya/cloud/libs split families, flat layout, and kebab-case naming fixtures validated by //:service-root-classifier-check."
     }
   },
   "by_kind": {

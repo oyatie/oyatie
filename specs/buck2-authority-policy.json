@@ -119,6 +119,7 @@
     "//:phase0-override-kill-switch-check",
     "//:phase0-red-green-fixture-contract-check",
     "//:phase0-merge-conflict-foundation-check",
+    "//:service-root-classifier-check",
     "//:phase0-automation-ratchet-check",
     "//:phase0-claim-ceiling-check",
     "//:rust-testing-standard-check",
@@ -231,7 +232,11 @@
     "specs/red-green-fixture-contract.json",
     "scripts/ci/assert-phase0-merge-conflict-foundation.py",
     "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
-    "specs/generated-artifact-registry.json"
+    "specs/generated-artifact-registry.json",
+    "scripts/ci/assert-service-root-classifier.py",
+    "scripts/tests/service_root_classifier_check.test.sh",
+    "specs/service-inventory.json",
+    "specs/phase0-structural-packets.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -324,7 +329,12 @@
       "phase0-merge-conflict-foundation-check",
       "assert-phase0-merge-conflict-foundation.py",
       "phase0_merge_conflict_foundation_check.test.sh",
-      "generated-artifact-registry.json"
+      "generated-artifact-registry.json",
+      "service-root-classifier-check",
+      "assert-service-root-classifier.py",
+      "service_root_classifier_check.test.sh",
+      "service-inventory.json",
+      "phase0-structural-packets.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",

@@ -240,16 +240,16 @@
       "claim_boundary": "AC-0.15 covers non-claim merge-tree readiness fixtures; Phase-1 projected-state batching/auto-rebase scale remains unclaimed."
     },
     {
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.7",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.7 + specs/fixtures/phase0-service-root-classifier/",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/service-inventory.json + phase0-structural-packets.json",
+      "evidence_path": "specs/service-inventory.json + specs/phase0-structural-packets.json + specs/fixtures/phase0-service-root-classifier/ + //:service-root-classifier-check",
       "id": "P0.6-pack-root-classifier",
       "no_new_oya_cli_surface": true,
       "owner": "platform-architecture",
       "requirement": "Pure split removes service-shaped sprawl but preserves ADR-0010/0064 pack roots until explicitly superseded.",
       "retirement_phase": "P0.6",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.6",
-      "target_gate_or_controller": "service-root-classifier Rust gate"
+      "target_gate_or_controller": "Buck2-local service-root classifier gate //:service-root-classifier-check (seed evidence; future Rust implementation must remain Buck2-owned)"
     },
     {
       "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/ + scripts/tests/phase0_claim_ceiling_check.test.sh",
@@ -322,10 +322,10 @@
       "requirement": "Generated service/crate inventory must cover every closed-world root and fail on drift or service-like roots outside the allowlist.",
       "classification": "automated_blocking_now",
       "owner": "platform-architecture + platform-toolchain",
-      "target_gate_or_controller": "service-inventory generator + cloud-ci inventory drift gate",
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.1",
+      "target_gate_or_controller": "Buck2-local service-inventory drift/classifier gate //:service-root-classifier-check",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.1 + specs/fixtures/phase0-service-root-classifier/",
       "retirement_phase": "P0.1",
-      "evidence_path": "specs/service-inventory.json + inventory drift evidence bundle",
+      "evidence_path": "specs/service-inventory.json + specs/fixtures/phase0-service-root-classifier/ + //:service-root-classifier-check",
       "no_new_oya_cli_surface": true
     },
     {
@@ -394,10 +394,10 @@
       "requirement": "Post-migration services must live only under canonical oya/ or cloud/ layout while packs/regional-packs remain only authorized shared roots and legacy roots are removed after verified-empty migration.",
       "classification": "automated_blocking_now",
       "owner": "platform-architecture",
-      "target_gate_or_controller": "service layout/sprawl classifier gate",
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.7",
+      "target_gate_or_controller": "Buck2-local service layout/sprawl classifier gate //:service-root-classifier-check",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.7 + specs/fixtures/phase0-service-root-classifier/",
       "retirement_phase": "P0.6",
-      "evidence_path": "service-root classifier + migration evidence",
+      "evidence_path": "specs/service-inventory.json + specs/phase0-structural-packets.json + service-root sprawl fixtures + //:service-root-classifier-check",
       "no_new_oya_cli_surface": true
     },
     {

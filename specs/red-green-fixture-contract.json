@@ -25,7 +25,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 16,
+  "minimum_entry_count": 17,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -455,10 +455,42 @@
           "contains": "phase1_tide_batching_claimed"
         }
       ]
+    },
+    {
+      "id": "service-root-classifier",
+      "automation_matrix_row_id": "AC-0.1-service-inventory",
+      "buck2_target": "//:service-root-classifier-check",
+      "test_paths": [
+        "scripts/tests/service_root_classifier_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-service-root-classifier/tc-service-root-good-seed.json",
+          "contains": "TC-SERVICE-ROOT-GOOD-seed-inventory-and-packets"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/service_root_classifier_check.test.sh",
+          "contains": "service_layout_sprawl"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-service-root-classifier.py",
+          "contains": "full_service_inventory_coverage_proven"
+        }
+      ],
+      "related_automation_matrix_row_ids": [
+        "P0.6-pack-root-classifier",
+        "AC-0.1-service-inventory",
+        "AC-0.7-service-layout-sprawl"
+      ]
     }
   ],
   "automated_chain": [
     "scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json",
+    "//:service-root-classifier-check",
     "buck2 build //:phase0-red-green-fixture-contract-check"
   ]
 }
