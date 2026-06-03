@@ -1,3 +1,7 @@
+# ADR-0516 Supersession Note
+
+ADR-0516 supersedes this document for interim dev-lane unlock. The current interim path is GitHub/GitHub Actions as a temporary lane-unlocker, with no Jenkins, no Forgejo, and no ArgoCD interim authority. Buck2 remains build/test/check authority; native cutover remains cloud native, Kubernetes-native, and hyperscaler native. Historical details below are retained for provenance and native-cutover comparison only.
+
 # Forge of Record — CI Gating (ADR-0363 / ADR-0513)
 
 Forgejo (self-hosted at `forgejo.oya-forge.svc.cluster.local`) is the target
@@ -14,7 +18,7 @@ control state on candidate SHAs and Forgejo reaches the same live contract.
 
 ## How gating works
 
-1. cloud-ci/oya-ci (or a bridge Jenkins lane during cutover) runs Buck2-owned
+1. The ADR-0516 GitHub/GitHub Actions temporary bridge runs Buck2-owned
    build/test/gate targets from trusted controller/trunk state and posts the
    commit status context `oya-ci-required`.
 2. Forgejo branch protection for `dev` requires `oya-ci-required` before a PR can
@@ -60,6 +64,6 @@ contexts and must not be described as Phase-0 exit authority.
 - ADR-0363: Forgejo substrate and retirement of bespoke agentic-VCS wrappers.
 - ADR-0513: cloud-ci/oya-ci Prow-shaped controller and Tide ownership.
 - `infra/branch-protection/dev.json`: machine-readable required context target.
-- `.github/branch-protection.yaml`: GitHub bootstrap mirror target.
+- `.github/branch-protection.yaml`: GitHub temporary bridge target.
 - `infra/ci/jenkins/reported-status-contexts.json`: bridge-reported contexts.
 - `docs/ci/auto-merge-flow.md`: per-forge auto-merge flow.

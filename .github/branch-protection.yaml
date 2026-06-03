@@ -1,3 +1,8 @@
+# ADR-0516 amendment (2026-06-03): temporary GitHub/GitHub Actions lane-unlocker.
+# The temporary required context is github-lane-unlocker-required. This is not the permanent CI/SCM authority,
+# and it is not interim Jenkins, Forgejo, or ArgoCD authority. Buck2 remains build/test/check authority;
+# native cutover keeps oya-ci-required as the destination context after proof.
+
 # Branch-protection shadow/target record for dev/staging/production.
 # As of the P0.0 gap packet, live GitHub dev protection does not reflect
 # this file exactly; drift is recorded in
@@ -14,18 +19,13 @@
 #   - dev        Shared-world entry point. PRs target here. 3-gate:
 #                signed-commits + linear-history + every required
 #                CI check green. Default branch on github.
-#   - staging    Auto-promoted from dev by the Jenkins promote-dev-to-staging
-#                pipeline (per ADR-0361 Jenkins-native CI/CD; pipeline impl
-#                tracked in registry/placeholder-debt/adr-follow-ups.yaml
-#                #adr-0361-promote-pipelines). The prior GHA workflow at
-#                .github/workflows/promote-dev-to-staging.yml was retired in
-#                R5 (ADR-0361). No PR review; signed-commits + linear-history;
-#                CANARY cohort exposure begins on this ref.
-#   - production Auto-promoted from staging by the Jenkins
-#                promote-staging-to-production pipeline (per ADR-0361; pipeline
-#                impl tracked in the same placeholder-debt entry). The prior
-#                GHA workflow was retired in R5. No PR review; signed-commits
-#                + linear-history; FULL ROLLOUT exposure on this ref.
+#   - staging    Promotion from dev is deferred to the native release conveyor.
+#                ADR-0516 explicitly prevents Jenkins, Forgejo, or ArgoCD from
+#                becoming interim CD authority. GitHub Actions may prepare
+#                dry-run evidence only until native cutover.
+#   - production Promotion from staging to production is deferred to the native release
+#                conveyor. ADR-0516 keeps GitHub Actions CD as dry-run bridge
+#                only and rejects Jenkins, Forgejo, or ArgoCD interim authority.
 #
 # `main` is RETAINED for read-only legacy compatibility but has NO
 # protection and is not the default branch. PRs targeting `main` are
@@ -56,13 +56,10 @@ branches:
       - oya-ci-required
 
   staging:
-    # Auto-promoted from dev by the Jenkins promote-dev-to-staging pipeline
-    # (per ADR-0361); the fast-forward inherits dev's signature + CI state.
-    # No PR required, no review, no CI gate at THIS layer — those gates
-    # already fired on dev. What we do enforce: the ref must only move
-    # forward, the underlying commits must be signed, no force-push, no
-    # deletion. Pipeline impl is tracked in
-    # registry/placeholder-debt/adr-follow-ups.yaml#adr-0361-promote-pipelines.
+    # Native release conveyor target. ADR-0516 does not authorize interim
+    # Jenkins/Forgejo/ArgoCD promotion; GitHub Actions may generate dry-run
+    # evidence only. What this shadow file still enforces: the ref must only
+    # move forward, commits must be signed, no force-push, no deletion.
     require_pull_request: false
     require_linear_history: true
     disallow_force_push: true
@@ -70,11 +67,9 @@ branches:
     require_signed_tags: true
 
   production:
-    # Auto-promoted from staging by the Jenkins promote-staging-to-production
-    # pipeline (per ADR-0361); same fast-forward inheritance as staging.
-    # FULL-rollout layer; canary observability gate (per FINAL-FINAL) is the
-    # future addition that conditions this promotion. Pipeline impl tracked
-    # in registry/placeholder-debt/adr-follow-ups.yaml#adr-0361-promote-pipelines.
+    # Native production release conveyor target. ADR-0516 does not authorize
+    # interim Jenkins/Forgejo/ArgoCD production promotion. FULL-rollout
+    # requires native evidence, canary/rollback, and signed provenance.
     require_pull_request: false
     require_linear_history: true
     disallow_force_push: true

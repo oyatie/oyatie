@@ -1,5 +1,5 @@
 {
-  "_comment": "Shadow/target branch-protection config for the dev branch. scripts/branch-protection-apply.sh consumes it as a local bridge artifact only; P0.0 records live drift and this file is not Phase-0 exit authority until a trusted cloud-ci/oya-ci producer is live and applied.",
+  "_comment": "Shadow/target branch-protection config for dev. ADR-0516 adds a temporary GitHub/GitHub Actions lane-unlocker; this file does not mutate live branch protection and does not claim P0.0 green.",
   "_adr": "ADR-0124-own-merge-queue-webhook-driven.md",
   "branch": "dev",
   "required_status_checks": {
@@ -22,5 +22,18 @@
   "lock_branch": false,
   "block_creations": false,
   "restrictions": null,
-  "_phase0_p0_0_note": "Destination authority is oya-ci-required produced by trusted cloud-ci/oya-ci control state; this checked-in target is not a live-enforcement claim until the ruleset is applied and the producer posts on the candidate SHA."
+  "_phase0_p0_0_note": "Destination authority is oya-ci-required produced by trusted cloud-ci/oya-ci control state; this checked-in target is not a live-enforcement claim until the ruleset is applied and the producer posts on the candidate SHA.",
+  "temporary_github_lane_unlocker_bridge": {
+    "status": "temporary_bridge_not_destination_authority",
+    "required_context": "github-lane-unlocker-required",
+    "native_cutover_target_context": "oya-ci-required",
+    "live_mutation_performed_by_this_file": false,
+    "jenkins_interim": false,
+    "forgejo_interim": false,
+    "argocd_interim": false,
+    "scm": "github",
+    "ci": "github_actions",
+    "cd": "github_actions_dry_run_bridge",
+    "cutover_condition": "native SCM/CI/CD/cloud workspace/release conveyor seams prove their required context and operational contracts"
+  }
 }

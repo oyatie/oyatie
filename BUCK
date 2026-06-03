@@ -48,6 +48,13 @@ genrule(
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/oya-ci-prow-capability-parity.json": "specs/oya-ci-prow-capability-parity.json",
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
+        ".github/workflows/github-lane-unlocker-ci-cd.yml": ".github/workflows/github-lane-unlocker-ci-cd.yml",
+        ".github/branch-protection.yaml": ".github/branch-protection.yaml",
+        "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
+        "scripts/ci/assert-github-lane-unlocker-bridge.py": "scripts/ci/assert-github-lane-unlocker-bridge.py",
+        "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
+        "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+        "docs/ci/github-actions-lane-unlocker.md": "docs/ci/github-actions-lane-unlocker.md",
         "scripts/ci/assert-claim-ceiling.py": "scripts/ci/assert-claim-ceiling.py",
         "scripts/tests/phase0_claim_ceiling_check.test.sh": "scripts/tests/phase0_claim_ceiling_check.test.sh",
         "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
@@ -188,8 +195,6 @@ genrule(
         "oya/ci-webhook-gateway/Dockerfile": "//oya/ci-webhook-gateway:Dockerfile",
         "oya/governance/iac/build/Dockerfile.distroless-rust": "oya/governance/iac/build/Dockerfile.distroless-rust",
         "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json": "//oya/application/crates/oya-application-shell-frontend-prototype:client-manifest.json",
-        ".github/branch-protection.yaml": ".github/branch-protection.yaml",
-        "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
         "infra/ci/jenkins/reported-status-contexts.json": "infra/ci/jenkins/reported-status-contexts.json",
         "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
@@ -308,6 +313,29 @@ genrule(
     },
     out = "buck2-authority-policy-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# P00 temporary GitHub/GitHub Actions lane-unlocker contract. This target is
+# local/static evidence only: it validates the bridge spec, workflow, branch
+# protection shadow, root-hub pointers, ADR, procedure, and Buck2 policy without
+# mutating live GitHub, Kubernetes, or deployment state.
+genrule(
+    name = "github-lane-unlocker-bridge-check",
+    srcs = {
+        ".github/workflows/github-lane-unlocker-ci-cd.yml": ".github/workflows/github-lane-unlocker-ci-cd.yml",
+        ".github/branch-protection.yaml": ".github/branch-protection.yaml",
+        "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
+        "scripts/ci/assert-github-lane-unlocker-bridge.py": "scripts/ci/assert-github-lane-unlocker-bridge.py",
+        "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
+        "specs/buck2-authority-policy.json": "specs/buck2-authority-policy.json",
+        "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
+        "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+        "docs/ci/github-actions-lane-unlocker.md": "docs/ci/github-actions-lane-unlocker.md",
+    },
+    out = "github-lane-unlocker-bridge-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json > $OUT",
     visibility = ["PUBLIC"],
 )
 

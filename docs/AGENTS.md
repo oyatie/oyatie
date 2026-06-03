@@ -45,6 +45,10 @@ doc_status: published
 ---
 # Oyatie Agent Operating Contract
 
+## ADR-0516 interim lane-unlocker amendment (2026-06-03)
+
+For imminent P00/P0 work, GitHub/GitHub Actions is the temporary lane-unlocker for dev so product, infra, and cloud lanes can run concurrently. There is no Jenkins, no Forgejo, and no ArgoCD interim authority. Buck2 remains build/test/check authority. The native destination remains a cloud native, Kubernetes-native, hyperscaler native Oyatie SCM/CI/CD/cloud workspace substrate that adopts proven Prow/Sapling/Piper/CitC/Buck2 patterns without wholesale reinvention. This amendment is not P0.0 green and does not make GitHub permanent.
+
 ## Machine-readable authority — [root hub pointers](..//specs/root-hub-pointers.json)
 
 ## Workspace doctrine — applies to every documentation / file / workflow
@@ -62,18 +66,18 @@ Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci
 | ADR-0346 (amended 2026-06-02) | Local pre-push verification is Buck2-backed shift-left evidence only. It MUST NOT grant protected-branch or Phase-0 exit authority; `oya-ci-required` from trusted cloud-ci/oya-ci remains the target required context. | `specs/buck2-authority-policy.json`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, cloud-ci/oya-ci required-context producer. |
 | ADR-0347 | Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; the rename is name-only and lane invariants remain preserved. | `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`. |
 | ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
-| ADR-0349 (amended by ADR-0359/ADR-0361) | Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates. **Jenkins is now the SOLE CI orchestrator** — ADR-0359 superseded the original "Jenkins augments GitHub Actions" stance; GitHub Actions is retired (no parity surface to maintain), and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. | `oya-governance-jenkins-canonical-no-gha-residue` (replaces the retired `oya-governance-jenkins-github-actions-parity` lane per ADR-0359), `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`. |
+| ADR-0349 (superseded for interim use by ADR-0516) | Historical Jenkins/ArgoCD self-hostable CI/CD planning is not interim authority. ADR-0516 makes GitHub/GitHub Actions the temporary dev lane-unlocker, keeps Buck2 as build/test/check authority, rejects Jenkins/Forgejo/ArgoCD interim authority, and preserves native cloud native/Kubernetes-native/hyperscaler-native cutover. | `//:github-lane-unlocker-bridge-check`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, ADR-0516 claim-boundary evidence lanes. |
 
 ## Multispectrum review bar — required on every change
 
-Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). The governance gate (`oya gate run-all`, run locally and in Jenkins CI per ADR-0363 — `oya` is a governance-gate engine, not a VCS) plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
+Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). The governance gate (`oya gate run-all`, run locally and in the ADR-0516 temporary GitHub/GitHub Actions bridge until native cutover — `oya` is a governance-gate engine, not a VCS) plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
 
 - evidence file absent OR
 - declared `change_class_id` not in {CC-1..CC-7} OR
 - required facets (F1..F13 except F12-reserved when applicable; A-family policy-adherence facets for policy-touching changes; plus `M1`/`M2` when `meta_review_triggered`) missing OR
 - mandatory artifacts per the rigor matrix missing.
 
-This applies to **agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at PR-open / gate-run time. Plain `git` + Jenkins + `oya gate` is the canonical path; ADR-0363 records the retired bespoke ratchet. It is re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registry/fixuptasks.jsonl`](..//registry/fixuptasks.jsonl) for the bounded-deferral registry.
+This applies to **agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at PR-open / gate-run time. Plain `git` + the ADR-0516 temporary GitHub/GitHub Actions lane-unlocker + Buck2 + `oya gate` is the interim canonical path; ADR-0363 records the retired bespoke ratchet. It is re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registry/fixuptasks.jsonl`](..//registry/fixuptasks.jsonl) for the bounded-deferral registry.
 
 This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
 
@@ -185,9 +189,11 @@ Agent coordination uses plain `git`. ADR-0363 retires the prior wrapper/ratchet
 substrate; do not reintroduce an agentic VCS wrapper. An agent works on an
 isolated worktree branch and opens a pull request against `dev`, which enters
 the governance pipeline:
-cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness. The
-self-hosted Forgejo required-checks/auto-merge substrate is the target (ADR-0247
-post-bootstrap). `oya` is local/bridge governance evidence only.
+ADR-0516 temporary GitHub/GitHub Actions lane-unlocker context + reviewer
+APPROVE gate merge readiness until the native Oyatie SCM/CI/CD substrate cuts
+over. The destination is a pure-Rust, Sapling-compatible Oyatie SCM plus
+cloud-native release conveyor seams, not interim Forgejo/Jenkins/ArgoCD. `oya`
+is local/bridge governance evidence only.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
@@ -233,8 +239,8 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* merge-gate hook (`scripts/hooks/guard-pr-merge-review.mjs`).
 - [ ] **D9** Buck2 test evidence passes for the affected/full target set. *Test:* `buck2 test ...` or `infra/ci/buck2-affected-gate.sh` output pasted in `## Verification`.
 - [ ] **D10** Buck2 lint/clippy target evidence passes with warnings treated as failures. *Test:* Buck2 output.
-- [ ] **D11** Buck2/Jenkins license-policy evidence passes. *Test:* lane output.
-- [ ] **D12** Buck2 authority policy passes and `oya-ci-required` is green from the trusted cloud-ci/oya-ci producer before merge. *Test:* policy output + required-context evidence.
+- [ ] **D11** Buck2-native license-policy evidence passes. *Test:* lane output.
+- [ ] **D12** Buck2 authority policy passes and the interim `github-lane-unlocker-required` context is green before merge; native `oya-ci-required` returns only after cutover evidence. *Test:* policy output + required-context evidence.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
 - [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* `traceability-validator` + `oya-pr-review` lanes.
@@ -284,7 +290,7 @@ Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `super
 
 Active hooks (PreToolUse / PostToolUse / Stop / SessionStart): merge-review gate (`scripts/hooks/guard-pr-merge-review.mjs`), pre-push gate, telemetry, loop-cancellation enforcement, memory bootstrap.
 
-Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/Jenkins/Forgejo closeout path finishes landing. It does not own forward repo-state closure; branch protection, Jenkins required checks, and governance admission do. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
+Legacy OMC magic-keyword routing remains compatibility-only while the plain-git plus ADR-0516 temporary GitHub/GitHub Actions closeout path finishes landing. It does not own forward repo-state closure; GitHub branch protection, GitHub Actions temporary required checks, Buck2 evidence, and governance admission do. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
 
 Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definition checklist."
 
@@ -314,13 +320,13 @@ Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
 
 ### Legacy OMC (oh-my-claudecode subagents)
 
-OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new agentic closeout routes through plain `git`, Jenkins required checks, self-hosted Forgejo branch protection, and `oya gate` governance evidence.
+OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new agentic closeout routes through plain `git`, ADR-0516 temporary GitHub/GitHub Actions required checks, Buck2 evidence, and `oya gate` governance evidence.
 
 Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`. Route per change class.
 
 Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
 
-State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by governance evidence in the plain-git/Jenkins/Forgejo path.
+State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by governance evidence in the plain-git/GitHub-Actions-temporary-bridge path.
 
 ## Anti-overlap
 

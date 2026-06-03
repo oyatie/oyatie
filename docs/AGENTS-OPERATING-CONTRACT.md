@@ -32,8 +32,12 @@ Enforced by: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-p
 
 Enforced by: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
 
+## ADR-0516 supersession
+
+ADR-0516 supersedes ADR-0349/ADR-0359/ADR-0361 for interim dev-lane unlock. GitHub/GitHub Actions is the temporary lane-unlocker, no Jenkins/no Forgejo/no ArgoCD are interim authorities, Buck2 remains build/test/check authority, and native cutover remains cloud native, Kubernetes-native, hyperscaler native SCM/CI/CD. This does not claim P0.0 green.
+
 ## ADR-0349
 
-[ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) declares Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus. Jenkins augments GitHub Actions for self-hostable CI contexts, while ArgoCD is the canonical GitOps CD orchestrator and replaces manual `kubectl apply` plus Helm CLI deploys across all contexts.
+[ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) is historical for interim authority after ADR-0516. Its Jenkins/ArgoCD substrate language is preserved as provenance and future-alternative comparison only; it does not authorize interim Jenkins, Forgejo, or ArgoCD authority.
 
-Enforced by: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+Interim enforcement: `//:github-lane-unlocker-bridge-check`, `//:buck2-authority-policy-check`, and ADR-0516 claim-boundary checks. Historical Jenkins/ArgoCD lanes are not interim authority.

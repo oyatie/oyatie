@@ -1,0 +1,135 @@
+name: github-lane-unlocker-ci-cd
+
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  BUCK2_RELEASE: "2026-06-01"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  lane-unlocker-fanout:
+    name: github-lane-unlocker-lane (${{ matrix.lane }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        lane: [governance, buck2-authority, rust-llvm-coverage, affected-build]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare dev base
+        run: git fetch --no-tags origin dev:refs/remotes/origin/dev
+      - name: Install Buck2 if missing
+        shell: bash
+        run: |
+          if command -v buck2 >/dev/null 2>&1; then
+            buck2 --version
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ca-certificates curl zstd
+          case "$(uname -m)" in
+            x86_64) buck2_arch="x86_64-unknown-linux-gnu" ;;
+            aarch64|arm64) buck2_arch="aarch64-unknown-linux-gnu" ;;
+            *) echo "unsupported Buck2 runner architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+          curl -fsSL -o /tmp/buck2.zst "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
+          zstd -d -c /tmp/buck2.zst > /tmp/buck2
+          sudo install -m 0755 /tmp/buck2 /usr/local/bin/buck2
+          buck2 --version
+      - name: Show Buck2 version
+        run: buck2 --version
+      - name: Run lane
+        run: |
+          case "${{ matrix.lane }}" in
+            governance)
+              python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
+              ;;
+            buck2-authority)
+              python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json
+              buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check
+              ;;
+            rust-llvm-coverage)
+              buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check
+              ;;
+            affected-build)
+              infra/ci/buck2-affected-gate.sh origin/dev HEAD
+              ;;
+          esac
+
+  github-lane-unlocker-required:
+    name: github-lane-unlocker-required
+    runs-on: ubuntu-latest
+    needs: lane-unlocker-fanout
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Buck2 if missing
+        shell: bash
+        run: |
+          if command -v buck2 >/dev/null 2>&1; then
+            buck2 --version
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ca-certificates curl zstd
+          case "$(uname -m)" in
+            x86_64) buck2_arch="x86_64-unknown-linux-gnu" ;;
+            aarch64|arm64) buck2_arch="aarch64-unknown-linux-gnu" ;;
+            *) echo "unsupported Buck2 runner architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+          curl -fsSL -o /tmp/buck2.zst "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
+          zstd -d -c /tmp/buck2.zst > /tmp/buck2
+          sudo install -m 0755 /tmp/buck2 /usr/local/bin/buck2
+          buck2 --version
+      - name: Aggregate bridge evidence
+        run: |
+          python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
+          buck2 build //:github-lane-unlocker-bridge-check
+
+  github-lane-unlocker-cd-dry-run:
+    name: github-lane-unlocker-cd-dry-run
+    runs-on: ubuntu-latest
+    needs: github-lane-unlocker-required
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Buck2 if missing
+        shell: bash
+        run: |
+          if command -v buck2 >/dev/null 2>&1; then
+            buck2 --version
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ca-certificates curl zstd
+          case "$(uname -m)" in
+            x86_64) buck2_arch="x86_64-unknown-linux-gnu" ;;
+            aarch64|arm64) buck2_arch="aarch64-unknown-linux-gnu" ;;
+            *) echo "unsupported Buck2 runner architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+          curl -fsSL -o /tmp/buck2.zst "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
+          zstd -d -c /tmp/buck2.zst > /tmp/buck2
+          sudo install -m 0755 /tmp/buck2 /usr/local/bin/buck2
+          buck2 --version
+      - name: Validate dry-run bridge only
+        run: |
+          python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
+          buck2 build //:github-lane-unlocker-bridge-check
+          echo "dry-run bridge only; native release conveyor cutover remains separate"

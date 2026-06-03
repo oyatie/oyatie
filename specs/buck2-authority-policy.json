@@ -6,17 +6,17 @@
     "doc_class": "Machine-Readable-Spec",
     "official_references": [
       {
-        "name": "Cargo Book \u2014 Profiles",
+        "name": "Cargo Book — Profiles",
         "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
         "used_for": "Release profile knobs and custom profile selection for the narrow production release optimization exception."
       },
       {
-        "name": "rustc Book \u2014 Codegen Options",
+        "name": "rustc Book — Codegen Options",
         "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
         "used_for": "opt-level, LTO, codegen-units, panic strategy, split debuginfo, strip, and related release codegen behavior."
       },
       {
-        "name": "rustc Book \u2014 Profile-guided Optimization",
+        "name": "rustc Book — Profile-guided Optimization",
         "url": "https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html",
         "used_for": "PGO measurement workflow boundaries for the narrow production release optimization exception."
       },
@@ -26,22 +26,22 @@
         "used_for": "Allocator replacement safety constraints and measurement caveats."
       },
       {
-        "name": "Rust Reference \u2014 global_allocator",
+        "name": "Rust Reference — global_allocator",
         "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
         "used_for": "Crate-graph singleton rule and placement for the global allocator attribute."
       },
       {
-        "name": "Buck2 docs \u2014 build command",
+        "name": "Buck2 docs — build command",
         "url": "https://buck2.build/docs/users/commands/build/",
         "used_for": "Buck2 build command authority for build lanes."
       },
       {
-        "name": "Buck2 docs \u2014 test command",
+        "name": "Buck2 docs — test command",
         "url": "https://buck2.build/docs/users/commands/test/",
         "used_for": "Buck2 test command authority for test lanes."
       },
       {
-        "name": "Rustc Book \u2014 Instrumentation-based Code Coverage",
+        "name": "Rustc Book — Instrumentation-based Code Coverage",
         "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
         "used_for": "Records Rust LLVM source-based coverage as the modern coverage direction for AC-0.6 and adjacent Rust gates."
       },
@@ -61,7 +61,8 @@
       "ADR-0515",
       "ADR-0360",
       "ADR-0363",
-      "ADR-0511"
+      "ADR-0511",
+      "ADR-0516"
     ],
     "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0 + AC-0.0 + AC-0.12 + AC-0.16 + AC-0.17",
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0 + T0.12 + T0.16 + T0.17",
@@ -69,7 +70,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T12:00:00Z"
+    "updated_at": "2026-06-03T00:00:00Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -328,7 +329,14 @@
     "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json",
     "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json",
     "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json",
-    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json"
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json",
+    ".github/workflows/github-lane-unlocker-ci-cd.yml",
+    "scripts/ci/assert-github-lane-unlocker-bridge.py",
+    "specs/github-lane-unlocker-bridge.json",
+    "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+    "docs/ci/github-actions-lane-unlocker.md",
+    "infra/branch-protection/dev.json",
+    ".github/branch-protection.yaml"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -453,7 +461,11 @@
       "assert-who-gates-gates.rs",
       "who_gates_gates_check.rs",
       "who-gates-gates-registry.json",
-      "phase0-who-gates-gates"
+      "phase0-who-gates-gates",
+      "github-lane-unlocker-bridge-check",
+      "assert-github-lane-unlocker-bridge.py",
+      "github-lane-unlocker-bridge.json",
+      "github-actions-lane-unlocker.md"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -1390,6 +1402,61 @@
       "no_new_oya_cli_surface",
       "p0_0_green",
       "phase0_complete"
+    ],
+    ".github/workflows/github-lane-unlocker-ci-cd.yml": [
+      "github-lane-unlocker-required",
+      "strategy:",
+      "max-parallel: 4",
+      "matrix:",
+      "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
+      "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
+      "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
+    ],
+    "scripts/ci/assert-github-lane-unlocker-bridge.py": [
+      "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+      "github-lane-unlocker-required",
+      "best_of_existing_systems_not_wholesale_reimplementation",
+      "cloud_native_hyperscaler_fit",
+      "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
+      "auth_shared_substrate_decoupling",
+      "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes"
+    ],
+    "specs/github-lane-unlocker-bridge.json": [
+      "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+      "Buck2 remains the build/test/check authority",
+      "best_of_existing_systems_not_wholesale_reimplementation",
+      "loosely_coupled_microservices",
+      "scale_controllers_to_zero_not_delete_pods_blindly",
+      "cloud_and_oyatie_auth_shared_substrates_decoupled_now",
+      "no_shared_contract_or_surface_now",
+      "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes"
+    ],
+    "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": [
+      "GitHub/GitHub Actions",
+      "temporary lane-unlocker",
+      "no Jenkins",
+      "no Forgejo",
+      "no ArgoCD",
+      "Buck2",
+      "LLVM source-based coverage",
+      "not P0.0 green",
+      "Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now",
+      "no shared contract or shared surface",
+      "rewrite and rewire Oyatie products to consume the Cloud IdP"
+    ],
+    "docs/ci/github-actions-lane-unlocker.md": [
+      "github-lane-unlocker-required",
+      "GitHub/GitHub Actions",
+      "no Jenkins",
+      "no Forgejo",
+      "no ArgoCD",
+      "Buck2",
+      "loosely coupled",
+      "scale the owning Deployment/StatefulSet/controller to zero",
+      "Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now",
+      "no shared contract or shared surface",
+      "rewrite and rewire Oyatie products to consume the Cloud IdP"
     ]
   },
   "required_glob_anchors": [
@@ -1443,5 +1510,13 @@
     "architecture_docs": "https://docs.prow.k8s.io/docs/overview/architecture/",
     "tide_docs": "https://docs.prow.k8s.io/docs/components/core/tide/",
     "contract": "cloud-ci/oya-ci is a Rust reimplementation and improvement of upstream Kubernetes Prow/Tide, not a greenfield CI invention; we adopt the proven Prow component/capability model while replacing GitHub/GCS/Groovy coupling with Forgejo-native, Buck2-native, self-hosted Rust services."
+  },
+  "github_lane_unlocker_bridge": {
+    "spec": "specs/github-lane-unlocker-bridge.json",
+    "workflow": ".github/workflows/github-lane-unlocker-ci-cd.yml",
+    "temporary_required_context": "github-lane-unlocker-required",
+    "native_cutover_target_context": "oya-ci-required",
+    "build_test_check_authority": "buck2",
+    "auth_shared_substrate_decoupling": "cloud and Oyatie product auth/shared substrates are separate now; no shared contract/surface; future Cloud IdP rewrite/rewire"
   }
 }

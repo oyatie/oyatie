@@ -1,7 +1,11 @@
+# ADR-0516 Supersession Note
+
+ADR-0516 supersedes this document for interim dev-lane unlock. The current interim path is GitHub/GitHub Actions as a temporary lane-unlocker, with no Jenkins, no Forgejo, and no ArgoCD interim authority. Buck2 remains build/test/check authority; native cutover remains cloud native, Kubernetes-native, and hyperscaler native. Historical details below are retained for provenance and native-cutover comparison only.
+
 # Auto-Merge Flow — Forgejo and GitHub after CI
 
 This note describes the P0.0 target contract for PR auto-merge into `dev` on both
-Forgejo and the GitHub bootstrap mirror. It is a target/bridge contract, not a
+Forgejo and the GitHub temporary bridge. It is a target/bridge contract, not a
 Phase-0 completion claim: live merge authority remains blocked until
 `oya-ci-required` is posted by trusted cloud-ci/oya-ci control state and required
 on the candidate SHA.
@@ -64,7 +68,7 @@ Auto-merge may be armed only when all of the following are true:
    is also fixed to `true` in P0.0 so successful auto-merges do not leave stale
    bootstrap branches behind.
 
-## GitHub bootstrap mirror path
+## GitHub temporary bridge path
 
 GitHub is the bootstrap mirror, but P0.0 requires it to converge to the same
 policy while PRs are still opened there:
@@ -90,7 +94,7 @@ policy while PRs are still opened there:
 
 `scripts/check-sequential-pr-merge-conflicts.sh` models queued GitHub PRs with
 `git merge-tree --write-tree` and fails at the first conflict. Its
-`--fetch-remote` option is load-bearing during the Forgejo/GitHub bootstrap
+`--fetch-remote` option is load-bearing during the Forgejo/GitHub temporary
 split: GitHub PR refs must be fetched from the GitHub mirror remote, not from a
 Forgejo `origin` that intentionally lacks GitHub PR refs. Forgejo Tide uses the
 Forgejo `mergeable` state and the same required-status/review gates;
@@ -101,7 +105,7 @@ operator procedure.
 
 - `scripts/ci/arm-auto-merge.sh` — Forgejo branch-protection convergence and
   per-PR auto-merge scheduling.
-- `scripts/trigger-next-queue-automerge.sh` — GitHub bootstrap mirror
+- `scripts/trigger-next-queue-automerge.sh` — GitHub temporary bridge
   auto-merge arming.
 - `scripts/check-sequential-pr-merge-conflicts.sh` — merge-conflict simulation.
 - `infra/branch-protection/dev.json` — checked-in target required context.
