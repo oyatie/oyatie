@@ -27,10 +27,13 @@ lane-unlocker. It is not P0.0 green and it does not make GitHub permanent.
 
 The workflow `.github/workflows/github-lane-unlocker-ci-cd.yml` fans out with a
 matrix and `max-parallel`, cancels stale runs with `concurrency`, and aggregates a
-single required check named `github-lane-unlocker-required`. The workflow pins
-`BUCK2_RELEASE=2026-06-01` and installs Buck2 from the existing release pattern
-when the runner image does not already provide `buck2`; the lane fails closed if
-Buck2 cannot be installed or `buck2 --version` fails.
+single required check named `github-lane-unlocker-required`. Every job first runs
+`scripts/ci/github-actions-lane-unlocker-bootstrap.sh`, which serializes rustup
+setup before Buck2 fanout, pins Rust through `rust-toolchain.toml`, installs
+`llvm-tools-preview`, installs the Linux targets Buck2 probes, then installs
+Buck2 from `BUCK2_RELEASE=2026-06-01` when the runner image does not already
+provide `buck2`. The lane fails closed if rustup, LLVM tools, Buck2, or
+`buck2 --version` fail.
 
 Required local commands:
 
@@ -41,16 +44,17 @@ buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-sm
 infra/ci/buck2-affected-gate.sh origin/dev HEAD
 ```
 
-Rust coverage remains LLVM source-based coverage through Buck2 targets; Tarpaulin
-is not required CI evidence. Cargo mutation testing is advisory only for dual
-Cargo+Buck2 setups.
+Rust coverage remains LLVM source-based coverage through Buck2 targets. The
+serialized bootstrap installs `llvm-tools-preview`, so `llvm-profdata` and
+`llvm-cov` are resolved from the pinned rustup sysroot instead of ambient runner
+state. Tarpaulin is not required CI evidence. Cargo mutation testing is advisory
+only for dual Cargo+Buck2 setups.
 
 ## Kubernetes and microservices
 
-Follow CNCF principles: loosely coupled microservices are the default; microservices are loosely coupled and service boundaries
-are explicit. The target architecture is secure, resilient, manageable, sustainable, and observable. The CNCF Cloud Native Reference Architecture lens
-adds distributable, observable, portable, interoperable, and available as
-durable properties.
+Follow CNCF principles: loosely coupled microservices are the default and
+service boundaries are explicit. The target architecture is secure, resilient, manageable, sustainable, and observable. The CNCF Cloud Native Reference
+Architecture lens adds distributable, observable, portable, interoperable, and available as durable properties.
 
 To put pods down, scale the owning Deployment/StatefulSet/controller to zero or
 use a workload-scoped drain/pause. Do not blindly delete pods; controllers can

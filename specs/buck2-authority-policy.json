@@ -6,17 +6,17 @@
     "doc_class": "Machine-Readable-Spec",
     "official_references": [
       {
-        "name": "Cargo Book — Profiles",
+        "name": "Cargo Book \u2014 Profiles",
         "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
         "used_for": "Release profile knobs and custom profile selection for the narrow production release optimization exception."
       },
       {
-        "name": "rustc Book — Codegen Options",
+        "name": "rustc Book \u2014 Codegen Options",
         "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
         "used_for": "opt-level, LTO, codegen-units, panic strategy, split debuginfo, strip, and related release codegen behavior."
       },
       {
-        "name": "rustc Book — Profile-guided Optimization",
+        "name": "rustc Book \u2014 Profile-guided Optimization",
         "url": "https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html",
         "used_for": "PGO measurement workflow boundaries for the narrow production release optimization exception."
       },
@@ -26,22 +26,22 @@
         "used_for": "Allocator replacement safety constraints and measurement caveats."
       },
       {
-        "name": "Rust Reference — global_allocator",
+        "name": "Rust Reference \u2014 global_allocator",
         "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
         "used_for": "Crate-graph singleton rule and placement for the global allocator attribute."
       },
       {
-        "name": "Buck2 docs — build command",
+        "name": "Buck2 docs \u2014 build command",
         "url": "https://buck2.build/docs/users/commands/build/",
         "used_for": "Buck2 build command authority for build lanes."
       },
       {
-        "name": "Buck2 docs — test command",
+        "name": "Buck2 docs \u2014 test command",
         "url": "https://buck2.build/docs/users/commands/test/",
         "used_for": "Buck2 test command authority for test lanes."
       },
       {
-        "name": "Rustc Book — Instrumentation-based Code Coverage",
+        "name": "Rustc Book \u2014 Instrumentation-based Code Coverage",
         "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
         "used_for": "Records Rust LLVM source-based coverage as the modern coverage direction for AC-0.6 and adjacent Rust gates."
       },
@@ -332,6 +332,8 @@
     "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json",
     ".github/workflows/github-lane-unlocker-ci-cd.yml",
     "scripts/ci/assert-github-lane-unlocker-bridge.py",
+    "rust-toolchain.toml",
+    "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
     "specs/github-lane-unlocker-bridge.json",
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
     "docs/ci/github-actions-lane-unlocker.md",
@@ -1518,5 +1520,34 @@
     "native_cutover_target_context": "oya-ci-required",
     "build_test_check_authority": "buck2",
     "auth_shared_substrate_decoupling": "cloud and Oyatie product auth/shared substrates are separate now; no shared contract/surface; future Cloud IdP rewrite/rewire"
+  },
+  "expected_command_markers": {
+    ".github/workflows/github-lane-unlocker-ci-cd.yml": [
+      "github-lane-unlocker-required",
+      "strategy:",
+      "max-parallel: 4",
+      "matrix:",
+      "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+      "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
+      "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
+      "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
+    ],
+    "scripts/ci/github-actions-lane-unlocker-bootstrap.sh": [
+      "RUSTUP_CONCURRENT_DOWNLOADS",
+      "rustup toolchain install",
+      "llvm-tools-preview",
+      "rustup target add",
+      "llvm-profdata",
+      "llvm-cov",
+      "buck2 --version",
+      "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
+    ],
+    "rust-toolchain.toml": [
+      "channel = \"1.95.0\"",
+      "llvm-tools-preview",
+      "aarch64-unknown-linux-gnu",
+      "profile = \"minimal\""
+    ]
   }
 }

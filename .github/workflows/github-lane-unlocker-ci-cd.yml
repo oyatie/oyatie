@@ -33,24 +33,9 @@ jobs:
           fetch-depth: 0
       - name: Prepare dev base
         run: git fetch --no-tags origin dev:refs/remotes/origin/dev
-      - name: Install Buck2 if missing
+      - name: Bootstrap Rust and Buck2 toolchains
         shell: bash
-        run: |
-          if command -v buck2 >/dev/null 2>&1; then
-            buck2 --version
-            exit 0
-          fi
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ca-certificates curl zstd
-          case "$(uname -m)" in
-            x86_64) buck2_arch="x86_64-unknown-linux-gnu" ;;
-            aarch64|arm64) buck2_arch="aarch64-unknown-linux-gnu" ;;
-            *) echo "unsupported Buck2 runner architecture: $(uname -m)" >&2; exit 1 ;;
-          esac
-          curl -fsSL -o /tmp/buck2.zst "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
-          zstd -d -c /tmp/buck2.zst > /tmp/buck2
-          sudo install -m 0755 /tmp/buck2 /usr/local/bin/buck2
-          buck2 --version
+        run: scripts/ci/github-actions-lane-unlocker-bootstrap.sh
       - name: Show Buck2 version
         run: buck2 --version
       - name: Run lane
@@ -79,24 +64,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install Buck2 if missing
+      - name: Bootstrap Rust and Buck2 toolchains
         shell: bash
-        run: |
-          if command -v buck2 >/dev/null 2>&1; then
-            buck2 --version
-            exit 0
-          fi
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ca-certificates curl zstd
-          case "$(uname -m)" in
-            x86_64) buck2_arch="x86_64-unknown-linux-gnu" ;;
-            aarch64|arm64) buck2_arch="aarch64-unknown-linux-gnu" ;;
-            *) echo "unsupported Buck2 runner architecture: $(uname -m)" >&2; exit 1 ;;
-          esac
-          curl -fsSL -o /tmp/buck2.zst "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
-          zstd -d -c /tmp/buck2.zst > /tmp/buck2
-          sudo install -m 0755 /tmp/buck2 /usr/local/bin/buck2
-          buck2 --version
+        run: scripts/ci/github-actions-lane-unlocker-bootstrap.sh
       - name: Aggregate bridge evidence
         run: |
           python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
@@ -110,24 +80,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install Buck2 if missing
+      - name: Bootstrap Rust and Buck2 toolchains
         shell: bash
-        run: |
-          if command -v buck2 >/dev/null 2>&1; then
-            buck2 --version
-            exit 0
-          fi
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ca-certificates curl zstd
-          case "$(uname -m)" in
-            x86_64) buck2_arch="x86_64-unknown-linux-gnu" ;;
-            aarch64|arm64) buck2_arch="aarch64-unknown-linux-gnu" ;;
-            *) echo "unsupported Buck2 runner architecture: $(uname -m)" >&2; exit 1 ;;
-          esac
-          curl -fsSL -o /tmp/buck2.zst "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
-          zstd -d -c /tmp/buck2.zst > /tmp/buck2
-          sudo install -m 0755 /tmp/buck2 /usr/local/bin/buck2
-          buck2 --version
+        run: scripts/ci/github-actions-lane-unlocker-bootstrap.sh
       - name: Validate dry-run bridge only
         run: |
           python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json

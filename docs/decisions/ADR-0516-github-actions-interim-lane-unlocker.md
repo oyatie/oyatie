@@ -21,9 +21,13 @@ Use GitHub as temporary SCM/merge surface and GitHub Actions as temporary CI/CD
 bridge for dev-lane unlock, while Buck2 remains the build/test/check authority.
 The required temporary context is `github-lane-unlocker-required`; the native
 cutover context remains separate as `oya-ci-required` and cannot be impersonated
-by the GitHub bridge. The temporary workflow pins `BUCK2_RELEASE=2026-06-01` and
-installs Buck2 if the runner image lacks it, so GitHub-hosted and self-hosted
-runners both fail closed on the same Buck2 authority.
+by the GitHub bridge. The temporary workflow pins `BUCK2_RELEASE=2026-06-01` and runs
+`scripts/ci/github-actions-lane-unlocker-bootstrap.sh` before any Buck2 fanout.
+That bootstrap serializes rustup setup, pins Rust through `rust-toolchain.toml`,
+installs `llvm-tools-preview`, installs the Linux targets Buck2 probes, then
+installs Buck2 if the runner image lacks it. GitHub-hosted and self-hosted
+runners both fail closed on the same Rust/Buck2 authority instead of lazily
+installing toolchains inside concurrent Buck2 actions.
 
 The native SCM direction is a pure-Rust Sapling-compatible native SCM that adopts
 best-of-existing hyperscaler patterns and is not a wholesale reimplementation of
@@ -33,7 +37,9 @@ for patterns such as stacked changes, cloud workspaces, merge pools, required
 status rollups, affected builds, Kubernetes-native job execution, and source
 based coverage.
 
-Rust coverage remains Buck2-driven LLVM source-based coverage. Tarpaulin is not
+Rust coverage remains Buck2-driven LLVM source-based coverage. The CI bootstrap
+preinstalls the Rust `llvm-tools-preview` component so `llvm-profdata` and
+`llvm-cov` come from the pinned rustup sysroot. Tarpaulin is not
 the monorepo coverage authority. Cargo can remain advisory for local dual
 Cargo+Buck2 mutation testing where Reindeer-like generation keeps Cargo metadata
 and BUCK graphs aligned, but Cargo is not CI merge authority.

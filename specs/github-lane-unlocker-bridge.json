@@ -27,7 +27,22 @@
       "buck2_release": "2026-06-01",
       "install_if_missing": true,
       "source": "https://github.com/facebook/buck2/releases",
-      "fail_closed": "buck2 --version and Buck2 targets must pass before required context succeeds"
+      "fail_closed": "rustup toolchain/components/targets, llvm-profdata/llvm-cov, buck2 --version, and Buck2 targets must pass before required context succeeds",
+      "bootstrap_script": "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+      "serialized_before_buck2_fanout": true,
+      "rust_toolchain": "1.95.0",
+      "rust_components": [
+        "rustfmt",
+        "clippy",
+        "llvm-tools-preview"
+      ],
+      "rust_targets": [
+        "x86_64-unknown-linux-gnu",
+        "aarch64-unknown-linux-gnu"
+      ],
+      "rustup_concurrent_downloads": 1,
+      "rustup_lazy_install_allowed_in_buck2_actions": false,
+      "llvm_tools_preinstalled": true
     }
   },
   "github_actions_cd_bridge": {

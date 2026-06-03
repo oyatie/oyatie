@@ -20,6 +20,8 @@ from typing import Any
 REPO_ROOT = Path(os.environ.get("OYA_REPO_ROOT", Path(__file__).resolve().parents[2])).resolve()
 SPEC_PATH = REPO_ROOT / "specs/github-lane-unlocker-bridge.json"
 WORKFLOW_PATH = REPO_ROOT / ".github/workflows/github-lane-unlocker-ci-cd.yml"
+BOOTSTRAP_PATH = REPO_ROOT / "scripts/ci/github-actions-lane-unlocker-bootstrap.sh"
+RUST_TOOLCHAIN_PATH = REPO_ROOT / "rust-toolchain.toml"
 BRANCH_PROTECTION_JSON = REPO_ROOT / "infra/branch-protection/dev.json"
 BRANCH_PROTECTION_YAML = REPO_ROOT / ".github/branch-protection.yaml"
 ROOT_HUB = REPO_ROOT / "specs/root-hub-pointers.json"
@@ -65,6 +67,8 @@ def main() -> int:
     failures: list[str] = []
     spec = load_json(SPEC_PATH, failures)
     workflow = read_text(WORKFLOW_PATH, failures)
+    bootstrap = read_text(BOOTSTRAP_PATH, failures)
+    rust_toolchain = read_text(RUST_TOOLCHAIN_PATH, failures)
     branch_json = load_json(BRANCH_PROTECTION_JSON, failures)
     branch_yaml = read_text(BRANCH_PROTECTION_YAML, failures)
     root_hub = load_json(ROOT_HUB, failures)
@@ -217,9 +221,8 @@ def main() -> int:
             "contents: read",
             "pull-requests: read",
             "BUCK2_RELEASE: \"2026-06-01\"",
-            "Install Buck2 if missing",
-            "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst",
-            "sudo install -m 0755 /tmp/buck2 /usr/local/bin/buck2",
+            "Bootstrap Rust and Buck2 toolchains",
+            "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
             "concurrency:",
             "github.event.pull_request.number || github.head_ref || github.run_id",
             "cancel-in-progress: true",
@@ -242,9 +245,40 @@ def main() -> int:
             require_contains(workflow, needle, failures, "lane unlocker workflow")
         require("cargo tarpaulin" not in workflow.lower(), failures, "lane unlocker workflow must not use Tarpaulin")
         require("github-lane-unlocker-required" in workflow, failures, "lane unlocker workflow must expose the temporary required context")
+        require(workflow.count("scripts/ci/github-actions-lane-unlocker-bootstrap.sh") == 3, failures, "lane unlocker workflow must bootstrap Rust and Buck2 in fanout, aggregator, and dry-run jobs")
         require("oya-ci-required" not in workflow, failures, "lane unlocker workflow must not impersonate oya-ci-required")
         for forbidden in ["jenkins", "forgejo", "argocd"]:
             require(forbidden not in workflow.lower(), failures, f"lane unlocker workflow must not invoke or describe {forbidden} as interim authority")
+
+
+    if bootstrap:
+        for needle in [
+            "Deterministic GitHub Actions bootstrap",
+            "RUSTUP_CONCURRENT_DOWNLOADS",
+            "rustup toolchain install",
+            "llvm-tools-preview",
+            "x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu",
+            "rustup component add",
+            "rustup target add",
+            "llvm-profdata",
+            "llvm-cov",
+            "rustc --print=cfg --target=aarch64-unknown-linux-gnu",
+            "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst",
+            "sudo install -m 0755 /tmp/buck2 /usr/local/bin/buck2",
+            "buck2 --version",
+        ]:
+            require_contains(bootstrap, needle, failures, "lane unlocker bootstrap")
+        for forbidden in ["jenkins", "forgejo", "argocd"]:
+            require(forbidden not in bootstrap.lower(), failures, f"lane unlocker bootstrap must not invoke or describe {forbidden} as interim authority")
+
+    if rust_toolchain:
+        for needle in [
+            'channel = "1.95.0"',
+            'components = ["rustfmt", "clippy", "llvm-tools-preview"]',
+            'targets = ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]',
+            'profile = "minimal"',
+        ]:
+            require_contains(rust_toolchain, needle, failures, "rust-toolchain.toml")
 
     temp_bridge = branch_json.get("temporary_github_lane_unlocker_bridge", {}) if isinstance(branch_json, dict) else {}
     require(temp_bridge.get("status") == "temporary_bridge_not_destination_authority", failures, "infra/branch-protection/dev.json must declare temporary bridge status")
@@ -266,6 +300,8 @@ def main() -> int:
     for required in [
         ".github/workflows/github-lane-unlocker-ci-cd.yml",
         "scripts/ci/assert-github-lane-unlocker-bridge.py",
+        "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+        "rust-toolchain.toml",
         "specs/github-lane-unlocker-bridge.json",
         "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
         "docs/ci/github-actions-lane-unlocker.md",
