@@ -621,6 +621,8 @@ genrule(
         "scripts/ci/assert-effective-dating-kernel.rs": "scripts/ci/assert-effective-dating-kernel.rs",
         "scripts/tests/effective_dating_kernel_check.rs": "scripts/tests/effective_dating_kernel_check.rs",
         "specs/effective-dating-kernel-registry.json": "specs/effective-dating-kernel-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs": "//oya/ontology/crates/oya-ontology-kernel:effective-dating-src",
         "oya/ontology/crates/oya-ontology-kernel/src/lib.rs": "//oya/ontology/crates/oya-ontology-kernel:lib-src",
         "oya/ontology/crates/oya-ontology-kernel/BUCK": "//oya/ontology/crates/oya-ontology-kernel:BUCK",

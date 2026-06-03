@@ -18,6 +18,76 @@ fn read_repo_file(path: &str) -> String {
     })
 }
 
+fn json_object_containing_id<'a>(document: &'a str, id: &str) -> &'a str {
+    let needle = format!("\"id\": \"{}\"", id);
+    let id_position = document
+        .find(&needle)
+        .unwrap_or_else(|| panic!("missing JSON object id {}", id));
+    let start = document[..id_position]
+        .rfind('{')
+        .unwrap_or_else(|| panic!("missing JSON object start for {}", id));
+    let mut depth = 0usize;
+    for (offset, character) in document[start..].char_indices() {
+        match character {
+            '{' => depth += 1,
+            '}' => {
+                depth = depth
+                    .checked_sub(1)
+                    .unwrap_or_else(|| panic!("unbalanced JSON object for {}", id));
+                if depth == 0 {
+                    return &document[start..start + offset + 1];
+                }
+            }
+            _ => {}
+        }
+    }
+    panic!("missing JSON object end for {}", id);
+}
+
+#[test]
+fn automation_matrix_maps_ac06_to_exact_effective_dating_gate() {
+    let matrix = read_repo_file("specs/phase0-automation-matrix.json");
+    let row = json_object_containing_id(&matrix, "AC-0.6-effective-dating-kernel");
+    assert!(
+        row.contains("\"target_gate_or_controller\": \"//:effective-dating-kernel-check\""),
+        "{}",
+        row
+    );
+    assert!(
+        row.contains("\"verification_command\": \"buck2 build //:effective-dating-kernel-check\""),
+        "{}",
+        row
+    );
+    assert!(row.contains("\"no_new_oya_cli_surface\": true"), "{}", row);
+    assert!(row.contains("no protected-branch authority"), "{}", row);
+    assert!(
+        row.contains("no production-ready or hyperscaler-grade claim"),
+        "{}",
+        row
+    );
+
+    let coverage = read_repo_file("specs/phase0-automation-coverage-registry.json");
+    let subject = json_object_containing_id(&coverage, "AC-0.6");
+    assert!(
+        subject.contains("//:effective-dating-kernel-check"),
+        "{}",
+        subject
+    );
+    assert!(
+        subject.contains(
+            "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests"
+        ),
+        "{}",
+        subject
+    );
+    assert!(
+        subject.contains("\"verification_command\": \"buck2 build //:effective-dating-kernel-check\""),
+        "{}",
+        subject
+    );
+    assert!(subject.contains("not live cloud-ci/oya-ci authority"), "{}", subject);
+}
+
 #[test]
 fn checked_in_registry_source_buck_and_fixtures_pass() {
     let evaluation = gate::evaluate(

@@ -129,7 +129,8 @@
         "AC-0.6-effective-dating-kernel"
       ],
       "owner": "platform-governance",
-      "coverage_note": "Maps AC-0.6 to //:effective-dating-kernel-check plus //oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests. Coverage is local/static Rust/Buck2 evidence that bitemporal valid-time x transaction-time primitives, as-of queries, overlap rejection, open-ended ranges, and clock-skew deterministic ordering are fixture-backed; it is not live cloud-ci/oya-ci authority or P0.0 green evidence."
+      "coverage_note": "Maps AC-0.6 to //:effective-dating-kernel-check plus //oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests. Coverage is local/static Rust/Buck2 evidence that bitemporal valid-time x transaction-time primitives, as-of queries, overlap rejection, open-ended ranges, and clock-skew deterministic ordering are fixture-backed; it is not live cloud-ci/oya-ci authority or P0.0 green evidence.",
+      "verification_command": "buck2 build //:effective-dating-kernel-check"
     },
     {
       "id": "AC-0.7",

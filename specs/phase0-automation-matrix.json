@@ -390,11 +390,14 @@
       "requirement": "Ontology/effective-dating kernel must expose the bitemporal type and pass unit/property fixtures, including clock-skew deterministic as-of behavior.",
       "classification": "automated_blocking_now",
       "owner": "platform-ontology",
-      "target_gate_or_controller": "//:effective-dating-kernel-check + //oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+      "target_gate_or_controller": "//:effective-dating-kernel-check",
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.6",
       "retirement_phase": "P0.5",
       "evidence_path": "ontology/effective-dating kernel Rust/Buck2 fixture evidence",
-      "no_new_oya_cli_surface": true
+      "no_new_oya_cli_surface": true,
+      "coverage_note": "Local/static AC-0.6 effective-dating kernel seed evidence only: //:effective-dating-kernel-check depends on //oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests and validates bitemporal type/as-of/overlap/clock-skew fixtures. No status mutation, no protected-branch authority, no P0.0 green, no Phase-0 completion, no production-ready or hyperscaler-grade claim.",
+      "claim_boundary": "No live cloud-ci/oya-ci authority, no status mutation, no protected-branch authority, no P0.0 green, no Phase-0 completion, no production-ready or hyperscaler-grade claim.",
+      "verification_command": "buck2 build //:effective-dating-kernel-check"
     },
     {
       "id": "AC-0.7-service-layout-sprawl",
