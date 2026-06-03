@@ -238,6 +238,12 @@ def main() -> int:
             failures.append("automation_mapping.override_kill_switch_check_script must be scripts/ci/assert-override-kill-switch.py")
         if automation_mapping.get("override_kill_switch_test") != "scripts/tests/phase0_override_kill_switch_check.test.sh":
             failures.append("automation_mapping.override_kill_switch_test must be scripts/tests/phase0_override_kill_switch_check.test.sh")
+        if automation_mapping.get("trusted_target_inventory_check_target") != "//:phase0-trusted-target-inventory-check":
+            failures.append("automation_mapping.trusted_target_inventory_check_target must be //:phase0-trusted-target-inventory-check")
+        if automation_mapping.get("trusted_target_inventory_check_script") != "scripts/ci/assert-trusted-target-inventory.py":
+            failures.append("automation_mapping.trusted_target_inventory_check_script must be scripts/ci/assert-trusted-target-inventory.py")
+        if automation_mapping.get("trusted_target_inventory_test") != "scripts/tests/phase0_trusted_target_inventory_check.test.sh":
+            failures.append("automation_mapping.trusted_target_inventory_test must be scripts/tests/phase0_trusted_target_inventory_check.test.sh")
 
     for doc in REQUIRED_CONTEXT_NARRATIVE_DOCS:
         path = repo_path(doc)
@@ -298,6 +304,7 @@ def main() -> int:
                 "required_red_green_pairs": pair_count,
                 "result_bundle_fixtures": len(fixture_set.get("result_bundle_fixture_paths", [])),
                 "trusted_target_inventory_fixtures": len(fixture_set.get("trusted_target_inventory_fixture_paths", [])),
+                "trusted_target_inventory_check_target": automation_mapping.get("trusted_target_inventory_check_target"),
                 "required_status_source_fixtures": len(actual_source_fixture_paths),
                 "claim_boundary": {
                     "p0_0_green": False,

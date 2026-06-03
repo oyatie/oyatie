@@ -37,6 +37,8 @@ genrule(
         "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
         "scripts/ci/assert-override-kill-switch.py": "scripts/ci/assert-override-kill-switch.py",
         "scripts/tests/phase0_override_kill_switch_check.test.sh": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+        "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
+        "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -210,6 +212,24 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])} | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-ci-enforcement-baseline-catalog-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# P0.0 trusted target-inventory fixture check: local/static GOOD/BAD
+# coverage that candidate PR bytes cannot author the required Buck2 target
+# inventory. This does not claim live cloud-ci/controller target authority.
+genrule(
+    name = "phase0-trusted-target-inventory-check",
+    srcs = {
+        "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
+        "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+        "specs/phase0-trusted-target-inventory-schema.json": "specs/phase0-trusted-target-inventory-schema.json",
+        "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+        "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
+    },
+    out = "phase0-trusted-target-inventory-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_trusted_target_inventory_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 

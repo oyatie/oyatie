@@ -18,12 +18,13 @@
       "/specs/phase0-automation-matrix.json",
       "/specs/phase0-claim-evidence-map.json",
       "/specs/toolchain-tenant-isolation-fixtures.json",
-      "/specs/phase0-ci-enforcement-result-schema.json"
+      "/specs/phase0-ci-enforcement-result-schema.json",
+      "/specs/phase0-trusted-target-inventory-schema.json"
     ],
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-PHASE0-CI-ENFORCEMENT-BASELINE",
     "status": "p0_0_red_gap_packet",
-    "updated_at": "2026-06-03T02:20:00Z",
+    "updated_at": "2026-06-03T02:35:04Z",
     "version": "0.1.0"
   },
   "automation_mapping": {
@@ -41,7 +42,10 @@
     "tenant_isolation_test": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
     "override_kill_switch_check_target": "//:phase0-override-kill-switch-check",
     "override_kill_switch_check_script": "scripts/ci/assert-override-kill-switch.py",
-    "override_kill_switch_test": "scripts/tests/phase0_override_kill_switch_check.test.sh"
+    "override_kill_switch_test": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+    "trusted_target_inventory_check_script": "scripts/ci/assert-trusted-target-inventory.py",
+    "trusted_target_inventory_check_target": "//:phase0-trusted-target-inventory-check",
+    "trusted_target_inventory_test": "scripts/tests/phase0_trusted_target_inventory_check.test.sh"
   },
   "claim_boundary": {
     "allowed_language_now": "gap packet / target / specified fixture contract only",
@@ -190,6 +194,37 @@
         "p0_0_green": false,
         "phase0_complete": false
       }
+    },
+    "trusted_target_inventory_fixture_gate": {
+      "classification": "checked_in_local_static_fixture_gate_not_live_controller_target_authority",
+      "schema": "specs/phase0-trusted-target-inventory-schema.json",
+      "baseline_good_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+      "baseline_bad_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
+      "path": "scripts/ci/assert-trusted-target-inventory.py",
+      "test": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+      "buck2_target": "//:phase0-trusted-target-inventory-check",
+      "local_fixture_contract_proven": true,
+      "candidate_pr_bytes_are_data_only_locally_proven": true,
+      "trusted_target_inventory_live_authority_proven": false,
+      "live_required_context_execution_proven": false,
+      "required_inventory_fields": [
+        "candidate_sha",
+        "claim_boundary",
+        "inventory_source",
+        "captured_before_candidate_checkout",
+        "candidate_checkout_after_inventory",
+        "no_candidate_authored_discovery",
+        "build_targets",
+        "test_targets",
+        "expected_verdict",
+        "expected_violations",
+        "fixture_id",
+        "source_test"
+      ],
+      "claim_boundary": {
+        "p0_0_green": false,
+        "phase0_complete": false
+      }
     }
   },
   "description": "P0.0 baseline and gap packet for Prow/cloud-ci enforcement plus tenant-isolation fixtures. This file is evidence of the current P0.0 state, not a Phase-0 completion claim.",
@@ -317,16 +352,19 @@
     "tenant_isolation_test": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
     "override_kill_switch_check_target": "//:phase0-override-kill-switch-check",
     "override_kill_switch_check_script": "scripts/ci/assert-override-kill-switch.py",
-    "override_kill_switch_test": "scripts/tests/phase0_override_kill_switch_check.test.sh"
+    "override_kill_switch_test": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+    "trusted_target_inventory_check_script": "scripts/ci/assert-trusted-target-inventory.py",
+    "trusted_target_inventory_check_target": "//:phase0-trusted-target-inventory-check",
+    "trusted_target_inventory_test": "scripts/tests/phase0_trusted_target_inventory_check.test.sh"
   },
   "gap_packet": {
     "candidate_pr_untrusted": {
       "current_risk": "active bridge executes infra/ci/buck2-affected-gate.sh from the candidate checkout",
       "evidence": "RED fixtures include candidate-sourced producer/gate definitions and candidate-deleted trusted-target inventory; live required context evidence is still absent.",
-      "fix_path": "controller job clones trusted gate catalog separately and passes candidate SHA/tree as input",
+      "fix_path": "controller job clones trusted gate catalog separately, captures Buck2 build/test target inventory from trusted dev/controller state before candidate checkout, and passes candidate SHA/tree as data-only input",
       "required_policy": "candidate PR tree is data under test only; producer/gate definitions come from trusted trunk/controller state",
       "status": "GAP",
-      "local_target_status": "k8s gate job captures trusted Buck2 build/test target inventories from dev/controller state before candidate checkout; schema, GOOD fixture, BAD candidate-sourced fixture, and kernel evaluator now cover the local contract",
+      "local_target_status": "schema, GOOD fixture, BAD candidate-sourced fixture, local checker, and //:phase0-trusted-target-inventory-check require trusted dev/controller inventory capture before candidate checkout, reject candidate-authored target discovery, require non-empty well-formed Buck2 build/test targets, and keep p0_0_green=false/phase0_complete=false; live cloud-ci/oya-ci target-inventory authority remains unproven",
       "trusted_target_inventory_schema": "specs/phase0-trusted-target-inventory-schema.json",
       "blocking_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json"
     },

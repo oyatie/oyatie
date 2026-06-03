@@ -17,7 +17,7 @@
     "spec_id": "EXE-PHASE0-AUTOMATION-MATRIX",
     "status": "seed-contract-not-green",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T02:20:00Z"
+    "updated_at": "2026-06-03T02:35:04Z"
   },
   "classifications": [
     "automated_blocking_now",
@@ -104,6 +104,7 @@
     "AC-0.0-cloud-ci-required-context",
     "AC-0.0-buck2-authority-no-cargo-regression",
     "AC-0.0-auto-merge-after-ci",
+    "AC-0.0-trusted-target-inventory",
     "AC-0.0-override-kill-switch",
     "ADR-0363-oya-cli-retirement",
     "ADR-0513-tide-ownership",
@@ -137,15 +138,28 @@
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 + specs/fixtures/phase0-ci-enforcement-baseline/ + //:phase0-ci-enforcement-baseline-catalog-check",
       "classification": "automated_blocking_now",
       "current_gap_packet": "specs/phase0-ci-enforcement-baseline.json#gap_packet",
-      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + specs/fixtures/phase0-required-status-source/ + scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py + scripts/ci/assert-required-status-source.py + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle + specs/phase0-override-packet-schema.json + specs/phase0-trusted-target-inventory-schema.json",
+      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + specs/fixtures/phase0-required-status-source/ + scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py + scripts/ci/assert-required-status-source.py + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle + specs/phase0-override-packet-schema.json + specs/phase0-trusted-target-inventory-schema.json + scripts/ci/assert-trusted-target-inventory.py + //:phase0-trusted-target-inventory-check",
       "id": "AC-0.0-cloud-ci-required-context",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain",
       "requirement": "Protected branch merge/exit authority must be a Prow-shaped cloud-ci/oya-ci required context sourced from trusted trunk/controller state; affected-only/buck2-only/local oya output is not authority.",
       "retirement_phase": "P0.0",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
-      "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context + //:phase0-ci-enforcement-baseline-catalog-check + //:phase0-required-status-source-check",
+      "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context + //:phase0-ci-enforcement-baseline-catalog-check + //:phase0-required-status-source-check + //:phase0-trusted-target-inventory-check",
       "claim_boundary": "Local/static and live-read-only RED evidence now detects app_id=null or untrusted required-status source-app binding. This is not P0.0 green or protected-branch authority until trusted cloud-ci/oya-ci posts and is source-bound for required oya-ci-required on candidate SHAs."
+    },
+    {
+      "id": "AC-0.0-trusted-target-inventory",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0 + .omx/plans/test-spec-phase0.md#T0.0.1a",
+      "requirement": "Required Buck2 build/test target inventory must be captured from trusted dev/controller state before candidate checkout; candidate PR bytes are data under test and cannot author or weaken the gate catalog.",
+      "classification": "automated_blocking_now",
+      "target_gate_or_controller": "cloud-ci/oya-ci trusted target inventory controller + //:phase0-trusted-target-inventory-check",
+      "evidence_path": "specs/phase0-trusted-target-inventory-schema.json + scripts/ci/assert-trusted-target-inventory.py + scripts/tests/phase0_trusted_target_inventory_check.test.sh + //:phase0-trusted-target-inventory-check",
+      "blocking_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
+      "owner": "platform-toolchain + platform-security",
+      "retirement_phase": "P0.0 live cloud-ci/oya-ci required-context cutover",
+      "claim_boundary": "Local/static fixture gate proves the checked-in trusted target-inventory schema and GOOD/BAD fixtures only. This is not live controller target authority, P0.0 green, or Phase-0 completion until trusted cloud-ci/oya-ci posts the required context on candidate SHAs.",
+      "no_new_oya_cli_surface": true
     },
     {
       "id": "AC-0.0-buck2-authority-no-cargo-regression",

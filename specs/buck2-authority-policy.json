@@ -58,7 +58,8 @@
     "source_request": "Founder directive 2026-06-02: scripts, CI, CD, and build use Buck2; do not regress to Cargo; only production release image/binary optimization may use Cargo.",
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "updated_at": "2026-06-03T02:35:04Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -111,6 +112,7 @@
     "buck2 build //:buck2-authority-policy-check",
     "//:phase0-ci-enforcement-baseline-catalog-check",
     "//:phase0-required-status-source-check",
+    "//:phase0-trusted-target-inventory-check",
     "//:phase0-tenant-isolation-fixture-check",
     "//:phase0-override-kill-switch-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
@@ -188,7 +190,9 @@
     "scripts/ci/assert-tenant-pipeline-isolation.py",
     "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
     "scripts/ci/assert-override-kill-switch.py",
-    "scripts/tests/phase0_override_kill_switch_check.test.sh"
+    "scripts/tests/phase0_override_kill_switch_check.test.sh",
+    "scripts/ci/assert-trusted-target-inventory.py",
+    "scripts/tests/phase0_trusted_target_inventory_check.test.sh"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -241,7 +245,9 @@
       "phase0-tenant-isolation-fixture-check",
       "phase0_tenant_isolation_fixture_check.test.sh",
       "phase0_override_kill_switch_check.test.sh",
-      "phase0-override-kill-switch-check"
+      "phase0-override-kill-switch-check",
+      "phase0-trusted-target-inventory-check",
+      "phase0_trusted_target_inventory_check.test.sh"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -503,6 +509,26 @@
       "bad-good-fixture-new-oya-cli.json",
       "bad-red-fixture-missing-expected-override-violation.json",
       "phase0 override/kill-switch fixture checks passed"
+    ],
+    "scripts/ci/assert-trusted-target-inventory.py": [
+      "trusted target-inventory fixture evidence only",
+      "trusted_dev_or_controller_state",
+      "candidate_pr_bytes",
+      "candidate_pr_bytes_are_data_only_locally_proven",
+      "trusted_target_inventory_live_authority_proven",
+      "target_inventory_not_trusted",
+      "candidate_can_author_target_inventory",
+      "malformed_buck2_target",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_trusted_target_inventory_check.test.sh": [
+      "bad-schema-extra-inventory-source.json",
+      "bad-good-fixture-extra-top-level-field.json",
+      "bad-good-fixture-short-candidate-sha.json",
+      "bad-good-fixture-candidate-source.json",
+      "bad-red-fixture-missing-expected-trusted-target-violation.json",
+      "phase0 trusted target-inventory fixture checks passed"
     ]
   },
   "required_glob_anchors": [

@@ -11,7 +11,8 @@
     "source_request": "Founder refinement: no false promises or aspirational claims without substance; hyperscaler-grade/production-ready/mechanically-enforced claims need evidence specs befitting the claim.",
     "spec_id": "EXE-PHASE0-CLAIM-EVIDENCE-MAP",
     "status": "seed-contract-not-green",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "updated_at": "2026-06-03T02:35:04Z"
   },
   "description": "Seed claim/evidence map for Phase 0. This is not a readiness claim: it prevents empty promises by labeling current regulated language as target/spec/enforced/production/hyperscaler tiers and by identifying the evidence still required before stronger claims are allowed.",
   "fixture_set": {
@@ -122,13 +123,15 @@
         "P0.0/AC-0.0/T0.0 specify required cloud-ci context and negative fixtures",
         "Live rebaseline shows branch protection now includes oya-ci-required, but required_status_checks.checks binds it to app_id=null and PR #455 reports no candidate-SHA checks; reported status metadata / legacy bridge inventory still includes oya-verify and affected-only paths",
         "specs/phase0-ci-enforcement-baseline.json records current P0.0 RED gap packet and T0.0 fixture paths",
-        "scripts/ci/assert-override-kill-switch.py and //:phase0-override-kill-switch-check execute the local override/kill-switch RED/GREEN fixture contract with p0_0_green=false/phase0_complete=false"
+        "scripts/ci/assert-override-kill-switch.py and //:phase0-override-kill-switch-check execute the local override/kill-switch RED/GREEN fixture contract with p0_0_green=false/phase0_complete=false",
+        "scripts/ci/assert-trusted-target-inventory.py and //:phase0-trusted-target-inventory-check execute the local trusted target-inventory RED/GREEN fixture contract with candidate PR bytes treated as data only and p0_0_green=false/phase0_complete=false"
       ],
       "id": "CLAIM-P0-mechanically-enforced",
       "missing_for_next_tier": [
         "branch protection requires cloud-ci-required or oya-ci-required",
         "required status producer is non-PR-controllable and trunk/controller-sourced",
-        "known BAD/GOOD fixtures pass through protected admission"
+        "known BAD/GOOD fixtures pass through protected admission",
+        "trusted cloud-ci/oya-ci captures target inventory from controller/trunk state before candidate checkout on live candidate SHAs"
       ],
       "owner": "platform-toolchain",
       "regulated_terms": [
