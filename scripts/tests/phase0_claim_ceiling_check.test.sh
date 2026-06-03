@@ -10,6 +10,73 @@ trap 'rm -rf "$tmp_dir"' EXIT
 check="scripts/ci/assert-claim-ceiling.py"
 claim_map="specs/phase0-claim-evidence-map.json"
 contract="specs/hyperscaler-production-readiness-claim-contract.json"
+matrix="specs/phase0-automation-matrix.json"
+coverage="specs/phase0-automation-coverage-registry.json"
+
+python3 - <<'PY' "$matrix" "$coverage"
+import json
+import sys
+
+matrix_path, coverage_path = sys.argv[1:]
+matrix = json.load(open(matrix_path))
+coverage = json.load(open(coverage_path))
+
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+
+row = next(
+    (candidate for candidate in matrix["seed_rows"] if candidate.get("id") == "AC-0.17-claim-ceiling"),
+    None,
+)
+expect(row is not None, "AC-0.17 claim-ceiling row missing")
+expect(
+    row.get("target_gate_or_controller") == "//:phase0-claim-ceiling-check",
+    "AC-0.17 claim-ceiling row must map to exact Buck2 target",
+)
+expect(
+    row.get("verification_command") == "buck2 build //:phase0-claim-ceiling-check",
+    "AC-0.17 claim-ceiling row must record exact verification command",
+)
+claim_boundary = row.get("claim_boundary", "")
+expect(
+    "not live required-context authority" in claim_boundary,
+    "AC-0.17 claim-ceiling row must preserve live-authority non-claim",
+)
+expect(
+    "hyperscaler-grade readiness" in claim_boundary,
+    "AC-0.17 claim-ceiling row must preserve hyperscaler-grade non-claim",
+)
+expect(
+    row.get("no_new_oya_cli_surface") is True,
+    "AC-0.17 claim-ceiling row must refuse new oya CLI authority",
+)
+
+subject = next(
+    (candidate for candidate in coverage["coverage_subjects"] if candidate.get("id") == "AC-0.17"),
+    None,
+)
+expect(subject is not None, "AC-0.17 coverage subject missing")
+expect(
+    subject.get("verification_command") == "buck2 build //:phase0-claim-ceiling-check",
+    "AC-0.17 coverage subject must record exact verification command",
+)
+coverage_note = subject.get("coverage_note", "")
+expect(
+    "//:phase0-claim-ceiling-check" in coverage_note,
+    "AC-0.17 coverage subject must name the exact Buck2 target",
+)
+expect(
+    "not live required-context authority" in coverage_note,
+    "AC-0.17 coverage subject must preserve live-authority non-claim",
+)
+expect(
+    "hyperscaler-grade readiness" in coverage_note,
+    "AC-0.17 coverage subject must preserve hyperscaler-grade non-claim",
+)
+PY
 
 python3 "$check" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"

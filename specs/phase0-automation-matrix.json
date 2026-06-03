@@ -261,8 +261,9 @@
       "requirement": "Regulated readiness/enforcement/security/completion vocabulary must have live evidence or target/non-claim labeling.",
       "retirement_phase": "P0.7/AC-0.17",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.17",
-      "target_gate_or_controller": "cloud-ci-claim-ceiling + //:phase0-claim-ceiling-check",
-      "claim_boundary": "Local/static fixture gate proves seed claim rows and declared BAD/GREEN claim-ceiling fixtures only. This is not live required-context authority, production readiness, hyperscaler-grade readiness, P0.0 green, or Phase-0 completion."
+      "target_gate_or_controller": "//:phase0-claim-ceiling-check",
+      "claim_boundary": "Local/static fixture gate proves seed claim rows and declared BAD/GREEN claim-ceiling fixtures only. This is not live required-context authority, production readiness, hyperscaler-grade readiness, P0.0 green, or Phase-0 completion.",
+      "verification_command": "buck2 build //:phase0-claim-ceiling-check"
     },
     {
       "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json + scripts/tests/phase0_claim_ceiling_check.test.sh",

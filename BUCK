@@ -752,6 +752,8 @@ genrule(
         "scripts/tests/phase0_claim_ceiling_check.test.sh": "scripts/tests/phase0_claim_ceiling_check.test.sh",
         "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
         "specs/hyperscaler-production-readiness-claim-contract.json": "specs/hyperscaler-production-readiness-claim-contract.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-claim-ceiling/*.json"])},
     out = "phase0-claim-ceiling-check.txt",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_claim_ceiling_check.test.sh > $OUT",

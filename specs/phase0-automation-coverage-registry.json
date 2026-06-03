@@ -250,7 +250,9 @@
       "mapped_row_ids": [
         "AC-0.17-claim-ceiling"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.17 to //:phase0-claim-ceiling-check, which validates regulated readiness/enforcement/security/completion vocabulary against allowed evidence tiers, target/non-claim language, and BAD/GREEN claim-ceiling fixtures. Local/static evidence only; not live required-context authority, production readiness, or hyperscaler-grade readiness.",
+      "verification_command": "buck2 build //:phase0-claim-ceiling-check"
     },
     {
       "id": "FOUNDER-buck2-authority",
