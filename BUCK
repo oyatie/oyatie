@@ -59,6 +59,9 @@ genrule(
         "scripts/ci/run-rust-llvm-coverage-smoke.py": "scripts/ci/run-rust-llvm-coverage-smoke.py",
         "scripts/tests/rust_llvm_coverage_smoke_check.test.sh": "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
         "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
+        "scripts/ci/assert-buck2-cargo-target-coverage.py": "scripts/ci/assert-buck2-cargo-target-coverage.py",
+        "scripts/tests/buck2_cargo_target_coverage_check.test.sh": "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+        "specs/buck2-cargo-target-coverage.json": "specs/buck2-cargo-target-coverage.json",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -302,6 +305,28 @@ genrule(
     },
     out = "rust-llvm-coverage-smoke-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_llvm_coverage_smoke_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/run-rust-llvm-coverage-smoke.py --out $OUT > /dev/null",
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.13 Buck2/Cargo target-coverage check: local/static evidence that
+# every Cargo workspace lib/bin target root has a checked-in Buck2 rust
+# crate_root mapping, including parent-BUCK mappings such as tools/oci/BUCK.
+# This measures target graph coverage only; it does not run Cargo, generate
+# source-line coverage, or claim live cloud-ci/oya-ci authority.
+genrule(
+    name = "buck2-cargo-target-coverage-check",
+    srcs = {
+        "scripts/ci/assert-buck2-cargo-target-coverage.py": "scripts/ci/assert-buck2-cargo-target-coverage.py",
+        "scripts/tests/buck2_cargo_target_coverage_check.test.sh": "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+        "specs/buck2-cargo-target-coverage.json": "specs/buck2-cargo-target-coverage.json",
+        "Cargo.toml": "Cargo.toml",
+    } | {path: path for path in glob(["**/Cargo.toml", "**/BUCK"], exclude = ["buck-out/**", "target/**"])},
+    out = "buck2-cargo-target-coverage-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/buck2_cargo_target_coverage_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-buck2-cargo-target-coverage.py --spec specs/buck2-cargo-target-coverage.json --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
     visibility = ["PUBLIC"],
 )
 

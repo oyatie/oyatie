@@ -1171,6 +1171,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-p0.0-red-gap-packet",
       "purpose": "Local/static AC-0.16 coverage registry mapping declared Phase-0 acceptance criteria, selected ADR amendments, operating-contract requirements, and governance work items to automation-matrix rows so seed-row omission cannot false-green the automation ratchet."
+    },
+    "buck2_cargo_target_coverage": {
+      "kind": "spec",
+      "current_path": "/specs/buck2-cargo-target-coverage.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "AC-0.13 local/static target-coverage contract measuring Cargo workspace lib/bin target roots, including Cargo auto-discovered src/bin binaries, against checked-in Buck2 rust crate_root mappings; records divergence without source-line coverage or live cloud-ci authority claims."
     }
   },
   "by_kind": {
@@ -1208,7 +1215,7 @@
       "prd_community_shorts_retired",
       "prd_community_social"
     ],
-    "audit_note": "Root hub now has a direct discoverability row for every top-level specs/*.json file. docs/AGENTS.md remains current authority for the agent operating contract until PHASE-5."
+    "audit_note": "Root hub has direct discoverability rows for top-level specs/*.json files known through this P0.0 slice, including buck2-cargo-target-coverage.json; PHASE-5 migration remains pending for markdown-authority surfaces."
   },
   "pointers": {
     "buck2_authority_policy": "specs/buck2-authority-policy.json"

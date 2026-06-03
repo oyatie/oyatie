@@ -59,7 +59,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T07:55:00Z"
+    "updated_at": "2026-06-03T08:22:00Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -122,6 +122,7 @@
     "//:rust-testing-standard-check",
     "//:rust-llvm-coverage-runner-contract-check",
     "//:rust-llvm-coverage-smoke-check",
+    "//:buck2-cargo-target-coverage-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "//:phase0-auto-merge-after-ci-contract-check",
     "//:forgejo-auto-merge-after-ci-check",
@@ -219,7 +220,10 @@
     "specs/rust-llvm-coverage-runner-contract.json",
     "scripts/ci/run-rust-llvm-coverage-smoke.py",
     "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
-    "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs"
+    "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
+    "scripts/ci/assert-buck2-cargo-target-coverage.py",
+    "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+    "specs/buck2-cargo-target-coverage.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -298,7 +302,13 @@
       "rust_llvm_coverage_runner_contract_check.test.sh",
       "rust-llvm-coverage-runner-contract.json",
       "rust-llvm-coverage-smoke-check",
-      "run-rust-llvm-coverage-smoke.py"
+      "run-rust-llvm-coverage-smoke.py",
+      "buck2-cargo-target-coverage-check",
+      "assert-buck2-cargo-target-coverage.py",
+      "buck2_cargo_target_coverage_check.test.sh",
+      "repo_relative_root",
+      "cacheable = False",
+      "remote = False"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -831,6 +841,45 @@
     "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": [
       "fn classify",
       "println!"
+    ],
+    "specs/buck2-cargo-target-coverage.json": [
+      "//:buck2-cargo-target-coverage-check",
+      "Cargo.toml",
+      "**/BUCK",
+      "crate_root",
+      "known_divergences",
+      "source_line_coverage_generated",
+      "live_required_context_execution_proven",
+      "p0_0_green",
+      "phase0_complete",
+      "repo_relative_root=true",
+      "cacheable=false",
+      "remote=false",
+      "https://doc.rust-lang.org/cargo/reference/cargo-targets.html",
+      "src/bin/*.rs",
+      "src/bin/*/main.rs",
+      "cargo_autodiscovery_rule"
+    ],
+    "scripts/ci/assert-buck2-cargo-target-coverage.py": [
+      "local/static target-coverage evidence only",
+      "crate_root",
+      "missing_buck2_target_root_mapping",
+      "stale_known_divergence",
+      "source_line_coverage_generated",
+      "live_required_context_execution_proven",
+      "auto_discovery_enabled",
+      "autobins",
+      "src/bin",
+      "workspace_member_glob"
+    ],
+    "scripts/tests/buck2_cargo_target_coverage_check.test.sh": [
+      "target_coverage_measured",
+      "missing_buck2_target_root_mapping",
+      "good-parent-repo",
+      "forbidden_true_or_missing_claim_p0_0_green",
+      "src/bin/tool.rs",
+      "autobins = false",
+      "cargo_target_root_count"
     ]
   },
   "required_glob_anchors": [
