@@ -6,17 +6,17 @@
     "doc_class": "Machine-Readable-Spec",
     "official_references": [
       {
-        "name": "Cargo Book \u2014 Profiles",
+        "name": "Cargo Book — Profiles",
         "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
         "used_for": "Release profile knobs and custom profile selection for the narrow production release optimization exception."
       },
       {
-        "name": "rustc Book \u2014 Codegen Options",
+        "name": "rustc Book — Codegen Options",
         "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
         "used_for": "opt-level, LTO, codegen-units, panic strategy, split debuginfo, strip, and related release codegen behavior."
       },
       {
-        "name": "rustc Book \u2014 Profile-guided Optimization",
+        "name": "rustc Book — Profile-guided Optimization",
         "url": "https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html",
         "used_for": "PGO measurement workflow boundaries for the narrow production release optimization exception."
       },
@@ -26,17 +26,17 @@
         "used_for": "Allocator replacement safety constraints and measurement caveats."
       },
       {
-        "name": "Rust Reference \u2014 global_allocator",
+        "name": "Rust Reference — global_allocator",
         "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
         "used_for": "Crate-graph singleton rule and placement for the global allocator attribute."
       },
       {
-        "name": "Buck2 docs \u2014 build command",
+        "name": "Buck2 docs — build command",
         "url": "https://buck2.build/docs/users/commands/build/",
         "used_for": "Buck2 build command authority for build lanes."
       },
       {
-        "name": "Buck2 docs \u2014 test command",
+        "name": "Buck2 docs — test command",
         "url": "https://buck2.build/docs/users/commands/test/",
         "used_for": "Buck2 test command authority for test lanes."
       }
@@ -133,7 +133,11 @@
     "//:forgejo-auto-merge-after-ci-check",
     "//:github-auto-merge-after-ci-check",
     "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests",
-    "cloud-ci/oya-ci oya-ci-required required context after live producer cutover"
+    "cloud-ci/oya-ci oya-ci-required required context after live producer cutover",
+    "//:language-discipline-check",
+    "scripts/ci/assert-language-discipline.rs",
+    "scripts/tests/language_discipline_check.rs",
+    "specs/language-discipline-registry.json"
   ],
   "claim_boundary": {
     "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
@@ -244,7 +248,10 @@
     "specs/status-enum-registry.json",
     "specs/adr-hygiene-registry.json",
     "scripts/tests/adr_hygiene_check.test.sh",
-    "scripts/ci/assert-adr-hygiene.py"
+    "scripts/ci/assert-adr-hygiene.py",
+    "scripts/ci/assert-language-discipline.rs",
+    "scripts/tests/language_discipline_check.rs",
+    "specs/language-discipline-registry.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -350,7 +357,11 @@
       "adr-hygiene-registry.json",
       "adr_hygiene_check.test.sh",
       "assert-adr-hygiene.py",
-      "adr-hygiene-check"
+      "adr-hygiene-check",
+      "language-discipline-check",
+      "assert-language-discipline.rs",
+      "language_discipline_check.rs",
+      "language-discipline-registry.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -717,7 +728,10 @@
       "AC-0.15-merge-conflict-foundation",
       "phase0-merge-conflict-foundation-check",
       "generated-artifact-registry.json",
-      "P0.9-generated-artifact-registry"
+      "P0.9-generated-artifact-registry",
+      "AC-0.4-language-discipline",
+      "//:language-discipline-check",
+      "language-discipline-registry.json"
     ],
     "specs/phase0-automation-coverage-registry.json": [
       "AC-0.0-trusted-target-inventory",
@@ -733,7 +747,10 @@
       "phase0-red-green-fixture-contract-check",
       "AC-0.15",
       "phase0-merge-conflict-foundation-check",
-      "P0.9-generated-artifact-registry"
+      "P0.9-generated-artifact-registry",
+      "AC-0.4-language-discipline",
+      "//:language-discipline-check",
+      "language-discipline-registry.json"
     ],
     "scripts/ci/assert-claim-ceiling.py": [
       "claim-ceiling local/static fixture evidence only",
@@ -960,7 +977,11 @@
       "p0_0_green",
       "phase0-merge-conflict-foundation",
       "//:phase0-merge-conflict-foundation-check",
-      "phase0_merge_conflict_foundation_check.test.sh"
+      "phase0_merge_conflict_foundation_check.test.sh",
+      "language-discipline",
+      "//:language-discipline-check",
+      "new_python_outside_allowlist",
+      "new_shell_outside_allowlist"
     ],
     "specs/generated-artifact-registry.json": [
       "generated_artifact_registry_published",
@@ -985,6 +1006,48 @@
       "generated_artifact_missing_registry",
       "phase1_tide_batched_projection_overclaim",
       "RED merge-conflict fixture must produce violations"
+    ],
+    "specs/language-discipline-registry.json": [
+      "language_discipline_allowlist_measured",
+      "new_python_outside_allowlist_blocked",
+      "new_shell_outside_allowlist_blocked",
+      "t0_4_cloud_check_backlog_count",
+      "scripts/tests/cloud_control_plane_operation_contract_check.py",
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not the canonical coverage surface",
+      "Dual Cargo.toml + Buck2/Reindeer",
+      "live_required_context_execution_proven",
+      "p0_0_green",
+      "//:language-discipline-check"
+    ],
+    "scripts/ci/assert-language-discipline.rs": [
+      "new_python_outside_allowlist",
+      "new_shell_outside_allowlist",
+      "BACKLOG_OFFENDERS",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/language_discipline_check.rs": [
+      "registry_rejects_p0_green_mutation",
+      "registry_rejects_missing_cloud_backlog_offender",
+      "good_allowlisted_fixture_rejects_disallowed_shell_mutation",
+      "new_shell_outside_allowlist"
+    ],
+    "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json": [
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json": [
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json": [
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-language-discipline/tc-0.4-good-non-script-change.json": [
+      "p0_0_green",
+      "phase0_complete"
     ]
   },
   "required_glob_anchors": [

@@ -1220,6 +1220,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-ac-0.3-seed",
       "purpose": "AC-0.3 local/static ADR numbering, supersession, and active-doc superseded-reference hygiene registry validated by //:adr-hygiene-check. Duplicate ADR-0377 is resolved by ADR-0520 renumbering and ADR-0511 is superseded_by ADR-0513; full ADR index regeneration and live required-context authority remain false."
+    },
+    "language_discipline_registry": {
+      "kind": "spec",
+      "current_path": "/specs/language-discipline-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-ac-0.4-seed",
+      "purpose": "AC-0.4 local/static language-discipline allowlist registry validated by //:language-discipline-check. It blocks new candidate-authored .py/.sh fixture sprawl outside the bootstrap shell allowlist, records the T0.4 cloud_*_check.py backlog inventory, preserves Buck2-native LLVM coverage and dual Cargo+Buck2/Reindeer local mutation standards, and keeps live required-context/P0.0/Phase-0 readiness authority false."
     }
   },
   "by_kind": {

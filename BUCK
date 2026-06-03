@@ -86,6 +86,13 @@ genrule(
         "scripts/ci/assert-adr-hygiene.py": "scripts/ci/assert-adr-hygiene.py",
         "scripts/tests/adr_hygiene_check.test.sh": "scripts/tests/adr_hygiene_check.test.sh",
         "specs/adr-hygiene-registry.json": "specs/adr-hygiene-registry.json",
+        "scripts/ci/assert-language-discipline.rs": "scripts/ci/assert-language-discipline.rs",
+        "scripts/tests/language_discipline_check.rs": "scripts/tests/language_discipline_check.rs",
+        "specs/language-discipline-registry.json": "specs/language-discipline-registry.json",
+        "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json": "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
+        "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
+        "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
+        "specs/fixtures/phase0-language-discipline/tc-0.4-good-non-script-change.json": "specs/fixtures/phase0-language-discipline/tc-0.4-good-non-script-change.json",
         "docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md": "docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md",
         "docs/decisions/ADR-0520-kafka-to-pulsar-via-kop.md": "docs/decisions/ADR-0520-kafka-to-pulsar-via-kop.md",
         "specs/fixtures/phase0-status-enum-drift/tc-status-enum-good-aligned.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-good-aligned.json",
@@ -388,6 +395,8 @@ genrule(
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "BUCK": "BUCK",
         "docs/standards/testing.md": "docs/standards/testing.md",
+        "scripts/ci/assert-language-discipline.rs": "scripts/ci/assert-language-discipline.rs",
+        "scripts/tests/language_discipline_check.rs": "scripts/tests/language_discipline_check.rs",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
     out = "phase0-red-green-fixture-contract-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/red_green_fixture_contract_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json > $OUT",
@@ -480,6 +489,26 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-adr-hygiene/*.json", "docs/decisions/ADR-*.md", "docs/standards/*.md", "specs/*.json"])},
     out = "adr-hygiene-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/adr_hygiene_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-adr-hygiene.py --registry specs/adr-hygiene-registry.json --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.4 language-discipline check: Rust/Buck2 local/static evidence that new
+# candidate-authored .py/.sh test sprawl is blocked outside the allowlist and
+# the T0.4 cloud-check backlog inventory is preserved. This never posts
+# statuses, scans a live PR, or claims Phase-0 completion.
+genrule(
+    name = "language-discipline-check",
+    srcs = {
+        "scripts/ci/assert-language-discipline.rs": "scripts/ci/assert-language-discipline.rs",
+        "scripts/tests/language_discipline_check.rs": "scripts/tests/language_discipline_check.rs",
+        "specs/language-discipline-registry.json": "specs/language-discipline-registry.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-language-discipline/*.json"])},
+    out = "language-discipline-check.json",
+    cmd = "mkdir -p $TMP/language-discipline && rustc --edition=2021 -D warnings scripts/tests/language_discipline_check.rs --test -o $TMP/language-discipline/language_discipline_check && OYA_REPO_ROOT=$PWD $TMP/language-discipline/language_discipline_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-language-discipline.rs -o $TMP/language-discipline/assert-language-discipline && $TMP/language-discipline/assert-language-discipline --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,

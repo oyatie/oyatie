@@ -106,7 +106,8 @@
       "mapped_row_ids": [
         "AC-0.4-language-discipline"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.4 to //:language-discipline-check, specs/language-discipline-registry.json, Rust checker/test harness evidence, GOOD/BAD language-sprawl fixtures, and the T0.4 cloud_*_check.py backlog inventory. Local/static seed evidence only; live PR changed-file ingestion and trusted cloud-ci/oya-ci required-context authority remain false."
     },
     {
       "id": "AC-0.5",

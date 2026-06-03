@@ -25,7 +25,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 19,
+  "minimum_entry_count": 20,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -536,6 +536,44 @@
         {
           "path": "scripts/ci/assert-adr-hygiene.py",
           "contains": "full_adr_index_regenerated"
+        }
+      ]
+    },
+    {
+      "id": "language-discipline",
+      "automation_matrix_row_id": "AC-0.4-language-discipline",
+      "buck2_target": "//:language-discipline-check",
+      "test_paths": [
+        "scripts/tests/language_discipline_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
+          "contains": "TC-0.4-GOOD-allowlisted-bootstrap-shell-edit"
+        },
+        {
+          "path": "specs/language-discipline-registry.json",
+          "contains": "Buck2-native LLVM source-based coverage"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
+          "contains": "new_python_outside_allowlist"
+        },
+        {
+          "path": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
+          "contains": "new_shell_outside_allowlist"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-language-discipline.rs",
+          "contains": "p0_0_green"
+        },
+        {
+          "path": "specs/language-discipline-registry.json",
+          "contains": "live_required_context_execution_proven"
         }
       ]
     }
