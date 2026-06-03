@@ -80,6 +80,14 @@ genrule(
         "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-structural-packet-family.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-structural-packet-family.json",
         "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-duplicate-service.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-duplicate-service.json",
         "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-underscore-crate.json": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-underscore-crate.json",
+        "scripts/ci/assert-status-enum-drift.py": "scripts/ci/assert-status-enum-drift.py",
+        "scripts/tests/status_enum_drift_check.test.sh": "scripts/tests/status_enum_drift_check.test.sh",
+        "specs/status-enum-registry.json": "specs/status-enum-registry.json",
+        "specs/fixtures/phase0-status-enum-drift/tc-status-enum-good-aligned.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-good-aligned.json",
+        "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-invalid-status-value.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-invalid-status-value.json",
+        "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-spec-without-code.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-spec-without-code.json",
+        "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-code-without-spec.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-code-without-spec.json",
+        "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-status-drift.json": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-bad-status-drift.json",
         "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json",
         "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json",
         "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-generated-artifact-unregistered.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-generated-artifact-unregistered.json",
@@ -375,7 +383,7 @@ genrule(
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "BUCK": "BUCK",
         "docs/standards/testing.md": "docs/standards/testing.md",
-    } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/phase0_auto_merge_after_ci_contract_check.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
+    } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
     out = "phase0-red-green-fixture-contract-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/red_green_fixture_contract_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json > $OUT",
     visibility = ["PUBLIC"],
@@ -420,6 +428,27 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-service-root-classifier/*.json", "oya/*", "cloud/*", "libs/*", "packs/*", "regional-packs/*", "platforms/*"])},
     out = "service-root-classifier-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/service_root_classifier_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-service-root-classifier.py --inventory specs/service-inventory.json --packets specs/phase0-structural-packets.json --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.2 status-enum drift check: local/static seed evidence for the
+# 3-axis decision/maturity/constraint status enum, retired REAL live-field
+# rejection, and spec/code/manifest drift fixtures. This never posts statuses,
+# proves full manifest/PRD conformance, or claims Phase-0 completion.
+genrule(
+    name = "status-enum-drift-check",
+    srcs = {
+        "scripts/ci/assert-status-enum-drift.py": "scripts/ci/assert-status-enum-drift.py",
+        "scripts/tests/status_enum_drift_check.test.sh": "scripts/tests/status_enum_drift_check.test.sh",
+        "specs/status-enum-registry.json": "specs/status-enum-registry.json",
+        "specs/microservices/real-estate.json": "specs/microservices/real-estate.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-status-enum-drift/*.json", "oya/real-estate/**", "oya/analytics/**"])},
+    out = "status-enum-drift-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/status_enum_drift_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-status-enum-drift.py --registry specs/status-enum-registry.json --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,

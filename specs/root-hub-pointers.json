@@ -1206,6 +1206,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-p0.6-seed",
       "purpose": "P0.6 structural packet seed catalog for root inventory, oya/cloud/libs split families, flat layout, and kebab-case naming fixtures validated by //:service-root-classifier-check."
+    },
+    "status_enum_registry": {
+      "kind": "spec",
+      "current_path": "/specs/status-enum-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-ac-0.2-seed",
+      "purpose": "AC-0.2 local/static 3-axis decision/maturity/constraint status enum registry and status-drift fixture contract validated by //:status-enum-drift-check. Full manifest/PRD conformance and live required-context authority remain false."
     }
   },
   "by_kind": {

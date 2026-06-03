@@ -25,7 +25,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 17,
+  "minimum_entry_count": 18,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -486,11 +486,38 @@
         "AC-0.1-service-inventory",
         "AC-0.7-service-layout-sprawl"
       ]
+    },
+    {
+      "id": "status-enum-drift",
+      "automation_matrix_row_id": "AC-0.2-status-enum-drift",
+      "buck2_target": "//:status-enum-drift-check",
+      "test_paths": [
+        "scripts/tests/status_enum_drift_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-good-aligned.json",
+          "contains": "TC-0.2-GOOD-status-enum-and-spec-manifest-aligned"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/status_enum_drift_check.test.sh",
+          "contains": "invalid_status_enum_value"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-status-enum-drift.py",
+          "contains": "full_manifest_prd_conformance_proven"
+        }
+      ]
     }
   ],
   "automated_chain": [
     "scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json",
     "//:service-root-classifier-check",
+    "//:status-enum-drift-check",
     "buck2 build //:phase0-red-green-fixture-contract-check"
   ]
 }
