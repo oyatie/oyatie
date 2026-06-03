@@ -130,6 +130,14 @@ genrule(
         "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json",
         "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json",
         "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json",
+        "scripts/ci/assert-who-gates-gates.rs": "scripts/ci/assert-who-gates-gates.rs",
+        "scripts/tests/who_gates_gates_check.rs": "scripts/tests/who_gates_gates_check.rs",
+        "specs/who-gates-gates-registry.json": "specs/who-gates-gates-registry.json",
+        "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json": "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json",
+        "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json",
+        "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json",
+        "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json",
+        "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json": "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
@@ -448,6 +456,8 @@ genrule(
         "scripts/tests/structural_lock_revert_check.rs": "scripts/tests/structural_lock_revert_check.rs",
         "scripts/ci/assert-d1-read-your-writes-xfail.rs": "scripts/ci/assert-d1-read-your-writes-xfail.rs",
         "scripts/tests/d1_read_your_writes_xfail_check.rs": "scripts/tests/d1_read_your_writes_xfail_check.rs",
+        "scripts/ci/assert-who-gates-gates.rs": "scripts/ci/assert-who-gates-gates.rs",
+        "scripts/tests/who_gates_gates_check.rs": "scripts/tests/who_gates_gates_check.rs",
         "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
@@ -683,6 +693,29 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+
+# AC-0.11 who-gates-the-gates meta-check: Rust/Buck2 local/static
+# evidence that every integrity gate carries known-bad fixtures,
+# self-mutation probes, and non-vacuous pass conditions before its evidence can
+# count toward Phase-0. This never posts statuses, mutates branch protection,
+# adds an `oya` CLI surface, or claims P0.0 green / Phase-0 completion.
+genrule(
+    name = "who-gates-gates-check",
+    srcs = {
+        "scripts/ci/assert-who-gates-gates.rs": "scripts/ci/assert-who-gates-gates.rs",
+        "scripts/tests/who_gates_gates_check.rs": "scripts/tests/who_gates_gates_check.rs",
+        "specs/who-gates-gates-registry.json": "specs/who-gates-gates-registry.json",
+        "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
+        "scripts/tests/red_green_fixture_contract_check.test.sh": "scripts/tests/red_green_fixture_contract_check.test.sh",
+        "BUCK": "BUCK",
+    } | {path: path for path in glob(["specs/fixtures/phase0-who-gates-gates/*.json"])},
+    out = "who-gates-gates-check.json",
+    cmd = "mkdir -p $TMP/who-gates-gates && rustc --edition=2021 -D warnings scripts/tests/who_gates_gates_check.rs --test -o $TMP/who-gates-gates/who_gates_gates_check && OYA_REPO_ROOT=$PWD $TMP/who-gates-gates/who_gates_gates_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-who-gates-gates.rs -o $TMP/who-gates-gates/assert-who-gates-gates && $TMP/who-gates-gates/assert-who-gates-gates --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
 
 # AC-0.16 automation-ratchet fixture check: local/static coverage that
 # every Phase-0 rule row is classified, mapped, fixture-backed, and not routed

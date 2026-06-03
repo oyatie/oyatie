@@ -185,7 +185,8 @@
       "mapped_row_ids": [
         "AC-0.11-who-gates-gates"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.11 to //:who-gates-gates-check, specs/who-gates-gates-registry.json, and BAD fixtures proving missing known-bad coverage, vacuous pass conditions, missing self-mutation tests, and oya CLI authority routes fail closed. Coverage is local/static fixture evidence only; live required-context authority, P0.0 green, Phase-0 completion, production readiness, and hyperscaler-grade readiness remain false."
     },
     {
       "id": "AC-0.12",

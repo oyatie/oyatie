@@ -463,11 +463,13 @@
       "requirement": "Every integrity gate must prove its own known-bad fixture and avoid vacuous pass behavior.",
       "classification": "automated_blocking_now",
       "owner": "platform-governance + platform-toolchain",
-      "target_gate_or_controller": "who-gates-the-gates fixture meta-test",
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.11",
+      "target_gate_or_controller": "//:who-gates-gates-check",
+      "blocking_fixture": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json + specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json + specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json + specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json + .omx/plans/test-spec-phase0.md#T0.11",
       "retirement_phase": "AC-0.11/P0 exit",
-      "evidence_path": "known-bad fixture evidence for gate crates",
-      "no_new_oya_cli_surface": true
+      "evidence_path": "specs/who-gates-gates-registry.json + specs/fixtures/phase0-who-gates-gates/*.json + scripts/ci/assert-who-gates-gates.rs + scripts/tests/who_gates_gates_check.rs + Buck2 output for //:who-gates-gates-check",
+      "no_new_oya_cli_surface": true,
+      "verification_command": "buck2 build //:who-gates-gates-check",
+      "coverage_note": "Local/static who-gates-the-gates meta-check only: proves integrity gates have known-bad fixtures, self-mutation probes, and non-vacuous pass guards before their evidence can count. It does not prove live required-context authority, status mutation, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness."
     },
     {
       "id": "AC-0.13-buck2-cargo-coverage",

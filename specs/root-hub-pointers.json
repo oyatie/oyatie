@@ -1269,6 +1269,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "P0.0-local-static-seed",
       "purpose": "AC-0.10b local/static registry for executable D1 read-your-writes XFAIL classification, consistency-token-required fixtures, and non-claim boundaries until Phase-2 live D1 conformance lands."
+    },
+    "who_gates_gates_registry": {
+      "kind": "spec",
+      "current_path": "/specs/who-gates-gates-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "P0.0-local-static-seed",
+      "purpose": "AC-0.11 local/static registry for known-bad fixture coverage, self-mutation tests, and non-vacuous integrity-gate proof boundaries."
     }
   },
   "by_kind": {

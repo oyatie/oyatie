@@ -26,7 +26,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 25,
+  "minimum_entry_count": 26,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -763,6 +763,48 @@
           "contains": "live_d1_conformance_executed"
         }
       ]
+    },
+    {
+      "id": "who-gates-gates",
+      "automation_matrix_row_id": "AC-0.11-who-gates-gates",
+      "buck2_target": "//:who-gates-gates-check",
+      "test_paths": [
+        "scripts/tests/who_gates_gates_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json",
+          "contains": "\"expected_verdict\": \"PASS\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json",
+          "contains": "missing_known_bad_fixture"
+        },
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json",
+          "contains": "vacuous_pass_condition"
+        },
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json",
+          "contains": "missing_self_mutation_test"
+        },
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json",
+          "contains": "oya_cli_authority_route"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-who-gates-gates.rs",
+          "contains": "no live CI, status mutation, live required-context authority, P0.0 green"
+        },
+        {
+          "path": "specs/who-gates-gates-registry.json",
+          "contains": "\"live_required_context_execution_proven\": false"
+        }
+      ]
     }
   ],
   "automated_chain": [
@@ -773,6 +815,7 @@
     "//:d1-seam-contracts-check",
     "//:effective-dating-kernel-check",
     "//:d1-read-your-writes-xfail-check",
+    "//:who-gates-gates-check",
     "buck2 build //:phase0-red-green-fixture-contract-check"
   ]
 }

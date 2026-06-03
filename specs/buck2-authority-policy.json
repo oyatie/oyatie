@@ -172,7 +172,11 @@
     "//:d1-read-your-writes-xfail-check",
     "scripts/ci/assert-d1-read-your-writes-xfail.rs",
     "scripts/tests/d1_read_your_writes_xfail_check.rs",
-    "specs/d1-read-your-writes-xfail-registry.json"
+    "specs/d1-read-your-writes-xfail-registry.json",
+    "//:who-gates-gates-check",
+    "scripts/ci/assert-who-gates-gates.rs",
+    "scripts/tests/who_gates_gates_check.rs",
+    "specs/who-gates-gates-registry.json"
   ],
   "claim_boundary": {
     "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
@@ -316,7 +320,15 @@
     "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json",
     "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json",
     "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json",
-    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json"
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json",
+    "scripts/ci/assert-who-gates-gates.rs",
+    "scripts/tests/who_gates_gates_check.rs",
+    "specs/who-gates-gates-registry.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -436,7 +448,12 @@
       "structural-lock-revert-check",
       "assert-structural-lock-revert.rs",
       "structural_lock_revert_check.rs",
-      "structural-lock-revert-registry.json"
+      "structural-lock-revert-registry.json",
+      "who-gates-gates-check",
+      "assert-who-gates-gates.rs",
+      "who_gates_gates_check.rs",
+      "who-gates-gates-registry.json",
+      "phase0-who-gates-gates"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -809,7 +826,10 @@
       "language-discipline-registry.json",
       "AC-0.5-d1-contract-files",
       "//:d1-seam-contracts-check",
-      "d1-seam-contracts-registry.json"
+      "d1-seam-contracts-registry.json",
+      "AC-0.11-who-gates-gates",
+      "//:who-gates-gates-check",
+      "who-gates-gates-registry.json"
     ],
     "specs/phase0-automation-coverage-registry.json": [
       "AC-0.0-trusted-target-inventory",
@@ -831,7 +851,10 @@
       "language-discipline-registry.json",
       "AC-0.5-d1-contract-files",
       "//:d1-seam-contracts-check",
-      "d1-seam-contracts-registry.json"
+      "d1-seam-contracts-registry.json",
+      "AC-0.11",
+      "//:who-gates-gates-check",
+      "who-gates-gates-registry.json"
     ],
     "scripts/ci/assert-claim-ceiling.py": [
       "claim-ceiling local/static fixture evidence only",
@@ -1066,7 +1089,13 @@
       "d1-seam-contracts",
       "//:d1-seam-contracts-check",
       "missing_consistency_token",
-      "proto_required_consistency_token"
+      "proto_required_consistency_token",
+      "who-gates-gates",
+      "//:who-gates-gates-check",
+      "missing_known_bad_fixture",
+      "vacuous_pass_condition",
+      "missing_self_mutation_test",
+      "oya_cli_authority_route"
     ],
     "specs/generated-artifact-registry.json": [
       "generated_artifact_registry_published",
@@ -1288,6 +1317,68 @@
     "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json": [
       "phase2_green_claim_without_live_evidence",
       "live_d1_conformance_claimed",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/who-gates-gates-registry.json": [
+      "who_gates_gates_measured",
+      "//:who-gates-gates-check",
+      "known_bad_fixture_required",
+      "vacuous_pass_guard_required",
+      "gate_self_mutation_test_required",
+      "p0_0_green",
+      "phase0_complete",
+      "hyperscaler_grade"
+    ],
+    "scripts/ci/assert-who-gates-gates.rs": [
+      "AC-0.11 who-gates-the-gates meta-check",
+      "FALSE_CLAIMS",
+      "who_gates_gates_measured",
+      "missing_known_bad_fixture",
+      "vacuous_pass_condition",
+      "oya_cli_authority_route",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/who_gates_gates_check.rs": [
+      "checked_in_registry_buck_and_fixtures_pass",
+      "registry_rejects_phase0_green_claim",
+      "actual_gate_surface_requires_self_mutations",
+      "missing_known_bad_fixture_is_rejected",
+      "vacuous_pass_condition_is_rejected",
+      "missing_self_mutation_test_is_rejected",
+      "oya_cli_authority_route_is_rejected_case_insensitively"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json": [
+      "TC-0.11.GOOD.known-bad-meta-gate",
+      "expected_verdict",
+      "known_bad_fixtures",
+      "self_mutation_tests",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json": [
+      "missing_known_bad_fixture",
+      "known_bad_fixtures",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json": [
+      "vacuous_pass_condition",
+      "always_true",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json": [
+      "missing_self_mutation_test",
+      "self_mutation_tests",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json": [
+      "oya_cli_authority_route",
+      "oya verify",
+      "no_new_oya_cli_surface",
       "p0_0_green",
       "phase0_complete"
     ]
