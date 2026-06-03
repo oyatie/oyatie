@@ -18,6 +18,7 @@ grep -Fq '"coverage_budget_enforced": false' "$tmp_dir/good.json"
 grep -Fq '"live_required_context_execution_proven": false' "$tmp_dir/good.json"
 grep -Fq '"p0_0_green": false' "$tmp_dir/good.json"
 grep -Fq '"phase0_complete": false' "$tmp_dir/good.json"
+grep -Fq '"coverage_runner_contract_proven": true' "$tmp_dir/good.json"
 python3 - <<'PY' "$tmp_dir/good.json"
 import json, sys
 x=json.load(open(sys.argv[1]))
@@ -75,6 +76,15 @@ assert_fails_with missing_profdata 'missing_llvm_profdata_tool' \
 
 assert_fails_with missing_llvm_cov 'missing_llvm_cov_tool' \
   'llvm-cov=>coverage-export-tool'
+
+assert_fails_with missing_smoke_target 'missing_buck2_coverage_smoke_target' \
+  '//:rust-llvm-coverage-smoke-check=>//:missing-coverage-smoke'
+
+assert_fails_with ambient_path_required 'ambient_path_llvm_tools_not_forbidden' \
+  '"ambient_path_llvm_tools_required": false=>"ambient_path_llvm_tools_required": true'
+
+assert_fails_with production_report_claim 'production_coverage_false_boundary_missing' \
+  '"production_coverage_report_generated": false=>"production_coverage_report_generated": true'
 
 assert_fails_with tarpaulin_boundary_missing 'tarpaulin_noncanonical_boundary_missing' \
   'Tarpaulin is not required CI/PR coverage evidence for this monorepo=>alternative coverage tool is canonical'

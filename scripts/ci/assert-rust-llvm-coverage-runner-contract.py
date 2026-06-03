@@ -41,6 +41,7 @@ REQUIRED_EVIDENCE_FIELDS = (
     "excluded generated paths",
     "coverage budget result",
 )
+REQUIRED_TOOLCHAIN_TOOLS = ("rustc", "llvm-profdata", "llvm-cov")
 RAW_CARGO_RE = re.compile(r"(^|[;&|(`]|\s)cargo\s+([a-z0-9_-]+)(\s|$)", re.IGNORECASE)
 
 
@@ -75,6 +76,12 @@ def validate(spec: dict[str, Any]) -> dict[str, Any]:
     instrumentation = pipeline.get("instrumentation") if isinstance(pipeline.get("instrumentation"), dict) else {}
     merge = pipeline.get("profile_merge") if isinstance(pipeline.get("profile_merge"), dict) else {}
     export = pipeline.get("report_export") if isinstance(pipeline.get("report_export"), dict) else {}
+    toolchain = (
+        pipeline.get("toolchain_requirements")
+        if isinstance(pipeline.get("toolchain_requirements"), dict)
+        else {}
+    )
+    smoke = pipeline.get("smoke_coverage") if isinstance(pipeline.get("smoke_coverage"), dict) else {}
 
     if boundary.get("coverage_runner_contract_proven") is not True:
         failures.append("coverage_runner_contract_not_proven")
@@ -91,6 +98,36 @@ def validate(spec: dict[str, Any]) -> dict[str, Any]:
         failures.append("wrong_buck2_contract_target")
     if pipeline.get("future_runner_authority") != "trusted cloud-ci/oya-ci Buck2 target inventory":
         failures.append("wrong_future_runner_authority")
+
+    if toolchain.get("ambient_path_llvm_tools_required") is not False:
+        failures.append("ambient_path_llvm_tools_not_forbidden")
+    if "rustup llvm-tools component" not in str(toolchain.get("local_smoke_llvm_tools_source", "")):
+        failures.append("missing_rustup_llvm_tools_source")
+    if "trusted cloud-ci/oya-ci Buck2 toolchain inventory" not in str(
+        toolchain.get("live_runner_llvm_tools_source", "")
+    ):
+        failures.append("missing_live_runner_toolchain_inventory_source")
+    if "rustc --print sysroot" not in str(toolchain.get("host_tool_path_derivation", "")):
+        failures.append("missing_sysroot_tool_path_derivation")
+    if "pin" not in str(toolchain.get("pinning_requirement", "")).lower():
+        failures.append("missing_toolchain_pinning_requirement")
+    required_tools = set(strings(toolchain.get("required_tools")))
+    for tool in REQUIRED_TOOLCHAIN_TOOLS:
+        if tool not in required_tools:
+            failures.append(f"missing_required_toolchain_tool_{tool.replace('-', '_')}")
+
+    if smoke.get("buck2_smoke_target") != "//:rust-llvm-coverage-smoke-check":
+        failures.append("missing_buck2_coverage_smoke_target")
+    if smoke.get("smoke_script") != "scripts/ci/run-rust-llvm-coverage-smoke.py":
+        failures.append("missing_coverage_smoke_script")
+    if smoke.get("fixture") != "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs":
+        failures.append("missing_coverage_smoke_fixture")
+    if smoke.get("fixture_report_generated") is not True:
+        failures.append("fixture_report_generation_not_recorded")
+    if smoke.get("production_coverage_report_generated") is not False:
+        failures.append("production_coverage_false_boundary_missing")
+    if "none" not in str(smoke.get("budget_authority", "")).lower():
+        failures.append("smoke_budget_authority_not_none")
 
     evidence_fields = strings(pipeline.get("required_evidence_fields"))
     for field in REQUIRED_EVIDENCE_FIELDS:
@@ -150,6 +187,10 @@ def validate(spec: dict[str, Any]) -> dict[str, Any]:
     rendered = json.dumps(spec, sort_keys=True)
     if RAW_CARGO_RE.search(rendered):
         failures.append("raw_cargo_command_present_in_contract")
+
+    automated_chain = "\n".join(strings(spec.get("automated_chain")))
+    if "buck2 build //:rust-llvm-coverage-smoke-check" not in automated_chain:
+        failures.append("missing_smoke_target_in_automated_chain")
 
     return {
         "authority_boundary": "local/static coverage runner contract only; no coverage report generated and no live required-context authority proven",

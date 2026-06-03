@@ -10,21 +10,21 @@
     "status": "p0_0_static_contract_target_not_live_coverage_runner",
     "owner_team": "platform-toolchain + platform-governance",
     "created_at": "2026-06-03T00:00:00Z",
-    "updated_at": "2026-06-03T07:35:00Z",
+    "updated_at": "2026-06-03T07:55:00Z",
     "source_request": "Founder directive 2026-06-03: use Buck2-native LLVM source-based coverage instead of Tarpaulin, keep modern Rust standards, and preserve dual Cargo+Buck2 local mutation ergonomics.",
     "official_references": [
       {
-        "name": "rustc Book — Instrumentation-based Code Coverage",
+        "name": "rustc Book \u2014 Instrumentation-based Code Coverage",
         "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
         "used_for": "rustc -C instrument-coverage and LLVM_PROFILE_FILE profile emission."
       },
       {
-        "name": "LLVM — Source-based Code Coverage",
+        "name": "LLVM \u2014 Source-based Code Coverage",
         "url": "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
         "used_for": "llvm-profdata merge and llvm-cov report/export pipeline."
       },
       {
-        "name": "Buck2 — Commands",
+        "name": "Buck2 \u2014 Commands",
         "url": "https://buck2.build/docs/users/commands/",
         "used_for": "Buck2 target-based build/test/run evidence and Build ID capture."
       }
@@ -89,10 +89,32 @@
       "Tarpaulin as canonical monorepo coverage evidence",
       "ad-hoc local coverage output as merge authority",
       "candidate-authored target inventory as coverage authority"
-    ]
+    ],
+    "toolchain_requirements": {
+      "local_smoke_llvm_tools_source": "active rustc sysroot rustlib host bin (rustup llvm-tools component)",
+      "live_runner_llvm_tools_source": "trusted cloud-ci/oya-ci Buck2 toolchain inventory before production coverage budgets or merge authority",
+      "ambient_path_llvm_tools_required": false,
+      "required_tools": [
+        "rustc",
+        "llvm-profdata",
+        "llvm-cov"
+      ],
+      "host_tool_path_derivation": "rustc --print sysroot + rustc -vV host + lib/rustlib/<host>/bin",
+      "pinning_requirement": "Coverage authority must pin the Rust/LLVM toolchain through the trusted Buck2/cloud-ci inventory; ambient host PATH tools are local smoke convenience only."
+    },
+    "smoke_coverage": {
+      "buck2_smoke_target": "//:rust-llvm-coverage-smoke-check",
+      "smoke_script": "scripts/ci/run-rust-llvm-coverage-smoke.py",
+      "fixture": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
+      "fixture_report_generated": true,
+      "production_coverage_report_generated": false,
+      "budget_authority": "none; fixture smoke verifies toolchain/report mechanics only",
+      "claim_boundary": "No P0.0 green, Phase-0 completion, production readiness, hyperscaler-grade readiness, or live required-context authority."
+    }
   },
   "automated_chain": [
     "scripts/ci/assert-rust-llvm-coverage-runner-contract.py --spec specs/rust-llvm-coverage-runner-contract.json --json",
-    "buck2 build //:rust-llvm-coverage-runner-contract-check"
+    "buck2 build //:rust-llvm-coverage-runner-contract-check",
+    "buck2 build //:rust-llvm-coverage-smoke-check"
   ]
 }

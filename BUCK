@@ -56,6 +56,9 @@ genrule(
         "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
         "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh": "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
         "specs/rust-llvm-coverage-runner-contract.json": "specs/rust-llvm-coverage-runner-contract.json",
+        "scripts/ci/run-rust-llvm-coverage-smoke.py": "scripts/ci/run-rust-llvm-coverage-smoke.py",
+        "scripts/tests/rust_llvm_coverage_smoke_check.test.sh": "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+        "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -281,6 +284,24 @@ genrule(
     },
     out = "rust-llvm-coverage-runner-contract-check.txt",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# Rust LLVM coverage smoke check: Buck2-owned local fixture evidence that the
+# active Rust toolchain can emit .profraw via rustc source-based coverage and
+# merge/export it with rustup-sysroot llvm-profdata/llvm-cov. This is a fixture
+# smoke only; production coverage budgets and live required-context authority
+# remain unproven until trusted cloud-ci/oya-ci runs the real coverage lane.
+genrule(
+    name = "rust-llvm-coverage-smoke-check",
+    srcs = {
+        "scripts/ci/run-rust-llvm-coverage-smoke.py": "scripts/ci/run-rust-llvm-coverage-smoke.py",
+        "scripts/tests/rust_llvm_coverage_smoke_check.test.sh": "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+        "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
+    },
+    out = "rust-llvm-coverage-smoke-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_llvm_coverage_smoke_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/run-rust-llvm-coverage-smoke.py --out $OUT > /dev/null",
     visibility = ["PUBLIC"],
 )
 

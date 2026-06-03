@@ -59,7 +59,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T07:38:03Z"
+    "updated_at": "2026-06-03T07:55:00Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -121,6 +121,7 @@
     "//:phase0-claim-ceiling-check",
     "//:rust-testing-standard-check",
     "//:rust-llvm-coverage-runner-contract-check",
+    "//:rust-llvm-coverage-smoke-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "//:phase0-auto-merge-after-ci-contract-check",
     "//:forgejo-auto-merge-after-ci-check",
@@ -215,7 +216,10 @@
     "scripts/tests/rust_testing_standard_check.test.sh",
     "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
     "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
-    "specs/rust-llvm-coverage-runner-contract.json"
+    "specs/rust-llvm-coverage-runner-contract.json",
+    "scripts/ci/run-rust-llvm-coverage-smoke.py",
+    "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+    "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -292,7 +296,9 @@
       "rust-llvm-coverage-runner-contract-check",
       "assert-rust-llvm-coverage-runner-contract.py",
       "rust_llvm_coverage_runner_contract_check.test.sh",
-      "rust-llvm-coverage-runner-contract.json"
+      "rust-llvm-coverage-runner-contract.json",
+      "rust-llvm-coverage-smoke-check",
+      "run-rust-llvm-coverage-smoke.py"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -779,7 +785,12 @@
       "coverage_report_generated",
       "coverage_budget_enforced",
       "p0_0_green",
-      "phase0_complete"
+      "phase0_complete",
+      "//:rust-llvm-coverage-smoke-check",
+      "rustup llvm-tools component",
+      "ambient_path_llvm_tools_required",
+      "fixture_report_generated",
+      "production_coverage_report_generated"
     ],
     "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": [
       "local/static contract evidence only",
@@ -802,6 +813,24 @@
       "missing_llvm_profdata_tool",
       "missing_llvm_cov_tool",
       "tarpaulin_noncanonical_boundary_missing"
+    ],
+    "scripts/ci/run-rust-llvm-coverage-smoke.py": [
+      "rustc -C instrument-coverage",
+      "LLVM_PROFILE_FILE",
+      "llvm-profdata",
+      "llvm-cov",
+      "production_coverage_report_generated",
+      "live_required_context_execution_proven"
+    ],
+    "scripts/tests/rust_llvm_coverage_smoke_check.test.sh": [
+      "fixture_coverage_smoke_generated",
+      "production_coverage_report_generated",
+      "ambient_path_llvm_tools_required",
+      "missing_llvm_profdata"
+    ],
+    "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": [
+      "fn classify",
+      "println!"
     ]
   },
   "required_glob_anchors": [

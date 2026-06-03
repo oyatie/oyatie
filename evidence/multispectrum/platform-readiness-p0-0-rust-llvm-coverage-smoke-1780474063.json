@@ -1,0 +1,143 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "docs/standards/testing.md",
+    "specs/buck2-authority-policy.json",
+    "specs/rust-llvm-coverage-runner-contract.json"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-rust-llvm-coverage-smoke",
+  "claim_boundary": {
+    "coverage_budget_enforced": false,
+    "fixture_coverage_smoke_generated": true,
+    "hyperscaler_grade": false,
+    "live_required_context_execution_proven": false,
+    "note": "Fixture smoke evidence only. This generates a coverage report for the checked-in fixture, not for production crates; it does not enforce production coverage budgets, post statuses, mutate branch protection, prove live cloud-ci/oya-ci required-context execution, prove P0.0 green, prove Phase-0 completion, prove production readiness, or prove hyperscaler-grade readiness.",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_coverage_report_generated": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false
+  },
+  "files_changed": [
+    "scripts/ci/run-rust-llvm-coverage-smoke.py",
+    "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+    "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
+    "BUCK",
+    "specs/rust-llvm-coverage-runner-contract.json",
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
+    "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+    "docs/standards/testing.md",
+    "specs/buck2-authority-policy.json",
+    "evidence/multispectrum/platform-readiness-p0-0-rust-llvm-coverage-smoke-1780474063.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "freshness_unix": 1780474063,
+  "git_sha": "754f5031fa09f4f2e038269c3365feab18ebbf3b",
+  "implementation_summary": [
+    "Added scripts/ci/run-rust-llvm-coverage-smoke.py to compile a checked-in Rust fixture with rustc -C instrument-coverage, run both fixture branches under LLVM_PROFILE_FILE=%m-%p.profraw, merge profiles with rustup-sysroot llvm-profdata merge -sparse, and export/report with llvm-cov.",
+    "Added //:rust-llvm-coverage-smoke-check as Buck2-owned local fixture evidence and regression shell tests for PASS, missing source, and missing llvm-profdata failure cases.",
+    "Updated the coverage runner contract, policy chain, and testing standard to require sysroot-derived LLVM tools for local smoke, trusted cloud-ci/Buck2 toolchain pinning for authority, and non-authority boundaries for fixture reports."
+  ],
+  "known_gaps": [
+    "This target generates coverage for a small fixture only; it does not generate coverage for production Rust crates.",
+    "No production coverage budget is enforced by this slice.",
+    "No live cloud-ci/oya-ci required context has run this target on candidate SHA.",
+    "Local Cargo mutation testing remains advisory unless captured by a Buck2 target or trusted cloud-ci/oya-ci lane."
+  ],
+  "official_sources": [
+    {
+      "name": "rustc Book \u2014 Instrumentation-based Code Coverage",
+      "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+      "used_for": "rustc -C instrument-coverage and LLVM_PROFILE_FILE .profraw emission."
+    },
+    {
+      "name": "LLVM \u2014 Source-based Code Coverage",
+      "url": "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+      "used_for": "llvm-profdata merge -sparse and llvm-cov report/export."
+    },
+    {
+      "name": "Buck2 \u2014 Commands",
+      "url": "https://buck2.build/docs/users/commands/",
+      "used_for": "Buck2 target-based build evidence and Build ID capture."
+    }
+  ],
+  "review_facets": {
+    "F10_docs": "PASS: testing standard and contract updated.",
+    "F11_tests": "PASS: shell regression tests and Buck2 targets passed.",
+    "F12_reserved": "N/A",
+    "F13_claim_boundary": "PASS: production/hyperscaler/P0.0/Phase-0/live authority fields remain false.",
+    "F1_correctness": "PASS: fixture report smoke emits .profraw, merges profdata, exports llvm-cov JSON/text, and checks 100% fixture line/region coverage.",
+    "F2_security": "PASS: no credentials or network calls; subprocess inputs are checked-in fixture paths/toolchain paths.",
+    "F3_reliability": "PASS: failure cases cover missing source and missing llvm-profdata while preserving false readiness claims.",
+    "F4_operability": "PASS: Buck2 target and Build ID evidence recorded; ambient PATH LLVM tools are not required.",
+    "F5_observability": "PASS: JSON output includes toolchain, profile, totals, and claim-boundary fields.",
+    "F6_maintainability": "PASS: fixture, runner, test, and contract are separated and policy-scanned.",
+    "F7_performance": "PASS: fixture smoke is narrow; no monorepo coverage run introduced.",
+    "F8_architecture": "PASS: Buck2 remains evidence surface; Cargo mutation remains local advisory.",
+    "F9_compliance": "PASS: no branch/status mutation and no live authority claim."
+  },
+  "rust_toolchain_probe": {
+    "ambient_llvm_cov_on_path": false,
+    "ambient_llvm_profdata_on_path": false,
+    "red_dir": "/tmp/p0-0-rust-llvm-coverage-smoke-red-1780473158",
+    "rustc_version_observed": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "sysroot_llvm_cov_executable": true,
+    "sysroot_llvm_profdata_executable": true
+  },
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "Buck2-owned local Rust LLVM source-coverage fixture smoke; proves report mechanics only, not production coverage budgets or live merge authority.",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T08:07:43Z",
+  "timestamp_unix": 1780474063,
+  "verification": [
+    {
+      "artifact_dir": "/tmp/p0-0-rust-llvm-coverage-smoke-red-1780473158",
+      "buck2_build_id": "a0e6b6db-ec23-4a40-90e0-309fe0f840c7",
+      "command": "buck2 build //:rust-llvm-coverage-smoke-check (RED before target existed)",
+      "exit_code": 3,
+      "expected_failure": true,
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-rust-llvm-coverage-smoke-final2-1780473903",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/run-rust-llvm-coverage-smoke.py --out /tmp/.../smoke.json",
+      "observed": {
+        "fixture_line_coverage_percent": 100,
+        "fixture_region_coverage_percent": 100,
+        "production_coverage_report_generated": false,
+        "profraw_count": 2
+      },
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-rust-llvm-coverage-smoke-final2-1780473903",
+      "command": "bash scripts/tests/rust_llvm_coverage_smoke_check.test.sh && bash scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh && bash scripts/tests/rust_testing_standard_check.test.sh",
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-rust-llvm-coverage-smoke-final2-1780473903",
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "observed": {
+        "authority_context": "oya-ci-required",
+        "command_scan_files": 172
+      },
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-rust-llvm-coverage-smoke-final2-1780473903",
+      "buck2_build_id": "ec137afb-5029-4ab7-ba53-3bd1744d273f",
+      "command": "buck2 build //:rust-llvm-coverage-smoke-check //:rust-llvm-coverage-runner-contract-check //:rust-testing-standard-check //:buck2-authority-policy-check --show-output",
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-rust-llvm-coverage-smoke-final2-1780473903",
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ]
+}

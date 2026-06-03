@@ -89,7 +89,14 @@ Rules:
 1. The cloud-ci/oya-ci controller snapshots trusted Buck2 test targets from trunk/controller state before candidate checkout.
 2. The evidence run MUST execute the full selected Buck2 target inventory; affected-only subsets are feedback, never merge or Phase-0 exit authority.
 3. Local fast feedback MAY use narrower Buck2 targets, but PR evidence names the exact Buck2 targets and Build ID.
-4. Coverage evidence MUST come from a Buck2 target that builds/runs LLVM source-based coverage instrumentation (`rustc -C instrument-coverage` plus `llvm-profdata`/`llvm-cov` or a Buck2 rule wrapping that pipeline). Tarpaulin is not the canonical coverage surface for this monorepo and MUST NOT be added as required CI/PR evidence.
+4. Coverage evidence MUST come from a Buck2 target that builds/runs LLVM
+   source-based coverage instrumentation (`rustc -C instrument-coverage` plus
+   `llvm-profdata`/`llvm-cov` or a Buck2 rule wrapping that pipeline).
+   Tarpaulin is not the canonical coverage surface for this monorepo and
+   MUST NOT be added as required CI/PR evidence. The local fixture smoke target
+   is `//:rust-llvm-coverage-smoke-check`; it proves report mechanics with
+   rustup-sysroot LLVM tools only and is not production coverage-budget or
+   merge-authority evidence.
 5. Mutation testing MAY run locally through Cargo (`cargo mutants` or `cargo nextest`-backed cargo-mutants) because the workspace intentionally keeps `Cargo.toml` / `Cargo.lock` beside Buck2 targets for developer ergonomics. Local Cargo mutation output is advisory until captured by a Buck2 target or trusted cloud-ci/oya-ci lane.
 6. Any deletion-tagged bridge for nextest/fuzz/mutation MUST be invoked by a Buck2 target and carry a retirement path; raw Cargo commands are not CI/build/test authority.
 
@@ -297,3 +304,7 @@ This standard adds:
 - [Buck2 commands](https://buck2.build/docs/users/commands/) and
   [Buck2 bootstrapping / reindeer](https://buck2.build/docs/about/bootstrapping/).
 - ADR-0003 (audit chain), ADR-0015 (flat crates).
+The current executable guards are `//:rust-llvm-coverage-runner-contract-check`
+for the required runner shape and `//:rust-llvm-coverage-smoke-check` for a
+Buck2-owned fixture report smoke; neither target proves production coverage
+budgets or live cloud-ci/oya-ci merge authority.
