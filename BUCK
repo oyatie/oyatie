@@ -51,6 +51,8 @@ genrule(
         "specs/hyperscaler-production-readiness-claim-contract.json": "specs/hyperscaler-production-readiness-claim-contract.json",
         "scripts/ci/assert-phase0-aggregate-exit.py": "scripts/ci/assert-phase0-aggregate-exit.py",
         "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
+        "scripts/ci/assert-rust-testing-standard.py": "scripts/ci/assert-rust-testing-standard.py",
+        "scripts/tests/rust_testing_standard_check.test.sh": "scripts/tests/rust_testing_standard_check.test.sh",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -240,6 +242,24 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-exit-gate/*.json"])},
     out = "phase0-aggregate-exit-check.txt",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_aggregate_exit_check.test.sh > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# Rust testing-standard drift check: local/static coverage that the documented
+# coverage and mutation-testing standard remains Buck2-native, Tarpaulin is not
+# canonical, and local Cargo mutation stays advisory unless captured by Buck2 or
+# trusted cloud-ci/oya-ci evidence. This does not implement the coverage runner,
+# run mutation testing, or claim live Phase-0 authority.
+genrule(
+    name = "rust-testing-standard-check",
+    srcs = {
+        "scripts/ci/assert-rust-testing-standard.py": "scripts/ci/assert-rust-testing-standard.py",
+        "scripts/tests/rust_testing_standard_check.test.sh": "scripts/tests/rust_testing_standard_check.test.sh",
+        "docs/standards/testing.md": "docs/standards/testing.md",
+    },
+    out = "rust-testing-standard-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_testing_standard_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 

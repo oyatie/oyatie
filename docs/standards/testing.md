@@ -184,7 +184,8 @@ Source-backed rationale:
 - Reindeer describes itself as tooling for importing Rust crates and generating
   Buck build rules for monorepos: <https://github.com/facebookincubator/reindeer>.
 - `cargo-mutants` is the local Rust mutation tool of record for this dual-build
-  path; it runs against non-flaky tests under `cargo test` or `cargo nextest run`:
+  path; it runs against non-flaky tests through local Rust-native runner
+  integrations, including nextest-backed local execution:
   <https://mutants.rs/>.
 
 ## 7. Contract tests

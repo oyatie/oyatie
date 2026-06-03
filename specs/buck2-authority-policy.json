@@ -59,7 +59,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T06:15:00Z"
+    "updated_at": "2026-06-03T07:17:43Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -119,6 +119,7 @@
     "//:phase0-override-kill-switch-check",
     "//:phase0-automation-ratchet-check",
     "//:phase0-claim-ceiling-check",
+    "//:rust-testing-standard-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "//:phase0-auto-merge-after-ci-contract-check",
     "//:forgejo-auto-merge-after-ci-check",
@@ -208,7 +209,9 @@
     "scripts/ci/assert-claim-ceiling.py",
     "scripts/tests/phase0_claim_ceiling_check.test.sh",
     "specs/phase0-claim-evidence-map.json",
-    "specs/hyperscaler-production-readiness-claim-contract.json"
+    "specs/hyperscaler-production-readiness-claim-contract.json",
+    "scripts/ci/assert-rust-testing-standard.py",
+    "scripts/tests/rust_testing_standard_check.test.sh"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -278,7 +281,10 @@
       "phase0_claim_ceiling_check.test.sh",
       "assert-claim-ceiling.py",
       "phase0-claim-evidence-map.json",
-      "hyperscaler-production-readiness-claim-contract.json"
+      "hyperscaler-production-readiness-claim-contract.json",
+      "rust-testing-standard-check",
+      "assert-rust-testing-standard.py",
+      "rust_testing_standard_check.test.sh"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -328,7 +334,22 @@
     "docs/standards/testing.md": [
       "buck2 test //... --show-output",
       "trusted cloud-ci/oya-ci Buck2 target inventory",
-      "raw Cargo commands are not CI/build/test authority"
+      "raw Cargo commands are not CI/build/test authority",
+      "Buck2-native LLVM source-based coverage",
+      "Coverage is generated natively through Buck2, not Tarpaulin",
+      "Tarpaulin is not the canonical coverage surface",
+      "MUST NOT be added as required CI/PR evidence",
+      "rustc -C instrument-coverage",
+      "LLVM_PROFILE_FILE",
+      ".profraw",
+      "llvm-profdata",
+      "llvm-cov",
+      "dual Cargo+Buck2",
+      "Local Cargo mutation output is advisory",
+      "reindeer-style generation",
+      "generated-BUCK path",
+      "Adding Tarpaulin as the monorepo coverage authority",
+      "Treating local Cargo mutation testing as merge authority"
     ],
     "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": [
       "oya-ci-required",
@@ -707,6 +728,27 @@
       "bad-single-false-multi-false.json",
       "bad-red-claims-green.json",
       "phase0 aggregate-exit fixture checks passed"
+    ],
+    "scripts/ci/assert-rust-testing-standard.py": [
+      "local/static documentation-drift evidence only",
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not the canonical coverage surface",
+      "MUST NOT be added as required CI/PR evidence",
+      "Local Cargo mutation output is advisory",
+      "coverage_runner_implemented",
+      "mutation_lane_implemented",
+      "p0_0_green",
+      "phase0_complete",
+      "production_ready",
+      "hyperscaler_grade"
+    ],
+    "scripts/tests/rust_testing_standard_check.test.sh": [
+      "coverage_runner_implemented\": false",
+      "mutation_lane_implemented\": false",
+      "tarpaulin_canonicalized",
+      "local_cargo_mutation_not_advisory",
+      "missing_reindeer_generated_buck",
+      "forbidden_true_claim_p0_0_green"
     ]
   },
   "required_glob_anchors": [
