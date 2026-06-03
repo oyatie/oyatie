@@ -72,7 +72,8 @@
         "AC-0.0-trusted-target-inventory": "buck2 build //:phase0-trusted-target-inventory-check",
         "AC-0.0-structured-result-bundle": "buck2 build //:phase0-result-bundle-output-check",
         "AC-0.0-tenant-pipeline-isolation": "buck2 build //:phase0-tenant-isolation-fixture-check",
-        "AC-0.0-override-kill-switch": "buck2 build //:phase0-override-kill-switch-check"
+        "AC-0.0-override-kill-switch": "buck2 build //:phase0-override-kill-switch-check",
+        "AC-0.0-cloud-ci-required-context": "buck2 build //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:phase0-trusted-target-inventory-check //:phase0-result-bundle-output-check"
       }
     },
     {

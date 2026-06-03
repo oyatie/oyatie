@@ -19,6 +19,29 @@ from typing import Any
 REPO_ROOT = Path(os.environ.get("OYA_REPO_ROOT", Path(__file__).resolve().parents[2])).resolve()
 
 BASELINE_DEFAULT = "specs/phase0-ci-enforcement-baseline.json"
+MATRIX_PATH = "specs/phase0-automation-matrix.json"
+COVERAGE_REGISTRY_PATH = "specs/phase0-automation-coverage-registry.json"
+REQUIRED_CONTEXT_ROW_ID = "AC-0.0-cloud-ci-required-context"
+REQUIRED_CONTEXT_VERIFICATION_COMMAND = (
+    "buck2 build "
+    "//:phase0-ci-enforcement-baseline-catalog-check "
+    "//:phase0-required-status-source-check "
+    "//:phase0-trusted-target-inventory-check "
+    "//:phase0-result-bundle-output-check"
+)
+REQUIRED_CONTEXT_TARGET_TERMS = [
+    "cloud-ci-required / oya-ci-required branch-protection context",
+    "//:phase0-ci-enforcement-baseline-catalog-check",
+    "//:phase0-required-status-source-check",
+    "//:phase0-trusted-target-inventory-check",
+    "//:phase0-result-bundle-output-check",
+]
+REQUIRED_CONTEXT_CLAIM_BOUNDARY_TERMS = [
+    "live-read-only RED evidence",
+    "not P0.0 green",
+    "not protected-branch authority",
+    "trusted cloud-ci/oya-ci",
+]
 
 STALE_REQUIRED_CONTEXT_PHRASES = [
     "live GitHub branch protection still lacks cloud-ci-required/oya-ci-required",
@@ -39,6 +62,17 @@ def repo_path(path: str | Path) -> Path:
 def load_json(path: Path) -> Any:
     with path.open() as fh:
         return json.load(fh)
+
+
+def find_by_id(items: Any, item_id: str, field: str, failures: list[str]) -> dict[str, Any] | None:
+    if not isinstance(items, list):
+        failures.append(f"{field}: expected list")
+        return None
+    matches = [item for item in items if isinstance(item, dict) and item.get("id") == item_id]
+    if len(matches) != 1:
+        failures.append(f"{field}: expected exactly one {item_id} entry, found {len(matches)}")
+        return None
+    return matches[0]
 
 
 def as_list(value: Any, field: str, failures: list[str]) -> list[Any]:
@@ -250,6 +284,56 @@ def main() -> int:
             failures.append("automation_mapping.result_bundle_check_script must be scripts/ci/assert-result-bundle-output.py")
         if automation_mapping.get("result_bundle_test") != "scripts/tests/phase0_result_bundle_output_check.test.sh":
             failures.append("automation_mapping.result_bundle_test must be scripts/tests/phase0_result_bundle_output_check.test.sh")
+
+    matrix_path = repo_path(MATRIX_PATH)
+    matrix = load_json(matrix_path)
+    required_context_row = find_by_id(
+        matrix.get("seed_rows"),
+        REQUIRED_CONTEXT_ROW_ID,
+        f"{MATRIX_PATH}.seed_rows",
+        failures,
+    )
+    if required_context_row is not None:
+        if required_context_row.get("verification_command") != REQUIRED_CONTEXT_VERIFICATION_COMMAND:
+            failures.append(
+                f"{REQUIRED_CONTEXT_ROW_ID} row must record combined Buck2 local verification command"
+            )
+        target = required_context_row.get("target_gate_or_controller")
+        if not isinstance(target, str):
+            failures.append(f"{REQUIRED_CONTEXT_ROW_ID}.target_gate_or_controller: expected string")
+        else:
+            for term in REQUIRED_CONTEXT_TARGET_TERMS:
+                if term not in target:
+                    failures.append(f"{REQUIRED_CONTEXT_ROW_ID}.target_gate_or_controller missing {term!r}")
+        claim_boundary_text = required_context_row.get("claim_boundary")
+        if not isinstance(claim_boundary_text, str):
+            failures.append(f"{REQUIRED_CONTEXT_ROW_ID}.claim_boundary: expected string")
+        else:
+            for term in REQUIRED_CONTEXT_CLAIM_BOUNDARY_TERMS:
+                if term not in claim_boundary_text:
+                    failures.append(f"{REQUIRED_CONTEXT_ROW_ID}.claim_boundary missing {term!r}")
+        if required_context_row.get("no_new_oya_cli_surface") is not True:
+            failures.append(f"{REQUIRED_CONTEXT_ROW_ID}.no_new_oya_cli_surface must be true")
+
+    coverage_registry_path = repo_path(COVERAGE_REGISTRY_PATH)
+    coverage_registry = load_json(coverage_registry_path)
+    ac_0_0_subject = find_by_id(
+        coverage_registry.get("coverage_subjects"),
+        "AC-0.0",
+        f"{COVERAGE_REGISTRY_PATH}.coverage_subjects",
+        failures,
+    )
+    if ac_0_0_subject is not None:
+        mapped_rows = ac_0_0_subject.get("mapped_row_ids")
+        if not isinstance(mapped_rows, list) or REQUIRED_CONTEXT_ROW_ID not in mapped_rows:
+            failures.append(f"AC-0.0 coverage subject must map {REQUIRED_CONTEXT_ROW_ID}")
+        verification_commands = ac_0_0_subject.get("verification_commands")
+        if not isinstance(verification_commands, dict):
+            failures.append("AC-0.0 coverage subject verification_commands must be an object")
+        elif verification_commands.get(REQUIRED_CONTEXT_ROW_ID) != REQUIRED_CONTEXT_VERIFICATION_COMMAND:
+            failures.append(
+                f"AC-0.0 coverage subject must record combined Buck2 command for {REQUIRED_CONTEXT_ROW_ID}"
+            )
 
     for doc in REQUIRED_CONTEXT_NARRATIVE_DOCS:
         path = repo_path(doc)
