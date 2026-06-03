@@ -97,6 +97,15 @@ genrule(
         "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-good-d1-seam-contracts.json": "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-good-d1-seam-contracts.json",
         "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-missing-consistency-token.json": "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-missing-consistency-token.json",
         "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-proto-required-or-frozen-topology.json": "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-proto-required-or-frozen-topology.json",
+        "scripts/ci/assert-effective-dating-kernel.rs": "scripts/ci/assert-effective-dating-kernel.rs",
+        "scripts/tests/effective_dating_kernel_check.rs": "scripts/tests/effective_dating_kernel_check.rs",
+        "specs/effective-dating-kernel-registry.json": "specs/effective-dating-kernel-registry.json",
+        "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs": "//oya/ontology/crates/oya-ontology-kernel:effective-dating-src",
+        "oya/ontology/crates/oya-ontology-kernel/src/lib.rs": "//oya/ontology/crates/oya-ontology-kernel:lib-src",
+        "oya/ontology/crates/oya-ontology-kernel/BUCK": "//oya/ontology/crates/oya-ontology-kernel:BUCK",
+        "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json",
+        "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json",
+        "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json": "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
@@ -407,6 +416,8 @@ genrule(
         "scripts/tests/language_discipline_check.rs": "scripts/tests/language_discipline_check.rs",
         "scripts/ci/assert-d1-seam-contracts.rs": "scripts/ci/assert-d1-seam-contracts.rs",
         "scripts/tests/d1_seam_contracts_check.rs": "scripts/tests/d1_seam_contracts_check.rs",
+        "scripts/ci/assert-effective-dating-kernel.rs": "scripts/ci/assert-effective-dating-kernel.rs",
+        "scripts/tests/effective_dating_kernel_check.rs": "scripts/tests/effective_dating_kernel_check.rs",
         "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
@@ -549,6 +560,31 @@ genrule(
     repo_relative_root = True,
     visibility = ["PUBLIC"],
 )
+
+# AC-0.6 effective-dating kernel check: Rust/Buck2 local/static evidence
+# that ontology-kernel exposes a bitemporal effective-dated type, property
+# fixtures cover valid-time x transaction-time as-of behavior, overlapping
+# ranges are rejected, and non-monotonic transaction-time inserts are
+# deterministic. This never posts statuses or claims Phase-0 completion.
+genrule(
+    name = "effective-dating-kernel-check",
+    srcs = {
+        "scripts/ci/assert-effective-dating-kernel.rs": "scripts/ci/assert-effective-dating-kernel.rs",
+        "scripts/tests/effective_dating_kernel_check.rs": "scripts/tests/effective_dating_kernel_check.rs",
+        "specs/effective-dating-kernel-registry.json": "specs/effective-dating-kernel-registry.json",
+        "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs": "//oya/ontology/crates/oya-ontology-kernel:effective-dating-src",
+        "oya/ontology/crates/oya-ontology-kernel/src/lib.rs": "//oya/ontology/crates/oya-ontology-kernel:lib-src",
+        "oya/ontology/crates/oya-ontology-kernel/BUCK": "//oya/ontology/crates/oya-ontology-kernel:BUCK",
+        "effective-dating-kernel-tests.txt": "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+    } | {path: path for path in glob(["specs/fixtures/phase0-effective-dating-kernel/*.json"])},
+    out = "effective-dating-kernel-check.json",
+    cmd = "mkdir -p $TMP/effective-dating-kernel && rustc --edition=2021 -D warnings scripts/tests/effective_dating_kernel_check.rs --test -o $TMP/effective-dating-kernel/effective_dating_kernel_check && OYA_REPO_ROOT=$PWD $TMP/effective-dating-kernel/effective_dating_kernel_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-effective-dating-kernel.rs -o $TMP/effective-dating-kernel/assert-effective-dating-kernel && $TMP/effective-dating-kernel/assert-effective-dating-kernel --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
 
 
 # AC-0.16 automation-ratchet fixture check: local/static coverage that

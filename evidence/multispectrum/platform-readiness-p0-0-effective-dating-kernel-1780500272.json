@@ -1,0 +1,87 @@
+{
+  "": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-6-EFFECTIVE-DATING-KERNEL-1780500272",
+  "created_at": "2026-06-03T11:24:32-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "acceptance_criterion": "AC-0.6-effective-dating-kernel",
+  "summary": "Rust/Buck2 local/static AC-0.6 evidence adds ontology-kernel bitemporal effective-dating primitives, half-open valid-time and transaction-time ranges, as-of lookup, overlap rejection, open-ended ranges, and deterministic non-monotonic transaction-time ordering without claiming live cloud-ci authority.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "live_required_context_execution_proven": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-effective-dating-kernel-red-1780499397",
+    "absent_symbol_rg_exit": 1,
+    "missing_buck2_kernel_test_target_rc": 3,
+    "missing_root_fixture_gate_target_rc": 3,
+    "buck2_missing_kernel_test_build_id": "0d425c1f-1e44-466f-82b9-a35d5ca6ff4b",
+    "buck2_missing_root_gate_build_id": "3d39806e-e1c7-407f-8d2e-37a51ebb22fe"
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-effective-dating-kernel-final-pass2-1780500376",
+    "kernel_module_tests": "6 passed; 0 failed",
+    "fixture_gate_tests": "6 passed; 0 failed",
+    "effective_dating_kernel_checker": "PASS contract_count=5 fixture_count=3",
+    "red_green_fixture_contract": "PASS entry_count=22 green_marker_count=23 red_marker_count=25",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=205 status_context_scan_files=9",
+    "json_parse": "PASS",
+    "rustfmt_check": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "edea55ca-903d-43dc-91a1-475edd0f0d6b",
+    "buck2_targets": [
+      "//oya/ontology/crates/oya-ontology-kernel:oya-ontology-kernel",
+      "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+      "//:effective-dating-kernel-check",
+      "//:phase0-red-green-fixture-contract-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check"
+    ],
+    "rust_warning_policy": "rustc --edition=2024 -D warnings for pure kernel module tests; rustc --edition=2021 -D warnings for checker and Rust test harness",
+    "prior_buck2_combined_build_ids": [
+      "4f636fc3-9f45-4ecb-9240-6365df236d55"
+    ]
+  },
+  "files_added": [
+    "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs",
+    "scripts/ci/assert-effective-dating-kernel.rs",
+    "scripts/tests/effective_dating_kernel_check.rs",
+    "specs/effective-dating-kernel-registry.json",
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json",
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json",
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json"
+  ],
+  "files_updated": [
+    "BUCK",
+    "oya/ontology/crates/oya-ontology-kernel/BUCK",
+    "oya/ontology/crates/oya-ontology-kernel/src/lib.rs",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/red-green-fixture-contract.json",
+    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "specs/buck2-authority-policy.json",
+    "specs/root-hub-pointers.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "coverage_surface": "Buck2-native LLVM source-based coverage; Tarpaulin is not canonical monorepo coverage evidence.",
+    "mutation_surface": "Dual Cargo.toml + Buck2/Reindeer preserves local Cargo mutation testing as advisory developer feedback until captured by Buck2/cloud-ci evidence.",
+    "new_gate_surface": "Rust checker + Rust self-test harness compile under Buck2 genrule with -D warnings; no new Python or shell gate/test surface for AC-0.6.",
+    "hyperscaler_orientation": "The effective-dating kernel is deterministic, target-addressable, fixture-backed, data-class annotated, bitemporal, half-open interval based, clock-skew tolerant for out-of-order transaction-time inserts, and non-claiming."
+  },
+  "official_references": [
+    "https://buck2.build/docs/users/commands/build/",
+    "https://buck2.build/docs/users/commands/test/",
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+    "https://github.com/facebookincubator/reindeer"
+  ],
+  "updated_at": "2026-06-03T11:26:56-04:00",
+  "git_sha_before_commit": "4f419bb11fdcc34770cdfad71ca2cb605837c684"
+}

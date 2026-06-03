@@ -1,3 +1,20 @@
+export_file(
+    name = "BUCK",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "lib-src",
+    src = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "effective-dating-src",
+    src = "src/effective_dating.rs",
+    visibility = ["PUBLIC"],
+)
+
 rust_library(
     name = "oya-ontology-kernel",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
@@ -7,4 +24,23 @@ rust_library(
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
+)
+
+
+# AC-0.6 effective-dating kernel test target: Buck2-native local/static
+# evidence for bitemporal validity/transaction-time semantics. This target
+# invokes rustc --test on the pure kernel module because repository rust_test
+# linking currently targets a Linux sysroot on macOS; it does not post statuses
+# or claim Phase-0 completion.
+genrule(
+    name = "effective-dating-kernel-tests",
+    srcs = {
+        "src/effective_dating.rs": "src/effective_dating.rs",
+    },
+    out = "effective-dating-kernel-tests.txt",
+    cmd = "mkdir -p $TMP/effective-dating-kernel && rustc --edition=2024 -D warnings $SRCS --test -o $TMP/effective-dating-kernel/effective_dating_tests && $TMP/effective-dating-kernel/effective_dating_tests > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
 )

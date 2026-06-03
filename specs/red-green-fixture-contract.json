@@ -25,7 +25,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 21,
+  "minimum_entry_count": 22,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -610,6 +610,40 @@
           "contains": "live_required_context_execution_proven"
         }
       ]
+    },
+    {
+      "id": "effective-dating-kernel",
+      "automation_matrix_row_id": "AC-0.6-effective-dating-kernel",
+      "buck2_target": "//:effective-dating-kernel-check",
+      "test_paths": [
+        "scripts/tests/effective_dating_kernel_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json",
+          "contains": "TC-0.6-GOOD-effective-dating-kernel-bitemporal-as-of"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json",
+          "contains": "overlapping_bitemporal_range"
+        },
+        {
+          "path": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json",
+          "contains": "clock_skew_determinism_missing"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-effective-dating-kernel.rs",
+          "contains": "never runs live CI"
+        },
+        {
+          "path": "specs/effective-dating-kernel-registry.json",
+          "contains": "live_required_context_execution_proven"
+        }
+      ]
     }
   ],
   "automated_chain": [
@@ -618,6 +652,7 @@
     "//:status-enum-drift-check",
     "//:adr-hygiene-check",
     "//:d1-seam-contracts-check",
+    "//:effective-dating-kernel-check",
     "buck2 build //:phase0-red-green-fixture-contract-check"
   ]
 }

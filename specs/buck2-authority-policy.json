@@ -39,6 +39,16 @@
         "name": "Buck2 docs — test command",
         "url": "https://buck2.build/docs/users/commands/test/",
         "used_for": "Buck2 test command authority for test lanes."
+      },
+      {
+        "name": "Rustc Book — Instrumentation-based Code Coverage",
+        "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+        "used_for": "Records Rust LLVM source-based coverage as the modern coverage direction for AC-0.6 and adjacent Rust gates."
+      },
+      {
+        "name": "Reindeer",
+        "url": "https://github.com/facebookincubator/reindeer",
+        "used_for": "Records Cargo metadata plus generated BUCK graph monorepo ergonomics for advisory local Cargo mutation testing."
       }
     ],
     "owner_team": "platform-toolchain + platform-governance",
@@ -143,7 +153,13 @@
     "scripts/tests/d1_seam_contracts_check.rs",
     "specs/d1-seam-contracts-registry.json",
     "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
-    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto"
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
+    "//:effective-dating-kernel-check",
+    "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+    "scripts/ci/assert-effective-dating-kernel.rs",
+    "scripts/tests/effective_dating_kernel_check.rs",
+    "specs/effective-dating-kernel-registry.json",
+    "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs"
   ],
   "claim_boundary": {
     "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
@@ -262,7 +278,13 @@
     "scripts/tests/d1_seam_contracts_check.rs",
     "specs/d1-seam-contracts-registry.json",
     "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
-    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto"
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
+    "scripts/ci/assert-effective-dating-kernel.rs",
+    "scripts/tests/effective_dating_kernel_check.rs",
+    "specs/effective-dating-kernel-registry.json",
+    "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs",
+    "oya/ontology/crates/oya-ontology-kernel/src/lib.rs",
+    "oya/ontology/crates/oya-ontology-kernel/BUCK"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -1127,6 +1149,62 @@
       "p0_0_green",
       "phase0_complete",
       "proto_required_consistency_token"
+    ],
+    "specs/effective-dating-kernel-registry.json": [
+      "effective_dating_kernel_measured",
+      "//:effective-dating-kernel-check",
+      "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not the canonical coverage surface",
+      "Dual Cargo.toml + Buck2/Reindeer",
+      "live_required_context_execution_proven",
+      "p0_0_green"
+    ],
+    "scripts/ci/assert-effective-dating-kernel.rs": [
+      "kernel_source_failures",
+      "fixture_policy_failures",
+      "FALSE_CLAIMS",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/effective_dating_kernel_check.rs": [
+      "kernel_source_rejects_missing_bitemporal_type",
+      "kernel_source_rejects_missing_as_of_query",
+      "bad_overlap_fixture_reports_overlap_violation",
+      "registry_rejects_phase0_completion_claim"
+    ],
+    "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs": [
+      "pub struct BitemporalRange",
+      "pub struct EffectiveDatedHistory",
+      "pub fn as_of",
+      "OverlappingBitemporalRange",
+      "out_of_order_transaction_time_inserts_are_sorted_and_queryable",
+      "data_class:"
+    ],
+    "oya/ontology/crates/oya-ontology-kernel/src/lib.rs": [
+      "pub mod effective_dating;",
+      "pub use effective_dating::",
+      "EffectiveDatedHistory"
+    ],
+    "oya/ontology/crates/oya-ontology-kernel/BUCK": [
+      "effective-dating-kernel-tests",
+      "rustc --edition=2024 -D warnings",
+      "repo_relative_root = True"
+    ],
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json": [
+      "TC-0.6-GOOD-effective-dating-kernel-bitemporal-as-of",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json": [
+      "overlapping_bitemporal_range",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json": [
+      "clock_skew_determinism_missing",
+      "p0_0_green",
+      "phase0_complete"
     ]
   },
   "required_glob_anchors": [
