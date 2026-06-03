@@ -214,7 +214,8 @@
       "retirement_phase": "P0.0 live cloud-ci/oya-ci required-context cutover",
       "evidence_path": "specs/phase0-ci-enforcement-baseline.json + scripts/ci/assert-override-kill-switch.py + scripts/tests/phase0_override_kill_switch_check.test.sh + //:phase0-override-kill-switch-check",
       "no_new_oya_cli_surface": true,
-      "claim_boundary": "Local/static fixture gate proves the checked-in override packet schema and GOOD/BAD override fixtures only. This is not live protected-flow override authority, P0.0 green, or Phase-0 completion until trusted cloud-ci/oya-ci enforces it on candidate SHAs."
+      "claim_boundary": "Local/static fixture gate proves the checked-in override packet schema and GOOD/BAD override fixtures only; not live protected-flow override authority; not P0.0 green; not Phase-0 completion until trusted cloud-ci/oya-ci enforces it on candidate SHAs.",
+      "verification_command": "buck2 build //:phase0-override-kill-switch-check"
     },
     {
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 and #T0.16",

@@ -8,9 +8,54 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 check="scripts/ci/assert-override-kill-switch.py"
+matrix="specs/phase0-automation-matrix.json"
+coverage="specs/phase0-automation-coverage-registry.json"
 schema="specs/phase0-override-packet-schema.json"
 good="specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json"
 bad="specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json"
+
+
+python3 - <<'PY' "$matrix" "$coverage"
+import json
+import sys
+
+matrix = json.load(open(sys.argv[1]))
+coverage = json.load(open(sys.argv[2]))
+rows = {row.get("id"): row for row in matrix.get("seed_rows", [])}
+subjects = {subject.get("id"): subject for subject in coverage.get("coverage_subjects", [])}
+
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+
+row = rows.get("AC-0.0-override-kill-switch")
+expect(row is not None, "AC-0.0 override/kill-switch row missing")
+target = row.get("target_gate_or_controller", "")
+expect("cloud-ci/oya-ci override controller" in target, "AC-0.0 override row must preserve live cloud-ci/oya-ci override controller")
+expect("//:phase0-override-kill-switch-check" in target, "AC-0.0 override row must name local Buck2 target")
+expect(
+    row.get("verification_command") == "buck2 build //:phase0-override-kill-switch-check",
+    "AC-0.0 override row must record Buck2 local verification command",
+)
+claim_boundary = row.get("claim_boundary", "")
+expect("not live protected-flow override authority" in claim_boundary, "AC-0.0 override claim boundary must preserve live-override non-claim")
+expect("not P0.0 green" in claim_boundary, "AC-0.0 override claim boundary must preserve P0.0 non-claim")
+expect(row.get("no_new_oya_cli_surface") is True, "AC-0.0 override must not add an oya CLI surface")
+
+subject = subjects.get("AC-0.0")
+expect(subject is not None, "AC-0.0 coverage subject missing")
+expect("AC-0.0-override-kill-switch" in subject.get("mapped_row_ids", []), "AC-0.0 coverage must map override row")
+commands = subject.get("verification_commands", {})
+expect(
+    commands.get("AC-0.0-override-kill-switch") == "buck2 build //:phase0-override-kill-switch-check",
+    "AC-0.0 coverage subject must record override Buck2 local verification command",
+)
+coverage_note = subject.get("coverage_note", "")
+expect("override/kill-switch" in coverage_note, "AC-0.0 coverage note must name override/kill-switch")
+expect("not P0.0 green" in coverage_note, "AC-0.0 coverage note must preserve P0.0 non-claim")
+PY
 
 python3 "$check" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"

@@ -71,7 +71,8 @@
       "verification_commands": {
         "AC-0.0-trusted-target-inventory": "buck2 build //:phase0-trusted-target-inventory-check",
         "AC-0.0-structured-result-bundle": "buck2 build //:phase0-result-bundle-output-check",
-        "AC-0.0-tenant-pipeline-isolation": "buck2 build //:phase0-tenant-isolation-fixture-check"
+        "AC-0.0-tenant-pipeline-isolation": "buck2 build //:phase0-tenant-isolation-fixture-check",
+        "AC-0.0-override-kill-switch": "buck2 build //:phase0-override-kill-switch-check"
       }
     },
     {

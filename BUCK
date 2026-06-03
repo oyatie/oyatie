@@ -843,6 +843,8 @@ genrule(
     srcs = {
         "scripts/ci/assert-override-kill-switch.py": "scripts/ci/assert-override-kill-switch.py",
         "scripts/tests/phase0_override_kill_switch_check.test.sh": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-override-packet-schema.json": "specs/phase0-override-packet-schema.json",
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
