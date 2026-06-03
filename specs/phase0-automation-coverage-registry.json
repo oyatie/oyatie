@@ -15,7 +15,7 @@
     "spec_id": "EXE-PHASE0-AUTOMATION-COVERAGE-REGISTRY",
     "status": "local_static_coverage_registry_not_live_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T11:45:00Z"
+    "updated_at": "2026-06-03T12:00:00Z"
   },
   "description": "Local/static AC-0.16 coverage registry binding declared Phase-0 acceptance criteria, selected ADR amendments, operating-contract requirements, and governance work items to automation-matrix rows. This prevents seed-row omission from false-greening the automation ratchet; it is not live required-context evidence.",
   "claim_boundary": {
@@ -156,7 +156,8 @@
       "mapped_row_ids": [
         "AC-0.9-structural-lock-revert"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.9 to //:structural-lock-revert-check, specs/structural-lock-revert-registry.json, and structural-lock/revert RED/GREEN fixtures. Local/static seed evidence requires protected-flow revert packets, path-overlap serialization, TTL-bound advisory locks, and false mechanical-lock/status-authority rejection while leaving live required-context authority false."
     },
     {
       "id": "AC-0.10",

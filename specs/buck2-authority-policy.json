@@ -69,7 +69,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T11:45:00Z"
+    "updated_at": "2026-06-03T12:00:00Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -164,7 +164,11 @@
     "scripts/ci/assert-cross-artifact-agreement.rs",
     "scripts/tests/cross_artifact_agreement_check.rs",
     "specs/cross-artifact-agreement-registry.json",
-    "specs/decision-propagation-packets.json"
+    "specs/decision-propagation-packets.json",
+    "//:structural-lock-revert-check",
+    "scripts/ci/assert-structural-lock-revert.rs",
+    "scripts/tests/structural_lock_revert_check.rs",
+    "specs/structural-lock-revert-registry.json"
   ],
   "claim_boundary": {
     "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
@@ -293,7 +297,15 @@
     "scripts/ci/assert-cross-artifact-agreement.rs",
     "scripts/tests/cross_artifact_agreement_check.rs",
     "specs/cross-artifact-agreement-registry.json",
-    "specs/decision-propagation-packets.json"
+    "specs/decision-propagation-packets.json",
+    "scripts/ci/assert-structural-lock-revert.rs",
+    "scripts/tests/structural_lock_revert_check.rs",
+    "specs/structural-lock-revert-registry.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-good-serialized-structural-lock-revert.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -409,7 +421,11 @@
       "d1_seam_contracts_check.rs",
       "d1-seam-contracts-registry.json",
       "entity_mutation.proto",
-      "workflow_ai_step_invocation.proto"
+      "workflow_ai_step_invocation.proto",
+      "structural-lock-revert-check",
+      "assert-structural-lock-revert.rs",
+      "structural_lock_revert_check.rs",
+      "structural-lock-revert-registry.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",

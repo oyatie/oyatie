@@ -13,7 +13,8 @@
     "related_acceptance_criteria": [
       "AC-0.14"
     ],
-    "source_request": "P0.0 automation matrix row AC-0.14 requires every gate to have BAD/GOOD fixtures and gate evidence."
+    "source_request": "P0.0 automation matrix row AC-0.14 requires every gate to have BAD/GOOD fixtures and gate evidence.",
+    "updated_at": "2026-06-03T12:00:00Z"
   },
   "claim_boundary": {
     "red_green_fixture_contract_measured": true,
@@ -25,7 +26,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 23,
+  "minimum_entry_count": 24,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -680,6 +681,48 @@
         {
           "path": "scripts/ci/assert-cross-artifact-agreement.rs",
           "contains": "protection, adds an `oya` CLI surface, or proves Phase-0 completion"
+        }
+      ]
+    },
+    {
+      "id": "structural-lock-revert",
+      "automation_matrix_row_id": "AC-0.9-structural-lock-revert",
+      "buck2_target": "//:structural-lock-revert-check",
+      "test_paths": [
+        "scripts/tests/structural_lock_revert_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-good-serialized-structural-lock-revert.json",
+          "contains": "\"expected_verdict\": \"PASS\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json",
+          "contains": "missing_protected_flow_revert_evidence"
+        },
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
+          "contains": "structural_path_overlap_detected"
+        },
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
+          "contains": "forbidden_mechanical_structural_lock_claim"
+        },
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json",
+          "contains": "lock_ttl_not_future_or_expired"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-structural-lock-revert.rs",
+          "contains": "no status mutation, live required-context authority, P0.0 green"
+        },
+        {
+          "path": "specs/structural-lock-revert-registry.json",
+          "contains": "\"mechanical_structural_lock_proven\": false"
         }
       ]
     }

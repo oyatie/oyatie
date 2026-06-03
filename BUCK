@@ -115,6 +115,14 @@ genrule(
         "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-unreconciled-idea-refine-output.json": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-unreconciled-idea-refine-output.json",
         "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-generated-decisions-divergence.json": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-generated-decisions-divergence.json",
         "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-register-packet.json": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-register-packet.json",
+        "scripts/ci/assert-structural-lock-revert.rs": "scripts/ci/assert-structural-lock-revert.rs",
+        "scripts/tests/structural_lock_revert_check.rs": "scripts/tests/structural_lock_revert_check.rs",
+        "specs/structural-lock-revert-registry.json": "specs/structural-lock-revert-registry.json",
+        "specs/fixtures/phase0-structural-lock-revert/tc-0.9-good-serialized-structural-lock-revert.json": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-good-serialized-structural-lock-revert.json",
+        "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json",
+        "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
+        "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
+        "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json": "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
         "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
@@ -429,6 +437,8 @@ genrule(
         "scripts/tests/effective_dating_kernel_check.rs": "scripts/tests/effective_dating_kernel_check.rs",
         "scripts/ci/assert-cross-artifact-agreement.rs": "scripts/ci/assert-cross-artifact-agreement.rs",
         "scripts/tests/cross_artifact_agreement_check.rs": "scripts/tests/cross_artifact_agreement_check.rs",
+        "scripts/ci/assert-structural-lock-revert.rs": "scripts/ci/assert-structural-lock-revert.rs",
+        "scripts/tests/structural_lock_revert_check.rs": "scripts/tests/structural_lock_revert_check.rs",
         "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
@@ -622,6 +632,26 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+
+# AC-0.9 structural-lock/revert check: Rust/Buck2 local/static evidence that
+# structural artifact edits carry serialized path ownership, protected-flow
+# revert evidence, RED fixtures for overlap/stale/false-authority cases, and
+# explicit advisory-until-required-context boundaries. This never posts statuses
+# or claims mechanical lock, P0.0 green, or Phase-0 completion.
+genrule(
+    name = "structural-lock-revert-check",
+    srcs = {
+        "scripts/ci/assert-structural-lock-revert.rs": "scripts/ci/assert-structural-lock-revert.rs",
+        "scripts/tests/structural_lock_revert_check.rs": "scripts/tests/structural_lock_revert_check.rs",
+        "specs/structural-lock-revert-registry.json": "specs/structural-lock-revert-registry.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-structural-lock-revert/*.json"])},
+    out = "structural-lock-revert-check.json",
+    cmd = "mkdir -p $TMP/structural-lock-revert && rustc --edition=2021 -D warnings scripts/tests/structural_lock_revert_check.rs --test -o $TMP/structural-lock-revert/structural_lock_revert_check && OYA_REPO_ROOT=$PWD $TMP/structural-lock-revert/structural_lock_revert_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-structural-lock-revert.rs -o $TMP/structural-lock-revert/assert-structural-lock-revert && $TMP/structural-lock-revert/assert-structural-lock-revert --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
 
 
 # AC-0.16 automation-ratchet fixture check: local/static coverage that
