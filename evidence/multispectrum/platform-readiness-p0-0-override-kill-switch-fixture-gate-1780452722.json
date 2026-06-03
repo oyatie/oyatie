@@ -1,0 +1,194 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-override-packet-schema.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-override-kill-switch-fixture-gate",
+  "claim_boundary": {
+    "live_required_context_execution_proven": false,
+    "note": "Local/static override/kill-switch fixture gate evidence only. This does not claim live cloud-ci/oya-ci required-context execution, live protected-flow override authority, status mutation, P0.0 green, or Phase-0 completion.",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_flow_override_live": false,
+    "status_mutation_performed": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose checker with no new dependencies; validates existing schema/fixtures rather than adding a new control-plane abstraction."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Override/breakglass controls are treated as explicit fail-closed inputs with TTL, reviewer, audit-chain, blast-radius, and revert/fix fields before live controller authority."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "schema required-field drift, GOOD missing TTL, GOOD no-new-oya-CLI false, RED expected-violation drift",
+      "failing_fixture_added": true,
+      "findings": [
+        "Regression harness mutates schema and GOOD/BAD fixtures to ensure override contract drift fails closed."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "JSON output lists schema fields, observed override violations, fixture verdicts, and explicit non-claim flags."
+      ],
+      "new_contributor_minutes_estimate": 10
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted tests, baseline catalog, authority policy, py_compile, JSON parsing, Buck2 root target build (Build ID 79724dc3-f71f-4bb9-b783-fa2b9f0ef0eb), and diff hygiene passed."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Keep override coverage only in the baseline catalog",
+        "Add dedicated local fixture gate target",
+        "Claim live protected-flow override authority from fixtures"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Catalog reachability alone does not execute override semantics.",
+        "Dedicated target is the smallest executable proof without touching live branch protection.",
+        "Live override authority cannot be claimed until trusted cloud-ci/oya-ci enforces the packet on candidate SHAs."
+      ],
+      "selected_rationale": "Dedicated local fixture gate makes T0.0.2 override proof reachable from root Buck2 while preserving live RED boundary."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No credentials or live status mutation touched; checker validates fixture metadata only."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    }
+  },
+  "files_changed": [
+    "scripts/ci/assert-override-kill-switch.py",
+    "scripts/tests/phase0_override_kill_switch_check.test.sh",
+    "BUCK",
+    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "freshness_unix": 1780453081,
+  "git_sha": "fb235494fa79",
+  "implementation_summary": [
+    "Added scripts/ci/assert-override-kill-switch.py to validate the P0.0 override packet schema plus GOOD/BAD baseline override fixtures.",
+    "Added scripts/tests/phase0_override_kill_switch_check.test.sh with negative mutations for schema required-field drift, GOOD missing TTL, GOOD no-new-oya-CLI regression, and RED expected-violation drift.",
+    "Added //:phase0-override-kill-switch-check and wired it into baseline, automation matrix, claim-evidence map, and Buck2 authority policy anchors."
+  ],
+  "known_gaps": [
+    "Live cloud-ci/oya-ci has not enforced override packets on PR #455 candidate SHA.",
+    "PR #455 still has no live status checks reported from prior post-push evidence.",
+    "GitHub dev required_status_checks.checks still has app_id=null for oya-ci-required from prior post-push evidence.",
+    "Forgejo live convergence and reviewer APPROVE remain unproven."
+  ],
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "P0.0 AC-0.0 override/kill-switch local fixture gate; no live protected-flow override claim",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T02:12:02Z",
+  "timestamp_unix": 1780452722,
+  "verification": [
+    {
+      "command": "for file in specs/phase0-ci-enforcement-baseline.json specs/phase0-automation-matrix.json specs/phase0-claim-evidence-map.json specs/buck2-authority-policy.json specs/phase0-override-packet-schema.json specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json; do python3 -m json.tool \"$file\"; done",
+      "evidence": "Updated JSON specs and override fixture parse.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 - << audit-chain-jsonl-parse",
+      "evidence": "evidence/audit-chain.jsonl parsed as JSONL rows=839 before appending this evidence row.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m py_compile scripts/ci/assert-override-kill-switch.py scripts/ci/assert-tenant-pipeline-isolation.py scripts/ci/assert-required-status-source.py scripts/ci/assert-pr-required-context.py scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Python syntax checks passed.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/assert-override-kill-switch.py --json",
+      "evidence": "verdict=PASS, local_fixture_contract_proven=true, protected_flow_override_live=false, p0_0_green=false, phase0_complete=false.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_override_kill_switch_check.test.sh",
+      "evidence": "Positive fixture pass plus negative mutations for missing schema required field, GOOD missing TTL, GOOD no-new-oya-CLI regression, and RED missing expected override violation.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_tenant_isolation_fixture_check.test.sh && bash scripts/tests/phase0_required_status_source_check.test.sh && bash scripts/tests/phase0_required_context_rollup_check.test.sh",
+      "evidence": "Previously added tenant, required-status source, and required-context rollup checks still pass.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "evidence": "Baseline catalog passes after adding override_kill_switch_check_target/script/test mapping.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Auto-merge contract regression still passes.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "Policy scan passes with command_scan_files=150 and status_context_scan_files=9.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build //:phase0-override-kill-switch-check //:phase0-tenant-isolation-fixture-check //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:buck2-authority-policy-check --show-output",
+      "evidence": "Build ID 79724dc3-f71f-4bb9-b783-fa2b9f0ef0eb; all five root targets succeeded.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "Whitespace/conflict-marker diff hygiene passed.",
+      "revalidated_at": "2026-06-03T02:12:02Z",
+      "status": "passed"
+    },
+    {
+      "command": "architect subagent verification 019e8b42-232c-7aa3-aab5-fc8e771a7848",
+      "evidence": "APPROVE: no concrete blockers; checker/test/Buck2/spec/evidence wiring preserve local/static non-claim boundary for override/kill-switch fixture gate.",
+      "revalidated_at": "2026-06-03T02:18:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "ai-slop-cleaner changed-file pass /tmp/p0-0-override-deslop-1780452855",
+      "evidence": "No masking fallback slop, dead code, unsafe duplication, or needless abstraction found in working diff; no edits required. Post-deslop override fixture regression, baseline catalog, buck2 authority, and diff check passed.",
+      "revalidated_at": "2026-06-03T02:18:01Z",
+      "status": "passed"
+    }
+  ]
+}

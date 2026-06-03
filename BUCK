@@ -35,6 +35,8 @@ genrule(
         "scripts/tests/phase0_required_status_source_check.test.sh": "scripts/tests/phase0_required_status_source_check.test.sh",
         "scripts/ci/assert-tenant-pipeline-isolation.py": "scripts/ci/assert-tenant-pipeline-isolation.py",
         "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+        "scripts/ci/assert-override-kill-switch.py": "scripts/ci/assert-override-kill-switch.py",
+        "scripts/tests/phase0_override_kill_switch_check.test.sh": "scripts/tests/phase0_override_kill_switch_check.test.sh",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -226,6 +228,25 @@ genrule(
     },
     out = "phase0-tenant-isolation-fixture-check.txt",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_tenant_isolation_fixture_check.test.sh > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# P0.0 override/kill-switch fixture check: local/static GOOD/BAD coverage
+# for TTL, reviewer, audit-chain, owner, blast-radius, revert/fix follow-up,
+# affected context/gate, and no-new-oya-CLI fields. This does not claim live
+# protected-flow override authority.
+genrule(
+    name = "phase0-override-kill-switch-check",
+    srcs = {
+        "scripts/ci/assert-override-kill-switch.py": "scripts/ci/assert-override-kill-switch.py",
+        "scripts/tests/phase0_override_kill_switch_check.test.sh": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+        "specs/phase0-override-packet-schema.json": "specs/phase0-override-packet-schema.json",
+        "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
+    },
+    out = "phase0-override-kill-switch-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_override_kill_switch_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 

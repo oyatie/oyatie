@@ -112,6 +112,7 @@
     "//:phase0-ci-enforcement-baseline-catalog-check",
     "//:phase0-required-status-source-check",
     "//:phase0-tenant-isolation-fixture-check",
+    "//:phase0-override-kill-switch-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "//:phase0-auto-merge-after-ci-contract-check",
     "//:forgejo-auto-merge-after-ci-check",
@@ -185,7 +186,9 @@
     "scripts/tests/phase0_required_status_source_check.test.sh",
     "scripts/ci/assert-required-status-source.py",
     "scripts/ci/assert-tenant-pipeline-isolation.py",
-    "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh"
+    "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+    "scripts/ci/assert-override-kill-switch.py",
+    "scripts/tests/phase0_override_kill_switch_check.test.sh"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -236,7 +239,9 @@
       "phase0-required-status-source-check",
       "phase0_required_status_source_check.test.sh",
       "phase0-tenant-isolation-fixture-check",
-      "phase0_tenant_isolation_fixture_check.test.sh"
+      "phase0_tenant_isolation_fixture_check.test.sh",
+      "phase0_override_kill_switch_check.test.sh",
+      "phase0-override-kill-switch-check"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -478,6 +483,26 @@
       "bad-good-fixture-shared-cache.json",
       "bad-red-fixture-missing-expected-tenant-violation.json",
       "phase0 tenant-isolation fixture checks passed"
+    ],
+    "scripts/ci/assert-override-kill-switch.py": [
+      "override/kill-switch fixture evidence only",
+      "ttl_expires_at",
+      "reviewer_acknowledgment",
+      "audit_chain_event",
+      "blast_radius_statement",
+      "revert_or_fix_follow_up",
+      "override_missing_context_or_gate",
+      "override_missing_ttl_reviewer_audit_or_revert",
+      "override_new_oya_cli_surface",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_override_kill_switch_check.test.sh": [
+      "bad-schema-missing-no-new-oya-cli.json",
+      "bad-good-fixture-missing-ttl.json",
+      "bad-good-fixture-new-oya-cli.json",
+      "bad-red-fixture-missing-expected-override-violation.json",
+      "phase0 override/kill-switch fixture checks passed"
     ]
   },
   "required_glob_anchors": [

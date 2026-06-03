@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$repo_root"
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+
+check="scripts/ci/assert-override-kill-switch.py"
+schema="specs/phase0-override-packet-schema.json"
+good="specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json"
+bad="specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json"
+
+python3 "$check" --json > "$tmp_dir/good.json"
+grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"
+grep -Fq '"local_fixture_contract_proven": true' "$tmp_dir/good.json"
+grep -Fq '"live_required_context_execution_proven": false' "$tmp_dir/good.json"
+grep -Fq '"protected_flow_override_live": false' "$tmp_dir/good.json"
+grep -Fq '"p0_0_green": false' "$tmp_dir/good.json"
+grep -Fq '"phase0_complete": false' "$tmp_dir/good.json"
+
+assert_fails_with() {
+  local label="$1"
+  local expected="$2"
+  shift 2
+  local out="$tmp_dir/${label}.json"
+  set +e
+  python3 "$check" "$@" --json > "$out" 2>&1
+  local status=$?
+  set -e
+  if [ "$status" -eq 0 ]; then
+    echo "expected $label to fail" >&2
+    cat "$out" >&2
+    exit 1
+  fi
+  grep -Fq '"verdict": "FAIL"' "$out"
+  grep -Fq "$expected" "$out"
+  grep -Fq '"p0_0_green": false' "$out"
+  grep -Fq '"phase0_complete": false' "$out"
+}
+
+python3 - <<'PY' "$schema" "$tmp_dir/bad-schema-missing-no-new-oya-cli.json"
+import json, sys
+src, dst = sys.argv[1:]
+data = json.load(open(src))
+data["required"] = [field for field in data["required"] if field != "no_new_oya_cli_surface"]
+json.dump(data, open(dst, "w"))
+PY
+assert_fails_with bad_schema_missing_required 'schema.required missing no_new_oya_cli_surface' --schema "$tmp_dir/bad-schema-missing-no-new-oya-cli.json" --good-baseline-fixture "$good" --bad-baseline-fixture "$bad"
+
+python3 - <<'PY' "$good" "$tmp_dir/bad-good-fixture-missing-ttl.json"
+import json, sys
+src, dst = sys.argv[1:]
+data = json.load(open(src))
+data["override_packet"].pop("ttl_expires_at", None)
+json.dump(data, open(dst, "w"))
+PY
+assert_fails_with bad_good_fixture_missing_ttl 'GOOD override packet has violations' --schema "$schema" --good-baseline-fixture "$tmp_dir/bad-good-fixture-missing-ttl.json" --bad-baseline-fixture "$bad"
+
+python3 - <<'PY' "$good" "$tmp_dir/bad-good-fixture-new-oya-cli.json"
+import json, sys
+src, dst = sys.argv[1:]
+data = json.load(open(src))
+data["override_packet"]["no_new_oya_cli_surface"] = False
+json.dump(data, open(dst, "w"))
+PY
+assert_fails_with bad_good_fixture_new_oya_cli 'override_new_oya_cli_surface' --schema "$schema" --good-baseline-fixture "$tmp_dir/bad-good-fixture-new-oya-cli.json" --bad-baseline-fixture "$bad"
+
+python3 - <<'PY' "$bad" "$tmp_dir/bad-red-fixture-missing-expected-override-violation.json"
+import json, sys
+src, dst = sys.argv[1:]
+data = json.load(open(src))
+data["expected_violations"] = [v for v in data["expected_violations"] if v != "override_new_oya_cli_surface"]
+json.dump(data, open(dst, "w"))
+PY
+assert_fails_with bad_red_fixture_missing_expected_violation 'RED fixture expected_violations must include all override violation classes' --schema "$schema" --good-baseline-fixture "$good" --bad-baseline-fixture "$tmp_dir/bad-red-fixture-missing-expected-override-violation.json"
+
+echo "phase0 override/kill-switch fixture checks passed"

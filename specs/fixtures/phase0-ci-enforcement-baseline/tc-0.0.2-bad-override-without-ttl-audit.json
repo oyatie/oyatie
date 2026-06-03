@@ -17,7 +17,9 @@
     "untrusted_or_legacy_status_producer",
     "candidate_bytes_can_weaken_gate",
     "candidate_sourced_gate_definition",
-    "override_missing_ttl_reviewer_audit_or_revert"
+    "override_missing_ttl_reviewer_audit_or_revert",
+    "override_missing_context_or_gate",
+    "override_new_oya_cli_surface"
   ],
   "fixture_id": "TC-0.0.2-BAD-override-without-ttl-audit",
   "override_packet": {

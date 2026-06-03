@@ -232,6 +232,12 @@ def main() -> int:
             failures.append("automation_mapping.tenant_isolation_check_script must be scripts/ci/assert-tenant-pipeline-isolation.py")
         if automation_mapping.get("tenant_isolation_test") != "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh":
             failures.append("automation_mapping.tenant_isolation_test must be scripts/tests/phase0_tenant_isolation_fixture_check.test.sh")
+        if automation_mapping.get("override_kill_switch_check_target") != "//:phase0-override-kill-switch-check":
+            failures.append("automation_mapping.override_kill_switch_check_target must be //:phase0-override-kill-switch-check")
+        if automation_mapping.get("override_kill_switch_check_script") != "scripts/ci/assert-override-kill-switch.py":
+            failures.append("automation_mapping.override_kill_switch_check_script must be scripts/ci/assert-override-kill-switch.py")
+        if automation_mapping.get("override_kill_switch_test") != "scripts/tests/phase0_override_kill_switch_check.test.sh":
+            failures.append("automation_mapping.override_kill_switch_test must be scripts/tests/phase0_override_kill_switch_check.test.sh")
 
     for doc in REQUIRED_CONTEXT_NARRATIVE_DOCS:
         path = repo_path(doc)
