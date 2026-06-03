@@ -21,7 +21,7 @@ install_system_tools() {
 }
 
 rust_toolchain_channel() {
-  awk -F '"' '/^[[:space:]]*channel[[:space:]]*=/ { print $2; exit }' rust-toolchain.toml
+  awk -F '"' '/^[[:space:]]*channel[[:space:]]*=/ { channel = $2 } END { print channel }' rust-toolchain.toml
 }
 
 bootstrap_rust() {
@@ -40,7 +40,7 @@ bootstrap_rust() {
     --target x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
   local active_toolchain
-  active_toolchain="$(rustup show active-toolchain | awk '{ print $1; exit }')"
+  active_toolchain="$(rustup show active-toolchain | awk '{ toolchain = $1 } END { print toolchain }')"
   if [[ -z "$active_toolchain" ]]; then
     echo "rustup did not report an active toolchain" >&2
     exit 1
@@ -55,7 +55,7 @@ bootstrap_rust() {
   clippy-driver --version
 
   local host sysroot llvm_bin
-  host="$(rustc -vV | awk '/^host: / { print $2; exit }')"
+  host="$(rustc -vV | awk '/^host: / { host = $2 } END { print host }')"
   sysroot="$(rustc --print sysroot)"
   llvm_bin="$sysroot/lib/rustlib/$host/bin"
   test -x "$llvm_bin/llvm-profdata"
