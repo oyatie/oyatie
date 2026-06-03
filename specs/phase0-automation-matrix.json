@@ -249,7 +249,9 @@
       "requirement": "Pure split removes service-shaped sprawl but preserves ADR-0010/0064 pack roots until explicitly superseded.",
       "retirement_phase": "P0.6",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.6",
-      "target_gate_or_controller": "Buck2-local service-root classifier gate //:service-root-classifier-check (seed evidence; future Rust implementation must remain Buck2-owned)"
+      "target_gate_or_controller": "//:service-root-classifier-check",
+      "claim_boundary": "Buck2-local pack/root classifier evidence only; packs and regional-packs remain authorized shared roots, not service roots; not live required-context authority; post-migration pure split, P0.0 green, and Phase-0 completion remain false until the trusted cloud-ci/oya-ci context proves them.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
     },
     {
       "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/ + scripts/tests/phase0_claim_ceiling_check.test.sh",
@@ -411,11 +413,13 @@
       "requirement": "Post-migration services must live only under canonical oya/ or cloud/ layout while packs/regional-packs remain only authorized shared roots and legacy roots are removed after verified-empty migration.",
       "classification": "automated_blocking_now",
       "owner": "platform-architecture",
-      "target_gate_or_controller": "Buck2-local service layout/sprawl classifier gate //:service-root-classifier-check",
+      "target_gate_or_controller": "//:service-root-classifier-check",
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.7 + specs/fixtures/phase0-service-root-classifier/",
       "retirement_phase": "P0.6",
       "evidence_path": "specs/service-inventory.json + specs/phase0-structural-packets.json + service-root sprawl fixtures + //:service-root-classifier-check",
-      "no_new_oya_cli_surface": true
+      "no_new_oya_cli_surface": true,
+      "claim_boundary": "Buck2-local service layout/sprawl classifier evidence only; post-migration pure split remains false until structural shards and trusted cloud-ci/oya-ci evidence run; not live required-context authority; P0.0 green and Phase-0 completion remain false.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
     },
     {
       "id": "AC-0.8-cross-artifact-agreement",

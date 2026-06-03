@@ -82,6 +82,62 @@ expect(
     "live required-context authority false" in coverage_note,
     "AC-0.1 coverage subject must preserve live-authority non-claim",
 )
+
+for row_id, full_index_claim in [
+    ("P0.6-pack-root-classifier", "authorized shared roots"),
+    ("AC-0.7-service-layout-sprawl", "post-migration pure split"),
+]:
+    row = next((candidate for candidate in matrix["seed_rows"] if candidate.get("id") == row_id), None)
+    expect(row is not None, f"{row_id} row missing")
+    expect(
+        row.get("target_gate_or_controller") == "//:service-root-classifier-check",
+        f"{row_id} row must map to exact Buck2 target",
+    )
+    expect(
+        row.get("verification_command") == "buck2 build //:service-root-classifier-check",
+        f"{row_id} row must record exact verification command",
+    )
+    claim_boundary = row.get("claim_boundary", "")
+    expect(
+        full_index_claim in claim_boundary,
+        f"{row_id} row must preserve classifier-specific non-claim",
+    )
+    expect(
+        "not live required-context authority" in claim_boundary,
+        f"{row_id} row must preserve live-authority non-claim",
+    )
+    expect(
+        row.get("no_new_oya_cli_surface") is True,
+        f"{row_id} row must refuse new oya CLI authority",
+    )
+
+for subject_id, row_id, coverage_claim in [
+    ("P0.6-pack-root-classifier", "P0.6-pack-root-classifier", "authorized shared roots"),
+    ("AC-0.7", "AC-0.7-service-layout-sprawl", "post-migration pure split remains false"),
+]:
+    subject = next((candidate for candidate in coverage["coverage_subjects"] if candidate.get("id") == subject_id), None)
+    expect(subject is not None, f"{subject_id} coverage subject missing")
+    expect(
+        row_id in subject.get("mapped_row_ids", []),
+        f"{subject_id} coverage subject must map to {row_id}",
+    )
+    expect(
+        subject.get("verification_command") == "buck2 build //:service-root-classifier-check",
+        f"{subject_id} coverage subject must record exact verification command",
+    )
+    coverage_note = subject.get("coverage_note", "")
+    expect(
+        "//:service-root-classifier-check" in coverage_note,
+        f"{subject_id} coverage subject must name the exact Buck2 target",
+    )
+    expect(
+        coverage_claim in coverage_note,
+        f"{subject_id} coverage subject must preserve classifier-specific non-claim",
+    )
+    expect(
+        "live required-context authority" in coverage_note,
+        f"{subject_id} coverage subject must preserve live-authority non-claim",
+    )
 PY
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$check" --inventory "$inventory" --packets "$packets" --json > "$tmp_dir/good.json"

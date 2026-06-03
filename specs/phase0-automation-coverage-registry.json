@@ -143,7 +143,8 @@
         "AC-0.7-service-layout-sprawl"
       ],
       "owner": "platform-governance",
-      "coverage_note": "Maps AC-0.7 to //:service-root-classifier-check, specs/phase0-structural-packets.json, and sprawl/duplicate/retired-token/underscore fixtures. Local/static evidence only; post-migration pure split remains false until structural shards and trusted cloud-ci/oya-ci evidence run."
+      "coverage_note": "Maps AC-0.7 to //:service-root-classifier-check, specs/phase0-structural-packets.json, and sprawl/duplicate/retired-token/underscore fixtures. Local/static evidence only; post-migration pure split remains false until structural shards and trusted cloud-ci/oya-ci evidence run; live required-context authority remains false.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
     },
     {
       "id": "AC-0.8",
@@ -297,7 +298,8 @@
         "P0.6-pack-root-classifier"
       ],
       "owner": "platform-architecture",
-      "coverage_note": "Maps P0.6 pack/root classification to //:service-root-classifier-check with service inventory plus structural packet seeds for P0.6a/P0.6b/P0.6c/P0.6d families. Packs and regional-packs are classified as authorized shared roots, not service roots."
+      "coverage_note": "Maps P0.6 pack/root classification to //:service-root-classifier-check with service inventory plus structural packet seeds for P0.6a/P0.6b/P0.6c/P0.6d families. Packs and regional-packs are classified as authorized shared roots, not service roots; live required-context authority remains false.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
     },
     {
       "id": "P0.7-decision-propagation",

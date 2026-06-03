@@ -1,0 +1,75 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-P0-6-AC-0-7-SERVICE-CLASSIFIER-ROW-MAP-1780520939",
+  "created_at": "2026-06-03T17:08:59-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha_before_commit": "16abc0643078a1d878d23b9cd5637d2afd66d479",
+  "acceptance_criterion": "P0.6-pack-root-classifier + AC-0.7-service-layout-sprawl",
+  "summary": "Local/static evidence tightens the remaining service-root classifier sibling rows so P0.6 and AC0.7 map directly to //:service-root-classifier-check with explicit Buck2 verification commands. The shell regression fails closed if either row drifts back to prose/composite authority, drops verification metadata, or weakens shared-root/pure-split/live-authority non-claims.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "p0_6_pack_root_row_mapping_measured": true,
+    "ac_0_7_service_layout_row_mapping_measured": true,
+    "service_root_classifier_measured": true,
+    "closed_world_root_count": 8,
+    "inventory_entry_count": 296,
+    "fixture_count": 8,
+    "structural_packet_count": 6,
+    "authorized_shared_roots_not_service_roots_recorded": true,
+    "no_new_oya_cli_surface": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "post_migration_pure_split_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-service-classifier-sibling-row-map-red-1780520798",
+    "shell_test_exit": 1,
+    "failure": "Sibling row-map regression failed because P0.6 target_gate_or_controller was prose instead of exact //:service-root-classifier-check.",
+    "stderr_excerpt": "P0.6-pack-root-classifier row must map to exact Buck2 target\n",
+    "stdout_excerpt": ""
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-service-classifier-sibling-row-map-green-1780520849",
+    "direct_shell_test": "PASS service-root classifier checks passed",
+    "service_root_classifier": "PASS closed_world_root_count=8 inventory_entry_count=296 fixture_count=8 structural_packet_count=6",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=232 status_context_scan_files=9 authority_context=oya-ci-required",
+    "red_green_fixture_contract": "PASS entry_count=26 green_marker_count=27 red_marker_count=40",
+    "json_parse": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "c9cb216c-ccb7-48e8-933d-e66fb95ba1e8",
+    "buck2_targets": [
+      "//:service-root-classifier-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check",
+      "//:phase0-red-green-fixture-contract-check"
+    ]
+  },
+  "files_updated": [
+    "scripts/tests/service_root_classifier_check.test.sh",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "evidence/audit-chain.jsonl",
+    "evidence/multispectrum/platform-readiness-p0-0-service-classifier-sibling-row-map-1780520939.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "buck2_native_llvm_coverage_preferred_over_tarpaulin": true,
+    "dual_cargo_buck2_reindeer_allows_local_cargo_mutation_advisory_only": true,
+    "rust_gate_warning_posture": "No Rust source changed in this sibling row-map slice; new Rust/Buck2 gates should keep -D warnings style where applicable.",
+    "scope": "P0.6/AC0.7 service-root classifier row/coverage mapping only; no source-line coverage, no Cargo mutation lane, no live cloud-ci/oya-ci authority, and no P0.0 green claim"
+  },
+  "hyperscaler_orientation_recorded": {
+    "service_layout_classifier_gate_for_monorepo_governance": true,
+    "exact_target_not_composite_prose": true,
+    "buck2_native_monorepo_gate": true,
+    "local_static_only_until_cloud_ci_oya_ci_live": true,
+    "hyperscaler_grade_claimed": false
+  },
+  "updated_at": "2026-06-03T17:08:59-04:00"
+}
