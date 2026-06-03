@@ -313,8 +313,9 @@
       "requirement": "Every enforceable or automatable Phase-0 rule must map to a gate/controller/generated registry/fixture or an explicitly owned human-judgment exception with retirement path.",
       "retirement_phase": "AC-0.16/P0 exit",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.16",
-      "target_gate_or_controller": "cloud-ci-automation-ratchet + //:phase0-automation-ratchet-check",
-      "claim_boundary": "Local/static fixture gate proves seed-row classification, required-row coverage, coverage-registry row mapping, human-judgment retirement metadata, and no-new-oya-CLI authority constraints only. This is not live required-context authority, P0.0 green, or Phase-0 completion."
+      "target_gate_or_controller": "//:phase0-automation-ratchet-check",
+      "claim_boundary": "Local/static fixture gate proves seed-row classification, required-row coverage, coverage-registry row mapping, human-judgment retirement metadata, and no-new-oya-CLI authority constraints only. This is not live required-context authority, P0.0 green, or Phase-0 completion.",
+      "verification_command": "buck2 build //:phase0-automation-ratchet-check"
     },
     {
       "id": "AC-0.1-service-inventory",

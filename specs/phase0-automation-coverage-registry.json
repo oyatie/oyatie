@@ -239,7 +239,9 @@
       "mapped_row_ids": [
         "AC-0.16-automation-ratchet"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.16 to //:phase0-automation-ratchet-check, which validates seed-row classification, required-row coverage, coverage-registry row mapping, human-judgment retirement metadata, and no-new-oya-CLI constraints. Local/static evidence only; not live required-context authority.",
+      "verification_command": "buck2 build //:phase0-automation-ratchet-check"
     },
     {
       "id": "AC-0.17",

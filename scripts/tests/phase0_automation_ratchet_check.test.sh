@@ -11,6 +11,63 @@ check="scripts/ci/assert-automation-ratchet.py"
 matrix="specs/phase0-automation-matrix.json"
 coverage="specs/phase0-automation-coverage-registry.json"
 
+python3 - <<'PY' "$matrix" "$coverage"
+import json
+import sys
+
+matrix_path, coverage_path = sys.argv[1:]
+matrix = json.load(open(matrix_path))
+coverage = json.load(open(coverage_path))
+
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+
+row = next(
+    (candidate for candidate in matrix["seed_rows"] if candidate.get("id") == "AC-0.16-automation-ratchet"),
+    None,
+)
+expect(row is not None, "AC-0.16 automation-ratchet row missing")
+expect(
+    row.get("target_gate_or_controller") == "//:phase0-automation-ratchet-check",
+    "AC-0.16 automation-ratchet row must map to exact Buck2 target",
+)
+expect(
+    row.get("verification_command") == "buck2 build //:phase0-automation-ratchet-check",
+    "AC-0.16 automation-ratchet row must record exact verification command",
+)
+claim_boundary = row.get("claim_boundary", "")
+expect(
+    "not live required-context authority" in claim_boundary,
+    "AC-0.16 automation-ratchet row must preserve live-authority non-claim",
+)
+expect(
+    row.get("no_new_oya_cli_surface") is True,
+    "AC-0.16 automation-ratchet row must refuse new oya CLI authority",
+)
+
+subject = next(
+    (candidate for candidate in coverage["coverage_subjects"] if candidate.get("id") == "AC-0.16"),
+    None,
+)
+expect(subject is not None, "AC-0.16 coverage subject missing")
+expect(
+    subject.get("verification_command") == "buck2 build //:phase0-automation-ratchet-check",
+    "AC-0.16 coverage subject must record exact verification command",
+)
+coverage_note = subject.get("coverage_note", "")
+expect(
+    "//:phase0-automation-ratchet-check" in coverage_note,
+    "AC-0.16 coverage subject must name the exact Buck2 target",
+)
+expect(
+    "not live required-context authority" in coverage_note,
+    "AC-0.16 coverage subject must preserve live-authority non-claim",
+)
+PY
+
 python3 "$check" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"
 grep -Fq '"local_fixture_contract_proven": true' "$tmp_dir/good.json"
