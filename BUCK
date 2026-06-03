@@ -412,6 +412,7 @@ genrule(
         "scripts/ci/assert-buck2-cargo-target-coverage.py": "scripts/ci/assert-buck2-cargo-target-coverage.py",
         "scripts/tests/buck2_cargo_target_coverage_check.test.sh": "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
         "specs/buck2-cargo-target-coverage.json": "specs/buck2-cargo-target-coverage.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "Cargo.toml": "Cargo.toml",
     } | {path: path for path in glob(["**/Cargo.toml", "**/BUCK"], exclude = ["buck-out/**", "target/**"])},
     out = "buck2-cargo-target-coverage-check.json",

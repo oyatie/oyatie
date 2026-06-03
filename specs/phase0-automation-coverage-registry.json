@@ -207,7 +207,8 @@
         "AC-0.13-buck2-cargo-coverage"
       ],
       "owner": "platform-governance",
-      "coverage_note": "Maps AC-0.13 to //:buck2-cargo-target-coverage-check, which measures Cargo workspace lib/bin target roots, including Cargo auto-discovered src/bin binaries when autobins is enabled, against checked-in Buck2 rust crate_root mappings and records divergence without claiming source-line coverage or live required-context authority."
+      "coverage_note": "Maps AC-0.13 to //:buck2-cargo-target-coverage-check, which measures Cargo workspace lib/bin target roots, including Cargo auto-discovered src/bin binaries when autobins is enabled, against checked-in Buck2 rust crate_root mappings and records divergence without claiming source-line coverage or live required-context authority.",
+      "verification_command": "buck2 build //:buck2-cargo-target-coverage-check"
     },
     {
       "id": "AC-0.14",

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-13-BUCK2-CARGO-ROW-MAP-1780506246",
+  "created_at": "2026-06-03T13:04:06-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha_before_commit": "e6dad4468a602e61ba50f3844d4e7a690bdef15e",
+  "acceptance_criterion": "AC-0.13-buck2-cargo-coverage",
+  "summary": "Local/static AC-0.13 evidence tightens the Phase-0 automation matrix so the already-implemented Buck2/Cargo target-root coverage gate maps directly to //:buck2-cargo-target-coverage-check with an explicit Buck2 verification command. The regression fails closed if AC-0.13 drifts back to a composite prose target or loses the Buck2-native command, while preserving non-claims for source-line coverage, mutation testing authority, live required-context authority, P0.0 green, Phase-0 completion, production readiness, and hyperscaler-grade readiness.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "target_coverage_measured": true,
+    "source_line_coverage_generated": false,
+    "mutation_lane_implemented": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-buck2-cargo-row-map-red-1780506015",
+    "shell_test_exit": 1,
+    "failure": "New AC-0.13 matrix regression failed because target_gate_or_controller was composite prose and verification_command was absent before the patch."
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-buck2-cargo-row-map-reviewfix-1780506165",
+    "shell_test": "PASS buck2 cargo target coverage checks passed",
+    "buck2_cargo_target_coverage_checker": "PASS workspace_member_count=726 cargo_target_root_count=780 buck2_mapped_target_root_count=780 known_divergence_count=0",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=232 status_context_scan_files=9 authority_context=oya-ci-required",
+    "red_green_fixture_contract": "PASS entry_count=26 green_marker_count=27 red_marker_count=40",
+    "json_parse": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "0610a1aa-c091-4fe2-8e12-8da3fcc55e66",
+    "buck2_targets": [
+      "//:buck2-cargo-target-coverage-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check",
+      "//:phase0-red-green-fixture-contract-check"
+    ],
+    "review_fix": "Replaced bare Python asserts in the shell regression with explicit SystemExit failures so PYTHONOPTIMIZE cannot disable the row-map check."
+  },
+  "files_updated": [
+    "BUCK",
+    "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "evidence/audit-chain.jsonl",
+    "evidence/multispectrum/platform-readiness-p0-0-buck2-cargo-row-map-1780506246.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "buck2_native_llvm_coverage_preferred_over_tarpaulin": true,
+    "dual_cargo_buck2_reindeer_allows_local_cargo_mutation_advisory_only": true,
+    "ac_0_13_scope": "target-root coverage mapping, not LLVM source-line coverage generation or mutation-testing implementation"
+  },
+  "official_references": [
+    "https://doc.rust-lang.org/cargo/reference/workspaces.html",
+    "https://doc.rust-lang.org/cargo/reference/cargo-targets.html",
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+    "https://buck2.build/docs/users/commands/",
+    "https://buck2.build/docs/about/bootstrapping/",
+    "https://github.com/facebookincubator/reindeer"
+  ],
+  "updated_at": "2026-06-03T13:04:06-04:00"
+}

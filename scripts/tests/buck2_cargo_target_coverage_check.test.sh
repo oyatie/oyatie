@@ -9,6 +9,26 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 check="scripts/ci/assert-buck2-cargo-target-coverage.py"
 spec="specs/buck2-cargo-target-coverage.json"
+matrix="specs/phase0-automation-matrix.json"
+
+python3 - <<'PY' "$matrix"
+import json
+import sys
+
+matrix = json.load(open(sys.argv[1]))
+rows = {row.get("id"): row for row in matrix.get("seed_rows", [])}
+row = rows.get("AC-0.13-buck2-cargo-coverage")
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+expect(row is not None, "AC-0.13-buck2-cargo-coverage row missing")
+expect(row.get("target_gate_or_controller") == "//:buck2-cargo-target-coverage-check", "AC-0.13 target must map directly to //:buck2-cargo-target-coverage-check")
+expect(row.get("verification_command") == "buck2 build //:buck2-cargo-target-coverage-check", "AC-0.13 verification command must be Buck2-native")
+expect("source-line coverage" in row.get("coverage_note", ""), "AC-0.13 must remain target-coverage only, not source-line coverage")
+expect(row.get("no_new_oya_cli_surface") is True, "AC-0.13 must not add an oya CLI surface")
+PY
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$check" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"

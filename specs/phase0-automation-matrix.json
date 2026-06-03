@@ -492,12 +492,25 @@
       "requirement": "Phase-0 Buck2/Cargo reconciliation must prove coverage equality, measure divergence, and start burndown without treating Cargo as CI authority.",
       "classification": "automated_blocking_now",
       "owner": "platform-toolchain",
-      "target_gate_or_controller": "Buck2 target coverage generator + divergence registry gate + //:buck2-cargo-target-coverage-check",
+      "target_gate_or_controller": "//:buck2-cargo-target-coverage-check",
       "blocking_fixture": "scripts/tests/buck2_cargo_target_coverage_check.test.sh temp GOOD/BAD repos + checked-in Cargo/Buck2 scan",
       "retirement_phase": "AC-0.13 Phase-0 portion",
       "evidence_path": "specs/buck2-cargo-target-coverage.json + scripts/ci/assert-buck2-cargo-target-coverage.py + scripts/tests/buck2_cargo_target_coverage_check.test.sh + //:buck2-cargo-target-coverage-check",
       "no_new_oya_cli_surface": true,
-      "coverage_note": "Local/static AC-0.13 target-coverage measurement only: every Cargo workspace lib/bin target root must have a Buck2 rust crate_root mapping, including parent BUCK files. This is not source-line coverage and not live cloud-ci authority."
+      "coverage_note": "Local/static AC-0.13 target-coverage measurement only: every Cargo workspace lib/bin target root must have a Buck2 rust crate_root mapping, including parent BUCK files. This is not source-line coverage and not live cloud-ci authority.",
+      "verification_command": "buck2 build //:buck2-cargo-target-coverage-check",
+      "claim_boundary": {
+        "target_coverage_measured": true,
+        "source_line_coverage_generated": false,
+        "mutation_lane_implemented": false,
+        "status_mutation_performed": false,
+        "protected_branch_authority_proven": false,
+        "live_required_context_execution_proven": false,
+        "p0_0_green": false,
+        "phase0_complete": false,
+        "production_ready": false,
+        "hyperscaler_grade": false
+      }
     },
     {
       "id": "AC-0.14-red-green-fixture-contract",
