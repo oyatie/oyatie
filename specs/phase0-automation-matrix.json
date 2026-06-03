@@ -542,12 +542,13 @@
       "requirement": "Phase 0 must publish conflict taxonomy, generated-artifact registry, merge-tree readiness fixtures, and one-lane-one-path/path-overlap claims without claiming Phase-1 Tide batching.",
       "classification": "automated_blocking_now",
       "owner": "platform-governance + platform-toolchain",
-      "target_gate_or_controller": "merge-tree readiness + generated-artifact registry gates + //:phase0-merge-conflict-foundation-check",
+      "target_gate_or_controller": "//:phase0-merge-conflict-foundation-check",
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15 + specs/fixtures/phase0-merge-conflict-foundation/",
       "retirement_phase": "AC-0.15/P0 exit",
       "evidence_path": "specs/generated-artifact-registry.json + specs/fixtures/phase0-merge-conflict-foundation/ + //:phase0-merge-conflict-foundation-check",
       "no_new_oya_cli_surface": true,
-      "claim_boundary": "Local/static merge-tree, path-overlap, and generated-artifact registry fixtures only; no Phase-1 Tide batching, live required-context authority, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness claimed."
+      "claim_boundary": "Local/static merge-tree, path-overlap, and generated-artifact registry fixtures only; no Phase-1 Tide batching, live required-context authority, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness claimed.",
+      "verification_command": "buck2 build //:phase0-merge-conflict-foundation-check"
     },
     {
       "id": "P0.7-decision-propagation-packets",

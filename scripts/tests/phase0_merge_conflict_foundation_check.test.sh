@@ -9,6 +9,26 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 check="scripts/ci/assert-phase0-merge-conflict-foundation.py"
 registry="specs/generated-artifact-registry.json"
+matrix="specs/phase0-automation-matrix.json"
+
+python3 - <<'PY' "$matrix"
+import json
+import sys
+
+matrix = json.load(open(sys.argv[1]))
+rows = {row.get("id"): row for row in matrix.get("seed_rows", [])}
+row = rows.get("AC-0.15-merge-conflict-foundation")
+
+def expect(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+expect(row is not None, "AC-0.15-merge-conflict-foundation row missing")
+expect(row.get("target_gate_or_controller") == "//:phase0-merge-conflict-foundation-check", "AC-0.15 target must map directly to //:phase0-merge-conflict-foundation-check")
+expect(row.get("verification_command") == "buck2 build //:phase0-merge-conflict-foundation-check", "AC-0.15 verification command must be Buck2-native")
+expect("Phase-1 Tide batching" in row.get("claim_boundary", ""), "AC-0.15 claim boundary must preserve Phase-1 Tide batching non-claim")
+expect(row.get("no_new_oya_cli_surface") is True, "AC-0.15 must not add an oya CLI surface")
+PY
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$check" --registry "$registry" --json > "$tmp_dir/good.json"
 grep -Fq '"verdict": "PASS"' "$tmp_dir/good.json"

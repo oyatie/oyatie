@@ -478,6 +478,7 @@ genrule(
         "scripts/ci/assert-phase0-merge-conflict-foundation.py": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
         "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
         "specs/generated-artifact-registry.json": "specs/generated-artifact-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "Cargo.toml": "Cargo.toml",
         "Cargo.lock": "Cargo.lock",
         "reindeer.toml": "reindeer.toml",
@@ -487,6 +488,9 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-merge-conflict-foundation/*.json", "third-party/fixups/**/*.toml"])},
     out = "phase0-merge-conflict-foundation-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_merge_conflict_foundation_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-phase0-merge-conflict-foundation.py --registry specs/generated-artifact-registry.json --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
     visibility = ["PUBLIC"],
 )
 

@@ -229,7 +229,8 @@
         "AC-0.15-merge-conflict-foundation"
       ],
       "owner": "platform-governance",
-      "coverage_note": "Maps AC-0.15 to //:phase0-merge-conflict-foundation-check, specs/generated-artifact-registry.json, and GOOD/BAD merge-tree/path-overlap/generated-artifact/Phase-1-overclaim fixtures. Local/static evidence only; not Phase-1 Tide batching or live required-context authority."
+      "coverage_note": "Maps AC-0.15 to //:phase0-merge-conflict-foundation-check, specs/generated-artifact-registry.json, and GOOD/BAD merge-tree/path-overlap/generated-artifact/Phase-1-overclaim fixtures. Local/static evidence only; not Phase-1 Tide batching or live required-context authority.",
+      "verification_command": "buck2 build //:phase0-merge-conflict-foundation-check"
     },
     {
       "id": "AC-0.16",
