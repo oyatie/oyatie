@@ -336,11 +336,13 @@
       "requirement": "Three-axis status enum must be the source of truth for manifest/PRD status fields and status drift must block.",
       "classification": "automated_blocking_now",
       "owner": "platform-governance",
-      "target_gate_or_controller": "Buck2-local status-enum drift gate //:status-enum-drift-check (seed evidence; future Rust gate must remain Buck2-owned)",
+      "target_gate_or_controller": "//:status-enum-drift-check",
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.2 + specs/fixtures/phase0-status-enum-drift/",
       "retirement_phase": "P0.2",
       "evidence_path": "specs/status-enum-registry.json + specs/fixtures/phase0-status-enum-drift/ + //:status-enum-drift-check",
-      "no_new_oya_cli_surface": true
+      "no_new_oya_cli_surface": true,
+      "claim_boundary": "Buck2-local status-enum drift, registry, and fixture-contract evidence only; not live required-context authority; full manifest/PRD conformance, P0.0 green, and Phase-0 completion remain false until the trusted cloud-ci/oya-ci context proves them.",
+      "verification_command": "buck2 build //:status-enum-drift-check"
     },
     {
       "id": "AC-0.3-adr-hygiene",

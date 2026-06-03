@@ -526,6 +526,8 @@ genrule(
     srcs = {
         "scripts/ci/assert-status-enum-drift.py": "scripts/ci/assert-status-enum-drift.py",
         "scripts/tests/status_enum_drift_check.test.sh": "scripts/tests/status_enum_drift_check.test.sh",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/status-enum-registry.json": "specs/status-enum-registry.json",
         "specs/microservices/real-estate.json": "specs/microservices/real-estate.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-status-enum-drift/*.json", "oya/real-estate/**", "oya/analytics/**"])},

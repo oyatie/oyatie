@@ -87,7 +87,8 @@
         "AC-0.2-status-enum-drift"
       ],
       "owner": "platform-governance",
-      "coverage_note": "Maps AC-0.2 to //:status-enum-drift-check, specs/status-enum-registry.json, and status enum/spec-code-manifest RED/GREEN fixtures. Local/static seed evidence only; full manifest/PRD conformance and live required-context authority remain false."
+      "coverage_note": "Maps AC-0.2 to //:status-enum-drift-check, specs/status-enum-registry.json, and status enum/spec-code-manifest RED/GREEN fixtures. Local/static seed evidence only; full manifest/PRD conformance and live required-context authority remain false.",
+      "verification_command": "buck2 build //:status-enum-drift-check"
     },
     {
       "id": "AC-0.3",
