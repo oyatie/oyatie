@@ -518,12 +518,23 @@
       "requirement": "Every enforcement/drift/protocol gate must ship BAD/GOOD fixtures that are deterministic, isolated, self-explaining, fast, and fixture-backed.",
       "classification": "automated_blocking_now",
       "owner": "platform-governance",
-      "target_gate_or_controller": "red-green fixture contract gate + //:phase0-red-green-fixture-contract-check",
+      "target_gate_or_controller": "//:phase0-red-green-fixture-contract-check",
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.14",
       "retirement_phase": "AC-0.14/P0 exit",
       "evidence_path": "specs/red-green-fixture-contract.json + scripts/ci/assert-red-green-fixture-contract.py + scripts/tests/red_green_fixture_contract_check.test.sh + //:phase0-red-green-fixture-contract-check",
       "no_new_oya_cli_surface": true,
-      "coverage_note": "Local/static AC-0.14 registry evidence only: Phase-0 gate targets must keep registered GOOD markers, BAD markers, and non-claim markers. This is not live cloud-ci authority or Phase-0 completion."
+      "coverage_note": "Local/static AC-0.14 registry evidence only: Phase-0 gate targets must keep registered GOOD markers, BAD markers, and non-claim markers. This is not live cloud-ci authority or Phase-0 completion.",
+      "verification_command": "buck2 build //:phase0-red-green-fixture-contract-check",
+      "claim_boundary": {
+        "red_green_fixture_contract_measured": true,
+        "status_mutation_performed": false,
+        "protected_branch_authority_proven": false,
+        "live_required_context_execution_proven": false,
+        "p0_0_green": false,
+        "phase0_complete": false,
+        "production_ready": false,
+        "hyperscaler_grade": false
+      }
     },
     {
       "id": "AC-0.15-merge-conflict-foundation",
