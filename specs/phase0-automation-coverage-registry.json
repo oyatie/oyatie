@@ -214,7 +214,8 @@
       "mapped_row_ids": [
         "AC-0.15-merge-conflict-foundation"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.15 to //:phase0-merge-conflict-foundation-check, specs/generated-artifact-registry.json, and GOOD/BAD merge-tree/path-overlap/generated-artifact/Phase-1-overclaim fixtures. Local/static evidence only; not Phase-1 Tide batching or live required-context authority."
     },
     {
       "id": "AC-0.16",
@@ -260,7 +261,8 @@
       "mapped_row_ids": [
         "ADR-0513-tide-ownership"
       ],
-      "owner": "platform-toolchain"
+      "owner": "platform-toolchain",
+      "coverage_note": "ADR-0513 Tide ownership is represented by cloud-ci/oya-ci row mapping plus AC-0.15 non-claim merge-tree readiness fixtures; Phase-1 projected-state batching remains unclaimed."
     },
     {
       "id": "P0.6-pack-root-classifier",
@@ -287,7 +289,8 @@
       "mapped_row_ids": [
         "P0.9-generated-artifact-registry"
       ],
-      "owner": "platform-toolchain"
+      "owner": "platform-toolchain",
+      "coverage_note": "Maps P0.9 to the generated-artifact seed registry and AC-0.15 Buck2 seed gate. The seed registry records third-party/BUCK source/regeneration ownership; full-repo generated-artifact coverage remains false until a trusted expanded drift gate runs."
     },
     {
       "id": "PROCESS-reviewer-multispectrum-evidence",

@@ -118,6 +118,7 @@
     "//:phase0-tenant-isolation-fixture-check",
     "//:phase0-override-kill-switch-check",
     "//:phase0-red-green-fixture-contract-check",
+    "//:phase0-merge-conflict-foundation-check",
     "//:phase0-automation-ratchet-check",
     "//:phase0-claim-ceiling-check",
     "//:rust-testing-standard-check",
@@ -227,7 +228,10 @@
     "specs/buck2-cargo-target-coverage.json",
     "scripts/ci/assert-red-green-fixture-contract.py",
     "scripts/tests/red_green_fixture_contract_check.test.sh",
-    "specs/red-green-fixture-contract.json"
+    "specs/red-green-fixture-contract.json",
+    "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+    "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+    "specs/generated-artifact-registry.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -316,7 +320,11 @@
       "phase0-red-green-fixture-contract-check",
       "assert-red-green-fixture-contract.py",
       "red_green_fixture_contract_check.test.sh",
-      "red-green-fixture-contract.json"
+      "red-green-fixture-contract.json",
+      "phase0-merge-conflict-foundation-check",
+      "assert-phase0-merge-conflict-foundation.py",
+      "phase0_merge_conflict_foundation_check.test.sh",
+      "generated-artifact-registry.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -679,7 +687,11 @@
       "AC-0.12-aggregate-exit-gate",
       "phase0-aggregate-exit-check",
       "AC-0.14-red-green-fixture-contract",
-      "phase0-red-green-fixture-contract-check"
+      "phase0-red-green-fixture-contract-check",
+      "AC-0.15-merge-conflict-foundation",
+      "phase0-merge-conflict-foundation-check",
+      "generated-artifact-registry.json",
+      "P0.9-generated-artifact-registry"
     ],
     "specs/phase0-automation-coverage-registry.json": [
       "AC-0.0-trusted-target-inventory",
@@ -692,7 +704,10 @@
       "AC-0.12-aggregate-exit-gate",
       "phase0-aggregate-exit-check",
       "AC-0.14",
-      "phase0-red-green-fixture-contract-check"
+      "phase0-red-green-fixture-contract-check",
+      "AC-0.15",
+      "phase0-merge-conflict-foundation-check",
+      "P0.9-generated-artifact-registry"
     ],
     "scripts/ci/assert-claim-ceiling.py": [
       "claim-ceiling local/static fixture evidence only",
@@ -916,7 +931,34 @@
       "red_markers",
       "non_claim_markers",
       "//:phase0-red-green-fixture-contract-check",
+      "p0_0_green",
+      "phase0-merge-conflict-foundation",
+      "//:phase0-merge-conflict-foundation-check",
+      "phase0_merge_conflict_foundation_check.test.sh"
+    ],
+    "specs/generated-artifact-registry.json": [
+      "generated_artifact_registry_published",
+      "merge_tree_fixture_contract_measured",
+      "git merge-tree --write-tree",
+      "third-party/BUCK",
+      "reindeer.toml",
+      "phase1_tide_batching_claimed",
+      "full_repo_generated_artifact_coverage_proven",
       "p0_0_green"
+    ],
+    "scripts/ci/assert-phase0-merge-conflict-foundation.py": [
+      "generated_artifact_registry_published",
+      "path_overlap_without_review",
+      "generated_artifact_missing_registry",
+      "phase1_tide_batched_projection_overclaim",
+      "full_repo_generated_artifact_coverage_proven"
+    ],
+    "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": [
+      "TC-0.15-BAD-path-overlap",
+      "path_overlap_without_review",
+      "generated_artifact_missing_registry",
+      "phase1_tide_batched_projection_overclaim",
+      "RED merge-conflict fixture must produce violations"
     ]
   },
   "required_glob_anchors": [

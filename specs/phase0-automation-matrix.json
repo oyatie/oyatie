@@ -229,14 +229,15 @@
     {
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15",
       "classification": "controller_owned_in_phase_1",
-      "evidence_path": "specs/generated-artifact-registry.json + Tide admission evidence bundle",
+      "evidence_path": "specs/generated-artifact-registry.json + specs/fixtures/phase0-merge-conflict-foundation/ + Tide admission evidence bundle",
       "id": "ADR-0513-tide-ownership",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain",
       "requirement": "Tide/merge queue is owned by cloud-ci/oya-ci now; Phase 0 places admission contract and Phase 1 scales projected-state/batching/auto-rebase.",
       "retirement_phase": "Phase 1 projected-state Tide scale",
       "source_artifact": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
-      "target_gate_or_controller": "oya-ci-tide admission controller"
+      "target_gate_or_controller": "oya-ci-tide admission controller",
+      "claim_boundary": "AC-0.15 covers non-claim merge-tree readiness fixtures; Phase-1 projected-state batching/auto-rebase scale remains unclaimed."
     },
     {
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.7",
@@ -491,11 +492,12 @@
       "requirement": "Phase 0 must publish conflict taxonomy, generated-artifact registry, merge-tree readiness fixtures, and one-lane-one-path/path-overlap claims without claiming Phase-1 Tide batching.",
       "classification": "automated_blocking_now",
       "owner": "platform-governance + platform-toolchain",
-      "target_gate_or_controller": "merge-tree readiness + generated-artifact registry gates",
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15",
+      "target_gate_or_controller": "merge-tree readiness + generated-artifact registry gates + //:phase0-merge-conflict-foundation-check",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15 + specs/fixtures/phase0-merge-conflict-foundation/",
       "retirement_phase": "AC-0.15/P0 exit",
-      "evidence_path": "specs/generated-artifact-registry.json + merge-tree fixture evidence",
-      "no_new_oya_cli_surface": true
+      "evidence_path": "specs/generated-artifact-registry.json + specs/fixtures/phase0-merge-conflict-foundation/ + //:phase0-merge-conflict-foundation-check",
+      "no_new_oya_cli_surface": true,
+      "claim_boundary": "Local/static merge-tree, path-overlap, and generated-artifact registry fixtures only; no Phase-1 Tide batching, live required-context authority, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness claimed."
     },
     {
       "id": "P0.7-decision-propagation-packets",
@@ -515,11 +517,12 @@
       "requirement": "Generated artifacts must be registered with generator/source/output/commit-policy/regeneration/verification/owner fields; stale or hand-edited generated outputs block.",
       "classification": "automated_blocking_now",
       "owner": "platform-toolchain",
-      "target_gate_or_controller": "generated-artifact registry drift gate",
-      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15 + .omx/plans/prd-platform-readiness.md#P0.9",
+      "target_gate_or_controller": "generated-artifact registry drift gate + //:phase0-merge-conflict-foundation-check seed gate",
+      "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15 + .omx/plans/prd-platform-readiness.md#P0.9 + specs/fixtures/phase0-merge-conflict-foundation/",
       "retirement_phase": "P0.9",
-      "evidence_path": "specs/generated-artifact-registry.json + stale-output fixtures",
-      "no_new_oya_cli_surface": true
+      "evidence_path": "specs/generated-artifact-registry.json + specs/fixtures/phase0-merge-conflict-foundation/ + stale-output fixtures",
+      "no_new_oya_cli_surface": true,
+      "claim_boundary": "Seed registry publication only; full-repo generated-artifact drift coverage remains unproven until trusted cloud-ci/oya-ci expands and runs P0.9."
     },
     {
       "id": "PROCESS-reviewer-multispectrum-evidence",

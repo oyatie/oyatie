@@ -25,7 +25,7 @@
     "production_ready": false,
     "hyperscaler_grade": false
   },
-  "minimum_entry_count": 15,
+  "minimum_entry_count": 16,
   "entry_contract": {
     "required_fields": [
       "id",
@@ -427,6 +427,32 @@
         {
           "path": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
           "contains": "spec must retain p0_0_green=false and phase0_complete=false"
+        }
+      ]
+    },
+    {
+      "id": "phase0-merge-conflict-foundation",
+      "automation_matrix_row_id": "AC-0.15-merge-conflict-foundation",
+      "buck2_target": "//:phase0-merge-conflict-foundation-check",
+      "test_paths": [
+        "scripts/tests/phase0_merge_conflict_foundation_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json",
+          "contains": "TC-0.15-GOOD-clean-merge-tree-generated-registry"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+          "contains": "path_overlap_without_review"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+          "contains": "phase1_tide_batching_claimed"
         }
       ]
     }

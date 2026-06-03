@@ -65,6 +65,14 @@ genrule(
         "scripts/ci/assert-red-green-fixture-contract.py": "scripts/ci/assert-red-green-fixture-contract.py",
         "scripts/tests/red_green_fixture_contract_check.test.sh": "scripts/tests/red_green_fixture_contract_check.test.sh",
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
+        "scripts/ci/assert-phase0-merge-conflict-foundation.py": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+        "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+        "specs/generated-artifact-registry.json": "specs/generated-artifact-registry.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-generated-artifact-unregistered.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-generated-artifact-unregistered.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-phase1-tide-batching-claim.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-phase1-tide-batching-claim.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-merge-tree-conflict.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-merge-tree-conflict.json",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -344,12 +352,43 @@ genrule(
         "scripts/ci/assert-red-green-fixture-contract.py": "scripts/ci/assert-red-green-fixture-contract.py",
         "scripts/tests/red_green_fixture_contract_check.test.sh": "scripts/tests/red_green_fixture_contract_check.test.sh",
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
+        "scripts/ci/assert-phase0-merge-conflict-foundation.py": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+        "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+        "specs/generated-artifact-registry.json": "specs/generated-artifact-registry.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-generated-artifact-unregistered.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-generated-artifact-unregistered.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-phase1-tide-batching-claim.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-phase1-tide-batching-claim.json",
+        "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-merge-tree-conflict.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-merge-tree-conflict.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "BUCK": "BUCK",
         "docs/standards/testing.md": "docs/standards/testing.md",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/phase0_auto_merge_after_ci_contract_check.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
     out = "phase0-red-green-fixture-contract-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/red_green_fixture_contract_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.15 merge-conflict foundation check: local/static seed registry evidence
+# for generated artifacts, conflict taxonomy, merge-tree readiness fixtures, and
+# one-lane-one-path/path-overlap fail-closed cases. This never posts statuses,
+# proves full generated-output coverage, or claims Phase-1 Tide batching.
+genrule(
+    name = "phase0-merge-conflict-foundation-check",
+    srcs = {
+        "scripts/ci/assert-phase0-merge-conflict-foundation.py": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+        "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+        "specs/generated-artifact-registry.json": "specs/generated-artifact-registry.json",
+        "Cargo.toml": "Cargo.toml",
+        "Cargo.lock": "Cargo.lock",
+        "reindeer.toml": "reindeer.toml",
+        "scripts/ci/regen-third-party.sh": "scripts/ci/regen-third-party.sh",
+        "scripts/ci/third-party-buckify-handedits.patch": "scripts/ci/third-party-buckify-handedits.patch",
+        "third-party/BUCK": "third-party//:BUCK",
+    } | {path: path for path in glob(["specs/fixtures/phase0-merge-conflict-foundation/*.json", "third-party/fixups/**/*.toml"])},
+    out = "phase0-merge-conflict-foundation-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_merge_conflict_foundation_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-phase0-merge-conflict-foundation.py --registry specs/generated-artifact-registry.json --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
