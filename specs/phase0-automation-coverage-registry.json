@@ -116,7 +116,8 @@
       "mapped_row_ids": [
         "AC-0.5-d1-contract-files"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.5 to //:d1-seam-contracts-check, specs/d1-seam-contracts-registry.json, the A2a/A2b proto3 seam contracts, Rust checker/test harness evidence, and GOOD/BAD D1 seam fixtures. Local/static seed evidence only; live D1 read-your-writes conformance, trusted cloud-ci/oya-ci required-context authority, P0.0 green, and Phase-0 completion remain false."
     },
     {
       "id": "AC-0.6",

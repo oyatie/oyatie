@@ -137,7 +137,13 @@
     "//:language-discipline-check",
     "scripts/ci/assert-language-discipline.rs",
     "scripts/tests/language_discipline_check.rs",
-    "specs/language-discipline-registry.json"
+    "specs/language-discipline-registry.json",
+    "//:d1-seam-contracts-check",
+    "scripts/ci/assert-d1-seam-contracts.rs",
+    "scripts/tests/d1_seam_contracts_check.rs",
+    "specs/d1-seam-contracts-registry.json",
+    "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto"
   ],
   "claim_boundary": {
     "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
@@ -251,7 +257,12 @@
     "scripts/ci/assert-adr-hygiene.py",
     "scripts/ci/assert-language-discipline.rs",
     "scripts/tests/language_discipline_check.rs",
-    "specs/language-discipline-registry.json"
+    "specs/language-discipline-registry.json",
+    "scripts/ci/assert-d1-seam-contracts.rs",
+    "scripts/tests/d1_seam_contracts_check.rs",
+    "specs/d1-seam-contracts-registry.json",
+    "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -361,7 +372,13 @@
       "language-discipline-check",
       "assert-language-discipline.rs",
       "language_discipline_check.rs",
-      "language-discipline-registry.json"
+      "language-discipline-registry.json",
+      "d1-seam-contracts-check",
+      "assert-d1-seam-contracts.rs",
+      "d1_seam_contracts_check.rs",
+      "d1-seam-contracts-registry.json",
+      "entity_mutation.proto",
+      "workflow_ai_step_invocation.proto"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -731,7 +748,10 @@
       "P0.9-generated-artifact-registry",
       "AC-0.4-language-discipline",
       "//:language-discipline-check",
-      "language-discipline-registry.json"
+      "language-discipline-registry.json",
+      "AC-0.5-d1-contract-files",
+      "//:d1-seam-contracts-check",
+      "d1-seam-contracts-registry.json"
     ],
     "specs/phase0-automation-coverage-registry.json": [
       "AC-0.0-trusted-target-inventory",
@@ -750,7 +770,10 @@
       "P0.9-generated-artifact-registry",
       "AC-0.4-language-discipline",
       "//:language-discipline-check",
-      "language-discipline-registry.json"
+      "language-discipline-registry.json",
+      "AC-0.5-d1-contract-files",
+      "//:d1-seam-contracts-check",
+      "d1-seam-contracts-registry.json"
     ],
     "scripts/ci/assert-claim-ceiling.py": [
       "claim-ceiling local/static fixture evidence only",
@@ -981,7 +1004,11 @@
       "language-discipline",
       "//:language-discipline-check",
       "new_python_outside_allowlist",
-      "new_shell_outside_allowlist"
+      "new_shell_outside_allowlist",
+      "d1-seam-contracts",
+      "//:d1-seam-contracts-check",
+      "missing_consistency_token",
+      "proto_required_consistency_token"
     ],
     "specs/generated-artifact-registry.json": [
       "generated_artifact_registry_published",
@@ -1048,6 +1075,58 @@
     "specs/fixtures/phase0-language-discipline/tc-0.4-good-non-script-change.json": [
       "p0_0_green",
       "phase0_complete"
+    ],
+    "specs/d1-seam-contracts-registry.json": [
+      "d1_seam_contracts_measured",
+      "//:d1-seam-contracts-check",
+      "optional string consistency_token",
+      "phase0_consistency_token_presence_required",
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not the canonical coverage surface",
+      "Dual Cargo.toml + Buck2/Reindeer",
+      "live_required_context_execution_proven",
+      "p0_0_green"
+    ],
+    "scripts/ci/assert-d1-seam-contracts.rs": [
+      "proto_required_consistency_token",
+      "missing_consistency_token",
+      "FALSE_CLAIMS",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/d1_seam_contracts_check.rs": [
+      "a2a_contract_rejects_proto_required_consistency_token",
+      "a2b_contract_rejects_missing_idempotency_key",
+      "bad_fixture_reports_missing_consistency_token"
+    ],
+    "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": [
+      "syntax = \"proto3\";",
+      "package oyatie.d1.a2a.mutation.v1;",
+      "optional string consistency_token = 4;",
+      "TopologyConformanceGate",
+      "AC-0.10b"
+    ],
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": [
+      "syntax = \"proto3\";",
+      "package oyatie.d1.a2b.workflow.v1;",
+      "service WorkflowAiStepInvoker",
+      "idempotency_key",
+      "CedarPrincipal"
+    ],
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-good-d1-seam-contracts.json": [
+      "p0_0_green",
+      "phase0_complete",
+      "consistency_token"
+    ],
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-missing-consistency-token.json": [
+      "p0_0_green",
+      "phase0_complete",
+      "missing_consistency_token"
+    ],
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-proto-required-or-frozen-topology.json": [
+      "p0_0_green",
+      "phase0_complete",
+      "proto_required_consistency_token"
     ]
   },
   "required_glob_anchors": [

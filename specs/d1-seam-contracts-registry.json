@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/d1-seam-contracts-registry.json",
+  "title": "D1SeamContractsRegistry",
+  "description": "Local/static AC-0.5 and AC-0.10 registry for D1 shape-invariant seam contracts. It validates A2a mutation payload/result and A2b workflow-to-AI-step invocation signature files without claiming live cloud-ci authority or Phase-0 completion.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-D1-SEAM-CONTRACTS-REGISTRY",
+    "version": "0.1.0",
+    "status": "local_static_d1_seam_contracts_not_live_context",
+    "owner_team": "platform-architecture + platform-governance",
+    "created_at": "2026-06-03T00:00:00Z",
+    "updated_at": "2026-06-03T10:55:00Z",
+    "related_acceptance_criteria": [
+      "AC-0.5",
+      "AC-0.10"
+    ],
+    "related_test_spec": "/Users/jasonlee/Developer/source/.omx/plans/test-spec-phase0.md#T0.5 + #T0.10b",
+    "source_request": "Founder directives: keep Phase-0 honest, Buck2-native, Rust-first, modern, hyperscaler-oriented, and suitable; do not add Tarpaulin or new oya CLI authority.",
+    "official_references": [
+      {
+        "name": "Protocol Buffers — Proto3 Language Guide",
+        "url": "https://protobuf.dev/programming-guides/proto3/",
+        "used_for": "Records syntax = proto3 and optional scalar field shape for consistency_token."
+      },
+      {
+        "name": "Protocol Buffers — Field Presence",
+        "url": "https://protobuf.dev/programming-guides/field_presence/",
+        "used_for": "Records explicit presence as the Phase-0 reason to keep the wire field proto-optional while gate fixtures require token presence."
+      },
+      {
+        "name": "Buck2 — Commands",
+        "url": "https://buck2.build/docs/users/commands/",
+        "used_for": "Records Buck2 target execution as local/static gate evidence and Build ID source."
+      },
+      {
+        "name": "Rustc Book — Instrumentation-based Code Coverage",
+        "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+        "used_for": "Keeps modern Rust coverage direction aligned to Buck2-native LLVM source-based coverage rather than Tarpaulin."
+      }
+    ]
+  },
+  "claim_boundary": {
+    "note": "Fixture-backed local/static D1 seam contract evidence only. This gate does not run live D1 conformance, post statuses, mutate branch protection, prove P0.0 green, prove Phase-0 completion, prove production readiness, or prove hyperscaler-grade readiness.",
+    "d1_seam_contracts_measured": true,
+    "a2a_payload_contract_present": true,
+    "a2b_invocation_signature_present": true,
+    "mutation_result_consistency_token_optional": true,
+    "phase0_consistency_token_presence_required": true,
+    "topology_fields_conformance_gated": true,
+    "d1_conformance_reference_present": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "d1_seam_contract_policy": {
+    "buck2_target": "//:d1-seam-contracts-check",
+    "checker": "scripts/ci/assert-d1-seam-contracts.rs",
+    "test_harness": "scripts/tests/d1_seam_contracts_check.rs",
+    "new_gate_language": "Rust",
+    "new_oya_cli_surface_added": false,
+    "proto_contracts": {
+      "a2a_mutation_payload_and_result": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
+      "a2b_workflow_ai_step_invocation": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto"
+    },
+    "required_shape_invariants": [
+      "EntityCreated/EntityMutated/EntityDeleted carry entity_id/entity_type/mutation_kind/effective_dating_coords/audit_link",
+      "MutationResult carries optional string consistency_token and Phase-0 fixtures must provide it",
+      "A2b request carries typed tool ref, args_json, Cedar principal, idempotency key, and D1 conformance reference",
+      "execution_locality/outbox/saga topology fields are present but conformance-gated and not frozen until AC-0.10b Phase-2 GREEN"
+    ],
+    "modern_rust_standards_record": {
+      "coverage_surface": "Buck2-native LLVM source-based coverage",
+      "coverage_noncanonical_surface": "Tarpaulin is not the canonical coverage surface",
+      "mutation_local_ergonomics": "Dual Cargo.toml + Buck2/Reindeer setup keeps local Cargo mutation testing advisory for developer feedback while Buck2/cloud-ci captured evidence remains merge authority.",
+      "hyperscaler_orientation": "The gate is deterministic, target-addressable, fixture-backed, protocol-versioned, tenant/principal-aware, idempotency-keyed, Cedar-principal-aware, and suitable for trusted cloud-ci/oya-ci promotion."
+    }
+  },
+  "d1_conformance_reference": {
+    "stub_test_spec": "/Users/jasonlee/Developer/source/.omx/plans/test-spec-phase0.md#TC-0.10b.1",
+    "current_status": "xfail_marker_reference_only_until_phase2_mechanism_lands",
+    "claim_boundary": "This AC-0.5 gate references the D1 read-your-writes conformance path but does not execute or green it."
+  },
+  "fixture_paths": [
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-good-d1-seam-contracts.json",
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-missing-consistency-token.json",
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-proto-required-or-frozen-topology.json"
+  ]
+}

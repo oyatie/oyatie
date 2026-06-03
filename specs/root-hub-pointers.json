@@ -1227,6 +1227,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-ac-0.4-seed",
       "purpose": "AC-0.4 local/static language-discipline allowlist registry validated by //:language-discipline-check. It blocks new candidate-authored .py/.sh fixture sprawl outside the bootstrap shell allowlist, records the T0.4 cloud_*_check.py backlog inventory, preserves Buck2-native LLVM coverage and dual Cargo+Buck2/Reindeer local mutation standards, and keeps live required-context/P0.0/Phase-0 readiness authority false."
+    },
+    "d1_seam_contracts_registry": {
+      "kind": "spec",
+      "current_path": "/specs/d1-seam-contracts-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "phase0-ac-0.5-seed",
+      "purpose": "AC-0.5/AC-0.10 local/static D1 seam contract registry validated by //:d1-seam-contracts-check. It records the A2a mutation payload/result proto3 contract, A2b workflow-to-AI-step invocation signature, proto-optional consistency_token with Phase-0 fixture-required presence, and conformance-gated topology fields while keeping live D1 conformance and readiness authority false."
     }
   },
   "by_kind": {
