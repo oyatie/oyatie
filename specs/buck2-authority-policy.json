@@ -59,7 +59,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T05:10:00Z"
+    "updated_at": "2026-06-03T06:15:00Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -111,6 +111,7 @@
     "scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
     "buck2 build //:buck2-authority-policy-check",
     "//:phase0-ci-enforcement-baseline-catalog-check",
+    "//:phase0-aggregate-exit-check",
     "//:phase0-required-status-source-check",
     "//:phase0-result-bundle-output-check",
     "//:phase0-trusted-target-inventory-check",
@@ -198,6 +199,8 @@
     "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
     "scripts/ci/assert-result-bundle-output.py",
     "scripts/tests/phase0_result_bundle_output_check.test.sh",
+    "scripts/ci/assert-phase0-aggregate-exit.py",
+    "scripts/tests/phase0_aggregate_exit_check.test.sh",
     "scripts/ci/assert-automation-ratchet.py",
     "scripts/tests/phase0_automation_ratchet_check.test.sh",
     "specs/phase0-automation-matrix.json",
@@ -263,6 +266,10 @@
       "phase0_trusted_target_inventory_check.test.sh",
       "phase0-result-bundle-output-check",
       "phase0_result_bundle_output_check.test.sh",
+      "phase0-aggregate-exit-check",
+      "phase0_aggregate_exit_check.test.sh",
+      "assert-phase0-aggregate-exit.py",
+      "phase0-exit-gate",
       "phase0-automation-ratchet-check",
       "phase0_automation_ratchet_check.test.sh",
       "assert-automation-ratchet.py",
@@ -613,7 +620,9 @@
       "PROCESS-reviewer-multispectrum-evidence",
       "human_judgment_reason",
       "no_new_oya_cli_surface",
-      "required_seed_row_ids"
+      "required_seed_row_ids",
+      "AC-0.12-aggregate-exit-gate",
+      "phase0-aggregate-exit-check"
     ],
     "specs/phase0-automation-coverage-registry.json": [
       "AC-0.0-trusted-target-inventory",
@@ -621,7 +630,10 @@
       "AC-0.0-override-kill-switch",
       "local_static_coverage_registry_not_live_context",
       "p0_0_green",
-      "phase0_complete"
+      "phase0_complete",
+      "AC-0.12",
+      "AC-0.12-aggregate-exit-gate",
+      "phase0-aggregate-exit-check"
     ],
     "scripts/ci/assert-claim-ceiling.py": [
       "claim-ceiling local/static fixture evidence only",
@@ -673,6 +685,28 @@
       "production_ready",
       "hyperscaler_grade",
       "PERF-CAPACITY"
+    ],
+    "scripts/ci/assert-phase0-aggregate-exit.py": [
+      "AC-0.12 aggregate-exit local/static fixture evidence only",
+      "missing_required_subcondition",
+      "unknown_subcondition",
+      "false_or_non_true_subcondition",
+      "fixture_claims_current_phase0_green",
+      "single_false_case_not_exactly_one_false_subcondition",
+      "missing_case_for_required_subcondition",
+      "aggregate_exit_live",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_aggregate_exit_check.test.sh": [
+      "tc-0.12-good-all-subconditions-green.json",
+      "tc-0.12-bad-single-false-subconditions.json",
+      "tc-0.12-bad-missing-required-subcondition.json",
+      "tc-0.12-current-red-p0-0-live-context-missing.json",
+      "bad-single-false-missing-case.json",
+      "bad-single-false-multi-false.json",
+      "bad-red-claims-green.json",
+      "phase0 aggregate-exit fixture checks passed"
     ]
   },
   "required_glob_anchors": [

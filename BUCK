@@ -49,6 +49,8 @@ genrule(
         "scripts/tests/phase0_claim_ceiling_check.test.sh": "scripts/tests/phase0_claim_ceiling_check.test.sh",
         "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
         "specs/hyperscaler-production-readiness-claim-contract.json": "specs/hyperscaler-production-readiness-claim-contract.json",
+        "scripts/ci/assert-phase0-aggregate-exit.py": "scripts/ci/assert-phase0-aggregate-exit.py",
+        "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -222,6 +224,22 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])} | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-ci-enforcement-baseline-catalog-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.12 aggregate-exit fixture check: local/static coverage that
+# Phase-0 cannot pass on a partial, omitted, unknown, or false subcondition.
+# This never claims live required-context authority, P0.0 green, Phase-0
+# completion, production readiness, or hyperscaler-grade status.
+genrule(
+    name = "phase0-aggregate-exit-check",
+    srcs = {
+        "scripts/ci/assert-phase0-aggregate-exit.py": "scripts/ci/assert-phase0-aggregate-exit.py",
+        "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
+    } | {path: path for path in glob(["specs/fixtures/phase0-exit-gate/*.json"])},
+    out = "phase0-aggregate-exit-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_aggregate_exit_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 
