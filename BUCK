@@ -62,6 +62,9 @@ genrule(
         "scripts/ci/assert-buck2-cargo-target-coverage.py": "scripts/ci/assert-buck2-cargo-target-coverage.py",
         "scripts/tests/buck2_cargo_target_coverage_check.test.sh": "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
         "specs/buck2-cargo-target-coverage.json": "specs/buck2-cargo-target-coverage.json",
+        "scripts/ci/assert-red-green-fixture-contract.py": "scripts/ci/assert-red-green-fixture-contract.py",
+        "scripts/tests/red_green_fixture_contract_check.test.sh": "scripts/tests/red_green_fixture_contract_check.test.sh",
+        "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -327,6 +330,26 @@ genrule(
     cacheable = False,
     remote = False,
     repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.14 RED/GREEN fixture contract check: local/static registry evidence that
+# Phase-0 gate targets keep explicit GOOD and BAD fixture/probe coverage plus
+# non-claim markers. This does not run live CI, post statuses, or claim Phase-0
+# completion.
+genrule(
+    name = "phase0-red-green-fixture-contract-check",
+    srcs = {
+        "scripts/ci/assert-red-green-fixture-contract.py": "scripts/ci/assert-red-green-fixture-contract.py",
+        "scripts/tests/red_green_fixture_contract_check.test.sh": "scripts/tests/red_green_fixture_contract_check.test.sh",
+        "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "BUCK": "BUCK",
+        "docs/standards/testing.md": "docs/standards/testing.md",
+    } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/phase0_auto_merge_after_ci_contract_check.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
+    out = "phase0-red-green-fixture-contract-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/red_green_fixture_contract_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json > $OUT",
     visibility = ["PUBLIC"],
 )
 

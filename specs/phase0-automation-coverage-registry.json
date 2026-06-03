@@ -204,7 +204,8 @@
       "mapped_row_ids": [
         "AC-0.14-red-green-fixture-contract"
       ],
-      "owner": "platform-governance"
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.14 to //:phase0-red-green-fixture-contract-check, which validates the checked-in RED/GREEN fixture registry for Phase-0 gates and preserves local/static non-claim boundaries."
     },
     {
       "id": "AC-0.15",

@@ -1178,6 +1178,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "AC-0.13 local/static target-coverage contract measuring Cargo workspace lib/bin target roots, including Cargo auto-discovered src/bin binaries, against checked-in Buck2 rust crate_root mappings; records divergence without source-line coverage or live cloud-ci authority claims."
+    },
+    "red_green_fixture_contract": {
+      "kind": "spec",
+      "current_path": "/specs/red-green-fixture-contract.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "AC-0.14 local/static RED/GREEN fixture registry contract requiring Phase-0 gate targets to keep checked-in GOOD, BAD, and non-claim markers; records fixture coverage without live cloud-ci authority claims."
     }
   },
   "by_kind": {

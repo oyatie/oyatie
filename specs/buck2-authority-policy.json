@@ -117,6 +117,7 @@
     "//:phase0-trusted-target-inventory-check",
     "//:phase0-tenant-isolation-fixture-check",
     "//:phase0-override-kill-switch-check",
+    "//:phase0-red-green-fixture-contract-check",
     "//:phase0-automation-ratchet-check",
     "//:phase0-claim-ceiling-check",
     "//:rust-testing-standard-check",
@@ -223,7 +224,10 @@
     "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
     "scripts/ci/assert-buck2-cargo-target-coverage.py",
     "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
-    "specs/buck2-cargo-target-coverage.json"
+    "specs/buck2-cargo-target-coverage.json",
+    "scripts/ci/assert-red-green-fixture-contract.py",
+    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "specs/red-green-fixture-contract.json"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -308,7 +312,11 @@
       "buck2_cargo_target_coverage_check.test.sh",
       "repo_relative_root",
       "cacheable = False",
-      "remote = False"
+      "remote = False",
+      "phase0-red-green-fixture-contract-check",
+      "assert-red-green-fixture-contract.py",
+      "red_green_fixture_contract_check.test.sh",
+      "red-green-fixture-contract.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -669,7 +677,9 @@
       "no_new_oya_cli_surface",
       "required_seed_row_ids",
       "AC-0.12-aggregate-exit-gate",
-      "phase0-aggregate-exit-check"
+      "phase0-aggregate-exit-check",
+      "AC-0.14-red-green-fixture-contract",
+      "phase0-red-green-fixture-contract-check"
     ],
     "specs/phase0-automation-coverage-registry.json": [
       "AC-0.0-trusted-target-inventory",
@@ -680,7 +690,9 @@
       "phase0_complete",
       "AC-0.12",
       "AC-0.12-aggregate-exit-gate",
-      "phase0-aggregate-exit-check"
+      "phase0-aggregate-exit-check",
+      "AC-0.14",
+      "phase0-red-green-fixture-contract-check"
     ],
     "scripts/ci/assert-claim-ceiling.py": [
       "claim-ceiling local/static fixture evidence only",
@@ -880,6 +892,31 @@
       "src/bin/tool.rs",
       "autobins = false",
       "cargo_target_root_count"
+    ],
+    "scripts/ci/assert-red-green-fixture-contract.py": [
+      "local/static RED/GREEN fixture registry evidence only",
+      "green_markers",
+      "red_markers",
+      "non_claim_markers",
+      "buck2_target_missing",
+      "marker_text_missing",
+      "forbidden_true_or_missing_claim_p0_0_green"
+    ],
+    "scripts/tests/red_green_fixture_contract_check.test.sh": [
+      "red_green_fixture_contract_measured",
+      "remove-red-marker",
+      "stale-marker-text",
+      "missing-target",
+      "forbidden_true_or_missing_claim_p0_0_green"
+    ],
+    "specs/red-green-fixture-contract.json": [
+      "red_green_fixture_contract_measured",
+      "fixture_contract_entries",
+      "green_markers",
+      "red_markers",
+      "non_claim_markers",
+      "//:phase0-red-green-fixture-contract-check",
+      "p0_0_green"
     ]
   },
   "required_glob_anchors": [
