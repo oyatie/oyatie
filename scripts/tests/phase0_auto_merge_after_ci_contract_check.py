@@ -54,6 +54,10 @@ def main() -> int:
         failures.append("github.script_rejects_non_squash_merge_method must be true")
     if github.get("script_rejects_conflict_before_auto_merge") is not True:
         failures.append("github.script_rejects_conflict_before_auto_merge must be true")
+    if github.get("trigger_non_dry_run_merge_path_tested") is not True:
+        failures.append("github.trigger_non_dry_run_merge_path_tested must be true")
+    if github.get("trigger_non_dry_run_merge_path_evidence_scope") != "local_sequencing_regression_guard_not_live_authority_proof":
+        failures.append("github.trigger_non_dry_run_merge_path_evidence_scope must label local evidence scope")
     if github.get("trigger_conflict_guard_test") != "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh":
         failures.append("github.trigger_conflict_guard_test must name the trigger-level conflict guard test")
     if forgejo.get("schedule_field") != "merge_when_checks_succeed":
@@ -135,6 +139,10 @@ def main() -> int:
     github_conflict_test = read("scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh")
     require_contains(github_conflict_test, "sequential PR merge simulation passed: 1 PRs modeled", "github conflict guard test", failures)
     require_contains(github_conflict_test, "dry-run: gh pr merge 455 --squash --auto --match-head-commit", "github conflict guard test", failures)
+    require_contains(github_conflict_test, "Local sequencing regression guard", "github conflict guard test", failures)
+    require_contains(github_conflict_test, "clean_real_work=", "github conflict guard test", failures)
+    require_contains(github_conflict_test, "guard_marker=guard passed:", "github conflict guard test", failures)
+    require_contains(github_conflict_test, "pr merge 455 --squash --auto --match-head-commit", "github conflict guard test", failures)
     require_contains(github_conflict_test, "::error::sequential merge conflict at PR #455", "github conflict guard test", failures)
     require_contains(github_conflict_test, "conflict scenario invoked gh pr merge", "github conflict guard test", failures)
 
@@ -189,6 +197,8 @@ def main() -> int:
             "tide_full_sha_guard_declared": True,
             "conflict_guard_declared": True,
             "trigger_conflict_guard_tested": True,
+            "trigger_non_dry_run_merge_path_tested": True,
+            "trigger_non_dry_run_merge_path_scope_labeled": True,
             "buck2_policy_scan_covered": True,
             "p0_0_green": False,
             "phase0_complete": False,

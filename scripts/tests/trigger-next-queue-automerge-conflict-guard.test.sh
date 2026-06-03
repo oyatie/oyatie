@@ -48,7 +48,16 @@ if [ "$1" = "pr" ] && [ "${2:-}" = "checks" ]; then
 fi
 
 if [ "$1" = "pr" ] && [ "${2:-}" = "merge" ]; then
-  printf '%s\n' "$*" > "${OYA_TEST_MERGE_CALLED:?}"
+  if [ -n "${OYA_TEST_GUARD_MARKER:-}" ] && [ ! -s "$OYA_TEST_GUARD_MARKER" ]; then
+    printf 'gh pr merge reached before sequential conflict guard marker: %s\n' "$*" >&2
+    exit 98
+  fi
+  {
+    if [ -n "${OYA_TEST_GUARD_MARKER:-}" ]; then
+      printf 'guard_marker=%s\n' "$(cat "$OYA_TEST_GUARD_MARKER")"
+    fi
+    printf '%s\n' "$*"
+  } > "${OYA_TEST_MERGE_CALLED:?}"
   exit 0
 fi
 
@@ -91,6 +100,23 @@ setup_queue_repo() {
     "$work/scripts/trigger-next-queue-automerge.sh"
   install -m 0755 "$repo_root/scripts/check-sequential-pr-merge-conflicts.sh" \
     "$work/scripts/check-sequential-pr-merge-conflicts.sh"
+  mv "$work/scripts/check-sequential-pr-merge-conflicts.sh" \
+    "$work/scripts/check-sequential-pr-merge-conflicts.real.sh"
+  # Local sequencing regression guard: the wrapper delegates to the real guard and
+  # writes the marker only after that guard exits successfully. The fake gh merge
+  # path refuses to record a non-dry-run merge without this marker. This is local
+  # harness evidence, not a live cloud-ci/oya-ci authority claim.
+  cat > "$work/scripts/check-sequential-pr-merge-conflicts.sh" <<'EOF_CHECK'
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$script_dir/check-sequential-pr-merge-conflicts.real.sh" "$@"
+if [ -n "${OYA_TEST_GUARD_MARKER:-}" ]; then
+  printf 'guard passed: %s\n' "$*" > "$OYA_TEST_GUARD_MARKER"
+fi
+EOF_CHECK
+  chmod +x "$work/scripts/check-sequential-pr-merge-conflicts.sh"
   cp "$repo_root/infra/branch-protection/dev.json" "$work/infra/branch-protection/dev.json"
 
   printf 'base\n' > "$work/shared.txt"
@@ -150,11 +176,24 @@ JSON
 run_trigger() {
   local scenario="$1"
   local work="$2"
+  local dry_run="${3:-0}"
   local out="$tmp_dir/${scenario}.out"
   local err="$tmp_dir/${scenario}.err"
   local log="$tmp_dir/${scenario}-gh.log"
   local merge_called="$tmp_dir/${scenario}-merge-called"
-  rm -f "$log" "$merge_called"
+  local guard_marker="$tmp_dir/${scenario}-guard-passed"
+  local trigger_args=(
+    --base-branch dev
+    --base-ref dev
+    --start-pr 455
+    --limit 20
+    --required-contexts-config infra/branch-protection/dev.json
+    --fetch-remote github-mirror
+  )
+  rm -f "$log" "$merge_called" "$guard_marker"
+  if [ "$dry_run" = "1" ]; then
+    trigger_args+=(--dry-run)
+  fi
 
   set +e
   (
@@ -166,14 +205,8 @@ run_trigger() {
       OYA_TEST_PR_STATE="$tmp_dir/${scenario}-state.json" \
       OYA_TEST_CHECKS="$tmp_dir/checks.json" \
       OYA_TEST_MERGE_CALLED="$merge_called" \
-      scripts/trigger-next-queue-automerge.sh \
-        --base-branch dev \
-        --base-ref dev \
-        --start-pr 455 \
-        --limit 20 \
-        --required-contexts-config infra/branch-protection/dev.json \
-        --fetch-remote github-mirror \
-        --dry-run
+      OYA_TEST_GUARD_MARKER="$guard_marker" \
+      scripts/trigger-next-queue-automerge.sh "${trigger_args[@]}"
   ) >"$out" 2>"$err"
   local status=$?
   set -e
@@ -181,24 +214,43 @@ run_trigger() {
   printf '%s\n' "$status" > "$tmp_dir/${scenario}.status"
 }
 
-clean_work="$(setup_queue_repo clean)"
-run_trigger clean "$clean_work"
-clean_status="$(cat "$tmp_dir/clean.status")"
-if [ "$clean_status" -ne 0 ]; then
+clean_dry_work="$(setup_queue_repo clean-dry)"
+run_trigger clean-dry "$clean_dry_work" 1
+clean_dry_status="$(cat "$tmp_dir/clean-dry.status")"
+if [ "$clean_dry_status" -ne 0 ]; then
   echo "expected clean queue candidate to reach dry-run auto-merge after conflict guard" >&2
-  cat "$tmp_dir/clean.out" >&2
-  cat "$tmp_dir/clean.err" >&2
+  cat "$tmp_dir/clean-dry.out" >&2
+  cat "$tmp_dir/clean-dry.err" >&2
   exit 1
 fi
-grep -Fq "sequential PR merge simulation passed: 1 PRs modeled" "$tmp_dir/clean.out"
-grep -Fq "dry-run: gh pr merge 455 --squash --auto --match-head-commit" "$tmp_dir/clean.out"
-if [ -e "$tmp_dir/clean-merge-called" ]; then
+grep -Fq "sequential PR merge simulation passed: 1 PRs modeled" "$tmp_dir/clean-dry.out"
+grep -Fq "dry-run: gh pr merge 455 --squash --auto --match-head-commit" "$tmp_dir/clean-dry.out"
+grep -Fq "guard passed:" "$tmp_dir/clean-dry-guard-passed"
+if [ -e "$tmp_dir/clean-dry-merge-called" ]; then
   echo "dry-run clean scenario must not invoke gh pr merge" >&2
   exit 1
 fi
 
+clean_real_work="$(setup_queue_repo clean-real)"
+run_trigger clean-real "$clean_real_work" 0
+clean_real_status="$(cat "$tmp_dir/clean-real.status")"
+if [ "$clean_real_status" -ne 0 ]; then
+  echo "expected clean queue candidate to invoke fake gh pr merge after conflict guard" >&2
+  cat "$tmp_dir/clean-real.out" >&2
+  cat "$tmp_dir/clean-real.err" >&2
+  exit 1
+fi
+grep -Fq "sequential PR merge simulation passed: 1 PRs modeled" "$tmp_dir/clean-real.out"
+grep -Fq "auto-merge enabled for bottom-most queue PR #455" "$tmp_dir/clean-real.out"
+grep -Fq "guard_marker=guard passed:" "$tmp_dir/clean-real-merge-called"
+grep -Fq "pr merge 455 --squash --auto --match-head-commit" "$tmp_dir/clean-real-merge-called"
+if grep -Fq "dry-run: gh pr merge" "$tmp_dir/clean-real.out"; then
+  echo "non-dry-run clean scenario unexpectedly used dry-run path" >&2
+  exit 1
+fi
+
 conflict_work="$(setup_queue_repo conflict)"
-run_trigger conflict "$conflict_work"
+run_trigger conflict "$conflict_work" 0
 conflict_status="$(cat "$tmp_dir/conflict.status")"
 if [ "$conflict_status" -eq 0 ]; then
   echo "expected conflicting queue candidate to fail before auto-merge" >&2
@@ -212,6 +264,11 @@ grep -Fq "::error::sequential merge conflict at PR #455" "$tmp_dir/conflict.err"
 if [ -e "$tmp_dir/conflict-merge-called" ]; then
   echo "conflict scenario invoked gh pr merge despite sequential guard failure" >&2
   cat "$tmp_dir/conflict-merge-called" >&2
+  exit 1
+fi
+if [ -e "$tmp_dir/conflict-guard-passed" ]; then
+  echo "conflict scenario recorded a sequential guard pass despite merge-tree conflict" >&2
+  cat "$tmp_dir/conflict-guard-passed" >&2
   exit 1
 fi
 if grep -Fq "pr merge" "$tmp_dir/conflict-gh.log"; then
