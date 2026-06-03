@@ -18,6 +18,69 @@ fn read_repo_file(path: &str) -> String {
     })
 }
 
+fn json_object_containing_id<'a>(document: &'a str, id: &str) -> &'a str {
+    let needle = format!("\"id\": \"{}\"", id);
+    let id_position = document
+        .find(&needle)
+        .unwrap_or_else(|| panic!("missing JSON object id {}", id));
+    let start = document[..id_position]
+        .rfind('{')
+        .unwrap_or_else(|| panic!("missing JSON object start for {}", id));
+    let mut depth = 0usize;
+    for (offset, character) in document[start..].char_indices() {
+        match character {
+            '{' => depth += 1,
+            '}' => {
+                depth = depth
+                    .checked_sub(1)
+                    .unwrap_or_else(|| panic!("unbalanced JSON object for {}", id));
+                if depth == 0 {
+                    return &document[start..start + offset + 1];
+                }
+            }
+            _ => {}
+        }
+    }
+    panic!("missing JSON object end for {}", id);
+}
+
+#[test]
+fn automation_matrix_maps_ac05_to_exact_d1_seam_gate() {
+    let matrix = read_repo_file("specs/phase0-automation-matrix.json");
+    let row = json_object_containing_id(&matrix, "AC-0.5-d1-contract-files");
+    assert!(
+        row.contains("\"target_gate_or_controller\": \"//:d1-seam-contracts-check\""),
+        "{}",
+        row
+    );
+    assert!(
+        row.contains("\"verification_command\": \"buck2 build //:d1-seam-contracts-check\""),
+        "{}",
+        row
+    );
+    assert!(row.contains("\"no_new_oya_cli_surface\": true"), "{}", row);
+    assert!(row.contains("no protected-branch authority"), "{}", row);
+    assert!(
+        row.contains("no production-ready or hyperscaler-grade claim"),
+        "{}",
+        row
+    );
+
+    let coverage = read_repo_file("specs/phase0-automation-coverage-registry.json");
+    let subject = json_object_containing_id(&coverage, "AC-0.5");
+    assert!(subject.contains("//:d1-seam-contracts-check"), "{}", subject);
+    assert!(
+        subject.contains("\"verification_command\": \"buck2 build //:d1-seam-contracts-check\""),
+        "{}",
+        subject
+    );
+    assert!(
+        subject.contains("trusted cloud-ci/oya-ci required-context authority"),
+        "{}",
+        subject
+    );
+}
+
 #[test]
 fn checked_in_registry_contracts_and_fixtures_pass() {
     let evaluation = gate::evaluate(

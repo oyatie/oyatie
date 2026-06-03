@@ -375,13 +375,14 @@
       "requirement": "A2a/A2b D1 contract files must exist, lint valid, and be referenced by the D1 conformance path.",
       "classification": "automated_blocking_now",
       "owner": "platform-architecture",
-      "target_gate_or_controller": "Rust/Buck2 D1 seam contract gate //:d1-seam-contracts-check",
+      "target_gate_or_controller": "//:d1-seam-contracts-check",
       "blocking_fixture": "specs/fixtures/phase0-d1-seam-contracts/*.json + scripts/tests/d1_seam_contracts_check.rs",
       "retirement_phase": "P0.4",
       "evidence_path": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto + contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto + specs/d1-seam-contracts-registry.json + scripts/ci/assert-d1-seam-contracts.rs + scripts/tests/d1_seam_contracts_check.rs + //:d1-seam-contracts-check",
       "no_new_oya_cli_surface": true,
       "coverage_note": "Local/static AC-0.5 D1 seam contract seed evidence only: Rust/Buck2 fixture gate validates shape-invariant A2a mutation payload/result and A2b workflow-to-AI-step invocation proto3 contracts, requires Phase-0 mutation-result fixtures to carry the proto-optional consistency_token, and keeps topology-bearing fields conformance-gated until AC-0.10b Phase-2 GREEN.",
-      "claim_boundary": "No live D1 conformance execution, no status mutation, no protected-branch authority, no P0.0 green, no Phase-0 completion, no production-ready or hyperscaler-grade claim."
+      "claim_boundary": "No live D1 conformance execution, no status mutation, no protected-branch authority, no P0.0 green, no Phase-0 completion, no production-ready or hyperscaler-grade claim.",
+      "verification_command": "buck2 build //:d1-seam-contracts-check"
     },
     {
       "id": "AC-0.6-effective-dating-kernel",
