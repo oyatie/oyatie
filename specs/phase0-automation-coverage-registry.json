@@ -204,7 +204,8 @@
         "AC-0.12-aggregate-exit-gate"
       ],
       "owner": "platform-governance",
-      "coverage_note": "Maps the AC-0.12 aggregate exit row to the local/static //:phase0-aggregate-exit-check fixture target plus future cloud-ci-phase0-aggregate-exit Rust gate packet. This is coverage mapping only, not Phase-0 completion."
+      "coverage_note": "Maps the AC-0.12 aggregate exit row to the local/static //:phase0-aggregate-exit-check fixture target plus future cloud-ci-phase0-aggregate-exit Rust gate packet. This is coverage mapping only, not Phase-0 completion.",
+      "verification_command": "buck2 build //:phase0-aggregate-exit-check"
     },
     {
       "id": "AC-0.13",

@@ -304,7 +304,8 @@
       "retirement_phase": "AC-0.12/P0 exit",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.12",
       "target_gate_or_controller": "cloud-ci-phase0-aggregate-exit Rust gate packet + //:phase0-aggregate-exit-check local/static fixture target",
-      "claim_boundary": "Local/static aggregate-exit fixture gate proves required subcondition shape and RED/GREEN fixture non-vacuity only. This is not live required-context authority, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness."
+      "claim_boundary": "Local/static aggregate-exit fixture gate proves required subcondition shape and RED/GREEN fixture non-vacuity only; not live required-context authority; not P0.0 green; not Phase-0 completion, production readiness, or hyperscaler-grade readiness.",
+      "verification_command": "buck2 build //:phase0-aggregate-exit-check"
     },
     {
       "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/",

@@ -340,6 +340,8 @@ genrule(
     srcs = {
         "scripts/ci/assert-phase0-aggregate-exit.py": "scripts/ci/assert-phase0-aggregate-exit.py",
         "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-exit-gate/*.json"])},
     out = "phase0-aggregate-exit-check.txt",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_aggregate_exit_check.test.sh > $OUT",
