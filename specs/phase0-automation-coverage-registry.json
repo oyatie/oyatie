@@ -318,7 +318,8 @@
         "P0.9-generated-artifact-registry"
       ],
       "owner": "platform-toolchain",
-      "coverage_note": "Maps P0.9 to the generated-artifact seed registry and AC-0.15 Buck2 seed gate. The seed registry records third-party/BUCK source/regeneration ownership; full-repo generated-artifact coverage remains false until a trusted expanded drift gate runs."
+      "coverage_note": "Maps P0.9 to //:phase0-merge-conflict-foundation-check, the generated-artifact seed registry, and AC-0.15 merge-conflict/generated-artifact fixtures. The seed registry records third-party/BUCK source/regeneration ownership; full-repo generated-artifact coverage remains false and live required-context authority remains false until a trusted expanded drift gate runs.",
+      "verification_command": "buck2 build //:phase0-merge-conflict-foundation-check"
     },
     {
       "id": "PROCESS-reviewer-multispectrum-evidence",

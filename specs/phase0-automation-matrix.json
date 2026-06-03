@@ -585,12 +585,13 @@
       "requirement": "Generated artifacts must be registered with generator/source/output/commit-policy/regeneration/verification/owner fields; stale or hand-edited generated outputs block.",
       "classification": "automated_blocking_now",
       "owner": "platform-toolchain",
-      "target_gate_or_controller": "generated-artifact registry drift gate + //:phase0-merge-conflict-foundation-check seed gate",
+      "target_gate_or_controller": "//:phase0-merge-conflict-foundation-check",
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15 + .omx/plans/prd-platform-readiness.md#P0.9 + specs/fixtures/phase0-merge-conflict-foundation/",
       "retirement_phase": "P0.9",
       "evidence_path": "specs/generated-artifact-registry.json + specs/fixtures/phase0-merge-conflict-foundation/ + stale-output fixtures",
       "no_new_oya_cli_surface": true,
-      "claim_boundary": "Seed registry publication only; full-repo generated-artifact drift coverage remains unproven until trusted cloud-ci/oya-ci expands and runs P0.9."
+      "claim_boundary": "Local/static generated-artifact seed registry and merge-conflict fixture evidence only; not live required-context authority; full-repo generated-artifact drift coverage, P0.0 green, and Phase-0 completion remain false until trusted cloud-ci/oya-ci expands and runs P0.9.",
+      "verification_command": "buck2 build //:phase0-merge-conflict-foundation-check"
     },
     {
       "id": "PROCESS-reviewer-multispectrum-evidence",

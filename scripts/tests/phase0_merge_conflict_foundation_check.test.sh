@@ -10,12 +10,14 @@ trap 'rm -rf "$tmp_dir"' EXIT
 check="scripts/ci/assert-phase0-merge-conflict-foundation.py"
 registry="specs/generated-artifact-registry.json"
 matrix="specs/phase0-automation-matrix.json"
+coverage="specs/phase0-automation-coverage-registry.json"
 
-python3 - <<'PY' "$matrix"
+python3 - <<'PY' "$matrix" "$coverage"
 import json
 import sys
 
 matrix = json.load(open(sys.argv[1]))
+coverage = json.load(open(sys.argv[2]))
 rows = {row.get("id"): row for row in matrix.get("seed_rows", [])}
 row = rows.get("AC-0.15-merge-conflict-foundation")
 
@@ -28,6 +30,23 @@ expect(row.get("target_gate_or_controller") == "//:phase0-merge-conflict-foundat
 expect(row.get("verification_command") == "buck2 build //:phase0-merge-conflict-foundation-check", "AC-0.15 verification command must be Buck2-native")
 expect("Phase-1 Tide batching" in row.get("claim_boundary", ""), "AC-0.15 claim boundary must preserve Phase-1 Tide batching non-claim")
 expect(row.get("no_new_oya_cli_surface") is True, "AC-0.15 must not add an oya CLI surface")
+
+p09 = rows.get("P0.9-generated-artifact-registry")
+expect(p09 is not None, "P0.9-generated-artifact-registry row missing")
+expect(p09.get("target_gate_or_controller") == "//:phase0-merge-conflict-foundation-check", "P0.9 target must map directly to //:phase0-merge-conflict-foundation-check")
+expect(p09.get("verification_command") == "buck2 build //:phase0-merge-conflict-foundation-check", "P0.9 verification command must be Buck2-native")
+expect("full-repo generated-artifact drift coverage" in p09.get("claim_boundary", ""), "P0.9 claim boundary must preserve full-repo drift non-claim")
+expect("not live required-context authority" in p09.get("claim_boundary", ""), "P0.9 claim boundary must preserve live-authority non-claim")
+expect(p09.get("no_new_oya_cli_surface") is True, "P0.9 must not add an oya CLI surface")
+
+coverage_subjects = {subject.get("id"): subject for subject in coverage.get("coverage_subjects", [])}
+p09_subject = coverage_subjects.get("P0.9-generated-artifact-registry")
+expect(p09_subject is not None, "P0.9 coverage subject missing")
+expect("P0.9-generated-artifact-registry" in p09_subject.get("mapped_row_ids", []), "P0.9 coverage subject must map to P0.9 row")
+expect(p09_subject.get("verification_command") == "buck2 build //:phase0-merge-conflict-foundation-check", "P0.9 coverage command must be Buck2-native")
+expect("//:phase0-merge-conflict-foundation-check" in p09_subject.get("coverage_note", ""), "P0.9 coverage note must name exact Buck2 target")
+expect("full-repo generated-artifact coverage remains false" in p09_subject.get("coverage_note", ""), "P0.9 coverage note must preserve full-repo coverage non-claim")
+expect("live required-context authority" in p09_subject.get("coverage_note", ""), "P0.9 coverage note must preserve live-authority non-claim")
 PY
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$check" --registry "$registry" --json > "$tmp_dir/good.json"

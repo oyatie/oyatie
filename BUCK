@@ -478,6 +478,7 @@ genrule(
         "scripts/ci/assert-phase0-merge-conflict-foundation.py": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
         "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
         "specs/generated-artifact-registry.json": "specs/generated-artifact-registry.json",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "Cargo.toml": "Cargo.toml",
         "Cargo.lock": "Cargo.lock",
