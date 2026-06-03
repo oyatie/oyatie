@@ -41,6 +41,10 @@ genrule(
         "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
         "scripts/ci/assert-result-bundle-output.py": "scripts/ci/assert-result-bundle-output.py",
         "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
+        "scripts/ci/assert-automation-ratchet.py": "scripts/ci/assert-automation-ratchet.py",
+        "scripts/tests/phase0_automation_ratchet_check.test.sh": "scripts/tests/phase0_automation_ratchet_check.test.sh",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json": "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
         "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
         "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json": "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
@@ -214,6 +218,23 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])} | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-ci-enforcement-baseline-catalog-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
+    visibility = ["PUBLIC"],
+)
+
+
+# AC-0.16 automation-ratchet fixture check: local/static coverage that
+# every Phase-0 rule row is classified, mapped, fixture-backed, and not routed
+# back to oya CLI authority. This never claims live required-context authority.
+genrule(
+    name = "phase0-automation-ratchet-check",
+    srcs = {
+        "scripts/ci/assert-automation-ratchet.py": "scripts/ci/assert-automation-ratchet.py",
+        "scripts/tests/phase0_automation_ratchet_check.test.sh": "scripts/tests/phase0_automation_ratchet_check.test.sh",
+        "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
+        "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
+    } | {path: path for path in glob(["specs/fixtures/phase0-automation-ratchet/*.json"])},
+    out = "phase0-automation-ratchet-check.txt",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_automation_ratchet_check.test.sh > $OUT",
     visibility = ["PUBLIC"],
 )
 
