@@ -21,7 +21,7 @@ if printf '%s' "$cmd" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:
     echo "Allowed exceptions are narrow and evidence-labeled:"
     echo "    1. production release image/binary optimization only (release profile, target triple, size/codegen/allocator evidence, non-claim label)"
     echo "    2. cargo metadata/vendor for Buck2/Reindeer graph generation only; never merge authority"
-    echo "This hook is advisory only; scripts/ci/enforce-buck2-authority.py is the automated scanner."
+    echo "This hook is advisory only; scripts/ci/enforce-buck2-authority.rs is the automated scanner."
   } >&2
 fi
 exit 0

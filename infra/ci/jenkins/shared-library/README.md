@@ -10,7 +10,7 @@ Mandatory stages:
 
 | Stage | Tool | Authority note |
 |---|---|---|
-| Buck2 authority policy | `python3 scripts/ci/enforce-buck2-authority.py` | Static no-Cargo regression gate |
+| Buck2 authority policy | `buck2 build //:buck2-authority-policy-check` | Static no-Cargo regression gate |
 | Buck2 affected build/test | `infra/ci/buck2-affected-gate.sh` | Builds/tests affected Buck2 target closure |
 | Buck2 governance bridge smoke | `buck2 uquery //oya/developer-sdk/crates/oya-dev-cli:oya` | Proves oya binary is Buck2-addressable; not merge authority by itself |
 | Supply-chain scans | Syft, Trivy, osv-scanner | Advisory/hardening as configured by lane |

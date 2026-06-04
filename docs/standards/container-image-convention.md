@@ -58,7 +58,7 @@ ADR-0515 keeps distroless static and moves assembly to Buck2-native OCI.
 The active lane is Buck2-only:
 
 ```sh
-python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json
+buck2 build //:buck2-authority-policy-check
 buck2 build //cloud/<service>/iac/oci:<service>-oci
 ```
 

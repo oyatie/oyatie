@@ -67,7 +67,7 @@
   "current_state_evidence": {
     "active_bridge_status_producer": {
       "classification": "jenkins_service_bridge_feedback_not_merge_authority",
-      "gate_command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json && buck2 build //:buck2-authority-policy-check && infra/ci/buck2-affected-gate.sh origin/${CHANGE_TARGET:-dev}",
+      "gate_command": "buck2 build //:buck2-authority-policy-check && infra/ci/buck2-affected-gate.sh origin/${CHANGE_TARGET:-dev}",
       "path": "cloud/*/ci/Jenkinsfile + oya/*/ci/Jenkinsfile + infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
       "posted_contexts": [
         "oya-ci-required"

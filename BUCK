@@ -27,7 +27,7 @@ genrule(
         "scripts/install-trivy-ci.sh": "scripts/install-trivy-ci.sh",
         "scripts/supply-chain-adr0039.sh": "scripts/supply-chain-adr0039.sh",
         "scripts/hooks/pre-push.sh": "scripts/hooks/pre-push.sh",
-        "scripts/ci/enforce-buck2-authority.py": "scripts/ci/enforce-buck2-authority.py",
+        "scripts/ci/enforce-buck2-authority.rs": "scripts/ci/enforce-buck2-authority.rs",
         "scripts/ci/oya-ci-post.sh": "scripts/ci/oya-ci-post.sh",
         "scripts/ci/assert-pr-required-context.py": "scripts/ci/assert-pr-required-context.py",
         "scripts/tests/phase0_required_context_rollup_check.test.sh": "scripts/tests/phase0_required_context_rollup_check.test.sh",
@@ -43,7 +43,7 @@ genrule(
         "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
         "scripts/ci/assert-automation-ratchet.py": "scripts/ci/assert-automation-ratchet.py",
         "scripts/tests/phase0_automation_ratchet_check.test.sh": "scripts/tests/phase0_automation_ratchet_check.test.sh",
-        "scripts/tests/buck2_authority_policy_check.test.sh": "scripts/tests/buck2_authority_policy_check.test.sh",
+        "scripts/tests/buck2_authority_policy_check.rs": "scripts/tests/buck2_authority_policy_check.rs",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/oya-ci-prow-capability-parity.json": "specs/oya-ci-prow-capability-parity.json",
@@ -330,7 +330,7 @@ genrule(
         "oya/workplace-integration/ci/Jenkinsfile": "oya/workplace-integration/ci/Jenkinsfile",
     },
     out = "buck2-authority-policy-check.json",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json > $OUT",
+    cmd = "mkdir -p $TMP/buck2-authority-policy && rustc --edition=2021 -D warnings scripts/ci/enforce-buck2-authority.rs -o $TMP/buck2-authority-policy/enforce-buck2-authority && OYA_REPO_ROOT=$PWD $TMP/buck2-authority-policy/enforce-buck2-authority --policy specs/buck2-authority-policy.json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -433,8 +433,8 @@ genrule(
 genrule(
     name = "buck2-authority-policy-fixture-check",
     srcs = {
-        "scripts/ci/enforce-buck2-authority.py": "scripts/ci/enforce-buck2-authority.py",
-        "scripts/tests/buck2_authority_policy_check.test.sh": "scripts/tests/buck2_authority_policy_check.test.sh",
+        "scripts/ci/enforce-buck2-authority.rs": "scripts/ci/enforce-buck2-authority.rs",
+        "scripts/tests/buck2_authority_policy_check.rs": "scripts/tests/buck2_authority_policy_check.rs",
         "specs/buck2-authority-policy.json": "specs/buck2-authority-policy.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
@@ -442,7 +442,7 @@ genrule(
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
     },
     out = "buck2-authority-policy-fixture-check.txt",
-    cmd = "BUCK2_AUTHORITY_FIXTURE_MODE=1 PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD bash scripts/tests/buck2_authority_policy_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/buck2-authority-policy-fixture && rustc --edition=2021 -D warnings scripts/tests/buck2_authority_policy_check.rs --test -o $TMP/buck2-authority-policy-fixture/buck2_authority_policy_check && OYA_REPO_ROOT=$PWD $TMP/buck2-authority-policy-fixture/buck2_authority_policy_check > $OUT",
     visibility = ["PUBLIC"],
 )
 

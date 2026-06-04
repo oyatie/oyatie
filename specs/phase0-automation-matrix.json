@@ -184,7 +184,7 @@
       "requirement": "Active scripts, CI, CD, and build lanes must use Buck2 while cloud-ci/oya-ci remains a Rust reimplementation/improvement of upstream Kubernetes Prow/Tide. Cargo executable lanes are forbidden except production release image/binary optimization evidence and metadata-only Buck2 graph generation.",
       "classification": "automated_advisory_until_p0_0",
       "owner": "platform-toolchain + platform-governance",
-      "target_gate_or_controller": "//:buck2-authority-policy-check + scripts/ci/enforce-buck2-authority.py + service Jenkins Buck2 bridge lanes + cloud-ci/oya-ci oya-ci-required producer",
+      "target_gate_or_controller": "//:buck2-authority-policy-check + scripts/ci/enforce-buck2-authority.rs + service Jenkins Buck2 bridge lanes + cloud-ci/oya-ci oya-ci-required producer",
       "blocking_fixture": "specs/buck2-authority-policy.json forbidden command/context scanner + required_glob_anchors for cloud/*/ci/Jenkinsfile and oya/*/ci/Jenkinsfile + BUCK glob-declared srcs + ADR amendment markers",
       "retirement_phase": "P0.0 live cloud-ci/oya-ci required-context cutover; service Jenkins bridge remains non-authority until oya-ci-required is live and required",
       "evidence_path": "specs/buck2-authority-policy.json + specs/oya-ci-prow-capability-parity.json + evidence/multispectrum/platform-readiness-p0-0-buck2-authority-*.json + evidence/ci/jenkins/{cloud,oya}/*/buck2-authority-bridge.json when Jenkins runs",
