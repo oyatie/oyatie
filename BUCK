@@ -302,6 +302,7 @@ genrule(
         "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
         "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
+        "specs/agent-operating-contract.json": "specs/agent-operating-contract.json",
         "specs/masterplan.json": "specs/masterplan.json",
         "specs/master-plan-sequencing.json": "specs/master-plan-sequencing.json",
         "specs/cloud-toolchain-target.json": "specs/cloud-toolchain-target.json",
