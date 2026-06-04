@@ -1,0 +1,161 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "parallel-unlock-active-context-hygiene",
+  "change_class_id": "CC-5",
+  "agent_id": "codex-ralph",
+  "timestamp_unix": 1780542975,
+  "scope": "ADR-0516 active agent/root documentation and repo-hygiene automation",
+  "claimed_scopes": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "README.md",
+    "docs/AGENTS.md",
+    "docs/ci/github-actions-lane-unlocker.md",
+    "scripts/ci/assert-repo-hygiene-automation.py",
+    "specs/repo-hygiene-automation.json"
+  ],
+  "summary": "Active agent and root docs now route temporary dev work through the automated github-lane-unlocker-required context and GitHub worktree/PR examples; repo-hygiene automation now rejects stale active interim-authority phrases and stale origin/dev local affected-gate examples.",
+  "authority_reviewed": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+    "specs/github-lane-unlocker-bridge.json",
+    "specs/repo-hygiene-automation.json",
+    "specs/retired-external-substrate-registry.json",
+    "specs/masterplan.json#imminent_work_p00"
+  ],
+  "source_driven_research": [
+    "GitHub changelog for Node 20 -> Node 24 Actions runtime migration and FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 opt-in",
+    "actions/checkout releases page confirming v6.0.3 as current v6 release",
+    "GitHub Docs for merge queue/rulesets/CODEOWNERS/reusable workflows cited in specs",
+    "CNCF Cloud Native Reference Architecture cited in specs"
+  ],
+  "verification": [
+    {
+      "command": "python3 -m py_compile scripts/ci/assert-repo-hygiene-automation.py scripts/ci/assert-github-lane-unlocker-bridge.py scripts/ci/enforce-buck2-authority.py",
+      "result": "exit 0"
+    },
+    {
+      "command": "python3 JSON load for specs/repo-hygiene-automation.json, specs/github-lane-unlocker-bridge.json, specs/root-hub-pointers.json, specs/masterplan.json, specs/master-plan-sequencing.json, and this evidence file",
+      "result": "json-ok for all listed files"
+    },
+    {
+      "command": "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
+      "result": "PASS; failures=[]; active_context_scan_files=8; retired_exact_name_scan_files=16"
+    },
+    {
+      "command": "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "result": "PASS; temporary_required_context=github-lane-unlocker-required; native_cutover_target_context=oya-ci-required"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "result": "PASS; command_scan_files=249; status_context_scan_files=9"
+    },
+    {
+      "command": "rg stale active-doc phrase scan over AGENTS.md, CLAUDE.md, README.md, docs/AGENTS.md, docs/ci/github-actions-lane-unlocker.md, ADR-0516",
+      "result": "no matches"
+    },
+    {
+      "command": "git diff --check",
+      "result": "exit 0"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "result": "BUILD SUCCEEDED; build id 356a8dcf-c03f-4849-b1a7-46423bb79330; 3 local commands"
+    }
+  ],
+  "claim_boundary": {
+    "not_p0_0_green": true,
+    "not_phase0_complete": true,
+    "github_not_permanent": true,
+    "live_branch_protection_mutated": false,
+    "live_kubernetes_mutated": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "finding": "Small pointer-thin doc edits plus one existing checker extension; no new subsystem."
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "finding": "Keeps high-concurrency lanes on GitHub bridge while preserving Buck2 and native cutover authority."
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "finding": "Checker now fails active docs that reintroduce stale interim context or origin/dev local affected-gate examples."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "finding": "Root AGENTS/CLAUDE/README now include concrete git worktree, gh PR, Buck2, and affected-gate examples."
+    },
+    "F5_quality": {
+      "considered": true,
+      "finding": "Fresh py_compile, JSON parse, checker, and Buck2 target evidence required before commit."
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives": [
+        "leave docs as prose-only",
+        "bulk delete historical ADRs",
+        "add narrow active-doc scanner"
+      ],
+      "selected": "add narrow active-doc scanner to avoid historical ADR churn while preventing active stale guidance"
+    },
+    "F7_security": {
+      "considered": true,
+      "finding": "Avoids manual status bridge wording and keeps trusted native oya-ci context separate."
+    },
+    "F8_performance": {
+      "considered": true,
+      "finding": "Static scanner is local text/JSON only and does not add heavy CI fanout."
+    },
+    "F9_compliance": {
+      "considered": true,
+      "finding": "Preserves proprietary IP posture and retired substrate tombstone registry."
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "finding": "Docs/checker/spec edits are reversible in one commit; no live mutation."
+    },
+    "F11_observability": {
+      "considered": true,
+      "finding": "Checker emits machine-readable PASS/FAIL fields including active_context_scan_files."
+    },
+    "F13_migration": {
+      "considered": true,
+      "finding": "Migrates active docs from stale interim wording to ADR-0516 bridge without deleting historical provenance."
+    },
+    "A1_naming": {
+      "considered": true,
+      "finding": "Uses canonical github-lane-unlocker-required and oya-ci-required context names."
+    },
+    "A2_documentation": {
+      "considered": true,
+      "finding": "Root/docs AGENTS and README updated with pointer-thin examples."
+    },
+    "A3_structure": {
+      "considered": true,
+      "finding": "Shared guidance points to specs; scanner owns enforcement."
+    },
+    "A4_architecture": {
+      "considered": true,
+      "finding": "Maintains temporary GitHub bridge vs native SCM/CI/CD separation."
+    },
+    "A5_dependency": {
+      "considered": true,
+      "finding": "No new dependencies."
+    },
+    "A6_schema": {
+      "considered": true,
+      "finding": "JSON spec remains parseable and checker validates new field."
+    },
+    "A7_algorithm": {
+      "considered": true,
+      "finding": "Exact retired names live in script constants to avoid reintroducing tombstoned names into active specs."
+    }
+  },
+  "remaining_risks": [
+    "Historical ADRs and broad specs still contain retired substrate provenance by design; later archive/deletion PRs should handle them only after replacement checks prove no dependency remains.",
+    "Local checks do not mutate live branch protection or Kubernetes workloads."
+  ]
+}

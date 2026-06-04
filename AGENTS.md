@@ -10,18 +10,19 @@ Pointers: `/specs/master-plan-sequencing.json`; `/specs/markdown-retirement-poli
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 
-Manual Wave-B bootstrap note (prose only): until the webhook receiver is deployed and registered, agents enter the Foundry pipeline by creating an isolated worktree branch and opening a pull request against `dev`; ADR-0116 explains this temporary seam.
+ADR-0516 bridge note (prose only): agents enter dev through an isolated worktree branch, a pull request against `dev`, and the automated `github-lane-unlocker-required` GitHub Actions aggregate check while native SCM/CI/CD cutover remains separate.
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
   - git
+  - buck2
   - oya-gate
   - oya-verify
 required_sequence:
   - isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
-  - GitHub Actions temporary required context + Buck2 evidence + reviewer APPROVE gate merge readiness until native cutover
+  - automated github-lane-unlocker-required GitHub Actions context + Buck2 evidence + reviewer APPROVE gate merge readiness until native cutover
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
@@ -31,10 +32,13 @@ retirement_note: the `oya git` wrapper and the `oya vcs` ratchet (claim/verify/d
 ## Oyatie tool examples
 
 ```sh
-buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check
+git fetch github-mirror dev
+git worktree add /tmp/oyatie-lane-<slug> -b chore/<slug> github-mirror/dev
+gh pr create --base dev --head chore/<slug> --repo jason931225/oyatie
 python3 scripts/ci/assert-repo-hygiene-automation.py --json
 buck2 build //:repo-hygiene-automation-check
-infra/ci/buck2-affected-gate.sh origin/dev HEAD
+buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check
+infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD
 ```
 
 Use `specs/repo-hygiene-automation.json` for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene. Use `/specs/retired-external-substrate-registry.json` for tombstoned external substrate names; active guidance should say "retired external SCM/CI/CD substrates" rather than reintroducing old authorities.
