@@ -1,0 +1,74 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "schema_version": "multispectrum-review.v2.4.0-local-static",
+  "change_id": "generated-projection-authority-boundary-20260604T141046Z",
+  "change_class_id": "CC-5",
+  "timestamp": "2026-06-04T14:10:46Z",
+  "change_lane": "council-architecture-platform-governance",
+  "scope": "Machine-readable generated projections and cross-artifact agreement guard",
+  "verdict": "LOCAL_STATIC_PASS_NOT_GENERATOR_CONTENT_REWRITE_NOT_NATIVE_CI_AUTHORITY",
+  "claim_boundary": {
+    "generated_deliverable_content_rewritten": false,
+    "generator_binary_build_proven_on_local_macos": false,
+    "github_actions_is_permanent_ci_cd": false,
+    "github_is_permanent": false,
+    "live_branch_protection_mutated": false,
+    "live_kubernetes_mutated": false,
+    "live_required_context_execution_proven": false,
+    "native_ci_authority_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false
+  },
+  "implementation_summary": [
+    "Added authority_boundary to docs/machine-readable/masterplan.generated.json and docs/machine-readable/board-sync.generated.json so historical ADR-derived retired external SCM/CI/CD substrate names are marked provenance-only.",
+    "Updated specs/cross-artifact-agreement-registry.json to require generated projections carrying retired-substrate text to expose that boundary and point current interim authority to ADR-0516.",
+    "Updated scripts/ci/assert-cross-artifact-agreement.rs so //:cross-artifact-agreement-check mechanically verifies the boundary tokens in both generated projection files.",
+    "Did not rewrite ADR-derived deliverable descriptions, post statuses, mutate GitHub branch protection, mutate Kubernetes/cloud resources, or claim native CI authority."
+  ],
+  "checks": [
+    {
+      "name": "json_syntax_and_boundary_presence",
+      "command": "jq empty specs/cross-artifact-agreement-registry.json docs/machine-readable/masterplan.generated.json docs/machine-readable/board-sync.generated.json && jq '.authority_boundary' docs/machine-readable/masterplan.generated.json docs/machine-readable/board-sync.generated.json",
+      "verdict": "PASS",
+      "evidence": "changed JSON parsed and both generated projections expose authority_boundary with projection_authority=generated_provenance_projection_only"
+    },
+    {
+      "name": "rustfmt",
+      "command": "rustfmt scripts/ci/assert-cross-artifact-agreement.rs",
+      "verdict": "PASS",
+      "evidence": "rustfmt exited 0"
+    },
+    {
+      "name": "cross_artifact_agreement_gate",
+      "command": "buck2 build //:cross-artifact-agreement-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID 2c777658-4f92-4cca-8821-f2a0cec68492; output verdict=PASS, packet_count=21, fixture_count=5, failures=[]"
+    },
+    {
+      "name": "targeted_static_gates",
+      "command": "buck2 build //:cross-artifact-agreement-check //:repo-hygiene-automation-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID f4fc9011-7976-45dc-b3f4-dc9593d8aaa9; repo_hygiene verdict=PASS, live_mutation_performed=false, security_hardening_backlog_count=31"
+    },
+    {
+      "name": "post_commit_affected_gate",
+      "command": "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "verdict": "PASS",
+      "evidence": "5 changed files; affected targets root//:phase0-red-green-fixture-contract-check and root//:cross-artifact-agreement-check; affected build/test completed with BUILD SUCCEEDED and Pass 0 Fail 0; buck2-affected-gate: PASS"
+    },
+    {
+      "name": "diff_hygiene_and_token_scan",
+      "command": "git diff --check && rg -n '\"authority_boundary\"|generated_provenance_projection_only|ADR-0516 temporary GitHub/GitHub Actions lane-unlocker' docs/machine-readable/masterplan.generated.json docs/machine-readable/board-sync.generated.json specs/cross-artifact-agreement-registry.json scripts/ci/assert-cross-artifact-agreement.rs",
+      "verdict": "PASS",
+      "evidence": "git diff --check exited 0; token scan found guarded boundary tokens in both generated projections, registry, and Rust checker"
+    }
+  ],
+  "known_gaps": [
+    "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gen masterplan --write could not run locally on macOS because a third-party build-script link step targeted a Linux sysroot with host ld flags; this lane therefore adds a static boundary and guard rather than claiming local generator-binary execution.",
+    "ADR-derived generated descriptions still contain retired exact names for historical provenance; follow-up source ADR/regeneration lanes must supersede or archive the underlying planning-impact ADR text.",
+    "This change does not mutate live GitHub branch protection, Kubernetes, cloud resources, secrets, required-status producers, or merge state."
+  ]
+}

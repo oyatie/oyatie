@@ -68,7 +68,7 @@
       "verification_gate"
     ],
     "same_changeset_rule": "Source edits and generated outputs land in the same changeset or the packet carries temporary_human_judgment.owner and temporary_human_judgment.retirement_path.",
-    "generated_artifact_rule": "Generated artifacts such as decisions.json, masterplan.generated.json, and board-sync.generated.json must be regenerated from source, never hand-edited as authoritative fixes."
+    "generated_artifact_rule": "Generated artifacts such as decisions.json, masterplan.generated.json, and board-sync.generated.json must be regenerated from source for content changes, never hand-edited as authoritative fixes. If historical ADR-derived descriptions project retired external SCM/CI/CD substrate names, the generated artifact must carry an authority_boundary that marks those names as provenance-only and points current interim authority to ADR-0516."
   },
   "required_file_tokens": [
     {
@@ -91,14 +91,20 @@
       "path": "docs/machine-readable/masterplan.generated.json",
       "contains": [
         "ADR-0365-D3",
-        "ADR-0365"
+        "ADR-0365",
+        "\"authority_boundary\"",
+        "generated_provenance_projection_only",
+        "ADR-0516 temporary GitHub/GitHub Actions lane-unlocker"
       ]
     },
     {
       "path": "docs/machine-readable/board-sync.generated.json",
       "contains": [
         "ADR-0365-D3",
-        "Generated from masterplan deliverable"
+        "Generated from masterplan deliverable",
+        "\"authority_boundary\"",
+        "generated_provenance_projection_only",
+        "ADR-0516 temporary GitHub/GitHub Actions lane-unlocker"
       ]
     }
   ],
