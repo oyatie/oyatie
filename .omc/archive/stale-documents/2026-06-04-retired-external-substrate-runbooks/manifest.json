@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.oyatie.dev/schemas/stale-document-archive.schema.json",
+  "$id": "https://docs.oyatie.dev/.omc/archive/stale-documents/2026-06-04-retired-external-substrate-runbooks/manifest.json",
+  "archive_id": "stale-documents-2026-06-04-retired-external-substrate-runbooks",
+  "status": "archived_stale_do_not_use_as_authority",
+  "archived_at": "2026-06-04T22:50:00Z",
+  "reason": "Runbooks documented a retired external SCM board/projection workflow. Current lane coordination uses isolated git worktrees, GitHub PR/publication adapters, Buck2 evidence, and the trusted Prow/Kubernetes-native oya-ci-required context while native SCM matures.",
+  "current_authority": [
+    "/specs/root-hub-pointers.json",
+    "/specs/repo-hygiene-automation.json",
+    "/specs/retired-external-substrate-registry.json",
+    "/specs/github-lane-unlocker-bridge.json",
+    "/specs/oya-ci-prow-capability-parity.json"
+  ],
+  "archival_rule": "Files under this archive are historical evidence only. Agents must not use them as execution authority, board authority, claim authority, webhook authority, SCM authority, or implementation-start permission.",
+  "archive_scope": {
+    "moved_from": [
+      "docs/runbooks/forgejo-agent-board-workflow.md",
+      "docs/runbooks/forgejo-board-verification-checklist.md",
+      "docs/runbooks/forgejo-board-webhook-projection.md",
+      "docs/runbooks/forgejo-claim-ref-cas.md"
+    ],
+    "left_live": [
+      "docs/RUNBOOKS-INDEX.md",
+      "/specs/retired-external-substrate-registry.json",
+      "/specs/repo-hygiene-automation.json"
+    ]
+  },
+  "archived_files": [
+    ".omc/archive/stale-documents/2026-06-04-retired-external-substrate-runbooks/docs-runbooks/forgejo-agent-board-workflow.md",
+    ".omc/archive/stale-documents/2026-06-04-retired-external-substrate-runbooks/docs-runbooks/forgejo-board-verification-checklist.md",
+    ".omc/archive/stale-documents/2026-06-04-retired-external-substrate-runbooks/docs-runbooks/forgejo-board-webhook-projection.md",
+    ".omc/archive/stale-documents/2026-06-04-retired-external-substrate-runbooks/docs-runbooks/forgejo-claim-ref-cas.md"
+  ]
+}

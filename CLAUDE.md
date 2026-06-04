@@ -20,7 +20,8 @@ Lifecycle skills + agent personas + intent→skill mapping are inherited from `a
 
 <!-- agent-instructions:start -->
 coordination_surface: prow_kubernetes_native_oya_ci_governance_pipeline
-retirement_adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
+retirement_registry: specs/retired-external-substrate-registry.json
+historical_retirement_decision: ADR-0363
 retired_external_agent_coordination_tooling: true
 observability_substrate: microservices/observability/ (per ADR-0130 agentic SLO-gated promotion + ADR-0131 per-microservice flat layout; SLO authoring at microservices/<ms>/slos/*.openslo.yaml mandatory before any µservice promotes past dev)
 microservice_layout_authority: ADR-0131 per-microservice flat layout; new µservices ship under microservices/<ms>/ with src/ as the canonical code root
@@ -35,7 +36,7 @@ required_workflow:
   - completion_gate: reviewer-agent APPROVE plus oya-ci-required green before merge
 
 substrate_adrs:
-  - docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
+  - ADR-0363 (historical retirement decision; exact path is discoverable through the decision index)
   - docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md
 <!-- agent-instructions:end -->
 

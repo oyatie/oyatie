@@ -24,7 +24,8 @@ required_sequence:
   - automated oya-ci-required Prow/Kubernetes-native context + Buck2 evidence + reviewer APPROVE gate merge readiness
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
-  adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
+  policy_registry: specs/retired-external-substrate-registry.json
+  historical_decision: ADR-0363
 retirement_note: retired Oya CLI surfaces are not merge/CI authorities. Preserve useful governance kernels as Rust libraries, Buck2 targets, and Prow/Kubernetes-native jobs; do not reintroduce CLI-driven gate authority. Retired external SCM/CI/CD substrates are not interim authorities. Exact tombstones live in `/specs/retired-external-substrate-registry.json` and policy registries, not active agent instructions.
 <!-- agent-instructions:end -->
 
