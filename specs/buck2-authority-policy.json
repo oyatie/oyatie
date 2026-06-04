@@ -356,10 +356,7 @@
     "CLAUDE.md",
     "docs/AGENTS.md"
   ],
-  "command_scan_globs": [
-    "cloud/*/ci/Jenkinsfile",
-    "oya/*/ci/Jenkinsfile"
-  ],
+  "command_scan_globs": [],
   "description": "P0.0 non-claim policy for preventing Cargo regression in active CI/CD/build/script lanes. This file is not a green readiness claim; it defines local/static enforcement and the target controller chain.",
   "forbidden_cargo_subcommands": [
     "fmt",
@@ -388,14 +385,12 @@
     "cargo-deny",
     "oya-verify"
   ],
-  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Active Jenkins service CI lanes under cloud/*/ci and oya/*/ci are scanned and must invoke Buck2 policy/build/test targets, not Cargo. Active Dockerfile and client-manifest command surfaces are scanned and must be Buck2 artifact/runtime wrappers, not Cargo compile/test/install lanes. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install/chef/leptos/llvm-cov/fuzz/mutants/pgo invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence for binary-size, codegen, linking, PGO, or memory allocator measurements. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
+  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Retired service Jenkins entrypoints under cloud/*/ci and oya/*/ci must not exist; active Dockerfile and client-manifest command surfaces are scanned and must be Buck2 artifact/runtime wrappers, not Cargo compile/test/install lanes. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install/chef/leptos/llvm-cov/fuzz/mutants/pgo invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence for binary-size, codegen, linking, PGO, or memory allocator measurements. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
   "required_adr_amendment_text": "2026-06-02 Buck2 authority amendment",
   "required_anchors": {
     "BUCK": [
       "buck2-authority-policy-check",
-      "cloud/*/ci/Jenkinsfile",
       "github-auto-merge-after-ci-check",
-      "oya/*/ci/Jenkinsfile",
       "phase0_required_context_rollup_check.rs",
       "phase0-required-status-source-check",
       "phase0_required_status_source_check.rs",
@@ -1496,26 +1491,7 @@
       "buck2 build //:repo-hygiene-automation-check"
     ]
   },
-  "required_glob_anchors": [
-    {
-      "anchors": [
-        "buck2 build //:buck2-authority-policy-check",
-        "infra/ci/buck2-affected-gate.sh",
-        "bridge_only_not_branch_protection_authority",
-        "\"branch_protection_authority\": false"
-      ],
-      "glob": "cloud/*/ci/Jenkinsfile"
-    },
-    {
-      "anchors": [
-        "buck2 build //:buck2-authority-policy-check",
-        "infra/ci/buck2-affected-gate.sh",
-        "bridge_only_not_branch_protection_authority",
-        "\"branch_protection_authority\": false"
-      ],
-      "glob": "oya/*/ci/Jenkinsfile"
-    }
-  ],
+  "required_glob_anchors": [],
   "status_context_scan_files": [
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",

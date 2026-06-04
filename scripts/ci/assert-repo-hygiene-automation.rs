@@ -190,6 +190,7 @@ const ALLOWED_EXACT_NAME_CONTEXTS: &[&str] = &[
 
 const ROOT_MARKDOWN_ALLOWLIST: &[&str] = &["AGENTS.md", "CLAUDE.md", "README.md"];
 const RETIRED_ROOT_FILES: &[&str] = &["Jenkinsfile"];
+const RETIRED_SERVICE_CI_ENTRYPOINT_ROOTS: &[&str] = &["cloud", "oya"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -460,6 +461,34 @@ pub fn retired_root_file_failures(root: &Path) -> Vec<String> {
         .collect()
 }
 
+pub fn retired_service_ci_entrypoint_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for service_root in RETIRED_SERVICE_CI_ENTRYPOINT_ROOTS {
+        let service_root_path = root.join(service_root);
+        let Ok(entries) = fs::read_dir(&service_root_path) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_dir() {
+                continue;
+            }
+            let Some(service_name) = path.file_name().and_then(|name| name.to_str()) else {
+                continue;
+            };
+            let rel = format!("{service_root}/{service_name}/ci/Jenkinsfile");
+            if root.join(&rel).exists() {
+                failures.push(format!(
+                    "{rel}: retired service Jenkins CI entrypoint must not exist; use the temporary GitHub lane unlocker now and native oya-ci after cutover"
+                ));
+            }
+        }
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -481,6 +510,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(spec_failures(&spec));
     evaluate_root_markdown(root, &mut failures);
     failures.extend(retired_root_file_failures(root));
+    failures.extend(retired_service_ci_entrypoint_failures(root));
 
     for item_id in [
         "legacy_ci_server",
