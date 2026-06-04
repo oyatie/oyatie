@@ -42,7 +42,7 @@
     "excluded_scope": "This seed registry does not claim full-repo generated-artifact discovery, drift-free regeneration, or live controller enforcement until a trusted cloud-ci/oya-ci lane runs the expanded P0.9 drift gate.",
     "full_repo_generated_artifact_coverage_proven": false
   },
-  "minimum_registered_artifact_count": 2,
+  "minimum_registered_artifact_count": 3,
   "artifact_entry_contract": {
     "required_fields": [
       "id",
@@ -122,6 +122,43 @@
       "stale_output_policy": "RED if the generated YAML diverges from registry/shard rendering or loses the generated marker.",
       "path_claims": {
         "single_writer_path": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+        "source_pair_paths": [
+          "specs/oya-ci-prowjob-registry.json",
+          "specs/ci/prow-jobs/platform-governance.json",
+          "specs/ci/prow-jobs/platform-scm-ci-cd.json",
+          "specs/ci/prow-jobs/platform-release-conveyor.json",
+          "scripts/ci/generate-oya-ci-prowjob-registry.rs"
+        ],
+        "overlap_review_required": true,
+        "phase1_tide_batching_claimed": false
+      }
+    },
+    {
+      "id": "oya-ci-controller-config-generated-yaml",
+      "output_path": "specs/generated/oya-ci-controller-config.generated.yaml",
+      "output_kind": "oya_ci_native_controller_config",
+      "generator": {
+        "name": "Rust/Buck2 oya-ci ProwJob registry generator",
+        "generator_config": "specs/oya-ci-prowjob-registry.json",
+        "source_shards": "specs/ci/prow-jobs/*.json"
+      },
+      "source_paths": [
+        "specs/oya-ci-prowjob-registry.json",
+        "specs/ci/prow-jobs/platform-governance.json",
+        "specs/ci/prow-jobs/platform-scm-ci-cd.json",
+        "specs/ci/prow-jobs/platform-release-conveyor.json",
+        "scripts/ci/generate-oya-ci-prowjob-registry.rs"
+      ],
+      "regeneration_command": "scripts/ci/generate-oya-ci-prowjob-registry.rs",
+      "generated_marker": "@generated controller config by scripts/ci/generate-oya-ci-prowjob-registry.rs",
+      "owner_team": "platform-scm-ci-cd",
+      "commit_policy": "Lane-owned shard edits and generated controller config updates must land together; hand edits to the generated YAML are stale-output blockers.",
+      "drift_gate": "//:phase0-merge-conflict-foundation-check",
+      "primary_drift_gate": "//:oya-ci-prowjob-registry-check",
+      "render_command": "rustc --edition=2021 -D warnings scripts/ci/generate-oya-ci-prowjob-registry.rs -o /tmp/generate-oya-ci-prowjob-registry && /tmp/generate-oya-ci-prowjob-registry --render-controller-config > specs/generated/oya-ci-controller-config.generated.yaml",
+      "stale_output_policy": "RED if the generated controller config diverges from registry/shard rendering or loses the generated marker.",
+      "path_claims": {
+        "single_writer_path": "specs/generated/oya-ci-controller-config.generated.yaml",
         "source_pair_paths": [
           "specs/oya-ci-prowjob-registry.json",
           "specs/ci/prow-jobs/platform-governance.json",

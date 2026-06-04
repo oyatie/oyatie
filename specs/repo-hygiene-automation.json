@@ -407,9 +407,10 @@
     "mechanical_resolution": {
       "required": true,
       "pattern": "registry_owned_desired_ci_graph_to_generated_consolidation",
-      "seed_tooling": "buck2 build //:oya-ci-prowjob-registry-check validates specs/oya-ci-prowjob-registry.json, lane-owned specs/ci/prow-jobs shards, and the generated aggregate manifest.",
-      "future_tooling": "Extend the Rust/Buck2 generator from desired ProwJob aggregate manifest to native controller config and, only if still useful, a generated GitHub Actions shadow workflow.",
-      "claim_boundary": "seed generated registry implemented; native Prow controller config emission and live Kubernetes application remain future work."
+      "seed_tooling": "buck2 build //:oya-ci-prowjob-registry-check validates specs/oya-ci-prowjob-registry.json, lane-owned specs/ci/prow-jobs shards, the generated aggregate manifest, and the generated native controller config.",
+      "current_tooling": "Rust/Buck2 generator emits both specs/generated/oya-ci-prowjob-registry.generated.yaml and specs/generated/oya-ci-controller-config.generated.yaml from the desired ProwJob shards.",
+      "future_tooling": "Extend the Rust/Buck2 generator to native-controller CRD/schema tests and, only if still useful, a generated GitHub Actions shadow workflow.",
+      "claim_boundary": "seed generated registry and local/static native controller config emission implemented; live Kubernetes application remains future work."
     },
     "options_considered": [
       {
@@ -503,10 +504,11 @@
     {
       "id": "prow_job_registry_generation",
       "lane": "platform-scm-ci-cd",
-      "action": "Maintain the registry-owned desired ProwJob graph and Rust/Buck2 generator so vertical lanes edit disjoint job shards instead of a single shared CI file.",
-      "conflict_mitigation": "Generated aggregate output is mechanical; source-of-truth rows live in lane-owned specs/ci/prow-jobs shards.",
+      "action": "Maintain the registry-owned desired ProwJob graph, generated native controller config, and Rust/Buck2 generator so vertical lanes edit disjoint job shards instead of a single shared CI file.",
+      "conflict_mitigation": "Generated aggregate and controller-config outputs are mechanical; source-of-truth rows live in lane-owned specs/ci/prow-jobs shards.",
       "seed_check": "buck2 build //:oya-ci-prowjob-registry-check",
-      "seed_registry": "specs/oya-ci-prowjob-registry.json"
+      "seed_registry": "specs/oya-ci-prowjob-registry.json",
+      "generated_controller_config": "specs/generated/oya-ci-controller-config.generated.yaml"
     },
     {
       "id": "python_shell_to_rust_buck2_migration",
