@@ -288,7 +288,8 @@
       "git worktree add",
       "gh pr create --base dev",
       "buck2 build //:repo-hygiene-automation-check",
-      "buck2 build //:buck2-authority-policy-check"
+      "buck2 build //:buck2-authority-policy-check",
+      "buck2 build //:kubernetes-native-anti-pattern-check"
     ],
     "forbidden_active_doc_phrases": [
       "cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness",
