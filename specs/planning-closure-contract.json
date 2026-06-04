@@ -12,7 +12,7 @@
   },
   "implementation_start_rule": {
     "claim_status": "blocked_until_planning_closure_gate_green",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
     "allowed_claim_after_green": "The planning phase is closed enough to begin implementation without implementation-time product, architecture, sequencing, or acceptance-criteria invention.",
     "forbidden_claims_before_green": [
       "implementation-ready",

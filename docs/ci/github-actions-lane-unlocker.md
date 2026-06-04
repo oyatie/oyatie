@@ -59,8 +59,9 @@ infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD
 
 The `doc-staleness-inventory-unit-tests` target runs the Rust unit tests under
 Buck2 with host `rustc`, so the same command works in macOS worktrees and on the
-GitHub ARM runner. The native `rust_test` target remains checked in for the
-Linux Buck2 Rust lane, but it is not required for local macOS hygiene evidence.
+GitHub ARM runner. It intentionally avoids requiring a native `rust_test` target
+until the Buck2 Rust platform/toolchain shape is normalized across local macOS
+and Linux CI lanes.
 
 Rust coverage remains LLVM source-based coverage through Buck2 targets. The
 serialized bootstrap installs `llvm-tools-preview`, so `llvm-profdata` and
@@ -98,13 +99,12 @@ After the Cloud IdP stabilizes, create a deliberate migration lane to rewrite an
 The bridge runs repo hygiene as local/static evidence:
 
 ```bash
-python3 scripts/ci/assert-repo-hygiene-automation.py --json
 buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
 buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
 buck2 build //:repo-hygiene-automation-check
 ```
 
-This covers git/worktree, branch/merge, repository publication, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene. The stale-document command uses full Git history to inventory docs/specs older than three days and emits update/archive/delete candidates for follow-up PRs. It inventories by default and does not delete tracked files, mutate live branch protection, or scale Kubernetes workloads.
+This covers git/worktree, branch/merge, repository publication, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene. The repo-hygiene checker itself is Rust compiled by Buck2, with Rust mutation-style tests for stale active-authority phrases, security-backlog drift, and retired exact-name misuse. The stale-document command uses full Git history to inventory docs/specs older than three days and emits update/archive/delete candidates for follow-up PRs. It inventories by default and does not delete tracked files, mutate live branch protection, or scale Kubernetes workloads.
 
 New parallel-fanout automation is Rust/Buck2-first. Existing Python or shell
 checks are migration backlog or bootstrap exceptions only; do not add another

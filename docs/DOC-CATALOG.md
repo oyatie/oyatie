@@ -18,7 +18,6 @@ doc_status: published
 Documentation sprawl is now governed by [`/specs/repo-hygiene-automation.json`](../specs/repo-hygiene-automation.json) and the tombstone registry [`/specs/retired-external-substrate-registry.json`](../specs/retired-external-substrate-registry.json). Run:
 
 ```sh
-python3 scripts/ci/assert-repo-hygiene-automation.py --json
 buck2 build //:repo-hygiene-automation-check
 ```
 

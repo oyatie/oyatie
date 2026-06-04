@@ -44,7 +44,6 @@ jobs:
           case "${{ matrix.lane }}" in
             governance)
               python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
-              python3 scripts/ci/assert-repo-hygiene-automation.py --json
               buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
               buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
               python3 scripts/ci/apply-third-party-durable-handedits.py
@@ -78,7 +77,6 @@ jobs:
       - name: Aggregate bridge evidence
         run: |
           python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
-          python3 scripts/ci/assert-repo-hygiene-automation.py --json
           buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
           buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
           buck2 build //:github-lane-unlocker-bridge-check //:repo-hygiene-automation-check
@@ -97,7 +95,6 @@ jobs:
       - name: Validate dry-run bridge only
         run: |
           python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
-          python3 scripts/ci/assert-repo-hygiene-automation.py --json
           buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
           buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
           buck2 build //:github-lane-unlocker-bridge-check //:repo-hygiene-automation-check

@@ -521,7 +521,7 @@
       "mutate live branch protection only through an explicit external-change step",
       "scale down Kubernetes pods only after namespace/workload scope is explicit"
     ],
-    "automated_hygiene": "python3 scripts/ci/assert-repo-hygiene-automation.py --json and buck2 build //:repo-hygiene-automation-check",
+    "automated_hygiene": "buck2 build //:repo-hygiene-automation-check",
     "doc_sprawl_policy": "root docs stay pointer-thin; stale docs older than 3 days are audit/archive candidates; exact retired-substrate names are centralized in /specs/retired-external-substrate-registry.json."
   },
   "repo_hygiene_automation_ref": "/specs/repo-hygiene-automation.json",

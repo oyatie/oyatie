@@ -10,7 +10,7 @@ genrule(
 # Buck2 root BUCK dialect rejects def-based src helpers in this repository;
 # keep current service CI files explicitly declared here, while
 # specs/buck2-authority-policy.json expands command_scan_globs
-# (cloud/*/ci/Jenkinsfile, oya/*/ci/Jenkinsfile) in the Python scanner.
+# (cloud/*/ci/Jenkinsfile, oya/*/ci/Jenkinsfile) in the legacy policy scanner.
 genrule(
     name = "buck2-authority-policy-check",
     srcs = {
@@ -57,7 +57,8 @@ genrule(
         "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
         "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
         "docs/ci/github-actions-lane-unlocker.md": "docs/ci/github-actions-lane-unlocker.md",
-        "scripts/ci/assert-repo-hygiene-automation.py": "scripts/ci/assert-repo-hygiene-automation.py",
+        "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
+        "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
         "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
         "tools/oya-doc-staleness-inventory-app/BUCK": "//tools/oya-doc-staleness-inventory-app:BUCK",
@@ -362,7 +363,8 @@ genrule(
 genrule(
     name = "repo-hygiene-automation-check",
     srcs = {
-        "scripts/ci/assert-repo-hygiene-automation.py": "scripts/ci/assert-repo-hygiene-automation.py",
+        "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
+        "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
         "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
@@ -387,7 +389,10 @@ genrule(
         "BUCK": "BUCK",
     },
     out = "repo-hygiene-automation-check.json",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/assert-repo-hygiene-automation.py --json > $OUT",
+    cmd = "mkdir -p $TMP/repo-hygiene-automation && rustc --edition=2021 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o $TMP/repo-hygiene-automation/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/repo_hygiene_automation_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o $TMP/repo-hygiene-automation/assert-repo-hygiene-automation && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-repo-hygiene-automation --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
     visibility = ["PUBLIC"],
 )
 
