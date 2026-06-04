@@ -690,13 +690,13 @@ pub fn evaluate(config: &Config) -> Evaluation {
         check_expected_string(
             automation_mapping,
             "override_kill_switch_check_script",
-            "scripts/ci/assert-override-kill-switch.py",
+            "scripts/ci/assert-override-kill-switch.rs",
             &mut evaluation.failures,
         );
         check_expected_string(
             automation_mapping,
             "override_kill_switch_test",
-            "scripts/tests/phase0_override_kill_switch_check.test.sh",
+            "scripts/tests/phase0_override_kill_switch_check.rs",
             &mut evaluation.failures,
         );
         check_expected_string(

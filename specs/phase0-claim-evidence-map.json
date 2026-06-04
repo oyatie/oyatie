@@ -150,7 +150,7 @@
         "P0.0/AC-0.0/T0.0 specify required cloud-ci context and negative fixtures",
         "Live rebaseline shows branch protection now includes oya-ci-required, but required_status_checks.checks binds it to app_id=null and PR #455 reports no candidate-SHA checks; reported status metadata / legacy bridge inventory still includes oya-verify and affected-only paths",
         "specs/phase0-ci-enforcement-baseline.json records current P0.0 RED gap packet and T0.0 fixture paths",
-        "scripts/ci/assert-override-kill-switch.py and //:phase0-override-kill-switch-check execute the local override/kill-switch RED/GREEN fixture contract with p0_0_green=false/phase0_complete=false",
+        "scripts/ci/assert-override-kill-switch.rs and //:phase0-override-kill-switch-check execute the local override/kill-switch RED/GREEN fixture contract with p0_0_green=false/phase0_complete=false",
         "scripts/ci/assert-trusted-target-inventory.py and //:phase0-trusted-target-inventory-check execute the local trusted target-inventory RED/GREEN fixture contract with candidate PR bytes treated as data only and p0_0_green=false/phase0_complete=false",
         "scripts/ci/assert-result-bundle-output.py and //:phase0-result-bundle-output-check execute the local structured result-bundle RED/false-green fixture contract with status_mutation_performed=false, p0_0_green=false, and phase0_complete=false"
       ],

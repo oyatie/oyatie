@@ -251,8 +251,8 @@
     "scripts/ci/assert-required-status-source.rs",
     "scripts/ci/assert-tenant-pipeline-isolation.rs",
     "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
-    "scripts/ci/assert-override-kill-switch.py",
-    "scripts/tests/phase0_override_kill_switch_check.test.sh",
+    "scripts/ci/assert-override-kill-switch.rs",
+    "scripts/tests/phase0_override_kill_switch_check.rs",
     "scripts/ci/assert-trusted-target-inventory.py",
     "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
     "scripts/ci/assert-result-bundle-output.py",
@@ -405,7 +405,7 @@
       "phase0_required_status_source_check.rs",
       "phase0-tenant-isolation-fixture-check",
       "phase0_tenant_isolation_fixture_check.rs",
-      "phase0_override_kill_switch_check.test.sh",
+      "phase0_override_kill_switch_check.rs",
       "phase0-override-kill-switch-check",
       "phase0-trusted-target-inventory-check",
       "phase0_trusted_target_inventory_check.test.sh",
@@ -745,7 +745,7 @@
       "red_fixture_missing_expected_tenant_violation_fails_closed",
       "matrix_and_coverage_preserve_tenant_isolation_gate_contract"
     ],
-    "scripts/ci/assert-override-kill-switch.py": [
+    "scripts/ci/assert-override-kill-switch.rs": [
       "override/kill-switch fixture evidence only",
       "ttl_expires_at",
       "reviewer_acknowledgment",
@@ -758,12 +758,12 @@
       "p0_0_green",
       "phase0_complete"
     ],
-    "scripts/tests/phase0_override_kill_switch_check.test.sh": [
-      "bad-schema-missing-no-new-oya-cli.json",
-      "bad-good-fixture-missing-ttl.json",
-      "bad-good-fixture-new-oya-cli.json",
-      "bad-red-fixture-missing-expected-override-violation.json",
-      "phase0 override/kill-switch fixture checks passed"
+    "scripts/tests/phase0_override_kill_switch_check.rs": [
+      "schema_missing_no_new_oya_cli_required_field_fails_closed",
+      "good_fixture_missing_ttl_fails_closed",
+      "good_fixture_new_oya_cli_surface_fails_closed",
+      "red_fixture_missing_expected_override_violation_fails_closed",
+      "matrix_and_coverage_preserve_override_gate_contract"
     ],
     "scripts/ci/assert-trusted-target-inventory.py": [
       "trusted target-inventory fixture evidence only",
