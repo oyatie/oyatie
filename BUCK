@@ -323,6 +323,7 @@ genrule(
         "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md": "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
         "docs/standards/brief-template.md": "docs/standards/brief-template.md",
         "docs/standards/agentic-dev-team-optimization.md": "docs/standards/agentic-dev-team-optimization.md",
+        "docs/standards/ci-lanes.md": "docs/standards/ci-lanes.md",
         "docs/DOC-CATALOG.md": "docs/DOC-CATALOG.md",
         "docs/MASTERPLAN.md": "docs/MASTERPLAN.md",
         "docs/AGENTS.md": "docs/AGENTS.md",
