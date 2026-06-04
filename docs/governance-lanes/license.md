@@ -7,6 +7,7 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every workspace crate declares an SPDX-valid `Apache-2.0` license.
+- repository_default_boundary: Root [`/LICENSE`](../../LICENSE) is the repository-default proprietary IP posture; this lane verifies crate/package metadata and dependency-policy compatibility only, and does not grant a repository-wide open-source license.
 - enforces: STANDARD/repo-license-policy; AGENTS.md fitness-lane `oya-governance-license`.
 - kernel_crate: `oya-governance-license-kernel` — `CrateLicense { crate_id, license_expression, manifest_path }`, verdict `LicenseFitnessReport { crates_checked, missing, invalid }`.
 - runner_path: `tools/oya-governance-license`
@@ -60,3 +61,7 @@ where
     Ok(LicenseFitnessReport { crates_checked: crates.len(), missing: 0 })
 }
 ```
+
+## Repository-default license boundary
+
+The root [`/LICENSE`](../../LICENSE) is the repository-default IP posture: proprietary, all rights reserved, and not an open-source license. This governance lane remains intentionally narrower: it validates crate/package metadata and dependency/license-policy compatibility for Rust workspace members. An `Apache-2.0` package-manifest value or third-party notice applies only where an explicit file-level or component-level notice grants it; it does not relicense the repository as a whole.

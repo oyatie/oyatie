@@ -1,0 +1,59 @@
+{
+  "change_id": "repository-proprietary-license-1780531904",
+  "change_class_id": "CC-7",
+  "summary": "Add a repository-default proprietary, all-rights-reserved LICENSE and clarify that existing Apache-2.0 crate metadata is scoped package/dependency policy, not a repository-wide open-source grant.",
+  "scope": [
+    "LICENSE",
+    "README.md",
+    "docs/governance-lanes/license.md",
+    "docs/decisions/ADR-0013-product-license-policy.md"
+  ],
+  "claim_boundary": "This change adds a root proprietary license posture and documentation boundaries only. It does not provide attorney review, relicense third-party materials, sweep every package manifest, change dependency allow-lists, publish packages, or mutate branch protection/CI settings.",
+  "source_basis": [
+    {
+      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository",
+      "use": "GitHub documentation basis for treating explicit repository licensing as important and distinguishing public repository visibility from license grants."
+    },
+    {
+      "url": "https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/",
+      "use": "SPDX reference basis for using a custom LicenseRef identifier rather than falsely claiming a standard OSI license."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "One root LICENSE is the default authority, with only two narrow documentation clarifications to prevent package metadata confusion.",
+    "F2_hyperscaler": "The posture protects first-party platform IP while preserving explicit third-party/component notices required for commercial software supply chains.",
+    "F3_adversarial": "The license text explicitly rejects implied grants from hosting settings, package metadata, informal communications, and public visibility.",
+    "F4_api_contract": "No runtime API, package manifest, crate dependency, or service contract changed.",
+    "F5_quality": "The edit is deterministic text/docs only and was checked for required markers plus whitespace validity.",
+    "F6_operations": "Operators and agents now have a root-level license file and README pointer for repository-default IP handling.",
+    "F7_security_privacy": "The text reserves rights around confidential materials, trade secrets, access-control notices, security findings, and unauthorized extraction.",
+    "F8_supply_chain": "Third-party and explicit component notices remain scoped exceptions; the change does not relicense dependencies or remove SBOM/dependency-license policy.",
+    "F9_testing": "Validation covered root license existence, SPDX LicenseRef marker, all-rights-reserved marker, README pointer, governance lane boundary, ADR-0013 boundary, diff hygiene, and Buck2 license-policy library builds.",
+    "F10_ci_cd": "No CI workflow or branch protection settings changed for this license-only slice.",
+    "F11_observability": "No live service or telemetry behavior changed.",
+    "F13_reversibility": "The change is isolated to one new root file and three docs references; rollback is a single commit revert."
+  },
+  "verification": [
+    {
+      "command": "git diff --check -- LICENSE README.md docs/governance-lanes/license.md docs/decisions/ADR-0013-product-license-policy.md",
+      "result": "pass"
+    },
+    {
+      "command": "python3 inline marker check for LICENSE, README, governance lane, and ADR-0013 boundaries",
+      "result": "pass",
+      "evidence": "root_license_exists, license_ref_present, all_rights_reserved, no_public_license_granted, README_license_section, governance_lane_boundary, and adr0013_boundary all passed."
+    },
+    {
+      "command": "buck2 build //libs/oya-check-license-policy:oya-check-license-policy //libs/oya-governance-license-policy-kernel:oya-governance-license-policy-kernel --show-output",
+      "result": "pass",
+      "evidence": "Build ID 0baec779-c386-4c13-bb77-2db46b0610f1 succeeded; both license-policy Rust library targets produced rmeta outputs."
+    }
+  ],
+  "non_claims": [
+    "No attorney review is claimed.",
+    "No package manifest relicensing sweep is claimed.",
+    "No third-party material is relicensed.",
+    "No GitHub branch protection, CI, Kubernetes, or deployment mutation was performed.",
+    "A cargo-based license command was intentionally blocked by repo policy; Buck2 verification was used instead."
+  ]
+}

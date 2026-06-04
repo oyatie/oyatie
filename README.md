@@ -12,3 +12,10 @@ cargo run -p oya-dev-cli -- demo
 ```
 
 The current runnable slice is W-Foundation: tenancy, identity, data-use boundary, cell routing, audit chain, capability policy, regional packs, Object Graph, and idempotent outbox.
+
+## License
+
+This repository is proprietary and all rights are reserved. See [`LICENSE`](LICENSE)
+for the repository-default IP posture. Third-party materials and files/components
+with explicit license notices remain governed by those notices for those materials
+only.
