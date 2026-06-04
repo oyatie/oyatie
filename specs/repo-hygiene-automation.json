@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T22:05:32Z",
+  "updated_at": "2026-06-04T22:55:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -29,7 +29,15 @@
       "trusted_target_inventory_before_candidate_checkout",
       "generated_lane_shards_with_merge_queue",
       "slo_gated_progressive_delivery",
-      "observability_first_control_loops"
+      "observability_first_control_loops",
+      "lease_based_controller_coordination",
+      "ttl_and_owner_reference_cleanup",
+      "topology_spread_and_dedicated_node_pools",
+      "pdb_backed_graceful_disruption",
+      "api_priority_fairness_for_control_planes",
+      "watch_cache_informers_over_polling",
+      "rbac_minimal_roles_per_job_and_controller",
+      "kms_encrypted_secrets_and_external_secret_boundary"
     ],
     "rejected_anti_patterns": [
       "candidate_owned_manual_status_or_merge_truth",
@@ -46,7 +54,15 @@
       "direct_deploy_from_ci_job",
       "kubectl_as_cd_or_admission_bypass",
       "kubernetes_api_as_application_database",
-      "unbounded_parallelism_without_fairness"
+      "unbounded_parallelism_without_fairness",
+      "process_local_leader_or_sticky_controller_lock",
+      "finished_jobs_and_orphaned_resources_left_forever",
+      "unconstrained_topology_or_node_pool_placement",
+      "force_delete_or_pdb_bypass_for_service_workloads",
+      "api_server_polling_flood_or_unbounded_watch_clients",
+      "cluster_admin_or_wildcard_rbac_for_runners",
+      "kubernetes_secret_as_long_lived_app_database",
+      "manual_cleanup_sweeps_as_primary_lifecycle"
     ],
     "claim_boundary": "local_static_guardrail_only_no_live_mutation"
   },
