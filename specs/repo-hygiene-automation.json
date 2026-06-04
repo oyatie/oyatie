@@ -329,6 +329,79 @@
     "cargo_projection": "local_advisory_per_tool_manifest_without_root_workspace_edit_until_generated_consolidation",
     "rationale": "Buck2 remains the build/test/check authority; Rust tools reduce ad-hoc script drift and make fanout contracts easier to test under Buck2."
   },
+  "existing_non_rust_surface_inventory": {
+    "status": "classified_no_durable_authority",
+    "updated_at": "2026-06-04T00:00:00Z",
+    "tracked_typescript_pnpm_mjs_count": 23,
+    "tracked_nonvendored_python_shell_count": 55,
+    "typescript_pnpm_mjs_disposition": "retirement_review_product_prototype_or_advisory_only_not_merge_authority",
+    "python_shell_disposition": "bootstrap_host_prelude_reference_or_pending_rust_buck2_rewrite_only_not_merge_authority",
+    "pnpm_or_package_json_repo_authority": false,
+    "typescript_runtime_merge_authority": false,
+    "python_shell_durable_gate_authority": false,
+    "rewrite_active_gate_surfaces_to_rust_buck2": true,
+    "deletion_rule": "Do not delete recent product prototypes blindly. Classify the surface, identify consumers, preserve or port useful behavior into Rust/Buck2/native product code, then delete/archive in a separate evidence-backed PR.",
+    "current_typescript_pnpm_mjs_surface_groups": [
+      {
+        "id": "app_shell_frontend_prototype",
+        "path_prefix": "oya/app-shell-frontend/",
+        "disposition": "recent product prototype; pnpm metadata is local product-prototype metadata only and is not repo/build/merge authority"
+      },
+      {
+        "id": "workflow_studio_sveltekit_templates",
+        "path_prefix": "oya/workflow-studio/clients/web-sveltekit/src/templates/",
+        "disposition": "template/client prototype surface under retirement review; not CI or monorepo authority"
+      },
+      {
+        "id": "feature_flags_reference_clients",
+        "path_prefix": "oya/feature-flags/reference-implementations/",
+        "disposition": "reference implementation only; Rust service contract remains durable authority"
+      },
+      {
+        "id": "advisory_mjs_doc_contract_tools",
+        "path_prefix": "scripts/",
+        "disposition": "advisory document/API lint/codegen helpers; active durable checks should move to Rust/Buck2 before becoming merge authority"
+      }
+    ],
+    "current_python_shell_surface_groups": [
+      {
+        "id": "bootstrap_host_prelude",
+        "path_prefixes": [
+          "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+          "tools/hook-bootstrap/",
+          "infra/talos/",
+          "infra/capi/"
+        ],
+        "disposition": "host bootstrap/prelude only; keep deletion criteria and do not promote to durable gate authority"
+      },
+      {
+        "id": "rust_backed_wrappers",
+        "path_prefixes": [
+          "scripts/ci/regen-third-party.sh",
+          "scripts/hooks/pre-push.sh"
+        ],
+        "disposition": "thin wrapper around Rust/Buck2 checks; replacement target is direct Rust/Buck2 invocation"
+      },
+      {
+        "id": "pending_rust_buck2_rewrite",
+        "path_prefixes": [
+          "scripts/",
+          "tools/hooks/",
+          "tools/oci/",
+          "tools/anchor-sweep/",
+          "registry/stub-audit/"
+        ],
+        "disposition": "not merge authority until rewritten or rehosted as Rust libraries/Buck2 targets"
+      },
+      {
+        "id": "reference_clients",
+        "path_prefixes": [
+          "oya/feature-flags/reference-implementations/python-asyncio-client.py"
+        ],
+        "disposition": "reference client only; not platform authority"
+      }
+    ]
+  },
   "shared_surface_mitigation": {
     "decision": "Keep canonical root docs and GitHub workflow pointer-thin; route detail to vertical-owned shards and generated_consolidation outputs so parallel lanes do not repeatedly edit the same shared files.",
     "mechanical_resolution": {

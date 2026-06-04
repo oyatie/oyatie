@@ -124,6 +124,73 @@ const REQUIRED_SECURITY_BACKLOG_IDS: &[&str] = &[
     "sandboxed_runtimes",
 ];
 
+const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
+    (
+        "\"existing_non_rust_surface_inventory\"",
+        "repo hygiene spec must classify existing non-Rust surfaces",
+    ),
+    (
+        "\"status\": \"classified_no_durable_authority\"",
+        "non-Rust surface inventory must be classified as no durable authority",
+    ),
+    (
+        "\"tracked_typescript_pnpm_mjs_count\": 23",
+        "non-Rust surface inventory must record the audited TS/pnpm/MJS count",
+    ),
+    (
+        "\"tracked_nonvendored_python_shell_count\": 55",
+        "non-Rust surface inventory must record the audited non-vendored Python/shell count",
+    ),
+    (
+        "\"pnpm_or_package_json_repo_authority\": false",
+        "pnpm/package metadata must not be repo authority",
+    ),
+    (
+        "\"typescript_runtime_merge_authority\": false",
+        "TypeScript runtime surfaces must not be merge authority",
+    ),
+    (
+        "\"python_shell_durable_gate_authority\": false",
+        "Python/shell surfaces must not be durable gate authority",
+    ),
+    (
+        "\"rewrite_active_gate_surfaces_to_rust_buck2\": true",
+        "active gate surfaces must retain the Rust/Buck2 rewrite requirement",
+    ),
+    (
+        "\"app_shell_frontend_prototype\"",
+        "app-shell TypeScript/pnpm prototype surface must be classified",
+    ),
+    (
+        "\"workflow_studio_sveltekit_templates\"",
+        "workflow-studio TypeScript template surface must be classified",
+    ),
+    (
+        "\"feature_flags_reference_clients\"",
+        "feature-flag reference clients must be classified",
+    ),
+    (
+        "\"advisory_mjs_doc_contract_tools\"",
+        "MJS doc/API helpers must be classified as advisory",
+    ),
+    (
+        "\"bootstrap_host_prelude\"",
+        "bootstrap/prelude script surface must be classified",
+    ),
+    (
+        "\"rust_backed_wrappers\"",
+        "Rust-backed shell wrappers must be classified",
+    ),
+    (
+        "\"pending_rust_buck2_rewrite\"",
+        "pending Python/shell rewrite surface must be classified",
+    ),
+    (
+        "\"not merge authority until rewritten or rehosted as Rust libraries/Buck2 targets\"",
+        "pending script surfaces must be denied merge authority until Rust/Buck2 rewrite",
+    ),
+];
+
 const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "legacy_python_shell_gate_surfaces",
     "shared_ci_workflow_surface",
@@ -460,6 +527,10 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             &mut failures,
             format!("spec missing bool {key}={value}"),
         );
+    }
+
+    for (needle, message) in REQUIRED_NON_RUST_SURFACE_NEEDLES {
+        require_contains(spec, needle, &mut failures, message);
     }
 
     for domain in REQUIRED_DOMAINS {
