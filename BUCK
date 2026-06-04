@@ -79,8 +79,8 @@ genrule(
         "specs/hyperscaler-production-readiness-claim-contract.json": "specs/hyperscaler-production-readiness-claim-contract.json",
         "scripts/ci/assert-phase0-aggregate-exit.py": "scripts/ci/assert-phase0-aggregate-exit.py",
         "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
-        "scripts/ci/assert-rust-testing-standard.py": "scripts/ci/assert-rust-testing-standard.py",
-        "scripts/tests/rust_testing_standard_check.test.sh": "scripts/tests/rust_testing_standard_check.test.sh",
+        "scripts/ci/assert-rust-testing-standard.rs": "scripts/ci/assert-rust-testing-standard.rs",
+        "scripts/tests/rust_testing_standard_check.rs": "scripts/tests/rust_testing_standard_check.rs",
         "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs": "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs",
         "scripts/tests/rust_llvm_coverage_runner_contract_check.rs": "scripts/tests/rust_llvm_coverage_runner_contract_check.rs",
         "specs/rust-llvm-coverage-runner-contract.json": "specs/rust-llvm-coverage-runner-contract.json",
@@ -496,12 +496,12 @@ genrule(
 genrule(
     name = "rust-testing-standard-check",
     srcs = {
-        "scripts/ci/assert-rust-testing-standard.py": "scripts/ci/assert-rust-testing-standard.py",
-        "scripts/tests/rust_testing_standard_check.test.sh": "scripts/tests/rust_testing_standard_check.test.sh",
+        "scripts/ci/assert-rust-testing-standard.rs": "scripts/ci/assert-rust-testing-standard.rs",
+        "scripts/tests/rust_testing_standard_check.rs": "scripts/tests/rust_testing_standard_check.rs",
         "docs/standards/testing.md": "docs/standards/testing.md",
     },
     out = "rust-testing-standard-check.txt",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_testing_standard_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/rust-testing-standard && rustc --edition=2021 -D warnings scripts/tests/rust_testing_standard_check.rs --test -o $TMP/rust-testing-standard/rust_testing_standard_check && OYA_REPO_ROOT=$PWD $TMP/rust-testing-standard/rust_testing_standard_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-rust-testing-standard.rs -o $TMP/rust-testing-standard/assert-rust-testing-standard && OYA_REPO_ROOT=$PWD $TMP/rust-testing-standard/assert-rust-testing-standard --doc docs/standards/testing.md --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -588,6 +588,8 @@ genrule(
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "BUCK": "BUCK",
         "docs/standards/testing.md": "docs/standards/testing.md",
+        "scripts/ci/assert-rust-testing-standard.rs": "scripts/ci/assert-rust-testing-standard.rs",
+        "scripts/tests/rust_testing_standard_check.rs": "scripts/tests/rust_testing_standard_check.rs",
         "scripts/ci/assert-language-discipline.rs": "scripts/ci/assert-language-discipline.rs",
         "scripts/tests/language_discipline_check.rs": "scripts/tests/language_discipline_check.rs",
         "scripts/ci/assert-d1-seam-contracts.rs": "scripts/ci/assert-d1-seam-contracts.rs",
