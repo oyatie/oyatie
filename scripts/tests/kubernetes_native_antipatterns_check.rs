@@ -22,9 +22,9 @@ fn checked_in_kubernetes_native_antipattern_contract_passes() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert!(evaluation.failures.is_empty());
-    assert_eq!(evaluation.required_patterns, 17);
-    assert_eq!(evaluation.forbidden_anti_patterns, 20);
-    assert_eq!(evaluation.official_sources, 14);
+    assert_eq!(evaluation.required_patterns, 25);
+    assert_eq!(evaluation.forbidden_anti_patterns, 28);
+    assert_eq!(evaluation.official_sources, 23);
 }
 
 #[test]
@@ -98,6 +98,34 @@ fn contract_rejects_missing_stateless_cache_and_runner_antipatterns() {
             .iter()
             .any(|failure| failure
                 == "forbidden_anti_patterns missing stateful_runner_workspace_pool"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn contract_rejects_missing_supply_chain_and_fairness_guardrails() {
+    let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json")
+        .replace(
+            "\"id\": \"hermetic_provenance_signed_artifacts\"",
+            "\"id\": \"hermetic_provenance_signed_artifacts_removed\"",
+        )
+        .replace(
+            "\"id\": \"unbounded_parallelism_without_fairness\"",
+            "\"id\": \"unbounded_parallelism_without_fairness_removed\"",
+        );
+    let failures = gate::contract_failures(&contract);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure
+                == "required_patterns missing hermetic_provenance_signed_artifacts"),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures.iter().any(|failure| failure
+            == "forbidden_anti_patterns missing unbounded_parallelism_without_fairness"),
         "{:?}",
         failures
     );
