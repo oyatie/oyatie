@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T16:20:00Z",
+  "updated_at": "2026-06-04T20:12:49Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -315,7 +315,9 @@
       "oya-git",
       "oya-vcs",
       "oya-vcs-admission",
-      "oya-dev-cli:oya -- gate validate planning-closure"
+      "oya-dev-cli:oya -- gate validate planning-closure",
+      "oya gate validate planning-closure",
+      "oya gate validate product-prd-json"
     ],
     "scan_scope": [
       "AGENTS.md",
@@ -329,6 +331,7 @@
       "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
       "specs/agent-operating-contract.json",
       "specs/phase0-auto-merge-after-ci.json",
+      "specs/microservices/tenant-rbac.json",
       ".github/branch-protection.yaml",
       "infra/branch-protection/dev.json",
       "specs/bespoke-cloud-toolchain-services.json",

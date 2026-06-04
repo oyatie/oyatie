@@ -333,6 +333,23 @@ fn active_doc_phrase_scanner_rejects_retired_oya_vcs_projection_commands() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_retired_tenant_rbac_gate_refs() {
+    let failures = gate::active_doc_phrase_failures(
+        "specs/microservices/tenant-rbac.json",
+        "test_ref: oya gate validate planning-closure; also oya gate validate product-prd-json",
+    );
+    for expected in [
+        "oya gate validate planning-closure",
+        "oya gate validate product-prd-json",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn active_doc_phrase_scanner_is_case_insensitive() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",
