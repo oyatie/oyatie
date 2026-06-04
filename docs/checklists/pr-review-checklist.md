@@ -45,7 +45,7 @@ doc_status: published
 
 ### `*.ts` / `*.tsx` / `*.js` / `*.jsx` (typescript-reviewer)
 - [ ] `pnpm lint` PASS.
-- [ ] `pnpm test` (Node 20) PASS.
+- [ ] `pnpm test` (Node 24 LTS by default; Node 26 Current only when the lane explicitly opts in) PASS.
 - [ ] Types narrow; no `any` (or with `// eslint-disable` + justification).
 
 ### `*.py` (python-reviewer)

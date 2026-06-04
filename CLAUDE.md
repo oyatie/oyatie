@@ -14,7 +14,7 @@ Manual Wave-B bootstrap note (prose only): until the webhook receiver is deploye
 
 ## Skill discovery doctrine (inherited)
 
-Lifecycle skills + agent personas + intent→skill mapping are inherited from `addyosmani/agent-skills` (MIT), vendored at `tools/agent-skills/`. Universal skill catalog (`tools/agent-skills/skills/<name>/SKILL.md`), personas (`tools/agent-skills/agents/<role>.md`), and orchestration doctrine (`tools/agent-skills/AGENTS.md`) are the inherited base. Oyatie governance (`docs/AGENTS.md` operating contract + multispectrum review v2.4.0 + authority chain + Foundry pipeline + ADRs 0145+) OVERLAYS and WINS on conflict per `feedback_bominal_inheritance_precedence`. See `tools/agent-skills/INHERITANCE.md` for the full pattern, `tools/hooks/_canonical-primitives.md` for the Lifecycle Skill Map injected at SessionStart, and `tools/hook-bootstrap/install.sh` for the single-command bootstrap.
+Lifecycle skills + agent personas + intent→skill mapping are inherited from `addyosmani/agent-skills` (MIT), vendored at `tools/agent-skills/`. Universal skill catalog (`tools/agent-skills/skills/<name>/SKILL.md`), personas (`tools/agent-skills/agents/<role>.md`), and orchestration doctrine (`tools/agent-skills/AGENTS.md`) are the inherited base. Oyatie governance (`docs/AGENTS.md` operating contract + multispectrum review v2.4.0 + authority chain + Foundry pipeline + ADRs 0145+) OVERLAYS and WINS on conflict per `feedback_bominal_inheritance_precedence`. See `tools/agent-skills/INHERITANCE.md` for the full pattern, `specs/canonical-primitives.json` for canonical primitives injected at SessionStart, and `tools/hook-bootstrap/install.sh` for the single-command bootstrap.
 
 `tools/agent-skills/CLAUDE.md` is INFORMATIONAL only — it describes the vendored upstream subtree, not this oyatie repository. This file (root `CLAUDE.md`) remains the authoritative project-rules source.
 
@@ -41,3 +41,18 @@ substrate_adrs:
   - docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md
   - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
 <!-- agent-instructions:end -->
+
+## Oyatie tool examples
+
+```sh
+buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check
+python3 scripts/ci/assert-repo-hygiene-automation.py --json
+buck2 build //:repo-hygiene-automation-check
+infra/ci/buck2-affected-gate.sh origin/dev HEAD
+```
+
+Use `specs/repo-hygiene-automation.json` for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene. Use `/specs/retired-external-substrate-registry.json` for tombstoned external substrate names; active guidance should say "retired external SCM/CI/CD substrates" rather than reintroducing old authorities.
+
+
+
+ADR-0516 temporary GitHub/GitHub Actions lane-unlocker: no retired external SCM/CI/CD substrates interim authority; Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now; no shared contract or shared surface until a later rewrite and rewire of Oyatie products to consume the Cloud IdP. Buck2 remains build/test/check authority; native cutover remains cloud native, Kubernetes-native, hyperscaler native.

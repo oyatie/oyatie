@@ -5,7 +5,9 @@ planning_impact: true
 deciders: founder, council-architecture
 date: 2026-05-29
 owner: council-architecture
-supersedes: [ADR-0358]
+supersedes: []
+amends:
+  - ADR-0358
 superseded_by: []
 amends: []
 related: [ADR-0358, ADR-0408, ADR-0359, ADR-0346, ADR-0111, ADR-0181, ADR-0357, ADR-0092]
@@ -77,3 +79,22 @@ Research grounding (2026-05): Buck2 is Meta's open-source successor to Buck, the
 ## Consequences
 
 Positive: the canonical build graph moves to a Rust-native engine (Buck2) consistent with the kernel+OS bespoke-Rust ambition and the Meta-monorepo production pedigree; graph-exact incrementality + content-addressed correctness; a self-hostable NativeLink RBE that passes the hyperscaler-lens with no managed-service dependency; `Cargo.toml`/`Cargo.lock` remain the human dependency SSOT (Reindeer is a generator off it). Negative/cost: we accept the Reindeer buckification step (an extra generated `third-party/rust/BUCK` that must be regenerated and reviewed when deps change) — the exact objection ADR-0358 raised; the migration across the first-party crates is a substantial program; Buck2 first-party Rust + NativeLink operational maturity must be proven before any parity claim. Neutral: ADR-0358's strangler-fig posture, define-production-100-first phase, and masterplan planning authority are unchanged; ADR-0359 (Jenkins-sole-CI) is complementary (Jenkins drives Buck2 — see ADR-0408); the machine-readable specs that encode Bazel are superseded inputs awaiting a separate generated-artifact update; this ADR is doctrine, not the migration execution.
+
+## 2026-06-02 Buck2 authority amendment
+
+Founder directive on 2026-06-02 supersedes any earlier wording in this ADR that
+made Cargo, Cargo-named status contexts, `oya verify`, or `oya gate` active
+scripts/CI/CD/build authority. Active scripts, CI, CD, and build/test lanes use
+Buck2. The protected-branch target context is `oya-ci-required` from trusted
+cloud-ci/oya-ci controller or bridge state, and `oya verify` / `oya gate` may be
+local or bridge governance evidence only.
+
+Cargo is allowed only for the documented production release image/binary
+optimization exception: release profile or custom release profile, target triple,
+binary-size/codegen/allocator evidence, commit SHA, and an explicit non-claim label
+that the run is not CI merge authority. Cargo metadata/vendor remains permitted only
+for Buck2/Reindeer graph generation and cannot satisfy build/test/merge authority.
+
+This amendment is enforced locally by `specs/buck2-authority-policy.json` and the
+Buck2 target `//:buck2-authority-policy-check`; live Phase-0 exit still requires the
+cloud-ci/oya-ci `oya-ci-required` required context and evidence packet.

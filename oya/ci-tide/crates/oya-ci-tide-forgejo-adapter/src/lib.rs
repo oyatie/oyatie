@@ -24,7 +24,7 @@
 //! ## Pattern
 //!
 //! Lifted from `oya-ci-controller-forgejo-adapter`: same reqwest blocking
-//! client, same `Authorization: token` header, same 200/201/204 acceptance,
+//! client, same `Authorization: token` header, same 200/202/204 acceptance,
 //! same `KernelError::DownstreamTransport`-equivalent error mapping.
 //!
 //! ## ADR-0083 Tier-3
@@ -242,6 +242,9 @@ struct ForgejoMergeBody {
     #[serde(rename = "Do")]
     do_method: String,
     merge_message_field: String,
+    merge_when_checks_succeed: bool,
+    delete_branch_after_merge: bool,
+    head_commit_id: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -324,11 +327,25 @@ impl ForgejoClient for ForgejoHttpClient {
         Ok(pr_from_wire(pr))
     }
 
-    fn merge_pull(&self, pr_number: u64, method: MergeMethod) -> Result<()> {
+    fn merge_pull(&self, pr_number: u64, method: MergeMethod, head_sha: &str) -> Result<()> {
+        if method != MergeMethod::Squash {
+            return Err(TideError::InvalidInput(
+                "P0.0 Tide auto-merge scheduling is squash-only".to_owned(),
+            ));
+        }
+        if !is_full_hex_commit_id(head_sha) {
+            return Err(TideError::InvalidInput(
+                "head_sha must be a full SHA-1 (40 hex) or SHA-256 (64 hex) commit id".to_owned(),
+            ));
+        }
+
         let url = format!("{}/pulls/{}/merge", self.repo_url(), pr_number);
         let body = ForgejoMergeBody {
             do_method: method.as_str().to_owned(),
             merge_message_field: String::new(),
+            merge_when_checks_succeed: true,
+            delete_branch_after_merge: true,
+            head_commit_id: head_sha.to_owned(),
         };
         let resp = self
             .client
@@ -340,8 +357,10 @@ impl ForgejoClient for ForgejoHttpClient {
             .map_err(|e| TideError::Downstream(format!("merge_pull POST: {e}")))?;
 
         let status = resp.status();
-        // Forgejo returns 200 OK or 204 No Content on success.
-        if status.as_u16() == 200 || status.as_u16() == 204 {
+        // Forgejo returns 200 OK / 204 No Content on immediate merge, and
+        // deployments may return 202 Accepted when merge is scheduled until
+        // required checks succeed.
+        if status.as_u16() == 200 || status.as_u16() == 202 || status.as_u16() == 204 {
             return Ok(());
         }
 
@@ -425,9 +444,50 @@ fn compare_status_recency(
     left.0.cmp(&right.0)
 }
 
+fn is_full_hex_commit_id(value: &str) -> bool {
+    matches!(value.len(), 40 | 64) && value.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn forgejo_merge_body_schedules_after_ci_and_pins_head() {
+        let full_sha = "abc123def4567890abc123def4567890abc123de";
+        let body = ForgejoMergeBody {
+            do_method: MergeMethod::Squash.as_str().to_owned(),
+            merge_message_field: String::new(),
+            merge_when_checks_succeed: true,
+            delete_branch_after_merge: true,
+            head_commit_id: full_sha.to_owned(),
+        };
+
+        let value = serde_json::to_value(&body).expect("merge body serializes");
+        assert_eq!(
+            value,
+            json!({
+                "Do": "squash",
+                "merge_message_field": "",
+                "merge_when_checks_succeed": true,
+                "delete_branch_after_merge": true,
+                "head_commit_id": full_sha
+            })
+        );
+    }
+
+    #[test]
+    fn full_hex_commit_id_validation_rejects_short_or_non_hex_values() {
+        assert!(is_full_hex_commit_id("abc123def4567890abc123def4567890abc123de"));
+        assert!(is_full_hex_commit_id(
+            "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+        ));
+        assert!(!is_full_hex_commit_id("abc123def456"));
+        assert!(!is_full_hex_commit_id(
+            "abc123def4567890abc123def4567890abc123dg"
+        ));
+    }
 
     #[test]
     fn parses_next_link_from_multi_link_header() {

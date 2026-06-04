@@ -1,0 +1,141 @@
+{
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "change_id": "platform-readiness-p0-0-merge-conflict-foundation",
+  "change_class_id": "CC-5",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T09:25:40Z",
+  "timestamp_unix": 1780478740,
+  "freshness_unix": 1780478559,
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha": "29124c0530e64468b71dbefca4e4c6520928f284",
+  "scope": "AC-0.15 local/static merge-conflict foundation: generated-artifact seed registry, conflict taxonomy, merge-tree readiness fixtures, one-lane-one-path/path-overlap checks, and Phase-1 Tide batching non-claims.",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/buck2-authority-policy.json",
+    "specs/generated-artifact-registry.json",
+    "specs/red-green-fixture-contract.json",
+    "https://git-scm.com/docs/git-merge-tree"
+  ],
+  "claim_boundary": {
+    "generated_artifact_registry_published": true,
+    "merge_tree_fixture_contract_measured": true,
+    "registered_artifact_count": 1,
+    "taxonomy_count": 7,
+    "fixture_count": 5,
+    "expected_green_fixture_count": 1,
+    "expected_red_fixture_count": 4,
+    "red_green_entry_count": 16,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "phase1_tide_batching_claimed": false,
+    "full_repo_generated_artifact_coverage_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "implementation_summary": [
+    "Added specs/generated-artifact-registry.json as the AC-0.15/P0.9 seed registry with third-party/BUCK source/regeneration ownership, conflict taxonomy, one-lane-one-path policy, and git merge-tree --write-tree readiness boundaries.",
+    "Added GOOD/BAD fixtures for clean merge-tree readiness, path overlap without review, unregistered generated artifact changes, Phase-1 Tide batching overclaim, and merge-tree conflict.",
+    "Added scripts/ci/assert-phase0-merge-conflict-foundation.py plus shell regressions to fail closed on forbidden green claims, missing Buck2 target wiring, missing generated-artifact sources, bad RED fixtures made clean, and GOOD fixtures made conflicting.",
+    "Added //:phase0-merge-conflict-foundation-check, registered it with the AC-0.14 red/green fixture contract, AC-0.16 automation matrix/coverage registry, Buck2 authority policy, and root-hub pointers.",
+    "Exported third-party//:BUCK and captured that export in scripts/ci/third-party-buckify-handedits.patch so the generated artifact can be inspected inside Buck2 actions without adding a new CLI surface."
+  ],
+  "observed_measurement": {
+    "registered_artifact_count": 1,
+    "taxonomy_count": 7,
+    "fixture_count": 5,
+    "expected_green_fixture_count": 1,
+    "expected_red_fixture_count": 4,
+    "observed_bad_fixture_violations": [
+      "path_overlap_without_review",
+      "generated_artifact_missing_registry",
+      "phase1_tide_batched_projection_overclaim",
+      "merge_tree_conflict"
+    ],
+    "red_green_entry_count": 16,
+    "automation_ratchet_row_count": 32,
+    "failures": []
+  },
+  "verification": [
+    {
+      "artifact_dir": "/tmp/p0-0-merge-conflict-foundation-red-1780477543",
+      "command": "missing generated-artifact registry/checker/Buck2 target RED probe",
+      "script_exit_code": 2,
+      "buck2_exit_code": 3,
+      "buck2_build_id": "f2382ef9-cf97-4966-b511-8e002330394c",
+      "expected_failure": true,
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-merge-conflict-foundation-green-1780478248",
+      "command": "direct checker, shell regressions, red-green registry, automation ratchet, Buck2 authority policy, and root pointer parse",
+      "observed": {
+        "registered_artifact_count": 1,
+        "fixture_count": 5,
+        "red_green_entry_count": 16,
+        "ratchet_rows": 32
+      },
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-merge-conflict-foundation-final-1780478559",
+      "command": "final git diff, py_compile, direct AC-0.15 checker, shell regressions, red-green shell, automation ratchet shell, Buck2 authority policy, root pointer parse, third-party//:BUCK export build, and Buck2 target bundle",
+      "buck2_build_ids": [
+        "94b35d09-6bbe-4d26-b438-6cf18b52b70c",
+        "4876f521-ca0c-42a8-bb0e-a64c0db1db3e"
+      ],
+      "buck2_build_id": "4876f521-ca0c-42a8-bb0e-a64c0db1db3e",
+      "observed": {
+        "registered_artifact_count": 1,
+        "fixture_count": 5,
+        "red_green_entry_count": 16,
+        "ratchet_rows": 32
+      },
+      "status": "passed"
+    }
+  ],
+  "review_facets": {
+    "F1_correctness": "PASS: checker reports one registered generated artifact, seven taxonomy entries, one GOOD fixture, four BAD fixtures, and zero failures.",
+    "F2_security": "PASS: local static JSON/text checks only; no credentials, network calls, status posting, branch-protection mutation, or provider merge action.",
+    "F3_reliability": "PASS: BAD regressions cover path overlap, unregistered generated output, Phase-1 Tide batching overclaim, merge-tree conflict, missing target wiring, missing sources, and forbidden p0_0_green=true.",
+    "F4_operability": "PASS: Buck2 target emits JSON and dependent policy/ratchet/red-green targets pass.",
+    "F5_observability": "PASS: output includes registry, taxonomy, fixture, red/green, and claim-boundary counts plus per-fixture observed violations.",
+    "F6_maintainability": "PASS: generated-artifact registry is data-driven; checker validates required fields rather than hardcoding one fixture path only.",
+    "F7_performance": "PASS: static file/JSON checks plus Buck2 genrules; no expensive Rust compile or live CI call.",
+    "F8_architecture": "PASS: AC-0.15 is Buck2-owned and source-pairs third-party/BUCK through Reindeer/regeneration metadata while preserving cloud-ci as merge authority.",
+    "F9_compliance": "PASS: no new oya CLI surface; local oya gate/verify remains non-authority; P0.0/Phase-0/live/hyperscaler claims remain false.",
+    "F10_docs": "PASS: machine-readable registry and root-hub pointer record the decision and future expansion boundary.",
+    "F11_tests": "PASS: direct checker, shell regressions, red-green shell, automation ratchet shell, Buck2 authority policy, third-party export build, and Buck2 bundle passed.",
+    "F12_reserved": "N/A",
+    "F13_claim_boundary": "PASS: full-repo generated-artifact coverage, Phase-1 Tide batching, live required context, P0.0 green, Phase-0 complete, production-ready, and hyperscaler-grade claims are explicitly false."
+  },
+  "files_changed": [
+    "BUCK",
+    "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+    "scripts/ci/third-party-buckify-handedits.patch",
+    "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "specs/generated-artifact-registry.json",
+    "specs/fixtures/phase0-merge-conflict-foundation/*.json",
+    "specs/buck2-authority-policy.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/red-green-fixture-contract.json",
+    "specs/root-hub-pointers.json",
+    "third-party/BUCK",
+    "evidence/multispectrum/platform-readiness-p0-0-merge-conflict-foundation-1780478740.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "known_gaps": [
+    "This is local/static AC-0.15 seed evidence, not proof that trusted cloud-ci/oya-ci ran on the candidate SHA.",
+    "The generated-artifact registry intentionally covers a seed artifact; full-repo generated-artifact coverage remains false.",
+    "Phase-1 Tide projected-state batching/auto-rebase is not claimed by these merge-tree fixtures.",
+    "No live oya-ci-required status was posted by trusted cloud-ci/oya-ci on this candidate SHA."
+  ]
+}

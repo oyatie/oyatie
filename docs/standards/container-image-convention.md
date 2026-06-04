@@ -1,78 +1,66 @@
-# Container image convention (ADR-0146)
+# Container image convention (ADR-0146 + ADR-0515)
 
-Authority: ADR-0146 — `gcr.io/distroless/static-debian12:nonroot` is the
-canonical base for every Rust binary container shipped from oyatie.
+Authority: ADR-0146 keeps `gcr.io/distroless/static-debian12:nonroot` as the
+canonical runtime base. ADR-0515 changes image assembly to Buck2-native OCI:
+source → Buck2 target → OCI layout → registry push. Dockerfiles and Cargo build
+commands are not active CI/CD/build authority.
 
-This standard codifies the build pattern that produces a CI-gateable,
-2.5 MB, CVE-trackable, nonroot container per µservice.
+## Canonical Buck2-native pattern
 
-## Canonical multi-stage Dockerfile
-
-```dockerfile
-FROM rust:1.95-slim AS builder
-WORKDIR /build
-COPY . .
-RUN cargo build --release --target x86_64-unknown-linux-musl
-
-FROM gcr.io/distroless/static-debian12:nonroot
-COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/<bin> /app
-USER 65532:65532
-ENTRYPOINT ["/app"]
+```python
+# cloud/<service>/iac/oci/BUCK
+oci_image(
+    name = "<service>-oci",
+    base = ":distroless-base",
+    layers = [":<service>-binary-layer"],
+    entrypoint = ["/usr/local/bin/<service>"],
+    user = "65532:65532",
+)
 ```
+
+The binary layer consumes the service's Buck2 binary target. The push path uses
+`tools/oci/push-oci-image.py` against the OCI layout emitted by Buck2.
 
 ## Required directives
 
 | Directive | Required value | Validator |
 | --- | --- | --- |
-| Final-stage `FROM` | `gcr.io/distroless/static-debian12:nonroot` | `oya gate validate container-base-image` |
-| `USER` | `65532:65532` (or bare `65532`) | same |
+| Base image | `gcr.io/distroless/static-debian12:nonroot` or ADR-approved carve-out | `oya gate validate container-base-image` as local/bridge evidence; cloud-ci owns required status |
+| Runtime user | `65532:65532` (or bare `65532`) | same |
+| Assembly | Buck2-native OCI target | `specs/buck2-authority-policy.json` + `//:buck2-authority-policy-check` |
+| Registry push | `tools/oci/push-oci-image.py` consuming Buck2 output | script/static policy |
 
-The `:debug-nonroot` variant is the only other accepted final-stage
-image. It ships BusyBox so a human can `kubectl exec` into a running
-container for ephemeral debugging without rebuilding the chart. Pre-prod
-builds may declare it; production images must not.
+## Production release optimization exception
 
-## How to adopt for a new µservice
+Cargo may be used only for production release image/binary optimization evidence:
+release profile selection, target triple, binary-size comparison, allocator or codegen
+knob under test, commit SHA, and an explicit non-claim label that the run is not CI
+merge authority. The exception is documented in `specs/buck2-authority-policy.json`
+and grounded in official Rust release-profile/codegen/allocator docs.
 
-1. Copy `microservices/governance/iac/build/Dockerfile.distroless-rust`
-   into `microservices/<ms>/iac/build/Dockerfile` and replace the
-   `<bin>` token with the µservice's binary name.
-2. Wire the build target into the µservice's CI workflow under
-   `.github/workflows/<ms>-build.yml` (when the workflow exists).
-3. Re-run `oya gate validate container-base-image` locally to confirm
-   the lane passes before opening the PR.
+## How to adopt for a new service
 
-## How to migrate an existing µservice
-
-1. Replace the final-stage `FROM` line with the canonical image.
-2. Add `USER 65532:65532` if it is missing.
-3. Ensure the binary is built with
-   `cargo build --release --target x86_64-unknown-linux-musl` so it
-   does not link against glibc.
-4. Run `oya gate validate container-base-image` and address any
-   reported violations.
+1. Put OCI assembly under `cloud/<service>/iac/oci/BUCK` or `oya/<service>/iac/oci/BUCK`.
+2. Consume the service's Buck2 binary target as the layer input.
+3. Wire build/push scripts to `buck2 build --show-full-simple-output //<path>:<service>-oci`
+   and then `tools/oci/push-oci-image.py`.
+4. Add the target to the Buck2 authority policy or service registry when it becomes a
+   required lane.
 
 ## Why distroless and not scratch
 
-`scratch` removes the CA-cert bundle, `/etc/passwd`, and timezone data.
-The platform µservices (foundry-providers, mail, calendar, recordings,
-notes) require all three. ADR-0146 documents the full alternatives
-analysis.
+`scratch` removes the CA-cert bundle, `/etc/passwd`, and timezone data. Most Rust
+services require at least one of those. ADR-0146 documents the alternative analysis;
+ADR-0515 keeps distroless static and moves assembly to Buck2-native OCI.
 
-## Why distroless and not Alpine
+## CI/CD lane
 
-musl/glibc binary-compat risk plus Alpine variants are not
-Google-maintained. We compile Rust against `x86_64-unknown-linux-musl`
-already; pairing static binaries with distroless static gets the
-smallest defensible surface.
+The active lane is Buck2-only:
 
-## CI lane
+```sh
+python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json
+buck2 build //cloud/<service>/iac/oci:<service>-oci
+```
 
-The pre-merge `oya gate validate container-base-image` lane scans every
-`microservices/*/iac/build/Dockerfile*` plus any Helm `values.yaml`
-image stanzas. Violations are surfaced as `NonCanonicalBase`,
-`MissingUser`, or `NonCanonicalUser`.
-
-The lane is also surfaced as a row in
-`registry/quality/lanes.yaml` so the quality-lanes registry stays
-authoritative.
+A live branch-protected claim still requires `oya-ci-required` from cloud-ci/oya-ci;
+local gates and checked-in targets are evidence, not Phase-0 exit authority.

@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
+        "third-party//:async-trait-0.1",
         "third-party//:reqwest",
         "third-party//:serde",
         "third-party//:serde_json",

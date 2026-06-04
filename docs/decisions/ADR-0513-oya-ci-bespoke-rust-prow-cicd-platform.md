@@ -6,6 +6,13 @@ date: 2026-05-30
 owners:
   - council-architecture
   - founder
+supersedes:
+  - ADR-0511
+  - ADR-0380
+  - ADR-0111
+amends:
+  - ADR-0349
+superseded_by: []
 relates:
   - ADR-0380
   - ADR-0111
@@ -84,7 +91,10 @@ script + affected-detection against the PR ref; the PR's code is built as untrus
 weaken its own gate by editing the script or Job spec. Because the controller is a **deployed service**
 (not config on the branch it gates), a bad PR cannot break it — eliminating the self-deadlock (mode 2).
 
-**Phasing.**
+**Phasing.** The 2026-06-02 amendment below narrows the historical phasing: Tide
+admission ownership, `oya-ci-required`, PR-head pinning, mergeability/conflict checks,
+and automatic merge after CI are active Phase-0 contracts now; later Tide phases scale
+projected-state batching, retest, auto-rebase, deck, and plugins.
 - **Phase 0 — Bridge (in progress):** harden Jenkins (`post{aborted}` terminal status — landed; +
   presubmit Jenkinsfile-parse validation, warm image) to stop the bleeding while Phase 1 is built.
 - **Phase 1 — Core (plank+crier):** `oya-ci-controller` spawns a Job per PR, watches it, posts a
@@ -106,3 +116,45 @@ unchanged; the gateway is retained.
 
 **Process rule:** the Phase-1 cutover (replacing the live gate) is a deliberate, founder-gated step,
 verified by a parallel-run (both gates green on the same PRs) before deleting the Jenkins path.
+
+## Supersession
+
+This ADR formally supersedes three prior decisions and amends one:
+
+- **Supersedes ADR-0511** ("CI orchestration = Argo Workflows"): ADR-0511 was Proposed but never
+  Accepted. The bespoke-Rust oya-ci controller is the chosen CI-orchestration direction; Argo
+  Workflows (a CNCF OSS adoption) is superseded in favour of the bespoke-over-OSS doctrine that
+  governs this codebase. The correct half of ADR-0511 — self-hosted, k8s-native CI orchestration,
+  no GitHub Actions SPOF — is retained in spirit; only the chosen implementation changes.
+
+- **Supersedes ADR-0380** ("CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo
+  gating"): ADR-0380 established the Jenkins-farm gate path (generic-webhook-trigger + Groovy
+  pipeline + ephemeral agent pods). That path is being retired as described in Phase 1 of this ADR.
+  The five failure modes documented in this ADR's Context section are precisely the ADR-0380 Jenkins
+  path. On Phase-1 cutover (deletion of the Jenkins gate path), ADR-0380's gate design is fully
+  retired; ADR-0513's oya-ci-controller is the replacement.
+
+- **Supersedes (folds) ADR-0111** ("Merge queue: projected-merge-state + fix-at-any-stage"): the
+  merge-queue algorithm defined in ADR-0111 is subsumed by the `tide` phase of oya-ci (Phase 2).
+  The projected-merge-state invariants, fix-at-any-stage re-validation, and fairness rules from
+  ADR-0111 are the specification input for `oya-ci-merge`; they are not separately implemented.
+
+- **Amends ADR-0349** ("Jenkins (LTS) + ArgoCD canonical CI/CD substrate"): this ADR retires ONLY
+  the Jenkins-CI half of ADR-0349. ArgoCD-CD remains the canonical GitOps CD substrate per
+  ADR-0349 and ADR-0375 and is NOT affected by this supersession. ADR-0349's ArgoCD decisions,
+  OpenTofu module homes, cosign-verify policy, and audit-chain emitter integration are unchanged.
+
+## 2026-06-02 Phase-0 Tide/admission amendment
+
+Founder directive on 2026-06-02 makes Tide ownership an active cloud-ci/oya-ci
+Phase-0 contract, not a deferrable local-process concern. Phase 0 places and
+tests the admission surface: required `oya-ci-required` context, PR-head pinning,
+mergeability/conflict checks, and automatic merge after CI for both Forgejo and
+the GitHub bootstrap mirror. Later phases may still scale batching,
+projected-state retesting, auto-rebase, deck, and plugins, but the ownership and
+auto-merge-after-CI contract are decided now.
+
+This amendment preserves the non-claim boundary: checked-in scripts/specs/tests
+are local/static or bridge enforcement until the trusted cloud-ci/oya-ci
+producer posts `oya-ci-required` and the live forge requires it on the candidate
+SHA.

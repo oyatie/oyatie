@@ -1,0 +1,564 @@
+{
+  "authority_boundary": {
+    "live_blocker": "trusted cloud-ci/oya-ci oya-ci-required context is not yet posted/source-bound on candidate SHAs",
+    "p0_0_green_claimed": false,
+    "phase0_complete_claimed": false,
+    "protected_branch_authority_claimed": false
+  },
+  "change_class_id": "CC-3",
+  "change_id": "platform-readiness-p0-0-required-context-row-contract-1780524331",
+  "commands": {
+    "green": [
+      "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_required_status_source_check.test.sh",
+      "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+      "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_result_bundle_output_check.test.sh",
+      "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-automation-ratchet.py --json",
+      "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/enforce-buck2-authority.py",
+      "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-red-green-fixture-contract.py --json",
+      "python3 -m json.tool specs/phase0-automation-matrix.json",
+      "python3 -m json.tool specs/phase0-automation-coverage-registry.json",
+      "git diff --check",
+      "buck2 build //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:phase0-trusted-target-inventory-check //:phase0-result-bundle-output-check //:phase0-automation-ratchet-check //:buck2-authority-policy-check //:phase0-red-green-fixture-contract-check --show-output"
+    ],
+    "red": "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py"
+  },
+  "facets": {
+    "A_policy_adherence": {
+      "evidence": {
+        "claim_boundary": "Local/static and live-read-only RED evidence now detects app_id=null or untrusted required-status source-app binding. This is not P0.0 green and not protected-branch authority until trusted cloud-ci/oya-ci posts and is source-bound for required oya-ci-required on candidate SHAs.",
+        "coverage_verification_command": "buck2 build //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:phase0-trusted-target-inventory-check //:phase0-result-bundle-output-check",
+        "row_verification_command": "buck2 build //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:phase0-trusted-target-inventory-check //:phase0-result-bundle-output-check"
+      },
+      "status": "pass"
+    },
+    "F10_observability": {
+      "evidence": "Evidence and audit-chain event emitted.",
+      "status": "pass"
+    },
+    "F11_compliance": {
+      "evidence": "Maintains protected-branch authority separation required by ADR-0346 amended local verification policy.",
+      "status": "pass"
+    },
+    "F12_reserved": {
+      "status": "not_applicable"
+    },
+    "F13_reviewability": {
+      "evidence": "Small row-contract slice with TDD RED/GREEN and targeted diff.",
+      "status": "pass"
+    },
+    "F1_correctness": {
+      "evidence": [
+        {
+          "kind": "red",
+          "path": "/tmp/p0-0-required-context-row-contract-red-1780524158",
+          "rc": 1,
+          "stderr_excerpt": [
+            "phase0-ci-baseline-catalog: RED",
+            "- AC-0.0-cloud-ci-required-context row must record combined Buck2 local verification command",
+            "- AC-0.0-cloud-ci-required-context.claim_boundary missing 'not protected-branch authority'",
+            "- AC-0.0 coverage subject must record combined Buck2 command for AC-0.0-cloud-ci-required-context"
+          ]
+        },
+        {
+          "ci_baseline_catalog": {
+            "baseline": "specs/phase0-ci-enforcement-baseline.json",
+            "claim_boundary": {
+              "p0_0_green": false,
+              "phase0_complete": false
+            },
+            "fixture_count": 15,
+            "fixture_directory": "specs/fixtures/phase0-ci-enforcement-baseline",
+            "required_red_green_pairs": 11,
+            "required_status_source_fixtures": 7,
+            "result_bundle_check_target": "//:phase0-result-bundle-output-check",
+            "result_bundle_fixtures": 2,
+            "trusted_target_inventory_check_target": "//:phase0-trusted-target-inventory-check",
+            "trusted_target_inventory_fixtures": 2,
+            "verdict": "PASS"
+          },
+          "kind": "green",
+          "path": "/tmp/p0-0-required-context-row-contract-green-1780524209"
+        }
+      ],
+      "status": "pass"
+    },
+    "F2_test_coverage": {
+      "evidence": {
+        "automation_ratchet": {
+          "allowed_classifications": [
+            "automated_advisory_until_p0_0",
+            "automated_blocking_now",
+            "controller_owned_in_phase_1",
+            "not_automatable_human_judgment"
+          ],
+          "authority_boundary": "automation-ratchet local/static fixture evidence only; this checker never posts statuses, mutates branch protection, or claims live required-context authority",
+          "automation_ratchet_live": false,
+          "coverage_registry": "specs/phase0-automation-coverage-registry.json",
+          "coverage_registry_local_static_proven": true,
+          "coverage_registry_summary": {
+            "coverage_subject_count": 27,
+            "mapped_row_count": 32,
+            "missing_mapped_row_ids": [],
+            "missing_required_subject_ids": [],
+            "required_subject_count": 27,
+            "unmapped_row_ids": [],
+            "violations": []
+          },
+          "failures": [],
+          "fixture_results": [
+            {
+              "expected_verdict": "GREEN",
+              "expected_violations": [],
+              "failures": [],
+              "fixture_id": "TC-0.16-GOOD-human-judgment-with-retirement-path",
+              "fixture_passed": true,
+              "observed_violations": [],
+              "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-human-judgment-with-retirement-path.json"
+            },
+            {
+              "expected_verdict": "RED",
+              "expected_violations": [
+                "enforceable_or_automatable_marked_human_judgment"
+              ],
+              "failures": [],
+              "fixture_id": "TC-0.16-BAD-operator-checklist-for-automatable-rule",
+              "fixture_passed": true,
+              "observed_violations": [
+                "enforceable_or_automatable_marked_human_judgment",
+                "human_judgment_missing_irreducible_reason"
+              ],
+              "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-operator-checklist-for-automatable-rule.json"
+            },
+            {
+              "expected_verdict": "RED",
+              "expected_violations": [
+                "duplicate_row_id",
+                "missing_or_empty_required_field",
+                "unknown_classification"
+              ],
+              "failures": [],
+              "fixture_id": "TC-0.16-BAD-missing-field-unknown-classifier-duplicate",
+              "fixture_passed": true,
+              "observed_violations": [
+                "duplicate_row_id",
+                "missing_or_empty_required_field",
+                "unknown_classification"
+              ],
+              "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json"
+            },
+            {
+              "expected_verdict": "RED",
+              "expected_violations": [
+                "blocking_invariant_mapped_to_oya_cli"
+              ],
+              "failures": [],
+              "fixture_id": "TC-0.16-BAD-oya-cli-authority",
+              "fixture_passed": true,
+              "observed_violations": [
+                "blocking_invariant_mapped_to_oya_cli"
+              ],
+              "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json"
+            },
+            {
+              "expected_verdict": "RED",
+              "expected_violations": [
+                "missing_required_row_id"
+              ],
+              "failures": [],
+              "fixture_id": "TC-0.16-BAD-missing-required-row",
+              "fixture_passed": true,
+              "observed_violations": [
+                "missing_required_row_id"
+              ],
+              "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-required-row.json"
+            },
+            {
+              "expected_verdict": "GREEN",
+              "expected_violations": [],
+              "failures": [],
+              "fixture_id": "TC-0.16-GOOD-coverage-registry",
+              "fixture_passed": true,
+              "observed_violations": [],
+              "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-coverage-registry.json"
+            },
+            {
+              "expected_verdict": "RED",
+              "expected_violations": [
+                "coverage_mapped_row_missing",
+                "green_claim_boundary_without_live_authority",
+                "missing_required_coverage_subject_id"
+              ],
+              "failures": [],
+              "fixture_id": "TC-0.16-BAD-missing-coverage-row",
+              "fixture_passed": true,
+              "observed_violations": [
+                "coverage_mapped_row_missing",
+                "coverage_row_unmapped",
+                "green_claim_boundary_without_live_authority",
+                "missing_required_coverage_subject_id"
+              ],
+              "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-coverage-row.json"
+            }
+          ],
+          "live_required_context_execution_proven": false,
+          "local_fixture_contract_proven": true,
+          "matrix": "specs/phase0-automation-matrix.json",
+          "matrix_summary": {
+            "duplicate_row_ids": [],
+            "required_seed_row_count": 32,
+            "row_count": 32,
+            "violations": []
+          },
+          "p0_0_green": false,
+          "phase0_complete": false,
+          "protected_branch_authority_proven": false,
+          "required_row_fields": [
+            "id",
+            "source_artifact",
+            "requirement",
+            "classification",
+            "owner",
+            "target_gate_or_controller",
+            "blocking_fixture",
+            "retirement_phase",
+            "evidence_path",
+            "no_new_oya_cli_surface"
+          ],
+          "status_mutation_performed": false,
+          "verdict": "PASS"
+        },
+        "buck2_build_id": "668688a3-6941-4881-b30e-5a951768954c",
+        "buck2_targets": [
+          "//:phase0-ci-enforcement-baseline-catalog-check",
+          "//:phase0-required-status-source-check",
+          "//:phase0-trusted-target-inventory-check",
+          "//:phase0-result-bundle-output-check",
+          "//:phase0-automation-ratchet-check",
+          "//:buck2-authority-policy-check",
+          "//:phase0-red-green-fixture-contract-check"
+        ],
+        "red_green_contract": {
+          "authority_boundary": "AC-0.14 local/static RED/GREEN fixture registry evidence only; no status mutation, live required-context authority, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness proven",
+          "buck2_target_count": 26,
+          "contract_spec": "specs/red-green-fixture-contract.json",
+          "entries": [
+            {
+              "automation_matrix_row_id": "AC-0.0-cloud-ci-required-context",
+              "buck2_target": "//:phase0-ci-enforcement-baseline-catalog-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-ci-enforcement-baseline-catalog",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-cloud-ci-required-context",
+              "buck2_target": "//:phase0-required-status-source-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-required-status-source",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": null,
+              "buck2_target": "//:github-auto-merge-after-ci-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-github-required-context-rollup",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.12-aggregate-exit-gate",
+              "buck2_target": "//:phase0-aggregate-exit-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-aggregate-exit",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.16-automation-ratchet",
+              "buck2_target": "//:phase0-automation-ratchet-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-automation-ratchet",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.17-claim-ceiling",
+              "buck2_target": "//:phase0-claim-ceiling-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-claim-ceiling",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-structured-result-bundle",
+              "buck2_target": "//:phase0-result-bundle-output-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-result-bundle-output",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-trusted-target-inventory",
+              "buck2_target": "//:phase0-trusted-target-inventory-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-trusted-target-inventory",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-tenant-pipeline-isolation",
+              "buck2_target": "//:phase0-tenant-isolation-fixture-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-tenant-isolation",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-override-kill-switch",
+              "buck2_target": "//:phase0-override-kill-switch-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-override-kill-switch",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": null,
+              "buck2_target": "//:rust-testing-standard-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "rust-testing-standard",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": null,
+              "buck2_target": "//:rust-llvm-coverage-runner-contract-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "rust-llvm-coverage-runner-contract",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": null,
+              "buck2_target": "//:rust-llvm-coverage-smoke-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "rust-llvm-coverage-smoke",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.13-buck2-cargo-coverage",
+              "buck2_target": "//:buck2-cargo-target-coverage-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "buck2-cargo-target-coverage",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-auto-merge-after-ci",
+              "buck2_target": "//:phase0-auto-merge-after-ci-contract-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-auto-merge-after-ci-contract",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.15-merge-conflict-foundation",
+              "buck2_target": "//:phase0-merge-conflict-foundation-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-merge-conflict-foundation",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.1-service-inventory",
+              "buck2_target": "//:service-root-classifier-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "service-root-classifier",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.2-status-enum-drift",
+              "buck2_target": "//:status-enum-drift-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "status-enum-drift",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.3-adr-hygiene",
+              "buck2_target": "//:adr-hygiene-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "adr-hygiene",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.4-language-discipline",
+              "buck2_target": "//:language-discipline-check",
+              "failures": [],
+              "green_marker_count": 2,
+              "id": "language-discipline",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 2,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.5-d1-contract-files",
+              "buck2_target": "//:d1-seam-contracts-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "d1-seam-contracts",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 2,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.6-effective-dating-kernel",
+              "buck2_target": "//:effective-dating-kernel-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "effective-dating-kernel",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 2,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.8-cross-artifact-agreement",
+              "buck2_target": "//:cross-artifact-agreement-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "cross-artifact-agreement",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 4,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.9-structural-lock-revert",
+              "buck2_target": "//:structural-lock-revert-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "structural-lock-revert",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 4,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.10b-d1-read-your-writes-xfail",
+              "buck2_target": "//:d1-read-your-writes-xfail-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "d1-read-your-writes-xfail",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 3,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.11-who-gates-gates",
+              "buck2_target": "//:who-gates-gates-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "who-gates-gates",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 4,
+              "test_path_count": 1
+            }
+          ],
+          "entry_count": 26,
+          "failures": [],
+          "green_marker_count": 27,
+          "hyperscaler_grade": false,
+          "live_required_context_execution_proven": false,
+          "non_claim_marker_count": 32,
+          "p0_0_green": false,
+          "phase0_complete": false,
+          "production_ready": false,
+          "protected_branch_authority_proven": false,
+          "red_green_fixture_contract_measured": true,
+          "red_marker_count": 40,
+          "status_mutation_performed": false,
+          "verdict": "PASS"
+        }
+      },
+      "status": "pass"
+    },
+    "F3_architecture": {
+      "evidence": "No authority surface moved: live protected-branch/Phase-0 authority remains cloud-ci/oya-ci oya-ci-required; Buck2 command is local/static evidence only.",
+      "status": "pass"
+    },
+    "F4_security": {
+      "evidence": "No new oya CLI surface; required source-app binding remains fail-closed and untrusted app_id=null remains a RED live-read gap.",
+      "status": "pass"
+    },
+    "F5_performance": {
+      "evidence": "Registry/checker-only change.",
+      "status": "not_applicable"
+    },
+    "F6_operability": {
+      "evidence": "Buck2 target now sandboxes coverage registry input used by the baseline catalog checker.",
+      "status": "pass"
+    },
+    "F7_documentation": {
+      "evidence": [
+        "specs/phase0-automation-matrix.json",
+        "specs/phase0-automation-coverage-registry.json"
+      ],
+      "status": "pass"
+    },
+    "F8_dependency": {
+      "evidence": "No dependency added; Buck2-native verification preserved.",
+      "status": "pass"
+    },
+    "F9_migration": {
+      "evidence": "Retirement phase remains P0.0 live cloud-ci/oya-ci required-context cutover.",
+      "status": "pass"
+    }
+  },
+  "sources": [
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://buck2.build/docs/users/commands/build/",
+    "https://github.com/facebookincubator/reindeer"
+  ],
+  "summary": "Bind AC-0.0 required-context seed row and coverage registry to the combined Buck2 local verification command while preserving cloud-ci/oya-ci live authority boundaries.",
+  "timestamp": 1780524331
+}

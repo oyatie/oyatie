@@ -1,0 +1,30 @@
+{
+  "claim_boundary": {
+    "authority": "local_static_coverage_registry_not_live_context",
+    "p0_0_green": true,
+    "phase0_complete": true
+  },
+  "row_ids": [
+    "row-a"
+  ],
+  "required_subject_ids": [
+    "subject-a",
+    "missing-subject"
+  ],
+  "coverage_subjects": [
+    {
+      "id": "subject-a",
+      "mapped_row_ids": [
+        "missing-row"
+      ]
+    }
+  ],
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "missing_required_coverage_subject_id",
+    "coverage_mapped_row_missing",
+    "green_claim_boundary_without_live_authority"
+  ],
+  "fixture_id": "TC-0.16-BAD-missing-coverage-row",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.16.1"
+}

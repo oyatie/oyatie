@@ -6,6 +6,11 @@
 load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
 load("@prelude//rust:cargo_package.bzl", "cargo")
 
+export_file(
+    name = "BUCK",
+    visibility = ["PUBLIC"],
+)
+
 http_archive(
     name = "ahash-0.8.12.crate",
     sha256 = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75",
@@ -883,7 +888,7 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     proc_macro = True,
-    visibility = [],
+    visibility = ["PUBLIC"],
     deps = [
         ":proc-macro2-1",
         ":quote-1",
@@ -1227,6 +1232,12 @@ buildscript_run(
         "LDFLAGS": "-nostartfiles",
         "OPT_LEVEL": "3",
         "PROFILE": "release",
+        # musl-static (#83 musl lane): compile bcm.c against MUSL headers. -nostdlibinc
+        # drops glibc /usr/include (whose stdlib.h redirects strtol->__isoc23_strtol, a
+        # glibc-2.38 symbol undefined when linking musl). cc-crate target-suffixed env =>
+        # only applies to aarch64-musl builds; gnu/darwin builds unaffected.
+        "CC_aarch64_unknown_linux_musl": "clang",
+        "CFLAGS_aarch64_unknown_linux_musl": "--target=aarch64-unknown-linux-musl -nostdlibinc -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
     },
     features = ["prebuilt-nasm"],
     rustc_link_lib = True,
@@ -11517,6 +11528,7 @@ cxx_library(
         # links green on aarch64-linux with -DCFG_TARGET_OS_linux. NOTE: `reindeer buckify`
         # regenerates from the static fixup and WILL wipe this select (TOML can't express it) --
         # re-apply post-buckify (see third-party/fixups/psm/fixups.toml).
+        # The linux branch covers both gnu and musl (both carry os/constraints:linux).
         "prelude//os:linux": [
             "-DCFG_TARGET_OS_linux",
             "-DCFG_TARGET_ARCH_aarch64",
@@ -12936,7 +12948,7 @@ cargo.rust_library(
         "pki_types": ":rustls-pki-types-1",
     },
     rustc_flags = ["@$(location :rustls-0.23-build-script-run[rustc_flags])"],
-    visibility = [],
+    visibility = ["PUBLIC"],
     deps = [
         ":aws-lc-rs-1",
         ":log-0.4",

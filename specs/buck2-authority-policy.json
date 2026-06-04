@@ -1,0 +1,1585 @@
+{
+  "$id": "https://docs.oyatie.com/specs/buck2-authority-policy.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "official_references": [
+      {
+        "name": "Cargo Book \u2014 Profiles",
+        "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
+        "used_for": "Release profile knobs and custom profile selection for the narrow production release optimization exception."
+      },
+      {
+        "name": "rustc Book \u2014 Codegen Options",
+        "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
+        "used_for": "opt-level, LTO, codegen-units, panic strategy, split debuginfo, strip, and related release codegen behavior."
+      },
+      {
+        "name": "rustc Book \u2014 Profile-guided Optimization",
+        "url": "https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html",
+        "used_for": "PGO measurement workflow boundaries for the narrow production release optimization exception."
+      },
+      {
+        "name": "Rust alloc::alloc::GlobalAlloc",
+        "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html",
+        "used_for": "Allocator replacement safety constraints and measurement caveats."
+      },
+      {
+        "name": "Rust Reference \u2014 global_allocator",
+        "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
+        "used_for": "Crate-graph singleton rule and placement for the global allocator attribute."
+      },
+      {
+        "name": "Buck2 docs \u2014 build command",
+        "url": "https://buck2.build/docs/users/commands/build/",
+        "used_for": "Buck2 build command authority for build lanes."
+      },
+      {
+        "name": "Buck2 docs \u2014 test command",
+        "url": "https://buck2.build/docs/users/commands/test/",
+        "used_for": "Buck2 test command authority for test lanes."
+      },
+      {
+        "name": "Rustc Book \u2014 Instrumentation-based Code Coverage",
+        "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+        "used_for": "Records Rust LLVM source-based coverage as the modern coverage direction for AC-0.6 and adjacent Rust gates."
+      },
+      {
+        "name": "Reindeer",
+        "url": "https://github.com/facebookincubator/reindeer",
+        "used_for": "Records Cargo metadata plus generated BUCK graph monorepo ergonomics for advisory local Cargo mutation testing."
+      }
+    ],
+    "owner_team": "platform-toolchain + platform-governance",
+    "related_adrs": [
+      "ADR-0346",
+      "ADR-0361",
+      "ADR-0392",
+      "ADR-0408",
+      "ADR-0513",
+      "ADR-0515",
+      "ADR-0360",
+      "ADR-0363",
+      "ADR-0511",
+      "ADR-0516"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0 + AC-0.0 + AC-0.12 + AC-0.16 + AC-0.17",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0 + T0.12 + T0.16 + T0.17",
+    "source_request": "Founder directive 2026-06-02: scripts, CI, CD, and build use Buck2; do not regress to Cargo; only production release image/binary optimization may use Cargo.",
+    "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
+    "status": "p0_0_static_policy_target_not_live_required_context",
+    "version": "0.1.0",
+    "updated_at": "2026-06-04T00:00:00Z"
+  },
+  "adr_amendment_files": [
+    "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+    "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
+    "docs/decisions/ADR-0392-buck2-canonical-build-graph.md",
+    "docs/decisions/ADR-0408-buck2-driven-ci-cd.md",
+    "docs/decisions/ADR-0515-buck2-native-oci-static-musl-base.md",
+    "docs/decisions/ADR-0360-ci-pipeline-optimization-program.md",
+    "docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+    "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md"
+  ],
+  "allowed_cargo_exceptions": [
+    {
+      "allowed_subcommands": [
+        "build",
+        "rustc"
+      ],
+      "authority_ceiling": "release-artifact optimization evidence only; cannot satisfy CI/CD/build verification, branch protection, or Phase-0 exit",
+      "id": "production-release-image-binary-optimization",
+      "required_markers": [
+        "--release or --profile release-*",
+        "target triple",
+        "binary size before/after",
+        "allocator or codegen setting under test",
+        "commit SHA",
+        "non-claim label that this is not CI merge authority",
+        "representative workload or explicit non-representative label for PGO/allocator experiments",
+        "debug-symbol/backtrace/profiling retention decision when strip or panic settings change",
+        "Buck2 toolchain/target/OCI handoff plan for any selected optimization"
+      ],
+      "scope": "Production release images or binaries only, for optimized binary size, codegen, linking, PGO, and memory allocator measurements."
+    },
+    {
+      "allowed_subcommands": [
+        "metadata",
+        "vendor"
+      ],
+      "authority_ceiling": "metadata input only; not executable build/test authority",
+      "id": "buck2-graph-metadata-only",
+      "required_markers": [
+        "no binary/test/run/check/fmt/clippy output",
+        "generated BUCK review",
+        "Buck2 verification after regen"
+      ],
+      "scope": "Cargo.toml/Cargo.lock metadata extraction for Reindeer/Buck2 third-party graph generation only."
+    }
+  ],
+  "automated_chain": [
+    "scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+    "buck2 build //:buck2-authority-policy-check",
+    "//:phase0-ci-enforcement-baseline-catalog-check",
+    "//:phase0-aggregate-exit-check",
+    "//:phase0-required-status-source-check",
+    "//:phase0-result-bundle-output-check",
+    "//:phase0-trusted-target-inventory-check",
+    "//:phase0-tenant-isolation-fixture-check",
+    "//:phase0-override-kill-switch-check",
+    "//:phase0-red-green-fixture-contract-check",
+    "//:phase0-merge-conflict-foundation-check",
+    "//:service-root-classifier-check",
+    "//:status-enum-drift-check",
+    "//:adr-hygiene-check",
+    "//:phase0-automation-ratchet-check",
+    "//:phase0-claim-ceiling-check",
+    "//:rust-testing-standard-check",
+    "//:rust-llvm-coverage-runner-contract-check",
+    "//:rust-llvm-coverage-smoke-check",
+    "//:buck2-cargo-target-coverage-check",
+    "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+    "//:phase0-auto-merge-after-ci-contract-check",
+    "//:forgejo-auto-merge-after-ci-check",
+    "//:github-auto-merge-after-ci-check",
+    "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests",
+    "cloud-ci/oya-ci oya-ci-required required context after live producer cutover",
+    "//:language-discipline-check",
+    "scripts/ci/assert-language-discipline.rs",
+    "scripts/tests/language_discipline_check.rs",
+    "specs/language-discipline-registry.json",
+    "//:d1-seam-contracts-check",
+    "scripts/ci/assert-d1-seam-contracts.rs",
+    "scripts/tests/d1_seam_contracts_check.rs",
+    "specs/d1-seam-contracts-registry.json",
+    "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
+    "//:effective-dating-kernel-check",
+    "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+    "scripts/ci/assert-effective-dating-kernel.rs",
+    "scripts/tests/effective_dating_kernel_check.rs",
+    "specs/effective-dating-kernel-registry.json",
+    "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs",
+    "//:cross-artifact-agreement-check",
+    "scripts/ci/assert-cross-artifact-agreement.rs",
+    "scripts/tests/cross_artifact_agreement_check.rs",
+    "specs/cross-artifact-agreement-registry.json",
+    "specs/decision-propagation-packets.json",
+    "//:structural-lock-revert-check",
+    "scripts/ci/assert-structural-lock-revert.rs",
+    "scripts/tests/structural_lock_revert_check.rs",
+    "specs/structural-lock-revert-registry.json",
+    "//:d1-read-your-writes-xfail-check",
+    "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+    "scripts/tests/d1_read_your_writes_xfail_check.rs",
+    "specs/d1-read-your-writes-xfail-registry.json",
+    "//:who-gates-gates-check",
+    "scripts/ci/assert-who-gates-gates.rs",
+    "scripts/tests/who_gates_gates_check.rs",
+    "specs/who-gates-gates-registry.json",
+    "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
+    "//:repo-hygiene-automation-check"
+  ],
+  "claim_boundary": {
+    "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "command_scan_files": [
+    ".github/workflows/backbone-microservices-ci.yml",
+    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+    "infra/ci/buck2-affected-gate.sh",
+    "infra/ci/jenkins/farmwide-seed.groovy",
+    "infra/ci/jenkins/codegen-measure-seed.groovy",
+    "infra/ci/jenkins/parallel-lanes-seed.groovy",
+    "infra/ci/jenkins/smoke-seed.groovy",
+    "infra/ci/jenkins/agent-image/Dockerfile",
+    "scripts/branch-protection-apply.sh",
+    "scripts/onprem-bring-up.sh",
+    "scripts/install-trivy-ci.sh",
+    "scripts/supply-chain-adr0039.sh",
+    "scripts/hooks/pre-push.sh",
+    "scripts/ci/enforce-buck2-authority.py",
+    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "scripts/ci/oya-ci-post.sh",
+    "scripts/tests/phase0_required_context_rollup_check.test.sh",
+    "scripts/ci/assert-pr-required-context.py",
+    "scripts/ci/regen-third-party.sh",
+    "scripts/gen_first_party_buck.py",
+    "scripts/agent-pre-push-validate.sh",
+    "scripts/build/build-and-push-cloud-intelligence.sh",
+    "cloud/cloud-intelligence/iac/oci/BUCK",
+    "scripts/asyncapi-lint.mjs",
+    "scripts/proto-lint.mjs",
+    "scripts/validate-adr-shape.mjs",
+    "scripts/validate-foundry-phase00-evidence.mjs",
+    "tools/hooks/no-cargo-enforcer.sh",
+    "Makefile",
+    "docs/TOOLCHAIN.md",
+    "docs/standards/code-style.md",
+    "docs/standards/rust-release-optimization.md",
+    "docs/standards/testing.md",
+    "docs/standards/ci-lanes.md",
+    "docs/standards/release-management.md",
+    "docs/standards/multi-agent-tool-map.md",
+    "docs/security.md",
+    "cloud/cloud-intelligence/Dockerfile",
+    "oya/ci-webhook-gateway/Dockerfile",
+    "oya/governance/iac/build/Dockerfile.distroless-rust",
+    "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json",
+    "scripts/ci/arm-auto-merge.sh",
+    "scripts/trigger-next-queue-automerge.sh",
+    "scripts/check-sequential-pr-merge-conflicts.sh",
+    "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+    "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+    "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+    "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+    "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+    "docs/ci/auto-merge-flow.md",
+    "docs/ci/forge-of-record.md",
+    "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+    "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
+    "specs/phase0-auto-merge-after-ci.json",
+    "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
+    "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs",
+    "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs",
+    "scripts/tests/phase0_required_status_source_check.test.sh",
+    "scripts/ci/assert-required-status-source.py",
+    "scripts/ci/assert-tenant-pipeline-isolation.py",
+    "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+    "scripts/ci/assert-override-kill-switch.py",
+    "scripts/tests/phase0_override_kill_switch_check.test.sh",
+    "scripts/ci/assert-trusted-target-inventory.py",
+    "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+    "scripts/ci/assert-result-bundle-output.py",
+    "scripts/tests/phase0_result_bundle_output_check.test.sh",
+    "scripts/ci/assert-phase0-aggregate-exit.py",
+    "scripts/tests/phase0_aggregate_exit_check.test.sh",
+    "scripts/ci/assert-automation-ratchet.py",
+    "scripts/tests/phase0_automation_ratchet_check.test.sh",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "scripts/ci/assert-claim-ceiling.py",
+    "scripts/tests/phase0_claim_ceiling_check.test.sh",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/hyperscaler-production-readiness-claim-contract.json",
+    "scripts/ci/assert-rust-testing-standard.py",
+    "scripts/tests/rust_testing_standard_check.test.sh",
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
+    "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+    "specs/rust-llvm-coverage-runner-contract.json",
+    "scripts/ci/run-rust-llvm-coverage-smoke.py",
+    "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+    "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
+    "scripts/ci/assert-buck2-cargo-target-coverage.py",
+    "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+    "specs/buck2-cargo-target-coverage.json",
+    "scripts/ci/assert-red-green-fixture-contract.py",
+    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "specs/red-green-fixture-contract.json",
+    "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+    "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+    "specs/generated-artifact-registry.json",
+    "scripts/ci/assert-service-root-classifier.py",
+    "scripts/tests/service_root_classifier_check.test.sh",
+    "specs/service-inventory.json",
+    "specs/phase0-structural-packets.json",
+    "scripts/ci/assert-status-enum-drift.py",
+    "scripts/tests/status_enum_drift_check.test.sh",
+    "specs/status-enum-registry.json",
+    "specs/adr-hygiene-registry.json",
+    "scripts/tests/adr_hygiene_check.test.sh",
+    "scripts/ci/assert-adr-hygiene.py",
+    "scripts/ci/assert-language-discipline.rs",
+    "scripts/tests/language_discipline_check.rs",
+    "specs/language-discipline-registry.json",
+    "scripts/ci/assert-d1-seam-contracts.rs",
+    "scripts/tests/d1_seam_contracts_check.rs",
+    "specs/d1-seam-contracts-registry.json",
+    "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
+    "scripts/ci/assert-effective-dating-kernel.rs",
+    "scripts/tests/effective_dating_kernel_check.rs",
+    "specs/effective-dating-kernel-registry.json",
+    "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs",
+    "oya/ontology/crates/oya-ontology-kernel/src/lib.rs",
+    "oya/ontology/crates/oya-ontology-kernel/BUCK",
+    "scripts/ci/assert-cross-artifact-agreement.rs",
+    "scripts/tests/cross_artifact_agreement_check.rs",
+    "specs/cross-artifact-agreement-registry.json",
+    "specs/decision-propagation-packets.json",
+    "scripts/ci/assert-structural-lock-revert.rs",
+    "scripts/tests/structural_lock_revert_check.rs",
+    "specs/structural-lock-revert-registry.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-good-serialized-structural-lock-revert.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json",
+    "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+    "scripts/tests/d1_read_your_writes_xfail_check.rs",
+    "specs/d1-read-your-writes-xfail-registry.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json",
+    "scripts/ci/assert-who-gates-gates.rs",
+    "scripts/tests/who_gates_gates_check.rs",
+    "specs/who-gates-gates-registry.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json",
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json",
+    ".github/workflows/github-lane-unlocker-ci-cd.yml",
+    "scripts/ci/assert-github-lane-unlocker-bridge.py",
+    "rust-toolchain.toml",
+    "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+    "specs/github-lane-unlocker-bridge.json",
+    "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+    "docs/ci/github-actions-lane-unlocker.md",
+    "infra/branch-protection/dev.json",
+    ".github/branch-protection.yaml",
+    "scripts/ci/assert-repo-hygiene-automation.py",
+    "specs/repo-hygiene-automation.json",
+    "specs/retired-external-substrate-registry.json",
+    "docs/DOC-CATALOG.md",
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/AGENTS.md"
+  ],
+  "command_scan_globs": [
+    "cloud/*/ci/Jenkinsfile",
+    "oya/*/ci/Jenkinsfile"
+  ],
+  "description": "P0.0 non-claim policy for preventing Cargo regression in active CI/CD/build/script lanes. This file is not a green readiness claim; it defines local/static enforcement and the target controller chain.",
+  "forbidden_cargo_subcommands": [
+    "fmt",
+    "check",
+    "clippy",
+    "test",
+    "nextest",
+    "build",
+    "run",
+    "bench",
+    "deny",
+    "cyclonedx",
+    "install",
+    "chef",
+    "leptos",
+    "llvm-cov",
+    "fuzz",
+    "mutants",
+    "pgo"
+  ],
+  "forbidden_status_contexts": [
+    "cargo-fmt",
+    "cargo-check",
+    "cargo-clippy",
+    "cargo-nextest",
+    "cargo-deny",
+    "oya-verify"
+  ],
+  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Active Jenkins service CI lanes under cloud/*/ci and oya/*/ci are scanned and must invoke Buck2 policy/build/test targets, not Cargo. Active Dockerfile and client-manifest command surfaces are scanned and must be Buck2 artifact/runtime wrappers, not Cargo compile/test/install lanes. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install/chef/leptos/llvm-cov/fuzz/mutants/pgo invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence for binary-size, codegen, linking, PGO, or memory allocator measurements. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
+  "required_adr_amendment_text": "2026-06-02 Buck2 authority amendment",
+  "required_anchors": {
+    ".github/workflows/backbone-microservices-ci.yml": [
+      "buck2",
+      "infra/ci/buck2-affected-gate.sh",
+      "scripts/ci/enforce-buck2-authority.py"
+    ],
+    "BUCK": [
+      "buck2-authority-policy-check",
+      "cloud/*/ci/Jenkinsfile",
+      "github-auto-merge-after-ci-check",
+      "oya/*/ci/Jenkinsfile",
+      "phase0_required_context_rollup_check.test.sh",
+      "phase0-required-status-source-check",
+      "phase0_required_status_source_check.test.sh",
+      "phase0-tenant-isolation-fixture-check",
+      "phase0_tenant_isolation_fixture_check.test.sh",
+      "phase0_override_kill_switch_check.test.sh",
+      "phase0-override-kill-switch-check",
+      "phase0-trusted-target-inventory-check",
+      "phase0_trusted_target_inventory_check.test.sh",
+      "phase0-result-bundle-output-check",
+      "phase0_result_bundle_output_check.test.sh",
+      "phase0-aggregate-exit-check",
+      "phase0_aggregate_exit_check.test.sh",
+      "assert-phase0-aggregate-exit.py",
+      "phase0-exit-gate",
+      "phase0-automation-ratchet-check",
+      "phase0_automation_ratchet_check.test.sh",
+      "assert-automation-ratchet.py",
+      "phase0-automation-coverage-registry.json",
+      "phase0-claim-ceiling-check",
+      "phase0_claim_ceiling_check.test.sh",
+      "assert-claim-ceiling.py",
+      "phase0-claim-evidence-map.json",
+      "hyperscaler-production-readiness-claim-contract.json",
+      "rust-testing-standard-check",
+      "assert-rust-testing-standard.py",
+      "rust_testing_standard_check.test.sh",
+      "rust-llvm-coverage-runner-contract-check",
+      "assert-rust-llvm-coverage-runner-contract.py",
+      "rust_llvm_coverage_runner_contract_check.test.sh",
+      "rust-llvm-coverage-runner-contract.json",
+      "rust-llvm-coverage-smoke-check",
+      "run-rust-llvm-coverage-smoke.py",
+      "buck2-cargo-target-coverage-check",
+      "assert-buck2-cargo-target-coverage.py",
+      "buck2_cargo_target_coverage_check.test.sh",
+      "repo_relative_root",
+      "cacheable = False",
+      "remote = False",
+      "phase0-red-green-fixture-contract-check",
+      "assert-red-green-fixture-contract.py",
+      "red_green_fixture_contract_check.test.sh",
+      "red-green-fixture-contract.json",
+      "phase0-merge-conflict-foundation-check",
+      "assert-phase0-merge-conflict-foundation.py",
+      "phase0_merge_conflict_foundation_check.test.sh",
+      "generated-artifact-registry.json",
+      "service-root-classifier-check",
+      "assert-service-root-classifier.py",
+      "service_root_classifier_check.test.sh",
+      "service-inventory.json",
+      "phase0-structural-packets.json",
+      "status-enum-drift-check",
+      "assert-status-enum-drift.py",
+      "status_enum_drift_check.test.sh",
+      "status-enum-registry.json",
+      "adr-hygiene-registry.json",
+      "adr_hygiene_check.test.sh",
+      "assert-adr-hygiene.py",
+      "adr-hygiene-check",
+      "language-discipline-check",
+      "assert-language-discipline.rs",
+      "language_discipline_check.rs",
+      "language-discipline-registry.json",
+      "d1-seam-contracts-check",
+      "assert-d1-seam-contracts.rs",
+      "d1_seam_contracts_check.rs",
+      "d1-seam-contracts-registry.json",
+      "entity_mutation.proto",
+      "workflow_ai_step_invocation.proto",
+      "structural-lock-revert-check",
+      "assert-structural-lock-revert.rs",
+      "structural_lock_revert_check.rs",
+      "structural-lock-revert-registry.json",
+      "who-gates-gates-check",
+      "assert-who-gates-gates.rs",
+      "who_gates_gates_check.rs",
+      "who-gates-gates-registry.json",
+      "phase0-who-gates-gates",
+      "github-lane-unlocker-bridge-check",
+      "assert-github-lane-unlocker-bridge.py",
+      "github-lane-unlocker-bridge.json",
+      "github-actions-lane-unlocker.md",
+      "repo-hygiene-automation-check",
+      "assert-repo-hygiene-automation.py",
+      "repo-hygiene-automation.json"
+    ],
+    "cloud/cloud-intelligence/iac/oci/BUCK": [
+      "oci_image(",
+      "cloud-intelligence-oci",
+      "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-app:cloud-intelligence"
+    ],
+    "docs/TOOLCHAIN.md": [
+      "2026-06-02 Buck2 authority amendment",
+      "Buck2 affected build/test/gate targets",
+      "Cargo metadata may feed generated registry data only; it is not lane authority"
+    ],
+    "docs/security.md": [
+      "blocks raw Cargo executable authority",
+      "Cargo metadata/vendor only as Buck2 graph-generation inputs",
+      "buck2 build //:buck2-authority-policy-check"
+    ],
+    "docs/standards/ci-lanes.md": [
+      "buck2-build",
+      "buck2-test",
+      "Buck2-invoked"
+    ],
+    "docs/standards/code-style.md": [
+      "Buck2 is the active CI/CD/build/test authority for Rust.",
+      "documented production release artifact optimization measurement",
+      "Buck2 graph-generation exception"
+    ],
+    "docs/standards/multi-agent-tool-map.md": [
+      "buck2 build //...",
+      "buck2 test //... --show-output",
+      "Buck2-invoked lint/static-analysis target"
+    ],
+    "docs/standards/release-management.md": [
+      "Buck2 formatting/static-style target",
+      "Buck2 test target inventory",
+      "Buck2-invoked dependency/license/advisory policy targets"
+    ],
+    "docs/standards/rust-release-optimization.md": [
+      "Use Buck2 for all CI, CD, scripts, and build/test lanes.",
+      "release optimization evidence only; not CI merge authority",
+      "If a release optimization is selected, encode it into the Buck2 toolchain/target graph",
+      "Profile-guided optimization is a release-exception candidate",
+      "Avoid `target-cpu = \"native\"` for shared production images",
+      "Do not make the `cargo-pgo` convenience subcommand or its installer step an",
+      "cargo-chef, cargo-leptos, cargo-pgo",
+      "wrappers must be Buck2 targets"
+    ],
+    "docs/standards/testing.md": [
+      "buck2 test //... --show-output",
+      "trusted cloud-ci/oya-ci Buck2 target inventory",
+      "raw Cargo commands are not CI/build/test authority",
+      "Buck2-native LLVM source-based coverage",
+      "Coverage is generated natively through Buck2, not Tarpaulin",
+      "Tarpaulin is not the canonical coverage surface",
+      "MUST NOT be added as required CI/PR evidence",
+      "rustc -C instrument-coverage",
+      "LLVM_PROFILE_FILE",
+      ".profraw",
+      "llvm-profdata",
+      "llvm-cov",
+      "dual Cargo+Buck2",
+      "Local Cargo mutation output is advisory",
+      "reindeer-style generation",
+      "generated-BUCK path",
+      "Adding Tarpaulin as the monorepo coverage authority",
+      "Treating local Cargo mutation testing as merge authority",
+      "//:rust-llvm-coverage-runner-contract-check",
+      "required runner shape"
+    ],
+    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": [
+      "oya-ci-required",
+      "infra/ci/buck2-affected-gate.sh",
+      "scripts/ci/enforce-buck2-authority.py"
+    ],
+    "scripts/agent-pre-push-validate.sh": [
+      "buck2",
+      "infra/ci/buck2-affected-gate.sh",
+      "scripts/ci/enforce-buck2-authority.py"
+    ],
+    "scripts/build/build-and-push-cloud-intelligence.sh": [
+      "buck2",
+      "cloud/cloud-intelligence/iac/oci:cloud-intelligence-oci",
+      "tools/oci/push-oci-image.py"
+    ],
+    "scripts/ci/oya-ci-post.sh": [
+      "oya-ci-required",
+      "infra/ci/buck2-affected-gate.sh",
+      "scripts/ci/enforce-buck2-authority.py"
+    ],
+    "cloud/cloud-intelligence/Dockerfile": [
+      "buck2 build root//cloud/cloud-intelligence/iac/oci:cloud-intelligence-oci",
+      "not build authority",
+      "does not compile",
+      "Buck2-produced binary"
+    ],
+    "oya/ci-webhook-gateway/Dockerfile": [
+      "buck2 build root//oya/ci-webhook-gateway/iac/oci:gateway-oci",
+      "--target-platforms //platforms:linux-aarch64-musl",
+      "not build authority",
+      "not compile Rust",
+      "Buck2-produced musl/static binary"
+    ],
+    "oya/governance/iac/build/Dockerfile.distroless-rust": [
+      "CI/CD/scripts/build lanes must compile",
+      "through Buck2 targets",
+      "does not invoke Cargo",
+      "Production release optimization experiments that use Cargo remain separate"
+    ],
+    "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json": [
+      "\"preferred_dev_runner\": \"buck2\"",
+      "buck2 run root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
+      "buck2 build root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype"
+    ],
+    "scripts/ci/arm-auto-merge.sh": [
+      "--delete-branch-after-merge is fixed to true",
+      "--head-commit is required with --pr-index",
+      "--merge-method is fixed to squash",
+      "REQUIRED_CONTEXT is fixed to oya-ci-required",
+      "REQUIRED_CONTEXT=\"oya-ci-required\"",
+      "head_commit_id",
+      "merge_when_checks_succeed",
+      "validate_pr_ready_for_auto_merge"
+    ],
+    "scripts/trigger-next-queue-automerge.sh": [
+      "--auto --match-head-commit",
+      "--merge-method is fixed to squash",
+      "live branch-protection required contexts drift",
+      "merge_flag=\"--squash\"",
+      "scripts/check-sequential-pr-merge-conflicts.sh",
+      "--fetch-remote",
+      "remote_url_contains_github \"github-mirror\""
+    ],
+    "scripts/check-sequential-pr-merge-conflicts.sh": [
+      "git merge-tree --write-tree",
+      "sequential PR merge simulation",
+      "--fetch-remote <remote>",
+      "git fetch --no-tags \"$fetch_remote\"",
+      "pass --fetch-remote for the GitHub mirror when origin is Forgejo"
+    ],
+    "docs/ci/auto-merge-flow.md": [
+      "oya-ci-required",
+      "--match-head-commit",
+      "head_commit_id",
+      "--fetch-remote github-mirror",
+      "GITHUB_FETCH_REMOTE"
+    ],
+    "docs/ci/forge-of-record.md": [
+      "oya-ci-required",
+      "Legacy Cargo-named contexts",
+      "head_commit_id",
+      "--fetch-remote github-mirror",
+      "GITHUB_FETCH_REMOTE"
+    ],
+    "specs/phase0-auto-merge-after-ci.json": [
+      "--match-head-commit",
+      "//:github-auto-merge-after-ci-check",
+      "merge_when_checks_succeed",
+      "oya-ci-required",
+      "--fetch-remote",
+      "github-mirror"
+    ],
+    "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md": [
+      "2026-06-02 Phase-0 Tide/admission amendment",
+      "automatic merge after CI",
+      "oya-ci-required"
+    ],
+    "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md": [
+      "2026-06-02 Tide deferral correction",
+      "automatic merge after CI",
+      "oya-ci-required"
+    ],
+    "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": [
+      "--merge-method is fixed to squash",
+      "live branch-protection required contexts drift",
+      "oya-ci-required"
+    ],
+    "scripts/tests/forgejo_auto_merge_after_ci.test.sh": [
+      "--merge-method is fixed to squash",
+      "--delete-branch-after-merge is fixed to true",
+      "PR #455 head and mergeability guard passed"
+    ],
+    "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs": [
+      "let required_status_context = DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned();",
+      "let merge_method = MergeMethod::Squash;",
+      "configured_required_status_context_cannot_override_phase0_default",
+      "configured_merge_method_cannot_override_phase0_squash_default"
+    ],
+    "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs": [
+      "&fresh_pr.head_sha",
+      "client.merge_pull"
+    ],
+    "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs": [
+      "merge_when_checks_succeed: true",
+      "delete_branch_after_merge: true",
+      "head_commit_id: head_sha.to_owned()",
+      "P0.0 Tide auto-merge scheduling is squash-only",
+      "is_full_hex_commit_id(head_sha)"
+    ],
+    "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": [
+      "--fetch-remote github-mirror",
+      "failed to fetch PR #455 head from remote origin",
+      "check-sequential-pr-merge-conflicts fetch-remote tests passed"
+    ],
+    "scripts/ci/assert-pr-required-context.py": [
+      "oya-ci-required",
+      "no_status_checks_reported",
+      "missing_required_context",
+      "required_context_not_success",
+      "status-rollup evidence only; this checker never posts statuses",
+      "cloud-ci/oya-ci",
+      "missing_required_context_producer",
+      "untrusted_required_context_producer",
+      "required_context_trusted_producer"
+    ],
+    "scripts/tests/phase0_required_context_rollup_check.test.sh": [
+      "good-oya-ci-required-success.json",
+      "bad-no-checks-reported.json",
+      "no_status_checks_reported",
+      "required_context_not_success",
+      "bad-oya-ci-required-completed-failure.json",
+      "good-nested-cloud-ci-oya-ci-success.json",
+      "missing_required_context_producer",
+      "untrusted_required_context_producer",
+      "bad-oya-ci-required-success-missing-producer.json",
+      "bad-oya-ci-required-success-untrusted-producer.json"
+    ],
+    "scripts/ci/assert-required-status-source.py": [
+      "oya-ci-required",
+      "missing_required_status_source_app",
+      "wildcard_required_status_source_app",
+      "expected_source_app_id_not_configured",
+      "wrong_required_status_source_app",
+      "required-status source binding evidence only; this checker never mutates branch protection or posts statuses"
+    ],
+    "scripts/tests/phase0_required_status_source_check.test.sh": [
+      "good-bound-expected-source-app.json",
+      "bad-null-source-app.json",
+      "missing_required_status_source_app",
+      "wildcard_required_status_source_app",
+      "wrong_required_status_source_app",
+      "expected_source_app_id_not_configured"
+    ],
+    "scripts/ci/assert-tenant-pipeline-isolation.py": [
+      "tenant-isolation fixture evidence only",
+      "identity",
+      "secrets",
+      "runners",
+      "logs_evidence",
+      "tenant_surface_separation_incomplete",
+      "tenant_surfaces_shared",
+      "internal_bypass_without_breakglass",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": [
+      "bad-contract-missing-audit-events.json",
+      "bad-good-fixture-shared-cache.json",
+      "bad-red-fixture-missing-expected-tenant-violation.json",
+      "phase0 tenant-isolation fixture checks passed"
+    ],
+    "scripts/ci/assert-override-kill-switch.py": [
+      "override/kill-switch fixture evidence only",
+      "ttl_expires_at",
+      "reviewer_acknowledgment",
+      "audit_chain_event",
+      "blast_radius_statement",
+      "revert_or_fix_follow_up",
+      "override_missing_context_or_gate",
+      "override_missing_ttl_reviewer_audit_or_revert",
+      "override_new_oya_cli_surface",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_override_kill_switch_check.test.sh": [
+      "bad-schema-missing-no-new-oya-cli.json",
+      "bad-good-fixture-missing-ttl.json",
+      "bad-good-fixture-new-oya-cli.json",
+      "bad-red-fixture-missing-expected-override-violation.json",
+      "phase0 override/kill-switch fixture checks passed"
+    ],
+    "scripts/ci/assert-trusted-target-inventory.py": [
+      "trusted target-inventory fixture evidence only",
+      "trusted_dev_or_controller_state",
+      "candidate_pr_bytes",
+      "candidate_pr_bytes_are_data_only_locally_proven",
+      "trusted_target_inventory_live_authority_proven",
+      "target_inventory_not_trusted",
+      "candidate_can_author_target_inventory",
+      "malformed_buck2_target",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_trusted_target_inventory_check.test.sh": [
+      "bad-schema-extra-inventory-source.json",
+      "bad-good-fixture-extra-top-level-field.json",
+      "bad-good-fixture-short-candidate-sha.json",
+      "bad-good-fixture-candidate-source.json",
+      "bad-red-fixture-missing-expected-trusted-target-violation.json",
+      "phase0 trusted target-inventory fixture checks passed"
+    ],
+    "scripts/ci/assert-result-bundle-output.py": [
+      "structured result-bundle fixture evidence only",
+      "status_mutation_performed",
+      "protected_branch_authority_proven",
+      "trusted_status_producer_live",
+      "missing_cloud_ci_required_context",
+      "untrusted_or_legacy_status_producer",
+      "candidate_bytes_can_weaken_result",
+      "candidate_sourced_gate_definition",
+      "green_claim_boundary_without_live_authority",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_result_bundle_output_check.test.sh": [
+      "bad-schema-missing-producer.json",
+      "bad-schema-context-enum.json",
+      "bad-current-red-claims-green.json",
+      "bad-current-red-live-looking-producer.json",
+      "bad-current-red-empty-fixture-results.json",
+      "bad-false-green-boundary-not-exercised.json",
+      "bad-false-green-fixture-result-matches-red.json",
+      "bad-schema-sha-pattern.json",
+      "bad-current-red-extra-top-level-field.json",
+      "bad-current-red-invalid-sha.json",
+      "bad-current-red-empty-provenance-sources.json",
+      "bad-false-green-red-expected-nonempty-violations.json",
+      "phase0 result-bundle output fixture checks passed"
+    ],
+    "scripts/ci/assert-automation-ratchet.py": [
+      "automation-ratchet local/static fixture evidence only",
+      "coverage_row_unmapped",
+      "missing_required_row_id",
+      "blocking_invariant_mapped_to_oya_cli",
+      "enforceable_or_automatable_marked_human_judgment",
+      "green_claim_boundary_without_live_authority",
+      "automation_ratchet_live",
+      "protected_branch_authority_proven",
+      "status_mutation_performed",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_automation_ratchet_check.test.sh": [
+      "bad-missing-required-row.json",
+      "bad-duplicate-unknown-missing.json",
+      "bad-oya-cli-authority.json",
+      "bad-requirement-oya-authority.json",
+      "bad-source-artifact-oya-authority.json",
+      "bad-coverage-note-oya-authority.json",
+      "bad-coverage-unmapped-row.json",
+      "bad-coverage-unknown-row.json",
+      "bad-coverage-green-claim.json",
+      "bad-oya-fixture-made-good.json",
+      "phase0 automation-ratchet fixture checks passed"
+    ],
+    "specs/phase0-automation-matrix.json": [
+      "AC-0.16-automation-ratchet",
+      "PROCESS-reviewer-multispectrum-evidence",
+      "human_judgment_reason",
+      "no_new_oya_cli_surface",
+      "required_seed_row_ids",
+      "AC-0.12-aggregate-exit-gate",
+      "phase0-aggregate-exit-check",
+      "AC-0.14-red-green-fixture-contract",
+      "phase0-red-green-fixture-contract-check",
+      "AC-0.15-merge-conflict-foundation",
+      "phase0-merge-conflict-foundation-check",
+      "generated-artifact-registry.json",
+      "P0.9-generated-artifact-registry",
+      "AC-0.4-language-discipline",
+      "//:language-discipline-check",
+      "language-discipline-registry.json",
+      "AC-0.5-d1-contract-files",
+      "//:d1-seam-contracts-check",
+      "d1-seam-contracts-registry.json",
+      "AC-0.11-who-gates-gates",
+      "//:who-gates-gates-check",
+      "who-gates-gates-registry.json",
+      "AC-0.10-d1-consistency-token",
+      "buck2 build //:d1-seam-contracts-check",
+      "phase0_consistency_token_presence_required"
+    ],
+    "specs/phase0-automation-coverage-registry.json": [
+      "AC-0.0-trusted-target-inventory",
+      "AC-0.0-structured-result-bundle",
+      "AC-0.0-override-kill-switch",
+      "local_static_coverage_registry_not_live_context",
+      "p0_0_green",
+      "phase0_complete",
+      "AC-0.12",
+      "AC-0.12-aggregate-exit-gate",
+      "phase0-aggregate-exit-check",
+      "AC-0.14",
+      "phase0-red-green-fixture-contract-check",
+      "AC-0.15",
+      "phase0-merge-conflict-foundation-check",
+      "P0.9-generated-artifact-registry",
+      "AC-0.4-language-discipline",
+      "//:language-discipline-check",
+      "language-discipline-registry.json",
+      "AC-0.5-d1-contract-files",
+      "//:d1-seam-contracts-check",
+      "d1-seam-contracts-registry.json",
+      "AC-0.11",
+      "//:who-gates-gates-check",
+      "who-gates-gates-registry.json",
+      "AC-0.10",
+      "consistency_token",
+      "buck2 build //:d1-seam-contracts-check"
+    ],
+    "scripts/ci/assert-claim-ceiling.py": [
+      "claim-ceiling local/static fixture evidence only",
+      "regulated_vocabulary_without_claim_row",
+      "unknown_claim_tier",
+      "forbidden_local_or_oya_evidence_for_mechanical_claim",
+      "performance_claim_without_budget_or_measured_result",
+      "unknown_regulated_term",
+      "claim_ceiling_live",
+      "production_ready",
+      "hyperscaler_grade",
+      "p0_0_green",
+      "phase0_complete",
+      "budget_only_entries",
+      "measured_result_only_entries"
+    ],
+    "scripts/tests/phase0_claim_ceiling_check.test.sh": [
+      "bad-missing-claim-row.json",
+      "bad-unknown-tier-missing-owner.json",
+      "bad-mechanical-local-oya.json",
+      "bad-performance-no-budget.json",
+      "bad-performance-domain-only.json",
+      "bad-production-ready-tier-only.json",
+      "bad-hyperscaler-tier-only.json",
+      "bad-capacity-breakpoint-only.json",
+      "bad-performance-combined-entry.json",
+      "bad-unknown-regulated-term.json",
+      "bad-red-fixture-made-good.json",
+      "phase0 claim-ceiling fixture checks passed"
+    ],
+    "specs/phase0-claim-evidence-map.json": [
+      "AC-0.17",
+      "cloud-ci-claim-ceiling",
+      "phase0-claim-ceiling-check",
+      "regulated_vocabulary",
+      "target_non_claim",
+      "spec_ready",
+      "mechanically enforced",
+      "production_ready",
+      "hyperscaler_grade",
+      "tc-0.17-bad-production-ready-tier-without-measured-result.json",
+      "tc-0.17-bad-hyperscaler-tier-without-measured-result.json",
+      "tc-0.17-bad-capacity-breakpoint-only.json",
+      "tc-0.17-bad-combined-budget-result-entry.json"
+    ],
+    "specs/hyperscaler-production-readiness-claim-contract.json": [
+      "No new oya CLI surface",
+      "Mechanically enforced means branch-protected cloud-ci required context",
+      "production_ready",
+      "hyperscaler_grade",
+      "PERF-CAPACITY"
+    ],
+    "scripts/ci/assert-phase0-aggregate-exit.py": [
+      "AC-0.12 aggregate-exit local/static fixture evidence only",
+      "missing_required_subcondition",
+      "unknown_subcondition",
+      "false_or_non_true_subcondition",
+      "fixture_claims_current_phase0_green",
+      "single_false_case_not_exactly_one_false_subcondition",
+      "missing_case_for_required_subcondition",
+      "aggregate_exit_live",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/phase0_aggregate_exit_check.test.sh": [
+      "tc-0.12-good-all-subconditions-green.json",
+      "tc-0.12-bad-single-false-subconditions.json",
+      "tc-0.12-bad-missing-required-subcondition.json",
+      "tc-0.12-current-red-p0-0-live-context-missing.json",
+      "bad-single-false-missing-case.json",
+      "bad-single-false-multi-false.json",
+      "bad-red-claims-green.json",
+      "phase0 aggregate-exit fixture checks passed"
+    ],
+    "scripts/ci/assert-rust-testing-standard.py": [
+      "local/static documentation-drift evidence only",
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not the canonical coverage surface",
+      "MUST NOT be added as required CI/PR evidence",
+      "Local Cargo mutation output is advisory",
+      "coverage_runner_implemented",
+      "mutation_lane_implemented",
+      "p0_0_green",
+      "phase0_complete",
+      "production_ready",
+      "hyperscaler_grade"
+    ],
+    "scripts/tests/rust_testing_standard_check.test.sh": [
+      "coverage_runner_implemented\": false",
+      "mutation_lane_implemented\": false",
+      "tarpaulin_canonicalized",
+      "local_cargo_mutation_not_advisory",
+      "missing_reindeer_generated_buck",
+      "forbidden_true_claim_p0_0_green"
+    ],
+    "specs/rust-llvm-coverage-runner-contract.json": [
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not required CI/PR coverage evidence",
+      "//:rust-llvm-coverage-runner-contract-check",
+      "trusted cloud-ci/oya-ci Buck2 target inventory",
+      "rustc -C instrument-coverage",
+      "rustc_flags",
+      "LLVM_PROFILE_FILE",
+      "%m-%p",
+      ".profraw",
+      "llvm-profdata",
+      "-sparse",
+      "llvm-cov",
+      "Buck2 Build ID",
+      "changed-file delta",
+      "excluded generated paths",
+      "coverage_report_generated",
+      "coverage_budget_enforced",
+      "p0_0_green",
+      "phase0_complete",
+      "//:rust-llvm-coverage-smoke-check",
+      "rustup llvm-tools component",
+      "ambient_path_llvm_tools_required",
+      "fixture_report_generated",
+      "production_coverage_report_generated"
+    ],
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": [
+      "local/static contract evidence only",
+      "rustc -C instrument-coverage",
+      "LLVM_PROFILE_FILE",
+      "llvm-profdata",
+      "llvm-cov",
+      "coverage_report_generated",
+      "coverage_budget_enforced",
+      "p0_0_green",
+      "phase0_complete",
+      "raw_cargo_command_present_in_contract"
+    ],
+    "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh": [
+      "coverage_runner_contract_proven\": true",
+      "coverage_report_generated\": false",
+      "missing_instrument_coverage_flag",
+      "missing_llvm_profile_file_env",
+      "missing_profile_collision_guard",
+      "missing_llvm_profdata_tool",
+      "missing_llvm_cov_tool",
+      "tarpaulin_noncanonical_boundary_missing"
+    ],
+    "scripts/ci/run-rust-llvm-coverage-smoke.py": [
+      "rustc -C instrument-coverage",
+      "LLVM_PROFILE_FILE",
+      "llvm-profdata",
+      "llvm-cov",
+      "production_coverage_report_generated",
+      "live_required_context_execution_proven"
+    ],
+    "scripts/tests/rust_llvm_coverage_smoke_check.test.sh": [
+      "fixture_coverage_smoke_generated",
+      "production_coverage_report_generated",
+      "ambient_path_llvm_tools_required",
+      "missing_llvm_profdata"
+    ],
+    "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": [
+      "fn classify",
+      "println!"
+    ],
+    "specs/buck2-cargo-target-coverage.json": [
+      "//:buck2-cargo-target-coverage-check",
+      "Cargo.toml",
+      "**/BUCK",
+      "crate_root",
+      "known_divergences",
+      "source_line_coverage_generated",
+      "live_required_context_execution_proven",
+      "p0_0_green",
+      "phase0_complete",
+      "repo_relative_root=true",
+      "cacheable=false",
+      "remote=false",
+      "https://doc.rust-lang.org/cargo/reference/cargo-targets.html",
+      "src/bin/*.rs",
+      "src/bin/*/main.rs",
+      "cargo_autodiscovery_rule"
+    ],
+    "scripts/ci/assert-buck2-cargo-target-coverage.py": [
+      "local/static target-coverage evidence only",
+      "crate_root",
+      "missing_buck2_target_root_mapping",
+      "stale_known_divergence",
+      "source_line_coverage_generated",
+      "live_required_context_execution_proven",
+      "auto_discovery_enabled",
+      "autobins",
+      "src/bin",
+      "workspace_member_glob"
+    ],
+    "scripts/tests/buck2_cargo_target_coverage_check.test.sh": [
+      "target_coverage_measured",
+      "missing_buck2_target_root_mapping",
+      "good-parent-repo",
+      "forbidden_true_or_missing_claim_p0_0_green",
+      "src/bin/tool.rs",
+      "autobins = false",
+      "cargo_target_root_count"
+    ],
+    "scripts/ci/assert-red-green-fixture-contract.py": [
+      "local/static RED/GREEN fixture registry evidence only",
+      "green_markers",
+      "red_markers",
+      "non_claim_markers",
+      "buck2_target_missing",
+      "marker_text_missing",
+      "forbidden_true_or_missing_claim_p0_0_green"
+    ],
+    "scripts/tests/red_green_fixture_contract_check.test.sh": [
+      "red_green_fixture_contract_measured",
+      "remove-red-marker",
+      "stale-marker-text",
+      "missing-target",
+      "forbidden_true_or_missing_claim_p0_0_green"
+    ],
+    "specs/red-green-fixture-contract.json": [
+      "red_green_fixture_contract_measured",
+      "fixture_contract_entries",
+      "green_markers",
+      "red_markers",
+      "non_claim_markers",
+      "//:phase0-red-green-fixture-contract-check",
+      "p0_0_green",
+      "phase0-merge-conflict-foundation",
+      "//:phase0-merge-conflict-foundation-check",
+      "phase0_merge_conflict_foundation_check.test.sh",
+      "language-discipline",
+      "//:language-discipline-check",
+      "new_python_outside_allowlist",
+      "new_shell_outside_allowlist",
+      "d1-seam-contracts",
+      "//:d1-seam-contracts-check",
+      "missing_consistency_token",
+      "proto_required_consistency_token",
+      "who-gates-gates",
+      "//:who-gates-gates-check",
+      "missing_known_bad_fixture",
+      "vacuous_pass_condition",
+      "missing_self_mutation_test",
+      "oya_cli_authority_route"
+    ],
+    "specs/generated-artifact-registry.json": [
+      "generated_artifact_registry_published",
+      "merge_tree_fixture_contract_measured",
+      "git merge-tree --write-tree",
+      "third-party/BUCK",
+      "reindeer.toml",
+      "phase1_tide_batching_claimed",
+      "full_repo_generated_artifact_coverage_proven",
+      "p0_0_green"
+    ],
+    "scripts/ci/assert-phase0-merge-conflict-foundation.py": [
+      "generated_artifact_registry_published",
+      "path_overlap_without_review",
+      "generated_artifact_missing_registry",
+      "phase1_tide_batched_projection_overclaim",
+      "full_repo_generated_artifact_coverage_proven"
+    ],
+    "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": [
+      "TC-0.15-BAD-path-overlap",
+      "path_overlap_without_review",
+      "generated_artifact_missing_registry",
+      "phase1_tide_batched_projection_overclaim",
+      "RED merge-conflict fixture must produce violations"
+    ],
+    "specs/language-discipline-registry.json": [
+      "language_discipline_allowlist_measured",
+      "new_python_outside_allowlist_blocked",
+      "new_shell_outside_allowlist_blocked",
+      "t0_4_cloud_check_backlog_count",
+      "scripts/tests/cloud_control_plane_operation_contract_check.py",
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not the canonical coverage surface",
+      "Dual Cargo.toml + Buck2/Reindeer",
+      "live_required_context_execution_proven",
+      "p0_0_green",
+      "//:language-discipline-check"
+    ],
+    "scripts/ci/assert-language-discipline.rs": [
+      "new_python_outside_allowlist",
+      "new_shell_outside_allowlist",
+      "BACKLOG_OFFENDERS",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/language_discipline_check.rs": [
+      "registry_rejects_p0_green_mutation",
+      "registry_rejects_missing_cloud_backlog_offender",
+      "good_allowlisted_fixture_rejects_disallowed_shell_mutation",
+      "new_shell_outside_allowlist"
+    ],
+    "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json": [
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json": [
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json": [
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-language-discipline/tc-0.4-good-non-script-change.json": [
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/d1-seam-contracts-registry.json": [
+      "d1_seam_contracts_measured",
+      "//:d1-seam-contracts-check",
+      "optional string consistency_token",
+      "phase0_consistency_token_presence_required",
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not the canonical coverage surface",
+      "Dual Cargo.toml + Buck2/Reindeer",
+      "live_required_context_execution_proven",
+      "p0_0_green"
+    ],
+    "scripts/ci/assert-d1-seam-contracts.rs": [
+      "proto_required_consistency_token",
+      "missing_consistency_token",
+      "FALSE_CLAIMS",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/d1_seam_contracts_check.rs": [
+      "a2a_contract_rejects_proto_required_consistency_token",
+      "a2b_contract_rejects_missing_idempotency_key",
+      "bad_fixture_reports_missing_consistency_token",
+      "automation_matrix_maps_ac010_to_d1_seam_gate",
+      "AC-0.10-d1-consistency-token",
+      "buck2 build //:d1-seam-contracts-check"
+    ],
+    "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": [
+      "syntax = \"proto3\";",
+      "package oyatie.d1.a2a.mutation.v1;",
+      "optional string consistency_token = 4;",
+      "TopologyConformanceGate",
+      "AC-0.10b"
+    ],
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": [
+      "syntax = \"proto3\";",
+      "package oyatie.d1.a2b.workflow.v1;",
+      "service WorkflowAiStepInvoker",
+      "idempotency_key",
+      "CedarPrincipal"
+    ],
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-good-d1-seam-contracts.json": [
+      "p0_0_green",
+      "phase0_complete",
+      "consistency_token"
+    ],
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-missing-consistency-token.json": [
+      "p0_0_green",
+      "phase0_complete",
+      "missing_consistency_token"
+    ],
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-proto-required-or-frozen-topology.json": [
+      "p0_0_green",
+      "phase0_complete",
+      "proto_required_consistency_token"
+    ],
+    "specs/effective-dating-kernel-registry.json": [
+      "effective_dating_kernel_measured",
+      "//:effective-dating-kernel-check",
+      "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+      "Buck2-native LLVM source-based coverage",
+      "Tarpaulin is not the canonical coverage surface",
+      "Dual Cargo.toml + Buck2/Reindeer",
+      "live_required_context_execution_proven",
+      "p0_0_green"
+    ],
+    "scripts/ci/assert-effective-dating-kernel.rs": [
+      "kernel_source_failures",
+      "fixture_policy_failures",
+      "FALSE_CLAIMS",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/effective_dating_kernel_check.rs": [
+      "kernel_source_rejects_missing_bitemporal_type",
+      "kernel_source_rejects_missing_as_of_query",
+      "bad_overlap_fixture_reports_overlap_violation",
+      "registry_rejects_phase0_completion_claim"
+    ],
+    "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs": [
+      "pub struct BitemporalRange",
+      "pub struct EffectiveDatedHistory",
+      "pub fn as_of",
+      "OverlappingBitemporalRange",
+      "out_of_order_transaction_time_inserts_are_sorted_and_queryable",
+      "data_class:"
+    ],
+    "oya/ontology/crates/oya-ontology-kernel/src/lib.rs": [
+      "pub mod effective_dating;",
+      "pub use effective_dating::",
+      "EffectiveDatedHistory"
+    ],
+    "oya/ontology/crates/oya-ontology-kernel/BUCK": [
+      "effective-dating-kernel-tests",
+      "rustc --edition=2024 -D warnings",
+      "repo_relative_root = True"
+    ],
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json": [
+      "TC-0.6-GOOD-effective-dating-kernel-bitemporal-as-of",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json": [
+      "overlapping_bitemporal_range",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json": [
+      "clock_skew_determinism_missing",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/d1-read-your-writes-xfail-registry.json": [
+      "d1_read_your_writes_xfail_measured",
+      "//:d1-read-your-writes-xfail-check",
+      "expected_failure_until_phase2_mechanism_lands",
+      "live_d1_conformance_executed",
+      "p0_0_green",
+      "phase0_complete",
+      "hyperscaler_grade"
+    ],
+    "scripts/ci/assert-d1-read-your-writes-xfail.rs": [
+      "AC-0.10b D1 read-your-writes XFAIL classifier",
+      "FALSE_CLAIMS",
+      "d1_read_your_writes_xfail_measured",
+      "missing_consistency_token",
+      "xfail_misclassified_as_pass",
+      "phase2_green_claim_without_live_evidence",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/d1_read_your_writes_xfail_check.rs": [
+      "checked_in_registry_buck_and_fixtures_pass",
+      "good_fixture_is_xfail_without_policy_violations",
+      "pass_classification_without_phase2_is_rejected",
+      "missing_consistency_token_is_rejected",
+      "live_phase2_claim_without_authority_is_rejected"
+    ],
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json": [
+      "expected_failure_until_phase2_mechanism_lands",
+      "consistency_token",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json": [
+      "xfail_misclassified_as_pass",
+      "consistency_token",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json": [
+      "missing_consistency_token",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json": [
+      "phase2_green_claim_without_live_evidence",
+      "live_d1_conformance_claimed",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/who-gates-gates-registry.json": [
+      "who_gates_gates_measured",
+      "//:who-gates-gates-check",
+      "known_bad_fixture_required",
+      "vacuous_pass_guard_required",
+      "gate_self_mutation_test_required",
+      "p0_0_green",
+      "phase0_complete",
+      "hyperscaler_grade"
+    ],
+    "scripts/ci/assert-who-gates-gates.rs": [
+      "AC-0.11 who-gates-the-gates meta-check",
+      "FALSE_CLAIMS",
+      "who_gates_gates_measured",
+      "missing_known_bad_fixture",
+      "vacuous_pass_condition",
+      "oya_cli_authority_route",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "scripts/tests/who_gates_gates_check.rs": [
+      "checked_in_registry_buck_and_fixtures_pass",
+      "registry_rejects_phase0_green_claim",
+      "actual_gate_surface_requires_self_mutations",
+      "missing_known_bad_fixture_is_rejected",
+      "vacuous_pass_condition_is_rejected",
+      "missing_self_mutation_test_is_rejected",
+      "oya_cli_authority_route_is_rejected_case_insensitively"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json": [
+      "TC-0.11.GOOD.known-bad-meta-gate",
+      "expected_verdict",
+      "known_bad_fixtures",
+      "self_mutation_tests",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json": [
+      "missing_known_bad_fixture",
+      "known_bad_fixtures",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json": [
+      "vacuous_pass_condition",
+      "always_true",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json": [
+      "missing_self_mutation_test",
+      "self_mutation_tests",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json": [
+      "oya_cli_authority_route",
+      "oya verify",
+      "no_new_oya_cli_surface",
+      "p0_0_green",
+      "phase0_complete"
+    ],
+    ".github/workflows/github-lane-unlocker-ci-cd.yml": [
+      "github-lane-unlocker-required",
+      "uses: actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: \"true\"",
+      "strategy:",
+      "max-parallel: 4",
+      "matrix:",
+      "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
+      "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
+      "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
+    ],
+    "scripts/ci/assert-github-lane-unlocker-bridge.py": [
+      "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+      "github-lane-unlocker-required",
+      "best_of_existing_systems_not_wholesale_reimplementation",
+      "cloud_native_hyperscaler_fit",
+      "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
+      "auth_shared_substrate_decoupling",
+      "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes",
+      "actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24"
+    ],
+    "specs/github-lane-unlocker-bridge.json": [
+      "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+      "Buck2 remains the build/test/check authority",
+      "best_of_existing_systems_not_wholesale_reimplementation",
+      "loosely_coupled_microservices",
+      "scale_controllers_to_zero_not_delete_pods_blindly",
+      "cloud_and_oyatie_auth_shared_substrates_decoupled_now",
+      "no_shared_contract_or_surface_now",
+      "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes",
+      "actions/checkout@v6",
+      "node26_action_runtime_used"
+    ],
+    "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": [
+      "GitHub/GitHub Actions",
+      "temporary lane-unlocker",
+      "Buck2",
+      "LLVM source-based coverage",
+      "not P0.0 green",
+      "Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now",
+      "no shared contract or shared surface",
+      "rewrite and rewire Oyatie products to consume the Cloud IdP",
+      "actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24",
+      "no retired external SCM/CI/CD substrates",
+      "retired-external-substrate-registry.json"
+    ],
+    "docs/ci/github-actions-lane-unlocker.md": [
+      "github-lane-unlocker-required",
+      "GitHub/GitHub Actions",
+      "Buck2",
+      "loosely coupled",
+      "scale the owning Deployment/StatefulSet/controller to zero",
+      "Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now",
+      "no shared contract or shared surface",
+      "rewrite and rewire Oyatie products to consume the Cloud IdP",
+      "actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24",
+      "no retired external SCM/CI/CD substrates",
+      "retired-external-substrate-registry.json"
+    ],
+    "specs/repo-hygiene-automation.json": [
+      "native_scm_requires_github_adapter",
+      "documentation_sprawl_hygiene",
+      "kubernetes_workload_hygiene",
+      "buck2 build //:repo-hygiene-automation-check"
+    ]
+  },
+  "required_glob_anchors": [
+    {
+      "anchors": [
+        "scripts/ci/enforce-buck2-authority.py",
+        "buck2 build //:buck2-authority-policy-check",
+        "infra/ci/buck2-affected-gate.sh",
+        "bridge_only_not_branch_protection_authority",
+        "\"branch_protection_authority\": false"
+      ],
+      "glob": "cloud/*/ci/Jenkinsfile"
+    },
+    {
+      "anchors": [
+        "scripts/ci/enforce-buck2-authority.py",
+        "buck2 build //:buck2-authority-policy-check",
+        "infra/ci/buck2-affected-gate.sh",
+        "bridge_only_not_branch_protection_authority",
+        "\"branch_protection_authority\": false"
+      ],
+      "glob": "oya/*/ci/Jenkinsfile"
+    }
+  ],
+  "status_context_scan_files": [
+    ".github/workflows/backbone-microservices-ci.yml",
+    ".github/branch-protection.yaml",
+    "infra/branch-protection/dev.json",
+    "infra/ci/jenkins/reported-status-contexts.json",
+    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+    "scripts/ci/oya-ci-post.sh",
+    "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+    "scripts/ci/assert-required-status-source.py",
+    "scripts/tests/phase0_required_status_source_check.test.sh"
+  ],
+  "target_authority": {
+    "not_authority": [
+      "cargo-* contexts",
+      "oya-verify",
+      "oya gate",
+      "local hooks",
+      "operator procedure"
+    ],
+    "producer": "cloud-ci/oya-ci Rust Prow reimplementation controller or trusted source-bound bridge that runs Buck2 targets from trusted trunk/controller state",
+    "required_context": "oya-ci-required"
+  },
+  "title": "Buck2AuthorityPolicy",
+  "upstream_prow_baseline": {
+    "repository": "https://github.com/kubernetes-sigs/prow",
+    "docs": "https://docs.prow.k8s.io/docs/",
+    "architecture_docs": "https://docs.prow.k8s.io/docs/overview/architecture/",
+    "tide_docs": "https://docs.prow.k8s.io/docs/components/core/tide/",
+    "contract": "cloud-ci/oya-ci is a Rust reimplementation and improvement of upstream Kubernetes Prow/Tide, not a greenfield CI invention; we adopt the proven Prow component/capability model while replacing GitHub/GCS/Groovy coupling with Forgejo-native, Buck2-native, self-hosted Rust services."
+  },
+  "github_lane_unlocker_bridge": {
+    "spec": "specs/github-lane-unlocker-bridge.json",
+    "workflow": ".github/workflows/github-lane-unlocker-ci-cd.yml",
+    "temporary_required_context": "github-lane-unlocker-required",
+    "native_cutover_target_context": "oya-ci-required",
+    "build_test_check_authority": "buck2",
+    "auth_shared_substrate_decoupling": "cloud and Oyatie product auth/shared substrates are separate now; no shared contract/surface; future Cloud IdP rewrite/rewire",
+    "manual_oya_ci_required_bridge_allowed": false,
+    "live_dev_required_context_during_bridge": "github-lane-unlocker-required"
+  },
+  "expected_command_markers": {
+    ".github/workflows/github-lane-unlocker-ci-cd.yml": [
+      "github-lane-unlocker-required",
+      "uses: actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: \"true\"",
+      "runs-on: ubuntu-24.04-arm",
+      "strategy:",
+      "max-parallel: 4",
+      "matrix:",
+      "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+      "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
+      "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
+      "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
+    ],
+    "scripts/ci/github-actions-lane-unlocker-bootstrap.sh": [
+      "RUSTUP_CONCURRENT_DOWNLOADS",
+      "rustup toolchain install",
+      "llvm-tools-preview",
+      "rustup target add",
+      "llvm-profdata",
+      "llvm-cov",
+      "buck2 --version",
+      "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
+    ],
+    "rust-toolchain.toml": [
+      "channel = \"1.95.0\"",
+      "llvm-tools-preview",
+      "aarch64-unknown-linux-gnu",
+      "profile = \"minimal\""
+    ]
+  }
+}

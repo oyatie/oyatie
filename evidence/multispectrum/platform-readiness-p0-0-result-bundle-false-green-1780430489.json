@@ -1,0 +1,85 @@
+{
+  "_meta": {
+    "created_at": "2026-06-02T20:01:10Z",
+    "doc_class": "EvidencePacket",
+    "owner_team": "platform-toolchain + platform-governance",
+    "related_acceptance_criteria": [
+      "AC-0.0",
+      "AC-0.12",
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "status": "local-static-evidence-not-green",
+    "version": "0.1.0"
+  },
+  "claim_boundary": {
+    "claim": "P0.0 structured result bundles now have a kernel evaluator and false-green RED fixture so local or untrusted result bundles cannot imply required-context authority.",
+    "not_claimed": [
+      "P0.0 green",
+      "Phase-0 complete",
+      "live result-bundle producer",
+      "live branch-protected cloud-ci/oya-ci required context",
+      "production readiness",
+      "mechanical enforcement claim"
+    ],
+    "authority": "local/static kernel, schema, and fixture evidence only; not protected-branch merge authority"
+  },
+  "changed_artifacts": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"
+  ],
+  "enforcement_added": [
+    "Phase0CiResultBundleViolation enum and evaluate_phase0_ci_result_bundle pure evaluator",
+    "false-green RED fixture for schema-conforming but authority-invalid result bundles",
+    "baseline result_bundle_fixture_paths registry for current RED and false-green result bundles",
+    "kernel tests assert current RED result stays RED and false-green bundle emits required-context/producer/fixture/claim-boundary violations"
+  ],
+  "validations": [
+    {
+      "command": "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/phase0-ci-enforcement-baseline.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 static result-bundle assertion script",
+      "verdict": "PASS",
+      "evidence": "validated evaluator anchors, baseline result_bundle_fixture_paths, false-green fixture observed_verdict=GREEN with missing context/untrusted producer/claim_boundary p0_0_green=true and mismatched fixture result"
+    },
+    {
+      "command": "git diff --check",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "verdict": "PASS",
+      "target": "root//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "verdict": "PASS",
+      "evidence": "scanner returned verdict PASS with oya-ci-required authority boundary"
+    },
+    {
+      "command": "buck2 build //:buck2-authority-policy-check --show-output",
+      "verdict": "PASS",
+      "build_id": "bcc9ccc6-84fe-4928-9202-a63d67e309fd",
+      "note": "latest run after evidence packet creation"
+    },
+    {
+      "command": "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "verdict": "BLOCKED_LOCAL_TOOLCHAIN",
+      "build_id": "d1b0276b-c422-4efd-b27f-9fca7acd3bd5",
+      "reason": "macOS Apple ld rejected GNU/Linux linker flags (--as-needed, -Bstatic, --eh-frame-hdr, -z, --gc-sections) while linking third-party Rust build scripts; tests ran 0"
+    }
+  ]
+}

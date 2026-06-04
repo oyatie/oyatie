@@ -1,7 +1,7 @@
 ---
 id: ADR-0511
 title: "CI orchestration = Argo Workflows (k8s-native); Jenkins transitory; supersede Proposed ADR-0359"
-status: Proposed
+status: Superseded
 authority: founder
 deciders: founder, council-architecture
 date: 2026-05-29
@@ -9,7 +9,7 @@ owner: council-architecture
 planning_impact: true
 door: two-way
 supersedes: [ADR-0359]
-superseded_by: []
+superseded_by: [ADR-0513]
 amends: []
 related: [ADR-0359, ADR-0358, ADR-0349, ADR-0361, ADR-0363, ADR-0366, ADR-0367, ADR-0369, ADR-0111, ADR-0181, ADR-0387, ADR-0510]
 related_specs: [/specs/ci-farm-substrate-canonical.json, /specs/hyperscaler-architecture-invariants.json]
@@ -23,6 +23,9 @@ purpose: Name Argo Workflows as the destination CI orchestrator (CNCF, k8s-nativ
 # ADR-0511: CI orchestration = Argo Workflows (k8s-native); Jenkins transitory; supersede Proposed ADR-0359
 
 ## Status
+
+~~Proposed~~ **Superseded by ADR-0513** (2026-05-31) — the bespoke-Rust oya-ci controller is the
+chosen CI-orchestration direction over Argo Workflows; see ADR-0513 §Supersession.
 
 Proposed — 2026-05-29. **DRAFT for founder review — do NOT auto-merge.**
 
@@ -120,3 +123,22 @@ Argo Workflows posts per-context and the single trustless-gateway signed status 
 - ADR-0510 — SCM bespoke-destination / cutover-trigger (sibling; same transitory→destination pattern; status sink moves at SCM cutover).
 - Argo Workflows: CNCF Graduated, Apache-2.0, k8s-native DAG CI; Argo Events (webhook triggers); self-hostable on Talos — passes the hyperscaler-lens.
 - Founder decision 2026-05-29 + scm-cicd-overhaul-campaign reconciliation_note (session_context above).
+
+## 2026-06-02 Buck2 authority amendment
+
+Founder directive on 2026-06-02 supersedes any earlier wording in this ADR that
+made Cargo, Cargo-named status contexts, `oya verify`, or `oya gate` active
+scripts/CI/CD/build authority. Active scripts, CI, CD, and build/test lanes use
+Buck2. The protected-branch target context is `oya-ci-required` from trusted
+cloud-ci/oya-ci controller or bridge state, and `oya verify` / `oya gate` may be
+local or bridge governance evidence only.
+
+Cargo is allowed only for the documented production release image/binary
+optimization exception: release profile or custom release profile, target triple,
+binary-size/codegen/allocator evidence, commit SHA, and an explicit non-claim label
+that the run is not CI merge authority. Cargo metadata/vendor remains permitted only
+for Buck2/Reindeer graph generation and cannot satisfy build/test/merge authority.
+
+This amendment is enforced locally by `specs/buck2-authority-policy.json` and the
+Buck2 target `//:buck2-authority-policy-check`; live Phase-0 exit still requires the
+cloud-ci/oya-ci `oya-ci-required` required context and evidence packet.

@@ -1,0 +1,28 @@
+{
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "unknown_regulated_term"
+  ],
+  "fixture_id": "TC-0.17-BAD-unknown-regulated-term",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.17.1",
+  "text": "The cloud-ci lane is magic-fast.",
+  "claim_rows": [
+    {
+      "id": "BAD-unknown-regulated-term",
+      "artifact": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-unknown-regulated-term.json",
+      "claim_text": "magic-fast",
+      "claim_tier": "spec_ready",
+      "allowed_language_now": "not allowed; unregistered regulated vocabulary is rejected before a claim can be classified",
+      "regulated_terms": [
+        "magic-fast"
+      ],
+      "current_evidence": [
+        "negative fixture only; no readiness or performance claim"
+      ],
+      "missing_for_next_tier": [
+        "register the term in specs/phase0-claim-evidence-map.json regulated_vocabulary before using it in a claim row"
+      ],
+      "owner": "platform-sre + platform-toolchain"
+    }
+  ]
+}

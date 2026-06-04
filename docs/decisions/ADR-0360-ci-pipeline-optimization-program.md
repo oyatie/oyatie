@@ -45,3 +45,22 @@ Adopt a seven-part CI/CD optimization program. Each part has a hard correctness 
 - New correctness surfaces: affected-selection under-test (mitigated by full-triggers + dev/build edges + trunk backstop + `cargo-hakari` feature unification), and gate-cache false-PASS (mitigated by the input-declaration rule + un-cacheable fallback). These warrant their own fitness gates.
 - `--ci-required` semantics are preserved (ADR-0346 amended, not superseded): it stays the authoritative full mirror.
 - All performance claims remain blocked until measured on the farm; this ADR commits the design + correctness rules, not measured numbers.
+
+## 2026-06-02 Buck2 authority amendment
+
+Founder directive on 2026-06-02 supersedes any earlier wording in this ADR that
+made Cargo, Cargo-named status contexts, `oya verify`, or `oya gate` active
+scripts/CI/CD/build authority. Active scripts, CI, CD, and build/test lanes use
+Buck2. The protected-branch target context is `oya-ci-required` from trusted
+cloud-ci/oya-ci controller or bridge state, and `oya verify` / `oya gate` may be
+local or bridge governance evidence only.
+
+Cargo is allowed only for the documented production release image/binary
+optimization exception: release profile or custom release profile, target triple,
+binary-size/codegen/allocator evidence, commit SHA, and an explicit non-claim label
+that the run is not CI merge authority. Cargo metadata/vendor remains permitted only
+for Buck2/Reindeer graph generation and cannot satisfy build/test/merge authority.
+
+This amendment is enforced locally by `specs/buck2-authority-policy.json` and the
+Buck2 target `//:buck2-authority-policy-check`; live Phase-0 exit still requires the
+cloud-ci/oya-ci `oya-ci-required` required context and evidence packet.

@@ -1,11 +1,5 @@
 // Seed the oya-ci-smoke pipeline used to validate the local CI farm end-to-end:
-// it schedules a pod from the JCasC `oya-rust-ci` template and runs the rust
-// toolchain on the ephemeral agent (proving controller -> cloud -> agent -> build).
-//
-// Apply via the script console (Manage Jenkins > Script Console) or:
-//   curl -s -b cookies -u admin:$PW -H "$CRUMB" \
-//        --data-urlencode "script@infra/ci/jenkins/smoke-seed.groovy" \
-//        http://localhost:8080/scriptText
+// controller -> cloud -> agent -> Buck2 build graph.
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 
@@ -16,7 +10,7 @@ def job = j.createProject(WorkflowJob, name)
 def pipeline = '''
 node("oya-rust-ci") {
   container("rust") {
-    sh 'rustc --version && cargo --version && echo CACHE_ENV SCCACHE_BUCKET=$SCCACHE_BUCKET SCCACHE_ENDPOINT=$SCCACHE_ENDPOINT'
+    sh 'rustc --version && buck2 --version && buck2 uquery //:buck2-authority-policy-check && echo CACHE_ENV BUCK2_CLIENT_TTL=$BUCK2_CLIENT_TTL'
   }
 }
 '''

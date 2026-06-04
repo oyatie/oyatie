@@ -1,45 +1,38 @@
-# oya-jenkins-shared — CI shared library (ADR-0361)
+# oya-jenkins-shared — Buck2 bridge lane (ADR-0361/0408/0513)
 
-The single source of the CI lane definition that replaced the 36 retired GitHub
-Actions workflows. Configured as a Jenkins Global Pipeline Library named
-`oya-jenkins-shared` (JCasC); lanes call `@Library('oya-jenkins-shared') _`.
+The shared library is a Jenkins bridge for the target `oya-ci-required` context.
+Buck2 is the only build/test execution authority in this lane. Cargo contexts and
+`oya-verify` are forbidden as branch-protection or Phase-0 exit authority.
 
 ## Entry point: `oyaCiLane(Map cfg)`
 
-Runs the research-vetted **shift-left, license-clean, supply-chain-hardened** stage
-order (ADR-0361 §3). Mandatory stages block merge:
+Mandatory stages:
 
-| Stage | Tool | License |
+| Stage | Tool | Authority note |
 |---|---|---|
-| lint | cargo fmt + clippy `-D warnings` | — |
-| license/advisory/bans | **cargo-deny** (blocks BSL/SSPL/source-available) | MIT/Apache-2.0 |
-| SAST | **Opengrep** (own rules; NOT Semgrep registry rules) | LGPL-2.1 |
-| secret scan | **gitleaks** | MIT |
-| test | `oya verify --affected` (PR) / `--ci-required` (trunk) | — |
-| SBOM | **cargo-cyclonedx** + **Syft** (CycloneDX) | Apache-2.0 |
-| vuln/IaC | **Trivy** + **osv-scanner** | Apache-2.0 |
-| sign + provenance (trunk) | **cosign** + **in-toto/SLSA** | Apache-2.0 |
+| Buck2 authority policy | `python3 scripts/ci/enforce-buck2-authority.py` | Static no-Cargo regression gate |
+| Buck2 affected build/test | `infra/ci/buck2-affected-gate.sh` | Builds/tests affected Buck2 target closure |
+| Buck2 governance bridge smoke | `buck2 uquery //oya/developer-sdk/crates/oya-dev-cli:oya` | Proves oya binary is Buck2-addressable; not merge authority by itself |
+| Supply-chain scans | Syft, Trivy, osv-scanner | Advisory/hardening as configured by lane |
+| Sign/provenance | cosign + in-toto/SLSA | Trunk-only artifact evidence |
 
-Admission (**Kyverno verifyImages**) + CD (**Argo CD** + **Argo Rollouts**) run in the
-cluster, not the CI lane — see `infra/ci/argocd/` and `infra/kyverno/`.
+Jenkins can post `oya-ci-required` while the cloud-ci/oya-ci producer is being cut
+over, but the Phase-0 exit target is a trusted cloud-ci/oya-ci producer posting the
+same context from controller/trunk-sourced gate definitions.
 
 ## Layout
-- `vars/oyaCiLane.groovy` — the lane definition.
-- `examples/microservice-lane.Jenkinsfile` — the thin per-`<ms>` form.
-- Root `Jenkinsfile` (repo root) — the repo-wide governance gate + lane fan-out.
 
-## Migration
-Existing inline lanes (e.g. `microservices/cloud-iac/ci/Jenkinsfile`, which carries
-its own kata/cosign pod spec) migrate to the one-liner `oyaCiLane(...)` form as the
-shared library's pod template subsumes the inline copy — incremental, per microservice.
+- `vars/oyaCiLane.groovy` — Buck2 bridge lane definition.
+- `examples/microservice-lane.Jenkinsfile` — thin per-service form.
+- Root `Jenkinsfile` — repo-wide governance gate + lane fan-out.
 
-## Forbidden (OSI-strict license policy, ADR-0361)
-Snyk (proprietary SaaS), Drone (source-available), Mend Renovate CE/EE (closed EULA),
-Semgrep **registry rules** (proprietary v1.0). Jenkins core is MIT; plugins are
-mixed-license and allowlisted at the infra layer. Renovate OSS (AGPL) + trufflehog
-(AGPL) are allowed self-hosted.
+## Forbidden in active CI lanes
 
-## Honest status
-This is pipeline-as-code. Tool invocations assume the tools are baked into the agent
-image (O5) or available on PATH; the production agent image bake + the Jenkins library
-registration (JCasC) are deploy-time. No CI-throughput/coverage claim is made here.
+- Cargo build/test/check/fmt/clippy/nextest/bench/deny/cyclonedx/install commands.
+- Legacy required contexts named after Cargo lanes.
+- Treating `oya verify` or `oya gate` output as protected-branch authority.
+
+The narrow Cargo exception is documented in `specs/buck2-authority-policy.json`:
+production release image/binary optimization may use Cargo release profiles for
+binary size/codegen/allocator evidence, but that evidence cannot satisfy CI merge
+authority.

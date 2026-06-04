@@ -1,0 +1,31 @@
+{
+  "candidate_sha": "1111111111111111111111111111111111111111",
+  "claim_boundary": {
+    "p0_0_green": true,
+    "phase0_complete": true
+  },
+  "fixture_results": [
+    {
+      "expected_verdict": "RED",
+      "fixture_id": "TC-0.0.1-BAD-missing-required-context",
+      "observed_verdict": "GREEN",
+      "violations": []
+    }
+  ],
+  "observed_verdict": "GREEN",
+  "producer": {
+    "candidate_bytes_policy": "may_execute_candidate_repository_code",
+    "context": "missing",
+    "gate_definition_source": "candidate_pr_bytes_or_legacy_bridge",
+    "kind": "gap_packet_current_state",
+    "trusted_control_state": false
+  },
+  "provenance": {
+    "recorded_at": "2026-06-02T19:55:00Z",
+    "sources": [
+      "specs/phase0-ci-enforcement-baseline.json#structured_result_output",
+      "synthetic false-green result bundle fixture; schema-conforming but authority-invalid"
+    ]
+  },
+  "required_context": "missing"
+}

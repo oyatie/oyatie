@@ -36,6 +36,11 @@ networkPolicy:
   nonClaim: static-networkpolicy-template-only-no-live-cni-admission-traffic-flow-or-network-isolation-proof
   ingress:
     monitoringNamespaceName: observability
+    # ci-webhook-gateway → controller /gate-run dispatch. The gateway runs in the
+    # same namespace (oya-ci); allow its pod (app.kubernetes.io/name=ci-webhook-gateway)
+    # to reach the controller on the service port (8081).
+    gatewayNamespaceName: oya-ci
+    gatewayPodName: ci-webhook-gateway
   egress:
     dnsNamespaceName: kube-system
     # kube-apiserver egress (Job/Pod watch + create)
@@ -87,6 +92,18 @@ externalSecret:
   secretName: forgejo-ci-token
   # OpenBao KV path: secret/oya/ci/forgejo-ci-token, field "token"
   openbaoPath: "secret/oya/ci/forgejo-ci-token"
+  refreshInterval: "1h"
+  nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
+
+# Shared-secret for POST /gate-run authentication (X-Gate-Run-Token header).
+# ESO pulls this from OpenBao and syncs it into the `gate-run-token` Secret.
+# Only the ci-webhook-gateway ControllerDispatcher (running in oya-ci namespace)
+# is granted access to this Secret via RBAC. Gate runner Pods never see it.
+gateRunTokenSecret:
+  enabled: true
+  secretName: gate-run-token
+  # OpenBao KV path: secret/oya/ci/gate-run-token, field "token"
+  openbaoPath: "secret/oya/ci/gate-run-token"
   refreshInterval: "1h"
   nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
 

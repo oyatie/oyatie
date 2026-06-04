@@ -624,30 +624,30 @@ impl fmt::Display for DmarcDisposition {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DmarcAlignmentInput {
     /// The RFC 5322 `From` header domain (the identifier being protected).
-    pub from_domain: String,
+    pub from_domain: String, // data_class: INTERNAL_ONLY
     /// The domain from the SPF authentication result (envelope sender domain).
     /// Empty string means SPF produced no usable result.
-    pub spf_result_domain: String,
+    pub spf_result_domain: String, // data_class: INTERNAL_ONLY
     /// The DKIM signing domain (`d=` tag from a validated DKIM signature).
     /// Empty string means DKIM produced no usable result.
-    pub dkim_result_domain: String,
+    pub dkim_result_domain: String, // data_class: INTERNAL_ONLY
     /// Alignment strictness mode. RFC 7489 default is `Relaxed`.
-    pub alignment_mode: DmarcAlignmentMode,
+    pub alignment_mode: DmarcAlignmentMode, // data_class: INTERNAL_ONLY
     /// The sender domain's published DMARC policy.
-    pub policy: DmarcPolicy,
+    pub policy: DmarcPolicy, // data_class: INTERNAL_ONLY
 }
 
 /// Result of evaluating DMARC alignment + disposition for one inbound message.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct DmarcEvalVerdict {
     /// `true` if the message passes DMARC (SPF aligned OR DKIM aligned).
-    pub aligned: bool,
+    pub aligned: bool, // data_class: INTERNAL_ONLY
     /// Whether the SPF result domain aligns with the `From` domain.
-    pub spf_aligned: bool,
+    pub spf_aligned: bool, // data_class: INTERNAL_ONLY
     /// Whether the DKIM `d=` domain aligns with the `From` domain.
-    pub dkim_aligned: bool,
+    pub dkim_aligned: bool, // data_class: INTERNAL_ONLY
     /// Concrete disposition derived from the alignment result and DMARC policy.
-    pub disposition: DmarcDisposition,
+    pub disposition: DmarcDisposition, // data_class: INTERNAL_ONLY
 }
 
 /// Extract the organizational domain from a fully-qualified domain name.

@@ -111,11 +111,11 @@ impl std::error::Error for TracingClientError {}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParsedTraceparent {
     /// 32 lowercase hex characters; never all-zeros.
-    pub trace_id: String,
+    pub trace_id: String, // data_class: INTERNAL_ONLY
     /// 16 lowercase hex characters; never all-zeros.
-    pub parent_id: String,
+    pub parent_id: String, // data_class: INTERNAL_ONLY
     /// `true` when the W3C "sampled" flag bit (`flags & 0x01`) is set.
-    pub sampled: bool,
+    pub sampled: bool, // data_class: INTERNAL_ONLY
 }
 
 impl ParsedTraceparent {

@@ -166,6 +166,9 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     // #6b: ADR supersession back-link integrity — fails on any one-directional
     // supersedes/superseded_by pair (ADR-0083 Tier-3 panic-free).
     "adr-supersession-consistency",
+    // ADR lifecycle governance: status-vocab (L1), terminal-requires-link (L2),
+    // reciprocity (L3), dangling-ref (L4), hollow-superseded (L5).
+    "adr-lifecycle",
     // ADR-0388: doc-axis convention enforcement — status casing, shadow ideas,
     // docs proliferation, catalog/manifest drift.
     "doc-axis",
@@ -432,6 +435,10 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ),
     (
         "adr-supersession-consistency",
+        LaneInputs::Globs(&["docs/decisions/**"]),
+    ),
+    (
+        "adr-lifecycle",
         LaneInputs::Globs(&["docs/decisions/**"]),
     ),
     (

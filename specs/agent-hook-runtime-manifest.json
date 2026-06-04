@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/agent-hook-runtime-manifest.json",
+  "title": "AgentHookRuntimeManifest",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-AGENT-HOOK-RUNTIME-MANIFEST",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture",
+    "updated_at": "2026-05-31",
+    "scope": "First-class non-OMC/non-OMX project hook runtime for Codex and Gemini. Claude Code hook orchestration is owned by OMC; project .claude/settings.json intentionally carries no runtime hook commands.",
+    "purpose": "Declare the only runtime hooks that project Codex/Gemini configs may reference, their side-effect envelope, and the bootstrap exception boundary so stale/missing hook references are removed rather than silently tolerated. Per-prompt canonical reminders are intentionally omitted; canonical primitives are rendered once at SessionStart."
+  },
+  "config_files": [
+    {
+      "agent": "codex",
+      "path": ".codex/hooks.json",
+      "first_class": true
+    },
+    {
+      "agent": "gemini",
+      "path": ".gemini/settings.json",
+      "first_class": true
+    }
+  ],
+  "runtime_contract": {
+    "side_effects": "stdout/stderr advisory guidance only; no project-state mutation",
+    "exit_behavior": "non-blocking unless the script itself has a syntax/runtime error under test",
+    "source_of_truth": [
+      "specs/canonical-primitives.json",
+      "this manifest"
+    ],
+    "forbidden_runtime_behaviors": [
+      "network calls from tools/hooks/*.sh",
+      "spawning agent CLIs such as codex exec, claude, or gemini from tools/hooks/*.sh",
+      "git push or PR mutation from tools/hooks/*.sh",
+      "rm -rf or filesystem cleanup from tools/hooks/*.sh",
+      ".omc or .omx state reads/writes from tools/hooks/*.sh",
+      "references to retired markdown canonical primitives",
+      "references to retired wrapper command guidance"
+    ]
+  },
+  "runtime_hooks": [
+    {
+      "path": "tools/hooks/session-start-context-inject.sh",
+      "purpose": "Render canonical session context from specs/canonical-primitives.json as JSON hook output without command-remapping guidance.",
+      "events": {
+        "codex": [
+          "SessionStart"
+        ],
+        "gemini": [
+          "SessionStart"
+        ]
+      },
+      "reads": [
+        "specs/canonical-primitives.json"
+      ],
+      "writes": [],
+      "network": false
+    },
+    {
+      "path": "tools/hooks/stop-did-you-forget-suggester.sh",
+      "purpose": "Advisory stop-time incomplete-work reminder.",
+      "events": {
+        "codex": [
+          "Stop"
+        ],
+        "gemini": [
+          "AfterAgent"
+        ]
+      },
+      "reads": [],
+      "writes": [],
+      "network": false
+    },
+    {
+      "path": "tools/hooks/no-cargo-enforcer.sh",
+      "purpose": "Advisory Buck2/no-cargo guidance for shell commands.",
+      "events": {
+        "codex": [
+          "PreToolUse:Bash"
+        ],
+        "gemini": [
+          "BeforeTool:run_shell_command|bash|Bash"
+        ]
+      },
+      "reads": [],
+      "writes": [],
+      "network": false
+    },
+    {
+      "path": "tools/hooks/pre-dispatch-guide.sh",
+      "purpose": "Advisory quality guide for subagent/task dispatch prompts.",
+      "events": {
+        "codex": [
+          "PreToolUse:Task"
+        ],
+        "gemini": [
+          "BeforeTool:agent|Task"
+        ]
+      },
+      "reads": [],
+      "writes": [],
+      "network": false
+    },
+    {
+      "path": "tools/hooks/spec-version-pin-suggester.sh",
+      "purpose": "Warn on contract edits that drift from OpenAPI 3.2.0 or AsyncAPI 3.1.0.",
+      "events": {
+        "codex": [
+          "PostToolUse:Edit|MultiEdit|Write"
+        ],
+        "gemini": [
+          "AfterTool:write_file|replace|edit|write|Edit|Write"
+        ]
+      },
+      "reads": [],
+      "writes": [],
+      "network": false
+    },
+    {
+      "path": "tools/hooks/adr-orphan-detect.sh",
+      "purpose": "Warn when edited markdown/json references ADR ids without corresponding ADR files.",
+      "events": {
+        "codex": [
+          "PostToolUse:Edit|MultiEdit|Write"
+        ],
+        "gemini": [
+          "AfterTool:write_file|replace|edit|write|Edit|Write"
+        ]
+      },
+      "reads": [
+        "docs/decisions"
+      ],
+      "writes": [],
+      "network": false
+    },
+    {
+      "path": "tools/hooks/vacuous-green-gate-detect.sh",
+      "purpose": "Warn on potentially vacuous governance gate edits.",
+      "events": {
+        "codex": [
+          "PostToolUse:Edit|MultiEdit|Write"
+        ],
+        "gemini": [
+          "AfterTool:write_file|replace|edit|write|Edit|Write"
+        ]
+      },
+      "reads": [],
+      "writes": [],
+      "network": false
+    },
+    {
+      "path": "tools/hooks/injection-content-scanner.sh",
+      "purpose": "Advisory scan of tool output for prompt-injection markers.",
+      "events": {
+        "codex": [
+          "PostToolUse:Bash|WebFetch|WebSearch"
+        ],
+        "gemini": [
+          "AfterTool:run_shell_command|bash|Bash"
+        ]
+      },
+      "reads": [],
+      "writes": [],
+      "network": false
+    }
+  ],
+  "bootstrap_boundary": {
+    "path": "tools/hook-bootstrap/install.sh",
+    "runtime_hook": false,
+    "allowed_writes": [
+      ".claude/settings.json",
+      ".codex/hooks.json",
+      ".gemini/settings.json",
+      "tools/agent-skills/"
+    ],
+    "network_policy": "May use gh/curl only during explicit operator bootstrap or --sync-skills to check/fetch addyosmani/agent-skills. Runtime hooks must not perform network calls.",
+    "destructive_operations_policy": "May replace tools/agent-skills/ only during explicit sync. Must not be referenced by runtime hook configs."
+  },
+  "retired_surfaces": [
+    {
+      "path": "tools/hooks/_canonical-primitives.md",
+      "replacement": "specs/canonical-primitives.json",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/userprompt-canonical-primer.sh",
+      "replacement": "tools/hooks/session-start-context-inject.sh rendering specs/canonical-primitives.json once per session",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/microservice-quality-bar.sh",
+      "replacement": "governance gates outside the advisory hook runtime",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/vertical-slice-scope-suggester.sh",
+      "replacement": "governance gates outside the advisory hook runtime",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/cargo-verify-on-rust-edit.sh",
+      "replacement": "tools/hooks/no-cargo-enforcer.sh plus CI/controller verification outside runtime hooks",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/buildability-line-count.sh",
+      "replacement": "governance gates outside the advisory hook runtime",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/retired-vcs-surface-inventory.sh",
+      "replacement": "scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh manifest/config validation",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/stale-tool-suggester.sh",
+      "replacement": "none; retired CLI command guidance is out of scope for hooks",
+      "status": "deleted"
+    }
+  ],
+  "omc_boundary": {
+    "path": ".claude/settings.json",
+    "owner": "OMC / oh-my-claudecode",
+    "policy": "Project-level Claude runtime hook commands are intentionally omitted so omc doctor conflicts reports no non-OMC hook conflicts. Keep sandbox/permission settings here only."
+  }
+}

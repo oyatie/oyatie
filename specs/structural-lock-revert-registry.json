@@ -1,0 +1,91 @@
+{
+  "$id": "https://docs.oyatie.com/specs/structural-lock-revert-registry.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-03T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-governance + platform-toolchain",
+    "related_plan": ".omx/plans/prd-platform-readiness.md#AC-0.9",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.9",
+    "source_request": "Platform Readiness P0.0: serialize structural work with lock/revert fixtures while avoiding mechanical claims before trusted cloud-ci/oya-ci required-context evidence.",
+    "spec_id": "EXE-PHASE0-STRUCTURAL-LOCK-REVERT",
+    "status": "local_static_seed_not_live_structural_lock_authority",
+    "updated_at": "2026-06-03T00:00:00Z",
+    "version": "0.1.0"
+  },
+  "automated_chain": [
+    "//:structural-lock-revert-check",
+    "scripts/ci/assert-structural-lock-revert.rs",
+    "scripts/tests/structural_lock_revert_check.rs",
+    "specs/structural-lock-revert-registry.json",
+    "specs/fixtures/phase0-structural-lock-revert/*.json",
+    "//:phase0-red-green-fixture-contract-check",
+    "//:phase0-automation-ratchet-check",
+    "//:buck2-authority-policy-check"
+  ],
+  "claim_boundary": {
+    "advisory_lock_boundary_enforced": true,
+    "hyperscaler_grade": false,
+    "live_required_context_execution_proven": false,
+    "mechanical_structural_lock_proven": false,
+    "no_new_oya_cli_surface": true,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "protected_flow_revert_evidence_required": true,
+    "serialized_structural_work_required": true,
+    "status_mutation_performed": false,
+    "structural_lock_revert_measured": true
+  },
+  "description": "AC-0.9 local/static registry for structural-lock/revert admission discipline. It records serialized structural-path ownership, protected-flow revert evidence, RED/GREEN fixtures, and the advisory-until-P0.0 claim boundary. This is not live cloud-ci authority.",
+  "fixture_set": {
+    "bad_fixtures": [
+      "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json",
+      "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
+      "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
+      "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json"
+    ],
+    "expected_violation_catalog": [
+      "missing_protected_flow_revert_evidence",
+      "structural_path_overlap_detected",
+      "parallel_structural_lane_not_serialized",
+      "forbidden_mechanical_structural_lock_claim",
+      "status_mutation_performed",
+      "lock_ttl_not_future_or_expired"
+    ],
+    "fixture_directory": "specs/fixtures/phase0-structural-lock-revert",
+    "good_fixture": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-good-serialized-structural-lock-revert.json"
+  },
+  "gate_contract": {
+    "acceptance_criterion": "AC-0.9",
+    "authority": "local_static_fixture_evidence_only",
+    "automation_matrix_row_id": "AC-0.9-structural-lock-revert",
+    "buck2_target": "//:structural-lock-revert-check",
+    "checker": "scripts/ci/assert-structural-lock-revert.rs",
+    "reds_when": [
+      "structural packet lacks protected-flow revert evidence",
+      "parallel structural lanes overlap locked paths",
+      "candidate bytes claim mechanical lock/status authority before trusted cloud-ci evidence",
+      "structural lock TTL is stale or not future-bounded",
+      "lock/revert output maps to oya CLI authority"
+    ],
+    "test_harness": "scripts/tests/structural_lock_revert_check.rs"
+  },
+  "required_packet_fields": [
+    "packet_id",
+    "candidate_branch",
+    "candidate_sha",
+    "classification",
+    "status",
+    "owner_lane",
+    "lock_scope",
+    "lock_acquired_at",
+    "lock_expires_at",
+    "locked_path_globs",
+    "parallel_lane_policy",
+    "protected_flow_revert",
+    "authority"
+  ],
+  "title": "Phase0StructuralLockRevertRegistry"
+}

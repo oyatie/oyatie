@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "created_at": "2026-06-02T19:45:00Z",
+    "doc_class": "Executable-Fixture",
+    "related_acceptance_criteria": [
+      "AC-0.16"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#AC-0.16",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.16",
+    "status": "RED-negative-fixture",
+    "updated_at": "2026-06-02T19:45:00Z",
+    "version": "0.1.0"
+  },
+  "description": "A valid-looking automation row set must still fail when a declared required row id is omitted.",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "missing_required_row_id"
+  ],
+  "fixture_id": "TC-0.16-BAD-missing-required-row",
+  "required_row_ids": [
+    "GOOD-present-row",
+    "MISSING-required-automation-row"
+  ],
+  "rows": [
+    {
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-required-row.json",
+      "classification": "automated_blocking_now",
+      "evidence_path": "specs/phase0-automation-matrix.json#required_seed_row_ids",
+      "id": "GOOD-present-row",
+      "no_new_oya_cli_surface": true,
+      "owner": "platform-governance",
+      "requirement": "Fixture row is otherwise valid but cannot satisfy the omitted required row id.",
+      "retirement_phase": "AC-0.16/P0 exit",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.16",
+      "target_gate_or_controller": "cloud-ci-automation-ratchet"
+    }
+  ],
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.16.1"
+}

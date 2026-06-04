@@ -1,0 +1,183 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-ci-enforcement-result-schema.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-result-bundle-output-fixture-gate",
+  "claim_boundary": {
+    "live_required_context_execution_proven": false,
+    "note": "Local/static structured result-bundle fixture gate evidence only. This does not claim live cloud-ci/oya-ci required-context execution, live status output, protected branch authority, status mutation, P0.0 green, or Phase-0 completion.",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false,
+    "structured_result_bundle_live": false,
+    "trusted_status_producer_live": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose checker with no new dependencies; mirrors the existing kernel violation vocabulary without adding a live status abstraction."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Separates schema-conforming result evidence from live protected required-context status authority; false-green bundles remain RED evidence inputs."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "schema drift, context enum/SHA drift, unexpected candidate-authored fields, invalid SHA, empty provenance, current RED false-green boundary, live-looking producer drift, empty fixture results, false-green boundary removal, fixture-result mismatch removal, RED expected fixture violation-list drift",
+      "failing_fixture_added": true,
+      "findings": [
+        "Regression harness mutates schema and RED/false-green fixtures to ensure result-output drift fails closed."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "JSON output lists schema fields, current RED violations, false-green violations, and explicit non-claim flags."
+      ],
+      "new_contributor_minutes_estimate": 10
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Post-deslop targeted tests, prior fixture regressions, baseline catalog, authority policy, py_compile, JSON parsing, evidence secret scan, Buck2 root target build (latest Build ID 0ffd503f-fe4a-418a-aaf4-644eae3c2b04), audit-chain parse, and diff hygiene passed."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Rely only on Rust kernel tests",
+        "Add dedicated local result-bundle fixture gate target",
+        "Claim live status output authority from schema-conforming bundles"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Local macOS Rust kernel test is currently blocked by Buck2 Linux linker flags; the Python wrapper provides local fixture proof without replacing the kernel.",
+        "Dedicated target is the smallest executable proof without live status posting.",
+        "Live output authority cannot be claimed until trusted cloud-ci/oya-ci emits bundles and posts the required context on candidate SHAs."
+      ],
+      "selected_rationale": "Dedicated local fixture gate makes T0.0.4 false-green result-output proof reachable from root Buck2 while preserving live RED boundary."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No credentials, branch-protection mutation, or status posting touched; checker validates fixture metadata only."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    }
+  },
+  "files_changed": [
+    "scripts/ci/assert-result-bundle-output.py",
+    "scripts/tests/phase0_result_bundle_output_check.test.sh",
+    "BUCK",
+    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "freshness_unix": 1780455838,
+  "git_sha": "97387195cf44",
+  "implementation_summary": [
+    "Added scripts/ci/assert-result-bundle-output.py to validate the P0.0 structured result-bundle schema plus current RED and false-green baseline fixtures.",
+    "Added scripts/tests/phase0_result_bundle_output_check.test.sh with negative mutations for schema required-field drift, context enum drift, SHA-pattern drift, unexpected top-level fields, invalid candidate SHA, empty provenance sources, current RED false-green claim drift, current RED live-looking producer drift, empty fixture results, false-green boundary drift, fixture mismatch drift, and RED expected fixture violation-list drift.",
+    "Added //:phase0-result-bundle-output-check and wired it into the baseline catalog, automation matrix, claim-evidence map, and Buck2 authority policy anchors."
+  ],
+  "known_gaps": [
+    "Live cloud-ci/oya-ci has not emitted a trusted result bundle or posted oya-ci-required on PR #455 candidate SHA.",
+    "PR #455 still has no live status checks reported from latest post-push evidence.",
+    "GitHub dev required_status_checks.checks still has app_id=null for oya-ci-required from latest post-push evidence.",
+    "Forgejo live convergence and reviewer APPROVE remain unproven."
+  ],
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "P0.0 AC-0.0 structured result-bundle local fixture gate; no live status output authority claim",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T02:58:17Z",
+  "timestamp_unix": 1780455497,
+  "verification": [
+    {
+      "command": "for file in specs/phase0-ci-enforcement-baseline.json specs/phase0-automation-matrix.json specs/phase0-claim-evidence-map.json specs/buck2-authority-policy.json specs/phase0-ci-enforcement-result-schema.json specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json; do python3 -m json.tool \"$file\"; done",
+      "evidence": "Updated JSON specs plus result schema/current RED/false-green fixtures parse.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m py_compile scripts/ci/assert-result-bundle-output.py scripts/ci/assert-trusted-target-inventory.py scripts/ci/assert-override-kill-switch.py scripts/ci/assert-tenant-pipeline-isolation.py scripts/ci/assert-required-status-source.py scripts/ci/assert-pr-required-context.py scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Python syntax checks passed.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/assert-result-bundle-output.py --json",
+      "evidence": "verdict=PASS, local_fixture_contract_proven=true, structured_result_bundle_live=false, trusted_status_producer_live=false, protected_branch_authority_proven=false, status_mutation_performed=false, p0_0_green=false, phase0_complete=false.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_result_bundle_output_check.test.sh",
+      "evidence": "Positive fixture pass plus negative mutations for schema/context/current-RED/false-green drift.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/assert-trusted-target-inventory.py --json && bash scripts/tests/phase0_trusted_target_inventory_check.test.sh && bash scripts/tests/phase0_override_kill_switch_check.test.sh && bash scripts/tests/phase0_tenant_isolation_fixture_check.test.sh && bash scripts/tests/phase0_required_status_source_check.test.sh && bash scripts/tests/phase0_required_context_rollup_check.test.sh",
+      "evidence": "Previously added trusted-target, override, tenant, source-binding, and rollup checks still pass.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "evidence": "Baseline catalog passes and reports result_bundle_check_target=//:phase0-result-bundle-output-check.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Auto-merge contract regression still passes.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "Policy scan passes with command_scan_files=154 and status_context_scan_files=9.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build //:phase0-result-bundle-output-check //:phase0-trusted-target-inventory-check //:phase0-override-kill-switch-check //:phase0-tenant-isolation-fixture-check //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:buck2-authority-policy-check --show-output",
+      "evidence": "Build succeeded with Build ID d134190a-806c-4a17-b496-dcf3482c7aef.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 audit-chain-jsonl-parse && git diff --check",
+      "evidence": "Audit-chain parsed as JSONL rows=842 before appending this evidence row; no whitespace errors before evidence append.",
+      "revalidated_at": "2026-06-03T02:58:17Z",
+      "status": "passed"
+    },
+    {
+      "command": "post-deslop full regression: JSON parse, py_compile, result-bundle checker/test, trusted-target/override/tenant/source/rollup regressions, baseline catalog, auto-merge contract, Buck2 authority policy, Buck2 build, evidence secret scan, audit-chain parse, git diff --check",
+      "evidence": "Post-deslop regression passed in /tmp/p0-0-result-bundle-post-deslop-1780455686; audit-chain rows=843, secret scan PASS, Buck2 Build ID 0ffd503f-fe4a-418a-aaf4-644eae3c2b04.",
+      "revalidated_at": "2026-06-03T03:03:58Z",
+      "status": "passed"
+    }
+  ]
+}

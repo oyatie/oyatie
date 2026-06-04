@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/hooks/stop-did-you-forget-suggester.sh
 #
-# Trigger:  Claude Code Stop
+# Trigger:  Codex Stop / Gemini AfterAgent
 # Purpose:  Before session ends, check for common incomplete-work signals and
 #           suggest next steps to the agent. Advisory only — never blocks.
 # Behavior: Runs three fast checks (each with a 5-second budget):

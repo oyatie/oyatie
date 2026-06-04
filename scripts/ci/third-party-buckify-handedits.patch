@@ -2,6 +2,24 @@ diff --git b/third-party/BUCK a/third-party/BUCK
 index 79f15545b..449459911 100644
 --- b/third-party/BUCK
 +++ a/third-party/BUCK
+@@ -7,2 +7,7 @@
+ load("@prelude//rust:cargo_package.bzl", "cargo")
+-
++
++export_file(
++    name = "BUCK",
++    visibility = ["PUBLIC"],
++)
++
+@@ -883,7 +883,7 @@ cargo.rust_library(
+         "CARGO_PKG_VERSION_PRE": "",
+     },
+     proc_macro = True,
+-    visibility = [],
++    visibility = ["PUBLIC"],
+     deps = [
+         ":proc-macro2-1",
+         ":quote-1",
 @@ -1129,6 +1129,11 @@ buildscript_run(
          "CARGO_PKG_VERSION_MINOR": "17",
          "CARGO_PKG_VERSION_PATCH": "0",
@@ -102,4 +120,14 @@ index 79f15545b..449459911 100644
 +    }),
      visibility = [],
  )
- 
+
+@@ -12943,7 +12943,7 @@ cargo.rust_library(
+         "pki_types": ":rustls-pki-types-1",
+     },
+     rustc_flags = ["@$(location :rustls-0.23-build-script-run[rustc_flags])"],
+-    visibility = [],
++    visibility = ["PUBLIC"],
+     deps = [
+         ":aws-lc-rs-1",
+         ":log-0.4",
+

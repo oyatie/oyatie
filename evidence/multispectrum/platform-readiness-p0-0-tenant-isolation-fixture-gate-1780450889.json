@@ -1,0 +1,204 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/toolchain-tenant-isolation-fixtures.json",
+    "specs/buck2-authority-policy.json",
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-tenant-isolation-fixture-gate",
+  "claim_boundary": {
+    "live_required_context_execution_proven": false,
+    "note": "Local/static tenant-isolation fixture gate evidence only. This does not claim live cloud-ci/oya-ci required-context execution, live tenant isolation, security readiness, tenant-facing readiness, production readiness, P0.0 green, or Phase-0 completion.",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "security_ready": false,
+    "tenant_facing_ready": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose checker with no new dependencies; reuses existing fixture contract and baseline fixtures instead of adding a new abstraction layer."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Separates local fixture proof from live control-plane execution proof; tenant isolation is treated as an explicit multi-surface gate input."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "missing required surface, GREEN shared surface drift, RED missing expected tenant violation",
+      "failing_fixture_added": true,
+      "findings": [
+        "Regression harness mutates contract and GOOD/BAD fixtures to ensure fixture drift fails closed."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "JSON output lists contract fixtures, baseline fixture verdicts, observed tenant violations, and explicit non-claim flags."
+      ],
+      "new_contributor_minutes_estimate": 10
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted tests, baseline catalog, authority policy, py_compile, JSON parsing, Buck2 root target build (latest Build ID 306bfe00-e215-4615-908d-2f5b099acea0), and diff hygiene passed."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Only rely on Rust kernel tests",
+        "Add dedicated local fixture gate target",
+        "Claim live tenant isolation from fixture spec"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Rust kernel test is useful but local macOS Buck2 Rust target is currently blocked by Linux linker flags.",
+        "Fixture specs alone are not executable evidence.",
+        "Live isolation cannot be claimed until trusted cloud-ci runs the gate on candidate SHAs."
+      ],
+      "selected_rationale": "Dedicated local fixture gate makes AC-0.0 tenant proof reachable from root Buck2 while preserving live RED boundary."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No tenant data or credentials touched; checker validates fixture metadata only."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    }
+  },
+  "files_changed": [
+    "scripts/ci/assert-tenant-pipeline-isolation.py",
+    "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+    "BUCK",
+    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "freshness_unix": 1780451752,
+  "git_sha": "3c532fa9ffea",
+  "implementation_summary": [
+    "Added scripts/ci/assert-tenant-pipeline-isolation.py to evaluate the P0.0 11-surface tenant-pipeline isolation fixture contract and baseline GOOD/BAD tenant fixtures.",
+    "Added scripts/tests/phase0_tenant_isolation_fixture_check.test.sh with negative mutations for missing required surfaces, GREEN fixture shared cache drift, and RED fixture missing expected tenant violations.",
+    "Added //:phase0-tenant-isolation-fixture-check and wired it into baseline, automation matrix, claim-evidence map, and Buck2 authority policy anchors."
+  ],
+  "known_gaps": [
+    "Live cloud-ci/oya-ci has not run the tenant-isolation gate on PR #455 candidate SHA.",
+    "PR #455 still has no live status checks reported.",
+    "GitHub dev required_status_checks.checks still has app_id=null for oya-ci-required.",
+    "Forgejo live convergence and reviewer APPROVE remain unproven."
+  ],
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "P0.0 AC-0.0 tenant-pipeline isolation local fixture gate; no live tenant isolation claim",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T01:41:29Z",
+  "timestamp_unix": 1780450889,
+  "verification": [
+    {
+      "command": "python3 scripts/ci/assert-tenant-pipeline-isolation.py --json",
+      "evidence": "verdict=PASS, local_fixture_contract_proven=true, live_required_context_execution_proven=false, p0_0_green=false, phase0_complete=false.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+      "evidence": "Positive fixture pass plus negative mutations for missing audit_events surface, GREEN shared cache, and RED missing tenant_surfaces_shared expected violation.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "for file in evidence/multispectrum/platform-readiness-p0-0-tenant-isolation-fixture-gate-1780450889.json specs/phase0-ci-enforcement-baseline.json specs/phase0-automation-matrix.json specs/phase0-claim-evidence-map.json specs/buck2-authority-policy.json; do python3 -m json.tool \"$file\"; done",
+      "evidence": "Updated evidence/spec JSON files parse individually.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m py_compile scripts/ci/assert-tenant-pipeline-isolation.py scripts/ci/assert-required-status-source.py scripts/ci/assert-pr-required-context.py scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Python syntax checks passed.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_required_status_source_check.test.sh && bash scripts/tests/phase0_required_context_rollup_check.test.sh",
+      "evidence": "Previously added required-status source and required-context rollup checks still pass.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "evidence": "Baseline catalog passes after adding tenant_isolation_check_target/script/test mapping.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Auto-merge contract regression still passes.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "Policy scan passes with command_scan_files=148 and status_context_scan_files=9.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build //:phase0-tenant-isolation-fixture-check //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:buck2-authority-policy-check --show-output",
+      "evidence": "Build ID 306bfe00-e215-4615-908d-2f5b099acea0; all four root targets succeeded.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "evidence": "Build ID b9c8d678-1a32-48a0-ad87-578bb3ff9659 failed before tests ran because Buck2 selected aarch64-unknown-linux-gnu/linker flags on macOS Darwin ld (unknown --as-needed/-Bstatic/etc.).",
+      "status": "not-tested-environment-blocked"
+    },
+    {
+      "command": "bash scripts/evidence-secret-scan.sh evidence/multispectrum/platform-readiness-p0-0-tenant-isolation-fixture-gate-1780450889.json evidence/audit-chain.jsonl",
+      "evidence": "Evidence secret scan passed across the multispectrum evidence file and audit-chain row.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 - << audit-chain-jsonl-parse",
+      "evidence": "evidence/audit-chain.jsonl parsed as JSONL rows=839.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "Whitespace/conflict-marker diff hygiene passed.",
+      "revalidated_at": "2026-06-03T01:48:45Z",
+      "status": "passed"
+    },
+    {
+      "command": "architect subagent verification 019e8b2d-514f-79c3-b7da-f60b6546abe3",
+      "evidence": "APPROVE: no concrete blockers; checker, Buck2 target, regression harness, baseline/spec wiring, and evidence preserve local/static non-claim boundary.",
+      "revalidated_at": "2026-06-03T01:55:52Z",
+      "status": "passed"
+    },
+    {
+      "command": "ai-slop-cleaner changed-file pass /tmp/p0-0-tenant-deslop-1780451732",
+      "evidence": "No masking fallback slop, dead code, unsafe duplication, or needless abstraction found in staged diff; breakglass/internal_bypass tokens classified as required tenant-isolation fixture-domain language; no edits required. Post-deslop tenant fixture regression, baseline catalog, buck2 authority, and staged diff check passed.",
+      "revalidated_at": "2026-06-03T01:55:52Z",
+      "status": "passed"
+    }
+  ]
+}

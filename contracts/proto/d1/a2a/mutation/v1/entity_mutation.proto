@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package oyatie.d1.a2a.mutation.v1;
+
+// AC-0.5/AC-0.10 shape-invariant D1 seam contract.
+// Phase-0 requires MutationResult.consistency_token presence in fixtures and
+// gates while the proto field remains optional. Promoting it to proto-required
+// is deferred until the Phase-2 AC-0.10b read-your-writes conformance test is
+// GREEN, so the seam stays reversible and avoids freezing topology too early.
+
+enum MutationKind {
+  MUTATION_KIND_UNSPECIFIED = 0;
+  MUTATION_KIND_CREATED = 1;
+  MUTATION_KIND_MUTATED = 2;
+  MUTATION_KIND_DELETED = 3;
+}
+
+message EffectiveDatingCoords {
+  // Opaque until P0.5 lands the temporal/effective-dating kernel.
+  string opaque_effective_dating_token = 1;
+  string conformance_gate = 2;
+}
+
+message AuditLink {
+  string audit_event_id = 1;
+  string audit_chain_ref = 2;
+}
+
+message TopologyConformanceGate {
+  // Present for future D1 conformance, but not frozen by Phase-0.
+  string execution_locality = 1;
+  string outbox_offset = 2;
+  string saga_correlation_id = 3;
+  string conformance_gate = 4;
+}
+
+message EntityCreated {
+  string entity_id = 1;
+  string entity_type = 2;
+  MutationKind mutation_kind = 3;
+  EffectiveDatingCoords effective_dating_coords = 4;
+  AuditLink audit_link = 5;
+}
+
+message EntityMutated {
+  string entity_id = 1;
+  string entity_type = 2;
+  MutationKind mutation_kind = 3;
+  EffectiveDatingCoords effective_dating_coords = 4;
+  AuditLink audit_link = 5;
+}
+
+message EntityDeleted {
+  string entity_id = 1;
+  string entity_type = 2;
+  MutationKind mutation_kind = 3;
+  EffectiveDatingCoords effective_dating_coords = 4;
+  AuditLink audit_link = 5;
+}
+
+message MutationResult {
+  string entity_id = 1;
+  string entity_type = 2;
+  MutationKind mutation_kind = 3;
+  optional string consistency_token = 4;
+  AuditLink audit_link = 5;
+  TopologyConformanceGate topology = 6;
+  string d1_conformance_reference = 7;
+}

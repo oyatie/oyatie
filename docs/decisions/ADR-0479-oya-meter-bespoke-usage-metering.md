@@ -5,22 +5,22 @@ status: Accepted
 date: 2026-05-28
 authority: founder
 planning_impact: true
-supersedes: [ADR-0429]
+supersedes: []
 superseded_by: []
 milestone: M-METERING-V2
-related: [ADR-0429, ADR-0478, ADR-0193, ADR-0397, ADR-0083, ADR-0411, ADR-0403, ADR-0420, ADR-0449, ADR-0131, ADR-0132, ADR-0509]
+related: [ADR-0478, ADR-0193, ADR-0083, ADR-0131, ADR-0132, ADR-0509]
 ---
 
 # ADR-0479 — oya-meter: bespoke Rust usage metering substrate
 
 ## Status
 
-Accepted — 2026-05-28. Founder-locked. Supersedes ADR-0429 (OpenMeter Phase-1 stepping stone).
+Accepted — 2026-05-28. Founder-locked. Retires the OpenMeter Phase-1 plan; no status-bearing ADR record exists for that predecessor plan.
 
 ## Context
 
 AWS, GCP, and Azure all operate bespoke usage-metering substrates internally; none depend on a
-third-party SaaS metering product at platform scale. OpenMeter (ADR-0429) was adopted as a
+third-party SaaS metering product at platform scale. OpenMeter (Phase-1 bridge plan) was adopted as a
 Phase-1 stepping stone to unblock tenant billing. It has served that purpose. Three forces now
 justify replacing it with a bespoke substrate:
 
@@ -38,7 +38,7 @@ justify replacing it with a bespoke substrate:
 ## Decision
 
 Ship `microservices/oya-meter/` as a single-concern Rust µservice (ADR-0131 flat layout, ADR-0132
-no-suite). OpenMeter is retired as an active dependency (ADR-0429 → Superseded).
+no-suite). OpenMeter is retired as an active dependency (OpenMeter Phase-1 plan retired).
 
 ### D1 — µservice scaffold
 
@@ -48,7 +48,7 @@ resource dimension registry).
 
 ### D2 — Usage event ingest
 
-Consume typed CloudEvents (ADR-0403) from Pulsar (ADR-0397). Event topic schema:
+Consume typed CloudEvents (CloudEvents schema plan) from Pulsar (Pulsar 4.x + Oxia substrate plan). Event topic schema:
 `usage.{tenant}.{resource}.{action}.v1`. Per-µservice meters:
 
 | Resource | Action | Unit |
@@ -61,19 +61,19 @@ Consume typed CloudEvents (ADR-0403) from Pulsar (ADR-0397). Event topic schema:
 
 ### D3 — Aggregation engine
 
-Time-window aggregates (1m / 5m / 1h / 1d) computed via **Polars** (ADR-0420) materialized
+Time-window aggregates (1m / 5m / 1h / 1d) computed via **Polars** (Polars stream materialization plan) materialized
 streams written to ClickHouse. **Cedar** (ADR-0083) gates per-tenant aggregate API: tenants may
 only query their own namespace; operator realm has cross-tenant read.
 
 ### D4 — Crossplane provisioning
 
-**Crossplane** (ADR-0411) TenantApplication XR provisions per-tenant meter namespaces on tenant
+**Crossplane** (Crossplane XR plan) TenantApplication XR provisions per-tenant meter namespaces on tenant
 onboarding. Feeds **oya-billing** (ADR-0478) billable-metrics via a well-typed gRPC/Connect-RPC
 surface.
 
 ### D5 — Tenant usage API
 
-Tenants query own usage via Connect-RPC; SDK auto-generated via **Kiota** (ADR-0449). Rate: tenant
+Tenants query own usage via Connect-RPC; SDK auto-generated via **Kiota** (Kiota SDK plan). Rate: tenant
 aggregate queries at `/usage/v1/{tenant_id}/aggregates`; raw event replay at
 `/usage/v1/{tenant_id}/events` (operator only).
 
@@ -90,7 +90,7 @@ aggregate queries at `/usage/v1/{tenant_id}/aggregates`; raw event replay at
 
 | Alternative | Reason rejected |
 |---|---|
-| Retain OpenMeter (ADR-0429) | Go runtime seam; no Cedar integration; managed-service coupling risk at scale; Phase-1 stepping stone fulfilled its purpose |
+| Retain OpenMeter (Phase-1 bridge plan) | Go runtime seam; no Cedar integration; managed-service coupling risk at scale; Phase-1 stepping stone fulfilled its purpose |
 | Metronome / Amberflo (commercial SaaS) | Violates self-hostable invariant; no sovereign-cloud / air-gap path |
 | Extend cloud-billing (ADR-0478) with metering | Violates ADR-0132 single-concern; metering throughput profile (high-volume ingest) is different from billing ledger (low-volume settlement) |
 
@@ -100,16 +100,16 @@ aggregate queries at `/usage/v1/{tenant_id}/aggregates`; raw event replay at
   acceptance gates.
 - oya-billing (ADR-0478) switches its billable-metrics source from OpenMeter to oya-meter Connect-RPC
   once D4 is accepted.
-- Polars (ADR-0420) materialized-stream pattern is the canonical aggregate computation path; no
+- Polars (Polars stream materialization plan) materialized-stream pattern is the canonical aggregate computation path; no
   separate streaming-SQL engine required.
-- Kiota SDK (ADR-0449) generates tenant-facing client from the Connect-RPC proto.
+- Kiota SDK (Kiota SDK plan) generates tenant-facing client from the Connect-RPC proto.
 
 ## Integration
 
-- **Pulsar** (ADR-0397): oya-meter is a Pulsar consumer on `usage.*` topics.
+- **Pulsar** (Pulsar 4.x + Oxia substrate plan): oya-meter is a Pulsar consumer on `usage.*` topics.
 - **ClickHouse** (ADR-0193): time-series write path; aggregate query path.
 - **Cedar** (ADR-0083): per-tenant namespace gate on aggregate API.
-- **Crossplane** (ADR-0411): TenantApplication XR provisions meter namespace.
+- **Crossplane** (Crossplane XR plan): TenantApplication XR provisions meter namespace.
 - **oya-billing** (ADR-0478): consumes billable-metrics from oya-meter.
 
 ## Promotion Rationale

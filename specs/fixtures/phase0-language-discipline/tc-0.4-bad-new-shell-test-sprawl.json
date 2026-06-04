@@ -1,0 +1,23 @@
+{
+  "id": "TC-0.4-BAD-new-shell-test-sprawl",
+  "description": "A candidate-authored new shell test outside the bootstrap allowlist is blocked.",
+  "expected_verdict": "FAIL",
+  "changed_files": [
+    {
+      "path": "scripts/tests/new_language_gate.test.sh",
+      "status": "A"
+    }
+  ],
+  "expected_failures": [
+    "new_shell_outside_allowlist"
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

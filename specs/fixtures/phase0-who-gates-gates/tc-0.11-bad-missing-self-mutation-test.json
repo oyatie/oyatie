@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/phase0-who-gates-gates-fixture.schema.json",
+  "tc_id": "TC-0.11.BAD.missing-self-mutation-test",
+  "expected_verdict": "FAIL",
+  "expected_violations": [
+    "missing_self_mutation_test"
+  ],
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "gate_under_test": {
+    "gate_id": "unselftested-integrity-gate",
+    "buck2_target": "//:unselftested-integrity-gate",
+    "pass_condition": "all_known_bad_mutations_fail_and_all_markers_present",
+    "known_bad_fixtures": [
+      "known-bad-input"
+    ],
+    "self_mutation_tests": [],
+    "no_new_oya_cli_surface": true
+  }
+}

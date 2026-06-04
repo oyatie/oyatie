@@ -1,0 +1,60 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/phase0-structural-lock-revert-fixture.schema.json",
+  "claim_boundary": {
+    "hyperscaler_grade": false,
+    "live_required_context_execution_proven": false,
+    "local_static_fixture_evidence_only": true,
+    "mechanical_structural_lock_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false
+  },
+  "expected_verdict": "FAIL",
+  "expected_violations": [
+    "lock_ttl_not_future_or_expired"
+  ],
+  "meta": {
+    "authority_boundary": "AC-0.9 local/static structural-lock/revert fixture evidence only; advisory until trusted cloud-ci/oya-ci required context executes on the candidate SHA.",
+    "related_acceptance_criterion": "AC-0.9",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.9"
+  },
+  "structural_lock_contract_version": "phase0.ac0.9.v1",
+  "structural_lock_packet": {
+    "authority": {
+      "lock_output_is_advisory_until_p0_0": true,
+      "mechanical_structural_lock_proven": false,
+      "no_new_oya_cli_surface": true,
+      "required_context": "oya-ci-required",
+      "status_mutation_performed": false
+    },
+    "candidate_branch": "feat/platform-readiness-p0-0-red-gap",
+    "candidate_sha": "local-static-fixture-sha",
+    "classification": "automated_advisory_until_p0_0",
+    "lock_acquired_at": "2026-06-03T00:00:00Z",
+    "lock_expires_at": "2026-06-02T00:00:00Z",
+    "lock_scope": "phase0-structural-artifact-change",
+    "locked_path_globs": [
+      "specs/generated-artifact-registry.json"
+    ],
+    "owner_lane": "platform-governance + platform-toolchain",
+    "packet_id": "SLR-P0-0-BAD-STALE-001",
+    "parallel_lane_policy": {
+      "one_lane_one_path": true,
+      "path_overlap_detected": false
+    },
+    "protected_flow_revert": {
+      "audit_event_id": "EVT-P0-0-AC-0-9-STRUCTURAL-REVERT-STALE",
+      "blast_radius": [
+        "generated artifact registry"
+      ],
+      "follow_up_owner": "platform-governance",
+      "merge_tree_probe": "clean",
+      "revert_strategy": "git revert candidate structural commit before re-opening lock scope",
+      "revert_verification_gate": "buck2 build //:structural-lock-revert-check //:phase0-merge-conflict-foundation-check"
+    },
+    "status": "advisory_serialized_lock_active"
+  },
+  "tc_id": "TC-0.9.BAD.stale-lock-ttl"
+}

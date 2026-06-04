@@ -1,0 +1,38 @@
+{
+  "tc_id": "TC-0.6-GOOD-effective-dating-kernel-bitemporal-as-of",
+  "expected_verdict": "PASS",
+  "kernel_contract": {
+    "bitemporal_type_exposed": true,
+    "valid_time_transaction_time_tested": true,
+    "as_of_query_tested": true,
+    "overlap_rejection_tested": true,
+    "open_ended_range_tested": true,
+    "clock_skew_determinism_tested": true,
+    "buck2_target": "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+    "fixture_gate": "//:effective-dating-kernel-check"
+  },
+  "property_fixture": {
+    "valid_time": {
+      "start": 0,
+      "end_exclusive": 10
+    },
+    "transaction_time": {
+      "start": 100,
+      "end_exclusive": 200
+    },
+    "as_of": {
+      "valid_at": 5,
+      "transaction_at": 150,
+      "expected_value": "registered"
+    }
+  },
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

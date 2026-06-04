@@ -1,6 +1,6 @@
 ---
 id: ADR-0090
-status: accepted
+status: Accepted
 doc_status: published
 ---
 
@@ -12,7 +12,7 @@ doc_status: published
 > **Supersedes:** —
 > **Superseded-by:** —
 > **Related:** ADR-0064, ADR-0509 (strategic hyper/axum split — see Amendment 2026-05-29)
-> **Amended:** 2026-05-29 — strategic hyper/axum split codified (hyper preferred at low level; axum sanctioned where it pays; enforced by `oya-check-http-stack`; see Amendment below)
+> **Amended:** 2026-05-29 — strategic hyper/axum split codified (hyper preferred at low level; axum sanctioned where it pays; enforced by `oya gate validate http-stack`; see Amendment below)
 
 ---
 

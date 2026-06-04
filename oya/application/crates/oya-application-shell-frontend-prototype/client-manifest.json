@@ -10,33 +10,33 @@
     "cargo_leptos_version": "0.3.6",
     "language": "Rust",
     "wasm_target": "wasm32-unknown-unknown",
-    "preferred_dev_runner": "cargo-leptos",
-    "preferred_dev_command": "cargo leptos watch",
-    "documented_equivalent": "cargo run -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+    "preferred_dev_runner": "buck2",
+    "preferred_dev_command": "buck2 run root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
+    "documented_equivalent": "buck2 build root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
     "style_entrypoint": "style/app.css",
-    "cargo_leptos_config": "Cargo.toml#[package.metadata.leptos]",
+    "cargo_leptos_config": "Cargo.toml#[package.metadata.leptos] metadata only; not CI/CD/build authority",
     "hydration_model": "SSR-first static shell with selective Leptos/WASM island mounting; Workflow, Messenger, Mail, and Community interactions keep local visual state and fetch permitted render envelopes when context changes.",
     "island_entrypoint": "mount_dashboard_islands() exported from the WASM package",
-    "dev_server_fallback": "The documented SSR dev server attempts the WASM island bundle first, then loads /client/prototype-interactions.js so the prototype remains visually interactive without cargo-leptos-generated /pkg assets."
+    "dev_server_fallback": "The documented Buck2 SSR dev server attempts the WASM island bundle first, then loads /client/prototype-interactions.js so the prototype remains visually interactive without generated /pkg assets."
   },
   "dev_commands": [
     {
       "name": "preferred local dev server",
-      "working_directory": "crates/oya-application-shell-frontend-prototype",
-      "command": "cargo leptos watch",
-      "notes": "Uses the crate-local cargo-leptos metadata and the SSR feature to run a mock-only local shell at 127.0.0.1:3000."
+      "working_directory": "repo root",
+      "command": "buck2 run root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
+      "notes": "Uses the Buck2 rust_binary for the mock-only local shell at 127.0.0.1:3000; cargo-leptos metadata remains descriptive only."
     },
     {
       "name": "documented local dev server without cargo-leptos",
       "working_directory": "repo root",
-      "command": "cargo run -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
-      "notes": "Launches the crate-local SSR mock shell server at 127.0.0.1:3000 and serves /api/render-envelope/<context-id> for selective island refreshes; cargo-leptos remains the preferred watcher when installed."
+      "command": "buck2 run root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
+      "notes": "Launches the crate-local SSR mock shell server through Buck2 and serves /api/render-envelope/<context-id> for selective island refreshes."
     },
     {
       "name": "documented build equivalent when cargo-leptos is not installed",
       "working_directory": "repo root",
-      "command": "cargo test -p oya-application-shell-frontend-prototype && cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --release && cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
-      "notes": "Builds and tests the Leptos/WASM scaffold without launching a dev server."
+      "command": "buck2 build root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
+      "notes": "Builds the Leptos/WASM scaffold surfaces through Buck2 without launching a dev server."
     }
   ],
   "mock_only": true,
@@ -62,7 +62,7 @@
       "server_endpoint": "src/main.rs serves /api/render-envelope/<context-id> only in the SSR dev server",
       "wasm_island": "src/app.rs DashboardIsland fetches one permitted envelope at a time and does not embed the full server mock catalog",
       "surface_interactions": "src/app.rs ProductSurface, WorkflowTool, Work Hub composer, and Workflow Studio local draft-node state",
-      "visual_fallback": "static/prototype-interactions.js provides the same visual-only local interactions when cargo-leptos/wasm-bindgen assets are not present in the dev server package directory."
+      "visual_fallback": "static/prototype-interactions.js provides the same visual-only local interactions when generated WASM assets are not present in the dev server package directory."
     },
     "context_switching": "Context buttons are inside a selective Leptos/WASM island. The browser requests /api/render-envelope/<context-id>; the SSR/server-only mock catalog derives and serializes only the permitted TenantRenderEnvelope for that tenant/role/accreditation context.",
     "selective_wasm_islands": {

@@ -434,12 +434,12 @@ impl std::error::Error for DrainPolicyError {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct DrainPolicy {
     /// Upper-bound on the total eviction time in seconds. Must be > 0.
-    pub max_eviction_seconds: u32,
+    pub max_eviction_seconds: u32, // data_class: INTERNAL_ONLY
     /// Per-pod termination grace period in seconds. `0` means immediate SIGKILL.
-    pub grace_period_seconds: u32,
+    pub grace_period_seconds: u32, // data_class: INTERNAL_ONLY
     /// Whether to force-terminate pods after `max_eviction_seconds` elapses.
     /// Corresponds to `kubectl drain --force --ignore-daemonsets` semantics.
-    pub force_after_timeout: bool,
+    pub force_after_timeout: bool, // data_class: INTERNAL_ONLY
 }
 
 impl DrainPolicy {
@@ -739,8 +739,7 @@ mod tests {
 
     #[test]
     fn failure_reason_serde_uses_snake_case() {
-        let json =
-            serde_json::to_string(&FailureReason::DatastoreBindTimeout).expect("serialize");
+        let json = serde_json::to_string(&FailureReason::DatastoreBindTimeout).expect("serialize");
         assert_eq!(json, "\"datastore_bind_timeout\"");
 
         let back: FailureReason =
@@ -812,9 +811,7 @@ mod tests {
     #[test]
     fn drain_phase_linear_progression_legal() {
         assert!(DrainPhase::EvictingPods.can_proceed_to(DrainPhase::AwaitingPodTermination));
-        assert!(
-            DrainPhase::AwaitingPodTermination.can_proceed_to(DrainPhase::FinalizingDeletion)
-        );
+        assert!(DrainPhase::AwaitingPodTermination.can_proceed_to(DrainPhase::FinalizingDeletion));
     }
 
     #[test]

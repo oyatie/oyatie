@@ -2,7 +2,8 @@
 # tools/hook-bootstrap/uninstall.sh
 #
 # Purpose: Reverse everything tools/hook-bootstrap/install.sh installed.
-#          Removes hook entries from .claude/settings.json, removes .codex/hooks.json,
+#          Removes legacy bootstrap hook entries from .claude/settings.json while
+#          preserving the OMC-owned Claude hook boundary, removes .codex/hooks.json,
 #          .gemini/settings.json, removes PATH_add bin from .envrc if we added it,
 #          and removes legacy .hermes/hooks.json artifacts left by pre-ADR-0335 install.sh
 #          (Hermes CLI support retired per ADR-0335 Wave 15I + ADR-0247 D-10; the
@@ -52,41 +53,43 @@ echo ""
 
 REMOVED_COUNT=0
 
-# ── Remove .claude/settings.json hooks ──────────────────────────────────────
+# ── Remove legacy .claude/settings.json hooks ───────────────────────────────
 
 SETTINGS_FILE="$REPO_ROOT/.claude/settings.json"
 if [ -f "$SETTINGS_FILE" ] && grep -q "\"$MARKER\"" "$SETTINGS_FILE" 2>/dev/null; then
     if $DRY_RUN; then
-        dry "Would remove hooks bearing marker '$MARKER' from $SETTINGS_FILE"
-        dry "  (removes all hook entries with \"marker\": \"$MARKER\")"
+        dry "Would remove any legacy project runtime hooks from $SETTINGS_FILE"
+        dry "Would preserve the settings file because OMC owns Claude hook orchestration"
     else
         if command -v python3 >/dev/null 2>&1; then
-            python3 - "$SETTINGS_FILE" "$MARKER" <<'PYEOF'
+            CLAUDE_UNINSTALL_RESULT=$(python3 - "$SETTINGS_FILE" <<'PYEOF'
 import json, sys
-path, marker = sys.argv[1], sys.argv[2]
+path = sys.argv[1]
 with open(path) as f:
     data = json.load(f)
 if "hooks" not in data:
+    print("clean")
     sys.exit(0)
-for event, entries in list(data["hooks"].items()):
-    data["hooks"][event] = [e for e in entries if e.get("marker") != marker]
-    if not data["hooks"][event]:
-        del data["hooks"][event]
-if not data["hooks"]:
-    del data["hooks"]
+del data["hooks"]
 with open(path, "w") as f:
     json.dump(data, f, indent=2)
     f.write("\n")
+print("removed-hooks")
 PYEOF
-            ok "Removed bootstrap hooks from .claude/settings.json"
+)
+            if [ "$CLAUDE_UNINSTALL_RESULT" = "removed-hooks" ]; then
+                ok "Removed legacy project runtime hooks from .claude/settings.json"
+                REMOVED_COUNT=$((REMOVED_COUNT + 1))
+            else
+                info ".claude/settings.json has no project runtime hooks (OMC boundary already clean)"
+            fi
         else
             warn "python3 not available; cannot surgically remove hooks."
-            warn "To uninstall manually: remove entries with \"marker\": \"$MARKER\" from $SETTINGS_FILE"
+            warn "To uninstall manually: remove the top-level \"hooks\" object from $SETTINGS_FILE"
         fi
     fi
-    REMOVED_COUNT=$((REMOVED_COUNT + 1))
 else
-    info ".claude/settings.json has no bootstrap hooks to remove (already clean)"
+    info ".claude/settings.json has no bootstrap marker to remove (already clean)"
 fi
 
 # ── Remove .codex/hooks.json if we created it ───────────────────────────────
@@ -242,7 +245,7 @@ if $DRY_RUN; then
 else
     if [ "$REMOVED_COUNT" -gt 0 ]; then
         ok "$REMOVED_COUNT component(s) removed"
-        info "bin/oya and tools/hooks/ remain in the repo (VCS-tracked; not removed by bootstrap)"
+        info "repo-local helper scripts and tools/hooks/ remain in the repo (VCS-tracked; not removed by bootstrap)"
         info "To reinstall: ./tools/hook-bootstrap/install.sh"
     else
         info "Nothing to remove — bootstrap was not installed or already clean"

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/d1-read-your-writes-xfail-registry.json",
+  "title": "D1ReadYourWritesXfailRegistry",
+  "description": "AC-0.10b local/static registry for executable D1 read-your-writes XFAIL classification. It requires the in-memory probe to remain XFAIL until the real Phase-2 consistency mechanism lands, while keeping live D1 conformance and readiness claims false.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-D1-READ-YOUR-WRITES-XFAIL",
+    "version": "0.1.0",
+    "status": "local_static_xfail_classifier_not_live_d1_conformance",
+    "owner_team": "platform-architecture + platform-governance",
+    "created_at": "2026-06-03T00:00:00Z",
+    "updated_at": "2026-06-03T00:00:00Z",
+    "related_plan": ".omx/plans/prd-platform-readiness.md#AC-0.10b",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.10b + #TC-0.10b.1",
+    "source_request": "Platform Readiness P0.0: make the D1 read-your-writes test executable and correctly XFAIL-classified until the real Phase-2 mechanism lands."
+  },
+  "claim_boundary": {
+    "d1_read_your_writes_xfail_measured": true,
+    "executable_xfail_classifier_required": true,
+    "consistency_token_required": true,
+    "phase2_mechanism_landed": false,
+    "live_d1_conformance_executed": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false,
+    "no_new_oya_cli_surface": true
+  },
+  "gate_contract": {
+    "acceptance_criterion": "AC-0.10b",
+    "automation_matrix_row_id": "AC-0.10b-d1-read-your-writes-xfail",
+    "buck2_target": "//:d1-read-your-writes-xfail-check",
+    "checker": "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+    "test_harness": "scripts/tests/d1_read_your_writes_xfail_check.rs",
+    "authority": "local_static_fixture_evidence_only",
+    "reds_when": [
+      "read-your-writes probe is classified PASS before Phase-2 lands",
+      "mutation_result lacks consistency_token",
+      "fixture claims live D1 conformance or Phase-2 green without trusted evidence",
+      "probe maps to oya CLI authority"
+    ],
+    "xfail_policy": {
+      "classification": "expected_failure_until_phase2_mechanism_lands",
+      "phase2_flip_rule": "Only a later Phase-2 changeset with live D1 conformance evidence may flip the read-your-writes probe from XFAIL to PASS.",
+      "local_static_boundary": "This registry proves executable XFAIL classification only and does not prove live D1 read-your-writes conformance."
+    }
+  },
+  "fixture_set": {
+    "fixture_directory": "specs/fixtures/phase0-d1-read-your-writes-xfail",
+    "good_fixture": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json",
+    "bad_fixtures": [
+      "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json",
+      "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json",
+      "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json"
+    ],
+    "expected_violation_catalog": [
+      "xfail_misclassified_as_pass",
+      "missing_consistency_token",
+      "phase2_green_claim_without_live_evidence",
+      "live_d1_conformance_claimed",
+      "oya_cli_authority_route"
+    ]
+  },
+  "automated_chain": [
+    "//:d1-read-your-writes-xfail-check",
+    "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+    "scripts/tests/d1_read_your_writes_xfail_check.rs",
+    "specs/d1-read-your-writes-xfail-registry.json",
+    "specs/fixtures/phase0-d1-read-your-writes-xfail/*.json",
+    "//:phase0-red-green-fixture-contract-check",
+    "//:phase0-automation-ratchet-check",
+    "//:buck2-authority-policy-check"
+  ]
+}

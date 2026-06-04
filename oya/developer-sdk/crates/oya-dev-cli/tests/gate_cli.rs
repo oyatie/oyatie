@@ -5604,20 +5604,21 @@ fn planning_closure_gate_rejects_no_placeholder_policy_without_false_signal_cont
 #[test]
 fn stage0_prereqs_gate_is_dispatched() {
     let temp = temp_dir("stage0-prereqs-dispatch");
-    fs::create_dir_all(temp.join("crates/oya-application-app/src")).expect("app dir created");
+    fs::create_dir_all(temp.join("oya/application/crates/oya-application-app/src"))
+        .expect("app dir created");
     fs::create_dir_all(temp.join("docs/decisions")).expect("decisions dir created");
     fs::write(
         temp.join("Cargo.toml"),
-        "[workspace]\nmembers = [\"crates/oya-application-app\"]\nresolver = \"2\"\n\n[workspace.package]\nedition = \"2024\"\nversion = \"0.1.0\"\nrust-version = \"1.95.0\"\n",
+        "[workspace]\nmembers = [\"oya/application/crates/oya-application-app\"]\nresolver = \"2\"\n\n[workspace.package]\nedition = \"2024\"\nversion = \"0.1.0\"\nrust-version = \"1.95.0\"\n",
     )
     .expect("workspace written");
     fs::write(
-        temp.join("crates/oya-application-app/Cargo.toml"),
+        temp.join("oya/application/crates/oya-application-app/Cargo.toml"),
         "[package]\nname = \"oya-application-app\"\nedition.workspace = true\nversion.workspace = true\nrust-version.workspace = true\npublish = false\n\n[lib]\npath = \"src/lib.rs\"\n",
     )
     .expect("app manifest written");
     fs::write(
-        temp.join("crates/oya-application-app/src/lib.rs"),
+        temp.join("oya/application/crates/oya-application-app/src/lib.rs"),
         "pub fn smoke() -> bool { true }\n",
     )
     .expect("app lib written");
@@ -8396,8 +8397,12 @@ fn aac_capabilities(
 fn active_artifact_contract_repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
-        .nth(2)
-        .expect("repo root")
+        .find(|candidate| {
+            candidate
+                .join("specs/artifact-profile-defaults.json")
+                .exists()
+        })
+        .expect("repo root with artifact profile defaults")
         .to_path_buf()
 }
 

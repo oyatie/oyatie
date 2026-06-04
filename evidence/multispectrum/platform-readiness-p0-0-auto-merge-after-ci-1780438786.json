@@ -1,0 +1,227 @@
+{
+  "schema_version": "0.1.0",
+  "created_at_epoch": 1780438786,
+  "created_at_note": "2026-06-02 local P0.0 auto-merge-after-CI slice evidence",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "head_before_commit": "dbb688b150617775270994d502262fcbadb4b407",
+  "claim_boundary": {
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "live_forgejo_converged": false,
+    "live_github_required_context_converged": true,
+    "note": "This is local/static plus live GitHub branch-protection and PR auto-merge observation evidence. It is not a live Forgejo mutation or Phase-0 exit claim.",
+    "live_github_auto_merge_armed": true,
+    "live_github_auto_merge_merge_method": "SQUASH"
+  },
+  "implemented_contract": {
+    "required_context": "oya-ci-required",
+    "forgejo": {
+      "branch_protection_script": "scripts/ci/arm-auto-merge.sh",
+      "auto_merge_fields": [
+        "Do=squash",
+        "merge_when_checks_succeed=true",
+        "delete_branch_after_merge=true",
+        "head_commit_id=<expected sha>"
+      ],
+      "dry_run_test": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+      "safety_fixes_after_review": [
+        "REQUIRED_CONTEXT live runs are fixed to oya-ci-required; env override fails closed",
+        "Forgejo scheduling merge method is fixed to squash",
+        "Forgejo delete_branch_after_merge is fixed to true",
+        "--head-commit requires full 40/64 hex SHA",
+        "script refreshes PR, compares head.sha exactly, and requires mergeable=true before POST /pulls/{index}/merge",
+        "negative tests cover context override, unsafe method, unsafe delete-branch override, short head, moved head, conflict, and null mergeability"
+      ]
+    },
+    "github": {
+      "script": "scripts/trigger-next-queue-automerge.sh",
+      "command_shape": "gh pr merge <n> --squash --auto --match-head-commit <expected sha>",
+      "conflict_guard": "scripts/check-sequential-pr-merge-conflicts.sh",
+      "safety_fixes_after_review": [
+        "GitHub auto-merge script rejects non-squash merge methods",
+        "GitHub arming uses --auto --match-head-commit and the fixed --squash flag",
+        "live branch-protection required contexts must match checked-in oya-ci-required policy before arming",
+        "sequential merge conflict simulation must pass before arming",
+        "sequential conflict simulation accepts --fetch-remote and the GitHub armer auto-selects github-mirror when origin is Forgejo",
+        "fetch-remote regression test proves default Forgejo origin fails closed instead of silently skipping GitHub PR-head conflict evidence"
+      ]
+    },
+    "tide": {
+      "paths": [
+        "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
+        "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs",
+        "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs"
+      ],
+      "note": "Tide kernel hard-pins oya-ci-required and squash; Tide app passes the refreshed PR head SHA; Tide Forgejo adapter validates full 40/64 hex head_sha and schedules merge-after-checks. Buck2 Rust tests are blocked by existing third-party linker issue noted below."
+    }
+  },
+  "verification": {
+    "local_static_pass": [
+      {
+        "command": "bash -n scripts/ci/arm-auto-merge.sh scripts/tests/forgejo_auto_merge_after_ci.test.sh scripts/check-sequential-pr-merge-conflicts.sh scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh scripts/trigger-next-queue-automerge.sh scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh && scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh && scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh && scripts/tests/forgejo_auto_merge_after_ci.test.sh && scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+        "result": "PASS",
+        "note": "Forgejo guarded scheduling, GitHub drift/squash guard, GitHub-mirror fetch-remote conflict guard, and contract checks pass."
+      },
+      {
+        "command": "python3 -m json.tool specs/phase0-auto-merge-after-ci.json specs/buck2-authority-policy.json >/dev/null (run as individual files)",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      },
+      {
+        "command": "changed-file scan for conflict markers and forbidden executable Cargo subcommands",
+        "result": "PASS"
+      }
+    ],
+    "buck2_pass": [
+      {
+        "target": "//:forgejo-auto-merge-after-ci-check",
+        "build_id": "de4969c7-2296-4360-9e4c-d494279ed10c",
+        "result": "PASS",
+        "command_note": "built with GitHub fetch-remote conflict-guard regression in the same Buck2 invocation"
+      },
+      {
+        "target": "//:github-auto-merge-after-ci-check",
+        "build_id": "de4969c7-2296-4360-9e4c-d494279ed10c",
+        "result": "PASS",
+        "command_note": "runs required-context/squash guard and check-sequential --fetch-remote regression fixture"
+      },
+      {
+        "target": "//:phase0-auto-merge-after-ci-contract-check",
+        "build_id": "de4969c7-2296-4360-9e4c-d494279ed10c",
+        "result": "PASS",
+        "command_note": "asserts --fetch-remote, github-mirror auto-selection, head pinning, squash-only, oya-ci-required, and non-green claim boundaries"
+      },
+      {
+        "target": "//:buck2-authority-policy-check",
+        "build_id": "de4969c7-2296-4360-9e4c-d494279ed10c",
+        "result": "PASS",
+        "policy_command_scan_files": 141,
+        "command_note": "Buck2 authority scanner covers the new fetch-remote regression script"
+      },
+      {
+        "target": "//:phase0-ci-enforcement-baseline-catalog-check",
+        "build_id": "de4969c7-2296-4360-9e4c-d494279ed10c",
+        "result": "PASS",
+        "command_note": "built together in the same Buck2 invocation"
+      }
+    ],
+    "buck2_blocked": [
+      {
+        "target": "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests",
+        "build_id": "abcbe48c-3fa2-491f-9021-ad4d19aa6421",
+        "result": "BLOCKED_EXISTING_TOOLCHAIN",
+        "blocking_error": "third-party//:zmij-1-build-script-build failed linking aarch64-unknown-linux-gnu on macOS host: ld unknown options --as-needed/-Bstatic/..."
+      },
+      {
+        "target": "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests --target-platforms prelude//platforms:default",
+        "build_id": "8c0acfd9-b485-4839-8c83-3d2bbdde5cf5",
+        "result": "BLOCKED_EXISTING_TOOLCHAIN",
+        "blocking_error": "third-party//:serde_json-1-build-script-build failed linking aarch64-unknown-linux-gnu on macOS host: ld unknown options --as-needed/-Bstatic/..."
+      },
+      {
+        "target": "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests",
+        "build_id": "f66e54b9-926d-48ab-aa96-44f802f7c9fd",
+        "result": "BLOCKED_EXISTING_TOOLCHAIN",
+        "blocking_error": "third-party//:serde_json-1-build-script-build failed linking aarch64-unknown-linux-gnu on macOS host: ld unknown options --as-needed/-Bstatic/...; no tests ran"
+      },
+      {
+        "target": "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests",
+        "build_id": "2bda0226-37f1-4e33-9f83-b1e36b668c5b",
+        "result": "BLOCKED_EXISTING_TOOLCHAIN",
+        "blocking_error": "third-party//:serde_json-1-build-script-build failed linking aarch64-unknown-linux-gnu on macOS host: ld unknown options --as-needed/-Bstatic/...; no tests ran"
+      }
+    ],
+    "code_review": {
+      "agent": "code-reviewer/019e8a83-30c3-74c2-b92e-d96b5a430c1e",
+      "result": "NO_MUST_FIX_BLOCKERS",
+      "note": "Independent code-reviewer checked the scoped change for P0.0 auto-merge-after-CI enforcement, Buck2/Cargo authority boundaries, live-claim boundaries, and merge-conflict discipline. Reviewer confirmed live GitHub/Forgejo gaps remain non-claims and Tide Rust Buck2 tests remain blocked by pre-existing linker/toolchain failure before tests run."
+    },
+    "live_github_branch_protection_apply": {
+      "command": "gh api --method PATCH repos/jason931225/oyatie/branches/dev/protection/required_status_checks --input <strict=false, contexts=[oya-ci-required]>",
+      "result": "PASS",
+      "verified_by": "gh api repos/jason931225/oyatie/branches/dev/protection/required_status_checks --jq {strict,contexts}",
+      "observed": "{\"contexts\":[\"oya-ci-required\"],\"strict\":false}",
+      "reverified_after_buck2_build": "2026-06-02T18:52:00-04:00"
+    },
+    "actual_conflict_guard": {
+      "command": "scripts/check-sequential-pr-merge-conflicts.sh --base-branch dev --base-ref github-mirror/dev --start-pr 455 --end-pr 455 --limit 500 --fetch-remote github-mirror",
+      "result": "PASS",
+      "observed_fetch_remote": "github-mirror",
+      "observed": "sequential PR merge simulation passed: 1 PRs modeled"
+    },
+    "live_github_pr_455_auto_merge": {
+      "command": "gh pr merge 455 --squash --auto --match-head-commit 9ae7027e6b795498d0057193543dedd358bf6b7c",
+      "result": "PASS",
+      "observed": {
+        "autoMergeRequest.mergeMethod": "SQUASH",
+        "autoMergeRequest.enabledAt": "2026-06-02T22:58:38Z",
+        "headRefOid": "9ae7027e6b795498d0057193543dedd358bf6b7c",
+        "mergeable": "MERGEABLE",
+        "mergeStateStatus": "BLOCKED",
+        "statusCheckRollup": []
+      },
+      "gap": "GitHub auto-merge is armed, but the PR remains blocked until oya-ci-required is reported by the trusted producer."
+    }
+  },
+  "live_observations": {
+    "github_repo_settings": {
+      "allow_auto_merge": true,
+      "delete_branch_on_merge": true,
+      "allow_squash_merge": true,
+      "allow_merge_commit": false,
+      "allow_rebase_merge": false,
+      "default_branch": "dev"
+    },
+    "github_dev_required_status_checks": {
+      "strict": false,
+      "contexts": [
+        "oya-ci-required"
+      ],
+      "mutation": "gh api --method PATCH repos/jason931225/oyatie/branches/dev/protection/required_status_checks --input <infra/branch-protection/dev.json derived payload>",
+      "observed_at": "2026-06-02T22:52:00Z",
+      "gap": "GitHub required-status drift closed; P0.0 remains false because trusted cloud-ci/oya-ci producer evidence and live Forgejo convergence remain gaps."
+    },
+    "forgejo_probe": {
+      "command": "curl --max-time 3 http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/version",
+      "result": "DNS/resolve timeout in local environment",
+      "exit_code": 28
+    },
+    "github_pr_455_auto_merge": {
+      "autoMergeRequest.mergeMethod": "SQUASH",
+      "autoMergeRequest.enabledAt": "2026-06-02T22:58:38Z",
+      "headRefOid": "9ae7027e6b795498d0057193543dedd358bf6b7c",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "BLOCKED",
+      "statusCheckRollup": [],
+      "url": "https://github.com/jason931225/oyatie/pull/455",
+      "gap": "GitHub auto-merge is armed, but the PR remains blocked until oya-ci-required is reported by the trusted producer."
+    }
+  },
+  "merge_conflict_avoidance": {
+    "git_fetch": "git fetch github-mirror dev",
+    "rev_list_left_right_count_head_vs_github_mirror_dev": "18\t0",
+    "interpretation": "current branch is ahead of GitHub dev and not behind; sequential PR #455 merge simulation passed against github-mirror/dev using the GitHub mirror remote for PR-head fetches.",
+    "verified_at": "2026-06-02T19:03:00-04:00",
+    "actual_sequential_guard": {
+      "command": "scripts/check-sequential-pr-merge-conflicts.sh --base-branch dev --base-ref github-mirror/dev --start-pr 455 --end-pr 455 --limit 500 --fetch-remote github-mirror",
+      "result": "PASS",
+      "observed_fetch_remote": "github-mirror",
+      "observed": "sequential PR merge simulation passed: 1 PRs modeled"
+    }
+  },
+  "sources": {
+    "official_research": [
+      "https://cli.github.com/manual/gh_pr_merge",
+      "https://code.forgejo.org/swagger.v1.json",
+      "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
+      "https://docs.github.com/en/enterprise-cloud@latest/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+      "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request",
+      "https://docs.github.com/en/rest/pulls/pulls?apiVersion=latest",
+      "https://nnethercote.github.io/perf-book/heap-allocations.html",
+      "https://rust-lang.github.io/rfcs/1183-swap-out-jemalloc.html"
+    ]
+  }
+}

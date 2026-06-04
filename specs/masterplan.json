@@ -7,7 +7,7 @@
     "version": "1.1.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-05-19T04:47:32Z",
+    "updated_at": "2026-06-04T00:00:00Z",
     "owner_team": "council-architecture",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
@@ -33,7 +33,7 @@
       "01KRJMZ2KY3V7PRDRYMH9BS9KZ",
       "01KRJN9MX6W8BD8TE87NC5GA37"
     ],
-    "oya_vcs_directive_2026_05_14": "Oya VCS is the provider-neutral, agent-native successor to grit with first-class but replaceable GitHub/GitHub Actions/Trivy/Argo CD adapters, native queue feature parity, semantic ChangeSets, virtual merge stack, queue-aware locks, review/CI fix loops, dev/staging/prod promotion, and Rust compile-latency scheduling.",
+    "oya_vcs_directive_2026_05_14": "Oya VCS is the provider-neutral, agent-native successor to grit with first-class but replaceable GitHub/GitHub Actions/Trivy/retired external CD substrate adapters, native queue feature parity, semantic ChangeSets, virtual merge stack, queue-aware locks, review/CI fix loops, dev/staging/prod promotion, and Rust compile-latency scheduling.",
     "purpose": "Schema for https://docs.oyatie.com/specs/masterplan.json",
     "oya_vcs_directive_2026_05_15": "Oya VCS replaces grit/icm/rtk/vox/omx/omc as forward agentic VCS/promotion authority; legacy surfaces are compatibility/provenance only.",
     "session_directives_2026_05_17": {
@@ -173,14 +173,14 @@
             "Resource Registry",
             "Operation Ledger",
             "Workflow/Reconciler",
-            "OpenTofu/Operators/Argo"
+            "OpenTofu/Operators/native reconcilers"
           ],
           "implementation_mechanisms_not_user_facing_control_plane": [
             "OpenTofu",
             "Kubernetes Operators",
-            "Argo CD"
+            "retired external CD substrate"
           ],
-          "requirement": "OpenTofu and Argo are implementation mechanisms behind the Cloud Control Plane, not substitutes for the user-facing API."
+          "requirement": "OpenTofu and native reconcilers are implementation mechanisms behind the Cloud Control Plane, not substitutes for the user-facing API."
         },
         "operation_ledger": {
           "durable_async_operation_state_required_for": [
@@ -229,12 +229,12 @@
           "focus_required_for_billing_dataset_shape": true,
           "opencost_required_for_kubernetes_cost_attribution": true,
           "progressive_delivery_required": true,
-          "progressive_delivery_default": "Argo Rollouts or an Oya-native equivalent with explicit canary/rollback semantics"
+          "progressive_delivery_default": "progressive-delivery controller or an Oya-native equivalent with explicit canary/rollback semantics"
         },
         "non_claims": [
           "No stable cloud-resource API contract, lifecycle state machine, identity binding runtime, policy evaluator integration, quota reservation runtime, billing ledger, audit persistence, observability pipeline, rollback controller, or reconciliation controller is implemented by this directive capture.",
-          "No Cloud Control Plane API, resource registry service, operation-ledger persistence, quota runtime, metering outbox, billing pipeline, developer portal provisioning workflow, Cluster API fleet integration, Gateway API deployment, OpenFeature rollout integration, FOCUS/OpenCost export, or Argo Rollouts runtime is implemented by this directive capture.",
-          "No FD-001 tenant workload hosting, provider-live operation, OpenTofu plan/apply, Argo CD sync, Kubernetes API call, production readiness, or hyperscaler readiness is claimed."
+          "No Cloud Control Plane API, resource registry service, operation-ledger persistence, quota runtime, metering outbox, billing pipeline, developer portal provisioning workflow, Cluster API fleet integration, Gateway API deployment, OpenFeature rollout integration, FOCUS/OpenCost export, or progressive-delivery controller runtime is implemented by this directive capture.",
+          "No FD-001 tenant workload hosting, provider-live operation, OpenTofu plan/apply, retired external CD substrate sync, Kubernetes API call, production readiness, or hyperscaler readiness is claimed."
         ],
         "stable_cloud_resource_contract": {
           "required": true,
@@ -325,17 +325,17 @@
         },
         {
           "adr": "ADR-0349",
-          "title": "Jenkins (LTS) + ArgoCD self-hostable CI/CD substrate"
+          "title": "retired external CI substrate (LTS) + retired external CD substrate self-hostable CI/CD substrate"
         },
         {
           "adr": "ADR-0351",
           "title": "Cell-rebalancer + cell-lifecycle microservices"
         }
       ],
-      "cloud_control_plane_shape": "Resource hierarchy Organization -> Account -> Project -> Region -> Cell -> Resource Group -> Resource; ORN orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}; control plane is API Gateway -> Resource Registry -> Operation Ledger -> Workflow/Reconciler -> OpenTofu/Operators/Argo, where OpenTofu and Argo are backend mechanisms, not the public API. Source: _meta.session_directives_2026_05_25.cloud_control_plane_directives.",
+      "cloud_control_plane_shape": "Resource hierarchy Organization -> Account -> Project -> Region -> Cell -> Resource Group -> Resource; ORN orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}; control plane is API Gateway -> Resource Registry -> Operation Ledger -> Workflow/Reconciler -> OpenTofu/Operators/native reconcilers, where OpenTofu and native reconcilers are backend mechanisms, not the public API. Source: _meta.session_directives_2026_05_25.cloud_control_plane_directives.",
       "cloud_foundations_status": {
         "scope": "metadata-only local foundations for cloud-iac/iam/kms/secrets/network/data/storage/compute/billing/capacity per their manifests",
-        "anchor_verification": "All five mandatory oya verify --ci-required steps pass on the cloud-foundation anchor: cargo fmt, cargo check --workspace, cargo clippy --workspace -D warnings, cargo nextest run --workspace (4472 passed / 1 skipped), and gate run-all (103 lanes).",
+        "anchor_verification": "Superseded 2026-06-02 by Buck2 authority policy: the cloud-foundation anchor requires buck2 graph/load, build, test, and lint targets plus local governance evidence; Cargo mirror lanes and legacy local verifier are not protected-branch authority.",
         "pre_existing_advisory_blocker": "D-7 ADR-shape advisory currently fails on 27 pre-existing lettered ADRs (ADR-0322..ADR-0349) that use '## A. Context' rather than the canonical '## Context' heading the ADR-shape gate requires. Tracked as a separate doc-convention normalization; it predates and is orthogonal to cloud-service consolidation."
       },
       "worktree_consolidation_plan": {
@@ -382,7 +382,7 @@
       },
       "non_claims": [
         "No production readiness, hyperscaler maturity, or GA claim is asserted; hyperscaler-maturity-claims remains blocked_until_required_evidence_is_green.",
-        "No live cloud provisioning, OpenTofu plan/apply, ArgoCD/Kubernetes API, cosign/SLSA/VSA signing execution, measured SLO, DR, or sharding runtime is claimed.",
+        "No live cloud provisioning, OpenTofu plan/apply, retired external CD substrate/Kubernetes API, cosign/SLSA/VSA signing execution, measured SLO, DR, or sharding runtime is claimed.",
         "Added microservice bundles are integration-rough; crates are greened incrementally and any crate that cannot be greened honestly is excluded from the workspace rather than stubbed-green."
       ],
       "hyperscaler_platform_bar": {
@@ -405,19 +405,149 @@
         "optimization_requirements": [
           "FinOps dimensional cost model + OpenCost/FOCUS export (ADR-0344); per-tenant cost attribution.",
           "Pod runtime tiering runc/Kata/Cloud-Hypervisor by trust tier (ADR-0338) for density vs isolation optimization.",
-          "Progressive delivery (Argo Rollouts or Oya-native equivalent) and SLO-gated promotion; no promotion past dev without SLO authoring."
+          "Progressive delivery (progressive-delivery controller or Oya-native equivalent) and SLO-gated promotion; no promotion past dev without SLO authoring."
         ],
         "parallel_execution_mandate": "Consolidation and greening run as disjoint parallel workstreams (WS-1 enterprise, WS-2 workflow, WS-3 intelligence, WS-4 backbone) under a single-writer invariant on shared files; isolated git worktrees give separate build dirs for true concurrency, fanned in via the Foundry merge queue (ADR-0111).",
         "non_claims_hyperscaler": [
           "No hyperscaler maturity, measured SLO, scalability, performance, or optimization claim is asserted until its required evidence is green; hyperscaler-maturity-claims remains blocked_until_required_evidence_is_green."
         ]
       }
+    },
+    "session_directive_2026_06_03_github_lane_unlocker": {
+      "source": "user-directive-in-codex-session-2026-06-03",
+      "purpose": "Move GitHub/GitHub Actions transition, parallel lane work, hygiene, planning, and unlocks to imminent P00/P0 work.",
+      "bridge": "GitHub SCM plus GitHub Actions CI/CD are temporary lane-unlockers only.",
+      "not_interim_authorities": [
+        "retired external CI substrate",
+        "retired external SCM substrate",
+        "retired external CD substrate"
+      ],
+      "build_test_check_authority": "Buck2",
+      "native_destination": "cloud native, Kubernetes-native, hyperscaler native Oyatie SCM/CI/CD/cloud workspace substrate adopting proven Prow/Sapling/Piper/CitC/Buck2 patterns without wholesale reinvention",
+      "non_claims": [
+        "not P0.0 green",
+        "not Phase 0 complete",
+        "not permanent GitHub authority"
+      ]
+    },
+    "session_directive_2026_06_03_auth_shared_decoupling": {
+      "source": "user-directive-in-codex-session-2026-06-03",
+      "decision": "Separate Cloud auth/shared substrate and Oyatie product auth/shared substrate now.",
+      "reason": "Avoid shared contract/schema/runtime conflicts while highly parallel lanes execute.",
+      "future_integration": "Rewrite and rewire products to Cloud IdP later; do not silently share surfaces now."
+    }
+  },
+  "imminent_work_p00": {
+    "id": "P00-github-actions-lane-unlocker-transition",
+    "priority": 0,
+    "status": "imminent",
+    "spec": "/specs/github-lane-unlocker-bridge.json",
+    "adr": "/docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+    "procedure": "/docs/ci/github-actions-lane-unlocker.md",
+    "goal": "Unlock highly parallel product, infra, and cloud lanes on dev without waiting for native SCM/CI/CD/cloud substrate completion.",
+    "parallel_lane_families": [
+      "product",
+      "infra",
+      "cloud_platform",
+      "scm_ci_cd",
+      "governance"
+    ],
+    "temporary_bridge": {
+      "scm": "github",
+      "ci": "github_actions",
+      "cd": "github_actions_dry_run",
+      "required_context": "github-lane-unlocker-required"
+    },
+    "native_cutover": {
+      "required_context": "oya-ci-required",
+      "scm": "pure-Rust Sapling-compatible native SCM",
+      "ci_cd": "Rust Prow/Tide-patterned Oya CI plus release conveyor",
+      "execution": "Kubernetes-native Buck2 jobs/cloud workspace resources"
+    },
+    "authority_boundaries": {
+      "buck2": "build/test/check authority",
+      "cargo": "local advisory only where dual Cargo+Buck2 is maintained",
+      "github": "temporary bridge only",
+      "retired_external_scm_ci_cd_substrates": "not interim authorities"
+    },
+    "cleanup_and_hygiene": [
+      "remove local generated caches",
+      "mark superseded interim docs",
+      "keep tracked deletions evidence-gated",
+      "avoid live pod/branch-protection mutation without explicit target"
+    ],
+    "claim_boundary": [
+      "not P0.0 green",
+      "not Phase 0 complete",
+      "not permanent GitHub authority"
+    ],
+    "auth_shared_substrate_decoupling": {
+      "status": "cloud_and_oyatie_auth_shared_substrates_decoupled_now",
+      "expected_effect": "higher concurrency and conflict avoidance across product/infra/cloud lanes",
+      "rule": "no shared contract or shared surface now",
+      "future": "rewrite and rewire Oyatie products to consume the Cloud IdP after cloud substrate stabilization",
+      "future_work_saving_plan_ref": "/specs/github-lane-unlocker-bridge.json#auth_shared_substrate_decoupling.future_work_saving_plan"
+    },
+    "planning_migration_cleanup_prep_work": {
+      "planning": [
+        "Bind ADR-0516, github-lane-unlocker spec, procedure, root-hub pointers, and master-plan sequencing.",
+        "Use source-driven best-practice evidence from GitHub, CNCF, Kubernetes, Prow, Buck2, Rust LLVM coverage, Sapling, and Piper/CitC.",
+        "Keep counterarguments and alternatives recorded so GitHub, Prow, Sapling, Piper, and CitC remain pattern inputs rather than unexamined defaults.",
+        "Record GitHub public/private publication as an adapter of the native Sapling-inspired SCM, not a replacement for it."
+      ],
+      "migration": [
+        "Move interim dev lane unlock to GitHub/GitHub Actions required context github-lane-unlocker-required.",
+        "Keep native cutover target oya-ci-required separate and unclaimed until native SCM/CI/CD/cloud workspace/release conveyor evidence exists.",
+        "Separate Cloud auth/shared and Oyatie product auth/shared now; later rewrite and rewire products to consume Cloud IdP after stabilization."
+      ],
+      "cleanup": [
+        "Remove local generated caches and stale untracked artifacts immediately.",
+        "Mark retired external SCM/CI/CD substrates interim-authority docs as superseded instead of deleting historical ADR provenance.",
+        "Retire or delete tracked legacy bridge files only in later PRs after replacement checks prove no contract dependency remains.",
+        "Automate git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene through repo-hygiene-automation-check."
+      ],
+      "prep_and_unlocks": [
+        "GitHub Actions matrix/concurrency workflow fans out governance, Buck2 authority, Rust LLVM coverage, and affected-build lanes.",
+        "Buck2 remains build/test/check authority for all interim and native lanes.",
+        "Product, infra, cloud, SCM/CI/CD, and governance can each fan out into multiple worktrees/PRs with single-writer discipline for shared files.",
+        "Use reusable workflow and registry-backed checks so shared docs/workflows stay thin and lanes own disjoint shards."
+      ],
+      "non_goals": [
+        "No live Kubernetes pod scale-down without explicit workload scope.",
+        "No live branch-protection mutation claimed by local docs.",
+        "No P0.0 green, Phase 0 complete, or permanent GitHub authority claim."
+      ]
+    },
+    "success_criteria": {
+      "local_contract_green": "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "buck2_targets_green": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
+      "coverage_contract_green": "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
+      "stale_reference_sweep": "active operating docs no longer present retired external SCM/CI/CD substrates as interim authorities",
+      "masterplan_reflects_all_work": "planning_migration_cleanup_prep_work present in imminent_work_p00",
+      "repo_hygiene_automation_green": "buck2 build //:repo-hygiene-automation-check",
+      "documentation_sprawl_reduced": "root docs stay pointer-thin; doc sprawl is registered, archived, or lane-owned via repo hygiene automation"
+    },
+    "repo_hygiene_automation": {
+      "spec": "/specs/repo-hygiene-automation.json",
+      "retired_substrate_registry": "/specs/retired-external-substrate-registry.json",
+      "required_check": "buck2 build //:repo-hygiene-automation-check",
+      "domains": [
+        "git_worktree_hygiene",
+        "branch_merge_hygiene",
+        "repository_publication_hygiene",
+        "disk_workspace_hygiene",
+        "kubernetes_workload_hygiene",
+        "documentation_sprawl_hygiene"
+      ],
+      "github_publication_adapter": "native Sapling-inspired SCM must expose GitHub public/private publication and status adapters while keeping native SCM authoritative",
+      "doc_sprawl_rule": "new docs default to reject unless registered/lane-owned; stale docs older than 3 days are audit/archive candidates; root docs remain pointer-thin",
+      "live_mutation": false
     }
   },
   "planning_closure": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
     "authority": {
       "current_path": "/specs/masterplan.json",
       "root_hub_pointer": "/specs/root-hub-pointers.json#entry_points.masterplan",
@@ -642,7 +772,7 @@
       "blocking_status_values": [
         "stub",
         "scaffolded",
-        "seed \u2014 IP file awaiting",
+        "seed — IP file awaiting",
         "awaiting approval"
       ],
       "blocking_text_markers": [
@@ -662,13 +792,13 @@
     }
   },
   "vision": {
-    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent \u00b5services integrated through Workflow and Ontology.",
-    "current_markdown_section": "docs/MASTERPLAN.md \u00a71"
+    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent µservices integrated through Workflow and Ontology.",
+    "current_markdown_section": "docs/MASTERPLAN.md §1"
   },
   "architecture_invariants": [
     {
       "id": "workflow-ontology-adapter-layer",
-      "summary": "All inter-\u00b5service integration flows through Workflow or Ontology; direct cross-\u00b5service calls are refused."
+      "summary": "All inter-µservice integration flows through Workflow or Ontology; direct cross-µservice calls are refused."
     },
     {
       "id": "flat-microservice-catalog",
@@ -750,7 +880,7 @@
       ],
       "current_gate_evidence": {
         "status": "local-green-online-audit-strict-evidence-pass",
-        "gate": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
+        "gate": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
         "result": "6 pass, 0 skipped, 0 diagnostics, 0 blocking",
         "evidence_refs": [
           "/evidence/fd001/cs-p13-dependency-seam-report.json",
@@ -1026,7 +1156,7 @@
     "status": "core-complete-ci-admission-wired-provider-adapters-followup",
     "milestone": "M01-foundation",
     "phase": "P00-gitops-vcs-replacement",
-    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev\u2192staging\u2192production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
+    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev→staging→production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and retired external CD substrate are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
     "must_precede": [
       "M01-P08-agentic-pipeline-cutover",
       "broad M01/M02/M03 parallel fan-out"
@@ -1186,7 +1316,7 @@
     "authority_cutover": {
       "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
       "legacy_surfaces": "grit/icm/rtk/vox/omx/omc are compatibility/provenance only and cannot satisfy forward promotion authority",
-      "admission_lane": "cargo run -q -p oya-vcs-admission-gate-app"
+      "admission_lane": "Buck2-built cloud-ci admission gate target (exact target registered by cloud-ci controller; Cargo invocation retired)"
     },
     "ci_admission_lane": {
       "workflow_job": "oya-vcs-admission",
@@ -2254,7 +2384,7 @@
               {
                 "id": "M01-P15-IP-004",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
-                "title": "SLSA level \u22653 attestation publishing",
+                "title": "SLSA level ≥3 attestation publishing",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2431,7 +2561,7 @@
               {
                 "id": "M01-P01-IP-003",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-003-dsr-cascade-engine.md",
-                "title": "dsr.cascade.execute \u226430d cascade engine",
+                "title": "dsr.cascade.execute ≤30d cascade engine",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3408,7 +3538,7 @@
               {
                 "id": "M02-P03-IP-002",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/IP-002-foundry-fitness-lane-ratchet.md",
-                "title": "Foundry-fitness lane ratchet (7 lanes WARN\u2192BLOCK)",
+                "title": "Foundry-fitness lane ratchet (7 lanes WARN→BLOCK)",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4336,7 +4466,7 @@
             "slug": "P06-workspace-14-surfaces",
             "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces",
             "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/INDEX.md",
-            "title": "Workspace Axis (14 surfaces \u2014 Mail, Calendar, Drive, Meet, Chat, +9 more)",
+            "title": "Workspace Axis (14 surfaces — Mail, Calendar, Drive, Meet, Chat, +9 more)",
             "status": "planning-closed-contract-authored",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 5,
@@ -4482,7 +4612,7 @@
               {
                 "id": "M03-P07-IP-002",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/IP-002-second-pack.md",
-                "title": "Second pack onboarding (JP/US/EU \u2014 council-elected)",
+                "title": "Second pack onboarding (JP/US/EU — council-elected)",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4520,7 +4650,7 @@
               {
                 "id": "M03-P08-IP-001",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-001-saas-pairs.md",
-                "title": "SaaS\u2194Cloud + SaaS\u2194Search + SaaS\u2194Agent-runtime contracts",
+                "title": "SaaS↔Cloud + SaaS↔Search + SaaS↔Agent-runtime contracts",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4540,7 +4670,7 @@
               {
                 "id": "M03-P08-IP-002",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-002-cloud-pairs.md",
-                "title": "Cloud\u2194Agent-runtime + Cloud\u2194Search + Cloud\u2194Ads contracts",
+                "title": "Cloud↔Agent-runtime + Cloud↔Search + Cloud↔Ads contracts",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4560,7 +4690,7 @@
               {
                 "id": "M03-P08-IP-003",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-003-search-ads-pairs.md",
-                "title": "Search\u2194Ads + Search\u2194Agent-runtime + Ads\u2194Agent-runtime contracts",
+                "title": "Search↔Ads + Search↔Agent-runtime + Ads↔Agent-runtime contracts",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4580,7 +4710,7 @@
               {
                 "id": "M03-P08-IP-004",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-004-vertical-workspace-pairs.md",
-                "title": "Vertical\u2194others + Workspace\u2194others contracts",
+                "title": "Vertical↔others + Workspace↔others contracts",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4852,7 +4982,7 @@
               {
                 "id": "M04-P02-IP-003",
                 "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/IP-003-kr-vertical-surfaces.md",
-                "title": "KR vertical-specific surfaces (\uc804\uc790\uc138\uae08\uacc4\uc0b0\uc11c / \ud734\uc77c\u00b7\uc57c\uac04 \uadfc\ub85c / \uc2e4\uba85\uc778\uc99d / \uc0ac\uc5c5\uc790\ub4f1\ub85d)",
+                "title": "KR vertical-specific surfaces (전자세금계산서 / 휴일·야간 근로 / 실명인증 / 사업자등록)",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -5739,7 +5869,7 @@
       {
         "id": "HYPER-IP-004",
         "pattern": "golden-signals-dashboard",
-        "title": "Golden signals dashboard (latency / traffic / errors / saturation per \u00b5service)",
+        "title": "Golden signals dashboard (latency / traffic / errors / saturation per µservice)",
         "target_milestone": "M02b-workflow-studio",
         "status": "planning-closed-contract-authored",
         "previous_planning_status": "was-seed-ip-file-awaiting",
@@ -5752,7 +5882,7 @@
       {
         "id": "HYPER-IP-005",
         "pattern": "error-budget-slo-burn-rate-alarms",
-        "title": "Error-budget SLO burn-rate alarms (shared substrate; all substrate \u00b5services)",
+        "title": "Error-budget SLO burn-rate alarms (shared substrate; all substrate µservices)",
         "target_milestone": "M02b-shared-substrate",
         "status": "planning-closed-contract-authored",
         "previous_planning_status": "was-seed-ip-file-awaiting",
@@ -5859,10 +5989,10 @@
       "build_graph": "Bazel rules_rust (crate_universe; Cargo.toml stays dependency SSOT)",
       "remote": "remote build execution + hermetic remote cache (sccache->SeaweedFS today; bazel RBE target)",
       "affected_targets": "bazel query rdeps for presubmit affected-target selection (Google TAP model)",
-      "oya_role": "governance/verify orchestrator delegating build/test to bazel query/test; retires duplicated cargo-mirror verify/run-all",
+      "oya_role": "governance evidence orchestrator delegating build/test to Buck2 query/build/test; retires duplicated Cargo mirror verify/run-all",
       "rejected": "Buck2 (Reindeer vendoring hostile to Git/code-review; less OSS-battle-tested)",
-      "ci_orchestrator": "Jenkins LTS = sole CI (GitHub Actions completely replaced per ADR-0359); JCasC + ephemeral Kata K8s agents; Jenkins GitHub App reports PR commit statuses; ArgoCD = deploy substrate",
-      "github_actions": "retired \u2014 .github/workflows removed; branch-protection required checks switch to Jenkins-reported statuses (ADR-0359)"
+      "ci_orchestrator": "retired external CI substrate = sole CI (GitHub Actions completely replaced per ADR-0359); JCasC + ephemeral Kata K8s agents; retired external CI substrate GitHub App reports PR commit statuses; retired external CD substrate = deploy substrate",
+      "github_actions": "retired — .github/workflows removed; branch-protection required checks switch to retired external CI substrate-reported statuses (ADR-0359)"
     },
     "phases": [
       {
@@ -5873,23 +6003,23 @@
         "deliverable": "Collaboratively define: scale targets, compliance packs, deployment model (ADR-0254), first production workload (FD-001 candidate), SLO/DR/security/cost exit gates. No production claim until green.",
         "production_100_bar": {
           "_status": "RATIFIED 2026-05-25 (dimension-by-dimension with user). 100 = the Oyatie Cloud hyperscaler substrate operated as a real multi-region IaaS/PaaS. Ambitious multi-year target; the roadmap phases sequence the path. All maturity claims blocked_until_required_evidence_is_green.",
-          "first_production_product": "The cloud-* substrate itself, operated as IaaS/PaaS for tenants (NOT a tenant product). cloud-* services graduate from today's metadata-only foundations to LIVE provisioning via the Cloud Control Plane (ORN -> Resource Registry -> Operation Ledger -> API Gateway -> Workflow/Reconciler -> OpenTofu/operators/Argo). Tenant product microservices (FD-001) are post-100, served on the proven substrate (ADR-0242 dogfooding).",
+          "first_production_product": "The cloud-* substrate itself, operated as IaaS/PaaS for tenants (NOT a tenant product). cloud-* services graduate from today's metadata-only foundations to LIVE provisioning via the Cloud Control Plane (ORN -> Resource Registry -> Operation Ledger -> API Gateway -> Workflow/Reconciler -> OpenTofu/operators/native reconcilers). Tenant product microservices (FD-001) are post-100, served on the proven substrate (ADR-0242 dogfooding).",
           "substrate_cut": "FULL cloud-* set live: Cloud Control Plane + IAM + KMS + Secrets + Compute + Storage + Network + Data + Billing + Capacity. Each: provision -> operate -> meter -> audit -> rollback.",
           "deployment_models": "shared-cloud multi-tenant + dedicated-cloud single-tenant (both oyatie-operated, ADR-0254). hybrid-BYO / on-prem-connected / air-gapped are post-100.",
           "scale_bar": "Multi-region hyperscale: many tenants, >=3 active regions, high sustained+burst rps; autosharding + auto-rebalance + dynamic sharding proven (ADR-0348); cellular architecture with no single-cell global bottleneck (ADR-0248/0341).",
-          "compliance_gate": "KR + JP + US + EU all gate 100 (four major markets): KR (Labor Standards/4\ub300\ubcf4\ud5d8/HomeTax/K-GAAP/PIPA/ISMS-P); JP (APPI/My Number/J-SOX/electronic-bookkeeping); US (SOC2/SOX/CCPA + HIPAA-design where health data); EU (GDPR/NIS2). Cross-border transfer constraints + per-pack data-residency enforced. Other packs (SG/AU/IN/BR/AE/KSA) post-100.",
+          "compliance_gate": "KR + JP + US + EU all gate 100 (four major markets): KR (Labor Standards/4대보험/HomeTax/K-GAAP/PIPA/ISMS-P); JP (APPI/My Number/J-SOX/electronic-bookkeeping); US (SOC2/SOX/CCPA + HIPAA-design where health data); EU (GDPR/NIS2). Cross-border transfer constraints + per-pack data-residency enforced. Other packs (SG/AU/IN/BR/AE/KSA) post-100.",
           "slo_exit": "Measured >=99.9% availability per cloud-* service across regions; per-microservice manifest SLO/latency targets green (ADR-0340); burn-rate alerting + agentic SLO-gated promotion; control-plane operation-ledger durability for every create/update/delete.",
           "dr_exit": "Multi-region DR with RTO/RPO matrix per service + per-compliance-pack (ADR-0343); >=1 executed cross-region failover drill per region pair (evidence, not claim).",
           "security_exit": "Cedar default-deny universal gate (ADR-0243); tenant isolation proven for BOTH shared (logical: cell+Cedar+per-tenant-encryption) and dedicated (physical cell pinning); cosign-signed images verified at admission via Kubewarden (ADR-0181); 0 critical/high CVE (trivy); no raw secret/PII in logs; audit-chain emission live (ADR-0263).",
           "cost_exit": "FinOps per-tenant cost attribution + OpenCost/FOCUS export live (ADR-0344); mandatory quota/metering/billing resource contract per resource type.",
-          "ci_cd_exit": "Jenkins = sole CI, green (ADR-0359); ArgoCD progressive delivery (canary -> bake -> automatic metric-gated rollback) proven on cloud-* deploys; merge-queue speculative+batch (ADR-0111); local oya verify mirror green (ADR-0346).",
+          "ci_cd_exit": "cloud-ci/oya-ci required context plus Buck2 build/test/lint graph evidence; retired external CD substrate progressive delivery (canary -> bake -> automatic metric-gated rollback) proven on cloud-* deploys; merge-queue speculative+batch (ADR-0111); local governance evidence is bridge-only and not exit authority.",
           "master_exit_rule": "100 = the full cloud-* substrate LIVE across shared+dedicated deployment, multi-region hyperscale, KR-compliant, with ALL exit gates GREEN on measured evidence. Until then every production/hyperscaler-maturity claim stays blocked_until_required_evidence_is_green (hyperscaler-gates.json).",
           "quality_evidence_kits": [
-            "overload/fairness/load-shedding (request-cost classes, retry budgets, queue limits) \u2014 AWS load-shedding",
-            "shuffle-sharded tenant isolation (assignment policy + correlated-blast-radius + noisy-neighbor drills) \u2014 AWS shuffle sharding",
-            "privacy/data-governance (personal-data inventory, residency, retention, deletion, export, redaction) \u2014 NIST Privacy Framework; KR/JP/US/EU packs",
-            "automated canary + Production-Readiness-Review (one-cell canary, automated eval, rollback triggers) \u2014 Google SRE",
-            "FOCUS-compatible cost-and-usage export (allocation dims, invoice reconciliation) \u2014 FOCUS 1.3+",
+            "overload/fairness/load-shedding (request-cost classes, retry budgets, queue limits) — AWS load-shedding",
+            "shuffle-sharded tenant isolation (assignment policy + correlated-blast-radius + noisy-neighbor drills) — AWS shuffle sharding",
+            "privacy/data-governance (personal-data inventory, residency, retention, deletion, export, redaction) — NIST Privacy Framework; KR/JP/US/EU packs",
+            "automated canary + Production-Readiness-Review (one-cell canary, automated eval, rollback triggers) — Google SRE",
+            "FOCUS-compatible cost-and-usage export (allocation dims, invoice reconciliation) — FOCUS 1.3+",
             "Kubernetes Pod Security Standards admission gate (restricted/baseline; privileged needs owner/expiry/mitigation)",
             "abuse/fraud/DDoS readiness (signup/payment risk, suspension workflow, ingress protection, customer-safe comms)"
           ],
@@ -5918,10 +6048,10 @@
       },
       {
         "id": "P-TOOLCHAIN",
-        "title": "CI/CD + oya toolchain overhaul \u2014 Jenkins replaces GitHub Actions; Bazel rules_rust build graph; oya governance overlay",
+        "title": "CI/CD + oya toolchain overhaul — retired external CI substrate replaces GitHub Actions; Bazel rules_rust build graph; oya governance overlay",
         "status": "proposed",
         "parallel": "yes",
-        "deliverable": "Jenkins becomes the sole self-hostable CI (no GitHub Actions / no Actions-budget dependency); merge-queue speculative+batch (ADR-0111); progressive delivery canary/bake/auto-rollback (ArgoCD+Argo Rollouts, ADR-0343/0349); Bazel rules_rust build graph + RBE; oya rebuilt as governance overlay. Local oya verify mirror (ADR-0346) gates throughout.",
+        "deliverable": "cloud-ci/oya-ci becomes the destination required context, with retired external CI substrate only as bridge where present; merge-queue speculative+batch (ADR-0111); progressive delivery canary/bake/auto-rollback (retired external CD substrate+progressive-delivery controller, ADR-0343/0349); Buck2 build graph + remote execution/cache; oya remains governance evidence overlay. Local governance mirrors are bridge evidence only.",
         "authoring_adrs": [
           "ADR-0349",
           "ADR-0358",
@@ -5931,19 +6061,19 @@
         "sub_phases": [
           {
             "id": "P-TOOLCHAIN.1",
-            "step": "Stand up Jenkins controller + JCasC + ephemeral Kata K8s agents (OpenTofu/Helm per ci-farm-substrate-canonical.json)"
+            "step": "Stand up retired external CI substrate controller + JCasC + ephemeral Kata K8s agents (OpenTofu/Helm per ci-farm-substrate-canonical.json)"
           },
           {
             "id": "P-TOOLCHAIN.2",
-            "step": "Port the 36 .github/workflows lanes -> Jenkins declarative pipeline + oya-jenkins-shared library (per the enumerated parity mapping)"
+            "step": "Port the 36 .github/workflows lanes -> retired external CI substrate declarative pipeline + retired-ci-shared-library library (per the enumerated parity mapping)"
           },
           {
             "id": "P-TOOLCHAIN.3",
-            "step": "Wire Jenkins GitHub App -> PR commit statuses; switch branch-protection required checks (.github/branch-protection.yaml + infra/branch-protection/dev.json) to Jenkins status contexts"
+            "step": "Wire retired external CI substrate GitHub App -> PR commit statuses; switch branch-protection required checks (.github/branch-protection.yaml + infra/branch-protection/dev.json) to retired external CI substrate status contexts"
           },
           {
             "id": "P-TOOLCHAIN.4",
-            "step": "Retire .github/workflows; replace oya-governance-jenkins-github-actions-parity with oya-governance-jenkins-canonical-no-gha-residue"
+            "step": "Retire .github/workflows; replace retired-ci-github-actions-parity with retired-ci-canonical-no-gha-residue"
           },
           {
             "id": "P-TOOLCHAIN.5",
@@ -5983,9 +6113,9 @@
         "rationale": "hyperscaler vertical-slice locality; flat 750-crate dir is the navigability anti-pattern"
       },
       {
-        "choice": "bespoke oya verify full-local-CI-mirror (ADR-0346)",
-        "verdict": "CHANGE -> Bazel affected-targets + RBE; oya as governance overlay (ADR-0358)",
-        "rationale": "full-local-mirror does not scale; Google TAP runs affected targets only; dedup doubled cargo mirrors"
+        "choice": "bespoke full-local governance mirror (ADR-0346; superseded for authority by Buck2/cloud-ci)",
+        "verdict": "CHANGE -> Buck2 affected-targets + remote execution/cache; oya as governance overlay (ADR-0358/0392/0408)",
+        "rationale": "full-local-mirror does not scale; affected-target CI runs the impacted graph only; duplicated Cargo mirrors are retired"
       },
       {
         "choice": "big-bundle worktree consolidation",
@@ -6009,8 +6139,8 @@
       },
       {
         "choice": "GitHub Actions as primary CI (ADR-0349 augment stance)",
-        "verdict": "CHANGE -> Jenkins completely replaces GitHub Actions (ADR-0359)",
-        "rationale": "Actions-budget single point of failure (PR #180 block); air-gap/on-prem/colo have no GH runners; retires GH/Jenkins parity-drift tax; self-hostable"
+        "verdict": "CHANGE -> retired external CI substrate completely replaces GitHub Actions (ADR-0359)",
+        "rationale": "Actions-budget single point of failure (PR #180 block); air-gap/on-prem/colo have no GH runners; retires GH/retired external CI substrate parity-drift tax; self-hostable"
       }
     ],
     "non_claims": [
@@ -6034,8 +6164,8 @@
         "standards-hygiene re-check cadence before production commitments",
         "16-service initial catalog anchor (cross-ref specs/cloud-resource-catalog-target.json)"
       ],
-      "reconciliation": "greenfield plan assumes build-from-scratch; we apply greenfield to the SUBSTRATE and strangler-fig to existing product-microservice migration. Build/CI vendor: the plan abstracts CI/CD to a contract (its CS-0104); we bind Bazel rules_rust + Jenkins (ADR-0358/0359) as the implementation of that contract. Pulsar/Kubewarden are our refinements of the plan's unspecified messaging/admission."
+      "reconciliation": "greenfield plan assumes build-from-scratch; we apply greenfield to the SUBSTRATE and strangler-fig to existing product-microservice migration. Build/CI vendor: the plan abstracts CI/CD to a contract (its CS-0104); we bind Bazel rules_rust + retired external CI substrate (ADR-0358/0359) as the implementation of that contract. Pulsar/Kubewarden are our refinements of the plan's unspecified messaging/admission."
     },
-    "standards_hygiene_cadence": "Re-check pinned standard versions (OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenTelemetry, SLSA, NIST CSF/Privacy, FOCUS, Kubernetes PSS, Cedar, Pulsar, Kubewarden, Argo) against official/upstream before each production commitment; quarterly otherwise."
+    "standards_hygiene_cadence": "Re-check pinned standard versions (OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenTelemetry, SLSA, NIST CSF/Privacy, FOCUS, Kubernetes PSS, Cedar, Pulsar, Kubewarden, workflow/delivery controllers) against official/upstream before each production commitment; quarterly otherwise."
   }
 }

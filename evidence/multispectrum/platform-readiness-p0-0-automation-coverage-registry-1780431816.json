@@ -1,0 +1,154 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_id": "platform-readiness-p0-0-automation-coverage-registry",
+  "change_class_id": "CC-5",
+  "timestamp_iso": "2026-06-02T20:23:36Z",
+  "freshness_unix": 1780431816,
+  "git_sha": "554c34076a2581371435ce2a219a4a79278f53c7",
+  "claim_boundary": {
+    "claim": "AC-0.16 local/static automation matrix coverage now has an explicit coverage registry, 28 required seed rows, GOOD/BAD coverage fixtures, and a kernel evaluator so declared Phase-0 coverage subjects cannot pass by omission.",
+    "authority": "local-static-evidence-only",
+    "not_claimed": [
+      "P0.0 green",
+      "Phase-0 complete",
+      "live cloud-ci/oya-ci coverage generation",
+      "live protected branch context",
+      "production readiness",
+      "security readiness",
+      "mechanical enforcement",
+      "tenant-facing readiness"
+    ]
+  },
+  "related_acceptance_criteria": [
+    "AC-0.12",
+    "AC-0.16",
+    "AC-0.17"
+  ],
+  "related_test_spec": [
+    "T0.12",
+    "T0.16",
+    "T0.17"
+  ],
+  "scope": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-coverage-registry.json",
+    "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-coverage-row.json",
+    "specs/root-hub-pointers.json"
+  ],
+  "enforcement_added": [
+    "Phase0AutomationCoverageViolation enum and as_str vocabulary",
+    "evaluate_phase0_automation_coverage_registry local/static evaluator",
+    "automation matrix required_seed_row_ids expanded from 10 to 28 committed rows",
+    "phase0-automation-coverage-registry with 27 declared coverage subjects mapped to seed rows",
+    "GOOD coverage registry fixture",
+    "BAD missing-coverage-row/false-green fixture",
+    "root-hub pointer for the coverage registry"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Added a small pure evaluator and registry instead of a broad generator in this P0.0 slice.",
+        "Kept row coverage data in existing automation matrix shape."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Coverage is explicit and fail-closed; live controller evaluation remains the required-context authority target."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "BAD fixture models missing required coverage subject, mapped row absent from registry rows, and false green claim boundary.",
+        "Required subject ids prevent shrinking the coverage set by omission."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Root hub pointer and fixture paths make the new contract discoverable without bulk backlog loading."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Rustfmt, JSON parse, static assertions, diff hygiene, Buck2 authority scanner, Buck2 policy build, uquery, and blocked test attempt were run."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected leaving known gap as prose-only because TC-0.16.1 requires executable missing-row coverage."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets or tenant data touched.",
+        "No new oya CLI surface added."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance claim is made; PERF-CAPACITY is only mapped as a claim-budget coverage subject."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Known-gaps text preserves RED/live-context boundary after local coverage registry evidence lands."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence names exact commands and Buck2 build IDs."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Supports AC-0.16 automation ratchet and AC-0.12 aggregate-exit non-vacuity by making declared coverage subjects executable.",
+        "Supports AC-0.17 by preserving non-claim language."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI command added.",
+        "Buck2 remains scripts/CI/CD/build/test authority.",
+        "Cargo appears only through pre-existing release optimization exception policy, not this slice."
+      ]
+    }
+  },
+  "validation": {
+    "passed": [
+      "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs -> PASS",
+      "python3 JSON parse for automation matrix, coverage registry, GOOD/BAD coverage fixtures, root hub -> PASS (5 files)",
+      "static Python automation coverage registry assertions -> PASS (28 rows, 27 subjects)",
+      "git diff --check -> PASS",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS (verdict PASS, command_scan_files 28)",
+      "buck2 build //:buck2-authority-policy-check --show-output -> PASS (Build ID ec08b114-1db5-4b5a-a531-41df38b15b57)",
+      "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> PASS (Build ID 8a164e9d-4d88-4bc1-87e2-1d2ec3a544e8)"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> local Apple ld rejected GNU/Linux flags while linking third-party Rust build script zmij-1-build-script-build; tests ran 0 (Build ID 338b35e1-1469-4228-baa5-4a3e13938d18)"
+    ],
+    "expected_red_or_target_only": [
+      "No live oya-ci-required protected context is claimed.",
+      "No Phase-0 exit authority is claimed."
+    ]
+  }
+}

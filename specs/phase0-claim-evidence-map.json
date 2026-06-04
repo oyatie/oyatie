@@ -11,7 +11,8 @@
     "source_request": "Founder refinement: no false promises or aspirational claims without substance; hyperscaler-grade/production-ready/mechanically-enforced claims need evidence specs befitting the claim.",
     "spec_id": "EXE-PHASE0-CLAIM-EVIDENCE-MAP",
     "status": "seed-contract-not-green",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "updated_at": "2026-06-03T05:10:00Z"
   },
   "description": "Seed claim/evidence map for Phase 0. This is not a readiness claim: it prevents empty promises by labeling current regulated language as target/spec/enforced/production/hyperscaler tiers and by identifying the evidence still required before stronger claims are allowed.",
   "fixture_set": {
@@ -20,7 +21,12 @@
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-good-performance-spec-ready-with-budget.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-ungrounded-production-ready.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-local-oya-authority-claim.json",
-      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json"
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-unknown-regulated-term.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-production-ready-tier-without-measured-result.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-hyperscaler-tier-without-measured-result.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-capacity-breakpoint-only.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-combined-budget-result-entry.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-claim-ceiling",
     "required_red_green_pairs": [
@@ -38,6 +44,31 @@
         "green": "tc-0.17-good-performance-spec-ready-with-budget.json",
         "red": "tc-0.17-bad-performance-without-budget.json",
         "tc_id": "TC-0.17.4"
+      },
+      {
+        "green": "tc-0.17-good-target-non-claim-with-owner.json",
+        "red": "tc-0.17-bad-unknown-regulated-term.json",
+        "tc_id": "TC-0.17.1-unknown-regulated-term"
+      },
+      {
+        "green": "tc-0.17-good-target-non-claim-with-owner.json",
+        "red": "tc-0.17-bad-production-ready-tier-without-measured-result.json",
+        "tc_id": "TC-0.17.2-production-ready-tier-only"
+      },
+      {
+        "green": "tc-0.17-good-target-non-claim-with-owner.json",
+        "red": "tc-0.17-bad-hyperscaler-tier-without-measured-result.json",
+        "tc_id": "TC-0.17.3-hyperscaler-tier-only"
+      },
+      {
+        "green": "tc-0.17-good-performance-spec-ready-with-budget.json",
+        "red": "tc-0.17-bad-capacity-breakpoint-only.json",
+        "tc_id": "TC-0.17.4-capacity-breakpoint-single-signal"
+      },
+      {
+        "green": "tc-0.17-good-performance-spec-ready-with-budget.json",
+        "red": "tc-0.17-bad-combined-budget-result-entry.json",
+        "tc_id": "TC-0.17.4-combined-budget-result-single-entry"
       }
     ]
   },
@@ -51,10 +82,13 @@
       "advisory/local/legacy oya output is presented as mechanical enforcement",
       "production-ready or hyperscaler-grade is asserted program-wide rather than per service/plane",
       "retired/done/superseded is claimed while untracked live references remain"
-    ]
+    ],
+    "local_static_target": "//:phase0-claim-ceiling-check",
+    "claim_boundary": "Local/static fixture gate only; not live cloud-ci required-context authority, production readiness, hyperscaler-grade readiness, P0.0 green, or Phase-0 completion."
   },
   "known_gaps_before_green": [
-    "Seed rows are not exhaustive; the claim-ceiling gate must discover and require rows for all regulated terms in authoritative artifacts.",
+    "Local static claim-ceiling checker and //:phase0-claim-ceiling-check now cover the seed claim rows and declared AC-0.17 BAD/GREEN fixtures, but live cloud-ci/oya-ci must run the gate on candidate SHAs before any Phase-0 green/enforcement claim.",
+    "Seed rows are not exhaustive; the live claim-ceiling gate must discover and require rows for all regulated terms in authoritative artifacts before AC-0.12 can go green.",
     "No production_ready or hyperscaler_grade claim is currently allowed for the program as a whole.",
     "Current live enforcement evidence is advisory/bridge until P0.0 cloud-ci required context is live."
   ],
@@ -81,7 +115,8 @@
     "performant",
     "low-latency",
     "scalable",
-    "capacity-ready"
+    "capacity-ready",
+    "capacity"
   ],
   "seed_claim_rows": [
     {
@@ -113,14 +148,19 @@
       "claim_tier": "spec_ready",
       "current_evidence": [
         "P0.0/AC-0.0/T0.0 specify required cloud-ci context and negative fixtures",
-        "Live rebaseline shows current branch protection still lacks cloud-ci-required/oya-ci-required; reported status metadata / legacy bridge inventory still includes oya-verify and affected-only paths",
-        "specs/phase0-ci-enforcement-baseline.json records current P0.0 RED gap packet and T0.0 fixture paths"
+        "Live rebaseline shows branch protection now includes oya-ci-required, but required_status_checks.checks binds it to app_id=null and PR #455 reports no candidate-SHA checks; reported status metadata / legacy bridge inventory still includes oya-verify and affected-only paths",
+        "specs/phase0-ci-enforcement-baseline.json records current P0.0 RED gap packet and T0.0 fixture paths",
+        "scripts/ci/assert-override-kill-switch.py and //:phase0-override-kill-switch-check execute the local override/kill-switch RED/GREEN fixture contract with p0_0_green=false/phase0_complete=false",
+        "scripts/ci/assert-trusted-target-inventory.py and //:phase0-trusted-target-inventory-check execute the local trusted target-inventory RED/GREEN fixture contract with candidate PR bytes treated as data only and p0_0_green=false/phase0_complete=false",
+        "scripts/ci/assert-result-bundle-output.py and //:phase0-result-bundle-output-check execute the local structured result-bundle RED/false-green fixture contract with status_mutation_performed=false, p0_0_green=false, and phase0_complete=false"
       ],
       "id": "CLAIM-P0-mechanically-enforced",
       "missing_for_next_tier": [
         "branch protection requires cloud-ci-required or oya-ci-required",
         "required status producer is non-PR-controllable and trunk/controller-sourced",
-        "known BAD/GOOD fixtures pass through protected admission"
+        "known BAD/GOOD fixtures pass through protected admission",
+        "trusted cloud-ci/oya-ci captures target inventory from controller/trunk state before candidate checkout on live candidate SHAs",
+        "trusted cloud-ci/oya-ci emits a live result bundle and posts oya-ci-required from trusted control state on candidate SHAs"
       ],
       "owner": "platform-toolchain",
       "regulated_terms": [
@@ -150,14 +190,15 @@
       ]
     },
     {
-      "allowed_language_now": "contracted/target/gap-packet only until tenant negative tests run under required cloud-ci context",
+      "allowed_language_now": "fixture-backed target/non-claim only until tenant negative tests run under required cloud-ci/oya-ci context",
       "artifact": "specs/bespoke-cloud-toolchain-services.json#tenant_isolation_contract",
       "claim_text": "internal and tenant pipelines are isolated, secure, and separate",
       "claim_tier": "spec_ready",
       "current_evidence": [
         "tenant isolation contract and BAD fixture requirements specified",
         "T0.0 requires tenant-pipeline isolation baseline before enforcement claims",
-        "specs/toolchain-tenant-isolation-fixtures.json specifies T-ISOLATION-0 RED/GREEN fixture contract"
+        "specs/toolchain-tenant-isolation-fixtures.json specifies T-ISOLATION-0 RED/GREEN fixture contract",
+        "scripts/ci/assert-tenant-pipeline-isolation.py and //:phase0-tenant-isolation-fixture-check execute the local RED/GREEN tenant fixture contract with p0_0_green=false/phase0_complete=false"
       ],
       "id": "CLAIM-P0-tenant-isolation",
       "missing_for_next_tier": [

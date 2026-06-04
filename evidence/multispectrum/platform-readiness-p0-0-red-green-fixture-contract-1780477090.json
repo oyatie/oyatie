@@ -1,0 +1,116 @@
+{
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "change_id": "platform-readiness-p0-0-red-green-fixture-contract",
+  "change_class_id": "CC-5",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T08:59:05Z",
+  "timestamp_unix": 1780477090,
+  "freshness_unix": 1780477135,
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha": "15cc6e229ac5a4d6e80b9fbf4963fb87814c480c",
+  "scope": "AC-0.14 local/static RED/GREEN fixture registry contract; no live CI, status posting, source mutation, or Phase-0 completion authority.",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/buck2-authority-policy.json",
+    "specs/red-green-fixture-contract.json"
+  ],
+  "claim_boundary": {
+    "red_green_fixture_contract_measured": true,
+    "entry_count": 15,
+    "green_marker_count": 15,
+    "red_marker_count": 15,
+    "non_claim_marker_count": 15,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "implementation_summary": [
+    "Added specs/red-green-fixture-contract.json, a local/static AC-0.14 registry of 15 Phase-0 gate entries with Buck2 targets, test paths, GOOD markers, BAD markers, and non-claim markers.",
+    "Added scripts/ci/assert-red-green-fixture-contract.py to fail closed on missing targets, absent or stale marker text, missing tests, missing matrix rows for direct entries, and forbidden green-claim booleans.",
+    "Added scripts/tests/red_green_fixture_contract_check.test.sh with GOOD current-registry coverage and BAD mutations for p0_0_green=true, missing red markers, stale marker text, and missing target names.",
+    "Added //:phase0-red-green-fixture-contract-check and wired AC-0.14 into the Buck2 authority policy, automation matrix, coverage registry, and root-hub pointer."
+  ],
+  "observed_measurement": {
+    "entry_count": 15,
+    "buck2_target_count": 15,
+    "green_marker_count": 15,
+    "red_marker_count": 15,
+    "non_claim_marker_count": 15,
+    "failures": []
+  },
+  "verification": [
+    {
+      "artifact_dir": "/tmp/p0-0-red-green-fixture-contract-red-1780476575",
+      "command": "missing checker/target RED probe",
+      "script_exit_code": 2,
+      "buck2_exit_code": 3,
+      "buck2_build_id": "ed38ff48-fbc6-48f9-85af-22e52baded40",
+      "expected_failure": true,
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-red-green-fixture-contract-green-1780477058",
+      "command": "direct checker + shell regressions + policy + automation ratchet + root pointer + Buck2 bundle",
+      "buck2_build_id": "cbdadb4f-1a5c-4388-aea9-3f734c683b85",
+      "observed": {
+        "entry_count": 15,
+        "green_marker_count": 15,
+        "red_marker_count": 15,
+        "non_claim_marker_count": 15
+      },
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-red-green-fixture-contract-final-1780477135",
+      "command": "final git diff, py_compile, direct checker, shell regressions, policy, automation ratchet, evidence parse, and Buck2 bundle",
+      "buck2_build_id": "8abfeb37-df15-4397-94c6-5b0a05d0d1ca",
+      "observed": {
+        "entry_count": 15,
+        "green_marker_count": 15,
+        "red_marker_count": 15,
+        "non_claim_marker_count": 15
+      },
+      "status": "passed"
+    }
+  ],
+  "review_facets": {
+    "F1_correctness": "PASS: checker reports 15 registered gate entries, 15 Buck2 targets, 15 GOOD markers, 15 BAD markers, and zero failures.",
+    "F2_security": "PASS: reads checked-in files only; no credentials, network calls, status posting, or branch-protection mutation.",
+    "F3_reliability": "PASS: BAD spec mutations cover p0_0_green=true, missing red marker, stale marker text, and missing target names.",
+    "F4_operability": "PASS: Buck2 target emits JSON and participates in authority/automation-ratchet targets.",
+    "F5_observability": "PASS: output includes entry counts, marker counts, per-entry failures, and claim-boundary booleans.",
+    "F6_maintainability": "PASS: registry spec separates gate inventory from checker logic and shell regressions.",
+    "F7_performance": "PASS: static text/JSON scan; no live CI or expensive Rust builds.",
+    "F8_architecture": "PASS: centralizes fail-closed fixture coverage without turning local registry evidence into merge authority.",
+    "F9_compliance": "PASS: no new oya CLI surface and no live green claim.",
+    "F10_docs": "PASS: machine-readable spec and root-hub pointer added.",
+    "F11_tests": "PASS: direct checker, shell regressions, policy, automation ratchet, and Buck2 target passed.",
+    "F12_reserved": "N/A",
+    "F13_claim_boundary": "PASS: P0.0/Phase-0/live/production/hyperscaler claims remain false."
+  },
+  "files_changed": [
+    "BUCK",
+    "scripts/ci/assert-red-green-fixture-contract.py",
+    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "specs/red-green-fixture-contract.json",
+    "specs/buck2-authority-policy.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/root-hub-pointers.json",
+    "evidence/multispectrum/platform-readiness-p0-0-red-green-fixture-contract-1780477090.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "known_gaps": [
+    "This is local/static fixture-registry evidence, not proof that live cloud-ci/oya-ci ran every gate on the candidate SHA.",
+    "The registry verifies checked-in marker presence and Buck2 wiring; it does not execute every registered target recursively.",
+    "No live oya-ci-required status was posted by trusted cloud-ci/oya-ci on this candidate SHA."
+  ]
+}

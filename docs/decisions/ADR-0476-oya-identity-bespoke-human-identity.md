@@ -6,20 +6,20 @@ date: 2026-05-28
 authority: founder
 milestone: M-IDENTITY-V2
 planning_impact: true
-supersedes: [ADR-0421]
+supersedes: []
 superseded_by: []
-related: [ADR-0421, ADR-0394, ADR-0083, ADR-0411, ADR-0434, ADR-0416, ADR-0406, ADR-0509]
+related: [ADR-0394, ADR-0083, ADR-0509]
 ---
 
 # ADR-0476 — oya-identity: bespoke Rust human identity substrate
 
 ## Status
 
-Accepted — 2026-05-28 (founder-locked). Supersedes ADR-0421 (Keycloak).
+Accepted — 2026-05-28 (founder-locked). Retires the Keycloak Phase-1 plan; no status-bearing ADR record exists for that predecessor plan.
 
 ## Context
 
-ADR-0421 adopted Keycloak as a Phase-1 stepping stone for human identity. Keycloak is
+The Keycloak Phase-1 plan adopted Keycloak as a Phase-1 stepping stone for human identity. Keycloak is
 OSS and proven, but it is a JVM dependency, not self-owned, and not aligned with Oyatie's
 Rust-native doctrine (ADR-0002). Hyperscaler precedent is unambiguous: Google Identity
 Platform, AWS IAM Identity Center, and Meta's human auth are all bespoke, internally-owned
@@ -33,18 +33,18 @@ the build period and is retired once oya-identity reaches feature parity.
 ## Decision
 
 Build **oya-identity** — a bespoke, Rust-native human identity substrate — under
-`microservices/oya-identity/`. Keycloak (ADR-0421) is the Phase-1 bridge; oya-identity
+`microservices/oya-identity/`. Keycloak (Phase-1 bridge plan) is the Phase-1 bridge; oya-identity
 is the canonical long-term target.
 
 ### D1 — µservice scaffold
 
-Ships as single hyperscaler-pattern crate per ADR-0509; subsystems live as mod under `src/<subsystem>/`. New µservice `microservices/oya-identity/` as a single Rust crate with Axum (ADR-0002) + Connect-RPC (ADR-0416). Key dependencies:
+Ships as single hyperscaler-pattern crate per ADR-0509; subsystems live as mod under `src/<subsystem>/`. New µservice `microservices/oya-identity/` as a single Rust crate with Axum (ADR-0002) + Connect-RPC (Connect-RPC API plan). Key dependencies:
 
 - `openidconnect-rs` (Apache 2.0) — OIDC provider primitives
 - `oxide-auth` (MIT) — OAuth 2.0 authorization server framework
 - `webauthn-rs` (Apache 2.0) — WebAuthn / passkey credential management
 
-PostgreSQL (ADR-0406) backend for all persistent identity state. Cedar (ADR-0083)
+PostgreSQL (PostgreSQL storage plan) backend for all persistent identity state. Cedar (ADR-0083)
 evaluates every authorization decision using both SPIFFE (workload) and human principals.
 
 ### D2 — Protocol surface
@@ -58,7 +58,7 @@ SAML 2.0 deferred to Phase-2.
 
 ### D3 — Tenant realm isolation
 
-Per-tenant realm provisioned via Crossplane (ADR-0411) `TenantIdentityRealm` XR on
+Per-tenant realm provisioned via Crossplane (Crossplane XR plan) `TenantIdentityRealm` XR on
 tenant onboarding. Tenant users, groups, and roles are fully isolated — no cross-tenant
 trust. Cedar evaluates unified policy over SPIFFE SVIDs (workload principals) and
 oya-identity JWTs (human principals) in a single policy namespace.
@@ -67,20 +67,20 @@ oya-identity JWTs (human principals) in a single policy namespace.
 
 oya-identity becomes the OIDC issuer for every µservice consumer:
 
-- **oya-vcs** (ADR-0409): Forgejo human browser auth
-- **Rust-native portal** (ADR-0434): sign-in for web and desktop shell
+- **oya-vcs** (oya-vcs roadmap plan): Forgejo human browser auth
+- **Rust-native portal** (Rust-native portal plan): sign-in for web and desktop shell
 - **oya-billing**: tenant-admin human auth
 - **oya-status**: admin sign-in
 - All µservice OIDC consumers via standard PKCE flows
 
-Keycloak ADR-0421 ingress endpoints are preserved and traffic-shadowed during Phase-1 for
+Keycloak Phase-1 ingress endpoints are preserved and traffic-shadowed during Phase-1 for
 zero-downtime migration. Cut-over is gated on oya-identity feature parity + passing
 oya-identity integration test suite.
 
 ### D5 — Multi-region + session replication
 
-Per-region oya-identity replicas per ADR-0418 multi-region topology. Session state
-replicated via Pulsar (ADR-0397) cross-region topics. SPIFFE federation (ADR-0394)
+Per-region oya-identity replicas under the multi-region topology plan. Session state
+replicated via Pulsar (Pulsar 4.x + Oxia substrate plan) cross-region topics. SPIFFE federation (ADR-0394)
 provides cross-region trust anchors. No session affinity to a single region.
 
 ## Hyperscaler lens
@@ -98,7 +98,7 @@ All four criteria pass. Bespoke ownership satisfies criterion (d) by constructio
 
 | Alternative | Reason not chosen |
 |---|---|
-| **Keycloak (ADR-0421)** | Phase-1 stepping stone only; JVM, not Rust-native, not self-owned |
+| **Keycloak (Phase-1 bridge plan)** | Phase-1 stepping stone only; JVM, not Rust-native, not self-owned |
 | **Ory Hydra + Kratos + Keto** | Apache 2.0, unbundled Go stack; three services + custom glue; Go conflicts with Rust doctrine |
 | **Zitadel** | Go-based; newer; smaller federation adoption; same Go-stack objection |
 

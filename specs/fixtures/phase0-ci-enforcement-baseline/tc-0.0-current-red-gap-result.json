@@ -32,7 +32,7 @@
     "trusted_control_state": false
   },
   "provenance": {
-    "recorded_at": "2026-06-02T16:19:36Z",
+    "recorded_at": "2026-06-02T16:28:20Z",
     "sources": [
       "specs/phase0-ci-enforcement-baseline.json#current_state_evidence",
       "infra/branch-protection/dev.json",

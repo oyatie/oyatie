@@ -1,0 +1,43 @@
+load("//tools/oci:defs.bzl", "oci_image")
+
+export_file(
+    name = "BUCK",
+    visibility = ["PUBLIC"],
+)
+
+genrule(
+    name = "distroless-base",
+    out = "oci-layout",
+    cmd = "python3 $(location //tools/oci:pull-oci-base.py) gcr.io distroless/static-debian12 sha256:82043e1cb4913437a9e90c2425b164d96031469894edc6011eed045001ba7181 $OUT",
+    visibility = ["PUBLIC"],
+)
+
+genrule(
+    name = "cloud-intelligence-layer",
+    srcs = [
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-app:cloud-intelligence",
+    ],
+    out = "cloud-intelligence-layer.tar.gz",
+    cmd = """
+set -euo pipefail
+BINARY=$(location //cloud/cloud-intelligence/crates/oya-cloud-intelligence-app:cloud-intelligence)
+LAYER_DIR="$TMP/layer-root/usr/local/bin"
+mkdir -p "$LAYER_DIR"
+cp "$BINARY" "$LAYER_DIR/cloud-intelligence"
+chmod 0755 "$LAYER_DIR/cloud-intelligence"
+tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -C "$TMP/layer-root" -cf "$TMP/layer.tar" .
+gzip -n -9 < "$TMP/layer.tar" > "$OUT"
+""",
+    visibility = ["PUBLIC"],
+)
+
+oci_image(
+    name = "cloud-intelligence-oci",
+    base = ":distroless-base",
+    layers = [":cloud-intelligence-layer"],
+    entrypoint = ["/usr/local/bin/cloud-intelligence"],
+    user = "65532:65532",
+    exposed_ports = ["8080/tcp"],
+    image_title = "cloud-intelligence",
+    visibility = ["PUBLIC"],
+)

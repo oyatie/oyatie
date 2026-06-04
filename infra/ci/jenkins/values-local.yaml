@@ -22,7 +22,7 @@
 # Remote build cache is honest-deferred to ADR-0381 D4 (SeaweedFS-on-Talos
 # restored onto the storage specialty pool); BuildKit's cache + Jenkins agent
 # sccache will share the same SeaweedFS bucket-api once D4 lands. Until then
-# the gate runs against a cold cargo cache (correct but slow — discipline
+# the gate runs against a cold Buck2 cache (correct but slow — discipline
 # beats speed).
 #
 # LOCAL-vs-PRODUCTION deltas (intentionally simplified — see README.md):
@@ -178,10 +178,8 @@ controller:
                               # ADR-0381 amendment 3, hyperscaler-lens-architectural-filter).
                               - name: SCCACHE_S3_NO_CREDENTIALS
                                 value: "true"
-                              # sccache + cargo incremental conflict; disable
-                              # incremental so sccache owns the layer caching.
-                              - name: CARGO_INCREMENTAL
-                                value: "0"
+                              # Buck2 owns build/test execution; no Cargo incremental toggle is
+                              # projected into the active CI lane.
                               # gh token for the pipeline's first-stage `git clone`
                               # of the PR ref. The gateway-build-git Secret already
                               # exists in oya-ci-jenkins (it was minted for the
@@ -244,6 +242,13 @@ controller:
                       description: "Forgejo git-over-HTTP clone creds (oya-admin + forgejo-ci-token). Used by the oya-ci-gate cpsScm to clone the GATING forge (ADR-0363 Forgejo-of-record): PRs + PR refs (refs/pull/N/head) live on Forgejo, not GitHub."
                       username: "oya-admin"
                       password: "${FORGEJO_CI_TOKEN}"
+      # RETIRED: this oya-ci-gate pipelineJob is RETIRED, superseded by the bespoke
+      # oya-ci-controller (plank + crier) gate loop wired through ci-webhook-gateway
+      # (dispatcher.kind=controller; see oya/ci-controller + oya/ci-webhook-gateway).
+      # The live "oya-ci-gate" required status context is now posted by the controller,
+      # NOT by this Jenkins job. Kept (not deleted) for reference/rollback only; it MUST
+      # NOT be the branch-protection required status context. Leaving the configScript
+      # in place keeps JCasC valid; detach/remove in a dedicated retirement IP.
       # ADR-0380 D3: declare the oya-ci-gate pipelineJob via job-dsl. Pipeline
       # body lives in infra/ci/jenkins/Jenkinsfile-oya-ci-gate (cpsScm; cloned
       # from this repo at trigger time, NOT at boot — Jenkins boots cleanly
@@ -251,6 +256,8 @@ controller:
       oya-ci-gate-job: |
         jobs:
           - script: |
+              // RETIRED pipelineJob — superseded by oya-ci-controller (plank + crier)
+              // via ci-webhook-gateway dispatcher.kind=controller. Reference/rollback only.
               pipelineJob('oya-ci-gate') {
                 description('ADR-0380 D3: webhook-dispatched gated CI job. Triggered by ci-webhook-gateway (ADR-0374) via Generic Webhook Trigger with token=oya-ci-gate. Pipeline body: infra/ci/jenkins/Jenkinsfile-oya-ci-gate.')
                 triggers {

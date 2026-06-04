@@ -1,0 +1,153 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "intelligence-vendor-lockin-paths",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-intelligence-vendor-lockin-paths-20260530",
+  "timestamp_iso": "2026-05-30T23:11:05.221553Z",
+  "freshness_unix": 1780182665,
+  "git_sha": "a7e9b40724ba",
+  "scope": "registry/vendor-lockin-phaseout intelligence provider adapter seam paths",
+  "claimed_scopes": [
+    "registry/vendor-lockin-phaseout/index.json"
+  ],
+  "authority_review": {
+    "stale_adr_handling": [
+      "ADR-0335 status Accepted makes intelligence the canonical AI substrate after Foundry absorption; active registry entries should point at oya/intelligence crate paths, not stale microservices/intelligence paths.",
+      "ADR-0173 and ADR-0211 make registry/vendor-lockin-phaseout/index.json the active vendor-lockin discipline source enforced by oya gate validate vendor-lockin-discipline.",
+      "docs/machine-readable/generated mirrors were not edited; this updates the active registry only.",
+      "ADR-0026 remains the in-house AI model substrate rationale; registry wording now names intelligence rather than foundry-runtime for the six provider entries touched."
+    ],
+    "plans_reviewed": [
+      "specs/root-hub-pointers.json masterplan pointer",
+      "specs/master-plan-sequencing.json forbidden primitive and planning-closure status",
+      "specs/masterplan.json planning_closure authority and stale projection rule",
+      "specs/microservices/intelligence.json Accepted intelligence service authority"
+    ]
+  },
+  "summary": "Repaired the active vendor-lockin registry for the six intelligence LLM vendor seams by replacing stale microservices/intelligence crate paths with the actual oya/intelligence workspace crate paths and by updating the provider rationale/replacement signal from foundry-runtime wording to intelligence in-house model wording. This clears the intelligence-specific vendor-lockin-discipline gate failure observed while preparing PR #438 merge-readiness evidence.",
+  "verification": [
+    {
+      "command": "./bin/oya gate validate vendor-lockin-discipline (before)",
+      "result": "failed: anthropic-api seam_adapter_trait pointed at microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-kernel with no matching workspace member"
+    },
+    {
+      "command": "jq empty registry/vendor-lockin-phaseout/index.json",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate vendor-lockin-discipline",
+      "result": "pass: 51 entries (Tier I=31, II=11, III=9)"
+    },
+    {
+      "command": "python3 registry check for six intelligence vendor seams",
+      "result": "pass: all six target entries have no stale microservices/intelligence paths and all referenced oya/intelligence crate directories exist"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate run-all --affected --base origin/dev",
+      "result": "partial: 23/31 lanes passed and vendor-lockin-discipline passed; remaining failed lanes are unrelated baseline gates active-artifact-contract, data-class, supply-chain, pre-push-contract, license-policy, stage0-prereqs, cloud-iac-module-release-index, cloud-iac-module-registry-protocol"
+    }
+  ],
+  "remaining_risks": [
+    "Affected run-all still has unrelated baseline failures outside this registry path repair; this change only claims the vendor-lockin-discipline lane.",
+    "Some historical ADR/docs may still contain Foundry-era terms as provenance; this PR updates only the active vendor-lockin registry entries needed for current intelligence paths."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "One registry path correction replaces nonexistent paths with existing workspace paths; no new abstraction or compatibility layer added."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Vendor seams remain explicit and enforceable: each proprietary provider entry names a trait seam plus alternate provider implementations."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "vendor-lockin-discipline failed before the registry repair and passed after it",
+      "findings": [
+        "The before/after gate result proves the change addresses the concrete failing diagnostic rather than masking it."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 5,
+      "findings": [
+        "Registry paths now match the actual workspace layout under oya/intelligence/crates."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "jq, vendor-lockin gate, path-existence script, diff-check, and affected run-all evidence were collected."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Create placeholder microservices/intelligence crates",
+        "Disable the vendor-lockin registry seam fields",
+        "Point registry at actual oya/intelligence crates"
+      ],
+      "selected_rationale": "Pointing at actual crates repairs the active authority without resurrecting stale microservice paths.",
+      "rejected_reasons": [
+        "Placeholder crates would reintroduce stale layout assumptions.",
+        "Disabling seam fields would weaken ADR-0173/0211 enforcement."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "vendor-lockin and supply-chain governance",
+      "findings": [
+        "The proprietary LLM providers remain Tier II vendor-seamed with replacement paths and adapter implementations."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Registry-only change; no runtime path."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "data_class_touched": [],
+      "findings": [
+        "Improves ADR-0173/0211 vendor-lockin compliance by restoring gate-passable seam references."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "Single JSON registry edit; revert is limited to six entries."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "findings": [
+        "Validated the referenced crates exist in the workspace before updating the registry."
+      ]
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "findings": [
+        "Clears an intelligence-related governance gate needed for safe fanout and future masterplan PR merge readiness."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A1_naming": "Active registry entries now use intelligence paths/wording for provider adapter seams.",
+    "A2_documentation": "Evidence records stale-ADR handling and active registry authority; generated mirrors were not edited.",
+    "A3_structure": "Single active-registry change under registry/vendor-lockin-phaseout/index.json.",
+    "A4_architecture": "Preserves explicit vendor seam trait/implementation shape.",
+    "A5_dependency": "No dependency changes.",
+    "A6_tests": "vendor-lockin-discipline gate passes; affected run-all confirms this lane passes while unrelated baseline lanes remain.",
+    "A7_governance": "Plain git isolated worktree and PR-ready evidence file."
+  }
+}

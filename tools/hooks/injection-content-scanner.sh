@@ -20,7 +20,7 @@ result_content="$(printf '%s' "$payload" | python3 -c '
 import sys, json
 try:
     d = json.load(sys.stdin)
-    # Claude Code PostToolUse: tool_response or output field
+    # Agent PostToolUse/AfterTool: tool_response or output field
     for field in ("tool_response", "output", "result", "content", "stdout"):
         v = d.get(field, "")
         if isinstance(v, str) and v:

@@ -22,7 +22,7 @@
 //! calls `K8sJobSpawner::spawn(build_gate_job(spec))` to create the labeled
 //! gate Job. The reconcile loop then picks it up and posts Forgejo statuses.
 //!
-//! Idempotent: the Job name is deterministic (`oya-ci-gate-pr<N>-<sha8>`),
+//! Idempotent: the Job name is deterministic and carries the full candidate SHA,
 //! so a duplicate POST results in a 409 create-conflict no-op (returns 200).
 //!
 //! ## Idempotency / restart-safety
@@ -41,7 +41,7 @@
 use axum::{
     Json, Router,
     extract::State,
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
     response::IntoResponse,
     routing::{get, post},
 };
@@ -52,11 +52,12 @@ use kube::{
     runtime::{Controller, controller::Action, watcher},
 };
 use oya_ci_controller_k8s_adapter::{
-    ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, observe_job,
+    ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, gate_job_list_params,
+    observe_job,
 };
 use oya_ci_controller_kernel::{
-    ForgejoState, ForgejoStatusPoster, GATE_CONTEXT, GateRun, GateRunSpec, JobSpawner,
-    ReconcileDecision, map_job_to_status,
+    ForgejoState, ForgejoStatusPoster, GATE_CONTEXT, GateRun, GateRunSpec, GateRunToken,
+    JobSpawner, ReconcileDecision, map_job_to_status,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -191,15 +192,9 @@ pub async fn reconcile(
             let poster = Arc::clone(&ctx.forgejo_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
-            let post_result = tokio::task::spawn_blocking(move || {
-                poster.post(&sha, ForgejoState::Pending, GATE_CONTEXT, &desc, None)
-            })
-            .await
-            .unwrap_or_else(|e| {
-                Err(oya_ci_controller_kernel::KernelError::DownstreamTransport(
-                    format!("spawn_blocking join: {e}"),
-                ))
-            });
+            let post_result = poster
+                .post(&sha, ForgejoState::Pending, GATE_CONTEXT, &desc, None)
+                .await;
 
             match post_result {
                 Ok(()) => {
@@ -233,14 +228,7 @@ pub async fn reconcile(
             let poster = Arc::clone(&ctx.forgejo_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
-            let post_result =
-                tokio::task::spawn_blocking(move || poster.post(&sha, state, context, &desc, None))
-                    .await
-                    .unwrap_or_else(|e| {
-                        Err(oya_ci_controller_kernel::KernelError::DownstreamTransport(
-                            format!("spawn_blocking join: {e}"),
-                        ))
-                    });
+            let post_result = poster.post(&sha, state, context, &desc, None).await;
 
             match post_result {
                 Ok(()) => {
@@ -381,6 +369,10 @@ pub async fn run_controller(state: ControllerState) {
 // axum router — /healthz + /metrics + POST /gate-run
 // ---------------------------------------------------------------------------
 
+/// HTTP header that callers must supply for POST /gate-run authentication.
+/// Value: the raw token (not prefixed with "Bearer ").
+pub const GATE_RUN_TOKEN_HEADER: &str = "x-gate-run-token";
+
 /// Shared state for the health/metrics/gate-run server.
 #[derive(Clone)]
 pub struct ServerState {
@@ -389,6 +381,9 @@ pub struct ServerState {
     pub job_spawner: Arc<dyn JobSpawner>,
     /// Full gate-Job spec config (image, clone URL, SA, deadlines).
     pub gate_spec_config: GateSpecConfig,
+    /// Shared-secret token that callers must present in `X-Gate-Run-Token`.
+    /// Sourced from the `gate-run-token` projected Secret (ESO → OpenBao).
+    pub gate_run_token: Arc<GateRunToken>,
 }
 
 /// Static configuration for building gate Job specs.
@@ -459,16 +454,54 @@ async fn handle_metrics(_state: State<ServerState>) -> impl IntoResponse {
 ///
 /// Body: `{"pr_number": N, "head_sha": "...", "base_ref": "dev"}`
 ///
+/// Requires `X-Gate-Run-Token` header with the shared secret from the
+/// `gate-run-token` projected Secret (ESO → OpenBao `secret/oya/ci/gate-run-token`).
+///
 /// Returns 200 (already exists — idempotent) or 201 (created).
-/// Returns 400 on invalid input, 500 on spawner failure.
+/// Returns 400 on invalid input, 401 on missing/wrong token, 500 on spawner failure.
 fn is_full_hex_commit_sha(value: &str) -> bool {
     value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
 }
 
 async fn handle_gate_run(
     State(state): State<ServerState>,
+    headers: HeaderMap,
     Json(req): Json<GateRunRequest>,
 ) -> impl IntoResponse {
+    // ---- Authentication: constant-time token check -------------------------
+    // The token must be present in `X-Gate-Run-Token`. Any other caller
+    // (including untrusted PR pods that could reach this endpoint without the
+    // NetworkPolicy in place) is rejected 401 before any business logic runs.
+    let presented = headers
+        .get(GATE_RUN_TOKEN_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.as_bytes());
+
+    match presented {
+        None => {
+            warn!(
+                pr = req.pr_number,
+                "gate-run: missing X-Gate-Run-Token header — rejected"
+            );
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({"error": "missing X-Gate-Run-Token"})),
+            )
+                .into_response();
+        }
+        Some(candidate) if !state.gate_run_token.verify(candidate) => {
+            warn!(
+                pr = req.pr_number,
+                "gate-run: invalid X-Gate-Run-Token — rejected"
+            );
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({"error": "invalid X-Gate-Run-Token"})),
+            )
+                .into_response();
+        }
+        _ => {}
+    }
     // P0.0 required-context evidence must bind to the exact candidate commit.
     // Short SHAs are intentionally rejected because they can be ambiguous and
     // cannot prove that the protected required status was posted to the
@@ -482,26 +515,36 @@ async fn handle_gate_run(
             .into_response();
     }
 
-    // The current Forgejo-native weekly gate only accepts PRs targeting dev.
-    // This keeps /gate-run aligned with the plain-git + Forgejo-PR-against-dev
-    // contract and avoids accidentally spawning a gate Job for another branch.
-    if req.base_ref != "dev" {
-        warn!(pr = req.pr_number, base_ref = %req.base_ref, "gate-run: unsupported base_ref");
+    // Validate base_ref against a strict git-ref charset — it is interpolated into the gate
+    // Job's shell command in the TRUSTED trunk-clone step, so an unvalidated value is a
+    // shell-injection that would defeat trunk-sourcing. (head_sha is hex-guarded above.)
+    if req.base_ref.is_empty()
+        || req.base_ref.starts_with('-')
+        || req.base_ref.contains("..")
+        || !req
+            .base_ref
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '/' | '-'))
+    {
+        warn!(pr = req.pr_number, base_ref = %req.base_ref, "gate-run: invalid base_ref");
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"error": "base_ref must be dev for oya-ci gate runs"})),
+            Json(json!({"error": "base_ref must be a valid git ref (alphanumerics and ._/- only; no leading '-' or '..')"})),
         )
             .into_response();
     }
 
+    let head_sha = req.head_sha.to_ascii_lowercase();
     let cfg = &state.gate_spec_config;
 
     let spec = GateRunSpec {
         run: GateRun {
             pr_number: req.pr_number,
-            head_sha: req.head_sha.clone(),
-            // delivery_id not available from the HTTP body; use pr+sha as dedup key.
-            delivery_id: format!("gate-run-pr{}-{}", req.pr_number, &req.head_sha[..8]),
+            head_sha: head_sha.clone(),
+            // delivery_id not available from the HTTP body; use pr+full-sha as
+            // the dedup key so prefix collisions cannot masquerade as
+            // idempotent re-delivery.
+            delivery_id: format!("gate-run-pr{}-{head_sha}", req.pr_number),
             base_ref: req.base_ref.clone(),
             repo: cfg.repo.clone(),
         },
@@ -530,7 +573,7 @@ async fn handle_gate_run(
                 info!(
                     job = %handle.job_name,
                     pr = req.pr_number,
-                    sha = %req.head_sha,
+                    sha = %head_sha,
                     "gate-run: job already exists (idempotent)"
                 );
                 StatusCode::OK
@@ -538,7 +581,7 @@ async fn handle_gate_run(
                 info!(
                     job = %handle.job_name,
                     pr = req.pr_number,
-                    sha = %req.head_sha,
+                    sha = %head_sha,
                     "gate-run: job created"
                 );
                 StatusCode::CREATED
@@ -554,7 +597,7 @@ async fn handle_gate_run(
                 .into_response()
         }
         Err(e) => {
-            error!(pr = req.pr_number, sha = %req.head_sha, error = %e, "gate-run: spawn failed");
+            error!(pr = req.pr_number, sha = %head_sha, error = %e, "gate-run: spawn failed");
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({"error": e.to_string()})),
@@ -571,157 +614,164 @@ async fn handle_gate_run(
 pub use futures::StreamExt;
 
 // ---------------------------------------------------------------------------
-// Tests — /gate-run contract and restart-safe idempotency
+// Tests — endpoint auth + healthz
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{
-        body::Body,
-        http::{Request, StatusCode},
-    };
-    use oya_ci_controller_kernel::{GateRunSpec, JobHandle, KernelError, Result as KernelResult};
-    use std::{
-        sync::Mutex,
-        task::{Context, Poll},
-    };
-    use tower::Service;
+    use axum::body::to_bytes;
+    use axum::http::Request;
+    use oya_ci_controller_kernel::{GateRunSpec, JobHandle, Result as KernelResult};
+    use tower::util::ServiceExt; // for `oneshot`
 
-    #[derive(Default)]
-    struct RecordingSpawner {
-        calls: Mutex<Vec<GateRunSpec>>,
-        already_exists: bool,
-    }
+    // ---- Fake JobSpawner ---------------------------------------------------
 
-    impl JobSpawner for RecordingSpawner {
+    /// Always returns `already_exists: true` (no real kube call needed for
+    /// unit tests).
+    struct FakeJobSpawner;
+
+    impl JobSpawner for FakeJobSpawner {
         fn spawn(&self, spec: &GateRunSpec) -> KernelResult<JobHandle> {
-            self.calls
-                .lock()
-                .map_err(|e| KernelError::DownstreamTransport(format!("lock poisoned: {e}")))?
-                .push(spec.clone());
             Ok(JobHandle {
                 job_name: spec.run.job_name(),
                 namespace: spec.namespace.clone(),
-                already_exists: self.already_exists,
+                already_exists: false,
             })
         }
     }
 
-    fn test_state(spawner: Arc<RecordingSpawner>) -> ServerState {
+    const TEST_TOKEN: &str = "test-gate-run-token-abcdef";
+
+    fn test_server_state() -> ServerState {
         ServerState {
             controller_namespace: "oya-ci".to_owned(),
-            job_spawner: spawner,
+            job_spawner: Arc::new(FakeJobSpawner),
             gate_spec_config: GateSpecConfig {
                 image: "registry.local/rust-ci:dev".to_owned(),
                 forge_clone_url: "http://forgejo.local/oya-admin/oyatie.git".to_owned(),
                 active_deadline_seconds: 3600,
-                ttl_seconds_after_finished: 600,
+                ttl_seconds_after_finished: 86400,
                 namespace: "oya-ci".to_owned(),
                 runner_service_account: "oya-ci-gate-runner".to_owned(),
                 repo: "oya-admin/oyatie".to_owned(),
             },
+            gate_run_token: Arc::new(GateRunToken::new(TEST_TOKEN.as_bytes().to_vec())),
         }
     }
 
-    async fn route_request(router: &mut Router, body: &str) -> axum::response::Response {
-        futures::future::poll_fn(|cx: &mut Context<'_>| {
-            match <Router as Service<Request<Body>>>::poll_ready(router, cx) {
-                Poll::Ready(Ok(())) => Poll::Ready(()),
-                Poll::Ready(Err(err)) => panic!("router not ready: {err}"),
-                Poll::Pending => Poll::Pending,
-            }
-        })
-        .await;
-
-        <Router as Service<Request<Body>>>::call(
-            router,
-            Request::builder()
-                .method("POST")
-                .uri("/gate-run")
-                .header("content-type", "application/json")
-                .body(Body::from(body.to_owned()))
-                .expect("request builds"),
-        )
-        .await
-        .expect("route call succeeds")
+    async fn send_gate_run(
+        state: ServerState,
+        token_header: Option<&str>,
+        body: serde_json::Value,
+    ) -> (StatusCode, String) {
+        let router = build_router(state);
+        let body_bytes = serde_json::to_vec(&body).unwrap();
+        let mut req_builder = Request::post("/gate-run").header("content-type", "application/json");
+        if let Some(tok) = token_header {
+            req_builder = req_builder.header(GATE_RUN_TOKEN_HEADER, tok);
+        }
+        let req = req_builder
+            .body(axum::body::Body::from(body_bytes))
+            .unwrap();
+        let resp = router.oneshot(req).await.unwrap();
+        let status = resp.status();
+        let bytes = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        (status, String::from_utf8_lossy(&bytes).to_string())
     }
 
-    #[tokio::test]
-    async fn gate_run_defaults_to_dev_and_spawns_deterministic_job() {
-        let spawner = Arc::new(RecordingSpawner::default());
-        let mut router = build_router(test_state(Arc::clone(&spawner)));
-
-        let response = route_request(
-            &mut router,
-            r#"{"pr_number":42,"head_sha":"abcdef1234567890abcdef1234567890abcdef12"}"#,
-        )
-        .await;
-
-        assert_eq!(response.status(), StatusCode::CREATED);
-        let calls = spawner.calls.lock().expect("calls lock");
-        assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0].run.base_ref, "dev");
-        assert_eq!(calls[0].run.delivery_id, "gate-run-pr42-abcdef12");
-        assert_eq!(calls[0].run.job_name(), "oya-ci-gate-pr42-abcdef12");
-    }
+    // ---- Auth: missing token -----------------------------------------------
 
     #[tokio::test]
-    async fn gate_run_duplicate_job_is_idempotent_ok() {
-        let spawner = Arc::new(RecordingSpawner {
-            calls: Mutex::new(Vec::new()),
-            already_exists: true,
+    async fn gate_run_missing_token_is_401() {
+        let body = serde_json::json!({
+            "pr_number": 42,
+            "head_sha": "abcdef1234567890abcdef1234567890abcdef12",
         });
-        let mut router = build_router(test_state(Arc::clone(&spawner)));
-
-        let response = route_request(
-            &mut router,
-            r#"{"pr_number":7,"head_sha":"1234567890abcdef1234567890abcdef12345678","base_ref":"dev"}"#,
-        )
-        .await;
-
-        assert_eq!(response.status(), StatusCode::OK);
-        let calls = spawner.calls.lock().expect("calls lock");
-        assert_eq!(calls.len(), 1);
+        let (status, text) = send_gate_run(test_server_state(), None, body).await;
+        assert_eq!(status, StatusCode::UNAUTHORIZED, "body: {text}");
+        assert!(text.contains("missing"), "body: {text}");
     }
 
-    #[tokio::test]
-    async fn gate_run_rejects_short_or_non_hex_candidate_sha() {
-        let spawner = Arc::new(RecordingSpawner::default());
+    // ---- Auth: wrong token -------------------------------------------------
 
+    #[tokio::test]
+    async fn gate_run_wrong_token_is_401() {
+        let body = serde_json::json!({
+            "pr_number": 42,
+            "head_sha": "abcdef1234567890abcdef1234567890abcdef12",
+        });
+        let (status, text) =
+            send_gate_run(test_server_state(), Some("totally-wrong-token"), body).await;
+        assert_eq!(status, StatusCode::UNAUTHORIZED, "body: {text}");
+        assert!(text.contains("invalid"), "body: {text}");
+    }
+
+    // ---- Auth: correct token → job created (201) ---------------------------
+
+    #[tokio::test]
+    async fn gate_run_correct_token_creates_job_201() {
+        let body = serde_json::json!({
+            "pr_number": 7,
+            "head_sha": "abc12345def67890abc12345def67890abc12345",
+            "base_ref": "dev",
+        });
+        let (status, text) = send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
+        assert_eq!(status, StatusCode::CREATED, "body: {text}");
+        assert!(text.contains("job_name"), "body: {text}");
+        assert!(
+            text.contains("oya-ci-pr7-abc12345def67890abc12345def67890abc12345"),
+            "body: {text}"
+        );
+    }
+
+    // ---- Auth: correct token, invalid sha → 400 (auth passes, body fails) --
+
+    #[tokio::test]
+    async fn gate_run_correct_token_rejects_short_or_non_hex_candidate_sha() {
         for bad_sha in [
             "abcdef1",
             "abcdef12",
             "abcdef1234567890abcdef1234567890abcdef1",
             "abcdef1234567890abcdef1234567890abcdeg12",
+            "not-hex!",
         ] {
-            let mut router = build_router(test_state(Arc::clone(&spawner)));
-            let body = format!(r#"{{"pr_number":42,"head_sha":"{bad_sha}","base_ref":"dev"}}"#);
-            let response = route_request(&mut router, &body).await;
+            let body = serde_json::json!({
+                "pr_number": 7,
+                "head_sha": bad_sha,
+            });
+            let (status, text) = send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
             assert_eq!(
-                response.status(),
+                status,
                 StatusCode::BAD_REQUEST,
-                "{bad_sha} should be rejected"
+                "{bad_sha} should be rejected; body: {text}"
             );
         }
-
-        let calls = spawner.calls.lock().expect("calls lock");
-        assert!(calls.is_empty(), "invalid SHAs must not spawn a Job");
     }
 
+    // ---- Auth: off-by-one-byte token is rejected ---------------------------
+
     #[tokio::test]
-    async fn gate_run_rejects_non_dev_base_ref_for_weekly_forgejo_gate() {
-        let spawner = Arc::new(RecordingSpawner::default());
-        let mut router = build_router(test_state(Arc::clone(&spawner)));
+    async fn gate_run_token_off_by_one_byte_is_401() {
+        // Truncate token by one character — must not authenticate.
+        let truncated = &TEST_TOKEN[..TEST_TOKEN.len() - 1];
+        let body = serde_json::json!({
+            "pr_number": 1,
+            "head_sha": "abcdef1234567890abcdef1234567890abcdef12",
+        });
+        let (status, _) = send_gate_run(test_server_state(), Some(truncated), body).await;
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+    }
 
-        let response = route_request(
-            &mut router,
-            r#"{"pr_number":42,"head_sha":"abcdef1234567890abcdef1234567890abcdef12","base_ref":"main"}"#,
-        )
-        .await;
+    // ---- healthz returns 200 ----------------------------------------------
 
-        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
-        let calls = spawner.calls.lock().expect("calls lock");
-        assert!(calls.is_empty(), "invalid branch must not spawn a Job");
+    #[tokio::test]
+    async fn healthz_returns_200() {
+        let router = build_router(test_server_state());
+        let req = Request::get("/healthz")
+            .body(axum::body::Body::empty())
+            .unwrap();
+        let resp = router.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
     }
 }

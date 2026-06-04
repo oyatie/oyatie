@@ -1,0 +1,84 @@
+{
+  "schema_version": "multispectrum-review.v2.4.0-live-branch-protection-plus-local-static",
+  "change_id": "platform-readiness-p0-0-github-lane-unlocker-automated-required-context-1780534800",
+  "change_class_id": "CC-6",
+  "timestamp": "2026-06-03T21:12:00-0400",
+  "scope": "Temporary GitHub Actions lane-unlocker automated required context convergence",
+  "verdict": "LIVE_DEV_REQUIRES_AUTOMATED_GITHUB_LANE_UNLOCKER_REQUIRED_NO_MANUAL_OYA_CI_REQUIRED_BRIDGE",
+  "claim_boundary": {
+    "github_is_permanent": false,
+    "github_actions_is_permanent_ci_cd": false,
+    "native_ci_authority_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "live_branch_protection_mutated": true,
+    "manual_oya_ci_required_bridge_allowed": false,
+    "temporary_required_context": "github-lane-unlocker-required",
+    "native_cutover_target_context": "oya-ci-required"
+  },
+  "live_branch_protection": {
+    "repo": "jason931225/oyatie",
+    "branch": "dev",
+    "observed_after_apply_command": "gh api repos/jason931225/oyatie/branches/dev/protection/required_status_checks --jq '{strict,contexts,checks}'",
+    "strict": false,
+    "contexts": [
+      "github-lane-unlocker-required"
+    ],
+    "checks": [
+      {
+        "context": "github-lane-unlocker-required",
+        "app_id": 15368
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "github_lane_unlocker_contract",
+      "command": "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "verdict": "PASS",
+      "evidence": "temporary_required_context=github-lane-unlocker-required; manual_oya_ci_required_bridge_allowed=false; native_cutover_target_context=oya-ci-required"
+    },
+    {
+      "name": "buck2_authority_policy",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "verdict": "PASS",
+      "evidence": "Buck2 remains authority; GitHub bridge is temporary; native cutover target remains oya-ci-required"
+    },
+    {
+      "name": "json_syntax",
+      "command": "python3 -m json.tool specs/github-lane-unlocker-bridge.json specs/buck2-authority-policy.json infra/branch-protection/dev.json",
+      "verdict": "PASS",
+      "evidence": "JSON syntax valid"
+    },
+    {
+      "name": "diff_hygiene",
+      "command": "git diff --check",
+      "verdict": "PASS",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "name": "buck2_lane_unlocker_and_authority_targets",
+      "command": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID cdbda984-6e05-4907-8cad-b01b26006e92"
+    },
+    {
+      "name": "rust_llvm_coverage_targets",
+      "command": "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID 7de0ccbc-11a8-4e3b-a582-beab6339456c"
+    },
+    {
+      "name": "branch_protection_apply_script",
+      "command": "scripts/branch-protection-apply.sh --apply --repo jason931225/oyatie --branch dev --config infra/branch-protection/dev.json",
+      "verdict": "PARTIAL_PASS_LIVE_MUTATION_SUCCEEDED_FINAL_LOCAL_CLI_GATE_BLOCKED",
+      "evidence": "script applied live contexts and printed canonical=live=[github-lane-unlocker-required]; final buck2 run of oya-dev-cli protection-context-match failed before gate logic due local macOS linker receiving aarch64 Linux linker flags for third-party quote build script"
+    }
+  ],
+  "ci_failure_context": {
+    "failed_run_before_push": 26922857732,
+    "failed_sha_before_push": "78c95f8607b86f40e12239984ccd319ed261d773",
+    "failing_lane_before_push": "affected-build",
+    "local_fix_sha_not_yet_pushed_when_failure_was_observed": "608bca32b"
+  }
+}

@@ -108,6 +108,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 concurrency:
   group: backbone-microservices-ci-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -238,79 +241,36 @@ jobs:
               oya-shared-transactional-outbox-runtime-tokio-app
               oya-policy-cedar-domain
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+      - uses: actions/checkout@v6
         with:
-          toolchain: stable
-          components: rustfmt, clippy
-      - name: Cache cargo registry + target
-        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
-        with:
-          shared-key: backbone-microservices-ci
-      - name: cargo fmt --check for backbone package matrix
-        shell: bash
+          fetch-depth: 0
+      - name: Fetch dev base for Buck2 affected graph
+        run: git fetch origin dev --depth=1
+      - name: Require Buck2 runtime
+        run: buck2 --version
+      - name: Buck2 authority policy scan
+        run: python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json
+      - name: Buck2 affected build/test for backbone package matrix
         env:
-          PACKAGES: ${{ matrix.packages }}
-        run: |
-          set -euo pipefail
-          args=()
-          for package in ${PACKAGES}; do
-            args+=("-p" "$package")
-          done
-          cargo fmt --check "${args[@]}"
-      - name: cargo check for backbone package matrix
-        shell: bash
-        env:
-          CARGO_TERM_COLOR: always
-          CARGO_INCREMENTAL: "0"
-          PACKAGES: ${{ matrix.packages }}
-        run: |
-          set -euo pipefail
-          args=()
-          for package in ${PACKAGES}; do
-            args+=("-p" "$package")
-          done
-          cargo check "${args[@]}" --all-targets
-      - name: cargo clippy for backbone package matrix
-        shell: bash
-        env:
-          CARGO_TERM_COLOR: always
-          CARGO_INCREMENTAL: "0"
-          PACKAGES: ${{ matrix.packages }}
-        run: |
-          set -euo pipefail
-          args=()
-          for package in ${PACKAGES}; do
-            args+=("-p" "$package")
-          done
-          cargo clippy "${args[@]}" --all-targets -- -D warnings
-      - name: cargo test for backbone package matrix
-        shell: bash
-        env:
-          CARGO_TERM_COLOR: always
-          CARGO_INCREMENTAL: "0"
-          PACKAGES: ${{ matrix.packages }}
-        run: |
-          set -euo pipefail
-          args=()
-          for package in ${PACKAGES}; do
-            args+=("-p" "$package")
-          done
-          cargo test "${args[@]}"
+          OYA_BACKBONE_MICROSERVICE: ${{ matrix.microservice }}
+          OYA_BACKBONE_PACKAGES: ${{ matrix.packages }}
+        run: infra/ci/buck2-affected-gate.sh origin/dev HEAD
+
 
   governance-smoke:
     name: backbone-microservices-ci-governance-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+      - uses: actions/checkout@v6
         with:
-          toolchain: stable
-      - name: cargo-prefix gate
-        run: ./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-
+          fetch-depth: 0
+      - name: Require Buck2 runtime
+        run: buck2 --version
+      - name: Buck2 authority policy scan
+        run: python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json
+      - name: Buck2 oya binary smoke
+        run: buck2 uquery //oya/developer-sdk/crates/oya-dev-cli:oya
       - name: Parse backbone evidence, proto contracts, Gateway chart seams, tenant workload labels, and shared catalog rows
         run: |
           ruby -rjson -ryaml -e '

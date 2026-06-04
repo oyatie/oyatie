@@ -7,6 +7,7 @@ start_pr="1"
 after_pr="0"
 limit="200"
 merge_method="squash"
+fetch_remote="${GITHUB_FETCH_REMOTE:-}"
 required_review_check="oya-pr-review"
 dry_run="0"
 require_verified_head="1"
@@ -25,7 +26,12 @@ Options:
   --after-pr <number>          Merged PR number that triggered this tick
                                (default: 0; select queue floor)
   --limit <number>             Maximum open PRs to query from GitHub (default: 200)
-  --merge-method <method>      squash, merge, or rebase (default: squash)
+  --merge-method <method>      squash only in P0.0 (default: squash)
+  --fetch-remote <remote>      Git remote used by the sequential conflict guard
+                               to fetch refs/pull/<N>/head. Defaults to
+                               GITHUB_FETCH_REMOTE, otherwise origin; when origin
+                               is Forgejo and github-mirror is a GitHub remote,
+                               github-mirror is selected automatically.
   --required-review-check <id> Required review check name (default: oya-pr-review)
   --required-contexts-config <path>
                               Canonical branch-protection contexts JSON
@@ -68,6 +74,10 @@ while [ "$#" -gt 0 ]; do
       merge_method="${2:?missing --merge-method value}"
       shift 2
       ;;
+    --fetch-remote)
+      fetch_remote="${2:?missing --fetch-remote value}"
+      shift 2
+      ;;
     --required-review-check)
       required_review_check="${2:?missing --required-review-check value}"
       shift 2
@@ -107,15 +117,34 @@ for numeric in start_pr after_pr limit; do
 done
 
 case "$merge_method" in
-  squash|merge|rebase) ;;
+  squash) ;;
   *)
-    echo "--merge-method must be one of: squash, merge, rebase" >&2
+    echo "--merge-method is fixed to squash for P0.0 GitHub auto-merge scheduling" >&2
     exit 2
     ;;
 esac
 
 if ! command -v gh >/dev/null 2>&1; then
   echo "gh is required" >&2
+  exit 2
+fi
+
+remote_url_contains_github() {
+  local remote="$1"
+  local url
+  url="$(git remote get-url "$remote" 2>/dev/null || true)"
+  [ -n "$url" ] && printf '%s\n' "$url" | grep -Eiq '(^|[:/@])github\.com[:/]'
+}
+
+if [ -z "$fetch_remote" ]; then
+  fetch_remote="origin"
+  if ! remote_url_contains_github "$fetch_remote" && remote_url_contains_github "github-mirror"; then
+    fetch_remote="github-mirror"
+  fi
+fi
+
+if [ -z "$fetch_remote" ]; then
+  echo "--fetch-remote must not be empty" >&2
   exit 2
 fi
 
@@ -333,9 +362,10 @@ scripts/check-sequential-pr-merge-conflicts.sh \
   --base-ref "$base_ref" \
   --start-pr "$number" \
   --end-pr "$number" \
-  --limit "$limit"
+  --limit "$limit" \
+  --fetch-remote "$fetch_remote"
 
-merge_flag="--${merge_method}"
+merge_flag="--squash"
 if [ "$dry_run" = "1" ]; then
   echo "dry-run: gh pr merge ${number} ${merge_flag} --auto --match-head-commit ${head_oid}"
   exit 0

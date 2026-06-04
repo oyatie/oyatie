@@ -1,0 +1,129 @@
+{
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "session_id": "omx-1780449440528-15gm8q",
+  "change_id": "platform-readiness-p0-0-aggregate-exit-fixture-gate",
+  "change_class_id": "CC-5",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha": "600e2356e856ac9f508a84b0cb5fd9b13d1ed751",
+  "timestamp_iso": "2026-06-03T06:34:27Z",
+  "timestamp_unix": 1780468467,
+  "freshness_unix": 1780468467,
+  "scope": "AC-0.12 aggregate-exit local/static fixture gate wrapper over existing Phase-0 exit fixtures",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    ".omx/plans/prd-platform-readiness.md#AC-0.12",
+    ".omx/plans/test-spec-phase0.md#T0.12",
+    "specs/fixtures/phase0-exit-gate/",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "claim_boundary": {
+    "note": "Local/static aggregate-exit fixture evidence only. This does not claim live cloud-ci/oya-ci required-context execution, protected branch authority, status mutation, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness.",
+    "aggregate_exit_live": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false,
+    "local_fixture_contract_proven": true,
+    "aggregate_exit_local_static_proven": true
+  },
+  "files_changed": [
+    "scripts/ci/assert-phase0-aggregate-exit.py",
+    "scripts/tests/phase0_aggregate_exit_check.test.sh",
+    "BUCK",
+    "specs/buck2-authority-policy.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "evidence/multispectrum/platform-readiness-p0-0-aggregate-exit-fixture-gate-1780468467.json"
+  ],
+  "implementation_summary": [
+    "Added scripts/ci/assert-phase0-aggregate-exit.py to replay AC-0.12 aggregate-exit fixtures and require every declared Phase-0 subcondition to be present, known, and true before an aggregate GREEN fixture can pass.",
+    "Added scripts/tests/phase0_aggregate_exit_check.test.sh with RED mutations for missing required subconditions, live-context false conditions, unknown subconditions, missing single-false cases, multi-false single-false cases, and RED fixtures claiming green boundaries.",
+    "Added //:phase0-aggregate-exit-check and wired the checker/test/fixtures into the Buck2 authority policy and automation-ratchet coverage metadata.",
+    "Architect-requested fix requires each TC-0.12 single-false case to contain exactly one false/non-true required subcondition matching forced_false, preventing a case from hiding additional false conditions."
+  ],
+  "known_gaps": [
+    "AC-0.12 remains local/static evidence only until trusted cloud-ci/oya-ci runs the aggregate-exit gate as part of the required context on candidate SHAs.",
+    "P0.0 live required-context execution, trusted source-app binding, Forgejo live convergence, and reviewer merge-readiness remain unproven.",
+    "The GOOD all-subconditions fixture is a target shape only and is not a current Phase-0 completion claim."
+  ],
+  "verification": [
+    {
+      "command": "missing checker/target RED probe",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T06:11:12Z",
+      "evidence": "Before implementation, scripts/ci/assert-phase0-aggregate-exit.py was missing and //:phase0-aggregate-exit-check was unknown; logs in /tmp/p0-0-aggregate-exit-red-1780467072."
+    },
+    {
+      "command": "architect-requested multi-false single-false false-green capture",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T06:27:38Z",
+      "evidence": "Pre-fix mutation added AC-0.17_claim_ceiling_green=false to a case whose forced_false was AC-0.0_green; checker returned rc=0/PASS, proving the false green; logs in /tmp/p0-0-aggregate-exit-multifalse-red-1780468058."
+    },
+    {
+      "command": "architect-requested multi-false exactness fix regression",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T06:28:40Z",
+      "evidence": "Post-fix same mutation returns rc=1 with single_false_case_not_exactly_one_false_subcondition; normal aggregate checker/test pass; buck2 build //:phase0-aggregate-exit-check Build ID 91f3462b-aa75-49d9-8a0a-785479a1fc7d; logs in /tmp/p0-0-aggregate-exit-multifalse-fix-1780468120."
+    },
+    {
+      "command": "architect review of AC-0.12 aggregate-exit wrapper",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T06:34:27Z",
+      "evidence": "Architect Zeno (019e8c25-581d-7280-94bc-13808c8a7ced) first requested changes for the multi-false single-false coverage hole, then returned APPROVE after the exactness fix and regression."
+    },
+    {
+      "command": "final2 full AC-0.12/P0.0 local-static verification bundle",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T06:34:27Z",
+      "evidence": "JSON/audit parse, py_compile, aggregate checker/test, multi-false fail-closed regression, automation-ratchet, claim-ceiling, adjacent P0.0 shell regressions, baseline catalog, auto-merge contract, Buck2 authority, wide Buck2 P0 target build, evidence-secret-scan, cleanup, and git diff --check passed; Buck2 Build ID 8266eea0-42df-4478-8a5c-bd73c29b07af; required_subcondition_count=32; single_false_case_count=32; false_flags={\"aggregate_exit_live\": false, \"hyperscaler_grade\": false, \"live_required_context_execution_proven\": false, \"p0_0_green\": false, \"phase0_complete\": false, \"production_ready\": false, \"protected_branch_authority_proven\": false, \"status_mutation_performed\": false}; logs in /tmp/p0-0-aggregate-exit-final2-1780468234."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose wrapper; no new dependency or oya CLI surface."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Aggregate exit now has replayable local fixture evidence before live cloud-ci authority cutover, matching fail-closed admission expectations."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "RED probes cover missing, unknown, false, missing-case, multi-false single-case, and green-boundary drift."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Final2 bundle and architect follow-up approval collected before commit."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets/tenant data touched; evidence secret scan passed."
+      ]
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No new oya CLI surface; local/static only; cloud-ci/oya-ci remains destination authority."
+      ]
+    }
+  }
+}

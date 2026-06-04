@@ -1,0 +1,10 @@
+{
+  "strict": false,
+  "contexts": ["legacy-ci"],
+  "checks": [
+    {
+      "context": "legacy-ci",
+      "app_id": 12345
+    }
+  ]
+}
