@@ -16,14 +16,15 @@
   "required_sequence": [
     "read specs/root-hub-pointers.json first",
     "read docs/AGENTS.md for the live operating contract",
-    "claim with oya vcs before edits where project guidance requires it",
+    "create one isolated git worktree branch per agent lane before edits",
     "verify with the smallest evidence loop that proves the completion claim",
-    "done and promote through oya vcs when the changeset is ready"
+    "open a pull request against dev with Buck2 evidence and wait for trusted Prow/Kubernetes-native oya-ci-required admission before merge"
   ],
   "sanctioned_primitives": [
-    "oya-git",
-    "oya-vcs",
-    "oya-vcs-admission"
+    "git",
+    "gh",
+    "buck2",
+    "Prow/Kubernetes-native oya-ci-required"
   ],
   "agent_completion_contract": {
     "must_continue_until": "requested local branch is implemented or a concrete blocker is documented",
@@ -36,7 +37,7 @@
       "changed-file inventory",
       "coverage counts",
       "JSON validity for specs",
-      "VCS verify/done/promote evidence or explicit blocker"
+      "Buck2/Prow PR evidence or explicit blocker"
     ]
   },
   "related_specs": [
@@ -67,9 +68,9 @@
       }
     ],
     "observability_hooks": [
-      "registry/vcs/changeset-event-log.json",
-      "oya vcs status",
-      "oya vcs verify evidence strings"
+      "native SCM/controller changeset event stream",
+      "GitHub PR adapter status while the temporary bridge remains",
+      "Buck2 and Prow/Kubernetes-native oya-ci-required evidence strings"
     ],
     "rollback_path": "Revert this projection or reset root-hub pointer fields while keeping docs/AGENTS.md as current authority.",
     "versioning": "Schema-compatible additive changes until PHASE-5; breaking authority promotion requires ADR/update evidence."
