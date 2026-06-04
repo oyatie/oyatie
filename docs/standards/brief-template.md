@@ -6,7 +6,7 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-20
 owner: council-documentation
-planned_enforcement_ref: oya-governance-brief-template
+planned_enforcement_ref: buck2-prow-brief-template
 related_adrs:
   - ADR-0321
   - ADR-0322
@@ -50,7 +50,7 @@ A compliant brief makes the agent answer five questions before writing content:
 1. Which canonical anchors bind this artifact class?
 2. What exact file path and line floor must exist at the end?
 3. Which substance signals make this artifact buildable from cold?
-4. Which branch, verification commands, PR, Jenkins contexts, and reviewer/governance checks prove readiness to merge?
+4. Which branch, Buck2 verification commands, PR, Prow/Kubernetes-native `oya-ci-required` evidence, GitHub shadow checks, and review evidence prove readiness to merge?
 5. Which condition requires HALT-CLEANLY instead of improvising a bad artifact?
 
 The template exists because "write a doc about X" is too weak for this corpus.
@@ -311,35 +311,36 @@ duplication, DKIM key rotation drift, or workflow replay divergence.
 
 ### §2.6 Repository lifecycle: branch -> verify -> PR -> merge
 
-Every brief MUST include the plain-git + PR + Jenkins governance lifecycle.
+Every brief MUST include the plain-git + PR + Buck2/Prow lifecycle.
 
 The lifecycle is not optional for documentation-only work.
 
 The lifecycle begins with an isolated worktree branch before editing:
 
 ```bash
-git worktree add -b <branch> <isolated-worktree> origin/dev
+git worktree add -b <branch> <isolated-worktree> github-mirror/dev
 git status --short --branch
 ```
 
 The lifecycle verifies after the artifact exists:
 
 ```bash
-./bin/oya verify --ci-required
-./bin/oya gate run-all
+buck2 build <artifact-owned-targets> --show-output
+buck2 build //:repo-hygiene-automation-check //:kubernetes-native-anti-pattern-check --show-output
 ```
 
 The lifecycle opens or updates the PR only after verification evidence exists:
 
 ```bash
-git push -u origin <branch>
+git push github-mirror HEAD
 gh pr create --base dev --head <branch>
 ```
 
-The lifecycle merges only after required checks and review/governance gates are green:
+The lifecycle merges only after required checks, Prow/Kubernetes-native `oya-ci-required`
+evidence, GitHub shadow checks, and review evidence are green:
 
 ```bash
-gh pr merge <number> --squash --delete-branch
+gh pr merge <number> --squash --delete-branch --match-head-commit <head_sha>
 ```
 
 For this standard's own authoring slice, the evidence id is
