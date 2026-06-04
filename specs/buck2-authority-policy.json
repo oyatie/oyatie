@@ -253,8 +253,8 @@
     "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
     "scripts/ci/assert-override-kill-switch.rs",
     "scripts/tests/phase0_override_kill_switch_check.rs",
-    "scripts/ci/assert-trusted-target-inventory.py",
-    "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+    "scripts/ci/assert-trusted-target-inventory.rs",
+    "scripts/tests/phase0_trusted_target_inventory_check.rs",
     "scripts/ci/assert-result-bundle-output.rs",
     "scripts/tests/phase0_result_bundle_output_check.rs",
     "scripts/ci/assert-phase0-aggregate-exit.rs",
@@ -408,7 +408,7 @@
       "phase0_override_kill_switch_check.rs",
       "phase0-override-kill-switch-check",
       "phase0-trusted-target-inventory-check",
-      "phase0_trusted_target_inventory_check.test.sh",
+      "phase0_trusted_target_inventory_check.rs",
       "phase0-result-bundle-output-check",
       "phase0_result_bundle_output_check.rs",
       "phase0-aggregate-exit-check",
@@ -765,7 +765,7 @@
       "red_fixture_missing_expected_override_violation_fails_closed",
       "matrix_and_coverage_preserve_override_gate_contract"
     ],
-    "scripts/ci/assert-trusted-target-inventory.py": [
+    "scripts/ci/assert-trusted-target-inventory.rs": [
       "trusted target-inventory fixture evidence only",
       "trusted_dev_or_controller_state",
       "candidate_pr_bytes",
@@ -777,13 +777,13 @@
       "p0_0_green",
       "phase0_complete"
     ],
-    "scripts/tests/phase0_trusted_target_inventory_check.test.sh": [
-      "bad-schema-extra-inventory-source.json",
-      "bad-good-fixture-extra-top-level-field.json",
-      "bad-good-fixture-short-candidate-sha.json",
-      "bad-good-fixture-candidate-source.json",
-      "bad-red-fixture-missing-expected-trusted-target-violation.json",
-      "phase0 trusted target-inventory fixture checks passed"
+    "scripts/tests/phase0_trusted_target_inventory_check.rs": [
+      "schema_extra_inventory_source_fails_closed",
+      "good_fixture_extra_top_level_field_fails_closed",
+      "good_fixture_short_candidate_sha_fails_closed",
+      "good_fixture_candidate_source_fails_closed",
+      "red_fixture_missing_expected_violation_fails_closed",
+      "matrix_and_coverage_preserve_trusted_target_contract"
     ],
     "scripts/ci/assert-result-bundle-output.rs": [
       "structured result-bundle fixture evidence only",

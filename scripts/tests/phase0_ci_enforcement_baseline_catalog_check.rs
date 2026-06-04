@@ -708,13 +708,13 @@ pub fn evaluate(config: &Config) -> Evaluation {
         check_expected_string(
             automation_mapping,
             "trusted_target_inventory_check_script",
-            "scripts/ci/assert-trusted-target-inventory.py",
+            "scripts/ci/assert-trusted-target-inventory.rs",
             &mut evaluation.failures,
         );
         check_expected_string(
             automation_mapping,
             "trusted_target_inventory_test",
-            "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+            "scripts/tests/phase0_trusted_target_inventory_check.rs",
             &mut evaluation.failures,
         );
         check_expected_string(

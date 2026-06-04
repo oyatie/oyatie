@@ -231,7 +231,7 @@
       "automation_matrix_row_id": "AC-0.0-trusted-target-inventory",
       "buck2_target": "//:phase0-trusted-target-inventory-check",
       "test_paths": [
-        "scripts/tests/phase0_trusted_target_inventory_check.test.sh"
+        "scripts/tests/phase0_trusted_target_inventory_check.rs"
       ],
       "green_markers": [
         {
@@ -247,8 +247,8 @@
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-trusted-target-inventory.py",
-          "contains": "\"p0_0_green\": False"
+          "path": "scripts/ci/assert-trusted-target-inventory.rs",
+          "contains": "never claims live cloud-ci execution or protected-branch authority"
         }
       ]
     },
