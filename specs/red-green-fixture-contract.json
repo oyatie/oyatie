@@ -98,14 +98,14 @@
       "id": "phase0-github-required-context-rollup",
       "buck2_target": "//:github-auto-merge-after-ci-check",
       "test_paths": [
-        "scripts/tests/phase0_required_context_rollup_check.test.sh"
+        "scripts/tests/phase0_required_context_rollup_check.rs"
       ],
       "green_markers": [
         {
-          "path": "specs/fixtures/phase0-required-context-rollup/good-nested-cloud-ci-oya-ci-success.json",
+          "path": "specs/fixtures/phase0-required-context-rollup/good-nested-github-lane-unlocker-required-success.json",
           "contains": [
-            "\"workflowName\": \"oya-ci\"",
-            "\"name\": \"cloud-ci\""
+            "\"workflowName\": \"github-lane-unlocker-ci-cd\"",
+            "\"name\": \"GitHub Actions\""
           ]
         }
       ],
@@ -117,7 +117,7 @@
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-pr-required-context.py",
+          "path": "scripts/ci/assert-pr-required-context.rs",
           "contains": "status-rollup evidence only; this checker never posts statuses"
         }
       ]

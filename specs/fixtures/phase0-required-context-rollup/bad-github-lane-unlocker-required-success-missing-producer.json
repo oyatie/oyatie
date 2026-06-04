@@ -2,7 +2,7 @@
   "headRefOid": "ffffffffffffffffffffffffffffffffffffffff",
   "statusCheckRollup": [
     {
-      "name": "oya-ci-required",
+      "name": "github-lane-unlocker-required",
       "state": "SUCCESS"
     }
   ]
