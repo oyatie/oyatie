@@ -56,7 +56,7 @@
   ],
   "cleanup_rule": "When preserving value from a retired external substrate, copy the pattern into an Oyatie-owned spec/adapter/test, then archive or delete the old doc/file in a separate evidence-backed PR. Do not leave active instructions that make the retired substrate look runnable.",
   "automation": {
-    "local_static_check": "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
+    "local_static_check": "buck2 build //:repo-hygiene-automation-check",
     "buck2_target": "buck2 build //:repo-hygiene-automation-check",
     "live_mutation": false
   }

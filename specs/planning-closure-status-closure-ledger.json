@@ -12,7 +12,7 @@
   "closure_scope": {
     "masterplan_path": "/specs/masterplan.json",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
     "closed_status_field_count": 177,
     "former_blocking_status_classes": [
       "was-seed",

@@ -46,7 +46,6 @@ substrate_adrs:
 git fetch github-mirror dev
 git worktree add /tmp/oyatie-lane-<slug> -b chore/<slug> github-mirror/dev
 gh pr create --base dev --head chore/<slug> --repo jason931225/oyatie
-python3 scripts/ci/assert-repo-hygiene-automation.py --json
 buck2 build //:repo-hygiene-automation-check
 buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check
 infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD

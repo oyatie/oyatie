@@ -35,10 +35,10 @@ This file is a compatibility projection for humans. It is not the implementation
 
 The canonical master plan is `/specs/masterplan.json`.
 
-The planning-closure gate is:
+The planning-closure gate is Buck2-owned:
 
 ```bash
-cargo run -q -p oya-dev-cli -- gate validate planning-closure
+buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure
 ```
 
 The active long-running implementation goal is `/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json`.
