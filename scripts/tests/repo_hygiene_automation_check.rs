@@ -74,6 +74,23 @@ fn spec_rejects_missing_security_hardening_backlog_item() {
 }
 
 #[test]
+fn spec_rejects_missing_kubernetes_native_antipattern_tool_example() {
+    let spec = read_repo_file("specs/repo-hygiene-automation.json").replace(
+        "\"buck2 build //:kubernetes-native-anti-pattern-check\"",
+        "\"buck2 build //:kubernetes-native-anti-pattern-check-removed\"",
+    );
+    let failures = gate::spec_failures(&spec);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure
+                .contains("active context drift scan missing required tool example")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn spec_rejects_pnpm_or_typescript_as_repo_authority() {
     let spec = read_repo_file("specs/repo-hygiene-automation.json")
         .replace(
