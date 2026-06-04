@@ -195,15 +195,15 @@
     {
       "id": "AC-0.0-auto-merge-after-ci",
       "source_artifact": "Founder directive 2026-06-02 + .omx/plans/prd-platform-readiness.md#AC-0.0",
-      "requirement": "Forgejo and GitHub bootstrap PRs must be armed for automatic merge after CI only when oya-ci-required is the required context, the PR head SHA is pinned, and mergeability/conflict guards pass.",
+      "requirement": "GitHub bootstrap PRs must be armed for automatic merge after CI only when github-lane-unlocker-required is the temporary required context produced by github-lane-unlocker-ci-cd; native Forgejo/cloud-ci cutover remains pinned to oya-ci-required. In both paths the PR head SHA is pinned and mergeability/conflict guards pass.",
       "classification": "automated_advisory_until_p0_0",
       "owner": "platform-toolchain + platform-governance",
       "target_gate_or_controller": "cloud-ci/oya-ci Tide admission controller + //:phase0-auto-merge-after-ci-contract-check + //:forgejo-auto-merge-after-ci-check + scripts/trigger-next-queue-automerge.sh",
-      "blocking_fixture": "specs/phase0-auto-merge-after-ci.json + scripts/tests/phase0_auto_merge_after_ci_contract_check.py + scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+      "blocking_fixture": "specs/phase0-auto-merge-after-ci.json + scripts/tests/phase0_auto_merge_after_ci_contract_check.rs + scripts/tests/forgejo_auto_merge_after_ci.test.sh",
       "retirement_phase": "P0.0 live cloud-ci/oya-ci required-context cutover; GitHub bootstrap mirror path retires after Forgejo-of-record cutover",
       "evidence_path": "evidence/multispectrum/platform-readiness-p0-0-auto-merge-after-ci-*.json + docs/ci/auto-merge-flow.md + docs/ci/forge-of-record.md",
       "no_new_oya_cli_surface": true,
-      "claim_boundary": "Local/Buck2 checks enforce the checked-in contract. This is not a live auto-merge or P0.0 green claim until oya-ci-required is live, trusted, posted on the candidate SHA, and required by live branch protection."
+      "claim_boundary": "Local/Buck2 checks enforce the checked-in contract. This is not a live auto-merge or P0.0 green claim until github-lane-unlocker-required is live/trusted for the temporary GitHub lane unlocker and, after native cutover, oya-ci-required is live, trusted, posted on the candidate SHA, and required by live branch protection."
     },
     {
       "id": "AC-0.0-override-kill-switch",
