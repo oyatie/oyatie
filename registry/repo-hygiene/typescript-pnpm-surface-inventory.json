@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/registry/repo-hygiene/typescript-pnpm-surface-inventory.json",
+  "registry_id": "typescript-pnpm-surface-inventory",
+  "status": "classified_no_durable_authority",
+  "updated_at": "2026-06-04T23:08:00Z",
+  "count_source": "filesystem_scan_excluding_vendored_agent_skills",
+  "tracked_file_count": 28,
+  "authority": {
+    "pnpm_or_package_json_repo_authority": false,
+    "typescript_runtime_merge_authority": false,
+    "durable_gate_authority": false,
+    "buck2_remains_build_test_check_authority": true
+  },
+  "deletion_rule": "Do not delete recent product prototypes blindly. Classify consumers first, preserve or port useful behavior into Rust/Buck2/native product code, then delete or archive in a separate evidence-backed PR.",
+  "groups": [
+    {
+      "id": "app_shell_frontend_prototype",
+      "disposition": "recent product prototype; pnpm metadata is local product-prototype metadata only and is not repo/build/merge authority",
+      "paths": [
+        "oya/app-shell-frontend/app.config.ts",
+        "oya/app-shell-frontend/generated/hr-api.d.ts",
+        "oya/app-shell-frontend/generated/ops-workspace-shell.d.ts",
+        "oya/app-shell-frontend/package.json",
+        "oya/app-shell-frontend/pnpm-lock.yaml",
+        "oya/app-shell-frontend/pnpm-workspace.yaml",
+        "oya/app-shell-frontend/scripts/codegen-check.mjs",
+        "oya/app-shell-frontend/src/app.tsx",
+        "oya/app-shell-frontend/src/components/DashboardIsland.tsx",
+        "oya/app-shell-frontend/src/components/ShellHeader.tsx",
+        "oya/app-shell-frontend/src/components/ShellRail.tsx",
+        "oya/app-shell-frontend/src/entry-client.tsx",
+        "oya/app-shell-frontend/src/entry-server.tsx",
+        "oya/app-shell-frontend/src/lib/api.ts",
+        "oya/app-shell-frontend/src/lib/render-envelope.ts",
+        "oya/app-shell-frontend/src/routes/index.tsx",
+        "oya/app-shell-frontend/tsconfig.json"
+      ]
+    },
+    {
+      "id": "application_shell_static_prototype",
+      "disposition": "static prototype interaction file; not merge authority",
+      "paths": [
+        "oya/application/crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js"
+      ]
+    },
+    {
+      "id": "feature_flags_reference_clients",
+      "disposition": "reference implementation only; Rust service contract remains durable authority",
+      "paths": [
+        "oya/feature-flags/reference-implementations/typescript-react-hook.tsx"
+      ]
+    },
+    {
+      "id": "workflow_studio_sveltekit_templates",
+      "disposition": "template/client prototype surface under retirement review; not CI or monorepo authority",
+      "paths": [
+        "oya/workflow-studio/clients/web-sveltekit/src/templates/catalog.spec.ts",
+        "oya/workflow-studio/clients/web-sveltekit/src/templates/loader.ts",
+        "oya/workflow-studio/clients/web-sveltekit/src/templates/types.ts"
+      ]
+    },
+    {
+      "id": "advisory_mjs_doc_contract_tools",
+      "disposition": "advisory document/API lint/codegen helpers; active durable checks should move to Rust/Buck2 before becoming merge authority",
+      "paths": [
+        "scripts/asyncapi-lint.mjs",
+        "scripts/generate-erp-second-pass-docs.mjs",
+        "scripts/generate-marketplace-workplace-doc-set.mjs",
+        "scripts/proto-lint.mjs",
+        "scripts/validate-adr-shape.mjs",
+        "scripts/validate-foundry-phase00-evidence.mjs"
+      ]
+    }
+  ],
+  "excluded_prefixes": [
+    {
+      "path_prefix": "tools/agent-skills/",
+      "reason": "vendored upstream agent-skills content; tracked by vendor/subtree policy, not Oyatie product or merge-authority TypeScript/pnpm inventory"
+    }
+  ]
+}

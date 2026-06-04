@@ -48,6 +48,8 @@ const RUST_TOOLCHAIN_PATH: &str = "rust-toolchain.toml";
 const BUCK2_AUTHORITY_POLICY_PATH: &str = "specs/buck2-authority-policy.json";
 const DEPENDENCY_RATIONALES_PATH: &str = "registry/dependency-rationales.json";
 const DEPENDENCY_BLESSED_ALLOWLIST_PATH: &str = "registry/dependency-blessed-allowlist.json";
+const TYPESCRIPT_PNPM_SURFACE_INVENTORY_PATH: &str =
+    "registry/repo-hygiene/typescript-pnpm-surface-inventory.json";
 const CODE_STYLE_RUST_PATH: &str = "docs/standards/code-style-rust.md";
 const DEPENDENCY_POLICY_PATH: &str = "docs/standards/dependency-policy.md";
 const LTS_VERSIONS_VERIFIED_PATH: &str = "docs/standards/lts-versions-verified.md";
@@ -58,6 +60,7 @@ const TOOLCHAIN_PIN_UPDATER_PATH: &str = "scripts/ci/sync-latest-toolchain-pins.
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
 const REQUIRED_BUCK2_RELEASE: &str = "2026-06-01";
+const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 28;
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
@@ -173,8 +176,16 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
         "non-Rust surface inventory must be classified as no durable authority",
     ),
     (
-        "\"tracked_typescript_pnpm_mjs_count\": 23",
+        "\"typescript_pnpm_mjs_surface_inventory\": \"registry/repo-hygiene/typescript-pnpm-surface-inventory.json\"",
+        "non-Rust surface inventory must point to the disjoint TS/pnpm surface inventory",
+    ),
+    (
+        "\"tracked_typescript_pnpm_mjs_count\": 28",
         "non-Rust surface inventory must record the audited TS/pnpm/MJS count",
+    ),
+    (
+        "\"typescript_pnpm_mjs_count_source\": \"filesystem_scan_excluding_vendored_agent_skills\"",
+        "non-Rust surface inventory must record the filesystem count source",
     ),
     (
         "\"tracked_nonvendored_python_shell_count\": 55",
@@ -502,6 +513,7 @@ pub struct Evaluation {
     pub failures: Vec<String>,
     pub domains_checked: usize,
     pub security_backlog_count: usize,
+    pub tracked_typescript_pnpm_mjs_count: usize,
     pub active_context_scan_files: usize,
     pub retired_exact_name_scan_files: usize,
 }
@@ -660,6 +672,134 @@ fn require_contains(text: &str, needle: &str, failures: &mut Vec<String>, label:
         failures,
         format!("{label}: missing {needle:?}"),
     );
+}
+
+fn path_to_repo_string(path: &Path) -> String {
+    path.components()
+        .map(|component| component.as_os_str().to_string_lossy())
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+fn is_typescript_pnpm_surface_file(path: &Path) -> bool {
+    let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+        return false;
+    };
+    if matches!(
+        file_name,
+        "package.json" | "pnpm-lock.yaml" | "pnpm-workspace.yaml" | ".npmrc"
+    ) {
+        return true;
+    }
+    if file_name.starts_with("tsconfig") && file_name.ends_with(".json") {
+        return true;
+    }
+    matches!(
+        path.extension().and_then(|extension| extension.to_str()),
+        Some("ts" | "tsx" | "mjs" | "cjs" | "js")
+    )
+}
+
+fn is_excluded_typescript_pnpm_dir(rel: &Path) -> bool {
+    let rel_string = path_to_repo_string(rel);
+    let Some(file_name) = rel.file_name().and_then(|name| name.to_str()) else {
+        return false;
+    };
+    matches!(file_name, ".git" | "buck-out" | "node_modules" | "target")
+        || rel_string == "tools/agent-skills"
+        || rel_string.starts_with("tools/agent-skills/")
+}
+
+fn collect_typescript_pnpm_surfaces(
+    root: &Path,
+    rel: &Path,
+    output: &mut Vec<String>,
+) -> Result<(), String> {
+    if is_excluded_typescript_pnpm_dir(rel) {
+        return Ok(());
+    }
+    let dir = root.join(rel);
+    for entry in
+        fs::read_dir(&dir).map_err(|error| format!("read dir {}: {}", dir.display(), error))?
+    {
+        let entry =
+            entry.map_err(|error| format!("read dir entry {}: {}", dir.display(), error))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|error| format!("file type {}: {}", entry.path().display(), error))?;
+        let entry_rel = rel.join(entry.file_name());
+        if file_type.is_dir() {
+            collect_typescript_pnpm_surfaces(root, &entry_rel, output)?;
+        } else if file_type.is_file() && is_typescript_pnpm_surface_file(&entry.path()) {
+            output.push(path_to_repo_string(&entry_rel));
+        }
+    }
+    Ok(())
+}
+
+pub fn tracked_typescript_pnpm_mjs_files(root: &Path) -> Result<Vec<String>, String> {
+    let mut files = Vec::new();
+    collect_typescript_pnpm_surfaces(root, Path::new(""), &mut files)?;
+    files.sort();
+    files.dedup();
+    Ok(files)
+}
+
+pub fn typescript_pnpm_surface_failures(root: &Path, inventory: &str) -> (usize, Vec<String>) {
+    let mut failures = Vec::new();
+    let files = match tracked_typescript_pnpm_mjs_files(root) {
+        Ok(files) => files,
+        Err(error) => {
+            failures.push(format!("TypeScript/pnpm surface scan failed: {error}"));
+            Vec::new()
+        }
+    };
+
+    if files.len() != EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT {
+        failures.push(format!(
+            "TypeScript/pnpm surface count drift: expected {}, found {}",
+            EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT,
+            files.len()
+        ));
+    }
+
+    if !compact_json_text(inventory).contains(&format!(
+        "\"tracked_file_count\":{}",
+        EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT
+    )) {
+        failures.push(format!(
+            "{} must record tracked_file_count {}",
+            TYPESCRIPT_PNPM_SURFACE_INVENTORY_PATH, EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT
+        ));
+    }
+
+    for needle in [
+        "\"status\": \"classified_no_durable_authority\"",
+        "\"count_source\": \"filesystem_scan_excluding_vendored_agent_skills\"",
+        "\"pnpm_or_package_json_repo_authority\": false",
+        "\"typescript_runtime_merge_authority\": false",
+        "\"durable_gate_authority\": false",
+        "\"buck2_remains_build_test_check_authority\": true",
+        "\"tools/agent-skills/\"",
+    ] {
+        if !inventory.contains(needle) {
+            failures.push(format!(
+                "{} missing required anchor {}",
+                TYPESCRIPT_PNPM_SURFACE_INVENTORY_PATH, needle
+            ));
+        }
+    }
+
+    for path in &files {
+        if !inventory.contains(path) {
+            failures.push(format!(
+                "{} missing tracked TypeScript/pnpm surface {}",
+                TYPESCRIPT_PNPM_SURFACE_INVENTORY_PATH, path
+            ));
+        }
+    }
+
+    (files.len(), failures)
 }
 
 pub fn active_doc_phrase_failures(label: &str, text: &str) -> Vec<String> {
@@ -1203,6 +1343,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let buck2_policy = read(root, BUCK2_AUTHORITY_POLICY_PATH, &mut failures);
     let dependency_rationales = read(root, DEPENDENCY_RATIONALES_PATH, &mut failures);
     let blessed_allowlist = read(root, DEPENDENCY_BLESSED_ALLOWLIST_PATH, &mut failures);
+    let typescript_pnpm_inventory =
+        read(root, TYPESCRIPT_PNPM_SURFACE_INVENTORY_PATH, &mut failures);
     let code_style = read(root, CODE_STYLE_RUST_PATH, &mut failures);
     let dependency_policy = read(root, DEPENDENCY_POLICY_PATH, &mut failures);
     let lts_versions = read(root, LTS_VERSIONS_VERIFIED_PATH, &mut failures);
@@ -1240,6 +1382,9 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(retired_root_file_failures(root));
     failures.extend(retired_service_ci_entrypoint_failures(root));
     failures.extend(retired_active_path_failures(root));
+    let (tracked_typescript_pnpm_mjs_count, typescript_pnpm_surface_failures) =
+        typescript_pnpm_surface_failures(root, &typescript_pnpm_inventory);
+    failures.extend(typescript_pnpm_surface_failures);
 
     for item_id in [
         "legacy_ci_server",
@@ -1482,6 +1627,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "repo-hygiene-automation.json",
         "dependency-rationales.json",
         "dependency-blessed-allowlist.json",
+        "typescript-pnpm-surface-inventory.json",
         "oya-ci-prowjob-registry.json",
         "oya-ci-controller-config-contract.json",
         "kubernetes-native-anti-patterns.json",
@@ -1520,6 +1666,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         failures,
         domains_checked: REQUIRED_DOMAINS.len(),
         security_backlog_count: REQUIRED_SECURITY_BACKLOG_IDS.len(),
+        tracked_typescript_pnpm_mjs_count,
         active_context_scan_files: ACTIVE_CONTEXT_SCAN_PATHS.len(),
         retired_exact_name_scan_files: ACTIVE_EXACT_NAME_SCAN_PATHS.len(),
     }
@@ -1533,11 +1680,12 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"active_context_scan_files\":{},\"retired_exact_name_scan_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"active_context_scan_files\":{},\"retired_exact_name_scan_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
         evaluation.security_backlog_count,
+        evaluation.tracked_typescript_pnpm_mjs_count,
         evaluation.active_context_scan_files,
         evaluation.retired_exact_name_scan_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
