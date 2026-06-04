@@ -33,8 +33,8 @@ genrule(
         "scripts/tests/phase0_required_context_rollup_check.test.sh": "scripts/tests/phase0_required_context_rollup_check.test.sh",
         "scripts/ci/assert-required-status-source.rs": "scripts/ci/assert-required-status-source.rs",
         "scripts/tests/phase0_required_status_source_check.rs": "scripts/tests/phase0_required_status_source_check.rs",
-        "scripts/ci/assert-tenant-pipeline-isolation.py": "scripts/ci/assert-tenant-pipeline-isolation.py",
-        "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+        "scripts/ci/assert-tenant-pipeline-isolation.rs": "scripts/ci/assert-tenant-pipeline-isolation.rs",
+        "scripts/tests/phase0_tenant_isolation_fixture_check.rs": "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
         "scripts/ci/assert-override-kill-switch.py": "scripts/ci/assert-override-kill-switch.py",
         "scripts/tests/phase0_override_kill_switch_check.test.sh": "scripts/tests/phase0_override_kill_switch_check.test.sh",
         "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
@@ -579,6 +579,8 @@ genrule(
         "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
         "scripts/ci/assert-required-status-source.rs": "scripts/ci/assert-required-status-source.rs",
         "scripts/tests/phase0_required_status_source_check.rs": "scripts/tests/phase0_required_status_source_check.rs",
+        "scripts/ci/assert-tenant-pipeline-isolation.rs": "scripts/ci/assert-tenant-pipeline-isolation.rs",
+        "scripts/tests/phase0_tenant_isolation_fixture_check.rs": "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
         "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
         "scripts/tests/phase0_aggregate_exit_check.rs": "scripts/tests/phase0_aggregate_exit_check.rs",
         "scripts/ci/assert-automation-ratchet.rs": "scripts/ci/assert-automation-ratchet.rs",
@@ -975,8 +977,8 @@ genrule(
 genrule(
     name = "phase0-tenant-isolation-fixture-check",
     srcs = {
-        "scripts/ci/assert-tenant-pipeline-isolation.py": "scripts/ci/assert-tenant-pipeline-isolation.py",
-        "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+        "scripts/ci/assert-tenant-pipeline-isolation.rs": "scripts/ci/assert-tenant-pipeline-isolation.rs",
+        "scripts/tests/phase0_tenant_isolation_fixture_check.rs": "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/toolchain-tenant-isolation-fixtures.json": "specs/toolchain-tenant-isolation-fixtures.json",
@@ -984,7 +986,7 @@ genrule(
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
     },
     out = "phase0-tenant-isolation-fixture-check.txt",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_tenant_isolation_fixture_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/phase0-tenant-isolation && rustc --edition=2021 -D warnings scripts/tests/phase0_tenant_isolation_fixture_check.rs --test -o $TMP/phase0-tenant-isolation/phase0_tenant_isolation_fixture_check && OYA_REPO_ROOT=$PWD $TMP/phase0-tenant-isolation/phase0_tenant_isolation_fixture_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-tenant-pipeline-isolation.rs -o $TMP/phase0-tenant-isolation/assert-tenant-pipeline-isolation && $TMP/phase0-tenant-isolation/assert-tenant-pipeline-isolation --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
