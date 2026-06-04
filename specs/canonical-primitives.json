@@ -59,7 +59,7 @@
     {
       "title": "Repo layout / tenancy",
       "lines": [
-        "Top-level: `cloud/` = the platform being sold; `oya/` = the product, which runs as a TENANT of that platform. (`microservices/` top-level layout is LEGACY — migrated.)",
+        "Top-level: `cloud/` = the platform being sold; `oya/` = the product, which runs as a TENANT of that platform. (`microservices/` top-level layout is LEGACY \u2014 migrated.)",
         "Pattern: vertical-slice nesting, ONE root Cargo workspace, crate = bounded-context, clean-arch-as-modules, Buck2 build graph.",
         "Dogfood purity (gate-enforced target): ZERO `oya/` -> `cloud/` INTERNAL code deps; oya consumes cloud only via the public/tenant surface.",
         "Vocabulary: cloud = \"tenant/tenancy\"; oya = \"organization/org\"."
@@ -73,8 +73,8 @@
     {
       "title": "Contracts",
       "lines": [
-        "OpenAPI 3.2.0 (NOT 3.3 / 3.1.0 / 3.0.0) — https://spec.openapis.org/oas/v3.2.0",
-        "AsyncAPI 3.1.0 (NOT 3.0.0 / 2.x) — https://www.asyncapi.com/docs/reference/specification/v3.1.0",
+        "OpenAPI 3.2.0 (NOT 3.3 / 3.1.0 / 3.0.0) \u2014 https://spec.openapis.org/oas/v3.2.0",
+        "AsyncAPI 3.1.0 (NOT 3.0.0 / 2.x) \u2014 https://www.asyncapi.com/docs/reference/specification/v3.1.0",
         "Schema language: proto3 (NOT proto2)",
         "HTTP stack: hyper PREFERRED low-level; axum SANCTIONED-with-justification; enforced by the HTTP stack policy gate (specs/http-stack-policy.json)."
       ],
@@ -96,7 +96,7 @@
     {
       "title": "K8s admission",
       "lines": [
-        "Canonical DEFAULT: in-tree ValidatingAdmissionPolicy + CEL (+ MutatingAdmissionPolicy) — GA on the 1.36.1 cluster.",
+        "Canonical DEFAULT: in-tree ValidatingAdmissionPolicy + CEL (+ MutatingAdmissionPolicy) \u2014 GA on the 1.36.1 cluster.",
         "Signing residue: a bespoke-Rust cosign-verify webhook (shares the OCI-registry + signer product).",
         "DEMOTED: Kubewarden (CNCF Sandbox / single-vendor). Kyverno removed from the base overlay. Cedar = app-layer authz, NOT admission."
       ],
@@ -125,13 +125,17 @@
     {
       "title": "Build toolchain",
       "lines": [
-        "Build system: Buck2. The no-cargo hook advises against `cargo build/check/test/clippy/run/bench`; buck2 + `cargo metadata` are allowed.",
+        "Build system: Buck2. Active scripts, CI, CD, and build/test lanes MUST use Buck2, not Cargo.",
+        "Cargo executable exception: production release image/binary optimization evidence only, with release profile, target triple, binary-size/codegen/allocator data, commit SHA, and non-claim label.",
+        "Cargo metadata/vendor exception: Buck2/Reindeer graph generation only; never build/test/merge authority.",
         "Linkers: wild (linux) + Apple ld-prime (mac); mold SUPERSEDED; lld is the standing fallback. Never zig-lld.",
-        "Hermetic, pinned toolchains as buck2 build inputs (single-bootstrap / dev==CI / zero drift)."
+        "Hermetic, pinned toolchains as Buck2 build inputs (single-bootstrap / dev==CI / zero drift)."
       ],
       "authority": [
         "ADR-0488",
-        "ADR-0514"
+        "ADR-0514",
+        "ADR-0408",
+        "specs/buck2-authority-policy.json"
       ]
     },
     {
@@ -148,7 +152,7 @@
       "title": "Forbidden primitives (summary)",
       "lines": [
         "No retired VCS wrapper aliases (use plain git). No Docker. OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.",
-        "The term \"foundry\" is ERADICATED corpus-wide — do NOT introduce it as a canonical primitive (historical references only).",
+        "The term \"foundry\" is ERADICATED corpus-wide \u2014 do NOT introduce it as a canonical primitive (historical references only).",
         "Full list: specs/forbidden-operations.json + specs/master-plan-sequencing.json#forbidden_primitives."
       ],
       "authority": [
@@ -160,7 +164,7 @@
       "title": "Common pitfalls",
       "lines": [
         "Using retired VCS wrapper aliases instead of plain git + PR + the bespoke oya-ci gate.",
-        "Citing Jenkins/Kyverno as the canonical gate/admission (both superseded — bespoke controller + in-tree VAP/CEL).",
+        "Citing Jenkins/Kyverno as the canonical gate/admission (both superseded \u2014 bespoke controller + in-tree VAP/CEL).",
         "Writing `openapi: 3.3.0` or `asyncapi: 3.0.0`.",
         "Treating `microservices/` as the live top-level layout (it is `cloud/` + `oya/`).",
         "Vacuous-green gates (test passes on empty input).",
@@ -176,10 +180,11 @@
     "pod_runtime_tier": "ADR-0338",
     "cell_promotion_gates": "ADR-0341",
     "api_versioning": "ADR-0342",
-    "ci_farm_substrate": "specs/ci-farm-substrate-canonical.json (ADR-0349; NOTE: lags ADR-0513 bespoke controller — Jenkins=farm not gate)",
+    "ci_farm_substrate": "specs/ci-farm-substrate-canonical.json (ADR-0349; NOTE: lags ADR-0513 bespoke controller \u2014 Jenkins=farm not gate)",
     "http_stack_policy": "specs/http-stack-policy.json",
     "forbidden_operations": "specs/forbidden-operations.json",
     "decision_principles": "specs/decision-principles.json",
-    "root_hub_pointers": "specs/root-hub-pointers.json"
+    "root_hub_pointers": "specs/root-hub-pointers.json",
+    "buck2_authority_policy": "specs/buck2-authority-policy.json"
   }
 }

@@ -8,7 +8,7 @@
   },
   "_metadata": {
     "sidecar_id": "EXE-MASTER-SEQUENCING",
-    "status": "accepted-plain-git-jenkins-forgejo-authority-cutover",
+    "status": "accepted-github-actions-interim-lane-unlocker-native-cutover",
     "created_for": "4000-character launcher prompt sidecars",
     "canonical_sources": [
       "docs/AGENTS.md",
@@ -25,7 +25,10 @@
       "/templates/checklists/per-implementation-plan-checklist.md",
       "/templates/checklists/per-phase-completion-checklist.md",
       "/templates/evidence-bundle-template.json",
-      "/specs/gitops-vcs-replacement.json"
+      "/specs/gitops-vcs-replacement.json",
+      "/specs/github-lane-unlocker-bridge.json",
+      "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+      "docs/ci/github-actions-lane-unlocker.md"
     ],
     "deduplicates_existing": [
       "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
@@ -43,7 +46,7 @@
       ],
       "live_replacement": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
     },
-    "updated_at": "2026-05-19T00:00:00Z",
+    "updated_at": "2026-06-03T00:00:00Z",
     "op11_audit_reference": "registry/stub-audit/2026-05-17/CONSOLIDATED.md"
   },
   "master_plan_discovery_order": [
@@ -267,17 +270,17 @@
     {
       "primitive": "oya vcs",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + Jenkins + self-hosted Forgejo branch protection + oya gate evidence"
+      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git plus the ADR-0516 temporary GitHub/GitHub Actions bridge until native SCM/CI/CD cutover"
     },
     {
       "primitive": "gh",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "forbidden as forward substrate; self-hosted Forgejo is the target and GitHub remains bootstrap-only per ADR-0363/ADR-0247"
+      "lane_status": "allowed only as temporary GitHub/GitHub Actions bridge tooling for ADR-0516 lane unlock; forbidden as permanent SCM/CI/CD substrate"
     },
     {
       "primitive": "manual-merge-bypassing-required-checks",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "forbidden; branch protection, Jenkins required checks, reviewer approval, and oya gate evidence own merge readiness"
+      "lane_status": "forbidden; GitHub branch protection/merge queue plus github-lane-unlocker-required own interim merge readiness, then native required checks after cutover"
     },
     {
       "primitive": "manual-push-to-protected-branch",
@@ -328,8 +331,8 @@
     },
     {
       "step": "promote",
-      "primitive": "self-hosted Forgejo branch protection, Jenkins required checks, reviewer approval, and governance gates own publication, review/fix, integration, environment reconciliation, and lock release",
-      "fallback": "keep/release locks according to terminal policy; never bypass protected-branch required checks"
+      "primitive": "temporary GitHub branch protection/merge queue with GitHub Actions required context owns interim dev unlock; native SCM/CI/CD owns cutover after evidence",
+      "fallback": "keep/release locks according to terminal policy; never bypass protected-branch required checks or Buck2 evidence"
     }
   ],
   "sequence": [
@@ -350,7 +353,7 @@
     "fix_and_reverify",
     "record_evidence_bundle",
     "close_changeset_with_signed_changebundle",
-    "forgejo_jenkins_promote_or_record_blocker",
+    "github_actions_lane_unlock_or_record_native_cutover_blocker",
     "repeat_until_ledger_complete",
     "full_plan_adversarial_audit",
     "store_vcs_completion_summary",
@@ -714,13 +717,12 @@
         "ADR-0349": {
           "path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
           "queued_sub_wave": "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
-          "purpose_excerpt": "Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus. Jenkins is the canonical CI orchestrator for air-gap + on-prem + colo + oyatie-as-cloud-provider deployment contexts where GitHub Actions runners are not available; it runs on Oyatie K8s per ADR-0254 and is configured-as-code via JCasC + Jenkinsfile. ArgoCD is the canonical GitOps CD orchestrator. AMENDED by ADR-0359/ADR-0361: the original 'GitHub Actions RETAINED as primary CI; Jenkins augments rather than replaces it' stance is superseded \u2014 Jenkins is the SOLE CI orchestrator and GitHub Actions is retired (no parity surface remains).",
+          "purpose_excerpt": "Historical self-hostable CI/CD substrate proposal retained only for provenance. ADR-0516 supersedes ADR-0349/ADR-0359/ADR-0361 for interim execution: GitHub/GitHub Actions is the temporary dev lane-unlocker, Buck2 remains the build/test/check authority, and the destination remains native Oyatie SCM/CI/CD/cloud workspace/release-conveyor seams.",
           "enforced_by": [
-            "oya-governance-jenkins-canonical-no-gha-residue (replaces the retired oya-governance-jenkins-github-actions-parity lane per ADR-0359; refuses any NEW .github/workflows CI definition \u2014 Jenkins is the sole CI orchestrator and GitHub Actions is retired, so there is no parity surface to maintain)",
-            "oya-governance-argocd-application-cosign-verified (new lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181; promoted to BLOCKER 30 days post Wave 15-ZE-completion)",
-            "oya-governance-argocd-tenant-namespace-isolation (new lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243; promoted to BLOCKER 30 days post Wave 15-ZE-completion)",
-            "oya-governance-jenkins-jcasc-only (new lane; refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under microservices/cloud-iac/modules/<context>/jenkins/jcasc/ with declarative JCasC YAML per D-1; promoted to BLOCKER 30 days post Wave 15-ZE-completion)",
-            "oya-governance-deploy-audit-chain-emit (new lane; refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 \u00a7D.4 deploy-event class; promoted to BLOCKER 30 days post Wave 15-ZE-completion)"
+            "//:github-lane-unlocker-bridge-check (temporary bridge contract; refuses permanent-GitHub and interim-Jenkins/Forgejo/ArgoCD claims)",
+            "//:buck2-authority-policy-check (Buck2 remains build/test/check authority; Cargo-only or Tarpaulin coverage claims are advisory/invalid)",
+            "infra/ci/buck2-affected-gate.sh (affected-target fanout evidence for high-parallel PR lanes)",
+            "ADR-0516 claim-boundary evidence lanes (preserve native cutover without declaring P0.0 green)"
           ]
         }
       },
@@ -1601,25 +1603,24 @@
           ]
         },
         "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate": {
-          "status": "queued",
+          "status": "superseded_for_interim_by_ADR_0516",
           "queued_at": "2026-05-21",
           "adr": "ADR-0349",
-          "scope": "Jenkins (LTS) self-hostable CI orchestrator for air-gap + on-prem + colo + Oyatie-cloud-provider contexts. AMENDED by ADR-0359/ADR-0361: Jenkins is the SOLE CI orchestrator (no longer augmenting GitHub Actions); GitHub Actions is retired in R5. ArgoCD GitOps CD orchestrator (declarative app sync git \u2192 K8s; replaces manual kubectl + Helm CLI). Both run on Oyatie K8s per ADR-0254. Per-\u00b5service Jenkinsfile carries the canonical CI matrix; the oya-governance-jenkins-canonical-no-gha-residue lane refuses any new .github/workflows CI definition (the former github-actions-parity lane is retired). Per-cluster apps.yaml is the canonical GitOps manifest. cosign signature verification on every ArgoCD Application source image per ADR-0181. Deploy events emit audit-chain rows per ADR-0263. Both Contributor stewardship class per ADR-0345. Per-context OpenTofu modules under microservices/cloud-iac/modules/<context>/{jenkins,argocd}/ per ADR-0339. Trivy scan green required at every Jenkins build step per ADR-0039 + ADR-0181.",
-          "dispatch_mode": "Claude orchestrator for OpenTofu modules + 8 Claude per-\u00b5service cluster for Jenkinsfile + Helm chart + ArgoCD Application authoring + 5 new governance lanes",
+          "scope": "Historical Wave 15-ZE self-hostable CI/CD planning retained for provenance only. ADR-0516 supersedes the interim path: GitHub/GitHub Actions unlocks dev lanes temporarily, Buck2 remains the check authority, no Jenkins/Forgejo/ArgoCD interim authority is allowed, and the native cutover targets Oyatie SCM, rust-prow/oya-ci, cloud workspaces, and release conveyor seams.",
+          "dispatch_mode": "No interim dispatch. Superseded by ADR-0516 GitHub/GitHub Actions temporary lane-unlocker plus Buck2 evidence lanes.",
           "five_new_lanes": [
-            "oya-governance-jenkins-canonical-no-gha-residue",
-            "oya-governance-argocd-application-cosign-verified",
-            "oya-governance-argocd-tenant-namespace-isolation",
-            "oya-governance-jenkins-jcasc-only",
-            "oya-governance-deploy-audit-chain-emit"
+            "github-lane-unlocker-required temporary required context",
+            "//:github-lane-unlocker-bridge-check",
+            "//:buck2-authority-policy-check",
+            "//:rust-llvm-coverage-runner-contract-check",
+            "infra/ci/buck2-affected-gate.sh affected-target evidence"
           ],
           "forbidden_alternatives": [
-            "Jenkins X",
-            "Tekton",
-            "Flux CD",
-            "Spinnaker",
-            "CircleCI/Travis/Buildkite SaaS",
-            "GitHub Actions self-hosted runners (ties to GitHub.com control plane; not air-gap)"
+            "Permanent GitHub-only SCM/CI/CD destination",
+            "Interim Jenkins authority",
+            "Interim Forgejo authority",
+            "Interim ArgoCD authority",
+            "Wholesale Prow/Sapling/Piper/CitC clone instead of adopting proven patterns"
           ],
           "depends_on": [
             "ADR-0349 Acceptance",
@@ -1723,7 +1724,7 @@
         "M01-P08",
         "broad M01/M02/M03 parallel fan-out"
       ],
-      "compatibility_window": "P00 core is complete and forward agentic fan-out uses plain git worktree branches plus Jenkins/Forgejo governance admission; legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
+      "compatibility_window": "P00 core remains the imminent focus. Forward fan-out uses isolated git worktree branches, GitHub/GitHub Actions as the temporary lane-unlocker, Buck2 evidence, and reviewer approval. Legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
     }
   ],
   "implementation_plan_changeset_contract": {
@@ -1918,5 +1919,27 @@
     "cross_cloud_forbidden": true,
     "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-19"
   },
-  "purpose": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them."
+  "purpose": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
+  "p00_github_actions_lane_unlocker_transition": {
+    "priority": 0,
+    "status": "imminent",
+    "purpose": "Unlock dev for parallel product/infra/cloud lanes through temporary GitHub/GitHub Actions bridge while native cutover continues.",
+    "required_context": "github-lane-unlocker-required",
+    "build_test_check_authority": "Buck2",
+    "not_interim_authorities": [
+      "Jenkins",
+      "Forgejo",
+      "ArgoCD"
+    ],
+    "native_destination": "cloud native Kubernetes-native hyperscaler native Oyatie SCM/CI/CD",
+    "non_claims": [
+      "not P0.0 green",
+      "not permanent GitHub authority"
+    ],
+    "auth_shared_substrate_decoupling": {
+      "status": "decoupled_now",
+      "rule": "no shared contract or shared surface between Cloud auth/shared and Oyatie product auth/shared",
+      "future_integration": "rewrite and rewire Oyatie products to consume Cloud IdP after stabilization"
+    }
+  }
 }

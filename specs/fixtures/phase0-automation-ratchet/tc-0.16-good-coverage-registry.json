@@ -1,0 +1,33 @@
+{
+  "claim_boundary": {
+    "authority": "local_static_coverage_registry_not_live_context",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "row_ids": [
+    "row-a",
+    "row-b"
+  ],
+  "required_subject_ids": [
+    "subject-a",
+    "subject-b"
+  ],
+  "coverage_subjects": [
+    {
+      "id": "subject-a",
+      "mapped_row_ids": [
+        "row-a"
+      ]
+    },
+    {
+      "id": "subject-b",
+      "mapped_row_ids": [
+        "row-b"
+      ]
+    }
+  ],
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "fixture_id": "TC-0.16-GOOD-coverage-registry",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.16.1"
+}

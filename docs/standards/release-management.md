@@ -198,16 +198,16 @@ Every deploy emits per [`observability.md`](observability.md) §4:
 Per the hyperscaler-quality CI gate set (per
 `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4):
 
-1. `cargo fmt --check`.
-2. `cargo clippy --workspace --all-features --all-targets -- -D warnings`.
-3. `cargo nextest run --workspace --all-features --no-fail-fast`.
-4. `cargo deny check` + `cargo audit` + `cargo vet`.
-5. `cargo llvm-cov` (delta-coverage report).
+1. Buck2 formatting/static-style target.
+2. Buck2 lint/static-analysis target.
+3. Buck2 test target inventory (`buck2 test //...` or trusted cloud-ci/oya-ci target list).
+4. Buck2-invoked dependency/license/advisory policy targets.
+5. Buck2-invoked coverage target (delta-coverage report).
 6. Syft SBOM generation.
 7. Cosign keyless signing + Rekor log entry.
 8. SLSA L2 provenance attestation.
 9. `gitleaks` + `trufflehog` secret scan.
-10. License-policy gate (`cargo-deny` + `cargo-vet`).
+10. License-policy gate through Buck2-invoked dependency-policy targets.
 11. Doc / ADR / runbook lanes (per `DOC-CATALOG.md` §4).
 12. Reviewer-agent verdict captured in PR body.
 

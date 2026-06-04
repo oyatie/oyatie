@@ -742,8 +742,10 @@ rust-version = "1.95.0"
 # 2. Origin/dev #172-#176 merge introduced unused imports that our local doesn't reference
 #    (post-merge `-X ours` strategy preserved our shape; their imports came along for ride).
 #
-# CI uses `cargo clippy --workspace --all-targets --keep-going -- -D warnings` which would
-# otherwise escalate these to errors and block the realignment PR landing.
+# Historical Cargo CI used `cargo clippy --workspace --all-targets --keep-going -- -D warnings`
+# and would otherwise have escalated these to errors before the realignment PR landed.
+# Current P0.0 policy routes scripts/CI/CD/build authority through Buck2/cloud-ci; if
+# this lint baseline is tightened, preserve Buck2 enforcement and do not add Cargo CI lanes.
 # Wave 15-ZA will: (a) wire dispatch for scaffolded modules, (b) prune merge-fallout
 # unused imports, (c) restore these to `deny` to re-enforce the strict baseline.
 [workspace.lints.rust]
@@ -1118,6 +1120,10 @@ axum = { version = "0.8", default-features = false, features = ["http1", "json",
 # blocking feature: adapter layers implementing synchronous kernel traits.
 # rustls: TLS via aws-lc-rs/rustls (no native-tls / OpenSSL dep).
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }
+# Direct rustls workspace pin for controller binaries/crates that depend on
+# rustls types without pulling native-tls or OpenSSL. aws_lc_rs keeps the
+# crypto backend aligned with the Phase-1 aws-lc-rs seam.
+rustls = { version = "0.23", default-features = false, features = ["std", "tls12", "aws_lc_rs"] }
 # Tower middleware stack — utility layer for axum/hyper service composition.
 tower = { version = "0.5", default-features = false, features = ["util"] }
 # RustCrypto HMAC + SHA-2 + constant-time comparison (ci-webhook-gateway webhook verification).
@@ -1189,26 +1195,28 @@ unwrap_used = "allow"
 expect_used = "allow"
 panic = "allow"
 
-# Release-profile hardening per 2026-05-15 audit + hyperscaler-grade
-# performance/scalability bar (specs/oyatie-doctrine.json P8,
-# docs/standards/hyperscaler-best-practices.md).
+# Release-profile optimization exception (production artifacts only; not CI authority).
 #
-# panic = "abort"     — no unwinding in release; smaller binaries; faster panic
-#                       paths; matches release-musl.yml static-binary deploy
-#                       posture. Dev/test profiles keep panic = "unwind" so
-#                       `#[should_panic]` and `std::panic::catch_unwind` still
-#                       work for tests.
-# lto = true          — full link-time optimization across crate boundaries.
-# codegen-units = 1   — single codegen unit = better whole-program optimization.
-# strip = "symbols"   — strip debug symbols from release artifacts; smaller
-#                       distroless image surface per supply-chain workflow.
+# Active scripts/CI/CD/build/test lanes use Buck2/cloud-ci. This Cargo profile exists
+# only for the documented production release image/binary optimization exception in
+# docs/standards/rust-release-optimization.md and specs/buck2-authority-policy.json.
+# Any measured winner must be encoded back into Buck2/toolchain-cell/OCI targets before
+# becoming standard behavior.
 #
-# Build time trade-off accepted: release builds get slower (LTO + cgu=1), but
-# release builds only run on tag (release-musl.yml) — they are not on the PR
-# critical path (pr-tests.yml uses dev profile via cargo build/check/clippy
-# and test profile via nextest).
+# panic = "abort"     — release-artifact candidate only; requires evidence that the
+#                       service does not depend on unwinding or `catch_unwind`.
+# lto = true          — full link-time optimization across crate boundaries; final
+#                       artifact measurement candidate, not PR critical-path authority.
+# codegen-units = 1   — trades compile time for whole-program optimization in final
+#                       binary measurements.
+# strip = "debuginfo" — service default keeps symbol-table support for backtraces/
+#                       profiling while removing debug info from runtime artifacts.
+#                       `strip = "symbols"` is a size experiment only when separate
+#                       incident-debug and crash-reporting evidence exists.
+#
+# This profile is not evidence that CI, CD, build, test, or merge checks may use Cargo.
 [profile.release]
 panic = "abort"
 lto = true
 codegen-units = 1
-strip = "symbols"
+strip = "debuginfo"

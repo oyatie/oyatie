@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/effective-dating-kernel-registry.json",
+  "title": "EffectiveDatingKernelRegistry",
+  "description": "Local/static AC-0.6 registry for the ontology-kernel bitemporal effective-dating primitive. It validates the Rust kernel type surface, Buck2 target wiring, and GOOD/BAD fixtures without claiming live cloud-ci authority or Phase-0 completion.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-EFFECTIVE-DATING-KERNEL-REGISTRY",
+    "version": "0.1.0",
+    "status": "local_static_effective_dating_kernel_not_live_context",
+    "owner_team": "platform-ontology + platform-governance",
+    "created_at": "2026-06-03T00:00:00Z",
+    "updated_at": "2026-06-03T11:15:00Z",
+    "related_acceptance_criteria": [
+      "AC-0.6"
+    ],
+    "related_test_spec": "/Users/jasonlee/Developer/source/.omx/plans/test-spec-phase0.md#T0.6",
+    "source_request": "Founder directives: keep Phase-0 honest, Buck2-native, Rust-first, modern, hyperscaler-oriented, and suitable; use Buck2-native LLVM source-based coverage over Tarpaulin; keep Cargo mutation testing advisory only in the dual Cargo.toml + Buck2/Reindeer setup.",
+    "official_references": [
+      {
+        "name": "Buck2 docs — build command",
+        "url": "https://buck2.build/docs/users/commands/build/",
+        "used_for": "Records Buck2 build target execution as local/static gate evidence and Build ID source."
+      },
+      {
+        "name": "Buck2 docs — test command",
+        "url": "https://buck2.build/docs/users/commands/test/",
+        "used_for": "Records the intended Buck2-native test surface while this host uses a genrule rustc --test shim for the pure kernel module."
+      },
+      {
+        "name": "Rustc Book — Instrumentation-based Code Coverage",
+        "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+        "used_for": "Keeps modern Rust coverage direction aligned to rustc/LLVM source-based coverage under Buck2 target evidence."
+      },
+      {
+        "name": "Reindeer",
+        "url": "https://github.com/facebookincubator/reindeer",
+        "used_for": "Records the dual Cargo.toml plus generated BUCK graph monorepo ergonomics for dependency graph maintenance and local Cargo mutation-testing feedback."
+      }
+    ]
+  },
+  "claim_boundary": {
+    "note": "Fixture-backed local/static effective-dating kernel evidence only. This gate does not run live cloud-ci, post statuses, mutate branch protection, prove P0.0 green, prove Phase-0 completion, prove production readiness, or prove hyperscaler-grade readiness.",
+    "effective_dating_kernel_measured": true,
+    "bitemporal_type_exposed": true,
+    "valid_time_transaction_time_tested": true,
+    "as_of_query_tested": true,
+    "overlap_rejection_tested": true,
+    "open_ended_range_tested": true,
+    "clock_skew_determinism_tested": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "effective_dating_kernel_policy": {
+    "buck2_target": "//:effective-dating-kernel-check",
+    "kernel_test_target": "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+    "checker": "scripts/ci/assert-effective-dating-kernel.rs",
+    "test_harness": "scripts/tests/effective_dating_kernel_check.rs",
+    "new_gate_language": "Rust",
+    "new_oya_cli_surface_added": false,
+    "kernel_module": "oya/ontology/crates/oya-ontology-kernel/src/effective_dating.rs",
+    "kernel_exports": "oya/ontology/crates/oya-ontology-kernel/src/lib.rs",
+    "required_shape_invariants": [
+      "EffectiveInstant, EffectiveTimeRange, BitemporalRange, EffectiveDatedVersion, and EffectiveDatedHistory are public ontology-kernel primitives",
+      "valid_time and transaction_time are half-open ranges with open-ended support",
+      "as_of(valid_at, transaction_at) returns the correct version or NoVersionAtAsOf",
+      "overlapping valid-time ranges are rejected when their transaction-time windows overlap",
+      "out-of-order transaction-time inserts are sorted deterministically and remain queryable without lost or duplicated versions"
+    ],
+    "modern_rust_standards_record": {
+      "coverage_surface": "Buck2-native LLVM source-based coverage",
+      "coverage_noncanonical_surface": "Tarpaulin is not the canonical coverage surface",
+      "coverage_instrumentation": "rustc -C instrument-coverage with LLVM_PROFILE_FILE, llvm-profdata merge, and llvm-cov report/export under Buck2 target evidence",
+      "mutation_local_ergonomics": "Dual Cargo.toml + Buck2/Reindeer setup keeps local Cargo mutation testing advisory for developer feedback while Buck2/cloud-ci captured evidence remains merge authority.",
+      "hyperscaler_orientation": "The kernel gate is deterministic, target-addressable, fixture-backed, data-class annotated, bitemporal, non-claiming, and suitable for trusted cloud-ci/oya-ci promotion."
+    }
+  },
+  "fixture_paths": [
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json",
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json",
+    "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json"
+  ],
+  "automated_chain": [
+    "buck2 build //oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
+    "rustc --edition=2021 -D warnings scripts/tests/effective_dating_kernel_check.rs --test",
+    "rustc --edition=2021 -D warnings scripts/ci/assert-effective-dating-kernel.rs",
+    "buck2 build //:effective-dating-kernel-check"
+  ]
+}

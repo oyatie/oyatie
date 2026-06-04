@@ -1,0 +1,105 @@
+{
+  "_meta": {
+    "created_at": "2026-06-02T19:53:10Z",
+    "doc_class": "EvidencePacket",
+    "owner_team": "platform-toolchain + platform-security + platform-governance",
+    "related_acceptance_criteria": [
+      "AC-0.0",
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "status": "local-static-evidence-not-green",
+    "version": "0.1.0"
+  },
+  "claim_boundary": {
+    "claim": "P0.0 override packets now have a local machine-readable schema target and kernel fixture checks for required override evidence fields.",
+    "not_claimed": [
+      "P0.0 green",
+      "Phase-0 complete",
+      "live controller enforcement of override packets",
+      "live branch-protected cloud-ci/oya-ci required context",
+      "production readiness",
+      "security readiness"
+    ],
+    "authority": "local/static schema and fixture evidence only; not protected-branch merge authority"
+  },
+  "changed_artifacts": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/phase0-override-packet-schema.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+    "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json"
+  ],
+  "enforcement_added": [
+    "Phase0OverrideEvidence requires action, affected_contexts, degraded_gate_ids, TTL, reviewer acknowledgment, audit event, owner, blast radius, revert/fix follow-up, and no_new_oya_cli_surface",
+    "specs/phase0-override-packet-schema.json forbids undeclared override fields and requires the controller override packet shape",
+    "root-hub and phase0 baseline now point at the override packet schema",
+    "GOOD/BAD P0.0 fixtures exercise the override packet contract",
+    "automation matrix maps the override schema into AC-0.0 evidence"
+  ],
+  "validations": [
+    {
+      "command": "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/phase0-override-packet-schema.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/phase0-ci-enforcement-baseline.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/root-hub-pointers.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/phase0-automation-matrix.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 static override schema assertion script",
+      "verdict": "PASS",
+      "evidence": "validated schema required field set, additionalProperties=false, root-hub pointer, baseline fixture-set pointer, GOOD fixture required values, BAD fixture missing affected/degraded fields and no_new_oya_cli_surface=false"
+    },
+    {
+      "command": "git diff --check",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "verdict": "PASS",
+      "target": "root//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "verdict": "PASS",
+      "evidence": "scanner returned verdict PASS with oya-ci-required authority boundary"
+    },
+    {
+      "command": "buck2 build //:buck2-authority-policy-check --show-output",
+      "verdict": "PASS",
+      "build_id": "40a3f39c-68db-4a81-ac5a-4792b451027e",
+      "note": "latest run after evidence packet creation"
+    },
+    {
+      "command": "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "verdict": "BLOCKED_LOCAL_TOOLCHAIN",
+      "build_id": "04faede6-b768-418b-b90e-6ee842615819",
+      "reason": "macOS Apple ld rejected GNU/Linux linker flags (--as-needed, -Bstatic, --eh-frame-hdr, -z, --gc-sections) while linking third-party Rust build scripts; tests ran 0"
+    }
+  ]
+}

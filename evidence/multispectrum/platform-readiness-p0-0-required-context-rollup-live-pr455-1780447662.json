@@ -1,0 +1,38 @@
+{
+  "checker_command": "python3 scripts/ci/assert-pr-required-context.py --input /tmp/p0-required-context-verify/pr455-live-after-trust-fix.json --json",
+  "checker_exit_code": 1,
+  "checker_output": {
+    "authority_boundary": "status-rollup evidence only; this checker never posts statuses",
+    "contexts": [],
+    "headRefOid": "5364159a23ef17e08528ef34d35c375e8df2c9a0",
+    "legacy_contexts_present": [],
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "reason": "no_status_checks_reported",
+    "required_context": "oya-ci-required",
+    "required_context_status": "missing",
+    "trusted_producer": "cloud-ci/oya-ci",
+    "verdict": "FAIL"
+  },
+  "checker_output_sha256": "23abdb5b851ac120485a7fe7000f190513007f15c15b10e1dc412672f98b2932",
+  "claim_boundary": {
+    "live_trusted_oya_ci_required_producer_evidenced": false,
+    "note": "Durable sanitized live-read artifact only; no status was posted and no protected-branch or Phase-0 exit authority is claimed.",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "fetched_at": "2026-06-03T00:47:42Z",
+  "fetched_unix": 1780447662,
+  "input_sha256": "02f6c15d47c876226958f3b509756c020297a4071841a600d5eb06957c796810",
+  "sanitized_pr_view": {
+    "autoMergeRequest_enabled": true,
+    "headRefOid": "5364159a23ef17e08528ef34d35c375e8df2c9a0",
+    "mergeStateStatus": "BLOCKED",
+    "mergeable": "MERGEABLE",
+    "statusCheckRollup": [],
+    "statusCheckRollup_count": 0,
+    "url": "https://github.com/jason931225/oyatie/pull/455"
+  },
+  "schema_version": "phase0-required-context-live-read/v1",
+  "source_command": "gh pr view 455 --json headRefOid,mergeable,mergeStateStatus,statusCheckRollup,autoMergeRequest,url"
+}

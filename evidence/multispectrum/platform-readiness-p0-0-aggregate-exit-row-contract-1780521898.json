@@ -1,0 +1,81 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-12-AGGREGATE-EXIT-ROW-CONTRACT-1780521898",
+  "created_at": "2026-06-03T17:24:58-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha_before_commit": "bcc86d8a028a74161b5f30090d05d55689420e16",
+  "acceptance_criterion": "AC-0.12-aggregate-exit-gate",
+  "summary": "Local/static AC0.12 evidence adds an exact Buck2 verification command for //:phase0-aggregate-exit-check while preserving the live cloud-ci-phase0-aggregate-exit controller in the automation row and coverage subject. The regression fails closed if the row loses live-controller authority shape, local Buck2 target metadata, or explicit non-claims for required-context authority and P0.0/Phase-0 readiness.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "aggregate_exit_row_contract_measured": true,
+    "aggregate_exit_local_static_proven": true,
+    "local_fixture_contract_proven": true,
+    "required_subcondition_count": 32,
+    "single_false_case_count": 32,
+    "automation_matrix_row_count": 32,
+    "coverage_subject_count": 27,
+    "mapped_row_count": 32,
+    "no_new_oya_cli_surface": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "aggregate_exit_live": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-aggregate-exit-row-contract-red-1780521586",
+    "shell_test_exit": 1,
+    "failure": "Row-contract regression failed before verification_command metadata existed for AC-0.12.",
+    "stderr_excerpt": "",
+    "stdout_excerpt": ""
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-aggregate-exit-row-contract-green-1780521787",
+    "direct_shell_test": "PASS phase0 aggregate-exit fixture checks passed",
+    "aggregate_exit": "PASS required_subcondition_count=32 single_false_case_count=32 aggregate_exit_local_static_proven=True",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=232 status_context_scan_files=9 authority_context=oya-ci-required",
+    "red_green_fixture_contract": "PASS entry_count=26 green_marker_count=27 red_marker_count=40",
+    "json_parse": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "e8a71f8b-2bb8-484d-875c-df6c68c83a78",
+    "buck2_targets": [
+      "//:phase0-aggregate-exit-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check",
+      "//:phase0-red-green-fixture-contract-check"
+    ]
+  },
+  "files_updated": [
+    "BUCK",
+    "scripts/tests/phase0_aggregate_exit_check.test.sh",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "evidence/audit-chain.jsonl",
+    "evidence/multispectrum/platform-readiness-p0-0-aggregate-exit-row-contract-1780521898.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "buck2_native_llvm_coverage_preferred_over_tarpaulin": true,
+    "dual_cargo_buck2_reindeer_allows_local_cargo_mutation_advisory_only": true,
+    "rust_gate_warning_posture": "No Rust source changed in this AC0.12 slice; future Rust gate packets should keep compiler and clippy warning denial where applicable and keep source coverage Buck2-native rather than Tarpaulin-based.",
+    "scope": "AC0.12 aggregate-exit row/coverage mapping only; no source-line coverage, no Cargo mutation lane, no live cloud-ci/oya-ci authority, and no P0.0 green claim"
+  },
+  "hyperscaler_orientation_recorded": {
+    "live_controller_preserved": "cloud-ci-phase0-aggregate-exit",
+    "buck2_native_monorepo_gate": "//:phase0-aggregate-exit-check",
+    "local_static_only_until_cloud_ci_oya_ci_live": true,
+    "required_context_authority_still_destination_ci_only": true,
+    "hyperscaler_grade_claimed": false
+  },
+  "source_citations": {
+    "rust_llvm_source_coverage": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "buck2_build_command": "https://buck2.build/docs/users/commands/build/",
+    "reindeer_dual_cargo_buck2_context": "https://github.com/facebookincubator/reindeer"
+  },
+  "updated_at": "2026-06-03T17:24:58-04:00"
+}

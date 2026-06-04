@@ -22,7 +22,7 @@
 //! calls `K8sJobSpawner::spawn(build_gate_job(spec))` to create the labeled
 //! gate Job. The reconcile loop then picks it up and posts Forgejo statuses.
 //!
-//! Idempotent: the Job name is deterministic (`oya-ci-gate-pr<N>-<sha8>`),
+//! Idempotent: the Job name is deterministic and carries the full candidate SHA,
 //! so a duplicate POST results in a 409 create-conflict no-op (returns 200).
 //!
 //! ## Idempotency / restart-safety
@@ -49,19 +49,15 @@ use k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
 use kube::{
     Api, Client,
     api::{ListParams, Patch, PatchParams},
-    runtime::{
-        Controller,
-        controller::Action,
-        watcher,
-    },
+    runtime::{Controller, controller::Action, watcher},
 };
 use oya_ci_controller_k8s_adapter::{
     ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, gate_job_list_params,
     observe_job,
 };
 use oya_ci_controller_kernel::{
-    ForgejoStatusPoster, ForgejoState, GateRun, GateRunSpec, GateRunToken, JobSpawner,
-    ReconcileDecision, map_job_to_status,
+    ForgejoState, ForgejoStatusPoster, GATE_CONTEXT, GateRun, GateRunSpec, GateRunToken,
+    JobSpawner, ReconcileDecision, map_job_to_status,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -123,16 +119,8 @@ pub async fn reconcile(
     job: Arc<Job>,
     ctx: Arc<ControllerState>,
 ) -> std::result::Result<Action, ReconcileError> {
-    let job_name = job
-        .metadata
-        .name
-        .as_deref()
-        .unwrap_or("<unnamed>");
-    let namespace = job
-        .metadata
-        .namespace
-        .as_deref()
-        .unwrap_or(&ctx.namespace);
+    let job_name = job.metadata.name.as_deref().unwrap_or("<unnamed>");
+    let namespace = job.metadata.namespace.as_deref().unwrap_or(&ctx.namespace);
 
     let labels = job.metadata.labels.as_ref();
     let head_sha = labels
@@ -148,8 +136,7 @@ pub async fn reconcile(
 
     // ---- Step 1: fetch owned Pods -----------------------------------------
     let pod_api: Api<Pod> = Api::namespaced(ctx.client.clone(), namespace);
-    let pod_lp = ListParams::default()
-        .labels(&format!("job-name={job_name}"));
+    let pod_lp = ListParams::default().labels(&format!("job-name={job_name}"));
     let pods = match pod_api.list(&pod_lp).await {
         Ok(list) => list.items,
         Err(e) => {
@@ -173,7 +160,10 @@ pub async fn reconcile(
     // Determine whether this observation has a waiting pod reason (for cycle
     // tracking). If so, increment and persist the counter before making the
     // kernel decision so that the next reconcile sees the updated value.
-    let has_waiting_reason = observation.pod_reasons.iter().any(|r| r.is_pull_or_container_error());
+    let has_waiting_reason = observation
+        .pod_reasons
+        .iter()
+        .any(|r| r.is_pull_or_container_error());
     if has_waiting_reason {
         let next_cycles = waiting_cycles.saturating_add(1);
         patch_waiting_cycles(&ctx.client, namespace, job_name, next_cycles).await;
@@ -203,7 +193,7 @@ pub async fn reconcile(
             let sha = head_sha.clone();
             let desc = description.clone();
             let post_result = poster
-                .post(&sha, ForgejoState::Pending, "oya-ci-gate", &desc, None)
+                .post(&sha, ForgejoState::Pending, GATE_CONTEXT, &desc, None)
                 .await;
 
             match post_result {
@@ -304,12 +294,7 @@ async fn patch_status_annotation(
 
 /// Patch the `oya.io/ci-waiting-cycles` annotation on the Job.
 /// Best-effort: log on failure but never block the reconcile verdict.
-async fn patch_waiting_cycles(
-    client: &Client,
-    namespace: &str,
-    job_name: &str,
-    cycles: u32,
-) {
+async fn patch_waiting_cycles(client: &Client, namespace: &str, job_name: &str, cycles: u32) {
     let api: Api<Job> = Api::namespaced(client.clone(), namespace);
     let patch = json!({
         "metadata": {
@@ -340,11 +325,7 @@ async fn patch_waiting_cycles(
 // ---------------------------------------------------------------------------
 
 /// Capped-exponential-backoff error policy for the kube-rs Controller.
-pub fn error_policy(
-    job: Arc<Job>,
-    err: &ReconcileError,
-    _ctx: Arc<ControllerState>,
-) -> Action {
+pub fn error_policy(job: Arc<Job>, err: &ReconcileError, _ctx: Arc<ControllerState>) -> Action {
     let job_name = job.metadata.name.as_deref().unwrap_or("<unnamed>");
     warn!(job = job_name, error = %err, "reconcile error — backing off");
     Action::requeue(Duration::from_secs(30))
@@ -363,9 +344,8 @@ pub async fn run_controller(state: ControllerState) {
     let ctx = Arc::new(state);
 
     let job_api: Api<Job> = Api::namespaced(client.clone(), &namespace);
-    let watcher_config = watcher::Config::default().labels(
-        oya_ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR,
-    );
+    let watcher_config =
+        watcher::Config::default().labels(oya_ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR);
 
     info!(namespace = %namespace, "starting oya-ci controller");
 
@@ -479,6 +459,10 @@ async fn handle_metrics(_state: State<ServerState>) -> impl IntoResponse {
 ///
 /// Returns 200 (already exists — idempotent) or 201 (created).
 /// Returns 400 on invalid input, 401 on missing/wrong token, 500 on spawner failure.
+fn is_full_hex_commit_sha(value: &str) -> bool {
+    value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
+}
+
 async fn handle_gate_run(
     State(state): State<ServerState>,
     headers: HeaderMap,
@@ -495,7 +479,10 @@ async fn handle_gate_run(
 
     match presented {
         None => {
-            warn!(pr = req.pr_number, "gate-run: missing X-Gate-Run-Token header — rejected");
+            warn!(
+                pr = req.pr_number,
+                "gate-run: missing X-Gate-Run-Token header — rejected"
+            );
             return (
                 StatusCode::UNAUTHORIZED,
                 Json(json!({"error": "missing X-Gate-Run-Token"})),
@@ -503,7 +490,10 @@ async fn handle_gate_run(
                 .into_response();
         }
         Some(candidate) if !state.gate_run_token.verify(candidate) => {
-            warn!(pr = req.pr_number, "gate-run: invalid X-Gate-Run-Token — rejected");
+            warn!(
+                pr = req.pr_number,
+                "gate-run: invalid X-Gate-Run-Token — rejected"
+            );
             return (
                 StatusCode::UNAUTHORIZED,
                 Json(json!({"error": "invalid X-Gate-Run-Token"})),
@@ -512,12 +502,15 @@ async fn handle_gate_run(
         }
         _ => {}
     }
-    // Validate head_sha is at least 8 hex chars (minimum for a meaningful short-sha).
-    if req.head_sha.len() < 8 || !req.head_sha.chars().all(|c| c.is_ascii_hexdigit()) {
+    // P0.0 required-context evidence must bind to the exact candidate commit.
+    // Short SHAs are intentionally rejected because they can be ambiguous and
+    // cannot prove that the protected required status was posted to the
+    // candidate SHA.
+    if !is_full_hex_commit_sha(&req.head_sha) {
         warn!(pr = req.pr_number, sha = %req.head_sha, "gate-run: invalid head_sha");
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"error": "head_sha must be at least 8 hex characters"})),
+            Json(json!({"error": "head_sha must be exactly 40 hex characters"})),
         )
             .into_response();
     }
@@ -541,14 +534,17 @@ async fn handle_gate_run(
             .into_response();
     }
 
+    let head_sha = req.head_sha.to_ascii_lowercase();
     let cfg = &state.gate_spec_config;
 
     let spec = GateRunSpec {
         run: GateRun {
             pr_number: req.pr_number,
-            head_sha: req.head_sha.clone(),
-            // delivery_id not available from the HTTP body; use pr+sha as dedup key.
-            delivery_id: format!("gate-run-pr{}-{}", req.pr_number, &req.head_sha[..8]),
+            head_sha: head_sha.clone(),
+            // delivery_id not available from the HTTP body; use pr+full-sha as
+            // the dedup key so prefix collisions cannot masquerade as
+            // idempotent re-delivery.
+            delivery_id: format!("gate-run-pr{}-{head_sha}", req.pr_number),
             base_ref: req.base_ref.clone(),
             repo: cfg.repo.clone(),
         },
@@ -577,7 +573,7 @@ async fn handle_gate_run(
                 info!(
                     job = %handle.job_name,
                     pr = req.pr_number,
-                    sha = %req.head_sha,
+                    sha = %head_sha,
                     "gate-run: job already exists (idempotent)"
                 );
                 StatusCode::OK
@@ -585,7 +581,7 @@ async fn handle_gate_run(
                 info!(
                     job = %handle.job_name,
                     pr = req.pr_number,
-                    sha = %req.head_sha,
+                    sha = %head_sha,
                     "gate-run: job created"
                 );
                 StatusCode::CREATED
@@ -601,7 +597,7 @@ async fn handle_gate_run(
                 .into_response()
         }
         Err(e) => {
-            error!(pr = req.pr_number, sha = %req.head_sha, error = %e, "gate-run: spawn failed");
+            error!(pr = req.pr_number, sha = %head_sha, error = %e, "gate-run: spawn failed");
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({"error": e.to_string()})),
@@ -671,8 +667,7 @@ mod tests {
     ) -> (StatusCode, String) {
         let router = build_router(state);
         let body_bytes = serde_json::to_vec(&body).unwrap();
-        let mut req_builder = Request::post("/gate-run")
-            .header("content-type", "application/json");
+        let mut req_builder = Request::post("/gate-run").header("content-type", "application/json");
         if let Some(tok) = token_header {
             req_builder = req_builder.header(GATE_RUN_TOKEN_HEADER, tok);
         }
@@ -691,7 +686,7 @@ mod tests {
     async fn gate_run_missing_token_is_401() {
         let body = serde_json::json!({
             "pr_number": 42,
-            "head_sha": "abcdef1234567890",
+            "head_sha": "abcdef1234567890abcdef1234567890abcdef12",
         });
         let (status, text) = send_gate_run(test_server_state(), None, body).await;
         assert_eq!(status, StatusCode::UNAUTHORIZED, "body: {text}");
@@ -704,7 +699,7 @@ mod tests {
     async fn gate_run_wrong_token_is_401() {
         let body = serde_json::json!({
             "pr_number": 42,
-            "head_sha": "abcdef1234567890",
+            "head_sha": "abcdef1234567890abcdef1234567890abcdef12",
         });
         let (status, text) =
             send_gate_run(test_server_state(), Some("totally-wrong-token"), body).await;
@@ -718,27 +713,40 @@ mod tests {
     async fn gate_run_correct_token_creates_job_201() {
         let body = serde_json::json!({
             "pr_number": 7,
-            "head_sha": "abc12345def67890",
+            "head_sha": "abc12345def67890abc12345def67890abc12345",
             "base_ref": "dev",
         });
-        let (status, text) =
-            send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
+        let (status, text) = send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
         assert_eq!(status, StatusCode::CREATED, "body: {text}");
         assert!(text.contains("job_name"), "body: {text}");
-        assert!(text.contains("oya-ci-gate-pr7-"), "body: {text}");
+        assert!(
+            text.contains("oya-ci-pr7-abc12345def67890abc12345def67890abc12345"),
+            "body: {text}"
+        );
     }
 
     // ---- Auth: correct token, invalid sha → 400 (auth passes, body fails) --
 
     #[tokio::test]
-    async fn gate_run_correct_token_bad_sha_is_400() {
-        let body = serde_json::json!({
-            "pr_number": 7,
-            "head_sha": "not-hex!",
-        });
-        let (status, text) =
-            send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
-        assert_eq!(status, StatusCode::BAD_REQUEST, "body: {text}");
+    async fn gate_run_correct_token_rejects_short_or_non_hex_candidate_sha() {
+        for bad_sha in [
+            "abcdef1",
+            "abcdef12",
+            "abcdef1234567890abcdef1234567890abcdef1",
+            "abcdef1234567890abcdef1234567890abcdeg12",
+            "not-hex!",
+        ] {
+            let body = serde_json::json!({
+                "pr_number": 7,
+                "head_sha": bad_sha,
+            });
+            let (status, text) = send_gate_run(test_server_state(), Some(TEST_TOKEN), body).await;
+            assert_eq!(
+                status,
+                StatusCode::BAD_REQUEST,
+                "{bad_sha} should be rejected; body: {text}"
+            );
+        }
     }
 
     // ---- Auth: off-by-one-byte token is rejected ---------------------------
@@ -749,10 +757,9 @@ mod tests {
         let truncated = &TEST_TOKEN[..TEST_TOKEN.len() - 1];
         let body = serde_json::json!({
             "pr_number": 1,
-            "head_sha": "abcdef1234567890",
+            "head_sha": "abcdef1234567890abcdef1234567890abcdef12",
         });
-        let (status, _) =
-            send_gate_run(test_server_state(), Some(truncated), body).await;
+        let (status, _) = send_gate_run(test_server_state(), Some(truncated), body).await;
         assert_eq!(status, StatusCode::UNAUTHORIZED);
     }
 

@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/adr-hygiene-registry.seed.schema.json",
+  "title": "Phase0AdrHygieneRegistrySeed",
+  "description": "AC-0.3 local/static ADR numbering, supersession, and active-doc superseded-reference hygiene registry. This blocks duplicate ADR ids, stale ADR-0511 authority, and active canonical references to superseded decisions without claiming live required-context authority.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "P0-ADR-HYGIENE-REGISTRY-SEED",
+    "version": "0.1.0",
+    "status": "LocalStaticSeedEvidence",
+    "owner_team": "council-architecture + platform-governance",
+    "created_at": "2026-06-03T00:00:00Z",
+    "source_artifacts": [
+      ".omx/plans/prd-platform-readiness.md#AC-0.3",
+      ".omx/plans/test-spec-phase0.md#T0.3"
+    ]
+  },
+  "claim_boundary": {
+    "adr_hygiene_registry_published": true,
+    "adr_hygiene_fixture_contract_measured": true,
+    "duplicate_adr_0377_resolved": true,
+    "adr_0511_superseded_by_adr_0513": true,
+    "superseded_reference_lint_measured": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "full_adr_index_regenerated": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "renumbering_contract": {
+    "duplicate_id": "ADR-0377",
+    "kept_decision_path": "docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md",
+    "renumbered_decision_path": "docs/decisions/ADR-0520-kafka-to-pulsar-via-kop.md",
+    "renumbered_from": "ADR-0377",
+    "renumbered_to": "ADR-0520",
+    "forbidden_live_paths": [
+      "docs/decisions/ADR-0377-kafka-to-pulsar-via-kop.md"
+    ]
+  },
+  "supersession_contracts": [
+    {
+      "decision_id": "ADR-0511",
+      "required_status_contains": "Superseded",
+      "required_superseded_by": "ADR-0513",
+      "successor_path": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+    }
+  ],
+  "active_doc_scan_globs": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "README.md",
+    "docs/AGENTS.md",
+    "docs/standards/*.md",
+    "specs/*.json"
+  ],
+  "superseded_reference_patterns": [
+    {
+      "id": "solidjs_as_canonical",
+      "superseded_decision": "ADR-0372",
+      "successor_decision": "ADR-0393",
+      "pattern": "(?i)(solidjs[^\\n]{0,80}canonical|canonical[^\\n]{0,80}solidjs|shell\\s*=\\s*solidjs)"
+    },
+    {
+      "id": "victoriametrics_as_canonical",
+      "superseded_decision": "ADR-0042",
+      "successor_decision": "ADR-0383",
+      "pattern": "(?i)(victoriametrics\\s+for\\s+metrics|victoriametrics[^\\n]{0,80}canonical|canonical[^\\n]{0,80}victoriametrics)"
+    },
+    {
+      "id": "foundry_as_live",
+      "superseded_decision": "ADR-0335",
+      "successor_decision": "ADR-0335-intelligence-absorption",
+      "pattern": "(?i)(foundry-as-live|foundry[^\\n]{0,80}live\\s+authority|foundry[^\\n]{0,80}canonical\\s+live)"
+    }
+  ],
+  "automated_chain": [
+    "scripts/ci/assert-adr-hygiene.py --registry specs/adr-hygiene-registry.json --json",
+    "scripts/tests/adr_hygiene_check.test.sh",
+    "buck2 build //:adr-hygiene-check --show-output",
+    "//:phase0-red-green-fixture-contract-check",
+    "//:phase0-automation-ratchet-check",
+    "//:buck2-authority-policy-check"
+  ],
+  "active_doc_scan_exclude_globs": [
+    "specs/adr-hygiene-registry.json"
+  ]
+}

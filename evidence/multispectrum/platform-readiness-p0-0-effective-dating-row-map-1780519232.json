@@ -1,0 +1,77 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-6-EFFECTIVE-DATING-ROW-MAP-1780519232",
+  "created_at": "2026-06-03T16:40:32-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha_before_commit": "dbc9bf09095ac76e0883802796d84bcf58103411",
+  "acceptance_criterion": "AC-0.6-effective-dating-kernel",
+  "summary": "Local/static AC-0.6 evidence tightens the Phase-0 automation matrix so the effective-dating kernel row maps directly to //:effective-dating-kernel-check with an explicit Buck2 verification command, while the coverage note preserves the ontology kernel subtarget dependency. The Rust regression fails closed if AC0.6 drifts back to a composite target, drops verification metadata, or weakens readiness non-claims.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "effective_dating_row_mapping_measured": true,
+    "effective_dating_kernel_measured": true,
+    "rust_test_harness_compiled_with_d_warnings": true,
+    "contract_count": 5,
+    "fixture_count": 3,
+    "no_new_oya_cli_surface": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-effective-dating-row-map-red-1780518112",
+    "rust_test_exit": 101,
+    "failure": "Rust row-map regression failed because AC0.6 target_gate_or_controller was composite instead of exact //:effective-dating-kernel-check.",
+    "stdout_excerpt": "\nrunning 7 tests\ntest bad_clock_skew_fixture_reports_missing_determinism ... ok\ntest bad_overlap_fixture_reports_overlap_violation ... ok\ntest automation_matrix_maps_ac06_to_exact_effective_dating_gate ... FAILED\ntest kernel_source_rejects_missing_as_of_query ... ok\ntest kernel_source_rejects_missing_bitemporal_type ... ok\ntest registry_rejects_phase0_completion_claim ... ok\ntest checked_in_registry_source_buck_and_fixtures_pass ... ok\n\nfailures:\n\n---- automation_matrix_maps_ac06_to_exact_effective_dating_gate stdout ----\n\nthread 'automation_matrix_maps_ac06_to_exact_effective_dating_gate' (218340965) panicked at scripts/tests/effective_dating_kernel_check.rs:51:5:\n{\n      \"id\": \"AC-0.6-effective-dating-kernel\",\n      \"source_artifact\": \".omx/plans/prd-platform-readiness.md#AC-0.6\",\n      \"requirement\": \"Ontology/effective-dating kernel must expose the bitemporal type and pass unit/property fixtures, including clock-skew deterministic as-of behavior.\",\n      \"classification\": \"automate"
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-effective-dating-row-map-reviewfix-1780519168",
+    "direct_rust_test": "PASS 7 tests; rustc --edition=2021 -D warnings",
+    "effective_dating_kernel": "PASS contract_count=5 fixture_count=3",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=232 status_context_scan_files=9 authority_context=oya-ci-required",
+    "red_green_fixture_contract": "PASS entry_count=26 green_marker_count=27 red_marker_count=40",
+    "json_parse": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "81577302-03be-4a02-b722-8cdda8bd64d8",
+    "buck2_targets": [
+      "//:effective-dating-kernel-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check",
+      "//:phase0-red-green-fixture-contract-check"
+    ],
+    "review_fix": "Moved phase0 automation matrix/coverage inputs from the broad aggregate source map into //:effective-dating-kernel-check after the first Buck2 run failed on a duplicate dictionary key."
+  },
+  "failed_green_attempt": {
+    "path": "/tmp/p0-0-effective-dating-row-map-green-1780518127",
+    "buck2_rc": null,
+    "failure_excerpt": ""
+  },
+  "files_updated": [
+    "BUCK",
+    "scripts/tests/effective_dating_kernel_check.rs",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "evidence/audit-chain.jsonl",
+    "evidence/multispectrum/platform-readiness-p0-0-effective-dating-row-map-1780519232.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "buck2_native_llvm_coverage_preferred_over_tarpaulin": true,
+    "dual_cargo_buck2_reindeer_allows_local_cargo_mutation_advisory_only": true,
+    "rust_gate_warning_posture": "AC-0.6 row-map regression compiles under rustc --edition=2021 -D warnings inside the Buck2 genrule.",
+    "ac_0_6_scope": "effective-dating row/coverage mapping only; no source-line coverage, no Cargo mutation lane, no live cloud-ci/oya-ci authority, and no P0.0 green claim"
+  },
+  "hyperscaler_orientation_recorded": {
+    "bitemporal_kernel_gate_for_monorepo_governance": true,
+    "exact_target_not_composite_prose": true,
+    "buck2_native_monorepo_gate": true,
+    "local_static_only_until_cloud_ci_oya_ci_live": true,
+    "hyperscaler_grade_claimed": false
+  },
+  "updated_at": "2026-06-03T16:40:32-04:00"
+}

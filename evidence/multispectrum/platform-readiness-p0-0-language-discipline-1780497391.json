@@ -1,0 +1,81 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-4-LANGUAGE-DISCIPLINE-1780497391",
+  "created_at": "2026-06-03T10:36:42-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "acceptance_criterion": "AC-0.4-language-discipline",
+  "summary": "Rust/Buck2 local/static language-discipline seed gate blocks new candidate-authored .py/.sh files outside the bootstrap shell allowlist and records the T0.4 cloud_*_check.py backlog inventory without claiming live P0.0 authority.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "live_pr_changed_file_scan_performed": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-language-discipline-red-1780496715",
+    "missing_rust_checker_rc": 1,
+    "missing_buck2_target_rc": 3,
+    "buck2_missing_target_build_id": "916da6dd-f48b-4f86-b692-a29ef81bd902"
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-language-discipline-standards-pass-1780497509",
+    "rust_unit_tests": "5 passed; 0 failed",
+    "language_checker_verdict": "PASS",
+    "fixture_count": 4,
+    "backlog_offender_count": 7,
+    "red_green_fixture_contract": "PASS entry_count=20 marker_counts=21/21/21",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=194 status_context_scan_files=9",
+    "json_parse": "PASS",
+    "rustfmt_check": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "a8911d24-58c5-4623-b824-23fa35101959",
+    "buck2_targets": [
+      "//:language-discipline-check",
+      "//:phase0-red-green-fixture-contract-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check"
+    ],
+    "rust_warning_policy": "rustc --edition=2021 -D warnings for checker and Rust test harness",
+    "prior_buck2_combined_build_ids": [
+      "80cfe99e-695c-4835-b9bc-fd38a81ef6ee"
+    ]
+  },
+  "files_added": [
+    "scripts/ci/assert-language-discipline.rs",
+    "scripts/tests/language_discipline_check.rs",
+    "specs/language-discipline-registry.json",
+    "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
+    "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
+    "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
+    "specs/fixtures/phase0-language-discipline/tc-0.4-good-non-script-change.json"
+  ],
+  "files_updated": [
+    "BUCK",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/red-green-fixture-contract.json",
+    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "specs/buck2-authority-policy.json",
+    "specs/root-hub-pointers.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "coverage_surface": "Buck2-native LLVM source-based coverage; Tarpaulin is not canonical monorepo coverage evidence.",
+    "mutation_surface": "Dual Cargo.toml + Buck2/Reindeer preserves local Cargo mutation testing as advisory developer feedback until captured by Buck2/cloud-ci evidence.",
+    "new_gate_surface": "Rust checker + Rust self-test harness compile under Buck2 genrule with -D warnings; no new Python or shell gate/test surface for AC-0.4."
+  },
+  "official_references": [
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+    "https://buck2.build/docs/users/commands/",
+    "https://buck2.build/docs/about/bootstrapping/",
+    "https://github.com/facebookincubator/reindeer"
+  ],
+  "updated_at": "2026-06-03T10:38:41-04:00"
+}

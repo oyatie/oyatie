@@ -1,0 +1,21 @@
+{
+  "tc_id": "TC-0.6-BAD-clock-skew-nondeterministic-history",
+  "expected_verdict": "FAIL",
+  "expected_violations": [
+    "clock_skew_determinism_missing"
+  ],
+  "candidate_policy": {
+    "out_of_order_transaction_time_inserts_sorted": false,
+    "as_of_correct_under_skew": false,
+    "lost_or_duplicated_version_prevented": false
+  },
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/cross-artifact-agreement-registry.json",
+  "title": "CrossArtifactAgreementRegistry",
+  "description": "AC-0.8 local/static registry for the cross-artifact agreement gate. It records the ADR/spec/masterplan/roadmap agreement-set contract and its fixture-backed RED/GREEN probes. This is not live cloud-ci authority and not Phase-0 completion evidence.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-CROSS-ARTIFACT-AGREEMENT",
+    "version": "0.1.0",
+    "status": "local_static_packet_registry_not_live_context",
+    "owner_team": "council-architecture + platform-governance",
+    "created_at": "2026-06-03T00:00:00Z",
+    "related_acceptance_criteria": [
+      "AC-0.8",
+      "AC-0.14"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#AC-0.8 + P0.7",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.8 + TC-0.14.3",
+    "related_adr": "docs/decisions/ADR-0365-automated-adr-lifecycle-and-propagation.md",
+    "source_request": "Founder/platform-readiness refinement: every decision must carry ADR/spec/masterplan/roadmap agreement, idea-refine output must reconcile into the authority chain, and no new oya CLI surface is allowed."
+  },
+  "claim_boundary": {
+    "cross_artifact_agreement_measured": true,
+    "agreement_set_required": true,
+    "decision_propagation_packets_measured": true,
+    "backlog_register_1_to_21_mapped": true,
+    "idea_refine_reconciliation_required": true,
+    "generated_file_drift_blocked": true,
+    "architect_critic_consensus_required": true,
+    "no_new_oya_cli_surface": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "gate_contract": {
+    "buck2_target": "//:cross-artifact-agreement-check",
+    "checker": "scripts/ci/assert-cross-artifact-agreement.rs",
+    "test_harness": "scripts/tests/cross_artifact_agreement_check.rs",
+    "packet_registry_path": "specs/decision-propagation-packets.json",
+    "authority_ceiling": "local/static seed evidence only; cloud-ci/oya-ci oya-ci-required remains merge and Phase-0 exit authority",
+    "no_new_oya_cli_surface": true,
+    "blocks_when": [
+      "a decision packet lacks any of ADR/spec/masterplan/roadmap agreement entries",
+      "an idea-refine output is not reconciled into the authority chain",
+      "a generated decision artifact diverges from source without regeneration evidence",
+      "a backlog register item #1..#21 lacks a decision propagation packet",
+      "a pending packet lacks owner plus retirement path for temporary human judgment"
+    ]
+  },
+  "agreement_set_requirements": {
+    "required_artifacts": [
+      "adr",
+      "spec",
+      "masterplan",
+      "roadmap"
+    ],
+    "required_packet_fields": [
+      "decision_id",
+      "source_edit_files",
+      "generated_outputs",
+      "owner_lane",
+      "status",
+      "regeneration_command",
+      "verification_gate"
+    ],
+    "same_changeset_rule": "Source edits and generated outputs land in the same changeset or the packet carries temporary_human_judgment.owner and temporary_human_judgment.retirement_path.",
+    "generated_artifact_rule": "Generated artifacts such as decisions.json, masterplan.generated.json, and board-sync.generated.json must be regenerated from source, never hand-edited as authoritative fixes."
+  },
+  "required_file_tokens": [
+    {
+      "path": "docs/decisions/ADR-0365-automated-adr-lifecycle-and-propagation.md",
+      "contains": [
+        "id: ADR-0365",
+        "affected_surfaces",
+        "propagation-drift"
+      ]
+    },
+    {
+      "path": "specs/decision-propagation-packets.json",
+      "contains": [
+        "P0.7-D11-cross-artifact-ssot-agreement",
+        "P0.7-D18-merge-conflict-elimination",
+        "P0.7-D19-bespoke-cloud-toolchain-services"
+      ]
+    },
+    {
+      "path": "docs/machine-readable/masterplan.generated.json",
+      "contains": [
+        "ADR-0365-D3",
+        "ADR-0365"
+      ]
+    },
+    {
+      "path": "docs/machine-readable/board-sync.generated.json",
+      "contains": [
+        "ADR-0365-D3",
+        "Generated from masterplan deliverable"
+      ]
+    }
+  ],
+  "fixture_set": {
+    "fixture_directory": "specs/fixtures/phase0-cross-artifact-agreement",
+    "all_fixture_paths": [
+      "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-good-cross-artifact-agreement.json",
+      "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-masterplan-roadmap.json",
+      "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-unreconciled-idea-refine-output.json",
+      "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-generated-decisions-divergence.json",
+      "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-register-packet.json"
+    ],
+    "required_red_green_pairs": [
+      {
+        "tc_id": "TC-0.8.1",
+        "green": "tc-0.8-good-cross-artifact-agreement.json",
+        "red": "tc-0.8-bad-missing-masterplan-roadmap.json"
+      },
+      {
+        "tc_id": "TC-0.8.2",
+        "green": "tc-0.8-good-cross-artifact-agreement.json",
+        "red": "tc-0.8-bad-generated-decisions-divergence.json"
+      },
+      {
+        "tc_id": "TC-0.8.3/TC-0.14.3",
+        "green": "tc-0.8-good-cross-artifact-agreement.json",
+        "red": "tc-0.8-bad-missing-register-packet.json"
+      },
+      {
+        "tc_id": "TC-0.14.3",
+        "green": "tc-0.8-good-cross-artifact-agreement.json",
+        "red": "tc-0.8-bad-unreconciled-idea-refine-output.json"
+      }
+    ]
+  }
+}

@@ -45,7 +45,7 @@ if [ "$no_cargo_status" -ne 0 ]; then
   cat "$no_cargo_output" >&2
   exit 1
 fi
-grep -q 'cargo build/check/test/clippy/run/bench' "$no_cargo_output"
+grep -q 'Cargo executable lanes are retired' "$no_cargo_output"
 grep -q 'advisory only' "$no_cargo_output"
 
 python3 - "$repo_root" <<'PY'

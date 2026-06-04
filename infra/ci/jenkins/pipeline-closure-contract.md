@@ -1,45 +1,41 @@
-# Jenkins pipeline closure contract (ADR-0361)
+# Jenkins pipeline closure contract (ADR-0361/0408/0513)
 
-Jenkins-native source of truth for the PR-review + CI-fix-loop + merge closure that
-the `hyperscaler-maturity-claims` gate asserts. Replaces the retired GitHub Actions
-`pr-review.yml` + `ci-failure-fix-loop.yml` as the closure the gate validates. Same
-semantic contract, Jenkins-native triggers — no human merge gate, fully automated.
+Jenkins is bridge pipeline-as-code while cloud-ci/oya-ci becomes the authoritative
+producer for the `oya-ci-required` context. Buck2 is the only build/test/script
+execution authority in this closure contract. Cargo and legacy local-verifier contexts are
+not protected-branch authority.
 
 ## PR-review lane (oya-pr-review)
 
 The Jenkins `oya-pr-review` lane runs the agent review runtime, then the dispatcher,
-in deterministic mode in CI:
+in deterministic mode in CI, through Buck2-built binaries:
 
 1. Agent review runtime fan-out:
-   `cargo run -q -p oya-intelligence-subagent-runtime-app -- fan-out --mode deterministic-mock`
+   `buck2 run //oya/intelligence/crates/oya-intelligence-subagent-runtime-app:oya-intelligence-subagent-runtime-app-bin -- fan-out --mode deterministic-mock`
 2. After runtime fan-out, the dispatcher consumes the verdicts:
-   `cargo run -q -p oya-intelligence-pr-review-dispatcher-app`
+   `buck2 run //oya/intelligence/crates/oya-intelligence-pr-review-dispatcher-app:oya-intelligence-pr-review-dispatcher-app-bin`
 3. The lane fails if the runtime still pending flag remains set ("runtime still pending").
 
-The runtime fan-out ALWAYS runs before the dispatcher (the dispatcher consumes the
-runtime's verdicts).
+The runtime fan-out always runs before the dispatcher.
 
 ## Fix-loop closure (no human gate)
 
-Flow: `push → CI → fix-loop until green → review → fix-loop until APPROVE → merge`.
+Flow: `push → oya-ci-required → fix-loop until green → review → fix-loop until APPROVE → merge`.
 
-- Review only fires once CI is green.
-- APPROVE emits `pr-review-approved`, consumed by IP-006 merge-queue.
-- CHANGES_REQUESTED — fix-loop dispatched via pr-review-fix-requested event,
-  consumed by IP-005 fix-loop.
+- Review only fires once `oya-ci-required` is green.
+- APPROVE emits `pr-review-approved`, consumed by the cloud-ci/Tide merge queue.
+- CHANGES_REQUESTED dispatches a pr-review-fix-requested event to the fix loop.
 - There is no human PR-review gate; review authority is the automated agent runtime.
 
-## CI fix-loop lane (ci-failure-fix-loop)
+## CI fix-loop lane
 
-The Jenkins `ci-failure-fix-loop` lane:
+The Jenkins bridge `ci-failure-fix-loop` lane:
 
-- trigger: upstream oya-verify build completion (Jenkins upstream-build trigger).
+- trigger: upstream `oya-ci-required` build completion.
 - trigger: webhook repository-dispatch for the `pr-review-fix-requested` event.
-- Dispatches remediation via `oya-vcs-ci-fix-loop-dispatcher-app`.
+- Dispatches remediation via the Buck2-built fix-loop dispatcher.
 - Surface-all-failures: writes the full `failed-jobs.tsv`; one failure never masks others.
-- On exhaustion it routes to `agent-remediation-required` then `fix-loop-exhausted` —
-  automated remediation only.
+- On exhaustion it routes to `agent-remediation-required` then `fix-loop-exhausted`.
 
-Merge-queue + retry-budget consumption are specified in the merge-safety specs
-(`oya vcs` merge safety, IP-006 merge-queue, IP-005 iterative fix-loop, the CI
-fix-loop retry-budget registry), unchanged by the Actions→Jenkins cutover.
+Merge-queue and retry-budget consumption are specified in the cloud-ci/Tide specs;
+legacy VCS wrapper wording is historical and does not grant authority.

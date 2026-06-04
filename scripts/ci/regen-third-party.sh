@@ -31,7 +31,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 PATCH="scripts/ci/third-party-buckify-handedits.patch"
 
-command -v reindeer >/dev/null 2>&1 || { echo "ERROR: reindeer not found on PATH (cargo install reindeer)"; exit 1; }
+command -v reindeer >/dev/null 2>&1 || { echo "ERROR: reindeer not found on PATH; install it from the pinned Buck2/Reindeer toolchain image"; exit 1; }
 [ -f "$PATCH" ] || { echo "ERROR: missing $PATCH"; exit 1; }
 
 echo "[regen-third-party] reindeer buckify ..."

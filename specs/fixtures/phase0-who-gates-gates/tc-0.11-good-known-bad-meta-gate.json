@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/phase0-who-gates-gates-fixture.schema.json",
+  "tc_id": "TC-0.11.GOOD.known-bad-meta-gate",
+  "expected_verdict": "PASS",
+  "expected_violations": [],
+  "meta": {
+    "related_acceptance_criterion": "AC-0.11",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.11",
+    "authority_boundary": "AC-0.11 local/static meta-gate fixture evidence only; no live CI authority is proven."
+  },
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "gate_under_test": {
+    "gate_id": "phase0-red-green-fixture-contract-check",
+    "buck2_target": "//:phase0-red-green-fixture-contract-check",
+    "pass_condition": "all_known_bad_mutations_fail_and_all_markers_present",
+    "known_bad_fixtures": [
+      "remove-red-marker",
+      "stale-marker-text",
+      "missing-target",
+      "p0-green"
+    ],
+    "self_mutation_tests": [
+      "remove-red-marker",
+      "stale-marker-text",
+      "missing-target",
+      "p0-green"
+    ],
+    "no_new_oya_cli_surface": true
+  }
+}

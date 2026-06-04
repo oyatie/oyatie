@@ -1,0 +1,35 @@
+{
+  "fixture_id": "TC-0.15-BAD-phase1-tide-batching-claim",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "phase1_tide_batched_projection_overclaim"
+  ],
+  "description": "Local merge-tree evidence must not claim Phase-1 Tide projected-state batching.",
+  "merge_tree_simulation": {
+    "engine": "git merge-tree --write-tree",
+    "result": "clean",
+    "mutates_working_tree": false,
+    "mutates_index": false,
+    "provider_side_merge_button_used": false
+  },
+  "lanes": [
+    {
+      "lane_id": "lane-tide-overclaim",
+      "owner_team": "platform-toolchain",
+      "owned_paths": [
+        "docs/ci/auto-merge-flow.md"
+      ]
+    }
+  ],
+  "generated_artifact_changes": [],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "phase1_tide_batching_claimed": true,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

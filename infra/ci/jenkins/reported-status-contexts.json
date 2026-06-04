@@ -1,27 +1,11 @@
 {
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
-    "adr": "ADR-0361",
-    "purpose": "The GitHub status-check contexts the Jenkins pipeline reports on PRs (via the Jenkins GitHub App). protection-context-match validates that every required branch-protection context has a producer HERE (Jenkins-native), replacing the retired .github/workflows job-name source. Names are preserved across the Actions->Jenkins cutover so branch protection is unchanged.",
-    "producer": "infra/ci/Jenkinsfile + infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy"
+    "adr": "ADR-0361 + ADR-0408 + ADR-0513",
+    "purpose": "Target CI status context inventory for P0.0. The protected-branch context is oya-ci-required, produced by cloud-ci/oya-ci from trusted controller/trunk state. Jenkins may bridge status posting during cutover but Legacy tool-specific contexts are forbidden as required authority.",
+    "producer": "cloud-ci/oya-ci controller; Jenkins shared library is bridge evidence only"
   },
   "reported_status_contexts": [
-    "cargo-fmt",
-    "cargo-check",
-    "cargo-clippy",
-    "cargo-nextest",
-    "cargo-deny",
-    "oya-verify",
-    "oya-vcs-admission",
-    "oya-vcs-provider-execution",
-    "oya-governance-supply-chain",
-    "oya-governance-cohesion",
-    "oya-governance-api-semver",
-    "oya-governance-honest-claims",
-    "oya-governance-aspirational-enforcement",
-    "oya-governance-banned-primitives",
-    "oya-governance-protection-context-match",
-    "oya-governance-dependency-seam",
-    "oya-pr-review"
+    "oya-ci-required"
   ]
 }

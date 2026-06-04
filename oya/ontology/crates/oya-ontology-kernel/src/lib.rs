@@ -32,7 +32,12 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod effective_dating;
 pub mod pillar;
+pub use effective_dating::{
+    BitemporalRange, EffectiveDatedHistory, EffectiveDatedVersion, EffectiveDatingError,
+    EffectiveInstant, EffectiveTimeRange,
+};
 pub use pillar::{OntologyPillar, UnknownPillarLabel};
 
 use std::collections::BTreeMap;

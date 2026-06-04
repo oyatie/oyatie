@@ -1,0 +1,32 @@
+{
+  "claim_rows": [
+    {
+      "allowed_language_now": "spec-ready only; no production-ready or hyperscaler-grade performance claim",
+      "artifact": "specs/hyperscaler-production-readiness-claim-contract.json#PERF-CAPACITY",
+      "claim_text": "performance/capacity readiness is spec-ready only",
+      "claim_tier": "spec_ready",
+      "current_evidence": [
+        "PERF-CAPACITY evidence domain specified",
+        "cloud-ci-performance-budget gate class specified",
+        "owner"
+      ],
+      "id": "GOOD-performance-spec-ready-row",
+      "missing_for_next_tier": [
+        "per-service p50/p95/p99 budgets",
+        "release-candidate load/soak result",
+        "capacity breakpoint"
+      ],
+      "next_gate": "cloud-ci-performance-budget",
+      "owner": "platform-sre + platform-toolchain",
+      "regulated_terms": [
+        "performance",
+        "capacity"
+      ]
+    }
+  ],
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "fixture_id": "TC-0.17-GOOD-performance-spec-ready-with-budget",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.17.4",
+  "text": "Performance is spec-ready only: p50/p95/p99 budgets and load evidence requirements are specified; this is not a live readiness assertion."
+}

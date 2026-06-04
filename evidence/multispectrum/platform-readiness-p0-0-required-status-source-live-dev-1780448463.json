@@ -1,0 +1,49 @@
+{
+  "checker_command": "python3 scripts/ci/assert-required-status-source.py --input /tmp/p0-required-status-source/live-required-status-checks.json --expected-app-id 12345 --json",
+  "checker_exit_code": 1,
+  "checker_output": {
+    "authority_boundary": "required-status source binding evidence only; this checker never mutates branch protection or posts statuses",
+    "checks": [
+      {
+        "app_id": null,
+        "context": "oya-ci-required"
+      }
+    ],
+    "contexts": [
+      "oya-ci-required"
+    ],
+    "expected_source_app_id": 12345,
+    "observed_source_app_id": null,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "reason": "missing_required_status_source_app",
+    "required_context": "oya-ci-required",
+    "required_context_source_app_bound": false,
+    "verdict": "FAIL"
+  },
+  "checker_output_sha256": "db4cc10dbd4ef5f4ed3722c24236338dfb2fa38d706dac5cfbaf9d6038c36ae7",
+  "claim_boundary": {
+    "live_trusted_source_app_bound": false,
+    "note": "Durable sanitized live-read artifact only; no branch protection was mutated and no protected-branch or Phase-0 exit authority is claimed.",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "fetched_at": "2026-06-03T01:01:03Z",
+  "fetched_unix": 1780448463,
+  "input_sha256": "7c5e2ce0635ea230d62e24e4bb6da39816f7aefe9d4f94378d6b10c5cbaa324a",
+  "official_reference": "https://docs.github.com/rest/branches/branch-protection#update-status-check-protection",
+  "sanitized_required_status_checks": {
+    "checks": [
+      {
+        "app_id": null,
+        "context": "oya-ci-required"
+      }
+    ],
+    "contexts": [
+      "oya-ci-required"
+    ],
+    "strict": false
+  },
+  "schema_version": "phase0-required-status-source-live-read/v1",
+  "source_command": "gh api repos/jason931225/oyatie/branches/dev/protection/required_status_checks"
+}

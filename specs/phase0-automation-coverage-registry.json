@@ -1,0 +1,355 @@
+{
+  "$id": "https://docs.oyatie.com/specs/phase0-automation-coverage-registry.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T20:20:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-governance + platform-toolchain + council-architecture",
+    "related_acceptance_criteria": [
+      "AC-0.12",
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#AC-0.16",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.16",
+    "spec_id": "EXE-PHASE0-AUTOMATION-COVERAGE-REGISTRY",
+    "status": "local_static_coverage_registry_not_live_context",
+    "version": "0.1.0",
+    "updated_at": "2026-06-03T12:00:00Z"
+  },
+  "description": "Local/static AC-0.16 coverage registry binding declared Phase-0 acceptance criteria, selected ADR amendments, operating-contract requirements, and governance work items to automation-matrix rows. This prevents seed-row omission from false-greening the automation ratchet; it is not live required-context evidence.",
+  "claim_boundary": {
+    "authority": "local_static_coverage_registry_not_live_context",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "required_subject_ids": [
+    "AC-0.0",
+    "AC-0.1",
+    "AC-0.2",
+    "AC-0.3",
+    "AC-0.4",
+    "AC-0.5",
+    "AC-0.6",
+    "AC-0.7",
+    "AC-0.8",
+    "AC-0.9",
+    "AC-0.10",
+    "AC-0.10b",
+    "AC-0.11",
+    "AC-0.12",
+    "AC-0.13",
+    "AC-0.14",
+    "AC-0.15",
+    "AC-0.16",
+    "AC-0.17",
+    "FOUNDER-buck2-authority",
+    "ADR-0363",
+    "ADR-0513",
+    "P0.6-pack-root-classifier",
+    "P0.7-decision-propagation",
+    "P0.9-generated-artifact-registry",
+    "PROCESS-reviewer-multispectrum-evidence",
+    "PERF-CAPACITY-claim-budget"
+  ],
+  "coverage_subjects": [
+    {
+      "id": "AC-0.0",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
+      "mapped_row_ids": [
+        "AC-0.0-cloud-ci-required-context",
+        "AC-0.0-buck2-authority-no-cargo-regression",
+        "AC-0.0-auto-merge-after-ci",
+        "AC-0.0-tenant-pipeline-isolation",
+        "AC-0.0-trusted-target-inventory",
+        "AC-0.0-structured-result-bundle",
+        "AC-0.0-override-kill-switch"
+      ],
+      "owner": "platform-toolchain",
+      "coverage_note": "Maps all AC-0.0 local/static and live-read RED gate rows, including trusted target inventory, structured result bundles, override/kill-switch, tenant isolation, required context, auto-merge, and Buck2 authority. This is coverage mapping only, not P0.0 green, plus the upstream Prow parity registry for the Rust oya-ci reimplementation/improvement. This is coverage mapping only, not P0.0 green.",
+      "verification_commands": {
+        "AC-0.0-trusted-target-inventory": "buck2 build //:phase0-trusted-target-inventory-check",
+        "AC-0.0-structured-result-bundle": "buck2 build //:phase0-result-bundle-output-check",
+        "AC-0.0-tenant-pipeline-isolation": "buck2 build //:phase0-tenant-isolation-fixture-check",
+        "AC-0.0-override-kill-switch": "buck2 build //:phase0-override-kill-switch-check",
+        "AC-0.0-cloud-ci-required-context": "buck2 build //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:phase0-trusted-target-inventory-check //:phase0-result-bundle-output-check",
+        "AC-0.0-buck2-authority-no-cargo-regression": "buck2 build //:buck2-authority-policy-check"
+      }
+    },
+    {
+      "id": "AC-0.1",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.1",
+      "mapped_row_ids": [
+        "AC-0.1-service-inventory"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.1 to //:service-root-classifier-check, specs/service-inventory.json, and service-root RED/GREEN fixtures. The seed inventory covers direct child directories under the closed-world roots while explicitly leaving full nested crate coverage and live required-context authority false.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
+    },
+    {
+      "id": "AC-0.2",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.2",
+      "mapped_row_ids": [
+        "AC-0.2-status-enum-drift"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.2 to //:status-enum-drift-check, specs/status-enum-registry.json, and status enum/spec-code-manifest RED/GREEN fixtures. Local/static seed evidence only; full manifest/PRD conformance and live required-context authority remain false.",
+      "verification_command": "buck2 build //:status-enum-drift-check"
+    },
+    {
+      "id": "AC-0.3",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.3",
+      "mapped_row_ids": [
+        "AC-0.3-adr-hygiene"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.3 to //:adr-hygiene-check, specs/adr-hygiene-registry.json, ADR-0377 renumbering evidence, ADR-0511->ADR-0513 supersession validation, and superseded-reference RED/GREEN fixtures. Local/static seed evidence only; full ADR index regeneration and live required-context authority remain false.",
+      "verification_command": "buck2 build //:adr-hygiene-check"
+    },
+    {
+      "id": "AC-0.4",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.4",
+      "mapped_row_ids": [
+        "AC-0.4-language-discipline"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.4 to //:language-discipline-check, specs/language-discipline-registry.json, Rust checker/test harness evidence, GOOD/BAD language-sprawl fixtures, and the T0.4 cloud_*_check.py backlog inventory. Local/static seed evidence only; live PR changed-file ingestion and trusted cloud-ci/oya-ci required-context authority remain false.",
+      "verification_command": "buck2 build //:language-discipline-check"
+    },
+    {
+      "id": "AC-0.5",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.5",
+      "mapped_row_ids": [
+        "AC-0.5-d1-contract-files"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.5 to //:d1-seam-contracts-check, specs/d1-seam-contracts-registry.json, the A2a/A2b proto3 seam contracts, Rust checker/test harness evidence, and GOOD/BAD D1 seam fixtures. Local/static seed evidence only; live D1 read-your-writes conformance, trusted cloud-ci/oya-ci required-context authority, P0.0 green, and Phase-0 completion remain false.",
+      "verification_command": "buck2 build //:d1-seam-contracts-check"
+    },
+    {
+      "id": "AC-0.6",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.6",
+      "mapped_row_ids": [
+        "AC-0.6-effective-dating-kernel"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.6 to //:effective-dating-kernel-check plus //oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests. Coverage is local/static Rust/Buck2 evidence that bitemporal valid-time x transaction-time primitives, as-of queries, overlap rejection, open-ended ranges, and clock-skew deterministic ordering are fixture-backed; it is not live cloud-ci/oya-ci authority or P0.0 green evidence.",
+      "verification_command": "buck2 build //:effective-dating-kernel-check"
+    },
+    {
+      "id": "AC-0.7",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.7",
+      "mapped_row_ids": [
+        "AC-0.7-service-layout-sprawl"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.7 to //:service-root-classifier-check, specs/phase0-structural-packets.json, and sprawl/duplicate/retired-token/underscore fixtures. Local/static evidence only; post-migration pure split remains false until structural shards and trusted cloud-ci/oya-ci evidence run; live required-context authority remains false.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
+    },
+    {
+      "id": "AC-0.8",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.8",
+      "mapped_row_ids": [
+        "AC-0.8-cross-artifact-agreement"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.8 to //:cross-artifact-agreement-check, specs/cross-artifact-agreement-registry.json, specs/decision-propagation-packets.json register #1..#21 coverage, and GOOD/BAD fixtures for missing agreement entries, generated decisions.json divergence, unreconciled idea-refine output, and missing propagation packet #18. Local/static seed evidence only; live required-context authority remains false."
+    },
+    {
+      "id": "AC-0.9",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.9",
+      "mapped_row_ids": [
+        "AC-0.9-structural-lock-revert"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.9 to //:structural-lock-revert-check, specs/structural-lock-revert-registry.json, and structural-lock/revert RED/GREEN fixtures. Local/static seed evidence requires protected-flow revert packets, path-overlap serialization, TTL-bound advisory locks, and false mechanical-lock/status-authority rejection while leaving live required-context authority false."
+    },
+    {
+      "id": "AC-0.10",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.10",
+      "mapped_row_ids": [
+        "AC-0.10-d1-consistency-token"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.10 to //:d1-seam-contracts-check, specs/d1-seam-contracts-registry.json, A2a MutationResult optional consistency_token validation, and BAD fixtures for missing consistency_token/proto-required topology freezing. Coverage is local/static D1 seam-contract evidence only; live D1 read-your-writes conformance, required-context authority, P0.0 green, Phase-0 completion, production readiness, and hyperscaler-grade readiness remain false. Verification command: buck2 build //:d1-seam-contracts-check."
+    },
+    {
+      "id": "AC-0.10b",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.10b",
+      "mapped_row_ids": [
+        "AC-0.10b-d1-read-your-writes-xfail"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.10b to //:d1-read-your-writes-xfail-check, specs/d1-read-your-writes-xfail-registry.json, and RED/XFAIL fixtures. Coverage is local/static XFAIL classification evidence only; live D1 conformance, required-context authority, P0.0 green, Phase-0 completion, production readiness, and hyperscaler-grade readiness remain false."
+    },
+    {
+      "id": "AC-0.11",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.11",
+      "mapped_row_ids": [
+        "AC-0.11-who-gates-gates"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.11 to //:who-gates-gates-check, specs/who-gates-gates-registry.json, and BAD fixtures proving missing known-bad coverage, vacuous pass conditions, missing self-mutation tests, and oya CLI authority routes fail closed. Coverage is local/static fixture evidence only; live required-context authority, P0.0 green, Phase-0 completion, production readiness, and hyperscaler-grade readiness remain false."
+    },
+    {
+      "id": "AC-0.12",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.12",
+      "mapped_row_ids": [
+        "AC-0.12-aggregate-exit-gate"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps the AC-0.12 aggregate exit row to the local/static //:phase0-aggregate-exit-check fixture target plus future cloud-ci-phase0-aggregate-exit Rust gate packet. This is coverage mapping only, not Phase-0 completion.",
+      "verification_command": "buck2 build //:phase0-aggregate-exit-check"
+    },
+    {
+      "id": "AC-0.13",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.13",
+      "mapped_row_ids": [
+        "AC-0.13-buck2-cargo-coverage"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.13 to //:buck2-cargo-target-coverage-check, which measures Cargo workspace lib/bin target roots, including Cargo auto-discovered src/bin binaries when autobins is enabled, against checked-in Buck2 rust crate_root mappings and records divergence without claiming source-line coverage or live required-context authority.",
+      "verification_command": "buck2 build //:buck2-cargo-target-coverage-check"
+    },
+    {
+      "id": "AC-0.14",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.14",
+      "mapped_row_ids": [
+        "AC-0.14-red-green-fixture-contract"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.14 to //:phase0-red-green-fixture-contract-check, which validates the checked-in RED/GREEN fixture registry for Phase-0 gates and preserves local/static non-claim boundaries.",
+      "verification_command": "buck2 build //:phase0-red-green-fixture-contract-check"
+    },
+    {
+      "id": "AC-0.15",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.15",
+      "mapped_row_ids": [
+        "AC-0.15-merge-conflict-foundation"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.15 to //:phase0-merge-conflict-foundation-check, specs/generated-artifact-registry.json, and GOOD/BAD merge-tree/path-overlap/generated-artifact/Phase-1-overclaim fixtures. Local/static evidence only; not Phase-1 Tide batching or live required-context authority.",
+      "verification_command": "buck2 build //:phase0-merge-conflict-foundation-check"
+    },
+    {
+      "id": "AC-0.16",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.16",
+      "mapped_row_ids": [
+        "AC-0.16-automation-ratchet"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.16 to //:phase0-automation-ratchet-check, which validates seed-row classification, required-row coverage, coverage-registry row mapping, human-judgment retirement metadata, and no-new-oya-CLI constraints. Local/static evidence only; not live required-context authority.",
+      "verification_command": "buck2 build //:phase0-automation-ratchet-check"
+    },
+    {
+      "id": "AC-0.17",
+      "category": "acceptance_criterion",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.17",
+      "mapped_row_ids": [
+        "AC-0.17-claim-ceiling"
+      ],
+      "owner": "platform-governance",
+      "coverage_note": "Maps AC-0.17 to //:phase0-claim-ceiling-check, which validates regulated readiness/enforcement/security/completion vocabulary against allowed evidence tiers, target/non-claim language, and BAD/GREEN claim-ceiling fixtures. Local/static evidence only; not live required-context authority, production readiness, or hyperscaler-grade readiness.",
+      "verification_command": "buck2 build //:phase0-claim-ceiling-check"
+    },
+    {
+      "id": "FOUNDER-buck2-authority",
+      "category": "founder_directive",
+      "source_artifact": "Founder directive 2026-06-02 + specs/buck2-authority-policy.json + cloud/*/ci/Jenkinsfile + oya/*/ci/Jenkinsfile",
+      "mapped_row_ids": [
+        "AC-0.0-buck2-authority-no-cargo-regression"
+      ],
+      "owner": "platform-toolchain + platform-governance",
+      "coverage_note": "Mapped row now requires Buck2 policy/build/test anchors in every active service Jenkinsfile glob and keeps Cargo release optimization evidence outside merge authority."
+    },
+    {
+      "id": "ADR-0363",
+      "category": "adr_amendment",
+      "source_artifact": "docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+      "mapped_row_ids": [
+        "ADR-0363-oya-cli-retirement"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "ADR-0513",
+      "category": "adr_amendment",
+      "source_artifact": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+      "mapped_row_ids": [
+        "ADR-0513-tide-ownership"
+      ],
+      "owner": "platform-toolchain",
+      "coverage_note": "ADR-0513 Tide ownership is represented by cloud-ci/oya-ci row mapping plus AC-0.15 non-claim merge-tree readiness fixtures; Phase-1 projected-state batching remains unclaimed."
+    },
+    {
+      "id": "P0.6-pack-root-classifier",
+      "category": "phase_work_item",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.6",
+      "mapped_row_ids": [
+        "P0.6-pack-root-classifier"
+      ],
+      "owner": "platform-architecture",
+      "coverage_note": "Maps P0.6 pack/root classification to //:service-root-classifier-check with service inventory plus structural packet seeds for P0.6a/P0.6b/P0.6c/P0.6d families. Packs and regional-packs are classified as authorized shared roots, not service roots; live required-context authority remains false.",
+      "verification_command": "buck2 build //:service-root-classifier-check"
+    },
+    {
+      "id": "P0.7-decision-propagation",
+      "category": "phase_work_item",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.7",
+      "mapped_row_ids": [
+        "P0.7-decision-propagation-packets"
+      ],
+      "owner": "council-architecture"
+    },
+    {
+      "id": "P0.9-generated-artifact-registry",
+      "category": "phase_work_item",
+      "source_artifact": ".omx/plans/prd-platform-readiness.md#P0.9",
+      "mapped_row_ids": [
+        "P0.9-generated-artifact-registry"
+      ],
+      "owner": "platform-toolchain",
+      "coverage_note": "Maps P0.9 to //:phase0-merge-conflict-foundation-check, the generated-artifact seed registry, and AC-0.15 merge-conflict/generated-artifact fixtures. The seed registry records third-party/BUCK source/regeneration ownership; full-repo generated-artifact coverage remains false and live required-context authority remains false until a trusted expanded drift gate runs.",
+      "verification_command": "buck2 build //:phase0-merge-conflict-foundation-check"
+    },
+    {
+      "id": "PROCESS-reviewer-multispectrum-evidence",
+      "category": "operating_contract",
+      "source_artifact": "docs/AGENTS.md + .omx/plans/prd-platform-readiness.md#AC-0.12",
+      "mapped_row_ids": [
+        "PROCESS-reviewer-multispectrum-evidence",
+        "AC-0.12-aggregate-exit-gate"
+      ],
+      "owner": "platform-governance"
+    },
+    {
+      "id": "PERF-CAPACITY-claim-budget",
+      "category": "claim_constraint",
+      "source_artifact": "specs/hyperscaler-production-readiness-claim-contract.json#PERF-CAPACITY",
+      "mapped_row_ids": [
+        "AC-0.17-performance-budget-claim"
+      ],
+      "owner": "platform-sre"
+    }
+  ],
+  "expected_verdict": "GREEN",
+  "expected_violations": []
+}
