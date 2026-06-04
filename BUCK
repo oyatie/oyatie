@@ -52,8 +52,11 @@ genrule(
         "scripts/ci/assert-third-party-durable-handedits.rs": "scripts/ci/assert-third-party-durable-handedits.rs",
         "scripts/tests/third_party_durable_handedits_check.rs": "scripts/tests/third_party_durable_handedits_check.rs",
         "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
+        "scripts/ci/assert-kubernetes-native-antipatterns.rs": "scripts/ci/assert-kubernetes-native-antipatterns.rs",
         "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
+        "scripts/tests/kubernetes_native_antipatterns_check.rs": "scripts/tests/kubernetes_native_antipatterns_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
+        "specs/kubernetes-native-anti-patterns.json": "specs/kubernetes-native-anti-patterns.json",
         "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
         "tools/oya-doc-staleness-inventory-app/BUCK": "//tools/oya-doc-staleness-inventory-app:BUCK",
         "tools/oya-doc-staleness-inventory-app/Cargo.toml": "//tools/oya-doc-staleness-inventory-app:cargo-manifest",
@@ -322,6 +325,33 @@ genrule(
     },
     out = "repo-hygiene-automation-check.json",
     cmd = "mkdir -p $TMP/repo-hygiene-automation && rustc --edition=2021 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o $TMP/repo-hygiene-automation/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/repo_hygiene_automation_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o $TMP/repo-hygiene-automation/assert-repo-hygiene-automation && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-repo-hygiene-automation --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+# P00 hyperscaler/cloud/Kubernetes-native anti-pattern guard. This is
+# local/static evidence: it validates the anti-pattern contract, generated
+# controller-config security defaults, and root/masterplan/hygiene pointers
+# without mutating a live cluster, GitHub required contexts, or deployments.
+genrule(
+    name = "kubernetes-native-anti-pattern-check",
+    srcs = {
+        "scripts/ci/assert-kubernetes-native-antipatterns.rs": "scripts/ci/assert-kubernetes-native-antipatterns.rs",
+        "scripts/tests/kubernetes_native_antipatterns_check.rs": "scripts/tests/kubernetes_native_antipatterns_check.rs",
+        "specs/kubernetes-native-anti-patterns.json": "specs/kubernetes-native-anti-patterns.json",
+        "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
+        "specs/masterplan.json": "specs/masterplan.json",
+        "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
+        "specs/oya-ci-controller-config-contract.json": "specs/oya-ci-controller-config-contract.json",
+        "specs/generated/oya-ci-controller-config.generated.yaml": "specs/generated/oya-ci-controller-config.generated.yaml",
+        "AGENTS.md": "AGENTS.md",
+        "CLAUDE.md": "CLAUDE.md",
+        "BUCK": "BUCK",
+    },
+    out = "kubernetes-native-anti-pattern-check.json",
+    cmd = "mkdir -p $TMP/kubernetes-native-anti-patterns && rustc --edition=2021 -D warnings scripts/tests/kubernetes_native_antipatterns_check.rs --test -o $TMP/kubernetes-native-anti-patterns/kubernetes_native_antipatterns_check && OYA_REPO_ROOT=$PWD $TMP/kubernetes-native-anti-patterns/kubernetes_native_antipatterns_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-kubernetes-native-antipatterns.rs -o $TMP/kubernetes-native-anti-patterns/assert-kubernetes-native-antipatterns && OYA_REPO_ROOT=$PWD $TMP/kubernetes-native-anti-patterns/assert-kubernetes-native-antipatterns --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
