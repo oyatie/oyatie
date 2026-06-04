@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T03:00:00Z",
+  "updated_at": "2026-06-04T04:10:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for the temporary GitHub lane-unlocker and native SCM/CI/CD cutover prep.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -77,9 +77,27 @@
       "doc catalog stale status",
       "ADR index regeneration backlog",
       "machine-readable mirror freshness",
-      "retired substrate exact-name tombstones"
+      "retired substrate exact-name tombstones",
+      "git-backed stale documentation inventory",
+      "rust-buck2 stale documentation inventory test target"
     ],
-    "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance."
+    "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
+    "stale_doc_inventory": {
+      "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+      "cutoff_days": 3,
+      "scanned_paths": [
+        "README.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "docs",
+        "specs"
+      ],
+      "source": "git history in full-fetch GitHub/worktree contexts",
+      "default_action": "inventory_only_then_separate_evidence_backed_update_archive_or_delete_pr",
+      "live_mutation": false,
+      "claim_boundary": "inventory_only_no_deletion_no_archive_no_live_mutation",
+      "implementation": "tools/oya-doc-staleness-inventory-app (Rust, Buck2-owned; optional local Cargo manifest is advisory only)"
+    }
   },
   "native_scm_adapter_contract": {
     "scm_core": "pure-Rust Sapling-inspired Oyatie SCM owns durable commit graph, stacked changes, workspace leases, branch/merge state, and policy evaluation",
@@ -107,7 +125,9 @@
     "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
     "buck2 build //:repo-hygiene-automation-check",
     "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
-    "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check"
+    "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
+    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
+    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
   ],
   "official_sources": [
     {
@@ -145,6 +165,54 @@
     {
       "url": "https://kubernetes.io/docs/tasks/run-application/scale-deployment/",
       "establishes": "Controller-oriented scaling for putting workloads down."
+    },
+    {
+      "url": "https://www.nist.gov/publications/zero-trust-architecture",
+      "establishes": "NIST SP 800-207 zero trust architecture patterns for policy-based access, least privilege, and continuous evaluation."
+    },
+    {
+      "url": "https://csrc.nist.gov/pubs/sp/800/162/upd2/final",
+      "establishes": "NIST SP 800-162 attribute-based access control model beyond role-only authorization."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "establishes": "Kubernetes NetworkPolicy default-deny and pod traffic segmentation mechanics."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "establishes": "Kubernetes Pod Security Standards for restricted pods, privilege controls, capabilities, and read-only filesystems."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/containers/runtime-class/",
+      "establishes": "Kubernetes RuntimeClass for selecting runtime handlers such as sandboxed runtimes."
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+      "establishes": "Kubernetes service-account token mounting and workload identity boundary controls."
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/",
+      "establishes": "Kubernetes at-rest encryption configuration for sensitive API data."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/concepts/security/openid-connect",
+      "establishes": "GitHub Actions OIDC for short-lived cloud credentials without long-lived secrets."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions",
+      "establishes": "GitHub Actions security hardening guidance for least privilege, secrets, and untrusted workflow inputs."
+    },
+    {
+      "url": "https://slsa.dev/spec/v1.2/requirements",
+      "establishes": "SLSA provenance, isolation, and dependency controls for build pipelines."
+    },
+    {
+      "url": "https://istio.io/latest/docs/concepts/security/",
+      "establishes": "Service mesh security and mutual TLS patterns for workload-to-workload traffic."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+      "establishes": "Service Control Policies as a hyperscaler-style multi-account guardrail pattern for Oyatie Cloud accounts."
     }
   ],
   "claim_boundary": {
@@ -185,5 +253,440 @@
     ],
     "purpose": "Make active agent/root/procedure docs mechanically refuse stale interim-authority wording while leaving historical ADR provenance intact.",
     "forbidden_active_doc_phrase_source": "Exact retired-substrate deny strings are constants in scripts/ci/assert-repo-hygiene-automation.py so this active spec does not reintroduce tombstoned names."
-  }
+  },
+  "automation_language_policy": {
+    "new_parallel_fanout_automation": "rust_buck2_first",
+    "new_python_or_shell_gate_surface": "deny_unless_explicit_bootstrap_exception",
+    "legacy_python_shell_migration_backlog": true,
+    "cargo_projection": "local_advisory_per_tool_manifest_without_root_workspace_edit_until_generated_consolidation",
+    "rationale": "Buck2 remains the build/test/check authority; Rust tools reduce ad-hoc script drift and make fanout contracts easier to test under Buck2."
+  },
+  "shared_surface_mitigation": {
+    "decision": "Keep canonical root docs and GitHub workflow pointer-thin; route detail to vertical-owned shards and generated_consolidation outputs so parallel lanes do not repeatedly edit the same shared files.",
+    "mechanical_resolution": {
+      "required": true,
+      "pattern": "registry_owned_desired_ci_graph_to_generated_consolidation",
+      "future_tooling": "Rust/Buck2 generator emits canonical workflow or aggregate manifest; CI checks generated output matches registry.",
+      "claim_boundary": "not implemented as generator in this PR; recorded as P00 backlog to reduce shared-file conflicts."
+    },
+    "options_considered": [
+      {
+        "option": "single_hand_edited_canonical_workflow",
+        "disposition": "reject_for_parallel_fanout",
+        "reason": "large shared mutable surface creates recurring merge conflicts"
+      },
+      {
+        "option": "many_independent_workflows",
+        "disposition": "use_selectively",
+        "reason": "reduces conflicts but fragments required-context governance if left unconsolidated"
+      },
+      {
+        "option": "vertical_owned_reusable_workflow_shards",
+        "disposition": "prefer_now",
+        "reason": "GitHub reusable workflows support central callable logic while lanes own disjoint workflow inputs"
+      },
+      {
+        "option": "generated_consolidation_from_registry",
+        "disposition": "target_p00",
+        "reason": "single required context can be mechanically regenerated and checked instead of hand-edited"
+      },
+      {
+        "option": "native_scm_semantic_merge_and_queue_adapter",
+        "disposition": "durable_destination",
+        "reason": "native SCM can resolve semantic/stacked-change conflicts once cutover evidence exists"
+      }
+    ]
+  },
+  "cleanup_candidate_backlog": [
+    {
+      "id": "legacy_python_shell_gate_surfaces",
+      "lane": "platform-governance",
+      "action": "Port legacy Python/shell CI gate surfaces to Rust/Buck2 where they remain active authority; keep bootstrap scripts narrowly allowlisted until replaced.",
+      "conflict_mitigation": "Each port owns one tool directory and Buck2 target to avoid expanding shared scripts/ci edits."
+    },
+    {
+      "id": "shared_ci_workflow_surface",
+      "lane": "platform-scm-ci-cd",
+      "action": "Split shared CI into vertical reusable workflow shards or generated aggregate workflow from a registry.",
+      "conflict_mitigation": "Canonical workflow becomes generated or pointer-thin; vertical lanes edit disjoint registry/shard files."
+    },
+    {
+      "id": "root_hub_masterplan_shared_docs",
+      "lane": "council-architecture",
+      "action": "Keep README/AGENTS/CLAUDE/root hub/masterplan pointer-thin and route lane details to machine-readable specs.",
+      "conflict_mitigation": "Prefer refs and registries over prose expansion in root shared files."
+    },
+    {
+      "id": "stale_doc_inventory_followups",
+      "lane": "council-architecture",
+      "action": "Use the Rust stale-doc inventory output to open separate evidence-backed update/archive/delete PRs.",
+      "conflict_mitigation": "Do not bulk-delete historical ADRs; archive/update/delete by owner lane."
+    },
+    {
+      "id": "retired_external_substrate_residue",
+      "lane": "platform-scm-ci-cd",
+      "action": "Preserve historical ADR provenance but remove active docs/code paths that keep retired external SCM/CI/CD substrates as interim authority.",
+      "conflict_mitigation": "Use tombstone registry and active exact-name scan instead of repeated whole-repo manual sweeps."
+    },
+    {
+      "id": "temporary_github_bridge_artifacts",
+      "lane": "platform-scm-ci-cd",
+      "action": "Track GitHub bridge artifacts as temporary; cut over only after native SCM/CI/CD/cloud workspace evidence exists.",
+      "conflict_mitigation": "Keep temporary bridge specs separate from native destination specs."
+    }
+  ],
+  "security_hardening_backlog": [
+    {
+      "id": "zero_trust_architecture",
+      "valid": true,
+      "lane": "platform-cloud-security",
+      "phase": "P00/P01",
+      "backlog_action": "Model service-to-service and user-to-resource access as continuous, policy-evaluated trust decisions; bind to Cloud IdP and admission policy.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "privileged_identity_management",
+      "valid": true,
+      "lane": "platform-iam",
+      "phase": "P01",
+      "backlog_action": "Add just-in-time privileged elevation, approval, expiry, and audit for break-glass/admin access.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "abac_beyond_rbac",
+      "valid": true,
+      "lane": "platform-iam",
+      "phase": "P01",
+      "backlog_action": "Design Cedar/OPA-style attribute policy for tenant/account/project/resource context beyond static RBAC roles.",
+      "source_refs": [
+        "NIST SP 800-162"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "network_microsegmentation",
+      "valid": true,
+      "lane": "platform-network",
+      "phase": "P00/P01",
+      "backlog_action": "Default-deny east-west traffic and allow only explicit service-to-service paths.",
+      "source_refs": [
+        "Kubernetes NetworkPolicy",
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "silo_apis_integrations",
+      "valid": true,
+      "lane": "platform-api",
+      "phase": "P01",
+      "backlog_action": "Separate integration surfaces per tenant/account/project and prevent shared integration credentials across silos.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "silo_ai_automation",
+      "valid": true,
+      "lane": "platform-intelligence",
+      "phase": "P01",
+      "backlog_action": "Scope agent/automation identities, tools, memories, and data access per tenant/project/workload lane.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "encrypt_sensitive_data",
+      "valid": true,
+      "lane": "platform-data",
+      "phase": "P00/P01",
+      "backlog_action": "Encrypt sensitive data in transit and at rest, including Kubernetes API data and service-owned stores.",
+      "source_refs": [
+        "Kubernetes encryption at rest",
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "purge_redundant_obsolete_data",
+      "valid": true,
+      "lane": "platform-data-governance",
+      "phase": "P01",
+      "backlog_action": "Add retention/deletion workflows for obsolete data discovered by hygiene inventories.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "data_layer_rate_limiting",
+      "valid": true,
+      "lane": "platform-data",
+      "phase": "P01",
+      "backlog_action": "Rate-limit data-layer APIs and high-cardinality queries per tenant/workload to contain abuse and runaway agents.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "automated_session_revocation",
+      "valid": true,
+      "lane": "platform-iam",
+      "phase": "P01",
+      "backlog_action": "Add session revocation hooks for risk events, privilege expiry, tenant disablement, and credential rotation.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "dual_attribution_audit_logging",
+      "valid": true,
+      "lane": "platform-audit",
+      "phase": "P01",
+      "backlog_action": "Log both human principal and automation/agent/workload delegate for every privileged action.",
+      "source_refs": [
+        "NIST SP 800-207",
+        "SLSA"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "isolate_ci_cd_pipelines",
+      "valid": true,
+      "lane": "platform-scm-ci-cd",
+      "phase": "P00/P01",
+      "backlog_action": "Isolate CI lanes by repo/tenant/trust tier and prevent untrusted PR jobs from sharing privileged runners or secrets.",
+      "source_refs": [
+        "SLSA",
+        "GitHub Actions hardening"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "tightly_scope_pipeline_secrets",
+      "valid": true,
+      "lane": "platform-scm-ci-cd",
+      "phase": "P00",
+      "backlog_action": "Use least-privilege GitHub permissions/OIDC and avoid long-lived broad secrets in workflows.",
+      "source_refs": [
+        "GitHub OIDC",
+        "GitHub Actions hardening"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "pin_dependencies_private_registries",
+      "valid": true,
+      "lane": "platform-supply-chain",
+      "phase": "P00/P01",
+      "backlog_action": "Pin action/tool/dependency versions and prefer private/controlled registries plus provenance where supported.",
+      "source_refs": [
+        "SLSA",
+        "GitHub Actions hardening"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "honeytokens_tripwires",
+      "valid": true,
+      "lane": "platform-security-operations",
+      "phase": "P01",
+      "backlog_action": "Deploy scoped honeytokens and instant alerts for credential misuse and unexpected data path access.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "host_based_microsegmentation",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P01",
+      "backlog_action": "Evaluate host/workload firewalling and eBPF enforcement where Kubernetes NetworkPolicy is insufficient.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "hardware_enforced_isolation",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P01/P02",
+      "backlog_action": "Use hardware-enforced isolation for high-risk workloads through confidential compute/sandbox runtimes where justified.",
+      "source_refs": [
+        "Kubernetes RuntimeClass"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "multi_account_cloud_strategy",
+      "valid": true,
+      "lane": "platform-cloud",
+      "phase": "P00/P01",
+      "backlog_action": "Model Oyatie Cloud org/account/project separation with account-level blast-radius boundaries.",
+      "source_refs": [
+        "AWS SCP pattern",
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "service_control_policies",
+      "valid": true,
+      "lane": "platform-cloud",
+      "phase": "P01",
+      "backlog_action": "Adopt SCP-like deny guardrails for Oyatie Cloud accounts/projects and native control planes.",
+      "source_refs": [
+        "AWS SCP pattern"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "enforce_workload_identity",
+      "valid": true,
+      "lane": "platform-iam-runtime",
+      "phase": "P00/P01",
+      "backlog_action": "Bind workloads to short-lived identities rather than static node/runner credentials.",
+      "source_refs": [
+        "GitHub OIDC",
+        "Kubernetes service accounts"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "block_node_metadata_access",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P00/P01",
+      "backlog_action": "Block pod access to cloud node metadata endpoints unless explicitly required by workload identity design.",
+      "source_refs": [
+        "NIST SP 800-207",
+        "Kubernetes service accounts"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "pod_level_runtime_isolation",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P00/P01",
+      "backlog_action": "Assign high-risk pods to isolated runtime classes and security profiles.",
+      "source_refs": [
+        "Kubernetes RuntimeClass",
+        "Kubernetes Pod Security Standards"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "restrict_container_privileges",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P00",
+      "backlog_action": "Enforce restricted pod standards: no privileged containers, no privilege escalation, limited host namespaces/paths.",
+      "source_refs": [
+        "Kubernetes Pod Security Standards"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "immutable_container_filesystems",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P00/P01",
+      "backlog_action": "Default service containers to read-only root filesystems with explicit writable volumes.",
+      "source_refs": [
+        "Kubernetes Pod Security Standards"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "drop_linux_capabilities",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P00",
+      "backlog_action": "Drop all Linux capabilities by default and add only required capabilities per workload exception.",
+      "source_refs": [
+        "Kubernetes Pod Security Standards"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "default_deny_network_policies",
+      "valid": true,
+      "lane": "platform-network",
+      "phase": "P00",
+      "backlog_action": "Require namespace default-deny ingress/egress policies before enabling service lanes.",
+      "source_refs": [
+        "Kubernetes NetworkPolicy"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "service_mesh_mtls",
+      "valid": true,
+      "lane": "platform-network",
+      "phase": "P01",
+      "backlog_action": "Use service mesh mTLS for workload-to-workload identity and transport encryption where mesh overhead is justified.",
+      "source_refs": [
+        "Istio security"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "disable_default_service_account_token_mounting",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P00",
+      "backlog_action": "Disable automatic service-account token mounts by default and opt in per workload.",
+      "source_refs": [
+        "Kubernetes service accounts"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "cluster_architecture_blast_walls",
+      "valid": true,
+      "lane": "platform-cloud",
+      "phase": "P00/P01",
+      "backlog_action": "Define cell/region/tenant blast walls across namespaces, node pools, clusters, and accounts.",
+      "source_refs": [
+        "NIST SP 800-207",
+        "Kubernetes NetworkPolicy"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "separate_control_planes",
+      "valid": true,
+      "lane": "platform-cloud",
+      "phase": "P01",
+      "backlog_action": "Separate management/control planes from tenant workloads and high-risk experimentation lanes.",
+      "source_refs": [
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "sandboxed_runtimes",
+      "valid": true,
+      "lane": "platform-runtime",
+      "phase": "P01",
+      "backlog_action": "Adopt sandboxed runtimes through RuntimeClass for untrusted or high-risk workloads.",
+      "source_refs": [
+        "Kubernetes RuntimeClass"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    }
+  ]
 }
