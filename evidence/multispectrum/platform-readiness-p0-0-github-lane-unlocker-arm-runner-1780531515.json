@@ -1,0 +1,75 @@
+{
+  "change_class_id": "CC-6",
+  "change_id": "platform-readiness-p0-0-github-lane-unlocker-arm-runner-1780531515",
+  "checks": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "evidence": "failures=[]; workflow has three runs-on: ubuntu-24.04-arm entries; p0_0_green=false; phase0_complete=false",
+      "name": "github_lane_unlocker_contract",
+      "verdict": "PASS"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "command_scan_files=241; command_scan_globs=2; status_context_scan_files=9; authority_context=oya-ci-required; p0_0_green=false; phase0_complete=false",
+      "name": "buck2_authority_policy",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/github-lane-unlocker-bridge.json specs/buck2-authority-policy.json",
+      "evidence": "JSON syntax valid",
+      "name": "json_syntax",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "evidence": "BUILD SUCCEEDED; Build ID 4a12e56e-f32a-4cf7-bfd7-634ed9a3a5f4",
+      "name": "buck2_lane_unlocker_and_authority_targets",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check --show-output",
+      "evidence": "BUILD SUCCEEDED; Build ID dc15194f-a937-4f26-81f9-b5920ab17839",
+      "name": "rust_llvm_coverage_targets",
+      "verdict": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "no whitespace errors",
+      "name": "diff_hygiene",
+      "verdict": "PASS"
+    }
+  ],
+  "claim_boundary": {
+    "github_actions_is_permanent_ci_cd": false,
+    "github_is_permanent": false,
+    "live_branch_protection_mutated": false,
+    "live_kubernetes_mutated": false,
+    "local_static_evidence_only": true,
+    "native_ci_authority_proven": false,
+    "native_cutover_target_context": "oya-ci-required",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "temporary_required_context": "github-lane-unlocker-required"
+  },
+  "live_ci_diagnostic": {
+    "failed_commit_before_fix": "f3ca325ec07fbafdf650ee159ea3a997d428e824",
+    "failed_run_id_before_fix": 26920887244,
+    "failing_lane_before_fix": "affected-build",
+    "fix": "run the temporary GitHub bridge on ubuntu-24.04-arm to match the aarch64 Buck2 Rust target natively instead of x64 cross-linking",
+    "passing_lanes_before_fix": [
+      "governance",
+      "buck2-authority",
+      "rust-llvm-coverage"
+    ],
+    "pull_request": 455,
+    "repo": "jason931225/oyatie",
+    "root_cause": "affected build uses the repo Buck2 Rust toolchain default aarch64-unknown-linux-gnu while ubuntu-latest provided an x86_64 linker; third-party build scripts failed with objects/std libraries incompatible with elf64-x86-64"
+  },
+  "official_sources": [
+    "https://docs.github.com/en/actions/reference/github-hosted-runners-reference"
+  ],
+  "schema_version": "multispectrum-review.v2.4.0-local-static-plus-live-ci-diagnostic",
+  "scope": "GitHub Actions lane-unlocker arm64 runner alignment for current aarch64 Buck2 Rust target",
+  "timestamp": "2026-06-03T20:05:15-0400",
+  "verdict": "LOCAL_STATIC_PASS_PUSH_REQUIRED_FOR_LIVE_RERUN_NOT_NATIVE_AUTHORITY"
+}

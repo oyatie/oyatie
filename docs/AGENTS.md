@@ -302,7 +302,7 @@ Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harne
 
 The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENTS.md convention](https://agents.md). Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
 
-Build / test commands: `buck2 build`, `buck2 test`, `infra/ci/buck2-affected-gate.sh origin/dev HEAD`, `pnpm build`, `pnpm test` (Node 20). Lint: Buck2 lint targets, direct `rustfmt` when needed, `pnpm lint`.
+Build / test commands: `buck2 build`, `buck2 test`, `infra/ci/buck2-affected-gate.sh origin/dev HEAD`, `pnpm build`, `pnpm test` (Node 24 LTS by default; Node 26 Current only when a lane explicitly needs it). Lint: Buck2 lint targets, direct `rustfmt` when needed, `pnpm lint`.
 
 Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 

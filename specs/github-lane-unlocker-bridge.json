@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/github-lane-unlocker-bridge.json",
   "spec_id": "P00-GITHUB-LANE-UNLOCKER-BRIDGE",
   "bridge_status": "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
-  "updated_at": "2026-06-03T00:00:00Z",
+  "updated_at": "2026-06-04T00:00:00Z",
   "purpose": "Unlock highly parallel product, infra, and cloud lanes on dev while native SCM/CI/CD/cloud workspace seams are built behind Buck2 authority.",
   "github_bridge": {
     "temporary": true,
@@ -16,7 +16,7 @@
     "is_destination_cd": false,
     "required_context": "github-lane-unlocker-required",
     "workflow_path": ".github/workflows/github-lane-unlocker-ci-cd.yml",
-    "branch_protection_application": "external_live_change_required_not_performed_by_this_contract",
+    "branch_protection_application": "live_dev_required_context_converged_to_github_lane_unlocker_required_until_native_cutover",
     "native_cutover_target_context": "oya-ci-required",
     "queue_policy": {
       "preferred": "github_merge_queue_when_available",
@@ -42,7 +42,23 @@
       ],
       "rustup_concurrent_downloads": 1,
       "rustup_lazy_install_allowed_in_buck2_actions": false,
-      "llvm_tools_preinstalled": true
+      "llvm_tools_preinstalled": true,
+      "github_runner_label": "ubuntu-24.04-arm",
+      "runner_architecture": "arm64",
+      "runner_architecture_reason": "The current Buck2 Rust toolchain defaults to aarch64-unknown-linux-gnu, so the temporary GitHub bridge uses native arm64 runners instead of x64 cross-linking."
+    },
+    "manual_oya_ci_required_bridge_allowed": false,
+    "required_context_reason": "Temporary GitHub Actions aggregate check is the automated merge gate; manual oya-ci-required statuses are avoided until the trusted native cloud-ci producer exists.",
+    "javascript_action_runtime": {
+      "checkout_action_ref": "actions/checkout@v6",
+      "latest_checkout_release_verified": "v6.0.3",
+      "latest_checkout_release_published_at": "2026-06-02T14:35:13Z",
+      "force_node24_runtime": true,
+      "force_node24_env": "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24",
+      "node26_action_runtime_used": false,
+      "node26_action_runtime_reason": "GitHub JavaScript action runtime migration is Node24; Node26 is available through actions/node-versions for explicit setup-node jobs, but these Buck2/Rust bridge workflows do not run Node application tests.",
+      "unsecure_node20_opt_out_allowed": false,
+      "stability_policy": "Use the stable v6 major tag for checkout and fail closed if GitHub Actions requires a newer JavaScript action runtime."
     }
   },
   "github_actions_cd_bridge": {
@@ -361,6 +377,11 @@
       "establishes": "Workflow syntax, strategy matrix, fail-fast, max-parallel, permissions, and job structure."
     },
     {
+      "name": "GitHub Docs \u2014 GitHub-hosted runners reference",
+      "url": "https://docs.github.com/en/actions/reference/github-hosted-runners-reference",
+      "used_for": "ubuntu-24.04-arm standard GitHub-hosted runner label and arm64 architecture availability."
+    },
+    {
       "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations",
       "establishes": "Matrix fanout and max-parallel behavior for concurrent CI lanes."
     },
@@ -419,6 +440,18 @@
     {
       "url": "https://architecture.cncf.io/",
       "establishes": "CNCF Cloud Native Reference Architecture properties for distributable, observable, portable, interoperable, and available systems."
+    },
+    {
+      "url": "https://github.com/actions/checkout/releases/tag/v6.0.3",
+      "establishes": "actions/checkout v6.0.3 latest release verified 2026-06-04 for the temporary GitHub bridge."
+    },
+    {
+      "url": "https://github.com/actions/node-versions/releases/tag/26.3.0-26776574275",
+      "establishes": "Node 26 is available through the actions/node-versions toolcache for explicit setup-node use, but not used as the JavaScript action runtime here."
+    },
+    {
+      "url": "https://nodejs.org/en/about/previous-releases",
+      "establishes": "Node 26 is Current before its October 2026 LTS transition; Node 24 remains the active LTS line for conservative workflow runtime posture."
     }
   ],
   "cleanup_policy": {

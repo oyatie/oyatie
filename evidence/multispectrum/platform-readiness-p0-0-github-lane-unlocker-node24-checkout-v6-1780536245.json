@@ -1,0 +1,123 @@
+{
+  "schema_version": "multispectrum-review.v2.4.0-node24-checkout-v6",
+  "change_id": "platform-readiness-p0-0-github-lane-unlocker-node24-checkout-v6-1780536245",
+  "change_class_id": "CC-6",
+  "timestamp": "2026-06-03T21:24:05-0400",
+  "scope": "Temporary GitHub Actions lane-unlocker Node runtime and checkout action modernization",
+  "verdict": "LOCAL_STATIC_PASS_CHECKOUT_V6_NODE24_ACTION_RUNTIME_OPT_IN_NODE26_NOT_USED_FOR_ACTION_RUNTIME",
+  "claim_boundary": {
+    "github_is_permanent": false,
+    "github_actions_is_permanent_ci_cd": false,
+    "native_ci_authority_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "live_branch_protection_mutated_by_this_change": false,
+    "manual_oya_ci_required_bridge_allowed": false,
+    "temporary_required_context": "github-lane-unlocker-required",
+    "native_cutover_target_context": "oya-ci-required"
+  },
+  "runtime_decision": {
+    "checkout_action_ref": "actions/checkout@v6",
+    "latest_checkout_release_verified": "v6.0.3",
+    "latest_checkout_release_published_at": "2026-06-02T14:35:13Z",
+    "force_node24_runtime": true,
+    "force_node24_env": "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24",
+    "node26_action_runtime_used": false,
+    "node26_action_runtime_reason": "GitHub Actions JavaScript action-runtime migration target is Node 24. Node 26 is available in actions/node-versions for explicit setup-node jobs, but this Buck2/Rust bridge has no Node application test job and should not add setup-node just to consume a newer Current runtime.",
+    "node26_toolcache_latest_observed": "26.3.0-26776574275",
+    "unsecure_node20_opt_out_allowed": false
+  },
+  "live_branch_protection_observation": {
+    "repo": "jason931225/oyatie",
+    "branch": "dev",
+    "command": "gh api repos/jason931225/oyatie/branches/dev/protection/required_status_checks --jq '{contexts,checks,strict}'",
+    "strict": false,
+    "contexts": [
+      "github-lane-unlocker-required"
+    ],
+    "checks": [
+      {
+        "context": "github-lane-unlocker-required",
+        "app_id": 15368
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "github_lane_unlocker_contract",
+      "command": "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "verdict": "PASS",
+      "evidence": "failures=[]; temporary_required_context=github-lane-unlocker-required; native_cutover_target_context=oya-ci-required; workflow=.github/workflows/github-lane-unlocker-ci-cd.yml"
+    },
+    {
+      "name": "buck2_authority_policy",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "verdict": "PASS",
+      "evidence": "verdict=PASS; command_scan_files=241; status_context_scan_files=9"
+    },
+    {
+      "name": "json_syntax",
+      "command": "python3 -m json.tool specs/github-lane-unlocker-bridge.json specs/buck2-authority-policy.json infra/branch-protection/dev.json",
+      "verdict": "PASS",
+      "evidence": "JSON syntax valid"
+    },
+    {
+      "name": "workflow_yaml_syntax",
+      "command": "ruby -ryaml -e 'ARGV.each { |p| YAML.load_file(p); puts \"yaml ok: #{p}\" }' .github/workflows/github-lane-unlocker-ci-cd.yml .github/workflows/backbone-microservices-ci.yml .github/branch-protection.yaml",
+      "verdict": "PASS",
+      "evidence": "all three YAML files parsed"
+    },
+    {
+      "name": "active_stale_reference_sweep",
+      "command": "active bridge/evidence grep for legacy checkout v4 action and unsafe Node runtime opt-out markers",
+      "verdict": "PASS_NO_MATCHES",
+      "evidence": "no stale checkout v4 or unsafe Node opt-out markers in active bridge/evidence surfaces"
+    },
+    {
+      "name": "pr_review_workflow_fixture_test",
+      "command": "scripts/tests/pr-review-workflow-pr-head-check.test.sh",
+      "verdict": "SKIP_EXPECTED_IN_THIS_CHECKOUT",
+      "evidence": ".github/workflows/pr-review.yml is not present in this checkout; test exits 0 after explicit skip guard"
+    },
+    {
+      "name": "python_syntax",
+      "command": "python3 -m py_compile scripts/ci/assert-github-lane-unlocker-bridge.py scripts/ci/enforce-buck2-authority.py",
+      "verdict": "PASS",
+      "evidence": "Python syntax valid"
+    },
+    {
+      "name": "diff_hygiene",
+      "command": "git diff --check",
+      "verdict": "PASS",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "name": "buck2_lane_unlocker_and_authority_targets",
+      "command": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID be52b49f-4b8d-439c-8646-b926ceeaeb13"
+    },
+    {
+      "name": "rust_llvm_coverage_targets",
+      "command": "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID 18139d67-0a7d-45dd-b44f-2e255a98ef91"
+    }
+  ],
+  "official_sources_observed": [
+    {
+      "command": "gh api repos/actions/checkout/releases/latest --jq '{tag_name,name,published_at,url: .html_url}'",
+      "url": "https://github.com/actions/checkout/releases/tag/v6.0.3",
+      "evidence": "latest release tag v6.0.3 published 2026-06-02T14:35:13Z"
+    },
+    {
+      "command": "gh api repos/actions/node-versions/releases --paginate --jq '[.[] | select(.tag_name | startswith(\"26.\")) | {tag_name,published_at,url: .html_url}] | .[0:4]'",
+      "url": "https://github.com/actions/node-versions/releases/tag/26.3.0-26776574275",
+      "evidence": "Node 26.3.0 toolcache release observed, but not used because this bridge has no setup-node job"
+    },
+    {
+      "url": "https://nodejs.org/en/about/previous-releases",
+      "evidence": "Node 26 is Current before LTS; Node 24 remains conservative LTS/runtime posture"
+    }
+  ]
+}

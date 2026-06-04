@@ -3,6 +3,11 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 script="$repo_root/scripts/pr-review-workflow-pr-head-check.sh"
+source_workflow="$repo_root/.github/workflows/pr-review.yml"
+if [[ ! -f "$source_workflow" ]]; then
+  echo "SKIP: .github/workflows/pr-review.yml is not present in this checkout"
+  exit 0
+fi
 tmpdir="$(mktemp -d)"
 cleanup() {
   rm -rf "$tmpdir"
@@ -26,7 +31,7 @@ make_repo() {
 }
 
 good_repo="$tmpdir/good"
-make_repo "$repo_root/.github/workflows/pr-review.yml" "$good_repo"
+make_repo "$source_workflow" "$good_repo"
 (
   cd "$good_repo"
   "$script" --skip-remote-freshness
@@ -44,7 +49,7 @@ jobs:
     name: oya-pr-review
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
       - run: echo "implicit workflow_run job check only"
@@ -66,7 +71,7 @@ grep -q 'head_sha' "$tmpdir/stale.err"
 
 candidate_worktree_repo="$tmpdir/candidate-worktree"
 make_repo "$stale_workflow" "$candidate_worktree_repo"
-cp "$repo_root/.github/workflows/pr-review.yml" "$candidate_worktree_repo/.github/workflows/pr-review.yml"
+cp "$source_workflow" "$candidate_worktree_repo/.github/workflows/pr-review.yml"
 (
   cd "$candidate_worktree_repo"
   "$script" --source worktree
@@ -93,7 +98,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           gh pr view 1 --json headRefOid --jq '.headRefOid'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ steps.pr.outputs.pr_head_sha }}
       - name: Fan out review
