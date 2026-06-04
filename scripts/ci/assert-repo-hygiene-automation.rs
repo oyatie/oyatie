@@ -25,6 +25,7 @@ const DOC_AGENTS_PATH: &str = "docs/AGENTS.md";
 const DOC_CATALOG_PATH: &str = "docs/DOC-CATALOG.md";
 const PROCEDURE_PATH: &str = "docs/ci/github-actions-lane-unlocker.md";
 const AUTO_MERGE_FLOW_PATH: &str = "docs/ci/auto-merge-flow.md";
+const OPENBAO_ESO_RUNBOOK_PATH: &str = "docs/ci/openbao-eso-runbook.md";
 const WORKFLOW_PATH: &str = ".github/workflows/github-lane-unlocker-ci-cd.yml";
 const BUCK_PATH: &str = "BUCK";
 const DOC_STALENESS_MAIN: &str = "tools/oya-doc-staleness-inventory-app/src/main.rs";
@@ -730,6 +731,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let doc_agents = read(root, DOC_AGENTS_PATH, &mut failures);
     let doc_catalog = read(root, DOC_CATALOG_PATH, &mut failures);
     let procedure = read(root, PROCEDURE_PATH, &mut failures);
+    let openbao_eso_runbook = read(root, OPENBAO_ESO_RUNBOOK_PATH, &mut failures);
     let workflow = read(root, WORKFLOW_PATH, &mut failures);
     let buck = read(root, BUCK_PATH, &mut failures);
 
@@ -891,6 +893,19 @@ pub fn evaluate(root: &Path) -> Evaluation {
             KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
             &mut failures,
             label,
+        );
+    }
+
+    for needle in [
+        "Legacy adapter-secret compatibility note",
+        "not SCM/CI authority",
+        "retired_external_scm_adapter_retirement",
+    ] {
+        require_contains(
+            &openbao_eso_runbook,
+            needle,
+            &mut failures,
+            OPENBAO_ESO_RUNBOOK_PATH,
         );
     }
 
