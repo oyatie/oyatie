@@ -4,7 +4,6 @@
 # BuildKit-pushed images + serves image pulls):
 #   - same-namespace pod-to-pod.
 #   - oya-ci (BuildKit pushes images here).
-#   - oya-ci-jenkins (Jenkins agents pull images — incl. rust-ci:dev).
 #   - oya-forge (post-build promotion paths — Forgejo deploy hooks).
 #   - argocd (sync + image pulls of ArgoCD-managed apps).
 #   - kube-system (kubelet image pulls; node-side).
@@ -30,9 +29,6 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: oya-ci
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: oya-ci-jenkins
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: oya-forge

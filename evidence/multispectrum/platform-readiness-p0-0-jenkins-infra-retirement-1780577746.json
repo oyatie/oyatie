@@ -1,0 +1,72 @@
+{
+  "schema_version": "2026-06-04",
+  "captured_at": "2026-06-04T12:55:46Z",
+  "lane": "platform-scm-ci-cd",
+  "base": "057d858761d67e7e5208ee3ab049c714cd70b4df",
+  "claim_boundary": "local_static_only_no_live_mutation",
+  "live_mutation_performed": false,
+  "changes": {
+    "retired_active_ci_support_files_removed": 16,
+    "retired_active_ci_paths_guarded": [
+      "infra/ci/jenkins",
+      "infra/ci/deploy-local.sh",
+      "infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml",
+      "infra/forge/jenkins-forgejo-token.secret.template.yaml"
+    ],
+    "active_bridge": "github-lane-unlocker-required",
+    "native_cutover_target": "oya-ci-required",
+    "buck2_authority_preserved": true
+  },
+  "user_requested_backlog_controls": {
+    "validated_expected_items": 31,
+    "backlog_count": 31,
+    "invalid_count": 0,
+    "claim_boundary": "backlog_only_no_live_mutation"
+  },
+  "verification": [
+    {
+      "command": "jq empty specs/buck2-authority-policy.json specs/repo-hygiene-automation.json specs/ci-farm-substrate-canonical.json specs/root-hub-pointers.json specs/cloud-toolchain-target.json specs/canonical-primitives.json specs/phase0-ci-enforcement-baseline.json specs/retired-external-substrate-registry.json specs/github-lane-unlocker-bridge.json",
+      "result": "PASS"
+    },
+    {
+      "command": "rustfmt --edition 2021 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check && git diff --cached --check",
+      "result": "PASS"
+    },
+    {
+      "command": "test ! -e infra/ci/jenkins && test ! -e infra/ci/deploy-local.sh && test ! -e infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml && test ! -e infra/forge/jenkins-forgejo-token.secret.template.yaml",
+      "result": "PASS"
+    },
+    {
+      "command": "git ls-files 'infra/ci/jenkins/**' 'infra/ci/deploy-local.sh' 'infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml' 'infra/forge/jenkins-forgejo-token.secret.template.yaml' | wc -l",
+      "result": "PASS",
+      "observed": "0"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check //:github-lane-unlocker-bridge-check //:phase0-ci-enforcement-baseline-catalog-check --show-output",
+      "result": "PASS",
+      "build_id": "f114cb54-7b96-4b1f-98df-4dce26982107"
+    },
+    {
+      "command": "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "result": "PASS",
+      "affected_build_id": "09e1791a-c20c-4f64-bda5-854c766b05e2",
+      "affected_test_id": "520e7bf6-166d-4e46-afa7-c700a62cf177"
+    }
+  ],
+  "source_backlog_basis": [
+    "NIST SP 800-207",
+    "NIST SP 800-162",
+    "Kubernetes NetworkPolicy",
+    "Kubernetes Pod Security Standards",
+    "Kubernetes RuntimeClass",
+    "Kubernetes service accounts",
+    "GitHub Actions OIDC/hardening",
+    "SLSA v1.2",
+    "Istio security",
+    "AWS Organizations SCP pattern"
+  ]
+}

@@ -14,7 +14,7 @@
     "ADR-0516 (temporary GitHub lane unlocker)"
   ],
   "related_specs": [
-    "specs/ci-farm-substrate-canonical.json",
+    "specs/ci-farm-substrate-canonical.json (superseded pattern record; no active retired CI controller)",
     "specs/api-contract-ssot-canonical.json",
     "specs/cloud-observability-slo-target.json"
   ],
