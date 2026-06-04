@@ -57,10 +57,7 @@ fn extract_adr_refs(content: &str) -> BTreeSet<String> {
         if &bytes[index..index + 4] == b"ADR-" {
             let digits = &bytes[index + 4..index + 8];
             if digits.iter().all(u8::is_ascii_digit) {
-                refs.insert(format!(
-                    "ADR-{}",
-                    String::from_utf8_lossy(digits).as_ref()
-                ));
+                refs.insert(format!("ADR-{}", String::from_utf8_lossy(digits).as_ref()));
                 index += 8;
                 continue;
             }
@@ -123,16 +120,12 @@ fn spec_version_findings(content: &str) -> Vec<String> {
     for line in content.lines() {
         if let Some(version) = extract_semver_after_key(line, "openapi") {
             if version != "3.2.0" {
-                findings.push(format!(
-                    "openapi {version} is not canonical 3.2.0"
-                ));
+                findings.push(format!("openapi {version} is not canonical 3.2.0"));
             }
         }
         if let Some(version) = extract_semver_after_key(line, "asyncapi") {
             if version != "3.1.0" {
-                findings.push(format!(
-                    "asyncapi {version} is not canonical 3.1.0"
-                ));
+                findings.push(format!("asyncapi {version} is not canonical 3.1.0"));
             }
         }
     }
@@ -317,17 +310,19 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .expect("system time must be after epoch")
             .as_nanos();
-        env::temp_dir().join(format!("adr-0221-governance-gates-{nanos}"))
+        env::temp_dir().join(format!("governance-hook-efficacy-{nanos}"))
     }
 
     #[test]
     fn vacuous_green_fixtures_fail_and_pass() {
-        assert!(vacuous_green_issues("#[test]\nfn vacuous(){ assert!(true); }\n")
-            .contains(&"assert!(true)"));
-        assert!(vacuous_green_issues(
-            "#[test]\nfn real_assertion(){ assert_eq!(2 + 2, 4); }\n"
-        )
-        .is_empty());
+        assert!(
+            vacuous_green_issues("#[test]\nfn vacuous(){ assert!(true); }\n")
+                .contains(&"assert!(true)")
+        );
+        assert!(
+            vacuous_green_issues("#[test]\nfn real_assertion(){ assert_eq!(2 + 2, 4); }\n")
+                .is_empty()
+        );
     }
 
     #[test]
@@ -351,20 +346,26 @@ mod tests {
 
     #[test]
     fn version_pin_fixtures_fail_and_pass() {
-        assert!(spec_version_findings("openapi: 3.1.0\n")
-            .iter()
-            .any(|finding| finding.contains("canonical 3.2.0")));
-        assert!(spec_version_findings("asyncapi: 3.0.0\n")
-            .iter()
-            .any(|finding| finding.contains("canonical 3.1.0")));
+        assert!(
+            spec_version_findings("openapi: 3.1.0\n")
+                .iter()
+                .any(|finding| finding.contains("canonical 3.2.0"))
+        );
+        assert!(
+            spec_version_findings("asyncapi: 3.0.0\n")
+                .iter()
+                .any(|finding| finding.contains("canonical 3.1.0"))
+        );
         assert!(spec_version_findings("openapi: 3.2.0\nasyncapi: 3.1.0\n").is_empty());
     }
 
     #[test]
     fn buildability_line_count_fixtures_fail_and_pass() {
-        assert!(buildability_findings("one substantive line\n")
-            .iter()
-            .any(|finding| finding.contains("has 1 substantive lines")));
+        assert!(
+            buildability_findings("one substantive line\n")
+                .iter()
+                .any(|finding| finding.contains("has 1 substantive lines"))
+        );
         let long_doc = (1..=50)
             .map(|index| format!("substantive line {index}"))
             .collect::<Vec<_>>()
