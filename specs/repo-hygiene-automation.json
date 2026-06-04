@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T07:23:00Z",
+  "updated_at": "2026-06-04T14:08:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for the temporary GitHub lane-unlocker and native SCM/CI/CD cutover prep.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -183,12 +183,24 @@
       "establishes": "Kubernetes Pod Security Standards for restricted pods, privilege controls, capabilities, and read-only filesystems."
     },
     {
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+      "establishes": "Kubernetes SecurityContext knobs for privilege escalation, Linux capabilities, and read-only root filesystems."
+    },
+    {
       "url": "https://kubernetes.io/docs/concepts/containers/runtime-class/",
       "establishes": "Kubernetes RuntimeClass for selecting runtime handlers such as sandboxed runtimes."
     },
     {
       "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
       "establishes": "Kubernetes service-account token mounting and workload identity boundary controls."
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/workload-identity",
+      "establishes": "GKE Workload Identity Federation as a hyperscaler reference for short-lived workload credentials instead of static node credentials."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/best-practices/identity-and-access-management.html",
+      "establishes": "Amazon EKS identity best practices for restricting pod access to instance metadata credentials."
     },
     {
       "url": "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/",
@@ -348,7 +360,7 @@
     }
   ],
   "security_backlog_validation": {
-    "captured_at": "2026-06-04T07:23:00Z",
+    "captured_at": "2026-06-04T14:08:00Z",
     "source": "user-requested zero-trust, CI/CD, data, IAM, and Kubernetes runtime hardening backlog review",
     "decision": "All requested controls are valid as P00/P01 backlog items because they map to cloud-native or hyperscaler-grade least-privilege, blast-radius, runtime-isolation, data-protection, and supply-chain patterns. They remain planning/backlog entries only and authorize no live Kubernetes, cloud, CI secret, branch-protection, or data-retention mutation.",
     "validity_rule": "Keep a requested control when it reduces tenant/workload blast radius, removes implicit trust, strengthens provenance, or hardens runtime/data planes and has an official/upstream reference or hyperscaler-compatible pattern.",
@@ -618,7 +630,8 @@
       "backlog_action": "Bind workloads to short-lived identities rather than static node/runner credentials.",
       "source_refs": [
         "GitHub OIDC",
-        "Kubernetes service accounts"
+        "Kubernetes service accounts",
+        "GKE Workload Identity Federation"
       ],
       "claim_boundary": "backlog_only_no_live_mutation"
     },
@@ -630,7 +643,8 @@
       "backlog_action": "Block pod access to cloud node metadata endpoints unless explicitly required by workload identity design.",
       "source_refs": [
         "NIST SP 800-207",
-        "Kubernetes service accounts"
+        "Kubernetes service accounts",
+        "Amazon EKS IMDS restriction"
       ],
       "claim_boundary": "backlog_only_no_live_mutation"
     },
@@ -653,7 +667,8 @@
       "phase": "P00",
       "backlog_action": "Enforce restricted pod standards: no privileged containers, no privilege escalation, limited host namespaces/paths.",
       "source_refs": [
-        "Kubernetes Pod Security Standards"
+        "Kubernetes Pod Security Standards",
+        "Kubernetes SecurityContext"
       ],
       "claim_boundary": "backlog_only_no_live_mutation"
     },
@@ -664,7 +679,8 @@
       "phase": "P00/P01",
       "backlog_action": "Default service containers to read-only root filesystems with explicit writable volumes.",
       "source_refs": [
-        "Kubernetes Pod Security Standards"
+        "Kubernetes Pod Security Standards",
+        "Kubernetes SecurityContext"
       ],
       "claim_boundary": "backlog_only_no_live_mutation"
     },
@@ -675,7 +691,8 @@
       "phase": "P00",
       "backlog_action": "Drop all Linux capabilities by default and add only required capabilities per workload exception.",
       "source_refs": [
-        "Kubernetes Pod Security Standards"
+        "Kubernetes Pod Security Standards",
+        "Kubernetes SecurityContext"
       ],
       "claim_boundary": "backlog_only_no_live_mutation"
     },
