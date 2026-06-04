@@ -333,7 +333,7 @@
       "id": "rust-llvm-coverage-runner-contract",
       "buck2_target": "//:rust-llvm-coverage-runner-contract-check",
       "test_paths": [
-        "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh"
+        "scripts/tests/rust_llvm_coverage_runner_contract_check.rs"
       ],
       "green_markers": [
         {
@@ -343,14 +343,14 @@
       ],
       "red_markers": [
         {
-          "path": "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+          "path": "scripts/tests/rust_llvm_coverage_runner_contract_check.rs",
           "contains": "ambient_path_llvm_tools_not_forbidden"
         }
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
-          "contains": "\"p0_0_green\": False"
+          "path": "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs",
+          "contains": "\\\"p0_0_green\\\":false"
         }
       ]
     },
@@ -358,7 +358,7 @@
       "id": "rust-llvm-coverage-smoke",
       "buck2_target": "//:rust-llvm-coverage-smoke-check",
       "test_paths": [
-        "scripts/tests/rust_llvm_coverage_smoke_check.test.sh"
+        "scripts/tests/rust_llvm_coverage_smoke_check.rs"
       ],
       "green_markers": [
         {
@@ -368,14 +368,14 @@
       ],
       "red_markers": [
         {
-          "path": "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
-          "contains": "expected $label to fail"
+          "path": "scripts/tests/rust_llvm_coverage_smoke_check.rs",
+          "contains": "missing_source_file"
         }
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/run-rust-llvm-coverage-smoke.py",
-          "contains": "\"p0_0_green\": False"
+          "path": "scripts/ci/run-rust-llvm-coverage-smoke.rs",
+          "contains": "\\\"p0_0_green\\\":false"
         }
       ]
     },

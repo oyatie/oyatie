@@ -269,11 +269,11 @@
     "specs/hyperscaler-production-readiness-claim-contract.json",
     "scripts/ci/assert-rust-testing-standard.py",
     "scripts/tests/rust_testing_standard_check.test.sh",
-    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
-    "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs",
+    "scripts/tests/rust_llvm_coverage_runner_contract_check.rs",
     "specs/rust-llvm-coverage-runner-contract.json",
-    "scripts/ci/run-rust-llvm-coverage-smoke.py",
-    "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+    "scripts/ci/run-rust-llvm-coverage-smoke.rs",
+    "scripts/tests/rust_llvm_coverage_smoke_check.rs",
     "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
     "scripts/ci/assert-buck2-cargo-target-coverage.rs",
     "scripts/tests/buck2_cargo_target_coverage_check.rs",
@@ -428,11 +428,11 @@
       "assert-rust-testing-standard.py",
       "rust_testing_standard_check.test.sh",
       "rust-llvm-coverage-runner-contract-check",
-      "assert-rust-llvm-coverage-runner-contract.py",
-      "rust_llvm_coverage_runner_contract_check.test.sh",
+      "assert-rust-llvm-coverage-runner-contract.rs",
+      "rust_llvm_coverage_runner_contract_check.rs",
       "rust-llvm-coverage-runner-contract.json",
       "rust-llvm-coverage-smoke-check",
-      "run-rust-llvm-coverage-smoke.py",
+      "run-rust-llvm-coverage-smoke.rs",
       "buck2-cargo-target-coverage-check",
       "assert-buck2-cargo-target-coverage.rs",
       "buck2_cargo_target_coverage_check.rs",
@@ -1014,8 +1014,8 @@
       "fixture_report_generated",
       "production_coverage_report_generated"
     ],
-    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": [
-      "local/static contract evidence only",
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs": [
+      "local/static coverage runner contract only",
       "rustc -C instrument-coverage",
       "LLVM_PROFILE_FILE",
       "llvm-profdata",
@@ -1026,7 +1026,7 @@
       "phase0_complete",
       "raw_cargo_command_present_in_contract"
     ],
-    "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh": [
+    "scripts/tests/rust_llvm_coverage_runner_contract_check.rs": [
       "coverage_runner_contract_proven\": true",
       "coverage_report_generated\": false",
       "missing_instrument_coverage_flag",
@@ -1036,7 +1036,7 @@
       "missing_llvm_cov_tool",
       "tarpaulin_noncanonical_boundary_missing"
     ],
-    "scripts/ci/run-rust-llvm-coverage-smoke.py": [
+    "scripts/ci/run-rust-llvm-coverage-smoke.rs": [
       "rustc -C instrument-coverage",
       "LLVM_PROFILE_FILE",
       "llvm-profdata",
@@ -1044,7 +1044,7 @@
       "production_coverage_report_generated",
       "live_required_context_execution_proven"
     ],
-    "scripts/tests/rust_llvm_coverage_smoke_check.test.sh": [
+    "scripts/tests/rust_llvm_coverage_smoke_check.rs": [
       "fixture_coverage_smoke_generated",
       "production_coverage_report_generated",
       "ambient_path_llvm_tools_required",
