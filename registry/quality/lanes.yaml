@@ -320,7 +320,7 @@ lanes:
     purpose: source-only supply-chain guard plus RustSec and deny wiring
     source: ADR-0039
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- gate validate supply-chain
+    check_command: buck2 build //libs/oya-check-supply-chain:oya-check-supply-chain
   - id: traceability-validator
     stage: per-pr
     status: active
@@ -344,7 +344,7 @@ lanes:
     purpose: every workspace member starts with `oya-`
     source: ADR-0017
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate cargo-prefix
+    check_command: buck2 build //oya/intelligence/crates/oya-intelligence-cargo-prefix-domain:oya-intelligence-cargo-prefix-domain
   - id: oya-governance-pre-push
     stage: per-pr
     status: active
@@ -448,7 +448,7 @@ lanes:
     purpose: per VENDOR-PARTNER-LEDGER
     source: VENDOR-PARTNER-LEDGER.md
     runtime_budget_seconds: 900
-    check_command: cargo run -p oya-dev-cli -- gate validate vendor-contract-recency
+    check_command: buck2 build //libs/oya-check-vendor-recency:oya-check-vendor-recency
   - id: oya-governance-mobile-native
     stage: nightly
     status: active
@@ -508,7 +508,7 @@ lanes:
     purpose: supply-chain integrity — Trivy + RustSec + deny per ADR-0039
     source: ADR-0039
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-dev-cli -- gate validate supply-chain
+    check_command: buck2 build //libs/oya-check-supply-chain:oya-check-supply-chain
   - id: lean-a4-semver
     stage: per-pr
     status: active
