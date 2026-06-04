@@ -37,8 +37,8 @@ def main() -> int:
     failures: list[str] = []
     spec = load_json(SPEC)
 
-    if spec.get("required_context") != "oya-ci-required":
-        failures.append("spec.required_context must be oya-ci-required")
+    if spec.get("required_context") != "github-lane-unlocker-required":
+        failures.append("spec.required_context must be github-lane-unlocker-required during the GitHub lane unlocker")
     if spec.get("p0_0_green") is not False or spec.get("phase0_complete") is not False:
         failures.append("spec must retain p0_0_green=false and phase0_complete=false")
 
@@ -60,12 +60,12 @@ def main() -> int:
         failures.append("github.trigger_non_dry_run_merge_path_evidence_scope must label local evidence scope")
     if github.get("trigger_conflict_guard_test") != "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh":
         failures.append("github.trigger_conflict_guard_test must name the trigger-level conflict guard test")
-    if github.get("required_context_rollup_check") != "scripts/ci/assert-pr-required-context.py":
+    if github.get("required_context_rollup_check") != "scripts/ci/assert-pr-required-context.rs":
         failures.append("github.required_context_rollup_check must name the non-mutating rollup checker")
-    if github.get("required_context_rollup_test") != "scripts/tests/phase0_required_context_rollup_check.test.sh":
+    if github.get("required_context_rollup_test") != "scripts/tests/phase0_required_context_rollup_check.rs":
         failures.append("github.required_context_rollup_test must name the rollup fixture test")
-    if github.get("trusted_required_context_producer") != "cloud-ci/oya-ci":
-        failures.append("github.trusted_required_context_producer must be cloud-ci/oya-ci")
+    if github.get("trusted_required_context_producer") != "github-lane-unlocker-ci-cd":
+        failures.append("github.trusted_required_context_producer must be github-lane-unlocker-ci-cd")
     if github.get("script_rejects_missing_required_context_producer") is not True:
         failures.append("github.script_rejects_missing_required_context_producer must be true")
     if github.get("script_rejects_untrusted_required_context_producer") is not True:
@@ -75,9 +75,9 @@ def main() -> int:
     if github.get("script_detects_missing_live_required_context") is not True:
         failures.append("github.script_detects_missing_live_required_context must be true")
     for fixture in [
-        "specs/fixtures/phase0-required-context-rollup/good-nested-cloud-ci-oya-ci-success.json",
-        "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-missing-producer.json",
-        "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-untrusted-producer.json",
+        "specs/fixtures/phase0-required-context-rollup/good-nested-github-lane-unlocker-required-success.json",
+        "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-missing-producer.json",
+        "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-untrusted-producer.json",
     ]:
         if fixture not in github.get("required_context_rollup_fixtures", []):
             failures.append(f"github.required_context_rollup_fixtures missing {fixture}")
@@ -159,21 +159,22 @@ def main() -> int:
     github_test = read("scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh")
     require_contains(github_test, "--merge-method is fixed to squash", "github trigger test", failures)
 
-    rollup_check = read("scripts/ci/assert-pr-required-context.py")
+    rollup_check = read("scripts/ci/assert-pr-required-context.rs")
     require_contains(rollup_check, "no_status_checks_reported", "required context rollup check", failures)
     require_contains(rollup_check, "missing_required_context", "required context rollup check", failures)
     require_contains(rollup_check, "required_context_not_success", "required context rollup check", failures)
-    require_contains(rollup_check, "cloud-ci/oya-ci", "required context rollup check", failures)
+    require_contains(rollup_check, "github-lane-unlocker-required", "required context rollup check", failures)
+    require_contains(rollup_check, "github-lane-unlocker-ci-cd", "required context rollup check", failures)
     require_contains(rollup_check, "missing_required_context_producer", "required context rollup check", failures)
     require_contains(rollup_check, "untrusted_required_context_producer", "required context rollup check", failures)
     require_contains(rollup_check, "required_context_trusted_producer", "required context rollup check", failures)
     require_contains(rollup_check, "status-rollup evidence only; this checker never posts statuses", "required context rollup check", failures)
 
-    rollup_test = read("scripts/tests/phase0_required_context_rollup_check.test.sh")
+    rollup_test = read("scripts/tests/phase0_required_context_rollup_check.rs")
     require_contains(rollup_test, "bad-no-checks-reported.json", "required context rollup test", failures)
     require_contains(rollup_test, "no_status_checks_reported", "required context rollup test", failures)
     require_contains(rollup_test, "required_context_not_success", "required context rollup test", failures)
-    require_contains(rollup_test, "good-nested-cloud-ci-oya-ci-success.json", "required context rollup test", failures)
+    require_contains(rollup_test, "good-nested-github-lane-unlocker-required-success.json", "required context rollup test", failures)
     require_contains(rollup_test, "missing_required_context_producer", "required context rollup test", failures)
     require_contains(rollup_test, "untrusted_required_context_producer", "required context rollup test", failures)
 
@@ -193,6 +194,7 @@ def main() -> int:
 
     for path in ["docs/ci/auto-merge-flow.md", "docs/ci/forge-of-record.md"]:
         text = read(path)
+        require_contains(text, "github-lane-unlocker-required", path, failures)
         require_contains(text, "oya-ci-required", path, failures)
         require_contains(text, "--match-head-commit", path, failures)
         require_contains(text, "head_commit_id", path, failures)
@@ -208,8 +210,8 @@ def main() -> int:
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
         "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
-        "scripts/tests/phase0_required_context_rollup_check.test.sh",
-        "scripts/ci/assert-pr-required-context.py",
+        "scripts/tests/phase0_required_context_rollup_check.rs",
+        "scripts/ci/assert-pr-required-context.rs",
         "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
         "docs/ci/auto-merge-flow.md",
         "docs/ci/forge-of-record.md",
@@ -230,7 +232,7 @@ def main() -> int:
     print(json.dumps({
         "verdict": "PASS",
         "spec": "specs/phase0-auto-merge-after-ci.json",
-        "required_context": "oya-ci-required",
+        "required_context": "github-lane-unlocker-required",
         "checks": {
             "github_auto_merge_head_pinned": True,
             "forgejo_auto_merge_after_ci_head_pinned": True,

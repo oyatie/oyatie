@@ -3,12 +3,12 @@
   "statusCheckRollup": [
     {
       "checkRun": {
-        "name": "oya-ci-required",
+        "name": "github-lane-unlocker-required",
         "status": "COMPLETED",
         "conclusion": "SUCCESS",
-        "workflowName": "oya-ci",
+        "workflowName": "github-lane-unlocker-ci-cd",
         "app": {
-          "name": "cloud-ci"
+          "name": "GitHub Actions"
         }
       }
     }

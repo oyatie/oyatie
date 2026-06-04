@@ -2,9 +2,9 @@
   "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "statusCheckRollup": [
     {
-      "name": "oya-ci-required",
+      "name": "github-lane-unlocker-required",
       "state": "SUCCESS",
-      "workflow": "cloud-ci/oya-ci"
+      "workflow": "github-lane-unlocker-ci-cd"
     }
   ]
 }

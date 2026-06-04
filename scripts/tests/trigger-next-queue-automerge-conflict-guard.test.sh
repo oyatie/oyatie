@@ -70,7 +70,7 @@ cat > "$tmp_dir/live-contexts.json" <<'JSON'
 {
   "strict": false,
   "contexts": [
-    "oya-ci-required"
+    "github-lane-unlocker-required"
   ]
 }
 JSON
