@@ -31,8 +31,8 @@ genrule(
         "scripts/ci/oya-ci-post.sh": "scripts/ci/oya-ci-post.sh",
         "scripts/ci/assert-pr-required-context.py": "scripts/ci/assert-pr-required-context.py",
         "scripts/tests/phase0_required_context_rollup_check.test.sh": "scripts/tests/phase0_required_context_rollup_check.test.sh",
-        "scripts/ci/assert-required-status-source.py": "scripts/ci/assert-required-status-source.py",
-        "scripts/tests/phase0_required_status_source_check.test.sh": "scripts/tests/phase0_required_status_source_check.test.sh",
+        "scripts/ci/assert-required-status-source.rs": "scripts/ci/assert-required-status-source.rs",
+        "scripts/tests/phase0_required_status_source_check.rs": "scripts/tests/phase0_required_status_source_check.rs",
         "scripts/ci/assert-tenant-pipeline-isolation.py": "scripts/ci/assert-tenant-pipeline-isolation.py",
         "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
         "scripts/ci/assert-override-kill-switch.py": "scripts/ci/assert-override-kill-switch.py",
@@ -577,6 +577,8 @@ genrule(
         "scripts/tests/red_green_fixture_contract_check.rs": "scripts/tests/red_green_fixture_contract_check.rs",
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
         "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
+        "scripts/ci/assert-required-status-source.rs": "scripts/ci/assert-required-status-source.rs",
+        "scripts/tests/phase0_required_status_source_check.rs": "scripts/tests/phase0_required_status_source_check.rs",
         "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
         "scripts/tests/phase0_aggregate_exit_check.rs": "scripts/tests/phase0_aggregate_exit_check.rs",
         "scripts/ci/assert-automation-ratchet.rs": "scripts/ci/assert-automation-ratchet.rs",
@@ -1015,11 +1017,11 @@ genrule(
 genrule(
     name = "phase0-required-status-source-check",
     srcs = {
-        "scripts/ci/assert-required-status-source.py": "scripts/ci/assert-required-status-source.py",
-        "scripts/tests/phase0_required_status_source_check.test.sh": "scripts/tests/phase0_required_status_source_check.test.sh",
+        "scripts/ci/assert-required-status-source.rs": "scripts/ci/assert-required-status-source.rs",
+        "scripts/tests/phase0_required_status_source_check.rs": "scripts/tests/phase0_required_status_source_check.rs",
     } | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-required-status-source-check.txt",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_required_status_source_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/phase0-required-status-source && rustc --edition=2021 -D warnings scripts/tests/phase0_required_status_source_check.rs --test -o $TMP/phase0-required-status-source/phase0_required_status_source_check && OYA_REPO_ROOT=$PWD $TMP/phase0-required-status-source/phase0_required_status_source_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-required-status-source.rs -o $TMP/phase0-required-status-source/assert-required-status-source && $TMP/phase0-required-status-source/assert-required-status-source --input specs/fixtures/phase0-required-status-source/good-bound-expected-source-app.json --expected-app-id 12345 --json > $OUT",
     visibility = ["PUBLIC"],
 )
 

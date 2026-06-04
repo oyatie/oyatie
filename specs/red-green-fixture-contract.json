@@ -73,7 +73,7 @@
       "automation_matrix_row_id": "AC-0.0-cloud-ci-required-context",
       "buck2_target": "//:phase0-required-status-source-check",
       "test_paths": [
-        "scripts/tests/phase0_required_status_source_check.test.sh"
+        "scripts/tests/phase0_required_status_source_check.rs"
       ],
       "green_markers": [
         {
@@ -89,7 +89,7 @@
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-required-status-source.py",
+          "path": "scripts/ci/assert-required-status-source.rs",
           "contains": "required-status source binding evidence only; this checker never mutates branch protection or posts statuses"
         }
       ]
