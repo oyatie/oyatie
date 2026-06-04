@@ -249,7 +249,7 @@ jobs:
       - name: Require Buck2 runtime
         run: buck2 --version
       - name: Buck2 authority policy scan
-        run: python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json
+        run: buck2 build //:buck2-authority-policy-check
       - name: Buck2 affected build/test for backbone package matrix
         env:
           OYA_BACKBONE_MICROSERVICE: ${{ matrix.microservice }}
@@ -268,7 +268,7 @@ jobs:
       - name: Require Buck2 runtime
         run: buck2 --version
       - name: Buck2 authority policy scan
-        run: python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json
+        run: buck2 build //:buck2-authority-policy-check
       - name: Buck2 oya binary smoke
         run: buck2 uquery //oya/developer-sdk/crates/oya-dev-cli:oya
       - name: Parse backbone evidence, proto contracts, Gateway chart seams, tenant workload labels, and shared catalog rows

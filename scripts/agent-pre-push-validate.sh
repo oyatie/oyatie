@@ -50,7 +50,7 @@ if [ -n "$DELETED" ]; then
   fail "working tree has deletions (worktree-drift?): $(printf '%s\n' "$DELETED" | tr '\n' ' ')"
 fi
 
-if python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json; then
+if buck2 build //:buck2-authority-policy-check; then
   pass "Buck2 authority policy clean"
 else
   fail "Buck2 authority policy scan failed"

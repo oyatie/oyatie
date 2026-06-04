@@ -125,7 +125,6 @@ const REQUIRED_WORKFLOW_NEEDLES: &[&str] = &[
     "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: \"true\"",
     "uses: actions/checkout@v6",
     "fetch-depth: 0",
-    "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
     THIRD_PARTY_HAND_EDITS_BUCK2_COMMAND,
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
     "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",

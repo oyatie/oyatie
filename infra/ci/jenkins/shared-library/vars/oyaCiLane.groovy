@@ -17,7 +17,7 @@ def call(Map cfg = [:]) {
         postForgeStatus(requiredContext, 'pending', 'Buck2 authority checks running')
         try {
           stage('Buck2 authority policy') {
-            sh 'python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json'
+            sh 'buck2 build //:buck2-authority-policy-check'
           }
           stage('Buck2 affected build/test') {
             sh "infra/ci/buck2-affected-gate.sh ${baseRef} ${headRef}"

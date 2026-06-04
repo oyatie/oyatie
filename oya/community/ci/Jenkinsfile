@@ -65,7 +65,6 @@ spec:
     stage('Buck2 authority policy') {
       steps {
         container('rust') {
-          sh 'python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json'
           sh 'buck2 build //:buck2-authority-policy-check'
         }
       }
@@ -99,7 +98,6 @@ cat > "$evidence_dir/buck2-authority-bridge.json" <<JSON
     "phase0_complete": false
   },
   "lanes": [
-    "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
     "buck2 build //:buck2-authority-policy-check",
     "infra/ci/buck2-affected-gate.sh origin/${CHANGE_TARGET:-dev}"
   ],

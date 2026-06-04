@@ -70,7 +70,7 @@ LOG="${TMPDIR:-/tmp}/oya-ci-post-buck2.log"
 post_status pending "Buck2 authority + affected build/test running"
 set +e
 {
-  python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json
+  buck2 build //:buck2-authority-policy-check
   infra/ci/buck2-affected-gate.sh "${BASE_REF}" HEAD
 } >"${LOG}" 2>&1
 VERIFY_EXIT=$?
