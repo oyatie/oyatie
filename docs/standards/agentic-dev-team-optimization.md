@@ -9,7 +9,7 @@ deciders: council-architecture, axis-foundry, ops-sre-reliability
 related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/industry-best-practice-conformance.json, /specs/microservice-migration-tooling.json, /specs/agent-durable-goal.json]
 applies_to: every microservice + every artifact in oyatie repo
-enforced_by: oya-governance-industry-best-practice-conformance §"axis-5-practices"
+enforced_by: buck2-prow-industry-best-practice-conformance §"axis-5-practices"
 review_cadence: annually + on every major-tooling change affecting agent runtime
 doc_status: published
 ---
@@ -20,7 +20,7 @@ doc_status: published
 
 Cross-cutting principles that distinguish oyatie's repo from a human-developer-team repo. Industry best practices assume a human typing into an editor; oyatie's developer is a fully-agentic team executing in parallel. This standard codifies the optimisation vectors that make every artifact agent-friendly: structured, parallel-safe, idempotent, audit-chain-sealed, fail-closed, smallest-actionable.
 
-Every artifact authored in oyatie MUST satisfy these principles. The `oya-governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces. The retired `oya vcs` claim/verify/done/promote ratchet is historical only; live coordination uses plain git/gh PR adapters, Buck2, and Prow/Kubernetes-native `oya-ci-required`. Retired `oya gate` / `oya verify` CLI surfaces are not merge authority.
+Every artifact authored in oyatie MUST satisfy these principles. The Buck2/Prow industry-best-practice-conformance target (per ADR-0133) enforces. The retired `oya vcs` claim/verify/done/promote ratchet is historical only; live coordination uses plain git/gh PR adapters, Buck2, and Prow/Kubernetes-native `oya-ci-required`. Retired local CLI gate/verify surfaces are not merge authority.
 
 ## Principle 1 — Semantic branch scope
 
@@ -30,10 +30,10 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 
 **How to apply:**
 - Declare the PR/worktree scope as semantic paths or symbols; do not treat a whole-file glob as ownership when unrelated edits can proceed independently.
-- Migrations use `oya dev migrate-microservice` (per `/specs/microservice-migration-tooling.json`) which claims at µservice-scope, not at repo-scope.
+- Migration kernels invoked through Buck2 targets (per `/specs/microservice-migration-tooling.json`) claim at µservice-scope, not at repo-scope.
 - ast-grep / rust-analyzer / clippy refactors operate on AST nodes; never blanket-sed (see Principle 7).
 
-**Verification:** PR description and governance evidence identify the semantic scope; reviewer/governance gates reject oversized or ambiguous scope claims.
+**Verification:** PR description, Buck2 target evidence, and review evidence identify the semantic scope; Prow/Kubernetes-native checks reject oversized or ambiguous scope claims.
 
 ## Principle 2 — Parallel-safe operations
 
@@ -46,7 +46,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 - Migrations touch disjoint paths (per `migrate-microservice` parallel_safety contract).
 - CI lanes parallelise per PR branch; cross-µservice ordering only on explicit dependency edges.
 
-**Verification:** `oya gate run-all` / reviewer governance evidence asserts the PR branch affected paths do not overlap with known in-flight ownership.
+**Verification:** Buck2/Prow lane evidence and review evidence assert the PR branch affected paths do not overlap with known in-flight ownership.
 
 ## Principle 3 — Idempotent operations
 
@@ -73,7 +73,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 - Every Cedar policy decision emits per `policy/auditor-scope.cedar` audit trail.
 - Per-changeset multispectrum evidence at `microservices/<ms>/evidence/multispectrum/<change_id>-*.json` (per `docs/AGENTS.md §changeset`) seals what shipped.
 
-**Verification:** `oya gate validate audit-chain-coverage --microservice <ms>` asserts every state-transition emitter is wired.
+**Verification:** A Buck2 audit-chain-coverage target asserts every state-transition emitter is wired for the affected microservice.
 
 ## Principle 5 — Fail-closed on every gate
 
@@ -100,7 +100,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 - Frontmatter carries machine-readable structure; body carries why-not-what.
 - No commented-out code; no `TODO` markers that should be filed as fixuptasks.
 
-**Verification:** `oya gate validate smallest-actionable --path <artifact>` (TBD; queued per ADR-0133 axis-5 enforcement) measures token-count vs information-density and flags below-threshold artifacts.
+**Verification:** A Buck2 smallest-actionable target (TBD; queued per ADR-0133 axis-5 enforcement) measures token-count vs information-density and flags below-threshold artifacts.
 
 ## Principle 7 — No blanket-sed
 
@@ -109,7 +109,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 **Why:** Per durable user directive ("The implementation rebrand `oyatie-*` → `oya-*` MUST proceed as a coordinated multi-batch migration; blanket-sed is forbidden"). Blanket-sed silently mangles strings inside comments, doc-comments, test fixtures, and unrelated semantic contexts.
 
 **How to apply:**
-- `oya dev migrate-microservice` uses ast-grep for Markdown-link patterns + Cargo workspace operations for `[workspace.members]` updates.
+- Migration kernels use ast-grep for Markdown-link patterns plus Buck2/Reindeer-owned workspace metadata updates.
 - Per-µservice rename operations are batched per ADR-0110 ChangeSet contract.
 - Targeted `sed -i` is allowed ONLY when the pattern is uniquely-identifying (e.g., an `id:` line in YAML frontmatter); use of `sed` requires explicit justification in the PR description.
 
@@ -126,11 +126,11 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 - When no façade exists and adding one is < 100 lines of code, add it; otherwise file a fixuptask for the missing façade.
 - Adapter layers isolate external framework imports per ADR-0105 layer enum.
 
-**Verification:** `oya gate validate no-deeper-hole --crate <crate>` (TBD; queued per ADR-0133 axis-5 enforcement) compares per-crate external-framework imports against the Oya-façade catalog.
+**Verification:** A Buck2 no-deeper-hole target (TBD; queued per ADR-0133 axis-5 enforcement) compares per-crate external-framework imports against the Oya-façade catalog.
 
 ## Enforcement
 
-The `oya-governance-industry-best-practice-conformance` CI lane (BLOCKER on dev; per ADR-0133) enforces these 8 principles on every artifact. Existing legacy violations are recorded as `severity: legacy-grandfathered` with a remediation IP filed.
+The Buck2/Prow industry-best-practice-conformance lane (BLOCKER on dev; per ADR-0133) enforces these 8 principles on every artifact. Existing legacy violations are recorded as `severity: legacy-grandfathered` with a remediation IP filed.
 
 ## References
 

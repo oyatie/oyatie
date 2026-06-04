@@ -369,6 +369,20 @@ fn active_doc_phrase_scanner_rejects_retired_brief_template_lifecycle() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_retired_agentic_dev_team_gate_refs() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/standards/agentic-dev-team-optimization.md",
+        "Verification: oya gate run-all plus oya gate validate audit-chain-coverage --microservice demo via oya-dev-cli",
+    );
+    for expected in ["oya gate run-all", "oya gate validate", "oya-dev-cli"] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn active_doc_phrase_scanner_is_case_insensitive() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",
