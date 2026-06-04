@@ -10,7 +10,7 @@
     "status": "local_static_language_discipline_seed_not_live_context",
     "owner_team": "platform-toolchain + platform-governance",
     "created_at": "2026-06-03T00:00:00Z",
-    "updated_at": "2026-06-03T10:30:00Z",
+    "updated_at": "2026-06-04T14:46:00Z",
     "related_acceptance_criteria": [
       "AC-0.4"
     ],
@@ -49,6 +49,7 @@
     "new_python_outside_allowlist_blocked": true,
     "new_shell_outside_allowlist_blocked": true,
     "offender_inventory_recorded": true,
+    "legacy_active_command_surface_backlog_recorded": true,
     "status_mutation_performed": false,
     "protected_branch_authority_proven": false,
     "live_required_context_execution_proven": false,
@@ -132,6 +133,41 @@
         "kind": "python_test_sprawl_backlog",
         "present_in_current_head": false,
         "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+      }
+    ]
+  },
+  "legacy_active_command_surface_backlog": {
+    "captured_at": "2026-06-04T14:46:00Z",
+    "source": "registry/quality/lanes.yaml active check_command inventory after PR-497 moved the documentation/catalog/API-semver subset to Buck2 targets",
+    "valid": true,
+    "claim_boundary": "backlog_only_no_live_mutation",
+    "inventory_counts": {
+      "registry_quality_check_command_rows": 91,
+      "buck2_build_rows": 6,
+      "legacy_cargo_or_cargo_run_rows": 81,
+      "legacy_shell_rows": 4
+    },
+    "backlog_actions": [
+      {
+        "id": "registry-quality-buck2-target-port",
+        "phase": "P-TOOLCHAIN.2",
+        "priority": "P00",
+        "action": "Port the remaining registry/quality lane check_command rows from direct Cargo-style execution strings to concrete Buck2 targets or explicitly tracked-deferred rows with blocked rationales.",
+        "validity": "Valid because registry/quality is a high-conflict shared surface and currently advertises non-Buck2 command authority for most rows."
+      },
+      {
+        "id": "governance-shell-gate-port",
+        "phase": "P-TOOLCHAIN.2",
+        "priority": "P00",
+        "action": "Replace the four active shell-backed governance check rows with Rust/Buck2 gate targets or retire them behind provenance-only allowlists.",
+        "validity": "Valid because new coordination/gate work is Rust/Buck2-first and shell should not remain active merge authority for parallel fanout."
+      },
+      {
+        "id": "canonical-command-projection-generator",
+        "phase": "P-TOOLCHAIN.2",
+        "priority": "P01",
+        "action": "Generate shared registry command projections from per-lane Buck2-owned metadata so high-concurrency lanes do not repeatedly edit registry/quality/lanes.yaml.",
+        "validity": "Valid because generated or pointer-thin shared surfaces reduce merge conflict probability while preserving one canonical projection."
       }
     ]
   },

@@ -685,10 +685,10 @@
         "ADR-0346": {
           "path": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
           "queued_sub_wave": "15-ZA-oya-verify-full-ci-mirror",
-          "purpose_excerpt": "Establish that `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix — invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast` (or `cargo test --workspace` if nextest is absent), `oya gate run-all --ci-required`, `oya doc adr-index --write` (advisory; warn-only), and `oya lint adr-shape` against new ADRs in the current commit range — and MUST block on exit-0 of EACH step before returning success to the caller.",
+          "purpose_excerpt": "Amended by the Buck2 authority transition: `./bin/oya verify --ci-required` is local shift-left evidence only, and its protected-branch mirror must delegate build/test/check to Buck2 targets plus governance evidence instead of direct Cargo mirror steps. During ADR-0516, automated GitHub Actions `github-lane-unlocker-required` gates dev; native `oya-ci-required` returns only after source-bound cloud-ci/oya-ci cutover evidence.",
           "enforced_by": [
-            "oya-governance-oya-verify-ci-mirror-coverage (new lane; refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis; promoted to BLOCKER 14 days post Wave 15-ZA implementation lands)",
-            "oya-governance-oya-verify-ci-step-exit-semantics (new lane; refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps; refuses changes that conflate fmt-fail with check-fail in the exit code emitted to the caller)",
+            "oya-governance-oya-verify-ci-mirror-coverage (amended lane; refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that bypass Buck2 build/test/check targets and governance evidence; direct Cargo mirror-step claims are advisory only)",
+            "oya-governance-oya-verify-ci-step-exit-semantics (amended lane; refuses verify.rs source changes that swallow non-zero exit codes from any mandatory Buck2/governance verification step; refuses changes that conflate distinct failure classes in the exit code emitted to the caller)",
             "oya-governance-oya-verify-skip-flag-allowlist (new lane; refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8; new skip flags require an ADR amendment per `feedback_no_silent_regression`)",
             "oya-governance-oya-submit-calls-verify (new lane; refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10 — preserves the existing call chain, refuses regressions)",
             "oya-governance-oya-verify-exit-code-contract (new lane; refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11)"
@@ -1585,8 +1585,8 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0346",
-          "scope": "extend crates/oya-dev-cli/src/commands/verify.rs to run the full CI mirror locally on every invocation: cargo fmt --all --check + cargo check --workspace --all-targets --keep-going + cargo clippy --workspace --all-targets --keep-going -- -D warnings + cargo nextest run --workspace --no-fail-fast + oya gate run-all --ci-required + oya doc adr-index --write (advisory) + oya lint adr-shape (per new ADR). Block on exit-0 of each step. Skip-flag allowlist closed set {--skip-fmt,--skip-clippy,--skip-nextest,--skip-gates}. oya submit MUST call oya verify --ci-required before push (existing behavior reinforced + verified by E.4 lane). Authored as ADR-0346 doctrine; implementation deferred.",
-          "dispatch_mode": "1 Claude orchestrator for crates/oya-dev-cli/src/commands/verify.rs extension + 5 new governance lanes (oya-governance-oya-verify-ci-mirror-coverage + oya-governance-oya-verify-ci-step-exit-semantics + oya-governance-oya-verify-skip-flag-allowlist + oya-governance-oya-submit-calls-verify + oya-governance-oya-verify-exit-code-contract) + JCasC parity smoke-test",
+          "scope": "amend crates/oya-dev-cli/src/commands/verify.rs local shift-left verification so the protected-branch mirror delegates to Buck2 build/test/check targets, affected-target evidence, and governance kernels; direct Cargo mirror-step execution is advisory only. Block on exit-0 of each mandatory Buck2/governance step. Skip-flag allowlist remains a closed set for local ergonomics and cannot weaken protected-branch authority. During ADR-0516, dev merge readiness is the automated GitHub `github-lane-unlocker-required` context; native `oya-ci-required` returns only after cloud-ci/oya-ci source-bound cutover evidence.",
+          "dispatch_mode": "1 Codex orchestrator for the verify.rs Buck2-authority amendment + 5 governance lanes (oya-governance-oya-verify-ci-mirror-coverage + oya-governance-oya-verify-ci-step-exit-semantics + oya-governance-oya-verify-skip-flag-allowlist + oya-governance-oya-submit-calls-verify + oya-governance-oya-verify-exit-code-contract) + GitHub lane-unlocker parity evidence",
           "depends_on": [
             "ADR-0346 Acceptance",
             "ADR-0221 hooks-vs-gates",
@@ -1689,7 +1689,7 @@
             ]
           },
           "zf_4_validation": [
-            "cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions",
+            "buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation",
             "jq empty specs/root-hub-pointers.json specs/master-plan-sequencing.json"
           ],
           "skill_binding": "every subagent reads tools/agent-skills/skills/{spec-driven-development,documentation-and-adrs}/SKILL.md + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0349 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21",
@@ -1906,7 +1906,7 @@
       "go",
       "fsharp"
     ],
-    "build_invocation": "cargo build --workspace --release --all-features --locked",
+    "build_invocation": "buck2 build //... (release profile and optimization evidence are target-owned; direct Cargo release builds are advisory outside merge authority)",
     "exception_protocol": "per-µservice ADR under microservices/<name>/decisions/ADR-MS-NNN-non-rust-justification.md",
     "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-18"
   },
