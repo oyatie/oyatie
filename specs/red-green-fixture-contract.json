@@ -283,7 +283,7 @@
       "automation_matrix_row_id": "AC-0.0-override-kill-switch",
       "buck2_target": "//:phase0-override-kill-switch-check",
       "test_paths": [
-        "scripts/tests/phase0_override_kill_switch_check.test.sh"
+        "scripts/tests/phase0_override_kill_switch_check.rs"
       ],
       "green_markers": [
         {
@@ -299,7 +299,7 @@
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-override-kill-switch.py",
+          "path": "scripts/ci/assert-override-kill-switch.rs",
           "contains": "never claims live protected-flow override authority or status mutation"
         }
       ]

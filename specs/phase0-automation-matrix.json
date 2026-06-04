@@ -212,9 +212,9 @@
       "classification": "automated_blocking_now",
       "owner": "platform-toolchain + platform-security + platform-governance",
       "target_gate_or_controller": "cloud-ci/oya-ci override controller + //:phase0-override-kill-switch-check",
-      "blocking_fixture": "specs/phase0-override-packet-schema.json + specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json + scripts/tests/phase0_override_kill_switch_check.test.sh",
+      "blocking_fixture": "specs/phase0-override-packet-schema.json + specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json + scripts/tests/phase0_override_kill_switch_check.rs",
       "retirement_phase": "P0.0 live cloud-ci/oya-ci required-context cutover",
-      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + scripts/ci/assert-override-kill-switch.py + scripts/tests/phase0_override_kill_switch_check.test.sh + //:phase0-override-kill-switch-check",
+      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + scripts/ci/assert-override-kill-switch.rs + scripts/tests/phase0_override_kill_switch_check.rs + //:phase0-override-kill-switch-check",
       "no_new_oya_cli_surface": true,
       "claim_boundary": "Local/static fixture gate proves the checked-in override packet schema and GOOD/BAD override fixtures only; not live protected-flow override authority; not P0.0 green; not Phase-0 completion until trusted cloud-ci/oya-ci enforces it on candidate SHAs.",
       "verification_command": "buck2 build //:phase0-override-kill-switch-check"
