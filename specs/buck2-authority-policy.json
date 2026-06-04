@@ -204,7 +204,7 @@
     "scripts/supply-chain-adr0039.sh",
     "scripts/hooks/pre-push.sh",
     "scripts/ci/enforce-buck2-authority.rs",
-    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
     "scripts/ci/oya-ci-post.sh",
     "scripts/tests/phase0_required_context_rollup_check.test.sh",
     "scripts/ci/assert-pr-required-context.py",
