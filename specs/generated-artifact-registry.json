@@ -152,9 +152,9 @@
     ]
   },
   "automated_chain": [
-    "scripts/ci/assert-phase0-merge-conflict-foundation.py --registry specs/generated-artifact-registry.json --json",
-    "bash scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
-    "buck2 test //:phase0-merge-conflict-foundation-check",
+    "scripts/ci/assert-phase0-merge-conflict-foundation.rs --registry specs/generated-artifact-registry.json --json",
+    "rustc --edition=2021 -D warnings scripts/tests/phase0_merge_conflict_foundation_check.rs --test",
+    "buck2 build //:phase0-merge-conflict-foundation-check",
     "git merge-tree --write-tree local readiness simulation only",
     "cloud-ci/oya-ci oya-ci-required required context after live producer cutover"
   ]
