@@ -38,6 +38,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert!(evaluation.failures.is_empty());
     assert_eq!(evaluation.domains_checked, 6);
     assert_eq!(evaluation.security_backlog_count, 31);
+    assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 28);
 }
 
 #[test]
@@ -117,6 +118,57 @@ fn spec_rejects_pnpm_or_typescript_as_repo_authority() {
         "{:?}",
         failures
     );
+}
+
+#[test]
+fn typescript_pnpm_inventory_matches_checked_in_surface() {
+    let inventory = read_repo_file("registry/repo-hygiene/typescript-pnpm-surface-inventory.json");
+    let files = gate::tracked_typescript_pnpm_mjs_files(Path::new(&repo_root()))
+        .expect("TypeScript/pnpm surface scan should run");
+    assert_eq!(files.len(), 28, "{files:?}");
+    let (_count, failures) =
+        gate::typescript_pnpm_surface_failures(Path::new(&repo_root()), &inventory);
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn typescript_pnpm_inventory_rejects_missing_current_file() {
+    let inventory = read_repo_file("registry/repo-hygiene/typescript-pnpm-surface-inventory.json")
+        .replace("scripts/proto-lint.mjs", "scripts/proto-lint.rs");
+    let (_count, failures) =
+        gate::typescript_pnpm_surface_failures(Path::new(&repo_root()), &inventory);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("scripts/proto-lint.mjs")),
+        "{failures:?}"
+    );
+}
+
+#[test]
+fn typescript_pnpm_surface_scan_excludes_vendored_agent_skills() {
+    let root = temp_dir("typescript-pnpm-vendor-exclusion");
+    fs::create_dir_all(root.join("tools/agent-skills/scripts")).unwrap_or_else(|error| {
+        panic!("create vendored fixture dir: {error}");
+    });
+    fs::create_dir_all(root.join("scripts")).unwrap_or_else(|error| {
+        panic!("create scripts fixture dir: {error}");
+    });
+    fs::write(
+        root.join("tools/agent-skills/scripts/validate-skills.js"),
+        "console.log('vendored');\n",
+    )
+    .unwrap_or_else(|error| panic!("write vendored fixture: {error}"));
+    fs::write(
+        root.join("scripts/proto-lint.mjs"),
+        "console.log('owned');\n",
+    )
+    .unwrap_or_else(|error| panic!("write owned fixture: {error}"));
+
+    let files = gate::tracked_typescript_pnpm_mjs_files(&root)
+        .expect("fixture TypeScript/pnpm scan should run");
+    let _ = fs::remove_dir_all(&root);
+    assert_eq!(files, vec!["scripts/proto-lint.mjs".to_string()]);
 }
 
 #[test]
