@@ -1,0 +1,64 @@
+{
+  "evidence_id": "platform-readiness-p0-0-backbone-workflow-retirement-1780573959",
+  "captured_at": "2026-06-04T11:52:39Z",
+  "change_lane": "docs-root-guidance-20260604T114540Z",
+  "claim_boundary": "local_static_only_no_live_github_kubernetes_cloud_or_secret_mutation",
+  "purpose": "Retire the stale active GitHub Actions backbone microservices workflow from interim CI authority while preserving the temporary GitHub lane-unlocker bridge as the only active GitHub Actions bridge.",
+  "retired_active_workflow": ".github/workflows/backbone-microservices-ci.yml",
+  "reason": [
+    "The workflow referenced non-existent root-level crates/ and microservices/ paths in the current repository checkout.",
+    "The workflow referenced retired external CI/CD substrate paths such as microservices/*/ci/Jenkinsfile and a legacy ArgoCD ApplicationSet path.",
+    "The required interim CI/SCM bridge is .github/workflows/github-lane-unlocker-ci-cd.yml with github-lane-unlocker-required, not per-service stale workflow fanout."
+  ],
+  "security_backlog_validation": {
+    "source_file": "specs/repo-hygiene-automation.json",
+    "requested_hardening_items_present": 31,
+    "all_requested_hardening_items_valid": true,
+    "claim_boundary": "backlog_only_no_live_mutation"
+  },
+  "verification": [
+    {
+      "command": "jq -r '.security_hardening_backlog | length, (.[] | \"- \\(.id) valid=\\(.valid) category=\\(.category)\")' specs/repo-hygiene-automation.json",
+      "result": "pass",
+      "observed": "31 security hardening backlog entries; all listed entries showed valid=true."
+    },
+    {
+      "command": "rg -n 'backbone-microservices-ci.yml|backbone-microservices-applicationset|microservices/.*/ci/Jenkinsfile' .github BUCK specs/buck2-authority-policy.json docs/standards/lts-versions-verified.md docs/research/lts-versions-verified-2026-05-12.md || true",
+      "result": "pass",
+      "observed": "No active references remained in the scoped active workflow, Buck2 policy, and LTS docs files after retirement."
+    },
+    {
+      "command": "jq empty specs/buck2-authority-policy.json",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "buck2 build //:buck2-authority-policy-check //:github-lane-unlocker-bridge-check --show-output",
+      "result": "pass",
+      "build_id": "f1769606-6d88-44b2-b591-35c6fed16bc7"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "result": "pass",
+      "build_id": "452509ae-fbf0-4351-b368-c3214d43d9ad"
+    },
+    {
+      "command": "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "result": "pass",
+      "observed": "6 changed files; 6 owning targets; final affected targets root//:who-gates-gates-check, root//:third-party-durable-handedits-check, root//:phase0-red-green-fixture-contract-check; buck2 build succeeded; buck2 test reported Pass 0 Fail 0 and NO TESTS RAN.",
+      "build_ids": [
+        "a7465eec-4379-4cea-9a0d-8c4e7765f441",
+        "1461e5ae-f0e9-4ac9-a317-e224da76f39e"
+      ]
+    }
+  ],
+  "non_claims": [
+    "No GitHub branch protection was mutated.",
+    "No Kubernetes pods or cloud resources were mutated.",
+    "No historical evidence artifacts were rewritten.",
+    "This does not retire remaining root Jenkinsfile or infra/ci/jenkins artifacts; those require separate preservation and retirement lanes."
+  ]
+}
