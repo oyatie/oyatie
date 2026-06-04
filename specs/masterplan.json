@@ -531,7 +531,7 @@
         "Buck2 remains build/test/check authority for all interim and native lanes.",
         "Product, infra, cloud, SCM/CI/CD, and governance can each fan out into multiple worktrees/PRs with single-writer discipline for shared files.",
         "Use reusable workflow and registry-backed checks so shared docs/workflows stay thin and lanes own disjoint shards.",
-        "Seed desired ProwJob registry generation with lane-owned specs/ci/prow-jobs shards and buck2 build //:oya-ci-prowjob-registry-check so CI expansion is mechanical instead of hand-edited shared workflow churn.",
+        "Generate desired ProwJob registry and native OyaCIControllerConfig from lane-owned specs/ci/prow-jobs shards with buck2 build //:oya-ci-prowjob-registry-check so CI expansion is mechanical instead of hand-edited shared workflow churn.",
         "Mitigate shared CI/config/doc surfaces through pointer-thin canonical files, vertical-owned reusable shards, generated consolidation, and Rust/Buck2 verification instead of repeated hand edits.",
         "Treat the validated 31-item zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, data-protection, honeytoken/tripwire, and multi-account guardrail set as P00/P01 backlog under repo-hygiene-automation security_backlog_validation + security_hardening_backlog.",
         "Model native SCM + oya-ci + release-conveyor-like CD as decoupled service/control-plane seams: SCM owns change graph and merge projections, oya-ci owns Buck2/ProwJob execution and required context, CD owns release ledger/progressive delivery.",
@@ -555,7 +555,8 @@
       "security_backlog_recorded": "/specs/repo-hygiene-automation.json#security_backlog_validation maps 31 requested controls to /specs/repo-hygiene-automation.json#security_hardening_backlog as valid backlog-only zero-trust, CI/CD, data, Kubernetes runtime, and multi-account guardrail items",
       "native_scm_ci_cd_fit_recorded": "masterplan P00 records native SCM owns change graph, oya-ci owns Buck2/Prow required context, and release-conveyor-like CD owns progressive delivery without oya vcs CLI revival",
       "legacy_shadow_bridge_green": "buck2 build //:github-lane-unlocker-bridge-check",
-      "prowjob_registry_green": "buck2 build //:oya-ci-prowjob-registry-check"
+      "prowjob_registry_green": "buck2 build //:oya-ci-prowjob-registry-check",
+      "prow_controller_config_green": "buck2 build //:oya-ci-prowjob-registry-check validates specs/generated/oya-ci-controller-config.generated.yaml as local/static controller config evidence"
     },
     "repo_hygiene_automation": {
       "spec": "/specs/repo-hygiene-automation.json",
@@ -577,6 +578,7 @@
       "security_hardening_backlog": "/specs/repo-hygiene-automation.json#security_hardening_backlog",
       "automation_language_policy": "/specs/repo-hygiene-automation.json#automation_language_policy",
       "prowjob_registry": "/specs/oya-ci-prowjob-registry.json",
+      "prow_controller_config": "/specs/generated/oya-ci-controller-config.generated.yaml",
       "prowjob_registry_check": "buck2 build //:oya-ci-prowjob-registry-check"
     },
     "supporting_specs": [
@@ -598,7 +600,7 @@
       "ci": "Rust/Prow/Kubernetes-native oya-ci consumes trusted SCM/controller state, runs Buck2 workloads, and posts oya-ci-required",
       "cd": "release-conveyor-like native CD consumes signed build/evidence/release ledger outputs for progressive delivery, rollback, and audit",
       "github": "PR/publication adapter; GitHub Actions is shadow compatibility only",
-      "prowjob_registry": "Lane-owned desired ProwJob shards under specs/ci/prow-jobs generate specs/generated/oya-ci-prowjob-registry.generated.yaml; local/static only until native controller cutover."
+      "prowjob_registry": "Lane-owned desired ProwJob shards under specs/ci/prow-jobs generate specs/generated/oya-ci-prowjob-registry.generated.yaml and specs/generated/oya-ci-controller-config.generated.yaml; local/static only until native controller cutover."
     }
   },
   "planning_closure": {

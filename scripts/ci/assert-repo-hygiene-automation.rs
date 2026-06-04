@@ -463,6 +463,10 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "ProwJob registry seed registry path must be recorded in cleanup backlog",
         ),
         (
+            "\"generated_controller_config\": \"specs/generated/oya-ci-controller-config.generated.yaml\"",
+            "ProwJob registry cleanup backlog must record generated controller config path",
+        ),
+        (
             "\"required_native_context\": \"oya-ci-required\"",
             "active context drift scan must require oya-ci-required",
         ),

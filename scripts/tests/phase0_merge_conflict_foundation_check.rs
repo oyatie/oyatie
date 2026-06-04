@@ -104,7 +104,7 @@ fn automation_matrix_and_coverage_rows_map_to_buck2_target() {
 fn checked_in_registry_passes() {
     let evaluation = evaluate_registry(&registry_path());
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
-    assert_eq!(evaluation.registered_artifact_count, 2);
+    assert_eq!(evaluation.registered_artifact_count, 3);
     assert!(evaluation.taxonomy_count >= 7);
     assert_eq!(evaluation.fixture_count, 5);
     assert_eq!(evaluation.expected_green_fixture_count, 1);

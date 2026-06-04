@@ -39,6 +39,7 @@ fn copy_registry_fixture(root: &Path) {
         "specs/ci/prow-jobs/platform-scm-ci-cd.json",
         "specs/ci/prow-jobs/platform-release-conveyor.json",
         "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+        "specs/generated/oya-ci-controller-config.generated.yaml",
     ] {
         let destination = root.join(rel);
         fs::create_dir_all(destination.parent().unwrap()).unwrap_or_else(|error| {
@@ -58,6 +59,10 @@ fn checked_in_prowjob_registry_passes() {
     assert_eq!(evaluation.shards_checked, 3);
     assert!(evaluation.jobs_checked >= 7);
     assert_eq!(evaluation.required_context, "oya-ci-required");
+    assert_eq!(
+        evaluation.generated_controller_config,
+        "specs/generated/oya-ci-controller-config.generated.yaml"
+    );
     assert!(evaluation.local_static_only);
     assert!(!evaluation.live_authority_claimed);
 }
@@ -121,6 +126,68 @@ fn generated_output_drift_is_rejected() {
             .failures
             .iter()
             .any(|failure| failure.contains("generated output is stale")),
+        "{:?}",
+        evaluation.failures
+    );
+}
+
+#[test]
+fn generated_controller_config_drift_is_rejected() {
+    let root = temp_dir("controller-config-drift");
+    copy_registry_fixture(&root);
+    let generated_path = root.join("specs/generated/oya-ci-controller-config.generated.yaml");
+    let mut generated = fs::read_to_string(&generated_path).unwrap_or_else(|error| {
+        panic!("read generated controller config fixture: {}", error);
+    });
+    generated.push_str("# stale hand edit\n");
+    fs::write(&generated_path, generated).unwrap_or_else(|error| {
+        panic!("write generated controller config fixture: {}", error);
+    });
+
+    let evaluation = gate::evaluate(&root);
+    let _ = fs::remove_dir_all(&root);
+    assert_eq!(evaluation.verdict, "FAIL");
+    assert!(
+        evaluation
+            .failures
+            .iter()
+            .any(|failure| failure.contains("generated controller config is stale")),
+        "{:?}",
+        evaluation.failures
+    );
+}
+
+#[test]
+fn generated_controller_config_requires_kubernetes_native_security_defaults() {
+    let root = temp_dir("controller-config-security");
+    copy_registry_fixture(&root);
+    let generated_path = root.join("specs/generated/oya-ci-controller-config.generated.yaml");
+    let generated = fs::read_to_string(&generated_path)
+        .unwrap_or_else(|error| panic!("read generated controller config fixture: {}", error))
+        .replace(
+            "workloadIdentityRequired: true",
+            "workloadIdentityRequired: false",
+        )
+        .replace(
+            "nodeMetadataAccess: \"blocked\"",
+            "nodeMetadataAccess: \"allowed\"",
+        )
+        .replace(
+            "defaultDenyNetworkPolicy: true",
+            "defaultDenyNetworkPolicy: false",
+        );
+    fs::write(&generated_path, generated).unwrap_or_else(|error| {
+        panic!("write generated controller config fixture: {}", error);
+    });
+
+    let evaluation = gate::evaluate(&root);
+    let _ = fs::remove_dir_all(&root);
+    assert_eq!(evaluation.verdict, "FAIL");
+    assert!(
+        evaluation
+            .failures
+            .iter()
+            .any(|failure| failure.contains("generated controller config is stale")),
         "{:?}",
         evaluation.failures
     );
