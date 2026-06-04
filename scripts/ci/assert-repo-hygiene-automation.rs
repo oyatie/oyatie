@@ -47,6 +47,7 @@ const REQUIRED_DOMAINS: &[&str] = &[
 const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     "buck2 build //:repo-hygiene-automation-check",
     "buck2 build //:github-lane-unlocker-bridge-check",
+    "buck2 build //:third-party-durable-handedits-check",
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
     STALE_DOC_INVENTORY_COMMAND,
     STALE_DOC_INVENTORY_TEST_COMMAND,

@@ -70,8 +70,7 @@ for f in $RUST_REL; do
         # hand-edit drift as its own validated contract, not as a request to build
         # every vendored crate on every PR. Real vendored crate/source changes still
         # flow through owner()/rdeps(); set the env override for full package proof.
-        python3 scripts/ci/apply-third-party-durable-handedits.py
-        git diff --exit-code -- third-party/BUCK >/dev/null
+        "$BUCK2" build //:third-party-durable-handedits-check >/dev/null
         echo "buck2-affected-gate: validated third-party/BUCK durable hand-edits; set OYA_AFFECTED_GATE_INCLUDE_THIRD_PARTY_BUCK=1 for full package proof"
         continue
       fi
