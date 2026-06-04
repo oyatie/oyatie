@@ -193,7 +193,7 @@
     "scripts/branch-protection-apply.sh",
     "scripts/onprem-bring-up.sh",
     "scripts/install-trivy-ci.sh",
-    "scripts/supply-chain-adr0039.sh",
+    "scripts/validate-release-image-supply-chain.sh",
     "scripts/hooks/pre-push.sh",
     "scripts/ci/enforce-buck2-authority.rs",
     "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",

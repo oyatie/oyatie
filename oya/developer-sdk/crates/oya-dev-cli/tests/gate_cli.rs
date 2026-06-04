@@ -1536,7 +1536,7 @@ fn supply_chain_gate_accepts_full_adr0039_static_wiring() {
         "source-only",
         "cargo audit\ncargo deny check\n",
         Some(
-            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n",
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/validate-release-image-supply-chain.sh\n",
         ),
         true,
     );
@@ -1572,7 +1572,7 @@ fn supply_chain_gate_accepts_full_adr0039_static_wiring_with_pre_release_empty_s
         "source-only",
         "cargo audit\ncargo deny check\n",
         Some(
-            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n",
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/validate-release-image-supply-chain.sh\n",
         ),
         false,
     );
@@ -1604,7 +1604,7 @@ fn supply_chain_gate_rejects_full_adr0039_without_signed_commit_policy() {
         "source-only",
         "cargo audit\ncargo deny check\n",
         Some(
-            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n",
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/validate-release-image-supply-chain.sh\n",
         ),
         true,
     );
@@ -4245,7 +4245,7 @@ fn supply_chain_args(root: &Path) -> Vec<String> {
             .expect("utf8 check script")
             .into(),
         "--adr0039-script".into(),
-        root.join("scripts/supply-chain-adr0039.sh")
+        root.join("scripts/validate-release-image-supply-chain.sh")
             .to_str()
             .expect("utf8 adr0039 script")
             .into(),
@@ -4420,7 +4420,7 @@ fn release_evidence_pack_args(root: &Path) -> Vec<String> {
 fn write_supply_chain_adr0039_script(root: &Path) {
     fs::create_dir_all(root.join("scripts")).expect("scripts dir created");
     fs::write(
-        root.join("scripts/supply-chain-adr0039.sh"),
+        root.join("scripts/validate-release-image-supply-chain.sh"),
         r#"#!/usr/bin/env bash
 trivy fs --severity HIGH,CRITICAL --exit-code 1 .
 trivy image --severity HIGH,CRITICAL --exit-code 1 "$image"

@@ -392,7 +392,7 @@ lanes:
     purpose: ADR-0221 fixture-backed check that vacuous-green hook detection fails on intentionally empty gate evidence
     source: ADR-0221 M-06
     runtime_budget_seconds: 60
-    check_command: buck2 build //:adr-0221-governance-gates-check
+    check_command: buck2 build //:governance-hook-efficacy-check
   - id: oya-governance-adr-orphan-citation
     stage: per-pr
     status: active
@@ -400,7 +400,7 @@ lanes:
     purpose: ADR-0221 fixture-backed check that orphan ADR citation detection catches missing decision records
     source: ADR-0221 M-13
     runtime_budget_seconds: 60
-    check_command: buck2 build //:adr-0221-governance-gates-check
+    check_command: buck2 build //:governance-hook-efficacy-check
   - id: oya-governance-version-pin-source-citation
     stage: per-pr
     status: active
@@ -408,7 +408,7 @@ lanes:
     purpose: ADR-0221 fixture-backed check that OpenAPI and AsyncAPI version pins reject noncanonical versions
     source: ADR-0221 M-01
     runtime_budget_seconds: 60
-    check_command: buck2 build //:adr-0221-governance-gates-check
+    check_command: buck2 build //:governance-hook-efficacy-check
   - id: oya-governance-buildability-line-count
     stage: per-pr
     status: active
@@ -416,7 +416,7 @@ lanes:
     purpose: ADR-0221 fixture-backed check that buildability line-count guidance distinguishes short docs from substantive docs
     source: ADR-0221 M-10
     runtime_budget_seconds: 60
-    check_command: buck2 build //:adr-0221-governance-gates-check
+    check_command: buck2 build //:governance-hook-efficacy-check
   - id: foundry-eval-nightly
     stage: nightly
     status: active

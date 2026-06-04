@@ -28,6 +28,31 @@ const BACKLOG_OFFENDERS: &[&str] = &[
     "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
 ];
 
+const ACTIVE_SCRIPT_ROOT: &str = "scripts";
+
+const SELF_EXPLANATORY_SCRIPT_NAME_ROOTS: &[&str] = &["scripts", "tools"];
+
+const RETIRED_CLI_SCRIPT_INVOCATION_TOKENS: &[&str] = &[
+    "//oya/developer-sdk/crates/oya-dev-cli:oya",
+    "oya-dev-cli",
+    "oya gate ",
+    "oya verify ",
+    "oya vcs ",
+    "oya git ",
+    "./bin/oya",
+];
+
+const ACTIVE_RETIRED_CLI_SCRIPT_BACKLOG: &[&str] = &[
+    "scripts/asyncapi-lint.mjs",
+    "scripts/proto-lint.mjs",
+    "scripts/validate-adr-shape.mjs",
+    "scripts/validate-foundry-phase00-evidence.mjs",
+    "scripts/branch-protection-apply.sh",
+    "scripts/onprem-bring-up.sh",
+    "scripts/install-trivy-ci.sh",
+    "scripts/validate-release-image-supply-chain.sh",
+];
+
 const FALSE_CLAIMS: &[&str] = &[
     "status_mutation_performed",
     "protected_branch_authority_proven",
@@ -57,6 +82,7 @@ pub struct Evaluation {
     pub registry: String,
     pub fixture_count: usize,
     pub backlog_offender_count: usize,
+    pub active_retired_cli_script_count: usize,
     pub fixture_results: Vec<FixtureResult>,
     pub failures: Vec<String>,
 }
@@ -180,6 +206,8 @@ pub fn registry_failures(text: &str) -> Vec<String> {
         ("new_python_outside_allowlist_blocked", true),
         ("new_shell_outside_allowlist_blocked", true),
         ("offender_inventory_recorded", true),
+        ("active_retired_cli_script_surface_recorded", true),
+        ("active_script_names_self_descriptive", true),
     ] {
         if !has_bool(text, key, expected) {
             failures.push(format!("missing_registry_boundary_{}", key));
@@ -195,6 +223,14 @@ pub fn registry_failures(text: &str) -> Vec<String> {
         "dual Cargo.toml + Buck2/Reindeer",
         "trusted cloud-ci/oya-ci",
         "hyperscaler-oriented",
+        "\"active_retired_cli_script_backlog\"",
+        "\"claim_boundary\": \"registered_compatibility_shim_backlog_only_no_merge_ci_authority\"",
+        "\"durable_retired_cli_script_authority_allowed\": false",
+        "\"unregistered_retired_cli_script_invocations_allowed\": false",
+        "\"replacement_language\": \"Rust\"",
+        "\"buck2_owned_replacement_required\": true",
+        "\"self_explanatory_script_name_policy\"",
+        "\"adr_numbered_active_script_names_allowed\": false",
     ] {
         if !text.contains(token) {
             failures.push(format!("missing_required_registry_anchor:{}", token));
@@ -215,10 +251,208 @@ pub fn registry_failures(text: &str) -> Vec<String> {
         }
     }
 
+    if !compact_json_text(text).contains("\"detected_script_count\":8") {
+        failures.push("missing_active_retired_cli_script_count_8".to_owned());
+    }
+
+    for path in ACTIVE_RETIRED_CLI_SCRIPT_BACKLOG {
+        if !text.contains(path) {
+            failures.push(format!("missing_active_retired_cli_script:{}", path));
+        }
+    }
+
     for fixture in FIXTURES {
         if !text.contains(fixture) {
             failures.push(format!("missing_registered_fixture:{}", fixture));
         }
+    }
+
+    failures
+}
+
+pub fn retired_cli_invocation_lines(text: &str) -> Vec<String> {
+    text.lines()
+        .filter_map(|line| {
+            let trimmed = line.trim_start();
+            if trimmed.is_empty()
+                || trimmed.starts_with('#')
+                || trimmed.starts_with("//")
+                || trimmed.starts_with('*')
+            {
+                return None;
+            }
+            if RETIRED_CLI_SCRIPT_INVOCATION_TOKENS
+                .iter()
+                .any(|token| line.contains(token))
+            {
+                return Some(line.trim().to_owned());
+            }
+            None
+        })
+        .collect()
+}
+
+fn is_scanned_script(path: &Path) -> bool {
+    matches!(
+        path.extension().and_then(|extension| extension.to_str()),
+        Some("sh" | "mjs")
+    )
+}
+
+fn is_script_name_policy_file(path: &Path) -> bool {
+    matches!(
+        path.extension().and_then(|extension| extension.to_str()),
+        Some("sh" | "mjs" | "rs")
+    )
+}
+
+fn collect_script_paths(root: &Path, rel: &Path, output: &mut Vec<PathBuf>) -> Result<(), String> {
+    let dir = root.join(rel);
+    for entry in fs::read_dir(&dir).map_err(|err| format!("read dir {}: {}", dir.display(), err))? {
+        let entry = entry.map_err(|err| format!("read dir entry {}: {}", dir.display(), err))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|err| format!("file type {}: {}", entry.path().display(), err))?;
+        let entry_rel = rel.join(entry.file_name());
+        if file_type.is_dir() {
+            collect_script_paths(root, &entry_rel, output)?;
+        } else if file_type.is_file() && is_scanned_script(&entry.path()) {
+            output.push(entry_rel);
+        }
+    }
+    Ok(())
+}
+
+fn collect_script_name_paths(
+    root: &Path,
+    rel: &Path,
+    output: &mut Vec<PathBuf>,
+) -> Result<(), String> {
+    let dir = root.join(rel);
+    for entry in fs::read_dir(&dir).map_err(|err| format!("read dir {}: {}", dir.display(), err))? {
+        let entry = entry.map_err(|err| format!("read dir entry {}: {}", dir.display(), err))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|err| format!("file type {}: {}", entry.path().display(), err))?;
+        let entry_rel = rel.join(entry.file_name());
+        if file_type.is_dir() {
+            collect_script_name_paths(root, &entry_rel, output)?;
+        } else if file_type.is_file() && is_script_name_policy_file(&entry.path()) {
+            output.push(entry_rel);
+        }
+    }
+    Ok(())
+}
+
+fn path_to_repo_string(path: &Path) -> String {
+    path.components()
+        .map(|component| component.as_os_str().to_string_lossy())
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+pub fn adr_numbered_script_name(path: &str) -> bool {
+    let lower = path.to_ascii_lowercase();
+    let bytes = lower.as_bytes();
+    let mut index = 0usize;
+    while index + 7 <= bytes.len() {
+        if &bytes[index..index + 3] == b"adr" {
+            let mut cursor = index + 3;
+            while cursor < bytes.len() && matches!(bytes[cursor], b'-' | b'_') {
+                cursor += 1;
+            }
+            if cursor + 4 <= bytes.len()
+                && bytes[cursor..cursor + 4]
+                    .iter()
+                    .all(|byte| byte.is_ascii_digit())
+            {
+                return true;
+            }
+        }
+        index += 1;
+    }
+    false
+}
+
+pub fn active_script_name_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    for root_rel in SELF_EXPLANATORY_SCRIPT_NAME_ROOTS {
+        let mut paths = Vec::new();
+        if let Err(err) = collect_script_name_paths(root, Path::new(root_rel), &mut paths) {
+            failures.push(format!(
+                "active_script_name_scan_failed:{}:{}",
+                root_rel, err
+            ));
+            continue;
+        }
+        for rel_path in paths {
+            let repo_path = path_to_repo_string(&rel_path);
+            if adr_numbered_script_name(&repo_path) {
+                failures.push(format!("adr_numbered_active_script_name:{}", repo_path));
+            }
+        }
+    }
+    failures
+}
+
+pub fn active_retired_cli_script_failures(root: &Path, registry_text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+    let mut paths = Vec::new();
+    if let Err(err) = collect_script_paths(root, Path::new(ACTIVE_SCRIPT_ROOT), &mut paths) {
+        failures.push(format!("active_script_scan_failed:{}", err));
+        return failures;
+    }
+
+    let mut detected = Vec::new();
+    for rel_path in paths {
+        let repo_path = path_to_repo_string(&rel_path);
+        if repo_path.starts_with("scripts/tests/") {
+            continue;
+        }
+        let text = match fs::read_to_string(root.join(&rel_path)) {
+            Ok(text) => text,
+            Err(err) => {
+                failures.push(format!("active_script_read_failed:{}:{}", repo_path, err));
+                continue;
+            }
+        };
+        let invocation_lines = retired_cli_invocation_lines(&text);
+        if invocation_lines.is_empty() {
+            continue;
+        }
+        detected.push(repo_path.clone());
+        if !registry_text.contains(&repo_path) {
+            failures.push(format!("unregistered_retired_cli_script:{}", repo_path));
+        }
+        for line in invocation_lines {
+            if line.contains("gate validate")
+                || line.contains("supply-chain")
+                || line.contains("ops ")
+            {
+                if !registry_text.contains("\"active_merge_ci_authority\": false")
+                    || !registry_text.contains("\"live_mutation_authority\": false")
+                {
+                    failures.push(format!(
+                        "registered_retired_cli_script_missing_non_authority_boundary:{}",
+                        repo_path
+                    ));
+                }
+            }
+        }
+    }
+
+    for expected in ACTIVE_RETIRED_CLI_SCRIPT_BACKLOG {
+        if !detected.iter().any(|path| path == expected) {
+            failures.push(format!("missing_detected_retired_cli_script:{}", expected));
+        }
+    }
+
+    if detected.len() != ACTIVE_RETIRED_CLI_SCRIPT_BACKLOG.len() {
+        failures.push(format!(
+            "retired_cli_script_count_mismatch:expected_{}_got_{}",
+            ACTIVE_RETIRED_CLI_SCRIPT_BACKLOG.len(),
+            detected.len()
+        ));
     }
 
     failures
@@ -229,6 +463,8 @@ pub fn evaluate(root: &Path, registry: &str) -> Result<Evaluation, String> {
     let registry_text = fs::read_to_string(&registry_path)
         .map_err(|err| format!("read registry {}: {}", registry_path.display(), err))?;
     let mut failures = registry_failures(&registry_text);
+    failures.extend(active_retired_cli_script_failures(root, &registry_text));
+    failures.extend(active_script_name_failures(root));
 
     let mut fixture_results = Vec::new();
     for fixture in FIXTURES {
@@ -290,6 +526,7 @@ pub fn evaluate(root: &Path, registry: &str) -> Result<Evaluation, String> {
         registry: registry.to_owned(),
         fixture_count: fixture_results.len(),
         backlog_offender_count: BACKLOG_OFFENDERS.len(),
+        active_retired_cli_script_count: ACTIVE_RETIRED_CLI_SCRIPT_BACKLOG.len(),
         fixture_results,
         failures,
     })
@@ -359,7 +596,8 @@ pub fn evaluation_json(evaluation: &Evaluation) -> String {
         .join(",");
 
     format!(
-        "{{\"backlog_offender_count\":{},\"claim_boundary\":{{\"hyperscaler_grade\":false,\"live_required_context_execution_proven\":false,\"p0_0_green\":false,\"phase0_complete\":false,\"production_ready\":false,\"protected_branch_authority_proven\":false,\"status_mutation_performed\":false}},\"failures\":[{}],\"fixture_count\":{},\"fixture_results\":[{}],\"registry\":\"{}\",\"verdict\":\"{}\"}}",
+        "{{\"active_retired_cli_script_count\":{},\"backlog_offender_count\":{},\"claim_boundary\":{{\"hyperscaler_grade\":false,\"live_required_context_execution_proven\":false,\"p0_0_green\":false,\"phase0_complete\":false,\"production_ready\":false,\"protected_branch_authority_proven\":false,\"status_mutation_performed\":false}},\"failures\":[{}],\"fixture_count\":{},\"fixture_results\":[{}],\"registry\":\"{}\",\"verdict\":\"{}\"}}",
+        evaluation.active_retired_cli_script_count,
         evaluation.backlog_offender_count,
         failures_json,
         evaluation.fixture_count,
@@ -374,6 +612,10 @@ fn print_human(evaluation: &Evaluation) {
     println!("registry: {}", evaluation.registry);
     println!("fixtures: {}", evaluation.fixture_count);
     println!("backlog_offenders: {}", evaluation.backlog_offender_count);
+    println!(
+        "active_retired_cli_scripts: {}",
+        evaluation.active_retired_cli_script_count
+    );
     for fixture in &evaluation.fixture_results {
         println!(
             "fixture {} expected={} failures={}",
