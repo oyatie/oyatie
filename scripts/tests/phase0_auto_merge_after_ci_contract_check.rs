@@ -465,7 +465,7 @@ fn validate_text_surfaces(root: &Path, failures: &mut Vec<String>) {
 
     let github_test = read(
         root,
-        "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
     );
     require_contains(
         &github_test,
@@ -575,7 +575,7 @@ fn validate_policy(root: &Path, failures: &mut Vec<String>) {
         "scripts/check-sequential-pr-merge-conflicts.sh",
         "scripts/check-sequential-pr-merge-conflicts.rs",
         "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
-        "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+        "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
         "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
         "scripts/tests/phase0_required_context_rollup_check.rs",
