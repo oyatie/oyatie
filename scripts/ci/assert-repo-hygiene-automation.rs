@@ -189,6 +189,7 @@ const ALLOWED_EXACT_NAME_CONTEXTS: &[&str] = &[
 ];
 
 const ROOT_MARKDOWN_ALLOWLIST: &[&str] = &["AGENTS.md", "CLAUDE.md", "README.md"];
+const RETIRED_ROOT_FILES: &[&str] = &["Jenkinsfile"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -451,6 +452,14 @@ fn evaluate_root_markdown(root: &Path, failures: &mut Vec<String>) {
     }
 }
 
+pub fn retired_root_file_failures(root: &Path) -> Vec<String> {
+    RETIRED_ROOT_FILES
+        .iter()
+        .filter(|rel| root.join(rel).exists())
+        .map(|rel| format!("{rel}: retired root CI entrypoint must not exist"))
+        .collect()
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -471,6 +480,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
 
     failures.extend(spec_failures(&spec));
     evaluate_root_markdown(root, &mut failures);
+    failures.extend(retired_root_file_failures(root));
 
     for item_id in [
         "legacy_ci_server",
