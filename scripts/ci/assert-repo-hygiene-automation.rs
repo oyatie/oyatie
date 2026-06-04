@@ -227,6 +227,8 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "oya verify is CI authority",
     "oya gate` / `oya verify` governance evidence",
     "Local `oya verify`, local `oya gate`",
+    "retired `oya gate` / `oya verify`",
+    "the `oya git`, `oya vcs`, `oya gate`, and `oya verify` CLI surfaces",
     "oya-dev-cli:oya -- gate validate planning-closure",
 ];
 
@@ -244,6 +246,8 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "oya gate is merge authority",
     "oya verify is CI authority",
     "Local `oya verify`, local `oya gate`",
+    "retired `oya gate` / `oya verify`",
+    "the `oya git`, `oya vcs`, `oya gate`, and `oya verify` CLI surfaces",
 ];
 
 const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[

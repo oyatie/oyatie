@@ -250,6 +250,36 @@ fn active_doc_phrase_scanner_rejects_retired_local_oya_cli_mirror_wording() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_exact_retired_oya_cli_pair() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/AGENTS.md",
+        "Governance checks run elsewhere; the retired `oya gate` / `oya verify` CLI surfaces are not merge authority.",
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("retired `oya gate` / `oya verify`")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn active_doc_phrase_scanner_rejects_retired_oya_cli_list() {
+    let failures = gate::active_doc_phrase_failures(
+        "AGENTS.md",
+        "retirement_note: the `oya git`, `oya vcs`, `oya gate`, and `oya verify` CLI surfaces are retired as merge authorities.",
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("`oya git`, `oya vcs`, `oya gate`")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn active_doc_phrase_scanner_is_case_insensitive() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",

@@ -303,6 +303,8 @@
       "oya verify is CI authority",
       "oya gate` / `oya verify` governance evidence",
       "Local `oya verify`, local `oya gate`",
+      "retired `oya gate` / `oya verify`",
+      "the `oya git`, `oya vcs`, `oya gate`, and `oya verify` CLI surfaces",
       "oya-dev-cli:oya -- gate validate planning-closure"
     ],
     "scan_scope": [
