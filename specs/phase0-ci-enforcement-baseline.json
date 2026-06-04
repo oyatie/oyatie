@@ -475,7 +475,7 @@
       "status": "GAP"
     }
   },
-  "next_required_action": "Use GitHub/GitHub Actions temporary lane unlocker while deploying/publishing trusted native cloud-ci/oya-ci producer evidence for oya-ci-required on candidate SHAs, then rerun T0.0 fixtures. Do not start P0.1 enforcement claims from this RED gap packet.",
+  "next_required_action": "Use GitHub/GitHub Actions compatibility/shadow lane unlocker while deploying/publishing trusted native Prow/Kubernetes-native oya-ci producer evidence for oya-ci-required on candidate SHAs, then rerun T0.0 fixtures. Do not start P0.1 enforcement claims from this RED gap packet.",
   "p0_0_requirements": [
     "required cloud-ci-required or oya-ci-required protected branch context",
     "trusted trunk/controller-sourced producer (oya-ci-controller or minimal Rust bridge adapter)",

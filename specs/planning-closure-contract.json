@@ -12,7 +12,12 @@
   },
   "implementation_start_rule": {
     "claim_status": "blocked_until_planning_closure_gate_green",
-    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
+    "active_authority_checks": [
+      "buck2 build //:repo-hygiene-automation-check",
+      "buck2 build //:buck2-authority-policy-check"
+    ],
+    "retired_gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
+    "retired_gate_command_note": "Tombstone provenance only. Planning-closure kernels must be rewritten as Rust libraries, Buck2 targets, and Prow/Kubernetes-native jobs before they can become merge/CI authority.",
     "allowed_claim_after_green": "The planning phase is closed enough to begin implementation without implementation-time product, architecture, sequencing, or acceptance-criteria invention.",
     "forbidden_claims_before_green": [
       "implementation-ready",

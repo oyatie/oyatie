@@ -115,7 +115,7 @@
     "retired_script_path": "scripts/ci/arm-auto-merge.sh",
     "retired_shell_test_path": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
     "retired_doc_path": "docs/ci/forge-of-record.md",
-    "replacement_now": "GitHub/GitHub Actions temporary lane unlocker under Buck2 authority",
+    "replacement_now": "GitHub/GitHub Actions compatibility/shadow lane unlocker under Buck2 authority while Prow/Kubernetes-native oya-ci-required matures",
     "native_destination": "pure-Rust Sapling-inspired Oyatie SCM with GitHub and git-protocol adapters",
     "retired_surface_guard": "//:repo-hygiene-automation-check",
     "no_retired_external_scm_ci_cd_interim": true
