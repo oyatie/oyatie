@@ -95,11 +95,15 @@ setup_queue_repo() {
   git -C "$work" config user.email "queue-test@example.invalid"
   git -C "$work" config user.name "queue-test"
 
-  mkdir -p "$work/scripts" "$work/infra/branch-protection"
+  mkdir -p "$work/scripts/ci" "$work/infra/branch-protection"
   install -m 0755 "$repo_root/scripts/trigger-next-queue-automerge.sh" \
     "$work/scripts/trigger-next-queue-automerge.sh"
   install -m 0755 "$repo_root/scripts/check-sequential-pr-merge-conflicts.sh" \
     "$work/scripts/check-sequential-pr-merge-conflicts.sh"
+  cp "$repo_root/scripts/check-sequential-pr-merge-conflicts.rs" \
+    "$work/scripts/check-sequential-pr-merge-conflicts.rs"
+  cp "$repo_root/scripts/ci/assert-result-bundle-output.rs" \
+    "$work/scripts/ci/assert-result-bundle-output.rs"
   mv "$work/scripts/check-sequential-pr-merge-conflicts.sh" \
     "$work/scripts/check-sequential-pr-merge-conflicts.real.sh"
   # Local sequencing regression guard: the wrapper delegates to the real guard and

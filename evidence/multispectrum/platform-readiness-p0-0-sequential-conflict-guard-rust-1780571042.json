@@ -1,0 +1,95 @@
+{
+  "schema_version": "multispectrum-review.v2.4.0-local-static",
+  "change_id": "platform-readiness-p0-0-sequential-conflict-guard-rust-1780571042",
+  "change_class_id": "CC-6",
+  "timestamp": "2026-06-04T07:04:02-0400",
+  "scope": "Sequential PR merge-conflict guard moved from shell logic to Rust while preserving the legacy CLI path as a compatibility shim",
+  "verdict": "LOCAL_STATIC_PASS_NOT_NATIVE_CI_AUTHORITY",
+  "claim_boundary": {
+    "github_actions_is_permanent_ci_cd": false,
+    "github_is_permanent": false,
+    "live_branch_protection_mutated": false,
+    "live_kubernetes_mutated": false,
+    "live_required_context_execution_proven": false,
+    "native_ci_authority_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false
+  },
+  "implementation_summary": [
+    "Added scripts/check-sequential-pr-merge-conflicts.rs as the merge-tree simulation implementation.",
+    "Reduced scripts/check-sequential-pr-merge-conflicts.sh to a compatibility-only shim that compiles and execs the Rust implementation.",
+    "Replaced scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh with scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs.",
+    "Updated BUCK, specs/phase0-auto-merge-after-ci.json, specs/buck2-authority-policy.json, and the phase0 auto-merge contract checker so Buck2 requires the Rust implementation/test path.",
+    "Updated the trigger conflict-guard fixture to copy the Rust implementation and shared JSON helper into its temporary repository before invoking the compatibility shim."
+  ],
+  "checks": [
+    {
+      "name": "rustfmt",
+      "command": "rustfmt --edition 2021 --check scripts/check-sequential-pr-merge-conflicts.rs scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
+      "verdict": "PASS",
+      "evidence": "format check exited 0"
+    },
+    {
+      "name": "rust_conflict_guard_compile",
+      "command": "rustc --edition=2021 -D warnings scripts/check-sequential-pr-merge-conflicts.rs -o /tmp/check-sequential-pr-merge-conflicts",
+      "verdict": "PASS",
+      "evidence": "Rust conflict guard compiled with warnings denied"
+    },
+    {
+      "name": "rust_fetch_remote_regression",
+      "command": "rustc --edition=2021 -D warnings scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs --test -o /tmp/check_sequential_pr_merge_conflicts_fetch_remote && OYA_REPO_ROOT=$PWD OYA_SEQ_CONFLICT_CHECKER_BIN=/tmp/check-sequential-pr-merge-conflicts /tmp/check_sequential_pr_merge_conflicts_fetch_remote --nocapture",
+      "verdict": "PASS",
+      "evidence": "1 passed; 0 failed; explicit github-mirror fetch passes and default origin fails closed"
+    },
+    {
+      "name": "compatibility_shim_smoke",
+      "command": "scripts/check-sequential-pr-merge-conflicts.sh --help >/tmp/check-seq-help.out && grep -Fq \"Usage: \" /tmp/check-seq-help.out",
+      "verdict": "PASS",
+      "evidence": "legacy CLI path delegates to Rust and prints usage"
+    },
+    {
+      "name": "phase0_auto_merge_contract",
+      "command": "rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs --test -o /tmp/phase0_auto_merge_after_ci_contract_check && OYA_REPO_ROOT=$PWD /tmp/phase0_auto_merge_after_ci_contract_check --nocapture",
+      "verdict": "PASS",
+      "evidence": "2 passed; 0 failed"
+    },
+    {
+      "name": "phase0_auto_merge_json_contract",
+      "command": "rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs -o /tmp/phase0_auto_merge_after_ci_contract_check_bin && OYA_REPO_ROOT=$PWD /tmp/phase0_auto_merge_after_ci_contract_check_bin > /tmp/phase0-auto-merge-contract.json && jq -e '.verdict == \"PASS\" and .checks.conflict_guard_rust_implementation_declared == true and .checks.conflict_guard_rust_fetch_remote_tested == true and .checks.p0_0_green == false and .checks.phase0_complete == false' /tmp/phase0-auto-merge-contract.json",
+      "verdict": "PASS",
+      "evidence": "jq assertion returned true"
+    },
+    {
+      "name": "retired_shell_test_sweep",
+      "command": "rg retired check_sequential_pr_merge_conflicts_fetch_remote.test.sh path and Buck shell invocation across BUCK specs scripts docs",
+      "verdict": "PASS_NO_MATCHES",
+      "evidence": "no active references to the retired shell test or bash invocation remain"
+    },
+    {
+      "name": "json_syntax",
+      "command": "jq empty specs/phase0-auto-merge-after-ci.json specs/buck2-authority-policy.json",
+      "verdict": "PASS",
+      "evidence": "changed JSON specs parsed"
+    },
+    {
+      "name": "diff_hygiene",
+      "command": "git diff --check",
+      "verdict": "PASS",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "name": "buck2_targets",
+      "command": "buck2 build //:github-auto-merge-after-ci-check //:phase0-auto-merge-after-ci-contract-check //:buck2-authority-policy-check //:phase0-red-green-fixture-contract-check //:language-discipline-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID 01464795-45e2-48de-989b-0cb54f3d6b37"
+    }
+  ],
+  "known_gaps": [
+    "scripts/trigger-next-queue-automerge.sh and scripts/ci/arm-auto-merge.sh remain shell surfaces for later lanes.",
+    "This change does not mutate live GitHub branch protection, Kubernetes, cloud resources, secrets, or required-status producers.",
+    "GitHub Actions remains a temporary lane unlocker, not the native CI/CD cutover target."
+  ]
+}
