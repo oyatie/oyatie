@@ -514,7 +514,7 @@ pub fn run_in(cwd: &Path, args: &[String]) -> RunResult {
         let head_ref = if options.fetch_heads {
             if !run_git_fetch(cwd, &options.fetch_remote, pr.number, &pr_ref) {
                 stderr.push_str(&format!(
-                    "::error::failed to fetch PR #{} head from remote {}; pass --fetch-remote for the GitHub mirror when origin is Forgejo\n",
+                    "::error::failed to fetch PR #{} head from remote {}; pass --fetch-remote for the GitHub mirror when origin is not GitHub\n",
                     pr.number, options.fetch_remote
                 ));
                 return RunResult {

@@ -130,16 +130,15 @@
     "auto_merge_after_ci_contract": {
       "classification": "checked_in_target_contract_github_required_context_live_not_phase0_green",
       "path": "specs/phase0-auto-merge-after-ci.json",
-      "forgejo_script": "scripts/ci/arm-auto-merge.sh",
       "github_script": "scripts/trigger-next-queue-automerge.sh",
       "conflict_guard": "scripts/check-sequential-pr-merge-conflicts.sh",
       "required_context": "github-lane-unlocker-required",
       "head_pin_fields": {
-        "forgejo": "head_commit_id",
+        "native_scm": "full candidate SHA guard",
         "github": "--match-head-commit"
       },
       "gap": "Temporary GitHub required-status checks match github-lane-unlocker-required; trusted native oya-ci producer evidence remains unproven.",
-      "forgejo_mergeability_guard": "scripts/ci/arm-auto-merge.sh refreshes PR, requires exact head.sha match, and requires mergeable=true before POST /pulls/{index}/merge"
+      "retired_external_bridge_status": "retired shell bridge paths are no longer active interim authority; native SCM/Oya CI cutover remains a target contract"
     },
     "required_status_source_binding": {
       "classification": "checked_in_and_live_read_only_red_gap_not_phase0_green",

@@ -1,9 +1,9 @@
 //! Validate the P0.0 auto-merge-after-CI contract is executable and closed.
 //!
-//! This check intentionally inspects the active scripts/docs/code surfaces that
-//! arm Forgejo and GitHub auto-merge. It is not a live-green claim; it prevents
-//! checked-in regressions to stale contexts, unpinned PR heads, missing conflict
-//! guards, or Cargo/oya local authority language.
+//! This check intentionally inspects the active GitHub lane-unlocker and native
+//! SCM cutover surfaces. It is not a live-green claim; it prevents checked-in
+//! regressions to stale contexts, unpinned PR heads, missing conflict guards,
+//! retired external bridge scripts, or Cargo/oya local authority language.
 
 #[allow(dead_code)]
 #[path = "../ci/assert-result-bundle-output.rs"]
@@ -141,6 +141,12 @@ fn require_array_contains(
     }
 }
 
+fn require_path_absent(root: &Path, path: &str, failures: &mut Vec<String>) {
+    if root.join(path).exists() {
+        failures.push(format!("{path}: retired bridge surface must not exist"));
+    }
+}
+
 fn validate_spec(spec: &BTreeMap<String, Json>, failures: &mut Vec<String>) {
     require_string(
         spec,
@@ -159,8 +165,12 @@ fn validate_spec(spec: &BTreeMap<String, Json>, failures: &mut Vec<String>) {
         failures.push("spec.github must be an object".to_string());
         return;
     };
-    let Some(forgejo) = object_field(spec, "forgejo") else {
-        failures.push("spec.forgejo must be an object".to_string());
+    let Some(native_scm) = object_field(spec, "native_scm_cutover") else {
+        failures.push("spec.native_scm_cutover must be an object".to_string());
+        return;
+    };
+    let Some(retired_bridge) = object_field(spec, "retired_external_scm_bridge") else {
+        failures.push("spec.retired_external_scm_bridge must be an object".to_string());
         return;
     };
 
@@ -299,55 +309,79 @@ fn validate_spec(spec: &BTreeMap<String, Json>, failures: &mut Vec<String>) {
     }
 
     require_string(
-        forgejo,
-        "schedule_field",
-        "merge_when_checks_succeed",
-        "forgejo.schedule_field must be merge_when_checks_succeed",
+        native_scm,
+        "scm_target",
+        "pure-Rust Sapling-inspired Oyatie SCM",
+        "native_scm_cutover.scm_target must declare the pure-Rust Sapling-inspired Oyatie SCM",
         failures,
     );
     require_string(
-        forgejo,
-        "head_pin_field",
-        "head_commit_id",
-        "forgejo.head_pin_field must be head_commit_id",
-        failures,
-    );
-    require_bool_true(
-        forgejo,
-        "script_requires_mergeability_guard",
-        "forgejo.script_requires_mergeability_guard must be true",
+        native_scm,
+        "required_context",
+        "oya-ci-required",
+        "native_scm_cutover.required_context must be oya-ci-required",
         failures,
     );
     require_string_array_eq(
-        forgejo,
+        native_scm,
         "allowed_merge_methods",
         &["squash"],
-        "forgejo.allowed_merge_methods must be ['squash']",
+        "native_scm_cutover.allowed_merge_methods must be ['squash']",
         failures,
     );
     require_bool_true(
-        forgejo,
-        "delete_branch_after_merge_locked",
-        "forgejo.delete_branch_after_merge_locked must be true",
+        native_scm,
+        "github_adapter_required",
+        "native_scm_cutover.github_adapter_required must be true",
         failures,
     );
     require_bool_true(
-        forgejo,
-        "tide_required_context_hard_pinned",
-        "forgejo.tide_required_context_hard_pinned must be true",
+        native_scm,
+        "git_protocol_adapter_required",
+        "native_scm_cutover.git_protocol_adapter_required must be true",
         failures,
     );
+    require_bool_true(
+        native_scm,
+        "head_pin_full_sha_guard",
+        "native_scm_cutover.head_pin_full_sha_guard must be true",
+        failures,
+    );
+    require_bool_true(
+        native_scm,
+        "no_retired_external_scm_ci_cd_interim",
+        "native_scm_cutover.no_retired_external_scm_ci_cd_interim must be true",
+        failures,
+    );
+
     require_string(
-        forgejo,
-        "tide_merge_method_hard_pinned",
-        "squash",
-        "forgejo.tide_merge_method_hard_pinned must be squash",
+        retired_bridge,
+        "status",
+        "retired_no_interim_authority",
+        "retired_external_scm_bridge.status must be retired_no_interim_authority",
         failures,
     );
+    for (key, expected) in [
+        ("retired_script_path", "scripts/ci/arm-auto-merge.sh"),
+        (
+            "retired_shell_test_path",
+            "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+        ),
+        ("retired_doc_path", "docs/ci/forge-of-record.md"),
+        ("retired_surface_guard", "//:repo-hygiene-automation-check"),
+    ] {
+        require_string(
+            retired_bridge,
+            key,
+            expected,
+            &format!("retired_external_scm_bridge.{key} must be {expected}"),
+            failures,
+        );
+    }
     require_bool_true(
-        forgejo,
-        "tide_head_pin_full_sha_guard",
-        "forgejo.tide_head_pin_full_sha_guard must be true",
+        retired_bridge,
+        "no_retired_external_scm_ci_cd_interim",
+        "retired bridge must not claim interim authority",
         failures,
     );
 
@@ -367,6 +401,13 @@ fn validate_spec(spec: &BTreeMap<String, Json>, failures: &mut Vec<String>) {
         "github_required_context_rollup_test",
         "//:github-auto-merge-after-ci-check",
         "buck2_enforcement.github_required_context_rollup_test must be //:github-auto-merge-after-ci-check",
+        failures,
+    );
+    require_string(
+        buck2_enforcement,
+        "retired_bridge_surface_guard",
+        "//:repo-hygiene-automation-check",
+        "buck2_enforcement.retired_bridge_surface_guard must be //:repo-hygiene-automation-check",
         failures,
     );
 }
@@ -406,62 +447,18 @@ fn validate_text_surfaces(root: &Path, failures: &mut Vec<String>) {
         "git merge-tree",
         "fn run_git_fetch",
         "\"fetch\"",
-        "pass --fetch-remote for the GitHub mirror when origin is Forgejo",
+        "pass --fetch-remote for the GitHub mirror when origin is not GitHub",
     ] {
         require_contains(&conflict_guard, needle, "conflict guard Rust", failures);
     }
 
-    let forge_script = read(root, "scripts/ci/arm-auto-merge.sh");
-    for needle in [
-        "REQUIRED_CONTEXT=\"oya-ci-required\"",
-        "REQUIRED_CONTEXT is fixed to oya-ci-required",
-        "--merge-method is fixed to squash",
-        "--delete-branch-after-merge is fixed to true",
-        "merge_when_checks_succeed",
-        "head_commit_id",
-        "delete_branch_after_merge",
-        "--head-commit is required with --pr-index",
-        "--head-commit must be a full SHA-1 (40 hex) or SHA-256 (64 hex) commit id",
-        "pulls/${PR_INDEX}/merge",
-        "validate_pr_ready_for_auto_merge",
-        "pr_resp=\"$(forge_api GET \"${PR_ITEM_ENDPOINT}\")\"",
-        "head = d.get(\"head\") or {}",
-        "head_sha = head.get(\"sha\") or \"\"",
-        "mergeable = d.get(\"mergeable\", None)",
-        "does not match expected",
-        "PR is not mergeable according to Forgejo",
+    for retired_path in [
+        "scripts/ci/arm-auto-merge.sh",
+        "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+        "docs/ci/forge-of-record.md",
     ] {
-        require_contains(&forge_script, needle, "forgejo script", failures);
+        require_path_absent(root, retired_path, failures);
     }
-
-    let tide_adapter = read(
-        root,
-        "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs",
-    );
-    for needle in [
-        "merge_when_checks_succeed: true",
-        "delete_branch_after_merge: true",
-        "head_commit_id: head_sha.to_owned()",
-        "P0.0 Tide auto-merge scheduling is squash-only",
-        "is_full_hex_commit_id(head_sha)",
-        "head_sha must be a full SHA-1 (40 hex) or SHA-256 (64 hex) commit id",
-    ] {
-        require_contains(&tide_adapter, needle, "tide adapter", failures);
-    }
-
-    let tide_kernel = read(root, "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs");
-    for needle in [
-        "let required_status_context = DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned();",
-        "let merge_method = MergeMethod::Squash;",
-        "configured_required_status_context_cannot_override_phase0_default",
-        "configured_merge_method_cannot_override_phase0_squash_default",
-        "assert_eq!(MergeMethod::from_str(\"merge\"), MergeMethod::Squash);",
-    ] {
-        require_contains(&tide_kernel, needle, "tide kernel", failures);
-    }
-
-    let tide_app = read(root, "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs");
-    require_contains(&tide_app, "&fresh_pr.head_sha", "tide app", failures);
 
     let github_test = read(
         root,
@@ -544,23 +541,31 @@ fn validate_text_surfaces(root: &Path, failures: &mut Vec<String>) {
         "--fetch-remote",
         "github-mirror",
         "failed to fetch PR #455 head from remote origin",
-        "default origin fetch should fail when origin is non-GitHub Forgejo remote",
+        "default origin fetch should fail when origin is not GitHub",
     ] {
         require_contains(&conflict_test, needle, "conflict guard test", failures);
     }
 
-    for path in ["docs/ci/auto-merge-flow.md", "docs/ci/forge-of-record.md"] {
-        let text = read(root, path);
-        for needle in [
-            "github-lane-unlocker-required",
-            "oya-ci-required",
-            "--match-head-commit",
-            "head_commit_id",
-        ] {
-            require_contains(&text, needle, path, failures);
-        }
-        if text.contains("oya-ci-gate") {
-            failures.push(format!("{path}: must not reference stale oya-ci-gate"));
+    let auto_merge_doc = read(root, "docs/ci/auto-merge-flow.md");
+    for needle in [
+        "github-lane-unlocker-required",
+        "oya-ci-required",
+        "--match-head-commit",
+        "pure-Rust, Sapling-inspired Oyatie SCM",
+        "retired external SCM/CI/CD substrates",
+    ] {
+        require_contains(
+            &auto_merge_doc,
+            needle,
+            "docs/ci/auto-merge-flow.md",
+            failures,
+        );
+    }
+    for forbidden in ["oya-ci-gate", "scripts/ci/arm-auto-merge.sh"] {
+        if auto_merge_doc.contains(forbidden) {
+            failures.push(format!(
+                "docs/ci/auto-merge-flow.md: must not reference {forbidden}"
+            ));
         }
     }
 }
@@ -570,11 +575,9 @@ fn validate_policy(root: &Path, failures: &mut Vec<String>) {
     let policy = object(&policy, "buck2 policy", failures);
     let command_scan_files = string_array_field(policy, "command_scan_files");
     for required in [
-        "scripts/ci/arm-auto-merge.sh",
         "scripts/trigger-next-queue-automerge.sh",
         "scripts/check-sequential-pr-merge-conflicts.sh",
         "scripts/check-sequential-pr-merge-conflicts.rs",
-        "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
         "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
@@ -582,15 +585,22 @@ fn validate_policy(root: &Path, failures: &mut Vec<String>) {
         "scripts/ci/assert-pr-required-context.rs",
         "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
         "docs/ci/auto-merge-flow.md",
-        "docs/ci/forge-of-record.md",
         "specs/phase0-auto-merge-after-ci.json",
-        "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
-        "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs",
-        "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs",
     ] {
         if !command_scan_files.iter().any(|item| item == required) {
             failures.push(format!(
                 "buck2 policy command_scan_files missing {required}"
+            ));
+        }
+    }
+    for retired in [
+        "scripts/ci/arm-auto-merge.sh",
+        "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+        "docs/ci/forge-of-record.md",
+    ] {
+        if command_scan_files.iter().any(|item| item == retired) {
+            failures.push(format!(
+                "buck2 policy command_scan_files must not keep retired bridge surface {retired}"
             ));
         }
     }
@@ -624,15 +634,12 @@ fn pass_json() -> String {
         "\"conflict_guard_declared\":true,",
         "\"conflict_guard_rust_implementation_declared\":true,",
         "\"conflict_guard_rust_fetch_remote_tested\":true,",
-        "\"forgejo_auto_merge_after_ci_head_pinned\":true,",
-        "\"forgejo_mergeability_guard_declared\":true,",
         "\"github_auto_merge_head_pinned\":true,",
+        "\"native_scm_cutover_declared\":true,",
         "\"p0_0_green\":false,",
         "\"phase0_complete\":false,",
         "\"required_context_rollup_check_tested\":true,",
-        "\"tide_context_hard_pinned\":true,",
-        "\"tide_full_sha_guard_declared\":true,",
-        "\"tide_squash_only\":true,",
+        "\"retired_external_bridge_surfaces_absent\":true,",
         "\"trigger_conflict_guard_tested\":true,",
         "\"trigger_non_dry_run_merge_path_scope_labeled\":true,",
         "\"trigger_non_dry_run_merge_path_tested\":true",

@@ -208,14 +208,11 @@ genrule(
         "scripts/tests/trigger_next_queue_automerge_required_contexts.rs": "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
         "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs": "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
-        "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
         "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
         "scripts/check-sequential-pr-merge-conflicts.sh": "scripts/check-sequential-pr-merge-conflicts.sh",
         "scripts/check-sequential-pr-merge-conflicts.rs": "scripts/check-sequential-pr-merge-conflicts.rs",
-        "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs": "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
         "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
-        "docs/ci/forge-of-record.md": "docs/ci/forge-of-record.md",
         "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
         "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md": "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
         "specs/phase0-auto-merge-after-ci.json": "specs/phase0-auto-merge-after-ci.json",
@@ -955,22 +952,6 @@ genrule(
 )
 
 
-# P0.0 auto-merge-after-CI bridge check: Forgejo dry-run payload must use the
-# cloud-ci/oya-ci required context, schedule merge after checks pass, and pin the
-# PR head SHA. This is local/static evidence, not a live Forgejo mutation.
-genrule(
-    name = "forgejo-auto-merge-after-ci-check",
-    srcs = {
-        "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
-        "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
-        "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
-        "docs/ci/forge-of-record.md": "docs/ci/forge-of-record.md",
-    },
-    out = "forgejo-auto-merge-after-ci-check.txt",
-    cmd = "bash scripts/tests/forgejo_auto_merge_after_ci.test.sh > $OUT",
-    visibility = ["PUBLIC"],
-)
-
 # P0.0 GitHub bootstrap mirror auto-merge check: live scheduling must refuse
 # github-lane-unlocker-required drift and non-squash merge methods before
 # arming auto-merge. This is local/static evidence over a fake gh CLI, not a
@@ -1002,19 +983,19 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
-# P0.0 auto-merge-after-CI contract check: closes the checked-in Forgejo/GitHub
-# auto-merge contract over scripts, docs, Tide adapter code, and Buck2 policy.
+# P0.0 auto-merge-after-CI contract check: closes the checked-in GitHub
+# lane-unlocker + native SCM cutover contract over scripts, docs, and Buck2
+# policy. Retired external SCM bridge scripts must stay absent.
 genrule(
     name = "phase0-auto-merge-after-ci-contract-check",
     srcs = {
         "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs": "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
         "specs/phase0-auto-merge-after-ci.json": "specs/phase0-auto-merge-after-ci.json",
         "specs/buck2-authority-policy.json": "specs/buck2-authority-policy.json",
-        "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
+        "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
         "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
         "scripts/check-sequential-pr-merge-conflicts.sh": "scripts/check-sequential-pr-merge-conflicts.sh",
         "scripts/check-sequential-pr-merge-conflicts.rs": "scripts/check-sequential-pr-merge-conflicts.rs",
-        "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "scripts/tests/trigger_next_queue_automerge_required_contexts.rs": "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
         "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs": "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
@@ -1030,10 +1011,6 @@ genrule(
         "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-missing-producer.json": "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-missing-producer.json",
         "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-untrusted-producer.json": "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-untrusted-producer.json",
         "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
-        "docs/ci/forge-of-record.md": "docs/ci/forge-of-record.md",
-        "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-kernel:lib-src",
-        "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-app:lib-src",
-        "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:lib-src",
     },
     out = "phase0-auto-merge-after-ci-contract-check.json",
     cmd = "mkdir -p $TMP/phase0-auto-merge-after-ci-contract && rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs --test -o $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check_tests && OYA_REPO_ROOT=$PWD $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check_tests > /dev/null && rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs -o $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check && OYA_REPO_ROOT=$PWD $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check > $OUT",

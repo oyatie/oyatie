@@ -30,8 +30,8 @@ Options:
   --fetch-remote <remote>      Git remote used by the sequential conflict guard
                                to fetch refs/pull/<N>/head. Defaults to
                                GITHUB_FETCH_REMOTE, otherwise origin; when origin
-                               is Forgejo and github-mirror is a GitHub remote,
-                               github-mirror is selected automatically.
+                               is not GitHub and github-mirror is a GitHub
+                               remote, github-mirror is selected automatically.
   --required-review-check <id> Required review check name (default: oya-pr-review)
   --required-contexts-config <path>
                               Canonical branch-protection contexts JSON

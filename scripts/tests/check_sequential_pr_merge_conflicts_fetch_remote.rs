@@ -132,7 +132,7 @@ fn fetch_remote_selects_github_mirror_and_default_origin_fails_closed() {
 
     let mut pass_args = common.clone();
     // Buck2 policy anchor: --fetch-remote github-mirror must pass when origin is
-    // a non-GitHub/Forgejo remote and the GitHub mirror owns refs/pull/*.
+    // not the GitHub remote and the GitHub mirror owns refs/pull/*.
     pass_args.extend(["--fetch-remote".to_string(), "github-mirror".to_string()]);
     let pass = run_checker(&work, &pass_args);
     assert!(
@@ -148,12 +148,12 @@ fn fetch_remote_selects_github_mirror_and_default_origin_fails_closed() {
     let fail = run_checker(&work, &common);
     assert!(
         !fail.status.success(),
-        "default origin fetch should fail when origin is non-GitHub Forgejo remote"
+        "default origin fetch should fail when origin is not GitHub"
     );
     let fail_stderr = String::from_utf8_lossy(&fail.stderr);
     assert!(fail_stderr.contains("failed to fetch PR #455 head from remote origin"));
     assert!(
-        fail_stderr.contains("pass --fetch-remote for the GitHub mirror when origin is Forgejo")
+        fail_stderr.contains("pass --fetch-remote for the GitHub mirror when origin is not GitHub")
     );
 
     fs::remove_dir_all(tmp).unwrap();
