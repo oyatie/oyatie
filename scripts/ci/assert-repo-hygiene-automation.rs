@@ -34,6 +34,7 @@ const STALE_DOC_INVENTORY_TEST_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests";
 const REQUIRED_BUCK2_AUTHORITY_COMMAND: &str = "buck2 build //:repo-hygiene-automation-check";
 const PROWJOB_REGISTRY_COMMAND: &str = "buck2 build //:oya-ci-prowjob-registry-check";
+const OYA_CI_CONTROLLER_CONFIG_COMMAND: &str = "buck2 build //:oya-ci-controller-config-check";
 const RETIRED_PLANNING_CLOSURE_COMMAND: &str =
     "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
 const RETIRED_OYA_DEV_CLI_PLANNING_CLOSURE_COMMAND: &str =
@@ -57,6 +58,7 @@ const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     STALE_DOC_INVENTORY_COMMAND,
     STALE_DOC_INVENTORY_TEST_COMMAND,
     PROWJOB_REGISTRY_COMMAND,
+    OYA_CI_CONTROLLER_CONFIG_COMMAND,
 ];
 
 const REQUIRED_SOURCE_URLS: &[&str] = &[
@@ -459,8 +461,16 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "ProwJob registry seed check must be recorded in cleanup backlog",
         ),
         (
+            "\"schema_check\": \"buck2 build //:oya-ci-controller-config-check\"",
+            "ProwJob registry cleanup backlog must record controller config schema check",
+        ),
+        (
             "\"seed_registry\": \"specs/oya-ci-prowjob-registry.json\"",
             "ProwJob registry seed registry path must be recorded in cleanup backlog",
+        ),
+        (
+            "\"controller_config_contract\": \"specs/oya-ci-controller-config-contract.json\"",
+            "ProwJob registry cleanup backlog must record controller config contract path",
         ),
         (
             "\"generated_controller_config\": \"specs/generated/oya-ci-controller-config.generated.yaml\"",
@@ -886,12 +896,16 @@ pub fn evaluate(root: &Path) -> Evaluation {
     for needle in [
         "repo-hygiene-automation-check",
         "oya-ci-prowjob-registry-check",
+        "oya-ci-controller-config-check",
         "assert-repo-hygiene-automation.rs",
         "generate-oya-ci-prowjob-registry.rs",
+        "assert-oya-ci-controller-config.rs",
         "repo_hygiene_automation_check.rs",
         "oya_ci_prowjob_registry_check.rs",
+        "oya_ci_controller_config_check.rs",
         "repo-hygiene-automation.json",
         "oya-ci-prowjob-registry.json",
+        "oya-ci-controller-config-contract.json",
         "retired-external-substrate-registry.json",
         "oya-doc-staleness-inventory-app",
     ] {

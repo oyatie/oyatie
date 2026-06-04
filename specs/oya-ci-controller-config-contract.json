@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/oya-ci-controller-config-contract.json",
+  "spec_id": "P00-OYA-CI-CONTROLLER-CONFIG-CONTRACT",
+  "status": "p00_local_static_schema_contract",
+  "updated_at": "2026-06-04T18:45:00Z",
+  "purpose": "Local/static schema and admission contract for the generated OyaCIControllerConfig emitted from lane-owned ProwJob shards. This moves oya-ci toward Kubernetes-native controller-owned truth without applying live cluster resources.",
+  "generated_config": "specs/generated/oya-ci-controller-config.generated.yaml",
+  "source_registry": "specs/oya-ci-prowjob-registry.json",
+  "generated_job_registry": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+  "buck2_check": "buck2 build //:oya-ci-controller-config-check",
+  "official_sources": [
+    {
+      "url": "https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/",
+      "establishes": "Kubernetes CRDs support schema-backed extension resources."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "establishes": "Restricted pod security controls for Linux capabilities, privilege escalation, seccomp, non-root execution, and read-only filesystems."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "establishes": "NetworkPolicy default-deny and traffic isolation mechanics."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/jobs/",
+      "establishes": "ProwJob-style presubmit, postsubmit, periodic, and batch job configuration."
+    }
+  ],
+  "claim_boundary": {
+    "local_static_only": true,
+    "live_kubernetes_mutated": false,
+    "crd_applied": false,
+    "admission_webhook_deployed": false,
+    "full_prow_parity_claimed": false,
+    "github_actions_shadow_only": true
+  },
+  "schema_contract": {
+    "api_version": "oyatie.dev/v1alpha1",
+    "kind": "OyaCIControllerConfig",
+    "repository": "jason931225/oyatie",
+    "required_context": "oya-ci-required",
+    "required_rollup_owner": "trusted-controller",
+    "candidate_owned_truth_allowed": false,
+    "github_adapter_merge_authority": false,
+    "github_adapter_shadow_only": true,
+    "shadow_context": "github-lane-unlocker-required",
+    "minimum_job_count": 7,
+    "required_job_kinds": [
+      "presubmit",
+      "postsubmit",
+      "periodic",
+      "batch"
+    ]
+  },
+  "kubernetes_security_defaults": {
+    "workload_identity_required": true,
+    "node_metadata_access": "blocked",
+    "static_cloud_secrets_allowed": false,
+    "automount_service_account_token": false,
+    "default_deny_network_policy": true,
+    "service_mesh_mtls": "required-for-service-to-service",
+    "allow_privilege_escalation": false,
+    "read_only_root_filesystem": true,
+    "run_as_non_root": true,
+    "seccomp_profile": "RuntimeDefault",
+    "runtime_class_required_for_untrusted": true,
+    "drop_capabilities": [
+      "ALL"
+    ]
+  },
+  "job_admission_invariants": {
+    "controller_owned": true,
+    "buck2_commands_only": true,
+    "forbid_live_kubectl_mutation_commands": true,
+    "workload_identity": true,
+    "node_metadata_access": "blocked",
+    "automount_service_account_token": false,
+    "allow_privilege_escalation": false,
+    "read_only_root_filesystem": true,
+    "run_as_non_root": true,
+    "default_deny_network_policy": true,
+    "drop_capabilities": [
+      "ALL"
+    ],
+    "untrusted_jobs": {
+      "security_profile": "restricted-untrusted-pr",
+      "service_account": "oya-ci-untrusted-runner",
+      "runtime_class_name": "sandboxed"
+    },
+    "trusted_rollup": {
+      "context": "oya-ci-required",
+      "security_profile": "trusted-controller-rollup",
+      "service_account": "oya-ci-controller-runner",
+      "required": true
+    }
+  }
+}
