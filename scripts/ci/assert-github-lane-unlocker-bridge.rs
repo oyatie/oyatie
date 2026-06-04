@@ -28,6 +28,8 @@ const RETIRED_PYTHON_BRIDGE_COMMAND: &str =
     "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json";
 const RETIRED_PYTHON_BRIDGE_PATH: &str = "scripts/ci/assert-github-lane-unlocker-bridge.py";
 const BRIDGE_BUCK2_COMMAND: &str = "buck2 build //:github-lane-unlocker-bridge-check";
+const THIRD_PARTY_HAND_EDITS_BUCK2_COMMAND: &str =
+    "buck2 build //:third-party-durable-handedits-check";
 const REQUIRED_CONTEXT: &str = "github-lane-unlocker-required";
 const NATIVE_CUTOVER_CONTEXT: &str = "oya-ci-required";
 
@@ -124,6 +126,7 @@ const REQUIRED_WORKFLOW_NEEDLES: &[&str] = &[
     "uses: actions/checkout@v6",
     "fetch-depth: 0",
     "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+    THIRD_PARTY_HAND_EDITS_BUCK2_COMMAND,
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
     "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
     "infra/ci/buck2-affected-gate.sh origin/dev HEAD",
@@ -180,6 +183,8 @@ const BUCK2_POLICY_REQUIRED_FILES: &[&str] = &[
     ".github/workflows/github-lane-unlocker-ci-cd.yml",
     "scripts/ci/assert-github-lane-unlocker-bridge.rs",
     "scripts/tests/github_lane_unlocker_bridge_check.rs",
+    "scripts/ci/assert-third-party-durable-handedits.rs",
+    "scripts/tests/third_party_durable_handedits_check.rs",
     "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
     "rust-toolchain.toml",
     "specs/github-lane-unlocker-bridge.json",

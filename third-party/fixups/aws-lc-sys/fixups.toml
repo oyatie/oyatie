@@ -39,33 +39,21 @@ env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", LDFLAGS = "-nosta
 # they require $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)
 # which is a Buck2 macro only valid inside third-party/BUCK rule attributes.
 # They must be injected into aws-lc-sys-0.41-build-script-main-run via the
-# durable hand-edit normalizer (scripts/ci/apply-third-party-durable-handedits.py),
+# durable hand-edit normalizer (scripts/ci/assert-third-party-durable-handedits.rs --write),
 # after the captured patch (scripts/ci/third-party-buckify-handedits.patch) applies.
 #
 # Intended env additions in aws-lc-sys-0.41-build-script-main-run:
-#   select({"//platforms:libc_musl": {
-#     "AWS_LC_SYS_TARGET_CC": "clang",
-#     "AWS_LC_SYS_CMAKE_BUILDER": "0",
-#     "AWS_LC_SYS_TARGET_CFLAGS":
-#       "--target=aarch64-unknown-linux-musl"
-#       " --sysroot=$(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)"
-#       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include"
-#       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
+#   select({"root//platforms:libc_musl": {
 #     "CC_aarch64_unknown_linux_musl": "clang",
-#     "AR_aarch64_unknown_linux_musl": "llvm-ar",
 #     "CFLAGS_aarch64_unknown_linux_musl":
-#       "--target=aarch64-unknown-linux-musl -nostdinc"
+#       "--target=aarch64-unknown-linux-musl -nostdlibinc"
 #       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include"
 #       " -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
 #   }, "DEFAULT": {}})
 #
 # Rationale:
-#   AWS_LC_SYS_TARGET_CC=clang     -- force CcBuilder (not cmake); clang for musl ABI
-#   AWS_LC_SYS_CMAKE_BUILDER=0     -- disable cmake path; use cc (CcBuilder) path
-#   AWS_LC_SYS_TARGET_CFLAGS       -- target triple + sysroot + UAPI headers
 #   CC_aarch64_unknown_linux_musl  -- cc-rs triple-prefixed CC fallback
-#   AR_aarch64_unknown_linux_musl  -- llvm-ar for musl static archive creation
-#   CFLAGS_aarch64_unknown_linux_musl -- -nostdinc suppresses host system headers;
+#   CFLAGS_aarch64_unknown_linux_musl -- -nostdlibinc suppresses host system headers;
 #                                        -isystem adds musl + UAPI headers explicitly
 #                                        (aws-lc-sys needs linux/random.h for getrandom)
 # ---------------------------------------------------------------------------
