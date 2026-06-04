@@ -2,15 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/gitops-vcs-replacement.json",
   "title": "GitOpsVcsReplacement",
-  "description": "Early masterplan prerequisite for an Oyatie-owned VCS replacement that preserves grit-style agentic-development advantages and upgrades closeout from local merges to GitOps CI/CD promotion.",
+  "description": "Target contract for an Oyatie-owned Sapling-inspired native SCM substrate that reduces conflicts for parallel agent lanes and feeds Prow/Kubernetes-native CI plus release-conveyor-like CD without reviving the retired `oya vcs` CLI.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-GITOPS-VCS-REPLACEMENT",
-    "version": "1.7.0",
-    "status": "Accepted-for-masterplan-P00",
+    "version": "1.8.0",
+    "status": "Accepted-pattern-registry-reframed-no-oya-vcs-cli",
     "owner_team": "axis-foundry + ops-sre-reliability + council-architecture",
     "created_at": "2026-05-14T07:16:07Z",
-    "updated_at": "2026-05-15T14:35:00Z",
+    "updated_at": "2026-06-04T16:35:00Z",
     "source_inspiration": "https://github.com/rtk-ai/grit",
     "user_directives_2026_05_14": [
       "move our vcs replacement for grit earlier",
@@ -21,11 +21,11 @@
       "Our project isn't pure rust; account for Swift, Kotlin, C#, C++/WinUI3, and other non-Rust surfaces.",
       "Unit test, integration test, e2e test standard is established, documented, and enforced.",
       "Still support Abstract Syntax Tree handling.",
-      "Oya VCS is our version of grit: an agent-native VCS/CI/CD coordination layer, not just local symbol locks.",
-      "GitHub and GitHub Actions are first-class adapters, but the same Oya VCS features must work without GitHub.",
-      "Trivy and Argo CD are current DevOps pipeline adapters; both remain replaceable because in-house options are expected later.",
+      "The native SCM service is the Sapling-inspired successor to grit-style coordination; it is not a retired `oya vcs` CLI revival.",
+      "GitHub is a first-class PR/publication adapter; GitHub Actions is shadow compatibility only, and native SCM/oya-ci features must work without GitHub Actions.",
+      "Security scanning and desired-state deployment controllers are adapter seams; native Rust/Buck2/Prow/release-conveyor contracts remain the durable architecture.",
       "Think creatively about agentic development and keep the pipeline moving for long-compile languages like Rust.",
-      "Agents push/submit PR views at variable speeds, with many PRs per hour; Oya VCS must regulate throughput without stalling independent work.",
+      "Agents push/submit PR views at variable speeds, with many PRs per hour; Oyatie Native SCM must regulate throughput without stalling independent work.",
       "Integrate with issue tracker through a GitHub Issues adapter while preserving provider-neutral issue tracking semantics."
     ],
     "scaffold_lock_ids": [
@@ -33,24 +33,24 @@
       "01KRJMZ2KY3V7PRDRYMH9BS9KZ",
       "01KRJN9MX6W8BD8TE87NC5GA37"
     ],
-    "design_posture": "Provider-neutral Oya VCS core first; GitHub/GitHub Actions, Trivy, Argo CD, GitLab, and future in-house systems are replaceable first-class adapters. Agents never call git or gh directly.",
-    "product_name": "Oya VCS",
-    "purpose": "Early masterplan prerequisite and current closure-authority contract for an Oyatie-owned VCS replacement that preserves useful agentic-development advantages while upgrading closeout from local merges to Oya VCS ChangeBundle/GitOps CI/CD promotion.",
+    "design_posture": "Provider-neutral native SCM service/control-plane first. It is Sapling-inspired and Rust-biased, exposes Git/GitHub publication adapters, and feeds Prow/Kubernetes-native oya-ci plus release-conveyor-like CD seams. Do not revive an `oya vcs` CLI; current agent lanes may use plain git/gh while the native service matures.",
+    "product_name": "Oyatie Native SCM",
+    "purpose": "Pattern registry and target contract for an Oyatie-owned native SCM substrate that preserves useful agentic-development advantages while integrating with Prow/Kubernetes-native oya-ci and release-conveyor-like CD. Historical retired-CLI/ChangeBundle wording is provenance only and must not be revived as an agent command surface.",
     "user_directives_2026_05_15": [
-      "grit, icm, rtk, vox, omx, and omc are being phased out; Oya VCS is set to replace them and must work seamlessly with the Foundry agentic pipeline."
+      "grit, icm, rtk, vox, omx, and omc are being phased out; Oyatie Native SCM is set to replace them and must work seamlessly with the Foundry agentic pipeline."
     ]
   },
   "moved_earlier_in_masterplan": {
     "milestone": "M01-foundation",
-    "phase": "P00-gitops-vcs-replacement",
-    "ordering_rule": "Runs before M01-P08 refresh and before broad M01/M02/M03 fan-out. P00 core is complete; Oya VCS admission is the forward closure authority, while grit/icm-era surfaces remain compatibility/provenance only.",
+    "phase": "P00-native-scm-prow-ci-lane-unlocker",
+    "ordering_rule": "Native SCM/Prow CI/CD planning runs before broad product fan-out, but current agent execution uses plain git/gh PR adapters; no retired `oya vcs` CLI is revived.",
     "blocks": [
       "M01-P08-agentic-pipeline-cutover",
       "M01 shard fan-out beyond already-landed bootstrap work",
       "M02 multi-agent substrate waves",
       "M03 first-tenant parallel waves"
     ],
-    "rationale": "The conflict-avoidance primitive must be production/GitOps-capable before dozens of agents start landing product slices. Local merge serialization is not sufficient for Oyatie CI/CD; Oya VCS owns review/fix loops, rebase, merge queue enrollment, promotion, and multispectrum evidence closure."
+    "rationale": "The conflict-avoidance primitive must be production/GitOps-capable before dozens of agents start landing product slices. Local merge serialization is not sufficient for Oyatie CI/CD; Oyatie Native SCM owns review/fix loops, rebase, merge queue enrollment, promotion, and multispectrum evidence closure."
   },
   "grit_capabilities_to_preserve": [
     {
@@ -86,7 +86,7 @@
     {
       "id": "serialized-closeout",
       "source_grit_feature": "serialized done prevents local index.lock races and merge conflicts",
-      "oyatie_upgrade": "Serialized closeout is moved into a GitOps promotion queue. The controller owns remote branch/ref mutation, CI reruns, policy admission, environment promotion, rollback, and audit emission.",
+      "oyatie_upgrade": "Serialized closeout is moved into a release-conveyor promotion queue. The controller owns remote branch/ref mutation, CI reruns, policy admission, environment promotion, rollback, and audit emission.",
       "why_it_avoids_waste": "Successful work is promoted by a single authority after gates pass; local agents no longer race each other or bypass CI/CD."
     }
   ],
@@ -94,22 +94,25 @@
     "bounded_context": "foundry-vcs",
     "public_interface": {
       "compat_commands": [
-        "claim --agent <id> --intent <slice> <symbols...>",
-        "work in assigned isolated workspace",
-        "done --agent <id> --bundle",
-        "promote --agent <id> --bundle <bundle-id>",
-        "status --json",
-        "watch --json"
+
       ],
       "agent_forbidden_commands": [
-        "git",
-        "gh",
-        "manual-branch",
+        "oya vcs",
+        "oya git",
+        "oya gate as merge authority",
+        "oya verify as CI authority",
         "manual-rebase",
-        "manual-merge",
-        "manual-push"
+        "manual-merge-to-dev",
+        "manual-required-status-post"
       ],
-      "compatibility_note": "ADR-0116 retires grit/icm/rtk/vox as agent transition authorities; any legacy aliases are import/migration compatibility only and cannot be closure authority."
+      "compatibility_note": "ADR-0363 retires old wrappers/ratchets. Historical Oyatie Native SCM language is pattern provenance only unless rewritten as native SCM service APIs, Rust libraries, Buck2 targets, or Prow jobs.",
+      "native_service_api": [
+        "claim/change/workspace/status through controller API (target)",
+        "git protocol adapter for ordinary clients and emergency fallback",
+        "GitHub PR/publication adapter for public/private mirrors",
+        "Prow/Kubernetes-native oya-ci event adapter for required-context production"
+      ],
+      "current_transition": "Agents use plain git + gh PR adapter while the native SCM service matures; no repo-local retired `oya vcs` CLI is a sanctioned primitive."
     },
     "ports": [
       {
@@ -170,11 +173,11 @@
       },
       {
         "name": "SecurityScanPort",
-        "purpose": "Normalize Trivy/current scanner and future in-house scan findings into admission decisions."
+        "purpose": "Normalize current scanner adapters and future in-house scan findings into admission decisions."
       },
       {
-        "name": "GitOpsReconcilerPort",
-        "purpose": "Normalize Argo CD/current reconciler and future in-house reconciler desired/live state, health, drift, sync, rollback."
+        "name": "DesiredStateReconcilerPort",
+        "purpose": "Normalize current desired-state/reconciler adapters and future in-house release-conveyor reconciler desired/live state, health, drift, sync, rollback."
       },
       {
         "name": "ProviderReviewPort",
@@ -186,7 +189,7 @@
       },
       {
         "name": "IssueTrackerPort",
-        "purpose": "Normalize issues, labels, assignees, comments, milestones, dependencies, and status transitions into Oya VCS work intents."
+        "purpose": "Normalize issues, labels, assignees, comments, milestones, dependencies, and status transitions into Oyatie Native SCM work intents."
       },
       {
         "name": "PullRequestViewPort",
@@ -267,10 +270,11 @@
         "crate": "oya-foundry-vcs-cli",
         "layer": "cli",
         "owns": [
-          "Oya VCS claim/verify/done/promote command surface",
-          "agent UX",
-          "JSON status/watch"
-        ]
+          "historical retired-CLI compatibility inventory only",
+          "native service API client target if a future client is approved",
+          "JSON status/watch protocol shapes"
+        ],
+        "retired_cli_revival_allowed": false
       },
       {
         "crate": "oya-vcs-polyglot-indexer-adapters",
@@ -323,8 +327,8 @@
     ],
     "clean_architecture_rules": [
       "kernel has no git provider, CI provider, filesystem watcher, or network dependency",
-      "adapters own tree-sitter, lock backend, CI provider, and GitOps controller integration",
-      "controller performs remote repo mutations; agents never invoke git/gh",
+      "adapters own tree-sitter, lock backend, CI provider, and release-conveyor controller integration",
+      "target controller performs remote repo mutations; during the P00 GitHub adapter bridge, agents may use plain git/gh only for worktree branch + PR publication and not as durable native SCM authority",
       "all state transitions are idempotent and audit-emitted",
       "review/fix/rebase/merge-queue code lives in application/adapters; kernel only models states and invariants",
       "polyglot indexers are adapters behind PolyglotIndexPort; Rust-first assumptions must not leak into the kernel",
@@ -344,7 +348,7 @@
       "controller refreshes/rebases bundle onto protected branch state and reruns affected gates",
       "controller enrolls accepted bundle into merge queue",
       "CI/CD gates run from merge queue state",
-      "GitOps reconciler promotes accepted state to environments",
+      "release-conveyor reconciler promotes accepted state to environments",
       "controller emits terminal event and releases or rolls back locks"
     ],
     "admission_gates": [
@@ -409,12 +413,12 @@
         "rule": "Every promoted ChangeBundle must attach a multispectrum evidence file covering required F-family, A-family, and M-family facets for the changeset scope; missing or incomplete evidence rejects promotion."
       },
       {
-        "id": "cli-command-surface",
-        "rule": "The blessed Oya VCS CLI surface must accept claim, work, verify, done, and promote commands and return machine-readable ratchet decisions."
+        "id": "native-service-api-surface",
+        "rule": "The forward surface is a native SCM service/control-plane API plus Rust libraries/Buck2/Prow jobs. A retired `oya vcs` CLI must not be revived as a sanctioned agent primitive."
       },
       {
         "id": "provider-evidence-slots",
-        "rule": "Promotion evidence must include passed CI, GitHub Actions, Trivy, and Argo GitOps provider slots or an explicitly approved native replacement slot."
+        "rule": "Promotion evidence must include passed oya-ci/Buck2 evidence, optional GitHub Actions shadow evidence, scanner evidence, and native release-conveyor desired-state evidence; provider adapter slots are replaceable and not authority."
       },
       {
         "id": "audit-chain-coverage",
@@ -501,7 +505,7 @@
   "rejected_alternatives": [
     {
       "id": "local-grit-only",
-      "reason": "Preserves useful local conflict avoidance but cannot own remote GitOps promotion, environment reconciliation, or CI/CD admission."
+      "reason": "Preserves useful local conflict avoidance but cannot own remote release-conveyor promotion, environment reconciliation, or CI/CD admission."
     },
     {
       "id": "raw-git-merge-queue-only",
@@ -572,7 +576,7 @@
       "id": "EVT-OYA-VCS-PRODUCT-SYNTHESIS-2026-05-14",
       "timestamp": "2026-05-14T08:00:24Z",
       "source_path": "/specs/gitops-vcs-replacement.json",
-      "summary": "Renamed target product to Oya VCS and added provider-neutral core, first-class replaceable adapters for GitHub/GitHub Actions/Trivy/Argo CD, semantic ChangeSet queue model, and Rust compile-latency strategy.",
+      "summary": "Renamed target product to Oyatie Native SCM and added provider-neutral core, first-class replaceable adapters for GitHub/GitHub Actions shadow evidence, scanner evidence, desired-state reconciliation, semantic ChangeSet queue model, and Rust compile-latency strategy.",
       "evidence_type": "design-contract-update"
     },
     {
@@ -735,7 +739,7 @@
     }
   },
   "review_fix_loop": {
-    "owner": "GitOps VCS controller; agents provide patches/fixups but do not rebase, merge, push, or manipulate PRs directly.",
+    "owner": "native SCM controller; agents provide patches/fixups but do not rebase, merge, push, or manipulate PRs directly.",
     "state_machine": [
       "bundle-submitted",
       "static-admission",
@@ -785,14 +789,14 @@
       "rerun affected tests after rebase",
       "merge queue enrollment with service identity",
       "merge queue status watch and automatic retry/backoff",
-      "post-merge GitOps reconciliation and lock release"
+      "post-merge release-conveyor reconciliation and lock release"
     ],
     "semantic_conflict_policy": "If a text rebase succeeds but claimed semantic symbols conflict with a newly-landed bundle, queue a typed review/fix task instead of publishing.",
     "merge_queue_policy": "Single controller serializes protected-branch publication. Agents can observe queue state but cannot reorder, force, or bypass it."
   },
   "test_standard_enforcement": {
-    "status": "established-and-required-for-P00-exit-and-current-oya-vcs-admission",
-    "objective": "Unit, integration, and e2e test standards are established, documented, machine-readable, and enforced by the VCS/GitOps admission path before broad agent fan-out.",
+    "status": "established-and-required-for-P00-exit-and-current-native-scm-oya-ci-admission",
+    "objective": "Unit, integration, and e2e test standards are established, documented, machine-readable, and enforced by the native SCM/oya-ci admission path before broad agent fan-out.",
     "documentation_artifacts": [
       {
         "path": "docs/standards/testing.md",
@@ -892,10 +896,10 @@
     "test_set_registry_ref": "/registry/test-set-registry.json"
   },
   "product_definition": {
-    "name": "Oya VCS",
+    "name": "Oyatie Native SCM",
     "one_liner": "Agent-native semantic VCS/CI/CD coordination layer that queues ChangeSets, not just branches or PRs.",
-    "core_thesis": "Oya VCS preserves grit-style AST/symbol conflict avoidance, then adds provider-neutral ChangeSets, virtual merge stacks, queue-aware locks, review/CI fix loops, and dev→staging→production promotion.",
-    "not_a_git_replacement": "Oya VCS orchestrates Git-compatible storage, CI, review, security scanning, merge queues, and GitOps environments through ports/adapters; the semantic state machine remains provider-neutral.",
+    "core_thesis": "Oyatie Native SCM preserves grit-style AST/symbol conflict avoidance, then adds provider-neutral ChangeSets, virtual merge stacks, queue-aware locks, review/CI fix loops, and dev→staging→production promotion.",
+    "not_a_git_replacement": "Oyatie Native SCM orchestrates Git-compatible storage, CI, review, security scanning, merge queues, and release-conveyor environments through ports/adapters; the semantic state machine remains provider-neutral.",
     "must_work_without_github": true,
     "must_provide_same_features_without_provider_adapters": [
       "ChangeSet lifecycle",
@@ -906,7 +910,7 @@
       "CI-fix tasks",
       "test standard enforcement",
       "security scan admission through local or in-house scanner adapter",
-      "GitOps promotion through local or in-house reconciler adapter",
+      "release-conveyor promotion through local or in-house reconciler adapter",
       "release train graph",
       "audit and evidence ledger"
     ]
@@ -993,17 +997,17 @@
     }
   },
   "native_and_adapter_boundary": {
-    "principle": "All product semantics live in Oya VCS kernel/application ports. Providers are adapters that may accelerate or externalize execution but cannot define the feature set.",
+    "principle": "All product semantics live in Oyatie Native SCM kernel/application ports. Providers are adapters that may accelerate or externalize execution but cannot define the feature set.",
     "native_mode_required": true,
     "native_mode": {
       "queue_backend": "Local/provider-neutral queue store with durable JSON/event-log or embedded database implementation; remote backends plug in through QueueStorePort.",
       "ci_backend": "Local command runner and evidence collector can execute the same TestStandardPort gates without GitHub Actions.",
       "review_backend": "Native review task store can model comments/approvals/fixups without GitHub PRs.",
-      "security_backend": "Native/in-house scan adapter can satisfy SecurityScanPort when Trivy is absent.",
-      "gitops_backend": "Native/in-house reconciler adapter can satisfy GitOpsReconcilerPort when Argo CD is absent.",
+      "security_backend": "Native/in-house scan adapter can satisfy SecurityScanPort without a specific scanner dependency.",
+      "release_conveyor_backend": "Native release-conveyor reconciler adapter can satisfy DesiredStateReconcilerPort without a specific external CD controller dependency.",
       "merge_queue_backend": "Native semantic queue can construct virtual heads and release locks even when provider merge queues are unavailable."
     },
-    "adapter_parity_rule": "Every first-class adapter must map provider concepts into Oya VCS ChangeSet/VirtualHead/FixupTask/ReleaseTrain states and must not remove native capabilities."
+    "adapter_parity_rule": "Every first-class adapter must map provider concepts into Oyatie Native SCM ChangeSet/VirtualHead/FixupTask/ReleaseTrain states and must not remove native capabilities."
   },
   "first_class_adapters": [
     {
@@ -1049,8 +1053,8 @@
       "native_equivalent": "LocalCiAdapter or future OyaActionsAdapter must provide same CiProvider contract."
     },
     {
-      "adapter": "TrivySecurityScanAdapter",
-      "status": "current-devops-adapter-replaceable",
+      "adapter": "SecurityScanAdapter",
+      "status": "replaceable-adapter-not-core",
       "maps": [
         "vulnerability scan",
         "misconfiguration scan",
@@ -1059,11 +1063,11 @@
         "container/filesystem/Kubernetes scan results"
       ],
       "future_in_house_replacement": "OyaSecurityScanAdapter",
-      "adapter_rule": "SecurityScanPort consumes normalized findings and policy decisions; Trivy-specific fields stay adapter-local."
+      "adapter_rule": "SecurityScanPort consumes normalized findings and policy decisions; provider-specific fields stay adapter-local."
     },
     {
-      "adapter": "ArgoCdGitOpsAdapter",
-      "status": "current-devops-adapter-replaceable",
+      "adapter": "ReleaseConveyorDesiredStateAdapter",
+      "status": "native-target-adapter",
       "maps": [
         "Application sync status",
         "health status",
@@ -1072,8 +1076,8 @@
         "rollback/refresh behavior",
         "environment reconciliation"
       ],
-      "future_in_house_replacement": "OyaGitOpsReconcilerAdapter",
-      "adapter_rule": "GitOpsReconcilerPort consumes desired/live/reconciled/drifted/failed states; Argo-specific CRDs stay adapter-local."
+      "future_in_house_replacement": "OyaReleaseConveyorReconcilerAdapter",
+      "adapter_rule": "DesiredStateReconcilerPort consumes desired/live/reconciled/drifted/failed states; provider-specific CRDs stay adapter-local and cannot define the product contract."
     },
     {
       "adapter": "GitLabProviderAdapter",
@@ -1129,14 +1133,14 @@
       "hybrid-native-with-provider-mirror"
     ],
     "commands": [
-      "oya vcs queue status",
-      "oya vcs queue add",
-      "oya vcs queue remove",
-      "oya vcs queue promote",
-      "oya vcs queue rebase",
-      "oya vcs queue explain",
-      "oya vcs queue repair",
-      "oya vcs queue graph"
+      "native-scm-api queue.status",
+      "native-scm-api queue.submit",
+      "native-scm-api queue.remove",
+      "native-scm-api queue.promote",
+      "native-scm-api queue.rebase_by_controller",
+      "native-scm-api queue.explain",
+      "native-scm-api queue.repair",
+      "native-scm-api queue.graph"
     ],
     "virtual_merge_stack": {
       "description": "Build ordered projections H0 + C1 = H1, H1 + C2 = H2, etc. Required checks run against virtual heads. A failed ChangeSet invalidates only dependent later ChangeSets when semantic fingerprints prove independence.",
@@ -1213,7 +1217,7 @@
         "runs": [
           "release/profile build when relevant",
           "e2e smoke",
-          "GitOps reconciliation/health",
+          "release-conveyor reconciliation/health",
           "canary/soak gates"
         ],
         "purpose": "Environment promotion confidence."
@@ -1231,10 +1235,10 @@
       "Speculative sibling batching: independent ChangeSets can share a virtual head/full build when semantic dependency fingerprints are disjoint and batching does not delay hotfixes.",
       "Rust compile doctor: map compiler/test failures to crate/symbol/test, create FixupTask, and keep unrelated queue items moving."
     ],
-    "long_compile_failure_policy": "A long-running full Rust gate cannot hold unrelated independent ChangeSets indefinitely; Oya VCS must either split the queue, reuse safe artifacts, or demote the slow item to fixup/quarantine when policy permits."
+    "long_compile_failure_policy": "A long-running full Rust gate cannot hold unrelated independent ChangeSets indefinitely; Oyatie Native SCM must either split the queue, reuse safe artifacts, or demote the slow item to fixup/quarantine when policy permits."
   },
   "failure_mode_synthesis": {
-    "purpose": "What can go wrong, how Oya VCS detects it, what fixes are automated, and when escalation is required.",
+    "purpose": "What can go wrong, how Oyatie Native SCM detects it, what fixes are automated, and when escalation is required.",
     "classes": [
       {
         "id": "stale-symbol-index",
@@ -1268,20 +1272,20 @@
       },
       {
         "id": "security-scan-failure",
-        "detect": "SecurityScanPort policy blocks Trivy/in-house normalized findings",
+        "detect": "SecurityScanPort policy blocks scanner or in-house normalized findings",
         "automated_fix": "create SecurityFixupTask with package/image/IaC pointer; rerun targeted scan",
         "escalate_when": "policy-extension proposal or vulnerability acceptance required"
       },
       {
-        "id": "gitops-drift-or-sync-failure",
-        "detect": "GitOpsReconcilerPort reports OutOfSync/degraded/health failure after promotion",
+        "id": "release-conveyor-drift-or-sync-failure",
+        "detect": "DesiredStateReconcilerPort reports OutOfSync/degraded/health failure after promotion",
         "automated_fix": "pause promotion lane, rollback or refresh according to adapter policy, create DriftFixupTask",
         "escalate_when": "environment protection/manual approval required or rollback unsafe"
       },
       {
         "id": "provider-adapter-outage",
-        "detect": "GitHub/Actions/Trivy/Argo adapter unavailable or rate-limited",
-        "automated_fix": "fall back to native mode if policy allows; keep queue state in Oya VCS; retry with backoff",
+        "detect": "GitHub adapter, GitHub Actions shadow evidence, scanner adapter, or release-conveyor adapter unavailable or rate-limited",
+        "automated_fix": "fall back to native mode if policy allows; keep queue state in Oyatie Native SCM; retry with backoff",
         "escalate_when": "provider-backed branch protection requires unavailable provider status"
       },
       {
@@ -1333,7 +1337,7 @@
     "unit_of_flow": "ChangeSet; provider PRs are views/materializations, not the scheduling unit.",
     "core_mechanisms": [
       "PR aperture: cap open provider PR views per lane; keep excess ChangeSets native/queued until review or provider visibility is useful.",
-      "Token buckets per scarce resource: compile slots, full CI slots, review capacity, provider API calls, merge queue positions, GitOps promotion lanes.",
+      "Token buckets per scarce resource: compile slots, full CI slots, review capacity, provider API calls, merge queue positions, release-conveyor promotion lanes.",
       "Adaptive batching: independent small ChangeSets may share a provider PR/merge group/release train while retaining separate ChangeSet lineage and rollback metadata.",
       "Stale-risk scoring: older ChangeSets, wrong-base work, public API changes, and dependency updates get refreshed before expensive CI.",
       "Sprint/slowpoke fairness: fast agents cannot starve older/high-priority work; slow agents must heartbeat or their claims become reassignment candidates.",
@@ -1400,14 +1404,14 @@
       "triage labels/milestone/dependencies -> scheduler priority and lane hints",
       "ChangeSet created -> linked to OyaWorkItem",
       "PR view created -> issue receives marker link/digest, not spam",
-      "review/CI/security/GitOps failures -> FixupTasks linked back to issue when user-visible",
+      "review/CI/security/release-conveyor failures -> FixupTasks linked back to issue when user-visible",
       "dev/staging/production promotion -> issue status updates according to close policy",
       "production published or explicit acceptance reached -> issue close/comment if provider policy allows"
     ],
     "close_policy": "Configurable per repo: close on dev merge, staging acceptance, production publish, or manual/human acceptance. Production-impacting issues should not auto-close at dev unless policy says dev is the acceptance environment.",
     "many_prs_per_hour_policy": {
       "no_comment_storm": true,
-      "status_marker_comment": "Update one Oya VCS marker comment per issue/ChangeSet group when possible.",
+      "status_marker_comment": "Update one Oyatie Native SCM marker comment per issue/ChangeSet group when possible.",
       "digest_rollup": "Batch queue/review/CI state changes into issue digests during bursts.",
       "idempotency": "Webhook deliveries and comment updates keyed by provider event id + OyaWorkItem id + ChangeSet id.",
       "dedupe": "Duplicate issue comments/events do not create duplicate FixupTasks."
@@ -1416,7 +1420,7 @@
       "auto-label from semantic surface/risk",
       "auto-link ChangeSet to issue",
       "auto-create sub-issues for fixup layers when human-visible",
-      "auto-update blocker labels when CI/security/GitOps fails",
+      "auto-update blocker labels when CI/security/release-conveyor fails",
       "auto-remove blocker labels on green evidence",
       "auto-post release train digest",
       "auto-reopen on rollback or production regression"
@@ -1425,11 +1429,11 @@
   },
   "foundry_agentic_pipeline_integration_plan": {
     "status": "active-remediation-plan",
-    "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
+    "closure_authority": "Oyatie Native SCM ChangeBundle -> Promotion -> ReleaseTrain",
     "principles": [
-      "Oya VCS is the forward state-transition and promotion authority; legacy grit/icm/rtk/vox/omx/omc are compatibility/provenance only.",
+      "Oyatie Native SCM is the forward state-transition and promotion authority; legacy grit/icm/rtk/vox/omx/omc are compatibility/provenance only.",
       "Every Foundry agentic changeset is a ChangeSet with claim coverage, multispectrum evidence, test-standard evidence, and controller-owned promotion.",
-      "CI and branch protection must expose Oya VCS admission as a required status before broad fan-out.",
+      "CI and branch protection must expose Oyatie Native SCM admission as a required status before broad fan-out.",
       "Provider adapters are replaceable; core invariants remain provider-neutral and testable locally."
     ],
     "decision_drivers": [
@@ -1441,12 +1445,12 @@
       {
         "id": "authority-cutover",
         "status": "patched-in-current-specs",
-        "acceptance": "root hub, master sequencing, multispectrum, and phase index name Oya VCS as closure authority and demote legacy primitives to compatibility/provenance"
+        "acceptance": "root hub, master sequencing, multispectrum, and phase index name Oyatie Native SCM as closure authority and demote legacy primitives to compatibility/provenance"
       },
       {
         "id": "ci-admission-lane",
         "status": "patched-in-current-repo",
-        "acceptance": "cargo run -q -p oya-vcs-admission-gate-app runs authority checks and targeted VCS package tests; pr-tests exposes oya-vcs-admission; branch protection requires it"
+        "acceptance": "Buck2/Prow oya-ci admission checks run from trusted controller state; branch protection requires oya-ci-required."
       },
       {
         "id": "multispectrum-evidence-closure",
@@ -1454,68 +1458,73 @@
         "acceptance": "admission gate requires F/A/M multispectrum evidence and audit-chain row coverage for each multispectrum evidence file"
       },
       {
-        "id": "cli-command-surface",
-        "status": "patched-in-current-repo",
-        "acceptance": "oya-dev-cli exposes Oya VCS claim/work/verify/done/promote ratchet commands with JSON output and targeted tests"
+        "id": "native-service-api-surface",
+        "status": "target-contract-recorded",
+        "acceptance": "Native SCM service APIs expose claim/work/verify/done/promote semantics; retired `oya vcs`/`oya-dev-cli` command surfaces are not sanctioned primitives."
       },
       {
         "id": "provider-adapter-proof",
         "status": "contract-fixture-plus-admission-evidence-patched",
-        "acceptance": "promotion-controller provider seams require CI/GitHub Actions/Trivy/Argo slots; admission evidence records current slot proof and script rejects missing/non-passed slots"
+        "acceptance": "promotion-controller provider seams require oya-ci/Buck2, optional GitHub Actions shadow, scanner, and release-conveyor evidence; admission evidence records current slot proof and rejects missing/non-passed required native slots."
       }
     ],
     "verification": [
-      "cargo run -q -p oya-vcs-admission-gate-app",
-      "cargo run -q -p oya-dev-cli -- gate audit master-plan-completion --check",
-      "cargo run -q -p oya-dev-cli -- doc render master-plan-ledger --check",
-      "cargo test -p oya-dev-cli vcs",
-      "cargo run -q -p oya-dev-cli -- vcs --format json claim ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json done ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json promote ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json verify ..."
+      "buck2 build //:repo-hygiene-automation-check",
+      "buck2 build //:buck2-authority-policy-check",
+      "buck2 build //:github-lane-unlocker-bridge-check",
+      "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check"
     ]
   },
   "current_ci_admission_lane": {
-    "script": "cargo run -q -p oya-vcs-admission-gate-app",
-    "workflow_job": "oya-vcs-admission",
-    "branch_protection_status": "oya-vcs-admission",
+    "script": "buck2 build //:buck2-authority-policy-check",
+    "workflow_job": "oya-ci-required",
+    "branch_protection_status": "oya-ci-required",
     "package_tests": [
-      "oya-vcs-kernel",
-      "oya-vcs-ast-index-kernel",
-      "oya-vcs-lockstore-adapter",
-      "oya-vcs-changebundle-kernel",
-      "oya-vcs-polyglot-indexer-adapter",
-      "oya-vcs-test-standard-gate-kernel",
-      "oya-vcs-promotion-controller-kernel",
-      "oya-vcs-review-mergequeue-kernel",
-      "oya-vcs-cli-ratchet-kernel"
+      "oya-scm-kernel",
+      "oya-scm-ast-index-kernel",
+      "oya-scm-lockstore-adapter",
+      "oya-scm-changebundle-kernel",
+      "oya-scm-polyglot-indexer-adapter",
+      "oya-scm-test-standard-gate-kernel",
+      "oya-scm-promotion-controller-kernel",
+      "oya-scm-review-mergequeue-kernel"
     ],
     "blocks_when": [
       "authority metadata regresses to legacy grit/icm closure authority",
-      "Oya VCS workspace packages are absent",
-      "targeted Oya VCS tests fail",
-      "branch protection or PR workflow stops exposing oya-vcs-admission",
-      "oya-dev-cli stops exposing the Oya VCS claim/work/verify/done/promote command surface",
-      "provider evidence slots for CI, GitHub Actions, Trivy, or Argo GitOps are missing or not passed",
+      "native SCM workspace packages are absent",
+      "native SCM targeted tests fail",
+      "branch protection or PR workflow stops exposing oya-ci-required",
+      "native service API semantics for claim/work/verify/done/promote are removed without replacement",
+      "provider evidence slots for oya-ci/Buck2, optional GitHub Actions shadow, scanner, or release-conveyor evidence are missing or not passed",
       "multispectrum evidence files are missing audit-chain coverage rows",
-      "provider execution proof script is absent or fails credential-safe CI/GitHub Actions, Trivy, or Argo desired-state checks",
-      "provider evidence regresses to contract-fixture-only proof for Trivy or Argo GitOps"
+      "provider execution proof target is absent or fails credential-safe oya-ci/Buck2, GitHub Actions shadow, scanner, or release-conveyor desired-state checks",
+      "provider evidence regresses to contract-fixture-only proof for scanner or release-conveyor checks"
     ],
     "command_surface_smoke": [
-      "oya vcs --format json claim --agent <agent> --intent <slice> <symbol>",
-      "oya vcs --format json verify --agent <agent> --evidence <evidence>",
-      "oya vcs --format json done --agent <agent> --evidence <evidence>",
-      "oya vcs --format json promote --agent <agent> --bundle <bundle-id> --environment <target> --evidence <evidence>"
+      "native-scm-api claim.create",
+      "native-scm-api claim.verify",
+      "native-scm-api changeset.done",
+      "native-scm-api promotion.request"
     ],
-    "provider_evidence_ref": "evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json#provider_evidence",
+    "provider_evidence_ref": "evidence/native-scm/native-scm-admission-cutover-2026-05-15.json#provider_evidence",
     "provider_evidence_required": [
       "ci",
       "github-actions",
-      "trivy",
-      "argo-gitops"
+      "scanner",
+      "release-conveyor"
     ],
     "provider_execution_proof_ref": "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json#provider_slots",
-    "provider_execution_script": "cargo run -q -p oya-vcs-provider-execution-gate-app",
-    "provider_execution_workflow_job": "oya-vcs-provider-execution"
+    "provider_execution_script": "buck2 build //:buck2-authority-policy-check",
+    "provider_execution_workflow_job": "oya-ci-required"
+  },
+  "native_scm_reframe_2026_06_04": {
+    "decision": "sapling_inspired_oyatie_native_scm_service_not_oya_vcs_cli",
+    "durable_language_bias": "rust_first_when_practical",
+    "cli_revival_allowed": false,
+    "agent_current_surface": "plain_git_plus_gh_pr_adapter_until_native_service_is_ready",
+    "native_control_surface": "service_api_controller_and_git_protocol_adapters_not_a_required_oya_vcs_cli",
+    "ci_fit": "native SCM owns worktree leases, stacked changes, semantic conflict metadata, virtual merge heads, and trusted candidate/base snapshots; oya-ci consumes that controller state to create ProwJob-style Buck2 workloads and publish oya-ci-required.",
+    "cd_fit": "release-conveyor-like native CD consumes signed build/evidence/release ledger outputs after oya-ci; it is not a revived CLI and GitHub Actions CD remains dry-run/shadow evidence only.",
+    "github_fit": "GitHub is a public/private publication and PR adapter; public mirrors are generated from native SCM export manifests rather than hand-edited divergent repos."
   }
 }

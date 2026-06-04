@@ -3,13 +3,33 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T14:08:00Z",
-  "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for the temporary GitHub lane-unlocker and native SCM/CI/CD cutover prep.",
+  "updated_at": "2026-06-04T16:20:00Z",
+  "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
   "buck2_authority": true,
   "github_bridge_temporary": true,
   "native_scm_requires_github_adapter": true,
+  "anti_patterns_guardrails": {
+    "decision": "Hyperscaler/cloud/Kubernetes-native lanes must avoid candidate-owned truth, blind live mutation, shared mutable bottlenecks, retired substrate bridges, and ad-hoc automation sprawl.",
+    "required_patterns": [
+      "trusted_controller_owned_oya_ci_required",
+      "controller_oriented_kubernetes_scale_pause_drain",
+      "pointer_thin_or_generated_shared_surfaces",
+      "native_scm_prow_kubernetes_ci_release_conveyor",
+      "rust_buck2_first_gate_authority"
+    ],
+    "rejected_anti_patterns": [
+      "candidate_owned_manual_status_or_merge_truth",
+      "single_hand_edited_workflow_bottleneck",
+      "retired_external_substrate_bridge_authority",
+      "blind_kubectl_delete_pods",
+      "new_python_or_shell_gate_sprawl",
+      "github_actions_as_durable_ci_authority",
+      "cargo_or_tarpaulin_as_monorepo_authority_over_buck2"
+    ],
+    "claim_boundary": "local_static_guardrail_only_no_live_mutation"
+  },
   "domains": [
     {
       "id": "git_worktree_hygiene",
@@ -22,15 +42,15 @@
     {
       "id": "branch_merge_hygiene",
       "owner": "platform-scm-ci-cd",
-      "policy": "short-lived branches, required GitHub lane-unlocker context, protected dev shadow config, squash/head-SHA pinning, and merge-queue/admission equivalence",
-      "automation": "GitHub Actions required check plus branch-protection shadow validation and future native SCM queue adapter tests",
+      "policy": "short-lived branches, trusted oya-ci-required Prow/Kubernetes-native context, protected dev shadow config, squash/head-SHA pinning, and merge-queue/admission equivalence",
+      "automation": "Prow/Kubernetes-native oya-ci required check plus branch-protection shadow validation; GitHub Actions remains compatibility/shadow evidence only",
       "claim_boundary": "does not mutate live branch protection from local check",
       "live_mutation": false
     },
     {
       "id": "repository_publication_hygiene",
       "owner": "platform-scm-ci-cd",
-      "policy": "GitHub is temporary collaboration/publication bridge; native SCM owns durable commit graph and exposes GitHub public/private publication adapters",
+      "policy": "GitHub is a collaboration/publication adapter; native SCM owns durable commit graph and exposes GitHub public/private publication adapters",
       "automation": "GitHub adapter contract tracks visibility, CODEOWNERS/rulesets, status publishing, PR mirror, and public/private split metadata",
       "claim_boundary": "does not claim GitHub is permanent SCM",
       "live_mutation": false
@@ -100,7 +120,7 @@
     }
   },
   "native_scm_adapter_contract": {
-    "scm_core": "pure-Rust Sapling-inspired Oyatie SCM owns durable commit graph, stacked changes, workspace leases, branch/merge state, and policy evaluation",
+    "scm_core": "pure-Rust Sapling-inspired Oyatie native SCM service owns durable commit graph, stacked changes, workspace leases, branch/merge state, semantic conflict metadata, and policy evaluation; do not revive an oya vcs CLI.",
     "github_public_private_publication_adapter": {
       "required": true,
       "role": "publish/mirror selected public and private repos, PRs, checks, releases, CODEOWNERS/rulesets, and statuses to GitHub while native SCM remains authoritative",
@@ -118,8 +138,12 @@
     },
     "github_actions_status_bridge": {
       "temporary": true,
-      "role": "consume/post temporary GitHub Actions statuses until native Oya CI is trusted"
-    }
+      "role": "publish/consume legacy github-lane-unlocker-required shadow statuses while oya-ci-required remains CI authority",
+      "merge_authority": false
+    },
+    "cli_revival_allowed": false,
+    "ci_fit": "Native SCM/controller state feeds Prow/Kubernetes-native oya-ci ProwJob-style Buck2 workloads and oya-ci-required status; GitHub Actions status bridge is shadow compatibility only.",
+    "cd_fit": "Release-conveyor-like native CD consumes signed build/evidence/release ledger outputs after oya-ci; dry-run GitHub Actions artifacts are not deployment authority."
   },
   "automation_commands": [
     "buck2 build //:repo-hygiene-automation-check",
@@ -127,7 +151,8 @@
     "buck2 build //:third-party-durable-handedits-check",
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
-    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+    "buck2 build //:buck2-authority-policy-check"
   ],
   "official_sources": [
     {
@@ -225,6 +250,22 @@
     {
       "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
       "establishes": "Service Control Policies as a hyperscaler-style multi-account guardrail pattern for Oyatie Cloud accounts."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/",
+      "establishes": "Prow official docs for Kubernetes-native CI component shape."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/overview/architecture/",
+      "establishes": "Prow architecture reference for hook, controllers, jobs, and status flow."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/components/core/tide/",
+      "establishes": "Tide merge-pool and batch merge behavior reference."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/jobs/",
+      "establishes": "Prow presubmit/postsubmit/periodic job model reference."
     }
   ],
   "claim_boundary": {
@@ -236,13 +277,11 @@
     "docs_sprawl_fully_removed": false
   },
   "active_context_drift_scan": {
-    "required_interim_context": "github-lane-unlocker-required",
-    "native_cutover_context": "oya-ci-required",
     "required_tool_examples": [
       "git worktree add",
       "gh pr create --base dev",
       "buck2 build //:repo-hygiene-automation-check",
-      "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD"
+      "buck2 build //:buck2-authority-policy-check"
     ],
     "forbidden_active_doc_phrases": [
       "cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness",
@@ -251,7 +290,10 @@
       "legacy_ci_server CI + oya gate run-all",
       "legacy_self_hosted_git_forge required-checks/auto-merge is the substrate target",
       "manual oya-ci-required success statuses to merge bridge PRs",
-      "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
+      "infra/ci/buck2-affected-gate.sh origin/dev HEAD",
+      "github-lane-unlocker-required is merge authority",
+      "oya gate is merge authority",
+      "oya verify is CI authority"
     ],
     "scan_scope": [
       "AGENTS.md",
@@ -260,11 +302,21 @@
       "docs/AGENTS.md",
       "docs/ci/github-actions-lane-unlocker.md",
       "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+      "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
       ".github/branch-protection.yaml",
-      "infra/branch-protection/dev.json"
+      "infra/branch-protection/dev.json",
+      "specs/bespoke-cloud-toolchain-services.json",
+      "specs/gitops-vcs-replacement.json"
     ],
-    "purpose": "Make active agent/root/procedure docs mechanically refuse stale interim-authority wording while leaving historical ADR provenance intact.",
-    "forbidden_active_doc_phrase_source": "Exact retired-substrate deny strings are constants in scripts/ci/assert-repo-hygiene-automation.rs so this active spec does not reintroduce tombstoned names."
+    "purpose": "Make active agent/root/procedure docs mechanically prefer Prow/Kubernetes-native oya-ci-required while leaving legacy GitHub Actions bridge evidence and historical ADR provenance intact.",
+    "forbidden_active_doc_phrase_source": "Exact retired-substrate deny strings are constants in scripts/ci/assert-repo-hygiene-automation.rs so this active spec does not reintroduce tombstoned names.",
+    "required_native_context": "oya-ci-required",
+    "legacy_shadow_context": "github-lane-unlocker-required",
+    "legacy_shadow_context_role": "GitHub Actions compatibility/shadow evidence only; not durable merge authority.",
+    "forbidden_phrases": [
+      "The required temporary context is `github-lane-unlocker-required`",
+      "dev requires github-lane-unlocker-required"
+    ]
   },
   "automation_language_policy": {
     "new_parallel_fanout_automation": "rust_buck2_first",
@@ -357,6 +409,30 @@
       "lane": "platform-scm-ci-cd",
       "action": "Evaluate remaining adapter crates, historical ADR cross-references, and policy markers for retired external SCM/CI/CD substrates; preserve only reusable Prow/Tide or Git protocol patterns, then rewrite native seams toward the pure-Rust Sapling-inspired Oyatie SCM with GitHub adapters.",
       "conflict_mitigation": "Keep adapter retirement in its own lane after runnable bridge scripts are gone so product and GitHub bridge lanes do not contend on native SCM code."
+    },
+    {
+      "id": "retire_oya_cli_governance_authority",
+      "lane": "platform-governance",
+      "action": "Stop treating oya gate/verify CLI invocations as CI or merge authority; preserve reusable governance logic as Rust libraries, Buck2 targets, and Prow jobs.",
+      "conflict_mitigation": "Port one gate family at a time so shared registry/quality lanes shrink rather than churn repeatedly."
+    },
+    {
+      "id": "typescript_pnpm_retirement_review",
+      "lane": "product-frontend",
+      "action": "Audit stale TypeScript/pnpm surfaces against current Rust/Leptos/product decisions; delete or archive retired app-shell/workflow-studio artifacts in evidence-backed PRs.",
+      "conflict_mitigation": "Keep review inventory separate from deletion PRs so product lanes do not race shared frontend registries."
+    },
+    {
+      "id": "prow_job_registry_generation",
+      "lane": "platform-scm-ci-cd",
+      "action": "Create a registry-owned desired ProwJob graph and Rust/Buck2 generator so vertical lanes edit disjoint job shards instead of a single shared CI file.",
+      "conflict_mitigation": "Generated aggregate output becomes mechanical; source-of-truth rows live in lane-owned shards."
+    },
+    {
+      "id": "python_shell_to_rust_buck2_migration",
+      "lane": "platform-governance",
+      "action": "Rewrite active Python and shell gate/tool surfaces in Rust with Buck2 targets, leaving only one-time bootstrap or host-prelude glue with deletion criteria.",
+      "conflict_mitigation": "Each migration owns a tool directory plus test fixture set; no ad-hoc shared script growth."
     }
   ],
   "security_backlog_validation": {
@@ -763,5 +839,6 @@
       ],
       "claim_boundary": "backlog_only_no_live_mutation"
     }
-  ]
+  ],
+  "github_actions_shadow_only": true
 }

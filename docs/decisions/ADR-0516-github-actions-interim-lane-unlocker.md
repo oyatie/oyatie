@@ -1,14 +1,15 @@
 # ADR-0516: GitHub Actions Interim Lane Unlocker
 
-Status: Accepted for temporary bridge use on 2026-06-03; not P0.0 green.
+Status: Accepted for temporary bridge use on 2026-06-03; amended 2026-06-04 as **shadow compatibility only** for active CI authority. ADR-0513 owns the Rust/Prow/Kubernetes-native `oya-ci-required` direction. This ADR remains useful for GitHub PR/publication adapter evidence and legacy GitHub Actions compatibility, but it is not P0.0 green and is not durable CI/CD authority.
 
 ## Context
 
 We need product, infra, and cloud lanes to move concurrently while native SCM,
-CI/CD, cloud workspace, and release-conveyor seams continue to mature. The current
+CI/CD, cloud workspace, and release-conveyor-like seams continue to mature. The current
 sequential workflow slows product development when infra/cloud substrate work is
-still in progress. The interim path must be GitHub/GitHub Actions because that is
-the available bridge that can unlock dev work now.
+still in progress. GitHub/GitHub Actions was the available bridge to unlock dev
+work immediately; after the 2026-06-04 amendment it remains PR/publication and
+shadow evidence, while `oya-ci-required` is the desired CI authority context.
 
 This is a temporary lane-unlocker: no retired external SCM/CI/CD substrates are
 interim authorities for SCM, CI, or CD. Exact tombstones for those retired names live in `/specs/retired-external-substrate-registry.json` so active guidance can stay generic. GitHub/GitHub Actions is also not the
@@ -17,11 +18,10 @@ Kubernetes-native, hyperscaler native Oyatie developer substrate.
 
 ## Decision
 
-Use GitHub as temporary SCM/merge surface and GitHub Actions as temporary CI/CD
-bridge for dev-lane unlock, while Buck2 remains the build/test/check authority.
-The required temporary context is `github-lane-unlocker-required`; the native
-cutover context remains separate as `oya-ci-required` and cannot be impersonated
-by the GitHub bridge. The temporary workflow runs on GitHub-hosted `ubuntu-24.04-arm` runners to
+Use GitHub as temporary PR/publication surface and GitHub Actions as shadow
+compatibility evidence for dev-lane unlock, while Buck2 remains the
+build/test/check authority.
+The trusted required context is `oya-ci-required`. The GitHub Actions aggregate `github-lane-unlocker-required` is retained only as shadow compatibility and evidence visibility; it cannot impersonate the Prow/Kubernetes-native oya-ci producer. The temporary workflow runs on GitHub-hosted `ubuntu-24.04-arm` runners to
 match the current Buck2 `aarch64-unknown-linux-gnu` Rust toolchain, pins
 `BUCK2_RELEASE=2026-06-01`, opts GitHub JavaScript actions into the Node 24
 runtime with `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`, uses
@@ -38,13 +38,21 @@ installs Buck2 if the runner image lacks it. GitHub-hosted and self-hosted
 runners both fail closed on the same Rust/Buck2 authority instead of lazily
 installing toolchains inside concurrent Buck2 actions.
 
-The native SCM direction is a pure-Rust Sapling-compatible native SCM that adopts
+The native SCM direction is a pure-Rust Sapling-compatible native SCM service/control-plane that adopts
 best-of-existing hyperscaler patterns and is not a wholesale reimplementation of
 Prow, Sapling, Piper, CitC, GitHub Actions, or any single upstream system. Prow,
 Sapling, Piper, CitC, Buck2, Kubernetes, and GitHub Actions are reference inputs
 for patterns such as stacked changes, cloud workspaces, merge pools, required
 status rollups, affected builds, Kubernetes-native job execution, and source
 based coverage.
+
+Do not revive an `oya vcs` CLI. The SCM seam owns durable change graph,
+workspace leases, stacked changes, virtual merge heads, semantic conflict
+metadata, Git protocol, and GitHub publication adapters through service APIs and
+adapters. The Prow/Kubernetes-native `oya-ci` seam consumes trusted SCM/controller
+state and publishes `oya-ci-required`. The CD seam is release-conveyor-like:
+progressive delivery, rollback, policy, and audit consume signed CI evidence and
+release-ledger records rather than CLI state.
 
 Rust coverage remains Buck2-driven LLVM source-based coverage. The CI bootstrap
 preinstalls the Rust `llvm-tools-preview` component so `llvm-profdata` and
@@ -79,11 +87,11 @@ Anti-rework rule: name equivalent concepts early, but do not share code, schemas
 
 ## Consequences
 
-- GitHub/GitHub Actions unlocks dev concurrency now, but it is not permanent SCM,
-  CI, or CD authority.
+- GitHub/GitHub Actions unlocks dev concurrency through PR/publication and shadow
+  compatibility evidence, but it is not permanent SCM, CI, or CD authority.
 - Buck2 remains the only build/test/check authority for the bridge.
 - The native path continues toward cloud native, Kubernetes-native, hyperscaler
-  native SCM/CI/CD and cloud workspace seams.
+  native SCM, Prow-shaped CI, release-conveyor-like CD, and cloud workspace seams.
 - This ADR is not P0.0 green, not Phase 0 complete, and not proof that cloud-ci
   or oya-ci live authority is ready.
 - Legacy bridge documents may retain historical commands, but their interim
@@ -103,4 +111,4 @@ outside this ADR's local static evidence.
 
 ## Manual bridge avoidance
 
-During the temporary GitHub bridge, `dev` branch protection uses the automated `github-lane-unlocker-required` aggregate check. Agents must not post manual `oya-ci-required` success statuses to merge bridge PRs. `oya-ci-required` remains the native cutover context for the trusted cloud-ci/oya-ci producer only.
+During the GitHub shadow bridge, target `dev` branch protection belongs to the trusted Prow/Kubernetes-native `oya-ci-required` producer. Live GitHub may still observe the automated `github-lane-unlocker-required` aggregate for compatibility, but agents must not post manual `oya-ci-required` success statuses and must not treat GitHub Actions shadow evidence as merge authority.

@@ -346,7 +346,9 @@
     "CLAUDE.md",
     "docs/AGENTS.md"
   ],
-  "command_scan_globs": [],
+  "command_scan_globs": [
+
+  ],
   "description": "P0.0 non-claim policy for preventing Cargo regression in active CI/CD/build/script lanes. This file is not a green readiness claim; it defines local/static enforcement and the target controller chain.",
   "forbidden_cargo_subcommands": [
     "fmt",
@@ -1398,7 +1400,7 @@
       "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
     ],
     "scripts/ci/assert-github-lane-unlocker-bridge.rs": [
-      "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+      "github_actions_shadow_bridge_not_native_authority",
       "github-lane-unlocker-required",
       "best_of_existing_systems_not_wholesale_reimplementation",
       "cloud_native_hyperscaler_fit",
@@ -1406,10 +1408,11 @@
       "auth_shared_substrate_decoupling",
       "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes",
       "actions/checkout@v6",
-      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24"
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24",
+      "oya-ci-required"
     ],
     "specs/github-lane-unlocker-bridge.json": [
-      "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+      "github_actions_shadow_bridge_not_native_authority",
       "Buck2 remains the build/test/check authority",
       "best_of_existing_systems_not_wholesale_reimplementation",
       "loosely_coupled_microservices",
@@ -1418,7 +1421,9 @@
       "no_shared_contract_or_surface_now",
       "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes",
       "actions/checkout@v6",
-      "node26_action_runtime_used"
+      "node26_action_runtime_used",
+      "oya-ci-required",
+      "github-lane-unlocker-required"
     ],
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": [
       "GitHub/GitHub Actions",
@@ -1455,7 +1460,9 @@
       "buck2 build //:repo-hygiene-automation-check"
     ]
   },
-  "required_glob_anchors": [],
+  "required_glob_anchors": [
+
+  ],
   "status_context_scan_files": [
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",

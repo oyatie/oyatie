@@ -1,5 +1,5 @@
 {
-  "_comment": "Shadow/target branch-protection config for dev. ADR-0516 adds a temporary GitHub/GitHub Actions lane-unlocker; this file does not mutate live branch protection and does not claim P0.0 green.",
+  "_comment": "Shadow/target branch-protection config for dev. ADR-0513 makes Prow/Kubernetes-native oya-ci the required context authority; GitHub/GitHub Actions remains PR/publication/shadow evidence only.",
   "_adr": "ADR-0124-own-merge-queue-webhook-driven.md",
   "branch": "dev",
   "required_status_checks": {
@@ -7,9 +7,9 @@
     "_strict_rationale": "Set to false per ADR-0124 to break the O(N^2) rebase cascade; the merge bridge enforces required status contexts without GitHub-side up-to-date enforcement.",
     "_oya_pr_review_note": "oya-pr-review is intentionally absent from Phase-1 required contexts. Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet shipped); requiring it would deadlock every PR. Returns as required in Phase-2 once the reviewer-agent endpoint is live.",
     "contexts": [
-      "github-lane-unlocker-required"
+      "oya-ci-required"
     ],
-    "_phase0_target_note": "Temporary GitHub/GitHub Actions lane-unlocker phase requires the automated github-lane-unlocker-required check so no manual oya-ci-required bridge is needed. P0.0/native cutover target remains oya-ci-required, posted by oya-ci-controller from trusted controller/trunk state after cloud-ci/cloud-scm proof."
+    "_phase0_target_note": "Target dev protection requires the trusted Prow/Kubernetes-native oya-ci-required context. GitHub Actions github-lane-unlocker-required is legacy/shadow compatibility only and must not be treated as merge authority."
   },
   "enforce_admins": true,
   "_required_pull_request_reviews_rationale": "GitHub human approving reviews are not merge authority for dev. oya-pr-review is future/non-live reviewer evidence only until its producer is live and explicitly required; keep this null so branch-protection re-application cannot recreate the hidden requiresApprovingReviews=true/count=0 blocker that stalls the next queue.",
@@ -22,16 +22,17 @@
   "lock_branch": false,
   "block_creations": false,
   "restrictions": null,
-  "_phase0_p0_0_note": "During ADR-0516 temporary GitHub/GitHub Actions lane-unlocker, live dev protection is converged to github-lane-unlocker-required to avoid manual oya-ci-required statuses. Destination authority remains oya-ci-required after trusted cloud-ci/oya-ci producer cutover.",
+  "_phase0_p0_0_note": "Prow/Kubernetes-native oya-ci-required is the target CI authority. GitHub Actions remains a shadow bridge for evidence visibility and compatibility, not a manual status bridge or merge authority.",
   "temporary_github_lane_unlocker_bridge": {
-    "status": "temporary_bridge_not_destination_authority",
-    "required_context": "github-lane-unlocker-required",
+    "status": "github_actions_shadow_not_destination_authority",
+    "required_context": "oya-ci-required",
     "native_cutover_target_context": "oya-ci-required",
     "live_mutation_performed_by_this_file": false,
     "scm": "github",
-    "ci": "github_actions",
-    "cd": "github_actions_dry_run_bridge",
-    "cutover_condition": "native SCM/CI/CD/cloud workspace/release conveyor seams prove their required context and operational contracts",
-    "retired_external_scm_ci_cd_substrates_interim": false
+    "ci": "github_actions_shadow",
+    "cd": "github_actions_dry_run_shadow",
+    "cutover_condition": "native SCM/CI/CD/cloud workspace/release conveyor seams prove operational contracts; required CI context remains oya-ci-required.",
+    "retired_external_scm_ci_cd_substrates_interim": false,
+    "legacy_shadow_context": "github-lane-unlocker-required"
   }
 }
