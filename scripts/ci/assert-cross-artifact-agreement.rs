@@ -444,12 +444,24 @@ pub fn authority_file_failures(
         (
             MASTERPLAN_GENERATED,
             masterplan_generated,
-            &["ADR-0365-D3", "ADR-0365"][..],
+            &[
+                "ADR-0365-D3",
+                "ADR-0365",
+                "\"authority_boundary\"",
+                "generated_provenance_projection_only",
+                "ADR-0516 temporary GitHub/GitHub Actions lane-unlocker",
+            ][..],
         ),
         (
             ROADMAP_GENERATED,
             roadmap_generated,
-            &["ADR-0365-D3", "Generated from masterplan deliverable"][..],
+            &[
+                "ADR-0365-D3",
+                "Generated from masterplan deliverable",
+                "\"authority_boundary\"",
+                "generated_provenance_projection_only",
+                "ADR-0516 temporary GitHub/GitHub Actions lane-unlocker",
+            ][..],
         ),
     ] {
         for token in tokens {
