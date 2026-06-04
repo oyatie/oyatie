@@ -1945,7 +1945,7 @@
       "future_integration": "rewrite and rewire Oyatie products to consume Cloud IdP after stabilization"
     },
     "shared_surface_strategy": "pointer-thin canonical workflow/docs plus vertical-owned reusable shards or generated consolidation to reduce merge conflicts under parallel lanes",
-    "security_backlog_scope": "valid zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, and multi-account guardrails are P00/P01 backlog only; no live mutation claimed"
+    "security_backlog_scope": "31 validated zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, data-protection, honeytoken/tripwire, and multi-account guardrail controls are P00/P01 backlog only; no live mutation claimed"
   },
   "repo_hygiene_automation": {
     "id": "P00-repo-hygiene-automation",
@@ -1965,6 +1965,7 @@
     "retired_substrate_rule": "active instructions use generic retired external SCM/CI/CD substrate wording and point to the retired substrate registry for exact tombstones",
     "live_mutation": false,
     "shared_surface_mitigation_ref": "/specs/repo-hygiene-automation.json#shared_surface_mitigation",
+    "security_backlog_validation_ref": "/specs/repo-hygiene-automation.json#security_backlog_validation",
     "security_hardening_backlog_ref": "/specs/repo-hygiene-automation.json#security_hardening_backlog",
     "automation_language_policy_ref": "/specs/repo-hygiene-automation.json#automation_language_policy",
     "required_stale_doc_inventory": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
