@@ -4,9 +4,10 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-AGENTIC-SLO-GATED-PROMOTION",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "status": "accepted",
     "created_at": "2026-05-17",
+    "updated_at": "2026-06-04",
     "owner_team": "council-architecture",
     "adr": "ADR-0139",
     "related_adrs": [
@@ -17,7 +18,7 @@
       "ADR-0123",
       "ADR-0131"
     ],
-    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the Jenkins promotion jobs."
+    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the Prow/Kubernetes-native oya-ci promotion-readiness Buck2 lane, and native release-conveyor promotion controllers."
   },
   "industry_baseline": {
     "burn_rate_model": "Google SRE Workbook ch. 5 multi-window multi-burn-rate",
@@ -402,8 +403,8 @@
       },
       "signed_event_type": "eligibility-changed",
       "consumed_by": [
-        "Jenkins dev-to-staging promotion job",
-        "Jenkins staging-to-production promotion job",
+        "release-conveyor dev-to-staging promotion controller",
+        "release-conveyor staging-to-production promotion controller",
         "grafana-oncall (for held|rejected|rollback verdicts)"
       ]
     },
@@ -413,7 +414,7 @@
         "target_env": "string",
         "sha": "string",
         "executed_at": "ISO8601",
-        "actor": "jenkins"
+        "actor": "release-conveyor-controller"
       },
       "consumed_by": [
         "audit-chain",
@@ -438,7 +439,7 @@
     }
   },
   "promote_workflow_contract": {
-    "primary_trigger": "signed eligibility-changed event consumed by Jenkins promotion job",
+    "primary_trigger": "signed eligibility-changed event consumed by the release-conveyor promotion controller",
     "reconciliation_heartbeat_cron": {
       "staging": "*/30 * * * *",
       "production": "17 * * * *"
@@ -496,14 +497,14 @@
   "ci_lane_contract": {
     "name": "oya-governance-promotion-readiness",
     "severity": "BLOCKER",
-    "added_to": "planned for Jenkins/Forgejo required checks on dev and staging; not live until IP-012 implementation and required-check configuration merge",
+    "added_to": "planned for trusted Prow/Kubernetes-native oya-ci-required required status and release-conveyor promotion admission on dev and staging; not live until IP-012 implementation and required-check configuration merge",
     "behaviour": [
       "enumerate every microservice touched by the source SHA (via path-based ownership: a change to microservices/<ms>/** is owned by <ms>)",
       "for each microservice, read the latest record in registry/promotion-eligibility.jsonl for (microservice, source_sha, target_env)",
       "exit 0 only when every microservice has an 'eligible' verdict",
       "exit non-zero with structured JSON listing which microservices are held|rejected|rollback and the burn-rate snapshot"
     ],
-    "implementation": "cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha <sha> --env <env>"
+    "implementation": "Buck2 target backed by the Rust promotion-readiness kernel; Prow/Kubernetes-native oya-ci publishes source-bound oya-ci-required evidence for <sha>/<env>."
   },
   "bootstrap_order_decision": {
     "policy": "incremental — each microservice brings its OpenSLO manifest at the time it migrates to microservices/<ms>/ per ADR-0131. Until a microservice has a manifest, the gate treats its eligibility as 'held' (fail-closed) and that microservice cannot promote past 'dev'.",
@@ -516,7 +517,7 @@
     "backfill_event_label": "verdict_kind=backfilled",
     "backfill_consumed_by_promote_workflow": false,
     "backfill_per_tenant_rate_limit": "1 per microservice per hour",
-    "replay_trigger": "manual via `cargo run -p oya-dev-cli -- promotion replay-eligibility`",
+    "replay_trigger": "audited replay request reconciled by the release-conveyor promotion controller after two-person approval",
     "replay_authority": "2-person rule (operator + ops-security) + audit-chain seal",
     "replay_event_label": "verdict_kind=replayed",
     "replay_immutability_invariant": "replay appends new verdict record; never mutates original"
