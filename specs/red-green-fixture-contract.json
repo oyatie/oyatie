@@ -462,7 +462,7 @@
       "automation_matrix_row_id": "AC-0.1-service-inventory",
       "buck2_target": "//:service-root-classifier-check",
       "test_paths": [
-        "scripts/tests/service_root_classifier_check.test.sh"
+        "scripts/tests/service_root_classifier_check.rs"
       ],
       "green_markers": [
         {
@@ -472,13 +472,13 @@
       ],
       "red_markers": [
         {
-          "path": "scripts/tests/service_root_classifier_check.test.sh",
+          "path": "scripts/tests/service_root_classifier_check.rs",
           "contains": "service_layout_sprawl"
         }
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-service-root-classifier.py",
+          "path": "scripts/ci/assert-service-root-classifier.rs",
           "contains": "full_service_inventory_coverage_proven"
         }
       ],

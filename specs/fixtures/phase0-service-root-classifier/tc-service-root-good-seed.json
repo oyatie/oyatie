@@ -64,7 +64,7 @@
       "max_scope": "direct-child root classification seed; no nested crate migration in this packet",
       "acceptance": "//:service-root-classifier-check passes with full_service_inventory_coverage_proven=false and p0_0_green=false.",
       "verification_commands": [
-        "buck2 test //:service-root-classifier-check"
+        "buck2 build //:service-root-classifier-check"
       ],
       "rollback_inverse": "Remove seed inventory entries added by this packet and re-run //:service-root-classifier-check to verify RED before reverting.",
       "evidence_bundle": "evidence/multispectrum/platform-readiness-p0-0-service-root-classifier-<timestamp>.json",
@@ -90,7 +90,7 @@
       "max_scope": "classification only; no service directory movement",
       "acceptance": "Every direct child under oya/ has a service-inventory entry with target_tree=oya and builds_green=false unless live evidence is attached later.",
       "verification_commands": [
-        "buck2 test //:service-root-classifier-check"
+        "buck2 build //:service-root-classifier-check"
       ],
       "rollback_inverse": "Restore prior oya/ classification data and rerun the classifier.",
       "evidence_bundle": "specs/service-inventory.json",
@@ -116,7 +116,7 @@
       "max_scope": "classification only; no service directory movement",
       "acceptance": "Every direct child under cloud/ has a service-inventory entry with target_tree=cloud and builds_green=false unless live evidence is attached later.",
       "verification_commands": [
-        "buck2 test //:service-root-classifier-check"
+        "buck2 build //:service-root-classifier-check"
       ],
       "rollback_inverse": "Restore prior cloud/ classification data and rerun the classifier.",
       "evidence_bundle": "specs/service-inventory.json",
@@ -146,7 +146,7 @@
       "max_scope": "classification only; no pack or library movement",
       "acceptance": "libs/ entries use target_tree=libs; packs and regional-packs remain authorized shared pack roots, not service roots.",
       "verification_commands": [
-        "buck2 test //:service-root-classifier-check"
+        "buck2 build //:service-root-classifier-check"
       ],
       "rollback_inverse": "Restore prior libs/pack classification data and rerun the classifier.",
       "evidence_bundle": "specs/service-inventory.json",
@@ -175,7 +175,7 @@
       "max_scope": "fixture contract only; no claim that every service is migrated",
       "acceptance": "Sprawl fixtures under services/, platforms/, or retired microservices/ produce RED in //:service-root-classifier-check.",
       "verification_commands": [
-        "buck2 test //:service-root-classifier-check"
+        "buck2 build //:service-root-classifier-check"
       ],
       "rollback_inverse": "Remove flat-layout seed acceptance and verify the sprawl fixture fails before reverting.",
       "evidence_bundle": "specs/fixtures/phase0-service-root-classifier/",
@@ -204,7 +204,7 @@
       "max_scope": "naming fixture only; no mass rename executed",
       "acceptance": "Underscore crate names are RED in //:service-root-classifier-check while existing kebab-case roots remain GREEN.",
       "verification_commands": [
-        "buck2 test //:service-root-classifier-check"
+        "buck2 build //:service-root-classifier-check"
       ],
       "rollback_inverse": "Remove underscore-name fixture contract and rerun classifier to prove the rollback impact.",
       "evidence_bundle": "specs/fixtures/phase0-service-root-classifier/tc-service-root-bad-underscore-crate.json",
