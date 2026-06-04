@@ -12,7 +12,12 @@
   "closure_scope": {
     "masterplan_path": "/specs/masterplan.json",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
+    "active_authority_checks": [
+      "buck2 build //:repo-hygiene-automation-check",
+      "buck2 build //:buck2-authority-policy-check"
+    ],
+    "retired_gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
+    "retired_gate_command_note": "Tombstone provenance only; retired oya-dev-cli gate output is not merge/CI authority.",
     "closed_status_field_count": 177,
     "former_blocking_status_classes": [
       "was-seed",

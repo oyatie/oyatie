@@ -20,7 +20,7 @@
       "current_role": "historical provenance and adapter-retirement source only",
       "interim_authority": false,
       "permanent_authority": false,
-      "replacement_now": "GitHub Actions temporary lane-unlocker under Buck2 authority",
+      "replacement_now": "Rust/Buck2 ProwJob registry seed plus GitHub Actions compatibility/shadow evidence while the trusted oya-ci-required controller matures",
       "native_destination": "Rust Oya CI/release conveyor with Kubernetes-native Buck2 execution"
     },
     {
@@ -30,7 +30,7 @@
       "current_role": "historical provenance and adapter-retirement source only",
       "interim_authority": false,
       "permanent_authority": false,
-      "replacement_now": "GitHub temporary SCM/publication bridge",
+      "replacement_now": "GitHub PR/publication adapter only; native SCM remains the durable source-of-truth destination",
       "native_destination": "pure-Rust Sapling-inspired Oyatie SCM with GitHub and git-protocol adapters"
     },
     {
@@ -40,7 +40,7 @@
       "current_role": "historical provenance and native-cutover comparison only",
       "interim_authority": false,
       "permanent_authority": false,
-      "replacement_now": "GitHub Actions dry-run CD evidence only",
+      "replacement_now": "GitHub Actions dry-run CD evidence only while native release-conveyor seams mature",
       "native_destination": "Oyatie release conveyor with Kubernetes-native progressive delivery, policy, rollback, and audit"
     },
     {
@@ -50,7 +50,7 @@
       "current_role": "reference pattern or adapter comparison only where explicitly cited",
       "interim_authority": false,
       "permanent_authority": false,
-      "replacement_now": "GitHub Actions dry-run evidence plus Buck2 checks",
+      "replacement_now": "GitHub Actions dry-run evidence plus Buck2 checks while native Kubernetes reconcilers mature",
       "native_destination": "Oyatie workflow/release conveyor adapters with Kubernetes-native reconciliation"
     }
   ],

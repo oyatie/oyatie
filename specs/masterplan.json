@@ -604,7 +604,12 @@
   "planning_closure": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
+    "active_authority_checks": [
+      "buck2 build //:repo-hygiene-automation-check",
+      "buck2 build //:buck2-authority-policy-check"
+    ],
+    "retired_gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
+    "retired_gate_command_note": "Retained only as tombstone provenance. Do not revive oya-dev-cli gate validation as merge/CI authority; rewrite useful planning-closure kernels as Rust libraries, Buck2 targets, and Prow/Kubernetes-native jobs.",
     "authority": {
       "current_path": "/specs/masterplan.json",
       "root_hub_pointer": "/specs/root-hub-pointers.json#entry_points.masterplan",

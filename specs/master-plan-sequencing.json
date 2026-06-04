@@ -73,7 +73,12 @@
   "planning_closure_contract": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
+    "active_authority_checks": [
+      "buck2 build //:repo-hygiene-automation-check",
+      "buck2 build //:buck2-authority-policy-check"
+    ],
+    "retired_gate_command_ref": "/specs/planning-closure-contract.json#implementation_start_rule.retired_gate_command",
+    "retired_gate_command_note": "Do not reintroduce oya-dev-cli planning-closure validation as merge/CI authority.",
     "master_plan_authority": "/specs/masterplan.json",
     "compatibility_projection": "docs/MASTERPLAN.md",
     "implementation_start_claim_rule": "Implementation may start only after the planning-closure gate proves product scope, architecture/system design, sequencing, acceptance criteria, KR localization, and no-placeholder posture are complete enough to avoid implementation-time invention."
@@ -1624,7 +1629,7 @@
           "queued_at": "2026-05-21",
           "adr": "ADR-0349",
           "scope": "Historical Wave 15-ZE self-hostable CI/CD planning retained for provenance only. ADR-0516 supersedes the interim path: GitHub/GitHub Actions unlocks dev lanes temporarily, Buck2 remains the check authority, no retired external SCM/CI/CD substrates interim authority is allowed, and the native cutover targets Oyatie SCM, rust-prow/oya-ci, cloud workspaces, and release conveyor seams.",
-          "dispatch_mode": "No interim dispatch. Superseded by ADR-0516 GitHub/GitHub Actions temporary lane-unlocker plus Buck2 evidence lanes.",
+          "dispatch_mode": "No interim dispatch. Superseded by ADR-0516 GitHub/GitHub Actions compatibility/shadow lane-unlocker plus Buck2 evidence lanes and the Prow/Kubernetes-native oya-ci-required cutover target.",
           "five_new_lanes": [
             "github-lane-unlocker-required legacy/shadow context",
             "//:github-lane-unlocker-bridge-check",

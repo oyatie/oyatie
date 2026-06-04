@@ -16,6 +16,8 @@ const GITHUB_BRIDGE_PATH: &str = "specs/github-lane-unlocker-bridge.json";
 const CANONICAL_PRIMITIVES_PATH: &str = "specs/canonical-primitives.json";
 const MASTERPLAN_PATH: &str = "specs/masterplan.json";
 const SEQUENCING_PATH: &str = "specs/master-plan-sequencing.json";
+const PLANNING_CLOSURE_CONTRACT_PATH: &str = "specs/planning-closure-contract.json";
+const PLANNING_CLOSURE_LEDGER_PATH: &str = "specs/planning-closure-status-closure-ledger.json";
 const README_PATH: &str = "README.md";
 const AGENTS_PATH: &str = "AGENTS.md";
 const CLAUDE_PATH: &str = "CLAUDE.md";
@@ -34,6 +36,8 @@ const REQUIRED_BUCK2_AUTHORITY_COMMAND: &str = "buck2 build //:repo-hygiene-auto
 const PROWJOB_REGISTRY_COMMAND: &str = "buck2 build //:oya-ci-prowjob-registry-check";
 const RETIRED_PLANNING_CLOSURE_COMMAND: &str =
     "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
+const RETIRED_OYA_DEV_CLI_PLANNING_CLOSURE_COMMAND: &str =
+    "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure";
 const RETIRED_PYTHON_COMMAND: &str = "python3 scripts/ci/assert-repo-hygiene-automation.py --json";
 
 const REQUIRED_DOMAINS: &[&str] = &[
@@ -148,6 +152,8 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "dev requires github-lane-unlocker-required",
     "oya gate is merge authority",
     "oya verify is CI authority",
+    "oya gate` / `oya verify` governance evidence",
+    "oya-dev-cli:oya -- gate validate planning-closure",
 ];
 
 const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
@@ -174,6 +180,7 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
+    "docs/MASTERPLAN.md",
 ];
 
 const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
@@ -343,6 +350,21 @@ pub fn retired_exact_name_failures(rel: &str, text: &str) -> Vec<String> {
     }
 
     failures
+}
+
+fn retired_oya_dev_cli_active_gate_command_failure(label: &str, text: &str) -> Option<String> {
+    let compact = compact_json_text(text);
+    let retired_active_gate = format!(
+        "\"gate_command\":\"{}\"",
+        json_escape(RETIRED_OYA_DEV_CLI_PLANNING_CLOSURE_COMMAND)
+    );
+    if compact.contains(&retired_active_gate) {
+        Some(format!(
+            "{label}: must not reintroduce retired oya-dev-cli planning-closure command as active gate_command"
+        ))
+    } else {
+        None
+    }
 }
 
 pub fn spec_failures(spec: &str) -> Vec<String> {
@@ -589,6 +611,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let github_bridge = read(root, GITHUB_BRIDGE_PATH, &mut failures);
     let masterplan = read(root, MASTERPLAN_PATH, &mut failures);
     let sequencing = read(root, SEQUENCING_PATH, &mut failures);
+    let planning_contract = read(root, PLANNING_CLOSURE_CONTRACT_PATH, &mut failures);
+    let planning_ledger = read(root, PLANNING_CLOSURE_LEDGER_PATH, &mut failures);
     let readme = read(root, README_PATH, &mut failures);
     let agents = read(root, AGENTS_PATH, &mut failures);
     let claude = read(root, CLAUDE_PATH, &mut failures);
@@ -669,6 +693,22 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &mut failures,
         "masterplan must not reintroduce retired Cargo planning-closure command",
     );
+    for (label, text) in [
+        (MASTERPLAN_PATH, masterplan.as_str()),
+        (SEQUENCING_PATH, sequencing.as_str()),
+        (PLANNING_CLOSURE_CONTRACT_PATH, planning_contract.as_str()),
+        (PLANNING_CLOSURE_LEDGER_PATH, planning_ledger.as_str()),
+    ] {
+        if let Some(failure) = retired_oya_dev_cli_active_gate_command_failure(label, text) {
+            failures.push(failure);
+        }
+    }
+    require_contains(
+        &masterplan,
+        "\"retired_gate_command\"",
+        &mut failures,
+        "masterplan planning-closure tombstone",
+    );
     require_contains(
         &sequencing,
         "repo_hygiene_automation",
@@ -685,6 +725,26 @@ pub fn evaluate(root: &Path) -> Evaluation {
         !sequencing.contains(RETIRED_PLANNING_CLOSURE_COMMAND),
         &mut failures,
         "master-plan sequencing must not reintroduce retired Cargo planning-closure command",
+    );
+    require(
+        !compact_json_text(&sequencing).contains(&format!(
+            "\"gate_command\":\"{}\"",
+            json_escape(RETIRED_OYA_DEV_CLI_PLANNING_CLOSURE_COMMAND)
+        )),
+        &mut failures,
+        "master-plan sequencing must not reintroduce retired oya-dev-cli planning-closure command",
+    );
+    require_contains(
+        &planning_contract,
+        "\"retired_gate_command\"",
+        &mut failures,
+        "planning-closure contract tombstone",
+    );
+    require_contains(
+        &planning_ledger,
+        "\"retired_gate_command\"",
+        &mut failures,
+        "planning-closure ledger tombstone",
     );
 
     for (label, text) in [
