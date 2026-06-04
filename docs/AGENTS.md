@@ -63,7 +63,7 @@ Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
-| ADR-0346 (amended 2026-06-02) | Local pre-push verification is Buck2-backed shift-left evidence only. It MUST NOT grant protected-branch or Phase-0 exit authority; `oya-ci-required` from trusted cloud-ci/oya-ci remains the target required context. | `specs/buck2-authority-policy.json`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, cloud-ci/oya-ci required-context producer. |
+| ADR-0346 (amended 2026-06-02) | Local pre-push verification is Buck2-backed shift-left evidence only. It MUST NOT grant protected-branch or Phase-0 exit authority; during ADR-0516 the automated `github-lane-unlocker-required` context gates dev, while `oya-ci-required` remains the native cutover target only. | `specs/buck2-authority-policy.json`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, `//:github-lane-unlocker-bridge-check`, future cloud-ci/oya-ci required-context producer. |
 | ADR-0347 | Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; the rename is name-only and lane invariants remain preserved. | `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`. |
 | ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
 | ADR-0349 (superseded for interim use by ADR-0516) | Historical retired external CI/CD self-hostable CI/CD planning is not interim authority. ADR-0516 makes GitHub/GitHub Actions the temporary dev lane-unlocker, keeps Buck2 as build/test/check authority, rejects retired external SCM/CI/CD substrates interim authority, and preserves native cloud native/Kubernetes-native/hyperscaler-native cutover. | `//:github-lane-unlocker-bridge-check`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, ADR-0516 claim-boundary evidence lanes. |
@@ -194,7 +194,7 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No new struct fields in kernel crates without `data_class`.** Pre-commit blocks; respect it.
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
-- **Buck2 for dev-loop and evidence.** Prefer Buck2 build/test targets and `infra/ci/buck2-affected-gate.sh` for fast feedback. Final local evidence runs Buck2 affected/full targets; cloud-ci/oya-ci required context is merge authority.
+- **Buck2 for dev-loop and evidence.** Prefer Buck2 build/test targets and `infra/ci/buck2-affected-gate.sh` for fast feedback. Final local evidence runs Buck2 affected/full targets; the ADR-0516 automated `github-lane-unlocker-required` context is interim merge authority, and `oya-ci-required` returns only after native cutover evidence.
 ## Sanctioned primitives
 
 Agent coordination uses plain `git`. ADR-0363 retires the prior wrapper/ratchet
@@ -219,7 +219,7 @@ required_sequence:
   - isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
-  - cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness
+  - automated github-lane-unlocker-required GitHub Actions context + Buck2 evidence + reviewer APPROVE gate merge readiness until native cutover
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
@@ -314,7 +314,7 @@ Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harne
 
 The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENTS.md convention](https://agents.md). Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
 
-Build / test commands: `buck2 build`, `buck2 test`, `infra/ci/buck2-affected-gate.sh origin/dev HEAD`, `pnpm build`, `pnpm test` (Node 24 LTS by default; Node 26 Current only when a lane explicitly needs it). Lint: Buck2 lint targets, direct `rustfmt` when needed, `pnpm lint`.
+Build / test commands: `buck2 build`, `buck2 test`, `infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD`, `pnpm build`, `pnpm test` (Node 24 LTS by default; Node 26 Current only when a lane explicitly needs it). Lint: Buck2 lint targets, direct `rustfmt` when needed, `pnpm lint`.
 
 Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 
