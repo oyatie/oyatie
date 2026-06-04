@@ -179,7 +179,7 @@
       "automation_matrix_row_id": "AC-0.17-claim-ceiling",
       "buck2_target": "//:phase0-claim-ceiling-check",
       "test_paths": [
-        "scripts/tests/phase0_claim_ceiling_check.test.sh"
+        "scripts/tests/phase0_claim_ceiling_check.rs"
       ],
       "green_markers": [
         {
@@ -195,7 +195,7 @@
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-claim-ceiling.py",
+          "path": "scripts/ci/assert-claim-ceiling.rs",
           "contains": "never posts statuses, mutates branch protection"
         }
       ]
