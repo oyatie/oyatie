@@ -6,16 +6,19 @@ ADR-0516 supersedes this document for interim dev-lane unlock. The current inter
 
 This note describes the P0.0 target contract for PR auto-merge into `dev` on both
 Forgejo and the GitHub temporary bridge. It is a target/bridge contract, not a
-Phase-0 completion claim: live merge authority remains blocked until
-`oya-ci-required` is posted by trusted cloud-ci/oya-ci control state and required
-on the candidate SHA.
+Phase-0 completion claim: the temporary GitHub bridge uses
+`github-lane-unlocker-required` from the GitHub Actions aggregate workflow so
+product/infra lanes are not blocked on a manual `oya-ci-required` bridge. Native
+cutover still targets `oya-ci-required` posted by trusted cloud-ci/oya-ci control
+state on the candidate SHA.
 
 ## Invariant
 
 Auto-merge may be armed only when all of the following are true:
 
-1. Branch protection requires exactly the cloud-ci/oya-ci required context
-   `oya-ci-required` for the target branch.
+1. During ADR-0516 temporary GitHub/GitHub Actions lane unlock, GitHub `dev`
+   branch protection requires exactly `github-lane-unlocker-required`. Native
+   Forgejo/cloud-ci cutover requires exactly `oya-ci-required`.
 2. The PR head SHA is pinned in the merge request (`head_commit_id` on Forgejo,
    `--match-head-commit` on GitHub) so a moved PR head cannot inherit stale
    approval or CI evidence.
@@ -74,9 +77,9 @@ GitHub is the bootstrap mirror, but P0.0 requires it to converge to the same
 policy while PRs are still opened there:
 
 1. Repository auto-merge must be enabled.
-2. GitHub `dev` branch protection must require `oya-ci-required`; checked-in
-   target config lives in `infra/branch-protection/dev.json` and
-   `.github/branch-protection.yaml`.
+2. GitHub `dev` branch protection must require
+   `github-lane-unlocker-required`; checked-in target config lives in
+   `infra/branch-protection/dev.json` and `.github/branch-protection.yaml`.
 3. `scripts/trigger-next-queue-automerge.sh` refuses to arm GitHub auto-merge if
    live required contexts drift from the checked-in target, if the PR head is not
    GitHub-verified, if the required review check is missing, or if mergeability /

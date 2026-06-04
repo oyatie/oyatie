@@ -502,7 +502,7 @@
       "parity_scope": "improved_reimplementation",
       "repo_artifacts": [
         "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
-        "scripts/ci/assert-pr-required-context.py"
+        "scripts/ci/assert-pr-required-context.rs"
       ],
       "improvements_over_upstream": [
         "terminal status always required",

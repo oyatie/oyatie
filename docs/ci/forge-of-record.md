@@ -8,25 +8,28 @@ Forgejo (self-hosted at `forgejo.oya-forge.svc.cluster.local`) is the target
 **gating forge of record** for all PR merges to `dev`. GitHub
 (`github.com/jason931225/oyatie`) is the bootstrap mirror while Forgejo reachability
 and cloud-ci/oya-ci cutover evidence are still being established. During P0.0,
-both forges must converge to the same required-context contract so neither path
-can regress to Cargo-named lanes or local `oya` output as merge authority.
+the temporary GitHub bridge uses `github-lane-unlocker-required` while native
+Forgejo/cloud-ci cutover remains `oya-ci-required`. Neither path may regress to
+Cargo-named lanes or local `oya` output as merge authority.
 
-This document is a target/bridge contract, not a green claim. GitHub `dev`
-required-status contexts were synced to `oya-ci-required` on 2026-06-02, but
-Phase-0 remains red until that context is posted from trusted cloud-ci/oya-ci
-control state on candidate SHAs and Forgejo reaches the same live contract.
+This document is a target/bridge contract, not a green claim. During ADR-0516,
+GitHub `dev` requires `github-lane-unlocker-required` from the GitHub Actions
+aggregate workflow so the manual `oya-ci-required` bridge is not needed. Phase-0
+remains red until native `oya-ci-required` is posted from trusted cloud-ci/oya-ci
+control state on candidate SHAs and Forgejo reaches that live contract.
 
 ## How gating works
 
 1. The ADR-0516 GitHub/GitHub Actions temporary bridge runs Buck2-owned
-   build/test/gate targets from trusted controller/trunk state and posts the
-   commit status context `oya-ci-required`.
-2. Forgejo branch protection for `dev` requires `oya-ci-required` before a PR can
-   merge. `scripts/ci/arm-auto-merge.sh` is the idempotent bridge script for
-   converging that branch-protection rule and scheduling per-PR auto-merge.
-3. GitHub branch protection mirrors the same required-context list for bootstrap
-   PRs. `scripts/trigger-next-queue-automerge.sh` refuses to arm GitHub
-   auto-merge if live contexts drift from `infra/branch-protection/dev.json`.
+   build/test/gate targets from trusted controller/trunk state and exposes the
+   required check `github-lane-unlocker-required`.
+2. Forgejo branch protection for native cutover requires `oya-ci-required` before
+   a PR can merge. `scripts/ci/arm-auto-merge.sh` is the idempotent bridge script
+   for converging that branch-protection rule and scheduling per-PR auto-merge.
+3. GitHub branch protection requires the temporary
+   `github-lane-unlocker-required` context for bootstrap PRs.
+   `scripts/trigger-next-queue-automerge.sh` refuses to arm GitHub auto-merge if
+   live contexts drift from `infra/branch-protection/dev.json`.
 4. Auto-merge is armed only with a pinned PR head SHA and fixed squash
    method: Forgejo uses `head_commit_id`; GitHub uses
    `gh pr merge --squash --auto --match-head-commit`.
@@ -43,7 +46,8 @@ control state on candidate SHAs and Forgejo reaches the same live contract.
 
 | Context | Producer | Authority boundary |
 |---|---|---|
-| `oya-ci-required` | cloud-ci/oya-ci controller or explicitly classified bridge lane | Only required context allowed to satisfy protected-branch merge authority during P0.0 cutover. |
+| `github-lane-unlocker-required` | GitHub Actions `github-lane-unlocker-ci-cd` aggregate workflow | Temporary ADR-0516 GitHub bridge authority; avoids manual `oya-ci-required` statuses while native SCM/CI is unfinished. |
+| `oya-ci-required` | cloud-ci/oya-ci controller | Native cutover authority after trusted cloud-ci/oya-ci can post source-bound candidate-SHA evidence. |
 
 Legacy Cargo-named contexts (`cargo-fmt`, `cargo-check`, `cargo-clippy`,
 `cargo-nextest`, `cargo-deny`) and local `oya-verify` / `oya-gate` output are
