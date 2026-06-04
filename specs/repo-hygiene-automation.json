@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T04:10:00Z",
+  "updated_at": "2026-06-04T07:23:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for the temporary GitHub lane-unlocker and native SCM/CI/CD cutover prep.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -335,6 +335,52 @@
       "conflict_mitigation": "Keep temporary bridge specs separate from native destination specs."
     }
   ],
+  "security_backlog_validation": {
+    "captured_at": "2026-06-04T07:23:00Z",
+    "source": "user-requested zero-trust, CI/CD, data, IAM, and Kubernetes runtime hardening backlog review",
+    "decision": "All requested controls are valid as P00/P01 backlog items because they map to cloud-native or hyperscaler-grade least-privilege, blast-radius, runtime-isolation, data-protection, and supply-chain patterns. They remain planning/backlog entries only and authorize no live Kubernetes, cloud, CI secret, branch-protection, or data-retention mutation.",
+    "validity_rule": "Keep a requested control when it reduces tenant/workload blast radius, removes implicit trust, strengthens provenance, or hardens runtime/data planes and has an official/upstream reference or hyperscaler-compatible pattern.",
+    "requested_item_count": 31,
+    "mapped_backlog_ids": [
+      "zero_trust_architecture",
+      "privileged_identity_management",
+      "abac_beyond_rbac",
+      "network_microsegmentation",
+      "silo_apis_integrations",
+      "silo_ai_automation",
+      "encrypt_sensitive_data",
+      "purge_redundant_obsolete_data",
+      "data_layer_rate_limiting",
+      "automated_session_revocation",
+      "dual_attribution_audit_logging",
+      "isolate_ci_cd_pipelines",
+      "tightly_scope_pipeline_secrets",
+      "pin_dependencies_private_registries",
+      "honeytokens_tripwires",
+      "host_based_microsegmentation",
+      "hardware_enforced_isolation",
+      "multi_account_cloud_strategy",
+      "service_control_policies",
+      "enforce_workload_identity",
+      "block_node_metadata_access",
+      "pod_level_runtime_isolation",
+      "restrict_container_privileges",
+      "immutable_container_filesystems",
+      "drop_linux_capabilities",
+      "default_deny_network_policies",
+      "service_mesh_mtls",
+      "disable_default_service_account_token_mounting",
+      "cluster_architecture_blast_walls",
+      "separate_control_planes",
+      "sandboxed_runtimes"
+    ],
+    "sequencing_notes": [
+      "P00 defaults should cover CI secrets, restricted pod standards, dropped capabilities, default-deny NetworkPolicy intent, disabled service-account automounts, and workload identity design seams because they reduce immediate parallel-lane blast radius.",
+      "P01/P02 items such as service mesh mTLS, sandboxed/hardware-enforced isolation, host-based microsegmentation, and separate control planes require capacity, latency, operational complexity, and trust-tier tradeoff review before becoming universal defaults.",
+      "SCP-like guardrails are adopted as an Oyatie Cloud multi-account/project pattern, not as an AWS dependency claim."
+    ],
+    "claim_boundary": "backlog_only_no_live_mutation"
+  },
   "security_hardening_backlog": [
     {
       "id": "zero_trust_architecture",

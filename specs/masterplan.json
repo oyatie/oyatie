@@ -513,7 +513,7 @@
         "Product, infra, cloud, SCM/CI/CD, and governance can each fan out into multiple worktrees/PRs with single-writer discipline for shared files.",
         "Use reusable workflow and registry-backed checks so shared docs/workflows stay thin and lanes own disjoint shards.",
         "Mitigate shared CI/config/doc surfaces through pointer-thin canonical files, vertical-owned reusable shards, generated consolidation, and Rust/Buck2 verification instead of repeated hand edits.",
-        "Treat valid zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, and multi-account guardrails as P00/P01 backlog under repo-hygiene-automation security_hardening_backlog."
+        "Treat the validated 31-item zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, data-protection, honeytoken/tripwire, and multi-account guardrail set as P00/P01 backlog under repo-hygiene-automation security_backlog_validation + security_hardening_backlog."
       ],
       "non_goals": [
         "No live Kubernetes pod scale-down without explicit workload scope.",
@@ -530,7 +530,7 @@
       "repo_hygiene_automation_green": "buck2 build //:repo-hygiene-automation-check",
       "documentation_sprawl_reduced": "root docs stay pointer-thin; doc sprawl is registered, archived, or lane-owned via repo hygiene automation",
       "stale_doc_inventory_green": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests && buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
-      "security_backlog_recorded": "/specs/repo-hygiene-automation.json#security_hardening_backlog contains valid zero-trust, CI/CD, Kubernetes runtime, and multi-account guardrail backlog items"
+      "security_backlog_recorded": "/specs/repo-hygiene-automation.json#security_backlog_validation maps 31 requested controls to /specs/repo-hygiene-automation.json#security_hardening_backlog as valid backlog-only zero-trust, CI/CD, data, Kubernetes runtime, and multi-account guardrail items"
     },
     "repo_hygiene_automation": {
       "spec": "/specs/repo-hygiene-automation.json",
@@ -548,6 +548,7 @@
       "doc_sprawl_rule": "new docs default to reject unless registered/lane-owned; stale docs older than 3 days are audit/archive candidates; root docs remain pointer-thin",
       "live_mutation": false,
       "shared_surface_mitigation": "/specs/repo-hygiene-automation.json#shared_surface_mitigation",
+      "security_backlog_validation": "/specs/repo-hygiene-automation.json#security_backlog_validation",
       "security_hardening_backlog": "/specs/repo-hygiene-automation.json#security_hardening_backlog",
       "automation_language_policy": "/specs/repo-hygiene-automation.json#automation_language_policy"
     }
