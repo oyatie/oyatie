@@ -12,7 +12,11 @@
   "native_scm_requires_github_adapter": true,
   "anti_patterns_guardrails": {
     "decision": "Hyperscaler/cloud/Kubernetes-native lanes must avoid candidate-owned truth, blind live mutation, shared mutable bottlenecks, retired substrate bridges, and ad-hoc automation sprawl.",
+    "contract": "specs/kubernetes-native-anti-patterns.json",
+    "kubernetes_native_anti_pattern_contract": "specs/kubernetes-native-anti-patterns.json",
+    "check": "buck2 build //:kubernetes-native-anti-pattern-check",
     "required_patterns": [
+      "controller_reconciliation_over_manual_mutation",
       "trusted_controller_owned_oya_ci_required",
       "controller_oriented_kubernetes_scale_pause_drain",
       "pointer_thin_or_generated_shared_surfaces",
@@ -154,6 +158,7 @@
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
     "buck2 build //:oya-ci-prowjob-registry-check",
     "buck2 build //:oya-ci-controller-config-check",
+    "buck2 build //:kubernetes-native-anti-pattern-check",
     "buck2 build //:buck2-authority-policy-check"
   ],
   "official_sources": [

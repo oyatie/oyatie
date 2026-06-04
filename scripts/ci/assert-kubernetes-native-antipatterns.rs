@@ -1,0 +1,412 @@
+//! Local/static hyperscaler/cloud/Kubernetes-native anti-pattern guard.
+//!
+//! This validates checked-in policy contracts and generated oya-ci controller
+//! config. It deliberately does not mutate Kubernetes, GitHub branch
+//! protection, CI statuses, or deployment state.
+
+use std::env;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+const CONTRACT_PATH: &str = "specs/kubernetes-native-anti-patterns.json";
+const ROOT_HUB_PATH: &str = "specs/root-hub-pointers.json";
+const MASTERPLAN_PATH: &str = "specs/masterplan.json";
+const REPO_HYGIENE_PATH: &str = "specs/repo-hygiene-automation.json";
+const CONTROLLER_CONTRACT_PATH: &str = "specs/oya-ci-controller-config-contract.json";
+const CONTROLLER_CONFIG_PATH: &str = "specs/generated/oya-ci-controller-config.generated.yaml";
+const AGENTS_PATH: &str = "AGENTS.md";
+const CLAUDE_PATH: &str = "CLAUDE.md";
+const BUCK_PATH: &str = "BUCK";
+const CHECK_COMMAND: &str = "buck2 build //:kubernetes-native-anti-pattern-check";
+
+const OFFICIAL_SOURCES: &[&str] = &[
+    "https://architecture.cncf.io/",
+    "https://kubernetes.io/docs/concepts/architecture/controller/",
+    "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+    "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+    "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+    "https://kubernetes.io/docs/concepts/containers/runtime-class/",
+    "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+    "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/",
+    "https://docs.prow.k8s.io/docs/jobs/",
+];
+
+const REQUIRED_PATTERNS: &[&str] = &[
+    "controller_reconciliation_over_manual_mutation",
+    "trusted_controller_owned_oya_ci_required",
+    "buck2_job_authority",
+    "workload_identity_metadata_blocked",
+    "restricted_pod_security_defaults",
+    "default_deny_network_policy",
+    "sandboxed_untrusted_runtime",
+    "service_mesh_mtls_intent",
+    "pointer_thin_or_generated_shared_surfaces",
+    "shadow_adapters_not_authority",
+    "native_scm_ci_cd_service_seams",
+    "cloud_auth_product_auth_decoupled_until_rewire",
+];
+
+const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
+    "blind_kubectl_delete_pods",
+    "candidate_owned_manual_status_or_merge_truth",
+    "github_actions_as_durable_ci_authority",
+    "retired_external_substrate_bridge_authority",
+    "single_hand_edited_workflow_bottleneck",
+    "new_python_or_shell_gate_sprawl",
+    "oya_cli_revival",
+    "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
+    "node_metadata_access_enabled",
+    "default_service_account_token_mount",
+    "privileged_or_mutable_container_defaults",
+    "missing_runtime_class_for_untrusted_jobs",
+    "missing_default_deny_network_policy",
+];
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Evaluation {
+    pub verdict: String,
+    pub failures: Vec<String>,
+    pub required_patterns: usize,
+    pub forbidden_anti_patterns: usize,
+    pub official_sources: usize,
+}
+
+fn json_escape(input: &str) -> String {
+    input
+        .chars()
+        .flat_map(|ch| match ch {
+            '\\' => "\\\\".chars().collect::<Vec<_>>(),
+            '"' => "\\\"".chars().collect::<Vec<_>>(),
+            '\n' => "\\n".chars().collect::<Vec<_>>(),
+            '\r' => "\\r".chars().collect::<Vec<_>>(),
+            '\t' => "\\t".chars().collect::<Vec<_>>(),
+            _ => vec![ch],
+        })
+        .collect()
+}
+
+fn compact_json_text(input: &str) -> String {
+    input.chars().filter(|ch| !ch.is_whitespace()).collect()
+}
+
+fn contains_json_string(text: &str, value: &str) -> bool {
+    text.contains(&format!("\"{}\"", json_escape(value)))
+}
+
+fn has_json_bool(text: &str, key: &str, value: bool) -> bool {
+    compact_json_text(text).contains(&format!(
+        "\"{}\":{}",
+        key,
+        if value { "true" } else { "false" }
+    ))
+}
+
+fn count_json_key_value(text: &str, key: &str, value: &str) -> usize {
+    compact_json_text(text)
+        .matches(&format!("\"{}\":\"{}\"", key, json_escape(value)))
+        .count()
+}
+
+fn read(root: &Path, rel: &str, failures: &mut Vec<String>) -> String {
+    match fs::read_to_string(root.join(rel)) {
+        Ok(text) => text,
+        Err(error) => {
+            failures.push(format!("{rel}: read failed: {error}"));
+            String::new()
+        }
+    }
+}
+
+fn require(condition: bool, failures: &mut Vec<String>, message: impl Into<String>) {
+    if !condition {
+        failures.push(message.into());
+    }
+}
+
+fn require_contains(text: &str, needle: &str, failures: &mut Vec<String>, label: &str) {
+    require(
+        text.contains(needle),
+        failures,
+        format!("{label}: missing {needle:?}"),
+    );
+}
+
+pub fn contract_failures(contract: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for (needle, message) in [
+        (
+            "\"status\": \"p00_local_static_policy_contract\"",
+            "contract status must be p00_local_static_policy_contract",
+        ),
+        (
+            "\"spec_id\": \"P00-KUBERNETES-NATIVE-ANTI-PATTERNS\"",
+            "contract spec_id must be P00-KUBERNETES-NATIVE-ANTI-PATTERNS",
+        ),
+        (
+            "\"buck2_check\": \"buck2 build //:kubernetes-native-anti-pattern-check\"",
+            "contract must publish Buck2 check command",
+        ),
+        (
+            "\"root_hub_pointer\": \"/specs/root-hub-pointers.json#entry_points.kubernetes_native_anti_patterns\"",
+            "contract must require root hub pointer",
+        ),
+        (
+            "\"generated_controller_config\": \"/specs/generated/oya-ci-controller-config.generated.yaml\"",
+            "contract must bind generated controller config",
+        ),
+    ] {
+        require_contains(contract, needle, &mut failures, message);
+    }
+
+    for (key, value) in [
+        ("local_static_only", true),
+        ("live_mutation_performed", false),
+        ("buck2_authority", true),
+        ("github_actions_shadow_only", true),
+        ("github_actions_durable_authority", false),
+        ("candidate_owned_truth_allowed", false),
+        ("oya_cli_revival_allowed", false),
+        ("live_kubernetes_mutated", false),
+        ("branch_protection_mutated", false),
+        ("github_required_context_changed", false),
+        ("production_readiness_claimed", false),
+        ("phase0_green_claimed", false),
+    ] {
+        require(
+            has_json_bool(contract, key, value),
+            &mut failures,
+            format!("contract missing bool {key}={value}"),
+        );
+    }
+
+    for source in OFFICIAL_SOURCES {
+        require(
+            contains_json_string(contract, source),
+            &mut failures,
+            format!("contract official_sources missing {source}"),
+        );
+    }
+
+    for id in REQUIRED_PATTERNS {
+        require(
+            count_json_key_value(contract, "id", id) > 0,
+            &mut failures,
+            format!("required_patterns missing {id}"),
+        );
+    }
+    for id in FORBIDDEN_ANTI_PATTERNS {
+        require(
+            count_json_key_value(contract, "id", id) > 0,
+            &mut failures,
+            format!("forbidden_anti_patterns missing {id}"),
+        );
+    }
+    let valid_count = compact_json_text(contract)
+        .matches("\"valid\":true")
+        .count();
+    require(
+        valid_count >= REQUIRED_PATTERNS.len() + FORBIDDEN_ANTI_PATTERNS.len(),
+        &mut failures,
+        format!(
+            "valid=true count too low: expected at least {}, got {}",
+            REQUIRED_PATTERNS.len() + FORBIDDEN_ANTI_PATTERNS.len(),
+            valid_count
+        ),
+    );
+
+    failures
+}
+
+pub fn controller_config_failures(config: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+    for needle in [
+        "kind: OyaCIControllerConfig",
+        "requiredContext: \"oya-ci-required\"",
+        "owner: \"trusted-controller\"",
+        "candidateOwnedTruthAllowed: false",
+        "shadowOnly: true",
+        "mergeAuthority: false",
+        "workloadIdentityRequired: true",
+        "nodeMetadataAccess: \"blocked\"",
+        "staticCloudSecretsAllowed: false",
+        "automountServiceAccountToken: false",
+        "defaultDenyNetworkPolicy: true",
+        "serviceMeshMtls: \"required-for-service-to-service\"",
+        "allowPrivilegeEscalation: false",
+        "readOnlyRootFilesystem: true",
+        "runAsNonRoot: true",
+        "seccompProfile: \"RuntimeDefault\"",
+        "runtimeClassRequiredForUntrusted: true",
+        "- \"ALL\"",
+        "securityProfile: \"restricted-untrusted-pr\"",
+        "serviceAccount: \"oya-ci-untrusted-runner\"",
+        "runtimeClassName: \"sandboxed\"",
+    ] {
+        require_contains(config, needle, &mut failures, CONTROLLER_CONFIG_PATH);
+    }
+    for forbidden in [
+        "kubectl delete pod",
+        "kubectl delete pods",
+        "kubectl apply",
+        "python3 ",
+        ".sh",
+    ] {
+        require(
+            !config.contains(forbidden),
+            &mut failures,
+            format!("{CONTROLLER_CONFIG_PATH}: forbidden live/ad-hoc command present: {forbidden}"),
+        );
+    }
+    failures
+}
+
+pub fn evaluate(root: &Path) -> Evaluation {
+    let mut failures = Vec::new();
+    let contract = read(root, CONTRACT_PATH, &mut failures);
+    let root_hub = read(root, ROOT_HUB_PATH, &mut failures);
+    let masterplan = read(root, MASTERPLAN_PATH, &mut failures);
+    let repo_hygiene = read(root, REPO_HYGIENE_PATH, &mut failures);
+    let controller_contract = read(root, CONTROLLER_CONTRACT_PATH, &mut failures);
+    let controller_config = read(root, CONTROLLER_CONFIG_PATH, &mut failures);
+    let agents = read(root, AGENTS_PATH, &mut failures);
+    let claude = read(root, CLAUDE_PATH, &mut failures);
+    let buck = read(root, BUCK_PATH, &mut failures);
+
+    failures.extend(contract_failures(&contract));
+    failures.extend(controller_config_failures(&controller_config));
+
+    for needle in [
+        "\"kubernetes_native_anti_patterns\"",
+        "\"current_path\": \"/specs/kubernetes-native-anti-patterns.json\"",
+        "\"kubernetes_native_anti_patterns\": \"specs/kubernetes-native-anti-patterns.json\"",
+    ] {
+        require_contains(&root_hub, needle, &mut failures, ROOT_HUB_PATH);
+    }
+
+    for needle in [
+        "kubernetes_native_antipatterns_green",
+        CHECK_COMMAND,
+        "/specs/kubernetes-native-anti-patterns.json",
+        "controller_reconciliation_over_manual_mutation",
+        "blind_kubectl_delete_pods",
+        "native_scm_ci_cd_service_seams",
+    ] {
+        require_contains(&masterplan, needle, &mut failures, MASTERPLAN_PATH);
+    }
+
+    for needle in [
+        "kubernetes_native_anti_pattern_contract",
+        "specs/kubernetes-native-anti-patterns.json",
+        CHECK_COMMAND,
+        "controller_reconciliation_over_manual_mutation",
+        "blind_kubectl_delete_pods",
+        "github_actions_as_durable_ci_authority",
+    ] {
+        require_contains(&repo_hygiene, needle, &mut failures, REPO_HYGIENE_PATH);
+    }
+
+    for needle in [
+        "workload_identity_required",
+        "node_metadata_access",
+        "automount_service_account_token",
+        "default_deny_network_policy",
+        "runtime_class_required_for_untrusted",
+        "forbid_live_kubectl_mutation_commands",
+    ] {
+        require_contains(
+            &controller_contract,
+            needle,
+            &mut failures,
+            CONTROLLER_CONTRACT_PATH,
+        );
+    }
+
+    for (label, text) in [
+        (AGENTS_PATH, agents.as_str()),
+        (CLAUDE_PATH, claude.as_str()),
+    ] {
+        require_contains(text, "Prow/Kubernetes-native", &mut failures, label);
+        require_contains(
+            text,
+            "buck2 build //:repo-hygiene-automation-check",
+            &mut failures,
+            label,
+        );
+        require(
+            !text.contains("kubectl delete pods"),
+            &mut failures,
+            format!("{label}: must not recommend blind pod deletion"),
+        );
+    }
+
+    for needle in [
+        "kubernetes-native-anti-pattern-check",
+        "scripts/ci/assert-kubernetes-native-antipatterns.rs",
+        "scripts/tests/kubernetes_native_antipatterns_check.rs",
+        "specs/kubernetes-native-anti-patterns.json",
+    ] {
+        require_contains(&buck, needle, &mut failures, BUCK_PATH);
+    }
+
+    Evaluation {
+        verdict: if failures.is_empty() { "PASS" } else { "FAIL" }.to_owned(),
+        failures,
+        required_patterns: REQUIRED_PATTERNS.len(),
+        forbidden_anti_patterns: FORBIDDEN_ANTI_PATTERNS.len(),
+        official_sources: OFFICIAL_SOURCES.len(),
+    }
+}
+
+fn render_json(evaluation: &Evaluation) -> String {
+    let failures = evaluation
+        .failures
+        .iter()
+        .map(|failure| format!("\"{}\"", json_escape(failure)))
+        .collect::<Vec<_>>()
+        .join(",");
+    format!(
+        "{{\"verdict\":\"{}\",\"contract\":\"{}\",\"buck2_check\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"required_patterns\":{},\"forbidden_anti_patterns\":{},\"official_sources\":{},\"failures\":[{}]}}",
+        evaluation.verdict,
+        CONTRACT_PATH,
+        CHECK_COMMAND,
+        evaluation.required_patterns,
+        evaluation.forbidden_anti_patterns,
+        evaluation.official_sources,
+        failures
+    )
+}
+
+fn config() -> (PathBuf, bool) {
+    let mut json = false;
+    for arg in env::args().skip(1) {
+        match arg.as_str() {
+            "--json" => json = true,
+            unknown => {
+                eprintln!("assert-kubernetes-native-antipatterns: unknown argument {unknown}");
+                std::process::exit(2);
+            }
+        }
+    }
+    let root = env::var_os("OYA_REPO_ROOT")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("."));
+    (root, json)
+}
+
+fn main() {
+    let (root, json) = config();
+    let evaluation = evaluate(&root);
+    if json || evaluation.failures.is_empty() {
+        println!("{}", render_json(&evaluation));
+    }
+    if !evaluation.failures.is_empty() {
+        if !json {
+            eprintln!("kubernetes-native-anti-patterns: RED");
+            for failure in &evaluation.failures {
+                eprintln!("- {failure}");
+            }
+        }
+        std::process::exit(1);
+    }
+}
