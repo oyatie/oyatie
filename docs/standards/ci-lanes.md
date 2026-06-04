@@ -11,7 +11,7 @@ doc_status: published
 ## 1. Lane catalog
 
 Every CI gate is a named lane. Lanes are catalog-driven: `registry/quality/lanes.yaml` is the source of truth; this doc is the human-readable mirror.
-The registry carries each lane's owner team and `runtime_budget_seconds`; the `quality-lanes` gate rejects unknown owners, missing budgets, markdown drift, and active commands absent from the canonical wired-command catalog (`oya-governance-gate-catalog-domain`).
+The registry carries each lane's owner team and `runtime_budget_seconds`; the Buck2/Prow `quality-lanes` target rejects unknown owners, missing budgets, markdown drift, and active commands absent from the native wired-target catalog.
 
 ### 1.1 Foundation gate catalog (W-Foundation; active lanes block any merge; planned lanes preserve roadmap contract)
 
@@ -65,7 +65,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `traceability-validator` | PR template carries the 5 mandatory traceability H2 sections |
 | `oya-governance-api-semver` | public-API stability tier per ADR-0037 |
 | `oya-governance-cargo-prefix` | every workspace member starts with `oya-` |
-| `oya-governance-pre-push` | oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml) |
+| `oya-governance-pre-push` | Buck2-backed local verification bundle maps to the protected-branch evidence set; retired local CLI entry points are recorded in registry/vocabulary/retired.yaml as provenance only |
 | `oya-governance-loop-recovery-patterns` | pre-push repeat-mistake blocker joins deterministic score cards, loop-recovery patterns, and mistakes-ledger rows without shell hook expansion |
 | `oya-governance-master-plan-completion` | status-honesty audit — no phase in specs/masterplan.json#live_implementation_index may be Complete while any child IP is stub/planned/pending/blocked/in-flight/probe-green; every complete IP must be referenced by at least one evidence JSON file |
 | `oya-governance-retired-vocabulary` | no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record) |
@@ -106,8 +106,8 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `quality-shardability` | all DB designs declare tenant_id partition key + RLS per ADR-0062 |
 | `quality-perf-budget` | impl plans include load-test results meeting declared perf targets per ADR-0062 |
 | `quality-benchmark` | PRDs include competitive-benchmark section before L4→L5 per ADR-0062 |
-| `lean-a-active-artifact-contract` | every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from `oya gate run-all`; emits evidence + graph-edges artifacts on every run |
-| `lean-a-cedar-fragment-coverage` | enforces invariants C01..C04 from /registry/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all` |
+| `lean-a-active-artifact-contract` | every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from the Buck2/Prow quality-lane bundle; emits evidence + graph-edges artifacts on every run |
+| `lean-a-cedar-fragment-coverage` | enforces invariants C01..C04 from /registry/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from the Buck2/Prow quality-lane bundle |
 | `lean-a-openapi-rest-route-parity` | enforces 1:1 parity between `pub const *_ROUTE` constants in crates/oya-ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags |
 
 ### 1.3 Nightly gates
@@ -146,8 +146,8 @@ Per ADR-0050:
 
 1. Add or update the lane record in `registry/quality/lanes.yaml`.
 2. Mirror the lane row in this document under the matching stage table.
-3. If `status: active`, wire `check_command` into the `oya gate run-all` aggregator (`crates/oya-dev-cli/src/commands/gate/run_all.rs::AGGREGATED_VALIDATE_LANES`) — the canonical pre-merge gate runner that replaced the legacy bash check orchestrator (audit row B-1).
-4. Run `oya gate validate quality-lanes`.
+3. If `status: active`, wire the lane into the Buck2/Prow quality-lane target inventory and generated native CI job metadata; do not add local CLI gate authority.
+4. Run `buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check`.
 5. Open a PR; cite the source ADR in the PR body Verification section.
 6. After merge, `oya-governance-cohesion` validates the lane is wired into the per-PR + nightly + release shapes appropriately.
 

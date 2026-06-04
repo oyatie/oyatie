@@ -29,6 +29,7 @@ const DOC_CATALOG_PATH: &str = "docs/DOC-CATALOG.md";
 const CANONICAL_PRD_PATH: &str = "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md";
 const BRIEF_TEMPLATE_PATH: &str = "docs/standards/brief-template.md";
 const AGENTIC_DEV_TEAM_STANDARD_PATH: &str = "docs/standards/agentic-dev-team-optimization.md";
+const CI_LANES_STANDARD_PATH: &str = "docs/standards/ci-lanes.md";
 const PROCEDURE_PATH: &str = "docs/ci/github-actions-lane-unlocker.md";
 const AUTO_MERGE_FLOW_PATH: &str = "docs/ci/auto-merge-flow.md";
 const OPENBAO_ESO_RUNBOOK_PATH: &str = "docs/ci/openbao-eso-runbook.md";
@@ -255,6 +256,7 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "oya gate validate",
     "oya gate run-all",
     "oya-dev-cli",
+    "oya verify command",
     "`oya gate` / `oya verify`",
     "reviewer/governance approval",
     "reviewer/governance lifecycle",
@@ -294,6 +296,7 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "oya gate validate",
     "oya gate run-all",
     "oya-dev-cli",
+    "oya verify command",
     "`oya gate` / `oya verify`",
     "reviewer/governance approval",
     "reviewer/governance lifecycle",
@@ -304,9 +307,11 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     CLAUDE_PATH,
     README_PATH,
     DOC_AGENTS_PATH,
+    DOC_CATALOG_PATH,
     CANONICAL_PRD_PATH,
     BRIEF_TEMPLATE_PATH,
     AGENTIC_DEV_TEAM_STANDARD_PATH,
+    CI_LANES_STANDARD_PATH,
     PROCEDURE_PATH,
     AUTO_MERGE_FLOW_PATH,
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
@@ -327,6 +332,7 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     CANONICAL_PRD_PATH,
     BRIEF_TEMPLATE_PATH,
     AGENTIC_DEV_TEAM_STANDARD_PATH,
+    CI_LANES_STANDARD_PATH,
     "docs/MASTERPLAN.md",
     PROCEDURE_PATH,
     AUTO_MERGE_FLOW_PATH,

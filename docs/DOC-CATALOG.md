@@ -111,7 +111,7 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.spec_markdown_retirement_policy` | `/specs/markdown-retirement-policy.json` | `council-architecture` | markdown-retirement-phase change | per event | ADR-0054, ADR-0119 | `spec-contract-mirror` | NO |
 | `doc.spec_crate_naming_audit` | `/specs/crate-naming-audit.json` | `council-architecture` | naming audit / retired_package_notes change | per event | docs/standards/crate-naming-convention.md, ADR-0056 | `spec-contract-mirror` | NO |
 | `doc.spec_knowledge_graph_schema` | `/specs/knowledge-graph-schema.json` | `council-architecture` | knowledge-graph schema delta | per event | registry/knowledge-graph-*.json | `spec-contract-mirror` | NO |
-| `doc.spec_codeview_read_surface` | `/specs/codeview-read-surface.json` | `council-architecture` | code-view read-surface change | per event | oya gate validate codeview-read-surface | `spec-contract-mirror` | NO |
+| `doc.spec_codeview_read_surface` | `/specs/codeview-read-surface.json` | `council-architecture` | code-view read-surface change | per event | Buck2/Prow codeview-read-surface evidence target | `spec-contract-mirror` | NO |
 | `doc.agents` | `AGENTS.md` | `axis-foundry` + `council-architecture` | agent operating-contract change | quarterly | decision-principles.json, forbidden-operations.json, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
 | `doc.agents_operating_contract_refs` | `AGENTS-OPERATING-CONTRACT.md` | `axis-foundry` + `council-architecture` | Wave 15-ZF operating-contract doctrine propagation | per ADR-0346..ADR-0349 doctrine update | AGENTS.md | `doc-catalog-self-coverage`, `authority-cohesion` | NO |
 | `doc.prd_oyatie_from_scratch_canonical` | `PRD-OYATIE-FROM-SCRATCH-CANONICAL.md` | `founder` + `product-council` + `architecture-council` | from-scratch handoff PRD change | per handoff revision | PRD.md, DESIGN.md | `doc-catalog-self-coverage`, `readme-doc-coverage` | NO |
@@ -353,7 +353,7 @@ Each validation check below is a binary CI gate. Failing one blocks the merge.
 | `glossary-cross-doc-coverage` | Every term in GLOSSARY appears in ≥1 consolidated doc. |
 | `glossary-vocabulary` | Retired vocabulary hard-fails outside forensic docs; casing/acronym drift ratchets against `registry/glossary-vocabulary/warning-baseline.tsv` per ADR-0018. |
 | `placeholder-debt` | `TODO` / `TBD` markers are tracked in `registry/placeholder-debt/registry.tsv`; new, stale, or count-drifted placeholders fail CI instead of hiding in glossary warnings. |
-| `quality-lanes` | `registry/quality/lanes.yaml`, `docs/standards/ci-lanes.md`, owner-team charters, runtime budgets, and active `oya gate run-all` commands stay mirrored. |
+| `quality-lanes` | `registry/quality/lanes.yaml`, `docs/standards/ci-lanes.md`, owner-team charters, runtime budgets, and Buck2/Prow quality-lane target inventory stay mirrored. |
 | `cargo-prefix` | Every Cargo workspace member path and package name keeps the ADR-0017 `oya-` prefix, and the member path matches the package name. |
 | `adr-citation` | Active docs cite only existing new-pack ADRs; legacy ADR numbers are confined to the explicit forensic consolidation surfaces. |
 | `brand-residue` | Product-brand usage stays canonical while sed-style tautological rebrand / rename residues fail CI. |

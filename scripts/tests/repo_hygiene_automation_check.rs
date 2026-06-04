@@ -415,6 +415,38 @@ fn retired_exact_name_scanner_rejects_retired_canonical_prd_substrate_names() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_retired_doc_catalog_gate_refs() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/DOC-CATALOG.md",
+        "codeview read surface uses oya gate validate codeview-read-surface and active oya gate run-all commands stay mirrored.",
+    );
+    for expected in ["oya gate validate", "oya gate run-all"] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn active_doc_phrase_scanner_rejects_retired_ci_lanes_local_cli_refs() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/standards/ci-lanes.md",
+        "The oya verify command maps local checks, active lanes are invoked from oya gate run-all, and authors run oya gate validate quality-lanes.",
+    );
+    for expected in [
+        "oya verify command",
+        "oya gate run-all",
+        "oya gate validate",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn active_doc_phrase_scanner_is_case_insensitive() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",
