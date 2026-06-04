@@ -10,7 +10,7 @@
     "status": "local_static_target_coverage_not_live_context",
     "owner_team": "platform-toolchain + platform-governance",
     "created_at": "2026-06-03T00:00:00Z",
-    "updated_at": "2026-06-03T08:36:00Z",
+    "updated_at": "2026-06-04T05:18:00Z",
     "related_acceptance_criteria": [
       "AC-0.13"
     ],
@@ -57,7 +57,7 @@
   },
   "measurement_contract": {
     "buck2_target": "//:buck2-cargo-target-coverage-check",
-    "checker": "scripts/ci/assert-buck2-cargo-target-coverage.py",
+    "checker": "scripts/ci/assert-buck2-cargo-target-coverage.rs",
     "workspace_manifest": "Cargo.toml",
     "buck_file_glob": "**/BUCK",
     "cargo_target_roots": [
@@ -88,7 +88,7 @@
     "buck2_execution_boundary": "Whole-repo scanner target runs repo_relative_root=true, remote=false, cacheable=false because Cargo/BUCK discovery spans package boundaries; this is local/static measurement, not hermetic remote-execution proof."
   },
   "automated_chain": [
-    "scripts/ci/assert-buck2-cargo-target-coverage.py --spec specs/buck2-cargo-target-coverage.json --json",
+    "scripts/ci/assert-buck2-cargo-target-coverage.rs --spec specs/buck2-cargo-target-coverage.json --json",
     "buck2 build //:buck2-cargo-target-coverage-check"
   ]
 }

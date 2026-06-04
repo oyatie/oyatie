@@ -384,7 +384,7 @@
       "automation_matrix_row_id": "AC-0.13-buck2-cargo-coverage",
       "buck2_target": "//:buck2-cargo-target-coverage-check",
       "test_paths": [
-        "scripts/tests/buck2_cargo_target_coverage_check.test.sh"
+        "scripts/tests/buck2_cargo_target_coverage_check.rs"
       ],
       "green_markers": [
         {
@@ -394,13 +394,13 @@
       ],
       "red_markers": [
         {
-          "path": "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+          "path": "scripts/tests/buck2_cargo_target_coverage_check.rs",
           "contains": "missing_buck2_target_root_mapping"
         }
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-buck2-cargo-target-coverage.py",
+          "path": "scripts/ci/assert-buck2-cargo-target-coverage.rs",
           "contains": "\"p0_0_green\""
         }
       ]
