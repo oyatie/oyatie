@@ -256,11 +256,8 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     // Release-supply-chain phased lane (separate from default supply-chain).
     "cargo run -p oya-dev-cli -- gate validate release-supply-chain --phase pre-release",
     "cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidence",
-    // ADR-0221 governance hook-efficacy CI contexts.
-    "bash tools/governance/adr-0221-governance-gates.sh vacuous-green",
-    "bash tools/governance/adr-0221-governance-gates.sh orphan-citation",
-    "bash tools/governance/adr-0221-governance-gates.sh version-pin",
-    "bash tools/governance/adr-0221-governance-gates.sh buildability-line-count",
+    // ADR-0221 governance hook-efficacy projection.
+    "buck2 build //:adr-0221-governance-gates-check",
     // Local verification + dedicated foundry tool entry points.
     "cargo run -p oya-dev-cli -- verify --ci-required",
     "cargo run -q -p oya-vcs-admission-gate-app",
@@ -837,18 +834,9 @@ mod tests {
     #[test]
     fn rendered_form_contains_adr_0221_governance_gates() {
         let rendered = all_canonical_commands_rendered();
-        for gate in [
-            "vacuous-green",
-            "orphan-citation",
-            "version-pin",
-            "buildability-line-count",
-        ] {
-            let expected = format!("bash tools/governance/adr-0221-governance-gates.sh {gate}");
-            assert!(
-                rendered.contains(&expected),
-                "rendered catalog must wire ADR-0221 governance gate `{gate}`"
-            );
-        }
+        assert!(rendered.contains("buck2 build //:adr-0221-governance-gates-check"));
+        let retired_shell_prefix = ["bash tools/governance/", "adr-0221", "-governance-gates.sh"].concat();
+        assert!(!rendered.contains(&retired_shell_prefix));
     }
 
     #[test]
