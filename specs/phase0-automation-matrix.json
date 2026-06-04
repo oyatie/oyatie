@@ -316,7 +316,7 @@
     {
       "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/phase0-automation-matrix.json + specs/phase0-automation-coverage-registry.json + scripts/ci/assert-automation-ratchet.py + scripts/tests/phase0_automation_ratchet_check.test.sh + //:phase0-automation-ratchet-check",
+      "evidence_path": "specs/phase0-automation-matrix.json + specs/phase0-automation-coverage-registry.json + scripts/ci/assert-automation-ratchet.rs + scripts/tests/phase0_automation_ratchet_check.rs + //:phase0-automation-ratchet-check",
       "id": "AC-0.16-automation-ratchet",
       "no_new_oya_cli_surface": true,
       "owner": "platform-governance",

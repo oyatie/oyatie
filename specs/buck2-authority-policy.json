@@ -259,8 +259,8 @@
     "scripts/tests/phase0_result_bundle_output_check.test.sh",
     "scripts/ci/assert-phase0-aggregate-exit.rs",
     "scripts/tests/phase0_aggregate_exit_check.rs",
-    "scripts/ci/assert-automation-ratchet.py",
-    "scripts/tests/phase0_automation_ratchet_check.test.sh",
+    "scripts/ci/assert-automation-ratchet.rs",
+    "scripts/tests/phase0_automation_ratchet_check.rs",
     "specs/phase0-automation-matrix.json",
     "specs/phase0-automation-coverage-registry.json",
     "scripts/ci/assert-claim-ceiling.py",
@@ -416,8 +416,8 @@
       "assert-phase0-aggregate-exit.rs",
       "phase0-exit-gate",
       "phase0-automation-ratchet-check",
-      "phase0_automation_ratchet_check.test.sh",
-      "assert-automation-ratchet.py",
+      "phase0_automation_ratchet_check.rs",
+      "assert-automation-ratchet.rs",
       "phase0-automation-coverage-registry.json",
       "phase0-claim-ceiling-check",
       "phase0_claim_ceiling_check.test.sh",
@@ -813,7 +813,7 @@
       "bad-false-green-red-expected-nonempty-violations.json",
       "phase0 result-bundle output fixture checks passed"
     ],
-    "scripts/ci/assert-automation-ratchet.py": [
+    "scripts/ci/assert-automation-ratchet.rs": [
       "automation-ratchet local/static fixture evidence only",
       "coverage_row_unmapped",
       "missing_required_row_id",
@@ -826,18 +826,15 @@
       "p0_0_green",
       "phase0_complete"
     ],
-    "scripts/tests/phase0_automation_ratchet_check.test.sh": [
-      "bad-missing-required-row.json",
-      "bad-duplicate-unknown-missing.json",
-      "bad-oya-cli-authority.json",
-      "bad-requirement-oya-authority.json",
-      "bad-source-artifact-oya-authority.json",
-      "bad-coverage-note-oya-authority.json",
-      "bad-coverage-unmapped-row.json",
-      "bad-coverage-unknown-row.json",
-      "bad-coverage-green-claim.json",
-      "bad-oya-fixture-made-good.json",
-      "phase0 automation-ratchet fixture checks passed"
+    "scripts/tests/phase0_automation_ratchet_check.rs": [
+      "checked_in_fixture_contract_passes",
+      "missing_required_row_fails",
+      "duplicate_unknown_and_missing_field_fail",
+      "oya_cli_authority_references_fail",
+      "human_judgment_without_reason_fails",
+      "coverage_registry_mapping_failures_are_detected",
+      "red_fixture_that_becomes_good_fails",
+      "automation_ratchet_rows_map_to_buck2_target"
     ],
     "specs/phase0-automation-matrix.json": [
       "AC-0.16-automation-ratchet",
