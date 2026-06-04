@@ -12,13 +12,7 @@ genrule(
 genrule(
     name = "buck2-authority-policy-check",
     srcs = {
-        "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
         "infra/ci/buck2-affected-gate.sh": "infra/ci/buck2-affected-gate.sh",
-        "infra/ci/jenkins/farmwide-seed.groovy": "infra/ci/jenkins/farmwide-seed.groovy",
-        "infra/ci/jenkins/codegen-measure-seed.groovy": "infra/ci/jenkins/codegen-measure-seed.groovy",
-        "infra/ci/jenkins/parallel-lanes-seed.groovy": "infra/ci/jenkins/parallel-lanes-seed.groovy",
-        "infra/ci/jenkins/smoke-seed.groovy": "infra/ci/jenkins/smoke-seed.groovy",
-        "infra/ci/jenkins/agent-image/Dockerfile": "infra/ci/jenkins/agent-image/Dockerfile",
         "scripts/branch-protection-apply.sh": "scripts/branch-protection-apply.sh",
         "scripts/onprem-bring-up.sh": "scripts/onprem-bring-up.sh",
         "scripts/install-trivy-ci.sh": "scripts/install-trivy-ci.sh",
@@ -210,7 +204,6 @@ genrule(
         "oya/ci-webhook-gateway/Dockerfile": "//oya/ci-webhook-gateway:Dockerfile",
         "oya/governance/iac/build/Dockerfile.distroless-rust": "oya/governance/iac/build/Dockerfile.distroless-rust",
         "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json": "//oya/application/crates/oya-application-shell-frontend-prototype:client-manifest.json",
-        "infra/ci/jenkins/reported-status-contexts.json": "infra/ci/jenkins/reported-status-contexts.json",
         "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
         "scripts/tests/trigger_next_queue_automerge_required_contexts.rs": "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
         "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs": "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",

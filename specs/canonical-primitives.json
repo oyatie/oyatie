@@ -8,7 +8,7 @@
     "version": "2.0.0",
     "status": "Accepted",
     "owner_team": "council-architecture",
-    "updated_at": "2026-05-31",
+    "updated_at": "2026-06-04",
     "purpose": "Single source of truth for the canonical-primitives session-context payload. The SessionStart hook (tools/hooks/session-start-context-inject.sh) renders THIS json directly; there is no hand-maintained markdown mirror (retired 2026-05-31 per founder directive). Each section cites its authority ADR(s) so drift is detectable. Detailed/verbose doctrine lives in the per-topic specs/ADRs referenced under `pointers`, not here.",
     "supersedes": "tools/hooks/_canonical-primitives.md (hand-maintained cheat sheet, dated 2026-05-18, deleted)"
   },
@@ -16,50 +16,50 @@
     {
       "title": "VCS / Git",
       "lines": [
-        "Canonical: plain `git`; retired CLI wrapper/ratchet aliases must not be used.",
-        "Substrate of record: self-hosted Forgejo (forgejo.oya-forge.svc). GitHub is a working mirror, not of-record.",
-        "Governance readiness is reported by CI/controller status plus reviewer approval; hook output intentionally avoids CLI command guidance while the CLI retirement lands."
+        "Canonical during ADR-0516 bridge: plain `git` + short-lived isolated worktree branches + pull requests against `dev` through GitHub/GitHub Actions.",
+        "GitHub/GitHub Actions is the temporary SCM/CI lane-unlocker, not the permanent first-class substrate.",
+        "Native destination: Oyatie-owned SCM (Sapling-inspired Rust implementation or fork/reimplementation as justified) plus oya-ci/release-conveyor cutover; do not revive retired external SCM/CI/CD substrates as interim authorities."
       ],
       "authority": [
-        "ADR-0363"
+        "ADR-0363",
+        "ADR-0516"
       ]
     },
     {
       "title": "CI gate (the merge gate)",
       "lines": [
-        "Canonical: the bespoke-Rust `oya-ci-controller` (Prow-style: plank spawns gate Jobs, crier posts the `oya-ci-gate` Forgejo commit status). Triggered by ci-webhook-gateway (HMAC-verified Forgejo webhook).",
-        "RETIRED for the gate: the Jenkins gate pipeline (Jenkinsfile-oya-ci-gate) and the interim Argo-Workflows orchestration. Jenkins LTS remains ONLY the ephemeral CI build/test FARM (agents), not the gate.",
-        "Merge-queue: tide (ADR-0513, folds ADR-0111 projected-merge-state).",
-        "TRANSITIONAL: dev branch-protection does not yet REQUIRE `oya-ci-gate`; a temporary relax-merge is in effect until CI-go-live (gated on local green)."
+        "Current bridge gate: the GitHub Actions aggregate context `github-lane-unlocker-required` plus Buck2/governance evidence and reviewer approval.",
+        "Buck2 remains the build/test/check authority; Cargo is advisory/local only and coverage is LLVM source-based through Buck2 rather than Tarpaulin.",
+        "Native cutover target: bespoke Rust oya-ci/rust-prow controller and release-conveyor seams after trusted producer evidence exists.",
+        "Retired external SCM/CI/CD substrates are not interim branch-protection, merge, or deployment authorities."
       ],
       "authority": [
-        "ADR-0513",
-        "ADR-0514",
-        "ADR-0515"
+        "ADR-0516",
+        "ADR-0363"
       ],
       "supersedes": [
-        "ADR-0349 Jenkins-as-CI",
-        "ADR-0361 GitHub-Actions-removal",
-        "ADR-0511 Argo-Workflows",
-        "ADR-0111 merge-queue (folded)"
+        "ADR-0349",
+        "ADR-0361",
+        "ADR-0511",
+        "ADR-0111"
       ]
     },
     {
       "title": "Coordination (per agent lane)",
       "lines": [
         "one isolated worktree branch per agent lane (one lane = one worktree)",
-        "commit + push on that lane; open a PR against `dev` (enters the governance pipeline)",
-        "merge readiness = `oya-ci-gate` (controller-posted) green + reviewer-agent APPROVE; admitted via the tide merge-queue"
+        "commit + push on that lane; open a PR against `dev` through the ADR-0516 GitHub lane-unlocker",
+        "merge readiness = `github-lane-unlocker-required` green + Buck2 affected evidence + reviewer-agent APPROVE until native cutover"
       ],
       "authority": [
-        "ADR-0513",
+        "ADR-0516",
         "ADR-0363"
       ]
     },
     {
       "title": "Repo layout / tenancy",
       "lines": [
-        "Top-level: `cloud/` = the platform being sold; `oya/` = the product, which runs as a TENANT of that platform. (`microservices/` top-level layout is LEGACY \u2014 migrated.)",
+        "Top-level: `cloud/` = the platform being sold; `oya/` = the product, which runs as a TENANT of that platform. (`microservices/` top-level layout is LEGACY — migrated.)",
         "Pattern: vertical-slice nesting, ONE root Cargo workspace, crate = bounded-context, clean-arch-as-modules, Buck2 build graph.",
         "Dogfood purity (gate-enforced target): ZERO `oya/` -> `cloud/` INTERNAL code deps; oya consumes cloud only via the public/tenant surface.",
         "Vocabulary: cloud = \"tenant/tenancy\"; oya = \"organization/org\"."
@@ -73,8 +73,8 @@
     {
       "title": "Contracts",
       "lines": [
-        "OpenAPI 3.2.0 (NOT 3.3 / 3.1.0 / 3.0.0) \u2014 https://spec.openapis.org/oas/v3.2.0",
-        "AsyncAPI 3.1.0 (NOT 3.0.0 / 2.x) \u2014 https://www.asyncapi.com/docs/reference/specification/v3.1.0",
+        "OpenAPI 3.2.0 (NOT 3.3 / 3.1.0 / 3.0.0) — https://spec.openapis.org/oas/v3.2.0",
+        "AsyncAPI 3.1.0 (NOT 3.0.0 / 2.x) — https://www.asyncapi.com/docs/reference/specification/v3.1.0",
         "Schema language: proto3 (NOT proto2)",
         "HTTP stack: hyper PREFERRED low-level; axum SANCTIONED-with-justification; enforced by the HTTP stack policy gate (specs/http-stack-policy.json)."
       ],
@@ -96,7 +96,7 @@
     {
       "title": "K8s admission",
       "lines": [
-        "Canonical DEFAULT: in-tree ValidatingAdmissionPolicy + CEL (+ MutatingAdmissionPolicy) \u2014 GA on the 1.36.1 cluster.",
+        "Canonical DEFAULT: in-tree ValidatingAdmissionPolicy + CEL (+ MutatingAdmissionPolicy) — GA on the 1.36.1 cluster.",
         "Signing residue: a bespoke-Rust cosign-verify webhook (shares the OCI-registry + signer product).",
         "DEMOTED: Kubewarden (CNCF Sandbox / single-vendor). Kyverno removed from the base overlay. Cedar = app-layer authz, NOT admission."
       ],
@@ -142,7 +142,7 @@
       "title": "Secrets",
       "lines": [
         "Canonical: OpenBao (MPL-2; supersedes Vault BUSL), synced into k8s via External Secrets Operator (ClusterSecretStore `openbao-cluster-store`).",
-        "`.env` (OpenBao + Forgejo admin tokens) is NEVER committed or echoed."
+        "`.env` (OpenBao + native/local SCM admin tokens) is NEVER committed or echoed."
       ],
       "authority": [
         "ADR-0043"
@@ -152,7 +152,7 @@
       "title": "Forbidden primitives (summary)",
       "lines": [
         "No retired VCS wrapper aliases (use plain git). No Docker. OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.",
-        "The term \"foundry\" is ERADICATED corpus-wide \u2014 do NOT introduce it as a canonical primitive (historical references only).",
+        "The term \"foundry\" is ERADICATED corpus-wide — do NOT introduce it as a canonical primitive (historical references only).",
         "Full list: specs/forbidden-operations.json + specs/master-plan-sequencing.json#forbidden_primitives."
       ],
       "authority": [
@@ -163,15 +163,18 @@
     {
       "title": "Common pitfalls",
       "lines": [
-        "Using retired VCS wrapper aliases instead of plain git + PR + the bespoke oya-ci gate.",
-        "Citing Jenkins/Kyverno as the canonical gate/admission (both superseded \u2014 bespoke controller + in-tree VAP/CEL).",
+        "Using retired VCS wrapper aliases instead of plain git + isolated worktree + PR + bridge gate.",
+        "Citing retired external SCM/CI/CD substrates as active branch-protection, merge, or deployment authorities.",
+        "Treating GitHub/GitHub Actions as permanent instead of the ADR-0516 temporary lane-unlocker.",
         "Writing `openapi: 3.3.0` or `asyncapi: 3.0.0`.",
         "Treating `microservices/` as the live top-level layout (it is `cloud/` + `oya/`).",
+        "Bypassing Buck2 authority with Cargo, ad hoc shell, or ad hoc Python gates.",
         "Vacuous-green gates (test passes on empty input).",
         "ADR references in docs without a corresponding docs/decisions/ADR-NNNN-*.md."
       ],
       "authority": [
-        "ADR-0221"
+        "ADR-0221",
+        "ADR-0516"
       ]
     }
   ],
@@ -180,7 +183,7 @@
     "pod_runtime_tier": "ADR-0338",
     "cell_promotion_gates": "ADR-0341",
     "api_versioning": "ADR-0342",
-    "ci_farm_substrate": "specs/ci-farm-substrate-canonical.json (ADR-0349; NOTE: lags ADR-0513 bespoke controller \u2014 Jenkins=farm not gate)",
+    "ci_farm_substrate": "specs/ci-farm-substrate-canonical.json (ADR-0349 superseded pattern record; active bridge is ADR-0516 GitHub/GitHub Actions, native destination is rust-prow/oya-ci)",
     "http_stack_policy": "specs/http-stack-policy.json",
     "forbidden_operations": "specs/forbidden-operations.json",
     "decision_principles": "specs/decision-principles.json",

@@ -118,7 +118,7 @@ apps:
   # object-bucket substrate, restored on Talos per ADR-0381 D4. Speaks the
   # S3 wire protocol for tool interop; the substrate is NOT AWS. Serves:
   # BuildKit cache (ADR-0381 D1 cache backend wires here once Deployed);
-  # Jenkins agent sccache (the deferred half of ADR-0380 D6); artifact overlay.
+  # native CI runner cache (the deferred half of ADR-0380 D6); artifact overlay.
   # Single-pod all-in-one MVP; splits into 4 Deployments onto the storage
   # specialty pool when ADR-0381 D2 lands.
   - name: seaweedfs
@@ -151,10 +151,9 @@ apps:
     namespace: oya-storage
     syncWave: "2"
 
-  # jenkins: bootstrap-managed by infra/talos/local/bring-up.sh in namespace
-  # oya-ci-jenkins (NOT ArgoCD-managed here — avoids a duplicate heavy install +
-  # helm-release-ownership conflict). The CI substrate (cilium/forgejo/jenkins) is
-  # bring-up-managed; ArgoCD owns the platform overlay above it.
+  # Retired external CI controllers are not bootstrapped here. GitHub Actions is
+  # the temporary lane unlocker; native oya-ci/release-conveyor manifests return
+  # through dedicated registry-owned specs once cutover evidence exists.
 
   - name: observability
     type: path

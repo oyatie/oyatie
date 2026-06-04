@@ -13,6 +13,7 @@ const SPEC_PATH: &str = "specs/repo-hygiene-automation.json";
 const RETIRED_SUBSTRATE_PATH: &str = "specs/retired-external-substrate-registry.json";
 const ROOT_HUB_PATH: &str = "specs/root-hub-pointers.json";
 const GITHUB_BRIDGE_PATH: &str = "specs/github-lane-unlocker-bridge.json";
+const CANONICAL_PRIMITIVES_PATH: &str = "specs/canonical-primitives.json";
 const MASTERPLAN_PATH: &str = "specs/masterplan.json";
 const SEQUENCING_PATH: &str = "specs/master-plan-sequencing.json";
 const README_PATH: &str = "README.md";
@@ -168,6 +169,7 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     "specs/cloud-toolchain-target.json",
     "specs/cloud-strangler-migration-target.json",
     GITHUB_BRIDGE_PATH,
+    CANONICAL_PRIMITIVES_PATH,
     SPEC_PATH,
     RETIRED_SUBSTRATE_PATH,
 ];
@@ -191,6 +193,12 @@ const ALLOWED_EXACT_NAME_CONTEXTS: &[&str] = &[
 const ROOT_MARKDOWN_ALLOWLIST: &[&str] = &["AGENTS.md", "CLAUDE.md", "README.md"];
 const RETIRED_ROOT_FILES: &[&str] = &["Jenkinsfile"];
 const RETIRED_SERVICE_CI_ENTRYPOINT_ROOTS: &[&str] = &["cloud", "oya"];
+const RETIRED_ACTIVE_PATHS: &[&str] = &[
+    "infra/ci/jenkins",
+    "infra/ci/deploy-local.sh",
+    "infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml",
+    "infra/forge/jenkins-forgejo-token.secret.template.yaml",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -489,6 +497,18 @@ pub fn retired_service_ci_entrypoint_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn retired_active_path_failures(root: &Path) -> Vec<String> {
+    RETIRED_ACTIVE_PATHS
+        .iter()
+        .filter(|rel| root.join(rel).exists())
+        .map(|rel| {
+            format!(
+                "{rel}: retired active CI substrate path must not exist; use the temporary GitHub lane unlocker now and native oya-ci after cutover"
+            )
+        })
+        .collect()
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -511,6 +531,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     evaluate_root_markdown(root, &mut failures);
     failures.extend(retired_root_file_failures(root));
     failures.extend(retired_service_ci_entrypoint_failures(root));
+    failures.extend(retired_active_path_failures(root));
 
     for item_id in [
         "legacy_ci_server",

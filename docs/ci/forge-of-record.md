@@ -69,5 +69,6 @@ contexts and must not be described as Phase-0 exit authority.
 - ADR-0513: cloud-ci/oya-ci Prow-shaped controller and Tide ownership.
 - `infra/branch-protection/dev.json`: machine-readable required context target.
 - `.github/branch-protection.yaml`: GitHub temporary bridge target.
-- `infra/ci/jenkins/reported-status-contexts.json`: bridge-reported contexts.
+- `specs/github-lane-unlocker-bridge.json`: temporary GitHub bridge context and
+  native cutover context boundary.
 - `docs/ci/auto-merge-flow.md`: per-forge auto-merge flow.
