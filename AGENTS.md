@@ -35,6 +35,7 @@ git fetch github-mirror dev
 git worktree add /tmp/oyatie-lane-<slug> -b chore/<slug> github-mirror/dev
 gh pr create --base dev --head chore/<slug> --repo jason931225/oyatie
 buck2 build //:repo-hygiene-automation-check
+buck2 build //:kubernetes-native-anti-pattern-check
 buck2 build //:buck2-authority-policy-check //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check
 # Legacy/shadow only while GitHub Actions compatibility remains:
 buck2 build //:github-lane-unlocker-bridge-check

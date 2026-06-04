@@ -601,6 +601,7 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         "gh pr create --base dev",
         "buck2 build //:repo-hygiene-automation-check",
         "buck2 build //:buck2-authority-policy-check",
+        KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
     ] {
         require(
             contains_json_string(spec, tool_example),
@@ -880,6 +881,20 @@ pub fn evaluate(root: &Path) -> Evaluation {
     }
 
     for (label, text) in [
+        (README_PATH, readme.as_str()),
+        (AGENTS_PATH, agents.as_str()),
+        (CLAUDE_PATH, claude.as_str()),
+        (DOC_AGENTS_PATH, doc_agents.as_str()),
+    ] {
+        require_contains(
+            text,
+            KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
+            &mut failures,
+            label,
+        );
+    }
+
+    for (label, text) in [
         (AGENTS_PATH, agents.as_str()),
         (CLAUDE_PATH, claude.as_str()),
     ] {
@@ -888,6 +903,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
             "gh pr create --base dev",
             "buck2 build //:repo-hygiene-automation-check",
             "buck2 build //:buck2-authority-policy-check",
+            KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
         ] {
             require_contains(text, tool_example, &mut failures, label);
         }

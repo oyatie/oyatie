@@ -75,6 +75,7 @@ Git/worktree, branch/merge, repository publication, disk/workspace, Kubernetes w
 
 ```sh
 buck2 build //:repo-hygiene-automation-check
+buck2 build //:kubernetes-native-anti-pattern-check
 ```
 
 Shared docs, root indexes, registries, and workflows stay pointer-thin and should route detail to disjoint lane-owned shards. New Markdown defaults to registered/lane-owned or archived; stale docs older than 3 days are audit/archive candidates before deletion.
