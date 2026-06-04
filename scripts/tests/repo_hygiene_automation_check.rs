@@ -18,6 +18,19 @@ fn read_repo_file(path: &str) -> String {
     })
 }
 
+fn temp_dir(name: &str) -> PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "oyatie-repo-hygiene-{}-{}",
+        name,
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&path);
+    fs::create_dir_all(&path).unwrap_or_else(|error| {
+        panic!("create temp dir {}: {}", path.display(), error);
+    });
+    path
+}
+
 #[test]
 fn checked_in_repo_hygiene_contract_passes() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
@@ -70,6 +83,23 @@ fn checked_in_masterplan_surfaces_do_not_recommend_retired_cargo_gate() {
             .all(|failure| !failure.contains("retired Cargo planning-closure command")),
         "{:?}",
         evaluation.failures
+    );
+}
+
+#[test]
+fn root_jenkinsfile_is_rejected_as_retired_ci_entrypoint() {
+    let root = temp_dir("root-jenkinsfile");
+    fs::write(root.join("Jenkinsfile"), "pipeline {}\n").unwrap_or_else(|error| {
+        panic!("write retired Jenkinsfile fixture: {}", error);
+    });
+    let failures = gate::retired_root_file_failures(&root);
+    let _ = fs::remove_dir_all(&root);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("retired root CI entrypoint")),
+        "{:?}",
+        failures
     );
 }
 
