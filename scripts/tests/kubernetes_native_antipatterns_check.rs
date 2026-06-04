@@ -22,9 +22,9 @@ fn checked_in_kubernetes_native_antipattern_contract_passes() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert!(evaluation.failures.is_empty());
-    assert_eq!(evaluation.required_patterns, 25);
-    assert_eq!(evaluation.forbidden_anti_patterns, 28);
-    assert_eq!(evaluation.official_sources, 23);
+    assert_eq!(evaluation.required_patterns, 33);
+    assert_eq!(evaluation.forbidden_anti_patterns, 36);
+    assert_eq!(evaluation.official_sources, 31);
 }
 
 #[test]
@@ -126,6 +126,34 @@ fn contract_rejects_missing_supply_chain_and_fairness_guardrails() {
     assert!(
         failures.iter().any(|failure| failure
             == "forbidden_anti_patterns missing unbounded_parallelism_without_fairness"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn contract_rejects_missing_controller_coordination_and_rbac_guardrails() {
+    let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json")
+        .replace(
+            "\"id\": \"lease_based_controller_coordination\"",
+            "\"id\": \"lease_based_controller_coordination_removed\"",
+        )
+        .replace(
+            "\"id\": \"cluster_admin_or_wildcard_rbac_for_runners\"",
+            "\"id\": \"cluster_admin_or_wildcard_rbac_for_runners_removed\"",
+        );
+    let failures = gate::contract_failures(&contract);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure
+                == "required_patterns missing lease_based_controller_coordination"),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures.iter().any(|failure| failure
+            == "forbidden_anti_patterns missing cluster_admin_or_wildcard_rbac_for_runners"),
         "{:?}",
         failures
     );

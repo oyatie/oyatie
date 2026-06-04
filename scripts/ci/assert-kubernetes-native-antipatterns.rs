@@ -44,6 +44,14 @@ const OFFICIAL_SOURCES: &[&str] = &[
     "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue",
     "https://docs.prow.k8s.io/docs/components/core/tide/",
     "https://opentelemetry.io/docs/concepts/signals/",
+    "https://kubernetes.io/docs/concepts/architecture/leases/",
+    "https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/",
+    "https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+    "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+    "https://kubernetes.io/docs/concepts/cluster-administration/flow-control/",
+    "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+    "https://kubernetes.io/docs/concepts/configuration/secret/#information-security-for-secrets",
+    "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
 ];
 
 const REQUIRED_PATTERNS: &[&str] = &[
@@ -72,6 +80,14 @@ const REQUIRED_PATTERNS: &[&str] = &[
     "generated_lane_shards_with_merge_queue",
     "slo_gated_progressive_delivery",
     "observability_first_control_loops",
+    "lease_based_controller_coordination",
+    "ttl_and_owner_reference_cleanup",
+    "topology_spread_and_dedicated_node_pools",
+    "pdb_backed_graceful_disruption",
+    "api_priority_fairness_for_control_planes",
+    "watch_cache_informers_over_polling",
+    "rbac_minimal_roles_per_job_and_controller",
+    "kms_encrypted_secrets_and_external_secret_boundary",
 ];
 
 const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
@@ -103,6 +119,14 @@ const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
     "kubectl_as_cd_or_admission_bypass",
     "kubernetes_api_as_application_database",
     "unbounded_parallelism_without_fairness",
+    "process_local_leader_or_sticky_controller_lock",
+    "finished_jobs_and_orphaned_resources_left_forever",
+    "unconstrained_topology_or_node_pool_placement",
+    "force_delete_or_pdb_bypass_for_service_workloads",
+    "api_server_polling_flood_or_unbounded_watch_clients",
+    "cluster_admin_or_wildcard_rbac_for_runners",
+    "kubernetes_secret_as_long_lived_app_database",
+    "manual_cleanup_sweeps_as_primary_lifecycle",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -389,6 +413,9 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "content_addressed_remote_cache_not_workspace_state",
         "stateful_runner_workspace_pool",
         "cross_trust_cache_poisoning",
+        "lease_based_controller_coordination",
+        "topology_spread_and_dedicated_node_pools",
+        "cluster_admin_or_wildcard_rbac_for_runners",
     ] {
         require_contains(&masterplan, needle, &mut failures, MASTERPLAN_PATH);
     }
@@ -400,6 +427,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "controller_reconciliation_over_manual_mutation",
         "blind_kubectl_delete_pods",
         "github_actions_as_durable_ci_authority",
+        "lease_based_controller_coordination",
+        "manual_cleanup_sweeps_as_primary_lifecycle",
     ] {
         require_contains(&repo_hygiene, needle, &mut failures, REPO_HYGIENE_PATH);
     }

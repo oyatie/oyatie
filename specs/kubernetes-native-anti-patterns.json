@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/kubernetes-native-anti-patterns.json",
   "spec_id": "P00-KUBERNETES-NATIVE-ANTI-PATTERNS",
   "status": "p00_local_static_policy_contract",
-  "updated_at": "2026-06-04T22:05:32Z",
+  "updated_at": "2026-06-04T22:55:00Z",
   "purpose": "Machine-readable guardrail for hyperscaler, cloud-native, and Kubernetes-native lane work. This keeps active plans on controller reconciliation, Buck2/Prow evidence, trusted controller-owned required context, restricted workload security, generated shared surfaces, provenance-backed artifacts, quota/fairness controls, policy-as-code admission, progressive delivery, observability-first control loops, and shadow-only adapters while rejecting live-mutation shortcuts and retired bridge authorities.",
   "buck2_check": "buck2 build //:kubernetes-native-anti-pattern-check",
   "local_static_only": true,
@@ -105,6 +105,38 @@
     {
       "url": "https://opentelemetry.io/docs/concepts/signals/",
       "establishes": "OpenTelemetry models logs, metrics, traces, and events as observability signals."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "establishes": "Kubernetes Leases support lightweight coordination including leader election and node heartbeat-style coordination."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/",
+      "establishes": "Kubernetes TTL-after-finished can automatically clean up completed Jobs after a bounded lifetime."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+      "establishes": "Topology spread constraints control how Pods distribute across topology domains for availability and blast-radius reduction."
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+      "establishes": "PodDisruptionBudgets bound voluntary disruption for applications that need availability during maintenance."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/cluster-administration/flow-control/",
+      "establishes": "API Priority and Fairness controls Kubernetes API-server request concurrency and queues by priority level."
+    },
+    {
+      "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "establishes": "Kubernetes RBAC grants permissions through Roles/ClusterRoles and bindings and should be scoped to the needed API access."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/configuration/secret/#information-security-for-secrets",
+      "establishes": "Kubernetes Secret handling requires encryption, least-privilege API/watch access, and careful workload isolation."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
+      "establishes": "Taints and tolerations repel workloads from unsuitable nodes and support dedicated-node isolation."
     }
   ],
   "required_patterns": [
@@ -257,6 +289,54 @@
       "valid": true,
       "applies_to": ["ci_cd", "controllers", "microservices"],
       "implementation_hook": "Controllers and CI jobs emit structured metrics, traces, logs, events, and reconciliation decisions so status rollups are explainable rather than opaque green/red flags."
+    },
+    {
+      "id": "lease_based_controller_coordination",
+      "valid": true,
+      "applies_to": ["controllers", "ci_cd", "native_scm"],
+      "implementation_hook": "Highly available controllers use Kubernetes Lease-style coordination for leader election and heartbeat state instead of process-local locks or sticky runner identity."
+    },
+    {
+      "id": "ttl_and_owner_reference_cleanup",
+      "valid": true,
+      "applies_to": ["kubernetes_jobs", "controllers", "repo_hygiene"],
+      "implementation_hook": "Ephemeral Jobs and generated resources carry owner/cleanup metadata and TTL-after-finished policy so completed work is garbage-collected without manual sweeps."
+    },
+    {
+      "id": "topology_spread_and_dedicated_node_pools",
+      "valid": true,
+      "applies_to": ["parallel_lanes", "microservices", "cloud_cells"],
+      "implementation_hook": "Critical controllers, trusted jobs, and untrusted fanout lanes declare topology-spread, taint/toleration, and node-pool placement policy to preserve cell/zone blast walls."
+    },
+    {
+      "id": "pdb_backed_graceful_disruption",
+      "valid": true,
+      "applies_to": ["microservices", "controllers", "cluster_maintenance"],
+      "implementation_hook": "Long-running services and controllers define PodDisruptionBudgets and graceful termination behavior before node drain or rollout automation is considered safe."
+    },
+    {
+      "id": "api_priority_fairness_for_control_planes",
+      "valid": true,
+      "applies_to": ["controllers", "ci_cd", "kubernetes_api_clients"],
+      "implementation_hook": "Native controllers, oya-ci, and SCM adapters classify Kubernetes API traffic through priority/fairness policy and bounded client concurrency."
+    },
+    {
+      "id": "watch_cache_informers_over_polling",
+      "valid": true,
+      "applies_to": ["controllers", "ci_cd", "native_scm"],
+      "implementation_hook": "Control loops use informer/watch/cache patterns with backoff and resync boundaries instead of unbounded list/poll loops against the API server."
+    },
+    {
+      "id": "rbac_minimal_roles_per_job_and_controller",
+      "valid": true,
+      "applies_to": ["kubernetes_jobs", "controllers", "security"],
+      "implementation_hook": "Every controller and job has a lane-specific ServiceAccount plus minimal Role/ClusterRole grants; wildcard verbs/resources and shared cluster-admin identities are rejected."
+    },
+    {
+      "id": "kms_encrypted_secrets_and_external_secret_boundary",
+      "valid": true,
+      "applies_to": ["security", "cloud_access", "pipeline_secrets"],
+      "implementation_hook": "Sensitive Kubernetes Secret material is KMS/envelope-encrypted, scoped by RBAC, rotated, and treated as a projection from a secrets authority rather than a durable app database."
     }
   ],
   "forbidden_anti_patterns": [
@@ -399,6 +479,46 @@
       "id": "unbounded_parallelism_without_fairness",
       "valid": true,
       "rejects": "Running highly parallel lanes without quotas, concurrency budgets, PriorityClass policy, or cell-level fairness, creating noisy-neighbor and control-plane starvation risk."
+    },
+    {
+      "id": "process_local_leader_or_sticky_controller_lock",
+      "valid": true,
+      "rejects": "Relying on one sticky runner, local file lock, shared shell lock, or process memory as controller leadership for oya-ci/SCM/CD control loops."
+    },
+    {
+      "id": "finished_jobs_and_orphaned_resources_left_forever",
+      "valid": true,
+      "rejects": "Leaving completed Jobs, generated objects, temporary namespaces, or workspace artifacts without owner/TTL cleanup metadata."
+    },
+    {
+      "id": "unconstrained_topology_or_node_pool_placement",
+      "valid": true,
+      "rejects": "Letting trusted controllers, untrusted PR jobs, and critical services schedule anywhere without topology spread, taints/tolerations, or dedicated node-pool policy."
+    },
+    {
+      "id": "force_delete_or_pdb_bypass_for_service_workloads",
+      "valid": true,
+      "rejects": "Force deleting pods or draining nodes for service/controller workloads without respecting PodDisruptionBudgets and graceful termination."
+    },
+    {
+      "id": "api_server_polling_flood_or_unbounded_watch_clients",
+      "valid": true,
+      "rejects": "High-frequency list/poll loops, unbounded watches, or retry storms from CI/controllers that can starve Kubernetes API-server fairness queues."
+    },
+    {
+      "id": "cluster_admin_or_wildcard_rbac_for_runners",
+      "valid": true,
+      "rejects": "Granting CI runners, Prow jobs, agents, or application controllers cluster-admin, system:masters, or wildcard verbs/resources instead of minimal roles."
+    },
+    {
+      "id": "kubernetes_secret_as_long_lived_app_database",
+      "valid": true,
+      "rejects": "Using Kubernetes Secrets as a long-lived product/application data store or broad shared credential bag instead of a scoped, encrypted, rotated secret projection."
+    },
+    {
+      "id": "manual_cleanup_sweeps_as_primary_lifecycle",
+      "valid": true,
+      "rejects": "Depending on humans or ad-hoc cleanup scripts as the primary lifecycle control for jobs, namespaces, workspaces, or generated controller resources."
     }
   ],
   "cross_artifact_guards": {

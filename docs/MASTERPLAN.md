@@ -75,7 +75,11 @@ release pin, dependency-registry coverage requirement, and in-house-first
 `specs/kubernetes-native-anti-patterns.json` additionally guards supply-chain
 provenance, least-privilege OIDC/job permissions, policy-as-code admission,
 quota/fair scheduling, trusted target inventory, generated lane fan-in,
-SLO-gated progressive delivery, and observability-first control loops.
+SLO-gated progressive delivery, observability-first control loops,
+Lease-backed controller coordination, TTL/owner-reference cleanup,
+topology spread/dedicated node-pool blast walls, PodDisruptionBudget-backed
+maintenance, API Priority & Fairness, watch/informer-backed control loops,
+minimal RBAC, and KMS/encrypted secret boundaries.
 
 For oya-ci, “stateless” means disposable Kubernetes/ProwJob compute, not
 cacheless or artifactless operation. The accepted lifecycle is: trigger, fetch
