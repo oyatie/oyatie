@@ -27,6 +27,7 @@ const CLAUDE_PATH: &str = "CLAUDE.md";
 const DOC_AGENTS_PATH: &str = "docs/AGENTS.md";
 const DOC_CATALOG_PATH: &str = "docs/DOC-CATALOG.md";
 const BRIEF_TEMPLATE_PATH: &str = "docs/standards/brief-template.md";
+const AGENTIC_DEV_TEAM_STANDARD_PATH: &str = "docs/standards/agentic-dev-team-optimization.md";
 const PROCEDURE_PATH: &str = "docs/ci/github-actions-lane-unlocker.md";
 const AUTO_MERGE_FLOW_PATH: &str = "docs/ci/auto-merge-flow.md";
 const OPENBAO_ESO_RUNBOOK_PATH: &str = "docs/ci/openbao-eso-runbook.md";
@@ -250,6 +251,9 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "legacy CI contexts",
     "retired local verify command",
     "retired local gate run-all command",
+    "oya gate validate",
+    "oya gate run-all",
+    "oya-dev-cli",
 ];
 
 const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
@@ -283,6 +287,9 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "Jenkins contexts",
     "./bin/oya verify --ci-required",
     "./bin/oya gate run-all",
+    "oya gate validate",
+    "oya gate run-all",
+    "oya-dev-cli",
 ];
 
 const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
@@ -291,6 +298,7 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     README_PATH,
     DOC_AGENTS_PATH,
     BRIEF_TEMPLATE_PATH,
+    AGENTIC_DEV_TEAM_STANDARD_PATH,
     PROCEDURE_PATH,
     AUTO_MERGE_FLOW_PATH,
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
@@ -309,6 +317,7 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     DOC_AGENTS_PATH,
     DOC_CATALOG_PATH,
     BRIEF_TEMPLATE_PATH,
+    AGENTIC_DEV_TEAM_STANDARD_PATH,
     "docs/MASTERPLAN.md",
     PROCEDURE_PATH,
     AUTO_MERGE_FLOW_PATH,
