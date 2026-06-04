@@ -5,10 +5,11 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "PRD-TENANT-RBAC",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "status": "Accepted",
     "owner_team": "tenant-rbac-governance-council",
     "created_at": "2026-05-28T00:00:00Z",
+    "updated_at": "2026-06-04T20:12:49Z",
     "purpose": "Tenant/RBAC control microservice PRD for entitlement-to-scope packaging, tenant workload admission, and policy evidence across flat clean-architecture microservices. It packages services by tenancy and RBAC without creating product-grouping wrappers."
   },
   "identity": {
@@ -86,21 +87,21 @@
       "given": "a tenant package resolves to enabled service surfaces",
       "when": "a user requests a microservice capability",
       "then": "the decision carries tenant_id, entitlement_set_id, role binding, policy scope, and audit evidence refs before the owning microservice evaluates access",
-      "test_ref": "specs/tenant-rbac-packaging.json#AC-01 + oya gate validate planning-closure"
+      "test_ref": "specs/tenant-rbac-packaging.json#AC-01 + Buck2/Prow planning-closure target evidence"
     },
     {
       "id": "AC-02",
       "given": "a regulated tenant enables healthcare-related capabilities",
       "when": "healthcare-integration or adjacent services are exposed",
       "then": "the exposure is controlled by regulatory pack, tenancy, and RBAC scopes rather than a market-label product boundary",
-      "test_ref": "specs/tenant-rbac-packaging.json#regulated-packaging + oya gate validate product-prd-json"
+      "test_ref": "specs/tenant-rbac-packaging.json#regulated-packaging + Buck2 product-PRD JSON contract evidence"
     },
     {
       "id": "AC-03",
       "given": "messenger or mail is enabled for both personal and professional contexts",
       "when": "tenant/RBAC packaging resolves access",
       "then": "personal and professional life scopes remain separate in policy, evidence, and downstream service evaluation",
-      "test_ref": "oya gate validate planning-closure + specs/planning-closure-contract.json#success_exit_rule"
+      "test_ref": "Buck2/Prow planning-closure target evidence + specs/planning-closure-contract.json#success_exit_rule"
     }
   ],
   "scope": {
@@ -252,7 +253,7 @@
       "targets": {
         "preview": "all scope decisions carry evidence refs"
       },
-      "verification_ref": "oya gate validate planning-closure"
+      "verification_ref": "Buck2/Prow planning-closure target evidence"
     }
   ],
   "goals": {
