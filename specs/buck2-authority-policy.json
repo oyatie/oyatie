@@ -234,9 +234,10 @@
     "scripts/ci/arm-auto-merge.sh",
     "scripts/trigger-next-queue-automerge.sh",
     "scripts/check-sequential-pr-merge-conflicts.sh",
+    "scripts/check-sequential-pr-merge-conflicts.rs",
     "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
     "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
-    "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+    "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
     "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
     "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
     "docs/ci/auto-merge-flow.md",
@@ -618,10 +619,15 @@
       "remote_url_contains_github \"github-mirror\""
     ],
     "scripts/check-sequential-pr-merge-conflicts.sh": [
+      "Compatibility entrypoint only",
+      "scripts/check-sequential-pr-merge-conflicts.rs",
+      "rustc --edition=2021 -D warnings"
+    ],
+    "scripts/check-sequential-pr-merge-conflicts.rs": [
       "git merge-tree --write-tree",
       "sequential PR merge simulation",
       "--fetch-remote <remote>",
-      "git fetch --no-tags \"$fetch_remote\"",
+      "fetch_remote={}",
       "pass --fetch-remote for the GitHub mirror when origin is Forgejo"
     ],
     "docs/ci/auto-merge-flow.md": [
@@ -686,10 +692,10 @@
       "P0.0 Tide auto-merge scheduling is squash-only",
       "is_full_hex_commit_id(head_sha)"
     ],
-    "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": [
+    "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs": [
       "--fetch-remote github-mirror",
       "failed to fetch PR #455 head from remote origin",
-      "check-sequential-pr-merge-conflicts fetch-remote tests passed"
+      "default origin fetch should fail when origin is non-GitHub Forgejo remote"
     ],
     "scripts/ci/assert-pr-required-context.rs": [
       "github-lane-unlocker-required",

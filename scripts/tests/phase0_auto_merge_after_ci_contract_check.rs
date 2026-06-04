@@ -219,6 +219,27 @@ fn validate_spec(spec: &BTreeMap<String, Json>, failures: &mut Vec<String>) {
     );
     require_string(
         github,
+        "conflict_guard_compatibility_entrypoint",
+        "scripts/check-sequential-pr-merge-conflicts.sh",
+        "github.conflict_guard_compatibility_entrypoint must preserve the legacy CLI path",
+        failures,
+    );
+    require_string(
+        github,
+        "conflict_guard_implementation",
+        "scripts/check-sequential-pr-merge-conflicts.rs",
+        "github.conflict_guard_implementation must name the Rust implementation",
+        failures,
+    );
+    require_string(
+        github,
+        "conflict_guard_fetch_remote_test",
+        "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
+        "github.conflict_guard_fetch_remote_test must name the Rust fetch-remote regression",
+        failures,
+    );
+    require_string(
+        github,
         "required_context_rollup_check",
         "scripts/ci/assert-pr-required-context.rs",
         "github.required_context_rollup_check must name the non-mutating rollup checker",
@@ -365,13 +386,29 @@ fn validate_text_surfaces(root: &Path, failures: &mut Vec<String>) {
         require_contains(&trigger, needle, "github trigger", failures);
     }
 
-    let conflict_guard = read(root, "scripts/check-sequential-pr-merge-conflicts.sh");
+    let conflict_guard_shim = read(root, "scripts/check-sequential-pr-merge-conflicts.sh");
+    for needle in [
+        "Compatibility entrypoint only",
+        "scripts/check-sequential-pr-merge-conflicts.rs",
+        "rustc --edition=2021 -D warnings",
+    ] {
+        require_contains(
+            &conflict_guard_shim,
+            needle,
+            "conflict guard compatibility shim",
+            failures,
+        );
+    }
+
+    let conflict_guard = read(root, "scripts/check-sequential-pr-merge-conflicts.rs");
     for needle in [
         "--fetch-remote <remote>",
-        "git fetch --no-tags \"$fetch_remote\"",
+        "git merge-tree",
+        "fn run_git_fetch",
+        "\"fetch\"",
         "pass --fetch-remote for the GitHub mirror when origin is Forgejo",
     ] {
-        require_contains(&conflict_guard, needle, "conflict guard", failures);
+        require_contains(&conflict_guard, needle, "conflict guard Rust", failures);
     }
 
     let forge_script = read(root, "scripts/ci/arm-auto-merge.sh");
@@ -501,11 +538,13 @@ fn validate_text_surfaces(root: &Path, failures: &mut Vec<String>) {
 
     let conflict_test = read(
         root,
-        "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+        "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
     );
     for needle in [
-        "--fetch-remote github-mirror",
+        "--fetch-remote",
+        "github-mirror",
         "failed to fetch PR #455 head from remote origin",
+        "default origin fetch should fail when origin is non-GitHub Forgejo remote",
     ] {
         require_contains(&conflict_test, needle, "conflict guard test", failures);
     }
@@ -534,10 +573,11 @@ fn validate_policy(root: &Path, failures: &mut Vec<String>) {
         "scripts/ci/arm-auto-merge.sh",
         "scripts/trigger-next-queue-automerge.sh",
         "scripts/check-sequential-pr-merge-conflicts.sh",
+        "scripts/check-sequential-pr-merge-conflicts.rs",
         "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
         "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
-        "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+        "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
         "scripts/tests/phase0_required_context_rollup_check.rs",
         "scripts/ci/assert-pr-required-context.rs",
         "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
@@ -582,6 +622,8 @@ fn pass_json() -> String {
         "{\"checks\":{",
         "\"buck2_policy_scan_covered\":true,",
         "\"conflict_guard_declared\":true,",
+        "\"conflict_guard_rust_implementation_declared\":true,",
+        "\"conflict_guard_rust_fetch_remote_tested\":true,",
         "\"forgejo_auto_merge_after_ci_head_pinned\":true,",
         "\"forgejo_mergeability_guard_declared\":true,",
         "\"github_auto_merge_head_pinned\":true,",
