@@ -654,13 +654,13 @@ pub fn evaluate(config: &Config) -> Evaluation {
         check_expected_string(
             automation_mapping,
             "source_app_binding_check_script",
-            "scripts/ci/assert-required-status-source.py",
+            "scripts/ci/assert-required-status-source.rs",
             &mut evaluation.failures,
         );
         check_expected_string(
             automation_mapping,
             "source_app_binding_test",
-            "scripts/tests/phase0_required_status_source_check.test.sh",
+            "scripts/tests/phase0_required_status_source_check.rs",
             &mut evaluation.failures,
         );
         check_expected_string(
