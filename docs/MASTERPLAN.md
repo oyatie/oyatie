@@ -72,6 +72,10 @@ isolation, CI-secret isolation, and multi-account guardrail items for follow-up.
 It also records the Rust 2024 / Rust 1.96 latest-stable pin, current Buck2
 release pin, dependency-registry coverage requirement, and in-house-first
 `oya-*` library posture so external crates remain owned exceptions.
+`specs/kubernetes-native-anti-patterns.json` additionally guards supply-chain
+provenance, least-privilege OIDC/job permissions, policy-as-code admission,
+quota/fair scheduling, trusted target inventory, generated lane fan-in,
+SLO-gated progressive delivery, and observability-first control loops.
 
 For oya-ci, “stateless” means disposable Kubernetes/ProwJob compute, not
 cacheless or artifactless operation. The accepted lifecycle is: trigger, fetch

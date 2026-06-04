@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T21:45:00Z",
+  "updated_at": "2026-06-04T22:05:32Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -11,7 +11,7 @@
   "github_bridge_temporary": true,
   "native_scm_requires_github_adapter": true,
   "anti_patterns_guardrails": {
-    "decision": "Hyperscaler/cloud/Kubernetes-native lanes must avoid candidate-owned truth, blind live mutation, shared mutable bottlenecks, retired substrate bridges, and ad-hoc automation sprawl.",
+    "decision": "Hyperscaler/cloud/Kubernetes-native lanes must avoid candidate-owned truth, blind live mutation, shared mutable bottlenecks, retired substrate bridges, ad-hoc automation sprawl, unpinned supply-chain inputs, direct CI deploys, and unbounded parallelism.",
     "contract": "specs/kubernetes-native-anti-patterns.json",
     "kubernetes_native_anti_pattern_contract": "specs/kubernetes-native-anti-patterns.json",
     "check": "buck2 build //:kubernetes-native-anti-pattern-check",
@@ -21,7 +21,15 @@
       "controller_oriented_kubernetes_scale_pause_drain",
       "pointer_thin_or_generated_shared_surfaces",
       "native_scm_prow_kubernetes_ci_release_conveyor",
-      "rust_buck2_first_gate_authority"
+      "rust_buck2_first_gate_authority",
+      "hermetic_provenance_signed_artifacts",
+      "least_privilege_oidc_and_job_permissions",
+      "policy_as_code_admission_guardrails",
+      "quota_priority_and_fair_scheduling",
+      "trusted_target_inventory_before_candidate_checkout",
+      "generated_lane_shards_with_merge_queue",
+      "slo_gated_progressive_delivery",
+      "observability_first_control_loops"
     ],
     "rejected_anti_patterns": [
       "candidate_owned_manual_status_or_merge_truth",
@@ -30,7 +38,15 @@
       "blind_kubectl_delete_pods",
       "new_python_or_shell_gate_sprawl",
       "github_actions_as_durable_ci_authority",
-      "cargo_or_tarpaulin_as_monorepo_authority_over_buck2"
+      "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
+      "floating_unpinned_actions_images_or_toolchains",
+      "static_long_lived_pipeline_secrets",
+      "candidate_controlled_check_scope",
+      "shared_trust_domain_cluster_namespace_or_account",
+      "direct_deploy_from_ci_job",
+      "kubectl_as_cd_or_admission_bypass",
+      "kubernetes_api_as_application_database",
+      "unbounded_parallelism_without_fairness"
     ],
     "claim_boundary": "local_static_guardrail_only_no_live_mutation"
   },

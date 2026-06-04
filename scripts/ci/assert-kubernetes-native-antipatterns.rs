@@ -35,6 +35,15 @@ const OFFICIAL_SOURCES: &[&str] = &[
     "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
     "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#local-ephemeral-storage",
     "https://buck2.build/docs/users/remote_execution/",
+    "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions",
+    "https://docs.github.com/en/actions/concepts/security/openid-connect",
+    "https://slsa.dev/spec/v1.2/",
+    "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/",
+    "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+    "https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/",
+    "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue",
+    "https://docs.prow.k8s.io/docs/components/core/tide/",
+    "https://opentelemetry.io/docs/concepts/signals/",
 ];
 
 const REQUIRED_PATTERNS: &[&str] = &[
@@ -55,6 +64,14 @@ const REQUIRED_PATTERNS: &[&str] = &[
     "regional_cell_local_cache_and_artifact_store",
     "trusted_cache_promotion_and_cold_cache_probes",
     "bounded_ephemeral_storage_and_io_metrics",
+    "hermetic_provenance_signed_artifacts",
+    "least_privilege_oidc_and_job_permissions",
+    "policy_as_code_admission_guardrails",
+    "quota_priority_and_fair_scheduling",
+    "trusted_target_inventory_before_candidate_checkout",
+    "generated_lane_shards_with_merge_queue",
+    "slo_gated_progressive_delivery",
+    "observability_first_control_loops",
 ];
 
 const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
@@ -78,6 +95,14 @@ const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
     "mutable_or_overwritten_ci_artifacts",
     "unbounded_ephemeral_storage",
     "privileged_dind_or_host_socket_runner",
+    "floating_unpinned_actions_images_or_toolchains",
+    "static_long_lived_pipeline_secrets",
+    "candidate_controlled_check_scope",
+    "shared_trust_domain_cluster_namespace_or_account",
+    "direct_deploy_from_ci_job",
+    "kubectl_as_cd_or_admission_bypass",
+    "kubernetes_api_as_application_database",
+    "unbounded_parallelism_without_fairness",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]

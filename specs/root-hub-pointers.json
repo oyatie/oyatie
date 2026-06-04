@@ -1306,7 +1306,7 @@
       "current_path": "/specs/kubernetes-native-anti-patterns.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "P00-anti-pattern-guard",
-      "purpose": "Local/static guardrail for hyperscaler, cloud-native, and Kubernetes-native patterns. buck2 build //:kubernetes-native-anti-pattern-check validates controller reconciliation, trusted oya-ci-required ownership, Buck2 authority, restricted workload defaults, generated shared surfaces, and shadow-only adapters without live Kubernetes or GitHub mutation."
+      "purpose": "Local/static guardrail for hyperscaler, cloud-native, and Kubernetes-native patterns. buck2 build //:kubernetes-native-anti-pattern-check validates controller reconciliation, trusted oya-ci-required ownership, Buck2 authority, restricted workload defaults, generated shared surfaces, provenance-backed artifacts, policy-as-code admission, quota/fair scheduling, progressive delivery, observability-first control loops, and shadow-only adapters without live Kubernetes or GitHub mutation."
     },
     "github_lane_unlocker_bridge": {
       "kind": "spec",

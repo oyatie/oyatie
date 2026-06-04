@@ -3,8 +3,8 @@
   "$id": "https://docs.oyatie.com/specs/kubernetes-native-anti-patterns.json",
   "spec_id": "P00-KUBERNETES-NATIVE-ANTI-PATTERNS",
   "status": "p00_local_static_policy_contract",
-  "updated_at": "2026-06-04T18:58:55Z",
-  "purpose": "Machine-readable guardrail for hyperscaler, cloud-native, and Kubernetes-native lane work. This keeps active plans on controller reconciliation, Buck2/Prow evidence, trusted controller-owned required context, restricted workload security, generated shared surfaces, and shadow-only adapters while rejecting live-mutation shortcuts and retired bridge authorities.",
+  "updated_at": "2026-06-04T22:05:32Z",
+  "purpose": "Machine-readable guardrail for hyperscaler, cloud-native, and Kubernetes-native lane work. This keeps active plans on controller reconciliation, Buck2/Prow evidence, trusted controller-owned required context, restricted workload security, generated shared surfaces, provenance-backed artifacts, quota/fairness controls, policy-as-code admission, progressive delivery, observability-first control loops, and shadow-only adapters while rejecting live-mutation shortcuts and retired bridge authorities.",
   "buck2_check": "buck2 build //:kubernetes-native-anti-pattern-check",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -69,6 +69,42 @@
     {
       "url": "https://buck2.build/docs/users/remote_execution/",
       "establishes": "Buck2 remote execution uses remote action cache and CAS endpoints, matching content-addressed remote cache patterns."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions",
+      "establishes": "GitHub Actions hardening recommends least-privilege token permissions, careful secret handling, and action supply-chain hygiene for the temporary bridge."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/concepts/security/openid-connect",
+      "establishes": "GitHub OIDC supports short-lived cloud credentials bound to workflow identity instead of long-lived static secrets."
+    },
+    {
+      "url": "https://slsa.dev/spec/v1.2/",
+      "establishes": "SLSA v1.2 defines supply-chain levels and provenance expectations for source and build artifact integrity."
+    },
+    {
+      "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/",
+      "establishes": "ValidatingAdmissionPolicy uses CEL rules to accept or reject Kubernetes objects without mutating them."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "establishes": "Kubernetes ResourceQuota constrains aggregate namespace resource consumption."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/",
+      "establishes": "Kubernetes PriorityClass and preemption model priority/fairness tradeoffs for scheduled pods."
+    },
+    {
+      "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue",
+      "establishes": "GitHub merge queue can use GitHub Actions or an external CI provider for required checks on queued merge groups."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/components/core/tide/",
+      "establishes": "Prow Tide manages a pool of GitHub PRs and batch ProwJobs against merge criteria."
+    },
+    {
+      "url": "https://opentelemetry.io/docs/concepts/signals/",
+      "establishes": "OpenTelemetry models logs, metrics, traces, and events as observability signals."
     }
   ],
   "required_patterns": [
@@ -173,6 +209,54 @@
       "valid": true,
       "applies_to": ["kubernetes_jobs", "performance", "slo"],
       "implementation_hook": "Job pods declare ephemeral-storage requests/limits and emit cache hit ratio, CAS bytes, artifact upload latency, and eviction metrics."
+    },
+    {
+      "id": "hermetic_provenance_signed_artifacts",
+      "valid": true,
+      "applies_to": ["supply_chain", "ci_cd", "release"],
+      "implementation_hook": "Builds run from pinned source/dependency/toolchain inputs and export immutable artifacts with SBOM/provenance/signature evidence before release-conveyor consumption."
+    },
+    {
+      "id": "least_privilege_oidc_and_job_permissions",
+      "valid": true,
+      "applies_to": ["github_actions", "prow_jobs", "cloud_access"],
+      "implementation_hook": "Temporary GitHub bridge and native Prow jobs use short-lived OIDC/workload identity plus per-job least-privilege permissions instead of broad static secrets."
+    },
+    {
+      "id": "policy_as_code_admission_guardrails",
+      "valid": true,
+      "applies_to": ["kubernetes_jobs", "microservices", "platform_security"],
+      "implementation_hook": "Admission policy rejects workload specs that violate restricted pod security, workload identity, network, quota, provenance, or controller-owned status invariants before scheduling."
+    },
+    {
+      "id": "quota_priority_and_fair_scheduling",
+      "valid": true,
+      "applies_to": ["kubernetes_jobs", "parallel_lanes", "cloud_io"],
+      "implementation_hook": "Namespaces/cells declare ResourceQuota, ephemeral-storage budgets, concurrency limits, and PriorityClass policy so high parallelism cannot starve product or control-plane work."
+    },
+    {
+      "id": "trusted_target_inventory_before_candidate_checkout",
+      "valid": true,
+      "applies_to": ["ci_cd", "merge_queue", "buck2"],
+      "implementation_hook": "Required Buck2 target inventory is computed from trusted SCM/controller state before candidate bytes are evaluated, preventing PR-authored changes from shrinking check scope."
+    },
+    {
+      "id": "generated_lane_shards_with_merge_queue",
+      "valid": true,
+      "applies_to": ["scm", "ci_cd", "docs", "registries"],
+      "implementation_hook": "Lanes edit disjoint shards; generated aggregates and Tide/merge-queue-style virtual merge heads validate combinations mechanically before fan-in."
+    },
+    {
+      "id": "slo_gated_progressive_delivery",
+      "valid": true,
+      "applies_to": ["release", "observability", "microservices"],
+      "implementation_hook": "Release-conveyor-style controllers gate canary, bake, promotion, and rollback on source-bound artifacts, SLO/error-budget signals, and audit ledger evidence."
+    },
+    {
+      "id": "observability_first_control_loops",
+      "valid": true,
+      "applies_to": ["ci_cd", "controllers", "microservices"],
+      "implementation_hook": "Controllers and CI jobs emit structured metrics, traces, logs, events, and reconciliation decisions so status rollups are explainable rather than opaque green/red flags."
     }
   ],
   "forbidden_anti_patterns": [
@@ -275,6 +359,46 @@
       "id": "privileged_dind_or_host_socket_runner",
       "valid": true,
       "rejects": "Privileged Docker-in-Docker or host socket mounts for untrusted jobs instead of sandboxed runtimes and controller-owned build/execution services."
+    },
+    {
+      "id": "floating_unpinned_actions_images_or_toolchains",
+      "valid": true,
+      "rejects": "Floating action refs, mutable image tags, or unpinned toolchain/dependency inputs such as @main, latest, or untracked local installs in authority-producing lanes."
+    },
+    {
+      "id": "static_long_lived_pipeline_secrets",
+      "valid": true,
+      "rejects": "Long-lived cloud keys, broad repository/org secrets, or PAT-style credentials exposed to CI jobs where OIDC/workload identity and scoped tokens should be used."
+    },
+    {
+      "id": "candidate_controlled_check_scope",
+      "valid": true,
+      "rejects": "Letting a pull request decide which Buck2 targets, policy gates, or required contexts apply to itself without trusted baseline inventory."
+    },
+    {
+      "id": "shared_trust_domain_cluster_namespace_or_account",
+      "valid": true,
+      "rejects": "Mixing trusted controllers, untrusted PR jobs, tenant workloads, and production control planes in the same namespace/cluster/account trust domain."
+    },
+    {
+      "id": "direct_deploy_from_ci_job",
+      "valid": true,
+      "rejects": "A CI pod directly mutating staging or production instead of handing signed artifacts/evidence to a release-conveyor/progressive-delivery controller."
+    },
+    {
+      "id": "kubectl_as_cd_or_admission_bypass",
+      "valid": true,
+      "rejects": "Using kubectl apply/delete/patch from CI or local agents to bypass controller reconciliation, admission policy, review, or release ledger controls."
+    },
+    {
+      "id": "kubernetes_api_as_application_database",
+      "valid": true,
+      "rejects": "Using CRDs, ConfigMaps, annotations, or status fields as the primary application database for tenant/product domain state."
+    },
+    {
+      "id": "unbounded_parallelism_without_fairness",
+      "valid": true,
+      "rejects": "Running highly parallel lanes without quotas, concurrency budgets, PriorityClass policy, or cell-level fairness, creating noisy-neighbor and control-plane starvation risk."
     }
   ],
   "cross_artifact_guards": {
