@@ -81,7 +81,7 @@ Shared docs, root indexes, registries, and workflows stay pointer-thin and shoul
 
 ## Multispectrum review bar — required on every change
 
-Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). Governance checks run as Rust kernels through Buck2/Prow jobs; the retired `oya gate` / `oya verify` CLI surfaces are not merge authority. The seam-discipline lane `oya-check-dependency-seam` REFUSES the changeset when:
+Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). Governance checks run as Rust kernels through Buck2/Prow jobs; retired Oya CLI surfaces are not merge authority. The seam-discipline lane `oya-check-dependency-seam` REFUSES the changeset when:
 
 - evidence file absent OR
 - declared `change_class_id` not in {CC-1..CC-7} OR

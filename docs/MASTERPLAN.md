@@ -129,7 +129,7 @@ Execution follows vertical delivery ordering:
 2. Build FD-001 through product-vertical slices that include customer UX, domain logic, APIs, data, policy, telemetry, tests, operations, deployment, and evidence.
 3. Parallelize only after shared contracts are locked. Safe parallel lanes include messenger, mail, community, ops dashboard/control center, intelligence, workflow, ontology, infra, and Korea localization pack.
 4. Serialize shared data model ownership, root workspace manifest changes, public API compatibility changes, branch protection, and promotion policy changes.
-5. Promote interim dev work only through an isolated plain-git branch, PR against `dev`, automated GitHub compatibility/shadow evidence, Buck2 build/test/check evidence, the trusted Prow/Kubernetes-native `oya-ci-required` target context as it cuts over, and reviewer/governance approval. Native promotion returns to the cloud native/Kubernetes-native/hyperscaler-native SCM/CI/CD substrate after cutover evidence; retired `oya gate` / `oya verify` CLI output is not merge authority.
+5. Promote interim dev work only through an isolated plain-git branch, PR against `dev`, automated GitHub compatibility/shadow evidence, Buck2 build/test/check evidence, the trusted Prow/Kubernetes-native `oya-ci-required` target context as it cuts over, and reviewer/governance approval. Native promotion returns to the cloud native/Kubernetes-native/hyperscaler-native SCM/CI/CD substrate after cutover evidence; retired Oya CLI output is not merge authority.
 
 ## Claim Rule
 
