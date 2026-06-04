@@ -691,7 +691,7 @@
       "target_path_after_md_retirement": "same until ADR projection retirement",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZA-oya-verify-full-ci-mirror",
-      "purpose": "ADR-0346 authority for `./bin/oya verify --ci-required` as the canonical local pre-push verifier that mirrors the full CI matrix and blocks on exit-0 of each mandatory mirror step before returning success."
+      "purpose": "ADR-0346 authority after the Buck2 transition: `./bin/oya verify --ci-required` is local shift-left evidence only, Buck2 owns build/test/check authority, `github-lane-unlocker-required` gates dev during ADR-0516, and native `oya-ci-required` returns only after source-bound cloud-ci/oya-ci cutover evidence."
     },
     "adr_0347_foundry_fitness_governance_bulk_rename": {
       "kind": "decision",
