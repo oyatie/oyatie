@@ -205,7 +205,7 @@
       "automation_matrix_row_id": "AC-0.0-structured-result-bundle",
       "buck2_target": "//:phase0-result-bundle-output-check",
       "test_paths": [
-        "scripts/tests/phase0_result_bundle_output_check.test.sh"
+        "scripts/tests/phase0_result_bundle_output_check.rs"
       ],
       "green_markers": [
         {
@@ -221,7 +221,7 @@
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-result-bundle-output.py",
+          "path": "scripts/ci/assert-result-bundle-output.rs",
           "contains": "never posts statuses or claims live required-context authority"
         }
       ]

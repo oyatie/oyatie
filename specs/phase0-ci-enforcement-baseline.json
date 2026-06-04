@@ -46,9 +46,9 @@
     "trusted_target_inventory_check_script": "scripts/ci/assert-trusted-target-inventory.py",
     "trusted_target_inventory_check_target": "//:phase0-trusted-target-inventory-check",
     "trusted_target_inventory_test": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
-    "result_bundle_check_script": "scripts/ci/assert-result-bundle-output.py",
+    "result_bundle_check_script": "scripts/ci/assert-result-bundle-output.rs",
     "result_bundle_check_target": "//:phase0-result-bundle-output-check",
-    "result_bundle_test": "scripts/tests/phase0_result_bundle_output_check.test.sh"
+    "result_bundle_test": "scripts/tests/phase0_result_bundle_output_check.rs"
   },
   "claim_boundary": {
     "allowed_language_now": "gap packet / target / specified fixture contract only",
@@ -234,8 +234,8 @@
       "schema": "specs/phase0-ci-enforcement-result-schema.json",
       "current_red_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
       "false_green_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json",
-      "path": "scripts/ci/assert-result-bundle-output.py",
-      "test": "scripts/tests/phase0_result_bundle_output_check.test.sh",
+      "path": "scripts/ci/assert-result-bundle-output.rs",
+      "test": "scripts/tests/phase0_result_bundle_output_check.rs",
       "buck2_target": "//:phase0-result-bundle-output-check",
       "local_fixture_contract_proven": true,
       "structured_result_bundle_live": false,
@@ -397,9 +397,9 @@
     "trusted_target_inventory_check_script": "scripts/ci/assert-trusted-target-inventory.py",
     "trusted_target_inventory_check_target": "//:phase0-trusted-target-inventory-check",
     "trusted_target_inventory_test": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
-    "result_bundle_check_script": "scripts/ci/assert-result-bundle-output.py",
+    "result_bundle_check_script": "scripts/ci/assert-result-bundle-output.rs",
     "result_bundle_check_target": "//:phase0-result-bundle-output-check",
-    "result_bundle_test": "scripts/tests/phase0_result_bundle_output_check.test.sh"
+    "result_bundle_test": "scripts/tests/phase0_result_bundle_output_check.rs"
   },
   "gap_packet": {
     "candidate_pr_untrusted": {
@@ -446,7 +446,7 @@
       "fix_path": "cloud-ci/oya-ci producer emits a conforming result bundle for every candidate SHA from trusted control state and posts the required protected context; local fixture output remains evidence input only until live required-context authority exists",
       "required_schema": "specs/phase0-ci-enforcement-result-schema.json",
       "status": "GAP",
-      "local_target_status": "schema-conforming current RED bundle and false-green RED fixture are evaluated by scripts/ci/assert-result-bundle-output.py and //:phase0-result-bundle-output-check; the checker requires missing-context/untrusted-producer/candidate-byte/candidate-sourced violations, rejects false-green fixture/result/claim-boundary drift, and keeps p0_0_green=false/phase0_complete=false; live status posting remains unproven",
+      "local_target_status": "schema-conforming current RED bundle and false-green RED fixture are evaluated by scripts/ci/assert-result-bundle-output.rs and //:phase0-result-bundle-output-check; the checker requires missing-context/untrusted-producer/candidate-byte/candidate-sourced violations, rejects false-green fixture/result/claim-boundary drift, and keeps p0_0_green=false/phase0_complete=false; live status posting remains unproven",
       "blocking_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"
     },
     "tenant_pipeline_isolation": {
