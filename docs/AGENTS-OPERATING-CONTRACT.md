@@ -34,7 +34,7 @@ Enforced by: `oya-governance-sharding-automation-coverage`, `oya-governance-auto
 
 ## ADR-0516 supersession
 
-ADR-0516 supersedes ADR-0349/ADR-0359/ADR-0361 for interim dev-lane unlock. GitHub/GitHub Actions is the temporary lane-unlocker, no Jenkins/no Forgejo/no ArgoCD are interim authorities, Buck2 remains build/test/check authority, and native cutover remains cloud native, Kubernetes-native, hyperscaler native SCM/CI/CD. This does not claim P0.0 green.
+ADR-0516 supersedes ADR-0349/ADR-0359/ADR-0361 for interim dev-lane unlock. GitHub/GitHub Actions is the compatibility/shadow lane-unlocker, no retired external SCM/CI/CD substrates are interim authorities, Buck2 remains build/test/check authority, and native cutover remains cloud native, Kubernetes-native, hyperscaler native SCM/CI/CD with Prow/Kubernetes-native `oya-ci-required`. This does not claim P0.0 green.
 
 ## ADR-0349
 

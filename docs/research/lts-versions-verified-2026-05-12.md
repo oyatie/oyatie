@@ -8,7 +8,7 @@ doc_status: published
 
 Captured by real-time web lookup. All versions reflect upstream-current LTS or stable channel as of 2026-05-12. Sources cited inline; full URL list at bottom.
 
-2026-06-04 partial amendment: the GitHub Actions temporary lane-unlocker
+2026-06-04 partial amendment: the GitHub Actions compatibility/shadow lane-unlocker
 runtime has been refreshed per ADR-0516 and `/specs/github-lane-unlocker-bridge.json`.
 Repository workflows use `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` and
 `actions/checkout@v6`; Node 26 is not used as the JavaScript action runtime

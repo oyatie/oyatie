@@ -294,13 +294,16 @@
       "infra/ci/buck2-affected-gate.sh origin/dev HEAD",
       "github-lane-unlocker-required is merge authority",
       "oya gate is merge authority",
-      "oya verify is CI authority"
+      "oya verify is CI authority",
+      "oya gate` / `oya verify` governance evidence",
+      "oya-dev-cli:oya -- gate validate planning-closure"
     ],
     "scan_scope": [
       "AGENTS.md",
       "CLAUDE.md",
       "README.md",
       "docs/AGENTS.md",
+      "docs/MASTERPLAN.md",
       "docs/ci/github-actions-lane-unlocker.md",
       "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
       "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
