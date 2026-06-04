@@ -513,7 +513,7 @@ genrule(
         "specs/buck2-cargo-target-coverage.json": "specs/buck2-cargo-target-coverage.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "Cargo.toml": "Cargo.toml",
-    } | {path: path for path in glob(["**/Cargo.toml", "**/BUCK"], exclude = ["buck-out/**", "target/**"])},
+    } | {path: path for path in glob(["**/Cargo.toml", "**/BUCK", "**/src/lib.rs", "**/src/main.rs", "**/src/bin/**/*.rs"], exclude = ["buck-out/**", "target/**"])},
     out = "buck2-cargo-target-coverage-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/buck2_cargo_target_coverage_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-buck2-cargo-target-coverage.py --spec specs/buck2-cargo-target-coverage.json --json > $OUT",
     cacheable = False,

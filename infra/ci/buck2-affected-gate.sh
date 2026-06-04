@@ -112,9 +112,29 @@ N=$(printf '%s\n' "$AFFECTED" | sed '/^$/d' | wc -l | tr -d ' ')
 echo "buck2-affected-gate: $N affected target(s) (owners + reverse-dep closure)"
 if [ "$N" = "0" ]; then echo "buck2-affected-gate: FATAL owners found but rdeps empty (query problem)"; exit 1; fi
 
+# The temporary GitHub lane-unlocker must stay deterministic and fast. Optional
+# external toolchain proof archives are validated by dedicated cutover lanes, not
+# by every affected PR, because Buck2 materializes http_archive targets eagerly
+# when a toolchain BUCK file changes and hosted runners time out on external
+# HEAD requests. Set OYA_AFFECTED_GATE_INCLUDE_OPTIONAL_TOOLCHAIN_ARCHIVES=1 to
+# include these proof targets explicitly. Do not filter normal Rust crates.
+printf '%s\n' "$AFFECTED" | sed '/^$/d' > /tmp/affected-targets.unfiltered.txt
+if [ "${OYA_AFFECTED_GATE_INCLUDE_OPTIONAL_TOOLCHAIN_ARCHIVES:-0}" != "1" ]; then
+  grep -v -E '^(toolchains//cxx/clang_hermetic:(aarch64-musl-sysroot|aarch64-linux-sysroot|llvm-18-aarch64-linux|clang-dist-aarch64-linux|cxx_hermetic_linux|cxx_hermetic_linux_musl))$' /tmp/affected-targets.unfiltered.txt > /tmp/affected-targets.txt || true
+  FILTERED=$(( $(wc -l < /tmp/affected-targets.unfiltered.txt | tr -d ' ') - $(wc -l < /tmp/affected-targets.txt | tr -d ' ') ))
+  if [ "$FILTERED" != "0" ]; then
+    echo "buck2-affected-gate: filtered $FILTERED optional external toolchain proof target(s); set OYA_AFFECTED_GATE_INCLUDE_OPTIONAL_TOOLCHAIN_ARCHIVES=1 to include"
+  fi
+else
+  cp /tmp/affected-targets.unfiltered.txt /tmp/affected-targets.txt
+fi
+if [ ! -s /tmp/affected-targets.txt ]; then
+  echo "buck2-affected-gate: all affected targets were optional external toolchain proof targets -> PASS"
+  exit 0
+fi
+
 # Build then test the affected set. @- reads the newline-delimited target list
 # from stdin, avoiding ARG_MAX limits on large closures.
-printf '%s\n' "$AFFECTED" | sed '/^$/d' > /tmp/affected-targets.txt
 echo "=== buck2 build (affected) ==="
 "$BUCK2" build @/tmp/affected-targets.txt
 echo "=== buck2 test (affected) ==="
