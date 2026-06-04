@@ -73,6 +73,15 @@ It also records the Rust 2024 / Rust 1.96 latest-stable pin, current Buck2
 release pin, dependency-registry coverage requirement, and in-house-first
 `oya-*` library posture so external crates remain owned exceptions.
 
+For oya-ci, “stateless” means disposable Kubernetes/ProwJob compute, not
+cacheless or artifactless operation. The accepted lifecycle is: trigger, fetch
+remote state, compute/validate through Buck2, export immutable artifacts, then
+destroy the ephemeral workspace. Durable state lives in SCM refs, Buck2 remote
+execution/CAS/cache, immutable object artifacts, status, and audit ledgers.
+Cache remains a performance surface only: content-addressed, regional/cell-local,
+trust-domain separated, quarantined for untrusted PR writes, promoted by trusted
+postsubmit/periodic jobs, and checked by cold-cache probes.
+
 ## First Deliverable
 
 FD-001 is Tenant RBAC view plus Tenant RBAC view at full production depth. This is not a preview scope and not a reduced launch. The first deliverable exits only when the canonical base and Korea localization pack are both ready with evidence.

@@ -228,6 +228,10 @@ pub fn contract_failures(contract: &str) -> Vec<String> {
         "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
         "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
         "https://docs.prow.k8s.io/docs/jobs/",
+        "https://docs.prow.k8s.io/docs/life-of-a-prow-job/",
+        "https://docs.prow.k8s.io/docs/components/pod-utilities/",
+        "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+        "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#local-ephemeral-storage",
     ] {
         require(
             has_json_string(contract, source),
@@ -256,6 +260,22 @@ pub fn contract_failures(contract: &str) -> Vec<String> {
         ("controller_owned", true),
         ("buck2_commands_only", true),
         ("forbid_live_kubectl_mutation_commands", true),
+        ("stateless_job_pods", true),
+        ("pod_local_state_authority", false),
+        ("workspace_destruction_required", true),
+        ("remote_cache_allowed", true),
+        ("local_disk_cache_persists_after_pod", false),
+        ("cache_authoritative_for_correctness", false),
+        ("content_addressed_only", true),
+        ("trust_domain_separated", true),
+        ("untrusted_writes_quarantined", true),
+        ("trusted_postsubmit_promotion_required", true),
+        ("cold_cache_probe_required", true),
+        ("periodic_cache_warmers_allowed", true),
+        ("hot_path_cross_region_io_allowed", false),
+        ("asynchronous_cross_region_replication_allowed", true),
+        ("ephemeral_storage_requests_limits_required", true),
+        ("remote_execution_cas_required", true),
     ] {
         require(
             has_json_bool(contract, key, value),
@@ -274,6 +294,23 @@ pub fn contract_failures(contract: &str) -> Vec<String> {
         "sandboxed",
         "trusted-controller-rollup",
         "oya-ci-controller-runner",
+        "trigger",
+        "fetch_remote_state",
+        "compute_validate",
+        "export_artifacts",
+        "destroy_ephemeral_workspace",
+        "native_scm_or_github_adapter_refs",
+        "buck2_remote_execution_cache_or_content_addressed_cache",
+        "immutable_object_artifact_store",
+        "status_and_audit_ledger",
+        "regional_cell_local_remote_cache",
+        "immutable_object_store",
+        "trusted_periodic_or_postsubmit_only",
+        "cache_hit_ratio",
+        "cas_download_bytes",
+        "cas_upload_bytes",
+        "artifact_upload_latency_ms",
+        "ephemeral_storage_evictions",
     ] {
         require(
             has_json_string(contract, required),
@@ -332,6 +369,78 @@ pub fn config_failures(config: &str) -> Vec<String> {
         (
             "candidateOwnedTruthAllowed: false",
             "rollup must reject candidate-owned truth",
+        ),
+        (
+            "statelessJobPods: true",
+            "execution lifecycle must declare stateless job pods",
+        ),
+        (
+            "podLocalStateAuthority: false",
+            "execution lifecycle must reject pod-local state authority",
+        ),
+        (
+            "workspaceDestructionRequired: true",
+            "execution lifecycle must require workspace destruction",
+        ),
+        (
+            "remoteCacheAllowed: true",
+            "remote cache policy must allow remote cache",
+        ),
+        (
+            "localDiskCachePersistsAfterPod: false",
+            "remote cache policy must reject persistent pod-local cache",
+        ),
+        (
+            "cacheAuthoritativeForCorrectness: false",
+            "remote cache policy must keep caches non-authoritative for correctness",
+        ),
+        (
+            "contentAddressedOnly: true",
+            "remote cache policy must require content-addressed cache",
+        ),
+        (
+            "trustDomainSeparated: true",
+            "remote cache policy must separate trust domains",
+        ),
+        (
+            "untrustedWritesQuarantined: true",
+            "remote cache policy must quarantine untrusted writes",
+        ),
+        (
+            "trustedPostsubmitPromotionRequired: true",
+            "remote cache policy must require trusted postsubmit promotion",
+        ),
+        (
+            "coldCacheProbeRequired: true",
+            "remote cache policy must require cold-cache probes",
+        ),
+        (
+            "cacheTopology: \"regional-cell-local-remote-cache\"",
+            "cloud I/O policy must use regional/cell-local remote cache",
+        ),
+        (
+            "artifactStore: \"immutable-object-store\"",
+            "cloud I/O policy must use immutable object artifacts",
+        ),
+        (
+            "hotPathCrossRegionIoAllowed: false",
+            "cloud I/O policy must reject cross-region hot-path I/O",
+        ),
+        (
+            "asynchronousCrossRegionReplicationAllowed: true",
+            "cloud I/O policy must allow asynchronous replication",
+        ),
+        (
+            "ephemeralStorageRequestsLimitsRequired: true",
+            "cloud I/O policy must require ephemeral-storage requests/limits",
+        ),
+        (
+            "remoteExecutionCasRequired: true",
+            "cloud I/O policy must require remote execution/CAS",
+        ),
+        (
+            "cacheWarmersTrustDomain: \"trusted-periodic-or-postsubmit-only\"",
+            "cloud I/O policy must restrict cache warmers to trusted lanes",
         ),
         (
             "workloadIdentityRequired: true",
