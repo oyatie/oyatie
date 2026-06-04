@@ -278,8 +278,8 @@
     "scripts/ci/assert-buck2-cargo-target-coverage.rs",
     "scripts/tests/buck2_cargo_target_coverage_check.rs",
     "specs/buck2-cargo-target-coverage.json",
-    "scripts/ci/assert-red-green-fixture-contract.py",
-    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "scripts/ci/assert-red-green-fixture-contract.rs",
+    "scripts/tests/red_green_fixture_contract_check.rs",
     "specs/red-green-fixture-contract.json",
     "scripts/ci/assert-phase0-merge-conflict-foundation.py",
     "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
@@ -440,8 +440,8 @@
       "cacheable = False",
       "remote = False",
       "phase0-red-green-fixture-contract-check",
-      "assert-red-green-fixture-contract.py",
-      "red_green_fixture_contract_check.test.sh",
+      "assert-red-green-fixture-contract.rs",
+      "red_green_fixture_contract_check.rs",
       "red-green-fixture-contract.json",
       "phase0-merge-conflict-foundation-check",
       "assert-phase0-merge-conflict-foundation.py",
@@ -1093,7 +1093,7 @@
       "autobins = false",
       "cargo_target_root_count"
     ],
-    "scripts/ci/assert-red-green-fixture-contract.py": [
+    "scripts/ci/assert-red-green-fixture-contract.rs": [
       "local/static RED/GREEN fixture registry evidence only",
       "green_markers",
       "red_markers",
@@ -1102,7 +1102,7 @@
       "marker_text_missing",
       "forbidden_true_or_missing_claim_p0_0_green"
     ],
-    "scripts/tests/red_green_fixture_contract_check.test.sh": [
+    "scripts/tests/red_green_fixture_contract_check.rs": [
       "red_green_fixture_contract_measured",
       "remove-red-marker",
       "stale-marker-text",

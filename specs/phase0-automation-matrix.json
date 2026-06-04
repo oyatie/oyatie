@@ -545,7 +545,7 @@
       "target_gate_or_controller": "//:phase0-red-green-fixture-contract-check",
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.14",
       "retirement_phase": "AC-0.14/P0 exit",
-      "evidence_path": "specs/red-green-fixture-contract.json + scripts/ci/assert-red-green-fixture-contract.py + scripts/tests/red_green_fixture_contract_check.test.sh + //:phase0-red-green-fixture-contract-check",
+      "evidence_path": "specs/red-green-fixture-contract.json + scripts/ci/assert-red-green-fixture-contract.rs + scripts/tests/red_green_fixture_contract_check.rs + //:phase0-red-green-fixture-contract-check",
       "no_new_oya_cli_surface": true,
       "coverage_note": "Local/static AC-0.14 registry evidence only: Phase-0 gate targets must keep registered GOOD markers, BAD markers, and non-claim markers. This is not live cloud-ci authority or Phase-0 completion.",
       "verification_command": "buck2 build //:phase0-red-green-fixture-contract-check",

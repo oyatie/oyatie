@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 const DEFAULT_REGISTRY: &str = "specs/who-gates-gates-registry.json";
 const ROOT_BUCK: &str = "BUCK";
 const RED_GREEN_CONTRACT: &str = "specs/red-green-fixture-contract.json";
-const RED_GREEN_HARNESS: &str = "scripts/tests/red_green_fixture_contract_check.test.sh";
+const RED_GREEN_HARNESS: &str = "scripts/tests/red_green_fixture_contract_check.rs";
 const FIXTURES: &[&str] = &[
     "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json",
     "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json",
