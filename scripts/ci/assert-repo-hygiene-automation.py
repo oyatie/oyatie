@@ -86,6 +86,34 @@ REQUIRED_SOURCE_URLS = {
 }
 
 ROOT_MARKDOWN_ALLOWLIST = {"README.md", "AGENTS.md", "CLAUDE.md"}
+ACTIVE_CONTEXT_SCAN_TEXTS = {
+    "AGENTS.md": AGENTS_PATH,
+    "CLAUDE.md": CLAUDE_PATH,
+    "README.md": README_PATH,
+    "docs/AGENTS.md": DOC_AGENTS_PATH,
+    "docs/ci/github-actions-lane-unlocker.md": LANE_UNLOCKER_PROCEDURE_PATH,
+    "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": REPO_ROOT / "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+    ".github/branch-protection.yaml": REPO_ROOT / ".github/branch-protection.yaml",
+    "infra/branch-protection/dev.json": REPO_ROOT / "infra/branch-protection/dev.json",
+}
+FORBIDDEN_ACTIVE_DOC_PHRASES = [
+    "cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness",
+    "cloud-ci/oya-ci required context is merge authority",
+    "GitHub Actions is retired",
+    "Jenkins CI + oya gate run-all",
+    "self-hosted Forgejo required-checks/auto-merge is the substrate target",
+    "manual oya-ci-required success statuses to merge bridge PRs",
+    "infra/ci/buck2-affected-gate.sh origin/dev HEAD",
+]
+REQUIRED_FORBIDDEN_PHRASE_IDS = {
+    "cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness",
+    "cloud-ci/oya-ci required context is merge authority",
+    "GitHub Actions is retired",
+    "legacy_ci_server CI + oya gate run-all",
+    "legacy_self_hosted_git_forge required-checks/auto-merge is the substrate target",
+    "manual oya-ci-required success statuses to merge bridge PRs",
+    "infra/ci/buck2-affected-gate.sh origin/dev HEAD",
+}
 
 
 def load_json(path: Path, failures: list[str]) -> Any:
@@ -168,6 +196,21 @@ def main() -> int:
     missing_urls = sorted(REQUIRED_SOURCE_URLS - source_urls)
     require(not missing_urls, failures, f"official_sources missing: {', '.join(missing_urls)}")
 
+    active_context_drift = spec.get("active_context_drift_scan", {})
+    require(active_context_drift.get("required_interim_context") == "github-lane-unlocker-required", failures, "active context drift scan must require github-lane-unlocker-required")
+    require(active_context_drift.get("native_cutover_context") == "oya-ci-required", failures, "active context drift scan must preserve oya-ci-required as native cutover only")
+    required_tool_examples = set(active_context_drift.get("required_tool_examples", []))
+    for tool_example in [
+        "git worktree add",
+        "gh pr create --base dev",
+        "buck2 build //:repo-hygiene-automation-check",
+        "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+    ]:
+        require(tool_example in required_tool_examples, failures, f"active context drift scan missing required tool example {tool_example!r}")
+    forbidden_active_phrase_ids = set(active_context_drift.get("forbidden_active_doc_phrases", []))
+    missing_forbidden_phrase_ids = sorted(REQUIRED_FORBIDDEN_PHRASE_IDS - forbidden_active_phrase_ids)
+    require(not missing_forbidden_phrase_ids, failures, f"active context drift scan missing forbidden phrase ids: {', '.join(missing_forbidden_phrase_ids)}")
+
     doc_sprawl = spec.get("documentation_sprawl", {})
     require(doc_sprawl.get("new_markdown_default") == "reject_unless_registered_or_lane_owned", failures, "documentation_sprawl.new_markdown_default must reject unregistered/laneless docs")
     require(doc_sprawl.get("root_markdown_allowlist") == sorted(ROOT_MARKDOWN_ALLOWLIST), failures, "documentation_sprawl.root_markdown_allowlist must be README/AGENTS/CLAUDE only")
@@ -213,6 +256,23 @@ def main() -> int:
         require_contains(text, "repo-hygiene-automation", failures, label)
         require_contains(text, "buck2 build //:repo-hygiene-automation-check", failures, label)
 
+    for label, text in [("AGENTS.md", agents), ("CLAUDE.md", claude)]:
+        for tool_example in [
+            "git worktree add",
+            "gh pr create --base dev",
+            "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+        ]:
+            require_contains(text, tool_example, failures, label)
+
+    for label, text in [("README.md", readme), ("docs/AGENTS.md", doc_agents), ("docs/ci/github-actions-lane-unlocker.md", procedure)]:
+        require_contains(text, "github-lane-unlocker-required", failures, label)
+
+    for label, path in ACTIVE_CONTEXT_SCAN_TEXTS.items():
+        text = read_text(path, failures)
+        for phrase in FORBIDDEN_ACTIVE_DOC_PHRASES:
+            if phrase in text:
+                failures.append(f"{label}: stale active authority phrase present: {phrase!r}")
+
     for needle in [
         "repo-hygiene-automation-check",
         "assert-repo-hygiene-automation.py",
@@ -248,6 +308,7 @@ def main() -> int:
         "local_static_only": True,
         "live_mutation_performed": False,
         "retired_exact_name_scan_files": len(ACTIVE_EXACT_NAME_SCAN_PATHS),
+        "active_context_scan_files": len(ACTIVE_CONTEXT_SCAN_TEXTS),
         "failures": failures,
     }
     if args.json or not failures:

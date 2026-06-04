@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T00:00:00Z",
+  "updated_at": "2026-06-04T03:00:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for the temporary GitHub lane-unlocker and native SCM/CI/CD cutover prep.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -154,5 +154,36 @@
     "native_scm_complete": false,
     "live_kubernetes_mutated": false,
     "docs_sprawl_fully_removed": false
+  },
+  "active_context_drift_scan": {
+    "required_interim_context": "github-lane-unlocker-required",
+    "native_cutover_context": "oya-ci-required",
+    "required_tool_examples": [
+      "git worktree add",
+      "gh pr create --base dev",
+      "buck2 build //:repo-hygiene-automation-check",
+      "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD"
+    ],
+    "forbidden_active_doc_phrases": [
+      "cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness",
+      "cloud-ci/oya-ci required context is merge authority",
+      "GitHub Actions is retired",
+      "legacy_ci_server CI + oya gate run-all",
+      "legacy_self_hosted_git_forge required-checks/auto-merge is the substrate target",
+      "manual oya-ci-required success statuses to merge bridge PRs",
+      "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
+    ],
+    "scan_scope": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "README.md",
+      "docs/AGENTS.md",
+      "docs/ci/github-actions-lane-unlocker.md",
+      "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+      ".github/branch-protection.yaml",
+      "infra/branch-protection/dev.json"
+    ],
+    "purpose": "Make active agent/root/procedure docs mechanically refuse stale interim-authority wording while leaving historical ADR provenance intact.",
+    "forbidden_active_doc_phrase_source": "Exact retired-substrate deny strings are constants in scripts/ci/assert-repo-hygiene-automation.py so this active spec does not reintroduce tombstoned names."
   }
 }

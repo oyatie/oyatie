@@ -7,10 +7,12 @@ Canonical guidance and machine-readable specs live under [`docs/`](docs/) and [`
 ## Run
 
 ```sh
-buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check
+git fetch github-mirror dev
+git worktree add /tmp/oyatie-lane-<slug> -b chore/<slug> github-mirror/dev
 python3 scripts/ci/assert-repo-hygiene-automation.py --json
 buck2 build //:repo-hygiene-automation-check
-infra/ci/buck2-affected-gate.sh origin/dev HEAD
+buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check
+infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD
 # Local Cargo commands are advisory only when a dual Cargo+Buck2 setup is intentionally maintained.
 ```
 
@@ -18,7 +20,7 @@ The current runnable slice is W-Foundation: tenancy, identity, data-use boundary
 
 ## Current dev-lane bridge
 
-ADR-0516 records the temporary GitHub/GitHub Actions lane-unlocker for highly parallel product, infra, and cloud work. Buck2 remains build/test/check authority; the native destination is cloud native, Kubernetes-native, and hyperscaler native.
+ADR-0516 records the temporary GitHub/GitHub Actions lane-unlocker for highly parallel product, infra, and cloud work; dev is gated by `github-lane-unlocker-required` during the bridge. Buck2 remains build/test/check authority; the native destination is cloud native, Kubernetes-native, and hyperscaler native.
 
 Shared repo surfaces stay thin: root docs, indexes, and registries point to lane-owned shards instead of carrying large mutable content. Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now; no shared contract or shared surface until a later rewrite and rewire of Oyatie products to consume the Cloud IdP.
 

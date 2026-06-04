@@ -52,7 +52,7 @@ Required local commands:
 python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
 buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check
 buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check
-infra/ci/buck2-affected-gate.sh origin/dev HEAD
+infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD
 ```
 
 Rust coverage remains LLVM source-based coverage through Buck2 targets. The
