@@ -808,7 +808,7 @@
     }
   ],
   "automated_chain": [
-    "scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json",
+    "scripts/ci/assert-red-green-fixture-contract.rs --spec specs/red-green-fixture-contract.json --json",
     "//:service-root-classifier-check",
     "//:status-enum-drift-check",
     "//:adr-hygiene-check",

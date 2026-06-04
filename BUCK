@@ -90,8 +90,8 @@ genrule(
         "scripts/ci/assert-buck2-cargo-target-coverage.rs": "scripts/ci/assert-buck2-cargo-target-coverage.rs",
         "scripts/tests/buck2_cargo_target_coverage_check.rs": "scripts/tests/buck2_cargo_target_coverage_check.rs",
         "specs/buck2-cargo-target-coverage.json": "specs/buck2-cargo-target-coverage.json",
-        "scripts/ci/assert-red-green-fixture-contract.py": "scripts/ci/assert-red-green-fixture-contract.py",
-        "scripts/tests/red_green_fixture_contract_check.test.sh": "scripts/tests/red_green_fixture_contract_check.test.sh",
+        "scripts/ci/assert-red-green-fixture-contract.rs": "scripts/ci/assert-red-green-fixture-contract.rs",
+        "scripts/tests/red_green_fixture_contract_check.rs": "scripts/tests/red_green_fixture_contract_check.rs",
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
         "scripts/ci/assert-phase0-merge-conflict-foundation.py": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
         "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
@@ -572,8 +572,8 @@ genrule(
 genrule(
     name = "phase0-red-green-fixture-contract-check",
     srcs = {
-        "scripts/ci/assert-red-green-fixture-contract.py": "scripts/ci/assert-red-green-fixture-contract.py",
-        "scripts/tests/red_green_fixture_contract_check.test.sh": "scripts/tests/red_green_fixture_contract_check.test.sh",
+        "scripts/ci/assert-red-green-fixture-contract.rs": "scripts/ci/assert-red-green-fixture-contract.rs",
+        "scripts/tests/red_green_fixture_contract_check.rs": "scripts/tests/red_green_fixture_contract_check.rs",
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
         "scripts/ci/assert-buck2-cargo-target-coverage.rs": "scripts/ci/assert-buck2-cargo-target-coverage.rs",
         "scripts/tests/buck2_cargo_target_coverage_check.rs": "scripts/tests/buck2_cargo_target_coverage_check.rs",
@@ -612,7 +612,7 @@ genrule(
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
     out = "phase0-red-green-fixture-contract-check.json",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/red_green_fixture_contract_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-red-green-fixture-contract && rustc --edition=2021 -D warnings scripts/tests/red_green_fixture_contract_check.rs --test -o $TMP/phase0-red-green-fixture-contract/red_green_fixture_contract_check && OYA_REPO_ROOT=$PWD $TMP/phase0-red-green-fixture-contract/red_green_fixture_contract_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-red-green-fixture-contract.rs -o $TMP/phase0-red-green-fixture-contract/assert-red-green-fixture-contract && OYA_REPO_ROOT=$PWD $TMP/phase0-red-green-fixture-contract/assert-red-green-fixture-contract --spec specs/red-green-fixture-contract.json --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -871,7 +871,7 @@ genrule(
         "scripts/tests/who_gates_gates_check.rs": "scripts/tests/who_gates_gates_check.rs",
         "specs/who-gates-gates-registry.json": "specs/who-gates-gates-registry.json",
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
-        "scripts/tests/red_green_fixture_contract_check.test.sh": "scripts/tests/red_green_fixture_contract_check.test.sh",
+        "scripts/tests/red_green_fixture_contract_check.rs": "scripts/tests/red_green_fixture_contract_check.rs",
         "BUCK": "BUCK",
     } | {path: path for path in glob(["specs/fixtures/phase0-who-gates-gates/*.json"])},
     out = "who-gates-gates-check.json",
