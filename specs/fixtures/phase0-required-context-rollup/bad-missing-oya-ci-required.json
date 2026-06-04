@@ -1,0 +1,10 @@
+{
+  "headRefOid": "cccccccccccccccccccccccccccccccccccccccc",
+  "statusCheckRollup": [
+    {
+      "name": "buck2-affected-only",
+      "state": "SUCCESS",
+      "workflow": "local-bridge"
+    }
+  ]
+}

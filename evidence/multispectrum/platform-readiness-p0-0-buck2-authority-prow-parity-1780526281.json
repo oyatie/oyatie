@@ -1,0 +1,472 @@
+{
+  "authority_boundary": {
+    "hyperscaler_grade_readiness_claimed": false,
+    "live_blocker": "trusted cloud-ci/oya-ci source-bound oya-ci-required context is still required before live authority or parity claims",
+    "p0_0_green_claimed": false,
+    "phase0_complete_claimed": false,
+    "production_readiness_claimed": false,
+    "protected_branch_authority_claimed": false
+  },
+  "change_class_id": "CC-3",
+  "change_id": "platform-readiness-p0-0-buck2-authority-prow-parity-1780526281",
+  "commands": {
+    "green": [
+      "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/buck2_authority_policy_check.test.sh",
+      "BUCK2_AUTHORITY_FIXTURE_MODE=1 PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/buck2_authority_policy_check.test.sh",
+      "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-automation-ratchet.py --json",
+      "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-red-green-fixture-contract.py --json",
+      "python3 -m json.tool specs/oya-ci-prow-capability-parity.json",
+      "python3 -m json.tool specs/root-hub-pointers.json",
+      "python3 -m json.tool specs/buck2-authority-policy.json",
+      "python3 -m json.tool specs/phase0-automation-matrix.json",
+      "python3 -m json.tool specs/phase0-automation-coverage-registry.json",
+      "git diff --check",
+      "buck2 build //:buck2-authority-policy-check //:buck2-authority-policy-fixture-check //:phase0-automation-ratchet-check //:phase0-ci-enforcement-baseline-catalog-check //:phase0-red-green-fixture-contract-check --show-output"
+    ],
+    "red": "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json"
+  },
+  "facets": {
+    "A_policy_adherence": {
+      "evidence": {
+        "capability_count": 24,
+        "claim_boundary": {
+          "hyperscaler_grade_readiness": false,
+          "live_full_parity_claimed": false,
+          "note": "Rows may be bridge_existing, existing_partial, or phase targets. Only trusted cloud-ci/oya-ci source-bound oya-ci-required on candidate SHAs can provide live merge authority; this registry makes no production-readiness or hyperscaler-grade readiness claim.",
+          "p0_0_green": false,
+          "phase0_complete": false,
+          "production_readiness": false,
+          "protected_branch_authority_proven": false
+        },
+        "coverage_verification_command": "buck2 build //:buck2-authority-policy-check",
+        "excluded_or_superseded_count": 6,
+        "improvement_count": 8,
+        "row_verification_command": "buck2 build //:buck2-authority-policy-check"
+      },
+      "status": "pass"
+    },
+    "F10_observability": {
+      "evidence": "Multispectrum evidence and audit-chain event emitted; registry includes metrics/observability capability row.",
+      "status": "pass"
+    },
+    "F11_compliance": {
+      "evidence": "No P0.0 green, Phase-0 complete, production-readiness, hyperscaler-grade, or protected-branch authority claim.",
+      "status": "pass"
+    },
+    "F12_reserved": {
+      "status": "not_applicable"
+    },
+    "F13_reviewability": {
+      "evidence": "Adversarial review findings were reconciled before commit; mutation fixtures added for high-risk validator behavior.",
+      "status": "pass"
+    },
+    "F1_correctness": {
+      "evidence": {
+        "green": {
+          "dir": "/tmp/p0-0-buck2-authority-prow-parity-green2-1780526117",
+          "fixture_stdout": "buck2 authority policy parity fixture tests passed\n",
+          "policy": {
+            "adr_amendment_files": 8,
+            "authority_context": "oya-ci-required",
+            "claim_boundary": {
+              "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
+              "p0_0_green": false,
+              "phase0_complete": false
+            },
+            "command_scan_files": 232,
+            "command_scan_globs": 2,
+            "policy": "specs/buck2-authority-policy.json",
+            "status_context_scan_files": 9,
+            "verdict": "PASS"
+          }
+        },
+        "red": {
+          "dir": "/tmp/p0-0-buck2-authority-row-contract-red-1780525029",
+          "rc": 1,
+          "stderr_excerpt": [
+            "buck2-authority-policy: RED",
+            "- policy must record upstream Kubernetes Prow baseline for the Rust reimplementation",
+            "- target_authority.producer must name cloud-ci/oya-ci as the Rust Prow reimplementation authority",
+            "- AC-0.0-buck2-authority-no-cargo-regression row must record Buck2 authority verification command",
+            "- AC-0.0-buck2-authority-no-cargo-regression.claim_boundary missing 'not protected-branch authority'",
+            "- missing Prow parity registry: specs/oya-ci-prow-capability-parity.json",
+            "- AC-0.0 coverage subject must record Buck2 command for AC-0.0-buck2-authority-no-cargo-regression"
+          ]
+        }
+      },
+      "status": "pass"
+    },
+    "F2_test_coverage": {
+      "evidence": {
+        "automation_ratchet": {
+          "mapped_row_count": 32,
+          "p0_0_green": false,
+          "phase0_complete": false,
+          "row_count": 32,
+          "verdict": "PASS"
+        },
+        "buck2_build_id": "e266d141-5b88-4311-b020-5c3c178c0461",
+        "buck2_targets": [
+          "//:buck2-authority-policy-check",
+          "//:buck2-authority-policy-fixture-check",
+          "//:phase0-automation-ratchet-check",
+          "//:phase0-ci-enforcement-baseline-catalog-check",
+          "//:phase0-red-green-fixture-contract-check"
+        ],
+        "mutation_fixture_cases": [
+          "missing_required_capability",
+          "duplicate_capability",
+          "live_authority_claim",
+          "wrong_required_context",
+          "false_production_claim",
+          "missing_excluded_component",
+          "missing_source_bound_producer",
+          "stale_plank_primary",
+          "missing_root_pointer"
+        ],
+        "red_green_contract": {
+          "authority_boundary": "AC-0.14 local/static RED/GREEN fixture registry evidence only; no status mutation, live required-context authority, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness proven",
+          "buck2_target_count": 26,
+          "contract_spec": "specs/red-green-fixture-contract.json",
+          "entries": [
+            {
+              "automation_matrix_row_id": "AC-0.0-cloud-ci-required-context",
+              "buck2_target": "//:phase0-ci-enforcement-baseline-catalog-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-ci-enforcement-baseline-catalog",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-cloud-ci-required-context",
+              "buck2_target": "//:phase0-required-status-source-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-required-status-source",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": null,
+              "buck2_target": "//:github-auto-merge-after-ci-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-github-required-context-rollup",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.12-aggregate-exit-gate",
+              "buck2_target": "//:phase0-aggregate-exit-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-aggregate-exit",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.16-automation-ratchet",
+              "buck2_target": "//:phase0-automation-ratchet-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-automation-ratchet",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.17-claim-ceiling",
+              "buck2_target": "//:phase0-claim-ceiling-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-claim-ceiling",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-structured-result-bundle",
+              "buck2_target": "//:phase0-result-bundle-output-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-result-bundle-output",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-trusted-target-inventory",
+              "buck2_target": "//:phase0-trusted-target-inventory-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-trusted-target-inventory",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-tenant-pipeline-isolation",
+              "buck2_target": "//:phase0-tenant-isolation-fixture-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-tenant-isolation",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-override-kill-switch",
+              "buck2_target": "//:phase0-override-kill-switch-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-override-kill-switch",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": null,
+              "buck2_target": "//:rust-testing-standard-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "rust-testing-standard",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": null,
+              "buck2_target": "//:rust-llvm-coverage-runner-contract-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "rust-llvm-coverage-runner-contract",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": null,
+              "buck2_target": "//:rust-llvm-coverage-smoke-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "rust-llvm-coverage-smoke",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.13-buck2-cargo-coverage",
+              "buck2_target": "//:buck2-cargo-target-coverage-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "buck2-cargo-target-coverage",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.0-auto-merge-after-ci",
+              "buck2_target": "//:phase0-auto-merge-after-ci-contract-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-auto-merge-after-ci-contract",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.15-merge-conflict-foundation",
+              "buck2_target": "//:phase0-merge-conflict-foundation-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "phase0-merge-conflict-foundation",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.1-service-inventory",
+              "buck2_target": "//:service-root-classifier-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "service-root-classifier",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.2-status-enum-drift",
+              "buck2_target": "//:status-enum-drift-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "status-enum-drift",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.3-adr-hygiene",
+              "buck2_target": "//:adr-hygiene-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "adr-hygiene",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 1,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.4-language-discipline",
+              "buck2_target": "//:language-discipline-check",
+              "failures": [],
+              "green_marker_count": 2,
+              "id": "language-discipline",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 2,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.5-d1-contract-files",
+              "buck2_target": "//:d1-seam-contracts-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "d1-seam-contracts",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 2,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.6-effective-dating-kernel",
+              "buck2_target": "//:effective-dating-kernel-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "effective-dating-kernel",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 2,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.8-cross-artifact-agreement",
+              "buck2_target": "//:cross-artifact-agreement-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "cross-artifact-agreement",
+              "non_claim_marker_count": 1,
+              "red_marker_count": 4,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.9-structural-lock-revert",
+              "buck2_target": "//:structural-lock-revert-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "structural-lock-revert",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 4,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.10b-d1-read-your-writes-xfail",
+              "buck2_target": "//:d1-read-your-writes-xfail-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "d1-read-your-writes-xfail",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 3,
+              "test_path_count": 1
+            },
+            {
+              "automation_matrix_row_id": "AC-0.11-who-gates-gates",
+              "buck2_target": "//:who-gates-gates-check",
+              "failures": [],
+              "green_marker_count": 1,
+              "id": "who-gates-gates",
+              "non_claim_marker_count": 2,
+              "red_marker_count": 4,
+              "test_path_count": 1
+            }
+          ],
+          "entry_count": 26,
+          "failures": [],
+          "green_marker_count": 27,
+          "hyperscaler_grade": false,
+          "live_required_context_execution_proven": false,
+          "non_claim_marker_count": 32,
+          "p0_0_green": false,
+          "phase0_complete": false,
+          "production_ready": false,
+          "protected_branch_authority_proven": false,
+          "red_green_fixture_contract_measured": true,
+          "red_marker_count": 40,
+          "status_mutation_performed": false,
+          "verdict": "PASS"
+        },
+        "rust_substrate_test_gap": {
+          "dir": "/tmp/p0-0-prow-parity-rust-substrate-1780525569",
+          "rc": "3",
+          "reason": "local macOS linker rejected Linux-style Buck2 rustc link flags before tests ran",
+          "stderr_excerpt": [
+            "[2026-06-03T18:26:09.297-04:00] Build ID: 0afb4f68-9a62-44f7-a9c6-fd3ede4f3e4e",
+            "          ld: unknown options: --as-needed -Bstatic -Bdynamic --eh-frame-hdr -z --gc-sections -z -z ",
+            "          ld: unknown options: --as-needed -Bstatic -Bdynamic --eh-frame-hdr -z --gc-sections -z -z ",
+            "NO TESTS RAN"
+          ]
+        }
+      },
+      "status": "pass_with_noted_gap"
+    },
+    "F3_architecture": {
+      "evidence": "Registry treats kubernetes-sigs/prow as upstream baseline and oya-ci as Rust/Forgejo-native reimplementation plus explicit improvements; missing optional upstream components are waived/superseded with rationale.",
+      "status": "pass"
+    },
+    "F4_security": {
+      "evidence": "Checker enforces cloud-ci/oya-ci producer wording, source-bound/trusted required context, no live authority claims, and trusted/untrusted execution capability rows.",
+      "status": "pass"
+    },
+    "F5_performance": {
+      "evidence": "Policy/registry/checker change; no runtime hot path.",
+      "status": "not_applicable"
+    },
+    "F6_operability": {
+      "evidence": "Root hub pointer and Buck2 fixture target make the parity registry discoverable and sandbox-verifiable.",
+      "status": "pass"
+    },
+    "F7_documentation": {
+      "evidence": [
+        "specs/oya-ci-prow-capability-parity.json",
+        "specs/root-hub-pointers.json",
+        "specs/buck2-authority-policy.json"
+      ],
+      "status": "pass"
+    },
+    "F8_dependency": {
+      "evidence": "No dependency added; official upstream Prow docs are cited as external sources only.",
+      "status": "pass"
+    },
+    "F9_migration": {
+      "evidence": "Rows classify bridge/existing/phase target status and preserve Jenkins as bridge/non-authority until oya-ci cutover.",
+      "status": "pass"
+    }
+  },
+  "sources": [
+    "https://github.com/kubernetes-sigs/prow",
+    "https://docs.prow.k8s.io/docs/overview/architecture/",
+    "https://docs.prow.k8s.io/docs/components/",
+    "https://docs.prow.k8s.io/docs/jobs/",
+    "https://docs.prow.k8s.io/docs/components/core/tide/",
+    "https://docs.prow.k8s.io/docs/components/plugins/",
+    "https://docs.prow.k8s.io/docs/components/pod-utilities/",
+    "https://docs.prow.k8s.io/docs/scaling/",
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://buck2.build/docs/users/commands/build/",
+    "https://github.com/facebookincubator/reindeer"
+  ],
+  "summary": "Make upstream Kubernetes Prow parity and oya-ci Rust improvements an enforceable Buck2-authority contract with mutation fixtures and root-hub discoverability.",
+  "timestamp": 1780526281
+}

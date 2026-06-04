@@ -1,0 +1,4901 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/service-inventory.seed.schema.json",
+  "title": "Phase0ServiceInventorySeed",
+  "description": "AC-0.1/P0.6/AC-0.7 local/static seed inventory for closed-world service, library, and pack roots. It is Buck2-local evidence only and does not claim post-migration service purity or live required-context authority.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "P0-SERVICE-INVENTORY-SEED",
+    "version": "0.1.0",
+    "status": "LocalStaticSeedEvidence",
+    "owner_team": "platform-architecture + platform-toolchain",
+    "created_at": "2026-06-03T00:00:00Z",
+    "source_artifacts": [
+      ".omx/plans/prd-platform-readiness.md#AC-0.1",
+      ".omx/plans/prd-platform-readiness.md#P0.6",
+      ".omx/plans/test-spec-phase0.md#T0.1",
+      ".omx/plans/test-spec-phase0.md#T0.7"
+    ]
+  },
+  "claim_boundary": {
+    "service_inventory_published": true,
+    "service_root_classifier_measured": true,
+    "closed_world_root_classifier_measured": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "full_service_inventory_coverage_proven": false,
+    "post_migration_pure_split_proven": false,
+    "structural_shards_executed": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "coverage_scope": {
+    "scope_name": "direct_child_directories_of_closed_world_roots_seed",
+    "excluded_paths": [
+      ".claude/worktrees/",
+      "buck-out/",
+      "target/",
+      "node_modules/"
+    ],
+    "direct_child_inventory_entry_count": 296,
+    "full_crate_inventory_coverage_proven": false,
+    "builds_green_measured_per_entry": false,
+    "tests_pass_measured_per_entry": false,
+    "non_test_loc_source": "static line count over checked-in .rs files outside test-like paths"
+  },
+  "closed_world_roots": [
+    {
+      "root": "oya",
+      "exists": true,
+      "observed_direct_child_dir_count": 87,
+      "root_class": "canonical_service_tree",
+      "allows_new_service_dirs": true,
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "post_migration_required_state": "present"
+    },
+    {
+      "root": "cloud",
+      "exists": true,
+      "observed_direct_child_dir_count": 25,
+      "root_class": "canonical_cloud_service_tree",
+      "allows_new_service_dirs": true,
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "post_migration_required_state": "present"
+    },
+    {
+      "root": "services",
+      "exists": false,
+      "observed_direct_child_dir_count": 0,
+      "root_class": "legacy_service_tree_must_remain_absent_or_empty",
+      "allows_new_service_dirs": false,
+      "target_tree": "oya",
+      "migration_class": "legacy_service_root_removal_candidate",
+      "post_migration_required_state": "absent_or_empty"
+    },
+    {
+      "root": "platforms",
+      "exists": true,
+      "observed_direct_child_dir_count": 0,
+      "root_class": "legacy_service_tree_must_remain_empty",
+      "allows_new_service_dirs": false,
+      "target_tree": "libs",
+      "migration_class": "legacy_service_root_removal_candidate",
+      "post_migration_required_state": "absent_or_empty"
+    },
+    {
+      "root": "packs",
+      "exists": true,
+      "observed_direct_child_dir_count": 9,
+      "root_class": "authorized_shared_pack_root_only",
+      "allows_new_service_dirs": false,
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "post_migration_required_state": "present"
+    },
+    {
+      "root": "regional-packs",
+      "exists": true,
+      "observed_direct_child_dir_count": 5,
+      "root_class": "authorized_regional_pack_root_only",
+      "allows_new_service_dirs": false,
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "post_migration_required_state": "present"
+    },
+    {
+      "root": "libs",
+      "exists": true,
+      "observed_direct_child_dir_count": 170,
+      "root_class": "canonical_library_tree",
+      "allows_new_service_dirs": false,
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "post_migration_required_state": "present"
+    },
+    {
+      "root": "microservices",
+      "exists": false,
+      "observed_direct_child_dir_count": 0,
+      "root_class": "retired_legacy_service_tree_must_remain_absent_or_empty",
+      "allows_new_service_dirs": false,
+      "target_tree": "oya",
+      "migration_class": "retired_legacy_service_root_removal_candidate",
+      "post_migration_required_state": "absent_or_empty"
+    }
+  ],
+  "required_entry_fields": [
+    "non_test_loc",
+    "has_main_rs",
+    "has_real_storage_adapter",
+    "authoritative_toolchain",
+    "builds_green",
+    "tests_pass",
+    "orphan_test_count",
+    "cargo_red_set",
+    "source_path",
+    "target_path",
+    "target_tree",
+    "migration_class"
+  ],
+  "authoritative_toolchain_enum": [
+    "buck2_local_static_inventory_only",
+    "buck2_live_cloud_ci_required_context_after_cutover",
+    "not_measured_by_seed_gate"
+  ],
+  "target_tree_enum": [
+    "oya",
+    "cloud",
+    "libs"
+  ],
+  "inventory_entries": [
+    {
+      "source_path": "oya/accounting",
+      "target_path": "oya/accounting",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1741,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/analytics",
+      "target_path": "oya/analytics",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1546,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/api-gateway",
+      "target_path": "oya/api-gateway",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/app-shell-frontend",
+      "target_path": "oya/app-shell-frontend",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/application",
+      "target_path": "oya/application",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 18460,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/audit-chain",
+      "target_path": "oya/audit-chain",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 2425,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/calendar",
+      "target_path": "oya/calendar",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 384,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/ci-controller",
+      "target_path": "oya/ci-controller",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 5215,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/ci-tide",
+      "target_path": "oya/ci-tide",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1366,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/ci-webhook-gateway",
+      "target_path": "oya/ci-webhook-gateway",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 4639,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/comms-email",
+      "target_path": "oya/comms-email",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/community",
+      "target_path": "oya/community",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 6132,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/compliance",
+      "target_path": "oya/compliance",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 7524,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/connect",
+      "target_path": "oya/connect",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 642,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/connector",
+      "target_path": "oya/connector",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 3841,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/consent-graph",
+      "target_path": "oya/consent-graph",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/contact-center",
+      "target_path": "oya/contact-center",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1300,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/contract-lifecycle-management",
+      "target_path": "oya/contract-lifecycle-management",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1303,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/crm",
+      "target_path": "oya/crm",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1975,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/data-pipeline",
+      "target_path": "oya/data-pipeline",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1318,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/data-warehouse",
+      "target_path": "oya/data-warehouse",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1528,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/design-collaboration",
+      "target_path": "oya/design-collaboration",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1306,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/detection",
+      "target_path": "oya/detection",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/developer-sdk",
+      "target_path": "oya/developer-sdk",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 59208,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/diagnostics",
+      "target_path": "oya/diagnostics",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/docs",
+      "target_path": "oya/docs",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 470,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/drive",
+      "target_path": "oya/drive",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 466,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/emergency",
+      "target_path": "oya/emergency",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/emr",
+      "target_path": "oya/emr",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/eventing",
+      "target_path": "oya/eventing",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1197,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/feature-flags",
+      "target_path": "oya/feature-flags",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 157,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/financial-planning",
+      "target_path": "oya/financial-planning",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1306,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/finops-portal",
+      "target_path": "oya/finops-portal",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/forms",
+      "target_path": "oya/forms",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 506,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/global-trade",
+      "target_path": "oya/global-trade",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 966,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/governance",
+      "target_path": "oya/governance",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/healthcare-integration",
+      "target_path": "oya/healthcare-integration",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/hr",
+      "target_path": "oya/hr",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 2712,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/identity",
+      "target_path": "oya/identity",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 11091,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/imaging",
+      "target_path": "oya/imaging",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/incident-management",
+      "target_path": "oya/incident-management",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1311,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/intelligence",
+      "target_path": "oya/intelligence",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 77115,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/itsm",
+      "target_path": "oya/itsm",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1935,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/learning-management",
+      "target_path": "oya/learning-management",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1321,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/mail",
+      "target_path": "oya/mail",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 4847,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/marketing-automation",
+      "target_path": "oya/marketing-automation",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1322,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/marketplace",
+      "target_path": "oya/marketplace",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 139,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/meet",
+      "target_path": "oya/meet",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 596,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/messenger",
+      "target_path": "oya/messenger",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 4594,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/notes",
+      "target_path": "oya/notes",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 652,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/observability",
+      "target_path": "oya/observability",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 5080,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/ontology",
+      "target_path": "oya/ontology",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 5667,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/ops",
+      "target_path": "oya/ops",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 2693,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/ops-dashboard-control-center",
+      "target_path": "oya/ops-dashboard-control-center",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/oya-authn-device-firmware",
+      "target_path": "oya/oya-authn-device-firmware",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 36,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/oya-billing",
+      "target_path": "oya/oya-billing",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/oya-cost",
+      "target_path": "oya/oya-cost",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/oya-flags",
+      "target_path": "oya/oya-flags",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/oya-identity",
+      "target_path": "oya/oya-identity",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/oya-meter",
+      "target_path": "oya/oya-meter",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/patient-monitoring",
+      "target_path": "oya/patient-monitoring",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/payments",
+      "target_path": "oya/payments",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 350,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/payroll",
+      "target_path": "oya/payroll",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 2732,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/performance-management",
+      "target_path": "oya/performance-management",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1344,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/pharmacy",
+      "target_path": "oya/pharmacy",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/plant-maintenance",
+      "target_path": "oya/plant-maintenance",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1622,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/plugin-app-store",
+      "target_path": "oya/plugin-app-store",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/policy",
+      "target_path": "oya/policy",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 3801,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/production-planning",
+      "target_path": "oya/production-planning",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1649,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/quality-management",
+      "target_path": "oya/quality-management",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1687,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/real-estate",
+      "target_path": "oya/real-estate",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1405,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/recordings",
+      "target_path": "oya/recordings",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 674,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/search",
+      "target_path": "oya/search",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1680,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/sheets",
+      "target_path": "oya/sheets",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 667,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/sites",
+      "target_path": "oya/sites",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 907,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/slides",
+      "target_path": "oya/slides",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 639,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/social",
+      "target_path": "oya/social",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/supply-chain-planning",
+      "target_path": "oya/supply-chain-planning",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1124,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/tasks",
+      "target_path": "oya/tasks",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 831,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/tenant-rbac",
+      "target_path": "oya/tenant-rbac",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 23013,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/translate",
+      "target_path": "oya/translate",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 776,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/treasury",
+      "target_path": "oya/treasury",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1048,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/warehouse",
+      "target_path": "oya/warehouse",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1770,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/whiteboard",
+      "target_path": "oya/whiteboard",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1283,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/workflow-engine",
+      "target_path": "oya/workflow-engine",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 40265,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/workflow-studio",
+      "target_path": "oya/workflow-studio",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 1889,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "oya/workplace-integration",
+      "target_path": "oya/workplace-integration",
+      "target_tree": "oya",
+      "migration_class": "canonical_service_root",
+      "non_test_loc": 147,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cell-lifecycle",
+      "target_path": "cloud/cell-lifecycle",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cell-rebalancer",
+      "target_path": "cloud/cell-rebalancer",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-billing",
+      "target_path": "cloud/cloud-billing",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 2902,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-billing-tax",
+      "target_path": "cloud/cloud-billing-tax",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 298,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-capacity",
+      "target_path": "cloud/cloud-capacity",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 2671,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-cell",
+      "target_path": "cloud/cloud-cell",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 4136,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-compute",
+      "target_path": "cloud/cloud-compute",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 9788,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-data",
+      "target_path": "cloud/cloud-data",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 2267,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-finops",
+      "target_path": "cloud/cloud-finops",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 4149,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-iac",
+      "target_path": "cloud/cloud-iac",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 3641,
+      "has_main_rs": true,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-iam",
+      "target_path": "cloud/cloud-iam",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 5013,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-intelligence",
+      "target_path": "cloud/cloud-intelligence",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 3643,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-k8s",
+      "target_path": "cloud/cloud-k8s",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-kms",
+      "target_path": "cloud/cloud-kms",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 3973,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-marketplace",
+      "target_path": "cloud/cloud-marketplace",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 2864,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-network",
+      "target_path": "cloud/cloud-network",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 10041,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-network-dns",
+      "target_path": "cloud/cloud-network-dns",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 967,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-secrets",
+      "target_path": "cloud/cloud-secrets",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 878,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-storage",
+      "target_path": "cloud/cloud-storage",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 5743,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/cloud-tenancy",
+      "target_path": "cloud/cloud-tenancy",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 191,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/managed-k8s-cluster-lifecycle",
+      "target_path": "cloud/managed-k8s-cluster-lifecycle",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 1521,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/managed-k8s-control-plane-host",
+      "target_path": "cloud/managed-k8s-control-plane-host",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 1998,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/managed-k8s-sla-observability",
+      "target_path": "cloud/managed-k8s-sla-observability",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 1845,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/managed-k8s-tenant-quota",
+      "target_path": "cloud/managed-k8s-tenant-quota",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 2235,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "cloud/tenancy",
+      "target_path": "cloud/tenancy",
+      "target_tree": "cloud",
+      "migration_class": "canonical_cloud_service_root",
+      "non_test_loc": 2544,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/au-localization",
+      "target_path": "packs/au-localization",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/br-localization",
+      "target_path": "packs/br-localization",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/cn-pipl",
+      "target_path": "packs/cn-pipl",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/eu-localization",
+      "target_path": "packs/eu-localization",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/in-localization",
+      "target_path": "packs/in-localization",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/jp-localization",
+      "target_path": "packs/jp-localization",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/kr-localization",
+      "target_path": "packs/kr-localization",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/mx-localization",
+      "target_path": "packs/mx-localization",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "packs/us-localization",
+      "target_path": "packs/us-localization",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "regional-packs/eu",
+      "target_path": "regional-packs/eu",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "regional-packs/jp",
+      "target_path": "regional-packs/jp",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "regional-packs/kr",
+      "target_path": "regional-packs/kr",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "regional-packs/ksa",
+      "target_path": "regional-packs/ksa",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "regional-packs/us-government",
+      "target_path": "regional-packs/us-government",
+      "target_tree": "libs",
+      "migration_class": "authorized_shared_pack_root_not_service",
+      "non_test_loc": 0,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-a11y-discipline",
+      "target_path": "libs/oya-check-a11y-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 235,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-active-artifact-contract",
+      "target_path": "libs/oya-check-active-artifact-contract",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 531,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-adr-citation",
+      "target_path": "libs/oya-check-adr-citation",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 203,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-adr-index",
+      "target_path": "libs/oya-check-adr-index",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1624,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-adr-placeholders",
+      "target_path": "libs/oya-check-adr-placeholders",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 473,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-aspirational-enforcement",
+      "target_path": "libs/oya-check-aspirational-enforcement",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 466,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-audit-chain-seal-coverage",
+      "target_path": "libs/oya-check-audit-chain-seal-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 149,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-authority-cohesion",
+      "target_path": "libs/oya-check-authority-cohesion",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 83,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-authz-tier-discipline",
+      "target_path": "libs/oya-check-authz-tier-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 141,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-backup-retention-discipline",
+      "target_path": "libs/oya-check-backup-retention-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 280,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-benchmark",
+      "target_path": "libs/oya-check-benchmark",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 235,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-brand-residue",
+      "target_path": "libs/oya-check-brand-residue",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 321,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-cedar-fragment-coverage",
+      "target_path": "libs/oya-check-cedar-fragment-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 360,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-claim-ceiling",
+      "target_path": "libs/oya-check-claim-ceiling",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 43,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-client-stack-discipline",
+      "target_path": "libs/oya-check-client-stack-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 514,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-codeowners-mirror",
+      "target_path": "libs/oya-check-codeowners-mirror",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 184,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-cohesion",
+      "target_path": "libs/oya-check-cohesion",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 193,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-compliance-evidence-coverage",
+      "target_path": "libs/oya-check-compliance-evidence-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 182,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-container-base-image",
+      "target_path": "libs/oya-check-container-base-image",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 258,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-cost-budget",
+      "target_path": "libs/oya-check-cost-budget",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 375,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-cursor-pagination-coverage",
+      "target_path": "libs/oya-check-cursor-pagination-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 248,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-data-class",
+      "target_path": "libs/oya-check-data-class",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 193,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-dependency-seam",
+      "target_path": "libs/oya-check-dependency-seam",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1371,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-doc-axis",
+      "target_path": "libs/oya-check-doc-axis",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 746,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-doc-catalog",
+      "target_path": "libs/oya-check-doc-catalog",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 347,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-documentation-system",
+      "target_path": "libs/oya-check-documentation-system",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 352,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-event-schema-versioning",
+      "target_path": "libs/oya-check-event-schema-versioning",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 174,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-glossary-coverage",
+      "target_path": "libs/oya-check-glossary-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 221,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-glossary-vocabulary",
+      "target_path": "libs/oya-check-glossary-vocabulary",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 952,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-high-risk-auto-decision-refusal",
+      "target_path": "libs/oya-check-high-risk-auto-decision-refusal",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 575,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-honest-claims",
+      "target_path": "libs/oya-check-honest-claims",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 905,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-i18n-coverage",
+      "target_path": "libs/oya-check-i18n-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 161,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-iac-tier-discipline",
+      "target_path": "libs/oya-check-iac-tier-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 367,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-id-discipline",
+      "target_path": "libs/oya-check-id-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 162,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-idempotency-key-coverage",
+      "target_path": "libs/oya-check-idempotency-key-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 227,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-image-signing-discipline",
+      "target_path": "libs/oya-check-image-signing-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 164,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-layered-architecture-discipline",
+      "target_path": "libs/oya-check-layered-architecture-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 535,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-license-policy",
+      "target_path": "libs/oya-check-license-policy",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 101,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-metric-cardinality",
+      "target_path": "libs/oya-check-metric-cardinality",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 156,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-mobile-native",
+      "target_path": "libs/oya-check-mobile-native",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 440,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-no-grouping",
+      "target_path": "libs/oya-check-no-grouping",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 164,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-olap-tier-discipline",
+      "target_path": "libs/oya-check-olap-tier-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 360,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-ontology-projection-coverage",
+      "target_path": "libs/oya-check-ontology-projection-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 360,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-openapi-rest-route-parity",
+      "target_path": "libs/oya-check-openapi-rest-route-parity",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 141,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-otel-trace-propagation",
+      "target_path": "libs/oya-check-otel-trace-propagation",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 155,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-perf-budget",
+      "target_path": "libs/oya-check-perf-budget",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 306,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-placeholder-debt",
+      "target_path": "libs/oya-check-placeholder-debt",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 457,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-pr-traceability",
+      "target_path": "libs/oya-check-pr-traceability",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 291,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-pre-push",
+      "target_path": "libs/oya-check-pre-push",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 271,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-protection-context-match",
+      "target_path": "libs/oya-check-protection-context-match",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 264,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-quality-lane",
+      "target_path": "libs/oya-check-quality-lane",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 556,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-raci-coverage",
+      "target_path": "libs/oya-check-raci-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 120,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-readme-coverage",
+      "target_path": "libs/oya-check-readme-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 144,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-realtime-transport-tier",
+      "target_path": "libs/oya-check-realtime-transport-tier",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 210,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-release-pack",
+      "target_path": "libs/oya-check-release-pack",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 488,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-retired-vocabulary",
+      "target_path": "libs/oya-check-retired-vocabulary",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 329,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-rpo-rto-coverage",
+      "target_path": "libs/oya-check-rpo-rto-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 171,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-runbook-freshness",
+      "target_path": "libs/oya-check-runbook-freshness",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 223,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-runbook-index",
+      "target_path": "libs/oya-check-runbook-index",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 41,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-saga-shape",
+      "target_path": "libs/oya-check-saga-shape",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 449,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-shardability",
+      "target_path": "libs/oya-check-shardability",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 291,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-slo-coverage",
+      "target_path": "libs/oya-check-slo-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 81,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-slsa-l3-evidence-grounded",
+      "target_path": "libs/oya-check-slsa-l3-evidence-grounded",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 431,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-statelessness",
+      "target_path": "libs/oya-check-statelessness",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 318,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-step-up-auth-coverage",
+      "target_path": "libs/oya-check-step-up-auth-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 194,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-supply-chain",
+      "target_path": "libs/oya-check-supply-chain",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 955,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-tenant-cost-labels-coverage",
+      "target_path": "libs/oya-check-tenant-cost-labels-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 455,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-typescript-workspace",
+      "target_path": "libs/oya-check-typescript-workspace",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 253,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-vector-store-discipline",
+      "target_path": "libs/oya-check-vector-store-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 330,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-vendor-lockin-discipline",
+      "target_path": "libs/oya-check-vendor-lockin-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 994,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-vendor-recency",
+      "target_path": "libs/oya-check-vendor-recency",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 292,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-check-wasm-runtime-discipline",
+      "target_path": "libs/oya-check-wasm-runtime-discipline",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 272,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-data-boundary-kernel",
+      "target_path": "libs/oya-data-boundary-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1564,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-gen-microservice-manifests-app",
+      "target_path": "libs/oya-gen-microservice-manifests-app",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1793,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-adapter-with-no-importer-kernel",
+      "target_path": "libs/oya-governance-adapter-with-no-importer-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 290,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-adr-shape-kernel",
+      "target_path": "libs/oya-governance-adr-shape-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 246,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-agentic-navigability-kernel",
+      "target_path": "libs/oya-governance-agentic-navigability-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 297,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-architecture-map-freshness-kernel",
+      "target_path": "libs/oya-governance-architecture-map-freshness-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 256,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-audit-event-emission",
+      "target_path": "libs/oya-governance-audit-event-emission",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 47,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-authoritative-tracked-kernel",
+      "target_path": "libs/oya-governance-authoritative-tracked-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 141,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-banned-primitives-kernel",
+      "target_path": "libs/oya-governance-banned-primitives-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 760,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-byok-disambiguation",
+      "target_path": "libs/oya-governance-byok-disambiguation",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 436,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-bypass-kernel",
+      "target_path": "libs/oya-governance-bypass-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 90,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-capability-tier-coverage",
+      "target_path": "libs/oya-governance-capability-tier-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 46,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-cedar-coverage",
+      "target_path": "libs/oya-governance-cedar-coverage",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 46,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-claim-ceiling-kernel",
+      "target_path": "libs/oya-governance-claim-ceiling-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 102,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-cohesion-kernel",
+      "target_path": "libs/oya-governance-cohesion-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 94,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-doc-freshness-kernel",
+      "target_path": "libs/oya-governance-doc-freshness-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 159,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-doc-style-kernel",
+      "target_path": "libs/oya-governance-doc-style-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 281,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-eval-domain",
+      "target_path": "libs/oya-governance-eval-domain",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 289,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-eval-usecase",
+      "target_path": "libs/oya-governance-eval-usecase",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 847,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-gate-catalog-domain",
+      "target_path": "libs/oya-governance-gate-catalog-domain",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1194,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-image-discipline-kernel",
+      "target_path": "libs/oya-governance-image-discipline-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 393,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-license-policy-kernel",
+      "target_path": "libs/oya-governance-license-policy-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 322,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-lifecycle-kernel",
+      "target_path": "libs/oya-governance-lifecycle-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1441,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-mistakes-ledger-kernel",
+      "target_path": "libs/oya-governance-mistakes-ledger-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 485,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-naming-justifications",
+      "target_path": "libs/oya-governance-naming-justifications",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 461,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-no-template-stamping",
+      "target_path": "libs/oya-governance-no-template-stamping",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 390,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-orphan-detection-kernel",
+      "target_path": "libs/oya-governance-orphan-detection-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 246,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-pack-overlay-completeness",
+      "target_path": "libs/oya-governance-pack-overlay-completeness",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 46,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-portfolio-citation-kernel",
+      "target_path": "libs/oya-governance-portfolio-citation-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 171,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-pr-merge-gate-kernel",
+      "target_path": "libs/oya-governance-pr-merge-gate-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 279,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-pr-traceability-kernel",
+      "target_path": "libs/oya-governance-pr-traceability-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 97,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-pre-push-kernel",
+      "target_path": "libs/oya-governance-pre-push-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 98,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-predictable-naming-kernel",
+      "target_path": "libs/oya-governance-predictable-naming-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 497,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-provider-coupling-kernel",
+      "target_path": "libs/oya-governance-provider-coupling-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 289,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-purpose-kernel",
+      "target_path": "libs/oya-governance-purpose-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 200,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-quality-lane-kernel",
+      "target_path": "libs/oya-governance-quality-lane-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 328,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-substance-bar",
+      "target_path": "libs/oya-governance-substance-bar",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 425,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-sunset-lifecycle-kernel",
+      "target_path": "libs/oya-governance-sunset-lifecycle-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 625,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-supply-chain-kernel",
+      "target_path": "libs/oya-governance-supply-chain-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 308,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-tos-policy-kernel",
+      "target_path": "libs/oya-governance-tos-policy-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 431,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-governance-upstream-api-drift-kernel",
+      "target_path": "libs/oya-governance-upstream-api-drift-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 735,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-http-latency-budget-middleware-infrastructure",
+      "target_path": "libs/oya-http-latency-budget-middleware-infrastructure",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 181,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-http-middleware-kernel",
+      "target_path": "libs/oya-http-middleware-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 492,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-http-router-kernel",
+      "target_path": "libs/oya-http-router-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 511,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-http-runtime-hyper-adapter",
+      "target_path": "libs/oya-http-runtime-hyper-adapter",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 889,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-http-sse-kernel",
+      "target_path": "libs/oya-http-sse-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 413,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-http-telemetry-middleware-infrastructure",
+      "target_path": "libs/oya-http-telemetry-middleware-infrastructure",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 328,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-http-tenant-middleware-infrastructure",
+      "target_path": "libs/oya-http-tenant-middleware-infrastructure",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 252,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-json-kernel",
+      "target_path": "libs/oya-json-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 564,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-scm",
+      "target_path": "libs/oya-scm",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 700,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-scm-forgejo",
+      "target_path": "libs/oya-scm-forgejo",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 804,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-architecture-check-cli",
+      "target_path": "libs/oya-shared-architecture-check-cli",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 71,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-audit-chain-client-kernel",
+      "target_path": "libs/oya-shared-audit-chain-client-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 183,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-backbone-grpc-generated-adapter",
+      "target_path": "libs/oya-shared-backbone-grpc-generated-adapter",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 883,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-backbone-grpc-transport-adapter",
+      "target_path": "libs/oya-shared-backbone-grpc-transport-adapter",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 554,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-backbone-proto-contracts-kernel",
+      "target_path": "libs/oya-shared-backbone-proto-contracts-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 333,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-backbone-rest-runtime-adapter",
+      "target_path": "libs/oya-shared-backbone-rest-runtime-adapter",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 2700,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-backup-kernel",
+      "target_path": "libs/oya-shared-backup-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 540,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-bounded-contexts-check-cli",
+      "target_path": "libs/oya-shared-bounded-contexts-check-cli",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 56,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-compliance-evidence-kernel",
+      "target_path": "libs/oya-shared-compliance-evidence-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 420,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-connector-kernel",
+      "target_path": "libs/oya-shared-connector-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 731,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-cursor-pagination-kernel",
+      "target_path": "libs/oya-shared-cursor-pagination-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 587,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-email-comms-kernel",
+      "target_path": "libs/oya-shared-email-comms-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1436,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-hyperscaler-metrics-adapter-otlp",
+      "target_path": "libs/oya-shared-hyperscaler-metrics-adapter-otlp",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 507,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-hyperscaler-metrics-adapter-prometheus",
+      "target_path": "libs/oya-shared-hyperscaler-metrics-adapter-prometheus",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 556,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-hyperscaler-metrics-kernel",
+      "target_path": "libs/oya-shared-hyperscaler-metrics-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1107,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-i18n-kernel",
+      "target_path": "libs/oya-shared-i18n-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 358,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-idempotency-key-kernel",
+      "target_path": "libs/oya-shared-idempotency-key-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 243,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-object-store-kernel",
+      "target_path": "libs/oya-shared-object-store-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 582,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-oidc-client-kernel",
+      "target_path": "libs/oya-shared-oidc-client-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 375,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-olap-clickhouse-adapter",
+      "target_path": "libs/oya-shared-olap-clickhouse-adapter",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 167,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-olap-client-kernel",
+      "target_path": "libs/oya-shared-olap-client-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1288,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-outbox-broker-http-adapter",
+      "target_path": "libs/oya-shared-outbox-broker-http-adapter",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 782,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-outbox-pattern-kernel",
+      "target_path": "libs/oya-shared-outbox-pattern-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 227,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-postgres-command-adapter-sqlx",
+      "target_path": "libs/oya-shared-postgres-command-adapter-sqlx",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 880,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-postgres-command-kernel",
+      "target_path": "libs/oya-shared-postgres-command-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 443,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-presence-kernel",
+      "target_path": "libs/oya-shared-presence-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 288,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-protocol-parity-kernel",
+      "target_path": "libs/oya-shared-protocol-parity-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 269,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-protocol-transport-kernel",
+      "target_path": "libs/oya-shared-protocol-transport-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 629,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-protocol-transport-retry-app",
+      "target_path": "libs/oya-shared-protocol-transport-retry-app",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 454,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-realtime-transport-kernel",
+      "target_path": "libs/oya-shared-realtime-transport-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 335,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-scim-server-kernel",
+      "target_path": "libs/oya-shared-scim-server-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1170,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-semver-check-cli",
+      "target_path": "libs/oya-shared-semver-check-cli",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 26,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-supply-chain-check-cli",
+      "target_path": "libs/oya-shared-supply-chain-check-cli",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 23,
+      "has_main_rs": true,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-tenant-quota-kernel",
+      "target_path": "libs/oya-shared-tenant-quota-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 485,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-timeseries-kernel",
+      "target_path": "libs/oya-shared-timeseries-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 716,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-tracing-client-kernel",
+      "target_path": "libs/oya-shared-tracing-client-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 465,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-transactional-outbox-adapter-sqlx",
+      "target_path": "libs/oya-shared-transactional-outbox-adapter-sqlx",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 448,
+      "has_main_rs": false,
+      "has_real_storage_adapter": true,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-transactional-outbox-dispatch-app",
+      "target_path": "libs/oya-shared-transactional-outbox-dispatch-app",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 588,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-transactional-outbox-kernel",
+      "target_path": "libs/oya-shared-transactional-outbox-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 426,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-transactional-outbox-poller-app",
+      "target_path": "libs/oya-shared-transactional-outbox-poller-app",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 340,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-transactional-outbox-runtime-tokio-app",
+      "target_path": "libs/oya-shared-transactional-outbox-runtime-tokio-app",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 741,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-transactional-outbox-worker-app",
+      "target_path": "libs/oya-shared-transactional-outbox-worker-app",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 397,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-ulid-id-kernel",
+      "target_path": "libs/oya-shared-ulid-id-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 202,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-vector-store-kernel",
+      "target_path": "libs/oya-shared-vector-store-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 1019,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-wasm-runtime-kernel",
+      "target_path": "libs/oya-shared-wasm-runtime-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 455,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-webauthn-server-kernel",
+      "target_path": "libs/oya-shared-webauthn-server-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 633,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    },
+    {
+      "source_path": "libs/oya-shared-webhook-delivery-kernel",
+      "target_path": "libs/oya-shared-webhook-delivery-kernel",
+      "target_tree": "libs",
+      "migration_class": "library_crate_root",
+      "non_test_loc": 131,
+      "has_main_rs": false,
+      "has_real_storage_adapter": false,
+      "authoritative_toolchain": "buck2_local_static_inventory_only",
+      "builds_green": false,
+      "tests_pass": false,
+      "orphan_test_count": 0,
+      "cargo_red_set": [
+        "not_measured_by_this_seed_gate"
+      ]
+    }
+  ],
+  "automated_chain": [
+    "scripts/ci/assert-service-root-classifier.py --inventory specs/service-inventory.json --packets specs/phase0-structural-packets.json --json",
+    "scripts/tests/service_root_classifier_check.test.sh",
+    "buck2 test //:service-root-classifier-check",
+    "//:phase0-red-green-fixture-contract-check",
+    "//:phase0-automation-ratchet-check",
+    "//:buck2-authority-policy-check"
+  ]
+}

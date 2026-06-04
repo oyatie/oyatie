@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package oyatie.d1.a2b.workflow.v1;
+
+// AC-0.5 A2b runtime seam: workflow -> AI-step invocation signature.
+// This is distinct from studio-authoring LlmAssistDraft RPCs; it carries the
+// typed tool reference, request args, Cedar principal, and idempotency key
+// needed by the future D1 conformance path without freezing execution topology.
+
+message TypedToolRef {
+  string tool_namespace = 1;
+  string tool_name = 2;
+  string tool_version = 3;
+}
+
+message CedarPrincipal {
+  string tenant_id = 1;
+  string principal_id = 2;
+  string cedar_entity_type = 3;
+  string policy_pack_ref = 4;
+}
+
+message WorkflowAiStepInvocationRequest {
+  string workflow_run_id = 1;
+  string workflow_step_id = 2;
+  TypedToolRef tool_ref = 3;
+  bytes args_json = 4;
+  CedarPrincipal cedar_principal = 5;
+  string idempotency_key = 6;
+  string d1_conformance_reference = 7;
+  string execution_locality = 8;
+  string topology_conformance_gate = 9;
+}
+
+message WorkflowAiStepInvocationResponse {
+  string invocation_id = 1;
+  string workflow_run_id = 2;
+  string workflow_step_id = 3;
+  bool accepted = 4;
+  string idempotency_key = 5;
+  optional string consistency_token = 6;
+  string d1_conformance_reference = 7;
+}
+
+service WorkflowAiStepInvoker {
+  rpc InvokeWorkflowAiStep(WorkflowAiStepInvocationRequest) returns (WorkflowAiStepInvocationResponse);
+}

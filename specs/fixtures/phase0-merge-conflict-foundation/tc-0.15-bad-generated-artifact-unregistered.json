@@ -1,0 +1,48 @@
+{
+  "fixture_id": "TC-0.15-BAD-generated-artifact-unregistered",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "generated_artifact_missing_registry"
+  ],
+  "description": "A generated output changes with no matching registry entry; must fail closed.",
+  "merge_tree_simulation": {
+    "engine": "git merge-tree --write-tree",
+    "result": "clean",
+    "mutates_working_tree": false,
+    "mutates_index": false,
+    "provider_side_merge_button_used": false
+  },
+  "lanes": [
+    {
+      "lane_id": "lane-unregistered-generated-output",
+      "owner_team": "platform-toolchain",
+      "owned_paths": [
+        "third-party/BUCK"
+      ],
+      "generated_artifact_ids": [
+        "missing-third-party-buck"
+      ]
+    }
+  ],
+  "generated_artifact_changes": [
+    {
+      "artifact_id": "missing-third-party-buck",
+      "path": "third-party/BUCK",
+      "source_paths": [
+        "Cargo.toml"
+      ],
+      "regeneration_command": "scripts/ci/regen-third-party.sh",
+      "registry_entry_present": false
+    }
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "phase1_tide_batching_claimed": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

@@ -2,7 +2,7 @@ SHELL := /bin/sh
 .DEFAULT_GOAL := help
 
 TOFU ?= tofu
-CARGO ?= cargo
+BUCK2 ?= buck2
 # OpenTofu now owns only the Cloudflare edge. The cluster fleet is provisioned by
 # Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD — see infra/capi, infra/talos/installation-media,
 # infra/gitops (ADR-0375, supersedes the OCI/on-prem deployment model of ADR-0120/0121).
@@ -40,7 +40,7 @@ tofu-fmt-check: check-tofu
 verify: verify-deploy-contract tofu-fmt-check
 
 verify-deploy-contract:
-	$(CARGO) run -p oya-dev-cli -- gate validate deployment-ops-contract
+	$(BUCK2) run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate deployment-ops-contract
 
 # Cluster fleet is declarative + git-driven (CAPI/Talos/Argo CD), not a Makefile concern.
 fleet:

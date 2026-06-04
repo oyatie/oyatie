@@ -1,0 +1,57 @@
+{
+  "fixture_id": "TC-0.15-GOOD-clean-merge-tree-generated-registry",
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "description": "Clean local merge-tree readiness with one-lane-one-path ownership and a registered generated artifact source pair.",
+  "merge_tree_simulation": {
+    "engine": "git merge-tree --write-tree",
+    "result": "clean",
+    "mutates_working_tree": false,
+    "mutates_index": false,
+    "provider_side_merge_button_used": false
+  },
+  "lanes": [
+    {
+      "lane_id": "lane-platform-docs",
+      "owner_team": "platform-governance",
+      "owned_paths": [
+        "docs/ci/auto-merge-flow.md"
+      ]
+    },
+    {
+      "lane_id": "lane-third-party-buck",
+      "owner_team": "platform-toolchain",
+      "owned_paths": [
+        "third-party/BUCK"
+      ],
+      "generated_artifact_ids": [
+        "third-party-buck"
+      ]
+    }
+  ],
+  "generated_artifact_changes": [
+    {
+      "artifact_id": "third-party-buck",
+      "path": "third-party/BUCK",
+      "source_paths": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "reindeer.toml",
+        "third-party/fixups",
+        "scripts/ci/third-party-buckify-handedits.patch"
+      ],
+      "regeneration_command": "scripts/ci/regen-third-party.sh",
+      "registry_entry_present": true
+    }
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "phase1_tide_batching_claimed": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

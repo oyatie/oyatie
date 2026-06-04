@@ -1,0 +1,436 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/github-lane-unlocker-bridge.json",
+  "spec_id": "P00-GITHUB-LANE-UNLOCKER-BRIDGE",
+  "bridge_status": "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+  "updated_at": "2026-06-03T00:00:00Z",
+  "purpose": "Unlock highly parallel product, infra, and cloud lanes on dev while native SCM/CI/CD/cloud workspace seams are built behind Buck2 authority.",
+  "github_bridge": {
+    "temporary": true,
+    "permanent_first_class": false,
+    "interim_scm": "github",
+    "interim_ci": "github_actions",
+    "interim_cd": "github_actions",
+    "is_destination_scm": false,
+    "is_destination_ci": false,
+    "is_destination_cd": false,
+    "required_context": "github-lane-unlocker-required",
+    "workflow_path": ".github/workflows/github-lane-unlocker-ci-cd.yml",
+    "branch_protection_application": "external_live_change_required_not_performed_by_this_contract",
+    "native_cutover_target_context": "oya-ci-required",
+    "queue_policy": {
+      "preferred": "github_merge_queue_when_available",
+      "fallback": "auto_merge_with_required_context_and_head_sha_pinning",
+      "reason": "High-concurrency dev lanes need a merge queue or equivalent projected-state validation so infra/cloud/product fanout does not serialize all work."
+    },
+    "runner_toolchain": {
+      "buck2_release": "2026-06-01",
+      "install_if_missing": true,
+      "source": "https://github.com/facebook/buck2/releases",
+      "fail_closed": "rustup toolchain/components/targets, llvm-profdata/llvm-cov, buck2 --version, and Buck2 targets must pass before required context succeeds",
+      "bootstrap_script": "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+      "serialized_before_buck2_fanout": true,
+      "rust_toolchain": "1.95.0",
+      "rust_components": [
+        "rustfmt",
+        "clippy",
+        "llvm-tools-preview"
+      ],
+      "rust_targets": [
+        "x86_64-unknown-linux-gnu",
+        "aarch64-unknown-linux-gnu"
+      ],
+      "rustup_concurrent_downloads": 1,
+      "rustup_lazy_install_allowed_in_buck2_actions": false,
+      "llvm_tools_preinstalled": true
+    }
+  },
+  "github_actions_cd_bridge": {
+    "mode": "github_actions_cd_bridge_until_release_conveyor_cutover",
+    "live_deployments_enabled": false,
+    "deploys_via_jenkins": false,
+    "deploys_via_argocd": false,
+    "cutover_destination": "release_conveyor_cd",
+    "scope": "dry-run and artifact/evidence preparation only until the native release conveyor proves Kubernetes-native promotion and rollback."
+  },
+  "not_interim_authorities": {
+    "jenkins": false,
+    "forgejo": false,
+    "argocd": false
+  },
+  "build_test_check_authority": {
+    "authority": "buck2",
+    "reason": "Buck2 remains the build/test/check authority because it models the graph, affected-target fanout, remote/hybrid execution, and cacheable parallel work better than raw Cargo in the monorepo.",
+    "cargo_role": "advisory_local_only_for_dual_cargo_buck2_setups_and_mutation_testing",
+    "coverage": "buck2_native_llvm_source_based_coverage_not_tarpaulin",
+    "required_targets": [
+      "//:github-lane-unlocker-bridge-check",
+      "//:buck2-authority-policy-check",
+      "//:rust-llvm-coverage-runner-contract-check",
+      "//:rust-llvm-coverage-smoke-check"
+    ]
+  },
+  "pattern_adoption_strategy": {
+    "mode": "best_of_existing_systems_not_wholesale_reimplementation",
+    "source_systems": [
+      "prow",
+      "sapling",
+      "piper",
+      "citc",
+      "github_actions",
+      "buck2",
+      "kubernetes"
+    ],
+    "wholesale_clone_or_reimplementation": false,
+    "adopted_patterns": [
+      "disjoint_merge_pools",
+      "stacked_changes",
+      "cloud_workspaces",
+      "required_status_rollup",
+      "affected_builds",
+      "kubernetes_native_job_execution",
+      "source_based_coverage"
+    ],
+    "rationale": "Use proven hyperscaler patterns as reference architecture inputs. Do not copy an upstream product wholesale when the durable Oyatie seam needs Rust-first SCM, Buck2 graph authority, Kubernetes-native execution, cloud workspace resources, and decoupled microservices."
+  },
+  "native_destination_seams": {
+    "oyatie_scm": {
+      "decision": "pure_rust_sapling_compatible_native_scm",
+      "implementation_strategy": "adopt_existing_hyperscaler_patterns_not_wholesale_reimplementation",
+      "durable_language": "rust",
+      "upstream_sapling_role": "behavioral_reference_not_permanent_fork_authority",
+      "python_cpp_in_durable_path": false,
+      "patterns_to_adopt": [
+        "stacked commits",
+        "fast commit graph operations",
+        "monorepo-scale ergonomics",
+        "cloud workspace compatibility"
+      ],
+      "patterns_not_adopted_as_is": [
+        "permanent Python control plane",
+        "permanent C++ durable core",
+        "wholesale upstream fork authority"
+      ]
+    },
+    "cloud_workspace_service": {
+      "role": "Kubernetes-native cloud workspace/resource kernel seam that makes infra/cloud/product lanes independent without leaking workspace internals into product services.",
+      "reference_inputs": [
+        "/Users/jasonlee/Developer/sapling/.omx/plans/prd-cloud-workspace-service.md",
+        "/Users/jasonlee/Developer/sapling/.omx/plans/test-spec-cloud-workspace-service.md",
+        "/Users/jasonlee/Developer/sapling/.omx/plans/ralplan-dr-cloud-workspace-service.md",
+        "/Users/jasonlee/Developer/sapling/.omx/plans/ralplan-handoff-cloud-workspace-service.json"
+      ]
+    },
+    "rust_prow_oya_ci": {
+      "role": "Native CI/merge automation seam aligned with Prow/Tide patterns, not a blind Prow clone.",
+      "adopted_patterns": [
+        "presubmit/postsubmit job model",
+        "merge pool",
+        "status reporter",
+        "build-cluster isolation",
+        "trusted/untrusted job separation"
+      ]
+    },
+    "buck2_execution": {
+      "role": "Build/test/check authority with affected target fanout, remote or hybrid execution, and deferred materialization where supported."
+    },
+    "llvm_source_based_coverage": {
+      "role": "Modern Rust coverage via rustc -C instrument-coverage and LLVM tools, driven by Buck2 targets instead of Tarpaulin."
+    },
+    "release_conveyor_cd": {
+      "role": "Native CD cutover destination with Kubernetes-native progressive delivery, policy, evidence, rollback, and audit; GitHub Actions CD remains dry-run bridge only."
+    }
+  },
+  "cloud_native_hyperscaler_fit": {
+    "cloud_native": true,
+    "kubernetes_native": true,
+    "hyperscaler_native": true,
+    "parallel_lane_ready": true,
+    "pod_shutdown_policy": "scale_controllers_to_zero_not_delete_pods_blindly",
+    "cncf_cloud_native": {
+      "loosely_coupled_microservices": true,
+      "interoperate_secure_resilient_manageable_observable": true,
+      "separation_of_concerns": true,
+      "distributable": true,
+      "observable": true,
+      "portable": true,
+      "interoperable": true,
+      "available": true,
+      "microservice_contract": "Each service owns one concern, publishes stable APIs/events, avoids shared mutable internals, and can be tested/promoted independently under Buck2 evidence."
+    },
+    "kubernetes_execution": {
+      "job_model": "CI jobs become Kubernetes-native workloads in the durable seam; GitHub Actions is only the interim trigger/executor.",
+      "shutdown_model": "Use controller scale-to-zero or rollout pause/drain semantics for known workloads; do not blindly delete pods because controllers recreate them and can corrupt evidence."
+    }
+  },
+  "parallel_lane_model": {
+    "goal": "infra/cloud/product work can progress concurrently without serializing on the native CI/CD/cloud substrate cutover.",
+    "families": {
+      "product": {
+        "lanes": [
+          "product-api",
+          "product-ui",
+          "product-domain",
+          "product-integration"
+        ],
+        "dependency_boundary": "Consumes platform contracts only; must not depend on GitHub, GitHub Actions, native SCM internals, or cloud workspace internals."
+      },
+      "cloud_platform": {
+        "lanes": [
+          "workspace-service",
+          "resource-kernel",
+          "kubernetes-execution",
+          "release-conveyor"
+        ],
+        "dependency_boundary": "Publishes stable resources/APIs/events for product and infra lanes."
+      },
+      "scm_ci_cd": {
+        "lanes": [
+          "github-bridge",
+          "buck2-authority",
+          "rust-prow",
+          "oyatie-scm"
+        ],
+        "dependency_boundary": "Owns bridge/native developer substrate without making product delivery wait for full native cutover."
+      },
+      "governance": {
+        "lanes": [
+          "docs-registry",
+          "evidence",
+          "claim-boundary",
+          "cleanup"
+        ],
+        "dependency_boundary": "Records truth and prevents false readiness claims."
+      }
+    },
+    "single_writer_shared_files": [
+      "BUCK",
+      "specs/root-hub-pointers.json",
+      "specs/masterplan.json",
+      "specs/buck2-authority-policy.json",
+      "evidence/audit-chain.jsonl"
+    ],
+    "safe_parallelism_rule": "Use separate worktrees and PRs for disjoint lane families; shared files require one writer or queued patch integration."
+  },
+  "auth_shared_substrate_decoupling": {
+    "status": "cloud_and_oyatie_auth_shared_substrates_decoupled_now",
+    "no_shared_contract_or_surface_now": true,
+    "higher_concurrency_expected": true,
+    "conflict_avoidance": "separate_contract_files_schemas_and_runtime_surfaces",
+    "future_integration": "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes",
+    "rationale": "Separating Cloud auth/shared substrate from Oyatie product auth/shared substrate removes shared schema and runtime edit conflicts while infra/cloud/product lanes fan out. Integration is postponed until the Cloud IdP/resource substrate stabilizes, then product services are deliberately rewritten and rewired to consume it.",
+    "boundaries": {
+      "cloud_identity_shared": {
+        "own_contracts": true,
+        "own_runtime_surface": true,
+        "no_cross_lane_shared_schema": true,
+        "scope": "Cloud IdP, workspace identity, resource-kernel identities, cloud control-plane authz, service-to-service cloud substrate identity."
+      },
+      "oyatie_product_identity_shared": {
+        "own_contracts": true,
+        "own_runtime_surface": true,
+        "no_cross_lane_shared_schema": true,
+        "scope": "Product tenant/user/session/auth shared surfaces used by current Oyatie product microservices until Cloud IdP consumption rewrite lands."
+      }
+    },
+    "integration_backlog": [
+      "stabilize Cloud IdP/resource substrate contracts",
+      "write product-side adapter/migration plan",
+      "rewrite and rewire Oyatie product services to consume Cloud IdP",
+      "retire product-local auth/shared contracts after equivalence and migration evidence"
+    ],
+    "future_work_saving_plan": {
+      "intent": "Save future work by making today's decoupling explicit, adapter-shaped, and reversible instead of letting product/cloud auth contracts drift accidentally.",
+      "phases": [
+        {
+          "id": "P00-A",
+          "name": "separate-contracts-now",
+          "outcome": "Cloud auth/shared and Oyatie product auth/shared have separate contract roots, schemas, runtime surfaces, tests, and owners.",
+          "saves_work_by": "avoiding repeated merge conflicts in shared auth files while lanes fan out"
+        },
+        {
+          "id": "P00-B",
+          "name": "thin-compatibility-inventory",
+          "outcome": "Record equivalent concepts between product auth and Cloud IdP without sharing implementation.",
+          "saves_work_by": "making future rewrite a mapped migration instead of rediscovery"
+        },
+        {
+          "id": "P01",
+          "name": "cloud-idp-stabilization",
+          "outcome": "Cloud IdP/resource substrate has stable API/events, policy, audit, rollback, and migration evidence.",
+          "saves_work_by": "preventing product rewires against unstable Cloud IdP internals"
+        },
+        {
+          "id": "P02",
+          "name": "product-adapter-rewrite",
+          "outcome": "Rewrite and rewire Oyatie products to consume Cloud IdP through adapters/facades, then retire product-local auth/shared surfaces after equivalence tests.",
+          "saves_work_by": "isolating rewire to adapter boundary and migration tests"
+        }
+      ],
+      "reuse_rules": [
+        "Name equivalent identity concepts now, but do not share code/schema yet.",
+        "Keep adapter seams narrow and product-facing.",
+        "Do not duplicate business policy once Cloud IdP policy is stable; migrate it deliberately.",
+        "Keep Buck2 targets separate but add future cross-contract equivalence tests."
+      ],
+      "anti_rework_checks": [
+        "No product lane imports Cloud identity internals before P02.",
+        "No Cloud lane edits product auth schema before P02.",
+        "No shared auth schema file is introduced during P00/P01.",
+        "Future migration PR must include equivalence, rollback, and audit evidence."
+      ]
+    }
+  },
+  "lane_graph": {
+    "families": {
+      "product": {
+        "decoupled_from": [
+          "github",
+          "forgejo",
+          "cloud-ci internals",
+          "workspace substrate internals"
+        ]
+      },
+      "cloud_platform": {
+        "decoupled_from": [
+          "product feature internals",
+          "GitHub Actions implementation details"
+        ]
+      },
+      "scm_ci_cd": {
+        "decoupled_from": [
+          "product domain model",
+          "cloud resource implementation details"
+        ]
+      },
+      "governance": {
+        "decoupled_from": [
+          "runtime deployment side effects"
+        ]
+      }
+    },
+    "product_lanes_must_not_depend_on": [
+      "github",
+      "forgejo",
+      "cloud-ci internals",
+      "workspace substrate internals"
+    ]
+  },
+  "alternatives_and_counterarguments": [
+    {
+      "id": "github_only_permanent",
+      "counterargument": "Fastest unlock but creates platform lock-in and contradicts native SCM/CI/CD ownership.",
+      "decision": "reject_as_destination_keep_temporary"
+    },
+    {
+      "id": "upstream_prow_as_is",
+      "counterargument": "Mature Kubernetes CI, but wholesale adoption would keep Go/Prow semantics as authority instead of Oyatie Rust/Buck2/resource contracts.",
+      "decision": "adopt_patterns_not_product"
+    },
+    {
+      "id": "sapling_fork_without_rust_boundary",
+      "counterargument": "Sapling provides monorepo ergonomics, but durable Python/C++ control surfaces conflict with the Rust-first native SCM seam.",
+      "decision": "adopt_patterns_and_protocol_compatibility"
+    },
+    {
+      "id": "build_from_scratch_ignoring_proven_patterns",
+      "counterargument": "Maximal control, but high reinvention risk and likely misses Prow/Tide/Piper/CitC/Sapling lessons.",
+      "decision": "reject"
+    }
+  ],
+  "claim_boundary": {
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "github_is_permanent": false,
+    "native_ci_authority_proven": false,
+    "forbidden_claims": [
+      "GitHub is the permanent SCM",
+      "GitHub Actions is the permanent CI authority",
+      "GitHub Actions is the permanent CD authority",
+      "Jenkins is the interim CI authority",
+      "Forgejo is the interim SCM authority",
+      "ArgoCD is the interim CD authority",
+      "P0.0 green",
+      "Phase 0 complete",
+      "cloud-ci/oya-ci live authority proven"
+    ]
+  },
+  "official_sources": [
+    {
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax",
+      "establishes": "Workflow syntax, strategy matrix, fail-fast, max-parallel, permissions, and job structure."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations",
+      "establishes": "Matrix fanout and max-parallel behavior for concurrent CI lanes."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
+      "establishes": "Concurrency groups and cancel-in-progress for stale run control."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations",
+      "establishes": "Reusable workflow boundaries and permissions caveats for thin adapters."
+    },
+    {
+      "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+      "establishes": "Required status checks and protected-branch policy surface."
+    },
+    {
+      "url": "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request-with-a-merge-queue",
+      "establishes": "Merge queue for high-churn branches."
+    },
+    {
+      "url": "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request",
+      "establishes": "Auto-merge fallback semantics."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/overview/",
+      "establishes": "Prow as Kubernetes-native CI/merge automation reference model."
+    },
+    {
+      "url": "https://buck2.build/docs/users/commands/build/",
+      "establishes": "Buck2 build command as graph authority."
+    },
+    {
+      "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+      "establishes": "Rust LLVM source-based coverage workflow."
+    },
+    {
+      "url": "https://sapling-scm.com/docs/introduction/",
+      "establishes": "Sapling monorepo/stacked-change ergonomics reference."
+    },
+    {
+      "url": "https://sapling-scm.com/docs/scale/overview/",
+      "establishes": "Sapling scale patterns reference."
+    },
+    {
+      "url": "https://cacm.acm.org/research/why-google-stores-billions-of-lines-of-code-in-a-single-repository/",
+      "establishes": "Piper/CitC monorepo and cloud workspace pattern reference."
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/run-application/scale-deployment/",
+      "establishes": "Scale deployments through controllers instead of blindly deleting pods."
+    },
+    {
+      "url": "https://github.com/cncf/toc/blob/main/DEFINITION.md",
+      "establishes": "CNCF cloud-native definition: loosely coupled, resilient, manageable, observable systems."
+    },
+    {
+      "url": "https://architecture.cncf.io/",
+      "establishes": "CNCF Cloud Native Reference Architecture properties for distributable, observable, portable, interoperable, and available systems."
+    }
+  ],
+  "cleanup_policy": {
+    "safe_now": [
+      "delete local untracked __pycache__ artifacts",
+      "mark legacy Jenkins/Forgejo/ArgoCD docs as superseded for interim use",
+      "keep native cutover context separate from GitHub temporary context"
+    ],
+    "defer": [
+      "delete tracked legacy bridge scripts only after native or GitHub bridge replacement has green evidence",
+      "mutate live branch protection only through an explicit external-change step",
+      "scale down Kubernetes pods only after namespace/workload scope is explicit"
+    ]
+  }
+}

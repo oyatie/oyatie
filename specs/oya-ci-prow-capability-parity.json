@@ -1,0 +1,672 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "specs/oya-ci-prow-capability-parity.json",
+  "title": "oya-ci upstream Prow capability parity and improvement registry",
+  "description": "Enforceable feature/capability map for the Rust, Forgejo-native oya-ci reimplementation and improvement of upstream Kubernetes Prow. This registry records target parity and improvements only; it is not a live full-parity or protected-branch authority claim.",
+  "_meta": {
+    "doc_class": "Capability-Parity-Registry",
+    "owner_team": "platform-toolchain",
+    "created_at": "2026-06-03",
+    "updated_at": "2026-06-03",
+    "source_request": "Founder directive: use upstream kubernetes-sigs/prow as baseline and draft full feature/capability parity plus improvements for Rust reimplementation.",
+    "related_adr": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+    "related_matrix_row": "AC-0.0-buck2-authority-no-cargo-regression",
+    "status": "phase0-local-static-contract"
+  },
+  "upstream_sources": {
+    "repository": "https://github.com/kubernetes-sigs/prow",
+    "documentation": "https://docs.prow.k8s.io/docs/",
+    "architecture": "https://docs.prow.k8s.io/docs/overview/architecture/",
+    "components": "https://docs.prow.k8s.io/docs/components/",
+    "jobs": "https://docs.prow.k8s.io/docs/jobs/",
+    "tide": "https://docs.prow.k8s.io/docs/components/core/tide/",
+    "tide_config": "https://docs.prow.k8s.io/docs/components/core/tide/config/",
+    "plugins": "https://docs.prow.k8s.io/docs/components/plugins/",
+    "pod_utilities": "https://docs.prow.k8s.io/docs/components/pod-utilities/",
+    "secrets": "https://docs.prow.k8s.io/docs/prow-secrets/",
+    "scaling": "https://docs.prow.k8s.io/docs/scaling/",
+    "build_clusters": "https://docs.prow.k8s.io/docs/build-clusters/",
+    "branchprotector": "https://docs.prow.k8s.io/docs/components/optional/branchprotector/",
+    "crier": "https://docs.prow.k8s.io/docs/components/core/crier/",
+    "deck": "https://docs.prow.k8s.io/docs/components/core/deck/",
+    "plank_deprecated": "https://docs.prow.k8s.io/docs/components/deprecated/plank/",
+    "controller_manager": "https://docs.prow.k8s.io/docs/components/"
+  },
+  "claim_boundary": {
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "live_full_parity_claimed": false,
+    "protected_branch_authority_proven": false,
+    "note": "Rows may be bridge_existing, existing_partial, or phase targets. Only trusted cloud-ci/oya-ci source-bound oya-ci-required on candidate SHAs can provide live merge authority; this registry makes no production-readiness or hyperscaler-grade readiness claim.",
+    "production_readiness": false,
+    "hyperscaler_grade_readiness": false
+  },
+  "required_capability_ids": [
+    "prow-hook-webhook-ingest",
+    "prow-plugin-command-routing",
+    "prow-prowjob-api-and-config",
+    "prow-presubmit-jobs",
+    "prow-postsubmit-jobs",
+    "prow-periodic-jobs",
+    "prow-batch-jobs",
+    "prow-controller-manager-job-controller",
+    "prow-crier-status-reporting",
+    "prow-deck-web-ui",
+    "prow-tide-merge-automation",
+    "prow-sinker-gc",
+    "prow-horologium-periodic-trigger",
+    "prow-branchprotector",
+    "prow-pod-utilities-clonerefs",
+    "prow-pod-utilities-entrypoint-sidecar",
+    "prow-artifact-storage",
+    "prow-service-build-cluster-split",
+    "prow-trusted-untrusted-execution",
+    "prow-config-validation",
+    "prow-label-approval-lgtm-policy",
+    "prow-retest-and-trigger-policy",
+    "prow-status-reconciliation",
+    "prow-metrics-observability"
+  ],
+  "capabilities": [
+    {
+      "id": "prow-hook-webhook-ingest",
+      "upstream_feature": "hook webhook listener",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "oya_ci_equivalent": "oya/ci-webhook-gateway",
+      "current_status": "bridge_existing",
+      "parity_scope": "direct_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-webhook-gateway/manifest.json",
+        "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel/src/lib.rs",
+        "oya/ci-webhook-gateway/src/receiver.rs"
+      ],
+      "improvements_over_upstream": [
+        "Forgejo-native HMAC/Ed25519 ingress",
+        "candidate PR bytes stay data-only"
+      ],
+      "parity_requirement": "oya-ci must provide hook webhook listener behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-plugin-command-routing",
+      "upstream_feature": "hook plugin and command dispatch",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/plugins/",
+      "oya_ci_equivalent": "oya-ci plugin dispatcher on ci-webhook-gateway",
+      "current_status": "phase4_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "docs/ideas/oya-ci-bespoke-prow.md"
+      ],
+      "improvements_over_upstream": [
+        "governance reviewer-agent commands become typed Rust capabilities",
+        "external plugin webhooks can be policy-gated"
+      ],
+      "parity_requirement": "oya-ci must provide hook plugin and command dispatch behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-prowjob-api-and-config",
+      "upstream_feature": "ProwJob CRD/config surface",
+      "upstream_source": "https://docs.prow.k8s.io/docs/jobs/",
+      "oya_ci_equivalent": "OyaCIJob/config registry",
+      "current_status": "phase1_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+        "specs/bespoke-cloud-toolchain-services.json"
+      ],
+      "improvements_over_upstream": [
+        "Buck2 target and required context are typed policy inputs",
+        "Forgejo-native job identity"
+      ],
+      "parity_requirement": "oya-ci must provide ProwJob CRD/config surface behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-presubmit-jobs",
+      "upstream_feature": "presubmit jobs",
+      "upstream_source": "https://docs.prow.k8s.io/docs/jobs/",
+      "oya_ci_equivalent": "oya-ci presubmit gate job",
+      "current_status": "phase0_contract",
+      "parity_scope": "direct_reimplementation",
+      "repo_artifacts": [
+        "infra/ci/buck2-affected-gate.sh",
+        "oya/ci-controller/crates/oya-ci-controller-app/src/lib.rs",
+        "specs/phase0-ci-enforcement-baseline.json"
+      ],
+      "improvements_over_upstream": [
+        "Buck2-native affected gate",
+        "trusted trunk/controller-sourced orchestration"
+      ],
+      "parity_requirement": "oya-ci must provide presubmit jobs behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-postsubmit-jobs",
+      "upstream_feature": "postsubmit jobs",
+      "upstream_source": "https://docs.prow.k8s.io/docs/jobs/",
+      "oya_ci_equivalent": "oya-ci postsubmit job type",
+      "current_status": "phase3_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "specs/bespoke-cloud-toolchain-services.json"
+      ],
+      "improvements_over_upstream": [
+        "same Rust job state machine as presubmits",
+        "self-hosted artifact/signing flow"
+      ],
+      "parity_requirement": "oya-ci must provide postsubmit jobs behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-periodic-jobs",
+      "upstream_feature": "periodic jobs",
+      "upstream_source": "https://docs.prow.k8s.io/docs/jobs/",
+      "oya_ci_equivalent": "oya-ci scheduled job type",
+      "current_status": "phase3_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+      ],
+      "improvements_over_upstream": [
+        "horologium-equivalent schedule can reuse typed policy registry",
+        "Buck2-native periodic validation"
+      ],
+      "parity_requirement": "oya-ci must provide periodic jobs behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-batch-jobs",
+      "upstream_feature": "batch jobs for Tide",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/core/tide/",
+      "oya_ci_equivalent": "oya-ci Tide batch/speculative merge jobs",
+      "current_status": "phase2_target",
+      "parity_scope": "direct_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
+        "specs/phase0-auto-merge-after-ci.json"
+      ],
+      "improvements_over_upstream": [
+        "Forgejo PR-head pinning and conflict guards",
+        "Buck2 affected gate before merge"
+      ],
+      "parity_requirement": "oya-ci must provide batch jobs for Tide behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-controller-manager-job-controller",
+      "upstream_feature": "prow-controller-manager job controller with deprecated Plank compatibility context",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "oya_ci_equivalent": "oya-ci-controller kube-rs reconciler",
+      "current_status": "existing_partial",
+      "parity_scope": "improved_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-controller/crates/oya-ci-controller-k8s-adapter/src/lib.rs",
+        "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs"
+      ],
+      "improvements_over_upstream": [
+        "Rust kube-rs controller",
+        "terminal-status-always bridge away from Jenkins/Groovy",
+        "deprecated Plank behavior is compatibility context, not the primary baseline"
+      ],
+      "parity_requirement": "oya-ci must provide prow-controller-manager job-controller behavior for Forgejo/Talos while treating deprecated Plank docs as legacy compatibility context only.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-crier-status-reporting",
+      "upstream_feature": "crier status reporting",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/core/crier/",
+      "oya_ci_equivalent": "Forgejo status reporter",
+      "current_status": "existing_partial",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-controller/crates/oya-ci-controller-forgejo-adapter/src/lib.rs",
+        "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter/src/lib.rs"
+      ],
+      "improvements_over_upstream": [
+        "source-bound required context",
+        "failure summaries remain local/static until live cutover"
+      ],
+      "parity_requirement": "oya-ci must provide crier status reporting behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-deck-web-ui",
+      "upstream_feature": "deck web UI",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/core/deck/",
+      "oya_ci_equivalent": "oya-ci-deck visibility UI",
+      "current_status": "phase3_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "docs/ideas/oya-ci-bespoke-prow.md"
+      ],
+      "improvements_over_upstream": [
+        "SolidJS/self-hosted UI instead of upstream GitHub/GCS assumptions",
+        "agent/founder visibility focused on governance gates"
+      ],
+      "parity_requirement": "oya-ci must provide deck web UI behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-tide-merge-automation",
+      "upstream_feature": "Tide merge automation",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/core/tide/",
+      "oya_ci_equivalent": "oya-ci-tide",
+      "current_status": "phase0_contract",
+      "parity_scope": "direct_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
+        "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs",
+        "specs/phase0-auto-merge-after-ci.json"
+      ],
+      "improvements_over_upstream": [
+        "Forgejo-native merge queue",
+        "required-context source binding",
+        "auto-merge-after-CI is Phase-0-owned"
+      ],
+      "parity_requirement": "oya-ci must provide Tide merge automation behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-sinker-gc",
+      "upstream_feature": "sinker cleanup",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "oya_ci_equivalent": "Kubernetes TTL plus oya-ci GC loop",
+      "current_status": "phase3_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-controller/iac/k8s/helm/values.yaml",
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+      ],
+      "improvements_over_upstream": [
+        "K8s-native ttlSecondsAfterFinished",
+        "controller-level audit-chain cleanup evidence"
+      ],
+      "parity_requirement": "oya-ci must provide sinker cleanup behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-horologium-periodic-trigger",
+      "upstream_feature": "horologium periodic trigger",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "oya_ci_equivalent": "oya-ci scheduler for periodic jobs",
+      "current_status": "phase3_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+      ],
+      "improvements_over_upstream": [
+        "typed schedule registry",
+        "Buck2-native periodic gates"
+      ],
+      "parity_requirement": "oya-ci must provide horologium periodic trigger behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-branchprotector",
+      "upstream_feature": "branchprotector",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/optional/branchprotector/",
+      "oya_ci_equivalent": "branch-protection required-context reconciler",
+      "current_status": "phase0_contract",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "infra/branch-protection/dev.json",
+        "scripts/ci/assert-required-status-source.py",
+        "specs/phase0-ci-enforcement-baseline.json"
+      ],
+      "improvements_over_upstream": [
+        "source-app binding is explicit",
+        "no local oya/Cargo authority"
+      ],
+      "parity_requirement": "oya-ci must provide branchprotector behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-pod-utilities-clonerefs",
+      "upstream_feature": "clonerefs/ref preparation",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/pod-utilities/",
+      "oya_ci_equivalent": "trusted trunk script plus PR ref data checkout",
+      "current_status": "phase1_target",
+      "parity_scope": "improved_reimplementation",
+      "repo_artifacts": [
+        "infra/ci/buck2-affected-gate.sh",
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+      ],
+      "improvements_over_upstream": [
+        "PR bytes are untrusted data",
+        "gate logic is controller/trunk-sourced"
+      ],
+      "parity_requirement": "oya-ci must provide clonerefs/ref preparation behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-pod-utilities-entrypoint-sidecar",
+      "upstream_feature": "entrypoint/sidecar log and artifact helpers",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/pod-utilities/",
+      "oya_ci_equivalent": "oya-ci job wrapper/log collector",
+      "current_status": "phase3_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-controller/crates/oya-ci-controller-k8s-adapter/src/lib.rs",
+        "docs/ideas/oya-ci-bespoke-prow.md"
+      ],
+      "improvements_over_upstream": [
+        "SeaweedFS-S3/self-hosted logs",
+        "no GCS dependency"
+      ],
+      "parity_requirement": "oya-ci must provide entrypoint/sidecar log and artifact helpers behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-artifact-storage",
+      "upstream_feature": "Prow GCS artifact flow",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/pod-utilities/",
+      "oya_ci_equivalent": "SeaweedFS-S3 artifact flow",
+      "current_status": "phase3_target",
+      "parity_scope": "improved_reimplementation",
+      "repo_artifacts": [
+        "docs/ideas/oya-ci-bespoke-prow.md",
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+      ],
+      "improvements_over_upstream": [
+        "self-hosted object storage",
+        "secret-leak boundary remains explicit"
+      ],
+      "parity_requirement": "oya-ci must provide Prow GCS artifact flow behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-service-build-cluster-split",
+      "upstream_feature": "service cluster / build cluster split",
+      "upstream_source": "https://docs.prow.k8s.io/docs/overview/architecture/",
+      "oya_ci_equivalent": "trusted cloud-ci service cluster plus isolated build execution",
+      "current_status": "phase1_target",
+      "parity_scope": "direct_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-controller/iac/k8s/helm/Chart.yaml",
+        "oya/ci-controller/iac/k8s/runtimeclass-kata.yaml",
+        "specs/phase0-automation-matrix.json"
+      ],
+      "improvements_over_upstream": [
+        "Talos/Kata/gVisor isolation knobs",
+        "tenant-pipeline isolation fixtures"
+      ],
+      "parity_requirement": "oya-ci must provide service cluster / build cluster split behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-trusted-untrusted-execution",
+      "upstream_feature": "trusted vs untrusted job isolation",
+      "upstream_source": "https://docs.prow.k8s.io/docs/scaling/",
+      "oya_ci_equivalent": "controller-sourced trusted orchestration with untrusted PR payload",
+      "current_status": "phase0_contract",
+      "parity_scope": "improved_reimplementation",
+      "repo_artifacts": [
+        "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+        "specs/toolchain-tenant-isolation-fixtures.json",
+        "oya/ci-controller/iac/k8s/runtimeclass-gvisor-fallback.yaml"
+      ],
+      "improvements_over_upstream": [
+        "fail-closed tenant isolation tests",
+        "source-bound status producer"
+      ],
+      "parity_requirement": "oya-ci must provide trusted vs untrusted job isolation behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-config-validation",
+      "upstream_feature": "Prow config validation",
+      "upstream_source": "https://docs.prow.k8s.io/docs/",
+      "oya_ci_equivalent": "Buck2-backed oya-ci registry validation",
+      "current_status": "phase0_contract",
+      "parity_scope": "improved_reimplementation",
+      "repo_artifacts": [
+        "//:buck2-authority-policy-check",
+        "//:phase0-automation-ratchet-check",
+        "specs/buck2-authority-policy.json"
+      ],
+      "improvements_over_upstream": [
+        "policy-as-data under Buck2",
+        "RED/GREEN fixture contracts"
+      ],
+      "parity_requirement": "oya-ci must provide Prow config validation behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-label-approval-lgtm-policy",
+      "upstream_feature": "Prow LGTM/approval policy",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/plugins/",
+      "oya_ci_equivalent": "reviewer-agent approval policy in oya-ci plugins/Tide",
+      "current_status": "phase4_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "docs/AGENTS.md"
+      ],
+      "improvements_over_upstream": [
+        "agent reviewer APPROVE is typed governance input",
+        "Forgejo-native labels/comments"
+      ],
+      "parity_requirement": "oya-ci must provide Prow LGTM/approval policy behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-retest-and-trigger-policy",
+      "upstream_feature": "trigger/retest policy",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/plugins/",
+      "oya_ci_equivalent": "oya-ci trigger/retest plugin",
+      "current_status": "phase4_target",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "docs/ideas/oya-ci-bespoke-prow.md"
+      ],
+      "improvements_over_upstream": [
+        "policy-gated retest commands",
+        "candidate PR cannot weaken gate definition"
+      ],
+      "parity_requirement": "oya-ci must provide trigger/retest policy behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-status-reconciliation",
+      "upstream_feature": "status reconciliation",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/core/crier/",
+      "oya_ci_equivalent": "terminal-status reconciler",
+      "current_status": "phase1_target",
+      "parity_scope": "improved_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+        "scripts/ci/assert-pr-required-context.py"
+      ],
+      "improvements_over_upstream": [
+        "terminal status always required",
+        "RED if candidate SHA lacks trusted context"
+      ],
+      "parity_requirement": "oya-ci must provide status reconciliation behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    },
+    {
+      "id": "prow-metrics-observability",
+      "upstream_feature": "component metrics and job visibility",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/core/deck/",
+      "oya_ci_equivalent": "oya-ci metrics/deck/runbook observability",
+      "current_status": "existing_partial",
+      "parity_scope": "equivalent_reimplementation",
+      "repo_artifacts": [
+        "oya/ci-controller/crates/oya-ci-controller-app/src/lib.rs",
+        "oya/ci-webhook-gateway/slos/ci-webhook-gateway.openslo.yaml",
+        "oya/ci-webhook-gateway/runbooks/on-call.md"
+      ],
+      "improvements_over_upstream": [
+        "OpenSLO and audit-chain integration",
+        "governance evidence references PR/head status"
+      ],
+      "parity_requirement": "oya-ci must provide component metrics and job visibility behavior for Forgejo/Talos while preserving upstream Prow semantics and recording any intentional improvement explicitly.",
+      "verification": "buck2 build //:buck2-authority-policy-check plus component-specific Rust/Buck2 targets before live cutover; live authority remains source-bound oya-ci-required only.",
+      "live_authority_claimed": false
+    }
+  ],
+  "required_improvement_ids": [
+    "rust-memory-safe-single-platform",
+    "forgejo-native-no-github-gcs-coupling",
+    "buck2-native-gate-execution",
+    "self-hosted-artifact-storage",
+    "tenant-isolated-trusted-controller",
+    "source-bound-required-context",
+    "buck2-native-llvm-coverage",
+    "dual-cargo-buck2-mutation-testing-advisory"
+  ],
+  "improvements": [
+    {
+      "id": "rust-memory-safe-single-platform",
+      "description": "Replace Jenkins/Groovy plus separate merge glue with one Rust platform whose state machines are testable and Buck2-built.",
+      "capability_ids": [
+        "prow-hook-webhook-ingest",
+        "prow-controller-manager-job-controller",
+        "prow-crier-status-reporting",
+        "prow-tide-merge-automation"
+      ]
+    },
+    {
+      "id": "forgejo-native-no-github-gcs-coupling",
+      "description": "Keep the proven Prow decomposition while removing GitHub/GCS assumptions for Forgejo and self-hosted storage.",
+      "capability_ids": [
+        "prow-hook-webhook-ingest",
+        "prow-artifact-storage",
+        "prow-tide-merge-automation",
+        "prow-deck-web-ui"
+      ]
+    },
+    {
+      "id": "buck2-native-gate-execution",
+      "description": "Make Buck2 the local/build/test authority for CI gates while allowing Cargo only for metadata/vendor and release-optimization exceptions.",
+      "capability_ids": [
+        "prow-presubmit-jobs",
+        "prow-config-validation",
+        "prow-prowjob-api-and-config"
+      ]
+    },
+    {
+      "id": "self-hosted-artifact-storage",
+      "description": "Use SeaweedFS-S3/self-hosted artifact paths instead of upstream GCS coupling.",
+      "capability_ids": [
+        "prow-pod-utilities-entrypoint-sidecar",
+        "prow-artifact-storage",
+        "prow-deck-web-ui"
+      ]
+    },
+    {
+      "id": "tenant-isolated-trusted-controller",
+      "description": "Keep service-cluster/controller authority separate from untrusted PR/build execution with explicit tenant isolation fixtures.",
+      "capability_ids": [
+        "prow-service-build-cluster-split",
+        "prow-trusted-untrusted-execution",
+        "prow-pod-utilities-clonerefs"
+      ]
+    },
+    {
+      "id": "source-bound-required-context",
+      "description": "Require source-bound oya-ci-required before any branch-protection or Phase-0 exit authority claim.",
+      "capability_ids": [
+        "prow-crier-status-reporting",
+        "prow-branchprotector",
+        "prow-status-reconciliation",
+        "prow-tide-merge-automation"
+      ]
+    },
+    {
+      "id": "buck2-native-llvm-coverage",
+      "description": "Prefer Buck2-native LLVM source-based Rust coverage over Tarpaulin for monorepo CI evidence.",
+      "capability_ids": [
+        "prow-presubmit-jobs",
+        "prow-config-validation",
+        "prow-metrics-observability"
+      ]
+    },
+    {
+      "id": "dual-cargo-buck2-mutation-testing-advisory",
+      "description": "Allow Cargo-side local mutation testing only for dual Cargo+Buck2/Reindeer workspaces while Buck2 remains CI authority.",
+      "capability_ids": [
+        "prow-config-validation",
+        "prow-prowjob-api-and-config"
+      ]
+    }
+  ],
+  "excluded_or_superseded_upstream_components": [
+    {
+      "id": "prow-exporter",
+      "upstream_component": "exporter",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "disposition": "superseded_by_improvement",
+      "rationale": "Prometheus/OpenSLO/audit-chain metrics are implemented through oya service observability rather than copying the upstream exporter binary shape.",
+      "replacement_or_reason": "oya-ci metrics endpoints, OpenSLO service files, and audit-chain evidence replace exporter as the target observability surface."
+    },
+    {
+      "id": "prow-gcsupload",
+      "upstream_component": "gcsupload",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "disposition": "superseded_by_improvement",
+      "rationale": "GCS-specific artifact upload conflicts with the self-hosted Forgejo/Talos storage lens.",
+      "replacement_or_reason": "SeaweedFS-S3/self-hosted artifact storage is the target artifact surface."
+    },
+    {
+      "id": "prow-hmac",
+      "upstream_component": "hmac",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "disposition": "superseded_by_improvement",
+      "rationale": "The existing Rust gateway already owns Forgejo webhook authenticity through HMAC/Ed25519 adapters.",
+      "replacement_or_reason": "oya-ci-webhook-gateway signature verification and Cedar policy gates replace the standalone upstream helper."
+    },
+    {
+      "id": "prow-gerrit",
+      "upstream_component": "gerrit adapter",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "disposition": "out_of_scope_for_forgejo_native",
+      "rationale": "Oyatie\u2019s forge-of-record target is Forgejo, not Gerrit.",
+      "replacement_or_reason": "Forgejo adapters are the required equivalent; Gerrit support is out of scope unless a future forge requirement adds it explicitly."
+    },
+    {
+      "id": "prow-tot",
+      "upstream_component": "tot",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "disposition": "deferred_until_needed_with_waiver",
+      "rationale": "Tot-style metadata serving is not needed for Phase-0 merge authority and would be premature without a concrete consumer.",
+      "replacement_or_reason": "If a future deck/artifact consumer requires it, add an oya-ci metadata service row and Buck2 verification target before claiming parity."
+    },
+    {
+      "id": "prow-jenkins-operator",
+      "upstream_component": "jenkins-operator",
+      "upstream_source": "https://docs.prow.k8s.io/docs/components/",
+      "disposition": "superseded_by_improvement",
+      "rationale": "Jenkins is a temporary bridge to retire, not a target component to preserve in the Rust Prow reimplementation.",
+      "replacement_or_reason": "oya-ci-controller plus oya-ci-tide replace Jenkins gate/merge orchestration; bridge evidence remains non-authority."
+    }
+  ]
+}

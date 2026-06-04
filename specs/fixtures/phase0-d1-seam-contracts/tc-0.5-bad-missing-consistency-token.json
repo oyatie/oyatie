@@ -1,0 +1,25 @@
+{
+  "fixture_id": "TC-0.5-BAD-missing-consistency-token",
+  "expected_verdict": "RED",
+  "expected_violation": "missing_consistency_token",
+  "description": "A mutation-result fixture without consistency_token must block even though the proto field remains optional.",
+  "mutation_result_fixture": {
+    "entity_id": "ent_payroll_close_002",
+    "entity_type": "PayrollClose",
+    "mutation_kind": "MUTATION_KIND_MUTATED",
+    "audit_link": {
+      "audit_event_id": "evt_fixture_bad_missing_token",
+      "audit_chain_ref": "evidence/audit-chain.jsonl#EVT-D1-SEAM-BAD-MISSING-TOKEN"
+    },
+    "d1_conformance_reference": ".omx/plans/test-spec-phase0.md#TC-0.10b.1"
+  },
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "fixture_id": "TC-0.15-BAD-merge-tree-conflict",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "merge_tree_conflict"
+  ],
+  "description": "The local merge-tree simulation reports a conflict; must fail before admission.",
+  "merge_tree_simulation": {
+    "engine": "git merge-tree --write-tree",
+    "result": "conflict",
+    "mutates_working_tree": false,
+    "mutates_index": false,
+    "provider_side_merge_button_used": false
+  },
+  "lanes": [
+    {
+      "lane_id": "lane-conflict-a",
+      "owner_team": "platform-governance",
+      "owned_paths": [
+        "docs/ci/auto-merge-flow.md"
+      ]
+    },
+    {
+      "lane_id": "lane-conflict-b",
+      "owner_team": "platform-toolchain",
+      "owned_paths": [
+        "scripts/check-sequential-pr-merge-conflicts.sh"
+      ]
+    }
+  ],
+  "generated_artifact_changes": [],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "phase1_tide_batching_claimed": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

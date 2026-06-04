@@ -1,0 +1,185 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-auto-merge-after-ci.json",
+    "specs/phase0-automation-matrix.json#PROCESS-reviewer-multispectrum-evidence",
+    "specs/multispectrum-review.json"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-auto-merge-conflict-guard-real-path",
+  "claim_boundary": {
+    "live_forgejo_converged": false,
+    "live_trusted_oya_ci_required_producer_evidenced": false,
+    "note": "Local/static Buck2 and shell-harness sequencing regression evidence only; no P0.0 green, Phase-0 completion, live Forgejo convergence, trusted cloud-ci/oya-ci producer, tenant-facing, security, performance, or production-readiness claim.",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Kept the change narrow: one regression shell test, one contract checker, one JSON contract update; no new abstractions or dependencies."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Shift-left sequencing guard reduces merge-queue false-green risk while preserving the authority boundary that only trusted cloud-ci/oya-ci required context can admit protected-branch convergence."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "::error::sequential merge conflict at PR #455",
+      "failing_fixture_added": true,
+      "failing_fixture_id": "conflict scenario no guard marker and no gh pr merge",
+      "findings": [
+        "Adversarial coverage includes dry-run no-merge, clean real merge after marker, and conflict fail-before-merge paths."
+      ],
+      "passing_fixture_id": "clean-real non-dry-run fake gh merge requires guard_marker=guard passed"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "The local evidence-scope label and shell comment make the harness boundary visible to future maintainers."
+      ],
+      "new_contributor_minutes_estimate": 15
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted shell/Python/JSON/Buck2 checks passed; independent code reviewer found zero issues but withheld formal approval due unavailable diagnostics."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Keep dry-run-only coverage",
+        "Add marker-based local non-dry-run harness",
+        "Build a heavier semantic runtime proof"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Dry-run-only coverage missed the reviewer-identified real merge sequencing gap.",
+        "A heavier runtime proof would add plumbing beyond this narrow P0.0 local regression slice and still would not establish live cloud-ci/oya-ci authority."
+      ],
+      "selected_rationale": "Marker-based harness is the smallest focused regression that proves the prior gap without changing production code or adding dependencies."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No secrets, tenant data, authentication, or authorization surfaces touched; risk is CI/merge-gate false-positive control, not application security."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    }
+  },
+  "files_changed": [
+    "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+    "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+    "specs/phase0-auto-merge-after-ci.json",
+    "evidence/multispectrum/platform-readiness-p0-0-auto-merge-conflict-guard-real-path-1780445293.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "freshness_unix": 1780445293,
+  "git_sha": "7336730ee246",
+  "implementation_summary": [
+    "Added a clean non-dry-run scenario that invokes the fake gh pr merge path only after a sequential-conflict-guard marker is written.",
+    "Kept the dry-run scenario proving no gh pr merge call is made when --dry-run is selected.",
+    "Kept the conflict scenario proving merge-tree conflicts fail before any gh pr merge call or guard-pass marker.",
+    "Declared and contract-checked trigger_non_dry_run_merge_path_tested plus a local evidence-scope label so the coverage is not overstated as live authority."
+  ],
+  "known_gaps": [
+    {
+      "id": "reviewer-approve-gate",
+      "reason": "Independent review has COMMENT/WATCH, not APPROVE/CLEAR; diagnostic tooling was unavailable.",
+      "status": "open"
+    },
+    {
+      "id": "live-oya-ci-required-producer",
+      "reason": "No live trusted cloud-ci/oya-ci producer/check evidence in this environment.",
+      "status": "open"
+    },
+    {
+      "id": "live-forgejo-convergence",
+      "reason": "Forgejo remains unreachable from the current environment; no live Forgejo scheduling proof is claimed.",
+      "status": "open"
+    }
+  ],
+  "local_review": {
+    "architect": {
+      "agent_id": "019e8ac3-b35c-7763-b177-890ba33a8260",
+      "note": "No architectural blocker; proof remains harness-dependent local sequencing evidence, not an unforgeable production invariant or live cloud-ci/oya-ci convergence proof.",
+      "status": "WATCH"
+    },
+    "code_reviewer": {
+      "agent_id": "019e8ac3-b1ab-7461-933e-aa8e636a2351",
+      "finding_count": 0,
+      "note": "No code/spec/security/performance/maintainability issues found; formal APPROVE withheld because LSP/diagnostic tools were unavailable.",
+      "verdict": "COMMENT"
+    },
+    "merge_ready": false
+  },
+  "schema_version": "multispectrum-review/v2.4.0",
+  "scope": "P0.0 auto-merge-after-CI non-dry-run conflict-guard regression and contract evidence scope label",
+  "session_id": "omx-1780444223444-72yqk7",
+  "timestamp_iso": "2026-06-03T00:08:13Z",
+  "timestamp_unix": 1780445293,
+  "verification": [
+    {
+      "command": "bash -n scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+      "evidence": "Shell syntax check passed for the updated guard regression test.",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+      "evidence": "Dry-run, clean non-dry-run, and conflict non-dry-run scenarios passed; fake merge requires guard marker and conflict path records neither marker nor merge.",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m py_compile scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Python contract checker compiled.",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Contract reports trigger_non_dry_run_merge_path_tested=true and trigger_non_dry_run_merge_path_scope_labeled=true while p0_0_green=false and phase0_complete=false.",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m json.tool specs/phase0-auto-merge-after-ci.json",
+      "evidence": "Updated JSON contract parses.",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "Whitespace/conflict-marker diff hygiene passed before commit.",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+      "evidence": "Required-context drift guard still passes.",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+      "evidence": "Fetch-remote sequential merge conflict regression still passes.",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "Buck2 authority policy scan passed; local/static evidence only.",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build //:forgejo-auto-merge-after-ci-check //:github-auto-merge-after-ci-check //:phase0-auto-merge-after-ci-contract-check //:buck2-authority-policy-check --show-output",
+      "evidence": "Build ID b09808ac-aead-4594-a0ab-35e883cb798f; all four check targets succeeded.",
+      "status": "passed"
+    }
+  ]
+}

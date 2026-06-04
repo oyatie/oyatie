@@ -1,0 +1,151 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "platform-readiness-p0-0-ratchet-api",
+  "change_class_id": "CC-5",
+  "git_sha": "9378db8bcf00218f5e825615ab7356929622c35f",
+  "freshness_unix": 1780421045,
+  "timestamp_iso": "2026-06-02T17:24:05Z",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "scope": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/Cargo.toml",
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "oya/ci-controller/crates/oya-ci-controller-k8s-adapter/src/lib.rs",
+    "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
+    "infra/branch-protection/dev.json",
+    ".github/branch-protection.yaml",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/hyperscaler-production-readiness-claim-contract.json",
+    "evidence/multispectrum/platform-readiness-p0-0-ratchet-api-<freshness_unix>.json"
+  ],
+  "summary": "P0.0 local executable slice that exposes fail-closed AC-0.16/AC-0.17/AC-0.12 policy evaluators for cloud-ci/controller use, adds structural gate-Job tests for untrusted candidate handling, and aligns oya-ci-tide default merge eligibility to the checked-in oya-ci-required context.",
+  "claim_boundary": "RED/target evidence only. This file does not claim P0.0 green, Phase-0 exit, live protected-branch enforcement, a deployed trusted producer, production readiness, security readiness, tenant-facing readiness, or live oya-ci-required status posting on a real candidate SHA.",
+  "validation": {
+    "passed": [
+      "rustfmt --edition 2024 on changed Rust files",
+      "cargo fmt --check --package oya-ci-controller-kernel --package oya-ci-controller-k8s-adapter --package oya-ci-tide-kernel",
+      "cargo metadata --locked --no-deps --format-version 1",
+      "git diff --check github-mirror/dev..HEAD",
+      "static P0.0 structural scans for public ratchet APIs, fail-closed claim/automation violations, k8s build_gate_job tests, Tide oya-ci-required default, and serde_json runtime dependency",
+      "architect subagent PASS after re-review",
+      "code-reviewer subagent PASS after re-review"
+    ],
+    "expected_red": [
+      "scripts/branch-protection-apply.sh --check exits 1 because live dev protection still requires cargo-fmt,cargo-check,cargo-clippy,cargo-nextest,oya-pr-review and lacks oya-ci-required"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests (Build ID e97fcef0-61aa-4772-85f7-d719e1e54d83) stopped before tests by local macOS linker/toolchain failure: Apple ld rejected GNU flags --as-needed, -Bstatic, --eh-frame-hdr, -z, --gc-sections while linking third-party Rust build script serde_json",
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-k8s-adapter:oya-ci-controller-k8s-adapter-tests (Build ID c5f6a84f-8a25-4c35-90ae-d9d30d1c9a24) stopped before tests by the same local linker/toolchain class while linking third-party Rust build script zmij",
+      "buck2 test //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests (Build ID 80024b05-6cb5-4c8b-b765-014eeb898857) stopped before tests by the same local linker/toolchain class while linking third-party Rust build script serde_json"
+    ],
+    "live_branch_protection": "2026-06-02T17:05Z read shows required contexts cargo-fmt,cargo-check,cargo-clippy,cargo-nextest,oya-pr-review; no cloud-ci-required/oya-ci-required; strict=false",
+    "pr_status_before_push": "PR #455 open/mergeable at latest pre-push inspection; statusCheckRollup length 0; remote head before this slice was 7bcdae532c87a167a80230cef048574f7dc78684."
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Kept the slice to four code/config files and avoided broad backlog loading.",
+        "Moved serde_json from dev-only to runtime dependency because public kernel APIs now use serde_json::Value."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Preserves Prow-shaped target semantics: branch protection should require a trusted controller-produced context, and Tide eligibility now defaults to oya-ci-required while keeping cloud-ci-required override support.",
+        "No live branch-protection mutation was performed."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Claim-ceiling evaluator now fails closed for empty/malformed trusted-state inputs instead of treating them as empty green data.",
+        "Production-ready/hyperscaler-grade tiers require typed claim-contract evidence; string-only claims are rejected.",
+        "Gate job tests assert exact SHA verification, token isolation, trusted target inventory capture before checkout, and disabled service-account token automount."
+      ],
+      "failing_fixture_added": true,
+      "diagnostic_asserted": "production_readiness_claim_without_typed_evidence"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Public violation enums expose stable machine-readable strings for future controller/gate registries.",
+        "Structural unit tests document gate Job invariants without requiring a live Kubernetes cluster."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "rustfmt/cargo fmt, cargo metadata, diff-check, static scans, architect PASS, and code-review PASS completed locally.",
+        "Buck target tests remain unrun on this host due pre-target third-party linker failure, recorded as a validation gap rather than hidden."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected keeping ratchets as test-only helpers because AC-0.16 requires automatable invariants to map to gate/controller/registry surfaces.",
+        "Rejected string keyword evidence for regulated readiness claims because AC-0.17 requires evidence-backed or target/non-claim language."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "Clone token remains isolated to the trusted init container; the candidate-running main container stays tokenless and without a service-account token.",
+        "Oya CLI authority detection now catches punctuation/path/hyphenated command variants while allowing oya-ci service wording."
+      ],
+      "secrets_touched": false,
+      "tenant_data_touched": false
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance readiness claim is made. The evaluator only defines the typed evidence shape required before such a claim may pass."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Tide default required status now matches the checked-in oya-ci-required target context; explicit env override remains available for cloud-ci-required.",
+        "Current live branch-protection drift is left RED with the exact missing/extra context list."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence records build IDs for blocked Buck attempts, live branch-protection context set, PR state, and reviewer/architect verdicts."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "The claim ceiling prevents regulated vocabulary from becoming readiness or enforcement language without typed evidence.",
+        "This artifact labels itself RED/target evidence and avoids completion/production/security claims."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered for this P0.0 slice."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI commands or protected-branch authority were added.",
+        "Destination CI authority remains cloud-ci/oya-ci required context; local oya gate/verify remain bridge evidence only.",
+        "Automatable/enforceable additions map to public kernel/controller/gate policy APIs and structural tests."
+      ]
+    }
+  },
+  "external_references": [
+    {
+      "source": "Prow Tide configuration documentation",
+      "url": "https://docs.prow.k8s.io/docs/components/core/tide/config/",
+      "relevance": "Tide-style merge eligibility is status-context driven and belongs in the cloud-ci merge-queue/controller plane."
+    },
+    {
+      "source": "Kubernetes object naming documentation",
+      "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/names/",
+      "relevance": "Gate Job names must remain within Kubernetes DNS/RFC-1123 naming constraints while preserving full candidate SHA identity."
+    }
+  ]
+}

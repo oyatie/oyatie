@@ -1,0 +1,148 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/status-enum-registry.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/red-green-fixture-contract.json",
+    "specs/buck2-authority-policy.json",
+    ".omx/plans/prd-platform-readiness.md#AC-0.2",
+    ".omx/plans/test-spec-phase0.md#T0.2",
+    "docs/standards/testing.md#modern-rust-testing-coverage-and-mutation-standards"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-status-enum-drift",
+  "claim_boundary": {
+    "allowed_value_count": 18,
+    "automation_ratchet_row_count": 32,
+    "axis_count": 3,
+    "expected_green_fixture_count": 1,
+    "expected_red_fixture_count": 4,
+    "fixture_count": 5,
+    "full_manifest_prd_conformance_proven": false,
+    "hyperscaler_grade": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "red_green_buck2_sandbox_inputs_verified": true,
+    "red_green_entry_count": 18,
+    "seed_surface_count": 1,
+    "status_drift_fixture_contract_measured": true,
+    "status_drift_live_gate_proven": false,
+    "status_enum_automated_chain_uses_buck2_build": true,
+    "status_enum_registry_published": true,
+    "status_mutation_performed": false
+  },
+  "freshness_unix": 1780494201,
+  "git_sha": "caec5f60c5e4d1557dfd3fb27b80511ecd1c108e",
+  "implementation_summary": [
+    "Added specs/status-enum-registry.json as a local/static 3-axis status vocabulary seed with decision_status, maturity_status, and constraint_status fields.",
+    "Added five GOOD/BAD fixtures covering valid aligned status fields, invalid/retired REAL live-field use, spec-without-code, code-without-spec, and spec/manifest status drift.",
+    "Added scripts/ci/assert-status-enum-drift.py and scripts/tests/status_enum_drift_check.test.sh with fail-closed mutation probes while preserving all live authority claims as false.",
+    "Registered //:status-enum-drift-check in Buck2 plus AC-0.14 red/green fixture contract, AC-0.16 automation matrix/coverage registry, Buck2 authority policy, and root-hub pointers.",
+    "Fixed the AC-0.14 Buck2 red/green genrule sandbox by including checked-in scripts/tests/*.py marker/test files, including scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py.",
+    "Changed the status-enum automated chain from buck2 test over a genrule to buck2 build //:status-enum-drift-check --show-output so evidence does not imply native Buck2 tests ran.",
+    "Kept modern Rust standards aligned with the recorded Buck2-native LLVM source-coverage and dual Cargo/Buck2 local mutation-testing direction; this AC-0.2 slice does not implement a new Rust toolchain lane."
+  ],
+  "observed_measurement": {
+    "allowed_value_count": 18,
+    "automation_ratchet_row_count": 32,
+    "axis_count": 3,
+    "buck2_authority_command_scan_files": 188,
+    "expected_green_fixture_count": 1,
+    "expected_red_fixture_count": 4,
+    "failures": [],
+    "fixture_count": 5,
+    "observed_bad_fixture_violations": [
+      "invalid_status_enum_value",
+      "invalid_status_enum_value:maturity_status:REAL",
+      "retired_real_token_live_field",
+      "retired_real_token_live_field:maturity_status",
+      "spec_code_manifest_mismatch",
+      "spec_code_manifest_mismatch:analytics:manifest_path",
+      "spec_code_manifest_mismatch:analytics:spec_path",
+      "spec_code_manifest_mismatch:ghost:code_path",
+      "spec_code_manifest_mismatch:ghost:manifest_path",
+      "spec_code_manifest_mismatch:ghost:spec_path",
+      "status_drift_mismatch",
+      "status_drift_mismatch:real-estate:maturity_status"
+    ],
+    "red_green_entry_count": 18,
+    "seed_surface_count": 1
+  },
+  "residual_risks": [
+    "This is seed/fixture coverage only; full manifest/PRD conformance remains explicitly unproven.",
+    "The status-drift live gate remains false until trusted cloud-ci/oya-ci executes and posts the required oya-ci-required context.",
+    "Future slices must expand the registry beyond the real-estate seed surface before broad service/readiness claims are permitted."
+  ],
+  "review_facets": {
+    "F10_test_adequacy": "PASS: RED-before-GREEN absence captured, shell mutation tests exercise fail-closed behavior, and Buck2 build bundle refreshed without claiming native tests ran for genrules.",
+    "F11_documentation": "PASS: root-hub pointer, registry metadata, automation matrix, coverage registry, and red/green contract cite the AC-0.2/T0.2 authority.",
+    "F12_reserved": "NOT_APPLICABLE: no visual/UI change.",
+    "F13_reviewability": "PASS: reviewer-requested fixes are isolated; final evidence directory records command outputs and Build IDs.",
+    "F1_correctness": "PASS: checker reports 3 axes, 18 allowed values, one seed surface, five fixtures, and zero failures while preserving claim-boundary false flags.",
+    "F2_security": "PASS: local JSON/text checks only; no credentials, network calls, status posting, branch-protection mutation, or provider merge action.",
+    "F3_reliability": "PASS: BAD regressions cover invalid status values, retired REAL live-field use, missing spec/code/manifest paths, status drift, and forbidden p0_0_green=true.",
+    "F4_operability": "PASS: //:status-enum-drift-check and //:phase0-red-green-fixture-contract-check both build successfully after the sandbox input fix.",
+    "F5_observability": "PASS: output includes axis/value/surface/fixture/red-green counts plus per-fixture observed violations and Build IDs.",
+    "F6_maintainability": "PASS: data-driven registry and DAMP fixtures keep future conformance expansion reviewable without introducing a new oya CLI surface.",
+    "F7_performance": "PASS: static filesystem/JSON checks plus Buck2 genrules; no expensive compile, live CI call, or provider mutation.",
+    "F8_architecture": "PASS: separates decision, maturity, and constraint semantics so readiness claims cannot collapse into a single ambiguous status token.",
+    "F9_compliance": "PASS: claim boundary preserves live required-context, full manifest/PRD conformance, P0.0 green, Phase-0 completion, production-ready, and hyperscaler-grade non-claims."
+  },
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "AC-0.2 local/static status-enum drift seed: 3-axis decision/maturity/constraint status registry, retired REAL live-field rejection, GOOD/BAD status-drift fixtures, Buck2-owned build evidence, and resolved red/green sandbox input review finding without full manifest/PRD conformance or live required-context authority claims.",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T13:45:16Z",
+  "timestamp_unix": 1780494315,
+  "verdict": "PASS_LOCAL_STATIC_ONLY",
+  "verification": [
+    {
+      "artifact_dir": "/tmp/p0-0-status-enum-drift-red-1780480775",
+      "buck2_build_id": "b458615f-4765-4b74-83d0-d2123b3fd7e6",
+      "buck2_exit_code": 3,
+      "command": "missing status-enum checker/Buck2 target RED probe",
+      "expected_failure": true,
+      "script_exit_code": 2,
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-status-enum-drift-reviewfix-1780494116",
+      "buck2_build_ids": [
+        "834a3a11-364c-44d6-ab32-7f9947795b20",
+        "be5081e9-2754-4de6-8007-85bff0944fe4",
+        "c25d134b-11be-474a-86fc-a2ec4f97a8b5"
+      ],
+      "command": "review-fix targeted status shell, red-green shell, red-green Buck2 build, status Buck2 build, and Buck2 genrule bundle",
+      "review_findings_resolved": [
+        "phase0-red-green-fixture-contract-check sandbox now includes scripts/tests/*.py and builds successfully",
+        "status-enum registry automated_chain no longer names buck2 test over a genrule",
+        "stale pre-fix evidence/audit row removed before this evidence emission"
+      ],
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-status-enum-drift-final2-1780494201",
+      "buck2_build_ids": [
+        "5872fad3-b42d-408d-86ac-2b80b1bfff0c",
+        "ec6d5cba-75c2-4443-b93c-3854b5950b8c",
+        "f6025a7f-0a9b-4b97-b17c-dafc659bfeed"
+      ],
+      "command": "final2 git diff, JSON parse, py_compile, direct status-enum checker, shell BAD mutations, red-green registry/shell, automation ratchet/shell, Buck2 authority policy, root-hub pointer, chain build-entry assertion, Buck2 status/red-green builds, and Buck2 build bundle",
+      "observed": {
+        "allowed_value_count": 18,
+        "automation_rows": 32,
+        "axis_count": 3,
+        "buck2_authority_command_scan_files": 188,
+        "red_green_entries": 18,
+        "status_enum_fixtures": 5
+      },
+      "status": "passed"
+    }
+  ]
+}

@@ -92,7 +92,7 @@ Build a **closed-loop, conflict-free merge** that enables the rest of oyatie to 
 
 > Parallel fan-out agents (across multiple subscriptions) work ADRs → open PRs → CI/CD gate (green/red) → review/fix loop → **merge to `dev` with zero merge conflicts** → repeat.
 
-The structural enabler of "zero conflicts" is **Tide-style merge-queue** (ADR-0111 / ADR-0513 Phase 2), deferred but load-bearing: the loop does not truly close until it lands.
+The structural enabler of "zero conflicts" is **Tide-style merge-queue** (ADR-0111 / ADR-0513). Historical wording in this ADR deferred Tide behind gate reliability; the 2026-06-02 correction below moves Tide admission ownership and automatic merge after CI into Phase 0 while leaving projected-state batching and larger Tide ergonomics phased.
 
 ### 2. Target architecture (minimal robust shape)
 
@@ -115,7 +115,7 @@ Forgejo PR webhook
 - Gate logic trunk-sourced (pr-ref as data only); PR cannot weaken its own gate.
 - Structured observability (buck2 event-log → failure taxonomy); no `kubectl exec` to diagnose.
 - CAS-first for cache efficiency; defer RE tier until measured and justified.
-- **Defer tide/deck/plugins behind explicit demand** (ADR-0513 Phases 2-4). Only gate reliability is the live problem.
+- **Tide admission and auto-merge-after-CI are Phase-0 contracts** per the 2026-06-02 correction; defer projected-state batching, deck, and plugins behind explicit demand.
 
 ### 3. Six founder principles (non-negotiable)
 
@@ -161,7 +161,7 @@ Forgejo PR webhook
 
 | ID | Title | Status | Role |
 |---|---|---|---|
-| #89 | Tide / merge-queue | open (deferred) | conflict-free auto-merge |
+| #89 | Tide / merge-queue | open now for P0.0 admission + auto-merge-after-CI; projected-state batching later | conflict-free auto-merge |
 | #90 | reviewer-agent + auto-fix loop | open (deferred) | closes review/fix arc |
 | oya-ci-deck | SolidJS CI-visibility surface | open (deferred) | founder + agent introspection |
 | oya-ci-plugins | ChatOps / governance pipeline | open (deferred) | ops ergonomics |
@@ -193,7 +193,7 @@ Forgejo PR webhook
 
 **Neutral:**
 - The gate *logic* and branch-protection unchanged; the gateway (ADR-0374) is retained.
-- Deferring tide/deck/plugins means ADR-0513's "one platform" narrative lands incrementally, not at once — acceptable per founder scope.
+- Deck/plugins and large-scale Tide batching still land incrementally; Tide admission ownership and auto-merge-after-CI are no longer deferred per the 2026-06-02 correction.
 
 ## Verification
 
@@ -231,3 +231,15 @@ Local testing per §6 assumptions validates the root causes before full cutover.
 4. What depth N for the rdeps cap balances catch-rate vs. timeout?
 5. Does JCasC re-seed an existing live job on restart, or must it be manually deleted+recreated?
 6. Does cutover need parallel double-CI-cost during migration, or can the controller take over atomically?
+
+## 2026-06-02 Tide deferral correction
+
+Founder directive on 2026-06-02 supersedes this ADR's wording that deferred Tide
+behind explicit demand. Deck and plugin expansion can remain phased, but Tide /
+merge-queue ownership and automatic merge after CI belong in cloud-ci/oya-ci now.
+The P0.0 admission contract requires `oya-ci-required`, Buck2-owned gate
+execution, PR-head pinning, and mergeability/conflict checks before Forgejo or
+GitHub auto-merge is armed.
+
+This correction is target/contract evidence only until live branch protection and
+the trusted cloud-ci/oya-ci producer converge on the candidate SHA.

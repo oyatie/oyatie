@@ -1,0 +1,151 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_id": "platform-readiness-p0-0-rust-release-optimization-policy",
+  "change_class_id": "CC-5",
+  "timestamp_iso": "2026-06-02T19:03:18Z",
+  "freshness_unix": 1780426998,
+  "git_sha": "cc31560172fe788d4e6da5f7d476ffa07c5e5c3a",
+  "claim_boundary": "Best-practice research and local/static Buck2 authority policy evidence only. This does not claim P0.0 green, Phase-0 completion, live protected-branch enforcement, performance readiness, memory efficiency, security readiness, tenant-facing readiness, or production readiness.",
+  "summary": "Grounded the Rust production release optimization exception in official Cargo/rustc/GlobalAlloc guidance while preserving Buck2 as scripts/CI/CD/build/test authority and making the Cargo release profile default strip debuginfo instead of symbols for operability.",
+  "scope": [
+    "Cargo.toml",
+    "docs/standards/rust-release-optimization.md",
+    "specs/buck2-authority-policy.json",
+    "evidence/multispectrum/platform-readiness-p0-0-rust-release-optimization-1780426998.json"
+  ],
+  "official_sources": [
+    {
+      "name": "Cargo Book \u2014 Profiles",
+      "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
+      "used_for": "release/custom profile settings, LTO/codegen-units/panic/strip controls, and release profile defaults"
+    },
+    {
+      "name": "rustc Book \u2014 Codegen Options",
+      "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
+      "used_for": "incremental release caveat, split-debuginfo/strip behavior, target-cpu/target-feature boundaries"
+    },
+    {
+      "name": "rustc Book \u2014 Profile-guided Optimization",
+      "url": "https://doc.rust-lang.org/nightly/rustc/profile-guided-optimization.html",
+      "used_for": "PGO workflow and community cargo-pgo non-authority boundary"
+    },
+    {
+      "name": "Rust GlobalAlloc",
+      "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html",
+      "used_for": "allocator safety and measurement caveats"
+    },
+    {
+      "name": "Rust Reference \u2014 global_allocator",
+      "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
+      "used_for": "single global allocator per crate graph"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Deleted stale Cargo-as-CI wording instead of adding a parallel exception path.",
+        "Kept the enforcement surface policy-driven through specs/buck2-authority-policy.json."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Release optimization is treated as measured artifact evidence only, not merge authority.",
+        "PGO and allocator experiments require representative workload labels and Buck2 handoff plans."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "The scanner failed when pasteable Cargo commands appeared in the standard; wording was changed to non-pasteable exception language and the scanner now passes.",
+        "Cargo install/test/check/clippy/nextest/bench remain forbidden active-lane patterns."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "The standard now gives a release-experiment sequence and explicit anti-patterns.",
+        "Cargo.toml comments point readers to the policy and say the profile is not CI authority."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "TOML parse/profile assertion, JSON parse, Buck2 authority scanner, Buck2 policy target build, and diff hygiene passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected keeping strip=symbols as the default because rustc warns symbol stripping can harm backtraces/profiling on some platforms.",
+        "Rejected documenting pasteable Cargo commands in the standard because the scanner and policy should prevent copy/paste CI regressions."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets or tenant data touched.",
+        "The standard explicitly says strip is not a security/obfuscation control."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance readiness claim is made.",
+        "Profile, PGO, target-cpu, and allocator settings are classified as measurement candidates requiring service evidence."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Cargo release profile now defaults to strip=debuginfo, preserving symbol-table support relative to strip=symbols.",
+        "Symbols stripping remains an experiment only with incident-debug evidence."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence names all validations and official sources.",
+        "Crash-reporting/profiling retention is now a required marker when strip/panic settings change."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Supports AC-0.16 automation ratchet by mapping the exception to a generated policy and Buck2 target.",
+        "Supports AC-0.17 by avoiding performance/production-readiness claims without evidence."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI command added.",
+        "Buck2 remains the only active scripts/CI/CD/build authority; Cargo is release-artifact evidence only.",
+        "cloud-ci/oya-ci oya-ci-required remains target authority; local scanner is not Phase-0 exit authority."
+      ]
+    }
+  },
+  "validation": {
+    "passed": [
+      "python3 tomllib parse Cargo.toml and assert [profile.release] panic=abort, lto=true, codegen-units=1, strip=debuginfo -> PASS",
+      "python3 -m json.tool specs/buck2-authority-policy.json",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS",
+      "buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED",
+      "git diff --check -- Cargo.toml docs/standards/rust-release-optimization.md specs/buck2-authority-policy.json",
+      "python3 -m json.tool evidence/multispectrum/platform-readiness-p0-0-rust-release-optimization-1780426998.json",
+      "git diff --check"
+    ],
+    "attempted_but_blocked": [],
+    "expected_red_or_target_only": [
+      "This slice does not prove live oya-ci-required, branch protection, or Phase-0 completion."
+    ]
+  }
+}

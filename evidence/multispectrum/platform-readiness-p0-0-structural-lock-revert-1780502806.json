@@ -1,0 +1,81 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-9-STRUCTURAL-LOCK-REVERT-1780502806",
+  "created_at": "2026-06-03T12:06:46-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha_before_commit": "27381158956a0ac67c4a3d4f712930a94dd0f879",
+  "acceptance_criterion": "AC-0.9-structural-lock-revert",
+  "summary": "Rust/Buck2 local/static AC-0.9 evidence adds a structural-lock/revert gate with serialized structural path ownership, protected-flow revert evidence, TTL-bounded advisory locks, RED fixtures for missing revert evidence, overlapping structural lanes, false mechanical lock/status authority, and stale TTL. This does not claim live cloud-ci authority, mechanical lock enforcement, P0.0 green, or Phase-0 completion.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "live_required_context_execution_proven": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false,
+    "mechanical_structural_lock_proven": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-structural-lock-revert-red-1780502134",
+    "missing_rust_checker_compile_exit": 1,
+    "missing_buck2_target_exit": 3,
+    "buck2_missing_target_build_id": "11c4c0b0-a21c-43e7-b6d1-f71a3b1b31be",
+    "red_file": "/tmp/p0-0-structural-lock-revert-red-1780502134/red-summary.txt"
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-structural-lock-revert-final2-1780502701",
+    "rust_fixture_tests": "7 passed; 0 failed",
+    "structural_lock_revert_checker": "PASS fixture_count=5 bad_fixture_count=4 observed_violation_count=6",
+    "red_green_fixture_contract": "PASS entry_count=24 green_marker_count=25 red_marker_count=33",
+    "red_green_fixture_contract_harness": "PASS",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=217 status_context_scan_files=9",
+    "json_parse": "PASS",
+    "rustfmt_check": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "090b6503-525d-4ace-81ec-1f68fb66d216",
+    "buck2_targets": [
+      "//:structural-lock-revert-check",
+      "//:phase0-red-green-fixture-contract-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check"
+    ],
+    "rust_warning_policy": "rustc --edition=2021 -D warnings for checker and Rust test harness"
+  },
+  "files_added": [
+    "scripts/ci/assert-structural-lock-revert.rs",
+    "scripts/tests/structural_lock_revert_check.rs",
+    "specs/structural-lock-revert-registry.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-good-serialized-structural-lock-revert.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
+    "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json"
+  ],
+  "files_updated": [
+    "BUCK",
+    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/red-green-fixture-contract.json",
+    "specs/buck2-authority-policy.json",
+    "specs/root-hub-pointers.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "coverage_surface": "Buck2-native LLVM source-based coverage remains the monorepo coverage direction; Tarpaulin is not canonical coverage evidence.",
+    "mutation_surface": "Dual Cargo.toml + Buck2/Reindeer remains the advisory local Cargo mutation-testing path while Buck2/cloud-ci evidence is authoritative for merge and Phase-0 claims.",
+    "new_gate_surface": "Rust checker + Rust self-test harness compile under Buck2 genrule with -D warnings; no new Python or shell gate/test surface for AC-0.9.",
+    "hyperscaler_orientation": "The gate is deterministic, fixture-backed, serialized by structural path, TTL-bounded, revert-evidence-first, explicit about advisory/non-authoritative lock output, and fail-closed on overlap or false mechanical authority claims."
+  },
+  "official_references": [
+    "https://buck2.build/docs/users/commands/build/",
+    "https://buck2.build/docs/users/commands/test/",
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+    "https://github.com/facebookincubator/reindeer"
+  ],
+  "updated_at": "2026-06-03T12:06:46-04:00"
+}

@@ -22,7 +22,7 @@
 # Remote build cache is honest-deferred to ADR-0381 D4 (SeaweedFS-on-Talos
 # restored onto the storage specialty pool); BuildKit's cache + Jenkins agent
 # sccache will share the same SeaweedFS bucket-api once D4 lands. Until then
-# the gate runs against a cold cargo cache (correct but slow — discipline
+# the gate runs against a cold Buck2 cache (correct but slow — discipline
 # beats speed).
 #
 # LOCAL-vs-PRODUCTION deltas (intentionally simplified — see README.md):
@@ -178,10 +178,8 @@ controller:
                               # ADR-0381 amendment 3, hyperscaler-lens-architectural-filter).
                               - name: SCCACHE_S3_NO_CREDENTIALS
                                 value: "true"
-                              # sccache + cargo incremental conflict; disable
-                              # incremental so sccache owns the layer caching.
-                              - name: CARGO_INCREMENTAL
-                                value: "0"
+                              # Buck2 owns build/test execution; no Cargo incremental toggle is
+                              # projected into the active CI lane.
                               # gh token for the pipeline's first-stage `git clone`
                               # of the PR ref. The gateway-build-git Secret already
                               # exists in oya-ci-jenkins (it was minted for the

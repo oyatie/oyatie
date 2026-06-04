@@ -49,22 +49,10 @@ spec:
   }
 
   environment {
-    OYA_MICROSERVICE = 'cloud-iac'
-    CARGO_PACKAGE = 'oya-cloud-iac'
-    CARGO_INCREMENTAL = '0'
-    CARGO_TERM_COLOR = 'always'
-    NEXTEST_PROFILE = 'ci'
-    // ADR-0349 + specs/ci-farm-substrate-canonical.json: shared remote build cache
-    // (sccache -> SeaweedFS S3) so ephemeral lane agents reuse compiled shared-substrate
-    // crates instead of recompiling the 121 kernel + 30 shared crates cold per lane.
-    RUSTC_WRAPPER = 'sccache'
-    SCCACHE_BUCKET = 'oya-ci-sccache-shared-prod'
-    SCCACHE_ENDPOINT = 'seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333'
-    SCCACHE_S3_USE_SSL = 'false'
-    SCCACHE_REGION = 'oya-local'
-    // S3 credentials bound from OpenBao via the Jenkins credentials plugin; never inlined.
-    AWS_ACCESS_KEY_ID = credentials('oya-ci-sccache-access-key-id')
-    AWS_SECRET_ACCESS_KEY = credentials('oya-ci-sccache-secret-access-key')
+    OYA_SERVICE_ROOT = 'cloud'
+    OYA_SERVICE = 'cloud-iac'
+    OYA_REQUIRED_CONTEXT = 'oya-ci-required'
+    OYA_AUTHORITY_BOUNDARY = 'bridge_only_not_branch_protection_authority'
   }
 
   stages {
@@ -74,81 +62,46 @@ spec:
       }
     }
 
-    stage('Install Rust CI tooling') {
+    stage('Buck2 authority policy') {
       steps {
         container('rust') {
-          sh 'rustup component add rustfmt clippy'
-          sh 'cargo nextest --version || cargo install cargo-nextest --locked'
-          // Remote build cache: start sccache against the SeaweedFS S3 backend so this
-          // ephemeral agent reuses shared-substrate compilation across lanes (ADR-0349).
-          sh 'sccache --version || cargo install sccache --locked'
-          sh 'sccache --start-server || true'
-          sh 'sccache --show-stats || true'
+          sh 'python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json'
+          sh 'buck2 build //:buck2-authority-policy-check'
         }
       }
     }
 
-    stage('cargo fmt --check') {
+    stage('Buck2 affected build and test') {
       steps {
         container('rust') {
-          sh 'cargo fmt --all -- --check'
+          sh 'infra/ci/buck2-affected-gate.sh "origin/${CHANGE_TARGET:-dev}"'
         }
       }
     }
 
-    stage('cargo check -p') {
-      steps {
-        container('rust') {
-          sh 'cargo check -p "$CARGO_PACKAGE"'
-        }
-      }
-    }
-
-    stage('cargo clippy -p') {
-      steps {
-        container('rust') {
-          sh 'cargo clippy -p "$CARGO_PACKAGE" --all-targets -- -D warnings'
-        }
-      }
-    }
-
-    stage('cargo nextest run -p') {
-      steps {
-        container('rust') {
-          sh 'cargo nextest run -p "$CARGO_PACKAGE" --no-fail-fast'
-        }
-      }
-    }
-
-    stage('Oya VCS admission evidence') {
-      steps {
-        container('rust') {
-          sh 'cargo run -q -p oya-vcs-admission-gate-app'
-        }
-      }
-    }
-
-    stage('Emit Wave 15-ZE evidence') {
+    stage('Emit Buck2 bridge evidence') {
       steps {
         container('rust') {
           sh '''
 set -eu
-evidence_dir="evidence/ci/jenkins/${OYA_MICROSERVICE}"
+evidence_dir="evidence/ci/jenkins/${OYA_SERVICE_ROOT}/${OYA_SERVICE}"
 mkdir -p "$evidence_dir"
-cat > "$evidence_dir/wave-15-ze.json" <<JSON
+cat > "$evidence_dir/buck2-authority-bridge.json" <<JSON
 {
-  "wave": "15-ZE",
-  "adr": "ADR-0349",
-  "microservice": "${OYA_MICROSERVICE}",
-  "cargo_package": "${CARGO_PACKAGE}",
-  "ci_substrate": "jenkins-lts",
-  "runtime_class": "kata-cloud-hypervisor",
+  "schema_version": "2026-06-02",
+  "service_root": "${OYA_SERVICE_ROOT}",
+  "service": "${OYA_SERVICE}",
+  "ci_substrate": "jenkins-lts-bridge",
+  "authority_boundary": "${OYA_AUTHORITY_BOUNDARY}",
+  "required_context_target": "${OYA_REQUIRED_CONTEXT}",
+  "claim_boundary": {
+    "branch_protection_authority": false,
+    "phase0_complete": false
+  },
   "lanes": [
-    "cargo fmt --all -- --check",
-    "cargo check -p ${CARGO_PACKAGE}",
-    "cargo clippy -p ${CARGO_PACKAGE} --all-targets -- -D warnings",
-    "cargo nextest run -p ${CARGO_PACKAGE} --no-fail-fast",
-    "cargo run -q -p oya-vcs-admission-gate-app"
+    "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+    "buck2 build //:buck2-authority-policy-check",
+    "infra/ci/buck2-affected-gate.sh origin/${CHANGE_TARGET:-dev}"
   ],
   "build_url": "${BUILD_URL:-local}",
   "git_commit": "${GIT_COMMIT:-unknown}",
@@ -163,7 +116,7 @@ JSON
 
   post {
     always {
-      archiveArtifacts artifacts: "evidence/ci/jenkins/${OYA_MICROSERVICE}/wave-15-ze.json", allowEmptyArchive: false
+      archiveArtifacts artifacts: "evidence/ci/jenkins/${OYA_SERVICE_ROOT}/${OYA_SERVICE}/buck2-authority-bridge.json", allowEmptyArchive: false
     }
   }
 }

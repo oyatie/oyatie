@@ -1,0 +1,178 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-auto-merge-after-ci.json",
+    "specs/buck2-authority-policy.json",
+    "specs/multispectrum-review.json"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-required-context-rollup-detector",
+  "claim_boundary": {
+    "live_forgejo_converged": false,
+    "live_trusted_oya_ci_required_producer_evidenced": false,
+    "note": "Local/static and live-read-only status-rollup detection evidence only; the checker never posts statuses and does not claim P0.0 green, Phase-0 completion, trusted cloud-ci/oya-ci producer deployment, live Forgejo convergence, tenant-facing readiness, security readiness, performance readiness, or production readiness.",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose checker; no new dependencies; no status-posting side effects."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Converts the live no-checks blocker into deterministic RED evidence instead of relying on operator interpretation."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "no_status_checks_reported, missing_required_context, required_context_not_success, missing_required_context_producer, untrusted_required_context_producer",
+      "failing_fixture_added": true,
+      "failing_fixture_id": "bad-no-checks-reported / bad-missing-oya-ci-required / bad-oya-ci-required-failure / bad-oya-ci-required-completed-failure / bad-oya-ci-required-success-missing-producer / bad-oya-ci-required-success-untrusted-producer",
+      "findings": [
+        "Prevents treating empty rollups, wrong contexts, failing contexts, or completed-failed check runs as green.",
+        "Prevents spoofed or producerless oya-ci-required success from becoming required_context_proven=true."
+      ],
+      "passing_fixture_id": "good-oya-ci-required-success / good-nested-cloud-ci-oya-ci-success"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "JSON output includes contexts, required_context_status, reason, and explicit non-authority boundary."
+      ],
+      "new_contributor_minutes_estimate": 10
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Fixture tests, contract check, policy scan, and Buck2 target pass; live read-only check fails as expected on current PR."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Manually post oya-ci-required",
+        "Only document no checks in PR body",
+        "Add non-mutating rollup checker"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Manual posting would risk protected-branch bypass and violate destination-authority boundaries.",
+        "Documentation alone leaves the RED state dependent on human interpretation."
+      ],
+      "selected_rationale": "Non-mutating checker advances enforcement without spoofing the trusted producer or overclaiming live authority."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No credentials or tenant data touched; the checker is read-only over PR status JSON and fixture files."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    }
+  },
+  "files_changed": [
+    "scripts/ci/assert-pr-required-context.py",
+    "scripts/tests/phase0_required_context_rollup_check.test.sh",
+    "specs/fixtures/phase0-required-context-rollup/*.json",
+    "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+    "specs/phase0-auto-merge-after-ci.json",
+    "specs/buck2-authority-policy.json",
+    "BUCK",
+    "evidence/multispectrum/platform-readiness-p0-0-required-context-rollup-detector-1780446211.json",
+    "evidence/audit-chain.jsonl",
+    "evidence/multispectrum/platform-readiness-p0-0-required-context-rollup-live-pr455-1780447662.json",
+    "specs/fixtures/phase0-required-context-rollup/good-nested-cloud-ci-oya-ci-success.json",
+    "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-missing-producer.json",
+    "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-untrusted-producer.json"
+  ],
+  "freshness_unix": 1780446211,
+  "git_sha": "5364159a23ef",
+  "implementation_summary": [
+    "Added a non-mutating PR statusCheckRollup checker for the target oya-ci-required context.",
+    "Added fixture coverage for success, no checks reported, missing required context, explicit failure, and check-run status=COMPLETED with conclusion=FAILURE.",
+    "Wired the checker into the GitHub auto-merge Buck2 target, the phase0 auto-merge contract checker, and the Buck2 authority policy scan.",
+    "Ran the checker against live PR #455 JSON; it fails RED with no_status_checks_reported while preserving p0_0_green=false and phase0_complete=false.",
+    "Removed unused failure-state constant so the checker derives RED solely from required-context success proof, not duplicated failure taxonomies.",
+    "Added trusted producer validation for cloud-ci/oya-ci before required_context_proven=true can be emitted.",
+    "Committed a durable sanitized live PR #455 read artifact with checker output and input/output hashes."
+  ],
+  "known_gaps": [
+    {
+      "id": "live-oya-ci-required-producer",
+      "reason": "The live PR rollup currently has no checks reported; this slice detects the gap but does not post or spoof a status.",
+      "status": "open"
+    },
+    {
+      "id": "reviewer-approve-gate",
+      "reason": "Independent review still required after this new diff.",
+      "status": "open"
+    },
+    {
+      "id": "live-forgejo-convergence",
+      "reason": "No live Forgejo convergence evidence in this environment.",
+      "status": "open"
+    }
+  ],
+  "schema_version": "multispectrum-review/v2.4.0",
+  "scope": "P0.0 live required-context rollup RED detector for PR statusCheckRollup no-checks/missing/failing contexts",
+  "session_id": "omx-1780444223444-72yqk7",
+  "timestamp_iso": "2026-06-03T00:23:31Z",
+  "timestamp_unix": 1780446211,
+  "verification": [
+    {
+      "command": "bash scripts/tests/phase0_required_context_rollup_check.test.sh",
+      "evidence": "Fixture tests pass for trusted producer success, nested checkRun success, no-checks RED, missing context RED, failing context RED, completed-failed RED, missing producer RED, and untrusted producer RED.",
+      "status": "passed"
+    },
+    {
+      "command": "gh pr view 455 --json headRefOid,mergeable,mergeStateStatus,statusCheckRollup,autoMergeRequest,url; python3 scripts/ci/assert-pr-required-context.py --input /tmp/p0-required-context-verify/pr455-live-after-trust-fix.json --json",
+      "evidence": "Durable artifact evidence/multispectrum/platform-readiness-p0-0-required-context-rollup-live-pr455-1780447662.json records headRefOid=5364159a23ef17e08528ef34d35c375e8df2c9a0, statusCheckRollup_count=0, checker_exit_code=1, verdict=FAIL, reason=no_status_checks_reported, p0_0_green=false, phase0_complete=false.",
+      "status": "failed-as-expected"
+    },
+    {
+      "command": "python3 -m py_compile scripts/ci/assert-pr-required-context.py scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Python syntax checks passed.",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Contract checker reports required_context_rollup_check_tested=true, enforces cloud-ci/oya-ci producer trust fields, and keeps p0_0_green=false and phase0_complete=false.",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m json.tool specs/phase0-auto-merge-after-ci.json specs/buck2-authority-policy.json",
+      "evidence": "Updated JSON specs parse.",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "Buck2 authority policy scan passed with command_scan_files=144.",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "Whitespace/conflict-marker diff hygiene passed.",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh; bash scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh; bash scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
+      "evidence": "Existing GitHub auto-merge drift/conflict regressions still pass.",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build //:forgejo-auto-merge-after-ci-check //:github-auto-merge-after-ci-check //:phase0-auto-merge-after-ci-contract-check //:buck2-authority-policy-check --show-output",
+      "evidence": "Build ID ebb55ed8-e161-49f1-853d-ae75d255fcd3; all four targets succeeded after trusted-producer review remediation and dead-code cleanup.",
+      "status": "passed"
+    }
+  ]
+}

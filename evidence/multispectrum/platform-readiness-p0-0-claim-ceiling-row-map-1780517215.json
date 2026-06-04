@@ -1,0 +1,68 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-17-CLAIM-CEILING-ROW-MAP-1780517215",
+  "created_at": "2026-06-03T16:06:55-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha_before_commit": "79b7022b5af7b227a64b60878ce0fbb2c5218f7e",
+  "acceptance_criterion": "AC-0.17-claim-ceiling",
+  "summary": "Local/static AC-0.17 evidence tightens the Phase-0 automation matrix so the claim-ceiling row maps directly to //:phase0-claim-ceiling-check with an explicit Buck2 verification command. The shell regression fails closed if AC0.17 drifts back to a composite prose target, drops coverage-registry verification metadata, or weakens live-authority/production-ready/hyperscaler-grade non-claims.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "claim_ceiling_row_mapping_measured": true,
+    "claim_evidence_map_local_static_proven": true,
+    "regulated_vocabulary_count": 24,
+    "no_new_oya_cli_surface": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-claim-ceiling-row-map-red-1780517055",
+    "shell_test_exit": 1,
+    "failure": "AC-0.17 claim-ceiling row must map to exact Buck2 target"
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-claim-ceiling-row-map-green-1780517143",
+    "direct_shell_test": "PASS phase0 claim-ceiling fixture checks passed",
+    "claim_ceiling": "PASS row_count=6 regulated_vocabulary_count=24 fixture_count=10",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=232 status_context_scan_files=9 authority_context=oya-ci-required",
+    "red_green_fixture_contract": "PASS entry_count=26 green_marker_count=27 red_marker_count=40",
+    "json_parse": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "b11e5888-206d-44ea-ab68-95eee8aaec5a",
+    "buck2_targets": [
+      "//:phase0-claim-ceiling-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check",
+      "//:phase0-red-green-fixture-contract-check"
+    ]
+  },
+  "files_updated": [
+    "BUCK",
+    "scripts/tests/phase0_claim_ceiling_check.test.sh",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "evidence/audit-chain.jsonl",
+    "evidence/multispectrum/platform-readiness-p0-0-claim-ceiling-row-map-1780517215.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "buck2_native_llvm_coverage_preferred_over_tarpaulin": true,
+    "dual_cargo_buck2_reindeer_allows_local_cargo_mutation_advisory_only": true,
+    "rust_gate_warning_posture": "Prefer Buck2/Rust gates that compile with rustc -D warnings where applicable; AC-0.17 itself is a Python/shell claim-fixture gate and does not add a new Rust binary.",
+    "ac_0_17_scope": "claim-ceiling row/coverage mapping only; no source-line coverage, no Cargo mutation lane, no production readiness proof, and no hyperscaler-grade readiness claim"
+  },
+  "hyperscaler_orientation_recorded": {
+    "claim_ceiling_blocks_unproven_hyperscaler_grade_language": true,
+    "exact_target_not_composite_prose": true,
+    "buck2_native_monorepo_gate": true,
+    "local_static_only_until_cloud_ci_oya_ci_live": true,
+    "hyperscaler_grade_claimed": false
+  },
+  "updated_at": "2026-06-03T16:06:55-04:00"
+}

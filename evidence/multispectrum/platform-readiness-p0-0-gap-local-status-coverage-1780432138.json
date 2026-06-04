@@ -1,0 +1,142 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_id": "platform-readiness-p0-0-gap-local-status-coverage",
+  "change_class_id": "CC-5",
+  "timestamp_iso": "2026-06-02T20:28:58Z",
+  "freshness_unix": 1780432138,
+  "git_sha": "f3f5162daa47318c8b3ea36ca72506e7175e8ec8",
+  "claim_boundary": {
+    "claim": "Every explicit P0.0 gap-packet GAP row now carries a non-empty local_target_status and the kernel test refuses blank local statuses, preventing unevaluated local work from hiding inside the RED gap packet.",
+    "authority": "local-static-evidence-only",
+    "not_claimed": [
+      "P0.0 green",
+      "Phase-0 complete",
+      "live cloud-ci/oya-ci required context",
+      "production readiness",
+      "security readiness",
+      "mechanical enforcement",
+      "tenant-facing readiness"
+    ]
+  },
+  "related_acceptance_criteria": [
+    "AC-0.0",
+    "AC-0.12",
+    "AC-0.16",
+    "AC-0.17"
+  ],
+  "related_test_spec": [
+    "T0.0",
+    "T0.12",
+    "T0.16",
+    "T0.17"
+  ],
+  "scope": [
+    "specs/phase0-ci-enforcement-baseline.json",
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs"
+  ],
+  "enforcement_added": [
+    "required_context local_target_status",
+    "tenant_pipeline_isolation local_target_status",
+    "kernel assertion that every named P0.0 GAP row carries local_target_status"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Small gap-packet/test update; no new abstraction or CLI surface."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Gap packet remains RED until live required context; local statuses improve auditability only."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Blank local status rows can no longer hide unevaluated P0.0 work in checked-in evidence."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Operators can distinguish local target evidence from live blockers per gap row."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Rustfmt, JSON parse, static local-status assertion, diff hygiene, Buck2 scanner, Buck2 policy build, uquery, and blocked test attempt were run."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected leaving blank statuses as implicit live-only blockers because AC-0.16 requires automatable/evidence-bearing status mapping."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets or tenant data touched."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance claim is made."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Local/live authority boundary is clearer for required_context and tenant_pipeline_isolation rows."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence records exact commands and Buck2 build IDs."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Supports AC-0.16 automation/evidence ratchet and AC-0.17 claim boundary."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI command added.",
+        "Buck2 remains scripts/CI/CD/build/test authority."
+      ]
+    }
+  },
+  "validation": {
+    "passed": [
+      "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs -> PASS",
+      "python3 -m json.tool specs/phase0-ci-enforcement-baseline.json -> PASS",
+      "static Python gap packet local status assertions -> PASS",
+      "git diff --check -> PASS",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS (verdict PASS, command_scan_files 28)",
+      "buck2 build //:buck2-authority-policy-check --show-output -> PASS (Build ID b8fe5e2f-6de8-4996-9724-e6781eb2e2a1)",
+      "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> PASS (Build ID 90a1c208-191b-49a3-bbe9-6e586cd985f7)"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> local Apple ld rejected GNU/Linux flags while linking third-party Rust build scripts serde_json-1-build-script-build and proc-macro2-1-build-script-build; tests ran 0 (Build ID aefed5c9-3eef-4a61-a2f7-ce68330b4385)"
+    ],
+    "expected_red_or_target_only": [
+      "No live oya-ci-required protected context is claimed.",
+      "No Phase-0 exit authority is claimed."
+    ]
+  }
+}

@@ -98,7 +98,7 @@ jobs:
           ref: ${{ steps.pr.outputs.pr_head_sha }}
       - name: Fan out review
         run: |
-          cargo run -q -p oya-intelligence-subagent-runtime-app -- fan-out \
+          buck2 run //oya/intelligence/crates/oya-intelligence-subagent-runtime-app:oya-intelligence-subagent-runtime-app-bin -- fan-out \
             --change-id "${{ steps.pr.outputs.pr_head_sha }}"
       - name: Publish oya-pr-review
         env:

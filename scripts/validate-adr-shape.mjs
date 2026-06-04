@@ -3,12 +3,11 @@ import { spawnSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const manifestPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'Cargo.toml');
-
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const result = spawnSync(
-  'cargo',
-  ['run', '-q', '--manifest-path', manifestPath, '-p', 'oya-dev-cli', '--', 'lint', 'adr-shape', ...process.argv.slice(2)],
-  { stdio: 'inherit' },
+  'buck2',
+  ['run', '//oya/developer-sdk/crates/oya-dev-cli:oya', '--', 'lint', 'adr-shape', ...process.argv.slice(2)],
+  { cwd: repoRoot, stdio: 'inherit' },
 );
 
 if (result.error) {

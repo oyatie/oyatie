@@ -98,11 +98,11 @@ Many tools serve both — e.g. catalog browsing is human-and-agent. The toolchai
 | **Container registry** | **Harbor** per ADR-0044 | none | Apache-2 |
 | **Supply-chain — signing** | **Cosign keyless** + **Rekor** per ADR-0039 | none | Apache-2 + transparency log |
 | **Supply-chain — scanning** | **Trivy** 4-layer per ADR-0039 | none | Apache-2 |
-| **License scanning** | **cargo-deny** + **license-policy ADR**; in-house tool to enforce per-product license-tier | none | Cargo-native |
+| **License scanning** | **Buck2-owned license/SBOM registry gate** + license-policy ADR; Cargo metadata/vendor may feed graph generation only | none | Buck2 authority with metadata-only Cargo exception |
 | **Browser auth bridge** (for subscription-mode adapters) | **Rust + Chromiumoxide** (CDP wrapper) | Playwright (Apache-2) only as escape hatch | Headless browser in Rust |
-| **Local dev environment** | **Devcontainer (open spec)** + **`oya dev env`** that wraps it; **Leptos hot-reload via cargo-leptos**; **nextest watch** | none | Devcontainer is industry standard |
+| **Local dev environment** | **Devcontainer (open spec)** + **`oya dev env`** that wraps it; Leptos/dev-server feedback must route through Buck2-owned targets when it feeds build/test evidence | none | Devcontainer is industry standard; Buck2 remains build authority |
 | **Editor / IDE** | Engineer choice (VS Code / Cursor / Helix / Zed / Neovim); **rust-analyzer** is required; **leptos-language-server** when authoring Leptos UI | none | Editor-agnostic; require LSP support |
-| **Pre-commit + pre-push** | **`oya verify`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `oya gate validate` + boundary validator | none | Already in the design |
+| **Pre-commit + pre-push** | **Buck2 affected build/test/gate targets** plus governance validators; `oya verify` / `oya gate` may appear only as local/bridge evidence, never protected-branch or Phase-0 exit authority | none | 2026-06-02 Buck2 authority amendment |
 
 ---
 
@@ -194,7 +194,7 @@ Every persona-CLI subcommand becomes an MCP tool with a typed schema:
 // Example tool exposed by oya-mcp-server
 {
   "name": "oya.dev.check",
-  "description": "Run pre-push checks: cargo fmt --check, cargo clippy, cargo nextest run, oya gate validate, architecture-boundary validator. Use BEFORE every push. Idempotent. Reads-only on the working tree (no writes). Exits 0 on pass, 1 on fail. Output is structured JSON with per-check pass/fail and links to evidence.",
+  "description": "Run pre-push checks through Buck2 affected build/test/gate targets plus governance validators. Use BEFORE every push as local evidence only. Idempotent. Reads-only on the working tree (no writes). Exits 0 on pass, 1 on fail. Output is structured JSON with per-check pass/fail and links to evidence.",
   "inputSchema": {
     "type": "object",
     "properties": {
@@ -277,9 +277,9 @@ The toolchain optimizes for parallel agent dispatch.
 | Tool | Purpose |
 |---|---|
 | **Worktree-per-agent dispatch** | One worktree per agent so parallel agents never collide on the working tree. |
-| **Affected-graph testing** | Per [`docs/standards/ci-lanes.md`](standards/ci-lanes.md) — only test what each agent's diff touches; cargo + pnpm affected sets. |
+| **Affected-graph testing** | Per [`docs/standards/ci-lanes.md`](standards/ci-lanes.md) — only test what each agent's diff touches through Buck2 graph queries and Buck2 target sets. |
 | **Build-cache** | sccache + remote cache; cache hit lets a 5-min build complete in 30s. |
-| **Test sharding** | `cargo nextest` parallelism + per-shard runners. |
+| **Test sharding** | Buck2 test target partitioning + per-shard runners. |
 | **Coordinated merge windows** | One PR at a time may touch root `Cargo.toml`; per ADR-0015 plan §3 PM-3 mitigation. |
 | **Speculative parallel dispatch** | Fire 3 alternative agent approaches in parallel; pick the first to reach acceptance criteria. |
 | **Replay-as-eval** | Run a new agent build on a frozen trace set to detect regression before promotion. |
@@ -320,7 +320,7 @@ Allowed licenses: Apache-2.0, MIT, BSD-2/3-Clause, MPL-2.0, ISC, Unlicense, CC0.
 Forbidden: AGPL (any), GPL (any), SSPL, BUSL (after 2024), Commons Clause.
 Requires-review: anything else; council must approve.
 
-CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents and hard-fails on a forbidden license.
+CI lane `oya-governance-license` runs Buck2-owned license/SBOM registry validators plus per-language equivalents and hard-fails on a forbidden license. Cargo metadata may feed generated registry data only; it is not lane authority.
 
 ---
 
@@ -328,7 +328,7 @@ CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents an
 
 | Order | Tool | Why first |
 |---|---|---|
-| 1 | `oya verify` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
+| 1 | Buck2 affected gate + cloud-ci required-context shape (`oya verify` bridge evidence only if used) | Engineer pre-push evidence; foundation |
 | 2 | `oya-foundry-adapter-kernel` + adapters for Anthropic / OpenAI / Gemini × API + subscription | Foundry preview gate |
 | 3 | `oya-foundry-capability-kernel` + MCP-compatible registry | Foundry preview gate |
 | 4 | `oya-foundry-router` (multi-provider routing + cost ceiling) | Production agent reliability |
@@ -343,7 +343,7 @@ CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents an
 | 13 | `oya-portal` (IDP / catalog UI in Leptos) | Replace Backstage bootstrap |
 | 14 | `oya-toolchain` (shared Rust libs every team uses) | Cohesion compounds |
 | 15 | `oya-bench` (benchmark harness) | Perf regression detection |
-| 16 | `oya-bouncer` (license + SBOM + supply-chain) | Wraps cargo-deny + Cosign + Trivy |
+| 16 | `oya-bouncer` (license + SBOM + supply-chain) | Wraps Buck2-owned license registry validation + Cosign + Trivy |
 | 17 | `oya-studio` (Workflow Studio) | Customer-builder surface |
 | 18 | `oya-trust` (trust portal) | Compliance customer-facing |
 
@@ -351,11 +351,11 @@ CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents an
 
 ## 9. Open questions
 
-1. **Bazel adoption** — should we adopt Bazel for cross-language remote-execution + caching? Currently cargo + pnpm + ad-hoc. Pro: scales beyond Rust. Con: Bazel learning curve. Defer until the second non-Rust workspace appears at scale.
+1. **Bazel adoption** — should we adopt Bazel for cross-language remote-execution + caching? Current direction is Buck2 for build/test authority plus language metadata adapters. Pro: scales beyond Rust. Con: Bazel learning curve and current Buck2 direction. Defer unless Buck2 fails a concrete scale requirement.
 2. **In-house notebook environment** — should we build an Oyatie-native Python+Rust notebook, or use Jupyter? Current pick: Jupyter for ad hoc; consider in-house when integrated with `oya-foundry-rag`.
 3. **Code-search index** — Sourcegraph is a great tool; license is Apache-2 (verify); should we adopt or build? Probably adopt initially; in-house later if scale demands.
 4. **Documentation site generator** — mdbook (Rust, Apache-2/MIT) is the natural Rust-stack default; alternative: in-house. Pick mdbook initially with Leptos overlays for interactive surfaces.
-5. **Cargo workspace splitting** — after the workspace grows past the historical 91-crate split inventory, do we shard the workspace into multiple repos? Current pick: stay in one repo with `cargo build --workspace --target` sharding; live count was 64 on 2026-05-11; revisit at 200+ crates.
+5. **Rust workspace graph splitting** — after the workspace grows past the historical 91-crate split inventory, do we shard the workspace into multiple repos? Current pick: stay in one repo with Buck2 target-graph sharding; live count was 64 on 2026-05-11; revisit at 200+ crates.
 6. **Mobile cross-platform** — Kotlin Multiplatform vs separate Swift / Kotlin native. Current pick: separate native; KMP only when shared business-logic crate justifies.
 
 ---

@@ -9,7 +9,7 @@ doc_status: published
 
 ## 1. Tracing crate
 
-`tracing` + `tracing-subscriber`; structured JSON output to stdout; OTel exporter to in-house metrics + audit chain per ADR-0042.
+`tracing` + `tracing-subscriber`; structured JSON output to stdout; OTel exporter to the ADR-0383/ADR-0186 observability backplane plus audit chain. ADR-0042 instrumentation semantics are carried forward by ADR-0383; ADR-0042 is not storage-tier authority.
 
 ## 2. OpenTelemetry semantic conventions
 
@@ -66,11 +66,10 @@ Per ADR-0024 Foundry replay:
 
 ## 8. Forwarding + storage
 
-- VictoriaMetrics for metrics (Apache-2 per ADR-0042)
-- In-house Leptos UI for visualization (long-horizon; Grafana AGPL replaced)
-- Loki / Tempo replaced with in-house OR commercial-licensed
+- Mimir for metrics, Loki for logs, Tempo for traces, and Grafana for visualization under the self-hosted AGPL-3 posture recorded by ADR-0383 / ADR-0186.
+- No Grafana Cloud or external SaaS observability backend is introduced by this standard.
 - Per-cell observability namespace
 - Per-tenant audit-chain integration
 
 ## 9. Sources
-OTel `gen_ai` semconv; `tracing` crate; ADR-0003 (audit chain); ADR-0008 (Data Use Boundary); ADR-0042 (observability stack).
+OTel `gen_ai` semconv; `tracing` crate; ADR-0003 (audit chain); ADR-0008 (Data Use Boundary); ADR-0383 / ADR-0186 (observability storage and visualization backplane); ADR-0042 only for instrumentation semantics carried forward by ADR-0383.

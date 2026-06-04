@@ -41,3 +41,6 @@ substrate_adrs:
   - docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md
   - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
 <!-- agent-instructions:end -->
+
+
+ADR-0516 temporary GitHub/GitHub Actions lane-unlocker: no Jenkins, no Forgejo, no ArgoCD interim authority; Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now; no shared contract or shared surface until a later rewrite and rewire of Oyatie products to consume the Cloud IdP. Buck2 remains build/test/check authority; native cutover remains cloud native, Kubernetes-native, hyperscaler native.

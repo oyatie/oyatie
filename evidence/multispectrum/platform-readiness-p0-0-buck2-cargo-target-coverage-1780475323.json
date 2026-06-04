@@ -1,0 +1,145 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/buck2-authority-policy.json",
+    "specs/buck2-cargo-target-coverage.json"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-buck2-cargo-target-coverage",
+  "claim_boundary": {
+    "hyperscaler_grade": false,
+    "live_required_context_execution_proven": false,
+    "mutation_lane_implemented": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "source_line_coverage_generated": false,
+    "status_mutation_performed": false,
+    "target_coverage_measured": true
+  },
+  "files_changed": [
+    "specs/buck2-cargo-target-coverage.json",
+    "scripts/ci/assert-buck2-cargo-target-coverage.py",
+    "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+    "BUCK",
+    "specs/buck2-authority-policy.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/root-hub-pointers.json",
+    "evidence/multispectrum/platform-readiness-p0-0-buck2-cargo-target-coverage-1780475323.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "freshness_unix": 1780475963,
+  "git_sha": "4c13323f30940388efec68bb64863be6db263990",
+  "implementation_summary": [
+    "Added specs/buck2-cargo-target-coverage.json to define AC-0.13 target-root coverage measurement between Cargo workspace lib/bin targets and checked-in Buck2 rust crate_root mappings.",
+    "Added scripts/ci/assert-buck2-cargo-target-coverage.py to parse Cargo.toml workspace members (including glob/exclude expansion), discover Cargo lib/bin target roots including autolib/autobins-aware src/lib.rs, src/main.rs, src/bin/*.rs, and src/bin/*/main.rs roots, scan BUCK crate_root mappings (including parent BUCK files such as tools/oci/BUCK), and fail on missing/unregistered/stale divergences while keeping live-readiness claims false.",
+    "Added scripts/tests/buck2_cargo_target_coverage_check.test.sh with GOOD current-workspace, BAD missing-BUCK fixture, GOOD parent-BUCK fixture, GOOD autobins=false fixture, and BAD p0_0_green mutation coverage.",
+    "Added //:buck2-cargo-target-coverage-check with repo_relative_root=true, remote=false, cacheable=false because the scanner spans Buck package boundaries; wired it into the Buck2 authority policy and AC-0.16 automation matrix/coverage registry."
+  ],
+  "known_gaps": [
+    "This is target-root mapping coverage, not source-line coverage.",
+    "The Buck2 target runs repo_relative_root=true/cacheable=false/remote=false for whole-repo package-boundary scanning; this is local/static evidence and not hermetic remote-execution proof.",
+    "No live cloud-ci/oya-ci required context ran this target on the candidate SHA."
+  ],
+  "observed_measurement": {
+    "workspace_member_count": 726,
+    "cargo_target_root_count": 780,
+    "buck2_mapped_target_root_count": 780,
+    "known_divergence_count": 0,
+    "source_line_coverage_generated": false
+  },
+  "official_sources": [
+    {
+      "name": "Cargo Book \u2014 Workspaces",
+      "url": "https://doc.rust-lang.org/cargo/reference/workspaces.html",
+      "used_for": "Cargo workspace member discovery, including member globs and excludes."
+    },
+    {
+      "name": "Cargo Book \u2014 Cargo Targets",
+      "url": "https://doc.rust-lang.org/cargo/reference/cargo-targets.html",
+      "used_for": "Cargo lib/bin target-root discovery, including src/bin auto-discovered binaries and auto* discovery flags."
+    },
+    {
+      "name": "Buck2 \u2014 Commands",
+      "url": "https://buck2.build/docs/users/commands/",
+      "used_for": "Buck2 target-based evidence and Build ID capture."
+    },
+    {
+      "name": "Buck2 \u2014 Bootstrapping",
+      "url": "https://buck2.build/docs/about/bootstrapping/",
+      "used_for": "Dual Cargo/Buck2 and reindeer-generated Buck graph context."
+    },
+    {
+      "name": "Reindeer",
+      "url": "https://github.com/facebookincubator/reindeer",
+      "used_for": "Rust crate import and generated Buck rule context for monorepo crate graphs."
+    }
+  ],
+  "review_facets": {
+    "F10_docs": "PASS: machine-readable spec and root-hub pointer added.",
+    "F11_tests": "PASS: shell regressions and Buck2 targets passed.",
+    "F12_reserved": "N/A",
+    "F13_claim_boundary": "PASS: P0.0/Phase-0/live/production/hyperscaler claims remain false.",
+    "F1_correctness": "PASS: current workspace scan reports 726 members, 780 Cargo target roots, 780 Buck2 mappings, and zero known divergences.",
+    "F2_security": "PASS: no network, status mutation, or credentials; checked-in files only.",
+    "F3_reliability": "PASS: BAD missing-BUCK and p0_0_green fixtures fail closed; GOOD parent-BUCK and autobins=false fixtures lock modern Cargo target-discovery behavior.",
+    "F4_operability": "PASS: Buck2 target emits JSON and Build IDs recorded.",
+    "F5_observability": "PASS: output includes counts, missing/stale divergence lists, claim-boundary booleans, and sample mappings.",
+    "F6_maintainability": "PASS: contract, checker, tests, policy, and matrix wiring are separate.",
+    "F7_performance": "PASS: static scan only; no Cargo or Rust builds run.",
+    "F8_architecture": "PASS: preserves dual Cargo+Buck2 ergonomics while Buck2 remains CI authority and Cargo target discovery remains local/static evidence.",
+    "F9_compliance": "PASS: no new oya CLI or branch/status mutation."
+  },
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "AC-0.13 local/static Buck2/Cargo target-root coverage and divergence measurement; no Cargo execution, source-line coverage, or live merge authority.",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T08:39:23Z",
+  "timestamp_unix": 1780475963,
+  "verification": [
+    {
+      "artifact_dir": "/tmp/p0-0-buck2-cargo-target-coverage-red-1780474697",
+      "buck2_build_id": "af864ff3-0ed6-4a41-8b92-12964403cb3d",
+      "buck2_exit_code": 3,
+      "command": "missing checker/target RED probe",
+      "expected_failure": true,
+      "script_exit_code": 2,
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-buck2-cargo-target-coverage-green2-1780475149",
+      "buck2_build_id": "d6ce564a-ecb4-40d9-98fe-4e6e6ca8cbff",
+      "command": "direct checker + shell test + policy + automation ratchet + Buck2 bundle",
+      "observed": {
+        "buck2_mapped_target_root_count": 779,
+        "cargo_target_root_count": 779,
+        "workspace_member_count": 726
+      },
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-buck2-cargo-target-coverage-postroot-1780475257",
+      "buck2_build_id": "2bed6bc7-7186-46dd-a18e-4bfc6fb8a34e",
+      "command": "root pointer + checker + policy + automation ratchet + shell test + git diff --check + Buck2 bundle",
+      "status": "passed"
+    },
+    {
+      "artifact_dir": "/tmp/p0-0-buck2-cargo-target-coverage-modern-rust-1780475963",
+      "buck2_build_id": "d858f11c-3c31-4b0b-90a2-c4b49c02bba9",
+      "command": "modern Cargo target discovery checker + shell fixtures + policy + automation ratchet + Buck2 bundle",
+      "observed": {
+        "workspace_member_count": 726,
+        "cargo_target_root_count": 780,
+        "buck2_mapped_target_root_count": 780,
+        "known_divergence_count": 0
+      },
+      "status": "passed"
+    }
+  ]
+}

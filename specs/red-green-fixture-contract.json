@@ -1,0 +1,821 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/red-green-fixture-contract.json",
+  "title": "RedGreenFixtureContract",
+  "description": "Local/static AC-0.14 registry proving Phase-0 gates keep registered GOOD and BAD fixture/probe coverage. This is not live cloud-ci authority and not Phase-0 completion evidence.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-RED-GREEN-FIXTURE-CONTRACT",
+    "version": "0.1.0",
+    "status": "local_static_fixture_registry_not_live_context",
+    "owner_team": "platform-governance + platform-toolchain",
+    "created_at": "2026-06-03T08:52:00Z",
+    "related_acceptance_criteria": [
+      "AC-0.14"
+    ],
+    "source_request": "P0.0 automation matrix row AC-0.14 requires every gate to have BAD/GOOD fixtures and gate evidence.",
+    "updated_at": "2026-06-03T12:00:00Z"
+  },
+  "claim_boundary": {
+    "red_green_fixture_contract_measured": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "minimum_entry_count": 26,
+  "entry_contract": {
+    "required_fields": [
+      "id",
+      "buck2_target",
+      "test_paths",
+      "green_markers",
+      "red_markers",
+      "non_claim_markers"
+    ],
+    "green_marker_rule": "At least one checked-in file/token proving a GOOD/PASS fixture or positive contract path exists.",
+    "red_marker_rule": "At least one checked-in file/token proving a BAD/RED/fail-closed fixture or probe exists.",
+    "non_claim_marker_rule": "At least one checked-in token preserving local/static or non-mutating claim boundaries.",
+    "buck2_wiring_rule": "Each listed test path must exist and be referenced by BUCK; each buck2_target must exist in root BUCK."
+  },
+  "fixture_contract_entries": [
+    {
+      "id": "phase0-ci-enforcement-baseline-catalog",
+      "automation_matrix_row_id": "AC-0.0-cloud-ci-required-context",
+      "buck2_target": "//:phase0-ci-enforcement-baseline-catalog-check",
+      "test_paths": [
+        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+          "contains": "\"expected_verdict\": \"GREEN\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1-bad-missing-required-context.json",
+          "contains": "\"expected_verdict\": \"RED\""
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+          "contains": "claim_boundary.p0_0_green must remain false"
+        }
+      ]
+    },
+    {
+      "id": "phase0-required-status-source",
+      "automation_matrix_row_id": "AC-0.0-cloud-ci-required-context",
+      "buck2_target": "//:phase0-required-status-source-check",
+      "test_paths": [
+        "scripts/tests/phase0_required_status_source_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-required-status-source/good-bound-expected-source-app.json",
+          "contains": "\"app_id\": 12345"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-required-status-source/bad-null-source-app.json",
+          "contains": "\"app_id\": null"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-required-status-source.py",
+          "contains": "required-status source binding evidence only; this checker never mutates branch protection or posts statuses"
+        }
+      ]
+    },
+    {
+      "id": "phase0-github-required-context-rollup",
+      "buck2_target": "//:github-auto-merge-after-ci-check",
+      "test_paths": [
+        "scripts/tests/phase0_required_context_rollup_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-required-context-rollup/good-nested-cloud-ci-oya-ci-success.json",
+          "contains": [
+            "\"workflowName\": \"oya-ci\"",
+            "\"name\": \"cloud-ci\""
+          ]
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
+          "contains": "statusCheckRollup"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-pr-required-context.py",
+          "contains": "status-rollup evidence only; this checker never posts statuses"
+        }
+      ]
+    },
+    {
+      "id": "phase0-aggregate-exit",
+      "automation_matrix_row_id": "AC-0.12-aggregate-exit-gate",
+      "buck2_target": "//:phase0-aggregate-exit-check",
+      "test_paths": [
+        "scripts/tests/phase0_aggregate_exit_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-exit-gate/tc-0.12-good-all-subconditions-green.json",
+          "contains": "\"expected_verdict\": \"GREEN\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-exit-gate/tc-0.12-bad-missing-required-subcondition.json",
+          "contains": "\"expected_verdict\": \"RED\""
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-phase0-aggregate-exit.py",
+          "contains": "never posts statuses, mutates branch protection"
+        }
+      ]
+    },
+    {
+      "id": "phase0-automation-ratchet",
+      "automation_matrix_row_id": "AC-0.16-automation-ratchet",
+      "buck2_target": "//:phase0-automation-ratchet-check",
+      "test_paths": [
+        "scripts/tests/phase0_automation_ratchet_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-coverage-registry.json",
+          "contains": "\"expected_verdict\": \"GREEN\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-coverage-row.json",
+          "contains": "\"expected_verdict\": \"RED\""
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-automation-ratchet.py",
+          "contains": "never posts statuses"
+        }
+      ]
+    },
+    {
+      "id": "phase0-claim-ceiling",
+      "automation_matrix_row_id": "AC-0.17-claim-ceiling",
+      "buck2_target": "//:phase0-claim-ceiling-check",
+      "test_paths": [
+        "scripts/tests/phase0_claim_ceiling_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-claim-ceiling/tc-0.17-good-target-non-claim-with-owner.json",
+          "contains": "\"expected_verdict\": \"GREEN\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-ungrounded-production-ready.json",
+          "contains": "\"expected_verdict\": \"RED\""
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-claim-ceiling.py",
+          "contains": "never posts statuses, mutates branch protection"
+        }
+      ]
+    },
+    {
+      "id": "phase0-result-bundle-output",
+      "automation_matrix_row_id": "AC-0.0-structured-result-bundle",
+      "buck2_target": "//:phase0-result-bundle-output-check",
+      "test_paths": [
+        "scripts/tests/phase0_result_bundle_output_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+          "contains": "\"observed_verdict\": \"RED\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json",
+          "contains": "\"p0_0_green\": true"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-result-bundle-output.py",
+          "contains": "never posts statuses or claims live required-context authority"
+        }
+      ]
+    },
+    {
+      "id": "phase0-trusted-target-inventory",
+      "automation_matrix_row_id": "AC-0.0-trusted-target-inventory",
+      "buck2_target": "//:phase0-trusted-target-inventory-check",
+      "test_paths": [
+        "scripts/tests/phase0_trusted_target_inventory_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+          "contains": "\"expected_verdict\": \"GREEN\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
+          "contains": "\"expected_verdict\": \"RED\""
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-trusted-target-inventory.py",
+          "contains": "\"p0_0_green\": False"
+        }
+      ]
+    },
+    {
+      "id": "phase0-tenant-isolation",
+      "automation_matrix_row_id": "AC-0.0-tenant-pipeline-isolation",
+      "buck2_target": "//:phase0-tenant-isolation-fixture-check",
+      "test_paths": [
+        "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+          "contains": "tenant_pipeline_model"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
+          "contains": "tenant_surfaces_shared"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-tenant-pipeline-isolation.py",
+          "contains": "\"p0_0_green\": False"
+        }
+      ]
+    },
+    {
+      "id": "phase0-override-kill-switch",
+      "automation_matrix_row_id": "AC-0.0-override-kill-switch",
+      "buck2_target": "//:phase0-override-kill-switch-check",
+      "test_paths": [
+        "scripts/tests/phase0_override_kill_switch_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+          "contains": "\"override_packet\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
+          "contains": "\"expected_verdict\": \"RED\""
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-override-kill-switch.py",
+          "contains": "never claims live protected-flow override authority or status mutation"
+        }
+      ]
+    },
+    {
+      "id": "rust-testing-standard",
+      "buck2_target": "//:rust-testing-standard-check",
+      "test_paths": [
+        "scripts/tests/rust_testing_standard_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "docs/standards/testing.md",
+          "contains": "Buck2-native LLVM source-based coverage"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/rust_testing_standard_check.test.sh",
+          "contains": "forbidden_true_claim_p0_0_green"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-rust-testing-standard.py",
+          "contains": "\"p0_0_green\": False"
+        }
+      ]
+    },
+    {
+      "id": "rust-llvm-coverage-runner-contract",
+      "buck2_target": "//:rust-llvm-coverage-runner-contract-check",
+      "test_paths": [
+        "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/rust-llvm-coverage-runner-contract.json",
+          "contains": "\"coverage_runner_contract_proven\": true"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+          "contains": "ambient_path_llvm_tools_not_forbidden"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
+          "contains": "\"p0_0_green\": False"
+        }
+      ]
+    },
+    {
+      "id": "rust-llvm-coverage-smoke",
+      "buck2_target": "//:rust-llvm-coverage-smoke-check",
+      "test_paths": [
+        "scripts/tests/rust_llvm_coverage_smoke_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
+          "contains": "fn classify"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+          "contains": "expected $label to fail"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/run-rust-llvm-coverage-smoke.py",
+          "contains": "\"p0_0_green\": False"
+        }
+      ]
+    },
+    {
+      "id": "buck2-cargo-target-coverage",
+      "automation_matrix_row_id": "AC-0.13-buck2-cargo-coverage",
+      "buck2_target": "//:buck2-cargo-target-coverage-check",
+      "test_paths": [
+        "scripts/tests/buck2_cargo_target_coverage_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/buck2-cargo-target-coverage.json",
+          "contains": "\"target_coverage_measured\": true"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+          "contains": "missing_buck2_target_root_mapping"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-buck2-cargo-target-coverage.py",
+          "contains": "\"p0_0_green\""
+        }
+      ]
+    },
+    {
+      "id": "phase0-auto-merge-after-ci-contract",
+      "automation_matrix_row_id": "AC-0.0-auto-merge-after-ci",
+      "buck2_target": "//:phase0-auto-merge-after-ci-contract-check",
+      "test_paths": [
+        "scripts/tests/phase0_auto_merge_after_ci_contract_check.py"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/phase0-auto-merge-after-ci.json",
+          "contains": "\"required_context\": \"oya-ci-required\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+          "contains": "bad-no-checks-reported.json"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+          "contains": "spec must retain p0_0_green=false and phase0_complete=false"
+        }
+      ]
+    },
+    {
+      "id": "phase0-merge-conflict-foundation",
+      "automation_matrix_row_id": "AC-0.15-merge-conflict-foundation",
+      "buck2_target": "//:phase0-merge-conflict-foundation-check",
+      "test_paths": [
+        "scripts/tests/phase0_merge_conflict_foundation_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json",
+          "contains": "TC-0.15-GOOD-clean-merge-tree-generated-registry"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+          "contains": "path_overlap_without_review"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+          "contains": "phase1_tide_batching_claimed"
+        }
+      ]
+    },
+    {
+      "id": "service-root-classifier",
+      "automation_matrix_row_id": "AC-0.1-service-inventory",
+      "buck2_target": "//:service-root-classifier-check",
+      "test_paths": [
+        "scripts/tests/service_root_classifier_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-service-root-classifier/tc-service-root-good-seed.json",
+          "contains": "TC-SERVICE-ROOT-GOOD-seed-inventory-and-packets"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/service_root_classifier_check.test.sh",
+          "contains": "service_layout_sprawl"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-service-root-classifier.py",
+          "contains": "full_service_inventory_coverage_proven"
+        }
+      ],
+      "related_automation_matrix_row_ids": [
+        "P0.6-pack-root-classifier",
+        "AC-0.1-service-inventory",
+        "AC-0.7-service-layout-sprawl"
+      ]
+    },
+    {
+      "id": "status-enum-drift",
+      "automation_matrix_row_id": "AC-0.2-status-enum-drift",
+      "buck2_target": "//:status-enum-drift-check",
+      "test_paths": [
+        "scripts/tests/status_enum_drift_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-status-enum-drift/tc-status-enum-good-aligned.json",
+          "contains": "TC-0.2-GOOD-status-enum-and-spec-manifest-aligned"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/status_enum_drift_check.test.sh",
+          "contains": "invalid_status_enum_value"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-status-enum-drift.py",
+          "contains": "full_manifest_prd_conformance_proven"
+        }
+      ]
+    },
+    {
+      "id": "adr-hygiene",
+      "automation_matrix_row_id": "AC-0.3-adr-hygiene",
+      "buck2_target": "//:adr-hygiene-check",
+      "test_paths": [
+        "scripts/tests/adr_hygiene_check.test.sh"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-adr-hygiene/tc-adr-hygiene-good-renumbered-superseded-clean.json",
+          "contains": "TC-0.3-GOOD-renumbered-superseded-clean"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "scripts/tests/adr_hygiene_check.test.sh",
+          "contains": "duplicate_adr_number"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-adr-hygiene.py",
+          "contains": "full_adr_index_regenerated"
+        }
+      ]
+    },
+    {
+      "id": "language-discipline",
+      "automation_matrix_row_id": "AC-0.4-language-discipline",
+      "buck2_target": "//:language-discipline-check",
+      "test_paths": [
+        "scripts/tests/language_discipline_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
+          "contains": "TC-0.4-GOOD-allowlisted-bootstrap-shell-edit"
+        },
+        {
+          "path": "specs/language-discipline-registry.json",
+          "contains": "Buck2-native LLVM source-based coverage"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
+          "contains": "new_python_outside_allowlist"
+        },
+        {
+          "path": "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
+          "contains": "new_shell_outside_allowlist"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-language-discipline.rs",
+          "contains": "p0_0_green"
+        },
+        {
+          "path": "specs/language-discipline-registry.json",
+          "contains": "live_required_context_execution_proven"
+        }
+      ]
+    },
+    {
+      "id": "d1-seam-contracts",
+      "automation_matrix_row_id": "AC-0.5-d1-contract-files",
+      "buck2_target": "//:d1-seam-contracts-check",
+      "test_paths": [
+        "scripts/tests/d1_seam_contracts_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-good-d1-seam-contracts.json",
+          "contains": "TC-0.5-GOOD-d1-seam-contracts-with-optional-token-presence"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-missing-consistency-token.json",
+          "contains": "missing_consistency_token"
+        },
+        {
+          "path": "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-proto-required-or-frozen-topology.json",
+          "contains": "proto_required_consistency_token"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-d1-seam-contracts.rs",
+          "contains": "no live conformance, status mutation, required-context authority, P0.0 green"
+        },
+        {
+          "path": "specs/d1-seam-contracts-registry.json",
+          "contains": "live_required_context_execution_proven"
+        }
+      ]
+    },
+    {
+      "id": "effective-dating-kernel",
+      "automation_matrix_row_id": "AC-0.6-effective-dating-kernel",
+      "buck2_target": "//:effective-dating-kernel-check",
+      "test_paths": [
+        "scripts/tests/effective_dating_kernel_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-good-effective-dating-kernel.json",
+          "contains": "TC-0.6-GOOD-effective-dating-kernel-bitemporal-as-of"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-overlapping-valid-time.json",
+          "contains": "overlapping_bitemporal_range"
+        },
+        {
+          "path": "specs/fixtures/phase0-effective-dating-kernel/tc-0.6-bad-clock-skew-nondeterministic.json",
+          "contains": "clock_skew_determinism_missing"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-effective-dating-kernel.rs",
+          "contains": "never runs live CI"
+        },
+        {
+          "path": "specs/effective-dating-kernel-registry.json",
+          "contains": "live_required_context_execution_proven"
+        }
+      ]
+    },
+    {
+      "id": "cross-artifact-agreement",
+      "automation_matrix_row_id": "AC-0.8-cross-artifact-agreement",
+      "buck2_target": "//:cross-artifact-agreement-check",
+      "test_paths": [
+        "scripts/tests/cross_artifact_agreement_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-good-cross-artifact-agreement.json",
+          "contains": "\"expected_verdict\": \"PASS\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-masterplan-roadmap.json",
+          "contains": "missing_masterplan_artifact"
+        },
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-unreconciled-idea-refine-output.json",
+          "contains": "idea_refine_output_unreconciled"
+        },
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-generated-decisions-divergence.json",
+          "contains": "generated_decisions_json_diverged"
+        },
+        {
+          "path": "specs/fixtures/phase0-cross-artifact-agreement/tc-0.8-bad-missing-register-packet.json",
+          "contains": "missing_decision_propagation_packet_P0.7-D18-merge-conflict-elimination"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-cross-artifact-agreement.rs",
+          "contains": "protection, adds an `oya` CLI surface, or proves Phase-0 completion"
+        }
+      ]
+    },
+    {
+      "id": "structural-lock-revert",
+      "automation_matrix_row_id": "AC-0.9-structural-lock-revert",
+      "buck2_target": "//:structural-lock-revert-check",
+      "test_paths": [
+        "scripts/tests/structural_lock_revert_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-good-serialized-structural-lock-revert.json",
+          "contains": "\"expected_verdict\": \"PASS\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-missing-protected-revert-evidence.json",
+          "contains": "missing_protected_flow_revert_evidence"
+        },
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-overlapping-structural-lanes.json",
+          "contains": "structural_path_overlap_detected"
+        },
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-mechanical-lock-claim.json",
+          "contains": "forbidden_mechanical_structural_lock_claim"
+        },
+        {
+          "path": "specs/fixtures/phase0-structural-lock-revert/tc-0.9-bad-stale-lock-ttl.json",
+          "contains": "lock_ttl_not_future_or_expired"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-structural-lock-revert.rs",
+          "contains": "no status mutation, live required-context authority, P0.0 green"
+        },
+        {
+          "path": "specs/structural-lock-revert-registry.json",
+          "contains": "\"mechanical_structural_lock_proven\": false"
+        }
+      ]
+    },
+    {
+      "id": "d1-read-your-writes-xfail",
+      "automation_matrix_row_id": "AC-0.10b-d1-read-your-writes-xfail",
+      "buck2_target": "//:d1-read-your-writes-xfail-check",
+      "test_paths": [
+        "scripts/tests/d1_read_your_writes_xfail_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-good-xfail-classified-read-your-writes.json",
+          "contains": "expected_failure_until_phase2_mechanism_lands"
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-misclassified-green-without-phase2.json",
+          "contains": "xfail_misclassified_as_pass"
+        },
+        {
+          "path": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-missing-consistency-token.json",
+          "contains": "missing_consistency_token"
+        },
+        {
+          "path": "specs/fixtures/phase0-d1-read-your-writes-xfail/tc-0.10b-bad-phase2-green-claim-without-live-evidence.json",
+          "contains": "phase2_green_claim_without_live_evidence"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-d1-read-your-writes-xfail.rs",
+          "contains": "no live D1 conformance, status mutation, live required-context authority, P0.0 green"
+        },
+        {
+          "path": "specs/d1-read-your-writes-xfail-registry.json",
+          "contains": "live_d1_conformance_executed"
+        }
+      ]
+    },
+    {
+      "id": "who-gates-gates",
+      "automation_matrix_row_id": "AC-0.11-who-gates-gates",
+      "buck2_target": "//:who-gates-gates-check",
+      "test_paths": [
+        "scripts/tests/who_gates_gates_check.rs"
+      ],
+      "green_markers": [
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json",
+          "contains": "\"expected_verdict\": \"PASS\""
+        }
+      ],
+      "red_markers": [
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json",
+          "contains": "missing_known_bad_fixture"
+        },
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json",
+          "contains": "vacuous_pass_condition"
+        },
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json",
+          "contains": "missing_self_mutation_test"
+        },
+        {
+          "path": "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json",
+          "contains": "oya_cli_authority_route"
+        }
+      ],
+      "non_claim_markers": [
+        {
+          "path": "scripts/ci/assert-who-gates-gates.rs",
+          "contains": "no live CI, status mutation, live required-context authority, P0.0 green"
+        },
+        {
+          "path": "specs/who-gates-gates-registry.json",
+          "contains": "\"live_required_context_execution_proven\": false"
+        }
+      ]
+    }
+  ],
+  "automated_chain": [
+    "scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json",
+    "//:service-root-classifier-check",
+    "//:status-enum-drift-check",
+    "//:adr-hygiene-check",
+    "//:d1-seam-contracts-check",
+    "//:effective-dating-kernel-check",
+    "//:d1-read-your-writes-xfail-check",
+    "//:who-gates-gates-check",
+    "buck2 build //:phase0-red-green-fixture-contract-check"
+  ]
+}

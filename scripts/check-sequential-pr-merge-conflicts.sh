@@ -9,6 +9,7 @@ skip_prs=""
 limit="200"
 pr_json=""
 fetch_heads="1"
+fetch_remote="origin"
 
 usage() {
   cat <<'USAGE'
@@ -26,6 +27,8 @@ Options:
                            (default: empty)
   --limit <number>         Maximum open PRs to query from GitHub (default: 200)
   --pr-json <path>         Read PR list JSON from a file instead of gh pr list
+  --fetch-remote <remote>  Git remote used to fetch refs/pull/<N>/head when
+                           --no-fetch is not supplied (default: origin)
   --no-fetch               Do not fetch refs/pull/<N>/head before simulation
 
 The script simulates open PRs in ascending PR-number order by repeatedly
@@ -63,6 +66,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --pr-json)
       pr_json="${2:?missing --pr-json value}"
+      shift 2
+      ;;
+    --fetch-remote)
+      fetch_remote="${2:?missing --fetch-remote value}"
       shift 2
       ;;
     --no-fetch)
@@ -107,6 +114,11 @@ case "$limit" in
     exit 2
     ;;
 esac
+
+if [ "$fetch_heads" = "1" ] && [ -z "$fetch_remote" ]; then
+  echo "--fetch-remote must not be empty when PR-head fetch is enabled" >&2
+  exit 2
+fi
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "jq is required" >&2
@@ -180,12 +192,20 @@ echo "base_commit=${virtual_head}"
 echo "start_pr=${start_pr}"
 echo "end_pr=${end_pr:-<none>}"
 echo "skip_prs=${skip_prs:-<none>}"
+if [ "$fetch_heads" = "1" ]; then
+  echo "fetch_remote=${fetch_remote}"
+else
+  echo "fetch_remote=<disabled>"
+fi
 
 while IFS=$'\t' read -r number head_ref_name head_oid is_draft title; do
   count=$((count + 1))
   pr_ref="refs/remotes/pr/${number}"
   if [ "$fetch_heads" = "1" ]; then
-    git fetch --no-tags origin "+refs/pull/${number}/head:${pr_ref}" >/dev/null 2>&1
+    if ! git fetch --no-tags "$fetch_remote" "+refs/pull/${number}/head:${pr_ref}" >/dev/null 2>&1; then
+      echo "::error::failed to fetch PR #${number} head from remote ${fetch_remote}; pass --fetch-remote for the GitHub mirror when origin is Forgejo" >&2
+      exit 1
+    fi
     head_ref="$pr_ref"
     fetched_head="$(git rev-parse "${head_ref}^{commit}")"
     if [ "$fetched_head" != "$head_oid" ]; then

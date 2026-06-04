@@ -1,0 +1,215 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_id": "platform-readiness-p0-0-tenant-surface-completeness-and-stable-rust-release-research",
+  "change_class_id": "CC-5",
+  "timestamp_iso": "2026-06-02T19:16:53Z",
+  "freshness_unix": 1780427813,
+  "git_sha_before_change": "c5d519586a959423c0799bd781894cbd11b27f40",
+  "claim_boundary": "Local/static P0.0 fixture/evaluator evidence plus best-practice research grounding only. This does not claim P0.0 green, Phase-0 completion, live protected-branch enforcement, tenant-facing live service readiness, security readiness, performance readiness, memory efficiency, or production readiness.",
+  "summary": "Made tenant-isolation policy evidence fail closed when a GREEN/target model omits any required P0.0 pipeline surface, and refreshed Rust release optimization documentation/policy references to stable official rustc PGO docs while preserving Buck2 as CI/CD/build/script authority. Active code-style/toolchain docs were also added to the Buck2 authority scanner so Cargo-style verification prescriptions cannot re-enter those standards without failing the policy target.",
+  "scope": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/toolchain-tenant-isolation-fixtures.json",
+    "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
+    "docs/standards/rust-release-optimization.md",
+    "specs/buck2-authority-policy.json",
+    "BUCK",
+    "docs/TOOLCHAIN.md",
+    "docs/standards/code-style.md",
+    "evidence/multispectrum/platform-readiness-p0-0-tenant-surface-completeness-1780427813.json"
+  ],
+  "best_practice_research": {
+    "question": "Rust language optimization for release / production under Oyatie Buck2 authority constraints",
+    "direct_recommendation": "Use measured release-artifact optimization experiments only after Buck2 gates are proven. Treat Cargo release/custom profiles, rustc codegen flags, PGO, and allocator selection as evidence-gathering for production release binaries/images, then encode any selected behavior into Buck2 toolchain/target/OCI paths. Do not use Cargo as CI/CD/build/test authority.",
+    "official_sources": [
+      {
+        "name": "Cargo Book \u2014 Profiles",
+        "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
+        "used_for": "release/custom profile knobs, release defaults, opt-level measurement caveat, LTO/codegen-units/panic/strip controls"
+      },
+      {
+        "name": "rustc Book \u2014 Codegen Options",
+        "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
+        "used_for": "codegen-units tradeoff, embed-bitcode/LTO boundary, target CPU/features and codegen flags"
+      },
+      {
+        "name": "rustc Book \u2014 Profile-guided Optimization",
+        "url": "https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html",
+        "used_for": "PGO instrument/train/merge/rebuild workflow, absolute path and missing-function warning caveats, cargo-pgo community-tool boundary"
+      },
+      {
+        "name": "Rust GlobalAlloc",
+        "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html",
+        "used_for": "global allocator unsafe contract, no-unwind rule, and allocation-measurement caveats"
+      },
+      {
+        "name": "Rust Reference \u2014 global_allocator",
+        "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
+        "used_for": "one global allocator static item in the crate graph"
+      }
+    ],
+    "handoff_constraints": [
+      "No pasteable Cargo CI/CD/build/test lane commands should be added.",
+      "Cargo remains allowed only for production release image/binary optimization evidence and metadata/vendor graph-generation exceptions already codified in specs/buck2-authority-policy.json.",
+      "Selected optimization behavior must move into Buck2 toolchain/target graph or Buck2-built OCI image paths before becoming standard.",
+      "Performance, memory, production-readiness, and security wording requires measured evidence or explicit non-claim labeling."
+    ]
+  },
+  "tenant_surface_enforcement": {
+    "required_surfaces": [
+      "identity",
+      "secrets",
+      "runners",
+      "workspaces",
+      "caches",
+      "artifacts",
+      "logs_evidence",
+      "release_ledgers",
+      "deploy_targets",
+      "status_callbacks",
+      "audit_events"
+    ],
+    "new_violation": "tenant_surface_separation_incomplete",
+    "accepted_alias_examples": [
+      "secret_scope",
+      "runner_pool",
+      "workspace_volume",
+      "cache_namespace",
+      "artifact_namespace",
+      "log_evidence_namespace",
+      "release_ledger",
+      "deploy_target",
+      "status_callback_identity",
+      "audit_event_stream"
+    ],
+    "negative_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
+    "green_contract_requirement": "GREEN tenant-isolation fixtures must enumerate every required P0.0 surface through canonical name or accepted alias."
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Added one fail-closed predicate instead of broad new tenant-isolation machinery.",
+        "Reused existing fixture loaders and pure-domain evaluator."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Tenant isolation evidence now fails by omission, matching multi-tenant control-plane expectations.",
+        "Rust optimization remains evidence/measurement-first and routes selected behavior back into Buck2."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Partial GREEN models that mention only identity/secrets now produce tenant_surface_separation_incomplete.",
+        "Stable Rust source references reduce nightly-channel ambiguity for release guidance.",
+        "Active TOOLCHAIN/code-style standards are now scanned by the Buck2 authority policy, not left as unenforced prose."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Violation name is explicit and fixture-level.",
+        "Good tenant fixture enumerates all separated surfaces for reviewers."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Rust formatting, JSON parsing, static fixture completeness, Buck2 uquery, Buck2 policy scanner, and Buck2 policy build were run fresh."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected shared-surfaces-only tenant checks because omission could pass.",
+        "Rejected nightly PGO URL in durable policy/docs when stable rustc PGO documentation is available."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets or tenant data touched.",
+        "Change strengthens fixture evidence for tenant separation without claiming live secure isolation."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance readiness claim is made.",
+        "Rust release optimization remains a measurement workflow with required before/after evidence."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Cargo release exception requires debug-symbol/backtrace/profiling retention decisions when strip or panic settings change.",
+        "Buck2 kernel tests remain blocked locally by linker/toolchain mismatch and are reported as not run."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence captures official sources, validation commands, and blocked Buck2 test Build ID.",
+        "New violation is stable string output for fixture/result reporting."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Supports AC-0.0/T0.0 tenant-pipeline evidence shape.",
+        "Supports AC-0.16 by mapping enforceable evidence to evaluator/fixtures and Buck2 policy target.",
+        "Supports AC-0.17 by keeping readiness/production/performance language non-claim labeled."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI surface added.",
+        "No Cargo authority added.",
+        "cloud-ci/oya-ci required context remains target authority; local static checks are not Phase-0 exit authority.",
+        "docs/TOOLCHAIN.md and docs/standards/code-style.md now carry Buck2-only authority wording and are included in specs/buck2-authority-policy.json plus //:buck2-authority-policy-check inputs."
+      ]
+    }
+  },
+  "validation": {
+    "passed": [
+      "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+      "python3 -m json.tool specs/toolchain-tenant-isolation-fixtures.json",
+      "python3 -m json.tool specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
+      "python3 -m json.tool specs/buck2-authority-policy.json",
+      "python3 static tenant surface fixture/evaluator check -> PASS (11 required surfaces, 11 GREEN separated surfaces)",
+      "git diff --check",
+      "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> target resolved (Build ID 45a24b19-815e-4e34-9cfb-0e7ace5d5607)",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS",
+      "buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED (Build ID ed985d35-c9ea-4254-beb7-06db5ce1f279)",
+      "python3 -m json.tool evidence/multispectrum/platform-readiness-p0-0-tenant-surface-completeness-1780427813.json -> PASS",
+      "final buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED (Build ID a53f06b2-e048-4578-8b5e-3bca9efa9bdf)",
+      "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs -> PASS after helper import fix",
+      "python3 static tenant surface fixture/evaluator check -> PASS after helper import fix (helper imported, 11 required surfaces, 11 GREEN separated surfaces)",
+      "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> target resolved after helper import fix (Build ID 5373e045-8d3a-4963-a05f-25017c4c07c3)",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS after stable PGO source update",
+      "buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED after helper import fix (Build ID 5e5feb06-cc44-49a3-86ed-82ceccf4eac0)",
+      "python3 active TOOLCHAIN/code-style Cargo-command scan -> PASS",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS after adding TOOLCHAIN/code-style docs to scan set (command_scan_files=28)",
+      "buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED after adding TOOLCHAIN/code-style docs to Buck2 target inputs (Build ID a2c6ddfa-799d-4e7b-9614-9ecd86fed4b7)",
+      "final buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED after evidence update (Build ID 5f256e13-3462-4394-b650-8f23b7867bba)"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> NO TESTS RAN; local macOS Apple ld rejected GNU/Linux linker flags while linking third-party serde_json/quote build scripts for aarch64-unknown-linux-gnu (Build ID d78740cd-946b-43bb-a5bf-24490c0b4da4)",
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> NO TESTS RAN after helper import fix; local macOS Apple ld rejected GNU/Linux linker flags while linking third-party serde_json build script for aarch64-unknown-linux-gnu (Build ID d5dceb70-183c-40d3-8609-cd1f6e73954c)"
+    ],
+    "expected_red_or_target_only": [
+      "This slice does not prove live oya-ci-required/cloud-ci-required, branch protection, tenant isolation, or Phase-0 completion."
+    ]
+  }
+}

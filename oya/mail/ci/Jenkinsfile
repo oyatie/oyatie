@@ -49,11 +49,10 @@ spec:
   }
 
   environment {
-    OYA_MICROSERVICE = 'mail'
-    BACKBONE_CARGO_PACKAGES = 'oya-mail-mailbox-store-app oya-mail-domain oya-mail-mailbox-store-api oya-mail-mailbox-store-usecase oya-mail-mailbox-store-rest oya-mail-mailbox-store-grpc oya-mail-mailbox-store-adapter-postgres oya-shared-postgres-command-kernel oya-shared-postgres-command-adapter-sqlx oya-shared-hyperscaler-metrics-kernel oya-shared-hyperscaler-metrics-adapter-prometheus oya-shared-hyperscaler-metrics-adapter-otlp oya-shared-protocol-parity-kernel oya-shared-protocol-transport-kernel oya-shared-protocol-transport-retry-app oya-shared-backbone-proto-contracts-kernel oya-shared-backbone-grpc-generated-adapter oya-shared-backbone-grpc-transport-adapter oya-shared-backbone-rest-runtime-adapter oya-shared-transactional-outbox-kernel oya-shared-transactional-outbox-adapter-sqlx oya-shared-transactional-outbox-dispatch-app oya-shared-outbox-broker-http-adapter oya-shared-transactional-outbox-worker-app oya-shared-transactional-outbox-poller-app oya-shared-transactional-outbox-runtime-tokio-app oya-policy-cedar-domain'
-    CARGO_INCREMENTAL = '0'
-    CARGO_TERM_COLOR = 'always'
-    NEXTEST_PROFILE = 'ci'
+    OYA_SERVICE_ROOT = 'oya'
+    OYA_SERVICE = 'mail'
+    OYA_REQUIRED_CONTEXT = 'oya-ci-required'
+    OYA_AUTHORITY_BOUNDARY = 'bridge_only_not_branch_protection_authority'
   }
 
   stages {
@@ -63,91 +62,46 @@ spec:
       }
     }
 
-    stage('Install Rust CI tooling') {
+    stage('Buck2 authority policy') {
       steps {
         container('rust') {
-          sh 'rustup component add rustfmt clippy'
-          sh 'cargo nextest --version || cargo install cargo-nextest --locked'
+          sh 'python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json'
+          sh 'buck2 build //:buck2-authority-policy-check'
         }
       }
     }
 
-    stage('cargo fmt --check') {
+    stage('Buck2 affected build and test') {
       steps {
         container('rust') {
-          sh 'cargo fmt --all -- --check'
+          sh 'infra/ci/buck2-affected-gate.sh "origin/${CHANGE_TARGET:-dev}"'
         }
       }
     }
 
-    stage('cargo check -p matrix') {
+    stage('Emit Buck2 bridge evidence') {
       steps {
         container('rust') {
           sh '''
 set -eu
-for package in $BACKBONE_CARGO_PACKAGES; do
-  cargo check -p "$package"
-done
-'''
-        }
-      }
-    }
-
-    stage('cargo clippy -p matrix') {
-      steps {
-        container('rust') {
-          sh '''
-set -eu
-for package in $BACKBONE_CARGO_PACKAGES; do
-  cargo clippy -p "$package" --all-targets -- -D warnings
-done
-'''
-        }
-      }
-    }
-
-    stage('cargo nextest run -p matrix') {
-      steps {
-        container('rust') {
-          sh '''
-set -eu
-for package in $BACKBONE_CARGO_PACKAGES; do
-  cargo nextest run -p "$package" --no-fail-fast
-done
-'''
-        }
-      }
-    }
-
-    stage('Oya VCS admission evidence') {
-      steps {
-        container('rust') {
-          sh 'cargo run -q -p oya-vcs-admission-gate-app'
-        }
-      }
-    }
-
-    stage('Emit Wave 15-ZE evidence') {
-      steps {
-        container('rust') {
-          sh '''
-set -eu
-evidence_dir="evidence/ci/jenkins/${OYA_MICROSERVICE}"
+evidence_dir="evidence/ci/jenkins/${OYA_SERVICE_ROOT}/${OYA_SERVICE}"
 mkdir -p "$evidence_dir"
-cat > "$evidence_dir/wave-15-ze.json" <<JSON
+cat > "$evidence_dir/buck2-authority-bridge.json" <<JSON
 {
-  "wave": "15-ZE",
-  "adr": "ADR-0349",
-  "microservice": "${OYA_MICROSERVICE}",
-  "cargo_packages": "${BACKBONE_CARGO_PACKAGES}",
-  "ci_substrate": "jenkins-lts",
-  "runtime_class": "kata-cloud-hypervisor",
-  "lane_templates": [
-    "cargo fmt --all -- --check",
-    "cargo check -p <each package in BACKBONE_CARGO_PACKAGES>",
-    "cargo clippy -p <each package in BACKBONE_CARGO_PACKAGES> --all-targets -- -D warnings",
-    "cargo nextest run -p <each package in BACKBONE_CARGO_PACKAGES> --no-fail-fast",
-    "cargo run -q -p oya-vcs-admission-gate-app"
+  "schema_version": "2026-06-02",
+  "service_root": "${OYA_SERVICE_ROOT}",
+  "service": "${OYA_SERVICE}",
+  "ci_substrate": "jenkins-lts-bridge",
+  "authority_boundary": "${OYA_AUTHORITY_BOUNDARY}",
+  "required_context_target": "${OYA_REQUIRED_CONTEXT}",
+  "claim_boundary": {
+    "branch_protection_authority": false,
+    "phase0_complete": false
+  },
+  "lanes": [
+    "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+    "buck2 build //:buck2-authority-policy-check",
+    "infra/ci/buck2-affected-gate.sh origin/${CHANGE_TARGET:-dev}"
   ],
   "build_url": "${BUILD_URL:-local}",
   "git_commit": "${GIT_COMMIT:-unknown}",
@@ -162,7 +116,7 @@ JSON
 
   post {
     always {
-      archiveArtifacts artifacts: "evidence/ci/jenkins/${OYA_MICROSERVICE}/wave-15-ze.json", allowEmptyArchive: false
+      archiveArtifacts artifacts: "evidence/ci/jenkins/${OYA_SERVICE_ROOT}/${OYA_SERVICE}/buck2-authority-bridge.json", allowEmptyArchive: false
     }
   }
 }

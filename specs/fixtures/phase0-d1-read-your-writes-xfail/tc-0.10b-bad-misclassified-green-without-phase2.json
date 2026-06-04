@@ -1,0 +1,42 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/phase0-d1-read-your-writes-xfail-fixture.schema.json",
+  "tc_id": "TC-0.10b.BAD.misclassified-green-without-phase2",
+  "expected_verdict": "FAIL",
+  "expected_violations": [
+    "xfail_misclassified_as_pass"
+  ],
+  "meta": {
+    "related_acceptance_criterion": "AC-0.10b",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.10b + #TC-0.10b.1",
+    "authority_boundary": "AC-0.10b local/static XFAIL classification evidence only; the real Phase-2 read-your-writes mechanism has not landed."
+  },
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "live_d1_conformance_executed": false,
+    "phase2_mechanism_landed": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "read_your_writes_probe": {
+    "probe_id": "D1-RYW-XFAIL-BAD-GREEN-001",
+    "mutation_result": {
+      "entity_id": "ent_payroll_close_001",
+      "consistency_token": "d1ctok_fixture_bad_green_claim",
+      "audit_event_id": "EVT-D1-RYW-XFAIL-BAD-GREEN"
+    },
+    "observed_read": {
+      "entity_id": "ent_payroll_close_001",
+      "consistency_token_seen": null,
+      "read_your_writes_satisfied": false
+    },
+    "classification": "PASS",
+    "phase2_mechanism_landed": false,
+    "live_d1_conformance_executed": false,
+    "no_new_oya_cli_surface": true
+  }
+}

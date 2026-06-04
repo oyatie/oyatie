@@ -16,10 +16,7 @@ cat > "$tmp_dir/live-missing.json" <<'JSON'
 {
   "strict": false,
   "contexts": [
-    "cargo-fmt",
-    "cargo-check",
-    "cargo-clippy",
-    "cargo-nextest"
+    "legacy-feedback"
   ]
 }
 JSON
@@ -65,13 +62,14 @@ chmod +x "$tmp_dir/bin/gh"
 run_automerge_fail_closed() {
   local mode="$1"
   local live_contexts="$2"
+  shift 2
   local out="$tmp_dir/${mode}.out"
   local err="$tmp_dir/${mode}.err"
   set +e
   PATH="$tmp_dir/bin:$PATH" \
     OYA_TEST_GH_MODE="$mode" \
     OYA_TEST_LIVE_CONTEXTS="$live_contexts" \
-    scripts/trigger-next-queue-automerge.sh --base-ref HEAD --dry-run >"$out" 2>"$err"
+    scripts/trigger-next-queue-automerge.sh --base-ref HEAD --dry-run "$@" >"$out" 2>"$err"
   status=$?
   set -e
   if [ "$status" -eq 0 ]; then
@@ -85,22 +83,26 @@ run_automerge_fail_closed() {
 run_automerge_success() {
   local mode="$1"
   local live_contexts="$2"
+  shift 2
   local out="$tmp_dir/${mode}.out"
   local err="$tmp_dir/${mode}.err"
   PATH="$tmp_dir/bin:$PATH" \
     OYA_TEST_GH_MODE="$mode" \
     OYA_TEST_LIVE_CONTEXTS="$live_contexts" \
-    scripts/trigger-next-queue-automerge.sh --base-ref HEAD --dry-run >"$out" 2>"$err"
+    scripts/trigger-next-queue-automerge.sh --base-ref HEAD --dry-run "$@" >"$out" 2>"$err"
 }
 
 run_automerge_fail_closed missing "$tmp_dir/live-missing.json"
 grep -Fq "live branch-protection required contexts drift" "$tmp_dir/missing.err"
 grep -Fq "missing_from_live=" "$tmp_dir/missing.err"
-grep -Fq "oya-pr-review" "$tmp_dir/missing.err"
+grep -Fq "oya-ci-required" "$tmp_dir/missing.err"
 
 run_automerge_fail_closed forbidden "$tmp_dir/live-missing.json"
 grep -Fq "Administration read permission" "$tmp_dir/forbidden.err"
 grep -Fq "Resource not accessible by integration" "$tmp_dir/forbidden.err"
+
+run_automerge_fail_closed unsafe-method "$tmp_dir/live-match.json" --merge-method merge
+grep -Fq -- "--merge-method is fixed to squash" "$tmp_dir/unsafe-method.err"
 
 run_automerge_success match "$tmp_dir/live-match.json"
 grep -Fq "live branch-protection required contexts match" "$tmp_dir/match.out"

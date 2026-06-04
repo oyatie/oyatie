@@ -1,0 +1,133 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_id": "platform-readiness-p0-0-aggregate-exit-required-subconditions",
+  "change_class_id": "CC-5",
+  "timestamp_iso": "2026-06-02T19:33:52Z",
+  "freshness_unix": 1780428832,
+  "git_sha_before_change": "f5154796f1d913aecff2913bbcbb275a4a74b05d",
+  "claim_boundary": "Local/static AC-0.12 aggregate-exit gate evidence only. This does not claim P0.0 green, Phase-0 completion, live protected-branch enforcement, tenant isolation, production readiness, performance readiness, security readiness, or tenant-facing readiness.",
+  "summary": "Made the AC-0.12 aggregate-exit evaluator fail closed when any required Phase-0 subcondition is omitted, and added a RED fixture where all provided fields are true but every_phase0_pr_has_reviewer_verdict is missing.",
+  "scope": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/fixtures/phase0-exit-gate/tc-0.12-bad-missing-required-subcondition.json",
+    "evidence/multispectrum/platform-readiness-p0-0-aggregate-exit-required-subconditions-1780428832.json"
+  ],
+  "requirement_mapping": {
+    "AC-0.12": "A single aggregate exit check must mirror AC-0.12 exactly; no per-lane green or true subset is sufficient.",
+    "T0.12": "Negative aggregate fixtures must prove the aggregate gate REDs when each subcondition is false; this slice adds omission coverage so a missing required subcondition is also RED."
+  },
+  "aggregate_exit_enforcement": {
+    "required_subcondition_count": 32,
+    "new_constant": "PHASE0_REQUIRED_AGGREGATE_EXIT_SUBCONDITIONS",
+    "new_red_fixture": "specs/fixtures/phase0-exit-gate/tc-0.12-bad-missing-required-subcondition.json",
+    "omitted_fixture_subcondition": "every_phase0_pr_has_reviewer_verdict",
+    "non_claim_note": "The current aggregate remains non-green until live P0.0 required-context and all other Phase-0 evidence are proven."
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Added one required-subcondition constant and reused the existing pure-domain aggregate evaluator.",
+        "No new CLI or service surface was added."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Exit gates now fail by omission, which matches control-plane admission patterns where missing evidence is not success."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "A fixture with 31 true fields and one omitted required field is RED.",
+        "The single-false fixture list must mirror the executable required set, preventing partial negative coverage."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "The required subcondition names are centralized for fixture and evaluator alignment."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Formatter, JSON parse, static aggregate coverage, Buck2 uquery, Buck2 policy scanner, and Buck2 policy target build were run fresh."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected checking only present fields because an incomplete true subset can false-green the aggregate exit gate."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets or tenant data touched.",
+        "Change prevents missing reviewer/evidence subconditions from being treated as success."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance readiness claim is made.",
+        "The evaluator change is bounded to a small set membership check over 32 names."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Missing aggregate evidence now reports the omitted subcondition name for diagnosis."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence records the exact omitted subcondition and validation commands/build IDs."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Supports AC-0.12/T0.12 by preventing vacuous aggregate-exit green on omitted required evidence.",
+        "Supports AC-0.17 by keeping all readiness language non-claim labeled."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI surface added.",
+        "No Cargo authority added.",
+        "cloud-ci/oya-ci required context remains target authority; local static checks are not Phase-0 exit authority."
+      ]
+    }
+  },
+  "validation": {
+    "passed": [
+      "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+      "python3 -m json.tool specs/fixtures/phase0-exit-gate/tc-0.12-bad-missing-required-subcondition.json",
+      "python3 static aggregate required-subcondition check -> PASS (32 required, missing fixture has 31 provided true fields, omitted every_phase0_pr_has_reviewer_verdict)",
+      "git diff --check",
+      "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> target resolved (Build ID 290ae51a-8a14-4c6e-8f7a-c89d40be9f7c)",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS",
+      "buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED (Build ID 2daac0c2-05c0-4dbe-ac71-4bec2c1123a7)",
+      "python3 -m json.tool evidence/multispectrum/platform-readiness-p0-0-aggregate-exit-required-subconditions-1780428832.json -> PASS",
+      "final buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED after evidence update (Build ID 2ba0fe66-07fa-4ad2-b102-c4c85c0d2341)"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> NO TESTS RAN; local macOS Apple ld rejected GNU/Linux linker flags while linking third-party proc-macro2/zmij build scripts for aarch64-unknown-linux-gnu (Build ID d6954bff-83f0-4c83-94ec-81676ad1e043)"
+    ],
+    "expected_red_or_target_only": [
+      "This slice does not prove live oya-ci-required/cloud-ci-required, branch protection, tenant isolation, or Phase-0 completion."
+    ]
+  }
+}

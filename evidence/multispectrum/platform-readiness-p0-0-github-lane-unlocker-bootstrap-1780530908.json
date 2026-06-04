@@ -1,0 +1,103 @@
+{
+  "change_class_id": "CC-6",
+  "change_id": "platform-readiness-p0-0-github-lane-unlocker-bootstrap-1780530908",
+  "checks": [
+    {
+      "command": "bash -n scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+      "evidence": "bootstrap script parsed successfully",
+      "name": "bootstrap_shell_syntax",
+      "verdict": "PASS"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "evidence": "failures=[]; workflow bootstraps scripts/ci/github-actions-lane-unlocker-bootstrap.sh in fanout, aggregator, and dry-run jobs; temporary_required_context=github-lane-unlocker-required; native_cutover_target_context=oya-ci-required; p0_0_green=false; phase0_complete=false",
+      "name": "github_lane_unlocker_contract",
+      "verdict": "PASS"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "command_scan_files=241; command_scan_globs=2; status_context_scan_files=9; authority_context=oya-ci-required; p0_0_green=false; phase0_complete=false",
+      "name": "buck2_authority_policy",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "evidence": "BUILD SUCCEEDED; Build ID e97dbe7b-b69b-4f9f-bd57-13518dfd6b3e",
+      "name": "buck2_lane_unlocker_and_authority_targets",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check --show-output",
+      "evidence": "BUILD SUCCEEDED; Build ID bdf248ea-bb2d-49bd-865a-0187a689a25e",
+      "name": "rust_llvm_coverage_targets",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 json syntax sweep for specs/github-lane-unlocker-bridge.json specs/buck2-authority-policy.json specs/root-hub-pointers.json specs/masterplan.json specs/master-plan-sequencing.json infra/branch-protection/dev.json",
+      "evidence": "json-ok 6",
+      "name": "json_syntax",
+      "verdict": "PASS"
+    },
+    {
+      "command": "grep active operating docs/specs for stale Jenkins/Forgejo/ArgoCD interim authority phrases",
+      "evidence": "no stale active interim-authority phrases found in active root docs, operating docs, CI docs, masterplan specs, bridge spec, branch-protection shadows, lane-unlocker workflow, or bootstrap script",
+      "name": "active_stale_reference_sweep",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 check for imminent_work_p00 planning_migration_cleanup_prep_work/auth_shared_substrate_decoupling/success_criteria/temporary_bridge/native_cutover/cleanup_and_hygiene",
+      "evidence": "masterplan_p00_required_missing=[]; p00_id=P00-github-actions-lane-unlocker-transition; status=imminent",
+      "name": "masterplan_p00_reflection",
+      "verdict": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "no whitespace errors",
+      "name": "diff_hygiene",
+      "verdict": "PASS"
+    }
+  ],
+  "claim_boundary": {
+    "github_actions_is_permanent_ci_cd": false,
+    "github_is_permanent": false,
+    "live_branch_protection_mutated": false,
+    "live_kubernetes_mutated": false,
+    "local_static_evidence_only": true,
+    "native_ci_authority_proven": false,
+    "native_cutover_target_context": "oya-ci-required",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "temporary_required_context": "github-lane-unlocker-required"
+  },
+  "decisions_recorded": [
+    "Keep GitHub/GitHub Actions temporary only; no Jenkins, Forgejo, or ArgoCD interim authority.",
+    "Bootstrap Rust deterministically before Buck2 fanout to avoid rustup lazy-install races on GitHub runners.",
+    "Pin Rust via rust-toolchain.toml with rustfmt, clippy, llvm-tools-preview, and Linux targets needed by Buck2 probes.",
+    "Keep Buck2 as build/test/check authority and LLVM source-based coverage as Rust coverage authority; Tarpaulin remains out of CI authority.",
+    "Do not claim P0.0 green, Phase 0 complete, protected branch authority, live Kubernetes mutation, or native oya-ci readiness."
+  ],
+  "live_ci_diagnostic": {
+    "affected_build_job": "79417177971",
+    "failed_commit_before_fix": "bd5ae6452e823efc3f468a5b1c29a0f842b2730f",
+    "failed_run_id_before_fix": 26919643455,
+    "fix": "serialize rustup toolchain/component/target/bootstrap before any Buck2 lane action; install llvm-tools-preview and Linux targets; then install Buck2 if missing",
+    "pull_request": 455,
+    "repo": "jason931225/oyatie",
+    "representative_failure": "rustup component download/rename conflicts under /home/runner/.rustup while Buck2 actions executed in parallel",
+    "root_cause": "fresh GitHub runner let multiple Buck2 actions trigger rustup lazy toolchain/component installs concurrently; coverage lane also required explicit llvm-tools-preview for llvm-profdata/llvm-cov from the pinned rustup sysroot",
+    "rust_llvm_coverage_job": "79417177932"
+  },
+  "official_sources": [
+    "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax",
+    "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations",
+    "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
+    "https://rust-lang.github.io/rustup/overrides.html",
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://buck2.build/docs/users/commands/build/"
+  ],
+  "schema_version": "multispectrum-review.v2.4.0-local-static-plus-live-ci-diagnostic",
+  "scope": "ADR-0516 temporary GitHub/GitHub Actions lane-unlocker deterministic Rust/Buck2 bootstrap, workflow cleanup, contract/policy updates, and live PR CI rerun preparation",
+  "timestamp": "2026-06-03T19:55:08-0400",
+  "verdict": "LOCAL_STATIC_PASS_PUSH_REQUIRED_FOR_LIVE_RERUN_NOT_NATIVE_AUTHORITY"
+}

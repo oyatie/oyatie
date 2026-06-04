@@ -1,0 +1,149 @@
+{
+  "$id": "https://docs.oyatie.com/specs/phase0-auto-merge-after-ci.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T22:05:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-toolchain + platform-governance",
+    "related_acceptance_criteria": [
+      "AC-0.0",
+      "AC-0.12",
+      "AC-0.15",
+      "AC-0.16"
+    ],
+    "related_adrs": [
+      "ADR-0363",
+      "ADR-0513",
+      "ADR-0514"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "spec_id": "EXE-PHASE0-AUTO-MERGE-AFTER-CI",
+    "status": "p0_0_target_contract_not_live_green",
+    "updated_at": "2026-06-03T00:17:11Z",
+    "version": "0.1.0"
+  },
+  "description": "P0.0 executable target contract for Forgejo and GitHub bootstrap auto-merge after CI. This file is not a live enforcement claim; it defines the script/spec/test chain that prevents regressions to stale contexts, Cargo authority, unpinned PR heads, or operator-only auto-merge procedure.",
+  "required_context": "oya-ci-required",
+  "p0_0_green": false,
+  "phase0_complete": false,
+  "claim_boundary": {
+    "allowed_language_now": "target contract / local Buck2-enforced scanner / bridge script dry-run evidence",
+    "forbidden_claims": [
+      "Forgejo live auto-merge is green",
+      "GitHub protected branch is converged",
+      "Phase 0 complete",
+      "P0.0 green",
+      "mechanically enforced by live branch protection"
+    ],
+    "reason": "The checked-in scripts/specs/tests enforce the target contract locally. GitHub dev required-status checks now match oya-ci-required, but live authority still requires trusted cloud-ci/oya-ci to post oya-ci-required on candidate SHAs and live Forgejo branch protection/auto-merge convergence."
+  },
+  "github": {
+    "forge_role": "bootstrap_mirror_until_forgejo_live_cutover",
+    "repository_setting": "allow_auto_merge=true",
+    "required_context_source": "infra/branch-protection/dev.json.required_status_checks.contexts",
+    "required_context": "oya-ci-required",
+    "auto_merge_flag": "--auto",
+    "head_pin_flag": "--match-head-commit",
+    "merge_method": "squash",
+    "merge_command_shape": "gh pr merge <number> --squash --auto --match-head-commit <expected-pr-head-sha>",
+    "conflict_guard": "scripts/check-sequential-pr-merge-conflicts.sh",
+    "script": "scripts/trigger-next-queue-automerge.sh",
+    "live_drift_gap": "closed_for_required_status_contexts_2026-06-02; producer_trust_and_forgejo_live_convergence_remain_gaps",
+    "allowed_merge_methods": [
+      "squash"
+    ],
+    "merge_method_locked": true,
+    "script_rejects_non_squash_merge_method": true,
+    "live_required_context_status": "synced_2026-06-02T22:52:00Z",
+    "live_required_contexts": [
+      "oya-ci-required"
+    ],
+    "fetch_remote_option": "--fetch-remote",
+    "bootstrap_split_fetch_remote": "github-mirror when origin is Forgejo, otherwise GITHUB_FETCH_REMOTE/origin",
+    "script_rejects_missing_conflict_guard_fetch_remote": true,
+    "conflict_guard_order": "after live branch-protection/review/head checks and before gh pr merge --auto",
+    "script_rejects_conflict_before_auto_merge": true,
+    "trigger_non_dry_run_merge_path_tested": true,
+    "trigger_non_dry_run_merge_path_evidence_scope": "local_sequencing_regression_guard_not_live_authority_proof",
+    "trigger_conflict_guard_test": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+    "required_context_rollup_check": "scripts/ci/assert-pr-required-context.py",
+    "required_context_rollup_test": "scripts/tests/phase0_required_context_rollup_check.test.sh",
+    "required_context_rollup_fixtures": [
+      "specs/fixtures/phase0-required-context-rollup/good-oya-ci-required-success.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-no-checks-reported.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-missing-oya-ci-required.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-failure.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-completed-failure.json",
+      "specs/fixtures/phase0-required-context-rollup/good-nested-cloud-ci-oya-ci-success.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-missing-producer.json",
+      "specs/fixtures/phase0-required-context-rollup/bad-oya-ci-required-success-untrusted-producer.json"
+    ],
+    "live_no_checks_reported_failure_reason": "no_status_checks_reported",
+    "script_detects_missing_live_required_context": true,
+    "trusted_required_context_producer": "cloud-ci/oya-ci",
+    "script_rejects_missing_required_context_producer": true,
+    "script_rejects_untrusted_required_context_producer": true,
+    "required_context_rollup_live_read_artifact": "evidence/multispectrum/platform-readiness-p0-0-required-context-rollup-live-pr455-1780447662.json"
+  },
+  "forgejo": {
+    "forge_role": "target_forge_of_record",
+    "branch_protection_script": "scripts/ci/arm-auto-merge.sh",
+    "required_context": "oya-ci-required",
+    "branch_protection_fields": {
+      "enable_status_check": true,
+      "status_check_contexts": [
+        "oya-ci-required"
+      ]
+    },
+    "merge_endpoint": "POST /api/v1/repos/{owner}/{repo}/pulls/{index}/merge",
+    "schedule_field": "merge_when_checks_succeed",
+    "schedule_value": true,
+    "head_pin_field": "head_commit_id",
+    "delete_branch_after_merge": true,
+    "merge_method": "squash",
+    "script_requires_head_commit": true,
+    "tide_code_paths": [
+      "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
+      "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs",
+      "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs"
+    ],
+    "allowed_merge_methods": [
+      "squash"
+    ],
+    "script_requires_mergeability_guard": true,
+    "head_commit_required_lengths": [
+      40,
+      64
+    ],
+    "pr_refresh_before_schedule": {
+      "endpoint": "GET /api/v1/repos/{owner}/{repo}/pulls/{index}",
+      "head_comparison": "head.sha must exactly equal provided --head-commit",
+      "mergeability": "mergeable must be true; false/null fail closed before POST /merge"
+    },
+    "delete_branch_after_merge_locked": true,
+    "tide_required_context_hard_pinned": true,
+    "tide_merge_method_hard_pinned": "squash",
+    "tide_head_pin_full_sha_guard": true
+  },
+  "buck2_enforcement": {
+    "contract_check": "//:phase0-auto-merge-after-ci-contract-check",
+    "forgejo_dry_run_test": "//:forgejo-auto-merge-after-ci-check",
+    "tide_payload_tests": [
+      "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests",
+      "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests"
+    ],
+    "authority_policy_check": "//:buck2-authority-policy-check",
+    "github_bootstrap_test": "//:github-auto-merge-after-ci-check",
+    "github_conflict_guard_test": "//:github-auto-merge-after-ci-check",
+    "github_required_context_rollup_test": "//:github-auto-merge-after-ci-check"
+  },
+  "non_authority_surfaces": [
+    "local oya verify output",
+    "local oya gate output",
+    "Cargo-named status contexts",
+    "Buck2 affected-only advisory output",
+    "operator memory or manual checklist"
+  ],
+  "expected_verdict": "TARGET_CONTRACT_LOCAL_PASS_LIVE_GAP_REMAINS"
+}

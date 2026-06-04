@@ -161,12 +161,12 @@
       "name": "5-verify",
       "description": "Run the verification set; refuse exit-0 unless all pass.",
       "checks": [
-        "cargo check --workspace exits 0",
-        "cargo build --workspace exits 0",
-        "cargo nextest run --workspace exits 0",
-        "oya gate validate per-microservice-layout --microservice <ms> exits 0",
-        "oya gate validate cross-ref-validity exits 0",
-        "oya gate validate aggregation-index-generation exits 0",
+        "buck2 uquery //... exits 0 (graph loads; no Cargo executable authority)",
+        "buck2 build //... exits 0",
+        "buck2 test //... exits 0",
+        "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate per-microservice-layout --microservice <ms> exits 0 (local governance evidence only)",
+        "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate cross-ref-validity exits 0 (local governance evidence only)",
+        "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate aggregation-index-generation exits 0 (local governance evidence only)",
         "find legacy paths returns empty (no orphans left in crates/oya-<ms>-*, docs/prds/<ms>.md, /specs/microservices/<ms>/, etc.)",
         "git log --follow shows continuity for moved files (no broken history)"
       ]

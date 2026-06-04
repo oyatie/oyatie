@@ -1,0 +1,10 @@
+{
+  "strict": false,
+  "contexts": ["oya-ci-required"],
+  "checks": [
+    {
+      "context": "oya-ci-required",
+      "app_id": 67890
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "fixture_id": "TC-0.8-BAD-adr-without-masterplan-roadmap",
+  "expected_verdict": "FAIL",
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "decision_packet": {
+    "decision_id": "P0.7-D99-synthetic-orphan-decision",
+    "agreement_set": {
+      "adr": {
+        "path": "docs/decisions/ADR-TBD-synthetic-orphan.md"
+      },
+      "spec": {
+        "path": "specs/synthetic-orphan-decision.json"
+      }
+    },
+    "source_and_consumer_same_changeset": false,
+    "idea_refine_reconciled": true,
+    "architect_critic_consensus": true,
+    "generated_decisions_json_matches_source": true
+  },
+  "violations": [
+    "missing_masterplan_artifact",
+    "missing_roadmap_artifact"
+  ]
+}

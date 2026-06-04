@@ -1,0 +1,238 @@
+{
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "session_id": "omx-1780449440528-15gm8q",
+  "change_id": "platform-readiness-p0-0-rust-testing-standard-check",
+  "change_class_id": "CC-5",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha": "82a47ace75930ce6a02a5c8fb626fd0406dde2d6",
+  "timestamp_iso": "2026-06-03T07:21:22Z",
+  "timestamp_unix": 1780471282,
+  "freshness_unix": 1780471282,
+  "scope": "Local/static executable drift check for the Rust testing standard covering Buck2-native LLVM coverage, Tarpaulin non-authority, and dual Cargo+Buck2 local mutation boundaries.",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "docs/standards/testing.md",
+    "specs/buck2-authority-policy.json",
+    ".omx/plans/prd-platform-readiness.md#P0.0 + AC-0.0 + AC-0.12 + AC-0.16 + AC-0.17",
+    ".omx/plans/test-spec-phase0.md#T0.0 + T0.12 + T0.16 + T0.17"
+  ],
+  "official_sources": [
+    {
+      "name": "rustc Book \u2014 Instrumentation-based Code Coverage",
+      "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+      "used_for": "Required documentation anchor for rustc -C instrument-coverage and LLVM_PROFILE_FILE coverage profile handling."
+    },
+    {
+      "name": "LLVM \u2014 Source-based Code Coverage",
+      "url": "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+      "used_for": "Required documentation anchor for llvm-profdata and llvm-cov coverage pipeline."
+    },
+    {
+      "name": "Buck2 \u2014 Commands",
+      "url": "https://buck2.build/docs/users/commands/",
+      "used_for": "Required documentation anchor for Buck2 target-based build/test/run evidence."
+    },
+    {
+      "name": "Buck2 \u2014 Bootstrapping",
+      "url": "https://buck2.build/docs/about/bootstrapping/",
+      "used_for": "Required documentation anchor for reindeer-generated Buck Rust crate graph context."
+    },
+    {
+      "name": "Reindeer",
+      "url": "https://github.com/facebookincubator/reindeer",
+      "used_for": "Required documentation anchor for generated-BUCK path in dual Cargo+Buck2 repositories."
+    },
+    {
+      "name": "Cargo Book \u2014 Workspaces",
+      "url": "https://doc.rust-lang.org/cargo/reference/workspaces.html",
+      "used_for": "Required documentation anchor for retaining Cargo.toml/Cargo.lock workspace ergonomics."
+    },
+    {
+      "name": "cargo-mutants",
+      "url": "https://mutants.rs/",
+      "used_for": "Required documentation anchor for local Cargo mutation testing behavior."
+    }
+  ],
+  "claim_boundary": {
+    "note": "Local/static standards drift evidence only. This does not implement a coverage runner, run mutation testing, post statuses, mutate branch protection, prove live cloud-ci/oya-ci required-context execution, prove protected-branch authority, claim P0.0 green, claim Phase-0 completion, claim production readiness, or claim hyperscaler-grade readiness.",
+    "coverage_runner_implemented": false,
+    "mutation_lane_implemented": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "standard_contract_proven": true,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "files_changed": [
+    "scripts/ci/assert-rust-testing-standard.py",
+    "scripts/tests/rust_testing_standard_check.test.sh",
+    "BUCK",
+    "docs/standards/testing.md",
+    "specs/buck2-authority-policy.json",
+    "evidence/multispectrum/platform-readiness-p0-0-rust-testing-standard-check-1780471282.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "implementation_summary": [
+    "Added scripts/ci/assert-rust-testing-standard.py to fail closed if the testing standard stops recording Buck2-native LLVM source-based coverage, Tarpaulin non-authority, LLVM coverage pipeline anchors, dual Cargo+Buck2 mutation ergonomics, reindeer/generated-BUCK ownership, or local Cargo advisory boundaries.",
+    "Added scripts/tests/rust_testing_standard_check.test.sh with RED mutations for missing Buck2-native LLVM coverage policy, Tarpaulin canonicalization, missing LLVM_PROFILE_FILE, local Cargo mutation becoming non-advisory, missing reindeer/generated-BUCK anchors, and forbidden P0.0 green claim flags.",
+    "Added //:rust-testing-standard-check and wired it into specs/buck2-authority-policy.json automated_chain, command_scan_files, and required anchors.",
+    "Adjusted docs/standards/testing.md to avoid raw Cargo executable authority wording while preserving the dual Cargo+Buck2 local mutation strategy requested by the user."
+  ],
+  "known_gaps": [
+    "No Buck2 coverage runner target is implemented in this slice; the checker enforces the standard text only.",
+    "No Buck2 mutation lane is implemented in this slice; local Cargo mutation output remains advisory unless captured by Buck2/cloud-ci.",
+    "PR #455 remains blocked on live cloud-ci/oya-ci required context, required-status source-app binding, Forgejo/reviewer merge readiness, and protected-branch authority evidence."
+  ],
+  "verification": [
+    {
+      "command": "missing checker/target RED probe",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:11:42Z",
+      "evidence": "Before implementation, scripts/ci/assert-rust-testing-standard.py was missing with rc=2 and //:rust-testing-standard-check was unknown with Buck2 rc=3, Build ID 7d3d83b6-6e7a-49b8-891b-b57dce7dc2be; logs in /tmp/p0-0-rust-testing-standard-check-red-1780470701."
+    },
+    {
+      "command": "python3 -m py_compile scripts/ci/assert-rust-testing-standard.py",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:18:43Z",
+      "evidence": "py_compile rc=0 in /tmp/p0-0-rust-testing-standard-check-green-1780471093."
+    },
+    {
+      "command": "python3 scripts/ci/assert-rust-testing-standard.py --json",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:18:43Z",
+      "evidence": "Checker rc=0; JSON verdict PASS with all live-authority flags false in /tmp/p0-0-rust-testing-standard-check-green-1780471093/checker.json."
+    },
+    {
+      "command": "bash scripts/tests/rust_testing_standard_check.test.sh",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:18:43Z",
+      "evidence": "Shell regression rc=0; all RED mutations fail closed and nominal doc passes in /tmp/p0-0-rust-testing-standard-check-green-1780471093/shell.stdout."
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:18:43Z",
+      "evidence": "Buck2 authority policy rc=0, command_scan_files=166, required context remains oya-ci-required; logs in /tmp/p0-0-rust-testing-standard-check-green-1780471093/policy.json."
+    },
+    {
+      "command": "buck2 build //:rust-testing-standard-check //:buck2-authority-policy-check",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:18:43Z",
+      "evidence": "Buck2 rc=0, Build ID 79a69280-c286-44ad-a77b-07be9b353223; logs in /tmp/p0-0-rust-testing-standard-check-green-1780471093/buck2.stderr."
+    },
+    {
+      "command": "post-evidence verification bundle",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:22:28Z",
+      "evidence": "JSON/audit parse, py_compile, checker JSON, shell RED/GREEN regression, Buck2 authority policy, buck2 build //:rust-testing-standard-check //:buck2-authority-policy-check, evidence-secret-scan, and git diff --check all passed; Buck2 Build ID dafcd146-b70d-4788-8578-49825c7f22e3; logs in /tmp/p0-0-rust-testing-standard-check-postevidence-1780471348."
+    },
+    {
+      "command": "post-deslop verification bundle",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:25:11Z",
+      "evidence": "After splitting detector literals for forbidden claim phrases, py_compile, checker JSON, shell RED/GREEN regression, Buck2 authority policy, buck2 build //:rust-testing-standard-check //:buck2-authority-policy-check, claim-boundary scan, evidence-secret-scan, and git diff --check all passed; Buck2 Build ID b65a6d8f-d01a-41d7-b7cf-c0d6ad9930ba; logs in /tmp/p0-0-rust-testing-standard-check-postdeslop-1780471511."
+    },
+    {
+      "command": "architect review of Rust testing-standard drift checker",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:26:52Z",
+      "evidence": "Architect Carver (019e8c5e-3975-7ac0-9005-e1e505f03a2e) returned APPROVE with no required fixes; review confirmed local/static scope, Buck2-native LLVM coverage over Tarpaulin, dual Cargo+Buck2 advisory mutation boundary, no new oya CLI surface, and policy/Buck2 wiring."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose checker and shell regression; no new dependency and no new oya CLI surface.",
+        "Kept the doc change narrow by removing one raw Cargo executable-authority phrase that conflicted with the scanner."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Buck2-native LLVM coverage and target-owned evidence are enforced as monorepo standard text before implementing the coverage runner.",
+        "Dual Cargo+Buck2 local mutation ergonomics are preserved without weakening cloud-ci required-context authority."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "RED mutations cover Tarpaulin canonicalization, missing LLVM pipeline anchors, advisory-boundary loss, generated-BUCK/reindeer drift, and forbidden green claims."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Rust developers retain local Cargo manifests and mutation workflow language, but PR evidence remains Buck2/cloud-ci target-based."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Checker output is JSON, deterministic, dependency-free Python; shell regression validates fail-closed behavior."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected Tarpaulin as canonical coverage authority; rejected treating local Cargo mutation output as merge authority; rejected implementing coverage/mutation runners in this policy-drift slice."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No credentials, secrets, tenant data, or branch-protection mutation touched."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance claim; the future coverage runner remains a separate implementation task."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "The check is reachable through a root Buck2 target and the existing Buck2 authority policy chain."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence records RED/GREEN directories, Buck2 Build IDs, and explicit false live-authority flags."
+      ]
+    },
+    "F11_reversibility": {
+      "considered": true,
+      "findings": [
+        "Small script/test/BUCK/policy/doc diff; rollback removes the target and policy anchors cleanly."
+      ]
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No new oya CLI surface; oya verify/gate remain local/bridge evidence only; cloud-ci/oya-ci oya-ci-required remains destination CI authority."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "Anything automatable in this slice is mapped to a Buck2 target and specs/buck2-authority-policy.json rather than operator memory."
+      ]
+    },
+    "A2_documentation_structure": {
+      "considered": true,
+      "findings": [
+        "Updated the existing testing standard and policy registry instead of adding a new root or Markdown surface."
+      ]
+    }
+  }
+}

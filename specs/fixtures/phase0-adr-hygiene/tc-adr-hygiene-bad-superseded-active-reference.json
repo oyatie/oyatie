@@ -1,0 +1,32 @@
+{
+  "fixture_id": "TC-0.3-BAD-superseded-active-reference",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "superseded_reference_active_doc"
+  ],
+  "decision_records": [],
+  "active_documents": [
+    {
+      "path": "docs/standards/logging-tracing.md",
+      "content": "VictoriaMetrics for metrics remains the canonical observability store."
+    },
+    {
+      "path": "specs/platform-architecture.json",
+      "content": "SolidJS is the canonical shell for production."
+    },
+    {
+      "path": "README.md",
+      "content": "foundry-as-live is the current authority."
+    }
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false,
+    "full_adr_index_regenerated": false
+  }
+}

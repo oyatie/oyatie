@@ -1,0 +1,22 @@
+{
+  "candidate_sha": "1111111111111111111111111111111111111111",
+  "claim_boundary": {
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "inventory_source": "trusted_dev_or_controller_state",
+  "captured_before_candidate_checkout": true,
+  "candidate_checkout_after_inventory": true,
+  "no_candidate_authored_discovery": true,
+  "build_targets": [
+    "root//:buck2-authority-policy-check",
+    "root//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests"
+  ],
+  "test_targets": [
+    "root//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests"
+  ],
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "fixture_id": "TC-0.0.1a-GOOD-trusted-target-inventory",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.0.1a"
+}

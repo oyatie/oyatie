@@ -104,7 +104,7 @@ per-harness sanctioned set in each agent appendix matches this table.
 
 | Harness | Build | Test | Lint | Source |
 |---|---|---|---|---|
-| Codex CLI | `cargo build` | `cargo nextest run --workspace --all-features --no-fail-fast` | `cargo clippy --all-features --all-targets -- -D warnings` | AGENTS.md §Codex appendix |
+| Codex CLI | `buck2 build //...` or trusted target subset | `buck2 test //... --show-output` or trusted target subset | Buck2-invoked lint/static-analysis target | AGENTS.md §Codex appendix |
 | Gemini CLI | same as Codex | same as Codex | same as Codex | AGENTS.md §Gemini appendix |
 | OMC subagents | inherits Claude Code | inherits Claude Code | inherits Claude Code | AGENTS.md §OMC appendix |
 

@@ -1,0 +1,489 @@
+{
+  "$id": "https://docs.oyatie.com/specs/phase0-ci-enforcement-baseline.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-toolchain + platform-security",
+    "related_acceptance_criteria": [
+      "AC-0.0",
+      "AC-0.12",
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_specs": [
+      "/specs/bespoke-cloud-toolchain-services.json",
+      "/specs/hyperscaler-production-readiness-claim-contract.json",
+      "/specs/phase0-automation-matrix.json",
+      "/specs/phase0-claim-evidence-map.json",
+      "/specs/toolchain-tenant-isolation-fixtures.json",
+      "/specs/phase0-ci-enforcement-result-schema.json",
+      "/specs/phase0-trusted-target-inventory-schema.json"
+    ],
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "spec_id": "EXE-PHASE0-CI-ENFORCEMENT-BASELINE",
+    "status": "p0_0_red_gap_packet",
+    "updated_at": "2026-06-03T02:53:41Z",
+    "version": "0.1.0"
+  },
+  "automation_mapping": {
+    "automation_matrix_row": "specs/phase0-automation-matrix.json#seed_rows[id=AC-0.0-cloud-ci-required-context]",
+    "classification": "automated_blocking_now_target_with_current_gap",
+    "no_new_oya_cli_surface": true,
+    "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context produced by oya-ci-controller or minimal Rust bridge adapter",
+    "catalog_check_target": "//:phase0-ci-enforcement-baseline-catalog-check",
+    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "source_app_binding_check_target": "//:phase0-required-status-source-check",
+    "source_app_binding_check_script": "scripts/ci/assert-required-status-source.py",
+    "source_app_binding_test": "scripts/tests/phase0_required_status_source_check.test.sh",
+    "tenant_isolation_check_target": "//:phase0-tenant-isolation-fixture-check",
+    "tenant_isolation_check_script": "scripts/ci/assert-tenant-pipeline-isolation.py",
+    "tenant_isolation_test": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+    "override_kill_switch_check_target": "//:phase0-override-kill-switch-check",
+    "override_kill_switch_check_script": "scripts/ci/assert-override-kill-switch.py",
+    "override_kill_switch_test": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+    "trusted_target_inventory_check_script": "scripts/ci/assert-trusted-target-inventory.py",
+    "trusted_target_inventory_check_target": "//:phase0-trusted-target-inventory-check",
+    "trusted_target_inventory_test": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+    "result_bundle_check_script": "scripts/ci/assert-result-bundle-output.py",
+    "result_bundle_check_target": "//:phase0-result-bundle-output-check",
+    "result_bundle_test": "scripts/tests/phase0_result_bundle_output_check.test.sh"
+  },
+  "claim_boundary": {
+    "allowed_language_now": "gap packet / target / specified fixture contract only",
+    "forbidden_claims": [
+      "Phase 0 complete",
+      "P0.0 green",
+      "mechanically enforced",
+      "production-ready",
+      "tenant-facing live service",
+      "secure live isolation"
+    ],
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "reason": "Checked-in branch-protection target and bridge metadata name oya-ci-required, the P0.0 fixture catalog is closed by Buck2 targets, and live GitHub dev required-status contexts include oya-ci-required. P0.0 remains RED because live required_status_checks.checks binds oya-ci-required to app_id=null instead of a trusted cloud-ci/oya-ci source app, live producer evidence does not prove candidate-SHA posting from trusted cloud-ci/oya-ci control state, live Forgejo convergence is unavailable from this environment, and tenant-isolation negative tests are specified as fixtures but not yet run by a live required cloud-ci context."
+  },
+  "current_state_evidence": {
+    "active_bridge_status_producer": {
+      "classification": "jenkins_service_bridge_feedback_not_merge_authority",
+      "gate_command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json && buck2 build //:buck2-authority-policy-check && infra/ci/buck2-affected-gate.sh origin/${CHANGE_TARGET:-dev}",
+      "path": "cloud/*/ci/Jenkinsfile + oya/*/ci/Jenkinsfile + infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+      "posted_contexts": [
+        "oya-ci-required"
+      ],
+      "note": "Bridge lanes are local/static or Jenkins bridge evidence only; protected-branch authority still requires trusted cloud-ci/oya-ci producer evidence."
+    },
+    "checked_in_branch_protection": {
+      "classification": "local_shadow_target_not_live_enforcement",
+      "path": "infra/branch-protection/dev.json",
+      "required_contexts": [
+        "oya-ci-required"
+      ],
+      "strict": false
+    },
+    "checked_in_branch_protection_yaml": {
+      "note": "YAML mirrors the P0.0 target context; live GitHub required-status contexts now match it, but producer/Forgejo evidence remains a gap.",
+      "path": ".github/branch-protection.yaml",
+      "required_contexts": [
+        "oya-ci-required"
+      ]
+    },
+    "live_github_branch_protection": {
+      "source": "gh api repos/jason931225/oyatie/branches/dev/protection/required_status_checks --jq {strict,contexts}",
+      "required_contexts": [
+        "oya-ci-required"
+      ],
+      "strict": false,
+      "observed_at": "2026-06-02T22:52:00Z",
+      "gap": "required-status context drift closed for GitHub dev; still not a Phase-0 green claim until trusted cloud-ci/oya-ci posts oya-ci-required on candidate SHAs and Forgejo converges.",
+      "checks": [
+        {
+          "context": "oya-ci-required",
+          "app_id": null
+        }
+      ],
+      "source_app_binding": {
+        "status": "RED",
+        "reason": "missing_required_status_source_app",
+        "required_context": "oya-ci-required",
+        "observed_app_id": null,
+        "trusted_source_app": "cloud-ci/oya-ci",
+        "live_read_artifact": "evidence/multispectrum/platform-readiness-p0-0-required-status-source-live-dev-1780448463.json",
+        "checker": "scripts/ci/assert-required-status-source.py",
+        "buck2_target": "//:phase0-required-status-source-check",
+        "claim_boundary": {
+          "p0_0_green": false,
+          "phase0_complete": false
+        }
+      }
+    },
+    "observed_at": "2026-06-02T22:52:00Z",
+    "reported_status_metadata": {
+      "path": "infra/ci/jenkins/reported-status-contexts.json",
+      "reported_contexts": [
+        "oya-ci-required"
+      ],
+      "local_target_status": "Checked-in metadata now declares only oya-ci-required; legacy cargo-* and oya-verify contexts are forbidden as required authority by specs/buck2-authority-policy.json.",
+      "gap": "Live GitHub branch protection now requires oya-ci-required only; producer trust and live Forgejo convergence remain RED gaps."
+    },
+    "auto_merge_after_ci_contract": {
+      "classification": "checked_in_target_contract_github_required_context_live_not_phase0_green",
+      "path": "specs/phase0-auto-merge-after-ci.json",
+      "forgejo_script": "scripts/ci/arm-auto-merge.sh",
+      "github_script": "scripts/trigger-next-queue-automerge.sh",
+      "conflict_guard": "scripts/check-sequential-pr-merge-conflicts.sh",
+      "required_context": "oya-ci-required",
+      "head_pin_fields": {
+        "forgejo": "head_commit_id",
+        "github": "--match-head-commit"
+      },
+      "gap": "Live GitHub required-status checks now match oya-ci-required and repo auto-merge settings allow squash auto-merge/delete-branch. Live Forgejo auto-merge was not mutated because Forgejo DNS timed out locally; trusted cloud-ci/oya-ci producer evidence remains unproven.",
+      "forgejo_mergeability_guard": "scripts/ci/arm-auto-merge.sh refreshes PR, requires exact head.sha match, and requires mergeable=true before POST /pulls/{index}/merge"
+    },
+    "required_status_source_binding": {
+      "classification": "checked_in_and_live_read_only_red_gap_not_phase0_green",
+      "path": "scripts/ci/assert-required-status-source.py",
+      "test": "scripts/tests/phase0_required_status_source_check.test.sh",
+      "fixture_directory": "specs/fixtures/phase0-required-status-source",
+      "buck2_target": "//:phase0-required-status-source-check",
+      "official_reference": "https://docs.github.com/rest/branches/branch-protection#update-status-check-protection",
+      "gap": "Live GitHub dev required status check is context-required but source-app-unbound (app_id=null), so it cannot prove trusted cloud-ci/oya-ci source identity.",
+      "p0_0_green": false,
+      "phase0_complete": false
+    },
+    "tenant_pipeline_isolation_fixture_gate": {
+      "classification": "checked_in_local_static_fixture_gate_not_live_required_context_evidence",
+      "path": "scripts/ci/assert-tenant-pipeline-isolation.py",
+      "test": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+      "buck2_target": "//:phase0-tenant-isolation-fixture-check",
+      "contract": "specs/toolchain-tenant-isolation-fixtures.json",
+      "baseline_good_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+      "baseline_bad_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
+      "required_surface_count": 11,
+      "local_fixture_contract_proven": true,
+      "live_required_context_execution_proven": false,
+      "claim_boundary": {
+        "p0_0_green": false,
+        "phase0_complete": false,
+        "tenant_facing_ready": false,
+        "security_ready": false
+      }
+    },
+    "override_kill_switch_fixture_gate": {
+      "classification": "checked_in_local_static_fixture_gate_not_live_override_authority",
+      "path": "scripts/ci/assert-override-kill-switch.py",
+      "test": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+      "buck2_target": "//:phase0-override-kill-switch-check",
+      "schema": "specs/phase0-override-packet-schema.json",
+      "baseline_good_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+      "baseline_bad_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
+      "required_packet_fields": [
+        "action",
+        "affected_contexts",
+        "degraded_gate_ids",
+        "ttl_expires_at",
+        "reviewer_acknowledgment",
+        "audit_chain_event",
+        "owner",
+        "blast_radius_statement",
+        "revert_or_fix_follow_up",
+        "no_new_oya_cli_surface"
+      ],
+      "local_fixture_contract_proven": true,
+      "live_required_context_execution_proven": false,
+      "protected_flow_override_live": false,
+      "claim_boundary": {
+        "p0_0_green": false,
+        "phase0_complete": false
+      }
+    },
+    "trusted_target_inventory_fixture_gate": {
+      "classification": "checked_in_local_static_fixture_gate_not_live_controller_target_authority",
+      "schema": "specs/phase0-trusted-target-inventory-schema.json",
+      "baseline_good_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+      "baseline_bad_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
+      "path": "scripts/ci/assert-trusted-target-inventory.py",
+      "test": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+      "buck2_target": "//:phase0-trusted-target-inventory-check",
+      "local_fixture_contract_proven": true,
+      "candidate_pr_bytes_are_data_only_locally_proven": true,
+      "trusted_target_inventory_live_authority_proven": false,
+      "live_required_context_execution_proven": false,
+      "required_inventory_fields": [
+        "candidate_sha",
+        "claim_boundary",
+        "inventory_source",
+        "captured_before_candidate_checkout",
+        "candidate_checkout_after_inventory",
+        "no_candidate_authored_discovery",
+        "build_targets",
+        "test_targets",
+        "expected_verdict",
+        "expected_violations",
+        "fixture_id",
+        "source_test"
+      ],
+      "claim_boundary": {
+        "p0_0_green": false,
+        "phase0_complete": false
+      }
+    },
+    "structured_result_bundle_fixture_gate": {
+      "classification": "checked_in_local_static_fixture_gate_not_live_status_output_authority",
+      "schema": "specs/phase0-ci-enforcement-result-schema.json",
+      "current_red_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+      "false_green_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json",
+      "path": "scripts/ci/assert-result-bundle-output.py",
+      "test": "scripts/tests/phase0_result_bundle_output_check.test.sh",
+      "buck2_target": "//:phase0-result-bundle-output-check",
+      "local_fixture_contract_proven": true,
+      "structured_result_bundle_live": false,
+      "trusted_status_producer_live": false,
+      "protected_branch_authority_proven": false,
+      "status_mutation_performed": false,
+      "live_required_context_execution_proven": false,
+      "required_bundle_fields": [
+        "candidate_sha",
+        "required_context",
+        "producer",
+        "fixture_results",
+        "observed_verdict",
+        "provenance",
+        "claim_boundary"
+      ],
+      "required_false_green_violations": [
+        "missing_cloud_ci_required_context",
+        "untrusted_or_legacy_status_producer",
+        "candidate_bytes_can_weaken_result",
+        "candidate_sourced_gate_definition",
+        "fixture_result_mismatch",
+        "red_expected_fixture_missing_violations",
+        "green_bundle_without_green_fixture_results",
+        "green_claim_boundary_without_live_authority"
+      ],
+      "claim_boundary": {
+        "p0_0_green": false,
+        "phase0_complete": false
+      }
+    }
+  },
+  "description": "P0.0 baseline and gap packet for Prow/cloud-ci enforcement plus tenant-isolation fixtures. This file is evidence of the current P0.0 state, not a Phase-0 completion claim.",
+  "external_best_practice_evidence": [
+    {
+      "source": "https://docs.prow.k8s.io/docs/components/",
+      "used_for": "Prow decomposition: hook/job lifecycle/status reporting/Tide/branchprotector reference shape."
+    },
+    {
+      "source": "https://docs.prow.k8s.io/docs/components/core/tide/",
+      "used_for": "Tide manages merge pools, retests PRs against latest base, maintains status contexts, and supports branch/repo merge blocking."
+    },
+    {
+      "source": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+      "used_for": "Protected branches require named status checks; required_status_checks.checks[].app_id is the source-app binding used to prevent any-app or untrusted-app status spoofing."
+    },
+    {
+      "source": "https://docs.aws.amazon.com/whitepapers/latest/saas-architecture-fundamentals/tenant-isolation.html",
+      "used_for": "Tenant isolation uses tenant context to block cross-tenant resource access and is separate from generic authentication/authorization."
+    }
+  ],
+  "fixture_set": {
+    "all_fixture_paths": [
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-good-cloud-ci-required-and-isolated.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1-bad-buck2-affected-only-producer.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1-bad-legacy-oya-cli-authority.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1-bad-missing-required-context.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1-bad-oya-gate-run-all-required-producer.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1-bad-oya-verify-affected-producer.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1-bad-required-context-present-not-required.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-deletes-trusted-target.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-mutable-producer.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"
+    ],
+    "current_red_result_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+    "result_bundle_fixture_paths": [
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"
+    ],
+    "fixture_directory": "specs/fixtures/phase0-ci-enforcement-baseline",
+    "required_red_green_pairs": [
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.1-bad-buck2-affected-only-producer.json",
+        "tc_id": "TC-0.0.1"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.1-bad-legacy-oya-cli-authority.json",
+        "tc_id": "TC-0.0.1"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.1-bad-missing-required-context.json",
+        "tc_id": "TC-0.0.1"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.1-bad-oya-gate-run-all-required-producer.json",
+        "tc_id": "TC-0.0.1"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.1-bad-oya-verify-affected-producer.json",
+        "tc_id": "TC-0.0.1"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.1-bad-required-context-present-not-required.json",
+        "tc_id": "TC-0.0.1"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.1a-bad-candidate-deletes-trusted-target.json",
+        "tc_id": "TC-0.0.1a"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.1a-bad-candidate-mutable-producer.json",
+        "tc_id": "TC-0.0.1a"
+      },
+      {
+        "green": "tc-0.0.1a-good-trusted-target-inventory.json",
+        "red": "tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
+        "tc_id": "TC-0.0.1a"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.2-bad-override-without-ttl-audit.json",
+        "tc_id": "TC-0.0.2"
+      },
+      {
+        "green": "tc-0.0-good-cloud-ci-required-and-isolated.json",
+        "red": "tc-0.0.3-bad-cross-tenant-shared-cache.json",
+        "tc_id": "TC-0.0.3"
+      }
+    ],
+    "result_schema": "specs/phase0-ci-enforcement-result-schema.json",
+    "override_packet_schema": "specs/phase0-override-packet-schema.json",
+    "trusted_target_inventory_schema": "specs/phase0-trusted-target-inventory-schema.json",
+    "trusted_target_inventory_fixture_paths": [
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+      "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json"
+    ],
+    "tenant_fixture_contract": "specs/toolchain-tenant-isolation-fixtures.json",
+    "catalog_check_target": "//:phase0-ci-enforcement-baseline-catalog-check",
+    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "required_status_source_fixture_directory": "specs/fixtures/phase0-required-status-source",
+    "required_status_source_fixture_paths": [
+      "specs/fixtures/phase0-required-status-source/good-bound-expected-source-app.json",
+      "specs/fixtures/phase0-required-status-source/bad-contexts-only-no-checks-array.json",
+      "specs/fixtures/phase0-required-status-source/bad-null-source-app.json",
+      "specs/fixtures/phase0-required-status-source/bad-wildcard-any-source-app.json",
+      "specs/fixtures/phase0-required-status-source/bad-wrong-source-app.json",
+      "specs/fixtures/phase0-required-status-source/bad-missing-required-context.json",
+      "specs/fixtures/phase0-required-status-source/bad-required-context-not-in-checks-array.json"
+    ],
+    "tenant_isolation_check_target": "//:phase0-tenant-isolation-fixture-check",
+    "tenant_isolation_check_script": "scripts/ci/assert-tenant-pipeline-isolation.py",
+    "tenant_isolation_test": "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+    "override_kill_switch_check_target": "//:phase0-override-kill-switch-check",
+    "override_kill_switch_check_script": "scripts/ci/assert-override-kill-switch.py",
+    "override_kill_switch_test": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+    "trusted_target_inventory_check_script": "scripts/ci/assert-trusted-target-inventory.py",
+    "trusted_target_inventory_check_target": "//:phase0-trusted-target-inventory-check",
+    "trusted_target_inventory_test": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+    "result_bundle_check_script": "scripts/ci/assert-result-bundle-output.py",
+    "result_bundle_check_target": "//:phase0-result-bundle-output-check",
+    "result_bundle_test": "scripts/tests/phase0_result_bundle_output_check.test.sh"
+  },
+  "gap_packet": {
+    "candidate_pr_untrusted": {
+      "current_risk": "active bridge executes infra/ci/buck2-affected-gate.sh from the candidate checkout",
+      "evidence": "RED fixtures include candidate-sourced producer/gate definitions and candidate-deleted trusted-target inventory; live required context evidence is still absent.",
+      "fix_path": "controller job clones trusted gate catalog separately, captures Buck2 build/test target inventory from trusted dev/controller state before candidate checkout, and passes candidate SHA/tree as data-only input",
+      "required_policy": "candidate PR tree is data under test only; producer/gate definitions come from trusted trunk/controller state",
+      "status": "GAP",
+      "local_target_status": "schema, GOOD fixture, BAD candidate-sourced fixture, local checker, and //:phase0-trusted-target-inventory-check require trusted dev/controller inventory capture before candidate checkout, reject candidate-authored target discovery, require non-empty well-formed Buck2 build/test targets, and keep p0_0_green=false/phase0_complete=false; live cloud-ci/oya-ci target-inventory authority remains unproven",
+      "trusted_target_inventory_schema": "specs/phase0-trusted-target-inventory-schema.json",
+      "blocking_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json"
+    },
+    "no_oya_cli_authority": {
+      "allowed_use": "oya verify/oya gate may remain local migration evidence only",
+      "fix_path": "keep oya CLI out of protected required contexts and cloud-ci required-context producer commands; retire remaining local mirror/gate entrypoints through the tracked packet",
+      "local_target_status": "infra/branch-protection/dev.json no longer requires oya-verify; remaining oya CLI references are legacy/local inventory only until retired through the packet.",
+      "status": "GAP"
+    },
+    "overall_verdict": "P0.0_RED_blocked_until_cloud_ci_required_context_is_live",
+    "override_kill_switch": {
+      "fix_path": "wire specs/phase0-override-packet-schema.json into the live cloud-ci/oya-ci controller before any protected-flow override can affect a required context",
+      "fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
+      "required_contract": "action, affected required context, degraded gate id, TTL, reviewer acknowledgment, audit-chain event, named owner, blast-radius statement, protected-flow revert/fix follow-up, and no new oya CLI surface",
+      "status": "GAP",
+      "local_target_status": "schema, GOOD fixture, BAD fixture, Rust kernel evaluator, and //:phase0-override-kill-switch-check require action, affected context, degraded gate id, TTL, reviewer acknowledgment, audit event, owner, blast radius, revert/fix follow-up, and no new oya CLI surface; live cloud-ci/oya-ci override enforcement remains unproven"
+    },
+    "required_context": {
+      "checked_in_contexts": [
+        "oya-ci-required"
+      ],
+      "fix_path": "deploy/publish trusted cloud-ci/oya-ci producer evidence for oya-ci-required on candidate SHAs; GitHub dev required-status contexts are already synced to the target.",
+      "local_target_status": "checked-in target branch-protection evidence names oya-ci-required and rejects oya-verify authority; live GitHub dev required-status contexts now match oya-ci-required.",
+      "live_github_contexts": [
+        "oya-ci-required"
+      ],
+      "required_context_options": [
+        "cloud-ci-required",
+        "oya-ci-required"
+      ],
+      "status": "GAP"
+    },
+    "structured_result_output": {
+      "current_red_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
+      "fix_path": "cloud-ci/oya-ci producer emits a conforming result bundle for every candidate SHA from trusted control state and posts the required protected context; local fixture output remains evidence input only until live required-context authority exists",
+      "required_schema": "specs/phase0-ci-enforcement-result-schema.json",
+      "status": "GAP",
+      "local_target_status": "schema-conforming current RED bundle and false-green RED fixture are evaluated by scripts/ci/assert-result-bundle-output.py and //:phase0-result-bundle-output-check; the checker requires missing-context/untrusted-producer/candidate-byte/candidate-sourced violations, rejects false-green fixture/result/claim-boundary drift, and keeps p0_0_green=false/phase0_complete=false; live status posting remains unproven",
+      "blocking_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json"
+    },
+    "tenant_pipeline_isolation": {
+      "fix_path": "run tenant A/B negative fixtures through required cloud-ci/oya-ci context before any live isolation claim",
+      "local_target_status": "toolchain tenant-isolation contract, required 11-surface model, GOOD/BAD fixtures, Rust kernel evaluator, and //:phase0-tenant-isolation-fixture-check cover the local target; live cloud-ci/oya-ci required-context execution remains unproven",
+      "required_contract_path": "specs/toolchain-tenant-isolation-fixtures.json",
+      "required_surfaces": [
+        "identity",
+        "secrets",
+        "runners",
+        "workspaces",
+        "caches",
+        "artifacts",
+        "logs_evidence",
+        "release_ledgers",
+        "deploy_targets",
+        "status_callbacks",
+        "audit_events"
+      ],
+      "status": "GAP"
+    },
+    "trusted_producer": {
+      "current_bridge": "Jenkins service bridge lanes run Buck2 policy/build/affected checks from candidate checkout and emit oya-ci-required bridge evidence; protected-branch authority still requires trusted cloud-ci/oya-ci controller state.",
+      "fix_path": "deploy/publish producer evidence showing oya-ci-controller posts oya-ci-required from trusted control state on candidate SHA and candidate bytes cannot alter gate catalog, producer, branch-protection mapping, or runner isolation",
+      "local_target_status": "oya-ci-controller kernel/k8s target now uses oya-ci-required metadata; live producer deployment and required-status posting remain unproven.",
+      "required_producer": "oya-ci-controller or minimal Rust bridge adapter loading gate definitions from trusted dev/controller state",
+      "status": "GAP"
+    }
+  },
+  "next_required_action": "Deploy/publish trusted cloud-ci/oya-ci producer evidence that posts oya-ci-required on candidate SHAs, converge live Forgejo auto-merge/branch-protection, then rerun T0.0 fixtures. Do not start P0.1 enforcement claims from this RED gap packet.",
+  "p0_0_requirements": [
+    "required cloud-ci-required or oya-ci-required protected branch context",
+    "trusted trunk/controller-sourced producer (oya-ci-controller or minimal Rust bridge adapter)",
+    "candidate PR bytes treated only as untrusted input",
+    "no oya CLI invocation as merge or Phase-0 exit authority",
+    "TTL/reviewer/audit gate override and kill-switch contract",
+    "tenant pipeline isolation across identity, secrets, runners/workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, and audit events"
+  ],
+  "title": "Phase0CiEnforcementBaseline"
+}

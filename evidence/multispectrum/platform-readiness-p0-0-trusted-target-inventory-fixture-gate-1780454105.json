@@ -1,0 +1,188 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-trusted-target-inventory-schema.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-trusted-target-inventory-fixture-gate",
+  "claim_boundary": {
+    "candidate_pr_bytes_are_data_only_locally_proven": true,
+    "live_required_context_execution_proven": false,
+    "note": "Local/static trusted target-inventory fixture gate evidence only. This does not claim live cloud-ci/oya-ci required-context execution, live controller target-authority, protected branch authority, status mutation, P0.0 green, or Phase-0 completion.",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "status_mutation_performed": false,
+    "trusted_target_inventory_live_authority_proven": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose checker with no new dependencies; validates existing schema/fixtures rather than adding a new controller abstraction."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Separates trusted controller target-inventory capture from candidate bytes under test; candidate PR content is modeled as untrusted data before live controller cutover."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "candidate-sourced inventory, unexpected top-level target-discovery fields, malformed SHA, malformed Buck2 target, false-green boundary, RED expected-violation drift",
+      "failing_fixture_added": true,
+      "findings": [
+        "Regression harness mutates schema and GOOD/BAD fixtures to ensure target-inventory drift fails closed."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "JSON output lists schema fields, observed trusted-target violations, malformed targets, fixture verdicts, and explicit non-claim flags."
+      ],
+      "new_contributor_minutes_estimate": 10
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Post-deslop targeted tests, baseline catalog, authority policy, py_compile, JSON parsing, evidence secret scan, Buck2 root target build (latest Build ID ac10060b-f74a-4df8-a200-75a0cf5c74da), and diff hygiene passed."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Leave trusted target inventory as schema/catalog only",
+        "Add dedicated local fixture gate target",
+        "Claim live controller target authority from fixtures"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Catalog reachability alone does not execute candidate-sourced inventory semantics.",
+        "Dedicated target is the smallest executable proof without touching live branch protection or status posting.",
+        "Live controller target authority cannot be claimed until trusted cloud-ci/oya-ci captures inventory before candidate checkout and posts the required context on candidate SHAs."
+      ],
+      "selected_rationale": "Dedicated local fixture gate makes T0.0.1a candidate-bytes-as-data proof reachable from root Buck2 while preserving live RED boundary."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No credentials, status posting, or live branch-protection mutation touched; checker validates fixture metadata only."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    }
+  },
+  "files_changed": [
+    "scripts/ci/assert-trusted-target-inventory.py",
+    "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+    "BUCK",
+    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "freshness_unix": 1780454590,
+  "git_sha": "476c6e0509e1",
+  "implementation_summary": [
+    "Added scripts/ci/assert-trusted-target-inventory.py to validate the P0.0 trusted target-inventory schema plus GOOD/BAD candidate-sourced baseline fixtures.",
+    "Added scripts/tests/phase0_trusted_target_inventory_check.test.sh with negative mutations for schema required-field drift, extra untrusted inventory-source enum values, unexpected candidate-authored fields, malformed candidate SHA, candidate-sourced GOOD fixture drift, malformed Buck2 target drift, false-green boundary drift, and RED expected-violation drift.",
+    "Added //:phase0-trusted-target-inventory-check and wired it into the baseline catalog, automation matrix, claim-evidence map, and Buck2 authority policy anchors."
+  ],
+  "known_gaps": [
+    "Live cloud-ci/oya-ci has not captured trusted target inventory or posted oya-ci-required on PR #455 candidate SHA.",
+    "PR #455 still has no live status checks reported from latest post-push evidence.",
+    "GitHub dev required_status_checks.checks still has app_id=null for oya-ci-required from latest post-push evidence.",
+    "Forgejo live convergence and reviewer APPROVE remain unproven."
+  ],
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "P0.0 AC-0.0 trusted target-inventory local fixture gate; no live controller target-authority claim",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T02:35:05Z",
+  "timestamp_unix": 1780454105,
+  "verification": [
+    {
+      "command": "for file in specs/phase0-ci-enforcement-baseline.json specs/phase0-automation-matrix.json specs/phase0-claim-evidence-map.json specs/buck2-authority-policy.json specs/phase0-trusted-target-inventory-schema.json; do python3 -m json.tool \"$file\"; done",
+      "evidence": "Updated JSON specs and trusted target-inventory schema parse.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m py_compile scripts/ci/assert-trusted-target-inventory.py scripts/ci/assert-override-kill-switch.py scripts/ci/assert-tenant-pipeline-isolation.py scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "evidence": "Python syntax checks passed.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/assert-trusted-target-inventory.py --json",
+      "evidence": "verdict=PASS, local_fixture_contract_proven=true, candidate_pr_bytes_are_data_only_locally_proven=true, trusted_target_inventory_live_authority_proven=false, p0_0_green=false, phase0_complete=false.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+      "evidence": "Positive fixture pass plus negative mutations for schema drift, unexpected candidate-authored fields, malformed SHA, candidate-sourced GOOD drift, malformed Buck2 target, false-green boundary, and RED expected-violation drift.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_override_kill_switch_check.test.sh && bash scripts/tests/phase0_tenant_isolation_fixture_check.test.sh && bash scripts/tests/phase0_required_status_source_check.test.sh && bash scripts/tests/phase0_required_context_rollup_check.test.sh",
+      "evidence": "Previously added override, tenant, source-binding, and rollup fixture checks still pass.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "evidence": "Baseline catalog passes and reports trusted_target_inventory_check_target=//:phase0-trusted-target-inventory-check.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Auto-merge contract regression still passes.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "Policy scan passes with command_scan_files=152 and status_context_scan_files=9.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build //:phase0-trusted-target-inventory-check //:phase0-override-kill-switch-check //:phase0-tenant-isolation-fixture-check //:phase0-ci-enforcement-baseline-catalog-check //:phase0-required-status-source-check //:buck2-authority-policy-check --show-output",
+      "evidence": "Build succeeded with Build ID 041ba4b5-05d4-4f6a-9d7d-7b4a23e97cbc.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "No whitespace errors before evidence append.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 audit-chain-jsonl-parse",
+      "evidence": "evidence/audit-chain.jsonl parsed as JSONL rows=840 before appending this evidence row.",
+      "revalidated_at": "2026-06-03T02:35:05Z",
+      "status": "passed"
+    },
+    {
+      "command": "post-deslop full regression: JSON parse, py_compile, trusted checker/test, override/tenant/source/rollup regressions, baseline catalog, auto-merge contract, Buck2 authority policy, Buck2 build, evidence secret scan, audit-chain parse, git diff --check",
+      "evidence": "Post-deslop regression passed in /tmp/p0-0-trusted-target-post-deslop-1780454473; audit-chain rows=841, secret scan PASS, Buck2 Build ID ac10060b-f74a-4df8-a200-75a0cf5c74da.",
+      "revalidated_at": "2026-06-03T02:43:10Z",
+      "status": "passed"
+    }
+  ]
+}

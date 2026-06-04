@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/phase0-who-gates-gates-fixture.schema.json",
+  "tc_id": "TC-0.11.BAD.oya-cli-authority-route",
+  "expected_verdict": "FAIL",
+  "expected_violations": [
+    "oya_cli_authority_route"
+  ],
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "gate_under_test": {
+    "gate_id": "local-oya-authority-gate",
+    "buck2_target": "//:local-oya-authority-gate",
+    "pass_condition": "all_known_bad_mutations_fail_and_all_markers_present",
+    "gate_authority_command": "oya verify --ci-required",
+    "known_bad_fixtures": [
+      "known-bad-input"
+    ],
+    "self_mutation_tests": [
+      "remove-red-marker"
+    ],
+    "no_new_oya_cli_surface": false
+  }
+}

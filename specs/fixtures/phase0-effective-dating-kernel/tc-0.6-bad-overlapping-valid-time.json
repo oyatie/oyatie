@@ -1,0 +1,40 @@
+{
+  "tc_id": "TC-0.6-BAD-overlapping-valid-time-under-overlapping-transaction-time",
+  "expected_verdict": "FAIL",
+  "expected_violations": [
+    "overlapping_bitemporal_range"
+  ],
+  "candidate_versions": [
+    {
+      "value": "registered",
+      "valid_time": {
+        "start": 0,
+        "end_exclusive": 10
+      },
+      "transaction_time": {
+        "start": 100,
+        "end_exclusive": 200
+      }
+    },
+    {
+      "value": "overlap",
+      "valid_time": {
+        "start": 5,
+        "end_exclusive": 15
+      },
+      "transaction_time": {
+        "start": 150,
+        "end_exclusive": 250
+      }
+    }
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

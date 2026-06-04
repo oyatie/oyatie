@@ -3938,9 +3938,11 @@ dependencies = [
  "oya-ci-controller-forgejo-adapter",
  "oya-ci-controller-k8s-adapter",
  "oya-ci-controller-kernel",
+ "rustls",
  "serde",
  "serde_json",
  "tokio",
+ "tower 0.5.3",
  "tracing",
  "tracing-subscriber",
 ]
@@ -3949,6 +3951,7 @@ dependencies = [
 name = "oya-ci-controller-forgejo-adapter"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "httpmock",
  "oya-ci-controller-kernel",
  "reqwest",
@@ -3974,8 +3977,39 @@ dependencies = [
 name = "oya-ci-controller-kernel"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "oya-ci-tide-app"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-tide-forgejo-adapter",
+ "oya-ci-tide-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-ci-tide-forgejo-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-tide-kernel",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-ci-tide-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -7598,6 +7632,23 @@ dependencies = [
 [[package]]
 name = "oya-saas-workflow-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-scm"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "oya-scm-forgejo"
+version = "0.1.0"
+dependencies = [
+ "oya-scm",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "oya-search-crawler-domain"

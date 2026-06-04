@@ -1,0 +1,143 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/buck2-authority-policy.json",
+    ".omx/plans/prd-platform-readiness.md#AC-0.16",
+    ".omx/plans/test-spec-phase0.md#T0.16"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-automation-ratchet-fixture-gate",
+  "claim_boundary": {
+    "automation_ratchet_live": false,
+    "coverage_registry_local_static_proven": true,
+    "live_required_context_execution_proven": false,
+    "note": "Local/static automation-ratchet fixture gate evidence only. This does not claim live cloud-ci/oya-ci required-context execution, protected branch authority, status mutation, P0.0 green, Phase-0 completion, or reviewer merge approval.",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose checker; no new dependencies; deletes no existing authority and only maps declared rows."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Moves AC-0.16 from seeded prose/fixtures to a replayable local gate while preserving cloud-ci as the live authority target."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "missing required row, duplicate row, unknown classifier, missing required fields, oya CLI authority mapping in hard fields, oya CLI authority mapping in row requirement/source_artifact narrative fields, oya CLI authority mapping in coverage_note, missing irreducible human-judgment reason, coverage row unmapped, unknown mapped row, false-green claim boundary, vacuous RED fixture",
+      "failing_fixture_added": true,
+      "findings": [
+        "The test mutates both matrix and coverage-registry inputs to ensure omission and false-green drift fail closed."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "JSON output names matrix/coverage summaries, fixture ids, observed violations, and explicit non-claim flags."
+      ],
+      "new_contributor_minutes_estimate": 12
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Post-deslop full local/static regression passed in /tmp/p0-0-automation-ratchet-final-1780458452 with Buck2 Build ID 6c27e916-72c9-4636-8a3b-8f200c4d262e.",
+        "Architect re-review approved the authority-field blind-spot fix and confirmed local/static non-live boundary flags remain false."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Leave AC-0.16 as matrix prose only",
+        "Add local/static automation-ratchet gate",
+        "Claim live automation-ratchet enforcement"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Seed rows alone allowed newer rows to stay unmapped in the coverage registry.",
+        "Selected as the smallest executable proof while live cloud-ci is absent.",
+        "Live enforcement cannot be claimed until trusted cloud-ci/oya-ci runs the required context on candidate SHAs."
+      ],
+      "selected_rationale": "Add local/static checker and root Buck2 target to prove AC-0.16 coverage shape without live authority claims."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No credentials, status posting, branch-protection mutation, or tenant data touched."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    }
+  },
+  "files_changed": [
+    "scripts/ci/assert-automation-ratchet.py",
+    "scripts/tests/phase0_automation_ratchet_check.test.sh",
+    "BUCK",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/buck2-authority-policy.json"
+  ],
+  "freshness_unix": 1780457492,
+  "git_sha": "4b6f1fce6ad2",
+  "implementation_summary": [
+    "Added scripts/ci/assert-automation-ratchet.py to evaluate AC-0.16 seed rows, required classifications, no-new-oya-CLI authority constraints, human-judgment metadata, and coverage registry row mappings.",
+    "Added scripts/tests/phase0_automation_ratchet_check.test.sh with negative mutations for missing required rows, duplicate/unknown/missing row fields, oya CLI authority mapping, unmapped coverage rows, unknown mapped rows, false green coverage boundary, and vacuous RED fixture drift.",
+    "Updated specs/phase0-automation-coverage-registry.json so AC-0.0 maps the trusted-target, structured result-bundle, and override/kill-switch rows that were previously orphaned.",
+    "Added //:phase0-automation-ratchet-check and wired it into specs/buck2-authority-policy.json anchors and scan files.",
+    "Widened scripts/ci/assert-automation-ratchet.py to scan row narrative fields and coverage-registry notes for non-negated oya gate/verify authority references.",
+    "Added negative test mutations for oya gate authority in seed_rows[].requirement, seed_rows[].source_artifact, and coverage_subjects[].coverage_note, plus missing human-judgment reason."
+  ],
+  "known_gaps": [
+    "AC-0.16 is still local/static evidence until trusted cloud-ci/oya-ci runs it as part of the required context on candidate SHAs.",
+    "PR #455 still has no live status checks reported from the latest post-push evidence; this must be rechecked after pushing this slice.",
+    "GitHub dev required_status_checks.checks still had app_id=null for oya-ci-required from the latest post-push evidence; this must be rechecked after pushing this slice.",
+    "Forgejo live convergence and reviewer merge-readiness remain unproven."
+  ],
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "AC-0.16 automation-ratchet local/static fixture gate; no live required-context authority claim",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T03:31:32Z",
+  "timestamp_unix": 1780457492,
+  "verification": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-automation-ratchet.py --json",
+      "evidence": "verdict=PASS, row_count=32, mapped_row_count=32, unmapped_row_ids=[], automation_ratchet_live=false, p0_0_green=false, phase0_complete=false.",
+      "revalidated_at": "2026-06-03T03:50:48Z",
+      "status": "passed"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_automation_ratchet_check.test.sh",
+      "evidence": "Positive fixture pass plus negative mutations for required rows, duplicate/unknown/missing fields, oya CLI authority in hard fields, oya CLI authority in row requirement/source_artifact narratives, oya CLI authority in coverage_note, missing human-judgment reason, coverage row mapping, false-green boundary, and vacuous RED fixture drift.",
+      "revalidated_at": "2026-06-03T03:50:48Z",
+      "status": "passed"
+    },
+    {
+      "command": "post-deslop full regression: JSON parse, py_compile, automation/result-bundle/trusted-target/override/tenant/source/rollup regressions, baseline catalog, auto-merge contract, Buck2 authority policy, Buck2 build, evidence secret scan, audit-chain parse, git diff --check",
+      "evidence": "Post-deslop regression passed in /tmp/p0-0-automation-ratchet-final-1780458452; audit-chain rows=845 before refresh, secret scan PASS, Buck2 Build ID 6c27e916-72c9-4636-8a3b-8f200c4d262e.",
+      "revalidated_at": "2026-06-03T03:50:48Z",
+      "status": "passed"
+    },
+    {
+      "command": "architect native subagent re-review",
+      "evidence": "APPROVE 019e8b8f-9f8b-71c3-9072-67da063bee3d: prior oya-CLI authority blind spot closed; row requirement/source_artifact and coverage_note probes covered; local/static non-live flags remain false.",
+      "revalidated_at": "2026-06-03T03:50:48Z",
+      "status": "passed"
+    }
+  ]
+}

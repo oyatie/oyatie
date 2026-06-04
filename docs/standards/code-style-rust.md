@@ -49,8 +49,7 @@ Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-
 - `Cargo.toml [workspace.package] rust-version` MUST equal the toolchain pin.
 - Edition: **2024** for every workspace crate; exceptions require an
   ADR-tracked waiver.
-- `cargo-deny` MUST be pinned to a version whose MSRV ≤ the workspace
-  `rust-version`.
+- License/advisory tooling MUST be pinned in the Buck2/Jenkins toolchain image with an MSRV ≤ the workspace `rust-version`.
 
 Source: [Cargo Book — rust-toolchain.toml](https://rust-lang.github.io/rustup/overrides.html),
 [RFC 3537 — MSRV resolver](https://rust-lang.github.io/rfcs/3537-msrv-resolver.html).
@@ -99,17 +98,16 @@ module_name_repetitions  = "allow"
 must_use_candidate       = "allow"
 missing_errors_doc       = "allow"
 missing_panics_doc       = "allow"
-multiple_crate_versions  = "allow"  # cargo-deny enforces this with audit trail
+multiple_crate_versions  = "allow"  # dependency policy gate enforces this with audit trail
 ```
 
-CI runs `cargo clippy --workspace --all-features --all-targets -- -D warnings`
-per AGENTS.md D10. Source:
+CI runs the Buck2 clippy/lint target set and treats warnings as failures. Source:
 [Clippy Lints](https://rust-lang.github.io/rust-clippy/master/index.html),
 [Effective Rust — Item 29: Listen to Clippy](https://effective-rust.com/clippy.html).
 
 ## 3. Formatting
 
-- `cargo fmt --all` MUST pass at commit time.
+- `rustfmt` MUST pass at commit time, run directly or via the Buck2 formatting target; do not shell out through Cargo for formatting authority.
 - `rustfmt.toml` MUST be checked in at workspace root and MUST pin both
   `edition = "2024"` and `style_edition = "2024"`.
 - Recommended settings: `edition = "2024"`, `style_edition = "2024"`, `max_width = 100`,
@@ -127,9 +125,7 @@ Exceptions (FFI, perf-critical primitives, kernel allocators):
    `#![allow(unsafe_code)]` plus an ADR cite in the file header.
 2. Every `unsafe` block MUST carry a `// SAFETY:` comment documenting the
    invariants the caller must uphold (AWS Firecracker convention).
-3. Every unsafe surface MUST be covered by a `cargo-fuzz` harness per
-   [`testing.md`](testing.md) §5 AND, where feasible, a Kani harness per
-   ADR-RST-003 (pending).
+3. Every unsafe surface MUST be covered by a fuzz harness invoked through Buck2 per [`testing.md`](testing.md) §5 AND, where feasible, a Kani harness per ADR-RST-003 (pending).
 4. CI lane `oya-governance-unsafe-kani` enforces (2) + (3).
 
 Sources: [AWS — How Kani is used](https://aws.amazon.com/blogs/opensource/how-open-source-projects-are-using-kani-to-write-better-software-in-rust/),
@@ -231,10 +227,7 @@ Source: [corrode — State of Async Rust](https://corrode.dev/blog/async/),
 
 ## 8. Public API discipline
 
-- `cargo public-api` diffs the public surface on every PR; breaking diffs
-  require an ADR cite and a SemVer major bump (or a deprecation cycle per
-  ADR-0037).
-- `cargo semver-checks` runs in CI as the de-facto linter.
+- Buck2-invoked public-API and semver checks diff the public surface on every PR; breaking diffs require an ADR cite and a SemVer major bump (or a deprecation cycle per ADR-0037).
 - Every `pub fn` on a stable crate MUST carry rustdoc (`missing_docs = warn`
   → `deny` at stable promotion).
 

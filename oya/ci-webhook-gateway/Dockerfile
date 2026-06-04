@@ -1,15 +1,19 @@
-# CI Webhook Gateway — multi-stage build. Standalone crate (own Cargo.lock); build
-# context is this directory. Built in-cluster by BuildKit (ADR-0381 D1; Kaniko archived
-# 2024; host docker retired per ADR-0378) and pushed to the in-cluster registry;
-# deployed in namespace oya-ci.
-FROM rust:1.95-bookworm AS builder
-WORKDIR /build
-COPY . .
-RUN cargo build --release --locked --bin oya-ci-webhook-gateway
+# CI Webhook Gateway — Dockerfile compatibility wrapper, not build authority.
+#
+# 2026-06-02 Buck2 authority amendment: CI/CD/scripts/build lanes build this
+# service image through Buck2, not Cargo. Canonical image target:
+#
+#   buck2 build root//oya/ci-webhook-gateway/iac/oci:gateway-oci \
+#     --target-platforms //platforms:linux-aarch64-musl
+#
+# This Dockerfile remains only for external runtime-image smoke tooling that can
+# provide a Buck2-produced musl/static binary in the Docker build context. It does
+# not compile Rust and it does not satisfy branch-protection or Phase-0 exit
+# authority.
 
-# Distroless cc runtime (Rust needs libgcc); non-root.
-FROM gcr.io/distroless/cc-debian12:nonroot
-COPY --from=builder /build/target/release/oya-ci-webhook-gateway /usr/local/bin/oya-ci-webhook-gateway
+FROM gcr.io/distroless/static-debian12:nonroot
+ARG OYA_BUCK2_BINARY=dist/oya-ci-webhook-gateway
+COPY ${OYA_BUCK2_BINARY} /usr/local/bin/oya-ci-webhook-gateway
 EXPOSE 8099
-USER nonroot
+USER 65532:65532
 ENTRYPOINT ["/usr/local/bin/oya-ci-webhook-gateway"]

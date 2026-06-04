@@ -1,0 +1,166 @@
+{
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "session_id": "omx-1780449440528-15gm8q",
+  "change_id": "platform-readiness-p0-0-rust-llvm-coverage-runner-contract",
+  "change_class_id": "CC-5",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha": "54cc8a6ac54247e2e7c473fae4d3e30073dcd0db",
+  "timestamp_iso": "2026-06-03T07:40:02Z",
+  "timestamp_unix": 1780472402,
+  "freshness_unix": 1780472402,
+  "scope": "Local/static Buck2-native LLVM Rust coverage runner contract target-shape check; no coverage report generation or live authority claim.",
+  "authority_refs": [
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "docs/standards/testing.md",
+    "specs/buck2-authority-policy.json",
+    "specs/rust-llvm-coverage-runner-contract.json"
+  ],
+  "official_sources": [
+    {
+      "name": "rustc Book \u2014 Instrumentation-based Code Coverage",
+      "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+      "used_for": "rustc -C instrument-coverage and LLVM_PROFILE_FILE profile emission."
+    },
+    {
+      "name": "LLVM \u2014 Source-based Code Coverage",
+      "url": "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+      "used_for": "llvm-profdata merge and llvm-cov report/export pipeline."
+    },
+    {
+      "name": "Buck2 \u2014 Commands",
+      "url": "https://buck2.build/docs/users/commands/",
+      "used_for": "Buck2 target-based build/test evidence and Build ID capture."
+    }
+  ],
+  "claim_boundary": {
+    "note": "Contract/target-shape evidence only. This does not generate coverage reports, run live coverage, enforce budgets, post statuses, mutate branch protection, prove live cloud-ci/oya-ci required-context execution, prove P0.0 green, prove Phase-0 completion, prove production readiness, or prove hyperscaler-grade readiness.",
+    "coverage_runner_contract_proven": true,
+    "coverage_report_generated": false,
+    "coverage_budget_enforced": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "files_changed": [
+    "specs/rust-llvm-coverage-runner-contract.json",
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
+    "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+    "BUCK",
+    "docs/standards/testing.md",
+    "specs/buck2-authority-policy.json",
+    "evidence/multispectrum/platform-readiness-p0-0-rust-llvm-coverage-runner-contract-1780472402.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "implementation_summary": [
+    "Added specs/rust-llvm-coverage-runner-contract.json to record the Buck2-native LLVM coverage runner target shape: rustc -C instrument-coverage, LLVM_PROFILE_FILE, %m-%p .profraw sharding, llvm-profdata merge -sparse, llvm-cov text/html/json export, Build ID/report/delta/generated-exclusion evidence fields, and Tarpaulin non-authority.",
+    "Added scripts/ci/assert-rust-llvm-coverage-runner-contract.py and shell RED/GREEN regressions to fail closed on missing instrumentation, missing profile env/collision guard, missing llvm-profdata/llvm-cov, Tarpaulin canonicalization, and coverage report false claims.",
+    "Added //:rust-llvm-coverage-runner-contract-check and wired the spec/checker/test into specs/buck2-authority-policy.json and docs/standards/testing.md."
+  ],
+  "known_gaps": [
+    "This slice proves a coverage runner contract/target shape only; it does not generate a coverage report.",
+    "No live cloud-ci/oya-ci required context ran this contract on candidate SHA.",
+    "Coverage budgets are not enforced until a real coverage runner lane emits reports under trusted Buck2/cloud-ci authority."
+  ],
+  "verification": [
+    {
+      "command": "missing checker/target RED probe",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:35:11Z",
+      "evidence": "Before implementation, scripts/ci/assert-rust-llvm-coverage-runner-contract.py was missing with rc=2 and //:rust-llvm-coverage-runner-contract-check was unknown with Buck2 rc=3; Build ID ec8d09a1-ef6e-4458-afc1-5439cfc540d3; logs in /tmp/p0-0-rust-llvm-coverage-contract-red-1780472110."
+    },
+    {
+      "command": "green coverage contract verification bundle",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:39:06Z",
+      "evidence": "py_compile, checker JSON, shell regression, rust testing-standard checker, Buck2 authority policy, buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-testing-standard-check //:buck2-authority-policy-check, and git diff --check all passed; Buck2 Build ID a56c0391-19b5-4468-ab2b-f3943a8627f5; logs in /tmp/p0-0-rust-llvm-coverage-contract-green-1780472312."
+    },
+    {
+      "command": "post-evidence verification bundle",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:40:35Z",
+      "evidence": "JSON/audit parse, py_compile, coverage contract checker, shell RED/GREEN regression, rust testing-standard checker, Buck2 authority policy, buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-testing-standard-check //:buck2-authority-policy-check, evidence-secret-scan, and git diff --check all passed; Buck2 Build ID 17ff95bf-9046-4c40-bde4-011eb58ddbdf; logs in /tmp/p0-0-rust-llvm-coverage-contract-postevidence-1780472435."
+    },
+    {
+      "command": "architect review of Rust LLVM coverage runner contract",
+      "status": "passed",
+      "revalidated_at": "2026-06-03T07:44:09Z",
+      "evidence": "Architect Kant (019e8c6e-b1bf-7843-8492-f6869c0a707a) returned APPROVE with no required fixes; review confirmed local/static contract scope, modern Rust/Buck2 coverage runner shape, fail-closed tests, Buck2/policy wiring, and non-claiming evidence/audit trail."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Small spec/checker/test target; no new dependency and no new oya CLI surface."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Coverage target shape requires Buck2 ownership, Build ID evidence, profile sharding, report paths, changed-file delta, and generated-code exclusions."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "RED mutations cover missing instrumentation, profile collision guard loss, tool loss, Tarpaulin boundary loss, and false coverage-report claims."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Contract records the runner shape before forcing teams to adopt a live coverage lane."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Checker is deterministic Python and target is reachable through Buck2."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected Tarpaulin and ad-hoc local reports as merge authority; rejected claiming a report before one is generated."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets, branch protection mutation, or tenant data touched."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Contract target is wired into the existing Buck2 authority policy chain."
+      ]
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No new oya CLI surface; cloud-ci/oya-ci oya-ci-required remains destination authority; contract output is local/static evidence only."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "Automatable coverage-runner shape is mapped to a Buck2 target and policy anchors."
+      ]
+    },
+    "A2_documentation_structure": {
+      "considered": true,
+      "findings": [
+        "Machine-readable spec plus existing testing standard pointer avoids root doc sprawl."
+      ]
+    }
+  }
+}

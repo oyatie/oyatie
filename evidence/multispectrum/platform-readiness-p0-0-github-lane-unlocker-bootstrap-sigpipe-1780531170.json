@@ -1,0 +1,73 @@
+{
+  "change_class_id": "CC-6",
+  "change_id": "platform-readiness-p0-0-github-lane-unlocker-bootstrap-sigpipe-1780531170",
+  "checks": [
+    {
+      "command": "bash -n scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+      "evidence": "bootstrap script parsed successfully",
+      "name": "bootstrap_shell_syntax",
+      "verdict": "PASS"
+    },
+    {
+      "command": "set -o pipefail; rustc -vV | awk '/^host: / { host = $2 } END { print host }'",
+      "evidence": "host extraction no longer exits through SIGPIPE under pipefail",
+      "name": "pipefail_host_detection_smoke",
+      "verdict": "PASS"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "evidence": "failures=[]; temporary_required_context=github-lane-unlocker-required; native_cutover_target_context=oya-ci-required; p0_0_green=false; phase0_complete=false",
+      "name": "github_lane_unlocker_contract",
+      "verdict": "PASS"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "command_scan_files=241; command_scan_globs=2; status_context_scan_files=9; authority_context=oya-ci-required; p0_0_green=false; phase0_complete=false",
+      "name": "buck2_authority_policy",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "evidence": "BUILD SUCCEEDED; Build ID 9fbeca6e-0f33-4fcf-96fb-6615702d3316",
+      "name": "buck2_lane_unlocker_and_authority_targets",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check --show-output",
+      "evidence": "BUILD SUCCEEDED; Build ID cf5de78f-54bc-434f-be0e-2270f5dfe5f5",
+      "name": "rust_llvm_coverage_targets",
+      "verdict": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "no whitespace errors",
+      "name": "diff_hygiene",
+      "verdict": "PASS"
+    }
+  ],
+  "claim_boundary": {
+    "github_actions_is_permanent_ci_cd": false,
+    "github_is_permanent": false,
+    "live_branch_protection_mutated": false,
+    "live_kubernetes_mutated": false,
+    "local_static_evidence_only": true,
+    "native_ci_authority_proven": false,
+    "native_cutover_target_context": "oya-ci-required",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "temporary_required_context": "github-lane-unlocker-required"
+  },
+  "live_ci_diagnostic": {
+    "failed_commit_before_fix": "5b21559a37502fed03a784ad4d6bfc4d7921a287",
+    "failed_run_id_before_fix": 26920713623,
+    "failed_step": "Bootstrap Rust and Buck2 toolchains",
+    "fix": "remove early-exit awk pipelines in the bootstrap script; consume pipeline input through END blocks before returning extracted fields",
+    "pull_request": 455,
+    "repo": "jason931225/oyatie",
+    "root_cause": "bash pipefail converted an early-exiting awk pipeline over rustc -vV into SIGPIPE exit 141 after the Rust toolchain installed successfully"
+  },
+  "schema_version": "multispectrum-review.v2.4.0-local-static-plus-live-ci-diagnostic",
+  "scope": "GitHub Actions lane-unlocker bootstrap SIGPIPE fix after live run 26920713623",
+  "timestamp": "2026-06-03T19:59:30-0400",
+  "verdict": "LOCAL_STATIC_PASS_PUSH_REQUIRED_FOR_LIVE_RERUN_NOT_NATIVE_AUTHORITY"
+}

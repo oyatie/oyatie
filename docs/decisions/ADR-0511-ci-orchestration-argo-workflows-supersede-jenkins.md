@@ -123,3 +123,22 @@ Argo Workflows posts per-context and the single trustless-gateway signed status 
 - ADR-0510 — SCM bespoke-destination / cutover-trigger (sibling; same transitory→destination pattern; status sink moves at SCM cutover).
 - Argo Workflows: CNCF Graduated, Apache-2.0, k8s-native DAG CI; Argo Events (webhook triggers); self-hostable on Talos — passes the hyperscaler-lens.
 - Founder decision 2026-05-29 + scm-cicd-overhaul-campaign reconciliation_note (session_context above).
+
+## 2026-06-02 Buck2 authority amendment
+
+Founder directive on 2026-06-02 supersedes any earlier wording in this ADR that
+made Cargo, Cargo-named status contexts, `oya verify`, or `oya gate` active
+scripts/CI/CD/build authority. Active scripts, CI, CD, and build/test lanes use
+Buck2. The protected-branch target context is `oya-ci-required` from trusted
+cloud-ci/oya-ci controller or bridge state, and `oya verify` / `oya gate` may be
+local or bridge governance evidence only.
+
+Cargo is allowed only for the documented production release image/binary
+optimization exception: release profile or custom release profile, target triple,
+binary-size/codegen/allocator evidence, commit SHA, and an explicit non-claim label
+that the run is not CI merge authority. Cargo metadata/vendor remains permitted only
+for Buck2/Reindeer graph generation and cannot satisfy build/test/merge authority.
+
+This amendment is enforced locally by `specs/buck2-authority-policy.json` and the
+Buck2 target `//:buck2-authority-policy-check`; live Phase-0 exit still requires the
+cloud-ci/oya-ci `oya-ci-required` required context and evidence packet.

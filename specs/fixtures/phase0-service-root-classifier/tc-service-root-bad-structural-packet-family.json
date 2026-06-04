@@ -1,0 +1,170 @@
+{
+  "fixture_id": "TC-SERVICE-ROOT-BAD-structural-packet-family",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "structural_packet_missing_required_family"
+  ],
+  "candidate_paths": [
+    {
+      "path": "oya/accounting",
+      "kind": "service",
+      "service_id": "accounting",
+      "crate_name": "accounting"
+    }
+  ],
+  "inventory_entry_paths": [
+    "oya/accounting"
+  ],
+  "structural_packets": [
+    {
+      "packet_id": "P0.6a-GC-root-inventory-seed",
+      "sub_item": "Garbage-collect service-root ambiguity by publishing closed-world inventory roots before structural migration.",
+      "owner_lane": "platform-architecture",
+      "source_paths": [
+        "specs/service-inventory.json",
+        "specs/phase0-automation-matrix.json"
+      ],
+      "target_paths": [
+        "specs/service-inventory.json"
+      ],
+      "structural_path_set": [
+        "oya/",
+        "cloud/",
+        "libs/",
+        "packs/",
+        "regional-packs/"
+      ],
+      "depends_on": [
+        "AC-0.1-service-inventory"
+      ],
+      "max_scope": "direct-child root classification seed; no nested crate migration in this packet",
+      "acceptance": "//:service-root-classifier-check passes with full_service_inventory_coverage_proven=false and p0_0_green=false.",
+      "verification_commands": [
+        "buck2 test //:service-root-classifier-check"
+      ],
+      "rollback_inverse": "Remove seed inventory entries added by this packet and re-run //:service-root-classifier-check to verify RED before reverting.",
+      "evidence_bundle": "evidence/multispectrum/platform-readiness-p0-0-service-root-classifier-<timestamp>.json",
+      "trunk_checkpoint": "dev head plus trusted oya-ci-required after live producer cutover; not satisfied by this local/static packet"
+    },
+    {
+      "packet_id": "P0.6b-SPLIT-oya-seed",
+      "sub_item": "Record oya/ as canonical service target tree for future split shards.",
+      "owner_lane": "platform-architecture",
+      "source_paths": [
+        "oya/",
+        "specs/service-inventory.json"
+      ],
+      "target_paths": [
+        "oya/"
+      ],
+      "structural_path_set": [
+        "oya/*"
+      ],
+      "depends_on": [
+        "P0.6a-GC-root-inventory-seed"
+      ],
+      "max_scope": "classification only; no service directory movement",
+      "acceptance": "Every direct child under oya/ has a service-inventory entry with target_tree=oya and builds_green=false unless live evidence is attached later.",
+      "verification_commands": [
+        "buck2 test //:service-root-classifier-check"
+      ],
+      "rollback_inverse": "Restore prior oya/ classification data and rerun the classifier.",
+      "evidence_bundle": "specs/service-inventory.json",
+      "trunk_checkpoint": "local seed checkpoint; live protected-branch authority remains pending"
+    },
+    {
+      "packet_id": "P0.6b-SPLIT-cloud-seed",
+      "sub_item": "Record cloud/ as canonical cloud-service target tree for future split shards.",
+      "owner_lane": "platform-architecture",
+      "source_paths": [
+        "cloud/",
+        "specs/service-inventory.json"
+      ],
+      "target_paths": [
+        "cloud/"
+      ],
+      "structural_path_set": [
+        "cloud/*"
+      ],
+      "depends_on": [
+        "P0.6a-GC-root-inventory-seed"
+      ],
+      "max_scope": "classification only; no service directory movement",
+      "acceptance": "Every direct child under cloud/ has a service-inventory entry with target_tree=cloud and builds_green=false unless live evidence is attached later.",
+      "verification_commands": [
+        "buck2 test //:service-root-classifier-check"
+      ],
+      "rollback_inverse": "Restore prior cloud/ classification data and rerun the classifier.",
+      "evidence_bundle": "specs/service-inventory.json",
+      "trunk_checkpoint": "local seed checkpoint; live protected-branch authority remains pending"
+    },
+    {
+      "packet_id": "P0.6b-SPLIT-libs-seed",
+      "sub_item": "Record libs/ as canonical shared library target tree and keep pack roots separate from service claims.",
+      "owner_lane": "platform-architecture + platform-toolchain",
+      "source_paths": [
+        "libs/",
+        "packs/",
+        "regional-packs/",
+        "specs/service-inventory.json"
+      ],
+      "target_paths": [
+        "libs/"
+      ],
+      "structural_path_set": [
+        "libs/*",
+        "packs/*",
+        "regional-packs/*"
+      ],
+      "depends_on": [
+        "P0.6a-GC-root-inventory-seed"
+      ],
+      "max_scope": "classification only; no pack or library movement",
+      "acceptance": "libs/ entries use target_tree=libs; packs and regional-packs remain authorized shared pack roots, not service roots.",
+      "verification_commands": [
+        "buck2 test //:service-root-classifier-check"
+      ],
+      "rollback_inverse": "Restore prior libs/pack classification data and rerun the classifier.",
+      "evidence_bundle": "specs/service-inventory.json",
+      "trunk_checkpoint": "local seed checkpoint; live protected-branch authority remains pending"
+    },
+    {
+      "packet_id": "P0.6c-ADR0131-flat-layout-seed",
+      "sub_item": "Encode flat colocated layout acceptance before moving service directories.",
+      "owner_lane": "platform-architecture",
+      "source_paths": [
+        "specs/per-microservice-flat-layout.json",
+        "specs/service-inventory.json"
+      ],
+      "target_paths": [
+        "oya/",
+        "cloud/"
+      ],
+      "structural_path_set": [
+        "oya/*/{ci,iac,contracts,manifest}",
+        "cloud/*/{ci,iac,contracts,manifest}"
+      ],
+      "depends_on": [
+        "P0.6b-SPLIT-oya-seed",
+        "P0.6b-SPLIT-cloud-seed"
+      ],
+      "max_scope": "fixture contract only; no claim that every service is migrated",
+      "acceptance": "Sprawl fixtures under services/, platforms/, or retired microservices/ produce RED in //:service-root-classifier-check.",
+      "verification_commands": [
+        "buck2 test //:service-root-classifier-check"
+      ],
+      "rollback_inverse": "Remove flat-layout seed acceptance and verify the sprawl fixture fails before reverting.",
+      "evidence_bundle": "specs/fixtures/phase0-service-root-classifier/",
+      "trunk_checkpoint": "local seed checkpoint; live protected-branch authority remains pending"
+    }
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

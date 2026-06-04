@@ -1,0 +1,38 @@
+{
+  "fixture_id": "TC-0.2-GOOD-status-enum-and-spec-manifest-aligned",
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "status_fields": {
+    "decision_status": "accepted",
+    "maturity_status": "local_static_seed",
+    "constraint_status": "blocking",
+    "prose_note": "real-estate is a domain string, not a maturity token"
+  },
+  "spec_manifest_pairs": [
+    {
+      "surface_id": "real-estate",
+      "spec_path": "specs/microservices/real-estate.json",
+      "code_path": "oya/real-estate",
+      "manifest_path": "specs/microservices/real-estate.json",
+      "spec_status_fields": {
+        "decision_status": "accepted",
+        "maturity_status": "local_static_seed",
+        "constraint_status": "blocking"
+      },
+      "manifest_status_fields": {
+        "decision_status": "accepted",
+        "maturity_status": "local_static_seed",
+        "constraint_status": "blocking"
+      }
+    }
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "TC-0.4-GOOD-allowlisted-bootstrap-shell-edit",
+  "description": "An edit to the bootstrap shell allowlist remains allowed. This is fixture evidence only, not live PR authority.",
+  "expected_verdict": "PASS",
+  "changed_files": [
+    {
+      "path": "tools/hook-bootstrap/install.sh",
+      "status": "M"
+    }
+  ],
+  "expected_failures": [],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "fixture_id": "TC-0.5-GOOD-d1-seam-contracts-with-optional-token-presence",
+  "expected_verdict": "GREEN",
+  "description": "A2a/A2b D1 seam contracts are proto3, lint-shaped, and mutation-result fixtures carry the proto-optional consistency_token required by the Phase-0 gate.",
+  "contract_paths": {
+    "a2a_mutation": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
+    "a2b_workflow_ai_step": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto"
+  },
+  "mutation_result_fixture": {
+    "entity_id": "ent_payroll_close_001",
+    "entity_type": "PayrollClose",
+    "mutation_kind": "MUTATION_KIND_MUTATED",
+    "consistency_token": "d1ctok_fixture_good_read_your_writes",
+    "audit_link": {
+      "audit_event_id": "evt_fixture_good",
+      "audit_chain_ref": "evidence/audit-chain.jsonl#EVT-D1-SEAM-GOOD"
+    },
+    "topology": {
+      "execution_locality": "CONFORMANCE_GATED_IN_TXN_DEFAULT",
+      "outbox_offset": "CONFORMANCE_GATED_NOT_FROZEN",
+      "saga_correlation_id": "CONFORMANCE_GATED_NOT_FROZEN",
+      "conformance_gate": "AC-0.10b-read-your-writes-xfail"
+    },
+    "d1_conformance_reference": ".omx/plans/test-spec-phase0.md#TC-0.10b.1"
+  },
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

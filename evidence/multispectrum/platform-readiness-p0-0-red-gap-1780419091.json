@@ -1,0 +1,181 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "git_sha": "1fcc0f55f54c7f1b9f9e14e89aeb1ecc65b16842",
+  "freshness_unix": 1780419091,
+  "timestamp_iso": "2026-06-02T16:51:31Z",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "scope": [
+    "Cargo.toml",
+    "Cargo.lock",
+    ".github/branch-protection.yaml",
+    "infra/branch-protection/dev.json",
+    "oya/ci-controller/crates/oya-ci-controller-app/BUCK",
+    "oya/ci-controller/crates/oya-ci-controller-app/src/lib.rs",
+    "oya/ci-controller/crates/oya-ci-controller-k8s-adapter/BUCK",
+    "oya/ci-controller/crates/oya-ci-controller-k8s-adapter/src/lib.rs",
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-ci-enforcement-result-schema.json",
+    "specs/toolchain-tenant-isolation-fixtures.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/bespoke-cloud-toolchain-services.json",
+    "specs/hyperscaler-production-readiness-claim-contract.json",
+    "specs/fixtures/phase0-ci-enforcement-baseline/**",
+    "specs/fixtures/phase0-exit-gate/**",
+    "specs/fixtures/phase0-automation-ratchet/**",
+    "specs/fixtures/phase0-claim-ceiling/**",
+    "evidence/multispectrum/platform-readiness-p0-0-red-gap-1780419091.json"
+  ],
+  "summary": "Executable P0.0 RED gap packet for cloud-ci/oya-ci required-context authority, exact candidate-SHA gate identity, tenant-pipeline isolation fixtures, automation-ratchet fixtures, claim-ceiling fixtures, root-hub discoverability, and the root rustls workspace metadata repair required for local bridge validation.",
+  "claim_boundary": "This changeset is a RED gap packet and target/non-claim evidence only. It does not claim P0.0 green, Phase-0 exit, live protected-branch enforcement, trusted producer deployment, or required context posting on a real candidate SHA.",
+  "validation": {
+    "passed": [
+      "JSON syntax for 32 scoped spec/fixture/root-hub files",
+      "root-hub pointer presence for phase0_ci_enforcement_baseline, phase0_ci_enforcement_result_schema, toolchain_tenant_isolation_fixtures, phase0_automation_matrix, phase0_claim_evidence_map, bespoke_cloud_toolchain_services, and hyperscaler_production_readiness_claim_contract",
+      "git diff --check for implementation diff",
+      "cargo metadata --no-deps metadata-only workspace parse",
+      "cargo metadata --locked --no-deps workspace parse after Cargo.lock refresh",
+      "static authority scan for required context, candidate-byte boundaries, full-SHA gate identity, and no oya CLI gate-command authority"
+    ],
+    "expected_red": [
+      "scripts/branch-protection-apply.sh --check exits 1 and reports live drift: missing oya-ci-required; extra cargo-fmt,cargo-check,cargo-clippy,cargo-nextest,oya-pr-review"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests //oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller-app-tests //oya/ci-controller/crates/oya-ci-controller-k8s-adapter:oya-ci-controller-k8s-adapter-tests (Build ID 3558a30c-2f01-4d27-a555-4cadbd216cf8) stopped before tests by current dev local macOS linker/toolchain failure: aarch64-unknown-linux-gnu rustc build-script link passed GNU ld flags to Apple ld"
+    ],
+    "prior_lane_evidence": [
+      "Earlier non-PR feature lane evidence reported buck2 kernel 29/29, k8s-adapter 2/2, app 4/4 passed; retained only as diagnostic context, not as PR-branch final authority."
+    ],
+    "live_branch_protection": "2026-06-02T16:49Z read shows required contexts cargo-fmt,cargo-check,cargo-clippy,cargo-nextest,oya-pr-review; no cloud-ci-required/oya-ci-required; strict=false",
+    "pr_status_before_refresh": "PR #455 open/mergeable at 2026-06-02T16:49Z; remote head still a6cecd89 before force-pushing refreshed commits; statusCheckRollup length 0."
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Kept the PR branch dev-based and split evidence into a second commit so this git_sha points at the implementation commit.",
+        "Added root-hub pointers rather than requiring backlog loading for P0.0 executable artifacts.",
+        "Repaired gate job identity by carrying the full candidate SHA and base36-falling back for large PR numbers without truncating commit identity."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Separated controller-owned required context from candidate bytes; the gate command snapshots trusted target inventories before candidate checkout and verifies the fetched PR ref equals the exact candidate SHA.",
+        "Aligned with Prow/Tide-style required presubmit authority as target shape while preserving live RED drift until actual branch protection and producer deployment change.",
+        "Live branch protection drift remains RED and explicitly blocks P0.0 green."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "BAD fixtures cover missing/non-required target contexts, affected-only producers, oya CLI authority, candidate-mutable producer/gate deletion, override gaps, tenant cache sharing, automation-ratchet gaps, and ungrounded claim language.",
+        "Full-SHA job-name tests prevent sha8-prefix collision from being treated as idempotent create-conflict evidence."
+      ],
+      "failing_fixture_added": true,
+      "passing_fixture_id": "tc-0.0-good-cloud-ci-required-and-isolated",
+      "failing_fixture_id": "tc-0.0.1a-bad-candidate-deletes-trusted-target",
+      "diagnostic_asserted": "P0.0_RED_blocked_until_cloud_ci_required_context_is_live"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Structured result schema and fixture corpus make future gate/controller failures machine-readable.",
+        "Root-hub pointers expose P0.0 artifacts through the canonical index without loading the backlog.",
+        "scripts/branch-protection-apply.sh --check reaches intended drift validation instead of failing workspace manifest parsing."
+      ],
+      "new_contributor_minutes_estimate": 30
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "JSON syntax passed for 32 scoped spec/fixture/root-hub files.",
+        "git diff --check passed for implementation diff.",
+        "cargo metadata --no-deps and --locked --no-deps passed after adding root rustls workspace pin and refreshing Cargo.lock.",
+        "branch-protection --check failed only on expected live drift.",
+        "static authority scan passed for required context, token auth retention, exact/full SHA enforcement, no oya CLI/affected-only gate command, trusted inventories, and explicit RED boundary."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Selected a dev-based isolated PR lane rather than publishing the unrelated feature lane.",
+        "Rejected extending oya verify/gate as authority; rejected affected-only buck2 bridge as protected-branch status producer.",
+        "Rejected fetching an existing 409 Job to compensate for sha8 identity because full-SHA deterministic naming eliminates the collision class without extra API calls."
+      ],
+      "alternatives_named": [
+        "Publish existing feat/oya-ci-tide lane",
+        "Extend oya CLI",
+        "Keep affected-only bridge as required status",
+        "Fetch-on-409 identity reconciliation",
+        "Full-SHA deterministic Job identity"
+      ],
+      "selected_rationale": "The isolated branch directly targets dev, preserves the P0.0 non-authority boundary, and makes exact candidate identity local to the Job name and labels.",
+      "rejected_reasons": [
+        "Existing lane included unrelated commits.",
+        "oya CLI authority is forbidden.",
+        "Affected-only bridge cannot prove full required-context coverage.",
+        "Fetch-on-409 adds a moving Kubernetes API dependency when deterministic full-SHA names can prevent prefix collisions directly."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "Gate-run token auth from current dev is retained.",
+        "Clone token is limited to the trusted init container; candidate-running main container is tokenless.",
+        "No status-posting token is injected into the job that evaluates candidate bytes.",
+        "Head SHA input is 40-hex validated and normalized to lowercase before Job identity, labels, and shell comparison."
+      ],
+      "owasp_class_review": "configuration",
+      "severity_max": "medium",
+      "secrets_touched": true,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance claim is made; performance-related vocabulary is covered by claim-ceiling fixtures and map rows only as claim governance.",
+        "The gate command still snapshots full trusted build/test target inventories; affected-only diagnostics are not promoted to merge authority."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "RED packet names next live actions: sync required context, collect exact-SHA producer evidence, and run tenant-isolation fixtures under live required context.",
+        "Override/kill-switch fixtures require TTL, reviewer ack, owner, audit event, blast-radius statement, and revert/fix follow-up.",
+        "Kubernetes job names remain within the RFC-1123 63-character label ceiling even for u64::MAX PR numbers."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Structured result schema records verdict, violations, evidence source, candidate SHA, producer metadata, and live branch-protection observation timestamp.",
+        "PR #455 inspection before force-push recorded live remote head, mergeability, and empty statusCheckRollup."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Claim ceiling map and fixtures prevent authority claims from advisory/local-only evidence and require target/non-claim labeling when live evidence is absent.",
+        "Root-hub purposes label target/non-claim or RED boundaries for new P0.0 artifacts where live evidence is absent."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered for this P0.0 RED gap packet."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No new oya CLI commands or authority were added.",
+        "Destination authority remains cloud-ci/oya-ci required context; checked-in branch-protection files are target records only until live protection is changed.",
+        "Anything automatable/enforceable introduced in this slice is mapped to controller/gate/schema/fixtures or explicit temporary human-judgment rows with retirement paths."
+      ]
+    }
+  }
+}

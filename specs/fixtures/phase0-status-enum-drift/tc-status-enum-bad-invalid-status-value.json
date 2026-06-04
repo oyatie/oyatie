@@ -1,0 +1,24 @@
+{
+  "fixture_id": "TC-0.2-BAD-invalid-status-value",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "invalid_status_enum_value",
+    "retired_real_token_live_field"
+  ],
+  "status_fields": {
+    "decision_status": "accepted",
+    "maturity_status": "REAL",
+    "constraint_status": "blocking",
+    "prose_note": "The retired token REAL may be discussed only in prose."
+  },
+  "spec_manifest_pairs": [],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

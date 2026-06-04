@@ -1,0 +1,119 @@
+{
+  "_meta": {
+    "created_at": "2026-06-02T19:44:20Z",
+    "doc_class": "EvidencePacket",
+    "owner_team": "platform-governance + platform-toolchain",
+    "related_acceptance_criteria": [
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#AC-0.16",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.16",
+    "status": "local-static-evidence-not-green",
+    "version": "0.1.0"
+  },
+  "claim_boundary": {
+    "claim": "AC-0.16 automation matrix seed rows now fail closed when a declared required row id is omitted.",
+    "not_claimed": [
+      "P0.0 green",
+      "Phase-0 complete",
+      "live branch-protected cloud-ci/oya-ci required context",
+      "exhaustive AC-0.16 row coverage",
+      "production readiness",
+      "security readiness",
+      "performance readiness"
+    ],
+    "authority": "local/static Buck2 and fixture evidence only; not protected-branch merge authority"
+  },
+  "rust_release_optimization_research_context": {
+    "direct_recommendation": "Use Buck2 for CI/CD/scripts/build/test authority. Cargo remains allowed only for production release image/binary optimization evidence with measured binary-size, codegen, PGO, linker, or allocator data and a Buck2 handoff plan for selected optimizations.",
+    "official_sources": [
+      {
+        "name": "Cargo Book \u2014 Profiles",
+        "url": "https://doc.rust-lang.org/cargo/reference/profiles.html",
+        "establishes": "release/custom profile knobs for optimized artifacts: opt-level, LTO, panic, strip, incremental, codegen-units"
+      },
+      {
+        "name": "rustc Book \u2014 Codegen Options",
+        "url": "https://doc.rust-lang.org/rustc/codegen-options/",
+        "establishes": "opt-level size/performance modes, strip caveats, rpath/defaults, target-cpu/feature controls"
+      },
+      {
+        "name": "rustc Book \u2014 Profile-guided Optimization",
+        "url": "https://doc.rust-lang.org/nightly/rustc/profile-guided-optimization.html",
+        "establishes": "instrument, train, merge profile, and rebuild workflow for PGO measurement"
+      },
+      {
+        "name": "Rust std::alloc / GlobalAlloc",
+        "url": "https://doc.rust-lang.org/stable/std/alloc/index.html",
+        "establishes": "global allocator selection via #[global_allocator] singleton"
+      },
+      {
+        "name": "Rust GlobalAlloc contract",
+        "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html",
+        "establishes": "allocator implementations must avoid unwinding/re-entrance hazards; allocation-count measurements are not semantic invariants"
+      }
+    ],
+    "repo_local_handoff": [
+      "docs/standards/rust-release-optimization.md",
+      "specs/buck2-authority-policy.json",
+      "//:buck2-authority-policy-check"
+    ]
+  },
+  "changed_artifacts": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/phase0-automation-matrix.json",
+    "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-required-row.json"
+  ],
+  "enforcement_added": [
+    "Phase0AutomationRatchetViolation::MissingRequiredRowId",
+    "evaluate_phase0_automation_rows_with_required_ids",
+    "required_seed_row_ids in specs/phase0-automation-matrix.json",
+    "RED fixture specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-required-row.json"
+  ],
+  "validations": [
+    {
+      "command": "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/phase0-automation-matrix.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 -m json.tool specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-required-row.json >/dev/null",
+      "verdict": "PASS"
+    },
+    {
+      "command": "python3 static required-row assertion script",
+      "verdict": "PASS",
+      "evidence": "validated lib anchors, required_seed_row_ids exact set, fixture registration, red fixture omitted required row id"
+    },
+    {
+      "command": "git diff --check",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "verdict": "PASS",
+      "target": "root//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "verdict": "PASS",
+      "evidence": "scanner returned verdict PASS with oya-ci-required authority boundary"
+    },
+    {
+      "command": "buck2 build //:buck2-authority-policy-check --show-output",
+      "verdict": "PASS",
+      "build_id": "589ff72f-88d2-41e9-9ce7-f028e3bd630e",
+      "note": "latest run after evidence packet creation"
+    },
+    {
+      "command": "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "verdict": "BLOCKED_LOCAL_TOOLCHAIN",
+      "build_id": "86c41bdb-ccc5-4b55-aa85-39bc40b6a5d8",
+      "reason": "macOS Apple ld rejected GNU/Linux linker flags (--as-needed, -Bstatic, --eh-frame-hdr, -z, --gc-sections) while linking third-party Rust build scripts; tests ran 0"
+    }
+  ]
+}

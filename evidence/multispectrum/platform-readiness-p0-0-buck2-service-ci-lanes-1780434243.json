@@ -1,0 +1,192 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_id": "platform-readiness-p0-0-buck2-service-ci-lanes",
+  "change_class_id": "CC-5",
+  "timestamp_iso": "2026-06-02T21:09:00Z",
+  "freshness_unix": 1780434540,
+  "git_sha": "2517ce84a87d7daf49b03ca543ef70e48be18eb5",
+  "claim_boundary": {
+    "claim": "Local/static Buck2 authority policy now scans active service Jenkinsfiles, Dockerfile runtime wrappers, client-manifest command surfaces, scripts, CI/CD/build docs, and ADR amendment anchors to prevent Cargo executable-lane regression before live cloud-ci/oya-ci cutover.",
+    "authority": "local-static-evidence-plus-buck2-target-only",
+    "not_claimed": [
+      "P0.0 green",
+      "Phase-0 complete",
+      "live cloud-ci/oya-ci required context",
+      "protected-branch enforcement",
+      "production readiness",
+      "security readiness",
+      "tenant-facing readiness"
+    ]
+  },
+  "related_acceptance_criteria": [
+    "AC-0.0",
+    "AC-0.12",
+    "AC-0.16",
+    "AC-0.17"
+  ],
+  "related_test_spec": [
+    "T0.0",
+    "T0.12",
+    "T0.16",
+    "T0.17"
+  ],
+  "scope": [
+    "BUCK",
+    "scripts/ci/enforce-buck2-authority.py",
+    "specs/buck2-authority-policy.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "tools/hooks/no-cargo-enforcer.sh",
+    "docs/standards/rust-release-optimization.md",
+    "docs/standards/testing.md",
+    "docs/standards/ci-lanes.md",
+    "docs/standards/release-management.md",
+    "docs/standards/multi-agent-tool-map.md",
+    "docs/security.md",
+    "cloud/*/ci/Jenkinsfile",
+    "oya/*/ci/Jenkinsfile",
+    "cloud/cloud-intelligence/Dockerfile",
+    "oya/ci-webhook-gateway/Dockerfile",
+    "oya/governance/iac/build/Dockerfile.distroless-rust",
+    "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json",
+    "oya/ci-webhook-gateway/BUCK",
+    "oya/application/crates/oya-application-shell-frontend-prototype/BUCK"
+  ],
+  "enforcement_added": [
+    "command_scan_globs for cloud/*/ci/Jenkinsfile and oya/*/ci/Jenkinsfile",
+    "required_glob_anchors requiring Buck2 policy/build/test bridge evidence and non-authority claim boundary in every service Jenkinsfile",
+    "Dockerfile/client-manifest active command-surface scanning",
+    "forbidden Cargo subcommands expanded to chef/leptos/llvm-cov/fuzz/mutants/pgo in policy and hook",
+    "Buck2 target src declarations for 125 explicit files plus service Jenkinsfile inputs",
+    "Buck2 export_file targets for package-local Dockerfile/client-manifest policy inputs"
+  ],
+  "external_best_practice_research": {
+    "date_context": "2026-06-02",
+    "official_sources": [
+      {
+        "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
+        "used_for": "release/custom profile knobs, LTO/codegen-units/panic/strip defaults, and guidance to measure opt-level choices"
+      },
+      {
+        "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
+        "used_for": "rustc codegen option semantics including opt-level, codegen-units, panic, profile-generate/profile-use"
+      },
+      {
+        "url": "https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html",
+        "used_for": "PGO instrumentation/merge/profile-use workflow boundary"
+      },
+      {
+        "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html",
+        "used_for": "allocator safety contract and allocation-measurement caveats"
+      },
+      {
+        "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
+        "used_for": "single global allocator attribute in the crate graph"
+      },
+      {
+        "url": "https://buck2.build/docs/users/commands/build/",
+        "used_for": "Buck2 build authority command reference"
+      }
+    ],
+    "recommendation": "Cargo remains evidence-only for measured production release image/binary optimization experiments; active CI/CD/scripts/build lanes and selected optimization handoff must be encoded as Buck2 targets/toolchains before becoming standard authority."
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Deleted legacy per-service Cargo CI bodies and replaced them with one Buck2 bridge pattern; no oya CLI surface added."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Preserves Prow-shaped target authority boundary: Jenkins bridge evidence is branch_protection_authority=false until trusted cloud-ci/oya-ci required context is live."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Policy globs and required anchors make service Jenkins Cargo regression and missing non-authority labels detectable. Dockerfile/client-manifest paths are scanned to prevent backdoor Cargo build lanes."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Jenkinsfiles now expose the same Buck2 authority policy, Buck2 policy target, affected build/test gate, and archived evidence JSON layout across services."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Fresh policy scanner, Buck2 target, JSON validation, broad active-command-surface scan, uquery target existence, diff hygiene, and attempted kernel test were run."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected expanding the Cargo exception for cargo-chef/cargo-leptos Docker/client flows; those are now Buck2 artifact handoffs or Buck2 commands."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets or tenant data touched; image wrappers preserve distroless nonroot runtime direction."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No production performance claim is made; release optimization remains measurement-only with Rust official-doc evidence requirements."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Each service Jenkinsfile emits buck2-authority-bridge.json and archives it; evidence explicitly states no branch-protection authority."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence records scanner counts and Buck2 Build IDs."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Supports AC-0.16 automation ratchet and AC-0.17 claim ceiling by mapping automatable Cargo-regression controls into policy, Buck2 target, hook, and fixtures/evidence."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI command added. oya verify/gate remain out of protected-branch authority. P0.0 remains RED until live oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev."
+      ]
+    }
+  },
+  "validation": {
+    "passed": [
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS (command_scan_files=125, command_scan_globs=2, authority_context=oya-ci-required)",
+      "buck2 build //:buck2-authority-policy-check --show-output -> PASS (Build ID 520b7841-b6cf-4068-a6e9-db28eea6c840)",
+      "JSON validation for specs/buck2-authority-policy.json, specs/phase0-automation-matrix.json, specs/phase0-automation-coverage-registry.json, oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json, and this evidence artifact -> PASS",
+      "selected active command surface scan -> PASS (98 file/path matches across service Jenkinsfiles, Dockerfile wrappers, client manifest, docs, hook, and scanner; forbidden_cargo_executable_hits=0)",
+      "buck2 uquery cloud-intelligence OCI, ci-webhook gateway OCI, and application-shell frontend bin targets -> PASS (Build ID 533a501f-aae1-43e0-96f8-48b1fd275c6d)",
+      "git diff --check -> PASS"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> local Apple ld rejected GNU/Linux flags while linking third-party quote build script; tests ran 0 (Build ID 58093131-8cac-487e-ac94-8bee5ae4fab0)"
+    ],
+    "expected_red_or_target_only": [
+      "No live oya-ci-required protected context is claimed.",
+      "No Phase-0 exit authority is claimed.",
+      "Jenkins service lane evidence is bridge/local until cloud-ci/oya-ci becomes the trusted required producer."
+    ]
+  }
+}

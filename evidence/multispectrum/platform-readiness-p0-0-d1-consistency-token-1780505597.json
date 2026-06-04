@@ -1,0 +1,67 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-10-D1-CONSISTENCY-TOKEN-1780505597",
+  "created_at": "2026-06-03T12:53:17-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "git_sha_before_commit": "9836b472b444112abbfe28cfc3f8964d28b9ad61",
+  "acceptance_criterion": "AC-0.10-d1-consistency-token",
+  "summary": "Local/static AC-0.10 evidence maps the D1 consistency-token requirement to the existing Rust/Buck2 D1 seam contract gate. The new Rust self-test fails closed when the automation matrix/coverage registry leave AC-0.10 on a placeholder target, and GREEN proves AC-0.10 now points to //:d1-seam-contracts-check without claiming live D1 conformance or Phase-0 readiness.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "d1_seam_contracts_measured": true,
+    "mutation_result_consistency_token_optional": true,
+    "phase0_consistency_token_presence_required": true,
+    "live_d1_conformance_executed": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-d1-consistency-token-red-1780505367",
+    "rust_test_exit": 101,
+    "failure": "automation_matrix_maps_ac010_to_d1_seam_gate failed because AC-0.10 target_gate_or_controller was a placeholder, not //:d1-seam-contracts-check"
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-d1-consistency-token-green4-1780505541",
+    "rust_fixture_tests": "7 passed; 0 failed",
+    "d1_seam_contracts_checker": "PASS contract_count=2 fixture_count=3",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=232 status_context_scan_files=9",
+    "json_parse": "PASS",
+    "rustfmt_check": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "ad382446-c706-4f89-9e5a-818135efec66",
+    "buck2_targets": [
+      "//:d1-seam-contracts-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check"
+    ],
+    "rust_warning_policy": "rustc --edition=2021 -D warnings for D1 seam Rust test/checker harnesses"
+  },
+  "files_updated": [
+    "BUCK",
+    "scripts/tests/d1_seam_contracts_check.rs",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/buck2-authority-policy.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "rust_modern_standard_recorded": {
+    "coverage_surface": "Buck2-native LLVM source-based coverage remains the monorepo coverage direction; Tarpaulin is not canonical coverage evidence.",
+    "mutation_surface": "Dual Cargo.toml + Buck2/Reindeer remains the advisory local Cargo mutation-testing path while Buck2/cloud-ci evidence is authoritative for merge and Phase-0 claims.",
+    "hyperscaler_orientation": "The AC-0.10 mapping is deterministic, target-addressable through Buck2, proto3 optional-field aware, fail-closed on placeholder automation rows, and explicit about non-authority boundaries."
+  },
+  "official_references": [
+    "https://protobuf.dev/programming-guides/proto3/",
+    "https://protobuf.dev/programming-guides/field_presence/",
+    "https://buck2.build/docs/users/commands/build/",
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://github.com/facebookincubator/reindeer"
+  ],
+  "updated_at": "2026-06-03T12:53:17-04:00"
+}

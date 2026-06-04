@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/status-enum-registry.seed.schema.json",
+  "title": "Phase0StatusEnumRegistrySeed",
+  "description": "AC-0.2 local/static 3-axis status enum registry and fixture contract. This defines the allowed decision/maturity/constraint vocabulary and status-drift probes without claiming full manifest/PRD conformance or live required-context authority.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "P0-STATUS-ENUM-REGISTRY-SEED",
+    "version": "0.1.0",
+    "status": "LocalStaticSeedEvidence",
+    "owner_team": "platform-architecture + platform-governance",
+    "created_at": "2026-06-03T00:00:00Z",
+    "source_artifacts": [
+      ".omx/plans/prd-platform-readiness.md#AC-0.2",
+      ".omx/plans/test-spec-phase0.md#T0.2"
+    ]
+  },
+  "claim_boundary": {
+    "status_enum_registry_published": true,
+    "status_drift_fixture_contract_measured": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "full_manifest_prd_conformance_proven": false,
+    "status_drift_live_gate_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "axes": {
+    "decision": {
+      "field": "decision_status",
+      "allowed_values": [
+        "target",
+        "proposed",
+        "accepted",
+        "superseded",
+        "retired",
+        "blocked",
+        "non_claim"
+      ],
+      "purpose": "Decision lifecycle, not implementation readiness."
+    },
+    "maturity": {
+      "field": "maturity_status",
+      "allowed_values": [
+        "draft",
+        "local_static_seed",
+        "live_read_pending",
+        "live_required_context_pending",
+        "validated_by_required_context",
+        "deprecated"
+      ],
+      "purpose": "Evidence maturity. The retired REAL token is intentionally absent."
+    },
+    "constraint": {
+      "field": "constraint_status",
+      "allowed_values": [
+        "blocking",
+        "advisory",
+        "human_judgment",
+        "retirement_pending",
+        "not_applicable"
+      ],
+      "purpose": "Whether a surface blocks, advises, or awaits retirement/human judgment."
+    }
+  },
+  "field_contract": {
+    "required_axis_fields": [
+      "decision_status",
+      "maturity_status",
+      "constraint_status"
+    ],
+    "retired_live_status_tokens": [
+      "REAL"
+    ],
+    "prose_token_policy": "Prose may mention retired tokens only to describe retirement/provenance; schema-named live status or maturity fields must not use them.",
+    "full_manifest_prd_conformance_proven": false
+  },
+  "seed_surface_registry": [
+    {
+      "surface_id": "microservice-real-estate-seed",
+      "spec_path": "specs/microservices/real-estate.json",
+      "code_path": "oya/real-estate",
+      "manifest_path": "specs/microservices/real-estate.json",
+      "decision_status": "accepted",
+      "maturity_status": "local_static_seed",
+      "constraint_status": "blocking"
+    }
+  ],
+  "automated_chain": [
+    "scripts/ci/assert-status-enum-drift.py --registry specs/status-enum-registry.json --json",
+    "scripts/tests/status_enum_drift_check.test.sh",
+    "buck2 build //:status-enum-drift-check --show-output",
+    "//:phase0-red-green-fixture-contract-check",
+    "//:phase0-automation-ratchet-check",
+    "//:buck2-authority-policy-check"
+  ]
+}

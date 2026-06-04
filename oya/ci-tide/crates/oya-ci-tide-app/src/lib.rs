@@ -9,7 +9,7 @@
 //! - For each open PR: fetch commit status + reviews + fresh mergeable state.
 //! - Evaluate eligibility via `kernel::is_mergeable`.
 //! - When eligible and `dry_run == true`: log `"WOULD MERGE #<n>"`.
-//! - When eligible and `dry_run == false`: call `client.merge_pull(n, method)`.
+//! - When eligible and `dry_run == false`: call `client.merge_pull(n, method, head_sha)`.
 //!
 //! ## Safety default
 //!
@@ -148,7 +148,11 @@ impl TideRunner {
                             "tide: merging #{}",
                             pr.number
                         );
-                        match self.client.merge_pull(pr.number, self.config.merge_method) {
+                        match self.client.merge_pull(
+                            pr.number,
+                            self.config.merge_method,
+                            &fresh_pr.head_sha,
+                        ) {
                             Ok(()) => {
                                 info!(pr = pr.number, "tide: merged #{}", pr.number);
                             }

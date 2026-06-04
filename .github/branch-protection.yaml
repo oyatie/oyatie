@@ -1,7 +1,13 @@
-# Branch-protection canonical record — the deployed ruleset on
-# github.com/jason931225/oyatie reflects this file exactly. Drift is
-# caught by the `oya-governance-protection-context-match` lane
-# (per-pr CI).
+# ADR-0516 amendment (2026-06-03): temporary GitHub/GitHub Actions lane-unlocker.
+# The temporary required context is github-lane-unlocker-required. This is not the permanent CI/SCM authority,
+# and it is not interim Jenkins, Forgejo, or ArgoCD authority. Buck2 remains build/test/check authority;
+# native cutover keeps oya-ci-required as the destination context after proof.
+
+# Branch-protection shadow/target record for dev/staging/production.
+# As of the P0.0 gap packet, live GitHub dev protection does not reflect
+# this file exactly; drift is recorded in
+# specs/phase0-ci-enforcement-baseline.json. This file is not Phase-0
+# exit authority until a trusted cloud-ci/oya-ci required context is live.
 #
 # Pipeline topology (per feedback_branch_pipeline_final_final,
 # 2026-05-12):
@@ -13,18 +19,13 @@
 #   - dev        Shared-world entry point. PRs target here. 3-gate:
 #                signed-commits + linear-history + every required
 #                CI check green. Default branch on github.
-#   - staging    Auto-promoted from dev by the Jenkins promote-dev-to-staging
-#                pipeline (per ADR-0361 Jenkins-native CI/CD; pipeline impl
-#                tracked in registry/placeholder-debt/adr-follow-ups.yaml
-#                #adr-0361-promote-pipelines). The prior GHA workflow at
-#                .github/workflows/promote-dev-to-staging.yml was retired in
-#                R5 (ADR-0361). No PR review; signed-commits + linear-history;
-#                CANARY cohort exposure begins on this ref.
-#   - production Auto-promoted from staging by the Jenkins
-#                promote-staging-to-production pipeline (per ADR-0361; pipeline
-#                impl tracked in the same placeholder-debt entry). The prior
-#                GHA workflow was retired in R5. No PR review; signed-commits
-#                + linear-history; FULL ROLLOUT exposure on this ref.
+#   - staging    Promotion from dev is deferred to the native release conveyor.
+#                ADR-0516 explicitly prevents Jenkins, Forgejo, or ArgoCD from
+#                becoming interim CD authority. GitHub Actions may prepare
+#                dry-run evidence only until native cutover.
+#   - production Promotion from staging to production is deferred to the native release
+#                conveyor. ADR-0516 keeps GitHub Actions CD as dry-run bridge
+#                only and rejects Jenkins, Forgejo, or ArgoCD interim authority.
 #
 # `main` is RETAINED for read-only legacy compatibility but has NO
 # protection and is not the default branch. PRs targeting `main` are
@@ -39,33 +40,26 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     # Reviews are agent-run and fully automated. GitHub human approving
-    # reviews are not the merge authority; the required `oya-pr-review`
-    # check below is.
+    # reviews are not merge authority; `oya-pr-review` is future reviewer
+    # evidence only until its producer is live and explicitly required.
     required_approving_reviews: 0
-    # Canonical contract: these entries are the live dev branch required
-    # commit-status contexts posted by the Jenkins/Forgejo bridge (ADR-0363).
-    # Phase-1 go-live set: cargo lanes + cargo-deny (OSI/supply-chain gate)
-    # + oya-verify (single rolled-up verify verdict from oyaCiLane.groovy).
-    # NOTE: oya-pr-review is intentionally ABSENT from Phase-1 required checks.
+    # P0.0 local target: one required context posted by trusted
+    # cloud-ci/oya-ci control state. This file is not a live-enforcement
+    # claim until the ruleset is applied and oya-ci-controller posts the
+    # candidate-SHA status. Legacy tool-specific lanes are historical feedback only, not
+    # protected-branch merge or Phase-0 exit authority.
+    # NOTE: oya-pr-review is intentionally ABSENT from required checks.
     # Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet
-    # shipped); requiring it would deadlock every PR. oya-pr-review returns
-    # as a required check in Phase-2 once the reviewer-agent endpoint is live.
+    # shipped); requiring it would deadlock every PR. It can return only after
+    # the reviewer-agent endpoint is live and explicitly classified.
     required_status_checks:
-      - cargo-fmt
-      - cargo-check
-      - cargo-clippy
-      - cargo-nextest
-      - cargo-deny
-      - oya-verify
+      - oya-ci-required
 
   staging:
-    # Auto-promoted from dev by the Jenkins promote-dev-to-staging pipeline
-    # (per ADR-0361); the fast-forward inherits dev's signature + CI state.
-    # No PR required, no review, no CI gate at THIS layer — those gates
-    # already fired on dev. What we do enforce: the ref must only move
-    # forward, the underlying commits must be signed, no force-push, no
-    # deletion. Pipeline impl is tracked in
-    # registry/placeholder-debt/adr-follow-ups.yaml#adr-0361-promote-pipelines.
+    # Native release conveyor target. ADR-0516 does not authorize interim
+    # Jenkins/Forgejo/ArgoCD promotion; GitHub Actions may generate dry-run
+    # evidence only. What this shadow file still enforces: the ref must only
+    # move forward, commits must be signed, no force-push, no deletion.
     require_pull_request: false
     require_linear_history: true
     disallow_force_push: true
@@ -73,11 +67,9 @@ branches:
     require_signed_tags: true
 
   production:
-    # Auto-promoted from staging by the Jenkins promote-staging-to-production
-    # pipeline (per ADR-0361); same fast-forward inheritance as staging.
-    # FULL-rollout layer; canary observability gate (per FINAL-FINAL) is the
-    # future addition that conditions this promotion. Pipeline impl tracked
-    # in registry/placeholder-debt/adr-follow-ups.yaml#adr-0361-promote-pipelines.
+    # Native production release conveyor target. ADR-0516 does not authorize
+    # interim Jenkins/Forgejo/ArgoCD production promotion. FULL-rollout
+    # requires native evidence, canary/rollback, and signed provenance.
     require_pull_request: false
     require_linear_history: true
     disallow_force_push: true

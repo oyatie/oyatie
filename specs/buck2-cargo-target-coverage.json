@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/buck2-cargo-target-coverage.json",
+  "title": "Buck2CargoTargetCoverage",
+  "description": "Local/static AC-0.13 contract for measuring Cargo workspace target roots against Buck2 rust crate_root mappings. This is target-coverage/divergence evidence, not source-line coverage and not live cloud-ci authority.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-BUCK2-CARGO-TARGET-COVERAGE",
+    "version": "0.2.0",
+    "status": "local_static_target_coverage_not_live_context",
+    "owner_team": "platform-toolchain + platform-governance",
+    "created_at": "2026-06-03T00:00:00Z",
+    "updated_at": "2026-06-03T08:36:00Z",
+    "related_acceptance_criteria": [
+      "AC-0.13"
+    ],
+    "source_request": "Founder directive 2026-06-03: preserve dual Cargo+Buck2 Rust ergonomics while keeping Buck2 as CI/build/test authority.",
+    "official_references": [
+      {
+        "name": "Cargo Book \u2014 Workspaces",
+        "url": "https://doc.rust-lang.org/cargo/reference/workspaces.html",
+        "used_for": "Cargo.toml workspace membership, glob membership, and exclude boundary."
+      },
+      {
+        "name": "Cargo Book \u2014 Cargo Targets",
+        "url": "https://doc.rust-lang.org/cargo/reference/cargo-targets.html",
+        "used_for": "Cargo lib/bin target-root discovery including [lib], [[bin]], src/lib.rs, src/main.rs, src/bin/*.rs, src/bin/*/main.rs, and auto* discovery flags."
+      },
+      {
+        "name": "Buck2 \u2014 Commands",
+        "url": "https://buck2.build/docs/users/commands/",
+        "used_for": "Buck2 target-based evidence and Build ID capture."
+      },
+      {
+        "name": "Buck2 \u2014 Bootstrapping",
+        "url": "https://buck2.build/docs/about/bootstrapping/",
+        "used_for": "Dual Cargo/Buck2 and reindeer-generated Buck graph context."
+      },
+      {
+        "name": "Reindeer",
+        "url": "https://github.com/facebookincubator/reindeer",
+        "used_for": "Rust crate import and generated Buck rule context for monorepo crate graphs."
+      }
+    ]
+  },
+  "claim_boundary": {
+    "target_coverage_measured": true,
+    "source_line_coverage_generated": false,
+    "mutation_lane_implemented": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "measurement_contract": {
+    "buck2_target": "//:buck2-cargo-target-coverage-check",
+    "checker": "scripts/ci/assert-buck2-cargo-target-coverage.py",
+    "workspace_manifest": "Cargo.toml",
+    "buck_file_glob": "**/BUCK",
+    "cargo_target_roots": [
+      "[lib].path or src/lib.rs",
+      "[[bin]].path",
+      "src/main.rs when autobins discovery is enabled",
+      "src/bin/*.rs when autobins discovery is enabled",
+      "src/bin/*/main.rs when autobins discovery is enabled"
+    ],
+    "cargo_autodiscovery_rule": "Respect Cargo package auto-discovery flags for lib/bin targets: autolib/autobins=false disables implicit roots; 2015-edition packages with any manually defined target default implicit discovery to false; newer editions default implicit discovery to true.",
+    "buck2_mapping_rule": "A Cargo target root is covered when a checked-in BUCK file has crate_root resolving to that same source path.",
+    "parent_buck_allowed": true,
+    "known_divergences": [],
+    "required_evidence_fields": [
+      "Cargo workspace member count",
+      "Cargo target-root count",
+      "Buck2 mapped target-root count",
+      "missing target-root mappings",
+      "known divergence registry",
+      "Buck2 Build ID"
+    ],
+    "forbidden_authority": [
+      "Cargo target discovery as CI/build/test authority",
+      "source-line coverage claims from this target-coverage gate",
+      "candidate-authored divergence omissions as Phase-0 green authority",
+      "local/static output as protected branch authority"
+    ],
+    "buck2_execution_boundary": "Whole-repo scanner target runs repo_relative_root=true, remote=false, cacheable=false because Cargo/BUCK discovery spans package boundaries; this is local/static measurement, not hermetic remote-execution proof."
+  },
+  "automated_chain": [
+    "scripts/ci/assert-buck2-cargo-target-coverage.py --spec specs/buck2-cargo-target-coverage.json --json",
+    "buck2 build //:buck2-cargo-target-coverage-check"
+  ]
+}

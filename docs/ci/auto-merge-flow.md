@@ -1,94 +1,112 @@
-# Auto-Merge Flow — Forgejo gate-driven merge
+# ADR-0516 Supersession Note
 
-This note describes how PRs auto-merge into `dev` on the Forgejo forge of record
-(`forgejo.oya-forge.svc.cluster.local:3000`, repo `oya-admin/oyatie`) once the CI
-gate goes green. It complements `docs/ci/forge-of-record.md` (which defines the
-gating model).
+ADR-0516 supersedes this document for interim dev-lane unlock. The current interim path is GitHub/GitHub Actions as a temporary lane-unlocker, with no Jenkins, no Forgejo, and no ArgoCD interim authority. Buck2 remains build/test/check authority; native cutover remains cloud native, Kubernetes-native, and hyperscaler native. Historical details below are retained for provenance and native-cutover comparison only.
 
-## Two separate steps
+# Auto-Merge Flow — Forgejo and GitHub after CI
 
-Auto-merge is two distinct mechanisms — do not conflate them:
+This note describes the P0.0 target contract for PR auto-merge into `dev` on both
+Forgejo and the GitHub temporary bridge. It is a target/bridge contract, not a
+Phase-0 completion claim: live merge authority remains blocked until
+`oya-ci-required` is posted by trusted cloud-ci/oya-ci control state and required
+on the candidate SHA.
 
-1. **Arm the gate (one-time, repo-level).** Branch protection on `dev` must
-   require the CI gate context. `scripts/ci/arm-auto-merge.sh` enforces this
-   idempotently:
-   - `enable_status_check = true`
-   - `status_check_contexts = ["oya-ci-gate"]` — the context the Jenkins
-     `oya-ci-gate` pipeline posts to the Forgejo Commit Status API.
-   - Re-running converges the rule (GET, then POST if absent / PATCH if present).
+## Invariant
 
-2. **Enable auto-merge (per-PR).** The PR author or a maintainer enables
-   **"Auto Merge (when checks pass)"** on the individual PR. Forgejo then merges
-   that PR automatically the moment all branch-protection-required checks
-   (`oya-ci-gate`) report success.
+Auto-merge may be armed only when all of the following are true:
 
-## End-to-end flow
+1. Branch protection requires exactly the cloud-ci/oya-ci required context
+   `oya-ci-required` for the target branch.
+2. The PR head SHA is pinned in the merge request (`head_commit_id` on Forgejo,
+   `--match-head-commit` on GitHub) so a moved PR head cannot inherit stale
+   approval or CI evidence.
+3. The merge path performs a mergeability/conflict guard before arming
+   auto-merge.
+4. The merge method is linear-history compatible; P0.0 fixes `squash` for
+   both forges, and script/config attempts to use merge or rebase fail closed.
+5. Local `oya verify`, local `oya gate`, Buck2 affected-only output, Cargo, and
+   this script's stdout are not protected-branch or Phase-0 exit authority.
 
-```
-agent opens PR -> dev
-        |
-        v
-ci-webhook-gateway fires Jenkins oya-ci-gate (ADR-0374 / ADR-0380)
-        |
-        v
-oya-ci-gate posts Forgejo commit-status "oya-ci-gate" = pending -> success/failure
-        |
-        v
-branch protection on dev requires status_check_contexts=["oya-ci-gate"]
-        |
-        v
-PR has "Auto Merge (when checks pass)" enabled
-        |
-        +-- oya-ci-gate = success --> Forgejo merges automatically (squash, delete branch)
-        +-- oya-ci-gate = failure --> merge blocked; auto-merge stays armed, retries on next green
-```
+## Forgejo of record path
 
-## API calls
+1. **Arm the repo-level gate.** `scripts/ci/arm-auto-merge.sh` converges the
+   Forgejo `dev` branch-protection rule:
 
-Arm the gate (what `scripts/ci/arm-auto-merge.sh` issues):
+   ```json
+   {
+     "branch_name": "dev",
+     "enable_status_check": true,
+     "status_check_contexts": ["oya-ci-required"]
+   }
+   ```
 
-- `GET  /api/v1/repos/oya-admin/oyatie/branch_protections/dev` — probe.
-- `POST /api/v1/repos/oya-admin/oyatie/branch_protections` — create when GET is 404.
-- `PATCH /api/v1/repos/oya-admin/oyatie/branch_protections/dev` — update when GET is 200.
+2. **Schedule the PR.** The same script can schedule a specific PR for
+   auto-merge after checks pass:
 
-Create/update payload:
+   ```bash
+   FORGEJO_TOKEN=*** scripts/ci/arm-auto-merge.sh \
+     --pr-index 123 \
+     --head-commit <expected-pr-head-sha> \
+     --merge-method squash
+   ```
 
-```json
-{
-  "branch_name": "dev",
-  "enable_status_check": true,
-  "status_check_contexts": ["oya-ci-gate"]
-}
-```
+   It posts to `POST /api/v1/repos/{owner}/{repo}/pulls/{index}/merge` with:
 
-Enable auto-merge on a PR (per-PR, reference only — not run by the script):
+   ```json
+   {
+     "Do": "squash",
+     "merge_when_checks_succeed": true,
+     "delete_branch_after_merge": true,
+     "head_commit_id": "<expected-pr-head-sha>"
+   }
+   ```
 
-- `POST /api/v1/repos/oya-admin/oyatie/pulls/{index}/merge`
+   `merge_when_checks_succeed` schedules the merge until the required check is
+   green. Before the POST, the script refreshes the PR, requires the refreshed
+   `head.sha` to exactly match `--head-commit`, and requires `mergeable=true`;
+   stale heads, conflicts, and unresolved mergeability fail closed.
+   `head_commit_id` is the Forgejo stale-head guard. `delete_branch_after_merge`
+   is also fixed to `true` in P0.0 so successful auto-merges do not leave stale
+   bootstrap branches behind.
 
-```json
-{
-  "Do": "squash",
-  "merge_when_checks_succeed": true,
-  "delete_branch_after_merge": true
-}
-```
+## GitHub temporary bridge path
 
-`Do` selects the merge style (`merge` | `rebase` | `rebase-merge` | `squash` |
-`manually-merged`). `merge_when_checks_succeed` schedules the merge for when the
-required checks pass; if they are already green the PR merges immediately. The
-field name is `merge_when_checks_succeed` on Forgejo's `MergePullRequestOption`;
-some older Gitea-derived builds expose `MergeWhenChecksSucceed` — confirm against
-the deployed Forgejo's `/api/swagger` before scripting per-PR auto-merge.
+GitHub is the bootstrap mirror, but P0.0 requires it to converge to the same
+policy while PRs are still opened there:
 
-## Auth
+1. Repository auto-merge must be enabled.
+2. GitHub `dev` branch protection must require `oya-ci-required`; checked-in
+   target config lives in `infra/branch-protection/dev.json` and
+   `.github/branch-protection.yaml`.
+3. `scripts/trigger-next-queue-automerge.sh` refuses to arm GitHub auto-merge if
+   live required contexts drift from the checked-in target, if the PR head is not
+   GitHub-verified, if the required review check is missing, or if mergeability /
+   sequential conflict simulation fails. When `origin` is Forgejo and GitHub is
+   the bootstrap mirror, the sequential guard uses `--fetch-remote github-mirror`
+   (or `GITHUB_FETCH_REMOTE`) so PR-head fetches come from the GitHub remote and
+   merge-conflict evidence is not skipped.
+4. The final GitHub arming command is:
 
-All calls send `Authorization: token ${FORGEJO_TOKEN}` (a Forgejo access token
-with repo administration scope). The token is read from the environment and is
-never echoed by the script or logged.
+   ```bash
+   gh pr merge <number> --squash --auto --match-head-commit <expected-pr-head-sha>
+   ```
+
+## Conflict guard
+
+`scripts/check-sequential-pr-merge-conflicts.sh` models queued GitHub PRs with
+`git merge-tree --write-tree` and fails at the first conflict. Its
+`--fetch-remote` option is load-bearing during the Forgejo/GitHub temporary
+split: GitHub PR refs must be fetched from the GitHub mirror remote, not from a
+Forgejo `origin` that intentionally lacks GitHub PR refs. Forgejo Tide uses the
+Forgejo `mergeable` state and the same required-status/review gates;
+future projected-state batching belongs in cloud-ci/oya-ci Tide, not in local
+operator procedure.
 
 ## References
 
-- `scripts/ci/arm-auto-merge.sh` — idempotent gate-arming script
-- `docs/ci/forge-of-record.md` — Forgejo as gating forge of record (ADR-0363)
-- ADR-0374 — webhook-driven CI invocation
-- ADR-0380 — CI loop closure on the Talos Jenkins farm (`oya-ci-gate` pipeline)
+- `scripts/ci/arm-auto-merge.sh` — Forgejo branch-protection convergence and
+  per-PR auto-merge scheduling.
+- `scripts/trigger-next-queue-automerge.sh` — GitHub temporary bridge
+  auto-merge arming.
+- `scripts/check-sequential-pr-merge-conflicts.sh` — merge-conflict simulation.
+- `infra/branch-protection/dev.json` — checked-in target required context.
+- ADR-0363 / ADR-0513 — Forgejo substrate and cloud-ci/oya-ci Tide ownership.

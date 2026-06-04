@@ -1,0 +1,187 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_id": "platform-readiness-p0-0-trusted-target-inventory-contract",
+  "change_class_id": "CC-5",
+  "timestamp_iso": "2026-06-02T20:11:20Z",
+  "freshness_unix": 1780431080,
+  "git_sha": "74f6c5a6c2e8691bafc009cb396b020398cf20d1",
+  "claim_boundary": {
+    "claim": "P0.0 trusted target inventory now has local/static schema, evaluator, and GOOD/BAD fixtures so candidate PR bytes cannot shrink Buck2 build/test target discovery in the local target contract.",
+    "authority": "local-static-evidence-only",
+    "not_claimed": [
+      "P0.0 green",
+      "Phase-0 complete",
+      "live trusted target capture",
+      "live protected branch context",
+      "production readiness",
+      "security readiness",
+      "tenant-facing readiness",
+      "performance readiness"
+    ]
+  },
+  "related_acceptance_criteria": [
+    "AC-0.0",
+    "AC-0.16",
+    "AC-0.17"
+  ],
+  "related_test_spec": [
+    "T0.0",
+    "T0.0.1a",
+    "T0.16",
+    "T0.17"
+  ],
+  "scope": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/phase0-trusted-target-inventory-schema.json",
+    "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-good-trusted-target-inventory.json",
+    "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/root-hub-pointers.json"
+  ],
+  "enforcement_added": [
+    "Phase0TrustedTargetInventoryViolation enum and as_str vocabulary",
+    "evaluate_phase0_trusted_target_inventory local/static evaluator",
+    "phase0-trusted-target-inventory JSON schema",
+    "GOOD fixture for trusted dev/controller inventory captured before candidate checkout",
+    "BAD fixture for candidate-authored/sourced inventory and local false-green claims",
+    "baseline fixture_set/schema/blocking_fixture mapping",
+    "root hub pointer and automation-matrix evidence path mapping"
+  ],
+  "best_practice_research_context": {
+    "question": "Rust language optimization for release / production",
+    "direct_recommendation": "Treat Cargo/rustc release-profile, codegen, PGO, and allocator experiments as production release artifact measurements only; all CI/CD/build/test/script lanes remain Buck2, and any selected optimization must be encoded into Buck2 toolchain/target/OCI paths before becoming standard.",
+    "official_sources": [
+      {
+        "name": "Cargo Book \u2014 Profiles",
+        "url": "https://doc.rust-lang.org/cargo/reference/profiles.html",
+        "establishes": "release/custom profile knobs for opt-level, LTO, panic, strip, incremental, and codegen-units; recommends measuring tradeoffs over assuming universal winners"
+      },
+      {
+        "name": "rustc Book \u2014 Codegen Options",
+        "url": "https://doc.rust-lang.org/rustc/codegen-options/",
+        "establishes": "rustc -C controls for LTO, opt-level, codegen-units, panic strategy, strip, and related release codegen behavior"
+      },
+      {
+        "name": "rustc Book \u2014 Profile-guided Optimization",
+        "url": "https://doc.rust-lang.org/nightly/rustc/profile-guided-optimization.html",
+        "establishes": "PGO is supported by rustc and should be driven from representative profile-generate/profile-use evidence"
+      },
+      {
+        "name": "std::alloc",
+        "url": "https://doc.rust-lang.org/stable/std/alloc/index.html",
+        "establishes": "Rust has one global allocator per program and #[global_allocator] configures allocator replacement"
+      },
+      {
+        "name": "Buck2 rust_binary",
+        "url": "https://buck2.build/docs/prelude/rules/rust/rust_binary/",
+        "establishes": "Buck2 Rust rules expose rustc_flags/linker_flags/env inputs for encoding selected release behavior into Buck2 targets/toolchains"
+      }
+    ]
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Added a small evaluator/schema/fixtures instead of broad target-discovery machinery.",
+        "Target validation intentionally checks Buck2 labels, not Cargo commands."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Trusted controller/dev target inventory is captured before candidate checkout, matching untrusted-input separation expected in merge gates.",
+        "Live required context remains a target authority blocker until cloud-ci/oya-ci posts protected status."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "BAD fixture models candidate-authored target inventory, empty required targets, malformed target labels, and false green claims.",
+        "Evaluator rejects candidate PR bytes as target inventory source."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Root hub and baseline now point to the new schema and fixtures, keeping future agents on a small explicit contract."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Rustfmt, JSON parsing, static fixture assertions, diff hygiene, Buck2 uquery, Buck2 authority scanner, and Buck2 policy target build were run."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected discovering build/test targets from candidate PR bytes because a malicious PR can delete or omit targets and false-green scope."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secrets or tenant data touched.",
+        "Trusted-source separation closes a local candidate-input authority gap."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance claim is made; Rust release optimization research remains measurement-only and Buck2-handoff bounded."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Explicit non-claim boundary prevents local fixture greens from being interpreted as live controller readiness."
+      ]
+    },
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence records commands and build IDs; PR body will retain blocked local test details."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Supports AC-0.16 automation ratchet through schema/evaluator/fixture mapping.",
+        "Supports AC-0.17 by refusing unearned green/ready claims."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI command added.",
+        "Buck2 remains scripts/CI/CD/build/test authority.",
+        "Cargo is referenced only as Rust release optimization research/exception context, never active-lane authority."
+      ]
+    }
+  },
+  "validation": {
+    "passed": [
+      "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs -> PASS",
+      "python3 JSON parse + trusted target inventory static assertions for schema, GOOD/BAD fixtures, baseline, root hub, automation matrix, evidence -> PASS",
+      "git diff --check -> PASS",
+      "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> PASS (Build ID 5effb4cf-08ef-4ae4-a19a-0092cdb7e1fc)",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS (verdict PASS, command_scan_files 28)",
+      "buck2 build //:buck2-authority-policy-check --show-output -> PASS (Build ID 8049ec46-6d91-4753-af75-777c7d6d300b)"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> local Apple ld rejected GNU/Linux flags while linking third-party Rust build script serde_json-1-build-script-build; tests ran 0 (Build ID 626d21bd-af90-4fe7-91e6-425155f3a993)"
+    ],
+    "expected_red_or_target_only": [
+      "No live oya-ci-required protected context is claimed.",
+      "No Phase-0 exit authority is claimed."
+    ]
+  }
+}

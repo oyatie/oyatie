@@ -1,0 +1,25 @@
+{
+  "fixture_id": "TC-SERVICE-ROOT-BAD-missing-inventory-entry",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "service_inventory_entry_missing"
+  ],
+  "candidate_paths": [
+    {
+      "path": "oya/accounting",
+      "kind": "service",
+      "service_id": "accounting",
+      "crate_name": "accounting"
+    }
+  ],
+  "inventory_entry_paths": [],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

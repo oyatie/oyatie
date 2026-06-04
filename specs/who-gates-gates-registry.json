@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/who-gates-gates-registry.json",
+  "title": "WhoGatesGatesRegistry",
+  "description": "AC-0.11 local/static registry for proving integrity gates have known-bad fixtures, self-mutation tests, and non-vacuous pass guards before their evidence can count.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-WHO-GATES-GATES",
+    "version": "0.1.0",
+    "status": "local_static_meta_gate_not_live_ci_authority",
+    "owner_team": "platform-governance + platform-toolchain",
+    "created_at": "2026-06-03T00:00:00Z",
+    "updated_at": "2026-06-03T00:00:00Z",
+    "related_plan": ".omx/plans/prd-platform-readiness.md#AC-0.11",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.11",
+    "source_request": "Platform Readiness P0.0: every integrity gate must prove its own known-bad fixture and avoid vacuous pass behavior."
+  },
+  "claim_boundary": {
+    "who_gates_gates_measured": true,
+    "known_bad_fixture_required": true,
+    "vacuous_pass_guard_required": true,
+    "gate_self_mutation_test_required": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false,
+    "no_new_oya_cli_surface": true
+  },
+  "gate_contract": {
+    "acceptance_criterion": "AC-0.11",
+    "automation_matrix_row_id": "AC-0.11-who-gates-gates",
+    "buck2_target": "//:who-gates-gates-check",
+    "checker": "scripts/ci/assert-who-gates-gates.rs",
+    "test_harness": "scripts/tests/who_gates_gates_check.rs",
+    "authority": "local_static_fixture_evidence_only",
+    "required_self_mutation_tests": [
+      "remove-red-marker",
+      "stale-marker-text",
+      "missing-target",
+      "p0-green"
+    ],
+    "reds_when": [
+      "gate lacks a known-bad fixture",
+      "gate declares an always-true/vacuous pass condition",
+      "gate lacks self-mutation tests proving the checker catches known-bad input",
+      "gate maps local oya CLI output to authority",
+      "gate claims green readiness without live authority"
+    ]
+  },
+  "fixture_set": {
+    "fixture_directory": "specs/fixtures/phase0-who-gates-gates",
+    "good_fixture": "specs/fixtures/phase0-who-gates-gates/tc-0.11-good-known-bad-meta-gate.json",
+    "bad_fixtures": [
+      "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-known-bad-fixture.json",
+      "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-vacuous-pass-condition.json",
+      "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json",
+      "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json"
+    ],
+    "expected_violation_catalog": [
+      "missing_known_bad_fixture",
+      "vacuous_pass_condition",
+      "missing_self_mutation_test",
+      "oya_cli_authority_route",
+      "forbidden_green_claim"
+    ]
+  },
+  "automated_chain": [
+    "//:who-gates-gates-check",
+    "scripts/ci/assert-who-gates-gates.rs",
+    "scripts/tests/who_gates_gates_check.rs",
+    "specs/who-gates-gates-registry.json",
+    "specs/fixtures/phase0-who-gates-gates/*.json",
+    "//:phase0-red-green-fixture-contract-check",
+    "//:phase0-automation-ratchet-check",
+    "//:buck2-authority-policy-check"
+  ]
+}

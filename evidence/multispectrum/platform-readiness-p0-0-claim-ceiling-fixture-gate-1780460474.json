@@ -1,0 +1,302 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/hyperscaler-production-readiness-claim-contract.json",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/buck2-authority-policy.json",
+    ".omx/plans/prd-platform-readiness.md#AC-0.17",
+    ".omx/plans/test-spec-phase0.md#T0.17"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-claim-ceiling-fixture-gate",
+  "claim_boundary": {
+    "claim_ceiling_live": false,
+    "claim_evidence_map_local_static_proven": true,
+    "hyperscaler_grade": false,
+    "live_required_context_execution_proven": false,
+    "local_fixture_contract_proven": true,
+    "note": "Local/static claim-ceiling fixture evidence only. This does not claim live cloud-ci/oya-ci required-context execution, protected branch authority, status mutation, P0.0 green, Phase-0 completion, production readiness, or hyperscaler-grade readiness.",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false
+  },
+  "facets": {
+    "A1_naming": {
+      "considered": true,
+      "findings": [
+        "AC-0.17 target, script, and fixture names use existing phase0_* naming."
+      ]
+    },
+    "A2_documentation": {
+      "considered": true,
+      "findings": [
+        "Spec rows now cite the local/static target and non-claim boundaries."
+      ]
+    },
+    "A3_structure": {
+      "considered": true,
+      "findings": [
+        "No new service root or oya CLI command added; root BUCK target follows existing P0.0 genrule pattern."
+      ]
+    },
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "cloud-ci remains destination authority; local checker is evidence only."
+      ]
+    },
+    "A5_dependency": {
+      "considered": true,
+      "findings": [
+        "No dependencies added."
+      ]
+    },
+    "A6_schema_algorithm": {
+      "considered": true,
+      "findings": [
+        "Checker validates allowed tiers from the contract and seed rows from the claim map instead of hardcoding claim rows."
+      ]
+    },
+    "A7_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No new oya CLI surface; oya verify/gate/local-only evidence is explicitly rejected for mechanical claims."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "Changes are local static checker/test/spec/BUCK wiring and can be reverted atomically without external side effects."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Checker emits structured JSON verdicts and false flags for dashboard/audit consumption."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No old path was removed; live cloud-ci claim-ceiling cutover remains an explicit known gap."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose checker; no new dependency or CLI surface; explicit false flags prevent green-claim special cases."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Moves AC-0.17 from seeded claim-map prose to replayable local/static fixture evidence while retaining cloud-ci/oya-ci as live authority target."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "regulated_vocabulary_without_claim_row, unknown_claim_tier, missing_or_empty_required_field, forbidden_local_or_oya_evidence_for_mechanical_claim, performance_claim_without_budget_or_measured_result including production_ready/hyperscaler_grade tier-only rows and capacity-breakpoint-only single-signal rows, unknown_regulated_term, vacuous RED fixture drift, combined budget/result single-entry false green",
+      "failing_fixture_added": true,
+      "findings": [
+        "Shell regression mutates known-good/default inputs and AC-0.17 RED fixtures so omission, false authority, unknown tiers, and performance false-green drift fail closed.",
+        "Architect-requested tier-only RED fixtures now prove production_ready and hyperscaler_grade rows fail without budget plus measured-result evidence even when the row text contains no performance vocabulary.",
+        "Capacity-breakpoint-only RED fixture first failed under the buggy overlap, then passed after capacity breakpoint was removed from BUDGET_SIGNALS; one signal can no longer satisfy both budget and measured-result buckets.",
+        "Out-of-band adversarial probes in /tmp/p0-0-claim-ceiling-adversarial-probes-1780462020 confirmed production_ready tier-only, hyperscaler_grade tier-only, and capacity-breakpoint-only claim-map mutations all fail closed with performance_claim_without_budget_or_measured_result.",
+        "Combined-signal RED in /tmp/p0-0-claim-ceiling-combined-signal-red-1780463223 reproduced the architect-reported false green; after the fix, /tmp/p0-0-claim-ceiling-combined-signal-fix-1780465773 proves a single current_evidence entry containing both budget and measured-result tokens fails closed."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "JSON output reports row counts, vocabulary count, fixture ids, observed violations, and non-live false flags."
+      ],
+      "new_contributor_minutes_estimate": 12
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Post-deslop claim/policy regression passed in /tmp/p0-0-claim-ceiling-deslop-1780460300 with Buck2 Build ID 3714ef97-4d43-4990-8cd6-02fb0f80de90.",
+        "Cleanup scan found no fallback-like masking code; added explicit false-flag assertions and tightened performance measured-result checks.",
+        "Architect-requested tier-only fix passed targeted regression in /tmp/p0-0-claim-ceiling-architect-fix2-1780461090; Buck2 Build ID 2ae79882-f89d-4181-81ce-88f40a8636ec.",
+        "Single-signal overlap fix passed targeted regression in /tmp/p0-0-claim-ceiling-capacity-overlap-fix-1780461565; TDD RED captured in /tmp/p0-0-claim-ceiling-capacity-overlap-red2-1780461540; Buck2 Build ID f2343ab4-691b-4726-9f38-1c55c460ac65.",
+        "Adversarial probe refresh passed at 2026-06-03T04:59:31Z; summary /tmp/p0-0-claim-ceiling-adversarial-probes-1780462020/summary.json.",
+        "Combined-signal fix regression passed in /tmp/p0-0-claim-ceiling-combined-signal-fix-1780465773; Buck2 Build ID 0ba2d528-8da3-493f-9866-9db3714a8081."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Leave AC-0.17 as claim-map prose only",
+        "Add local/static claim-ceiling fixture gate",
+        "Claim live claim-ceiling enforcement"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Seed rows alone did not execute RED/GREEN fixture coverage.",
+        "Selected as the smallest executable proof while live cloud-ci is absent.",
+        "Live enforcement cannot be claimed until trusted cloud-ci/oya-ci runs and posts the required context on candidate SHAs."
+      ],
+      "selected_rationale": "Add a local/static checker and Buck2 target that proves the seed claim map and fixtures without claiming live authority."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No credentials, status posting, branch-protection mutation, network mutation, or tenant data touched."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    },
+    "F8_performance": {
+      "benchmark_required": false,
+      "considered": true,
+      "findings": [
+        "No runtime service path changed; AC-0.17 specifically blocks production/hyperscaler performance claims without measured-result evidence."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "data_class_touched": [
+        "none"
+      ],
+      "findings": [
+        "Evidence/audit-chain emission required by docs/AGENTS.md; no regulated tenant/customer data changed."
+      ]
+    }
+  },
+  "files_changed": [
+    "scripts/ci/assert-claim-ceiling.py",
+    "scripts/tests/phase0_claim_ceiling_check.test.sh",
+    "BUCK",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/buck2-authority-policy.json",
+    "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-production-ready-tier-without-measured-result.json",
+    "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-hyperscaler-tier-without-measured-result.json",
+    "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-capacity-breakpoint-only.json",
+    "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-combined-budget-result-entry.json"
+  ],
+  "freshness_unix": 1780466512,
+  "git_sha": "bf332b3e6d04",
+  "implementation_summary": [
+    "Added scripts/ci/assert-claim-ceiling.py to validate AC-0.17 seed claim rows, allowed tiers, regulated vocabulary coverage, local/oya evidence misuse for mechanically-enforced claims, and performance claim budget/measured-result evidence boundaries.",
+    "Added scripts/tests/phase0_claim_ceiling_check.test.sh with RED mutations for missing claim rows, unknown tier, missing owner, local-only oya authority evidence, production-ready performance without measured results, unknown regulated terms, and vacuous RED fixture drift.",
+    "Added //:phase0-claim-ceiling-check and wired the checker/test/map/contract into specs/buck2-authority-policy.json so Buck2 authority coverage includes the AC-0.17 local/static gate.",
+    "Updated specs/phase0-claim-evidence-map.json and specs/phase0-automation-matrix.json to declare the local/static target while preserving the live cloud-ci/oya-ci claim-ceiling gate as the required future authority.",
+    "Deslop hardening tightened production_ready/hyperscaler_grade performance claims so a PERF-CAPACITY domain reference or budget alone is insufficient without measured-result evidence.",
+    "Architect REQUEST_CHANGES found a tier-only strong-claim false-green hole; scripts/ci/assert-claim-ceiling.py now applies the budget plus measured-result evidence guard to every production_ready and hyperscaler_grade row, independent of performance vocabulary.",
+    "Added checked-in RED fixtures and inline shell mutations for production_ready and hyperscaler_grade tier-only rows without budget plus measured-result evidence.",
+    "Second architect REQUEST_CHANGES found a single-signal overlap where capacity breakpoint satisfied both budget and measured-result checks; capacity breakpoint is now measured-result-only and a budget/domain signal remains separately required.",
+    "Added checked-in RED fixture and inline shell mutation for capacity-breakpoint-only evidence so one phrase cannot satisfy both evidence buckets.",
+    "Architect-requested combined-signal fix now requires strong readiness tiers to cite budget and measured-result evidence in separate current_evidence entries; a single entry such as p95 budget plus load result fails closed.",
+    "Post-architect final5 bundle passed after the combined budget/result single-entry fix; architect Hegel (019e8c0a-7e34-7412-ba94-2d87266a81fa) approved AC-0.17 as local/static evidence only.",
+    "Post-approval cleanup review found no extra simplification edits needed; checker/test remain single-purpose, dependency-free, and Buck2-native for the local/static fixture target."
+  ],
+  "known_gaps": [
+    "AC-0.17 is still local/static evidence until trusted cloud-ci/oya-ci runs the claim-ceiling gate as part of the required context on candidate SHAs.",
+    "The seed claim rows are not exhaustive; live cloud-ci claim-ceiling must scan authoritative artifacts and require rows for all regulated terms before AC-0.12 can go green.",
+    "PR #455 still needs post-push evidence after this slice is committed and pushed; prior post-push evidence had no status checks reported.",
+    "GitHub dev required_status_checks.checks previously had app_id=null for oya-ci-required; trusted cloud-ci/oya-ci source binding remains unproven until live required context is posted by the trusted app.",
+    "Forgejo live convergence and reviewer merge-readiness remain unproven.",
+    "Live cloud-ci/oya-ci required-context execution is not proven by AC-0.17 local/static fixture evidence."
+  ],
+  "schema_version": "multispectrum-evidence/v2.4.0",
+  "scope": "AC-0.17 claim-ceiling local/static fixture gate; no live required-context authority claim",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp_iso": "2026-06-03T06:01:52Z",
+  "timestamp_unix": 1780466512,
+  "verification": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-claim-ceiling.py --json",
+      "evidence": "verdict=PASS, row_count=6, fixture_count=9, tier-only and capacity-breakpoint-only RED fixtures observed, claim_ceiling_live=false, production_ready=false, hyperscaler_grade=false, p0_0_green=false, phase0_complete=false.",
+      "revalidated_at": "2026-06-03T04:41:00Z",
+      "status": "passed"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_claim_ceiling_check.test.sh",
+      "evidence": "Positive fixture pass plus negative mutations for missing rows, unknown tier/missing owner, local oya authority evidence, no-budget performance claims, domain/budget-only performance false green, production_ready tier-only false green, hyperscaler_grade tier-only false green, capacity-breakpoint-only single-signal false green, unknown terms, and vacuous RED fixture drift; log /tmp/p0-0-claim-ceiling-capacity-overlap-fix-1780461565/phase0_claim_ceiling_check.test.log.",
+      "revalidated_at": "2026-06-03T04:41:00Z",
+      "status": "passed"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "Policy verdict PASS; command_scan_files=162; required context oya-ci-required; log /tmp/p0-0-claim-ceiling-deslop-1780460300/enforce-buck2-authority.log.",
+      "revalidated_at": "2026-06-03T04:21:14Z",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build //:phase0-claim-ceiling-check //:buck2-authority-policy-check --show-output",
+      "evidence": "Post-deslop Buck2 Build ID 3714ef97-4d43-4990-8cd6-02fb0f80de90; log /tmp/p0-0-claim-ceiling-deslop-1780460300/buck2-build-claim-policy.log.",
+      "revalidated_at": "2026-06-03T04:21:14Z",
+      "status": "passed"
+    },
+    {
+      "command": "Adjacent P0.0 regressions: baseline, trusted-target, result-bundle, required-status source, rollup, override, tenant isolation, auto-merge contract, Forgejo auto-merge",
+      "evidence": "Final3 adjacent regression logs in /tmp/p0-0-claim-ceiling-final3-1780461714; all invoked checks exited 0.",
+      "revalidated_at": "2026-06-03T04:45:24Z",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build P0.0 root fixture targets plus //:buck2-authority-policy-check --show-output",
+      "evidence": "Final3 wide P0.0 fixture Buck2 Build ID 7f5ac70b-bf5f-4c41-9582-f72ef2647a77; log /tmp/p0-0-claim-ceiling-final3-1780461714/buck2-build-p0-targets.log.",
+      "revalidated_at": "2026-06-03T04:45:24Z",
+      "status": "passed"
+    },
+    {
+      "command": "architect-requested AC-0.17 tier-only strong-claim fix regression",
+      "evidence": "assert-claim-ceiling PASS over 8 fixtures, shell regression PASS, Buck2 authority PASS, Buck2 Build ID 2ae79882-f89d-4181-81ce-88f40a8636ec; logs in /tmp/p0-0-claim-ceiling-architect-fix2-1780461090.",
+      "revalidated_at": "2026-06-03T04:33:07Z",
+      "status": "passed"
+    },
+    {
+      "command": "architect-requested AC-0.17 single-signal overlap fix regression",
+      "evidence": "capacity-breakpoint-only RED reproduced before fix in /tmp/p0-0-claim-ceiling-capacity-overlap-red2-1780461540; assert-claim-ceiling PASS over 9 fixtures after fix, shell regression PASS, Buck2 authority PASS, Buck2 Build ID f2343ab4-691b-4726-9f38-1c55c460ac65; logs in /tmp/p0-0-claim-ceiling-capacity-overlap-fix-1780461565.",
+      "revalidated_at": "2026-06-03T04:41:00Z",
+      "status": "passed"
+    },
+    {
+      "command": "final3 full AC-0.17/P0.0 local-static verification bundle",
+      "evidence": "JSON/audit parse, py_compile, claim-ceiling, automation-ratchet, baseline, trusted-target, result-bundle, required-status source, rollup, override, tenant, auto-merge, Buck2 authority, wide Buck2 build, evidence-secret-scan, and git diff --check passed; Build ID 7f5ac70b-bf5f-4c41-9582-f72ef2647a77; logs in /tmp/p0-0-claim-ceiling-final3-1780461714.",
+      "revalidated_at": "2026-06-03T04:45:24Z",
+      "status": "passed"
+    },
+    {
+      "command": "adversarial claim-map probes: production_ready tier-only, hyperscaler_grade tier-only, capacity-breakpoint-only",
+      "evidence": "All three synthetic claim maps failed closed with performance_claim_without_budget_or_measured_result; summary /tmp/p0-0-claim-ceiling-adversarial-probes-1780462020/summary.json.",
+      "revalidated_at": "2026-06-03T04:59:31Z",
+      "status": "passed"
+    },
+    {
+      "command": "architect-requested AC-0.17 combined budget/result single-entry fix regression",
+      "evidence": "Pre-fix false green captured in /tmp/p0-0-claim-ceiling-combined-signal-red-1780463223; post-fix mutation fails with performance_claim_without_budget_or_measured_result; assert-claim-ceiling PASS over 10 fixtures; shell regression PASS; Buck2 authority PASS; Buck2 Build ID 0ba2d528-8da3-493f-9866-9db3714a8081; logs in /tmp/p0-0-claim-ceiling-combined-signal-fix-1780465773.",
+      "revalidated_at": "2026-06-03T05:51:13Z",
+      "status": "passed"
+    },
+    {
+      "command": "architect review of AC-0.17 combined-entry fix",
+      "evidence": "Architect agent Hegel (019e8c0a-7e34-7412-ba94-2d87266a81fa) returned APPROVE after reviewing scripts/ci/assert-claim-ceiling.py, scripts/tests/phase0_claim_ceiling_check.test.sh, the combined-entry RED fixture, claim map, Buck2 authority policy, evidence file, and audit row. Residual live cloud-ci/oya-ci authority remains intentionally unproven and out of scope for this local/static gate.",
+      "revalidated_at": "2026-06-03T05:59:46Z",
+      "status": "passed"
+    },
+    {
+      "command": "final5 full AC-0.17/P0.0 local-static verification bundle",
+      "evidence": "JSON/audit parse, py_compile, assert-claim-ceiling, shell regression, adjacent P0.0 checks, Buck2 authority, wide Buck2 P0 target build, evidence-secret-scan, and git diff --check passed; Build ID e0e7848e-67ee-4697-b4ba-90825f34c127; fixture_count=10; combined_fixture=true; false_flags={\"claim_ceiling_live\": false, \"hyperscaler_grade\": false, \"live_required_context_execution_proven\": false, \"p0_0_green\": false, \"phase0_complete\": false, \"production_ready\": false, \"protected_branch_authority_proven\": false, \"status_mutation_performed\": false}; logs in /tmp/p0-0-claim-ceiling-final5-1780466024.",
+      "revalidated_at": "2026-06-03T05:59:46Z",
+      "status": "passed"
+    },
+    {
+      "command": "post-architect cleanup review",
+      "evidence": "No cleanup edits applied: changed checker/test/spec/BUCK wiring use existing root genrule pattern, no dependencies, no new oya CLI surface, and no live/prod/hyperscaler claims.",
+      "revalidated_at": "2026-06-03T05:59:46Z",
+      "status": "passed"
+    }
+  ]
+}

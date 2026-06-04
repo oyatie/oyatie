@@ -1,27 +1,33 @@
 # rust-ci agent image — adds sccache to the rust:1-bookworm base so Jenkins
-# agents (per ADR-0380 D2) can pull/push to SeaweedFS-on-Talos (ADR-0381 D4)
-# for incremental cargo build cache. Closes the sccache-restore half of
-# ADR-0380 D6 (cache deferred there because rust:1-bookworm doesn't ship sccache).
-#
-# Hyperscaler-lens (per memory hyperscaler-lens-architectural-filter):
-#   - sccache: Mozilla project, Apache 2 / MIT dual-licensed, actively
-#     maintained (0.8+ in 2024-2025). Passes (a)-(d).
-#   - rust:1-bookworm: official Rust + Debian; Apache 2 + MIT toolchain. Passes.
-#
-# Build (via BuildKit per ADR-0381 D1):
-#   kubectl apply -f infra/ci/jenkins/agent-image/buildkit-build.yaml
-# Resulting image: registry.oya-registry.svc.cluster.local:5000/rust-ci:dev
+# agents can reuse compiler artifacts while Buck2 remains the CI build/test
+# authority. This image never invokes Cargo during image construction.
 FROM rust:1-bookworm
 
-# sccache binary install via cargo. --locked pins the embedded Cargo.lock for
-# reproducibility; clearing the registry cache after install keeps the layer
-# small.
-RUN cargo install sccache --version "^0.8" --locked \
-    && rm -rf /root/.cargo/registry/src \
-    && rm -rf /root/.cargo/registry/cache
+ARG SCCACHE_VERSION=0.8.2
+ARG TARGETARCH
+ARG BUCK2_RELEASE=2026-06-01
 
-# Validate sccache is on PATH and prints its version (sanity check at build time).
-RUN sccache --version
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends ca-certificates curl zstd; \
+    rm -rf /var/lib/apt/lists/*; \
+    case "${TARGETARCH:-amd64}" in \
+      amd64) sccache_arch="x86_64-unknown-linux-musl"; buck2_arch="x86_64-unknown-linux-gnu" ;; \
+      arm64) sccache_arch="aarch64-unknown-linux-musl"; buck2_arch="aarch64-unknown-linux-gnu" ;; \
+      *) echo "unsupported TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL -o /tmp/sccache.tgz \
+      "https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-${sccache_arch}.tar.gz"; \
+    mkdir -p /tmp/sccache; \
+    tar -xzf /tmp/sccache.tgz -C /tmp/sccache --strip-components=1; \
+    install -m 0755 /tmp/sccache/sccache /usr/local/bin/sccache; \
+    curl -fsSL -o /tmp/buck2.zst \
+      "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"; \
+    zstd -d -c /tmp/buck2.zst > /usr/local/bin/buck2; \
+    chmod 0755 /usr/local/bin/buck2; \
+    sccache --version; \
+    buck2 --version; \
+    rm -rf /tmp/sccache /tmp/sccache.tgz /tmp/buck2.zst
 
 # No ENTRYPOINT/CMD — Jenkins's kubernetes cloud sets container command/args
-# to "sleep infinity" at pod creation time; this image just adds the binary.
+# to "sleep infinity" at pod creation time; this image just adds sccache.

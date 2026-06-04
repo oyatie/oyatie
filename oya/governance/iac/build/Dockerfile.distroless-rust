@@ -1,41 +1,22 @@
-# Canonical multi-stage Dockerfile per ADR-0146.
+# Canonical distroless runtime Dockerfile wrapper per ADR-0146.
 #
-# Every µservice's CI references this file (or a per-µservice symlink) so
-# the canonical base image + nonroot UID directive can be enforced by a
-# single Rust validator (`oya gate validate container-base-image`).
+# 2026-06-02 Buck2 authority amendment: CI/CD/scripts/build lanes must compile
+# service binaries and OCI layouts through Buck2 targets. This Dockerfile is a
+# runtime wrapper for tools that already have a Buck2-produced binary in the
+# Docker build context; it does not invoke Cargo, rustup, or a Rust compiler.
 #
-# Authority: docs/decisions/ADR-0146-container-base-image-distroless-nonroot.md
-# Standard: docs/standards/container-image-convention.md
+# Expected handoff:
+#   1. buck2 build <service-binary-or-oci-target> [--target-platforms <linux-musl>]
+#   2. copy/materialize the selected Buck2 binary to dist/${BIN_NAME}
+#   3. docker build --build-arg BIN_NAME=${BIN_NAME} ... only as non-authority
+#      runtime-image smoke evidence.
+#
+# Production release optimization experiments that use Cargo remain separate
+# release-exception evidence only and must be encoded back into Buck2 before they
+# become a standard build path.
 
-# ---- stage 1: builder ---------------------------------------------------
-# Rust 1.95-slim is pinned in registry catalog `lts_pins.rust`; bump via
-# ADR-0064 canonical-base-and-localization update + workspace-hygiene
-# lane.
-FROM rust:1.95-slim AS builder
-WORKDIR /build
-
-# musl target = static binary that runs cleanly under distroless static.
-RUN rustup target add x86_64-unknown-linux-musl
-
-COPY . .
-ARG BIN_NAME=oya-app
-RUN cargo build --release \
-        --target x86_64-unknown-linux-musl \
-        --bin "${BIN_NAME}"
-
-# ---- stage 2: runtime ---------------------------------------------------
-# `static-debian12:nonroot` ships CA-cert bundle, /etc/passwd with the
-# `nonroot` UID 65532 pre-baked, and timezone data. 2.5 MB compressed.
 FROM gcr.io/distroless/static-debian12:nonroot
-
-# Copy the static binary out of the builder stage. The destination is
-# `/app` so the ENTRYPOINT is fixed regardless of BIN_NAME.
 ARG BIN_NAME=oya-app
-COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/${BIN_NAME} /app
-
-# `nonroot` UID 65532 is the only UID baked into the distroless image.
-# The matching K8s policy is oya.securityContext.podStandard65534, which
-# accepts 65532 explicitly.
+COPY dist/${BIN_NAME} /app
 USER 65532:65532
-
 ENTRYPOINT ["/app"]

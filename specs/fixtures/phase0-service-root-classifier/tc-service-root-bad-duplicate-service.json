@@ -1,0 +1,34 @@
+{
+  "fixture_id": "TC-SERVICE-ROOT-BAD-duplicate-service-across-roots",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "duplicate_service_across_roots"
+  ],
+  "candidate_paths": [
+    {
+      "path": "oya/payments",
+      "kind": "service",
+      "service_id": "payments",
+      "crate_name": "payments"
+    },
+    {
+      "path": "cloud/payments",
+      "kind": "service",
+      "service_id": "payments",
+      "crate_name": "payments"
+    }
+  ],
+  "inventory_entry_paths": [
+    "oya/payments",
+    "cloud/payments"
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

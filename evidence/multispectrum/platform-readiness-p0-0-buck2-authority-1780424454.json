@@ -1,0 +1,207 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-buck2-authority",
+  "claim_boundary": "Target/non-claim evidence only. The policy target and local/static checks do not claim P0.0 green, Phase-0 exit, live protected-branch enforcement, trusted cloud-ci deployment, tenant-facing readiness, security readiness, or performance readiness.",
+  "external_references": [
+    {
+      "relevance": "Release/custom profile knobs for the narrow Cargo production release optimization exception.",
+      "source": "Cargo Book \u2014 Profiles",
+      "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html"
+    },
+    {
+      "relevance": "Codegen options such as opt-level, LTO, codegen-units, panic, strip, and split debuginfo used only as measured release optimization evidence.",
+      "source": "rustc Book \u2014 Codegen Options",
+      "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/"
+    },
+    {
+      "relevance": "Allocator replacement contract and caveats for memory allocator optimization measurements.",
+      "source": "Rust alloc::alloc::GlobalAlloc",
+      "url": "https://doc.rust-lang.org/alloc/alloc/trait.GlobalAlloc.html"
+    },
+    {
+      "relevance": "Singleton global allocator placement rule for crate graphs.",
+      "source": "Rust Reference \u2014 global_allocator",
+      "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute"
+    },
+    {
+      "relevance": "Buck2 build authority for active build lanes.",
+      "source": "Buck2 build command",
+      "url": "https://buck2.build/docs/users/commands/build/"
+    },
+    {
+      "relevance": "Buck2 test authority for active test lanes.",
+      "source": "Buck2 test command",
+      "url": "https://buck2.build/docs/users/commands/test/"
+    }
+  ],
+  "facets": {
+    "F10_observability": {
+      "considered": true,
+      "findings": [
+        "Evidence records policy output counts, Buck2 target names, build-result boundary, and exact local linker blocker class."
+      ]
+    },
+    "F11_compliance": {
+      "considered": true,
+      "findings": [
+        "Branch-protection and ADR contradictions are amended as target/non-claim evidence; live authority remains blocked until trusted cloud-ci/oya-ci proof exists.",
+        "Automatable enforcement maps to policy JSON, scanner script, Buck2 target, CI bridge steps, and Rust kernel policy tests."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered for this Buck2-authority slice."
+    },
+    "F13_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "No oya CLI subcommand was added.",
+        "oya verify/gate wording remains local/bridge evidence only where mentioned; protected-branch authority is oya-ci-required from cloud-ci/oya-ci.",
+        "microservices/ remains untouched; cloud/oya/libs shape is used for the new OCI target."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Kept enforcement policy data-driven and local to Buck2/CI surfaces instead of adding new CLI behavior.",
+        "Fixed the Buck2 genrule to declare scanner inputs so the automated policy target actually builds."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Converged active merge authority on one Prow-shaped required context: oya-ci-required from cloud-ci/oya-ci.",
+        "Affected build/test is Buck2-native and fail-closed on missing base refs or graph/query failures."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Policy scanner rejects forbidden Cargo executable lanes in active scripts/CI/CD/build files and rejects legacy status contexts in branch-protection/status surfaces.",
+        "ADR amendments explicitly supersede contradictory legacy Cargo/local-verifier authority text."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Developer pre-push bridge falls back from unavailable origin/dev to github-mirror/dev only for local evidence and tells the operator how to set OYA_CI_BASE_REF.",
+        "Rust release optimization exception is documented as an evidence protocol with required measurements."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Syntax, JSON, YAML, Node, policy, diff hygiene, rustfmt, Buck2 policy target build, and Buck2 target uqueries were run fresh on 2026-06-02.",
+        "Full affected/test lane remains locally blocked by a toolchain/linker issue and is labeled as a blocker, not hidden."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Rejected keeping Cargo mirror contexts for compatibility because they conflict with the founder Buck2 authority directive.",
+        "Rejected operator-only release optimization commands; selected behavior must move into Buck2 toolchain/target graph if adopted."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "No secrets or tenant data touched.",
+        "Status authority remains separated from candidate bytes and local hooks."
+      ],
+      "secrets_touched": false,
+      "tenant_data_touched": false
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No performance readiness claim is made.",
+        "Release optimization guidance requires measured binary size, allocator/codegen setting, target triple, and non-authority labels before using Cargo as evidence."
+      ]
+    },
+    "F9_operability": {
+      "considered": true,
+      "findings": [
+        "Bridge status context is a single oya-ci-required context; Jenkins seeds and shared library invoke Buck2 rather than Cargo lanes.",
+        "Cloud intelligence image push script now consumes a Buck2-native OCI target."
+      ]
+    }
+  },
+  "freshness_unix": 1780424454,
+  "git_sha": "802d11e9cea3b22c7232242713a62eefbcebd410",
+  "refreshed_iso": "2026-06-02T18:28:31Z",
+  "refreshed_unix": 1780424911,
+  "review_remediation": {
+    "code_reviewer_findings_remediated": [
+      "Removed scripts/ci/oya-ci-post.sh --skip-verify stale-success path; unknown --skip-verify now exits non-zero before any status posting.",
+      "Added cloud/cloud-intelligence/iac/oci/BUCK and docs/standards/rust-release-optimization.md to specs/buck2-authority-policy.json command_scan_files and BUCK genrule srcs; added required anchors for OCI target shape and release-optimization non-authority language.",
+      "Changed infra/ci/jenkins/agent-image/Dockerfile to install Buck2 release 2026-06-01 from the official facebook/buck2 release asset and fail closed on buck2 --version."
+    ],
+    "verification_after_remediation": [
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS, command_scan_files=26, status_context_scan_files=7, adr_amendment_files=8, authority_context=oya-ci-required",
+      "scripts/ci/oya-ci-post.sh --skip-verify --dry-run rejected with unknown arg: --skip-verify",
+      "buck2 build //:buck2-authority-policy-check --show-output rerun after scanner/policy updates -> BUILD SUCCEEDED; output JSON verdict PASS"
+    ]
+  },
+  "schema_version": "multispectrum-review/v2.4.0",
+  "scope": [
+    "specs/buck2-authority-policy.json",
+    "scripts/ci/enforce-buck2-authority.py",
+    "BUCK",
+    ".github/workflows/backbone-microservices-ci.yml",
+    ".github/branch-protection.yaml",
+    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+    "infra/ci/jenkins/reported-status-contexts.json",
+    "infra/ci/jenkins/*-seed.groovy",
+    "infra/branch-protection/dev.json",
+    "scripts/agent-pre-push-validate.sh",
+    "scripts/ci/oya-ci-post.sh",
+    "scripts/build/build-and-push-cloud-intelligence.sh",
+    "cloud/cloud-intelligence/iac/oci/BUCK",
+    "docs/standards/rust-release-optimization.md",
+    "docs/standards/container-image-convention.md",
+    "docs/standards/code-style-rust.md",
+    "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+    "docs/decisions/ADR-0360-ci-pipeline-optimization-program.md",
+    "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
+    "docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+    "docs/decisions/ADR-0392-buck2-canonical-build-graph.md",
+    "docs/decisions/ADR-0408-buck2-driven-ci-cd.md",
+    "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+    "docs/decisions/ADR-0515-buck2-native-oci-static-musl-base.md",
+    "evidence/multispectrum/platform-readiness-p0-0-buck2-authority-1780424454.json",
+    "infra/ci/buck2-affected-gate.sh"
+  ],
+  "summary": "P0.0 Buck2-authority enforcement slice for active scripts, CI bridge lanes, CD/image build surfaces, branch-protection target records, ADR amendments, and a narrow Rust production release optimization exception. This is local/static and Buck2-target evidence; it is not live cloud-ci/oya-ci branch-protection proof.",
+  "timestamp_iso": "2026-06-02T18:20:54Z",
+  "validation": {
+    "attempted_but_blocked": [
+      "scripts/agent-pre-push-validate.sh: after Buck2 authority PASS and rustfmt hygiene repair, the Buck2 affected build/test lane reaches buck2 build and fails on local macOS toolchain/linker configuration while linking third-party Rust build scripts for aarch64-unknown-linux-gnu; Apple ld rejects GNU flags such as --as-needed, -Bstatic, --eh-frame-hdr, -z, and --gc-sections.",
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests: stopped before tests by the same local linker/toolchain class while linking third-party Rust build scripts.",
+      "git fetch origin dev:refs/remotes/origin/dev: blocked because origin points to forgejo.local, which is not resolvable in this environment; local bridge fallback uses github-mirror/dev and does not change CI target authority."
+    ],
+    "expected_red_or_target_only": [
+      "specs/buck2-authority-policy.json claim_boundary keeps p0_0_green=false and phase0_complete=false until trusted cloud-ci/oya-ci posts oya-ci-required and dev branch protection requires it.",
+      "scripts/ci/oya-ci-post.sh remains local/bridge evidence only; destination authority is cloud-ci/oya-ci required context.",
+      "Cargo exception is limited to production release image/binary optimization evidence and metadata/vendor graph input; it cannot satisfy CI/CD/build/script, branch-protection, or Phase-0 exit authority."
+    ],
+    "passed": [
+      "python3 -m py_compile scripts/ci/enforce-buck2-authority.py",
+      "JSON syntax for buck2-authority policy, root hub pointers, phase0 automation matrix, canonical primitives, bespoke cloud toolchain services, masterplan, microservice migration tooling, branch-protection target JSON, and Jenkins reported contexts",
+      "bash -n for modified shell/Groovy-adjacent script lanes including buck2-affected-gate, pre-push bridge, oya-ci status bridge, build-and-push cloud intelligence, and no-cargo advisory hook",
+      "sh -n scripts/onprem-bring-up.sh",
+      "node --check for modified lint/validation MJS bridge scripts",
+      "Ruby YAML load for .github/workflows/backbone-microservices-ci.yml and .github/branch-protection.yaml",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS, command_scan_files=26, status_context_scan_files=7, adr_amendment_files=8, authority_context=oya-ci-required",
+      "git diff --check",
+      "direct rustfmt --edition 2024 check on all branch-changed Rust files after formatting hygiene repair; no Cargo formatter authority used",
+      "buck2 uquery //:buck2-authority-policy-check",
+      "buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED; output JSON verdict PASS",
+      "buck2 uquery //cloud/cloud-intelligence/iac/oci:cloud-intelligence-oci",
+      "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "scripts/ci/oya-ci-post.sh --skip-verify --dry-run rejected with unknown arg: --skip-verify",
+      "infra/ci/jenkins/agent-image/Dockerfile installs pinned Buck2 release 2026-06-01 and fails closed on buck2 --version",
+      "policy/Buck2 target coverage includes cloud/cloud-intelligence/iac/oci/BUCK and docs/standards/rust-release-optimization.md required anchors"
+    ]
+  }
+}

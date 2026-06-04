@@ -1,0 +1,39 @@
+{
+  "fixture_id": "TC-0.2-BAD-spec-without-code-dir",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "spec_code_manifest_mismatch"
+  ],
+  "status_fields": {
+    "decision_status": "accepted",
+    "maturity_status": "local_static_seed",
+    "constraint_status": "blocking"
+  },
+  "spec_manifest_pairs": [
+    {
+      "surface_id": "ghost",
+      "spec_path": "specs/microservices/ghost.json",
+      "code_path": "oya/ghost",
+      "manifest_path": "specs/microservices/ghost.json",
+      "spec_status_fields": {
+        "decision_status": "accepted",
+        "maturity_status": "local_static_seed",
+        "constraint_status": "blocking"
+      },
+      "manifest_status_fields": {
+        "decision_status": "accepted",
+        "maturity_status": "local_static_seed",
+        "constraint_status": "blocking"
+      }
+    }
+  ],
+  "claim_boundary": {
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  }
+}

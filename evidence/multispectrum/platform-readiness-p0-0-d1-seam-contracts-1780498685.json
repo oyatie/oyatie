@@ -1,0 +1,88 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "id": "EVT-P0-0-AC-0-5-D1-SEAM-CONTRACTS-1780498685",
+  "created_at": "2026-06-03T10:59:34-04:00",
+  "worktree": "/Users/jasonlee/Developer/source-p0-0-pr",
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "acceptance_criterion": "AC-0.5-d1-contract-files + AC-0.10-d1-consistency-token shape reference",
+  "summary": "Rust/Buck2 local/static D1 seam contract seed gate validates A2a mutation payload/result and A2b workflow-to-AI-step invocation proto3 contracts, keeps consistency_token proto-optional while requiring Phase-0 fixture presence, and preserves conformance-gated topology fields without claiming live D1 authority.",
+  "claim_boundary": {
+    "local_static_fixture_evidence_only": true,
+    "live_d1_conformance_executed": false,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "red_evidence": {
+    "path": "/tmp/p0-0-d1-seam-contracts-red-1780498059",
+    "missing_rust_checker_rc": 1,
+    "missing_buck2_target_rc": 3,
+    "buck2_missing_target_build_id": "bcd03fc8-f645-408f-80c3-219661dca76b",
+    "missing_files": [
+      "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
+      "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
+      "specs/d1-seam-contracts-registry.json",
+      "scripts/tests/d1_seam_contracts_check.rs"
+    ]
+  },
+  "green_evidence": {
+    "path": "/tmp/p0-0-d1-seam-contracts-final-pass2-1780498837",
+    "rust_unit_tests": "6 passed; 0 failed",
+    "d1_seam_contracts_checker": "PASS contract_count=2 fixture_count=3",
+    "red_green_fixture_contract": "PASS entry_count=21 green_marker_count=22 red_marker_count=23",
+    "automation_ratchet": "PASS row_count=32 coverage_subject_count=27 mapped_row_count=32",
+    "buck2_authority_policy": "PASS command_scan_files=199 status_context_scan_files=9",
+    "json_parse": "PASS",
+    "rustfmt_check": "PASS",
+    "git_diff_check": "PASS",
+    "buck2_combined_build_id": "a4dc849e-6a2e-47db-9a26-770750f9d276",
+    "buck2_targets": [
+      "//:d1-seam-contracts-check",
+      "//:phase0-red-green-fixture-contract-check",
+      "//:phase0-automation-ratchet-check",
+      "//:buck2-authority-policy-check"
+    ],
+    "rust_warning_policy": "rustc --edition=2021 -D warnings for checker and Rust test harness",
+    "prior_buck2_combined_build_ids": [
+      "69fa33d6-f10a-4d54-ae52-3c72bc874350"
+    ]
+  },
+  "files_added": [
+    "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
+    "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
+    "scripts/ci/assert-d1-seam-contracts.rs",
+    "scripts/tests/d1_seam_contracts_check.rs",
+    "specs/d1-seam-contracts-registry.json",
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-good-d1-seam-contracts.json",
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-missing-consistency-token.json",
+    "specs/fixtures/phase0-d1-seam-contracts/tc-0.5-bad-proto-required-or-frozen-topology.json"
+  ],
+  "files_updated": [
+    "BUCK",
+    "specs/phase0-automation-matrix.json",
+    "specs/phase0-automation-coverage-registry.json",
+    "specs/red-green-fixture-contract.json",
+    "scripts/tests/red_green_fixture_contract_check.test.sh",
+    "specs/buck2-authority-policy.json",
+    "specs/root-hub-pointers.json"
+  ],
+  "rust_modern_standard_recorded": {
+    "coverage_surface": "Buck2-native LLVM source-based coverage; Tarpaulin is not canonical monorepo coverage evidence.",
+    "mutation_surface": "Dual Cargo.toml + Buck2/Reindeer preserves local Cargo mutation testing as advisory developer feedback until captured by Buck2/cloud-ci evidence.",
+    "new_gate_surface": "Rust checker + Rust self-test harness compile under Buck2 genrule with -D warnings; no new Python or shell gate/test surface for AC-0.5.",
+    "hyperscaler_orientation": "Proto3 seam is tenant/principal-aware, idempotency-keyed, Cedar-principal-aware, versioned, fixture-backed, deterministic, and target-addressable while avoiding unsupported readiness claims."
+  },
+  "official_references": [
+    "https://protobuf.dev/programming-guides/proto3/",
+    "https://protobuf.dev/programming-guides/field_presence/",
+    "https://buck2.build/docs/users/commands/",
+    "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+    "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+    "https://github.com/facebookincubator/reindeer"
+  ],
+  "updated_at": "2026-06-03T11:00:53-04:00"
+}

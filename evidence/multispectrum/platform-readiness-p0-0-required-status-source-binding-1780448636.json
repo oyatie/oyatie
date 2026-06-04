@@ -1,0 +1,206 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "authority_refs": [
+    "CLAUDE.md",
+    "docs/AGENTS.md",
+    "specs/root-hub-pointers.json",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/buck2-authority-policy.json",
+    "specs/multispectrum-review.json",
+    "https://docs.github.com/rest/branches/branch-protection#update-status-check-protection"
+  ],
+  "branch": "feat/platform-readiness-p0-0-red-gap",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-required-status-source-binding",
+  "claim_boundary": {
+    "live_forgejo_converged": false,
+    "live_trusted_oya_ci_required_producer_evidenced": false,
+    "live_trusted_source_app_bound": false,
+    "note": "Local/static and live-read-only source-app binding evidence only; the checker never mutates branch protection or posts statuses and does not claim P0.0 green, Phase-0 completion, trusted cloud-ci/oya-ci producer deployment, live Forgejo convergence, tenant-facing readiness, security readiness, performance readiness, or production readiness.",
+    "p0_0_green": false,
+    "phase0_complete": false
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Single-purpose detector; no new dependencies; branch-protection mutation deliberately excluded."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Captures the control-plane source identity requirement as a deterministic gate input, preventing required-context spoofing by any app."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "missing_required_status_checks_checks_array, missing_required_status_source_app, wildcard_required_status_source_app, wrong_required_status_source_app, missing_required_context, required_context_not_in_checks_array, expected_source_app_id_not_configured",
+      "failing_fixture_added": true,
+      "failing_fixture_id": "bad-contexts-only-no-checks-array / bad-null-source-app / bad-wildcard-any-source-app / bad-wrong-source-app / bad-missing-required-context / bad-required-context-not-in-checks-array",
+      "findings": [
+        "Prevents a context-only, null-app, any-app, or wrong-app branch-protection rule from being treated as trusted cloud-ci/oya-ci authority."
+      ],
+      "passing_fixture_id": "good-bound-expected-source-app"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "JSON output includes contexts, checks, observed/expected app id, reason, and explicit authority boundary."
+      ],
+      "new_contributor_minutes_estimate": 10
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Fixture tests, baseline catalog closure, policy scan, and Buck2 target pass; live read-only check fails as expected on current dev branch protection."
+      ]
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Mutate branch protection to an unknown app id",
+        "Keep contexts-only branch protection as sufficient",
+        "Add read-only source-app binding detector"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Unknown app id mutation would be credentialed/external-production and could break merges.",
+        "Contexts-only branch protection does not prove trusted source identity."
+      ],
+      "selected_rationale": "Read-only detector advances executable evidence without changing live branch protection or overclaiming authority."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No credentials or tenant data touched; live artifact stores sanitized required-status response only."
+      ],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    }
+  },
+  "files_changed": [
+    "scripts/ci/assert-required-status-source.py",
+    "scripts/tests/phase0_required_status_source_check.test.sh",
+    "specs/fixtures/phase0-required-status-source/*.json",
+    "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "specs/phase0-ci-enforcement-baseline.json",
+    "specs/phase0-automation-matrix.json",
+    "specs/buck2-authority-policy.json",
+    "BUCK",
+    "evidence/multispectrum/platform-readiness-p0-0-required-status-source-live-dev-1780448463.json",
+    "evidence/multispectrum/platform-readiness-p0-0-required-status-source-binding-1780448636.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "freshness_unix": 1780449661,
+  "git_sha": "c14c6f3674bf",
+  "implementation_summary": [
+    "Added a read-only required-status source checker for GitHub branch-protection required_status_checks JSON.",
+    "Added fixture coverage for expected source-app success, missing checks array, app_id=null, wildcard app_id=-1, wrong app id, missing required context, and context missing from checks[].",
+    "Mapped the checker into the P0.0 baseline spec, automation matrix, Buck2 authority policy, and a new //:phase0-required-status-source-check target.",
+    "Recorded a durable sanitized live dev branch-protection read artifact showing oya-ci-required has app_id=null and therefore remains RED."
+  ],
+  "known_gaps": [
+    {
+      "id": "live-source-app-binding",
+      "reason": "Live GitHub dev required_status_checks.checks currently has app_id=null for oya-ci-required; trusted cloud-ci/oya-ci app id is not bound.",
+      "status": "open"
+    },
+    {
+      "id": "live-oya-ci-required-producer",
+      "reason": "PR #455 still reports no checks on the candidate branch; this slice detects branch-protection source binding but does not deploy/post the producer.",
+      "status": "open"
+    },
+    {
+      "id": "live-forgejo-convergence",
+      "reason": "No live Forgejo convergence evidence in this environment.",
+      "status": "open"
+    },
+    {
+      "id": "reviewer-approve-gate",
+      "reason": "Independent reviewer approval remains unavailable due token refresh/login errors.",
+      "status": "open"
+    }
+  ],
+  "last_revalidated_at": "2026-06-03T01:21:01Z",
+  "last_revalidated_unix": 1780449661,
+  "official_reference_summary": [
+    "GitHub branch-protection required_status_checks supports checks[].app_id to bind a required check to a source app; contexts-only or app_id=null cannot prove the trusted cloud-ci/oya-ci source app."
+  ],
+  "schema_version": "multispectrum-review/v2.4.0",
+  "scope": "P0.0 required-status source-app binding RED detector for GitHub branch-protection required_status_checks.checks[].app_id",
+  "session_id": "omx-1780447048629-3ynu4v",
+  "timestamp_iso": "2026-06-03T01:03:56Z",
+  "timestamp_unix": 1780448636,
+  "verification": [
+    {
+      "command": "python3 -m json.tool specs/phase0-ci-enforcement-baseline.json specs/phase0-automation-matrix.json specs/buck2-authority-policy.json evidence/multispectrum/platform-readiness-p0-0-required-status-source-binding-1780448636.json evidence/multispectrum/platform-readiness-p0-0-required-status-source-live-dev-1780448463.json",
+      "evidence": "Updated specs and source-binding evidence artifacts parse as JSON.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_required_status_source_check.test.sh",
+      "evidence": "Fixture tests pass for source-app success and all RED reasons, including missing checks array, app_id=null, app_id=-1 wildcard, wrong app id, missing context, and context not present in checks[].",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "bash scripts/tests/phase0_required_context_rollup_check.test.sh",
+      "evidence": "Prior PR statusCheckRollup trusted-producer RED detector remains covered after adding source-app binding checks.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m py_compile scripts/ci/assert-required-status-source.py scripts/ci/assert-pr-required-context.py scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Python syntax checks passed for new detector plus dependent regression checkers.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+      "evidence": "Baseline catalog reports required_status_source_fixtures=7 and p0_0_green=false/phase0_complete=false.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+      "evidence": "Auto-merge contract regression still passes with required-context rollup coverage intact.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+      "evidence": "Buck2 authority policy scan passed with command_scan_files=146 and status_context_scan_files=9.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "python3 live source artifact replay against evidence/multispectrum/platform-readiness-p0-0-required-status-source-live-dev-1780448463.json",
+      "evidence": "Durable live-read artifact records contexts=[oya-ci-required], checks=[{context: oya-ci-required, app_id: null}], checker_exit_code=1, verdict=FAIL, reason=missing_required_status_source_app, p0_0_green=false, phase0_complete=false.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "failed-as-expected"
+    },
+    {
+      "command": "bash scripts/evidence-secret-scan.sh evidence/multispectrum/platform-readiness-p0-0-required-status-source-binding-1780448636.json evidence/multispectrum/platform-readiness-p0-0-required-status-source-live-dev-1780448463.json evidence/audit-chain.jsonl",
+      "evidence": "Evidence secret scan passed across three target files.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "buck2 build //:phase0-required-status-source-check //:phase0-ci-enforcement-baseline-catalog-check //:buck2-authority-policy-check //:github-auto-merge-after-ci-check --show-output",
+      "evidence": "Build ID 38ef3f69-5b44-478d-9012-884d0064bef2; all four targets succeeded, including the new required-status source binding fixture target and prior GitHub required-context rollup coverage.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "Whitespace/conflict-marker diff hygiene passed.",
+      "revalidated_at": "2026-06-03T01:21:01Z",
+      "status": "passed"
+    }
+  ]
+}

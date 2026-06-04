@@ -1,0 +1,51 @@
+{
+  "agent_id": "codex-platform-readiness-p0-0",
+  "change_class_id": "CC-5",
+  "change_id": "platform-readiness-p0-0-claim-vocabulary",
+  "claim_boundary": "Local/static and fixture-backed P0.0 claim-ceiling enforcement evidence only. This does not claim P0.0 green, Phase-0 completion, live protected-branch enforcement, tenant-facing readiness, security readiness, performance readiness, or production readiness.",
+  "facets": {
+    "F1_linus": {"considered": true, "findings": ["Added one fail-closed vocabulary invariant instead of broadening the gate surface.", "Kept the check in the existing pure Rust kernel and fixture corpus."]},
+    "F2_hyperscaler": {"considered": true, "findings": ["Regulated claim language now has a closed vocabulary so new claim terms cannot bypass evidence-tier classification.", "The change supports AC-0.17 target/non-claim discipline without asserting live readiness."]},
+    "F3_adversarial": {"considered": true, "findings": ["Added a BAD fixture for an unregistered claim term and an evaluator violation named unknown_regulated_term.", "Seed claim rows now fail if a regulated term is absent from regulated_vocabulary."]},
+    "F4_ergonomic": {"considered": true, "findings": ["The fixture names the exact missing fix: register the term before using it in a claim row.", "The existing claim map remains the single place to inspect allowed Phase-0 vocabulary."]},
+    "F5_quality": {"considered": true, "findings": ["JSON syntax, rustfmt, diff hygiene, static vocabulary membership, Buck2 uquery, Buck2 authority policy, and Buck2 policy target build were run fresh.", "Buck2 kernel tests remain blocked by the local macOS/Linux linker configuration before test execution; this is recorded as a validation gap."]},
+    "F6_alternatives": {"considered": true, "findings": ["Rejected relying only on free-text scanning because claim rows themselves can introduce new terms.", "Rejected deleting the capacity claim row; capacity is a legitimate PERF-CAPACITY term and was added to the registered vocabulary instead."]},
+    "F7_security": {"considered": true, "findings": ["No secrets or tenant data touched.", "Fail-closed claim classification reduces risk of presenting advisory/local evidence as security or readiness authority."], "secrets_touched": false, "tenant_data_touched": false},
+    "F8_performance": {"considered": true, "findings": ["No performance readiness claim is made.", "The capacity/performance vocabulary remains spec-ready only until typed measured evidence exists."]},
+    "F9_operability": {"considered": true, "findings": ["The new BAD fixture is committed under the existing phase0-claim-ceiling fixture directory.", "No new oya CLI surface was added; enforcement remains in Rust/Buck2/cloud-ci target path."]},
+    "F10_observability": {"considered": true, "findings": ["Evidence records exact validation commands and the known Buck2 linker blocker."]},
+    "F11_compliance": {"considered": true, "findings": ["Supports AC-0.17/T0.17.1 by ensuring regulated terms map to the claim evidence map vocabulary.", "Keeps P0.0 non-claim labels intact."]},
+    "F12_reserved": {"considered": true, "not_applicable_reason": "Reserved facet; no reserved review requirement was triggered."},
+    "F13_policy_adherence": {"considered": true, "findings": ["No oya CLI command added.", "oya verify/gate remain local/bridge evidence only where mentioned elsewhere.", "Canonical {oya,cloud}/<service> + libs/ shape is preserved; microservices/ untouched."]}
+  },
+  "freshness_unix": 1780426285,
+  "git_sha": "2c51dd37c39baeb8bcf4c9b891f715fdbb469cd4",
+  "schema_version": "multispectrum-review/v2.4.0",
+  "scope": [
+    "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+    "specs/phase0-claim-evidence-map.json",
+    "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-unknown-regulated-term.json",
+    "evidence/multispectrum/platform-readiness-p0-0-claim-vocabulary-1780426285.json"
+  ],
+  "summary": "P0.0 T0.17 claim-ceiling vocabulary slice: claim rows now fail closed on regulated terms that are not registered in specs/phase0-claim-evidence-map.json, with a committed BAD fixture for unknown vocabulary.",
+  "timestamp_iso": "2026-06-02T18:51:25Z",
+  "validation": {
+    "passed": [
+      "python3 static vocabulary membership check -> PASS, vocabulary_terms=24, seed_rows=6, unknown-term fixture registered",
+      "rustfmt --edition 2024 --check oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+      "python3 -m json.tool specs/phase0-claim-evidence-map.json",
+      "python3 -m json.tool specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-unknown-regulated-term.json",
+      "git diff --check",
+      "buck2 uquery //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
+      "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json -> PASS",
+      "buck2 build //:buck2-authority-policy-check --show-output -> BUILD SUCCEEDED"
+    ],
+    "attempted_but_blocked": [
+      "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests -> NO TESTS RAN; local macOS linker rejects Linux GNU flags while linking third-party Rust build scripts (e.g. --as-needed, -Bstatic, --eh-frame-hdr, -z, --gc-sections)."
+    ],
+    "expected_red_or_target_only": [
+      "specs/phase0-ci-enforcement-baseline.json remains p0_0_red_gap_packet; this slice does not claim live required context or Phase-0 completion.",
+      "The new fixture is expected RED for unknown_regulated_term and is not readiness evidence."
+    ]
+  }
+}

@@ -9,17 +9,29 @@ doc_status: published
 
 ## 1. Rust (primary)
 
-- `rustfmt` with default settings (project-rooted `rustfmt.toml`)
-- `cargo clippy --workspace --all-features --all-targets -- -D warnings` clean (no exceptions in product code; dev-only `#[allow]` requires comment)
-- `cargo doc --no-deps` clean (no missing-docs warnings on public items)
+Buck2 is the active CI/CD/build/test authority for Rust. Cargo-based lint, test,
+doc, or watcher commands are historical/local-advisory references only unless they
+fit the documented production release image/binary optimization exception in
+[`rust-release-optimization.md`](rust-release-optimization.md) or the metadata-only
+Buck2 graph-generation exception in [`specs/buck2-authority-policy.json`](../../specs/buck2-authority-policy.json).
+
+- `rustfmt` with default settings (project-rooted `rustfmt.toml`); CI/CD lanes run
+  formatting checks through Buck2-owned targets or generated policy gates.
+- Lint hygiene is clean under the Buck2 lint/gate target set; product-code
+  exceptions still require comments and reviewer approval.
+- Rustdoc/API documentation hygiene is a Buck2-owned documentation target or
+  generated policy gate, not an independent Cargo merge authority.
 
 ### Dev workflow toolchain
 
-Three local-dev tools are first-class — every engineer should use them:
+Local editor feedback tools may exist, but they are not merge, CI, CD, build, or
+Phase-0 exit authority. The canonical workflow is:
 
-- **`bacon`** (Apache-2 / MIT) — background `cargo check` + `cargo clippy` + `cargo nextest` watcher. Run `bacon` in a side terminal during authoring; receive instant feedback on save. Project ships a `bacon.toml` with curated jobs (`check`, `clippy`, `test`, `nextest`, `doc`, `arch-boundary`).
-- **`cargo-machete`** (Apache-2 / MIT) — finds unused Cargo dependencies. Run `cargo machete` periodically (and at every dependency-add PR). Surfaces accidental adoption + supports the in-house preference + license-conscious posture by killing dead deps before they accumulate licenses.
-- **`cargo-nextest`** (Apache-2 / MIT) — fast, parallel test runner with sharding + flaky-quarantine integration. Canonical (per project memory + ADR-0024). NEVER use bare `cargo test`. Per [`oya verify`](../TOOLCHAIN.md) bundle.
+- Run Buck2 affected build/test/gate targets for the touched graph.
+- Treat legacy Cargo-based local tools as non-authority hints unless the run is a
+  documented production release artifact optimization measurement.
+- Encode any selected release optimization back into the Buck2 toolchain, target
+  graph, or Buck2-built OCI path before it becomes standard.
 - Naming: `snake_case` for functions/vars/modules; `UpperCamelCase` for types/traits; `SCREAMING_SNAKE_CASE` for consts
 - Error type: `thiserror`-derived per crate; never panic at API boundaries; `Result<T, E>` always; `?` propagation preferred over `match`
 - Async: `tokio` + structured concurrency; `JoinHandle`s explicitly awaited or detached with cancellation; never spawn-and-forget without supervision
