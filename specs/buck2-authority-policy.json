@@ -275,8 +275,8 @@
     "scripts/ci/run-rust-llvm-coverage-smoke.py",
     "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
     "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
-    "scripts/ci/assert-buck2-cargo-target-coverage.py",
-    "scripts/tests/buck2_cargo_target_coverage_check.test.sh",
+    "scripts/ci/assert-buck2-cargo-target-coverage.rs",
+    "scripts/tests/buck2_cargo_target_coverage_check.rs",
     "specs/buck2-cargo-target-coverage.json",
     "scripts/ci/assert-red-green-fixture-contract.py",
     "scripts/tests/red_green_fixture_contract_check.test.sh",
@@ -435,8 +435,8 @@
       "rust-llvm-coverage-smoke-check",
       "run-rust-llvm-coverage-smoke.py",
       "buck2-cargo-target-coverage-check",
-      "assert-buck2-cargo-target-coverage.py",
-      "buck2_cargo_target_coverage_check.test.sh",
+      "assert-buck2-cargo-target-coverage.rs",
+      "buck2_cargo_target_coverage_check.rs",
       "repo_relative_root",
       "cacheable = False",
       "remote = False",
@@ -1076,7 +1076,7 @@
       "src/bin/*/main.rs",
       "cargo_autodiscovery_rule"
     ],
-    "scripts/ci/assert-buck2-cargo-target-coverage.py": [
+    "scripts/ci/assert-buck2-cargo-target-coverage.rs": [
       "local/static target-coverage evidence only",
       "crate_root",
       "missing_buck2_target_root_mapping",
@@ -1088,7 +1088,7 @@
       "src/bin",
       "workspace_member_glob"
     ],
-    "scripts/tests/buck2_cargo_target_coverage_check.test.sh": [
+    "scripts/tests/buck2_cargo_target_coverage_check.rs": [
       "target_coverage_measured",
       "missing_buck2_target_root_mapping",
       "good-parent-repo",
