@@ -325,7 +325,7 @@
     {
       "id": "retired_external_substrate_residue",
       "lane": "platform-scm-ci-cd",
-      "action": "Preserve historical ADR provenance but remove active docs/code paths, root/service retired CI entrypoint files, and retired CI support manifests that keep retired external SCM/CI/CD substrates as interim authority.",
+      "action": "Preserve historical ADR provenance but remove active docs/code paths, root/service retired CI entrypoint files, retired CI support manifests, and retired local SCM/CD manifests that keep retired external SCM/CI/CD substrates as interim authority.",
       "conflict_mitigation": "Use tombstone registry and active exact-name scan instead of repeated whole-repo manual sweeps."
     },
     {
@@ -333,6 +333,12 @@
       "lane": "platform-scm-ci-cd",
       "action": "Track GitHub bridge artifacts as temporary; cut over only after native SCM/CI/CD/cloud workspace evidence exists.",
       "conflict_mitigation": "Keep temporary bridge specs separate from native destination specs."
+    },
+    {
+      "id": "cd_fleet_bootstrap_surface_retirement",
+      "lane": "platform-release-conveyor",
+      "action": "Evaluate and retire or rewrite remaining retired external CD/CAPI/GitOps fleet bootstrap surfaces into native Oyatie release-conveyor/control-plane seams; do not treat retired external CD controllers as interim deployment authority.",
+      "conflict_mitigation": "Handle infra/gitops, infra/capi/crs, and deployment-ops specs in a dedicated lane so product and SCM/CI cleanup lanes do not contend on broad deployment docs."
     }
   ],
   "security_backlog_validation": {

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # bring-up.sh — one command from a bare vfkit Talos cluster to the local Oyatie
-# substrate: Cilium (CNI) -> local-path (storage) -> Forgejo (historical local SCM).
+# substrate base: Cilium (CNI) -> local-path (storage).
 # GitHub/GitHub Actions is the temporary SCM/CI lane unlocker per ADR-0516; this
-# helper no longer installs retired external CI controllers.
+# helper no longer installs retired external SCM/CI/CD controllers.
 #
 # Prereq: `infra/talos/local/talos-local.sh up --role single` has produced a
 # kubeconfig at ${OYA_TALOS_WORKDIR:-$HOME/.oya/talos-local}/kubeconfig.
@@ -74,26 +74,17 @@ storage() {
   ok "local-path is the default StorageClass"
 }
 
-# ── 3. Forgejo (source-of-truth SCM) ──────────────────────────────────────────
-forgejo() {
-  log "Forgejo (SCM)"
-  kubectl apply -f "$REPO/infra/forge/forgejo.yaml" >/dev/null
-  kubectl rollout status deployment/forgejo -n oya-forge --timeout=180s
-  ok "Forgejo: svc forgejo.oya-forge:3000"
-}
-
 # ── access summary + remaining (human-auth) wiring ────────────────────────────
 summary() {
-  log "Local Oyatie substrate is up. Reach the remaining local UI from the host:"
-  printf '  kubectl --kubeconfig %s -n oya-forge port-forward svc/forgejo 3000:3000\n' "$KUBECONFIG"
-  warn "CI/CD is not bootstrapped here: use the temporary GitHub lane unlocker until native oya-ci/release-conveyor manifests are ready."
+  log "Local Oyatie substrate base is up."
+  warn "SCM/CI/CD is not bootstrapped here: use the temporary GitHub lane unlocker until native Oyatie SCM, oya-ci, and release-conveyor manifests are ready."
 }
 
 main() {
   case "${1:-all}" in
-    cni) cni;; storage) storage;; forgejo) forgejo;; summary) summary;;
-    all) cni; storage; forgejo; summary;;
-    *) die "usage: $0 [all|cni|storage|forgejo|summary]";;
+    cni) cni;; storage) storage;; summary) summary;;
+    all) cni; storage; summary;;
+    *) die "usage: $0 [all|cni|storage|summary]";;
   esac
 }
 main "$@"

@@ -4,8 +4,7 @@
 # BuildKit-pushed images + serves image pulls):
 #   - same-namespace pod-to-pod.
 #   - oya-ci (BuildKit pushes images here).
-#   - oya-forge (post-build promotion paths — Forgejo deploy hooks).
-#   - argocd (sync + image pulls of ArgoCD-managed apps).
+#   - native release conveyor/image-promotion paths after cutover.
 #   - kube-system (kubelet image pulls; node-side).
 #
 # Egress unconstrained.
@@ -29,12 +28,6 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: oya-ci
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: oya-forge
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: argocd
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: kube-system

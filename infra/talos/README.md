@@ -1,5 +1,5 @@
 > **SUPERSEDED (2026-05-27) by ADR-0375.** Cluster bring-up is now **Talos
-> installation-media (USB zero-touch) + Cluster API + per-cell Argo CD**:
+> installation-media (USB zero-touch) + Cluster API + per-cell deployment controller**:
 > `infra/talos/installation-media/` (the `gen-media.sh` ISO generator + README),
 > `infra/capi/` (clusterctl pins + init + ClusterResourceSet), and
 > `infra/capi/clusters/` (the parameterized spoke-cell Helm chart). There is NO
@@ -87,8 +87,9 @@ Once Phase A is green:
 
 ## Follow-ups (tracked separately)
 - Record the substrate decision as an ADR (supersedes the colima+k3s toolchain note).
-- Migrate the canonical substrate (Jenkins/Forgejo/OpenBao/ArgoCD/Rollouts/observability/Valkey) onto
-  Talos via an ArgoCD **app-of-apps** (Cilium = sync-wave 0, then platform). GitOps, no hand-rolling.
+- Migrate the canonical substrate (OpenBao/observability/Valkey plus native
+  SCM/CI/CD/release seams) onto Talos through Oyatie-owned cloud-native control
+  planes. Retired external SCM/CI/CD substrates are not interim authorities.
 - Move Talos secrets (`~/talos-mac/talosconfig`, machine secrets) into **OpenBao** / sops — not git.
 - Optional 3rd worker for strict 3-replica anti-affinity (vs `maxSkew:1`/`ScheduleAnyway` on 2).
 - For zero-touch VM creation: Parallels 26 (`prlctl create/set`) instead of UTM's GUI golden+clone.
