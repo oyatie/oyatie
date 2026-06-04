@@ -13,6 +13,14 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 
 Captured by real-time web lookup. All versions reflect upstream-current LTS or stable channel as of 2026-05-12. Sources cited inline; full URL list at bottom.
 
+2026-06-04 partial amendment: the GitHub Actions temporary lane-unlocker
+runtime has been refreshed per ADR-0516 and `/specs/github-lane-unlocker-bridge.json`.
+Repository workflows use `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` and
+`actions/checkout@v6`; Node 26 is not used as the JavaScript action runtime
+because GitHub's migration target for JavaScript actions is Node 24. Use Node 26
+only in explicit `actions/setup-node` application jobs when a product lane needs
+that runtime.
+
 Methodology: live web search against canonical upstream sources (project websites, GitHub releases, PyPI, npm, crates.io). For projects that do not publish a formal "LTS" track (SQLite, Cosign, OpenTelemetry, Envoy, K8s upstream, BoringSSL), the substitute reference is the current stable / mainline tag. Provider-SDK rows reflect the **published current release**, not LTS, because none of the three frontier-model SDKs publishes LTS.
 
 ---
@@ -97,13 +105,13 @@ Methodology: live web search against canonical upstream sources (project website
 
 ## Currently-pinned in oyatie (cross-reference)
 
-Sources read: `/Users/jasonlee/oyatie/rust-toolchain.toml` (`channel = "1.95.0"`); `/Users/jasonlee/oyatie/Cargo.toml` (workspace `rust-version = "1.95.0"`, edition 2024); `/Users/jasonlee/oyatie/rustfmt.toml` (`edition = "2024"`, `style_edition = "2024"`); `/Users/jasonlee/oyatie/docs/AGENTS.md` (Codex appendix references Node 20 for `pnpm build` / `pnpm test`); `/Users/jasonlee/oyatie/deny.toml` (license allow-list: 0BSD, Apache-2.0, BSD-2/3, ISC, MIT, MPL-2.0, Unicode-3.0).
+Sources read: `/Users/jasonlee/Developer/source/rust-toolchain.toml` (`channel = "1.95.0"`); `/Users/jasonlee/Developer/source/Cargo.toml` (workspace `rust-version = "1.95.0"`, edition 2024); `/Users/jasonlee/Developer/source/rustfmt.toml` (`edition = "2024"`, `style_edition = "2024"`); `/Users/jasonlee/Developer/source/.github/workflows/github-lane-unlocker-ci-cd.yml` and `/Users/jasonlee/Developer/source/.github/workflows/backbone-microservices-ci.yml` (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`, `actions/checkout@v6`); `/Users/jasonlee/Developer/source/specs/github-lane-unlocker-bridge.json` (Node 24 action-runtime decision, Node 26 non-use rationale); `/Users/jasonlee/Developer/source/deny.toml` (license allow-list: 0BSD, Apache-2.0, BSD-2/3, ISC, MIT, MPL-2.0, Unicode-3.0).
 
 | Component | Oyatie pinned | Current LTS / stable | Behind? | Severity |
 |---|---|---|---|---|
 | Rust toolchain | 1.95.0 (`rust-toolchain.toml`; workspace `rust-version`) | 1.95.0 (stable) | No | OK — cargo-deny 0.19 MSRV 1.85 is below the workspace pin. |
 | Rust edition | 2024 (`workspace.package.edition`; rustfmt `edition`/`style_edition`) | 2024 available | No | OK — workspace crates and formatter policy are on the 2024 line. |
-| Node.js | 20 (per docs/AGENTS.md Codex appendix) | 24 Active LTS (22 Maintenance) | One major behind LTS line | MED — Node 20 enters Maintenance Oct 2025; move to 22 or 24. |
+| Node.js / GitHub Actions JS runtime | GitHub workflows force Node 24 action runtime; no repo-wide Node app runtime pin | GitHub Actions migration target is Node 24; Node 26 only for explicit setup-node application jobs | No for Actions bridge | OK — `actions/checkout@v6` plus `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`; do not use `ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION`. |
 | Python | not pinned in repo | 3.14.5 / 3.13.13 maintained | n/a | LOW (no Python product code in workspace currently). |
 | Go | not pinned in repo | 1.26.3 | n/a | LOW (no Go service in workspace). |
 | TypeScript | not pinned at repo root | 6.0 stable | unknown | MED — Foundry-workspace kernel (`oya-foundry-typescript-workspace-kernel`) should declare a TS floor. |
