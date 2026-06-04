@@ -320,6 +320,7 @@ genrule(
         "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
         "docs/ci/openbao-eso-runbook.md": "docs/ci/openbao-eso-runbook.md",
         "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+        "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md": "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
         "docs/standards/brief-template.md": "docs/standards/brief-template.md",
         "docs/standards/agentic-dev-team-optimization.md": "docs/standards/agentic-dev-team-optimization.md",
         "docs/DOC-CATALOG.md": "docs/DOC-CATALOG.md",

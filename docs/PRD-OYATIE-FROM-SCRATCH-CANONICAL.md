@@ -82,7 +82,7 @@ The first production release must prove four things:
 | Employee or member | Complete daily work across communication, documents, workflows, approvals, and search | One sign-in, one workspace, fewer context switches |
 | Tenant builder | Model business objects, build workflows, install integrations, and automate repetitive work | Workflow Studio, ontology, plugins, connectors, and agent assistance |
 | Developer or ISV | Build integrations and publish capabilities safely | Stable APIs, SDKs, webhooks, marketplace path, sandboxed plugins |
-| Operator or SRE | Deploy, observe, recover, and govern production cells | Ops Control Center, GitOps, evidence, SLOs, runbooks, DR drills |
+| Operator or SRE | Deploy, observe, recover, and govern production cells | Ops Control Center, declarative deployment evidence, SLOs, runbooks, DR drills |
 | Security or compliance officer | Prove access, consent, retention, residency, and incident handling | Audit exports, policy evidence, data lineage, DSR and retention reports |
 | Regional compliance owner | Adapt Oyatie to a jurisdiction without forking the product | Regional packs for law, tax, identity, payment, language, and evidence |
 | Agent operator | Run multi-provider agents under human and policy control | Capability registry, autonomy ceilings, provider routing, evidence chain |
@@ -179,7 +179,7 @@ The first production release must prove four things:
 |---|---|---|
 | CLD-01 | Provide cell-based compute, storage, network, IAM, KMS, billing, observability, and deployment primitives | Internal Oyatie workloads run on the same cell model |
 | CLD-02 | Deploy server-side workloads on Kubernetes unless an explicit edge exception is approved | All workloads declare cell, tenant, plane, data class, and SLO |
-| CLD-03 | Use OpenTofu for infrastructure as code and Argo CD for GitOps deployment | Desired state, drift, and deployment evidence are auditable |
+| CLD-03 | Use OpenTofu for infrastructure as code and the native release conveyor for Kubernetes deployment | Desired state, drift, promotion, rollback, and deployment evidence are auditable |
 | CLD-04 | Provide backup, restore, DR pairing, restore drills, capacity planning, cost, and carbon reporting | Restore drills produce evidence and meet RTO/RPO targets |
 
 ## 7. Technical Architecture Requirements
@@ -326,11 +326,11 @@ Rules:
 |---|---|
 | Runtime orchestration | Kubernetes for server-side workloads |
 | Infrastructure as code | OpenTofu only |
-| GitOps CD | Argo CD |
-| CI | GitHub Actions for hosted workflows; Jenkins LTS for self-hosted, air-gapped, on-prem, and colo parity |
+| Native CD | Oyatie release conveyor on Kubernetes controllers with progressive delivery, bake windows, and metric-gated rollback |
+| CI | Prow/Kubernetes-native `oya-ci` is native authority; GitHub Actions remains temporary/shadow/publication compatibility until cutover |
 | Image registry | OCI registry with signed image enforcement |
 | Deployment modes | Shared cloud, dedicated cell, hybrid, on-prem, air-gapped, and future owned/colocated capacity |
-| Agent-safe repository workflow | Isolated plain-git branch, PR against `dev`, Jenkins required checks, `oya gate` / `oya verify`, reviewer/governance approval |
+| Agent-safe repository workflow | Isolated plain-git branch, PR against `dev`, Buck2 evidence, trusted Prow/Kubernetes-native `oya-ci-required`, and protected-branch review approval |
 
 ### 8.7 Retired Or Rejected Choices
 
@@ -341,7 +341,7 @@ Rules:
 | Product coupling through hidden direct calls | Workflow, ontology, and declared shared contracts |
 | Unbounded agent tools | Capability registry and autonomy ceiling |
 | Hand-maintained API drift | Source contracts plus generated SDKs and compatibility tests |
-| Infrastructure drift by manual console edits | OpenTofu plan/apply and Argo CD reconciliation |
+| Infrastructure drift by manual console edits | OpenTofu plan/apply and native release-conveyor reconciliation |
 | Unsigned images | Signed OCI images with verification |
 
 ## 9. Product Surfaces
@@ -595,13 +595,14 @@ Exit criteria:
 
 ### 12.4 Cloud And Ops Preview
 
-Build internal cloud cells, OpenTofu modules, Argo CD deployment, Kubernetes
-runtime, KMS/secrets, observability, backup, restore, DR, capacity, FinOps, and
-Ops Control Center.
+Build internal cloud cells, OpenTofu modules, native release-conveyor
+deployment, Kubernetes runtime, KMS/secrets, observability, backup, restore,
+DR, capacity, FinOps, and Ops Control Center.
 
 Exit criteria:
 
-- Oyatie workloads run in a cell with signed images and GitOps deployment.
+- Oyatie workloads run in a cell with signed images and native progressive
+  deployment.
 - Operators can trace incidents from alert to rollback.
 - Restore drill evidence exists.
 - Infrastructure drift is detected and reconciled.
@@ -632,7 +633,7 @@ Exit criteria:
 | Data boundary gate | Search, RAG, analytics, ads, exports, and provider routing enforce data class and consent |
 | Layer gate | Kernel/domain/application/adapter/API dependencies point inward only |
 | Supply-chain gate | Images are signed, SBOMs exist, provenance is attached, forbidden licenses fail |
-| Deployment gate | OpenTofu plan, Argo CD sync, drift detection, rollback, and restore evidence exist |
+| Deployment gate | OpenTofu plan, native release-conveyor sync, drift detection, rollback, and restore evidence exist |
 | Ops gate | SLOs, alerts, runbooks, owners, incident workflow, and restore drills exist |
 | Localization gate | Regional pack obligations are declared, tested, and evidenced |
 
@@ -641,10 +642,10 @@ Recommended local command vocabulary:
 ```bash
 git worktree add -b <branch> <isolated-worktree> origin/dev
 git status --short --branch
-oya verify --ci-required
-oya gate run-all
+buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check
 git push -u origin <branch>
 gh pr create --base dev --head <branch>
+gh pr checks <pr-number> --watch
 ```
 
 ## 14. Success Metrics
@@ -745,8 +746,7 @@ implementation must not rely on stale assumptions when a source has changed.
 | Leptos SSR and islands | https://book.leptos.dev/ssr/ and https://book.leptos.dev/islands.html |
 | Kubernetes | https://kubernetes.io/docs/concepts/overview/ |
 | OpenTofu | https://opentofu.org/docs/intro/ |
-| Argo CD | https://argo-cd.readthedocs.io/en/stable/ |
-| Jenkins Pipeline | https://www.jenkins.io/doc/book/pipeline/ |
+| Prow | https://docs.prow.k8s.io/ |
 | Cedar policy language | https://docs.cedarpolicy.com/ |
 | OpenTelemetry | https://opentelemetry.io/docs/ |
 | PostgreSQL | https://www.postgresql.org/docs/current/intro-whatis.html |
@@ -797,10 +797,12 @@ needed; Wasmtime for WASM plugin sandboxing; Kata plus Cloud Hypervisor-class
 isolation for untrusted tenant code.
 
 Deploy server-side workloads to Kubernetes. Use OpenTofu for infrastructure as
-code, Argo CD for GitOps, signed OCI images, SBOMs, cosign/Sigstore provenance,
-SLSA posture, GitHub Actions for hosted CI, and Jenkins LTS for self-hosted or
-air-gapped parity. Use the plain-git branch, PR, Jenkins, `oya gate` / `oya verify`, and reviewer/governance lifecycle for
-agent-safe changes.
+code, the native release conveyor for progressive Kubernetes deployment, signed
+OCI images, SBOMs, cosign/Sigstore provenance, SLSA posture, Prow/Kubernetes-native
+`oya-ci` as CI authority, and GitHub Actions only as temporary/shadow/publication
+compatibility until cutover. Use the isolated plain-git branch, PR, Buck2
+evidence, trusted Prow/Kubernetes-native `oya-ci-required`, and protected-branch
+review approval for agent-safe changes.
 
 Hard rules:
 - One tenant boundary everywhere.
@@ -826,8 +828,8 @@ Delivery order:
    billing entry points, audit viewer, mail, chat, calendar, drive, docs, forms,
    meet, tasks, notes, and search.
 4. Cloud plus ops: internal cells, compute, storage, network, KMS, billing,
-   OpenTofu, Argo CD, Kubernetes, backup, restore, DR, capacity, cost, carbon,
-   and Ops Control Center.
+   OpenTofu, native release conveyor, Kubernetes, backup, restore, DR,
+   capacity, cost, carbon, and Ops Control Center.
 5. First commercial vertical: prefer corporate operations unless product council
    selects a different regulated vertical.
 
