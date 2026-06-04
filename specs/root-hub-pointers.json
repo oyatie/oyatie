@@ -18,7 +18,7 @@
     ],
     "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file.",
     "last_audited": "2026-06-04",
-    "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349.; ADR-0516 GitHub lane-unlocker pointer coverage.; repo hygiene automation + retired external substrate tombstone registry + GitHub publication adapter pointers + P00/P01 security-hardening backlog validation crosswalk."
+    "audit_scope": "ADR-0513 Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapter and GitHub Actions shadow compatibility, Rust/Buck2 repo-hygiene automation, retired oya CLI authority posture, and stale shared-surface cleanup backlog."
   },
   "entry_points": {
     "_retired_constitutional_authority": {
@@ -64,7 +64,7 @@
       "current_path": "docs/AGENTS.md",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, ADR-0516 temporary GitHub bridge/native cutover governance transitions, multispectrum evidence, legacy-tool retirement notes)."
+      "purpose": "Canonical agent operating contract (done-definition checklist, ADR-0513 Prow/Kubernetes-native oya-ci authority, GitHub adapter/shadow governance transitions, multispectrum evidence, legacy-tool retirement notes)."
     },
     "agent_durable_goal": {
       "kind": "goal_prompt",
@@ -73,21 +73,21 @@
       "archive_manifest": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
       "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Current long-running goal prompt for planning closure and FD-001 implementation. It supersedes the older 2026-05-16 durable-goal spec and old implement-masterplan prompts by making /specs/masterplan.json, /specs/planning-closure-contract.json, ADR-0516 temporary GitHub bridge/native cutover governance, vertical delivery ordering, Tenant RBAC view + Tenant RBAC view first delivery, canonical base, Korea localization pack, and stale-document archival the live execution contract."
+      "purpose": "Current long-running goal prompt for planning closure and FD-001 implementation. It supersedes the older 2026-05-16 durable-goal spec and old implement-masterplan prompts by making /specs/masterplan.json, /specs/planning-closure-contract.json, ADR-0513 Prow/Kubernetes-native oya-ci authority plus GitHub adapter/shadow governance, vertical delivery ordering, Tenant RBAC view + Tenant RBAC view first delivery, canonical base, Korea localization pack, and stale-document archival the live execution contract."
     },
     "score_cards": {
       "kind": "spec",
       "current_path": "/specs/score-cards.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Concrete deterministic score-card inventory consumed by `oya gate validate loop-recovery-patterns` and the canonical `oya verify` pre-push path. Companion to agent_durable_goal.score_cards."
+      "purpose": "Concrete deterministic score-card inventory consumed by Rust/Buck2/Prow governance jobs; historical `oya gate` and `oya verify` CLI authority is retired. Companion to agent_durable_goal.score_cards."
     },
     "loop_recovery_patterns": {
       "kind": "registry",
       "current_path": "/registry/loop-recovery-patterns",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Append-only repeat-loop recovery patterns linked to deterministic score-card ids and mistakes-ledger rows. Enforced by `oya gate validate loop-recovery-patterns` under `oya verify`."
+      "purpose": "Append-only repeat-loop recovery patterns linked to deterministic score-card ids and mistakes-ledger rows. Historical CLI enforcement wording is retired; forward checks run as Rust/Buck2/Prow jobs."
     },
     "check_empirical_evidence": {
       "kind": "registry",
@@ -122,7 +122,7 @@
       "current_path": "/specs/crate-naming-audit.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Per-package naming audit including retired_package_notes for traceability (e.g., oya-governance-archive-orphan retired by ADR-0118)."
+      "purpose": "Per-package naming audit including retired_package_notes for traceability (e.g., oya-governance-archive-orpha retired by ADR-0118)."
     },
     "knowledge_graph_schema": {
       "kind": "schema",
@@ -276,7 +276,7 @@
       "current_path": "/specs/master-plan-sequencing.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Forbidden-primitive list + ADR-0516 temporary GitHub bridge/native cutover governance protocol + ledger-required-fields + execution sequence. Also carries Wave 15-ZF doctrine propagation pointers for ADR-0346, ADR-0347, ADR-0348, and ADR-0349, including the canonical purpose excerpts and enforced_by lane lists consumed by downstream artifact slots."
+      "purpose": "Forbidden-primitive list + P00 native SCM/Prow/Kubernetes-native oya-ci lane-unlocker + ADR-0516 GitHub adapter/shadow compatibility + ledger-required-fields + execution sequence. Also carries Wave doctrine propagation pointers and enforced_by lane lists consumed by downstream artifact slots."
     },
     "hyperscaler_gates": {
       "kind": "spec",
@@ -325,14 +325,14 @@
       "current_path": "/specs/gitops-vcs-replacement.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "M01-P07 historical VCS replacement contract: semantic symbol locks + ChangeBundle/GitOps promotion/controller integration for CI/CD-safe agent work."
+      "purpose": "Historical Oyatie Native SCM/grit-replacement planning registry, reframed 2026-06-04 as Sapling-inspired Oyatie Native SCM service/control-plane guidance. It is not authority to revive an `oya vcs` CLI; forward CI/CD integrates with Prow/Kubernetes-native oya-ci and release-conveyor-like CD."
     },
     "test_standard": {
       "kind": "spec",
       "current_path": "/specs/test-standard.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Machine-readable unit/integration/e2e/property/fuzz test standard enforced by GitOps VCS admission and CI/CD gates."
+      "purpose": "Machine-readable unit/integration/e2e/property/fuzz test standard enforced by native SCM/oya-ci admission and CI/CD gates."
     },
     "test_set_registry": {
       "kind": "registry",
@@ -1093,7 +1093,7 @@
       "current_path": "/specs/cloud-toolchain-target.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-toolchain",
-      "purpose": "Cloud toolchain target (P-TOOLCHAIN): Buck2 build/test/check authority, Cargo metadata/Reindeer-style generation only where useful, temporary GitHub/GitHub Actions lane unlocker under ADR-0516, and native Oyatie SCM + rust-prow/oya-ci/cloud-workspace/release-conveyor cutover seams. Target spec; no native cutover/runtime claimed."
+      "purpose": "Cloud toolchain target (P-TOOLCHAIN): Buck2 build/test/check authority, Cargo metadata/Reindeer-style generation only where useful, Sapling-inspired native SCM service, Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapter plus GitHub Actions shadow compatibility, and release-conveyor-like cutover seams. Target spec; no full native cutover/runtime claimed."
     },
     "phase0_ci_enforcement_baseline": {
       "kind": "spec",
@@ -1288,29 +1288,29 @@
       "kind": "spec",
       "current_path": "/specs/github-lane-unlocker-bridge.json",
       "target_path_after_md_retirement": "same",
-      "migration_phase": "P00-imminent",
-      "purpose": "Temporary GitHub/GitHub Actions lane-unlocker plus GitHub public/private publication bridge while native cloud-native/Kubernetes-native/hyperscaler-native SCM/CI/CD seams mature under Buck2 authority."
+      "migration_phase": "P00-shadow-compatibility",
+      "purpose": "Legacy/shadow GitHub/GitHub Actions lane-unlocker plus GitHub public/private publication bridge while native cloud-native/Kubernetes-native/hyperscaler-native SCM/CI/CD seams mature under Buck2 and oya-ci authority."
     },
     "adr_0516_github_actions_interim_lane_unlocker": {
       "kind": "adr",
       "current_path": "/docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
       "target_path_after_md_retirement": "adr registry successor",
-      "migration_phase": "P00-imminent",
-      "purpose": "Decision record for GitHub/GitHub Actions temporary bridge, no retired external SCM/CI/CD substrates interim, Buck2 authority, and native cutover boundaries."
+      "migration_phase": "P00-shadow-compatibility",
+      "purpose": "Historical/compatibility decision record for GitHub/GitHub Actions bridge, no retired external SCM/CI/CD substrates interim authority, Buck2 authority, and native cutover boundaries. Superseded for active CI authority by ADR-0513 Prow/Kubernetes-native oya-ci."
     },
     "github_actions_lane_unlocker_procedure": {
       "kind": "procedure",
       "current_path": "/docs/ci/github-actions-lane-unlocker.md",
       "target_path_after_md_retirement": "procedure registry successor",
-      "migration_phase": "P00-imminent",
-      "purpose": "Operator/agent procedure for parallel dev-lane unlock with GitHub Actions matrix/concurrency and Buck2 verification."
+      "migration_phase": "P00-shadow-compatibility",
+      "purpose": "Operator/agent procedure for legacy/shadow GitHub Actions compatibility and PR/publication adapter evidence; not durable CI authority."
     },
     "repo_hygiene_automation": {
       "kind": "spec",
       "current_path": "/specs/repo-hygiene-automation.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "P00-imminent",
-      "purpose": "Automation contract for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene, native SCM GitHub adapters, shared-surface reduction, and validated P00/P01 security-hardening backlog crosswalk."
+      "purpose": "Automation contract for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene, native SCM GitHub adapters, Prow/Kubernetes-native oya-ci direction, shared-surface reduction, and validated P00/P01 security-hardening backlog crosswalk."
     },
     "retired_external_substrate_registry": {
       "kind": "spec",
@@ -1332,17 +1332,19 @@
     "regional-pack": "Regional policy, regulatory, operational, and market-specific pack authority."
   },
   "agent_quick_start_protocol": {
-    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
+    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .oya_ci_prow_capability_parity + .repo_hygiene_automation. Historical gitops_vcs_replacement is pattern provenance only and does not revive a retired `oya vcs` CLI.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical interim path is plain `git` + an isolated worktree branch + PR against `dev` + the ADR-0516 temporary GitHub Actions required context + Buck2/oya governance evidence + reviewer approval. Retired external SCM/CI/CD substrates are tombstoned in /specs/retired-external-substrate-registry.json and are not active interim authorities.",
+    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + an isolated worktree branch + PR against `dev` + Buck2 evidence + reviewer approval + trusted Prow/Kubernetes-native `oya-ci-required` context. GitHub remains PR/publication adapter; GitHub Actions is shadow compatibility only. Do not use or recreate an `oya vcs` CLI.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate (`oya gate run-all`, locally and in the ADR-0516 GitHub Actions bridge). The legacy ChangeBundle/Oya VCS admission framing is provenance-only per ADR-0363.",
-    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, use /specs/github-lane-unlocker-bridge.json and /specs/repo-hygiene-automation.json as the P00 live bridge. Historical gitops/vcs replacement docs are provenance unless explicitly reactivated by a newer ADR."
+    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks Rust/Buck2/Prow governance jobs. Retired `oya gate` / `oya verify` CLI authority and legacy ChangeBundle/native SCM admission framing are provenance-only per ADR-0363.",
+    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, use /specs/repo-hygiene-automation.json and /specs/oya-ci-prow-capability-parity.json as the P00 live direction. /specs/github-lane-unlocker-bridge.json remains shadow compatibility and adapter evidence only."
   },
   "specs_directory_audit_2026_05_20": {
     "top_level_specs_count": 63,
     "covered_top_level_specs_count": 63,
-    "missing_top_level_specs_after_gardening": [],
+    "missing_top_level_specs_after_gardening": [
+
+    ],
     "thin_specs_deepened": [
       "/specs/agent-operating-contract.json",
       "/specs/design-spec-maturity-claims.json",

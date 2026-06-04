@@ -2470,10 +2470,10 @@ Pass: Cedar denies undeclared resource access.
 
 This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
 
-- ADR-0346 binds Workplace Integration acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0513/ADR-0346 amendment binds Workplace Integration acceptance to Buck2-backed local verification and Prow/Kubernetes-native `oya-ci-required`; retired `oya verify` CLI surfaces are historical/local migration inputs only. Enforced-by cross-reference: Rust/Buck2/Prow governance mirror, step-exit, and skip-policy lanes.
 - ADR-0347 binds Workplace Integration authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
 - ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 binds workplace deployment and product-preview delivery to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+- ADR-0513 supersedes the old self-hosted CI/CD binding for workplace deployment and product-preview delivery: Prow/Kubernetes-native `oya-ci-required` owns CI evidence, release-conveyor-like CD owns promotion, and GitHub Actions is shadow evidence only. Enforced-by cross-reference: Rust/Buck2/Prow oya-ci parity, Kubernetes-native workload isolation, signed artifact/provenance, and release-conveyor audit lanes.
 
 ## References
 
@@ -2491,7 +2491,7 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
 - docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
-- docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
+- docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md
 - specs/products/workplace-integration.json
 - specs/microservices/workflow-engine.json
 - specs/microservices/workflow-studio.json

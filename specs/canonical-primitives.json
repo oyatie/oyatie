@@ -16,26 +16,30 @@
     {
       "title": "VCS / Git",
       "lines": [
-        "Canonical during ADR-0516 bridge: plain `git` + short-lived isolated worktree branches + pull requests against `dev` through GitHub/GitHub Actions.",
-        "GitHub/GitHub Actions is the temporary SCM/CI lane-unlocker, not the permanent first-class substrate.",
-        "Native destination: Oyatie-owned SCM (Sapling-inspired Rust implementation or fork/reimplementation as justified) plus oya-ci/release-conveyor cutover; do not revive retired external SCM/CI/CD substrates as interim authorities."
+        "Current lane entry: plain `git` + short-lived isolated worktree branches + pull requests against `dev` through GitHub as PR/publication adapter.",
+        "GitHub is not the permanent first-class substrate; GitHub Actions is compatibility/shadow evidence only.",
+        "Native destination: Oyatie-owned SCM (Sapling-inspired Rust implementation or fork/reimplementation as justified) plus oya-ci/release-conveyor seams; do not revive retired external SCM/CI/CD substrates as interim authorities."
       ],
       "authority": [
         "ADR-0363",
+        "ADR-0513",
         "ADR-0516"
       ]
     },
     {
       "title": "CI gate (the merge gate)",
       "lines": [
-        "Current bridge gate: the GitHub Actions aggregate context `github-lane-unlocker-required` plus Buck2/governance evidence and reviewer approval.",
+        "Merge authority target: Rust, Prow-shaped, Kubernetes-native oya-ci controller posts source-bound `oya-ci-required` from trusted controller state.",
+        "GitHub Actions `github-lane-unlocker-required` is legacy/shadow compatibility evidence only; it is not durable CI authority.",
         "Buck2 remains the build/test/check authority; Cargo is advisory/local only and coverage is LLVM source-based through Buck2 rather than Tarpaulin.",
-        "Native cutover target: bespoke Rust oya-ci/rust-prow controller and release-conveyor seams after trusted producer evidence exists.",
+        "Governance checks survive as Rust libraries, Buck2 targets, and Prow jobs; `oya gate` / `oya verify` CLI invocations are not merge authority.",
         "Retired external SCM/CI/CD substrates are not interim branch-protection, merge, or deployment authorities."
       ],
       "authority": [
+        "ADR-0513",
         "ADR-0516",
-        "ADR-0363"
+        "ADR-0363",
+        "specs/oya-ci-prow-capability-parity.json"
       ],
       "supersedes": [
         "ADR-0349",
@@ -48,10 +52,11 @@
       "title": "Coordination (per agent lane)",
       "lines": [
         "one isolated worktree branch per agent lane (one lane = one worktree)",
-        "commit + push on that lane; open a PR against `dev` through the ADR-0516 GitHub lane-unlocker",
-        "merge readiness = `github-lane-unlocker-required` green + Buck2 affected evidence + reviewer-agent APPROVE until native cutover"
+        "commit + push on that lane; open a PR against `dev` through GitHub as adapter while native SCM matures",
+        "merge readiness = `oya-ci-required` green + Buck2 evidence + reviewer-agent APPROVE; GitHub Actions checks are compatibility/shadow only"
       ],
       "authority": [
+        "ADR-0513",
         "ADR-0516",
         "ADR-0363"
       ]
@@ -165,7 +170,7 @@
       "lines": [
         "Using retired VCS wrapper aliases instead of plain git + isolated worktree + PR + bridge gate.",
         "Citing retired external SCM/CI/CD substrates as active branch-protection, merge, or deployment authorities.",
-        "Treating GitHub/GitHub Actions as permanent instead of the ADR-0516 temporary lane-unlocker.",
+        "Treating GitHub/GitHub Actions as durable CI authority instead of PR/publication adapter plus shadow compatibility.",
         "Writing `openapi: 3.3.0` or `asyncapi: 3.0.0`.",
         "Treating `microservices/` as the live top-level layout (it is `cloud/` + `oya/`).",
         "Bypassing Buck2 authority with Cargo, ad hoc shell, or ad hoc Python gates.",
@@ -174,6 +179,7 @@
       ],
       "authority": [
         "ADR-0221",
+        "ADR-0513",
         "ADR-0516"
       ]
     }
@@ -183,7 +189,7 @@
     "pod_runtime_tier": "ADR-0338",
     "cell_promotion_gates": "ADR-0341",
     "api_versioning": "ADR-0342",
-    "ci_farm_substrate": "specs/ci-farm-substrate-canonical.json (ADR-0349 superseded pattern record; active bridge is ADR-0516 GitHub/GitHub Actions, native destination is rust-prow/oya-ci)",
+    "ci_farm_substrate": "specs/oya-ci-prow-capability-parity.json (ADR-0513 Prow/Kubernetes-native authority; ADR-0516 GitHub Actions bridge is shadow compatibility only)",
     "http_stack_policy": "specs/http-stack-policy.json",
     "forbidden_operations": "specs/forbidden-operations.json",
     "decision_principles": "specs/decision-principles.json",

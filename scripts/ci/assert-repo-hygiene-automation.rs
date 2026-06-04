@@ -30,8 +30,7 @@ const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
 const STALE_DOC_INVENTORY_TEST_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests";
-const PLANNING_CLOSURE_BUCK2_COMMAND: &str =
-    "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure";
+const REQUIRED_BUCK2_AUTHORITY_COMMAND: &str = "buck2 build //:repo-hygiene-automation-check";
 const RETIRED_PLANNING_CLOSURE_COMMAND: &str =
     "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
 const RETIRED_PYTHON_COMMAND: &str = "python3 scripts/ci/assert-repo-hygiene-automation.py --json";
@@ -60,6 +59,10 @@ const REQUIRED_SOURCE_URLS: &[&str] = &[
     "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue",
     "https://docs.github.com/en/actions/sharing-automations/reusing-workflows",
     "https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs",
+    "https://docs.prow.k8s.io/docs/",
+    "https://docs.prow.k8s.io/docs/overview/architecture/",
+    "https://docs.prow.k8s.io/docs/components/core/tide/",
+    "https://docs.prow.k8s.io/docs/jobs/",
     "https://sapling-scm.com/docs/introduction/",
     "https://sapling-scm.com/docs/scale/overview/",
     "https://architecture.cncf.io/",
@@ -122,6 +125,10 @@ const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "stale_doc_inventory_followups",
     "retired_external_substrate_residue",
     "temporary_github_bridge_artifacts",
+    "retire_oya_cli_governance_authority",
+    "typescript_pnpm_retirement_review",
+    "prow_job_registry_generation",
+    "python_shell_to_rust_buck2_migration",
     "cd_fleet_bootstrap_surface_retirement",
     "retired_external_scm_adapter_retirement",
 ];
@@ -134,6 +141,11 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "legacy_self_hosted_git_forge required-checks/auto-merge is the substrate target",
     "manual oya-ci-required success statuses to merge bridge PRs",
     "infra/ci/buck2-affected-gate.sh origin/dev HEAD",
+    "github-lane-unlocker-required is merge authority",
+    "The required temporary context is `github-lane-unlocker-required`",
+    "dev requires github-lane-unlocker-required",
+    "oya gate is merge authority",
+    "oya verify is CI authority",
 ];
 
 const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
@@ -144,6 +156,11 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "self-hosted Forgejo required-checks/auto-merge is the substrate target",
     "manual oya-ci-required success statuses to merge bridge PRs",
     "infra/ci/buck2-affected-gate.sh origin/dev HEAD",
+    "github-lane-unlocker-required is merge authority",
+    "The required temporary context is `github-lane-unlocker-required`",
+    "dev requires github-lane-unlocker-required",
+    "oya gate is merge authority",
+    "oya verify is CI authority",
 ];
 
 const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
@@ -166,12 +183,15 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     "docs/MASTERPLAN.md",
     PROCEDURE_PATH,
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+    "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
     ROOT_HUB_PATH,
     MASTERPLAN_PATH,
     SEQUENCING_PATH,
     "specs/cloud-toolchain-target.json",
+    "specs/bespoke-cloud-toolchain-services.json",
+    "specs/gitops-vcs-replacement.json",
     "specs/cloud-strangler-migration-target.json",
     GITHUB_BRIDGE_PATH,
     CANONICAL_PRIMITIVES_PATH,
@@ -344,12 +364,12 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "shared-surface mitigation must require generated consolidation",
         ),
         (
-            "\"required_interim_context\": \"github-lane-unlocker-required\"",
-            "active context drift scan must require github-lane-unlocker-required",
+            "\"required_native_context\": \"oya-ci-required\"",
+            "active context drift scan must require oya-ci-required",
         ),
         (
-            "\"native_cutover_context\": \"oya-ci-required\"",
-            "active context drift scan must preserve oya-ci-required as native cutover only",
+            "\"legacy_shadow_context\": \"github-lane-unlocker-required\"",
+            "active context drift scan must preserve github-lane-unlocker-required as legacy/shadow context",
         ),
         (
             "\"new_markdown_default\": \"reject_unless_registered_or_lane_owned\"",
@@ -358,6 +378,34 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         (
             "\"claim_boundary\": \"inventory_only_no_deletion_no_archive_no_live_mutation\"",
             "stale-doc inventory must remain inventory-only",
+        ),
+        (
+            "\"anti_patterns_guardrails\"",
+            "repo hygiene spec must record hyperscaler/cloud/Kubernetes-native anti-pattern guardrails",
+        ),
+        (
+            "\"trusted_controller_owned_oya_ci_required\"",
+            "anti-pattern guardrails must require controller-owned oya-ci-required truth",
+        ),
+        (
+            "\"controller_oriented_kubernetes_scale_pause_drain\"",
+            "anti-pattern guardrails must require controller-oriented Kubernetes workload handling",
+        ),
+        (
+            "\"pointer_thin_or_generated_shared_surfaces\"",
+            "anti-pattern guardrails must require pointer-thin or generated shared surfaces",
+        ),
+        (
+            "\"retired_external_substrate_bridge_authority\"",
+            "anti-pattern guardrails must reject retired substrate bridge authority",
+        ),
+        (
+            "\"blind_kubectl_delete_pods\"",
+            "anti-pattern guardrails must reject blind pod deletion",
+        ),
+        (
+            "\"github_actions_as_durable_ci_authority\"",
+            "anti-pattern guardrails must reject GitHub Actions as durable CI authority",
         ),
     ] {
         require_contains(spec, needle, &mut failures, message);
@@ -368,7 +416,9 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         ("live_mutation_performed", false),
         ("buck2_authority", true),
         ("github_bridge_temporary", true),
+        ("github_actions_shadow_only", true),
         ("native_scm_requires_github_adapter", true),
+        ("cli_revival_allowed", false),
         ("legacy_python_shell_migration_backlog", true),
         ("archive_before_delete", true),
         ("thin_pointer_shared_docs", true),
@@ -408,7 +458,7 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         "git worktree add",
         "gh pr create --base dev",
         "buck2 build //:repo-hygiene-automation-check",
-        "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+        "buck2 build //:buck2-authority-policy-check",
     ] {
         require(
             contains_json_string(spec, tool_example),
@@ -499,7 +549,7 @@ pub fn retired_service_ci_entrypoint_failures(root: &Path) -> Vec<String> {
             let rel = format!("{service_root}/{service_name}/ci/Jenkinsfile");
             if root.join(&rel).exists() {
                 failures.push(format!(
-                    "{rel}: retired service Jenkins CI entrypoint must not exist; use the temporary GitHub lane unlocker now and native oya-ci after cutover"
+                    "{rel}: retired service Jenkins CI entrypoint must not exist; use Prow/Kubernetes-native oya-ci and keep GitHub Actions as shadow compatibility only"
                 ));
             }
         }
@@ -514,7 +564,7 @@ pub fn retired_active_path_failures(root: &Path) -> Vec<String> {
         .filter(|rel| root.join(rel).exists())
         .map(|rel| {
             format!(
-                "{rel}: retired active CI substrate path must not exist; use the temporary GitHub lane unlocker now and native oya-ci after cutover"
+                "{rel}: retired active CI substrate path must not exist; use Prow/Kubernetes-native oya-ci and keep GitHub Actions as shadow compatibility only"
             )
         })
         .collect()
@@ -600,7 +650,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     );
     require_contains(
         &masterplan,
-        PLANNING_CLOSURE_BUCK2_COMMAND,
+        REQUIRED_BUCK2_AUTHORITY_COMMAND,
         &mut failures,
         MASTERPLAN_PATH,
     );
@@ -617,7 +667,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     );
     require_contains(
         &sequencing,
-        PLANNING_CLOSURE_BUCK2_COMMAND,
+        REQUIRED_BUCK2_AUTHORITY_COMMAND,
         &mut failures,
         SEQUENCING_PATH,
     );
@@ -656,7 +706,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         for tool_example in [
             "git worktree add",
             "gh pr create --base dev",
-            "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+            "buck2 build //:repo-hygiene-automation-check",
+            "buck2 build //:buck2-authority-policy-check",
         ] {
             require_contains(text, tool_example, &mut failures, label);
         }
@@ -664,9 +715,16 @@ pub fn evaluate(root: &Path) -> Evaluation {
 
     for (label, text) in [
         (README_PATH, readme.as_str()),
+        (AGENTS_PATH, agents.as_str()),
+        (CLAUDE_PATH, claude.as_str()),
         (DOC_AGENTS_PATH, doc_agents.as_str()),
-        (PROCEDURE_PATH, procedure.as_str()),
     ] {
+        require_contains(text, "Prow", &mut failures, label);
+        require_contains(text, "Kubernetes-native", &mut failures, label);
+        require_contains(text, "oya-ci-required", &mut failures, label);
+    }
+
+    for (label, text) in [(PROCEDURE_PATH, procedure.as_str())] {
         require_contains(text, "github-lane-unlocker-required", &mut failures, label);
     }
 

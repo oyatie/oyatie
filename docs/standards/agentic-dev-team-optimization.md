@@ -20,7 +20,7 @@ doc_status: published
 
 Cross-cutting principles that distinguish oyatie's repo from a human-developer-team repo. Industry best practices assume a human typing into an editor; oyatie's developer is a fully-agentic team executing in parallel. This standard codifies the optimisation vectors that make every artifact agent-friendly: structured, parallel-safe, idempotent, audit-chain-sealed, fail-closed, smallest-actionable.
 
-Every artifact authored in oyatie MUST satisfy these principles. The `oya-governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces. The retired `oya vcs` claim/verify/done/promote ratchet is historical only; live coordination uses plain git branches, PRs, Jenkins, and `oya gate` / `oya verify`.
+Every artifact authored in oyatie MUST satisfy these principles. The `oya-governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces. The retired `oya vcs` claim/verify/done/promote ratchet is historical only; live coordination uses plain git/gh PR adapters, Buck2, and Prow/Kubernetes-native `oya-ci-required`. Retired `oya gate` / `oya verify` CLI surfaces are not merge authority.
 
 ## Principle 1 — Semantic branch scope
 

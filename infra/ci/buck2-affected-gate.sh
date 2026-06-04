@@ -1,18 +1,20 @@
 #!/bin/sh
-# buck2-native affected-only CI gate.
+# buck2-native affected-only CI gate compatibility shim.
 #
 # Builds + tests the reverse-dependency closure of the PR's changed files —
 # the hyperscaler "affected targets" pattern (Google/Meta), buck2-native via
 # `uquery owner()` + `rdeps()`. Replaces the cargo-era `oya verify --affected`.
-# No oya-dev-cli dependency.
+# No oya-dev-cli dependency. This shell wrapper is a migration target for the
+# Rust/Buck2 ProwJob registry path; do not add new behavior here unless it is
+# required to keep the bridge green before the Rust port lands.
 #
 # Usage:  buck2-affected-gate.sh <base-ref> [head-ref]
 #         base-ref  — the merge-base anchor (e.g. origin/dev)
 #         head-ref  — the tip to diff (default: HEAD)
 #
-# The 1-arg form (buck2-affected-gate.sh origin/dev) is BACKWARD-COMPATIBLE:
-# HEAD is the PR checkout in the Jenkins bridge path, so omitting head-ref
-# keeps the existing Jenkins call unchanged.
+# The 1-arg form (buck2-affected-gate.sh origin/dev) is backward-compatible:
+# HEAD is the PR checkout in the GitHub Actions shadow bridge, so omitting
+# head-ref keeps existing shadow jobs unchanged.
 #
 # The 2-arg form (buck2-affected-gate.sh origin/dev origin/pr-N) is used by
 # the controller Job, where the working tree is trunk (dev) and the PR ref

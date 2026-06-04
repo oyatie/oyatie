@@ -619,7 +619,7 @@ ${journeyTable(service, journeys)}
 The service is implementation-ready for pack-specific certification evidence because the docs name controls, events, rollback, retention, residency, and SLO evidence before product code lands.
 
 ## F. Self-modification and agent controls
-${service.title} does not self-modify runtime code. Agent-authored changes must use Oya VCS claim, verify, done, and promote. Generated artifacts are static docs and scaffolds subject to review.
+${service.title} does not self-modify runtime code. Agent-authored changes must use the native SCM/worktree lease + PR evidence path with Buck2 verification and Prow/Kubernetes-native oya-ci-required; retired Oya VCS CLI claim/verify/done/promote surfaces must not be revived. Generated artifacts are static docs and scaffolds subject to review.
 
 ${namingSection(service)}
 `;

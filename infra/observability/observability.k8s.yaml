@@ -1,7 +1,7 @@
 # Observability substrate on k3s (ADR-0130/0131) — OTLP-native, OSI-clean, lean for the farm.
 # OTel Collector (OTLP ingest) -> VictoriaMetrics (metrics store, Prometheus-compatible, Apache-2.0,
 # low-resource) -> Grafana (viz, AGPL but self-hosted-tool-only, not shipped in product). Services +
-# Jenkins emit OTLP to the collector; the gateway/DORA/SLO-engine query VictoriaMetrics. Traces/logs
+# Prow/Kubernetes-native oya-ci jobs emit OTLP to the collector; DORA/SLO engines query VictoriaMetrics. Traces/logs
 # (Tempo/Loki/Vector) are a follow-up; metrics + OTLP ingest + dashboards are the core.
 # Grafana admin password comes from a k8s Secret (generated at deploy), never plaintext in this file.
 apiVersion: v1

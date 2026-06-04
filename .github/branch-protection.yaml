@@ -1,36 +1,30 @@
-# ADR-0516 amendment (2026-06-03): temporary GitHub/GitHub Actions lane-unlocker.
-# The temporary required context is github-lane-unlocker-required. This is not the permanent CI/SCM authority,
-# and it is not interim retired external SCM/CI/CD substrate authority. Buck2 remains build/test/check authority;
-# native cutover keeps oya-ci-required as the destination context after proof; during the bridge, dev requires github-lane-unlocker-required so no manual oya-ci-required status is needed.
+# ADR-0513 amendment (2026-06-04): Prow/Kubernetes-native oya-ci is CI authority.
+# The required dev context is oya-ci-required. GitHub/GitHub Actions remains a
+# PR/publication adapter and may emit github-lane-unlocker-required as shadow
+# compatibility evidence only; it is not merge authority and must not impersonate
+# the trusted oya-ci producer. Buck2 remains build/test/check authority.
 
 # Branch-protection shadow/target record for dev/staging/production.
-# As of the P0.0 gap packet, live GitHub dev protection does not reflect
-# this file exactly; drift is recorded in
-# specs/phase0-ci-enforcement-baseline.json. This file is not Phase-0
-# exit authority until a trusted cloud-ci/oya-ci required context is live.
+# This file does not mutate live branch protection. It records the target
+# ruleset agents should preserve while native SCM and release-conveyor seams
+# mature.
 #
-# Pipeline topology (per feedback_branch_pipeline_final_final,
-# 2026-05-12):
+# Pipeline topology:
 #
-#   per-agent worktree → local main → dev → staging → production
+#   per-agent worktree → PR adapter → dev → staging → production
 #
 # Branches in this file are the SHARED-WORLD branches (L2/L3/L4):
 #
-#   - dev        Shared-world entry point. PRs target here. 3-gate:
-#                signed-commits + linear-history + every required
-#                CI check green. Default branch on github.
-#   - staging    Promotion from dev is deferred to the native release conveyor.
-#                ADR-0516 explicitly prevents retired external SCM/CI/CD substrates from
-#                becoming interim CD authority. GitHub Actions may prepare
-#                dry-run evidence only until native cutover.
-#   - production Promotion from staging to production is deferred to the native release
-#                conveyor. ADR-0516 keeps GitHub Actions CD as dry-run bridge
-#                only and rejects retired external SCM/CI/CD substrates interim authority.
+#   - dev        Shared-world entry point. PRs target here. Required evidence:
+#                signed commits + linear history + trusted oya-ci-required.
+#   - staging    Promotion from dev is owned by native release-conveyor-like CD.
+#                GitHub Actions may prepare dry-run evidence only.
+#   - production Promotion from staging to production is owned by native release
+#                conveyor and requires native evidence, rollback, policy, audit,
+#                and signed provenance.
 #
-# `main` is RETAINED for read-only legacy compatibility but has NO
-# protection and is not the default branch. PRs targeting `main` are
-# accepted only for emergency hotfixes that bypass the pipeline; new
-# work targets `dev`.
+# `main` is retained for read-only legacy compatibility but has no protection and
+# is not the default branch. New work targets `dev`.
 
 branches:
   dev:
@@ -39,27 +33,15 @@ branches:
     disallow_force_push: true
     require_signed_commits: true
     require_signed_tags: true
-    # Reviews are agent-run and fully automated. GitHub human approving
-    # reviews are not merge authority; `oya-pr-review` is future reviewer
-    # evidence only until its producer is live and explicitly required.
+    # Reviews are agent-run and automated unless a lane explicitly requires a
+    # human/council reviewer. GitHub approving reviews are not merge authority.
     required_approving_reviews: 0
-    # ADR-0516 temporary target: one automated GitHub Actions aggregate
-    # context. Native cutover will replace this with oya-ci-required once
-    # oya-ci-controller posts trusted candidate-SHA status from cloud-ci
-    # control state. Legacy tool-specific lanes are historical feedback only, not
-    # protected-branch merge or Phase-0 exit authority.
-    # NOTE: oya-pr-review is intentionally ABSENT from required checks.
-    # Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet
-    # shipped); requiring it would deadlock every PR. It can return only after
-    # the reviewer-agent endpoint is live and explicitly classified.
+    # ADR-0513 target: trusted Prow/Kubernetes-native oya-ci aggregate context.
+    # GitHub Actions github-lane-unlocker-required is shadow compatibility only.
     required_status_checks:
-      - github-lane-unlocker-required
+      - oya-ci-required
 
   staging:
-    # Native release conveyor target. ADR-0516 does not authorize interim
-    # retired external SCM/CI/CD substrates promotion; GitHub Actions may generate dry-run
-    # evidence only. What this shadow file still enforces: the ref must only
-    # move forward, commits must be signed, no force-push, no deletion.
     require_pull_request: false
     require_linear_history: true
     disallow_force_push: true
@@ -67,9 +49,6 @@ branches:
     require_signed_tags: true
 
   production:
-    # Native production release conveyor target. ADR-0516 does not authorize
-    # interim retired external SCM/CI/CD substrates production promotion. FULL-rollout
-    # requires native evidence, canary/rollback, and signed provenance.
     require_pull_request: false
     require_linear_history: true
     disallow_force_push: true

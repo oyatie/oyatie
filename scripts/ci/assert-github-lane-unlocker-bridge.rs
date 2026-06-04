@@ -30,8 +30,8 @@ const RETIRED_PYTHON_BRIDGE_PATH: &str = "scripts/ci/assert-github-lane-unlocker
 const BRIDGE_BUCK2_COMMAND: &str = "buck2 build //:github-lane-unlocker-bridge-check";
 const THIRD_PARTY_HAND_EDITS_BUCK2_COMMAND: &str =
     "buck2 build //:third-party-durable-handedits-check";
-const REQUIRED_CONTEXT: &str = "github-lane-unlocker-required";
-const NATIVE_CUTOVER_CONTEXT: &str = "oya-ci-required";
+const LEGACY_SHADOW_CONTEXT: &str = "github-lane-unlocker-required";
+const REQUIRED_NATIVE_CONTEXT: &str = "oya-ci-required";
 
 const REQUIRED_NATIVE_SEAMS: &[&str] = &[
     "oyatie_scm",
@@ -265,10 +265,10 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         has_string_value(
             spec,
             "bridge_status",
-            "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+            "github_actions_shadow_bridge_not_native_authority",
         ),
         &mut failures,
-        "spec.bridge_status must be temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
+        "spec.bridge_status must be github_actions_shadow_bridge_not_native_authority",
     );
 
     for (key, value, message) in [
@@ -296,7 +296,7 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         (
             "manual_oya_ci_required_bridge_allowed",
             false,
-            "manual oya-ci-required bridge must be disabled during the GitHub lane unlocker",
+            "manual oya-ci-required bridge must be disabled during the GitHub shadow bridge",
         ),
         (
             "force_node24_runtime",
@@ -391,7 +391,7 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         (
             "native_ci_authority_proven",
             false,
-            "claim_boundary.native_ci_authority_proven must be false",
+            "claim_boundary.native_ci_authority_proven must remain false until live parity evidence is attached",
         ),
     ] {
         require(has_bool(spec, key, value), &mut failures, message);
@@ -414,23 +414,28 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
     for (key, value, message) in [
         (
             "interim_scm",
-            "github",
-            "github_bridge.interim_scm must be github",
+            "github_adapter",
+            "github_bridge.interim_scm must be github_adapter",
         ),
         (
             "interim_ci",
-            "github_actions",
-            "github_bridge.interim_ci must be github_actions",
+            "github_actions_shadow",
+            "github_bridge.interim_ci must be github_actions_shadow",
         ),
         (
             "interim_cd",
-            "github_actions",
-            "github_bridge.interim_cd must be github_actions",
+            "github_actions_dry_run_shadow",
+            "github_bridge.interim_cd must be github_actions_dry_run_shadow",
         ),
         (
-            "required_context",
-            REQUIRED_CONTEXT,
-            "github_bridge.required_context must be github-lane-unlocker-required",
+            "legacy_shadow_context",
+            LEGACY_SHADOW_CONTEXT,
+            "github_bridge.legacy_shadow_context must be github-lane-unlocker-required",
+        ),
+        (
+            "required_native_context",
+            REQUIRED_NATIVE_CONTEXT,
+            "github_bridge.required_native_context must be oya-ci-required",
         ),
         (
             "workflow_path",
@@ -439,12 +444,12 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         ),
         (
             "branch_protection_application",
-            "live_dev_required_context_converged_to_github_lane_unlocker_required_until_native_cutover",
-            "github_bridge.branch_protection_application must mark the live temporary required context convergence",
+            "target_dev_required_context_is_oya_ci_required_github_actions_shadow_only",
+            "github_bridge.branch_protection_application must mark oya-ci-required as the target dev context",
         ),
         (
             "native_cutover_target_context",
-            NATIVE_CUTOVER_CONTEXT,
+            REQUIRED_NATIVE_CONTEXT,
             "github_bridge.native_cutover_target_context must remain oya-ci-required",
         ),
         (
@@ -464,8 +469,8 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         ),
         (
             "mode",
-            "github_actions_cd_bridge_until_release_conveyor_cutover",
-            "github_actions_cd_bridge.mode must be temporary GitHub Actions CD bridge",
+            "github_actions_cd_shadow_until_release_conveyor_cutover",
+            "github_actions_cd_bridge.mode must be GitHub Actions CD shadow",
         ),
         (
             "cutover_destination",
@@ -517,9 +522,9 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
     }
 
     require(
-        !has_string_value(spec, "required_context", NATIVE_CUTOVER_CONTEXT),
+        !has_string_value(spec, "legacy_shadow_context", REQUIRED_NATIVE_CONTEXT),
         &mut failures,
-        "temporary GitHub bridge must not reuse destination oya-ci-required context as its required_context",
+        "GitHub shadow bridge must not reuse destination oya-ci-required as its legacy_shadow_context",
     );
 
     require(
@@ -630,12 +635,12 @@ pub fn workflow_failures(workflow: &str) -> Vec<String> {
         "lane unlocker workflow must not use Tarpaulin",
     );
     require(
-        workflow.contains(REQUIRED_CONTEXT),
+        workflow.contains(LEGACY_SHADOW_CONTEXT),
         &mut failures,
-        "lane unlocker workflow must expose the temporary required context",
+        "lane unlocker workflow must expose the legacy shadow context",
     );
     require(
-        !workflow.contains(NATIVE_CUTOVER_CONTEXT),
+        !workflow.contains(REQUIRED_NATIVE_CONTEXT),
         &mut failures,
         "lane unlocker workflow must not impersonate oya-ci-required",
     );
@@ -702,17 +707,22 @@ pub fn evaluate(root: &Path) -> Evaluation {
     for (key, value, message) in [
         (
             "status",
-            "temporary_bridge_not_destination_authority",
-            "infra/branch-protection/dev.json must declare temporary bridge status",
+            "github_actions_shadow_not_destination_authority",
+            "infra/branch-protection/dev.json must declare GitHub Actions shadow status",
         ),
         (
             "required_context",
-            REQUIRED_CONTEXT,
-            "infra/branch-protection/dev.json temporary bridge context must be github-lane-unlocker-required",
+            REQUIRED_NATIVE_CONTEXT,
+            "infra/branch-protection/dev.json target required context must be oya-ci-required",
+        ),
+        (
+            "legacy_shadow_context",
+            LEGACY_SHADOW_CONTEXT,
+            "infra/branch-protection/dev.json legacy shadow context must be github-lane-unlocker-required",
         ),
         (
             "native_cutover_target_context",
-            NATIVE_CUTOVER_CONTEXT,
+            REQUIRED_NATIVE_CONTEXT,
             "infra/branch-protection/dev.json must preserve native cutover context",
         ),
     ] {
@@ -724,9 +734,9 @@ pub fn evaluate(root: &Path) -> Evaluation {
     }
     require(
         compact_json_text(&branch_json)
-            .contains("\"contexts\":[\"github-lane-unlocker-required\"]"),
+            .contains("\"contexts\":[\"oya-ci-required\"]"),
         &mut failures,
-        "infra/branch-protection/dev.json must require automated github-lane-unlocker-required during the temporary bridge",
+        "infra/branch-protection/dev.json must target oya-ci-required as the required check",
     );
     require(
         has_bool(&branch_json, "live_mutation_performed_by_this_file", false),
@@ -744,10 +754,10 @@ pub fn evaluate(root: &Path) -> Evaluation {
     );
 
     for needle in [
-        REQUIRED_CONTEXT,
-        "temporary GitHub/GitHub Actions lane-unlocker",
-        "not the permanent CI/SCM authority",
-        "not interim retired external SCM/CI/CD substrate authority",
+        REQUIRED_NATIVE_CONTEXT,
+        "Prow/Kubernetes-native oya-ci is CI authority",
+        "github-lane-unlocker-required as shadow",
+        "GitHub/GitHub Actions remains",
     ] {
         require_contains(&branch_yaml, needle, &mut failures, BRANCH_PROTECTION_YAML);
     }
@@ -852,12 +862,12 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"workflow\":\"{}\",\"temporary_required_context\":\"{}\",\"native_cutover_target_context\":\"{}\",\"p0_0_green\":false,\"phase0_complete\":false,\"local_static_only\":true,\"live_mutation_performed\":false,\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"workflow\":\"{}\",\"legacy_shadow_context\":\"{}\",\"required_native_context\":\"{}\",\"p0_0_green\":false,\"phase0_complete\":false,\"local_static_only\":true,\"live_mutation_performed\":false,\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         WORKFLOW_PATH,
-        REQUIRED_CONTEXT,
-        NATIVE_CUTOVER_CONTEXT,
+        LEGACY_SHADOW_CONTEXT,
+        REQUIRED_NATIVE_CONTEXT,
         failures
     )
 }

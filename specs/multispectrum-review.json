@@ -19,16 +19,16 @@
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-05-14T00:00:00Z",
-    "updated_at": "2026-05-20T00:00:00Z",
+    "updated_at": "2026-06-04T17:10:00Z",
     "human_companion": "docs/standards/multispectrum-review.md",
     "v2_directive": "User directive 2026-05-14: 'additional spectrums that we should enforce into every single thing we do. including foundry. foundry's agentic flow + our current dev flow. should be enforced.' v2.0.0 adds F8 performance, F9 compliance as REQUIRED facets, and M1 challenge_assumption + M2 zoomed_out_fit as OPTIONAL meta-facets (required when meta_review_triggered).",
     "v2_1_directive": "User directive 2026-05-14: 'Make sure we add deterministic layer to it where it makes sense to do so.' v2.1.0 adds F10 reversibility/blast-radius, F11 observability, F13 migration/backwards-compat as REQUIRED facets when applicable + a `deterministic_layer_principle` declaring per-facet auto_checks vs human_judgment split. Lane enforces auto_checks mechanically; judgment layer fills the rest.",
     "v2_3_directive": "User directive 2026-05-15 across two consecutive messages: 'additional lens for our own policy adherence like naming, documentation, structure, architecture, dependency, etc' + 'schema, algorithm, as well'. v2.3.0 adds a new family of POLICY-ADHERENCE facets (A-prefix: A1..A7) distinct from F-family critique lenses and M-family meta lenses. A-facets mechanically enforce drift between code-as-built and doctrine-as-declared. Closed enum cap relaxed for A-family — adherence facets grow as policy domains do.",
     "v2_4_directive": "Wave-3-A cross-reference wiring 2026-05-20: formalise the 21-facet canonical roster (F1-F9+F10+F11+F13+M1+M2+A1-A7), add wave_dispatch_protocol for multi-wave review orchestration, and add verdict_schema for machine-readable per-changeset verdicts. Accompanies keystone bundle ADR-0242..ADR-0258 + remediation ADRs 0293..0296. The 21-facet roster closes the set for v2.x; further additions require 1-ADR action per evolution_policy.",
     "evidence_sources": [
-      "PR review CODEOWNERS (manual sign-off)",
+      "PR review CODEOWNERS or reviewer-agent evidence (manual sign-off where required)",
       "active-artifact-contract evidence bundle (ADR-0069)",
-      "foundry agentic-flow (oya vcs claim → work → verify → done → promote) with rtk-ai/grit compatibility/provenance only",
+      "native SCM/Prow/Kubernetes-native oya-ci flow with ADR-0054/grit/Oya VCS history as provenance only; do not revive an oya vcs CLI",
       "SessionStart hook in agents/settings/claude.settings.json"
     ],
     "planned_enforcement_refs": [
@@ -47,16 +47,16 @@
   },
   "enforcement_scopes": {
     "agentic_flow": {
-      "description": "Multi-agent autonomous masterplan execution per Oya VCS state machine; ADR-0054/grit-era rows are compatibility/provenance only during cutover.",
+      "description": "Multi-agent autonomous masterplan execution through native SCM service leases, PR evidence, Buck2 verification, and Prow/Kubernetes-native oya-ci; ADR-0054/grit/Oya VCS CLI rows are compatibility/provenance only.",
       "trigger_points": [
-        "oya vcs claim — agent declares intent and slice; multispectrum spec MUST be read",
+        "native SCM/worktree lease or PR open — agent declares intent and slice; multispectrum spec MUST be read",
         "work iteration — every iterative-fix-loop cycle re-evaluates facets",
-        "verify — evidence file emitted to /evidence/multispectrum/ before oya vcs done",
-        "oya vcs done — emits evidence-backed ChangeBundle/completion payload after lane sub-check `multispectrum-evidence-attached` passes for the changeset",
-        "oya vcs promote — controller-owned promotion only after claim coverage, provider evidence, audit-chain coverage, and multispectrum evidence pass",
+        "verify — evidence file emitted to /evidence/multispectrum/ before completion/merge readiness",
+        "completion evidence — emits evidence-backed change payload after lane sub-check `multispectrum-evidence-attached` passes for the changeset",
+        "promotion — controller-owned promotion only after claim coverage, provider evidence, audit-chain coverage, multispectrum evidence, Buck2 checks, and oya-ci-required pass",
         "review-fix loop — reviewer comments or CI failures become FixupTasks tagged to the violating facet"
       ],
-      "mechanical_enforcement": "Oya VCS admission plus oya-check-dependency-seam composite lane sub-checks (multispectrum-evidence-attached + fixture-pair-coverage + change-class-declared) refuse promotion when evidence is absent / non-canonical / incomplete."
+      "mechanical_enforcement": "Native SCM admission plus Rust/Buck2/Prow governance sub-checks (multispectrum-evidence-attached + fixture-pair-coverage + change-class-declared) refuse promotion when evidence is absent / non-canonical / incomplete."
     },
     "dev_flow": {
       "description": "Human-authored PR / code-review path AND mixed human-agent flows.",
@@ -1039,7 +1039,9 @@
         "F6_alternatives": "deep",
         "F7_security": "deep"
       },
-      "mandatory_artifacts": []
+      "mandatory_artifacts": [
+
+      ]
     },
     "CC-4_refactor_pure": {
       "id": "CC-4",
@@ -1069,7 +1071,9 @@
         "F6_alternatives": "deep",
         "F7_security": "scan"
       },
-      "mandatory_artifacts": []
+      "mandatory_artifacts": [
+
+      ]
     },
     "CC-6_generated_or_vendored": {
       "id": "CC-6",

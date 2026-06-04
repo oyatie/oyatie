@@ -3,7 +3,7 @@
     "version": "2.0.0",
     "description": "Gate registry for honest hyperscaler-maturity claims across architecture, products, pipeline, toolchain, CI/CD, development cycle, guardrails, safety, UX, and competitor response.",
     "owner_team": "council-architecture + ops-sre-reliability + ops-security + council-design-system + workflow-team",
-    "validation_check": "json-valid + oya gate validate hyperscaler-maturity-claims"
+    "validation_check": "json-valid + Rust/Buck2/Prow hyperscaler-maturity-claims check"
   },
   "_metadata": {
     "sidecar_id": "EXE-HYPERSCALER-GATES",
@@ -71,15 +71,15 @@
       "every production-facing reliability and safety claim has operational evidence, not only plans",
       "Workflow Studio, Workflow engine, integration connector catalog, and Foundry pipeline have end-user UX evidence for critical journeys",
       "competitor claims have official-source references, observed strengths, observed weaknesses, adopt/adapt decisions, and improve-beyond-them actions",
-      "ADR-0116 Oya VCS claim/verify/done/promote is the only agent transition authority",
+      "native SCM service leases/PR evidence/Buck2 verification/Prow Kubernetes-native oya-ci-required are the only forward agent transition authority; ADR-0116/Oya VCS CLI wording is historical provenance only",
       "review/fix loop, CI fix loop, conflict avoidance, and merge queue path are automated and controller-owned",
       "CI/CD required checks, branch protection context matching, release evidence packs, and rollback/progressive-delivery gates are green",
       "all planned-only product crates named in the claimed surface are implemented or explicitly excluded from the claim"
     ],
     "current_blockers": [
       "Workflow Studio crates are still planned and cannot prove end-user UX, accessibility, guardrail, or ease-of-use maturity yet",
-      "the Foundry/Oya VCS pipeline still carries a documented Wave-B manual PR-entry seam",
-      "pipeline maturity evidence predates ADR-0116 and must be refreshed against the Oya VCS closure authority",
+      "native SCM/Prow oya-ci still needs live parity evidence before hyperscaler-mature claims; GitHub Actions remains shadow compatibility only",
+      "pipeline maturity evidence must be refreshed against native SCM service, Buck2, and Prow/Kubernetes-native oya-ci-required closure authority",
       "workspace hygiene now inventories /tmp, user-home Oyatie spillover, repo-root scratch artifacts, build outputs, and ~/oyatie-worktrees, cleans configured temp/build artifacts with explicit cleanup flags, and exempts owned roots only with evidence refs, but strict cleanup evidence is not yet green",
       "some Workflow Studio competitor benchmark deltas were targets rather than measured external facts and have been converted into source-backed adopt/improve requirements",
       "M02/P22 readiness and downstream M03 transition remain separately gated by the master plan"
@@ -98,7 +98,7 @@
       "workflow-engine",
       "integration-connector-catalog",
       "governance-pipeline",
-      "oya-vcs-admission",
+      "native-scm-admission",
       "ci-cd-toolchain",
       "development-cycle",
       "workspace-hygiene",
