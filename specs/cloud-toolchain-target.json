@@ -11,7 +11,8 @@
     "ADR-0111 (merge queue)",
     "ADR-0181 (cosign)",
     "ADR-0358 (ideal roadmap)",
-    "ADR-0516 (temporary GitHub lane unlocker)"
+    "ADR-0516 (temporary GitHub lane unlocker)",
+    "ADR-0513 (Prow/Kubernetes-native oya-ci authority)"
   ],
   "related_specs": [
     "specs/ci-farm-substrate-canonical.json (superseded pattern record; no active retired CI controller)",
@@ -20,8 +21,8 @@
   ],
   "status": "Proposed-target",
   "date": "2026-05-25",
-  "title": "Cloud toolchain target — Buck2 build/test authority + temporary GitHub lane unlocker + native oya-ci cutover",
-  "purpose": "Consolidated target for the build + CI/CD + verify toolchain overhaul. Buck2 is the build/test/check authority for active lanes; Cargo metadata can feed generated Buck2 graphs and local Cargo mutation output remains advisory in a dual-build setup. GitHub/GitHub Actions is a temporary SCM/CI lane unlocker under ADR-0516, not the permanent destination. The destination is native Oyatie SCM plus rust-prow/oya-ci/cloud-workspace/release-conveyor seams with Buck2 evidence. Honest non-claim: target spec; no native controller, remote execution/cache, release conveyor, or live cutover is implemented here.",
+  "title": "Cloud toolchain target — Buck2 build/test authority + Prow/Kubernetes-native oya-ci + GitHub adapters",
+  "purpose": "Consolidated target for the build + CI/CD + verify toolchain overhaul. Buck2 is the build/test/check authority for active lanes; Cargo metadata can feed generated Buck2 graphs and local Cargo mutation output remains advisory in a deliberate dual-build setup. CI authority is the Rust, Prow-shaped, Kubernetes-native oya-ci controller posting source-bound oya-ci-required from trusted controller state. GitHub remains a PR/publication adapter and GitHub Actions remains compatibility/shadow evidence, not the permanent destination. Honest non-claim: target spec; no full native controller parity, remote execution/cache, release conveyor, or live production cutover is claimed here.",
   "build_graph": {
     "system": "Buck2 rust rules and checked-in BUCK targets are canonical for CI/build/test/check lanes.",
     "dependency_ssot": "Cargo.toml/Cargo.lock may remain the Rust dependency metadata source for reindeer-style Buck2 graph generation; generated BUCK output is reviewed and Buck2 remains authority.",
@@ -30,9 +31,9 @@
     "incremental": "no incremental compilation in CI (from-scratch + remote cache); incremental local only"
   },
   "ci": {
-    "orchestrator": "ADR-0516 temporary GitHub Actions bridge now; native rust-prow/oya-ci is the destination once SCM/CI/CD/cloud workspace seams are ready.",
-    "config": "pointer-thin reusable workflow during the bridge; native cutover uses short-lived workload identity, tightly scoped secrets, isolated pipelines, and Kubernetes-native elastic agents.",
-    "pr_gating": "branch protection requires github-lane-unlocker-required during the bridge; native cutover replaces it with source-bound oya-ci-required after evidence.",
+    "orchestrator": "ADR-0513 Rust/Prow/Kubernetes-native oya-ci is the active CI authority direction; ADR-0516 GitHub Actions remains compatibility/shadow evidence while native SCM/publication adapters mature.",
+    "config": "ProwJob-style registry and Rust/Buck2-generated consolidation are the target; GitHub Actions workflows stay pointer-thin compatibility/shadow artifacts only. Native jobs use short-lived workload identity, tightly scoped secrets, isolated pipelines, and Kubernetes-native elastic agents.",
+    "pr_gating": "Merge readiness targets source-bound oya-ci-required from the trusted oya-ci controller; github-lane-unlocker-required is legacy/shadow compatibility and cannot satisfy durable native authority.",
     "test_runner": "Buck2 test targets and Buck2-native LLVM source-based coverage are merge authority; Cargo/nextest may remain local advisory only where the dual-build strategy is intentionally maintained.",
     "hygiene_lanes": [
       "Buck2 authority policy",
@@ -42,16 +43,22 @@
     "local_dev": "Buck2 affected/full targets for shift-left; Cargo commands are advisory and must not become protected-branch authority."
   },
   "oya_overlay": {
-    "role": "governance/verify orchestrator; delegates build/test/check to Buck2 and runs bespoke governance gates.",
-    "retires": "duplicated Cargo mirror authority and manual required-status bridges; affected-scope default plus serialized fan-in evidence."
+    "role": "governance kernels/checks as Rust libraries, Buck2 targets, and Prow/Kubernetes-native jobs; the oya CLI is not merge or CI authority.",
+    "retires": "duplicated Cargo mirror authority, oya gate/verify CLI authority, and manual required-status bridges; affected-scope default plus serialized fan-in evidence."
   },
   "merge_and_delivery": {
-    "merge_queue": "speculative + batch (ADR-0111): test A vs main, B vs main+A, ...; always-green trunk",
-    "progressive_delivery": "native release conveyor target: canary -> bake-time SLO observation -> automatic metric-gated rollback; cosign-verified images (ADR-0181)."
+    "merge_queue": "native SCM virtual heads plus Tide-like speculative/batch merge queue; GitHub PR queue is an adapter/shadow until native SCM is live.",
+    "progressive_delivery": "release-conveyor-like native CD target: canary -> bake-time SLO observation -> automatic metric-gated rollback; cosign-verified images (ADR-0181)."
   },
   "non_claims": [
-    "Target spec only; no native SCM/CI/CD cutover, remote execution/cache, release conveyor, or migration executed.",
-    "GitHub/GitHub Actions remains temporary bridge authority only and must not be treated as the permanent destination.",
+    "Target spec only; no full native SCM/CI/CD cutover, remote execution/cache, release conveyor, or migration executed.",
+    "GitHub is a PR/publication adapter and GitHub Actions is compatibility/shadow evidence only; neither is durable first-class CI authority.",
     "No CI-throughput/cache-hit/SLO measurement; all parity/performance claims stay blocked_until_required_evidence_is_green."
-  ]
+  ],
+  "native_scm_ci_cd_fit": {
+    "scm": "Sapling-inspired pure-Rust native SCM service/control-plane; no oya vcs CLI revival. Owns stacked changes, workspace leases, virtual merge heads, semantic conflict metadata, and GitHub publication adapters.",
+    "ci": "Prow/Kubernetes-native oya-ci consumes trusted SCM/controller state, runs Buck2 workloads, and posts source-bound oya-ci-required.",
+    "cd": "release-conveyor-like native CD consumes signed build/evidence/release ledger outputs from oya-ci for progressive delivery, rollback, and audit.",
+    "github": "PR/publication adapter; GitHub Actions is shadow compatibility only."
+  }
 }

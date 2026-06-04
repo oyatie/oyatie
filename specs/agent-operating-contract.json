@@ -63,7 +63,7 @@
       },
       {
         "mode": "concurrent agents touch shared docs",
-        "behavior": "oya vcs claim/verify/done/promote records scope and admission evidence before promotion"
+        "behavior": "native SCM/worktree lease + PR evidence records scope; Buck2 and Prow/Kubernetes-native oya-ci-required record admission evidence before promotion. Do not revive oya vcs CLI."
       }
     ],
     "observability_hooks": [

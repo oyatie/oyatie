@@ -8,7 +8,7 @@
   },
   "_metadata": {
     "sidecar_id": "EXE-MASTER-SEQUENCING",
-    "status": "accepted-github-actions-interim-lane-unlocker-native-cutover",
+    "status": "accepted-prow-kubernetes-native-oya-ci-native-scm-lane-unlocker",
     "created_for": "4000-character launcher prompt sidecars",
     "canonical_sources": [
       "docs/AGENTS.md",
@@ -30,7 +30,9 @@
       "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
       "docs/ci/github-actions-lane-unlocker.md",
       "/specs/repo-hygiene-automation.json",
-      "/specs/retired-external-substrate-registry.json"
+      "/specs/retired-external-substrate-registry.json",
+      "/specs/oya-ci-prow-capability-parity.json",
+      "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
     ],
     "deduplicates_existing": [
       "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
@@ -48,7 +50,7 @@
       ],
       "live_replacement": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
     },
-    "updated_at": "2026-06-04T00:00:00Z",
+    "updated_at": "2026-06-04T16:45:00Z",
     "op11_audit_reference": "registry/stub-audit/2026-05-17/CONSOLIDATED.md"
   },
   "master_plan_discovery_order": [
@@ -273,17 +275,17 @@
     {
       "primitive": "oya vcs",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git plus the ADR-0516 temporary GitHub/GitHub Actions bridge until native SCM/CI/CD cutover"
+      "lane_status": "retired by ADR-0363; do not revive the CLI. Current lanes use plain git/gh PR adapters while the durable path is a Sapling-inspired native SCM service/control-plane with Rust libraries, Buck2 targets, Git/GitHub adapters, and Prow/Kubernetes-native oya-ci integration."
     },
     {
       "primitive": "gh",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "allowed only as temporary GitHub/GitHub Actions bridge tooling for ADR-0516 lane unlock; forbidden as permanent SCM/CI/CD substrate"
+      "lane_status": "allowed only as GitHub PR/publication adapter and shadow visibility tooling; forbidden as permanent SCM/CI/CD substrate or source of merge truth."
     },
     {
       "primitive": "manual-merge-bypassing-required-checks",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "forbidden; GitHub branch protection/merge queue plus github-lane-unlocker-required own interim merge readiness, then native required checks after cutover"
+      "lane_status": "forbidden; merge readiness requires the trusted Prow/Kubernetes-native oya-ci-required context, Buck2 evidence, and review approval. GitHub Actions github-lane-unlocker-required is legacy/shadow compatibility only."
     },
     {
       "primitive": "manual-push-to-protected-branch",
@@ -334,7 +336,7 @@
     },
     {
       "step": "promote",
-      "primitive": "temporary GitHub branch protection/merge queue with GitHub Actions required context owns interim dev unlock; native SCM/CI/CD owns cutover after evidence",
+      "primitive": "Prow/Kubernetes-native oya-ci required context owns dev unlock; GitHub branch protection/GitHub Actions are shadow compatibility while native SCM matures",
       "fallback": "keep/release locks according to terminal policy; never bypass protected-branch required checks or Buck2 evidence"
     }
   ],
@@ -429,7 +431,9 @@
           "cloud-fsh"
         ],
         "gate_criteria": "all phase-0 µservices coherence-audit substance bar met + parity matrix complete",
-        "dependencies": []
+        "dependencies": [
+
+        ]
       },
       {
         "phase_id": 1,
@@ -572,35 +576,45 @@
           {
             "sub_id": "4A.5",
             "family": "hubspot",
-            "microservices": [],
+            "microservices": [
+
+            ],
             "priority": 5,
             "note": "absorbed by marketing-automation+crm"
           },
           {
             "sub_id": "4A.6",
             "family": "microsoft-business",
-            "microservices": [],
+            "microservices": [
+
+            ],
             "priority": 6,
             "note": "absorbed by docs+sheets+slides+meet+mail"
           },
           {
             "sub_id": "4A.7",
             "family": "oracle-business",
-            "microservices": [],
+            "microservices": [
+
+            ],
             "priority": 7,
             "note": "absorbed by ERP+CRM µservices"
           },
           {
             "sub_id": "4A.8",
             "family": "adobe-experience-cloud",
-            "microservices": [],
+            "microservices": [
+
+            ],
             "priority": 8,
             "note": "absorbed by marketing-automation+content+brand"
           },
           {
             "sub_id": "4A.9",
             "family": "atlassian",
-            "microservices": [],
+            "microservices": [
+
+            ],
             "priority": 9,
             "note": "absorbed by workflow-studio+docs+itsm"
           }
@@ -627,7 +641,9 @@
         "brief-template-author"
       ],
       "gate": "all 3 substance-bar met + user-approved",
-      "dependencies": []
+      "dependencies": [
+
+      ]
     },
     "waves_2_through_13": {
       "description": "12 batches of 8 codex agents, ownership-coherence audit per µservice",
@@ -685,13 +701,11 @@
         "ADR-0346": {
           "path": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
           "queued_sub_wave": "15-ZA-oya-verify-full-ci-mirror",
-          "purpose_excerpt": "Amended by the Buck2 authority transition: `./bin/oya verify --ci-required` is local shift-left evidence only, and its protected-branch mirror must delegate build/test/check to Buck2 targets plus governance evidence instead of direct Cargo mirror steps. During ADR-0516, automated GitHub Actions `github-lane-unlocker-required` gates dev; native `oya-ci-required` returns only after source-bound cloud-ci/oya-ci cutover evidence.",
+          "purpose_excerpt": "Amended by the Buck2/Prow authority transition: retired `oya verify` CLI surfaces are migration provenance only, and protected-branch CI evidence must be produced by Rust/Buck2/Prow/Kubernetes-native jobs. The trusted required context is `oya-ci-required`; GitHub Actions `github-lane-unlocker-required` is legacy/shadow compatibility evidence only and must not be treated as merge authority.",
           "enforced_by": [
-            "oya-governance-oya-verify-ci-mirror-coverage (amended lane; refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that bypass Buck2 build/test/check targets and governance evidence; direct Cargo mirror-step claims are advisory only)",
-            "oya-governance-oya-verify-ci-step-exit-semantics (amended lane; refuses verify.rs source changes that swallow non-zero exit codes from any mandatory Buck2/governance verification step; refuses changes that conflate distinct failure classes in the exit code emitted to the caller)",
-            "oya-governance-oya-verify-skip-flag-allowlist (new lane; refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8; new skip flags require an ADR amendment per `feedback_no_silent_regression`)",
-            "oya-governance-oya-submit-calls-verify (new lane; refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10 — preserves the existing call chain, refuses regressions)",
-            "oya-governance-oya-verify-exit-code-contract (new lane; refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11)"
+            "rust-buck2-governance-mirror-coverage (forward lane; refuses corpus changes that bypass Buck2 build/test/check targets, repo-hygiene automation, or Prow/Kubernetes-native oya-ci evidence; retired oya verify CLI lanes are provenance only)",
+            "rust-buck2-governance-step-exit-semantics (forward lane; refuses check implementations that swallow non-zero exit codes from mandatory Buck2/governance/Prow verification steps)",
+            "rust-buck2-governance-skip-policy (forward lane; refuses new skip flags or bypass modes outside ADR-backed allowlists; no retired oya submit/verify call-chain resurrection)"
           ]
         },
         "ADR-0347": {
@@ -1585,7 +1599,7 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0346",
-          "scope": "amend crates/oya-dev-cli/src/commands/verify.rs local shift-left verification so the protected-branch mirror delegates to Buck2 build/test/check targets, affected-target evidence, and governance kernels; direct Cargo mirror-step execution is advisory only. Block on exit-0 of each mandatory Buck2/governance step. Skip-flag allowlist remains a closed set for local ergonomics and cannot weaken protected-branch authority. During ADR-0516, dev merge readiness is the automated GitHub `github-lane-unlocker-required` context; native `oya-ci-required` returns only after cloud-ci/oya-ci source-bound cutover evidence.",
+          "scope": "Historical oya verify mirror lane is retired as CLI authority. Forward scope is Rust/Buck2/Prow governance evidence: protected-branch mirror delegates to Buck2 build/test/check targets, affected-target evidence, repo-hygiene automation, and Prow/Kubernetes-native oya-ci-required. GitHub Actions github-lane-unlocker-required is legacy/shadow compatibility only.",
           "dispatch_mode": "1 Codex orchestrator for the verify.rs Buck2-authority amendment + 5 governance lanes (oya-governance-oya-verify-ci-mirror-coverage + oya-governance-oya-verify-ci-step-exit-semantics + oya-governance-oya-verify-skip-flag-allowlist + oya-governance-oya-submit-calls-verify + oya-governance-oya-verify-exit-code-contract) + GitHub lane-unlocker parity evidence",
           "depends_on": [
             "ADR-0346 Acceptance",
@@ -1612,7 +1626,7 @@
           "scope": "Historical Wave 15-ZE self-hostable CI/CD planning retained for provenance only. ADR-0516 supersedes the interim path: GitHub/GitHub Actions unlocks dev lanes temporarily, Buck2 remains the check authority, no retired external SCM/CI/CD substrates interim authority is allowed, and the native cutover targets Oyatie SCM, rust-prow/oya-ci, cloud workspaces, and release conveyor seams.",
           "dispatch_mode": "No interim dispatch. Superseded by ADR-0516 GitHub/GitHub Actions temporary lane-unlocker plus Buck2 evidence lanes.",
           "five_new_lanes": [
-            "github-lane-unlocker-required temporary required context",
+            "github-lane-unlocker-required legacy/shadow context",
             "//:github-lane-unlocker-bridge-check",
             "//:buck2-authority-policy-check",
             "//:rust-llvm-coverage-runner-contract-check",
@@ -1727,7 +1741,7 @@
         "M01-P08",
         "broad M01/M02/M03 parallel fan-out"
       ],
-      "compatibility_window": "P00 core remains the imminent focus. Forward fan-out uses isolated git worktree branches, GitHub/GitHub Actions as the temporary lane-unlocker, Buck2 evidence, and reviewer approval. Legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
+      "compatibility_window": "P00 core remains the imminent focus. Forward fan-out uses isolated git worktree branches, GitHub as PR/publication adapter and GitHub Actions as shadow compatibility, Buck2 evidence, and reviewer approval. Legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
     }
   ],
   "implementation_plan_changeset_contract": {
@@ -1925,9 +1939,8 @@
   "purpose": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
   "p00_github_actions_lane_unlocker_transition": {
     "priority": 0,
-    "status": "imminent",
-    "purpose": "Unlock dev for parallel product/infra/cloud lanes through temporary GitHub/GitHub Actions bridge while native cutover continues.",
-    "required_context": "github-lane-unlocker-required",
+    "status": "shadow_compatibility_superseded_for_ci_authority_by_p00_native_scm_prow_kubernetes_lane_unlocker",
+    "purpose": "Legacy/shadow GitHub Actions compatibility and GitHub PR/publication adapter evidence while Prow/Kubernetes-native oya-ci and native SCM are the active direction.",
     "build_test_check_authority": "Buck2",
     "not_interim_authorities": [
       "retired external CI substrate",
@@ -1945,7 +1958,10 @@
       "future_integration": "rewrite and rewire Oyatie products to consume Cloud IdP after stabilization"
     },
     "shared_surface_strategy": "pointer-thin canonical workflow/docs plus vertical-owned reusable shards or generated consolidation to reduce merge conflicts under parallel lanes",
-    "security_backlog_scope": "31 validated zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, data-protection, honeytoken/tripwire, and multi-account guardrail controls are P00/P01 backlog only; no live mutation claimed"
+    "security_backlog_scope": "31 validated zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, data-protection, honeytoken/tripwire, and multi-account guardrail controls are P00/P01 backlog only; no live mutation claimed",
+    "merge_authority": false,
+    "legacy_shadow_context": "github-lane-unlocker-required",
+    "required_native_context": "oya-ci-required"
   },
   "repo_hygiene_automation": {
     "id": "P00-repo-hygiene-automation",
@@ -1969,5 +1985,46 @@
     "security_hardening_backlog_ref": "/specs/repo-hygiene-automation.json#security_hardening_backlog",
     "automation_language_policy_ref": "/specs/repo-hygiene-automation.json#automation_language_policy",
     "required_stale_doc_inventory": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+  },
+  "p00_native_scm_prow_kubernetes_lane_unlocker": {
+    "priority": 0,
+    "status": "imminent",
+    "purpose": "Unlock parallel product/infra/cloud/governance lanes through Sapling-inspired native SCM service planning, Prow/Kubernetes-native oya-ci required context, and release-conveyor-like CD seams while GitHub remains PR/publication adapter.",
+    "required_context": "oya-ci-required",
+    "legacy_shadow_context": "github-lane-unlocker-required",
+    "build_test_check_authority": "Buck2",
+    "native_scm": {
+      "decision": "sapling_inspired_pure_rust_biased_service_control_plane",
+      "cli_revival_allowed": false,
+      "owns": [
+        "worktree leases",
+        "stacked changes",
+        "semantic conflict metadata",
+        "virtual merge heads",
+        "GitHub publication adapters"
+      ]
+    },
+    "ci": {
+      "decision": "rust_prow_kubernetes_native_oya_ci",
+      "consumes": "trusted native SCM/controller state",
+      "runs": "Buck2 ProwJob-style workloads",
+      "posts": "oya-ci-required"
+    },
+    "cd": {
+      "decision": "release_conveyor_like_native_cd",
+      "consumes": "signed build/evidence/release ledger after oya-ci",
+      "scope": "progressive delivery, rollback, policy, audit"
+    },
+    "github": {
+      "role": "PR/publication adapter",
+      "actions_role": "shadow compatibility only",
+      "merge_authority": false
+    },
+    "non_claims": [
+      "not P0.0 green",
+      "not full native SCM complete",
+      "not full Prow parity proven",
+      "not oya vcs CLI revival"
+    ]
   }
 }

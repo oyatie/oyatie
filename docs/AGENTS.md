@@ -45,9 +45,9 @@ doc_status: published
 ---
 # Oyatie Agent Operating Contract
 
-## ADR-0516 interim lane-unlocker amendment (2026-06-03)
+## ADR-0513 Prow/Kubernetes-native lane-unlocker amendment (2026-06-04)
 
-For imminent P00/P0 work, GitHub/GitHub Actions is the temporary lane-unlocker for dev so product, infra, and cloud lanes can run concurrently. There is no retired external SCM/CI/CD substrates interim authority. Buck2 remains build/test/check authority. Exact tombstones for retired external substrate names live in `/specs/retired-external-substrate-registry.json` so active guidance can stay generic. The native destination remains a cloud native, Kubernetes-native, hyperscaler native Oyatie SCM/CI/CD/cloud workspace substrate that adopts proven Prow/Sapling/Piper/CitC/Buck2 patterns without wholesale reinvention. This amendment is not P0.0 green and does not make GitHub permanent.
+For imminent P00/P0 work, the lane-unlocker is the Rust, Prow-shaped, Kubernetes-native Oyatie CI control plane that publishes the trusted `oya-ci-required` context from controller state. GitHub remains a PR/publication adapter and GitHub Actions remains compatibility/shadow evidence only while native SCM matures. There is no retired external SCM/CI/CD substrates interim authority. Buck2 remains build/test/check authority. Exact tombstones for retired external substrate names live in `/specs/retired-external-substrate-registry.json` so active guidance can stay generic. The native destination remains a cloud native, Kubernetes-native, hyperscaler native Oyatie SCM/CI/CD/cloud workspace substrate that adopts proven Prow/Sapling/Piper/CitC/Buck2 patterns without wholesale reinvention. This amendment is not P0.0 green.
 
 ## Machine-readable authority — [root hub pointers](..//specs/root-hub-pointers.json)
 
@@ -59,14 +59,14 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
 
-Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md), and [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md) as active operating-contract doctrine until superseded by a newer ADR. ADR-0349 is historical CI/CD provenance and is superseded for interim use by ADR-0516 plus `/specs/retired-external-substrate-registry.json`.
+Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md), and [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md) as active operating-contract doctrine until superseded by a newer ADR. ADR-0349 is historical CI/CD provenance; ADR-0516 is now a GitHub compatibility/shadow bridge record; active CI authority is ADR-0513 plus `/specs/oya-ci-prow-capability-parity.json`.
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
-| ADR-0346 (amended 2026-06-02) | Local pre-push verification is Buck2-backed shift-left evidence only. It MUST NOT grant protected-branch or Phase-0 exit authority; during ADR-0516 the automated `github-lane-unlocker-required` context gates dev, while `oya-ci-required` remains the native cutover target only. | `specs/buck2-authority-policy.json`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, `//:github-lane-unlocker-bridge-check`, future cloud-ci/oya-ci required-context producer. |
+| ADR-0346 (amended 2026-06-04) | Local pre-push verification is Buck2-backed shift-left evidence only. It MUST NOT grant protected-branch or Phase-0 exit authority; the trusted `oya-ci-required` context is produced by the Rust/Prow/Kubernetes-native controller. | `specs/buck2-authority-policy.json`, `//:buck2-authority-policy-check`, `//:repo-hygiene-automation-check`, `//:github-lane-unlocker-bridge-check` as legacy/shadow compatibility evidence, `specs/oya-ci-prow-capability-parity.json`. |
 | ADR-0347 | Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; the rename is name-only and lane invariants remain preserved. | `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`. |
 | ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
-| ADR-0349 (superseded for interim use by ADR-0516) | Historical retired external CI/CD self-hostable CI/CD planning is not interim authority. ADR-0516 makes GitHub/GitHub Actions the temporary dev lane-unlocker, keeps Buck2 as build/test/check authority, rejects retired external SCM/CI/CD substrates interim authority, and preserves native cloud native/Kubernetes-native/hyperscaler-native cutover. | `//:github-lane-unlocker-bridge-check`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, ADR-0516 claim-boundary evidence lanes. |
+| ADR-0349 (historical provenance) | Historical retired external CI/CD planning is not interim authority. ADR-0513 makes the Rust/Prow/Kubernetes-native `oya-ci-required` path the active CI direction; ADR-0516 remains GitHub Actions compatibility/shadow evidence only. | `//:repo-hygiene-automation-check`, `//:buck2-authority-policy-check`, `//:github-lane-unlocker-bridge-check` as legacy/shadow compatibility evidence, ADR-0513 claim-boundary evidence lanes. |
 
 
 ## P00 repo hygiene automation
@@ -81,14 +81,14 @@ Shared docs, root indexes, registries, and workflows stay pointer-thin and shoul
 
 ## Multispectrum review bar — required on every change
 
-Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). The governance gate (`oya gate run-all`, run locally and in the ADR-0516 temporary GitHub/GitHub Actions bridge until native cutover — `oya` is a governance-gate engine, not a VCS) plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
+Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). Governance checks run as Rust kernels through Buck2/Prow jobs; the retired `oya gate` / `oya verify` CLI surfaces are not merge authority. The seam-discipline lane `oya-check-dependency-seam` REFUSES the changeset when:
 
 - evidence file absent OR
 - declared `change_class_id` not in {CC-1..CC-7} OR
 - required facets (F1..F13 except F12-reserved when applicable; A-family policy-adherence facets for policy-touching changes; plus `M1`/`M2` when `meta_review_triggered`) missing OR
 - mandatory artifacts per the rigor matrix missing.
 
-This applies to **agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at PR-open / gate-run time. Plain `git` + the ADR-0516 temporary GitHub/GitHub Actions lane-unlocker + Buck2 + `oya gate` is the interim canonical path; ADR-0363 records the retired bespoke ratchet. It is re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registry/fixuptasks.jsonl`](..//registry/fixuptasks.jsonl) for the bounded-deferral registry.
+This applies to **agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at PR-open / gate-run time. Plain `git` + PR + Buck2 evidence + the Prow/Kubernetes-native `oya-ci-required` context is the canonical path; ADR-0363 records the retired bespoke ratchet. It is re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registry/fixuptasks.jsonl`](..//registry/fixuptasks.jsonl) for the bounded-deferral registry.
 
 This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
 
@@ -193,32 +193,32 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No new struct fields in kernel crates without `data_class`.** Pre-commit blocks; respect it.
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
-- **Buck2 for dev-loop and evidence.** Prefer Buck2 build/test targets and `infra/ci/buck2-affected-gate.sh` for fast feedback. Final local evidence runs Buck2 affected/full targets; the ADR-0516 automated `github-lane-unlocker-required` context is interim merge authority, and `oya-ci-required` returns only after native cutover evidence.
+- **Buck2 for dev-loop and evidence.** Prefer Buck2 build/test targets for fast feedback. Final local evidence runs targeted Buck2 affected/full targets; the Prow/Kubernetes-native `oya-ci-required` context is merge authority. Existing GitHub Actions bridge checks are compatibility/shadow only.
 ## Sanctioned primitives
 
 Agent coordination uses plain `git`. ADR-0363 retires the prior wrapper/ratchet
 substrate; do not reintroduce an agentic VCS wrapper. An agent works on an
 isolated worktree branch and opens a pull request against `dev`, which enters
-the governance pipeline:
-ADR-0516 temporary GitHub/GitHub Actions lane-unlocker context + reviewer
-APPROVE gate merge readiness until the native Oyatie SCM/CI/CD substrate cuts
-over. The destination is a pure-Rust, Sapling-compatible Oyatie SCM plus
-cloud-native release conveyor seams, not interim retired external SCM/CI/CD substrates. `oya`
-is local/bridge governance evidence only.
+the Prow/Kubernetes-native Oyatie CI pipeline:
+`oya-ci-required` context + Buck2 evidence + reviewer APPROVE gate merge
+readiness. GitHub is a PR/publication adapter while the pure-Rust,
+Sapling-compatible Oyatie SCM matures. Retired external SCM/CI/CD substrates
+are not interim authorities. The `oya` CLI is retired as merge/CI authority;
+preserve useful governance logic only as Rust libraries, Buck2 targets, and
+Prow jobs.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
   - git
+  - gh
   - buck2
-  - oya-gate-local-evidence
-  - oya-verify-local-evidence
 required_sequence:
   - isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
-  - automated github-lane-unlocker-required GitHub Actions context + Buck2 evidence + reviewer APPROVE gate merge readiness until native cutover
+  - automated oya-ci-required Prow/Kubernetes-native context + Buck2 evidence + reviewer APPROVE gate merge readiness
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
@@ -248,10 +248,10 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Test:* CI status check.
 - [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* merge-gate hook (`scripts/hooks/guard-pr-merge-review.mjs`).
-- [ ] **D9** Buck2 test evidence passes for the affected/full target set. *Test:* `buck2 test ...` or `infra/ci/buck2-affected-gate.sh` output pasted in `## Verification`.
+- [ ] **D9** Buck2 test evidence passes for the affected/full target set. *Test:* `buck2 test ...` or Buck2 affected-target output pasted in `## Verification`.
 - [ ] **D10** Buck2 lint/clippy target evidence passes with warnings treated as failures. *Test:* Buck2 output.
 - [ ] **D11** Buck2-native license-policy evidence passes. *Test:* lane output.
-- [ ] **D12** Buck2 authority policy passes and the interim `github-lane-unlocker-required` context is green before merge; native `oya-ci-required` returns only after cutover evidence. *Test:* policy output + required-context evidence.
+- [ ] **D12** Buck2 authority policy passes and `oya-ci-required` is green before merge; GitHub Actions bridge checks are shadow/compatibility only. *Test:* policy output + required-context evidence.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
 - [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* `traceability-validator` + `oya-pr-review` lanes.
@@ -301,7 +301,7 @@ Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `super
 
 Active hooks (PreToolUse / PostToolUse / Stop / SessionStart): merge-review gate (`scripts/hooks/guard-pr-merge-review.mjs`), pre-push gate, telemetry, loop-cancellation enforcement, memory bootstrap.
 
-Legacy OMC magic-keyword routing remains compatibility-only while the plain-git plus ADR-0516 temporary GitHub/GitHub Actions closeout path finishes landing. It does not own forward repo-state closure; GitHub branch protection, GitHub Actions temporary required checks, Buck2 evidence, and governance admission do. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
+Legacy OMC magic-keyword routing remains compatibility-only while the plain-git plus Prow/Kubernetes-native closeout path lands. It does not own forward repo-state closure; `oya-ci-required`, Buck2 evidence, and reviewer admission do. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
 
 Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definition checklist."
 
@@ -313,7 +313,7 @@ Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harne
 
 The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENTS.md convention](https://agents.md). Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
 
-Build / test commands: `buck2 build`, `buck2 test`, `infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD`, `pnpm build`, `pnpm test` (Node 24 LTS by default; Node 26 Current only when a lane explicitly needs it). Lint: Buck2 lint targets, direct `rustfmt` when needed, `pnpm lint`.
+Build / test commands: `buck2 build`, `buck2 test`, and lane-owned Buck2 targets. Cargo is advisory only for deliberate dual-build metadata/mutation workflows; pnpm/TypeScript surfaces are retirement-review candidates unless a current product lane explicitly owns them. Lint: Buck2 lint targets and direct `rustfmt` when needed.
 
 Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 
@@ -331,13 +331,13 @@ Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
 
 ### Legacy OMC (oh-my-claudecode subagents)
 
-OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new agentic closeout routes through plain `git`, ADR-0516 temporary GitHub/GitHub Actions required checks, Buck2 evidence, and `oya gate` governance evidence.
+OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new agentic closeout routes through plain `git`, `oya-ci-required`, Buck2 evidence, and reviewer evidence.
 
 Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`. Route per change class.
 
 Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
 
-State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by governance evidence in the plain-git/GitHub-Actions-temporary-bridge path.
+State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by governance evidence in the plain-git/Prow-native path.
 
 ## Anti-overlap
 
