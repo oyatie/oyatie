@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T20:12:49Z",
+  "updated_at": "2026-06-04T20:20:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -317,7 +317,11 @@
       "oya-vcs-admission",
       "oya-dev-cli:oya -- gate validate planning-closure",
       "oya gate validate planning-closure",
-      "oya gate validate product-prd-json"
+      "oya gate validate product-prd-json",
+      "legacy CI governance lifecycle",
+      "legacy CI contexts",
+      "retired local verify command",
+      "retired local gate run-all command"
     ],
     "scan_scope": [
       "AGENTS.md",
@@ -325,6 +329,7 @@
       "README.md",
       "docs/AGENTS.md",
       "docs/MASTERPLAN.md",
+      "docs/standards/brief-template.md",
       "docs/ci/github-actions-lane-unlocker.md",
       "docs/ci/auto-merge-flow.md",
       "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
