@@ -54,7 +54,7 @@ fn payroll_backend_parity_profile_covers_leading_payroll_capabilities_without_li
         assert!(!capability.production_runtime_claimed.value);
         assert!(!capability.live_money_movement_claimed.value);
         assert!(!capability.tax_filing_submission_claimed.value);
-        assert_eq!(capability.evidence_refs.value.len(), 4);
+        assert_eq!(capability.evidence_refs.value.len(), 1);
     }
 
     let cloud = profile
@@ -70,6 +70,13 @@ fn payroll_backend_parity_profile_covers_leading_payroll_capabilities_without_li
         BackendParityClaimStatus::ContractReady
     );
     assert!(cloud.kubernetes_native_contract_ready.value);
+    assert!(
+        cloud
+            .evidence_refs
+            .value
+            .iter()
+            .all(|evidence_ref| evidence_ref.value.contains("cloud-kubernetes-readiness"))
+    );
     assert!(
         profile
             .nonclaims
@@ -88,6 +95,18 @@ fn payroll_backend_parity_profile_rejects_missing_or_unsafe_evidence() {
         Err(PayrollDomainError::RulepackSourcesRequired)
     );
 
+    let single_unrelated_source = PayrollBackendParityProfileInput {
+        tenant_id: "ten_acme".to_owned(),
+        profile_evidence_ref: "audit/payroll/parity/profile".to_owned(),
+        source_evidence_refs: vec![
+            "audit/payroll/parity/gross-to-net-run-controls/sap-successfactors-payroll".to_owned(),
+        ],
+    };
+    assert_eq!(
+        build_payroll_backend_parity_profile(single_unrelated_source),
+        Err(PayrollDomainError::RulepackSourcesRequired)
+    );
+
     let mut bad_profile_ref = profile_input();
     bad_profile_ref.profile_evidence_ref = "audit/payroll/../profile".to_owned();
     assert_eq!(
@@ -101,10 +120,17 @@ fn profile_input() -> PayrollBackendParityProfileInput {
         tenant_id: "ten_acme".to_owned(),
         profile_evidence_ref: "audit/payroll/parity/profile".to_owned(),
         source_evidence_refs: vec![
-            "audit/payroll/parity/source/sap-successfactors-payroll".to_owned(),
-            "audit/payroll/parity/source/oracle-payroll".to_owned(),
-            "audit/payroll/parity/source/workday-payroll".to_owned(),
-            "audit/payroll/parity/source/kubernetes".to_owned(),
+            "audit/payroll/parity/gross-to-net-run-controls/sap-successfactors-payroll".to_owned(),
+            "audit/payroll/parity/earnings-deductions-tax-model/oracle-payroll".to_owned(),
+            "audit/payroll/parity/time-leave-payroll-intake/hr-contracts".to_owned(),
+            "audit/payroll/parity/retro-off-cycle-reversal/workday-payroll".to_owned(),
+            "audit/payroll/parity/statutory-export-evidence/rulepack".to_owned(),
+            "audit/payroll/parity/payslip-disbursement-seam/nonclaim".to_owned(),
+            "audit/payroll/parity/accounting-gl-export/journal-contracts".to_owned(),
+            "audit/payroll/parity/group-legal-entity-rollup/erp-contracts".to_owned(),
+            "audit/payroll/parity/variance-anomaly-rollback/slo-contracts".to_owned(),
+            "audit/payroll/parity/audit-idempotency-tenant-residency/governance".to_owned(),
+            "audit/payroll/parity/cloud-kubernetes-readiness/service-contract".to_owned(),
         ],
     }
 }

@@ -52,7 +52,7 @@ fn hr_backend_parity_profile_covers_hcm_capability_families_without_runtime_clai
         assert!(capability.residency_scope_declared.value);
         assert!(capability.observability_contract.value);
         assert!(!capability.production_runtime_claimed.value);
-        assert_eq!(capability.evidence_refs.value.len(), 4);
+        assert_eq!(capability.evidence_refs.value.len(), 1);
     }
 
     let cloud = profile
@@ -68,6 +68,13 @@ fn hr_backend_parity_profile_covers_hcm_capability_families_without_runtime_clai
         BackendParityClaimStatus::ContractReady
     );
     assert!(cloud.kubernetes_native_contract_ready.value);
+    assert!(
+        cloud
+            .evidence_refs
+            .value
+            .iter()
+            .all(|evidence_ref| evidence_ref.value.contains("cloud-kubernetes-readiness"))
+    );
     assert!(
         profile
             .nonclaims
@@ -86,6 +93,16 @@ fn hr_backend_parity_profile_rejects_missing_or_unsafe_evidence() {
         Err(HrDomainError::RulepackSourcesRequired)
     );
 
+    let single_unrelated_source = HrBackendParityProfileInput {
+        tenant_id: "ten_acme".to_owned(),
+        profile_evidence_ref: "audit/hr/parity/profile".to_owned(),
+        source_evidence_refs: vec!["audit/hr/parity/workforce-core/sap-successfactors".to_owned()],
+    };
+    assert_eq!(
+        build_hr_backend_parity_profile(single_unrelated_source),
+        Err(HrDomainError::RulepackSourcesRequired)
+    );
+
     let mut bad_profile_ref = profile_input();
     bad_profile_ref.profile_evidence_ref = "audit/hr/../profile".to_owned();
     assert_eq!(
@@ -99,10 +116,17 @@ fn profile_input() -> HrBackendParityProfileInput {
         tenant_id: "ten_acme".to_owned(),
         profile_evidence_ref: "audit/hr/parity/profile".to_owned(),
         source_evidence_refs: vec![
-            "audit/hr/parity/source/sap-successfactors".to_owned(),
-            "audit/hr/parity/source/oracle-hcm".to_owned(),
-            "audit/hr/parity/source/workday-hcm".to_owned(),
-            "audit/hr/parity/source/kubernetes".to_owned(),
+            "audit/hr/parity/workforce-core/sap-successfactors".to_owned(),
+            "audit/hr/parity/organization-job-position/oracle-hcm".to_owned(),
+            "audit/hr/parity/lifecycle-onboarding-offboarding/workday-hcm".to_owned(),
+            "audit/hr/parity/time-attendance-absence/workday-time".to_owned(),
+            "audit/hr/parity/benefits-compensation/sap-successfactors".to_owned(),
+            "audit/hr/parity/talent-performance-learning/oracle-hcm".to_owned(),
+            "audit/hr/parity/labor-statutory-compliance/rulepack".to_owned(),
+            "audit/hr/parity/sensitive-hr-privacy/data-boundary".to_owned(),
+            "audit/hr/parity/analytics-workforce-planning/reporting".to_owned(),
+            "audit/hr/parity/integration-events/pulsar-contracts".to_owned(),
+            "audit/hr/parity/cloud-kubernetes-readiness/service-contract".to_owned(),
         ],
     }
 }

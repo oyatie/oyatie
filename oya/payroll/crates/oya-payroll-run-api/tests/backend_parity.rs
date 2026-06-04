@@ -11,7 +11,19 @@ fn payroll_backend_parity_profile_request_serializes_camel_case_and_converts() {
     let request = PayrollBackendParityProfileRequest {
         tenant_id: "ten_acme".to_owned(),
         profile_evidence_ref: "audit/payroll/parity/profile".to_owned(),
-        source_evidence_refs: vec!["audit/payroll/parity/source/ukg-pro".to_owned()],
+        source_evidence_refs: vec![
+            "audit/payroll/parity/gross-to-net-run-controls/sap-successfactors-payroll".to_owned(),
+            "audit/payroll/parity/earnings-deductions-tax-model/oracle-payroll".to_owned(),
+            "audit/payroll/parity/time-leave-payroll-intake/hr-contracts".to_owned(),
+            "audit/payroll/parity/retro-off-cycle-reversal/workday-payroll".to_owned(),
+            "audit/payroll/parity/statutory-export-evidence/rulepack".to_owned(),
+            "audit/payroll/parity/payslip-disbursement-seam/nonclaim".to_owned(),
+            "audit/payroll/parity/accounting-gl-export/journal-contracts".to_owned(),
+            "audit/payroll/parity/group-legal-entity-rollup/erp-contracts".to_owned(),
+            "audit/payroll/parity/variance-anomaly-rollback/slo-contracts".to_owned(),
+            "audit/payroll/parity/audit-idempotency-tenant-residency/governance".to_owned(),
+            "audit/payroll/parity/cloud-kubernetes-readiness/service-contract".to_owned(),
+        ],
     };
     let body = serde_json::to_value(&request).expect("serialize request");
 
@@ -19,7 +31,7 @@ fn payroll_backend_parity_profile_request_serializes_camel_case_and_converts() {
     assert_eq!(body["profileEvidenceRef"], "audit/payroll/parity/profile");
     assert_eq!(
         body["sourceEvidenceRefs"][0],
-        "audit/payroll/parity/source/ukg-pro"
+        "audit/payroll/parity/gross-to-net-run-controls/sap-successfactors-payroll"
     );
 
     let profile =

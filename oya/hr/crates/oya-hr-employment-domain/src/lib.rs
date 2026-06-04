@@ -36,6 +36,8 @@ const LEAVE_BALANCE_LEDGER_SCHEMA_VERSION: u32 = 1;
 const LEAVE_CARRYOVER_FORFEITURE_SCHEMA_VERSION: u32 = 1;
 const ONBOARDING_READINESS_SCHEMA_VERSION: u32 = 1;
 const HR_BACKEND_PARITY_PROFILE_SCHEMA_VERSION: u32 = 1;
+const HR_BACKEND_PARITY_MAX_SOURCE_EVIDENCE_REFS: usize = 32;
+const HR_BACKEND_PARITY_MAX_EVIDENCE_REF_LEN: usize = 192;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct EmployeeId {
@@ -616,25 +618,14 @@ pub fn build_hr_backend_parity_profile(
         HrDomainError::InvalidTenantId,
     )?;
     validate_evidence_ref(&input.profile_evidence_ref)?;
-    if input.source_evidence_refs.is_empty() {
-        return Err(HrDomainError::RulepackSourcesRequired);
-    }
-    let source_evidence_refs = input
-        .source_evidence_refs
-        .iter()
-        .map(|evidence_ref| {
-            validate_evidence_ref(evidence_ref)?;
-            Ok(AuditEvidenceRef {
-                value: evidence_ref.clone(),
-            })
-        })
-        .collect::<Result<Vec<_>, HrDomainError>>()?;
+    let source_evidence_refs =
+        collect_hr_backend_parity_source_evidence_refs(input.source_evidence_refs)?;
 
     let capabilities = HR_BACKEND_PARITY_CAPABILITIES
         .iter()
         .copied()
         .map(|capability| hr_backend_parity_capability(capability, &source_evidence_refs))
-        .collect();
+        .collect::<Result<Vec<_>, HrDomainError>>()?;
 
     Ok(HrBackendParityProfile {
         tenant_id: internal(TenantId {
@@ -1507,11 +1498,12 @@ const HR_BACKEND_PARITY_CAPABILITIES: &[HrBackendParityCapability] = &[
 fn hr_backend_parity_capability(
     capability: HrBackendParityCapability,
     source_evidence_refs: &[AuditEvidenceRef],
-) -> HrBackendParityCapabilityEvidence {
+) -> Result<HrBackendParityCapabilityEvidence, HrDomainError> {
     let kubernetes_native_contract_ready =
         capability == HrBackendParityCapability::CloudKubernetesReadiness;
-    let evidence_refs = source_evidence_refs.to_vec();
-    HrBackendParityCapabilityEvidence {
+    let evidence_refs =
+        hr_backend_parity_capability_evidence_refs(capability, source_evidence_refs)?;
+    Ok(HrBackendParityCapabilityEvidence {
         capability: public(capability),
         claim_status: public(BackendParityClaimStatus::ContractReady),
         evidence_refs: internal(evidence_refs),
@@ -1523,6 +1515,70 @@ fn hr_backend_parity_capability(
         observability_contract: public(true),
         kubernetes_native_contract_ready: public(kubernetes_native_contract_ready),
         production_runtime_claimed: public(false),
+    })
+}
+
+fn collect_hr_backend_parity_source_evidence_refs(
+    source_evidence_refs: Vec<String>,
+) -> Result<Vec<AuditEvidenceRef>, HrDomainError> {
+    if source_evidence_refs.is_empty()
+        || source_evidence_refs.len() > HR_BACKEND_PARITY_MAX_SOURCE_EVIDENCE_REFS
+    {
+        return Err(HrDomainError::RulepackSourcesRequired);
+    }
+
+    let mut deduped = Vec::new();
+    for evidence_ref in source_evidence_refs {
+        validate_evidence_ref(&evidence_ref)?;
+        if evidence_ref.len() > HR_BACKEND_PARITY_MAX_EVIDENCE_REF_LEN {
+            return Err(HrDomainError::InvalidAuditEvidenceRef);
+        }
+        if !deduped
+            .iter()
+            .any(|existing: &AuditEvidenceRef| existing.value == evidence_ref)
+        {
+            deduped.push(AuditEvidenceRef {
+                value: evidence_ref,
+            });
+        }
+    }
+    if deduped.is_empty() {
+        return Err(HrDomainError::RulepackSourcesRequired);
+    }
+    Ok(deduped)
+}
+
+fn hr_backend_parity_capability_evidence_refs(
+    capability: HrBackendParityCapability,
+    source_evidence_refs: &[AuditEvidenceRef],
+) -> Result<Vec<AuditEvidenceRef>, HrDomainError> {
+    let slug = hr_backend_parity_capability_slug(capability);
+    let evidence_refs = source_evidence_refs
+        .iter()
+        .filter(|evidence_ref| evidence_ref.value.split('/').any(|segment| segment == slug))
+        .cloned()
+        .collect::<Vec<_>>();
+    if evidence_refs.is_empty() {
+        return Err(HrDomainError::RulepackSourcesRequired);
+    }
+    Ok(evidence_refs)
+}
+
+fn hr_backend_parity_capability_slug(capability: HrBackendParityCapability) -> &'static str {
+    match capability {
+        HrBackendParityCapability::WorkforceCore => "workforce-core",
+        HrBackendParityCapability::OrganizationJobPosition => "organization-job-position",
+        HrBackendParityCapability::LifecycleOnboardingOffboarding => {
+            "lifecycle-onboarding-offboarding"
+        }
+        HrBackendParityCapability::TimeAttendanceAbsence => "time-attendance-absence",
+        HrBackendParityCapability::BenefitsCompensation => "benefits-compensation",
+        HrBackendParityCapability::TalentPerformanceLearning => "talent-performance-learning",
+        HrBackendParityCapability::LaborStatutoryCompliance => "labor-statutory-compliance",
+        HrBackendParityCapability::SensitiveHrPrivacy => "sensitive-hr-privacy",
+        HrBackendParityCapability::AnalyticsWorkforcePlanning => "analytics-workforce-planning",
+        HrBackendParityCapability::IntegrationEvents => "integration-events",
+        HrBackendParityCapability::CloudKubernetesReadiness => "cloud-kubernetes-readiness",
     }
 }
 

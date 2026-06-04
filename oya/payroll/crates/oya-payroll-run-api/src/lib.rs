@@ -87,7 +87,7 @@ pub struct PayrollBackendParityCapabilityResponse {
 /// references remain internal domain/app state and are exposed only as
 /// counts/nonclaims.
 pub struct PayrollBackendParityProfileResponse {
-    pub capabilities: Vec<PayrollBackendParityCapabilityResponse>, // data_class: INTERNAL_ONLY
+    pub capabilities: Vec<PayrollBackendParityCapabilityResponse>, // data_class: PUBLIC
     pub nonclaims: Vec<String>,                                    // data_class: PUBLIC
     pub schema_version: u32,                                       // data_class: PUBLIC
 }

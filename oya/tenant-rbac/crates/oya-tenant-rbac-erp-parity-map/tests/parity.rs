@@ -418,7 +418,23 @@ fn hcm_row_references_backend_parity_profiles_and_cloud_native_readiness_without
     );
     assert!(
         hcm.evidence_refs
+            .contains(&"root//oya/hr/crates/oya-hr-employment-app:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/hr/crates/oya-hr-employment-api:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
             .contains(&"root//oya/payroll/crates/oya-payroll-run-domain:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/payroll/crates/oya-payroll-run-app:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/payroll/crates/oya-payroll-run-api:backend-parity-tests")
     );
     assert!(
         !hcm.evidence_refs

@@ -88,7 +88,7 @@ pub struct HrBackendParityCapabilityResponse {
 /// Redacted HR backend parity summary DTO. Raw tenant and evidence references
 /// remain internal domain/app state and are exposed only as counts/nonclaims.
 pub struct HrBackendParityProfileResponse {
-    pub capabilities: Vec<HrBackendParityCapabilityResponse>, // data_class: INTERNAL_ONLY
+    pub capabilities: Vec<HrBackendParityCapabilityResponse>, // data_class: PUBLIC
     pub nonclaims: Vec<String>,                               // data_class: PUBLIC
     pub schema_version: u32,                                  // data_class: PUBLIC
 }

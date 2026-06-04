@@ -11,7 +11,19 @@ fn hr_backend_parity_profile_request_serializes_camel_case_and_converts() {
     let request = HrBackendParityProfileRequest {
         tenant_id: "ten_acme".to_owned(),
         profile_evidence_ref: "audit/hr/parity/profile".to_owned(),
-        source_evidence_refs: vec!["audit/hr/parity/source/oracle-hcm".to_owned()],
+        source_evidence_refs: vec![
+            "audit/hr/parity/workforce-core/sap-successfactors".to_owned(),
+            "audit/hr/parity/organization-job-position/oracle-hcm".to_owned(),
+            "audit/hr/parity/lifecycle-onboarding-offboarding/workday-hcm".to_owned(),
+            "audit/hr/parity/time-attendance-absence/workday-time".to_owned(),
+            "audit/hr/parity/benefits-compensation/sap-successfactors".to_owned(),
+            "audit/hr/parity/talent-performance-learning/oracle-hcm".to_owned(),
+            "audit/hr/parity/labor-statutory-compliance/rulepack".to_owned(),
+            "audit/hr/parity/sensitive-hr-privacy/data-boundary".to_owned(),
+            "audit/hr/parity/analytics-workforce-planning/reporting".to_owned(),
+            "audit/hr/parity/integration-events/pulsar-contracts".to_owned(),
+            "audit/hr/parity/cloud-kubernetes-readiness/service-contract".to_owned(),
+        ],
     };
     let body = serde_json::to_value(&request).expect("serialize request");
 
@@ -19,7 +31,7 @@ fn hr_backend_parity_profile_request_serializes_camel_case_and_converts() {
     assert_eq!(body["profileEvidenceRef"], "audit/hr/parity/profile");
     assert_eq!(
         body["sourceEvidenceRefs"][0],
-        "audit/hr/parity/source/oracle-hcm"
+        "audit/hr/parity/workforce-core/sap-successfactors"
     );
 
     let profile = build_hr_backend_parity_profile(request.into_domain_input()).expect("profile");

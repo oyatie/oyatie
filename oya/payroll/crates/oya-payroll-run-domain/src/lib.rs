@@ -33,6 +33,8 @@ const RULEPACK_SOURCE_REF_PREFIX: &str = "rulepack-source/";
 const STATUTORY_RULEPACK_SCHEMA_VERSION: u32 = 1;
 const VARIANCE_VERDICT_SCHEMA_VERSION: u32 = 1;
 const PAYROLL_BACKEND_PARITY_PROFILE_SCHEMA_VERSION: u32 = 1;
+const PAYROLL_BACKEND_PARITY_MAX_SOURCE_EVIDENCE_REFS: usize = 32;
+const PAYROLL_BACKEND_PARITY_MAX_EVIDENCE_REF_LEN: usize = 192;
 /// Schema version for `RetroAdjustmentVerdict`.
 pub const RETRO_ADJUSTMENT_SCHEMA_VERSION: u32 = 1;
 /// Sentinel BPS value used for dropped-payee lines (no current amount).
@@ -586,29 +588,14 @@ pub fn build_payroll_backend_parity_profile(
         AUDIT_REF_PREFIX,
         PayrollDomainError::InvalidEvidenceRef,
     )?;
-    if input.source_evidence_refs.is_empty() {
-        return Err(PayrollDomainError::RulepackSourcesRequired);
-    }
-    let source_evidence_refs = input
-        .source_evidence_refs
-        .iter()
-        .map(|evidence_ref| {
-            validate_ref(
-                evidence_ref,
-                AUDIT_REF_PREFIX,
-                PayrollDomainError::InvalidEvidenceRef,
-            )?;
-            Ok(EvidenceRef {
-                value: evidence_ref.clone(),
-            })
-        })
-        .collect::<Result<Vec<_>, PayrollDomainError>>()?;
+    let source_evidence_refs =
+        collect_payroll_backend_parity_source_evidence_refs(input.source_evidence_refs)?;
 
     let capabilities = PAYROLL_BACKEND_PARITY_CAPABILITIES
         .iter()
         .copied()
         .map(|capability| payroll_backend_parity_capability(capability, &source_evidence_refs))
-        .collect();
+        .collect::<Result<Vec<_>, PayrollDomainError>>()?;
 
     Ok(PayrollBackendParityProfile {
         tenant_id: internal(TenantId {
@@ -1724,11 +1711,12 @@ const PAYROLL_BACKEND_PARITY_CAPABILITIES: &[PayrollBackendParityCapability] = &
 fn payroll_backend_parity_capability(
     capability: PayrollBackendParityCapability,
     source_evidence_refs: &[EvidenceRef],
-) -> PayrollBackendParityCapabilityEvidence {
+) -> Result<PayrollBackendParityCapabilityEvidence, PayrollDomainError> {
     let kubernetes_native_contract_ready =
         capability == PayrollBackendParityCapability::CloudKubernetesReadiness;
-    let evidence_refs = source_evidence_refs.to_vec();
-    PayrollBackendParityCapabilityEvidence {
+    let evidence_refs =
+        payroll_backend_parity_capability_evidence_refs(capability, source_evidence_refs)?;
+    Ok(PayrollBackendParityCapabilityEvidence {
         capability: public(capability),
         claim_status: public(BackendParityClaimStatus::ContractReady),
         evidence_refs: internal(evidence_refs),
@@ -1742,6 +1730,78 @@ fn payroll_backend_parity_capability(
         production_runtime_claimed: public(false),
         live_money_movement_claimed: public(false),
         tax_filing_submission_claimed: public(false),
+    })
+}
+
+fn collect_payroll_backend_parity_source_evidence_refs(
+    source_evidence_refs: Vec<String>,
+) -> Result<Vec<EvidenceRef>, PayrollDomainError> {
+    if source_evidence_refs.is_empty()
+        || source_evidence_refs.len() > PAYROLL_BACKEND_PARITY_MAX_SOURCE_EVIDENCE_REFS
+    {
+        return Err(PayrollDomainError::RulepackSourcesRequired);
+    }
+
+    let mut deduped = Vec::new();
+    for evidence_ref in source_evidence_refs {
+        validate_ref(
+            &evidence_ref,
+            AUDIT_REF_PREFIX,
+            PayrollDomainError::InvalidEvidenceRef,
+        )?;
+        if evidence_ref.len() > PAYROLL_BACKEND_PARITY_MAX_EVIDENCE_REF_LEN {
+            return Err(PayrollDomainError::InvalidEvidenceRef);
+        }
+        if !deduped
+            .iter()
+            .any(|existing: &EvidenceRef| existing.value == evidence_ref)
+        {
+            deduped.push(EvidenceRef {
+                value: evidence_ref,
+            });
+        }
+    }
+    if deduped.is_empty() {
+        return Err(PayrollDomainError::RulepackSourcesRequired);
+    }
+    Ok(deduped)
+}
+
+fn payroll_backend_parity_capability_evidence_refs(
+    capability: PayrollBackendParityCapability,
+    source_evidence_refs: &[EvidenceRef],
+) -> Result<Vec<EvidenceRef>, PayrollDomainError> {
+    let slug = payroll_backend_parity_capability_slug(capability);
+    let evidence_refs = source_evidence_refs
+        .iter()
+        .filter(|evidence_ref| evidence_ref.value.split('/').any(|segment| segment == slug))
+        .cloned()
+        .collect::<Vec<_>>();
+    if evidence_refs.is_empty() {
+        return Err(PayrollDomainError::RulepackSourcesRequired);
+    }
+    Ok(evidence_refs)
+}
+
+fn payroll_backend_parity_capability_slug(
+    capability: PayrollBackendParityCapability,
+) -> &'static str {
+    match capability {
+        PayrollBackendParityCapability::GrossToNetRunControls => "gross-to-net-run-controls",
+        PayrollBackendParityCapability::EarningsDeductionsTaxModel => {
+            "earnings-deductions-tax-model"
+        }
+        PayrollBackendParityCapability::TimeLeavePayrollIntake => "time-leave-payroll-intake",
+        PayrollBackendParityCapability::RetroOffCycleReversal => "retro-off-cycle-reversal",
+        PayrollBackendParityCapability::StatutoryExportEvidence => "statutory-export-evidence",
+        PayrollBackendParityCapability::PayslipDisbursementSeam => "payslip-disbursement-seam",
+        PayrollBackendParityCapability::AccountingGlExport => "accounting-gl-export",
+        PayrollBackendParityCapability::GroupLegalEntityRollup => "group-legal-entity-rollup",
+        PayrollBackendParityCapability::VarianceAnomalyRollback => "variance-anomaly-rollback",
+        PayrollBackendParityCapability::AuditIdempotencyTenantResidency => {
+            "audit-idempotency-tenant-residency"
+        }
+        PayrollBackendParityCapability::CloudKubernetesReadiness => "cloud-kubernetes-readiness",
     }
 }
 
