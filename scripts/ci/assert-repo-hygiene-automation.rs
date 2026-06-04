@@ -165,6 +165,8 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     ROOT_HUB_PATH,
     MASTERPLAN_PATH,
     SEQUENCING_PATH,
+    "specs/cloud-toolchain-target.json",
+    "specs/cloud-strangler-migration-target.json",
     GITHUB_BRIDGE_PATH,
     SPEC_PATH,
     RETIRED_SUBSTRATE_PATH,

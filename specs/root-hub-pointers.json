@@ -64,7 +64,7 @@
       "current_path": "docs/AGENTS.md",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git PR/retired external CI substrate governance transitions, multispectrum evidence, legacy-tool retirement notes)."
+      "purpose": "Canonical agent operating contract (done-definition checklist, ADR-0516 temporary GitHub bridge/native cutover governance transitions, multispectrum evidence, legacy-tool retirement notes)."
     },
     "agent_durable_goal": {
       "kind": "goal_prompt",
@@ -73,7 +73,7 @@
       "archive_manifest": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
       "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Current long-running goal prompt for planning closure and FD-001 implementation. It supersedes the older 2026-05-16 durable-goal spec and old implement-masterplan prompts by making /specs/masterplan.json, /specs/planning-closure-contract.json, plain-git PR/retired external CI substrate governance, vertical delivery ordering, Tenant RBAC view + Tenant RBAC view first delivery, canonical base, Korea localization pack, and stale-document archival the live execution contract."
+      "purpose": "Current long-running goal prompt for planning closure and FD-001 implementation. It supersedes the older 2026-05-16 durable-goal spec and old implement-masterplan prompts by making /specs/masterplan.json, /specs/planning-closure-contract.json, ADR-0516 temporary GitHub bridge/native cutover governance, vertical delivery ordering, Tenant RBAC view + Tenant RBAC view first delivery, canonical base, Korea localization pack, and stale-document archival the live execution contract."
     },
     "score_cards": {
       "kind": "spec",
@@ -101,7 +101,7 @@
       "current_path": "/specs/deployment-ops-contract.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Deployment entrypoint contract (per ADR-0375): OpenTofu owns only the Cloudflare edge; the cluster fleet is provisioned by Cluster API + Talos (installation-media zero-touch) + per-cell retired external CD substrate; root Makefile owns operator entry; no manual SSH troubleshooting."
+      "purpose": "Deployment entrypoint contract (per ADR-0375): OpenTofu owns only the Cloudflare edge; the cluster fleet is provisioned by Cluster API + Talos (installation-media zero-touch) + per-cell native release conveyor/progressive-delivery seam; root Makefile owns operator entry; no manual SSH troubleshooting."
     },
     "ci_fix_loop_context_bundle": {
       "kind": "spec",
@@ -276,7 +276,7 @@
       "current_path": "/specs/master-plan-sequencing.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Forbidden-primitive list + plain-git PR/retired external CI substrate governance protocol + ledger-required-fields + execution sequence. Also carries Wave 15-ZF doctrine propagation pointers for ADR-0346, ADR-0347, ADR-0348, and ADR-0349, including the canonical purpose excerpts and enforced_by lane lists consumed by downstream artifact slots."
+      "purpose": "Forbidden-primitive list + ADR-0516 temporary GitHub bridge/native cutover governance protocol + ledger-required-fields + execution sequence. Also carries Wave 15-ZF doctrine propagation pointers for ADR-0346, ADR-0347, ADR-0348, and ADR-0349, including the canonical purpose excerpts and enforced_by lane lists consumed by downstream artifact slots."
     },
     "hyperscaler_gates": {
       "kind": "spec",
@@ -676,7 +676,7 @@
       "status_ledger": "/specs/planning-closure-status-closure-ledger.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant RBAC view + Tenant RBAC view full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, plain-git PR/retired external CI substrate governance sequencing, and no false planning-green claims."
+      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant RBAC view + Tenant RBAC view full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, ADR-0516 temporary GitHub bridge/native cutover governance sequencing, and no false planning-green claims."
     },
     "adr_0217_vertical_rollout_order": {
       "kind": "decision",
@@ -767,7 +767,7 @@
       "kind": "spec",
       "current_path": "/specs/agentic-slo-gated-promotion.json",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the retired external CI substrate promotion jobs."
+      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and native release-conveyor promotion jobs."
     },
     "spec_api_surface_separation": {
       "kind": "spec",
@@ -1086,14 +1086,14 @@
       "current_path": "/specs/cloud-strangler-migration-target.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-strangle",
-      "purpose": "Strangler-fig migration playbook (P-STRANGLE): per-service pattern (seam->build-ideal->facade->shadow/canary->cutover->retire), parallel worktree-lane model + single-writer invariant + Bazel affected-targets + merge-queue fan-in, per-migration DoD, cutover/rollback criteria. Target playbook; no migration executed."
+      "purpose": "Strangler-fig migration playbook (P-STRANGLE): per-service pattern (seam->build-ideal->facade->shadow/canary->cutover->retire), parallel worktree-lane model + single-writer invariant + Buck2 affected-targets + merge-queue fan-in, per-migration DoD, cutover/rollback criteria. Target playbook; no migration executed."
     },
     "cloud_toolchain_target": {
       "kind": "spec",
       "current_path": "/specs/cloud-toolchain-target.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-toolchain",
-      "purpose": "Cloud toolchain target (P-TOOLCHAIN): Bazel rules_rust build graph (crate_universe SSOT, RBE, affected-targets) + retired external CI substrate sole CI (ADR-0359, JCasC, ephemeral agents, GitHub App statuses) + nextest sharding/machete/deny/bacon + oya governance overlay delegating to bazel + merge-queue speculative + retired external CD substrate progressive delivery. Target spec; no adoption/runtime claimed."
+      "purpose": "Cloud toolchain target (P-TOOLCHAIN): Buck2 build/test/check authority, Cargo metadata/Reindeer-style generation only where useful, temporary GitHub/GitHub Actions lane unlocker under ADR-0516, and native Oyatie SCM + rust-prow/oya-ci/cloud-workspace/release-conveyor cutover seams. Target spec; no native cutover/runtime claimed."
     },
     "phase0_ci_enforcement_baseline": {
       "kind": "spec",
@@ -1282,7 +1282,7 @@
       "current_path": "/specs/oya-ci-prow-capability-parity.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-p0.0-buck2-authority",
-      "purpose": "Enforceable upstream Kubernetes Prow feature/capability parity and improvement registry for the Rust, retired external SCM substrate-native oya-ci reimplementation; records full target parity, explicit superseded/out-of-scope upstream components, and non-claim boundaries until trusted cloud-ci/oya-ci posts source-bound oya-ci-required."
+      "purpose": "Enforceable upstream Kubernetes Prow feature/capability parity and improvement registry for the Rust, Oyatie SCM-native oya-ci reimplementation; records full target parity, explicit superseded/out-of-scope upstream components, and non-claim boundaries until trusted cloud-ci/oya-ci posts source-bound oya-ci-required."
     },
     "github_lane_unlocker_bridge": {
       "kind": "spec",

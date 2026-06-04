@@ -1,0 +1,73 @@
+{
+  "evidence_id": "platform-readiness-p0-0-masterplan-toolchain-alignment-1780574700",
+  "captured_at": "2026-06-04T12:05:00Z",
+  "change_lane": "docs-masterplan-toolchain-alignment-20260604T115930Z",
+  "claim_boundary": "local_static_only_no_live_github_kubernetes_cloud_or_secret_mutation",
+  "purpose": "Align the canonical masterplan, cloud toolchain target, strangler migration target, and root-hub pointers with the current ADR-0516 direction: Buck2 authority, temporary GitHub/GitHub Actions lane unlocker, and native Oyatie SCM/rust-prow/oya-ci/cloud-workspace/release-conveyor cutover seams.",
+  "changed_authority_surfaces": [
+    "specs/masterplan.json",
+    "specs/cloud-toolchain-target.json",
+    "specs/cloud-strangler-migration-target.json",
+    "specs/root-hub-pointers.json",
+    "specs/master-plan-sequencing.json",
+    "scripts/ci/assert-repo-hygiene-automation.rs",
+    "BUCK"
+  ],
+  "mechanical_guard_added": {
+    "target": "//:repo-hygiene-automation-check",
+    "new_scan_inputs": [
+      "specs/cloud-toolchain-target.json",
+      "specs/cloud-strangler-migration-target.json"
+    ],
+    "reason": "These canonical target specs previously repeated stale exact-name external-substrate direction; adding them to the Rust/Buck2 hygiene gate prevents reintroducing exact-name active drift."
+  },
+  "verification": [
+    {
+      "command": "jq empty specs/masterplan.json specs/root-hub-pointers.json specs/master-plan-sequencing.json specs/cloud-toolchain-target.json specs/cloud-strangler-migration-target.json",
+      "result": "pass"
+    },
+    {
+      "command": "rg -n 'Bazel|bazel|rules_rust|Jenkins|Argo|Forgejo|GitHub Actions removed|GitHub Actions completely replaced|GitHub Actions is retired|retired external CI substrate sole|retired external CI substrate replaces|\\.github/workflows removed' specs/cloud-strangler-migration-target.json specs/cloud-toolchain-target.json specs/masterplan.json specs/root-hub-pointers.json specs/master-plan-sequencing.json || true",
+      "result": "pass",
+      "observed": "No scoped stale-direction matches remained after the patch."
+    },
+    {
+      "command": "rustfmt --edition 2021 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "result": "pass",
+      "build_id": "101d9235-4d49-4d07-a359-b291f64747eb"
+    },
+    {
+      "command": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "result": "pass",
+      "build_id": "cb30b16c-fd28-466d-835a-49dbcad07014"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "result": "pass",
+      "build_id": "f02606db-3139-4183-a61e-db578423676a"
+    },
+    {
+      "command": "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "result": "pass",
+      "observed": "8 changed files; 6 owning targets; final affected targets root//:who-gates-gates-check, root//:third-party-durable-handedits-check, root//:phase0-red-green-fixture-contract-check; buck2 build succeeded; buck2 test reported Pass 0 Fail 0 and NO TESTS RAN.",
+      "build_ids": [
+        "cdb3294f-78e3-4e12-af6b-55191ec384ab",
+        "0acfc00d-3c4b-4df5-a882-609b320388a2"
+      ]
+    }
+  ],
+  "non_claims": [
+    "No native SCM/CI/CD/cloud-workspace/release-conveyor cutover was executed.",
+    "No GitHub branch protection was mutated.",
+    "No Kubernetes pods or cloud resources were mutated.",
+    "Historical ADR/provenance files were not rewritten."
+  ]
+}
