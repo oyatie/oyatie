@@ -214,7 +214,7 @@ genrule(
         "oya/governance/iac/build/Dockerfile.distroless-rust": "oya/governance/iac/build/Dockerfile.distroless-rust",
         "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json": "//oya/application/crates/oya-application-shell-frontend-prototype:client-manifest.json",
         "infra/ci/jenkins/reported-status-contexts.json": "infra/ci/jenkins/reported-status-contexts.json",
-        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
         "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
         "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
@@ -454,18 +454,19 @@ genrule(
 genrule(
     name = "phase0-ci-enforcement-baseline-catalog-check",
     srcs = {
-        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
         "specs/phase0-ci-enforcement-baseline.json": "specs/phase0-ci-enforcement-baseline.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
+        "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
         "specs/phase0-ci-enforcement-result-schema.json": "specs/phase0-ci-enforcement-result-schema.json",
         "specs/phase0-override-packet-schema.json": "specs/phase0-override-packet-schema.json",
         "specs/phase0-trusted-target-inventory-schema.json": "specs/phase0-trusted-target-inventory-schema.json",
         "specs/toolchain-tenant-isolation-fixtures.json": "specs/toolchain-tenant-isolation-fixtures.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])} | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-ci-enforcement-baseline-catalog-check.json",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py > $OUT",
+    cmd = "mkdir -p $TMP/phase0-ci-baseline-catalog && rustc --edition=2021 -D warnings scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs --test -o $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check_tests && OYA_REPO_ROOT=$PWD $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check_tests > /dev/null && rustc --edition=2021 -D warnings scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs -o $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check && OYA_REPO_ROOT=$PWD $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -575,6 +576,7 @@ genrule(
         "scripts/ci/assert-red-green-fixture-contract.rs": "scripts/ci/assert-red-green-fixture-contract.rs",
         "scripts/tests/red_green_fixture_contract_check.rs": "scripts/tests/red_green_fixture_contract_check.rs",
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
+        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
         "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
         "scripts/tests/phase0_aggregate_exit_check.rs": "scripts/tests/phase0_aggregate_exit_check.rs",
         "scripts/ci/assert-automation-ratchet.rs": "scripts/ci/assert-automation-ratchet.rs",

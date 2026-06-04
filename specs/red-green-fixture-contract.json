@@ -47,7 +47,7 @@
       "automation_matrix_row_id": "AC-0.0-cloud-ci-required-context",
       "buck2_target": "//:phase0-ci-enforcement-baseline-catalog-check",
       "test_paths": [
-        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py"
+        "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs"
       ],
       "green_markers": [
         {
@@ -63,7 +63,7 @@
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+          "path": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
           "contains": "claim_boundary.p0_0_green must remain false"
         }
       ]
