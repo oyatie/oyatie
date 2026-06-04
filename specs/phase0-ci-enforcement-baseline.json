@@ -33,7 +33,7 @@
     "no_new_oya_cli_surface": true,
     "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context produced by oya-ci-controller or minimal Rust bridge adapter",
     "catalog_check_target": "//:phase0-ci-enforcement-baseline-catalog-check",
-    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
     "source_app_binding_check_target": "//:phase0-required-status-source-check",
     "source_app_binding_check_script": "scripts/ci/assert-required-status-source.py",
     "source_app_binding_test": "scripts/tests/phase0_required_status_source_check.test.sh",
@@ -377,7 +377,7 @@
     ],
     "tenant_fixture_contract": "specs/toolchain-tenant-isolation-fixtures.json",
     "catalog_check_target": "//:phase0-ci-enforcement-baseline-catalog-check",
-    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
+    "catalog_check_script": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
     "required_status_source_fixture_directory": "specs/fixtures/phase0-required-status-source",
     "required_status_source_fixture_paths": [
       "specs/fixtures/phase0-required-status-source/good-bound-expected-source-app.json",
