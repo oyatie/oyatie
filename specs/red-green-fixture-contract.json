@@ -308,7 +308,7 @@
       "id": "rust-testing-standard",
       "buck2_target": "//:rust-testing-standard-check",
       "test_paths": [
-        "scripts/tests/rust_testing_standard_check.test.sh"
+        "scripts/tests/rust_testing_standard_check.rs"
       ],
       "green_markers": [
         {
@@ -318,14 +318,14 @@
       ],
       "red_markers": [
         {
-          "path": "scripts/tests/rust_testing_standard_check.test.sh",
+          "path": "scripts/tests/rust_testing_standard_check.rs",
           "contains": "forbidden_true_claim_p0_0_green"
         }
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-rust-testing-standard.py",
-          "contains": "\"p0_0_green\": False"
+          "path": "scripts/tests/rust_testing_standard_check.rs",
+          "contains": "\"p0_0_green\":false"
         }
       ]
     },

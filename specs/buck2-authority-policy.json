@@ -267,8 +267,8 @@
     "scripts/tests/phase0_claim_ceiling_check.test.sh",
     "specs/phase0-claim-evidence-map.json",
     "specs/hyperscaler-production-readiness-claim-contract.json",
-    "scripts/ci/assert-rust-testing-standard.py",
-    "scripts/tests/rust_testing_standard_check.test.sh",
+    "scripts/ci/assert-rust-testing-standard.rs",
+    "scripts/tests/rust_testing_standard_check.rs",
     "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs",
     "scripts/tests/rust_llvm_coverage_runner_contract_check.rs",
     "specs/rust-llvm-coverage-runner-contract.json",
@@ -425,8 +425,8 @@
       "phase0-claim-evidence-map.json",
       "hyperscaler-production-readiness-claim-contract.json",
       "rust-testing-standard-check",
-      "assert-rust-testing-standard.py",
-      "rust_testing_standard_check.test.sh",
+      "assert-rust-testing-standard.rs",
+      "rust_testing_standard_check.rs",
       "rust-llvm-coverage-runner-contract-check",
       "assert-rust-llvm-coverage-runner-contract.rs",
       "rust_llvm_coverage_runner_contract_check.rs",
@@ -967,7 +967,7 @@
       "bad-red-claims-green.json",
       "phase0 aggregate-exit fixture checks passed"
     ],
-    "scripts/ci/assert-rust-testing-standard.py": [
+    "scripts/ci/assert-rust-testing-standard.rs": [
       "local/static documentation-drift evidence only",
       "Buck2-native LLVM source-based coverage",
       "Tarpaulin is not the canonical coverage surface",
@@ -980,9 +980,9 @@
       "production_ready",
       "hyperscaler_grade"
     ],
-    "scripts/tests/rust_testing_standard_check.test.sh": [
-      "coverage_runner_implemented\": false",
-      "mutation_lane_implemented\": false",
+    "scripts/tests/rust_testing_standard_check.rs": [
+      "coverage_runner_implemented\":false",
+      "mutation_lane_implemented\":false",
       "tarpaulin_canonicalized",
       "local_cargo_mutation_not_advisory",
       "missing_reindeer_generated_buck",
