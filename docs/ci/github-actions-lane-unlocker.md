@@ -49,7 +49,7 @@ provide `buck2`. The lane fails closed if rustup, LLVM tools, Buck2, or
 Required local commands:
 
 ```bash
-python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
+buck2 build //:github-lane-unlocker-bridge-check
 buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
 buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
 buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check

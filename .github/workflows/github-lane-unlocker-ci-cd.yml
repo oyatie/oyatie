@@ -43,7 +43,7 @@ jobs:
         run: |
           case "${{ matrix.lane }}" in
             governance)
-              python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
+              buck2 build //:github-lane-unlocker-bridge-check
               buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
               buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
               python3 scripts/ci/apply-third-party-durable-handedits.py
@@ -76,7 +76,7 @@ jobs:
         run: scripts/ci/github-actions-lane-unlocker-bootstrap.sh
       - name: Aggregate bridge evidence
         run: |
-          python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
+          buck2 build //:github-lane-unlocker-bridge-check
           buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
           buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
           buck2 build //:github-lane-unlocker-bridge-check //:repo-hygiene-automation-check
@@ -94,7 +94,7 @@ jobs:
         run: scripts/ci/github-actions-lane-unlocker-bootstrap.sh
       - name: Validate dry-run bridge only
         run: |
-          python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
+          buck2 build //:github-lane-unlocker-bridge-check
           buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
           buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
           buck2 build //:github-lane-unlocker-bridge-check //:repo-hygiene-automation-check
