@@ -131,6 +131,7 @@ fn retired_active_ci_substrate_paths_are_rejected() {
     let root = temp_dir("retired-active-ci-substrate");
     for rel in [
         "infra/ci/jenkins",
+        "infra/ci/argocd",
         "infra/cilium/cell-boundaries",
         "infra/forge",
     ] {
@@ -141,6 +142,7 @@ fn retired_active_ci_substrate_paths_are_rejected() {
     for rel in [
         "infra/ci/deploy-local.sh",
         "infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml",
+        "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
         "infra/forge/jenkins-forgejo-token.secret.template.yaml",
     ] {
         fs::write(root.join(rel), "retired\n").unwrap_or_else(|error| {
@@ -149,7 +151,7 @@ fn retired_active_ci_substrate_paths_are_rejected() {
     }
     let failures = gate::retired_active_path_failures(&root);
     let _ = fs::remove_dir_all(&root);
-    assert_eq!(failures.len(), 4, "{:?}", failures);
+    assert_eq!(failures.len(), 7, "{:?}", failures);
     assert!(
         failures
             .iter()

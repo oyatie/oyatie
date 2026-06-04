@@ -1,0 +1,57 @@
+{
+  "schema_version": "2026-06-04",
+  "captured_at": "2026-06-04T13:13:54Z",
+  "lane": "platform-scm-ci-cd",
+  "base": "ab74ee36772d6406d6afbc0ccb3784e0e5e37c39",
+  "claim_boundary": "local_static_only_no_live_mutation",
+  "live_mutation_performed": false,
+  "changes": {
+    "retired_local_scm_cd_files_removed": 8,
+    "retired_active_paths_guarded": [
+      "infra/ci/argocd",
+      "infra/forge",
+      "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml"
+    ],
+    "cell_boundary_retired_selectors_removed": true,
+    "broader_cd_fleet_bootstrap_rewrite_backlogged": "cd_fleet_bootstrap_surface_retirement"
+  },
+  "user_requested_backlog_controls": {
+    "validated_expected_items": 31,
+    "backlog_count": 31,
+    "invalid_count": 0,
+    "claim_boundary": "backlog_only_no_live_mutation"
+  },
+  "verification": [
+    {
+      "command": "jq empty specs/repo-hygiene-automation.json specs/ci-farm-substrate-canonical.json",
+      "result": "PASS"
+    },
+    {
+      "command": "rustfmt --edition 2021 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check && git diff --cached --check",
+      "result": "PASS"
+    },
+    {
+      "command": "test ! -e infra/ci/argocd && test ! -e infra/forge && test ! -e infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
+      "result": "PASS"
+    },
+    {
+      "command": "git ls-files 'infra/ci/argocd/**' 'infra/forge/**' 'infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml' | wc -l",
+      "result": "PASS",
+      "observed": "0"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check //:github-lane-unlocker-bridge-check --show-output",
+      "result": "PASS",
+      "build_id": "4eecb319-c250-4458-a2af-2cbb6b553de0"
+    },
+    {
+      "command": "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "result": "PASS",
+      "observed": "23 changed files; all affected targets were dedicated static/optional proof targets"
+    }
+  ]
+}

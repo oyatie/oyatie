@@ -1,16 +1,19 @@
-# Per-cell app-of-apps values. Argo CD on each cell renders this chart; override `cell`/`repoURL`
-# per cluster (ApplicationSet/CRS injects them, or a per-cell values file).
-repoURL: https://github.com/jason931225/oyatie   # bootstrap source; flips to Forgejo post-cutover (ADR-0247)
+# Per-cell app-of-apps values retained as a historical fleet-bootstrap pattern.
+# ADR-0516 does not treat retired external CD controllers as interim deployment
+# authority; native release-conveyor/control-plane seams replace this surface.
+repoURL: https://github.com/jason931225/oyatie   # temporary ADR-0516 bridge source; native SCM cutover is separate.
 targetRevision: dev
 cell: control-plane                                         # overridden per spoke (eu/jp/kr/...)
 
-# Each app -> one Argo CD Application. type=path (in-repo manifests) or type=chart (Helm repo).
+# Each app -> one deployment-controller Application. type=path (in-repo
+# manifests) or type=chart (Helm repo).
 apps:
   # Cilium L3/L4 (ADR-0148). CRS bootstraps Cilium ApplyOnce at cluster provision;
-  # Argo CD takes ownership for ongoing lifecycle (drift detection, CVE rollforward,
-  # version bumps via PR — the original ADR-0148 amendment 1.16→1.19 was driven by
-  # an EOL trap that this lifecycle path closes). Same chart + same values file as the
-  # CRS bootstrap, so first reconcile is a no-op.
+  # The deployment controller takes ownership for ongoing lifecycle (drift
+  # detection, CVE rollforward, version bumps via PR — the original ADR-0148
+  # amendment 1.16→1.19 was driven by an EOL trap that this lifecycle path
+  # closes). Same chart + same values file as the CRS bootstrap, so first
+  # reconcile is a no-op.
   - name: cilium
     type: chart
     repoURL: https://helm.cilium.io
@@ -80,13 +83,6 @@ apps:
     namespace: istio-system
     syncWave: "2"
 
-  - name: forgejo
-    type: path
-    path: infra/forge
-    include: forgejo.yaml
-    namespace: oya-forge
-    syncWave: "1"
-
   - name: openbao
     type: path
     path: infra/kms
@@ -141,10 +137,11 @@ apps:
     syncWave: "2"
 
   # Cell-boundary NetworkPolicies (ADR-0381 D3). First boundary: oya-storage
-  # ingress restricted to the CI cell + ArgoCD + same-namespace. Cilium L3/L4
-  # (ADR-0148) enforces. Sibling boundaries (ci/tenant/foundation) follow as
-  # additional files in infra/cilium/cell-boundaries/. syncWave 2 — applied
-  # AFTER seaweedfs (1) so the pods exist when the policy attaches.
+  # ingress restricted to the CI cell + same-namespace; native release/deploy
+  # controllers add explicit selectors when they land. Cilium L3/L4 (ADR-0148)
+  # enforces. Sibling boundaries (ci/tenant/foundation) follow as additional
+  # files in infra/cilium/cell-boundaries/. syncWave 2 — applied AFTER seaweedfs
+  # (1) so the pods exist when the policy attaches.
   - name: cell-boundaries
     type: path
     path: infra/cilium/cell-boundaries

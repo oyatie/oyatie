@@ -1,4 +1,4 @@
-{{- /* One Argo CD Application per entry in .Values.apps. Helm-first app-of-apps. */ -}}
+{{- /* One deployment-controller Application per entry in .Values.apps. Helm-first app-of-apps pattern. */ -}}
 {{- range .Values.apps }}
 ---
 apiVersion: argoproj.io/v1alpha1
