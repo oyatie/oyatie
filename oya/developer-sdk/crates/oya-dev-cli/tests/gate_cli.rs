@@ -3661,7 +3661,7 @@ fn documentation_system_gate_rejects_unwired_pipeline_guard() {
     write_documentation_system_fixture(&temp);
     fs::write(
         temp.join("scripts/check.sh"),
-        "cargo run -p oya-dev-cli -- gate validate documentation-system\n",
+        "buck2 build //libs/oya-check-documentation-system:oya-check-documentation-system\n",
     )
     .expect("check script rewritten");
 
@@ -3699,7 +3699,7 @@ fn write_documentation_system_fixture(root: &Path) {
     .expect("quickref written");
     fs::write(
         root.join("scripts/check.sh"),
-        "cargo run -p oya-dev-cli -- gate validate documentation-system\ncargo run -p oya-dev-cli -- gate validate api-semver\ncargo run -p oya-dev-cli -- gate validate adr-citation\ncargo run -p oya-dev-cli -- catalog validate\ncargo run -p oya-dev-cli -- gate validate doc-catalog\n",
+        "buck2 build //libs/oya-check-documentation-system:oya-check-documentation-system\nbuck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain\nbuck2 build //libs/oya-check-adr-citation:oya-check-adr-citation\nbuck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain\nbuck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog\n",
     )
     .expect("check script written");
     fs::write(
@@ -3710,7 +3710,7 @@ fn write_documentation_system_fixture(root: &Path) {
 }
 
 fn documentation_pipeline_tsv() -> &'static str {
-    "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\nrustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\nopenapi\toya doc openapi\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate api-semver\tcontracts\tcontracts are absent; api-semver guards first contract adoption\nmdbook\toya doc mdbook\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\nadr-index\toya doc adr-index\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\ncatalog\toya doc catalog\tactive\tcargo run -p oya-dev-cli -- catalog validate\tregistry/catalog\t\nlint\toya doc lint\tactive\tcargo run -p oya-dev-cli -- gate validate doc-catalog\tdocs\t\n"
+    "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\nrustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\nopenapi\toya doc openapi\tadoption-guard\tbuck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain\tcontracts\tcontracts are absent; api-semver guards first contract adoption\nmdbook\toya doc mdbook\tadoption-guard\tbuck2 build //oya/intelligence/crates/oya-intelligence-mdbook-domain:oya-intelligence-mdbook-domain //libs/oya-check-documentation-system:oya-check-documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\nadr-index\toya doc adr-index\tadoption-guard\tbuck2 build //libs/oya-check-adr-citation:oya-check-adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\ncatalog\toya doc catalog\tactive\tbuck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain\tregistry/catalog\t\nlint\toya doc lint\tactive\tbuck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog\tdocs\t\n"
 }
 
 fn documentation_system_args(root: &Path) -> Vec<String> {
@@ -8743,8 +8743,8 @@ fn active_artifact_contract_gate_accepts_clean_registry() {
 /// synthetic-violation shape for the lean-a5-documentation lane (ADR-0063 §"doc
 /// coverage enforced").  The check-script override (`--check-script`) replaces
 /// the canonical catalog with a fixture file that deliberately omits
-/// `cargo run -p oya-dev-cli -- catalog validate`, so the `catalog` active step
-/// is flagged as unwired.
+/// the Buck2 catalog-domain target, so the `catalog` active step is flagged as
+/// unwired.
 #[test]
 fn documentation_system_gate_catches_unwired_active_command() {
     let temp = temp_dir("doc-system-violation");
@@ -8766,10 +8766,10 @@ fn documentation_system_gate_catches_unwired_active_command() {
     let check_script_path = temp.join("check.sh");
     fs::write(
         &check_script_path,
-        "cargo run -p oya-dev-cli -- gate validate api-semver\n\
-         cargo run -p oya-dev-cli -- gate validate documentation-system\n\
-         cargo run -p oya-dev-cli -- gate validate adr-citation\n\
-         cargo run -p oya-dev-cli -- gate validate doc-catalog\n",
+        "buck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain\n\
+         buck2 build //libs/oya-check-documentation-system:oya-check-documentation-system\n\
+         buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation\n\
+         buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog\n",
     )
     .expect("check script written");
 
@@ -8780,11 +8780,11 @@ fn documentation_system_gate_catches_unwired_active_command() {
         &pipeline_path,
         "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\n\
          rustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\n\
-         openapi\toya doc openapi\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate api-semver\tcontracts\tcontracts are absent; api-semver guards first contract adoption\n\
-         mdbook\toya doc mdbook\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\n\
-         adr-index\toya doc adr-index\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\n\
-         catalog\toya doc catalog\tactive\tcargo run -p oya-dev-cli -- catalog validate\tregistry/catalog\t\n\
-         lint\toya doc lint\tactive\tcargo run -p oya-dev-cli -- gate validate doc-catalog\tdocs\t\n",
+         openapi\toya doc openapi\tadoption-guard\tbuck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain\tcontracts\tcontracts are absent; api-semver guards first contract adoption\n\
+         mdbook\toya doc mdbook\tadoption-guard\tbuck2 build //oya/intelligence/crates/oya-intelligence-mdbook-domain:oya-intelligence-mdbook-domain //libs/oya-check-documentation-system:oya-check-documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\n\
+         adr-index\toya doc adr-index\tadoption-guard\tbuck2 build //libs/oya-check-adr-citation:oya-check-adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\n\
+         catalog\toya doc catalog\tactive\tbuck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain\tregistry/catalog\t\n\
+         lint\toya doc lint\tactive\tbuck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog\tdocs\t\n",
     )
     .expect("pipeline TSV written");
 
@@ -8846,11 +8846,11 @@ fn documentation_system_gate_passes_clean_pipeline() {
     let check_script_path = temp.join("check.sh");
     fs::write(
         &check_script_path,
-        "cargo run -p oya-dev-cli -- gate validate api-semver\n\
-         cargo run -p oya-dev-cli -- gate validate documentation-system\n\
-         cargo run -p oya-dev-cli -- gate validate adr-citation\n\
-         cargo run -p oya-dev-cli -- catalog validate\n\
-         cargo run -p oya-dev-cli -- gate validate doc-catalog\n",
+        "buck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain\n\
+         buck2 build //libs/oya-check-documentation-system:oya-check-documentation-system\n\
+         buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation\n\
+         buck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain\n\
+         buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog\n",
     )
     .expect("check script written");
 
@@ -8861,11 +8861,11 @@ fn documentation_system_gate_passes_clean_pipeline() {
         &pipeline_path,
         "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\n\
          rustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\n\
-         openapi\toya doc openapi\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate api-semver\tcontracts\tcontracts are absent; api-semver guards first contract adoption\n\
-         mdbook\toya doc mdbook\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\n\
-         adr-index\toya doc adr-index\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\n\
-         catalog\toya doc catalog\tactive\tcargo run -p oya-dev-cli -- catalog validate\tregistry/catalog\t\n\
-         lint\toya doc lint\tactive\tcargo run -p oya-dev-cli -- gate validate doc-catalog\tdocs\t\n",
+         openapi\toya doc openapi\tadoption-guard\tbuck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain\tcontracts\tcontracts are absent; api-semver guards first contract adoption\n\
+         mdbook\toya doc mdbook\tadoption-guard\tbuck2 build //oya/intelligence/crates/oya-intelligence-mdbook-domain:oya-intelligence-mdbook-domain //libs/oya-check-documentation-system:oya-check-documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\n\
+         adr-index\toya doc adr-index\tadoption-guard\tbuck2 build //libs/oya-check-adr-citation:oya-check-adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\n\
+         catalog\toya doc catalog\tactive\tbuck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain\tregistry/catalog\t\n\
+         lint\toya doc lint\tactive\tbuck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog\tdocs\t\n",
     )
     .expect("pipeline TSV written");
 
