@@ -1,0 +1,49 @@
+{
+  "schema_version": "2026-06-04",
+  "captured_at": "2026-06-04T12:29:01Z",
+  "lane": "platform-scm-ci-cd",
+  "base": "bc0c7a1ae058389c43077b9ca96455009ec8328e",
+  "claim_boundary": "local_static_only_no_live_mutation",
+  "live_mutation_performed": false,
+  "changes": {
+    "tracked_service_jenkinsfiles_removed": 87,
+    "roots": ["cloud", "oya"],
+    "buck2_authority_policy_command_scan_globs": 0,
+    "repo_hygiene_guard": "retired_service_ci_entrypoint_failures"
+  },
+  "user_requested_backlog_controls": {
+    "validated_expected_items": 31,
+    "backlog_count": 31,
+    "invalid_count": 0,
+    "claim_boundary": "backlog_only_no_live_mutation"
+  },
+  "verification": [
+    {
+      "command": "jq empty specs/buck2-authority-policy.json specs/repo-hygiene-automation.json",
+      "result": "PASS"
+    },
+    {
+      "command": "rustfmt --edition 2021 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "git ls-files 'cloud/*/ci/Jenkinsfile' 'oya/*/ci/Jenkinsfile' | wc -l",
+      "result": "PASS",
+      "observed": "0"
+    },
+    {
+      "command": "find cloud oya -path '*/ci/Jenkinsfile' -type f | wc -l",
+      "result": "PASS",
+      "observed": "0"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check //:github-lane-unlocker-bridge-check --show-output",
+      "result": "PASS",
+      "build_id": "21aa17fa-df22-4b8e-ac55-cb682f35256f"
+    }
+  ]
+}

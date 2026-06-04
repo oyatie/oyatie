@@ -104,6 +104,29 @@ fn root_jenkinsfile_is_rejected_as_retired_ci_entrypoint() {
 }
 
 #[test]
+fn service_jenkinsfiles_are_rejected_as_retired_ci_entrypoints() {
+    let root = temp_dir("service-jenkinsfile");
+    for rel in ["cloud/demo/ci", "oya/demo/ci"] {
+        fs::create_dir_all(root.join(rel)).unwrap_or_else(|error| {
+            panic!("create service ci fixture {}: {}", rel, error);
+        });
+        fs::write(root.join(rel).join("Jenkinsfile"), "pipeline {}\n").unwrap_or_else(|error| {
+            panic!("write service Jenkinsfile fixture {}: {}", rel, error);
+        });
+    }
+    let failures = gate::retired_service_ci_entrypoint_failures(&root);
+    let _ = fs::remove_dir_all(&root);
+    assert_eq!(failures.len(), 2, "{:?}", failures);
+    assert!(
+        failures
+            .iter()
+            .all(|failure| failure.contains("retired service Jenkins CI entrypoint")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn active_doc_phrase_scanner_rejects_manual_bridge_statuses() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",
