@@ -139,7 +139,7 @@
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 + specs/fixtures/phase0-ci-enforcement-baseline/ + //:phase0-ci-enforcement-baseline-catalog-check",
       "classification": "automated_blocking_now",
       "current_gap_packet": "specs/phase0-ci-enforcement-baseline.json#gap_packet",
-      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + specs/fixtures/phase0-required-status-source/ + scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs + scripts/ci/assert-required-status-source.py + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle + specs/phase0-override-packet-schema.json + specs/phase0-trusted-target-inventory-schema.json + scripts/ci/assert-trusted-target-inventory.py + //:phase0-trusted-target-inventory-check + scripts/ci/assert-result-bundle-output.py + //:phase0-result-bundle-output-check",
+      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + specs/fixtures/phase0-required-status-source/ + scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs + scripts/ci/assert-required-status-source.rs + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle + specs/phase0-override-packet-schema.json + specs/phase0-trusted-target-inventory-schema.json + scripts/ci/assert-trusted-target-inventory.py + //:phase0-trusted-target-inventory-check + scripts/ci/assert-result-bundle-output.py + //:phase0-result-bundle-output-check",
       "id": "AC-0.0-cloud-ci-required-context",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain",
