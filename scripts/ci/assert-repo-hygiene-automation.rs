@@ -35,6 +35,8 @@ const STALE_DOC_INVENTORY_TEST_COMMAND: &str =
 const REQUIRED_BUCK2_AUTHORITY_COMMAND: &str = "buck2 build //:repo-hygiene-automation-check";
 const PROWJOB_REGISTRY_COMMAND: &str = "buck2 build //:oya-ci-prowjob-registry-check";
 const OYA_CI_CONTROLLER_CONFIG_COMMAND: &str = "buck2 build //:oya-ci-controller-config-check";
+const KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND: &str =
+    "buck2 build //:kubernetes-native-anti-pattern-check";
 const RETIRED_PLANNING_CLOSURE_COMMAND: &str =
     "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
 const RETIRED_OYA_DEV_CLI_PLANNING_CLOSURE_COMMAND: &str =
@@ -59,6 +61,7 @@ const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     STALE_DOC_INVENTORY_TEST_COMMAND,
     PROWJOB_REGISTRY_COMMAND,
     OYA_CI_CONTROLLER_CONFIG_COMMAND,
+    KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
 ];
 
 const REQUIRED_SOURCE_URLS: &[&str] = &[
@@ -497,6 +500,18 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "repo hygiene spec must record hyperscaler/cloud/Kubernetes-native anti-pattern guardrails",
         ),
         (
+            "\"contract\": \"specs/kubernetes-native-anti-patterns.json\"",
+            "anti-pattern guardrails must point at disjoint Kubernetes-native anti-pattern contract",
+        ),
+        (
+            "\"check\": \"buck2 build //:kubernetes-native-anti-pattern-check\"",
+            "anti-pattern guardrails must publish Kubernetes-native anti-pattern Buck2 check",
+        ),
+        (
+            "\"controller_reconciliation_over_manual_mutation\"",
+            "anti-pattern guardrails must require controller reconciliation over manual mutation",
+        ),
+        (
             "\"trusted_controller_owned_oya_ci_required\"",
             "anti-pattern guardrails must require controller-owned oya-ci-required truth",
         ),
@@ -897,15 +912,19 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "repo-hygiene-automation-check",
         "oya-ci-prowjob-registry-check",
         "oya-ci-controller-config-check",
+        "kubernetes-native-anti-pattern-check",
         "assert-repo-hygiene-automation.rs",
         "generate-oya-ci-prowjob-registry.rs",
         "assert-oya-ci-controller-config.rs",
+        "assert-kubernetes-native-antipatterns.rs",
         "repo_hygiene_automation_check.rs",
         "oya_ci_prowjob_registry_check.rs",
         "oya_ci_controller_config_check.rs",
+        "kubernetes_native_antipatterns_check.rs",
         "repo-hygiene-automation.json",
         "oya-ci-prowjob-registry.json",
         "oya-ci-controller-config-contract.json",
+        "kubernetes-native-anti-patterns.json",
         "retired-external-substrate-registry.json",
         "oya-doc-staleness-inventory-app",
     ] {

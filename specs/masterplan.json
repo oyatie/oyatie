@@ -557,7 +557,8 @@
       "legacy_shadow_bridge_green": "buck2 build //:github-lane-unlocker-bridge-check",
       "prowjob_registry_green": "buck2 build //:oya-ci-prowjob-registry-check",
       "prow_controller_config_green": "buck2 build //:oya-ci-prowjob-registry-check validates specs/generated/oya-ci-controller-config.generated.yaml as local/static controller config evidence",
-      "prow_controller_schema_green": "buck2 build //:oya-ci-controller-config-check validates generated OyaCIControllerConfig schema/admission/security invariants without live cluster mutation"
+      "prow_controller_schema_green": "buck2 build //:oya-ci-controller-config-check validates generated OyaCIControllerConfig schema/admission/security invariants without live cluster mutation",
+      "kubernetes_native_antipatterns_green": "buck2 build //:kubernetes-native-anti-pattern-check validates hyperscaler/cloud/Kubernetes-native anti-pattern guardrails without live Kubernetes or GitHub mutation"
     },
     "repo_hygiene_automation": {
       "spec": "/specs/repo-hygiene-automation.json",
@@ -581,9 +582,12 @@
       "prowjob_registry": "/specs/oya-ci-prowjob-registry.json",
       "prow_controller_config": "/specs/generated/oya-ci-controller-config.generated.yaml",
       "prow_controller_config_contract": "/specs/oya-ci-controller-config-contract.json",
-      "prowjob_registry_check": "buck2 build //:oya-ci-prowjob-registry-check"
+      "kubernetes_native_anti_pattern_contract": "/specs/kubernetes-native-anti-patterns.json",
+      "prowjob_registry_check": "buck2 build //:oya-ci-prowjob-registry-check",
+      "kubernetes_native_anti_pattern_check": "buck2 build //:kubernetes-native-anti-pattern-check"
     },
     "supporting_specs": [
+      "/specs/kubernetes-native-anti-patterns.json",
       "/specs/repo-hygiene-automation.json",
       "/specs/oya-ci-prowjob-registry.json",
       "/specs/github-lane-unlocker-bridge.json",
@@ -602,7 +606,8 @@
       "ci": "Rust/Prow/Kubernetes-native oya-ci consumes trusted SCM/controller state, runs Buck2 workloads, and posts oya-ci-required",
       "cd": "release-conveyor-like native CD consumes signed build/evidence/release ledger outputs for progressive delivery, rollback, and audit",
       "github": "PR/publication adapter; GitHub Actions is shadow compatibility only",
-      "prowjob_registry": "Lane-owned desired ProwJob shards under specs/ci/prow-jobs generate specs/generated/oya-ci-prowjob-registry.generated.yaml and specs/generated/oya-ci-controller-config.generated.yaml; local/static controller-config schema/admission invariants are checked by buck2 build //:oya-ci-controller-config-check until native controller cutover."
+      "prowjob_registry": "Lane-owned desired ProwJob shards under specs/ci/prow-jobs generate specs/generated/oya-ci-prowjob-registry.generated.yaml and specs/generated/oya-ci-controller-config.generated.yaml; local/static controller-config schema/admission invariants are checked by buck2 build //:oya-ci-controller-config-check until native controller cutover.",
+      "anti_pattern_guard": "specs/kubernetes-native-anti-patterns.json records controller_reconciliation_over_manual_mutation, native_scm_ci_cd_service_seams, and blind_kubectl_delete_pods rejection so lane work stays hyperscaler/cloud/Kubernetes-native without shared mutable bottlenecks."
     }
   },
   "planning_closure": {

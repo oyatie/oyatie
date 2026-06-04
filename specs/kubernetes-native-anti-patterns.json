@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/kubernetes-native-anti-patterns.json",
+  "spec_id": "P00-KUBERNETES-NATIVE-ANTI-PATTERNS",
+  "status": "p00_local_static_policy_contract",
+  "updated_at": "2026-06-04T18:58:55Z",
+  "purpose": "Machine-readable guardrail for hyperscaler, cloud-native, and Kubernetes-native lane work. This keeps active plans on controller reconciliation, Buck2/Prow evidence, trusted controller-owned required context, restricted workload security, generated shared surfaces, and shadow-only adapters while rejecting live-mutation shortcuts and retired bridge authorities.",
+  "buck2_check": "buck2 build //:kubernetes-native-anti-pattern-check",
+  "local_static_only": true,
+  "live_mutation_performed": false,
+  "buck2_authority": true,
+  "github_actions_shadow_only": true,
+  "github_actions_durable_authority": false,
+  "candidate_owned_truth_allowed": false,
+  "oya_cli_revival_allowed": false,
+  "official_sources": [
+    {
+      "url": "https://architecture.cncf.io/",
+      "establishes": "Cloud-native architectures favor loosely coupled, interoperable, observable, resilient services rather than shared mutable bottlenecks."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/architecture/controller/",
+      "establishes": "Kubernetes controllers reconcile observed state toward desired state through control loops."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "establishes": "Restricted Pod Security establishes least-privilege pod/container defaults for untrusted workloads."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "establishes": "NetworkPolicy supports pod traffic isolation and default-deny policy shape."
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+      "establishes": "Kubernetes securityContext controls non-root execution, privilege escalation, read-only root filesystems, seccomp, and Linux capabilities."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/containers/runtime-class/",
+      "establishes": "RuntimeClass selects container runtime configuration for pod-level runtime isolation."
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+      "establishes": "Pods can opt out of automatic ServiceAccount token mounting."
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/",
+      "establishes": "Draining evicts workloads through Kubernetes APIs instead of blind pod deletion."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/jobs/",
+      "establishes": "ProwJob configuration is the compatible pattern input for presubmit, postsubmit, periodic, and batch CI jobs."
+    }
+  ],
+  "required_patterns": [
+    {
+      "id": "controller_reconciliation_over_manual_mutation",
+      "valid": true,
+      "applies_to": ["ci_cd", "kubernetes_workloads", "scm_adapters"],
+      "implementation_hook": "Prow/Kubernetes-native controllers own desired-state reconciliation; local specs are static evidence only."
+    },
+    {
+      "id": "trusted_controller_owned_oya_ci_required",
+      "valid": true,
+      "applies_to": ["ci_cd", "merge_queue"],
+      "implementation_hook": "Only the trusted oya-ci controller rollup may publish the durable oya-ci-required context."
+    },
+    {
+      "id": "buck2_job_authority",
+      "valid": true,
+      "applies_to": ["build", "test", "check", "coverage"],
+      "implementation_hook": "Buck2 targets remain the build/test/check authority; Cargo/Tarpaulin/local scripts are advisory unless projected into Buck2/Prow evidence."
+    },
+    {
+      "id": "workload_identity_metadata_blocked",
+      "valid": true,
+      "applies_to": ["kubernetes_jobs", "cloud_access"],
+      "implementation_hook": "CI workloads use workload identity, block node metadata access, and reject static cloud secrets."
+    },
+    {
+      "id": "restricted_pod_security_defaults",
+      "valid": true,
+      "applies_to": ["kubernetes_jobs", "untrusted_prs"],
+      "implementation_hook": "Generated controller config requires no privilege escalation, read-only root filesystems, non-root users, RuntimeDefault seccomp, and dropped ALL capabilities."
+    },
+    {
+      "id": "default_deny_network_policy",
+      "valid": true,
+      "applies_to": ["kubernetes_jobs", "microservices"],
+      "implementation_hook": "Default-deny network policy is required before explicit lane-owned egress/ingress grants."
+    },
+    {
+      "id": "sandboxed_untrusted_runtime",
+      "valid": true,
+      "applies_to": ["untrusted_prs", "kubernetes_jobs"],
+      "implementation_hook": "Untrusted PR jobs run through a sandboxed RuntimeClass and restricted runner ServiceAccount."
+    },
+    {
+      "id": "service_mesh_mtls_intent",
+      "valid": true,
+      "applies_to": ["microservices", "ci_controller"],
+      "implementation_hook": "Service-to-service traffic records mTLS intent and must later bind to mesh identity before production claims."
+    },
+    {
+      "id": "pointer_thin_or_generated_shared_surfaces",
+      "valid": true,
+      "applies_to": ["docs", "ci_config", "registries"],
+      "implementation_hook": "Shared files stay pointer-thin or generated from lane-owned shards to reduce merge conflicts."
+    },
+    {
+      "id": "shadow_adapters_not_authority",
+      "valid": true,
+      "applies_to": ["github", "github_actions", "external_publication"],
+      "implementation_hook": "GitHub/GitHub Actions adapters remain temporary publication/shadow surfaces until native SCM/oya-ci/release conveyor cutover."
+    },
+    {
+      "id": "native_scm_ci_cd_service_seams",
+      "valid": true,
+      "applies_to": ["scm", "ci_cd", "release"],
+      "implementation_hook": "Pure-Rust-biased Sapling-inspired SCM owns change graph; oya-ci owns Buck2/Prow execution; release-conveyor-like CD owns progressive delivery ledger."
+    },
+    {
+      "id": "cloud_auth_product_auth_decoupled_until_rewire",
+      "valid": true,
+      "applies_to": ["cloud", "product_auth", "shared_substrates"],
+      "implementation_hook": "Cloud and Oyatie product auth/shared substrates stay decoupled now to avoid shared contract conflicts; later product rewrites consume Cloud IdP."
+    }
+  ],
+  "forbidden_anti_patterns": [
+    {
+      "id": "blind_kubectl_delete_pods",
+      "valid": true,
+      "rejects": "Deleting pods directly as an operational plan instead of scaling, draining, pausing, or reconciling through controller-owned desired state."
+    },
+    {
+      "id": "candidate_owned_manual_status_or_merge_truth",
+      "valid": true,
+      "rejects": "A candidate PR, local script, or human-posted status acting as durable oya-ci-required truth."
+    },
+    {
+      "id": "github_actions_as_durable_ci_authority",
+      "valid": true,
+      "rejects": "Treating GitHub Actions as permanent first-class CI/CD authority instead of temporary compatibility/shadow evidence."
+    },
+    {
+      "id": "retired_external_substrate_bridge_authority",
+      "valid": true,
+      "rejects": "Jenkins, Forgejo, ArgoCD, Argo Workflows/Rollouts, or retired Oya CLI gates as active interim authority."
+    },
+    {
+      "id": "single_hand_edited_workflow_bottleneck",
+      "valid": true,
+      "rejects": "One shared hand-edited CI workflow as the coordination surface for parallel product/infra/cloud lanes."
+    },
+    {
+      "id": "new_python_or_shell_gate_sprawl",
+      "valid": true,
+      "rejects": "New durable gate/check surfaces in Python or shell instead of Rust libraries, Buck2 targets, and Prow/Kubernetes jobs."
+    },
+    {
+      "id": "oya_cli_revival",
+      "valid": true,
+      "rejects": "Reviving oya vcs, oya git, oya gate, or oya verify as sanctioned merge/CI authority."
+    },
+    {
+      "id": "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
+      "valid": true,
+      "rejects": "Letting Cargo, Tarpaulin, or ad-hoc local tools outrank Buck2-native LLVM coverage and Buck2 check authority."
+    },
+    {
+      "id": "node_metadata_access_enabled",
+      "valid": true,
+      "rejects": "Allowing CI or service pods to reach node metadata APIs for cloud credentials."
+    },
+    {
+      "id": "default_service_account_token_mount",
+      "valid": true,
+      "rejects": "Implicitly mounting default ServiceAccount tokens in CI/workload pods."
+    },
+    {
+      "id": "privileged_or_mutable_container_defaults",
+      "valid": true,
+      "rejects": "Privileged containers, privilege escalation, writable root filesystems, root execution, or retained Linux capabilities as defaults."
+    },
+    {
+      "id": "missing_runtime_class_for_untrusted_jobs",
+      "valid": true,
+      "rejects": "Running untrusted PR jobs without a sandboxed RuntimeClass."
+    },
+    {
+      "id": "missing_default_deny_network_policy",
+      "valid": true,
+      "rejects": "Relying on open pod networking instead of default-deny plus explicit grants."
+    }
+  ],
+  "cross_artifact_guards": {
+    "root_hub_pointer": "/specs/root-hub-pointers.json#entry_points.kubernetes_native_anti_patterns",
+    "masterplan_p00": "/specs/masterplan.json#imminent_work_p00",
+    "repo_hygiene_backlink": "/specs/repo-hygiene-automation.json#anti_patterns_guardrails",
+    "controller_config_contract": "/specs/oya-ci-controller-config-contract.json",
+    "generated_controller_config": "/specs/generated/oya-ci-controller-config.generated.yaml"
+  },
+  "claim_boundary": {
+    "live_kubernetes_mutated": false,
+    "branch_protection_mutated": false,
+    "github_required_context_changed": false,
+    "production_readiness_claimed": false,
+    "phase0_green_claimed": false
+  }
+}
