@@ -7,6 +7,13 @@ reproduce it from the committed IaC.
 > All secret material in this document is `PLACEHOLDER`. Never paste a real
 > token, password, or HMAC secret into this file or any commit.
 
+> Legacy adapter-secret compatibility note (2026-06-04): the exact external
+> SCM adapter secret names below remain only because the current
+> `ci-controller` / `ci-webhook-gateway` manifests still consume them. They are
+> not SCM/CI authority and are not a pattern for new work. Retire or rename them
+> only through the `retired_external_scm_adapter_retirement` lane after the Rust
+> GitHub/native-SCM adapters are wired.
+
 ## Committed IaC (source of truth)
 
 | File | Captures |
