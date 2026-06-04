@@ -1524,6 +1524,7 @@
   "expected_command_markers": {
     ".github/workflows/github-lane-unlocker-ci-cd.yml": [
       "github-lane-unlocker-required",
+      "runs-on: ubuntu-24.04-arm",
       "strategy:",
       "max-parallel: 4",
       "matrix:",

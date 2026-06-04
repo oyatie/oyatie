@@ -193,6 +193,7 @@ def main() -> int:
     source_urls = {src.get("url") for src in official_sources if isinstance(src, dict)}
     for url in [
         "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax",
+        "https://docs.github.com/en/actions/reference/github-hosted-runners-reference",
         "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations",
         "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
         "https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations",
@@ -221,6 +222,7 @@ def main() -> int:
             "contents: read",
             "pull-requests: read",
             "BUCK2_RELEASE: \"2026-06-01\"",
+            "runs-on: ubuntu-24.04-arm",
             "Bootstrap Rust and Buck2 toolchains",
             "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
             "concurrency:",
@@ -246,6 +248,7 @@ def main() -> int:
         require("cargo tarpaulin" not in workflow.lower(), failures, "lane unlocker workflow must not use Tarpaulin")
         require("github-lane-unlocker-required" in workflow, failures, "lane unlocker workflow must expose the temporary required context")
         require(workflow.count("scripts/ci/github-actions-lane-unlocker-bootstrap.sh") == 3, failures, "lane unlocker workflow must bootstrap Rust and Buck2 in fanout, aggregator, and dry-run jobs")
+        require(workflow.count("runs-on: ubuntu-24.04-arm") == 3, failures, "lane unlocker workflow must use arm64 Ubuntu runners for the repo default aarch64 Buck2 Rust toolchain")
         require("oya-ci-required" not in workflow, failures, "lane unlocker workflow must not impersonate oya-ci-required")
         for forbidden in ["jenkins", "forgejo", "argocd"]:
             require(forbidden not in workflow.lower(), failures, f"lane unlocker workflow must not invoke or describe {forbidden} as interim authority")

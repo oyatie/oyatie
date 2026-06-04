@@ -21,7 +21,9 @@ Use GitHub as temporary SCM/merge surface and GitHub Actions as temporary CI/CD
 bridge for dev-lane unlock, while Buck2 remains the build/test/check authority.
 The required temporary context is `github-lane-unlocker-required`; the native
 cutover context remains separate as `oya-ci-required` and cannot be impersonated
-by the GitHub bridge. The temporary workflow pins `BUCK2_RELEASE=2026-06-01` and runs
+by the GitHub bridge. The temporary workflow runs on GitHub-hosted `ubuntu-24.04-arm` runners to
+match the current Buck2 `aarch64-unknown-linux-gnu` Rust toolchain, pins
+`BUCK2_RELEASE=2026-06-01`, and runs
 `scripts/ci/github-actions-lane-unlocker-bootstrap.sh` before any Buck2 fanout.
 That bootstrap serializes rustup setup, pins Rust through `rust-toolchain.toml`,
 installs `llvm-tools-preview`, installs the Linux targets Buck2 probes, then

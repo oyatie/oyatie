@@ -27,7 +27,9 @@ lane-unlocker. It is not P0.0 green and it does not make GitHub permanent.
 
 The workflow `.github/workflows/github-lane-unlocker-ci-cd.yml` fans out with a
 matrix and `max-parallel`, cancels stale runs with `concurrency`, and aggregates a
-single required check named `github-lane-unlocker-required`. Every job first runs
+single required check named `github-lane-unlocker-required`. Every job runs on `ubuntu-24.04-arm` because the current Buck2 Rust toolchain
+defaults to `aarch64-unknown-linux-gnu`; this keeps the temporary bridge native
+arm64 instead of cross-linking on x64. Every job first runs
 `scripts/ci/github-actions-lane-unlocker-bootstrap.sh`, which serializes rustup
 setup before Buck2 fanout, pins Rust through `rust-toolchain.toml`, installs
 `llvm-tools-preview`, installs the Linux targets Buck2 probes, then installs

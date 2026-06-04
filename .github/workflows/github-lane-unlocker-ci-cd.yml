@@ -21,7 +21,7 @@ concurrency:
 jobs:
   lane-unlocker-fanout:
     name: github-lane-unlocker-lane (${{ matrix.lane }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -58,7 +58,7 @@ jobs:
 
   github-lane-unlocker-required:
     name: github-lane-unlocker-required
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     needs: lane-unlocker-fanout
     steps:
       - uses: actions/checkout@v4
@@ -74,7 +74,7 @@ jobs:
 
   github-lane-unlocker-cd-dry-run:
     name: github-lane-unlocker-cd-dry-run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     needs: github-lane-unlocker-required
     steps:
       - uses: actions/checkout@v4
