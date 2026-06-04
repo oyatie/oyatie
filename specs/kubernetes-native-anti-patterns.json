@@ -49,6 +49,26 @@
     {
       "url": "https://docs.prow.k8s.io/docs/jobs/",
       "establishes": "ProwJob configuration is the compatible pattern input for presubmit, postsubmit, periodic, and batch CI jobs."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/life-of-a-prow-job/",
+      "establishes": "Prow's trigger-to-ProwJob-to-pod-to-status lifecycle is the compatible shape for disposable CI compute."
+    },
+    {
+      "url": "https://docs.prow.k8s.io/docs/components/pod-utilities/",
+      "establishes": "Prow pod utilities fetch source, wrap execution, and upload logs/artifacts outside the job pod."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+      "establishes": "Pods are ephemeral execution units; controllers recreate rather than depend on persistent pod identity."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#local-ephemeral-storage",
+      "establishes": "Kubernetes local ephemeral storage must be requested/limited for bounded pod scratch I/O."
+    },
+    {
+      "url": "https://buck2.build/docs/users/remote_execution/",
+      "establishes": "Buck2 remote execution uses remote action cache and CAS endpoints, matching content-addressed remote cache patterns."
     }
   ],
   "required_patterns": [
@@ -123,6 +143,36 @@
       "valid": true,
       "applies_to": ["cloud", "product_auth", "shared_substrates"],
       "implementation_hook": "Cloud and Oyatie product auth/shared substrates stay decoupled now to avoid shared contract conflicts; later product rewrites consume Cloud IdP."
+    },
+    {
+      "id": "disposable_prowjob_pods_remote_state",
+      "valid": true,
+      "applies_to": ["ci_cd", "kubernetes_jobs", "cloud_io"],
+      "implementation_hook": "CI follows trigger -> fetch remote state -> compute/validate -> export artifacts -> destroy ephemeral workspace. ProwJob pods are disposable compute; SCM refs, CAS/cache, object artifacts, status, and audit ledger are durable."
+    },
+    {
+      "id": "content_addressed_remote_cache_not_workspace_state",
+      "valid": true,
+      "applies_to": ["buck2", "remote_execution", "ci_cd"],
+      "implementation_hook": "Remote cache and CAS are allowed for performance but never correctness authority; cache keys are content-addressed and trust-domain separated."
+    },
+    {
+      "id": "regional_cell_local_cache_and_artifact_store",
+      "valid": true,
+      "applies_to": ["cloud_io", "performance", "artifacts"],
+      "implementation_hook": "Hot-path cache/artifact reads stay in the same region/cell as compute; cross-region replication is asynchronous and outside presubmit critical path."
+    },
+    {
+      "id": "trusted_cache_promotion_and_cold_cache_probes",
+      "valid": true,
+      "applies_to": ["cache_security", "ci_cd", "release"],
+      "implementation_hook": "Untrusted PR cache writes are quarantined; trusted postsubmit/periodic jobs promote warmed cache entries; scheduled cold-cache probes prove correctness without cache."
+    },
+    {
+      "id": "bounded_ephemeral_storage_and_io_metrics",
+      "valid": true,
+      "applies_to": ["kubernetes_jobs", "performance", "slo"],
+      "implementation_hook": "Job pods declare ephemeral-storage requests/limits and emit cache hit ratio, CAS bytes, artifact upload latency, and eviction metrics."
     }
   ],
   "forbidden_anti_patterns": [
@@ -190,6 +240,41 @@
       "id": "missing_default_deny_network_policy",
       "valid": true,
       "rejects": "Relying on open pod networking instead of default-deny plus explicit grants."
+    },
+    {
+      "id": "stateful_runner_workspace_pool",
+      "valid": true,
+      "rejects": "Long-lived CI runner pools with sticky workspaces, persistent checkout directories, or hidden runner-local state."
+    },
+    {
+      "id": "pod_local_cache_as_correctness_or_state_authority",
+      "valid": true,
+      "rejects": "Treating pod-local disk cache, workspace contents, or a previous run's filesystem as correctness evidence or durable state."
+    },
+    {
+      "id": "cross_trust_cache_poisoning",
+      "valid": true,
+      "rejects": "Allowing untrusted PR jobs to populate the trusted cache namespace or share cache/write credentials across tenants, repos, or trust domains."
+    },
+    {
+      "id": "cross_region_hot_path_ci_io",
+      "valid": true,
+      "rejects": "Placing remote cache/artifact hot-path reads across regions/cells, creating avoidable egress, latency, and correlated failure risk."
+    },
+    {
+      "id": "mutable_or_overwritten_ci_artifacts",
+      "valid": true,
+      "rejects": "Overwriting logs, coverage, SBOM, or build artifacts in place instead of publishing immutable content-addressed artifacts."
+    },
+    {
+      "id": "unbounded_ephemeral_storage",
+      "valid": true,
+      "rejects": "Running CI pods without ephemeral-storage requests/limits, eviction metrics, or scratch-space budgets."
+    },
+    {
+      "id": "privileged_dind_or_host_socket_runner",
+      "valid": true,
+      "rejects": "Privileged Docker-in-Docker or host socket mounts for untrusted jobs instead of sandboxed runtimes and controller-owned build/execution services."
     }
   ],
   "cross_artifact_guards": {

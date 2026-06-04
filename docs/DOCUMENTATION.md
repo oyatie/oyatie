@@ -21,7 +21,7 @@ The four Diátaxis quadrants:
 |---|---|---|
 | **Tutorials** | Learn-by-doing for a beginner | "Build your first Foundry capability in 30 minutes" |
 | **How-to guides** | Solve a specific task | "Add a new tenant to the Cloud control plane" |
-| **Reference** | Look up exact info | `oya verify --help`; `Capability` Rust struct rustdoc |
+| **Reference** | Look up exact info | Buck2 verification target docs; `Capability` Rust struct rustdoc |
 | **Explanation** | Understand the *why* | "Why Foundry consolidates Foundry — DESIGN §3" |
 
 Plus a fifth, project-management quadrant for the consolidated docs themselves (PRD/ROADMAP/RISK-REGISTER/etc.). The consolidated docs are *project artifacts*, not user docs. They are exposed selectively to outside readers (trust portal mirrors).
@@ -56,7 +56,7 @@ Plus a fifth, project-management quadrant for the consolidated docs themselves (
 | **Workflow Studio user guide** | `docs.oyatie.com/studio/` | `axis-saas` + `axis-foundry` | mdbook + interactive Leptos demos |
 | **Plugin authoring guide** | `docs.oyatie.com/plugins/` | `axis-foundry` (plugin substrate is Foundry's foundry surface) | mdbook + Wasmtime sandbox demos |
 | **Marketplace listing pages** | `marketplace.oyatie.com/` | `axis-saas` | Generated from marketplace records |
-| **Per-crate Rust docs (rustdoc)** | `https://docs.rs/oya-<crate>` (also in-tree `target/doc/`) | per-crate owner | `cargo doc` |
+| **Per-crate Rust docs (rustdoc)** | `https://docs.rs/oya-<crate>` (also in-tree `target/doc/`) | per-crate owner | Buck2-invoked rustdoc target |
 | **Per-crate README** | `crates/oya-<crate>/README.md` | per-crate owner | Hand-authored; auto-included in rustdoc landing |
 | **In-tree contributor docs** | `docs/standards/`, (retired; see `docs/teams/`), (retired; see `docs/`), `docs/runbooks/` | per-team | Hand-authored, in-repo |
 | **CLAUDE.md / AGENTS.md / CONTEXT.md** (per directory) | rooted at each directory needing context | per-directory owner | Hand-authored; agent-consumed |
@@ -105,7 +105,7 @@ For other docs:
 
 | Kind | Trigger | Cadence | Validator |
 |---|---|---|---|
-| Per-crate rustdoc | every commit to crate | per-commit (CI) | `cargo doc --no-deps` succeeds |
+| Per-crate rustdoc | every commit to crate | per-commit (CI) | Buck2 rustdoc target succeeds |
 | Per-crate README | crate's public surface changes | per-change | `oya doc lint readme` |
 | OpenAPI / proto reference | `contracts/` change | per-change | `oya doc openapi diff` (semver gate) |
 | SDK docs | SDK source change | per-change | per-SDK CI |
@@ -203,7 +203,7 @@ for first adoption, or explicitly tracked with a `blocked:` rationale.
 
 The product target remains the six-generator pipeline below:
 
-1. `oya doc rustdoc` — `cargo doc --workspace --no-deps` with rustup-pinned `rustdoc`; diagnostics 0
+1. `oya-doc rustdoc` — Buck2-invoked workspace rustdoc with rustup-pinned `rustdoc`; diagnostics 0
 2. `oya doc openapi` — OpenAPI 3.2 source shape, per-field `x-oyatie-data-class` annotations, operation-to-runtime bindings, typed explicit runtime response-status parity, exact response schema refs, schema-to-Rust-struct shape/type parity, and ADR-0037 semver metadata pass; semver-violating change requires explicit ADR
 3. `oya doc mdbook` — committed site source validates; summary chapter graph and local links pass
 4. `oya doc adr-index` — regenerates `ADR-INDEX.md` + `machine-readable/decisions.json`; checks committed copy matches

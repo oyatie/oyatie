@@ -26,7 +26,14 @@ const AGENTS_PATH: &str = "AGENTS.md";
 const CLAUDE_PATH: &str = "CLAUDE.md";
 const DOC_AGENTS_PATH: &str = "docs/AGENTS.md";
 const DOC_CATALOG_PATH: &str = "docs/DOC-CATALOG.md";
+const AGENTS_OPERATING_CONTRACT_DOC_PATH: &str = "docs/AGENTS-OPERATING-CONTRACT.md";
 const CANONICAL_PRD_PATH: &str = "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md";
+const QA_TEST_STRATEGY_PATH: &str = "docs/QA-TEST-STRATEGY.md";
+const RELEASE_MANAGEMENT_PATH: &str = "docs/RELEASE-MANAGEMENT.md";
+const STANDARDS_TEMPLATES_PATH: &str = "docs/STANDARDS-AND-TEMPLATES.md";
+const DOCUMENTATION_PATH: &str = "docs/DOCUMENTATION.md";
+const RACI_OWNERSHIP_PATH: &str = "docs/RACI-OWNERSHIP.md";
+const VENDOR_PARTNER_LEDGER_PATH: &str = "docs/VENDOR-PARTNER-LEDGER.md";
 const BRIEF_TEMPLATE_PATH: &str = "docs/standards/brief-template.md";
 const AGENTIC_DEV_TEAM_STANDARD_PATH: &str = "docs/standards/agentic-dev-team-optimization.md";
 const CI_LANES_STANDARD_PATH: &str = "docs/standards/ci-lanes.md";
@@ -34,8 +41,23 @@ const PROCEDURE_PATH: &str = "docs/ci/github-actions-lane-unlocker.md";
 const AUTO_MERGE_FLOW_PATH: &str = "docs/ci/auto-merge-flow.md";
 const OPENBAO_ESO_RUNBOOK_PATH: &str = "docs/ci/openbao-eso-runbook.md";
 const WORKFLOW_PATH: &str = ".github/workflows/github-lane-unlocker-ci-cd.yml";
+const GITHUB_ACTIONS_BOOTSTRAP_PATH: &str = "scripts/ci/github-actions-lane-unlocker-bootstrap.sh";
 const BUCK_PATH: &str = "BUCK";
+const CARGO_TOML_PATH: &str = "Cargo.toml";
+const RUST_TOOLCHAIN_PATH: &str = "rust-toolchain.toml";
+const BUCK2_AUTHORITY_POLICY_PATH: &str = "specs/buck2-authority-policy.json";
+const DEPENDENCY_RATIONALES_PATH: &str = "registry/dependency-rationales.json";
+const DEPENDENCY_BLESSED_ALLOWLIST_PATH: &str = "registry/dependency-blessed-allowlist.json";
+const CODE_STYLE_RUST_PATH: &str = "docs/standards/code-style-rust.md";
+const DEPENDENCY_POLICY_PATH: &str = "docs/standards/dependency-policy.md";
+const LTS_VERSIONS_VERIFIED_PATH: &str = "docs/standards/lts-versions-verified.md";
+const OBSERVABILITY_SLO_PATH: &str = "docs/standards/observability-slo.md";
 const DOC_STALENESS_MAIN: &str = "tools/oya-doc-staleness-inventory-app/src/main.rs";
+const TOOLCHAIN_PIN_UPDATER_PATH: &str = "scripts/ci/sync-latest-toolchain-pins.rs";
+
+const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
+const REQUIRED_RUST_EDITION: &str = "2024";
+const REQUIRED_BUCK2_RELEASE: &str = "2026-06-01";
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
@@ -46,6 +68,8 @@ const PROWJOB_REGISTRY_COMMAND: &str = "buck2 build //:oya-ci-prowjob-registry-c
 const OYA_CI_CONTROLLER_CONFIG_COMMAND: &str = "buck2 build //:oya-ci-controller-config-check";
 const KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND: &str =
     "buck2 build //:kubernetes-native-anti-pattern-check";
+const TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND: &str =
+    "buck2 build //:latest-toolchain-pin-updater-check";
 const RETIRED_PLANNING_CLOSURE_COMMAND: &str =
     "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
 const RETIRED_OYA_DEV_CLI_PLANNING_CLOSURE_COMMAND: &str =
@@ -71,6 +95,7 @@ const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     PROWJOB_REGISTRY_COMMAND,
     OYA_CI_CONTROLLER_CONFIG_COMMAND,
     KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
+    TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND,
 ];
 
 const REQUIRED_SOURCE_URLS: &[&str] = &[
@@ -205,6 +230,71 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
     ),
 ];
 
+const REQUIRED_RUST_TOOLCHAIN_POLICY_NEEDLES: &[(&str, &str)] = &[
+    (
+        "\"required_rust_stable\": \"1.96.0\"",
+        "repo hygiene spec must record the latest stable Rust pin",
+    ),
+    (
+        "\"required_rust_edition\": \"2024\"",
+        "repo hygiene spec must record the Rust 2024 edition requirement",
+    ),
+    (
+        "\"pin_policy\": \"latest_official_stable_immediately\"",
+        "repo hygiene spec must require the latest official stable Rust release",
+    ),
+    (
+        "\"enforced_by\": \"buck2 build //:repo-hygiene-automation-check\"",
+        "Rust toolchain pin policy must be enforced by the repo-hygiene Buck2 target",
+    ),
+];
+
+const REQUIRED_DEPENDENCY_REGISTRY_POLICY_NEEDLES: &[(&str, &str)] = &[
+    (
+        "\"dependency_registry_policy\"",
+        "repo hygiene spec must record dependency registry policy",
+    ),
+    (
+        "\"coverage_rule\": \"all_workspace_dependencies_tracked\"",
+        "dependency registry policy must track all workspace dependencies",
+    ),
+    (
+        "\"version_policy\": \"latest_upstream_stable_or_lts\"",
+        "dependency registry policy must require latest stable/LTS dependencies",
+    ),
+    (
+        "\"in_house_policy\": \"in_house_first_oya_rust_libraries\"",
+        "dependency registry policy must prefer in-house Oyatie Rust libraries",
+    ),
+    (
+        "\"exception_policy\": \"explicit_waiver_required_for_non_latest_or_non_in_house_dependency\"",
+        "dependency registry policy must require explicit waivers for exceptions",
+    ),
+    (
+        "\"replacement_strategy_required\": true",
+        "dependency registry policy must require replacement/wrapper strategy",
+    ),
+];
+
+const REQUIRED_BUCK2_RELEASE_POLICY_NEEDLES: &[(&str, &str)] = &[
+    (
+        "\"required_buck2_release\": \"2026-06-01\"",
+        "repo hygiene spec must record the current Buck2 release pin",
+    ),
+    (
+        "\"buck2_release_source\": \"https://github.com/facebook/buck2/releases/tag/2026-06-01\"",
+        "repo hygiene spec must cite the current Buck2 release tag",
+    ),
+    (
+        "\"buck2_release_policy\": \"latest_upstream_date_tag_immediately\"",
+        "Buck2 release policy must require latest upstream date tag",
+    ),
+    (
+        "\"compile_check\": \"buck2 build //:latest-toolchain-pin-updater-check\"",
+        "toolchain updater compile check must be Buck2-owned",
+    ),
+];
+
 const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "legacy_python_shell_gate_surfaces",
     "shared_ci_workflow_surface",
@@ -218,6 +308,8 @@ const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "python_shell_to_rust_buck2_migration",
     "cd_fleet_bootstrap_surface_retirement",
     "retired_external_scm_adapter_retirement",
+    "in_house_dependency_library_substitution",
+    "latest_toolchain_dependency_pin_updater",
 ];
 
 const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
@@ -260,6 +352,8 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "`oya gate` / `oya verify`",
     "reviewer/governance approval",
     "reviewer/governance lifecycle",
+    "bacon",
+    "cargo-machete",
 ];
 
 const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
@@ -300,6 +394,8 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "`oya gate` / `oya verify`",
     "reviewer/governance approval",
     "reviewer/governance lifecycle",
+    "bacon",
+    "cargo-machete",
 ];
 
 const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
@@ -308,7 +404,14 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     README_PATH,
     DOC_AGENTS_PATH,
     DOC_CATALOG_PATH,
+    AGENTS_OPERATING_CONTRACT_DOC_PATH,
     CANONICAL_PRD_PATH,
+    QA_TEST_STRATEGY_PATH,
+    RELEASE_MANAGEMENT_PATH,
+    STANDARDS_TEMPLATES_PATH,
+    DOCUMENTATION_PATH,
+    RACI_OWNERSHIP_PATH,
+    VENDOR_PARTNER_LEDGER_PATH,
     BRIEF_TEMPLATE_PATH,
     AGENTIC_DEV_TEAM_STANDARD_PATH,
     CI_LANES_STANDARD_PATH,
@@ -329,7 +432,14 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     README_PATH,
     DOC_AGENTS_PATH,
     DOC_CATALOG_PATH,
+    AGENTS_OPERATING_CONTRACT_DOC_PATH,
     CANONICAL_PRD_PATH,
+    QA_TEST_STRATEGY_PATH,
+    RELEASE_MANAGEMENT_PATH,
+    STANDARDS_TEMPLATES_PATH,
+    DOCUMENTATION_PATH,
+    RACI_OWNERSHIP_PATH,
+    VENDOR_PARTNER_LEDGER_PATH,
     BRIEF_TEMPLATE_PATH,
     AGENTIC_DEV_TEAM_STANDARD_PATH,
     CI_LANES_STANDARD_PATH,
@@ -431,6 +541,100 @@ fn count_json_key_value(text: &str, key: &str, value: &str) -> usize {
     let compact = compact_json_text(text);
     let needle = format!("\"{}\":\"{}\"", key, json_escape(value));
     compact.matches(&needle).count()
+}
+
+fn workspace_dependency_names(cargo_toml: &str) -> Vec<String> {
+    let mut in_workspace_dependencies = false;
+    let mut names = Vec::new();
+
+    for line in cargo_toml.lines() {
+        let trimmed = line.trim();
+        if trimmed == "[workspace.dependencies]" {
+            in_workspace_dependencies = true;
+            continue;
+        }
+        if in_workspace_dependencies && trimmed.starts_with('[') {
+            break;
+        }
+        if !in_workspace_dependencies || trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let Some((name, _)) = trimmed.split_once('=') else {
+            continue;
+        };
+        let name = name.trim();
+        if !name.is_empty()
+            && name
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
+        {
+            names.push(name.to_owned());
+        }
+    }
+
+    names.sort();
+    names.dedup();
+    names
+}
+
+fn json_object_keys(text: &str, object_key: &str) -> Vec<String> {
+    let marker = format!("\"{}\"", object_key);
+    let Some(marker_index) = text.find(&marker) else {
+        return Vec::new();
+    };
+    let Some(relative_start) = text[marker_index..].find('{') else {
+        return Vec::new();
+    };
+    let start = marker_index + relative_start;
+    let mut keys = Vec::new();
+    let mut depth = 0usize;
+    let mut in_string = false;
+    let mut escape = false;
+    let mut string_start = None;
+    let mut last_string_at_depth_one = None::<String>;
+
+    for (index, ch) in text[start..].char_indices() {
+        if in_string {
+            if escape {
+                escape = false;
+            } else if ch == '\\' {
+                escape = true;
+            } else if ch == '"' {
+                in_string = false;
+                if depth == 1 {
+                    if let Some(start_index) = string_start {
+                        last_string_at_depth_one =
+                            Some(text[start + start_index..start + index].to_owned());
+                    }
+                }
+            }
+            continue;
+        }
+
+        match ch {
+            '"' => {
+                in_string = true;
+                string_start = Some(index + 1);
+            }
+            '{' => depth += 1,
+            '}' => {
+                if depth == 1 {
+                    break;
+                }
+                depth = depth.saturating_sub(1);
+            }
+            ':' if depth == 1 => {
+                if let Some(key) = last_string_at_depth_one.take() {
+                    keys.push(key);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    keys.sort();
+    keys.dedup();
+    keys
 }
 
 fn read(root: &Path, rel: &str, failures: &mut Vec<String>) -> String {
@@ -636,6 +840,15 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
     for (needle, message) in REQUIRED_NON_RUST_SURFACE_NEEDLES {
         require_contains(spec, needle, &mut failures, message);
     }
+    for (needle, message) in REQUIRED_RUST_TOOLCHAIN_POLICY_NEEDLES {
+        require_contains(spec, needle, &mut failures, message);
+    }
+    for (needle, message) in REQUIRED_DEPENDENCY_REGISTRY_POLICY_NEEDLES {
+        require_contains(spec, needle, &mut failures, message);
+    }
+    for (needle, message) in REQUIRED_BUCK2_RELEASE_POLICY_NEEDLES {
+        require_contains(spec, needle, &mut failures, message);
+    }
 
     for domain in REQUIRED_DOMAINS {
         require(
@@ -704,6 +917,192 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             REQUIRED_SECURITY_BACKLOG_IDS.len(),
             valid_count
         ),
+    );
+
+    failures
+}
+
+pub fn rust_toolchain_policy_failures(
+    rust_toolchain: &str,
+    cargo_toml: &str,
+    buck: &str,
+    github_bridge: &str,
+    buck2_policy: &str,
+    code_style: &str,
+    lts_versions: &str,
+    dependency_policy: &str,
+    observability_slo: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+    let rust_channel = format!("channel = \"{REQUIRED_RUST_STABLE_VERSION}\"");
+    let rust_version = format!("rust-version = \"{REQUIRED_RUST_STABLE_VERSION}\"");
+    let edition = format!("edition = \"{REQUIRED_RUST_EDITION}\"");
+
+    require_contains(
+        rust_toolchain,
+        &rust_channel,
+        &mut failures,
+        RUST_TOOLCHAIN_PATH,
+    );
+    require_contains(cargo_toml, &rust_version, &mut failures, CARGO_TOML_PATH);
+    require_contains(cargo_toml, &edition, &mut failures, CARGO_TOML_PATH);
+    require_contains(
+        buck,
+        "--edition=2024",
+        &mut failures,
+        "BUCK Rust compilation commands",
+    );
+    require(
+        !buck.contains("--edition=2021"),
+        &mut failures,
+        "BUCK must not compile Rust checks with edition 2021",
+    );
+    require_contains(
+        github_bridge,
+        "\"rust_toolchain\": \"1.96.0\"",
+        &mut failures,
+        GITHUB_BRIDGE_PATH,
+    );
+    require_contains(
+        buck2_policy,
+        "1.96.0",
+        &mut failures,
+        BUCK2_AUTHORITY_POLICY_PATH,
+    );
+    for (label, text) in [
+        (CODE_STYLE_RUST_PATH, code_style),
+        (LTS_VERSIONS_VERIFIED_PATH, lts_versions),
+        (DEPENDENCY_POLICY_PATH, dependency_policy),
+        (OBSERVABILITY_SLO_PATH, observability_slo),
+    ] {
+        require_contains(text, "1.96.0", &mut failures, label);
+        require_contains(text, "2024", &mut failures, label);
+    }
+    require_contains(
+        lts_versions,
+        "current Rust stable channel as soon as the official Rust release is published",
+        &mut failures,
+        LTS_VERSIONS_VERIFIED_PATH,
+    );
+    require_contains(
+        dependency_policy,
+        "immediately for Rust and Buck2 release",
+        &mut failures,
+        DEPENDENCY_POLICY_PATH,
+    );
+    require_contains(
+        observability_slo,
+        "bump immediately through the Rust/Buck2 toolchain updater lane",
+        &mut failures,
+        OBSERVABILITY_SLO_PATH,
+    );
+
+    failures
+}
+
+pub fn dependency_registry_policy_failures(
+    cargo_toml: &str,
+    dependency_rationales: &str,
+    blessed_allowlist: &str,
+    dependency_policy: &str,
+    masterplan: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+    let workspace_deps = workspace_dependency_names(cargo_toml);
+    let rationale_keys = json_object_keys(dependency_rationales, "entries");
+    let blessed_keys = json_object_keys(blessed_allowlist, "blessed");
+
+    for dependency in &workspace_deps {
+        require(
+            rationale_keys.contains(dependency),
+            &mut failures,
+            format!("{DEPENDENCY_RATIONALES_PATH}: missing workspace dependency {dependency}"),
+        );
+        require(
+            blessed_keys.contains(dependency),
+            &mut failures,
+            format!(
+                "{DEPENDENCY_BLESSED_ALLOWLIST_PATH}: missing workspace dependency {dependency}"
+            ),
+        );
+    }
+    for (label, text) in [
+        (DEPENDENCY_RATIONALES_PATH, dependency_rationales),
+        (DEPENDENCY_BLESSED_ALLOWLIST_PATH, blessed_allowlist),
+    ] {
+        for needle in [
+            "latest_upstream_stable_or_lts",
+            "all_workspace_dependencies_tracked",
+            "explicit_waiver_required_for_non_latest_or_non_in_house_dependency",
+            "in_house_first_oya_rust_libraries",
+        ] {
+            require_contains(text, needle, &mut failures, label);
+        }
+    }
+    for (label, text) in [
+        (DEPENDENCY_POLICY_PATH, dependency_policy),
+        (MASTERPLAN_PATH, masterplan),
+    ] {
+        require_contains(
+            text,
+            "in-house",
+            &mut failures,
+            &format!("{label} in-house dependency posture"),
+        );
+        require_contains(
+            text,
+            "latest",
+            &mut failures,
+            &format!("{label} latest dependency posture"),
+        );
+        require_contains(
+            text,
+            "registry/dependency-rationales.json",
+            &mut failures,
+            &format!("{label} dependency rationales pointer"),
+        );
+    }
+
+    failures
+}
+
+pub fn buck2_release_policy_failures(
+    spec: &str,
+    workflow: &str,
+    bootstrap: &str,
+    toolchain_updater: &str,
+    buck: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+    require_contains(
+        spec,
+        &format!("\"required_buck2_release\": \"{REQUIRED_BUCK2_RELEASE}\""),
+        &mut failures,
+        SPEC_PATH,
+    );
+    require_contains(
+        workflow,
+        &format!("BUCK2_RELEASE: \"{REQUIRED_BUCK2_RELEASE}\""),
+        &mut failures,
+        WORKFLOW_PATH,
+    );
+    require_contains(
+        bootstrap,
+        &format!("BUCK2_RELEASE:={REQUIRED_BUCK2_RELEASE}"),
+        &mut failures,
+        GITHUB_ACTIONS_BOOTSTRAP_PATH,
+    );
+    require_contains(
+        toolchain_updater,
+        "https://github.com/facebook/buck2.git",
+        &mut failures,
+        TOOLCHAIN_PIN_UPDATER_PATH,
+    );
+    require_contains(
+        buck,
+        "latest-toolchain-pin-updater-check",
+        &mut failures,
+        BUCK_PATH,
     );
 
     failures
@@ -799,8 +1198,44 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let openbao_eso_runbook = read(root, OPENBAO_ESO_RUNBOOK_PATH, &mut failures);
     let workflow = read(root, WORKFLOW_PATH, &mut failures);
     let buck = read(root, BUCK_PATH, &mut failures);
+    let cargo_toml = read(root, CARGO_TOML_PATH, &mut failures);
+    let rust_toolchain = read(root, RUST_TOOLCHAIN_PATH, &mut failures);
+    let buck2_policy = read(root, BUCK2_AUTHORITY_POLICY_PATH, &mut failures);
+    let dependency_rationales = read(root, DEPENDENCY_RATIONALES_PATH, &mut failures);
+    let blessed_allowlist = read(root, DEPENDENCY_BLESSED_ALLOWLIST_PATH, &mut failures);
+    let code_style = read(root, CODE_STYLE_RUST_PATH, &mut failures);
+    let dependency_policy = read(root, DEPENDENCY_POLICY_PATH, &mut failures);
+    let lts_versions = read(root, LTS_VERSIONS_VERIFIED_PATH, &mut failures);
+    let observability_slo = read(root, OBSERVABILITY_SLO_PATH, &mut failures);
+    let github_actions_bootstrap = read(root, GITHUB_ACTIONS_BOOTSTRAP_PATH, &mut failures);
+    let toolchain_updater = read(root, TOOLCHAIN_PIN_UPDATER_PATH, &mut failures);
 
     failures.extend(spec_failures(&spec));
+    failures.extend(rust_toolchain_policy_failures(
+        &rust_toolchain,
+        &cargo_toml,
+        &buck,
+        &github_bridge,
+        &buck2_policy,
+        &code_style,
+        &lts_versions,
+        &dependency_policy,
+        &observability_slo,
+    ));
+    failures.extend(dependency_registry_policy_failures(
+        &cargo_toml,
+        &dependency_rationales,
+        &blessed_allowlist,
+        &dependency_policy,
+        &masterplan,
+    ));
+    failures.extend(buck2_release_policy_failures(
+        &spec,
+        &workflow,
+        &github_actions_bootstrap,
+        &toolchain_updater,
+        &buck,
+    ));
     evaluate_root_markdown(root, &mut failures);
     failures.extend(retired_root_file_failures(root));
     failures.extend(retired_service_ci_entrypoint_failures(root));
@@ -1031,10 +1466,12 @@ pub fn evaluate(root: &Path) -> Evaluation {
 
     for needle in [
         "repo-hygiene-automation-check",
+        "latest-toolchain-pin-updater-check",
         "oya-ci-prowjob-registry-check",
         "oya-ci-controller-config-check",
         "kubernetes-native-anti-pattern-check",
         "assert-repo-hygiene-automation.rs",
+        "sync-latest-toolchain-pins.rs",
         "generate-oya-ci-prowjob-registry.rs",
         "assert-oya-ci-controller-config.rs",
         "assert-kubernetes-native-antipatterns.rs",
@@ -1043,6 +1480,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "oya_ci_controller_config_check.rs",
         "kubernetes_native_antipatterns_check.rs",
         "repo-hygiene-automation.json",
+        "dependency-rationales.json",
+        "dependency-blessed-allowlist.json",
         "oya-ci-prowjob-registry.json",
         "oya-ci-controller-config-contract.json",
         "kubernetes-native-anti-patterns.json",

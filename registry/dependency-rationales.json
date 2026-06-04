@@ -15,11 +15,16 @@
       "ADR-0092"
     ],
     "consumed_by": [
-      "oya-check-dependency-seam (sub-check: registry-coverage)",
+      "buck2 build //:repo-hygiene-automation-check",
+      "Buck2/Prow dependency-seam checks",
       "cargo-deny configuration generator"
     ],
-    "join_source": "cargo metadata --no-deps (workspace.dependencies)",
-    "purpose": "Documents each external workspace dependency rationale, owner, layer seam, and replacement strategy for policy gates."
+    "join_source": "Cargo.toml [workspace.dependencies] (Cargo metadata mirrors are advisory under Buck2 authority)",
+    "purpose": "Documents each external workspace dependency rationale, owner, layer seam, and replacement strategy for Buck2/Prow policy gates.",
+    "version_policy": "latest_upstream_stable_or_lts",
+    "tracking_policy": "all_workspace_dependencies_tracked",
+    "exception_policy": "explicit_waiver_required_for_non_latest_or_non_in_house_dependency",
+    "library_posture": "in_house_first_oya_rust_libraries; external crates are owned seam exceptions with wrapper/replacement strategy"
   },
   "entries": {
     "anyhow": {
@@ -765,6 +770,103 @@
       "isolated_in_crate": "oya-shared-olap-clickhouse-adapter",
       "allowed_crates": [
         "oya-shared-olap-clickhouse-adapter"
+      ]
+    },
+    "aws-lc-rs": {
+      "version_pin": "1",
+      "layer_seam": "crypto",
+      "owner_team": "ops-security",
+      "rationale": "Canonical Phase-1 crypto backend per ADR-0506. It is safer to consume AWS-LC audited BoringSSL-derived primitives than to build cryptography in-house. Oyatie-owned libraries wrap the seam and keep product semantics out of the dependency.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0506-aws-lc-rs-phase-1-crypto-backend.md",
+      "isolated_in_crate": "TLS/crypto adapter crates only",
+      "allowed_crates": [
+        "oya-ci-webhook-gateway-app",
+        "oya-http-runtime-hyper-adapter",
+        "oya-intelligence-provider-pool-app"
+      ]
+    },
+    "axum": {
+      "version_pin": "0.8",
+      "layer_seam": "rest-adapter",
+      "owner_team": "council-architecture",
+      "rationale": "Sanctioned strategic exception for REST/control-plane crates per specs/http-stack-policy.json. Durable domain/application behavior stays in in-house oya-* crates; axum is adapter plumbing only.",
+      "replacement_strategy_doc_ref": "specs/http-stack-policy.json",
+      "isolated_in_crate": "*-rest and gateway adapter crates with recorded HTTP-stack justification",
+      "allowed_crates": [
+        "oya-ci-webhook-gateway-app",
+        "oya-cloud-intelligence-rest",
+        "oya-workspace-chat-api"
+      ]
+    },
+    "hmac": {
+      "version_pin": "0.12",
+      "layer_seam": "crypto-webhook-verification",
+      "owner_team": "ops-security",
+      "rationale": "RustCrypto HMAC primitive for webhook signature verification. In-house ownership covers request canonicalization, replay policy, and audit semantics; external use is limited to audited cryptographic primitive math.",
+      "replacement_strategy_doc_ref": "docs/standards/security-review.md",
+      "isolated_in_crate": "oya-ci-webhook-gateway-app and webhook verification kernels",
+      "allowed_crates": [
+        "oya-ci-webhook-gateway-app"
+      ]
+    },
+    "reqwest": {
+      "version_pin": "0.13",
+      "layer_seam": "adapter-only",
+      "owner_team": "platform-scm-ci-cd",
+      "rationale": "Temporary outbound HTTP client for GitHub/Prow status bridge and gateway adapters while native SCM/oya-ci seams mature. Product semantics stay in first-party Rust libraries; destination is an in-house oya-http-client abstraction over hyper where it reduces supply-chain surface without weakening protocol behavior.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "temporary bridge and gateway adapter crates",
+      "allowed_crates": [
+        "oya-ci-webhook-gateway-app",
+        "oya-cloud-intelligence-rest"
+      ]
+    },
+    "rustls": {
+      "version_pin": "0.23",
+      "layer_seam": "tls-crypto",
+      "owner_team": "ops-security",
+      "rationale": "Rust TLS implementation for adapter/runtime edges that need direct TLS types without native-tls/OpenSSL. Uses the workspace AWS-LC backend; first-party crates own policy and certificate selection semantics.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0506-aws-lc-rs-phase-1-crypto-backend.md",
+      "isolated_in_crate": "TLS-enabled adapter/runtime crates only",
+      "allowed_crates": [
+        "oya-ci-webhook-gateway-app",
+        "oya-http-runtime-hyper-adapter",
+        "oya-intelligence-provider-pool-app"
+      ]
+    },
+    "sha2": {
+      "version_pin": "0.10",
+      "layer_seam": "crypto-webhook-verification",
+      "owner_team": "ops-security",
+      "rationale": "SHA-2 hash primitive paired with HMAC for webhook signature verification. In-house code owns canonicalization, replay, and audit policy.",
+      "replacement_strategy_doc_ref": "docs/standards/security-review.md",
+      "isolated_in_crate": "oya-ci-webhook-gateway-app and webhook verification kernels",
+      "allowed_crates": [
+        "oya-ci-webhook-gateway-app"
+      ]
+    },
+    "subtle": {
+      "version_pin": "2.6",
+      "layer_seam": "crypto-webhook-verification",
+      "owner_team": "ops-security",
+      "rationale": "Constant-time equality helper for signature verification. In-house code owns the verification contract; external use is limited to side-channel-safe primitive comparison.",
+      "replacement_strategy_doc_ref": "docs/standards/security-review.md",
+      "isolated_in_crate": "oya-ci-webhook-gateway-app and webhook verification kernels",
+      "allowed_crates": [
+        "oya-ci-webhook-gateway-app"
+      ]
+    },
+    "tower": {
+      "version_pin": "0.5",
+      "layer_seam": "infrastructure",
+      "owner_team": "council-architecture",
+      "rationale": "Service middleware abstraction under axum/hyper adapter layers. In-house product semantics stay outside Tower layers; Tower is used only for standard service composition.",
+      "replacement_strategy_doc_ref": "specs/http-stack-policy.json",
+      "isolated_in_crate": "REST/gateway adapters and infrastructure middleware",
+      "allowed_crates": [
+        "oya-ci-webhook-gateway-app",
+        "oya-cloud-intelligence-rest",
+        "oya-http-runtime-hyper-adapter"
       ]
     }
   },

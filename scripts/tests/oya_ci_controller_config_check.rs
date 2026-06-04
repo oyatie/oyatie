@@ -144,6 +144,64 @@ fn config_rejects_weakened_security_defaults() {
 }
 
 #[test]
+fn config_rejects_persistent_pod_local_cache_or_cross_region_hot_path_io() {
+    let config = read_repo_file("specs/generated/oya-ci-controller-config.generated.yaml")
+        .replace("statelessJobPods: true", "statelessJobPods: false")
+        .replace(
+            "localDiskCachePersistsAfterPod: false",
+            "localDiskCachePersistsAfterPod: true",
+        )
+        .replace(
+            "cacheAuthoritativeForCorrectness: false",
+            "cacheAuthoritativeForCorrectness: true",
+        )
+        .replace(
+            "hotPathCrossRegionIoAllowed: false",
+            "hotPathCrossRegionIoAllowed: true",
+        )
+        .replace(
+            "ephemeralStorageRequestsLimitsRequired: true",
+            "ephemeralStorageRequestsLimitsRequired: false",
+        );
+    let failures = gate::config_failures(&config);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("stateless job pods")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("persistent pod-local cache")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("non-authoritative")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("cross-region hot-path I/O")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("ephemeral-storage requests/limits")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn config_rejects_untrusted_job_without_sandbox() {
     let config = read_repo_file("specs/generated/oya-ci-controller-config.generated.yaml")
         .replacen(

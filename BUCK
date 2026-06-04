@@ -234,7 +234,7 @@ genrule(
         "specs/buck2-authority-policy.json": "specs/buck2-authority-policy.json",
     },
     out = "buck2-authority-policy-check.json",
-    cmd = "mkdir -p $TMP/buck2-authority-policy && rustc --edition=2021 -D warnings scripts/ci/enforce-buck2-authority.rs -o $TMP/buck2-authority-policy/enforce-buck2-authority && OYA_REPO_ROOT=$PWD $TMP/buck2-authority-policy/enforce-buck2-authority --policy specs/buck2-authority-policy.json > $OUT",
+    cmd = "mkdir -p $TMP/buck2-authority-policy && rustc --edition=2024 -D warnings scripts/ci/enforce-buck2-authority.rs -o $TMP/buck2-authority-policy/enforce-buck2-authority && OYA_REPO_ROOT=$PWD $TMP/buck2-authority-policy/enforce-buck2-authority --policy specs/buck2-authority-policy.json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -260,7 +260,7 @@ genrule(
         "docs/ci/github-actions-lane-unlocker.md": "docs/ci/github-actions-lane-unlocker.md",
     },
     out = "github-lane-unlocker-bridge-check.json",
-    cmd = "mkdir -p $TMP/github-lane-unlocker-bridge && rustc --edition=2021 -D warnings scripts/tests/github_lane_unlocker_bridge_check.rs --test -o $TMP/github-lane-unlocker-bridge/github_lane_unlocker_bridge_check && OYA_REPO_ROOT=$PWD $TMP/github-lane-unlocker-bridge/github_lane_unlocker_bridge_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-github-lane-unlocker-bridge.rs -o $TMP/github-lane-unlocker-bridge/assert-github-lane-unlocker-bridge && OYA_REPO_ROOT=$PWD $TMP/github-lane-unlocker-bridge/assert-github-lane-unlocker-bridge --json > $OUT",
+    cmd = "mkdir -p $TMP/github-lane-unlocker-bridge && rustc --edition=2024 -D warnings scripts/tests/github_lane_unlocker_bridge_check.rs --test -o $TMP/github-lane-unlocker-bridge/github_lane_unlocker_bridge_check && OYA_REPO_ROOT=$PWD $TMP/github-lane-unlocker-bridge/github_lane_unlocker_bridge_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-github-lane-unlocker-bridge.rs -o $TMP/github-lane-unlocker-bridge/assert-github-lane-unlocker-bridge && OYA_REPO_ROOT=$PWD $TMP/github-lane-unlocker-bridge/assert-github-lane-unlocker-bridge --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -282,7 +282,7 @@ genrule(
         "third-party/BUCK": "third-party//:BUCK",
     },
     out = "third-party-durable-handedits-check.json",
-    cmd = "mkdir -p $TMP/third-party-durable-handedits && rustc --edition=2021 -D warnings scripts/tests/third_party_durable_handedits_check.rs --test -o $TMP/third-party-durable-handedits/third_party_durable_handedits_check && OYA_REPO_ROOT=$PWD $TMP/third-party-durable-handedits/third_party_durable_handedits_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-third-party-durable-handedits.rs -o $TMP/third-party-durable-handedits/assert-third-party-durable-handedits && OYA_REPO_ROOT=$PWD $TMP/third-party-durable-handedits/assert-third-party-durable-handedits --json > $OUT",
+    cmd = "mkdir -p $TMP/third-party-durable-handedits && rustc --edition=2024 -D warnings scripts/tests/third_party_durable_handedits_check.rs --test -o $TMP/third-party-durable-handedits/third_party_durable_handedits_check && OYA_REPO_ROOT=$PWD $TMP/third-party-durable-handedits/third_party_durable_handedits_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-third-party-durable-handedits.rs -o $TMP/third-party-durable-handedits/assert-third-party-durable-handedits && OYA_REPO_ROOT=$PWD $TMP/third-party-durable-handedits/assert-third-party-durable-handedits --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -297,11 +297,14 @@ genrule(
     name = "repo-hygiene-automation-check",
     srcs = {
         "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
+        "scripts/ci/github-actions-lane-unlocker-bootstrap.sh": "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+        "scripts/ci/sync-latest-toolchain-pins.rs": "scripts/ci/sync-latest-toolchain-pins.rs",
         "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
         "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
         "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
+        "specs/buck2-authority-policy.json": "specs/buck2-authority-policy.json",
         "specs/agent-operating-contract.json": "specs/agent-operating-contract.json",
         "specs/phase0-auto-merge-after-ci.json": "specs/phase0-auto-merge-after-ci.json",
         "specs/microservices/tenant-rbac.json": "specs/microservices/tenant-rbac.json",
@@ -309,6 +312,8 @@ genrule(
         "specs/master-plan-sequencing.json": "specs/master-plan-sequencing.json",
         "specs/cloud-toolchain-target.json": "specs/cloud-toolchain-target.json",
         "specs/cloud-strangler-migration-target.json": "specs/cloud-strangler-migration-target.json",
+        "registry/dependency-rationales.json": "registry/dependency-rationales.json",
+        "registry/dependency-blessed-allowlist.json": "registry/dependency-blessed-allowlist.json",
         "tools/oya-doc-staleness-inventory-app/BUCK": "//tools/oya-doc-staleness-inventory-app:BUCK",
         "tools/oya-doc-staleness-inventory-app/Cargo.toml": "//tools/oya-doc-staleness-inventory-app:cargo-manifest",
         "tools/oya-doc-staleness-inventory-app/src/lib.rs": "//tools/oya-doc-staleness-inventory-app:lib-src",
@@ -321,19 +326,49 @@ genrule(
         "docs/ci/openbao-eso-runbook.md": "docs/ci/openbao-eso-runbook.md",
         "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
         "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md": "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
+        "docs/AGENTS-OPERATING-CONTRACT.md": "docs/AGENTS-OPERATING-CONTRACT.md",
+        "docs/QA-TEST-STRATEGY.md": "docs/QA-TEST-STRATEGY.md",
+        "docs/RELEASE-MANAGEMENT.md": "docs/RELEASE-MANAGEMENT.md",
+        "docs/STANDARDS-AND-TEMPLATES.md": "docs/STANDARDS-AND-TEMPLATES.md",
+        "docs/DOCUMENTATION.md": "docs/DOCUMENTATION.md",
+        "docs/RACI-OWNERSHIP.md": "docs/RACI-OWNERSHIP.md",
+        "docs/VENDOR-PARTNER-LEDGER.md": "docs/VENDOR-PARTNER-LEDGER.md",
         "docs/standards/brief-template.md": "docs/standards/brief-template.md",
         "docs/standards/agentic-dev-team-optimization.md": "docs/standards/agentic-dev-team-optimization.md",
         "docs/standards/ci-lanes.md": "docs/standards/ci-lanes.md",
+        "docs/standards/code-style-rust.md": "docs/standards/code-style-rust.md",
+        "docs/standards/dependency-policy.md": "docs/standards/dependency-policy.md",
+        "docs/standards/hyperscaler-best-practices.md": "docs/standards/hyperscaler-best-practices.md",
+        "docs/standards/lts-versions-verified.md": "docs/standards/lts-versions-verified.md",
+        "docs/standards/observability-slo.md": "docs/standards/observability-slo.md",
         "docs/DOC-CATALOG.md": "docs/DOC-CATALOG.md",
         "docs/MASTERPLAN.md": "docs/MASTERPLAN.md",
         "docs/AGENTS.md": "docs/AGENTS.md",
         "README.md": "README.md",
         "AGENTS.md": "AGENTS.md",
         "CLAUDE.md": "CLAUDE.md",
+        "Cargo.toml": "Cargo.toml",
+        "rust-toolchain.toml": "rust-toolchain.toml",
         "BUCK": "BUCK",
     },
     out = "repo-hygiene-automation-check.json",
-    cmd = "mkdir -p $TMP/repo-hygiene-automation && rustc --edition=2021 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o $TMP/repo-hygiene-automation/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/repo_hygiene_automation_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o $TMP/repo-hygiene-automation/assert-repo-hygiene-automation && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-repo-hygiene-automation --json > $OUT",
+    cmd = "mkdir -p $TMP/repo-hygiene-automation && rustc --edition=2024 -D warnings scripts/ci/sync-latest-toolchain-pins.rs -o $TMP/repo-hygiene-automation/sync-latest-toolchain-pins && $TMP/repo-hygiene-automation/sync-latest-toolchain-pins --version > /dev/null && rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o $TMP/repo-hygiene-automation/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/repo_hygiene_automation_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o $TMP/repo-hygiene-automation/assert-repo-hygiene-automation && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-repo-hygiene-automation --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+# Compile-only guard for the updater that proposes latest Rust stable and Buck2
+# date-tag pin PRs. Network discovery runs in the scheduled updater lane, not in
+# this Buck2 check.
+genrule(
+    name = "latest-toolchain-pin-updater-check",
+    srcs = {
+        "scripts/ci/sync-latest-toolchain-pins.rs": "scripts/ci/sync-latest-toolchain-pins.rs",
+    },
+    out = "latest-toolchain-pin-updater-check.json",
+    cmd = "mkdir -p $TMP/latest-toolchain-pin-updater && rustc --edition=2024 -D warnings scripts/ci/sync-latest-toolchain-pins.rs -o $TMP/latest-toolchain-pin-updater/sync-latest-toolchain-pins && $TMP/latest-toolchain-pin-updater/sync-latest-toolchain-pins --version > /dev/null && echo '{\"verdict\":\"PASS\",\"checker\":\"scripts/ci/sync-latest-toolchain-pins.rs\",\"network_discovery\":\"scheduled-updater-lane-only\"}' > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -361,7 +396,7 @@ genrule(
         "BUCK": "BUCK",
     },
     out = "kubernetes-native-anti-pattern-check.json",
-    cmd = "mkdir -p $TMP/kubernetes-native-anti-patterns && rustc --edition=2021 -D warnings scripts/tests/kubernetes_native_antipatterns_check.rs --test -o $TMP/kubernetes-native-anti-patterns/kubernetes_native_antipatterns_check && OYA_REPO_ROOT=$PWD $TMP/kubernetes-native-anti-patterns/kubernetes_native_antipatterns_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-kubernetes-native-antipatterns.rs -o $TMP/kubernetes-native-anti-patterns/assert-kubernetes-native-antipatterns && OYA_REPO_ROOT=$PWD $TMP/kubernetes-native-anti-patterns/assert-kubernetes-native-antipatterns --json > $OUT",
+    cmd = "mkdir -p $TMP/kubernetes-native-anti-patterns && rustc --edition=2024 -D warnings scripts/tests/kubernetes_native_antipatterns_check.rs --test -o $TMP/kubernetes-native-anti-patterns/kubernetes_native_antipatterns_check && OYA_REPO_ROOT=$PWD $TMP/kubernetes-native-anti-patterns/kubernetes_native_antipatterns_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-kubernetes-native-antipatterns.rs -o $TMP/kubernetes-native-anti-patterns/assert-kubernetes-native-antipatterns && OYA_REPO_ROOT=$PWD $TMP/kubernetes-native-anti-patterns/assert-kubernetes-native-antipatterns --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -385,7 +420,7 @@ genrule(
         "specs/generated/oya-ci-controller-config.generated.yaml": "specs/generated/oya-ci-controller-config.generated.yaml",
     },
     out = "oya-ci-prowjob-registry-check.json",
-    cmd = "mkdir -p $TMP/oya-ci-prowjob-registry && rustc --edition=2021 -D warnings scripts/tests/oya_ci_prowjob_registry_check.rs --test -o $TMP/oya-ci-prowjob-registry/oya_ci_prowjob_registry_check && OYA_REPO_ROOT=$PWD $TMP/oya-ci-prowjob-registry/oya_ci_prowjob_registry_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/generate-oya-ci-prowjob-registry.rs -o $TMP/oya-ci-prowjob-registry/generate-oya-ci-prowjob-registry && OYA_REPO_ROOT=$PWD $TMP/oya-ci-prowjob-registry/generate-oya-ci-prowjob-registry --json > $OUT",
+    cmd = "mkdir -p $TMP/oya-ci-prowjob-registry && rustc --edition=2024 -D warnings scripts/tests/oya_ci_prowjob_registry_check.rs --test -o $TMP/oya-ci-prowjob-registry/oya_ci_prowjob_registry_check && OYA_REPO_ROOT=$PWD $TMP/oya-ci-prowjob-registry/oya_ci_prowjob_registry_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/generate-oya-ci-prowjob-registry.rs -o $TMP/oya-ci-prowjob-registry/generate-oya-ci-prowjob-registry && OYA_REPO_ROOT=$PWD $TMP/oya-ci-prowjob-registry/generate-oya-ci-prowjob-registry --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -409,7 +444,7 @@ genrule(
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
     },
     out = "oya-ci-controller-config-check.json",
-    cmd = "mkdir -p $TMP/oya-ci-controller-config && rustc --edition=2021 -D warnings scripts/tests/oya_ci_controller_config_check.rs --test -o $TMP/oya-ci-controller-config/oya_ci_controller_config_check && OYA_REPO_ROOT=$PWD $TMP/oya-ci-controller-config/oya_ci_controller_config_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-oya-ci-controller-config.rs -o $TMP/oya-ci-controller-config/assert-oya-ci-controller-config && OYA_REPO_ROOT=$PWD $TMP/oya-ci-controller-config/assert-oya-ci-controller-config --json > $OUT",
+    cmd = "mkdir -p $TMP/oya-ci-controller-config && rustc --edition=2024 -D warnings scripts/tests/oya_ci_controller_config_check.rs --test -o $TMP/oya-ci-controller-config/oya_ci_controller_config_check && OYA_REPO_ROOT=$PWD $TMP/oya-ci-controller-config/oya_ci_controller_config_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-oya-ci-controller-config.rs -o $TMP/oya-ci-controller-config/assert-oya-ci-controller-config && OYA_REPO_ROOT=$PWD $TMP/oya-ci-controller-config/assert-oya-ci-controller-config --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -433,7 +468,7 @@ genrule(
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
     },
     out = "buck2-authority-policy-fixture-check.txt",
-    cmd = "mkdir -p $TMP/buck2-authority-policy-fixture && rustc --edition=2021 -D warnings scripts/tests/buck2_authority_policy_check.rs --test -o $TMP/buck2-authority-policy-fixture/buck2_authority_policy_check && OYA_REPO_ROOT=$PWD $TMP/buck2-authority-policy-fixture/buck2_authority_policy_check > $OUT",
+    cmd = "mkdir -p $TMP/buck2-authority-policy-fixture && rustc --edition=2024 -D warnings scripts/tests/buck2_authority_policy_check.rs --test -o $TMP/buck2-authority-policy-fixture/buck2_authority_policy_check && OYA_REPO_ROOT=$PWD $TMP/buck2-authority-policy-fixture/buck2_authority_policy_check > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -457,7 +492,7 @@ genrule(
         "specs/toolchain-tenant-isolation-fixtures.json": "specs/toolchain-tenant-isolation-fixtures.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-ci-enforcement-baseline/*.json"])} | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-ci-enforcement-baseline-catalog-check.json",
-    cmd = "mkdir -p $TMP/phase0-ci-baseline-catalog && rustc --edition=2021 -D warnings scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs --test -o $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check_tests && OYA_REPO_ROOT=$PWD $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check_tests > /dev/null && rustc --edition=2021 -D warnings scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs -o $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check && OYA_REPO_ROOT=$PWD $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-ci-baseline-catalog && rustc --edition=2024 -D warnings scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs --test -o $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check_tests && OYA_REPO_ROOT=$PWD $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check_tests > /dev/null && rustc --edition=2024 -D warnings scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs -o $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check && OYA_REPO_ROOT=$PWD $TMP/phase0-ci-baseline-catalog/phase0_ci_enforcement_baseline_catalog_check --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -475,7 +510,7 @@ genrule(
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-exit-gate/*.json"])},
     out = "phase0-aggregate-exit-check.txt",
-    cmd = "mkdir -p $TMP/phase0-aggregate-exit && rustc --edition=2021 -D warnings scripts/tests/phase0_aggregate_exit_check.rs --test -o $TMP/phase0-aggregate-exit/phase0_aggregate_exit_check && OYA_REPO_ROOT=$PWD $TMP/phase0-aggregate-exit/phase0_aggregate_exit_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-phase0-aggregate-exit.rs -o $TMP/phase0-aggregate-exit/assert-phase0-aggregate-exit && OYA_REPO_ROOT=$PWD $TMP/phase0-aggregate-exit/assert-phase0-aggregate-exit --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-aggregate-exit && rustc --edition=2024 -D warnings scripts/tests/phase0_aggregate_exit_check.rs --test -o $TMP/phase0-aggregate-exit/phase0_aggregate_exit_check && OYA_REPO_ROOT=$PWD $TMP/phase0-aggregate-exit/phase0_aggregate_exit_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-phase0-aggregate-exit.rs -o $TMP/phase0-aggregate-exit/assert-phase0-aggregate-exit && OYA_REPO_ROOT=$PWD $TMP/phase0-aggregate-exit/assert-phase0-aggregate-exit --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -493,7 +528,7 @@ genrule(
         "docs/standards/testing.md": "docs/standards/testing.md",
     },
     out = "rust-testing-standard-check.txt",
-    cmd = "mkdir -p $TMP/rust-testing-standard && rustc --edition=2021 -D warnings scripts/tests/rust_testing_standard_check.rs --test -o $TMP/rust-testing-standard/rust_testing_standard_check && OYA_REPO_ROOT=$PWD $TMP/rust-testing-standard/rust_testing_standard_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-rust-testing-standard.rs -o $TMP/rust-testing-standard/assert-rust-testing-standard && OYA_REPO_ROOT=$PWD $TMP/rust-testing-standard/assert-rust-testing-standard --doc docs/standards/testing.md --json > $OUT",
+    cmd = "mkdir -p $TMP/rust-testing-standard && rustc --edition=2024 -D warnings scripts/tests/rust_testing_standard_check.rs --test -o $TMP/rust-testing-standard/rust_testing_standard_check && OYA_REPO_ROOT=$PWD $TMP/rust-testing-standard/rust_testing_standard_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-rust-testing-standard.rs -o $TMP/rust-testing-standard/assert-rust-testing-standard && OYA_REPO_ROOT=$PWD $TMP/rust-testing-standard/assert-rust-testing-standard --doc docs/standards/testing.md --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -511,7 +546,7 @@ genrule(
         "specs/rust-llvm-coverage-runner-contract.json": "specs/rust-llvm-coverage-runner-contract.json",
     },
     out = "rust-llvm-coverage-runner-contract-check.txt",
-    cmd = "mkdir -p $TMP/rust-llvm-coverage-runner-contract && rustc --edition=2021 -D warnings scripts/tests/rust_llvm_coverage_runner_contract_check.rs --test -o $TMP/rust-llvm-coverage-runner-contract/rust_llvm_coverage_runner_contract_check && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-runner-contract/rust_llvm_coverage_runner_contract_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-rust-llvm-coverage-runner-contract.rs -o $TMP/rust-llvm-coverage-runner-contract/assert-rust-llvm-coverage-runner-contract && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-runner-contract/assert-rust-llvm-coverage-runner-contract --spec specs/rust-llvm-coverage-runner-contract.json --json > $OUT",
+    cmd = "mkdir -p $TMP/rust-llvm-coverage-runner-contract && rustc --edition=2024 -D warnings scripts/tests/rust_llvm_coverage_runner_contract_check.rs --test -o $TMP/rust-llvm-coverage-runner-contract/rust_llvm_coverage_runner_contract_check && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-runner-contract/rust_llvm_coverage_runner_contract_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-rust-llvm-coverage-runner-contract.rs -o $TMP/rust-llvm-coverage-runner-contract/assert-rust-llvm-coverage-runner-contract && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-runner-contract/assert-rust-llvm-coverage-runner-contract --spec specs/rust-llvm-coverage-runner-contract.json --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -529,7 +564,7 @@ genrule(
         "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
     },
     out = "rust-llvm-coverage-smoke-check.json",
-    cmd = "mkdir -p $TMP/rust-llvm-coverage-smoke && rustc --edition=2021 -D warnings scripts/tests/rust_llvm_coverage_smoke_check.rs --test -o $TMP/rust-llvm-coverage-smoke/rust_llvm_coverage_smoke_check && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-smoke/rust_llvm_coverage_smoke_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/run-rust-llvm-coverage-smoke.rs -o $TMP/rust-llvm-coverage-smoke/run-rust-llvm-coverage-smoke && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-smoke/run-rust-llvm-coverage-smoke --out $OUT > /dev/null",
+    cmd = "mkdir -p $TMP/rust-llvm-coverage-smoke && rustc --edition=2024 -D warnings scripts/tests/rust_llvm_coverage_smoke_check.rs --test -o $TMP/rust-llvm-coverage-smoke/rust_llvm_coverage_smoke_check && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-smoke/rust_llvm_coverage_smoke_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/run-rust-llvm-coverage-smoke.rs -o $TMP/rust-llvm-coverage-smoke/run-rust-llvm-coverage-smoke && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-smoke/run-rust-llvm-coverage-smoke --out $OUT > /dev/null",
     visibility = ["PUBLIC"],
 )
 
@@ -549,7 +584,7 @@ genrule(
         "Cargo.toml": "Cargo.toml",
     } | {path: path for path in glob(["**/Cargo.toml", "**/BUCK", "**/src/lib.rs", "**/src/main.rs", "**/src/bin/**/*.rs"], exclude = ["buck-out/**", "target/**"])},
     out = "buck2-cargo-target-coverage-check.json",
-    cmd = "mkdir -p $TMP/buck2-cargo-target-coverage && rustc --edition=2021 -D warnings scripts/tests/buck2_cargo_target_coverage_check.rs --test -o $TMP/buck2-cargo-target-coverage/buck2_cargo_target_coverage_check && OYA_REPO_ROOT=$PWD $TMP/buck2-cargo-target-coverage/buck2_cargo_target_coverage_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-buck2-cargo-target-coverage.rs -o $TMP/buck2-cargo-target-coverage/assert-buck2-cargo-target-coverage && OYA_REPO_ROOT=$PWD $TMP/buck2-cargo-target-coverage/assert-buck2-cargo-target-coverage --spec specs/buck2-cargo-target-coverage.json --json > $OUT",
+    cmd = "mkdir -p $TMP/buck2-cargo-target-coverage && rustc --edition=2024 -D warnings scripts/tests/buck2_cargo_target_coverage_check.rs --test -o $TMP/buck2-cargo-target-coverage/buck2_cargo_target_coverage_check && OYA_REPO_ROOT=$PWD $TMP/buck2-cargo-target-coverage/buck2_cargo_target_coverage_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-buck2-cargo-target-coverage.rs -o $TMP/buck2-cargo-target-coverage/assert-buck2-cargo-target-coverage && OYA_REPO_ROOT=$PWD $TMP/buck2-cargo-target-coverage/assert-buck2-cargo-target-coverage --spec specs/buck2-cargo-target-coverage.json --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -630,7 +665,7 @@ genrule(
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
     out = "phase0-red-green-fixture-contract-check.json",
-    cmd = "mkdir -p $TMP/phase0-red-green-fixture-contract && rustc --edition=2021 -D warnings scripts/tests/red_green_fixture_contract_check.rs --test -o $TMP/phase0-red-green-fixture-contract/red_green_fixture_contract_check && OYA_REPO_ROOT=$PWD $TMP/phase0-red-green-fixture-contract/red_green_fixture_contract_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-red-green-fixture-contract.rs -o $TMP/phase0-red-green-fixture-contract/assert-red-green-fixture-contract && OYA_REPO_ROOT=$PWD $TMP/phase0-red-green-fixture-contract/assert-red-green-fixture-contract --spec specs/red-green-fixture-contract.json --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-red-green-fixture-contract && rustc --edition=2024 -D warnings scripts/tests/red_green_fixture_contract_check.rs --test -o $TMP/phase0-red-green-fixture-contract/red_green_fixture_contract_check && OYA_REPO_ROOT=$PWD $TMP/phase0-red-green-fixture-contract/red_green_fixture_contract_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-red-green-fixture-contract.rs -o $TMP/phase0-red-green-fixture-contract/assert-red-green-fixture-contract && OYA_REPO_ROOT=$PWD $TMP/phase0-red-green-fixture-contract/assert-red-green-fixture-contract --spec specs/red-green-fixture-contract.json --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -662,7 +697,7 @@ genrule(
         "third-party/BUCK": "third-party//:BUCK",
     } | {path: path for path in glob(["specs/fixtures/phase0-merge-conflict-foundation/*.json", "third-party/fixups/**/*.toml"])},
     out = "phase0-merge-conflict-foundation-check.json",
-    cmd = "mkdir -p $TMP/phase0-merge-conflict-foundation && rustc --edition=2021 -D warnings scripts/tests/phase0_merge_conflict_foundation_check.rs --test -o $TMP/phase0-merge-conflict-foundation/phase0_merge_conflict_foundation_check && OYA_REPO_ROOT=$PWD $TMP/phase0-merge-conflict-foundation/phase0_merge_conflict_foundation_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-phase0-merge-conflict-foundation.rs -o $TMP/phase0-merge-conflict-foundation/assert-phase0-merge-conflict-foundation && OYA_REPO_ROOT=$PWD $TMP/phase0-merge-conflict-foundation/assert-phase0-merge-conflict-foundation --registry specs/generated-artifact-registry.json --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-merge-conflict-foundation && rustc --edition=2024 -D warnings scripts/tests/phase0_merge_conflict_foundation_check.rs --test -o $TMP/phase0-merge-conflict-foundation/phase0_merge_conflict_foundation_check && OYA_REPO_ROOT=$PWD $TMP/phase0-merge-conflict-foundation/phase0_merge_conflict_foundation_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-phase0-merge-conflict-foundation.rs -o $TMP/phase0-merge-conflict-foundation/assert-phase0-merge-conflict-foundation && OYA_REPO_ROOT=$PWD $TMP/phase0-merge-conflict-foundation/assert-phase0-merge-conflict-foundation --registry specs/generated-artifact-registry.json --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -687,7 +722,7 @@ genrule(
         "specs/phase0-structural-packets.json": "specs/phase0-structural-packets.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-service-root-classifier/*.json", "oya/*", "cloud/*", "libs/*", "packs/*", "regional-packs/*", "platforms/*"])},
     out = "service-root-classifier-check.json",
-    cmd = "mkdir -p $TMP/service-root-classifier && rustc --edition=2021 -D warnings scripts/tests/service_root_classifier_check.rs --test -o $TMP/service-root-classifier/service_root_classifier_check && OYA_REPO_ROOT=$PWD $TMP/service-root-classifier/service_root_classifier_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-service-root-classifier.rs -o $TMP/service-root-classifier/assert-service-root-classifier && $TMP/service-root-classifier/assert-service-root-classifier --inventory specs/service-inventory.json --packets specs/phase0-structural-packets.json --json > $OUT",
+    cmd = "mkdir -p $TMP/service-root-classifier && rustc --edition=2024 -D warnings scripts/tests/service_root_classifier_check.rs --test -o $TMP/service-root-classifier/service_root_classifier_check && OYA_REPO_ROOT=$PWD $TMP/service-root-classifier/service_root_classifier_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-service-root-classifier.rs -o $TMP/service-root-classifier/assert-service-root-classifier && $TMP/service-root-classifier/assert-service-root-classifier --inventory specs/service-inventory.json --packets specs/phase0-structural-packets.json --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -711,7 +746,7 @@ genrule(
         "specs/microservices/real-estate.json": "specs/microservices/real-estate.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-status-enum-drift/*.json", "oya/real-estate/**", "oya/analytics/**"])},
     out = "status-enum-drift-check.json",
-    cmd = "mkdir -p $TMP/status-enum-drift && rustc --edition=2021 -D warnings scripts/tests/status_enum_drift_check.rs --test -o $TMP/status-enum-drift/status_enum_drift_check && OYA_REPO_ROOT=$PWD $TMP/status-enum-drift/status_enum_drift_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-status-enum-drift.rs -o $TMP/status-enum-drift/assert-status-enum-drift && $TMP/status-enum-drift/assert-status-enum-drift --registry specs/status-enum-registry.json --json > $OUT",
+    cmd = "mkdir -p $TMP/status-enum-drift && rustc --edition=2024 -D warnings scripts/tests/status_enum_drift_check.rs --test -o $TMP/status-enum-drift/status_enum_drift_check && OYA_REPO_ROOT=$PWD $TMP/status-enum-drift/status_enum_drift_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-status-enum-drift.rs -o $TMP/status-enum-drift/assert-status-enum-drift && $TMP/status-enum-drift/assert-status-enum-drift --registry specs/status-enum-registry.json --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -738,7 +773,7 @@ genrule(
         "docs/standards/logging-tracing.md": "docs/standards/logging-tracing.md",
     } | {path: path for path in glob(["specs/fixtures/phase0-adr-hygiene/*.json", "docs/decisions/ADR-*.md", "docs/standards/*.md", "specs/*.json"])},
     out = "adr-hygiene-check.json",
-    cmd = "mkdir -p $TMP/adr-hygiene && rustc --edition=2021 -D warnings scripts/tests/adr_hygiene_check.rs --test -o $TMP/adr-hygiene/adr_hygiene_check && OYA_REPO_ROOT=$PWD $TMP/adr-hygiene/adr_hygiene_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-adr-hygiene.rs -o $TMP/adr-hygiene/assert-adr-hygiene && OYA_REPO_ROOT=$PWD $TMP/adr-hygiene/assert-adr-hygiene --registry specs/adr-hygiene-registry.json --json > $OUT",
+    cmd = "mkdir -p $TMP/adr-hygiene && rustc --edition=2024 -D warnings scripts/tests/adr_hygiene_check.rs --test -o $TMP/adr-hygiene/adr_hygiene_check && OYA_REPO_ROOT=$PWD $TMP/adr-hygiene/adr_hygiene_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-adr-hygiene.rs -o $TMP/adr-hygiene/assert-adr-hygiene && OYA_REPO_ROOT=$PWD $TMP/adr-hygiene/assert-adr-hygiene --registry specs/adr-hygiene-registry.json --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -760,7 +795,7 @@ genrule(
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-language-discipline/*.json"])},
     out = "language-discipline-check.json",
-    cmd = "mkdir -p $TMP/language-discipline && rustc --edition=2021 -D warnings scripts/tests/language_discipline_check.rs --test -o $TMP/language-discipline/language_discipline_check && OYA_REPO_ROOT=$PWD $TMP/language-discipline/language_discipline_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-language-discipline.rs -o $TMP/language-discipline/assert-language-discipline && $TMP/language-discipline/assert-language-discipline --json > $OUT",
+    cmd = "mkdir -p $TMP/language-discipline && rustc --edition=2024 -D warnings scripts/tests/language_discipline_check.rs --test -o $TMP/language-discipline/language_discipline_check && OYA_REPO_ROOT=$PWD $TMP/language-discipline/language_discipline_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-language-discipline.rs -o $TMP/language-discipline/assert-language-discipline && $TMP/language-discipline/assert-language-discipline --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -777,7 +812,7 @@ genrule(
         "scripts/ci/assert-adr-0221-governance-gates.rs": "scripts/ci/assert-adr-0221-governance-gates.rs",
     } | {path: path for path in glob(["docs/decisions/ADR-*.md"])},
     out = "adr-0221-governance-gates-check.json",
-    cmd = "mkdir -p $TMP/adr-0221-governance-gates && rustc --edition=2021 -D warnings scripts/ci/assert-adr-0221-governance-gates.rs --test -o $TMP/adr-0221-governance-gates/adr_0221_governance_gates_check && OYA_REPO_ROOT=$PWD $TMP/adr-0221-governance-gates/adr_0221_governance_gates_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-adr-0221-governance-gates.rs -o $TMP/adr-0221-governance-gates/assert-adr-0221-governance-gates && OYA_REPO_ROOT=$PWD $TMP/adr-0221-governance-gates/assert-adr-0221-governance-gates --json > $OUT",
+    cmd = "mkdir -p $TMP/adr-0221-governance-gates && rustc --edition=2024 -D warnings scripts/ci/assert-adr-0221-governance-gates.rs --test -o $TMP/adr-0221-governance-gates/adr_0221_governance_gates_check && OYA_REPO_ROOT=$PWD $TMP/adr-0221-governance-gates/adr_0221_governance_gates_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-adr-0221-governance-gates.rs -o $TMP/adr-0221-governance-gates/assert-adr-0221-governance-gates && OYA_REPO_ROOT=$PWD $TMP/adr-0221-governance-gates/assert-adr-0221-governance-gates --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -802,7 +837,7 @@ genrule(
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
     } | {path: path for path in glob(["specs/fixtures/phase0-d1-seam-contracts/*.json"])},
     out = "d1-seam-contracts-check.json",
-    cmd = "mkdir -p $TMP/d1-seam-contracts && rustc --edition=2021 -D warnings scripts/tests/d1_seam_contracts_check.rs --test -o $TMP/d1-seam-contracts/d1_seam_contracts_check && OYA_REPO_ROOT=$PWD $TMP/d1-seam-contracts/d1_seam_contracts_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-d1-seam-contracts.rs -o $TMP/d1-seam-contracts/assert-d1-seam-contracts && $TMP/d1-seam-contracts/assert-d1-seam-contracts --json > $OUT",
+    cmd = "mkdir -p $TMP/d1-seam-contracts && rustc --edition=2024 -D warnings scripts/tests/d1_seam_contracts_check.rs --test -o $TMP/d1-seam-contracts/d1_seam_contracts_check && OYA_REPO_ROOT=$PWD $TMP/d1-seam-contracts/d1_seam_contracts_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-d1-seam-contracts.rs -o $TMP/d1-seam-contracts/assert-d1-seam-contracts && $TMP/d1-seam-contracts/assert-d1-seam-contracts --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -828,7 +863,7 @@ genrule(
         "effective-dating-kernel-tests.txt": "//oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
     } | {path: path for path in glob(["specs/fixtures/phase0-effective-dating-kernel/*.json"])},
     out = "effective-dating-kernel-check.json",
-    cmd = "mkdir -p $TMP/effective-dating-kernel && rustc --edition=2021 -D warnings scripts/tests/effective_dating_kernel_check.rs --test -o $TMP/effective-dating-kernel/effective_dating_kernel_check && OYA_REPO_ROOT=$PWD $TMP/effective-dating-kernel/effective_dating_kernel_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-effective-dating-kernel.rs -o $TMP/effective-dating-kernel/assert-effective-dating-kernel && $TMP/effective-dating-kernel/assert-effective-dating-kernel --json > $OUT",
+    cmd = "mkdir -p $TMP/effective-dating-kernel && rustc --edition=2024 -D warnings scripts/tests/effective_dating_kernel_check.rs --test -o $TMP/effective-dating-kernel/effective_dating_kernel_check && OYA_REPO_ROOT=$PWD $TMP/effective-dating-kernel/effective_dating_kernel_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-effective-dating-kernel.rs -o $TMP/effective-dating-kernel/assert-effective-dating-kernel && $TMP/effective-dating-kernel/assert-effective-dating-kernel --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -854,7 +889,7 @@ genrule(
         "docs/machine-readable/board-sync.generated.json": "docs/machine-readable/board-sync.generated.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-cross-artifact-agreement/*.json"])},
     out = "cross-artifact-agreement-check.json",
-    cmd = "mkdir -p $TMP/cross-artifact-agreement && rustc --edition=2021 -D warnings scripts/tests/cross_artifact_agreement_check.rs --test -o $TMP/cross-artifact-agreement/cross_artifact_agreement_check && OYA_REPO_ROOT=$PWD $TMP/cross-artifact-agreement/cross_artifact_agreement_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-cross-artifact-agreement.rs -o $TMP/cross-artifact-agreement/assert-cross-artifact-agreement && $TMP/cross-artifact-agreement/assert-cross-artifact-agreement --json > $OUT",
+    cmd = "mkdir -p $TMP/cross-artifact-agreement && rustc --edition=2024 -D warnings scripts/tests/cross_artifact_agreement_check.rs --test -o $TMP/cross-artifact-agreement/cross_artifact_agreement_check && OYA_REPO_ROOT=$PWD $TMP/cross-artifact-agreement/cross_artifact_agreement_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-cross-artifact-agreement.rs -o $TMP/cross-artifact-agreement/assert-cross-artifact-agreement && $TMP/cross-artifact-agreement/assert-cross-artifact-agreement --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -875,7 +910,7 @@ genrule(
         "specs/structural-lock-revert-registry.json": "specs/structural-lock-revert-registry.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-structural-lock-revert/*.json"])},
     out = "structural-lock-revert-check.json",
-    cmd = "mkdir -p $TMP/structural-lock-revert && rustc --edition=2021 -D warnings scripts/tests/structural_lock_revert_check.rs --test -o $TMP/structural-lock-revert/structural_lock_revert_check && OYA_REPO_ROOT=$PWD $TMP/structural-lock-revert/structural_lock_revert_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-structural-lock-revert.rs -o $TMP/structural-lock-revert/assert-structural-lock-revert && $TMP/structural-lock-revert/assert-structural-lock-revert --json > $OUT",
+    cmd = "mkdir -p $TMP/structural-lock-revert && rustc --edition=2024 -D warnings scripts/tests/structural_lock_revert_check.rs --test -o $TMP/structural-lock-revert/structural_lock_revert_check && OYA_REPO_ROOT=$PWD $TMP/structural-lock-revert/structural_lock_revert_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-structural-lock-revert.rs -o $TMP/structural-lock-revert/assert-structural-lock-revert && $TMP/structural-lock-revert/assert-structural-lock-revert --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -896,7 +931,7 @@ genrule(
         "specs/d1-read-your-writes-xfail-registry.json": "specs/d1-read-your-writes-xfail-registry.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-d1-read-your-writes-xfail/*.json"])},
     out = "d1-read-your-writes-xfail-check.json",
-    cmd = "mkdir -p $TMP/d1-read-your-writes-xfail && rustc --edition=2021 -D warnings scripts/tests/d1_read_your_writes_xfail_check.rs --test -o $TMP/d1-read-your-writes-xfail/d1_read_your_writes_xfail_check && OYA_REPO_ROOT=$PWD $TMP/d1-read-your-writes-xfail/d1_read_your_writes_xfail_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-d1-read-your-writes-xfail.rs -o $TMP/d1-read-your-writes-xfail/assert-d1-read-your-writes-xfail && $TMP/d1-read-your-writes-xfail/assert-d1-read-your-writes-xfail --json > $OUT",
+    cmd = "mkdir -p $TMP/d1-read-your-writes-xfail && rustc --edition=2024 -D warnings scripts/tests/d1_read_your_writes_xfail_check.rs --test -o $TMP/d1-read-your-writes-xfail/d1_read_your_writes_xfail_check && OYA_REPO_ROOT=$PWD $TMP/d1-read-your-writes-xfail/d1_read_your_writes_xfail_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-d1-read-your-writes-xfail.rs -o $TMP/d1-read-your-writes-xfail/assert-d1-read-your-writes-xfail && $TMP/d1-read-your-writes-xfail/assert-d1-read-your-writes-xfail --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -920,7 +955,7 @@ genrule(
         "BUCK": "BUCK",
     } | {path: path for path in glob(["specs/fixtures/phase0-who-gates-gates/*.json"])},
     out = "who-gates-gates-check.json",
-    cmd = "mkdir -p $TMP/who-gates-gates && rustc --edition=2021 -D warnings scripts/tests/who_gates_gates_check.rs --test -o $TMP/who-gates-gates/who_gates_gates_check && OYA_REPO_ROOT=$PWD $TMP/who-gates-gates/who_gates_gates_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-who-gates-gates.rs -o $TMP/who-gates-gates/assert-who-gates-gates && $TMP/who-gates-gates/assert-who-gates-gates --json > $OUT",
+    cmd = "mkdir -p $TMP/who-gates-gates && rustc --edition=2024 -D warnings scripts/tests/who_gates_gates_check.rs --test -o $TMP/who-gates-gates/who_gates_gates_check && OYA_REPO_ROOT=$PWD $TMP/who-gates-gates/who_gates_gates_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-who-gates-gates.rs -o $TMP/who-gates-gates/assert-who-gates-gates && $TMP/who-gates-gates/assert-who-gates-gates --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
@@ -939,7 +974,7 @@ genrule(
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-automation-ratchet/*.json"])},
     out = "phase0-automation-ratchet-check.txt",
-    cmd = "mkdir -p $TMP/phase0-automation-ratchet && rustc --edition=2021 -D warnings scripts/tests/phase0_automation_ratchet_check.rs --test -o $TMP/phase0-automation-ratchet/phase0_automation_ratchet_check && OYA_REPO_ROOT=$PWD $TMP/phase0-automation-ratchet/phase0_automation_ratchet_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-automation-ratchet.rs -o $TMP/phase0-automation-ratchet/assert-automation-ratchet && OYA_REPO_ROOT=$PWD $TMP/phase0-automation-ratchet/assert-automation-ratchet --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-automation-ratchet && rustc --edition=2024 -D warnings scripts/tests/phase0_automation_ratchet_check.rs --test -o $TMP/phase0-automation-ratchet/phase0_automation_ratchet_check && OYA_REPO_ROOT=$PWD $TMP/phase0-automation-ratchet/phase0_automation_ratchet_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-automation-ratchet.rs -o $TMP/phase0-automation-ratchet/assert-automation-ratchet && OYA_REPO_ROOT=$PWD $TMP/phase0-automation-ratchet/assert-automation-ratchet --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -960,7 +995,7 @@ genrule(
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-claim-ceiling/*.json"])},
     out = "phase0-claim-ceiling-check.txt",
-    cmd = "mkdir -p $TMP/phase0-claim-ceiling && rustc --edition=2021 -D warnings scripts/tests/phase0_claim_ceiling_check.rs --test -o $TMP/phase0-claim-ceiling/phase0_claim_ceiling_check && OYA_REPO_ROOT=$PWD $TMP/phase0-claim-ceiling/phase0_claim_ceiling_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-claim-ceiling.rs -o $TMP/phase0-claim-ceiling/assert-claim-ceiling && $TMP/phase0-claim-ceiling/assert-claim-ceiling --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-claim-ceiling && rustc --edition=2024 -D warnings scripts/tests/phase0_claim_ceiling_check.rs --test -o $TMP/phase0-claim-ceiling/phase0_claim_ceiling_check && OYA_REPO_ROOT=$PWD $TMP/phase0-claim-ceiling/phase0_claim_ceiling_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-claim-ceiling.rs -o $TMP/phase0-claim-ceiling/assert-claim-ceiling && $TMP/phase0-claim-ceiling/assert-claim-ceiling --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -980,7 +1015,7 @@ genrule(
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.4-bad-result-bundle-false-green.json",
     },
     out = "phase0-result-bundle-output-check.txt",
-    cmd = "mkdir -p $TMP/phase0-result-bundle-output && rustc --edition=2021 -D warnings scripts/tests/phase0_result_bundle_output_check.rs --test -o $TMP/phase0-result-bundle-output/phase0_result_bundle_output_check && OYA_REPO_ROOT=$PWD $TMP/phase0-result-bundle-output/phase0_result_bundle_output_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-result-bundle-output.rs -o $TMP/phase0-result-bundle-output/assert-result-bundle-output && $TMP/phase0-result-bundle-output/assert-result-bundle-output --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-result-bundle-output && rustc --edition=2024 -D warnings scripts/tests/phase0_result_bundle_output_check.rs --test -o $TMP/phase0-result-bundle-output/phase0_result_bundle_output_check && OYA_REPO_ROOT=$PWD $TMP/phase0-result-bundle-output/phase0_result_bundle_output_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-result-bundle-output.rs -o $TMP/phase0-result-bundle-output/assert-result-bundle-output && $TMP/phase0-result-bundle-output/assert-result-bundle-output --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -1002,7 +1037,7 @@ genrule(
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
     },
     out = "phase0-trusted-target-inventory-check.txt",
-    cmd = "mkdir -p $TMP/phase0-trusted-target-inventory && rustc --edition=2021 -D warnings scripts/tests/phase0_trusted_target_inventory_check.rs --test -o $TMP/phase0-trusted-target-inventory/phase0_trusted_target_inventory_check && OYA_REPO_ROOT=$PWD $TMP/phase0-trusted-target-inventory/phase0_trusted_target_inventory_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-trusted-target-inventory.rs -o $TMP/phase0-trusted-target-inventory/assert-trusted-target-inventory && $TMP/phase0-trusted-target-inventory/assert-trusted-target-inventory --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-trusted-target-inventory && rustc --edition=2024 -D warnings scripts/tests/phase0_trusted_target_inventory_check.rs --test -o $TMP/phase0-trusted-target-inventory/phase0_trusted_target_inventory_check && OYA_REPO_ROOT=$PWD $TMP/phase0-trusted-target-inventory/phase0_trusted_target_inventory_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-trusted-target-inventory.rs -o $TMP/phase0-trusted-target-inventory/assert-trusted-target-inventory && $TMP/phase0-trusted-target-inventory/assert-trusted-target-inventory --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -1022,7 +1057,7 @@ genrule(
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
     },
     out = "phase0-tenant-isolation-fixture-check.txt",
-    cmd = "mkdir -p $TMP/phase0-tenant-isolation && rustc --edition=2021 -D warnings scripts/tests/phase0_tenant_isolation_fixture_check.rs --test -o $TMP/phase0-tenant-isolation/phase0_tenant_isolation_fixture_check && OYA_REPO_ROOT=$PWD $TMP/phase0-tenant-isolation/phase0_tenant_isolation_fixture_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-tenant-pipeline-isolation.rs -o $TMP/phase0-tenant-isolation/assert-tenant-pipeline-isolation && $TMP/phase0-tenant-isolation/assert-tenant-pipeline-isolation --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-tenant-isolation && rustc --edition=2024 -D warnings scripts/tests/phase0_tenant_isolation_fixture_check.rs --test -o $TMP/phase0-tenant-isolation/phase0_tenant_isolation_fixture_check && OYA_REPO_ROOT=$PWD $TMP/phase0-tenant-isolation/phase0_tenant_isolation_fixture_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-tenant-pipeline-isolation.rs -o $TMP/phase0-tenant-isolation/assert-tenant-pipeline-isolation && $TMP/phase0-tenant-isolation/assert-tenant-pipeline-isolation --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -1043,7 +1078,7 @@ genrule(
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
     },
     out = "phase0-override-kill-switch-check.txt",
-    cmd = "mkdir -p $TMP/phase0-override-kill-switch && rustc --edition=2021 -D warnings scripts/tests/phase0_override_kill_switch_check.rs --test -o $TMP/phase0-override-kill-switch/phase0_override_kill_switch_check && OYA_REPO_ROOT=$PWD $TMP/phase0-override-kill-switch/phase0_override_kill_switch_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-override-kill-switch.rs -o $TMP/phase0-override-kill-switch/assert-override-kill-switch && $TMP/phase0-override-kill-switch/assert-override-kill-switch --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-override-kill-switch && rustc --edition=2024 -D warnings scripts/tests/phase0_override_kill_switch_check.rs --test -o $TMP/phase0-override-kill-switch/phase0_override_kill_switch_check && OYA_REPO_ROOT=$PWD $TMP/phase0-override-kill-switch/phase0_override_kill_switch_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-override-kill-switch.rs -o $TMP/phase0-override-kill-switch/assert-override-kill-switch && $TMP/phase0-override-kill-switch/assert-override-kill-switch --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -1059,7 +1094,7 @@ genrule(
         "scripts/tests/phase0_required_status_source_check.rs": "scripts/tests/phase0_required_status_source_check.rs",
     } | {path: path for path in glob(["specs/fixtures/phase0-required-status-source/*.json"])},
     out = "phase0-required-status-source-check.txt",
-    cmd = "mkdir -p $TMP/phase0-required-status-source && rustc --edition=2021 -D warnings scripts/tests/phase0_required_status_source_check.rs --test -o $TMP/phase0-required-status-source/phase0_required_status_source_check && OYA_REPO_ROOT=$PWD $TMP/phase0-required-status-source/phase0_required_status_source_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-required-status-source.rs -o $TMP/phase0-required-status-source/assert-required-status-source && $TMP/phase0-required-status-source/assert-required-status-source --input specs/fixtures/phase0-required-status-source/good-bound-expected-source-app.json --expected-app-id 12345 --json > $OUT",
+    cmd = "mkdir -p $TMP/phase0-required-status-source && rustc --edition=2024 -D warnings scripts/tests/phase0_required_status_source_check.rs --test -o $TMP/phase0-required-status-source/phase0_required_status_source_check && OYA_REPO_ROOT=$PWD $TMP/phase0-required-status-source/phase0_required_status_source_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-required-status-source.rs -o $TMP/phase0-required-status-source/assert-required-status-source && $TMP/phase0-required-status-source/assert-required-status-source --input specs/fixtures/phase0-required-status-source/good-bound-expected-source-app.json --expected-app-id 12345 --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -1091,7 +1126,7 @@ genrule(
         "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
     },
     out = "github-auto-merge-after-ci-check.txt",
-    cmd = "(mkdir -p $TMP/github-auto-merge $TMP/required-context-rollup && rustc --edition=2021 -D warnings scripts/tests/trigger_next_queue_automerge_required_contexts.rs --test -o $TMP/github-auto-merge/trigger_next_queue_automerge_required_contexts && OYA_REPO_ROOT=$PWD $TMP/github-auto-merge/trigger_next_queue_automerge_required_contexts > /dev/null && rustc --edition=2021 -D warnings scripts/tests/trigger_next_queue_automerge_conflict_guard.rs --test -o $TMP/github-auto-merge/trigger_next_queue_automerge_conflict_guard && OYA_REPO_ROOT=$PWD $TMP/github-auto-merge/trigger_next_queue_automerge_conflict_guard > /dev/null && rustc --edition=2021 -D warnings scripts/check-sequential-pr-merge-conflicts.rs -o $TMP/github-auto-merge/check-sequential-pr-merge-conflicts && rustc --edition=2021 -D warnings scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs --test -o $TMP/github-auto-merge/check_sequential_pr_merge_conflicts_fetch_remote && OYA_REPO_ROOT=$PWD OYA_SEQ_CONFLICT_CHECKER_BIN=$TMP/github-auto-merge/check-sequential-pr-merge-conflicts $TMP/github-auto-merge/check_sequential_pr_merge_conflicts_fetch_remote > /dev/null && rustc --edition=2021 -D warnings scripts/tests/phase0_required_context_rollup_check.rs --test -o $TMP/required-context-rollup/phase0_required_context_rollup_check && OYA_REPO_ROOT=$PWD $TMP/required-context-rollup/phase0_required_context_rollup_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-pr-required-context.rs -o $TMP/required-context-rollup/assert-pr-required-context && $TMP/required-context-rollup/assert-pr-required-context --input specs/fixtures/phase0-required-context-rollup/good-github-lane-unlocker-required-success.json --json > /dev/null) > $OUT",
+    cmd = "(mkdir -p $TMP/github-auto-merge $TMP/required-context-rollup && rustc --edition=2024 -D warnings scripts/tests/trigger_next_queue_automerge_required_contexts.rs --test -o $TMP/github-auto-merge/trigger_next_queue_automerge_required_contexts && OYA_REPO_ROOT=$PWD $TMP/github-auto-merge/trigger_next_queue_automerge_required_contexts > /dev/null && rustc --edition=2024 -D warnings scripts/tests/trigger_next_queue_automerge_conflict_guard.rs --test -o $TMP/github-auto-merge/trigger_next_queue_automerge_conflict_guard && OYA_REPO_ROOT=$PWD $TMP/github-auto-merge/trigger_next_queue_automerge_conflict_guard > /dev/null && rustc --edition=2024 -D warnings scripts/check-sequential-pr-merge-conflicts.rs -o $TMP/github-auto-merge/check-sequential-pr-merge-conflicts && rustc --edition=2024 -D warnings scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs --test -o $TMP/github-auto-merge/check_sequential_pr_merge_conflicts_fetch_remote && OYA_REPO_ROOT=$PWD OYA_SEQ_CONFLICT_CHECKER_BIN=$TMP/github-auto-merge/check-sequential-pr-merge-conflicts $TMP/github-auto-merge/check_sequential_pr_merge_conflicts_fetch_remote > /dev/null && rustc --edition=2024 -D warnings scripts/tests/phase0_required_context_rollup_check.rs --test -o $TMP/required-context-rollup/phase0_required_context_rollup_check && OYA_REPO_ROOT=$PWD $TMP/required-context-rollup/phase0_required_context_rollup_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-pr-required-context.rs -o $TMP/required-context-rollup/assert-pr-required-context && $TMP/required-context-rollup/assert-pr-required-context --input specs/fixtures/phase0-required-context-rollup/good-github-lane-unlocker-required-success.json --json > /dev/null) > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -1125,6 +1160,6 @@ genrule(
         "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
     },
     out = "phase0-auto-merge-after-ci-contract-check.json",
-    cmd = "mkdir -p $TMP/phase0-auto-merge-after-ci-contract && rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs --test -o $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check_tests && OYA_REPO_ROOT=$PWD $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check_tests > /dev/null && rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs -o $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check && OYA_REPO_ROOT=$PWD $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check > $OUT",
+    cmd = "mkdir -p $TMP/phase0-auto-merge-after-ci-contract && rustc --edition=2024 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs --test -o $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check_tests && OYA_REPO_ROOT=$PWD $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check_tests > /dev/null && rustc --edition=2024 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs -o $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check && OYA_REPO_ROOT=$PWD $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check > $OUT",
     visibility = ["PUBLIC"],
 )

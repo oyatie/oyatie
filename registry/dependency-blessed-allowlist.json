@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/dependency-blessed-allowlist.schema.json",
   "title": "DependencyBlessedAllowlist",
-  "description": "Data-driven hyperscaler-blessed direct-dependency allowlist consumed by the oya-dev-cli dependency-blessed-allowlist gate. Each crate's own [dependencies]/[dev-dependencies]/[build-dependencies] is read at lane time; every DIRECT external dependency (path/workspace-internal oya-* deps are exempt) is checked against this allowlist. Unblessed direct deps are reported per-crate with the crate path. Default severity is report-only to honor the ADR-0092 D14 report-only-on-day-1 contract; callers opt in to blocking with --enforce. This file is the SINGLE source of truth for the blessed set so the policy is data-driven, not hard-coded in Rust.",
+  "description": "Data-driven hyperscaler-blessed direct-dependency allowlist consumed by Buck2/Prow dependency checks. Each crate own dependencies are read at lane time; every DIRECT external dependency (path/workspace-internal oya-* deps are exempt) is checked against this allowlist. Unblessed direct deps are reported per-crate with the crate path. This file is the source of truth for the blessed set so the policy is data-driven, not hard-coded.",
   "_meta": {
     "doc_class": "Registry",
     "registry_id": "REG-DEPENDENCY-BLESSED-ALLOWLIST",
@@ -15,11 +15,16 @@
       "ADR-0092"
     ],
     "consumed_by": [
-      "oya-dev-cli (gate: dependency-blessed-allowlist)"
+      "buck2 build //:repo-hygiene-automation-check",
+      "Buck2/Prow dependency-blessed-allowlist checks"
     ],
     "policy_source": "docs/standards/dependency-policy.md + docs/decisions/ADR-0092-workspace-dependency-seam-policy.md + registry/dependency-rationales.json [workspace.dependencies] join + approved-runtime-dependency-allowlist (Tokio/Axum/Tower/tower-http/Hyper/hyper-util/clap/serde/tracing/OpenTelemetry)",
-    "purpose": "Authoritative per-crate hyperscaler-blessed direct-dependency allowlist for the dependency-blessed-allowlist gate.",
-    "exemptions": "Workspace-internal crates (name prefix oya-) and any dependency declared with an explicit `path = ...` are exempt: they are first-party code, not external supply-chain surface."
+    "purpose": "Authoritative per-crate hyperscaler-blessed direct-dependency allowlist for Buck2/Prow dependency checks.",
+    "exemptions": "Workspace-internal crates (name prefix oya-) and any dependency declared with an explicit `path = ...` are exempt: they are first-party code, not external supply-chain surface.",
+    "version_policy": "latest_upstream_stable_or_lts",
+    "tracking_policy": "all_workspace_dependencies_tracked",
+    "exception_policy": "explicit_waiver_required_for_non_latest_or_non_in_house_dependency",
+    "library_posture": "in_house_first_oya_rust_libraries; external crates are blessed seam exceptions only"
   },
   "blessed": {
     "anyhow": {
@@ -206,6 +211,36 @@
       "layer_seam": "adapter-only",
       "rationale": "ClickHouse 26.3 LTS HTTP client (Apache-2.0). Isolated exclusively to oya-shared-olap-clickhouse-adapter per ADR-0092 D2 and ADR-0193 OLAP analytics warehouse mandate. No kernel or domain crate may depend on this crate directly.",
       "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+    },
+    "aws-lc-rs": {
+      "layer_seam": "crypto",
+      "rationale": "Phase-1 crypto backend per ADR-0506; wrapped by first-party crypto/TLS seams.",
+      "policy_ref": "docs/decisions/ADR-0506-aws-lc-rs-phase-1-crypto-backend.md"
+    },
+    "hmac": {
+      "layer_seam": "crypto-webhook-verification",
+      "rationale": "HMAC primitive for webhook verification; request semantics stay in first-party code.",
+      "policy_ref": "docs/standards/security-review.md"
+    },
+    "reqwest": {
+      "layer_seam": "adapter-only",
+      "rationale": "Temporary outbound HTTP client for GitHub/Prow bridge and gateway adapters; destination is in-house oya-http-client over hyper where practical.",
+      "policy_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md"
+    },
+    "rustls": {
+      "layer_seam": "tls-crypto",
+      "rationale": "Rust TLS implementation for adapter/runtime edges using the AWS-LC backend; policy semantics stay first-party.",
+      "policy_ref": "docs/decisions/ADR-0506-aws-lc-rs-phase-1-crypto-backend.md"
+    },
+    "sha2": {
+      "layer_seam": "crypto-webhook-verification",
+      "rationale": "SHA-2 primitive paired with HMAC for webhook verification; canonicalization and audit stay first-party.",
+      "policy_ref": "docs/standards/security-review.md"
+    },
+    "subtle": {
+      "layer_seam": "crypto-webhook-verification",
+      "rationale": "Constant-time comparison helper for signature verification.",
+      "policy_ref": "docs/standards/security-review.md"
     }
   }
 }

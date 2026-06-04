@@ -732,7 +732,7 @@ resolver = "2"
 [workspace.package]
 edition = "2024"
 version = "0.1.0"
-rust-version = "1.95.0"
+rust-version = "1.96.0"
 
 # Workspace lints baseline (TEMPORARY — re-tighten under Wave 15-ZA cleanup PR per ADR-0346 successor).
 #
@@ -1115,8 +1115,9 @@ hyper-rustls = { version = "0.27", default-features = false, features = ["http1"
 # Used by ci-webhook-gateway and similar microservices that expose HTTP surfaces.
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 # reqwest HTTP client — workspace pin so all crates share one resolved version.
-# Used by ci-controller-forgejo-adapter (status poster), ci-tide-forgejo-adapter
-# (Forgejo status/merge API), and gateway adapters. Destination is hyper-direct per line 1094.
+# Temporary adapter-only bridge for GitHub/Prow status posting and gateway adapters.
+# Destination is in-house oya-http-client abstractions over the hyper backbone where
+# that reduces external surface without weakening protocol correctness.
 # blocking feature: adapter layers implementing synchronous kernel traits.
 # rustls: TLS via aws-lc-rs/rustls (no native-tls / OpenSSL dep).
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }

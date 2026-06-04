@@ -252,7 +252,7 @@ pub fn actual_gate_surface_failures(
         "scripts/tests/who_gates_gates_check.rs",
         "specs/who-gates-gates-registry.json",
         "specs/fixtures/phase0-who-gates-gates/*.json",
-        "rustc --edition=2021 -D warnings",
+        "rustc --edition=2024 -D warnings",
     ] {
         if !buck.contains(required) {
             failures.push(format!("buck_missing_anchor_{required}"));

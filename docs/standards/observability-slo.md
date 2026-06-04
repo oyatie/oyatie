@@ -68,7 +68,7 @@ All pinned to the current LTS line. Verify against `grafana.com/docs/<component>
 
 | Component | Pinned | Notes |
 |---|---|---|
-| Rust toolchain | 1.95.0 (per project `rustfmt.toml`) | Latest stable as of 2026-05; bump quarterly. |
+| Rust toolchain | 1.96.0 (per project `rust-toolchain.toml`, workspace `rust-version`, and `rustfmt.toml`) | Latest official stable as of 2026-05-28; bump immediately through the Rust/Buck2 toolchain updater lane, not quarterly drift. |
 | Rust edition | 2024 | Per ADR-0056 + workspace `Cargo.toml`. |
 | rustfmt edition / style_edition | 2024 | Per `rustfmt.toml`. |
 | `cargo-deny` | latest stable | Supply-chain lane. |

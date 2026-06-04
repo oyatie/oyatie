@@ -47,24 +47,35 @@ doc_status: published
 - **No mocks in integration tests** (per project memory). Hit a real Postgres, real KMS test instance, real Foundry sandbox.
 - Test-fixture seed: per-tenant + per-region + per-class (PHI / PCI / PIPA-Art23 fixtures stored encrypted per ADR-0043 even in test).
 - Per-test idempotency: tests can run in any order, in parallel, on a fresh slate.
-- Insta snapshots stored under `tests/snapshots/`; reviewer must explicitly approve via `cargo insta review`.
+- Insta snapshots stored under `tests/snapshots/`; reviewer approval flows through the Buck2 snapshot-review target.
 
 ## 4. Test runner
 
-`cargo nextest` (per project memory + ADR-0024). Never bare `cargo test`.
+Buck2 is the authoritative build/test/check surface. Rust test execution should
+flow through Buck2 targets that invoke the Rust test runner and LLVM
+source-based coverage as needed. Direct Cargo/nextest commands are local mirror
+loops only; never treat bare `cargo test` as authority.
 
 ```sh
-cargo nextest run --workspace --all-features --no-fail-fast
+buck2 test //...
 ```
 
-Test sharding via `--partition count:N/M`.
+Test sharding is owned by Buck2/Prow scheduling; local nextest partitioning is
+acceptable only as developer evidence.
 
 ### Companion local-dev tools
 
-- **`bacon`** — background watcher; auto re-runs the right `cargo` job (`check` / `clippy` / `nextest`) on file save. Engineer's primary feedback loop. Project ships curated `bacon.toml` with jobs covering check / clippy / nextest / doc / boundary-validator. Pairs with sccache for sub-30s incremental.
-- **`cargo-machete`** — finds unused dependencies; per-PR + per-quarter sweep. Surfaces accidental dep adoption that the [VENDOR-PARTNER-LEDGER.md](VENDOR-PARTNER-LEDGER.md) might otherwise carry forever.
+- **Buck2 daemon + graph cache** — primary local feedback loop. Prefer Buck2
+  target selection because it reuses graph state, narrows invalidation, and maps
+  directly to Prow evidence.
+- **Buck2 dependency-hygiene target** — owns unused-dependency detection. It may
+  wrap Rust ecosystem analyzers internally, but PR evidence cites the Buck2
+  target instead of a standalone Cargo tool. This keeps dependency bloat checks
+  useful without adding another local feedback loop or shared authority surface.
 
-`oya verify` (the persona-CLI per [TOOLCHAIN.md](TOOLCHAIN.md)) bundles `cargo fmt --check + cargo clippy + cargo nextest run + cargo machete + oya gate validate architecture-boundaries + oya gate validate` into one pre-push gate.
+Local pre-push evidence should cite the Buck2 target bundle that covers format,
+lint, tests, dependency hygiene, and architecture-boundary checks. Prow posts the
+trusted `oya-ci-required` status for protected-branch authority.
 
 ## 5. Flaky-test policy
 

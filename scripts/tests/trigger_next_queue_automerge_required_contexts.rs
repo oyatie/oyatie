@@ -124,7 +124,7 @@ fn compile_fake_gh(tmp: &Path) -> PathBuf {
     let bin = bin_dir.join("gh");
     fs::write(&src, fake_gh_source()).unwrap();
     let output = Command::new("rustc")
-        .args(["--edition=2021", "-D", "warnings"])
+        .args(["--edition=2024", "-D", "warnings"])
         .arg(&src)
         .arg("-o")
         .arg(&bin)

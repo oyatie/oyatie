@@ -16,9 +16,17 @@ Authority: [docs/AGENTS.md](AGENTS.md) remains the live agent operating contract
 
 ## ADR-0346
 
-[ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md) declares that `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix. It invokes cargo fmt, cargo check, cargo clippy, cargo nextest, `oya gate run-all --ci-required`, advisory `oya doc adr-index --write`, and ADR-shape linting, and MUST block on exit-0 of each mandatory step before returning success.
+ADR-0346 is amended by the Buck2/Prow authority transition: local pre-push
+verification is shift-left evidence only, Buck2 owns build/test/check evidence,
+and the protected-branch authority context is produced by the
+Prow/Kubernetes-native `oya-ci-required` path. Cargo-format/check/clippy/nextest
+mirrors remain useful developer loops, but they do not replace Buck2 target
+evidence or Prow status evidence.
 
-Enforced by: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
+Enforced by: `//:buck2-authority-policy-check`,
+`//:repo-hygiene-automation-check`, generated Prow job registry/controller
+checks, and the GitHub Actions compatibility bridge while it remains shadow
+evidence.
 
 ## ADR-0347
 
@@ -38,6 +46,11 @@ ADR-0516 supersedes ADR-0349/ADR-0359/ADR-0361 for interim dev-lane unlock. GitH
 
 ## ADR-0349
 
-[ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) is historical for interim authority after ADR-0516. Its Jenkins/ArgoCD substrate language is preserved as provenance and future-alternative comparison only; it does not authorize interim Jenkins, Forgejo, or ArgoCD authority.
+ADR-0349 is historical provenance for a retired external CI/CD substrate option
+after ADR-0516. It is preserved for comparison only; it does not authorize any
+retired external SCM, CI, or CD substrate as interim authority.
 
-Interim enforcement: `//:github-lane-unlocker-bridge-check`, `//:buck2-authority-policy-check`, and ADR-0516 claim-boundary checks. Historical Jenkins/ArgoCD lanes are not interim authority.
+Interim enforcement: `//:github-lane-unlocker-bridge-check`,
+`//:buck2-authority-policy-check`, and ADR-0516 claim-boundary checks. Native
+promotion remains the Rust/Buck2/Prow/Kubernetes-native `oya-ci-required` path
+plus release-conveyor cutover evidence.

@@ -259,7 +259,7 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 | # | Practice | Effort | Impact |
 |---|---|---|---|
 | 1 | **`cargo-vet` alongside `cargo-deny`/`cargo-audit`** — captures the human-audit chain that license/advisory tools don't; share audits across the Rust ecosystem for AWS/Mozilla-published crates | medium | high |
-| 2 | **`rust-toolchain.toml` workspace pin + Rust 2024 edition + MSRV-aware resolver** — eliminates "stable drift" as a CI failure class; oyatie should track stable-2 (current minus two) as the MSRV floor | low | high |
+| 2 | **`rust-toolchain.toml` workspace pin + Rust 2024 edition + MSRV-aware resolver** — eliminates "stable drift" as a CI failure class; oyatie tracks the latest official stable Rust release as the workspace pin | low | high |
 | 3 | **Workspace lint inheritance with `clippy::pedantic` (warn) + cherry-picked deny set** — single `[workspace.lints.clippy]` table; every member crate declares `[lints] workspace = true`; ban-list captured in `standards/code-style.md` | low | high |
 | 4 | **Kani for verifying unsafe boundaries** — wherever oyatie has `unsafe` (kernel crates, FFI, perf-critical primitives), pair with Kani harness + nightly job; emit verification artifacts into audit chain | high | medium |
 | 5 | **`thiserror`-in-libraries / `anyhow`-or-`eyre`-at-edge** — already implied by `standards/error-handling.md`; codify the boundary rule explicitly (lib crates: no `anyhow` deps; bin crates: no exposed `thiserror` enums in public API of internal libs) | low | high |

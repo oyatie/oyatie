@@ -38,9 +38,7 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 | `tracing` + `tracing-subscriber` | latest | MIT | allowed-kernel | Structured logging | `ops-sre-reliability` | n/a |
 | `chrono` / `time` | latest | MIT/Apache-2 | allowed | Date / time | various | n/a |
 | `clap` | 4.x | MIT/Apache-2 | allowed | CLI parsing | `axis-foundry` (CLI) | n/a |
-| `bacon` | latest | Apache-2 / MIT | allowed | Background dev watcher (`cargo check / clippy / nextest` on save); engineer's primary feedback loop | dev-only | n/a |
-| `cargo-machete` | latest | Apache-2 / MIT | allowed | Unused-dependency sweeper per-PR + quarterly; surfaces accidental dep adoption | dev-tool + CI lane | n/a |
-| `cargo-nextest` | latest | Apache-2 / MIT | allowed | Canonical test runner; never bare `cargo test`; per project memory + ADR-0024 | dev + CI | n/a |
+| `cargo-nextest` | latest | Apache-2 / MIT | allowed | Rust test runner implementation that Buck2 targets may invoke; not standalone CI authority | dev + Buck2 target integration | n/a |
 | `sccache` | latest | Apache-2 / MIT | allowed | Compilation cache local + S3-backed remote; 60-90% incremental cache hit | dev + CI | n/a |
 | `wasmtime` | latest | Apache-2 | allowed | WASM sandbox per ADR-0023 | `axis-foundry` | n/a |
 | `tantivy` | latest | MIT | allowed | Inverted index for search per ADR-0047 | `axis-search` | replace with in-house if scale demands |
@@ -85,7 +83,7 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 ## 4. Contract recency ledger
 
 > **As of:** 2026-05-10.
-> **Gate:** `oya gate validate vendor-contract-recency`.
+> **Gate:** Buck2/Prow vendor-contract-recency target evidence.
 > **Bootstrap declaration:** No signed vendor or partner contract rows are recorded in this ledger yet; replace the declaration row with one row per signed contract before any signed vendor / partner contract is adopted.
 
 | Contract ID | Vendor / partner | Status | Expiry date | Renewal task | Owner |
@@ -94,7 +92,7 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 
 ## 5. Contract recency SLA
 
-- All contracts ≥ 90 days from expiry get a renewal task auto-opened per `oya-governance-vendor-contract-recency`
+- All contracts ≥ 90 days from expiry get a renewal task auto-opened per the Buck2/Prow vendor-contract-recency automation contract
 - Per quarter: vendor-risk review per `ops-security` + `gtm-partnerships`
 - Per `EVT-LICENSE-POLICY-CHANGE`: re-review affected vendor
 
@@ -104,4 +102,4 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 
 ---
 
-> **§Note (2026-05-21 transition):** References to `oya-governance-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.
+> **§Note (2026-06-04 update):** Legacy `oya-governance-*` command names are not active merge authority. New vendor recency evidence flows through Buck2/Prow target contracts.

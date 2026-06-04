@@ -409,8 +409,8 @@ pub fn buck_failures(root_buck: &str) -> Vec<String> {
         "scripts/tests/cross_artifact_agreement_check.rs",
         "specs/cross-artifact-agreement-registry.json",
         "specs/decision-propagation-packets.json",
-        "rustc --edition=2021 -D warnings scripts/tests/cross_artifact_agreement_check.rs --test",
-        "rustc --edition=2021 -D warnings scripts/ci/assert-cross-artifact-agreement.rs",
+        "rustc --edition=2024 -D warnings scripts/tests/cross_artifact_agreement_check.rs --test",
+        "rustc --edition=2024 -D warnings scripts/ci/assert-cross-artifact-agreement.rs",
     ] {
         if !root_buck.contains(token) {
             failures.push(format!("root_buck_missing_{token}"));

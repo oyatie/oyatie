@@ -298,7 +298,7 @@ pub fn buck_failures(text: &str) -> Vec<String> {
         "scripts/tests/d1_read_your_writes_xfail_check.rs",
         "specs/d1-read-your-writes-xfail-registry.json",
         "specs/fixtures/phase0-d1-read-your-writes-xfail/*.json",
-        "rustc --edition=2021 -D warnings",
+        "rustc --edition=2024 -D warnings",
     ] {
         if !text.contains(required) {
             failures.push(format!("buck_missing_anchor_{required}"));

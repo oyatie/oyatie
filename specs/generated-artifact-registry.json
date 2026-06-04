@@ -118,7 +118,7 @@
       "commit_policy": "Lane-owned shard edits and generated aggregate updates must land together; hand edits to the generated YAML are stale-output blockers.",
       "drift_gate": "//:phase0-merge-conflict-foundation-check",
       "primary_drift_gate": "//:oya-ci-prowjob-registry-check",
-      "render_command": "rustc --edition=2021 -D warnings scripts/ci/generate-oya-ci-prowjob-registry.rs -o /tmp/generate-oya-ci-prowjob-registry && /tmp/generate-oya-ci-prowjob-registry --render > specs/generated/oya-ci-prowjob-registry.generated.yaml",
+      "render_command": "rustc --edition=2024 -D warnings scripts/ci/generate-oya-ci-prowjob-registry.rs -o /tmp/generate-oya-ci-prowjob-registry && /tmp/generate-oya-ci-prowjob-registry --render > specs/generated/oya-ci-prowjob-registry.generated.yaml",
       "stale_output_policy": "RED if the generated YAML diverges from registry/shard rendering or loses the generated marker.",
       "path_claims": {
         "single_writer_path": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
@@ -155,7 +155,7 @@
       "commit_policy": "Lane-owned shard edits and generated controller config updates must land together; hand edits to the generated YAML are stale-output blockers.",
       "drift_gate": "//:phase0-merge-conflict-foundation-check",
       "primary_drift_gate": "//:oya-ci-prowjob-registry-check",
-      "render_command": "rustc --edition=2021 -D warnings scripts/ci/generate-oya-ci-prowjob-registry.rs -o /tmp/generate-oya-ci-prowjob-registry && /tmp/generate-oya-ci-prowjob-registry --render-controller-config > specs/generated/oya-ci-controller-config.generated.yaml",
+      "render_command": "rustc --edition=2024 -D warnings scripts/ci/generate-oya-ci-prowjob-registry.rs -o /tmp/generate-oya-ci-prowjob-registry && /tmp/generate-oya-ci-prowjob-registry --render-controller-config > specs/generated/oya-ci-controller-config.generated.yaml",
       "stale_output_policy": "RED if the generated controller config diverges from registry/shard rendering or loses the generated marker.",
       "path_claims": {
         "single_writer_path": "specs/generated/oya-ci-controller-config.generated.yaml",
@@ -227,7 +227,7 @@
   },
   "automated_chain": [
     "scripts/ci/assert-phase0-merge-conflict-foundation.rs --registry specs/generated-artifact-registry.json --json",
-    "rustc --edition=2021 -D warnings scripts/tests/phase0_merge_conflict_foundation_check.rs --test",
+    "rustc --edition=2024 -D warnings scripts/tests/phase0_merge_conflict_foundation_check.rs --test",
     "buck2 build //:phase0-merge-conflict-foundation-check",
     "git merge-tree --write-tree local readiness simulation only",
     "cloud-ci/oya-ci oya-ci-required required context after live producer cutover"

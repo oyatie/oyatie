@@ -174,7 +174,8 @@ The brief MUST state the sole or primary deliverable path.
 
 The path MUST be absolute when dispatched from an orchestrator.
 
-The path MAY also include the repository-relative path for git/PR and `oya gate` evidence.
+The path MAY also include the repository-relative path for git/PR and
+Buck2/Prow evidence.
 
 The line floor MUST be explicit.
 

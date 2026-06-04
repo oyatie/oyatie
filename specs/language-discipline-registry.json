@@ -171,8 +171,8 @@
     "specs/fixtures/phase0-language-discipline/tc-0.4-good-non-script-change.json"
   ],
   "automated_chain": [
-    "rustc --edition=2021 -D warnings scripts/tests/language_discipline_check.rs --test",
-    "rustc --edition=2021 -D warnings scripts/ci/assert-language-discipline.rs",
+    "rustc --edition=2024 -D warnings scripts/tests/language_discipline_check.rs --test",
+    "rustc --edition=2024 -D warnings scripts/ci/assert-language-discipline.rs",
     "buck2 build //:language-discipline-check"
   ]
 }

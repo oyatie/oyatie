@@ -22,9 +22,9 @@ fn checked_in_kubernetes_native_antipattern_contract_passes() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert!(evaluation.failures.is_empty());
-    assert_eq!(evaluation.required_patterns, 12);
-    assert_eq!(evaluation.forbidden_anti_patterns, 13);
-    assert_eq!(evaluation.official_sources, 9);
+    assert_eq!(evaluation.required_patterns, 17);
+    assert_eq!(evaluation.forbidden_anti_patterns, 20);
+    assert_eq!(evaluation.official_sources, 14);
 }
 
 #[test]
@@ -76,6 +76,34 @@ fn contract_rejects_missing_blind_pod_deletion_antipattern() {
 }
 
 #[test]
+fn contract_rejects_missing_stateless_cache_and_runner_antipatterns() {
+    let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json")
+        .replace(
+            "\"id\": \"content_addressed_remote_cache_not_workspace_state\"",
+            "\"id\": \"content_addressed_remote_cache_not_workspace_state_removed\"",
+        )
+        .replace(
+            "\"id\": \"stateful_runner_workspace_pool\"",
+            "\"id\": \"stateful_runner_workspace_pool_removed\"",
+        );
+    let failures = gate::contract_failures(&contract);
+    assert!(
+        failures.iter().any(|failure| failure
+            == "required_patterns missing content_addressed_remote_cache_not_workspace_state"),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure
+                == "forbidden_anti_patterns missing stateful_runner_workspace_pool"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn generated_config_rejects_unsafe_pod_security_defaults() {
     let config = read_repo_file("specs/generated/oya-ci-controller-config.generated.yaml")
         .replace(
@@ -109,6 +137,42 @@ fn generated_config_rejects_unsafe_pod_security_defaults() {
         failures
             .iter()
             .any(|failure| failure.contains("runtimeClassName: \\\"sandboxed\\\"")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn generated_config_rejects_stateful_or_cross_region_cache_policy() {
+    let config = read_repo_file("specs/generated/oya-ci-controller-config.generated.yaml")
+        .replace("statelessJobPods: true", "statelessJobPods: false")
+        .replace(
+            "localDiskCachePersistsAfterPod: false",
+            "localDiskCachePersistsAfterPod: true",
+        )
+        .replace(
+            "hotPathCrossRegionIoAllowed: false",
+            "hotPathCrossRegionIoAllowed: true",
+        );
+    let failures = gate::controller_config_failures(&config);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("statelessJobPods: true")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("localDiskCachePersistsAfterPod: false")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("hotPathCrossRegionIoAllowed: false")),
         "{:?}",
         failures
     );

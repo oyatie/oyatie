@@ -21,7 +21,7 @@ This catalog is divided into seven kinds of artifact:
 | **Checklists** | Author finishing or gating an artifact | `docs/checklists/<task>.md` |
 | **Hooks** | Claude Code / Codex / Gemini agent harnesses + git hooks | `.claude/hooks/`, `.git/hooks/`, `scripts/hooks/` |
 | **Skills** | Agents at runtime (slash commands) | `.claude/skills/<id>/SKILL.md`, `.codex/skills/`, `.omc/skills/` |
-| **Tools (CLIs)** | Humans + agents at runtime | `oya <persona> <subcommand>` per the persona-split CLI in [TOOLCHAIN §3](TOOLCHAIN.md) |
+| **Tools (CLIs + controllers)** | Humans + agents at runtime | Native Rust tools, Buck2 targets, and Prow/Kubernetes controllers; local governance CLIs are not merge authority |
 | **Standardized guidance** | Anyone authoring (style / pattern / norm) | `docs/standards/<topic>.md` |
 | **Requirements + Specs** | Per-product or per-axis surface contracts | `products/<product>/PRD.md` + `contracts/openapi/**/*.yaml` |
 
@@ -55,8 +55,8 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Checklist | Path | Trigger | Owner | Validator |
 |---|---|---|---|---|
-| Pre-push | [`checklists/pre-push.md`](checklists/pre-push.md) | Before `git push` | Author | `oya verify` |
-| Pre-merge | [`checklists/pre-merge.md`](checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `oya gate validate` |
+| Pre-push | [`checklists/pre-push.md`](checklists/pre-push.md) | Before `git push` | Author | Buck2 local verification bundle |
+| Pre-merge | [`checklists/pre-merge.md`](checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | Prow/Kubernetes-native `oya-ci-required` + protected-branch review |
 | Wave-gate passing | [`checklists/wave-gate.md`](checklists/wave-gate.md) | At wave boundary | Wave-tactical team | `wave-gate-readiness` (per ADR-0040) |
 | Vertical onboarding | [`checklists/vertical-onboarding.md`](checklists/vertical-onboarding.md) | New vertical Preview | Vertical team | per-vertical PRD §11 + COMPLIANCE-MATRIX |
 | Regional-pack onboarding | [`checklists/regional-pack-onboarding.md`](checklists/regional-pack-onboarding.md) | New regional pack | `regional-packs` team | `regional-pack-validator` |
@@ -83,11 +83,11 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | Hook | Event | Purpose | Path |
 |---|---|---|---|
 | `pre-commit-license` | git pre-commit | Refuses commits that add an external dep without a license-ledger entry | `scripts/hooks/pre-commit-license.sh` |
-| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | `oya gate validate architecture-boundaries` |
+| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | Buck2 architecture-boundary target |
 | `pre-commit-data-class-annotation` | git pre-commit | Refuses commits that add a struct field without a `data_class` annotation when the file is in a kernel crate | `scripts/hooks/pre-commit-data-class.sh` |
 | `pre-commit-yaml-date-quoted` | git pre-commit | Refuses unquoted YAML dates (per mistakes-and-fixes-ledger) | `scripts/hooks/pre-commit-yaml-date.sh` |
 | `pre-commit-forward-ref` | git pre-commit | Refuses markdown links to paths not yet on origin/main (per Issue #1433) | `scripts/hooks/pre-commit-forward-ref.sh` |
-| `pre-push` | git pre-push | Runs `oya verify` (cargo fmt --check, cargo clippy, cargo nextest, oya gate validate, arch-boundary) | `.git/hooks/pre-push` |
+| `pre-push` | git pre-push | Runs the Buck2 local verification bundle for format/lint/test/dependency/architecture evidence | `.git/hooks/pre-push` |
 | `pre-tool-use-foundry-evidence` | Claude Code PreToolUse | Stamps every Foundry capability invocation with an evidence-emission event before tool runs | `.claude/hooks/pre-tool-use-foundry-evidence.sh` |
 | `post-tool-use-cohesion-fitness` | Claude Code PostToolUse | Runs cross-axis contract drift detection after edits | `.claude/hooks/post-tool-use-cohesion.sh` |
 | `session-start-doc-context` | Claude Code SessionStart | Loads consolidated docs into agent context | `.claude/hooks/session-start-doc-context.sh` |
@@ -95,8 +95,8 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | `stop-validation` | Claude Code Stop | Verifies no leftover incomplete tasks before yielding | `.claude/hooks/stop-validation.sh` |
 | `pr-merge-review-guard` | gh CLI PreToolUse | Refuses `gh pr merge` without `## Code Review` H2 with reviewer-agent verdict | `scripts/hooks/guard-pr-merge-review.mjs` (existing) |
 | `audit-emission-on-capability-invoke` | runtime | Every capability invocation emits an audit-chain record per ADR-0003 | `crates/oya-foundry-evidence-*` |
-| `cohesion-fitness-on-pr` | CI | Runs `oya-governance-cohesion` on every PR | `.github/workflows/cohesion-fitness.yml` |
-| `license-fitness-on-pr` | CI | Runs `cargo deny licenses` + Trivy `--scanners license` + custom container scan | `.github/workflows/license-fitness.yml` |
+| `cohesion-fitness-on-pr` | CI | Runs the Buck2/Prow cross-axis contract drift target on every PR | Prow `oya-ci` lane shard |
+| `license-fitness-on-pr` | CI | Runs the Buck2/Prow license-policy target; RustSec/Trivy analyzers may be wrapped internally | Prow `oya-ci` lane shard |
 
 ---
 
@@ -106,7 +106,7 @@ Skills are agent-invocable workflows. Under `.claude/skills/<id>/SKILL.md`. Alia
 
 | Skill | Path | Purpose | Persona-CLI alias |
 |---|---|---|---|
-| `oya-dev-check` | `.claude/skills/oya-dev-check/SKILL.md` | Run pre-push checks | `oya verify` |
+| `oya-dev-check` | `.claude/skills/oya-dev-check/SKILL.md` | Run local Buck2 verification evidence | Buck2 verification target bundle |
 | `oya-adr-author` | `.claude/skills/oya-adr-author/SKILL.md` | Draft a new ADR with all required sections | `oya catalog adr new` |
 | `oya-adr-promote` | `.claude/skills/oya-adr-promote/SKILL.md` | Promote a Proposed → Accepted ADR with shipped-evidence verification | `oya catalog adr promote` |
 | `oya-foundry-capability-author` | `.claude/skills/oya-foundry-capability-author/SKILL.md` | Scaffold a new capability YAML + eval set + adapter | `oya agent capability new` |
@@ -125,19 +125,11 @@ Skills are agent-invocable workflows. Under `.claude/skills/<id>/SKILL.md`. Alia
 
 ## 6. Tools index (CLIs)
 
-See [TOOLCHAIN §3 Language-stack matrix](TOOLCHAIN.md) and [DESIGN §13.4 Persona-split CLI](DESIGN.md).
-
-The 8 persona-CLIs:
-- `oya dev` — engineer
-- `oya admin` — tenant admin
-- `oya build` — customer builder
-- `oya agent` — Foundry agent ops
-- `oya ops` — SRE/Ops
-- `oya pack` — regional pack maintainer
-- `oya catalog` — catalog + capability authoring
-- `oya gate` — gates + bypasses + claim-ceiling
-
-Plus the agent-discoverable equivalent: `oya-mcp-server` exposing every CLI subcommand as an MCP tool (per [TOOLCHAIN §4.A](TOOLCHAIN.md)).
+See [TOOLCHAIN §3 Language-stack matrix](TOOLCHAIN.md) for the current native
+tooling matrix. Merge and release authority lives in Buck2 target evidence,
+Prow/Kubernetes-native `oya-ci-required`, and release-conveyor controllers.
+Product/runtime CLIs may exist as tenant or operator interfaces, but local
+governance CLIs are retired as merge authority.
 
 ---
 
@@ -153,11 +145,11 @@ Cross-cutting standards docs (lives under `docs/standards/`):
 | Schema migration | [`standards/schema-migration.md`](standards/schema-migration.md) | versioned, reversible, dry-run; backward-read for ≥ 2 versions |
 | Error handling | [`standards/error-handling.md`](standards/error-handling.md) | Result<T,E> conventions; never panic at API boundaries; retryable vs terminal |
 | Logging + tracing | [`standards/logging-tracing.md`](standards/logging-tracing.md) | OTel `gen_ai` semconv; structured JSON; mandatory fields per ADR-0045 |
-| Testing | [`standards/testing.md`](standards/testing.md) | test pyramid; fixture discipline; fuzz; property tests; insta snapshots; nextest |
+| Testing | [`standards/testing.md`](standards/testing.md) | test pyramid; fixture discipline; fuzz; property tests; insta snapshots; Buck2-invoked Rust tests |
 | Security review | [`standards/security-review.md`](standards/security-review.md) | per-change-class checklist; threat-model triggers |
 | Privacy review | [`standards/privacy-review.md`](standards/privacy-review.md) | data-class annotations; consent receipts; DSR cascade tests |
 | Code review | [`standards/code-review.md`](standards/code-review.md) | per-change-class reviewer agent; verdict format; bypass logging |
-| Release | [`standards/release.md`](standards/release.md) | trunk-based + release branch; tag at cut; Argo Rollouts canary |
+| Release | [`standards/release.md`](standards/release.md) | trunk-based + release branch; tag at cut; native release-conveyor canary |
 | On-call | [`standards/on-call.md`](standards/on-call.md) | rotation; escalation; comms templates |
 | Incident severity | [`standards/incident-severity.md`](standards/incident-severity.md) | Sev 1-4 taxonomy; declared per service |
 | Doc style | [`standards/doc-style.md`](standards/doc-style.md) | per-doc kind (Diátaxis quadrant) writing rules; voice; tone |
@@ -216,7 +208,7 @@ When you start a new piece of work:
 3. Find the matching checklist; do every step
 4. If you hit a hook block, fix it (don't `--no-verify`)
 5. Output the artifact in the canonical location with the canonical structure
-6. The `oya verify` and CI lanes will validate
+6. Buck2/Prow CI lanes will validate
 
 This is the *contract*: zero bespoke artifacts. Standardization-first.
 

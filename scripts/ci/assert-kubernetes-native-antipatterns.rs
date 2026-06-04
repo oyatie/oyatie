@@ -30,6 +30,11 @@ const OFFICIAL_SOURCES: &[&str] = &[
     "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
     "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/",
     "https://docs.prow.k8s.io/docs/jobs/",
+    "https://docs.prow.k8s.io/docs/life-of-a-prow-job/",
+    "https://docs.prow.k8s.io/docs/components/pod-utilities/",
+    "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+    "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#local-ephemeral-storage",
+    "https://buck2.build/docs/users/remote_execution/",
 ];
 
 const REQUIRED_PATTERNS: &[&str] = &[
@@ -45,6 +50,11 @@ const REQUIRED_PATTERNS: &[&str] = &[
     "shadow_adapters_not_authority",
     "native_scm_ci_cd_service_seams",
     "cloud_auth_product_auth_decoupled_until_rewire",
+    "disposable_prowjob_pods_remote_state",
+    "content_addressed_remote_cache_not_workspace_state",
+    "regional_cell_local_cache_and_artifact_store",
+    "trusted_cache_promotion_and_cold_cache_probes",
+    "bounded_ephemeral_storage_and_io_metrics",
 ];
 
 const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
@@ -61,6 +71,13 @@ const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
     "privileged_or_mutable_container_defaults",
     "missing_runtime_class_for_untrusted_jobs",
     "missing_default_deny_network_policy",
+    "stateful_runner_workspace_pool",
+    "pod_local_cache_as_correctness_or_state_authority",
+    "cross_trust_cache_poisoning",
+    "cross_region_hot_path_ci_io",
+    "mutable_or_overwritten_ci_artifacts",
+    "unbounded_ephemeral_storage",
+    "privileged_dind_or_host_socket_runner",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -243,6 +260,22 @@ pub fn controller_config_failures(config: &str) -> Vec<String> {
         "securityProfile: \"restricted-untrusted-pr\"",
         "serviceAccount: \"oya-ci-untrusted-runner\"",
         "runtimeClassName: \"sandboxed\"",
+        "statelessJobPods: true",
+        "podLocalStateAuthority: false",
+        "workspaceDestructionRequired: true",
+        "remoteCacheAllowed: true",
+        "localDiskCachePersistsAfterPod: false",
+        "cacheAuthoritativeForCorrectness: false",
+        "contentAddressedOnly: true",
+        "trustDomainSeparated: true",
+        "untrustedWritesQuarantined: true",
+        "trustedPostsubmitPromotionRequired: true",
+        "coldCacheProbeRequired: true",
+        "cacheTopology: \"regional-cell-local-remote-cache\"",
+        "artifactStore: \"immutable-object-store\"",
+        "hotPathCrossRegionIoAllowed: false",
+        "ephemeralStorageRequestsLimitsRequired: true",
+        "remoteExecutionCasRequired: true",
     ] {
         require_contains(config, needle, &mut failures, CONTROLLER_CONFIG_PATH);
     }
@@ -327,6 +360,10 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "controller_reconciliation_over_manual_mutation",
         "blind_kubectl_delete_pods",
         "native_scm_ci_cd_service_seams",
+        "disposable_prowjob_pods_remote_state",
+        "content_addressed_remote_cache_not_workspace_state",
+        "stateful_runner_workspace_pool",
+        "cross_trust_cache_poisoning",
     ] {
         require_contains(&masterplan, needle, &mut failures, MASTERPLAN_PATH);
     }
