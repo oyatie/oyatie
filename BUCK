@@ -14,7 +14,6 @@ genrule(
 genrule(
     name = "buck2-authority-policy-check",
     srcs = {
-        ".github/workflows/backbone-microservices-ci.yml": ".github/workflows/backbone-microservices-ci.yml",
         "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
         "infra/ci/buck2-affected-gate.sh": "infra/ci/buck2-affected-gate.sh",
         "infra/ci/jenkins/farmwide-seed.groovy": "infra/ci/jenkins/farmwide-seed.groovy",

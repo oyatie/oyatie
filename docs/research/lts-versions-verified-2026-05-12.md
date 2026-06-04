@@ -103,7 +103,7 @@ Methodology: live web search against canonical upstream sources (project website
 
 ## Currently-pinned in oyatie (cross-reference)
 
-Sources read: `/Users/jasonlee/Developer/source/rust-toolchain.toml` (`channel = "1.95.0"`); `/Users/jasonlee/Developer/source/Cargo.toml` (workspace `rust-version = "1.95.0"`, edition 2024); `/Users/jasonlee/Developer/source/rustfmt.toml` (`edition = "2024"`, `style_edition = "2024"`); `/Users/jasonlee/Developer/source/.github/workflows/github-lane-unlocker-ci-cd.yml` and `/Users/jasonlee/Developer/source/.github/workflows/backbone-microservices-ci.yml` (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`, `actions/checkout@v6`); `/Users/jasonlee/Developer/source/specs/github-lane-unlocker-bridge.json` (Node 24 action-runtime decision, Node 26 non-use rationale); `/Users/jasonlee/Developer/source/deny.toml` (license allow-list: 0BSD, Apache-2.0, BSD-2/3, ISC, MIT, MPL-2.0, Unicode-3.0).
+Sources read: `/Users/jasonlee/Developer/source/rust-toolchain.toml` (`channel = "1.95.0"`); `/Users/jasonlee/Developer/source/Cargo.toml` (workspace `rust-version = "1.95.0"`, edition 2024); `/Users/jasonlee/Developer/source/rustfmt.toml` (`edition = "2024"`, `style_edition = "2024"`); `/Users/jasonlee/Developer/source/.github/workflows/github-lane-unlocker-ci-cd.yml` (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`, `actions/checkout@v6`); `/Users/jasonlee/Developer/source/specs/github-lane-unlocker-bridge.json` (Node 24 action-runtime decision, Node 26 non-use rationale); `/Users/jasonlee/Developer/source/deny.toml` (license allow-list: 0BSD, Apache-2.0, BSD-2/3, ISC, MIT, MPL-2.0, Unicode-3.0).
 
 | Component | Oyatie pinned | Current LTS / stable | Behind? | Severity |
 |---|---|---|---|---|
