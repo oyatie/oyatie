@@ -21,19 +21,54 @@ fn erp_parity_map_covers_sap_modules_without_erp_platform_service() {
 #[test]
 fn hcm_and_financial_rows_reference_landed_foundations_without_cloud_claim() {
     let hcm = find_erp_module(SapModuleCode::Hcm).expect("HCM row exists");
-    assert!(
-        hcm.oyatie_destinations
-            .contains(&"specs/microservices/hr.json")
+    for destination in [
+        "specs/microservices/hr.json",
+        "specs/microservices/payroll.json",
+        "oya/hr/crates/oya-hr-employment-domain",
+        "oya/hr/crates/oya-hr-employment-runtime",
+        "oya/hr/crates/oya-hr-employment-storage-adapter-inmemory",
+        "oya/payroll/crates/oya-payroll-run-domain",
+        "oya/payroll/crates/oya-payroll-run-runtime",
+        "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory",
+    ] {
+        assert!(
+            hcm.oyatie_destinations.contains(&destination),
+            "HCM row should reference {destination}"
+        );
+    }
+    for retired_destination in [
+        "docs/products/workplace-integration/PRD.md",
+        "microservices/workflow-engine",
+    ] {
+        assert!(
+            !hcm.oyatie_destinations.contains(&retired_destination),
+            "HCM row should not rely on retired spec-only destination {retired_destination}"
+        );
+    }
+    assert_eq!(
+        hcm.status,
+        "hr-payroll-foundations-landed-with-runtime-storage-and-statutory-source-nonclaims"
     );
+    for evidence_ref in [
+        "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json",
+        "evidence/multispectrum/cs-ent-hr-storage-adapter-inmemory-1779539400.json",
+        "evidence/multispectrum/cs-ent-payroll-runtime-adapter-foundation-1779535800.json",
+        "evidence/multispectrum/cs-ent-payroll-storage-adapter-inmemory-1779540000.json",
+    ] {
+        assert!(
+            hcm.evidence_refs.contains(&evidence_ref),
+            "HCM row should reference {evidence_ref}"
+        );
+    }
     assert!(
-        hcm.oyatie_destinations
-            .contains(&"specs/microservices/payroll.json")
+        !hcm.evidence_refs.contains(
+            &"evidence/multispectrum/cs-ent-platform-local-inmemory-harness-1779541800.json"
+        ),
+        "HCM row should use HR/payroll evidence rather than the platform harness"
     );
-    assert!(hcm.evidence_refs.contains(
-        &"evidence/multispectrum/cs-ent-platform-local-inmemory-harness-1779541800.json"
-    ));
     assert_eq!(hcm.tier, ParityTier::ComposedCoverage);
     assert!(!hcm.production_runtime_claimed);
+    assert!(!hcm.cloud_integration_ready);
 
     let financial_accounting = find_erp_module(SapModuleCode::Fi).expect("FI row exists");
     assert!(
