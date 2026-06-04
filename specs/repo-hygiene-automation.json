@@ -153,6 +153,7 @@
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
     "buck2 build //:oya-ci-prowjob-registry-check",
+    "buck2 build //:oya-ci-controller-config-check",
     "buck2 build //:buck2-authority-policy-check"
   ],
   "official_sources": [
@@ -408,9 +409,9 @@
       "required": true,
       "pattern": "registry_owned_desired_ci_graph_to_generated_consolidation",
       "seed_tooling": "buck2 build //:oya-ci-prowjob-registry-check validates specs/oya-ci-prowjob-registry.json, lane-owned specs/ci/prow-jobs shards, the generated aggregate manifest, and the generated native controller config.",
-      "current_tooling": "Rust/Buck2 generator emits both specs/generated/oya-ci-prowjob-registry.generated.yaml and specs/generated/oya-ci-controller-config.generated.yaml from the desired ProwJob shards.",
-      "future_tooling": "Extend the Rust/Buck2 generator to native-controller CRD/schema tests and, only if still useful, a generated GitHub Actions shadow workflow.",
-      "claim_boundary": "seed generated registry and local/static native controller config emission implemented; live Kubernetes application remains future work."
+      "current_tooling": "Rust/Buck2 generator emits both specs/generated/oya-ci-prowjob-registry.generated.yaml and specs/generated/oya-ci-controller-config.generated.yaml from the desired ProwJob shards; buck2 build //:oya-ci-controller-config-check validates local/static controller-config schema/admission/security invariants.",
+      "future_tooling": "Extend local/static controller-config schema checks to CRD generation/admission-webhook implementation and, only if still useful, a generated GitHub Actions shadow workflow.",
+      "claim_boundary": "seed generated registry, local/static native controller config emission, and controller-config schema/admission invariant validation implemented; live Kubernetes application remains future work."
     },
     "options_considered": [
       {
@@ -507,7 +508,9 @@
       "action": "Maintain the registry-owned desired ProwJob graph, generated native controller config, and Rust/Buck2 generator so vertical lanes edit disjoint job shards instead of a single shared CI file.",
       "conflict_mitigation": "Generated aggregate and controller-config outputs are mechanical; source-of-truth rows live in lane-owned specs/ci/prow-jobs shards.",
       "seed_check": "buck2 build //:oya-ci-prowjob-registry-check",
+      "schema_check": "buck2 build //:oya-ci-controller-config-check",
       "seed_registry": "specs/oya-ci-prowjob-registry.json",
+      "controller_config_contract": "specs/oya-ci-controller-config-contract.json",
       "generated_controller_config": "specs/generated/oya-ci-controller-config.generated.yaml"
     },
     {

@@ -352,6 +352,30 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+# P00 oya-ci generated controller-config schema/admission seed. This is a
+# local/static guard for the generated OyaCIControllerConfig: it validates
+# controller-owned required context, GitHub shadow-only boundaries, Buck2-only
+# job commands, and Kubernetes-native security defaults without applying CRDs or
+# mutating a live cluster.
+genrule(
+    name = "oya-ci-controller-config-check",
+    srcs = {
+        "scripts/ci/assert-oya-ci-controller-config.rs": "scripts/ci/assert-oya-ci-controller-config.rs",
+        "scripts/tests/oya_ci_controller_config_check.rs": "scripts/tests/oya_ci_controller_config_check.rs",
+        "specs/oya-ci-controller-config-contract.json": "specs/oya-ci-controller-config-contract.json",
+        "specs/oya-ci-prowjob-registry.json": "specs/oya-ci-prowjob-registry.json",
+        "specs/generated/oya-ci-prowjob-registry.generated.yaml": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+        "specs/generated/oya-ci-controller-config.generated.yaml": "specs/generated/oya-ci-controller-config.generated.yaml",
+        "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
+    },
+    out = "oya-ci-controller-config-check.json",
+    cmd = "mkdir -p $TMP/oya-ci-controller-config && rustc --edition=2021 -D warnings scripts/tests/oya_ci_controller_config_check.rs --test -o $TMP/oya-ci-controller-config/oya_ci_controller_config_check && OYA_REPO_ROOT=$PWD $TMP/oya-ci-controller-config/oya_ci_controller_config_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-oya-ci-controller-config.rs -o $TMP/oya-ci-controller-config/assert-oya-ci-controller-config && OYA_REPO_ROOT=$PWD $TMP/oya-ci-controller-config/assert-oya-ci-controller-config --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
 # P0.0 Buck2-authority parity fixture guard: mutation-style RED/GREEN checks
 # for upstream Prow parity rows, explicit upstream waivers, live-authority
 # boundaries, and root-hub discoverability. Fixture mode narrows broad
