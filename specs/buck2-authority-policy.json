@@ -235,7 +235,7 @@
     "scripts/trigger-next-queue-automerge.sh",
     "scripts/check-sequential-pr-merge-conflicts.sh",
     "scripts/check-sequential-pr-merge-conflicts.rs",
-    "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+    "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
     "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
     "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
     "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
@@ -665,7 +665,7 @@
       "automatic merge after CI",
       "oya-ci-required"
     ],
-    "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh": [
+    "scripts/tests/trigger_next_queue_automerge_required_contexts.rs": [
       "--merge-method is fixed to squash",
       "live branch-protection required contexts drift",
       "github-lane-unlocker-required"
@@ -1528,7 +1528,7 @@
     "infra/ci/jenkins/reported-status-contexts.json",
     "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
     "scripts/ci/oya-ci-post.sh",
-    "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
+    "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
     "scripts/ci/assert-required-status-source.rs",
     "scripts/tests/phase0_required_status_source_check.rs"
   ],
