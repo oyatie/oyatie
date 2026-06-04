@@ -192,7 +192,7 @@ pub fn buck_failures(kernel_buck: &str, root_buck: &str) -> Vec<String> {
         }
     }
     if !root_buck.contains(
-        "rustc --edition=2021 -D warnings scripts/tests/effective_dating_kernel_check.rs --test",
+        "rustc --edition=2024 -D warnings scripts/tests/effective_dating_kernel_check.rs --test",
     ) {
         failures.push("root_buck_missing_rust_fixture_harness".to_owned());
     }

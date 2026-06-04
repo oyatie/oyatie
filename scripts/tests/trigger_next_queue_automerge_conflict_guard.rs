@@ -64,7 +64,7 @@ fn run_git(cwd: &Path, args: &[&str]) -> String {
 
 fn rustc_compile(src: &Path, out: &Path) {
     let output = Command::new("rustc")
-        .args(["--edition=2021", "-D", "warnings"])
+        .args(["--edition=2024", "-D", "warnings"])
         .arg(src)
         .arg("-o")
         .arg(out)

@@ -7,7 +7,7 @@ doc_status: published
 
 > **Status:** Draft v0.1 — 2026-05-09.
 > **Owner:** `ops-sre-reliability` + `axis-foundry` (engineering platform / CI lanes).
-> **Companion:** [SLO-CATALOG.md](SLO-CATALOG.md), [QA-TEST-STRATEGY.md](QA-TEST-STRATEGY.md), [INCIDENT-MANAGEMENT.md](INCIDENT-MANAGEMENT.md), ADR-0050 (Argo Rollouts), ADR-0039 (supply-chain Trivy/Cosign/SBOM), ADR-0042 (GitOps + trunk-based).
+> **Companion:** [SLO-CATALOG.md](SLO-CATALOG.md), [QA-TEST-STRATEGY.md](QA-TEST-STRATEGY.md), [INCIDENT-MANAGEMENT.md](INCIDENT-MANAGEMENT.md), ADR-0039 (supply-chain Trivy/Cosign/SBOM), ADR-0042 (trunk-based release discipline), and the native release-conveyor plan.
 
 ## 1. Trunk-based + release-branch model (per ADR-0042)
 
@@ -18,20 +18,17 @@ doc_status: published
 
 ## 2. CI lane catalog
 
-Per `docs/standards/ci-lanes.md` (legacy authoritative) + new `oya-governance-*` lanes:
+Per `docs/standards/ci-lanes.md`, Buck2 target inventory, and generated
+Prow/Kubernetes-native job metadata:
 
 | Lane | Trigger | Hard-fail? |
 |---|---|---|
-| `cargo-fmt` | every PR | yes |
-| `cargo-clippy --workspace --all-features --all-targets -- -D warnings` | every PR | yes |
-| `cargo-nextest --workspace --all-features` | every PR | yes |
-| `cargo check --workspace --all-targets --all-features` | every PR (PM-2 mitigation) | yes |
-| `cargo deny check licenses` | every PR | yes (per License Policy ADR) |
-| `bash oya gate validate architecture-boundaries` (PARTS A-G) | every PR | yes (post PG-1 per ADR-0015) |
-| `oya catalog validate` | every PR | yes |
-| `oya gate validate claim-ceiling` | every PR | yes |
-| `oya gate validate foundation-bypass` | every PR | yes |
-| `oya gate validate plane-class` | every PR touching catalog | yes |
+| Buck2 format/lint/check target set | every PR | yes |
+| Buck2 Rust test target set with nextest/LLVM coverage where applicable | every PR | yes |
+| Buck2 dependency/license policy target set | every PR | yes (per License Policy ADR) |
+| Buck2 architecture-boundary target | every PR | yes (post PG-1 per ADR-0015) |
+| Buck2 catalog-contract target | every PR | yes |
+| Buck2 claim-ceiling/foundation-bypass/plane-class targets | every PR or relevant catalog PR | yes |
 | `oya-governance-license` | every PR | yes |
 | `oya-governance-data-class` | every PR | yes |
 | `oya-governance-cohesion` (cross-axis drift) | every PR | yes (warn first wave; block at W-Foundation gate) |
@@ -50,10 +47,10 @@ Per `docs/standards/ci-lanes.md` (legacy authoritative) + new `oya-governance-*`
 | Property tests (per pure-function module) | per PR touching such module | yes (per #71) |
 | Hot-path benchmark gate | per PR touching tagged surfaces | yes (per #72) |
 | Nightly `--all-features` matrix on `main` | nightly | observability |
-| RUSTSEC + cargo-audit | per PR + daily | yes (per #63) |
+| RustSec/audit target | per PR + daily | yes (per #63) |
 | OpenAPI semver-diff gate | per PR touching `contracts/` | yes (per ADR-0040) |
 
-## 3. Progressive delivery (per ADR-0050 Argo Rollouts)
+## 3. Progressive delivery (native release conveyor)
 
 Per surface:
 - Canary (5% → 25% → 50% → 100%) with metric-gated automatic rollback
@@ -79,7 +76,7 @@ Per surface:
 
 ## 6. Pre-release verification (per ADR-0040 9-item readiness)
 
-Per release-candidate, run `/oya-release-verify` (formerly `/oya-release-verify`):
+Per release-candidate, run the Buck2/Prow release evidence bundle:
 1. All CI lanes green on the release tag SHA
 2. SBOM generated + Cosign-signed + Rekor-anchored
 3. Per-region SLO budget ≥ 50%

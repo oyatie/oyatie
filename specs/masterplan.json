@@ -524,6 +524,7 @@
         "Retire or delete tracked legacy bridge files only in later PRs after replacement checks prove no contract dependency remains.",
         "Automate git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene through repo-hygiene-automation-check.",
         "Port active legacy Python/shell gate surfaces to Rust/Buck2-owned tools where they remain authoritative; keep remaining scripts as explicit migration backlog or bootstrap exceptions only.",
+        "Prefer in-house oya-* Rust libraries for durable product/control-plane semantics; keep third-party crates behind owned seams with latest stable/LTS pins, registry rationale, and replacement/wrapper strategy.",
         "Retire or reframe historical retired `oya vcs` CLI/ChangeBundle language into native SCM service APIs and adapter contracts; do not add CLI surfaces to sanctioned primitives."
       ],
       "prep_and_unlocks": [
@@ -533,6 +534,7 @@
         "Use reusable workflow and registry-backed checks so shared docs/workflows stay thin and lanes own disjoint shards.",
         "Generate desired ProwJob registry and native OyaCIControllerConfig from lane-owned specs/ci/prow-jobs shards with buck2 build //:oya-ci-prowjob-registry-check so CI expansion is mechanical instead of hand-edited shared workflow churn.",
         "Mitigate shared CI/config/doc surfaces through pointer-thin canonical files, vertical-owned reusable shards, generated consolidation, and Rust/Buck2 verification instead of repeated hand edits.",
+        "Auto-update Rust stable and Buck2 release pins through a Rust/Buck2-owned updater lane, and track all workspace dependencies in dependency-rationales plus blessed allowlist before parallel lanes rely on them.",
         "Treat the validated 31-item zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, data-protection, honeytoken/tripwire, and multi-account guardrail set as P00/P01 backlog under repo-hygiene-automation security_backlog_validation + security_hardening_backlog.",
         "Model native SCM + oya-ci + release-conveyor-like CD as decoupled service/control-plane seams: SCM owns change graph and merge projections, oya-ci owns Buck2/ProwJob execution and required context, CD owns release ledger/progressive delivery.",
         "Do not revive an oya vcs CLI; current lane work uses plain git/gh adapters and future native control goes through service APIs, Rust libraries, Buck2 targets, and Prow jobs."
@@ -877,7 +879,7 @@
     },
     {
       "id": "dependency-seam-discipline",
-      "summary": "External runtime dependencies are conscious, ledgered, layer-contained, and phase-out-triggered rather than schedule-driven.",
+      "summary": "External runtime dependencies are exceptions: conscious, ledgered, latest-stable/LTS pinned, layer-contained, and phase-out-triggered toward in-house oya-* libraries rather than schedule-driven.",
       "source_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
       "canonical_home": {
         "milestone": "M01-foundation",
@@ -887,6 +889,8 @@
       "rules": [
         "Public APIs expose Oyatie wrapper/newtype surfaces only; hyper/tokio/bytes/http-body types stay out of kernel/runtime public signatures except adapter-owned boundaries.",
         "Every tracked dependency has an owner, layer seam, replacement strategy, ADR citation, and current workspace-dependency coverage in /registry/dependency-rationales.json.",
+        "Every workspace dependency is also present in /registry/dependency-blessed-allowlist.json and carries latest upstream stable/LTS policy or an explicit waiver.",
+        "New external crates require an in-house-first review: prefer an owned Rust library unless the dependency is a safer standards implementation, cryptographic/runtime primitive, CNCF/hyperscaler API client, or audited productivity exception.",
         "Phase-out is trigger-based: ontology stability, p99 budget history, replacement parity, CVE state, and dependent-wave status drive transitions.",
         "Do not remove hyper/tokio/serde/etc. from workspace dependencies in this phase; ship products first, phase out after Ontology v1 stable or CVE acceleration."
       ],

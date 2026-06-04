@@ -1,5 +1,5 @@
 ---
-purpose: "Cross-cutting dependency policy. Defines LTS pinning (per the verified roster), license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code), `cargo-vet` + `cargo-deny` enforcement, the Renovate configuration baseline."
+purpose: "Cross-cutting dependency policy. Defines current-stable/LTS pinning, in-house-first library posture, license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code), and Buck2/Prow supply-chain enforcement."
 doc_status: published
 ---
 
@@ -11,14 +11,14 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Cross-cutting dependency policy. Defines LTS pinning (per the verified roster),
-  license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code),
-  `cargo-vet` + `cargo-deny` enforcement, the Renovate configuration baseline,
-  and the provider-SDK strategy: Anthropic / OpenAI / Gemini SDKs sit behind a
+  Cross-cutting dependency policy. Defines current-stable/LTS pinning (per the
+  verified roster), in-house-first library posture, license posture (no AGPL /
+  GPL / SSPL / BUSL / RSAL in product code), Buck2/Prow supply-chain
+  enforcement, and the provider-SDK strategy: Anthropic / OpenAI / Gemini SDKs sit behind a
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
   MASTERPLAN Directive 4.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-lts-dependency
+planned_enforcement_ref: buck2-prow-lts-dependency-policy
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/code-style-rust.md
@@ -37,11 +37,11 @@ related_adrs:
 Every direct runtime, framework, base image, and supply-chain tool the
 workspace depends on MUST be pinned, license-clean, and reviewed via the
 supply-chain triad. This standard codifies the policy; the program-level
-inventory lives in `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
+inventory lives in `docs/standards/lts-versions-verified.md`.
 
 ## 1. LTS pinning
 
-Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md)
+Per [`docs/standards/lts-versions-verified.md`](lts-versions-verified.md)
 and MASTERPLAN §2 Directive 8:
 
 - Every direct dependency tracks the **current LTS** major.minor where the
@@ -49,11 +49,34 @@ and MASTERPLAN §2 Directive 8:
 - Projects without a formal LTS (SQLite, Cosign, OpenTelemetry, Envoy,
   upstream K8s) track the **current stable** + a designated LTS-substitute
   pin (e.g., Canonical 1.32 LTS for K8s).
-- The LTS roster is refreshed **quarterly** and on any major upstream LTS
-  announcement; the verified-as-of date is recorded in
-  `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
-- Lane: `oya-governance-lts-dependency` checks every direct
-  dependency against the roster on every PR.
+- The LTS/stable roster is refreshed **immediately for Rust and Buck2 release
+  pins**, on any major upstream LTS announcement, and by the scheduled
+  dependency updater lane for other direct dependencies; the verified-as-of date
+  is recorded in `docs/standards/lts-versions-verified.md`.
+- Lane: Buck2/Prow dependency-policy checks verify every workspace dependency is
+  tracked in `registry/dependency-rationales.json` and
+  `registry/dependency-blessed-allowlist.json`; retired local CLI gates are not
+  merge authority.
+
+## 1.0 In-house-first library posture
+
+Oyatie prefers **first-party Rust libraries** for durable product logic,
+control-plane seams, provider abstractions, protocol glue, and policy kernels.
+External crates are exceptions, not defaults. A new external direct dependency
+is allowed only when it is a standards implementation, cryptographic/runtime
+primitive, Kubernetes/CNCF/hyperscaler API client, or audited productivity
+dependency whose risk is lower than an in-house rewrite. Every exception MUST
+record:
+
+- owner team and layer seam;
+- why an in-house `oya-*` crate is not the right immediate default;
+- replacement or wrapper strategy that moves business semantics back into
+  first-party Rust libraries;
+- latest upstream stable/LTS pin and upgrade cadence.
+
+Do not cargo-cult hyperscaler tools. Adopt their patterns, keep the dependency
+surface minimal, and build Oyatie-owned libraries where that reduces supply-chain
+risk without weakening correctness or standards conformance.
 
 ### 1.1 Current floor (2026-05-12)
 
@@ -61,7 +84,7 @@ Per the verified-LTS spec:
 
 | Component | Pin (≥) | Component | Pin (≥) |
 |---|---|---|---|
-| Rust toolchain | 1.95.0 stable | Debian / distroless base | trixie / static-debian13 |
+| Rust toolchain | 1.96.0 stable | Debian / distroless base | trixie / static-debian13 |
 | Rust edition / rustfmt style | 2024 | OpenSSL | 3.5 LTS or 4.0 |
 | Node.js | 24 Active LTS (or 22) | Prometheus | 3.11+ (3.5 EOS 2026-07-31) |
 | Python | 3.14 (or 3.13 maint.) | Cosign | v3.0.6 |
@@ -113,16 +136,17 @@ Pinning rules:
 
 - `cargo-deny` MUST be at a version with MSRV ≤ workspace
   `rust-version`. Current target: cargo-deny **0.19.5** (MSRV 1.85),
-  compatible with the current Rust 1.95.0 workspace pin (per §1.1).
+  compatible with the current Rust 1.96.0 workspace pin (per §1.1).
 - `cargo-vet` audits live under `supply-chain/audits.toml`; share-points
   imported from AWS and Mozilla published audits.
 
-## 4. Renovate baseline
+## 4. Dependency update automation baseline
 
-Per [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
-Domain 4: **Renovate** is the canonical dependency-update bot
-(supports 30+ ecosystems vs Dependabot's 14). Dependabot remains
-enabled for security-advisory fan-in only.
+Per [`docs/standards/hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
+Domain 4, Renovate/Dependabot patterns are reference inputs, not permanent
+Oyatie authority. The durable direction is a Rust/Buck2/Prow updater lane that
+opens ordinary GitHub PRs while GitHub is the publication adapter, then cuts over
+to native SCM/Prow once that substrate is ready.
 
 Baseline `renovate.json`:
 
@@ -143,8 +167,10 @@ Baseline `renovate.json`:
 }
 ```
 
-Lane: `oya-governance-renovate-config` validates the file is
-present and grouped.
+Lane: Buck2/Prow validates that updater output stays compatible with
+`rust-toolchain.toml`, workspace `rust-version`, Buck2 release pins, and the
+dependency registries. A GitHub-native bot may remain a shadow/security advisory
+source only while the temporary GitHub lane-unlocker is active.
 
 Source: [Renovate docs](https://docs.renovatebot.com/).
 

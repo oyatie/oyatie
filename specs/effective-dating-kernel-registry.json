@@ -87,8 +87,8 @@
   ],
   "automated_chain": [
     "buck2 build //oya/ontology/crates/oya-ontology-kernel:effective-dating-kernel-tests",
-    "rustc --edition=2021 -D warnings scripts/tests/effective_dating_kernel_check.rs --test",
-    "rustc --edition=2021 -D warnings scripts/ci/assert-effective-dating-kernel.rs",
+    "rustc --edition=2024 -D warnings scripts/tests/effective_dating_kernel_check.rs --test",
+    "rustc --edition=2024 -D warnings scripts/ci/assert-effective-dating-kernel.rs",
     "buck2 build //:effective-dating-kernel-check"
   ]
 }

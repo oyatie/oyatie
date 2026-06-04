@@ -258,8 +258,9 @@ Rules:
 |---|---|
 | Primary language | Rust |
 | Rust edition | 2024 |
-| Minimum supported Rust version | 1.95.0 unless implementation source verification requires a later version |
+| Minimum supported Rust version | 1.96.0 unless implementation source verification requires a later version |
 | Workspace model | Cargo workspace, resolver 2, shared dependency and lint baselines |
+| Dependency posture | In-house-first `oya-*` Rust libraries for durable product/control-plane semantics; external crates only behind owned seams with registry rationale, latest stable/LTS pin, and replacement/wrapper strategy |
 | Async runtime | Tokio 1 |
 | HTTP backbone | Hyper 1 plus hyper-util 0.1 |
 | Serialization | Serde 1, serde_json 1, serde_yaml 0.9 where YAML is required |

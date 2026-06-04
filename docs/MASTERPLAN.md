@@ -69,6 +69,9 @@ fanout automation is Rust/Buck2-first, and
 `specs/repo-hygiene-automation.json#security_hardening_backlog` records the
 valid zero-trust, ABAC, microsegmentation, workload-identity, pod/runtime
 isolation, CI-secret isolation, and multi-account guardrail items for follow-up.
+It also records the Rust 2024 / Rust 1.96 latest-stable pin, current Buck2
+release pin, dependency-registry coverage requirement, and in-house-first
+`oya-*` library posture so external crates remain owned exceptions.
 
 ## First Deliverable
 

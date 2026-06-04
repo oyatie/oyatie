@@ -44,12 +44,12 @@ The workspace ships in Rust. This standard governs every `oya-*` crate.
 
 Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md):
 
-- The workspace MUST pin `rust-toolchain.toml` to the current stable channel
-  rounded down to the latest minor live for ≥ 30 days (currently **1.95.0**).
+- The workspace MUST pin `rust-toolchain.toml` to the current stable channel as
+  soon as it is officially released (currently **1.96.0**).
 - `Cargo.toml [workspace.package] rust-version` MUST equal the toolchain pin.
 - Edition: **2024** for every workspace crate; exceptions require an
   ADR-tracked waiver.
-- License/advisory tooling MUST be pinned in the Buck2/Jenkins toolchain image with an MSRV ≤ the workspace `rust-version`.
+- License/advisory tooling MUST be pinned in the Buck2/Prow toolchain image with an MSRV ≤ the workspace `rust-version`.
 
 Source: [Cargo Book — rust-toolchain.toml](https://rust-lang.github.io/rustup/overrides.html),
 [RFC 3537 — MSRV resolver](https://rust-lang.github.io/rfcs/3537-msrv-resolver.html).

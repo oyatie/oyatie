@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T20:50:00Z",
+  "updated_at": "2026-06-04T21:45:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -159,7 +159,8 @@
     "buck2 build //:oya-ci-prowjob-registry-check",
     "buck2 build //:oya-ci-controller-config-check",
     "buck2 build //:kubernetes-native-anti-pattern-check",
-    "buck2 build //:buck2-authority-policy-check"
+    "buck2 build //:buck2-authority-policy-check",
+    "buck2 build //:latest-toolchain-pin-updater-check"
   ],
   "official_sources": [
     {
@@ -328,7 +329,9 @@
       "oya verify command",
       "`oya gate` / `oya verify`",
       "reviewer/governance approval",
-      "reviewer/governance lifecycle"
+      "reviewer/governance lifecycle",
+      "bacon",
+      "cargo-machete"
     ],
     "scan_scope": [
       "AGENTS.md",
@@ -336,7 +339,14 @@
       "README.md",
       "docs/AGENTS.md",
       "docs/DOC-CATALOG.md",
+      "docs/AGENTS-OPERATING-CONTRACT.md",
       "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
+      "docs/QA-TEST-STRATEGY.md",
+      "docs/RELEASE-MANAGEMENT.md",
+      "docs/STANDARDS-AND-TEMPLATES.md",
+      "docs/DOCUMENTATION.md",
+      "docs/RACI-OWNERSHIP.md",
+      "docs/VENDOR-PARTNER-LEDGER.md",
       "docs/MASTERPLAN.md",
       "docs/standards/brief-template.md",
       "docs/standards/agentic-dev-team-optimization.md",
@@ -558,6 +568,18 @@
       "lane": "platform-governance",
       "action": "Rewrite active Python and shell gate/tool surfaces in Rust with Buck2 targets, leaving only one-time bootstrap or host-prelude glue with deletion criteria.",
       "conflict_mitigation": "Each migration owns a tool directory plus test fixture set; no ad-hoc shared script growth."
+    },
+    {
+      "id": "in_house_dependency_library_substitution",
+      "lane": "platform-supply-chain",
+      "action": "Replace external dependencies with in-house oya-* Rust libraries where ownership improves security, concurrency, portability, or product semantics without reimplementing safer standards/crypto/runtime primitives.",
+      "conflict_mitigation": "Each substitution owns one first-party library seam plus adapter migration; shared dependency registries update mechanically through Buck2 checks."
+    },
+    {
+      "id": "latest_toolchain_dependency_pin_updater",
+      "lane": "platform-supply-chain",
+      "action": "Run the Rust updater lane to bump Rust stable, Buck2 release, and dependency registry pin evidence, then open an ordinary PR with Buck2/Prow verification.",
+      "conflict_mitigation": "Updater patches known pin surfaces mechanically; feature lanes should not hand-edit global pin files except through this lane."
     }
   ],
   "security_backlog_validation": {
@@ -965,5 +987,31 @@
       "claim_boundary": "backlog_only_no_live_mutation"
     }
   ],
-  "github_actions_shadow_only": true
+  "github_actions_shadow_only": true,
+  "toolchain_pin_policy": {
+    "required_rust_stable": "1.96.0",
+    "required_rust_edition": "2024",
+    "pin_policy": "latest_official_stable_immediately",
+    "rust_release_source": "https://blog.rust-lang.org/2026/05/28/Rust-1.96.0/",
+    "required_buck2_release": "2026-06-01",
+    "buck2_release_source": "https://github.com/facebook/buck2/releases/tag/2026-06-01",
+    "buck2_release_policy": "latest_upstream_date_tag_immediately",
+    "enforced_by": "buck2 build //:repo-hygiene-automation-check",
+    "updater": "scripts/ci/sync-latest-toolchain-pins.rs --write",
+    "compile_check": "buck2 build //:latest-toolchain-pin-updater-check",
+    "claim_boundary": "static_pin_policy_and_updater_contract_only"
+  },
+  "dependency_registry_policy": {
+    "workspace_dependency_source": "Cargo.toml [workspace.dependencies]",
+    "rationales_registry": "registry/dependency-rationales.json",
+    "blessed_allowlist_registry": "registry/dependency-blessed-allowlist.json",
+    "coverage_rule": "all_workspace_dependencies_tracked",
+    "version_policy": "latest_upstream_stable_or_lts",
+    "in_house_policy": "in_house_first_oya_rust_libraries",
+    "exception_policy": "explicit_waiver_required_for_non_latest_or_non_in_house_dependency",
+    "replacement_strategy_required": true,
+    "private_registry_direction": "prefer_private_or_controlled_registries_when_native_supply_chain_substrate_lands",
+    "enforced_by": "buck2 build //:repo-hygiene-automation-check",
+    "claim_boundary": "registry_coverage_and_policy_only_no_cargo_update_mutation"
+  }
 }
