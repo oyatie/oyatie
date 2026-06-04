@@ -77,8 +77,8 @@
     }
   ],
   "automated_chain": [
-    "scripts/ci/assert-adr-hygiene.py --registry specs/adr-hygiene-registry.json --json",
-    "scripts/tests/adr_hygiene_check.test.sh",
+    "scripts/ci/assert-adr-hygiene.rs --registry specs/adr-hygiene-registry.json --json",
+    "scripts/tests/adr_hygiene_check.rs",
     "buck2 build //:adr-hygiene-check --show-output",
     "//:phase0-red-green-fixture-contract-check",
     "//:phase0-automation-ratchet-check",
