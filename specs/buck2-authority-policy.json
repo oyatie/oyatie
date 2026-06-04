@@ -257,8 +257,8 @@
     "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
     "scripts/ci/assert-result-bundle-output.py",
     "scripts/tests/phase0_result_bundle_output_check.test.sh",
-    "scripts/ci/assert-phase0-aggregate-exit.py",
-    "scripts/tests/phase0_aggregate_exit_check.test.sh",
+    "scripts/ci/assert-phase0-aggregate-exit.rs",
+    "scripts/tests/phase0_aggregate_exit_check.rs",
     "scripts/ci/assert-automation-ratchet.py",
     "scripts/tests/phase0_automation_ratchet_check.test.sh",
     "specs/phase0-automation-matrix.json",
@@ -412,8 +412,8 @@
       "phase0-result-bundle-output-check",
       "phase0_result_bundle_output_check.test.sh",
       "phase0-aggregate-exit-check",
-      "phase0_aggregate_exit_check.test.sh",
-      "assert-phase0-aggregate-exit.py",
+      "phase0_aggregate_exit_check.rs",
+      "assert-phase0-aggregate-exit.rs",
       "phase0-exit-gate",
       "phase0-automation-ratchet-check",
       "phase0_automation_ratchet_check.test.sh",
@@ -945,7 +945,7 @@
       "hyperscaler_grade",
       "PERF-CAPACITY"
     ],
-    "scripts/ci/assert-phase0-aggregate-exit.py": [
+    "scripts/ci/assert-phase0-aggregate-exit.rs": [
       "AC-0.12 aggregate-exit local/static fixture evidence only",
       "missing_required_subcondition",
       "unknown_subcondition",
@@ -957,15 +957,15 @@
       "p0_0_green",
       "phase0_complete"
     ],
-    "scripts/tests/phase0_aggregate_exit_check.test.sh": [
+    "scripts/tests/phase0_aggregate_exit_check.rs": [
       "tc-0.12-good-all-subconditions-green.json",
       "tc-0.12-bad-single-false-subconditions.json",
       "tc-0.12-bad-missing-required-subcondition.json",
       "tc-0.12-current-red-p0-0-live-context-missing.json",
-      "bad-single-false-missing-case.json",
-      "bad-single-false-multi-false.json",
-      "bad-red-claims-green.json",
-      "phase0 aggregate-exit fixture checks passed"
+      "single_false_missing_case_fails",
+      "single_false_multi_false_case_fails",
+      "red_claims_green_fails",
+      "checked_in_fixture_contract_passes"
     ],
     "scripts/ci/assert-rust-testing-standard.rs": [
       "local/static documentation-drift evidence only",

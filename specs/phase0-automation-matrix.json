@@ -302,7 +302,7 @@
     {
       "blocking_fixture": "specs/fixtures/phase0-exit-gate/",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/fixtures/phase0-exit-gate/ + scripts/ci/assert-phase0-aggregate-exit.py + scripts/tests/phase0_aggregate_exit_check.test.sh + //:phase0-aggregate-exit-check + P0.0 evidence bundle",
+      "evidence_path": "specs/fixtures/phase0-exit-gate/ + scripts/ci/assert-phase0-aggregate-exit.rs + scripts/tests/phase0_aggregate_exit_check.rs + //:phase0-aggregate-exit-check + P0.0 evidence bundle",
       "id": "AC-0.12-aggregate-exit-gate",
       "no_new_oya_cli_surface": true,
       "owner": "platform-governance + platform-toolchain",
