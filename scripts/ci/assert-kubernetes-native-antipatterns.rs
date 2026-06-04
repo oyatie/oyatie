@@ -14,6 +14,7 @@ const MASTERPLAN_PATH: &str = "specs/masterplan.json";
 const REPO_HYGIENE_PATH: &str = "specs/repo-hygiene-automation.json";
 const CONTROLLER_CONTRACT_PATH: &str = "specs/oya-ci-controller-config-contract.json";
 const CONTROLLER_CONFIG_PATH: &str = "specs/generated/oya-ci-controller-config.generated.yaml";
+const AGENTIC_SLO_PROMOTION_PATH: &str = "specs/agentic-slo-gated-promotion.json";
 const AGENTS_PATH: &str = "AGENTS.md";
 const CLAUDE_PATH: &str = "CLAUDE.md";
 const BUCK_PATH: &str = "BUCK";
@@ -261,6 +262,39 @@ pub fn controller_config_failures(config: &str) -> Vec<String> {
     failures
 }
 
+pub fn active_promotion_spec_failures(spec: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+    for needle in [
+        "Prow/Kubernetes-native oya-ci promotion-readiness Buck2 lane",
+        "native release-conveyor promotion controllers",
+        "release-conveyor dev-to-staging promotion controller",
+        "release-conveyor staging-to-production promotion controller",
+        "\"actor\": \"release-conveyor-controller\"",
+        "Prow/Kubernetes-native oya-ci publishes source-bound oya-ci-required evidence",
+        "audited replay request reconciled by the release-conveyor promotion controller",
+    ] {
+        require_contains(spec, needle, &mut failures, AGENTIC_SLO_PROMOTION_PATH);
+    }
+
+    for forbidden in [
+        "Jenkins",
+        "Forgejo",
+        "oya-dev-cli",
+        "cargo run -p",
+        "oya gate",
+        "\"actor\": \"jenkins\"",
+    ] {
+        require(
+            !spec.contains(forbidden),
+            &mut failures,
+            format!(
+                "{AGENTIC_SLO_PROMOTION_PATH}: forbidden retired promotion authority present: {forbidden}"
+            ),
+        );
+    }
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
     let contract = read(root, CONTRACT_PATH, &mut failures);
@@ -269,12 +303,14 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let repo_hygiene = read(root, REPO_HYGIENE_PATH, &mut failures);
     let controller_contract = read(root, CONTROLLER_CONTRACT_PATH, &mut failures);
     let controller_config = read(root, CONTROLLER_CONFIG_PATH, &mut failures);
+    let agentic_slo_promotion = read(root, AGENTIC_SLO_PROMOTION_PATH, &mut failures);
     let agents = read(root, AGENTS_PATH, &mut failures);
     let claude = read(root, CLAUDE_PATH, &mut failures);
     let buck = read(root, BUCK_PATH, &mut failures);
 
     failures.extend(contract_failures(&contract));
     failures.extend(controller_config_failures(&controller_config));
+    failures.extend(active_promotion_spec_failures(&agentic_slo_promotion));
 
     for needle in [
         "\"kubernetes_native_anti_patterns\"",
@@ -345,6 +381,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "scripts/ci/assert-kubernetes-native-antipatterns.rs",
         "scripts/tests/kubernetes_native_antipatterns_check.rs",
         "specs/kubernetes-native-anti-patterns.json",
+        "specs/agentic-slo-gated-promotion.json",
     ] {
         require_contains(&buck, needle, &mut failures, BUCK_PATH);
     }

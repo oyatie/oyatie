@@ -345,6 +345,7 @@ genrule(
         "scripts/ci/assert-kubernetes-native-antipatterns.rs": "scripts/ci/assert-kubernetes-native-antipatterns.rs",
         "scripts/tests/kubernetes_native_antipatterns_check.rs": "scripts/tests/kubernetes_native_antipatterns_check.rs",
         "specs/kubernetes-native-anti-patterns.json": "specs/kubernetes-native-anti-patterns.json",
+        "specs/agentic-slo-gated-promotion.json": "specs/agentic-slo-gated-promotion.json",
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
         "specs/masterplan.json": "specs/masterplan.json",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",

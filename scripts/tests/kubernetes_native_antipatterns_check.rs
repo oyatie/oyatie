@@ -129,6 +129,20 @@ fn generated_config_rejects_live_mutation_commands() {
 }
 
 #[test]
+fn active_promotion_spec_rejects_retired_substrate_authority() {
+    let mut spec = read_repo_file("specs/agentic-slo-gated-promotion.json");
+    spec.push_str("\n{\"promotion_authority\":\"Jenkins/Forgejo via oya-dev-cli\"}\n");
+    let failures = gate::active_promotion_spec_failures(&spec);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("forbidden retired promotion authority")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn root_hub_and_masterplan_pointer_are_required() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert!(
