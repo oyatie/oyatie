@@ -726,13 +726,13 @@ pub fn evaluate(config: &Config) -> Evaluation {
         check_expected_string(
             automation_mapping,
             "result_bundle_check_script",
-            "scripts/ci/assert-result-bundle-output.py",
+            "scripts/ci/assert-result-bundle-output.rs",
             &mut evaluation.failures,
         );
         check_expected_string(
             automation_mapping,
             "result_bundle_test",
-            "scripts/tests/phase0_result_bundle_output_check.test.sh",
+            "scripts/tests/phase0_result_bundle_output_check.rs",
             &mut evaluation.failures,
         );
         evaluation.result_bundle_check_target =
