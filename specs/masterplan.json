@@ -7,7 +7,7 @@
     "version": "1.1.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-06-04T16:45:00Z",
+    "updated_at": "2026-06-04T22:55:00Z",
     "owner_team": "council-architecture",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
@@ -564,7 +564,7 @@
       "prowjob_registry_green": "buck2 build //:oya-ci-prowjob-registry-check",
       "prow_controller_config_green": "buck2 build //:oya-ci-prowjob-registry-check validates specs/generated/oya-ci-controller-config.generated.yaml as local/static controller config evidence",
       "prow_controller_schema_green": "buck2 build //:oya-ci-controller-config-check validates generated OyaCIControllerConfig schema/admission/security invariants without live cluster mutation",
-      "kubernetes_native_antipatterns_green": "buck2 build //:kubernetes-native-anti-pattern-check validates hyperscaler/cloud/Kubernetes-native anti-pattern guardrails, including stateless Prow pods, cache boundaries, supply-chain provenance, policy-as-code admission, quota/fair scheduling, generated lane fan-in, and progressive delivery, without live Kubernetes or GitHub mutation"
+      "kubernetes_native_antipatterns_green": "buck2 build //:kubernetes-native-anti-pattern-check validates hyperscaler/cloud/Kubernetes-native anti-pattern guardrails, including stateless Prow pods, cache boundaries, supply-chain provenance, policy-as-code admission, quota/fair scheduling, generated lane fan-in, lease_based_controller_coordination, topology_spread_and_dedicated_node_pools, cluster_admin_or_wildcard_rbac_for_runners rejection, and progressive delivery, without live Kubernetes or GitHub mutation"
     },
     "repo_hygiene_automation": {
       "spec": "/specs/repo-hygiene-automation.json",
@@ -614,7 +614,7 @@
       "github": "PR/publication adapter; GitHub Actions is shadow compatibility only",
       "prowjob_registry": "Lane-owned desired ProwJob shards under specs/ci/prow-jobs generate specs/generated/oya-ci-prowjob-registry.generated.yaml and specs/generated/oya-ci-controller-config.generated.yaml; local/static controller-config schema/admission invariants are checked by buck2 build //:oya-ci-controller-config-check until native controller cutover.",
       "stateless_ci_lifecycle": "disposable_prowjob_pods_remote_state and content_addressed_remote_cache_not_workspace_state: job pods are ephemeral compute, while SCM refs, remote execution/CAS/cache, immutable object artifacts, status, and audit ledger are durable state.",
-      "anti_pattern_guard": "specs/kubernetes-native-anti-patterns.json records controller_reconciliation_over_manual_mutation, native_scm_ci_cd_service_seams, hermetic_provenance_signed_artifacts, quota_priority_and_fair_scheduling, blind_kubectl_delete_pods, stateful_runner_workspace_pool, cross_trust_cache_poisoning, and direct_deploy_from_ci_job rejection so lane work stays hyperscaler/cloud/Kubernetes-native without shared mutable bottlenecks."
+      "anti_pattern_guard": "specs/kubernetes-native-anti-patterns.json records controller_reconciliation_over_manual_mutation, native_scm_ci_cd_service_seams, hermetic_provenance_signed_artifacts, quota_priority_and_fair_scheduling, lease_based_controller_coordination, topology_spread_and_dedicated_node_pools, blind_kubectl_delete_pods, stateful_runner_workspace_pool, cross_trust_cache_poisoning, cluster_admin_or_wildcard_rbac_for_runners, and direct_deploy_from_ci_job rejection so lane work stays hyperscaler/cloud/Kubernetes-native without shared mutable bottlenecks."
     }
   },
   "planning_closure": {
