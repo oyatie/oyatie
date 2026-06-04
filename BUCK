@@ -58,6 +58,8 @@ genrule(
         "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
         "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
         "docs/ci/github-actions-lane-unlocker.md": "docs/ci/github-actions-lane-unlocker.md",
+        "scripts/ci/assert-third-party-durable-handedits.rs": "scripts/ci/assert-third-party-durable-handedits.rs",
+        "scripts/tests/third_party_durable_handedits_check.rs": "scripts/tests/third_party_durable_handedits_check.rs",
         "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
         "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
@@ -355,6 +357,28 @@ genrule(
     },
     out = "github-lane-unlocker-bridge-check.json",
     cmd = "mkdir -p $TMP/github-lane-unlocker-bridge && rustc --edition=2021 -D warnings scripts/tests/github_lane_unlocker_bridge_check.rs --test -o $TMP/github-lane-unlocker-bridge/github_lane_unlocker_bridge_check && OYA_REPO_ROOT=$PWD $TMP/github-lane-unlocker-bridge/github_lane_unlocker_bridge_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-github-lane-unlocker-bridge.rs -o $TMP/github-lane-unlocker-bridge/assert-github-lane-unlocker-bridge && OYA_REPO_ROOT=$PWD $TMP/github-lane-unlocker-bridge/assert-github-lane-unlocker-bridge --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+# Third-party generated BUCK graph durable hand-edit check. Reindeer remains the
+# metadata-to-BUCK generator, but active CI must assert the checked-in graph
+# directly instead of running a Python mutator plus git diff.
+genrule(
+    name = "third-party-durable-handedits-check",
+    srcs = {
+        ".github/workflows/github-lane-unlocker-ci-cd.yml": ".github/workflows/github-lane-unlocker-ci-cd.yml",
+        "BUCK": "BUCK",
+        "infra/ci/buck2-affected-gate.sh": "infra/ci/buck2-affected-gate.sh",
+        "scripts/ci/assert-third-party-durable-handedits.rs": "scripts/ci/assert-third-party-durable-handedits.rs",
+        "scripts/tests/third_party_durable_handedits_check.rs": "scripts/tests/third_party_durable_handedits_check.rs",
+        "scripts/ci/regen-third-party.sh": "scripts/ci/regen-third-party.sh",
+        "third-party/BUCK": "third-party//:BUCK",
+    },
+    out = "third-party-durable-handedits-check.json",
+    cmd = "mkdir -p $TMP/third-party-durable-handedits && rustc --edition=2021 -D warnings scripts/tests/third_party_durable_handedits_check.rs --test -o $TMP/third-party-durable-handedits/third_party_durable_handedits_check && OYA_REPO_ROOT=$PWD $TMP/third-party-durable-handedits/third_party_durable_handedits_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-third-party-durable-handedits.rs -o $TMP/third-party-durable-handedits/assert-third-party-durable-handedits && OYA_REPO_ROOT=$PWD $TMP/third-party-durable-handedits/assert-third-party-durable-handedits --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,

@@ -52,6 +52,7 @@ Required local commands:
 buck2 build //:github-lane-unlocker-bridge-check
 buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
 buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
+buck2 build //:third-party-durable-handedits-check
 buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check
 buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check
 infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD
