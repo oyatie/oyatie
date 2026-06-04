@@ -35,8 +35,8 @@ genrule(
         "scripts/tests/phase0_required_status_source_check.rs": "scripts/tests/phase0_required_status_source_check.rs",
         "scripts/ci/assert-tenant-pipeline-isolation.rs": "scripts/ci/assert-tenant-pipeline-isolation.rs",
         "scripts/tests/phase0_tenant_isolation_fixture_check.rs": "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
-        "scripts/ci/assert-override-kill-switch.py": "scripts/ci/assert-override-kill-switch.py",
-        "scripts/tests/phase0_override_kill_switch_check.test.sh": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+        "scripts/ci/assert-override-kill-switch.rs": "scripts/ci/assert-override-kill-switch.rs",
+        "scripts/tests/phase0_override_kill_switch_check.rs": "scripts/tests/phase0_override_kill_switch_check.rs",
         "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
         "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
         "scripts/ci/assert-result-bundle-output.py": "scripts/ci/assert-result-bundle-output.py",
@@ -581,6 +581,8 @@ genrule(
         "scripts/tests/phase0_required_status_source_check.rs": "scripts/tests/phase0_required_status_source_check.rs",
         "scripts/ci/assert-tenant-pipeline-isolation.rs": "scripts/ci/assert-tenant-pipeline-isolation.rs",
         "scripts/tests/phase0_tenant_isolation_fixture_check.rs": "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
+        "scripts/ci/assert-override-kill-switch.rs": "scripts/ci/assert-override-kill-switch.rs",
+        "scripts/tests/phase0_override_kill_switch_check.rs": "scripts/tests/phase0_override_kill_switch_check.rs",
         "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
         "scripts/tests/phase0_aggregate_exit_check.rs": "scripts/tests/phase0_aggregate_exit_check.rs",
         "scripts/ci/assert-automation-ratchet.rs": "scripts/ci/assert-automation-ratchet.rs",
@@ -998,8 +1000,8 @@ genrule(
 genrule(
     name = "phase0-override-kill-switch-check",
     srcs = {
-        "scripts/ci/assert-override-kill-switch.py": "scripts/ci/assert-override-kill-switch.py",
-        "scripts/tests/phase0_override_kill_switch_check.test.sh": "scripts/tests/phase0_override_kill_switch_check.test.sh",
+        "scripts/ci/assert-override-kill-switch.rs": "scripts/ci/assert-override-kill-switch.rs",
+        "scripts/tests/phase0_override_kill_switch_check.rs": "scripts/tests/phase0_override_kill_switch_check.rs",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-override-packet-schema.json": "specs/phase0-override-packet-schema.json",
@@ -1007,7 +1009,7 @@ genrule(
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
     },
     out = "phase0-override-kill-switch-check.txt",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_override_kill_switch_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/phase0-override-kill-switch && rustc --edition=2021 -D warnings scripts/tests/phase0_override_kill_switch_check.rs --test -o $TMP/phase0-override-kill-switch/phase0_override_kill_switch_check && OYA_REPO_ROOT=$PWD $TMP/phase0-override-kill-switch/phase0_override_kill_switch_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-override-kill-switch.rs -o $TMP/phase0-override-kill-switch/assert-override-kill-switch && $TMP/phase0-override-kill-switch/assert-override-kill-switch --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
