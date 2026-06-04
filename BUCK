@@ -37,8 +37,8 @@ genrule(
         "scripts/tests/phase0_tenant_isolation_fixture_check.rs": "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
         "scripts/ci/assert-override-kill-switch.rs": "scripts/ci/assert-override-kill-switch.rs",
         "scripts/tests/phase0_override_kill_switch_check.rs": "scripts/tests/phase0_override_kill_switch_check.rs",
-        "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
-        "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+        "scripts/ci/assert-trusted-target-inventory.rs": "scripts/ci/assert-trusted-target-inventory.rs",
+        "scripts/tests/phase0_trusted_target_inventory_check.rs": "scripts/tests/phase0_trusted_target_inventory_check.rs",
         "scripts/ci/assert-result-bundle-output.rs": "scripts/ci/assert-result-bundle-output.rs",
         "scripts/tests/phase0_result_bundle_output_check.rs": "scripts/tests/phase0_result_bundle_output_check.rs",
         "scripts/ci/assert-automation-ratchet.rs": "scripts/ci/assert-automation-ratchet.rs",
@@ -583,6 +583,8 @@ genrule(
         "scripts/tests/phase0_tenant_isolation_fixture_check.rs": "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
         "scripts/ci/assert-override-kill-switch.rs": "scripts/ci/assert-override-kill-switch.rs",
         "scripts/tests/phase0_override_kill_switch_check.rs": "scripts/tests/phase0_override_kill_switch_check.rs",
+        "scripts/ci/assert-trusted-target-inventory.rs": "scripts/ci/assert-trusted-target-inventory.rs",
+        "scripts/tests/phase0_trusted_target_inventory_check.rs": "scripts/tests/phase0_trusted_target_inventory_check.rs",
         "scripts/ci/assert-result-bundle-output.rs": "scripts/ci/assert-result-bundle-output.rs",
         "scripts/tests/phase0_result_bundle_output_check.rs": "scripts/tests/phase0_result_bundle_output_check.rs",
         "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
@@ -959,8 +961,8 @@ genrule(
 genrule(
     name = "phase0-trusted-target-inventory-check",
     srcs = {
-        "scripts/ci/assert-trusted-target-inventory.py": "scripts/ci/assert-trusted-target-inventory.py",
-        "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
+        "scripts/ci/assert-trusted-target-inventory.rs": "scripts/ci/assert-trusted-target-inventory.rs",
+        "scripts/tests/phase0_trusted_target_inventory_check.rs": "scripts/tests/phase0_trusted_target_inventory_check.rs",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "scripts/ci/assert-result-bundle-output.rs": "scripts/ci/assert-result-bundle-output.rs",
@@ -970,7 +972,7 @@ genrule(
         "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.1a-bad-candidate-sourced-target-inventory.json",
     },
     out = "phase0-trusted-target-inventory-check.txt",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_trusted_target_inventory_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/phase0-trusted-target-inventory && rustc --edition=2021 -D warnings scripts/tests/phase0_trusted_target_inventory_check.rs --test -o $TMP/phase0-trusted-target-inventory/phase0_trusted_target_inventory_check && OYA_REPO_ROOT=$PWD $TMP/phase0-trusted-target-inventory/phase0_trusted_target_inventory_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-trusted-target-inventory.rs -o $TMP/phase0-trusted-target-inventory/assert-trusted-target-inventory && $TMP/phase0-trusted-target-inventory/assert-trusted-target-inventory --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
