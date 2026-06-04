@@ -672,13 +672,13 @@ pub fn evaluate(config: &Config) -> Evaluation {
         check_expected_string(
             automation_mapping,
             "tenant_isolation_check_script",
-            "scripts/ci/assert-tenant-pipeline-isolation.py",
+            "scripts/ci/assert-tenant-pipeline-isolation.rs",
             &mut evaluation.failures,
         );
         check_expected_string(
             automation_mapping,
             "tenant_isolation_test",
-            "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+            "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
             &mut evaluation.failures,
         );
         check_expected_string(

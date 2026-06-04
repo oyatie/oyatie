@@ -288,7 +288,7 @@
     {
       "blocking_fixture": "specs/toolchain-tenant-isolation-fixtures.json + specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.3-bad-cross-tenant-shared-cache.json",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/toolchain-tenant-isolation-fixtures.json + scripts/ci/assert-tenant-pipeline-isolation.py + scripts/tests/phase0_tenant_isolation_fixture_check.test.sh + //:phase0-tenant-isolation-fixture-check",
+      "evidence_path": "specs/toolchain-tenant-isolation-fixtures.json + scripts/ci/assert-tenant-pipeline-isolation.rs + scripts/tests/phase0_tenant_isolation_fixture_check.rs + //:phase0-tenant-isolation-fixture-check",
       "id": "AC-0.0-tenant-pipeline-isolation",
       "no_new_oya_cli_surface": true,
       "owner": "platform-security + platform-toolchain",
