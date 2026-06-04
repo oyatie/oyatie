@@ -54,9 +54,19 @@ P00 also includes repo hygiene automation: `specs/repo-hygiene-automation.json` 
 
 ```bash
 buck2 build //:repo-hygiene-automation-check
+buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
+buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
 ```
 
 The native Sapling-inspired SCM must expose GitHub public/private publication and status adapters, but GitHub is not the durable source of truth. Shared docs, indexes, registries, and workflows stay pointer-thin and route detail to lane-owned shards. Retired external SCM/CI/CD substrate names are tombstoned in `specs/retired-external-substrate-registry.json`.
+
+The P00 backlog now treats shared-surface reduction and security hardening as
+first-class prep work: vertical-owned reusable CI shards or generated
+consolidation should replace repeated edits to canonical shared workflows, new
+fanout automation is Rust/Buck2-first, and
+`specs/repo-hygiene-automation.json#security_hardening_backlog` records the
+valid zero-trust, ABAC, microsegmentation, workload-identity, pod/runtime
+isolation, CI-secret isolation, and multi-account guardrail items for follow-up.
 
 ## First Deliverable
 

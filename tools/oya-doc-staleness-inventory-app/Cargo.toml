@@ -1,0 +1,10 @@
+[package]
+name = "oya-doc-staleness-inventory-app"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+license = "LicenseRef-Oyatie-Proprietary"
+description = "Buck2-owned documentation staleness inventory runner for P00 lane-unlocker hygiene."
+
+[workspace]

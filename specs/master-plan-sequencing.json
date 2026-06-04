@@ -1943,7 +1943,9 @@
       "status": "decoupled_now",
       "rule": "no shared contract or shared surface between Cloud auth/shared and Oyatie product auth/shared",
       "future_integration": "rewrite and rewire Oyatie products to consume Cloud IdP after stabilization"
-    }
+    },
+    "shared_surface_strategy": "pointer-thin canonical workflow/docs plus vertical-owned reusable shards or generated consolidation to reduce merge conflicts under parallel lanes",
+    "security_backlog_scope": "valid zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, and multi-account guardrails are P00/P01 backlog only; no live mutation claimed"
   },
   "repo_hygiene_automation": {
     "id": "P00-repo-hygiene-automation",
@@ -1961,6 +1963,10 @@
     "shared_surface_rule": "shared docs, root indexes, registries, and workflows point to lane-owned shards and should not accumulate large mutable prose",
     "native_scm_adapter_rule": "pure-Rust Sapling-inspired SCM owns durable source; GitHub is a public/private publication, PR, status, and mirror adapter",
     "retired_substrate_rule": "active instructions use generic retired external SCM/CI/CD substrate wording and point to the retired substrate registry for exact tombstones",
-    "live_mutation": false
+    "live_mutation": false,
+    "shared_surface_mitigation_ref": "/specs/repo-hygiene-automation.json#shared_surface_mitigation",
+    "security_hardening_backlog_ref": "/specs/repo-hygiene-automation.json#security_hardening_backlog",
+    "automation_language_policy_ref": "/specs/repo-hygiene-automation.json#automation_language_policy",
+    "required_stale_doc_inventory": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
   }
 }
