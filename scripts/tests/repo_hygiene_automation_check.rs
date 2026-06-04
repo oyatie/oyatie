@@ -350,6 +350,25 @@ fn active_doc_phrase_scanner_rejects_retired_tenant_rbac_gate_refs() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_retired_brief_template_lifecycle() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/standards/brief-template.md",
+        "Which PR, Jenkins contexts, and Jenkins governance lifecycle? ./bin/oya verify --ci-required && ./bin/oya gate run-all",
+    );
+    for expected in [
+        "Jenkins contexts",
+        "Jenkins governance lifecycle",
+        "./bin/oya verify --ci-required",
+        "./bin/oya gate run-all",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn active_doc_phrase_scanner_is_case_insensitive() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",

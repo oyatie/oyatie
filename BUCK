@@ -320,6 +320,7 @@ genrule(
         "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
         "docs/ci/openbao-eso-runbook.md": "docs/ci/openbao-eso-runbook.md",
         "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+        "docs/standards/brief-template.md": "docs/standards/brief-template.md",
         "docs/DOC-CATALOG.md": "docs/DOC-CATALOG.md",
         "docs/MASTERPLAN.md": "docs/MASTERPLAN.md",
         "docs/AGENTS.md": "docs/AGENTS.md",
