@@ -1,0 +1,101 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/oya-ci-prowjob-shard.schema.json",
+  "$id": "https://docs.oyatie.com/specs/ci/prow-jobs/platform-scm-ci-cd.json",
+  "shard_id": "platform-scm-ci-cd",
+  "owner_team": "platform-scm-ci-cd",
+  "lane_family": "scm_ci_cd",
+  "editable_surface": "specs/ci/prow-jobs/platform-scm-ci-cd.json",
+  "live_authority_claimed": false,
+  "jobs": [
+    {
+      "id": "oyatie-presubmit-buck2-authority",
+      "prow_job_kind": "presubmit",
+      "context": "oya-ci/buck2-authority",
+      "required": true,
+      "controller_owned": true,
+      "execution_trust": "untrusted_pr_code_in_sandboxed_k8s_job",
+      "buck2_commands": [
+        "buck2 build //:buck2-cargo-target-coverage-check",
+        "buck2 build //:buck2-authority-policy-check",
+        "buck2 build //:github-lane-unlocker-bridge-check"
+      ],
+      "source_prow_capability_ids": [
+        "prow-presubmit-jobs",
+        "prow-prowjob-api-and-config",
+        "prow-controller-manager-job-controller",
+        "prow-trusted-untrusted-execution"
+      ],
+      "anti_patterns_rejected": [
+        "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
+        "candidate_owned_manual_status_or_merge_truth"
+      ]
+    },
+    {
+      "id": "oyatie-presubmit-rust-llvm-coverage",
+      "prow_job_kind": "presubmit",
+      "context": "oya-ci/rust-llvm-coverage",
+      "required": true,
+      "controller_owned": true,
+      "execution_trust": "untrusted_pr_code_in_sandboxed_k8s_job",
+      "buck2_commands": [
+        "buck2 build //:rust-llvm-coverage-runner-contract-check",
+        "buck2 build //:rust-llvm-coverage-smoke-check"
+      ],
+      "source_prow_capability_ids": [
+        "prow-presubmit-jobs",
+        "prow-artifact-storage",
+        "prow-pod-utilities-entrypoint-sidecar",
+        "prow-trusted-untrusted-execution"
+      ],
+      "anti_patterns_rejected": [
+        "tarpaulin_as_primary_monorepo_coverage_authority",
+        "new_python_or_shell_gate_sprawl"
+      ]
+    },
+    {
+      "id": "oyatie-presubmit-required-rollup",
+      "prow_job_kind": "presubmit",
+      "context": "oya-ci-required",
+      "required": true,
+      "controller_owned": true,
+      "execution_trust": "trusted_controller_rollup_of_source_bound_presubmits",
+      "buck2_commands": [
+        "buck2 build //:oya-ci-prowjob-registry-check",
+        "buck2 build //:github-lane-unlocker-bridge-check",
+        "buck2 build //:repo-hygiene-automation-check"
+      ],
+      "source_prow_capability_ids": [
+        "prow-prowjob-api-and-config",
+        "prow-crier-status-reporting",
+        "prow-status-reconciliation",
+        "prow-config-validation",
+        "prow-trusted-untrusted-execution"
+      ],
+      "anti_patterns_rejected": [
+        "candidate_owned_manual_status_or_merge_truth",
+        "github_actions_as_durable_ci_authority"
+      ]
+    },
+    {
+      "id": "oyatie-batch-merge-projection",
+      "prow_job_kind": "batch",
+      "context": "oya-ci/batch-merge-projection",
+      "required": false,
+      "controller_owned": true,
+      "execution_trust": "trusted_controller_virtual_merge_k8s_job",
+      "buck2_commands": [
+        "buck2 build //:phase0-auto-merge-after-ci-contract-check",
+        "buck2 build //:phase0-merge-conflict-foundation-check"
+      ],
+      "source_prow_capability_ids": [
+        "prow-batch-jobs",
+        "prow-tide-merge-automation",
+        "prow-status-reconciliation"
+      ],
+      "anti_patterns_rejected": [
+        "single_hand_edited_workflow_bottleneck",
+        "candidate_owned_manual_status_or_merge_truth"
+      ]
+    }
+  ]
+}

@@ -31,6 +31,7 @@ const STALE_DOC_INVENTORY_COMMAND: &str =
 const STALE_DOC_INVENTORY_TEST_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests";
 const REQUIRED_BUCK2_AUTHORITY_COMMAND: &str = "buck2 build //:repo-hygiene-automation-check";
+const PROWJOB_REGISTRY_COMMAND: &str = "buck2 build //:oya-ci-prowjob-registry-check";
 const RETIRED_PLANNING_CLOSURE_COMMAND: &str =
     "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
 const RETIRED_PYTHON_COMMAND: &str = "python3 scripts/ci/assert-repo-hygiene-automation.py --json";
@@ -51,6 +52,7 @@ const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
     STALE_DOC_INVENTORY_COMMAND,
     STALE_DOC_INVENTORY_TEST_COMMAND,
+    PROWJOB_REGISTRY_COMMAND,
 ];
 
 const REQUIRED_SOURCE_URLS: &[&str] = &[
@@ -362,6 +364,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         (
             "\"pattern\": \"registry_owned_desired_ci_graph_to_generated_consolidation\"",
             "shared-surface mitigation must require generated consolidation",
+        ),
+        (
+            "\"seed_check\": \"buck2 build //:oya-ci-prowjob-registry-check\"",
+            "ProwJob registry seed check must be recorded in cleanup backlog",
+        ),
+        (
+            "\"seed_registry\": \"specs/oya-ci-prowjob-registry.json\"",
+            "ProwJob registry seed registry path must be recorded in cleanup backlog",
         ),
         (
             "\"required_native_context\": \"oya-ci-required\"",
@@ -740,9 +750,13 @@ pub fn evaluate(root: &Path) -> Evaluation {
 
     for needle in [
         "repo-hygiene-automation-check",
+        "oya-ci-prowjob-registry-check",
         "assert-repo-hygiene-automation.rs",
+        "generate-oya-ci-prowjob-registry.rs",
         "repo_hygiene_automation_check.rs",
+        "oya_ci_prowjob_registry_check.rs",
         "repo-hygiene-automation.json",
+        "oya-ci-prowjob-registry.json",
         "retired-external-substrate-registry.json",
         "oya-doc-staleness-inventory-app",
     ] {
@@ -761,6 +775,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
 
     for needle in [
         "buck2 build //:repo-hygiene-automation-check",
+        PROWJOB_REGISTRY_COMMAND,
         STALE_DOC_INVENTORY_COMMAND,
         STALE_DOC_INVENTORY_TEST_COMMAND,
     ] {
