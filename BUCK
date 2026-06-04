@@ -328,6 +328,29 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+# P00 oya-ci desired ProwJob registry seed. Lane-owned JSON shards are the
+# source of truth; the checked-in aggregate is generated and verified by this
+# Rust/Buck2 target so parallel lanes stop hand-editing one shared CI surface.
+genrule(
+    name = "oya-ci-prowjob-registry-check",
+    srcs = {
+        "scripts/ci/generate-oya-ci-prowjob-registry.rs": "scripts/ci/generate-oya-ci-prowjob-registry.rs",
+        "scripts/tests/oya_ci_prowjob_registry_check.rs": "scripts/tests/oya_ci_prowjob_registry_check.rs",
+        "specs/oya-ci-prowjob-registry.json": "specs/oya-ci-prowjob-registry.json",
+        "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
+        "specs/ci/prow-jobs/platform-governance.json": "specs/ci/prow-jobs/platform-governance.json",
+        "specs/ci/prow-jobs/platform-scm-ci-cd.json": "specs/ci/prow-jobs/platform-scm-ci-cd.json",
+        "specs/ci/prow-jobs/platform-release-conveyor.json": "specs/ci/prow-jobs/platform-release-conveyor.json",
+        "specs/generated/oya-ci-prowjob-registry.generated.yaml": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+    },
+    out = "oya-ci-prowjob-registry-check.json",
+    cmd = "mkdir -p $TMP/oya-ci-prowjob-registry && rustc --edition=2021 -D warnings scripts/tests/oya_ci_prowjob_registry_check.rs --test -o $TMP/oya-ci-prowjob-registry/oya_ci_prowjob_registry_check && OYA_REPO_ROOT=$PWD $TMP/oya-ci-prowjob-registry/oya_ci_prowjob_registry_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/generate-oya-ci-prowjob-registry.rs -o $TMP/oya-ci-prowjob-registry/generate-oya-ci-prowjob-registry && OYA_REPO_ROOT=$PWD $TMP/oya-ci-prowjob-registry/generate-oya-ci-prowjob-registry --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
 # P0.0 Buck2-authority parity fixture guard: mutation-style RED/GREEN checks
 # for upstream Prow parity rows, explicit upstream waivers, live-authority
 # boundaries, and root-hub discoverability. Fixture mode narrows broad
@@ -564,6 +587,12 @@ genrule(
         "reindeer.toml": "reindeer.toml",
         "scripts/ci/regen-third-party.sh": "scripts/ci/regen-third-party.sh",
         "scripts/ci/third-party-buckify-handedits.patch": "scripts/ci/third-party-buckify-handedits.patch",
+        "scripts/ci/generate-oya-ci-prowjob-registry.rs": "scripts/ci/generate-oya-ci-prowjob-registry.rs",
+        "specs/oya-ci-prowjob-registry.json": "specs/oya-ci-prowjob-registry.json",
+        "specs/ci/prow-jobs/platform-governance.json": "specs/ci/prow-jobs/platform-governance.json",
+        "specs/ci/prow-jobs/platform-scm-ci-cd.json": "specs/ci/prow-jobs/platform-scm-ci-cd.json",
+        "specs/ci/prow-jobs/platform-release-conveyor.json": "specs/ci/prow-jobs/platform-release-conveyor.json",
+        "specs/generated/oya-ci-prowjob-registry.generated.yaml": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
         "third-party/BUCK": "third-party//:BUCK",
     } | {path: path for path in glob(["specs/fixtures/phase0-merge-conflict-foundation/*.json", "third-party/fixups/**/*.toml"])},
     out = "phase0-merge-conflict-foundation-check.json",

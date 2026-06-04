@@ -1,0 +1,56 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/oya-ci-prowjob-shard.schema.json",
+  "$id": "https://docs.oyatie.com/specs/ci/prow-jobs/platform-governance.json",
+  "shard_id": "platform-governance",
+  "owner_team": "platform-governance",
+  "lane_family": "governance",
+  "editable_surface": "specs/ci/prow-jobs/platform-governance.json",
+  "live_authority_claimed": false,
+  "jobs": [
+    {
+      "id": "oyatie-presubmit-governance",
+      "prow_job_kind": "presubmit",
+      "context": "oya-ci/governance",
+      "required": true,
+      "controller_owned": true,
+      "execution_trust": "untrusted_pr_code_in_sandboxed_k8s_job",
+      "buck2_commands": [
+        "buck2 build //:repo-hygiene-automation-check",
+        "buck2 build //:third-party-durable-handedits-check",
+        "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
+        "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+      ],
+      "source_prow_capability_ids": [
+        "prow-presubmit-jobs",
+        "prow-prowjob-api-and-config",
+        "prow-trusted-untrusted-execution",
+        "prow-config-validation"
+      ],
+      "anti_patterns_rejected": [
+        "candidate_owned_manual_status_or_merge_truth",
+        "new_python_or_shell_gate_sprawl"
+      ]
+    },
+    {
+      "id": "oyatie-periodic-doc-staleness",
+      "prow_job_kind": "periodic",
+      "context": "oya-ci/periodic-doc-staleness",
+      "required": false,
+      "controller_owned": true,
+      "execution_trust": "trusted_controller_periodic_k8s_job",
+      "buck2_commands": [
+        "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
+        "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+      ],
+      "source_prow_capability_ids": [
+        "prow-periodic-jobs",
+        "prow-horologium-periodic-trigger",
+        "prow-config-validation"
+      ],
+      "anti_patterns_rejected": [
+        "single_hand_edited_workflow_bottleneck",
+        "new_python_or_shell_gate_sprawl"
+      ]
+    }
+  ]
+}

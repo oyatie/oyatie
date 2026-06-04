@@ -116,7 +116,10 @@
       "parity_scope": "equivalent_reimplementation",
       "repo_artifacts": [
         "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
-        "specs/bespoke-cloud-toolchain-services.json"
+        "scripts/ci/generate-oya-ci-prowjob-registry.rs",
+        "specs/bespoke-cloud-toolchain-services.json",
+        "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+        "specs/oya-ci-prowjob-registry.json"
       ],
       "improvements_over_upstream": [
         "Buck2 target and required context are typed policy inputs",
@@ -136,6 +139,8 @@
       "repo_artifacts": [
         "infra/ci/buck2-affected-gate.sh",
         "oya/ci-controller/crates/oya-ci-controller-app/src/lib.rs",
+        "specs/ci/prow-jobs/platform-governance.json",
+        "specs/ci/prow-jobs/platform-scm-ci-cd.json",
         "specs/phase0-ci-enforcement-baseline.json"
       ],
       "improvements_over_upstream": [
@@ -155,7 +160,8 @@
       "parity_scope": "equivalent_reimplementation",
       "repo_artifacts": [
         "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
-        "specs/bespoke-cloud-toolchain-services.json"
+        "specs/bespoke-cloud-toolchain-services.json",
+        "specs/ci/prow-jobs/platform-release-conveyor.json"
       ],
       "improvements_over_upstream": [
         "same Rust job state machine as presubmits",
@@ -173,7 +179,8 @@
       "current_status": "phase3_target",
       "parity_scope": "equivalent_reimplementation",
       "repo_artifacts": [
-        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+        "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "specs/ci/prow-jobs/platform-governance.json"
       ],
       "improvements_over_upstream": [
         "horologium-equivalent schedule can reuse typed policy registry",
@@ -192,6 +199,7 @@
       "parity_scope": "direct_reimplementation",
       "repo_artifacts": [
         "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
+        "specs/ci/prow-jobs/platform-scm-ci-cd.json",
         "specs/phase0-auto-merge-after-ci.json"
       ],
       "improvements_over_upstream": [
@@ -231,7 +239,9 @@
       "parity_scope": "equivalent_reimplementation",
       "repo_artifacts": [
         "oya/ci-controller/crates/oya-ci-controller-forgejo-adapter/src/lib.rs",
-        "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter/src/lib.rs"
+        "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter/src/lib.rs",
+        "scripts/ci/generate-oya-ci-prowjob-registry.rs",
+        "specs/oya-ci-prowjob-registry.json"
       ],
       "improvements_over_upstream": [
         "source-bound required context",
@@ -445,7 +455,9 @@
       "repo_artifacts": [
         "//:buck2-authority-policy-check",
         "//:phase0-automation-ratchet-check",
-        "specs/buck2-authority-policy.json"
+        "scripts/ci/generate-oya-ci-prowjob-registry.rs",
+        "specs/buck2-authority-policy.json",
+        "specs/oya-ci-prowjob-registry.json"
       ],
       "improvements_over_upstream": [
         "policy-as-data under Buck2",
@@ -502,7 +514,9 @@
       "parity_scope": "improved_reimplementation",
       "repo_artifacts": [
         "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
-        "scripts/ci/assert-pr-required-context.rs"
+        "scripts/ci/assert-pr-required-context.rs",
+        "scripts/ci/generate-oya-ci-prowjob-registry.rs",
+        "specs/oya-ci-prowjob-registry.json"
       ],
       "improvements_over_upstream": [
         "terminal status always required",
@@ -649,7 +663,7 @@
       "upstream_component": "gerrit adapter",
       "upstream_source": "https://docs.prow.k8s.io/docs/components/",
       "disposition": "out_of_scope_for_native_scm",
-      "rationale": "Oyatie\u2019s SCM target is native Oyatie SCM with GitHub adapters, not Gerrit.",
+      "rationale": "Oyatie’s SCM target is native Oyatie SCM with GitHub adapters, not Gerrit.",
       "replacement_or_reason": "Native SCM/GitHub adapters are the required equivalent; Gerrit support is out of scope unless a future forge requirement adds it explicitly."
     },
     {

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/oya-ci-prowjob-shard.schema.json",
+  "$id": "https://docs.oyatie.com/specs/ci/prow-jobs/platform-release-conveyor.json",
+  "shard_id": "platform-release-conveyor",
+  "owner_team": "platform-release-conveyor",
+  "lane_family": "release_conveyor",
+  "editable_surface": "specs/ci/prow-jobs/platform-release-conveyor.json",
+  "live_authority_claimed": false,
+  "jobs": [
+    {
+      "id": "oyatie-postsubmit-release-ledger-dry-run",
+      "prow_job_kind": "postsubmit",
+      "context": "oya-ci/postsubmit-release-ledger-dry-run",
+      "required": false,
+      "controller_owned": true,
+      "execution_trust": "trusted_postsubmit_k8s_job",
+      "buck2_commands": [
+        "buck2 build //:github-lane-unlocker-bridge-check",
+        "buck2 build //:repo-hygiene-automation-check"
+      ],
+      "source_prow_capability_ids": [
+        "prow-postsubmit-jobs",
+        "prow-artifact-storage",
+        "prow-crier-status-reporting"
+      ],
+      "anti_patterns_rejected": [
+        "retired_external_substrate_bridge_authority",
+        "github_actions_as_durable_ci_authority"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/oya-ci-prowjob-registry.json",
+  "spec_id": "P00-OYA-CI-PROWJOB-REGISTRY",
+  "status": "p00_seed_generated_registry",
+  "updated_at": "2026-06-04T17:24:00Z",
+  "purpose": "Lane-owned desired ProwJob graph for Rust/Prow/Kubernetes-native oya-ci. This reduces shared CI workflow edits by making vertical lanes edit disjoint JSON shards and a Rust/Buck2 generator verify the checked-in aggregate output.",
+  "upstream_sources": [
+    "https://docs.prow.k8s.io/docs/jobs/",
+    "https://docs.prow.k8s.io/docs/components/core/tide/",
+    "https://docs.prow.k8s.io/docs/components/core/crier/",
+    "https://docs.prow.k8s.io/docs/components/pod-utilities/"
+  ],
+  "claim_boundary": {
+    "local_static_only": true,
+    "live_authority_claimed": false,
+    "live_kubernetes_mutated": false,
+    "full_prow_parity_claimed": false,
+    "github_actions_shadow_only": true,
+    "not_a_cluster_applied_manifest": true
+  },
+  "controller_owned_required_context": "oya-ci-required",
+  "shadow_context": "github-lane-unlocker-required",
+  "generated_output": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+  "generator": "scripts/ci/generate-oya-ci-prowjob-registry.rs",
+  "buck2_check": "buck2 build //:oya-ci-prowjob-registry-check",
+  "shared_surface_reduction": {
+    "source_of_truth": "registry_shards",
+    "generated_consolidation": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+    "vertical_lane_rule": "Each lane owns one shard under specs/ci/prow-jobs and must not hand-edit the generated aggregate.",
+    "canonical_workflow_rule": "GitHub Actions remains shadow compatibility; durable oya-ci jobs come from this registry and native SCM/controller state."
+  },
+  "registry_shards": [
+    "specs/ci/prow-jobs/platform-governance.json",
+    "specs/ci/prow-jobs/platform-scm-ci-cd.json",
+    "specs/ci/prow-jobs/platform-release-conveyor.json"
+  ],
+  "required_job_kinds": [
+    "presubmit",
+    "postsubmit",
+    "periodic",
+    "batch"
+  ],
+  "required_capability_ids": [
+    "prow-prowjob-api-and-config",
+    "prow-presubmit-jobs",
+    "prow-postsubmit-jobs",
+    "prow-periodic-jobs",
+    "prow-batch-jobs",
+    "prow-crier-status-reporting",
+    "prow-status-reconciliation",
+    "prow-trusted-untrusted-execution",
+    "prow-config-validation"
+  ],
+  "anti_patterns_rejected": [
+    "candidate_owned_manual_status_or_merge_truth",
+    "single_hand_edited_workflow_bottleneck",
+    "retired_external_substrate_bridge_authority",
+    "blind_kubectl_delete_pods",
+    "new_python_or_shell_gate_sprawl",
+    "github_actions_as_durable_ci_authority",
+    "cargo_or_tarpaulin_as_monorepo_authority_over_buck2"
+  ]
+}

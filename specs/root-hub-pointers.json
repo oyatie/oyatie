@@ -1284,6 +1284,14 @@
       "migration_phase": "phase0-p0.0-buck2-authority",
       "purpose": "Enforceable upstream Kubernetes Prow feature/capability parity and improvement registry for the Rust, Oyatie SCM-native oya-ci reimplementation; records full target parity, explicit superseded/out-of-scope upstream components, and non-claim boundaries until trusted cloud-ci/oya-ci posts source-bound oya-ci-required."
     },
+    "oya_ci_prowjob_registry": {
+      "kind": "spec",
+      "current_path": "/specs/oya-ci-prowjob-registry.json",
+      "generated_projection": "/specs/generated/oya-ci-prowjob-registry.generated.yaml",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "P00-generated-registry-seed",
+      "purpose": "Lane-owned desired ProwJob graph for Rust/Prow/Kubernetes-native oya-ci. Vertical lanes edit disjoint specs/ci/prow-jobs shards; buck2 build //:oya-ci-prowjob-registry-check validates the generated aggregate and keeps shared CI surfaces mechanical."
+    },
     "github_lane_unlocker_bridge": {
       "kind": "spec",
       "current_path": "/specs/github-lane-unlocker-bridge.json",
@@ -1363,6 +1371,7 @@
     "buck2_authority_policy": "specs/buck2-authority-policy.json",
     "generated_artifact_registry": "specs/generated-artifact-registry.json",
     "oya_ci_prow_capability_parity": "specs/oya-ci-prow-capability-parity.json",
+    "oya_ci_prowjob_registry": "specs/oya-ci-prowjob-registry.json",
     "github_lane_unlocker_bridge": "specs/github-lane-unlocker-bridge.json",
     "repo_hygiene_automation": "specs/repo-hygiene-automation.json",
     "retired_external_substrate_registry": "specs/retired-external-substrate-registry.json"
