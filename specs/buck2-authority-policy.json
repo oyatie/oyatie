@@ -255,8 +255,8 @@
     "scripts/tests/phase0_override_kill_switch_check.rs",
     "scripts/ci/assert-trusted-target-inventory.py",
     "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
-    "scripts/ci/assert-result-bundle-output.py",
-    "scripts/tests/phase0_result_bundle_output_check.test.sh",
+    "scripts/ci/assert-result-bundle-output.rs",
+    "scripts/tests/phase0_result_bundle_output_check.rs",
     "scripts/ci/assert-phase0-aggregate-exit.rs",
     "scripts/tests/phase0_aggregate_exit_check.rs",
     "scripts/ci/assert-automation-ratchet.rs",
@@ -410,7 +410,7 @@
       "phase0-trusted-target-inventory-check",
       "phase0_trusted_target_inventory_check.test.sh",
       "phase0-result-bundle-output-check",
-      "phase0_result_bundle_output_check.test.sh",
+      "phase0_result_bundle_output_check.rs",
       "phase0-aggregate-exit-check",
       "phase0_aggregate_exit_check.rs",
       "assert-phase0-aggregate-exit.rs",
@@ -785,7 +785,7 @@
       "bad-red-fixture-missing-expected-trusted-target-violation.json",
       "phase0 trusted target-inventory fixture checks passed"
     ],
-    "scripts/ci/assert-result-bundle-output.py": [
+    "scripts/ci/assert-result-bundle-output.rs": [
       "structured result-bundle fixture evidence only",
       "status_mutation_performed",
       "protected_branch_authority_proven",
@@ -798,20 +798,20 @@
       "p0_0_green",
       "phase0_complete"
     ],
-    "scripts/tests/phase0_result_bundle_output_check.test.sh": [
-      "bad-schema-missing-producer.json",
-      "bad-schema-context-enum.json",
-      "bad-current-red-claims-green.json",
-      "bad-current-red-live-looking-producer.json",
-      "bad-current-red-empty-fixture-results.json",
-      "bad-false-green-boundary-not-exercised.json",
-      "bad-false-green-fixture-result-matches-red.json",
-      "bad-schema-sha-pattern.json",
-      "bad-current-red-extra-top-level-field.json",
-      "bad-current-red-invalid-sha.json",
-      "bad-current-red-empty-provenance-sources.json",
-      "bad-false-green-red-expected-nonempty-violations.json",
-      "phase0 result-bundle output fixture checks passed"
+    "scripts/tests/phase0_result_bundle_output_check.rs": [
+      "schema_missing_producer_fails_closed",
+      "schema_context_enum_drift_fails_closed",
+      "current_red_claims_green_fails_closed",
+      "current_red_live_looking_producer_fails_closed",
+      "current_red_empty_fixture_results_fails_closed",
+      "false_green_boundary_not_exercised_fails_closed",
+      "false_green_fixture_result_matches_red_fails_closed",
+      "schema_sha_pattern_missing_fails_closed",
+      "current_red_extra_top_level_field_fails_closed",
+      "current_red_invalid_sha_fails_closed",
+      "current_red_empty_provenance_sources_fails_closed",
+      "false_green_red_expected_nonempty_violations_fails_closed",
+      "matrix_and_coverage_preserve_result_bundle_contract"
     ],
     "scripts/ci/assert-automation-ratchet.rs": [
       "automation-ratchet local/static fixture evidence only",
