@@ -14,6 +14,7 @@ const RETIRED_SUBSTRATE_PATH: &str = "specs/retired-external-substrate-registry.
 const ROOT_HUB_PATH: &str = "specs/root-hub-pointers.json";
 const GITHUB_BRIDGE_PATH: &str = "specs/github-lane-unlocker-bridge.json";
 const CANONICAL_PRIMITIVES_PATH: &str = "specs/canonical-primitives.json";
+const AGENT_OPERATING_CONTRACT_PATH: &str = "specs/agent-operating-contract.json";
 const MASTERPLAN_PATH: &str = "specs/masterplan.json";
 const SEQUENCING_PATH: &str = "specs/master-plan-sequencing.json";
 const PLANNING_CLOSURE_CONTRACT_PATH: &str = "specs/planning-closure-contract.json";
@@ -230,6 +231,13 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "Local `oya verify`, local `oya gate`",
     "retired `oya gate` / `oya verify`",
     "the `oya git`, `oya vcs`, `oya gate`, and `oya verify` CLI surfaces",
+    "claim with oya vcs before edits",
+    "done and promote through oya vcs",
+    "oya vcs status",
+    "oya vcs verify evidence strings",
+    "oya-git",
+    "oya-vcs",
+    "oya-vcs-admission",
     "oya-dev-cli:oya -- gate validate planning-closure",
 ];
 
@@ -249,6 +257,13 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "Local `oya verify`, local `oya gate`",
     "retired `oya gate` / `oya verify`",
     "the `oya git`, `oya vcs`, `oya gate`, and `oya verify` CLI surfaces",
+    "claim with oya vcs before edits",
+    "done and promote through oya vcs",
+    "oya vcs status",
+    "oya vcs verify evidence strings",
+    "oya-git",
+    "oya-vcs",
+    "oya-vcs-admission",
 ];
 
 const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
@@ -261,6 +276,7 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
+    AGENT_OPERATING_CONTRACT_PATH,
     "docs/MASTERPLAN.md",
 ];
 
@@ -278,6 +294,7 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
     ROOT_HUB_PATH,
+    AGENT_OPERATING_CONTRACT_PATH,
     MASTERPLAN_PATH,
     SEQUENCING_PATH,
     "specs/cloud-toolchain-target.json",
@@ -721,6 +738,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let retired = read(root, RETIRED_SUBSTRATE_PATH, &mut failures);
     let root_hub = read(root, ROOT_HUB_PATH, &mut failures);
     let github_bridge = read(root, GITHUB_BRIDGE_PATH, &mut failures);
+    let agent_operating_contract = read(root, AGENT_OPERATING_CONTRACT_PATH, &mut failures);
     let masterplan = read(root, MASTERPLAN_PATH, &mut failures);
     let sequencing = read(root, SEQUENCING_PATH, &mut failures);
     let planning_contract = read(root, PLANNING_CLOSURE_CONTRACT_PATH, &mut failures);
@@ -893,6 +911,21 @@ pub fn evaluate(root: &Path) -> Evaluation {
             KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
             &mut failures,
             label,
+        );
+    }
+
+    for needle in [
+        "\"git\"",
+        "\"gh\"",
+        "\"buck2\"",
+        "Prow/Kubernetes-native oya-ci-required",
+        "Buck2/Prow PR evidence or explicit blocker",
+    ] {
+        require_contains(
+            &agent_operating_contract,
+            needle,
+            &mut failures,
+            AGENT_OPERATING_CONTRACT_PATH,
         );
     }
 

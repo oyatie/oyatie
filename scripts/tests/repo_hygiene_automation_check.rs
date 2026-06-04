@@ -297,6 +297,28 @@ fn active_doc_phrase_scanner_rejects_retired_oya_cli_list() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_retired_oya_vcs_projection_commands() {
+    let failures = gate::active_doc_phrase_failures(
+        "specs/agent-operating-contract.json",
+        r#"{"required_sequence":["claim with oya vcs before edits where project guidance requires it","done and promote through oya vcs when ready"],"observability_hooks":["oya vcs status","oya vcs verify evidence strings"],"sanctioned_primitives":["oya-git","oya-vcs","oya-vcs-admission"]}"#,
+    );
+    for expected in [
+        "claim with oya vcs before edits",
+        "done and promote through oya vcs",
+        "oya vcs status",
+        "oya vcs verify evidence strings",
+        "oya-git",
+        "oya-vcs",
+        "oya-vcs-admission",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn active_doc_phrase_scanner_is_case_insensitive() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",
