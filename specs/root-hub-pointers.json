@@ -18,7 +18,7 @@
     ],
     "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file.",
     "last_audited": "2026-06-04",
-    "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349.; ADR-0516 GitHub lane-unlocker pointer coverage.; repo hygiene automation + retired external substrate tombstone registry + GitHub publication adapter pointers."
+    "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349.; ADR-0516 GitHub lane-unlocker pointer coverage.; repo hygiene automation + retired external substrate tombstone registry + GitHub publication adapter pointers + P00/P01 security-hardening backlog validation crosswalk."
   },
   "entry_points": {
     "_retired_constitutional_authority": {
@@ -1310,7 +1310,7 @@
       "current_path": "/specs/repo-hygiene-automation.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "P00-imminent",
-      "purpose": "Automation contract for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene, native SCM GitHub adapters, and shared-surface reduction."
+      "purpose": "Automation contract for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene, native SCM GitHub adapters, shared-surface reduction, and validated P00/P01 security-hardening backlog crosswalk."
     },
     "retired_external_substrate_registry": {
       "kind": "spec",
