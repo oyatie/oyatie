@@ -90,8 +90,8 @@
     }
   ],
   "automated_chain": [
-    "scripts/ci/assert-status-enum-drift.py --registry specs/status-enum-registry.json --json",
-    "scripts/tests/status_enum_drift_check.test.sh",
+    "scripts/ci/assert-status-enum-drift.rs",
+    "scripts/tests/status_enum_drift_check.rs",
     "buck2 build //:status-enum-drift-check --show-output",
     "//:phase0-red-green-fixture-contract-check",
     "//:phase0-automation-ratchet-check",

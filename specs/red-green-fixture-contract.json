@@ -493,7 +493,7 @@
       "automation_matrix_row_id": "AC-0.2-status-enum-drift",
       "buck2_target": "//:status-enum-drift-check",
       "test_paths": [
-        "scripts/tests/status_enum_drift_check.test.sh"
+        "scripts/tests/status_enum_drift_check.rs"
       ],
       "green_markers": [
         {
@@ -503,13 +503,13 @@
       ],
       "red_markers": [
         {
-          "path": "scripts/tests/status_enum_drift_check.test.sh",
+          "path": "scripts/tests/status_enum_drift_check.rs",
           "contains": "invalid_status_enum_value"
         }
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-status-enum-drift.py",
+          "path": "scripts/ci/assert-status-enum-drift.rs",
           "contains": "full_manifest_prd_conformance_proven"
         }
       ]
