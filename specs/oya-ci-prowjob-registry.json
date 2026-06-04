@@ -3,8 +3,8 @@
   "$id": "https://docs.oyatie.com/specs/oya-ci-prowjob-registry.json",
   "spec_id": "P00-OYA-CI-PROWJOB-REGISTRY",
   "status": "p00_seed_generated_registry",
-  "updated_at": "2026-06-04T17:24:00Z",
-  "purpose": "Lane-owned desired ProwJob graph for Rust/Prow/Kubernetes-native oya-ci. This reduces shared CI workflow edits by making vertical lanes edit disjoint JSON shards and a Rust/Buck2 generator verify the checked-in aggregate output.",
+  "updated_at": "2026-06-04T18:25:00Z",
+  "purpose": "Lane-owned desired ProwJob graph and native controller config for Rust/Prow/Kubernetes-native oya-ci. This reduces shared CI workflow edits by making vertical lanes edit disjoint JSON shards and a Rust/Buck2 generator verify checked-in aggregate/controller outputs.",
   "upstream_sources": [
     "https://docs.prow.k8s.io/docs/jobs/",
     "https://docs.prow.k8s.io/docs/components/core/tide/",
@@ -22,11 +22,13 @@
   "controller_owned_required_context": "oya-ci-required",
   "shadow_context": "github-lane-unlocker-required",
   "generated_output": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+  "generated_controller_config": "specs/generated/oya-ci-controller-config.generated.yaml",
   "generator": "scripts/ci/generate-oya-ci-prowjob-registry.rs",
   "buck2_check": "buck2 build //:oya-ci-prowjob-registry-check",
   "shared_surface_reduction": {
     "source_of_truth": "registry_shards",
     "generated_consolidation": "specs/generated/oya-ci-prowjob-registry.generated.yaml",
+    "generated_controller_config": "specs/generated/oya-ci-controller-config.generated.yaml",
     "vertical_lane_rule": "Each lane owns one shard under specs/ci/prow-jobs and must not hand-edit the generated aggregate.",
     "canonical_workflow_rule": "GitHub Actions remains shadow compatibility; durable oya-ci jobs come from this registry and native SCM/controller state."
   },

@@ -1,0 +1,209 @@
+# @generated controller config by scripts/ci/generate-oya-ci-prowjob-registry.rs
+# Source of truth: specs/oya-ci-prowjob-registry.json + specs/ci/prow-jobs/*.json
+# Local/static desired controller config only; do not apply this file directly.
+apiVersion: oyatie.dev/v1alpha1
+kind: OyaCIControllerConfig
+metadata:
+  name: oya-ci-controller-config
+  annotations:
+    oyatie.dev/local-static-only: "true"
+    oyatie.dev/live-authority-claimed: "false"
+spec:
+  repository: "jason931225/oyatie"
+  sourceOfTruth:
+    registry: "specs/oya-ci-prowjob-registry.json"
+    generatedRegistry: "specs/generated/oya-ci-prowjob-registry.generated.yaml"
+    verticalLaneSurfaces:
+      - "specs/ci/prow-jobs/platform-governance.json"
+      - "specs/ci/prow-jobs/platform-release-conveyor.json"
+      - "specs/ci/prow-jobs/platform-scm-ci-cd.json"
+  publicationAdapters:
+    github:
+      temporary: true
+      shadowOnly: true
+      shadowContext: "github-lane-unlocker-required"
+      mergeAuthority: false
+  rollup:
+    requiredContext: "oya-ci-required"
+    owner: "trusted-controller"
+    candidateOwnedTruthAllowed: false
+  kubernetesSecurityDefaults:
+    workloadIdentityRequired: true
+    nodeMetadataAccess: "blocked"
+    staticCloudSecretsAllowed: false
+    automountServiceAccountToken: false
+    defaultDenyNetworkPolicy: true
+    serviceMeshMtls: "required-for-service-to-service"
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    seccompProfile: "RuntimeDefault"
+    runtimeClassRequiredForUntrusted: true
+    dropCapabilities:
+      - "ALL"
+  jobs:
+    - id: "oyatie-presubmit-governance"
+      prowJobKind: "presubmit"
+      context: "oya-ci/governance"
+      required: true
+      controllerOwned: true
+      securityProfile: "restricted-untrusted-pr"
+      serviceAccount: "oya-ci-untrusted-runner"
+      runtimeClassName: "sandboxed"
+      workloadIdentity: true
+      nodeMetadataAccess: "blocked"
+      automountServiceAccountToken: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      defaultDenyNetworkPolicy: true
+      dropCapabilities:
+        - "ALL"
+      shard: "platform-governance"
+      ownerTeam: "platform-governance"
+      laneFamily: "governance"
+      buck2Commands:
+        - "buck2 build //:repo-hygiene-automation-check"
+        - "buck2 build //:third-party-durable-handedits-check"
+        - "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests"
+        - "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+    - id: "oyatie-periodic-doc-staleness"
+      prowJobKind: "periodic"
+      context: "oya-ci/periodic-doc-staleness"
+      required: false
+      controllerOwned: true
+      securityProfile: "trusted-controller-job"
+      serviceAccount: "oya-ci-controller-runner"
+      runtimeClassName: "default"
+      workloadIdentity: true
+      nodeMetadataAccess: "blocked"
+      automountServiceAccountToken: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      defaultDenyNetworkPolicy: true
+      dropCapabilities:
+        - "ALL"
+      shard: "platform-governance"
+      ownerTeam: "platform-governance"
+      laneFamily: "governance"
+      buck2Commands:
+        - "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests"
+        - "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+    - id: "oyatie-presubmit-buck2-authority"
+      prowJobKind: "presubmit"
+      context: "oya-ci/buck2-authority"
+      required: true
+      controllerOwned: true
+      securityProfile: "restricted-untrusted-pr"
+      serviceAccount: "oya-ci-untrusted-runner"
+      runtimeClassName: "sandboxed"
+      workloadIdentity: true
+      nodeMetadataAccess: "blocked"
+      automountServiceAccountToken: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      defaultDenyNetworkPolicy: true
+      dropCapabilities:
+        - "ALL"
+      shard: "platform-scm-ci-cd"
+      ownerTeam: "platform-scm-ci-cd"
+      laneFamily: "scm_ci_cd"
+      buck2Commands:
+        - "buck2 build //:buck2-cargo-target-coverage-check"
+        - "buck2 build //:buck2-authority-policy-check"
+        - "buck2 build //:github-lane-unlocker-bridge-check"
+    - id: "oyatie-presubmit-rust-llvm-coverage"
+      prowJobKind: "presubmit"
+      context: "oya-ci/rust-llvm-coverage"
+      required: true
+      controllerOwned: true
+      securityProfile: "restricted-untrusted-pr"
+      serviceAccount: "oya-ci-untrusted-runner"
+      runtimeClassName: "sandboxed"
+      workloadIdentity: true
+      nodeMetadataAccess: "blocked"
+      automountServiceAccountToken: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      defaultDenyNetworkPolicy: true
+      dropCapabilities:
+        - "ALL"
+      shard: "platform-scm-ci-cd"
+      ownerTeam: "platform-scm-ci-cd"
+      laneFamily: "scm_ci_cd"
+      buck2Commands:
+        - "buck2 build //:rust-llvm-coverage-runner-contract-check"
+        - "buck2 build //:rust-llvm-coverage-smoke-check"
+    - id: "oyatie-presubmit-required-rollup"
+      prowJobKind: "presubmit"
+      context: "oya-ci-required"
+      required: true
+      controllerOwned: true
+      securityProfile: "trusted-controller-rollup"
+      serviceAccount: "oya-ci-controller-runner"
+      runtimeClassName: "default"
+      workloadIdentity: true
+      nodeMetadataAccess: "blocked"
+      automountServiceAccountToken: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      defaultDenyNetworkPolicy: true
+      dropCapabilities:
+        - "ALL"
+      shard: "platform-scm-ci-cd"
+      ownerTeam: "platform-scm-ci-cd"
+      laneFamily: "scm_ci_cd"
+      buck2Commands:
+        - "buck2 build //:oya-ci-prowjob-registry-check"
+        - "buck2 build //:github-lane-unlocker-bridge-check"
+        - "buck2 build //:repo-hygiene-automation-check"
+    - id: "oyatie-batch-merge-projection"
+      prowJobKind: "batch"
+      context: "oya-ci/batch-merge-projection"
+      required: false
+      controllerOwned: true
+      securityProfile: "trusted-controller-job"
+      serviceAccount: "oya-ci-controller-runner"
+      runtimeClassName: "default"
+      workloadIdentity: true
+      nodeMetadataAccess: "blocked"
+      automountServiceAccountToken: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      defaultDenyNetworkPolicy: true
+      dropCapabilities:
+        - "ALL"
+      shard: "platform-scm-ci-cd"
+      ownerTeam: "platform-scm-ci-cd"
+      laneFamily: "scm_ci_cd"
+      buck2Commands:
+        - "buck2 build //:phase0-auto-merge-after-ci-contract-check"
+        - "buck2 build //:phase0-merge-conflict-foundation-check"
+    - id: "oyatie-postsubmit-release-ledger-dry-run"
+      prowJobKind: "postsubmit"
+      context: "oya-ci/postsubmit-release-ledger-dry-run"
+      required: false
+      controllerOwned: true
+      securityProfile: "trusted-controller-job"
+      serviceAccount: "oya-ci-controller-runner"
+      runtimeClassName: "default"
+      workloadIdentity: true
+      nodeMetadataAccess: "blocked"
+      automountServiceAccountToken: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      defaultDenyNetworkPolicy: true
+      dropCapabilities:
+        - "ALL"
+      shard: "platform-release-conveyor"
+      ownerTeam: "platform-release-conveyor"
+      laneFamily: "release_conveyor"
+      buck2Commands:
+        - "buck2 build //:github-lane-unlocker-bridge-check"
+        - "buck2 build //:repo-hygiene-automation-check"
