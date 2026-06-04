@@ -522,7 +522,7 @@
       ]
     },
     "success_criteria": {
-      "local_contract_green": "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "local_contract_green": "buck2 build //:github-lane-unlocker-bridge-check",
       "buck2_targets_green": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
       "coverage_contract_green": "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
       "stale_reference_sweep": "active operating docs no longer present retired external SCM/CI/CD substrates as interim authorities",

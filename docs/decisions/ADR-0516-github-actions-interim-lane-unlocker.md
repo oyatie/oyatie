@@ -93,7 +93,7 @@ Anti-rework rule: name equivalent concepts early, but do not share code, schemas
 
 The local contract is enforced by:
 
-- `python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json`
+- `buck2 build //:github-lane-unlocker-bridge-check`
 - `buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check`
 - `buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check`
 

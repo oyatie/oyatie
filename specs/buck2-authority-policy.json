@@ -333,7 +333,8 @@
     "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-missing-self-mutation-test.json",
     "specs/fixtures/phase0-who-gates-gates/tc-0.11-bad-oya-cli-authority-route.json",
     ".github/workflows/github-lane-unlocker-ci-cd.yml",
-    "scripts/ci/assert-github-lane-unlocker-bridge.py",
+    "scripts/ci/assert-github-lane-unlocker-bridge.rs",
+    "scripts/tests/github_lane_unlocker_bridge_check.rs",
     "rust-toolchain.toml",
     "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
     "specs/github-lane-unlocker-bridge.json",
@@ -475,7 +476,7 @@
       "who-gates-gates-registry.json",
       "phase0-who-gates-gates",
       "github-lane-unlocker-bridge-check",
-      "assert-github-lane-unlocker-bridge.py",
+      "assert-github-lane-unlocker-bridge.rs",
       "github-lane-unlocker-bridge.json",
       "github-actions-lane-unlocker.md",
       "repo-hygiene-automation-check",
@@ -1425,12 +1426,12 @@
       "strategy:",
       "max-parallel: 4",
       "matrix:",
-      "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "buck2 build //:github-lane-unlocker-bridge-check",
       "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
       "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
       "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
     ],
-    "scripts/ci/assert-github-lane-unlocker-bridge.py": [
+    "scripts/ci/assert-github-lane-unlocker-bridge.rs": [
       "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
       "github-lane-unlocker-required",
       "best_of_existing_systems_not_wholesale_reimplementation",
@@ -1560,7 +1561,7 @@
       "max-parallel: 4",
       "matrix:",
       "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
-      "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+      "buck2 build //:github-lane-unlocker-bridge-check",
       "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
       "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
       "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
