@@ -35,6 +35,9 @@ const HR_STATUTORY_RULEPACK_SCHEMA_VERSION: u32 = 1;
 const LEAVE_BALANCE_LEDGER_SCHEMA_VERSION: u32 = 1;
 const LEAVE_CARRYOVER_FORFEITURE_SCHEMA_VERSION: u32 = 1;
 const ONBOARDING_READINESS_SCHEMA_VERSION: u32 = 1;
+const HR_BACKEND_PARITY_PROFILE_SCHEMA_VERSION: u32 = 1;
+const HR_BACKEND_PARITY_MAX_SOURCE_EVIDENCE_REFS: usize = 32;
+const HR_BACKEND_PARITY_MAX_EVIDENCE_REF_LEN: usize = 192;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct EmployeeId {
@@ -216,6 +219,60 @@ pub enum SensitiveReadLegalBasis {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum SensitiveReadDecisionStatus {
     Allowed,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum BackendParityClaimStatus {
+    ContractReady,
+    EvidenceOnly,
+    ExplicitNonclaim,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum HrBackendParityCapability {
+    WorkforceCore,
+    OrganizationJobPosition,
+    LifecycleOnboardingOffboarding,
+    TimeAttendanceAbsence,
+    BenefitsCompensation,
+    TalentPerformanceLearning,
+    LaborStatutoryCompliance,
+    SensitiveHrPrivacy,
+    AnalyticsWorkforcePlanning,
+    IntegrationEvents,
+    CloudKubernetesReadiness,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrBackendParityProfileInput {
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub profile_evidence_ref: String,      // data_class: INTERNAL_ONLY
+    pub source_evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrBackendParityCapabilityEvidence {
+    pub capability: Classified<HrBackendParityCapability>, // data_class: PUBLIC
+    pub claim_status: Classified<BackendParityClaimStatus>, // data_class: PUBLIC
+    pub evidence_refs: Classified<Vec<AuditEvidenceRef>>,  // data_class: INTERNAL_ONLY
+    pub tenant_scoped: Classified<bool>,                   // data_class: PUBLIC
+    pub data_class_declared: Classified<bool>,             // data_class: PUBLIC
+    pub idempotency_contract: Classified<bool>,            // data_class: PUBLIC
+    pub audit_evidence_required: Classified<bool>,         // data_class: PUBLIC
+    pub residency_scope_declared: Classified<bool>,        // data_class: PUBLIC
+    pub observability_contract: Classified<bool>,          // data_class: PUBLIC
+    pub kubernetes_native_contract_ready: Classified<bool>, // data_class: PUBLIC
+    pub production_runtime_claimed: Classified<bool>,      // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrBackendParityProfile {
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub profile_evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub source_evidence_refs: Classified<Vec<AuditEvidenceRef>>, // data_class: INTERNAL_ONLY
+    pub capabilities: Classified<Vec<HrBackendParityCapabilityEvidence>>, // data_class: INTERNAL_ONLY
+    pub nonclaims: Classified<Vec<String>>,                               // data_class: PUBLIC
+    pub schema_version: Classified<u32>,                                  // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -431,41 +488,41 @@ pub struct HrStatutoryRulepackManifest {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveBalanceAccrualInput {
-    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
-    pub legal_entity_id: String,              // data_class: INTERNAL_ONLY
-    pub employee_id: String,                  // data_class: INTERNAL_ONLY
-    pub payroll_period: String,               // data_class: FINANCIAL
-    pub prior_accrued_units: f64,             // data_class: FINANCIAL
-    pub accrual_units: f64,                   // data_class: FINANCIAL
-    pub deduction_units: f64,                 // data_class: FINANCIAL
-    pub carry_over_cap_units: f64,            // data_class: FINANCIAL
-    pub rulepack_ref: String,                 // data_class: INTERNAL_ONLY
-    pub rulepack_effective_date: String,      // data_class: INTERNAL_ONLY
-    pub accrual_evidence_ref: String,         // data_class: INTERNAL_ONLY
-    pub deduction_evidence_ref: String,       // data_class: INTERNAL_ONLY
-    pub decided_at_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,         // data_class: INTERNAL_ONLY
+    pub employee_id: String,             // data_class: INTERNAL_ONLY
+    pub payroll_period: String,          // data_class: FINANCIAL
+    pub prior_accrued_units: f64,        // data_class: FINANCIAL
+    pub accrual_units: f64,              // data_class: FINANCIAL
+    pub deduction_units: f64,            // data_class: FINANCIAL
+    pub carry_over_cap_units: f64,       // data_class: FINANCIAL
+    pub rulepack_ref: String,            // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: String, // data_class: INTERNAL_ONLY
+    pub accrual_evidence_ref: String,    // data_class: INTERNAL_ONLY
+    pub deduction_evidence_ref: String,  // data_class: INTERNAL_ONLY
+    pub decided_at_epoch_seconds: u64,   // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveBalanceLedgerProjection {
-    pub tenant_id: Classified<TenantId>,                             // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                  // data_class: INTERNAL_ONLY
-    pub employee_id: Classified<EmployeeId>,                         // data_class: INTERNAL_ONLY
-    pub payroll_period: Classified<String>,                          // data_class: FINANCIAL
-    pub prior_accrued_units: Classified<f64>,                        // data_class: FINANCIAL
-    pub accrual_units: Classified<f64>,                              // data_class: FINANCIAL
-    pub deduction_units: Classified<f64>,                            // data_class: FINANCIAL
-    pub resulting_balance_units: Classified<f64>,                    // data_class: FINANCIAL
-    pub carried_over_units: Classified<f64>,                         // data_class: FINANCIAL
-    pub forfeited_units: Classified<f64>,                            // data_class: FINANCIAL
-    pub carry_over_cap_units: Classified<f64>,                       // data_class: FINANCIAL
-    pub rulepack_ref: Classified<RulepackRef>,                       // data_class: INTERNAL_ONLY
-    pub rulepack_effective_date: Classified<RulepackEffectiveDate>,  // data_class: INTERNAL_ONLY
-    pub accrual_evidence_ref: Classified<AuditEvidenceRef>,          // data_class: INTERNAL_ONLY
-    pub deduction_evidence_ref: Classified<AuditEvidenceRef>,        // data_class: INTERNAL_ONLY
-    pub idempotency_key: Classified<String>,                         // data_class: INTERNAL_ONLY
-    pub decided_at_epoch_seconds: Classified<u64>,                   // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                             // data_class: PUBLIC
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub payroll_period: Classified<String>, // data_class: FINANCIAL
+    pub prior_accrued_units: Classified<f64>, // data_class: FINANCIAL
+    pub accrual_units: Classified<f64>,  // data_class: FINANCIAL
+    pub deduction_units: Classified<f64>, // data_class: FINANCIAL
+    pub resulting_balance_units: Classified<f64>, // data_class: FINANCIAL
+    pub carried_over_units: Classified<f64>, // data_class: FINANCIAL
+    pub forfeited_units: Classified<f64>, // data_class: FINANCIAL
+    pub carry_over_cap_units: Classified<f64>, // data_class: FINANCIAL
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
+    pub accrual_evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub deduction_evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub decided_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 /// Input to the leave carry-over / forfeiture period-boundary evaluator.
@@ -490,21 +547,21 @@ pub struct LeaveCarryoverForfeitureInput {
 /// Projection produced by `evaluate_leave_carryover_forfeiture`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveCarryoverForfeitureProjection {
-    pub tenant_id: Classified<TenantId>,                           // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                // data_class: INTERNAL_ONLY
-    pub employee_id: Classified<EmployeeId>,                       // data_class: INTERNAL_ONLY
-    pub period_boundary_date: Classified<String>,                  // data_class: INTERNAL_ONLY
-    pub closing_balance_units: Classified<f64>,                    // data_class: FINANCIAL
-    pub statutory_min_floor_units: Classified<f64>,                // data_class: FINANCIAL
-    pub carry_over_cap_units: Classified<f64>,                     // data_class: FINANCIAL
-    pub carried_over_units: Classified<f64>,                       // data_class: FINANCIAL
-    pub forfeited_units: Classified<f64>,                          // data_class: FINANCIAL
-    pub rulepack_ref: Classified<RulepackRef>,                     // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub period_boundary_date: Classified<String>, // data_class: INTERNAL_ONLY
+    pub closing_balance_units: Classified<f64>, // data_class: FINANCIAL
+    pub statutory_min_floor_units: Classified<f64>, // data_class: FINANCIAL
+    pub carry_over_cap_units: Classified<f64>, // data_class: FINANCIAL
+    pub carried_over_units: Classified<f64>, // data_class: FINANCIAL
+    pub forfeited_units: Classified<f64>, // data_class: FINANCIAL
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
     pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
-    pub evidence_ref: Classified<AuditEvidenceRef>,                // data_class: INTERNAL_ONLY
-    pub idempotency_key: Classified<String>,                       // data_class: INTERNAL_ONLY
-    pub evaluated_at_epoch_seconds: Classified<u64>,               // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                           // data_class: PUBLIC
+    pub evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub evaluated_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -546,6 +603,48 @@ pub enum HrDomainError {
     DuplicateOnboardingItem,
     OnboardingItemNotCleared,
     CarryOverCapBelowFloor,
+}
+
+/// Builds a preview backend parity coverage profile for HR/HCM contracts.
+///
+/// This is contract metadata only. It intentionally does not claim production
+/// runtime, statutory certification, provider integration, or cloud deployment.
+pub fn build_hr_backend_parity_profile(
+    input: HrBackendParityProfileInput,
+) -> Result<HrBackendParityProfile, HrDomainError> {
+    validate_identifier(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        HrDomainError::InvalidTenantId,
+    )?;
+    validate_evidence_ref(&input.profile_evidence_ref)?;
+    let source_evidence_refs =
+        collect_hr_backend_parity_source_evidence_refs(input.source_evidence_refs)?;
+
+    let capabilities = HR_BACKEND_PARITY_CAPABILITIES
+        .iter()
+        .copied()
+        .map(|capability| hr_backend_parity_capability(capability, &source_evidence_refs))
+        .collect::<Result<Vec<_>, HrDomainError>>()?;
+
+    Ok(HrBackendParityProfile {
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        profile_evidence_ref: internal(AuditEvidenceRef {
+            value: input.profile_evidence_ref,
+        }),
+        source_evidence_refs: internal(source_evidence_refs),
+        capabilities: internal(capabilities),
+        nonclaims: public(vec![
+            "preview backend parity coverage contracts only; no operational or certified HCM parity".to_owned(),
+            "no live provider integrations".to_owned(),
+            "no payroll calculation runtime or statutory filing rail".to_owned(),
+            "no shared cloud/Kubernetes deployment substrate".to_owned(),
+            "no UI/mobile employee self-service runtime".to_owned(),
+        ]),
+        schema_version: public(HR_BACKEND_PARITY_PROFILE_SCHEMA_VERSION),
+    })
 }
 
 /// Pure period-boundary evaluator that splits a closing leave balance into
@@ -608,8 +707,9 @@ pub fn evaluate_leave_carryover_forfeiture(
         return Err(HrDomainError::CarryOverCapBelowFloor);
     }
 
-    let carried_over_units =
-        input.closing_balance_units.clamp(input.statutory_min_floor_units, input.carry_over_cap_units);
+    let carried_over_units = input
+        .closing_balance_units
+        .clamp(input.statutory_min_floor_units, input.carry_over_cap_units);
     let forfeited_units = (input.closing_balance_units - input.carry_over_cap_units).max(0.0);
 
     let idempotency_key = format!(
@@ -629,7 +729,10 @@ pub fn evaluate_leave_carryover_forfeiture(
         }),
         period_boundary_date: internal(input.period_boundary_date),
         closing_balance_units: Classified::new(input.closing_balance_units, DataClass::Financial),
-        statutory_min_floor_units: Classified::new(input.statutory_min_floor_units, DataClass::Financial),
+        statutory_min_floor_units: Classified::new(
+            input.statutory_min_floor_units,
+            DataClass::Financial,
+        ),
         carry_over_cap_units: Classified::new(input.carry_over_cap_units, DataClass::Financial),
         carried_over_units: Classified::new(carried_over_units, DataClass::Financial),
         forfeited_units: Classified::new(forfeited_units, DataClass::Financial),
@@ -665,10 +768,10 @@ pub enum OnboardingChecklistItemKind {
 /// A single item on the onboarding checklist.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OnboardingChecklistItem {
-    pub kind: OnboardingChecklistItemKind,       // data_class: INTERNAL_ONLY
-    pub is_mandatory: bool,                      // data_class: INTERNAL_ONLY
-    pub is_cleared: bool,                        // data_class: INTERNAL_ONLY
-    pub evidence_ref: Option<AuditEvidenceRef>,  // data_class: INTERNAL_ONLY
+    pub kind: OnboardingChecklistItemKind, // data_class: INTERNAL_ONLY
+    pub is_mandatory: bool,                // data_class: INTERNAL_ONLY
+    pub is_cleared: bool,                  // data_class: INTERNAL_ONLY
+    pub evidence_ref: Option<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
 }
 
 /// Input to the onboarding readiness evaluator.
@@ -691,12 +794,12 @@ pub enum OnboardingDecision {
 /// Decision output from `evaluate_onboarding_readiness`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OnboardingReadinessDecision {
-    pub employee_id: Classified<EmployeeId>,                              // data_class: INTERNAL_ONLY
-    pub tenant_id: Classified<TenantId>,                                  // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                       // data_class: INTERNAL_ONLY
-    pub decision: Classified<OnboardingDecision>,                         // data_class: INTERNAL_ONLY
-    pub outstanding_items: Classified<Vec<OnboardingChecklistItemKind>>,  // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                                  // data_class: PUBLIC
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,     // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub decision: Classified<OnboardingDecision>, // data_class: INTERNAL_ONLY
+    pub outstanding_items: Classified<Vec<OnboardingChecklistItemKind>>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,                                 // data_class: PUBLIC
 }
 
 /// Pure evaluator: validates identifiers, rejects empty/duplicate checklists,
@@ -785,8 +888,7 @@ pub fn evaluate_onboarding_readiness(
         }
     }
 
-    let mut outstanding: Vec<OnboardingChecklistItemKind> =
-        outstanding_set.into_iter().collect();
+    let mut outstanding: Vec<OnboardingChecklistItemKind> = outstanding_set.into_iter().collect();
     outstanding.sort();
 
     let decision = if outstanding.is_empty() {
@@ -1376,6 +1478,107 @@ fn build_obligation(
         idempotency_key: internal(idempotency_key),
         evaluated_at_epoch_seconds: internal(snapshot.evaluated_at_epoch_seconds),
         schema_version: public(LABOR_OBLIGATION_SCHEMA_VERSION),
+    }
+}
+
+const HR_BACKEND_PARITY_CAPABILITIES: &[HrBackendParityCapability] = &[
+    HrBackendParityCapability::WorkforceCore,
+    HrBackendParityCapability::OrganizationJobPosition,
+    HrBackendParityCapability::LifecycleOnboardingOffboarding,
+    HrBackendParityCapability::TimeAttendanceAbsence,
+    HrBackendParityCapability::BenefitsCompensation,
+    HrBackendParityCapability::TalentPerformanceLearning,
+    HrBackendParityCapability::LaborStatutoryCompliance,
+    HrBackendParityCapability::SensitiveHrPrivacy,
+    HrBackendParityCapability::AnalyticsWorkforcePlanning,
+    HrBackendParityCapability::IntegrationEvents,
+    HrBackendParityCapability::CloudKubernetesReadiness,
+];
+
+fn hr_backend_parity_capability(
+    capability: HrBackendParityCapability,
+    source_evidence_refs: &[AuditEvidenceRef],
+) -> Result<HrBackendParityCapabilityEvidence, HrDomainError> {
+    let kubernetes_native_contract_ready =
+        capability == HrBackendParityCapability::CloudKubernetesReadiness;
+    let evidence_refs =
+        hr_backend_parity_capability_evidence_refs(capability, source_evidence_refs)?;
+    Ok(HrBackendParityCapabilityEvidence {
+        capability: public(capability),
+        claim_status: public(BackendParityClaimStatus::ContractReady),
+        evidence_refs: internal(evidence_refs),
+        tenant_scoped: public(true),
+        data_class_declared: public(true),
+        idempotency_contract: public(true),
+        audit_evidence_required: public(true),
+        residency_scope_declared: public(true),
+        observability_contract: public(true),
+        kubernetes_native_contract_ready: public(kubernetes_native_contract_ready),
+        production_runtime_claimed: public(false),
+    })
+}
+
+fn collect_hr_backend_parity_source_evidence_refs(
+    source_evidence_refs: Vec<String>,
+) -> Result<Vec<AuditEvidenceRef>, HrDomainError> {
+    if source_evidence_refs.is_empty()
+        || source_evidence_refs.len() > HR_BACKEND_PARITY_MAX_SOURCE_EVIDENCE_REFS
+    {
+        return Err(HrDomainError::RulepackSourcesRequired);
+    }
+
+    let mut deduped = Vec::new();
+    for evidence_ref in source_evidence_refs {
+        validate_evidence_ref(&evidence_ref)?;
+        if evidence_ref.len() > HR_BACKEND_PARITY_MAX_EVIDENCE_REF_LEN {
+            return Err(HrDomainError::InvalidAuditEvidenceRef);
+        }
+        if !deduped
+            .iter()
+            .any(|existing: &AuditEvidenceRef| existing.value == evidence_ref)
+        {
+            deduped.push(AuditEvidenceRef {
+                value: evidence_ref,
+            });
+        }
+    }
+    if deduped.is_empty() {
+        return Err(HrDomainError::RulepackSourcesRequired);
+    }
+    Ok(deduped)
+}
+
+fn hr_backend_parity_capability_evidence_refs(
+    capability: HrBackendParityCapability,
+    source_evidence_refs: &[AuditEvidenceRef],
+) -> Result<Vec<AuditEvidenceRef>, HrDomainError> {
+    let slug = hr_backend_parity_capability_slug(capability);
+    let evidence_refs = source_evidence_refs
+        .iter()
+        .filter(|evidence_ref| evidence_ref.value.split('/').any(|segment| segment == slug))
+        .cloned()
+        .collect::<Vec<_>>();
+    if evidence_refs.is_empty() {
+        return Err(HrDomainError::RulepackSourcesRequired);
+    }
+    Ok(evidence_refs)
+}
+
+fn hr_backend_parity_capability_slug(capability: HrBackendParityCapability) -> &'static str {
+    match capability {
+        HrBackendParityCapability::WorkforceCore => "workforce-core",
+        HrBackendParityCapability::OrganizationJobPosition => "organization-job-position",
+        HrBackendParityCapability::LifecycleOnboardingOffboarding => {
+            "lifecycle-onboarding-offboarding"
+        }
+        HrBackendParityCapability::TimeAttendanceAbsence => "time-attendance-absence",
+        HrBackendParityCapability::BenefitsCompensation => "benefits-compensation",
+        HrBackendParityCapability::TalentPerformanceLearning => "talent-performance-learning",
+        HrBackendParityCapability::LaborStatutoryCompliance => "labor-statutory-compliance",
+        HrBackendParityCapability::SensitiveHrPrivacy => "sensitive-hr-privacy",
+        HrBackendParityCapability::AnalyticsWorkforcePlanning => "analytics-workforce-planning",
+        HrBackendParityCapability::IntegrationEvents => "integration-events",
+        HrBackendParityCapability::CloudKubernetesReadiness => "cloud-kubernetes-readiness",
     }
 }
 

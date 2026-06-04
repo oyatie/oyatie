@@ -11,3 +11,15 @@ rust_library(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "backend-parity-tests",
+    srcs = glob(["tests/backend_parity.rs"]),
+    crate = "oya_hr_employment_api_backend_parity_tests",
+    crate_root = "tests/backend_parity.rs",
+    deps = [
+        "//oya/hr/crates/oya-hr-employment-api:oya-hr-employment-api",
+        "//oya/hr/crates/oya-hr-employment-domain:oya-hr-employment-domain",
+        "third-party//:serde_json",
+    ],
+)

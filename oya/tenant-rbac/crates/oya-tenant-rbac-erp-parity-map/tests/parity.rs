@@ -47,7 +47,7 @@ fn hcm_and_financial_rows_reference_landed_foundations_without_cloud_claim() {
     }
     assert_eq!(
         hcm.status,
-        "hr-payroll-foundations-landed-with-runtime-storage-and-statutory-source-nonclaims"
+        "hr-payroll-preview-backend-parity-coverage-contracts-with-runtime-storage-and-statutory-source-nonclaims"
     );
     for evidence_ref in [
         "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json",
@@ -391,5 +391,59 @@ fn validation_rejects_erp_platform_destination() {
             sap_code: SapModuleCode::Fi,
             destination: "microservices/erp",
         }
+    );
+}
+
+#[test]
+fn hcm_row_references_backend_parity_profiles_and_cloud_native_readiness_without_claims() {
+    let rows = tenant_rbac_erp_parity_map();
+    let hcm = rows
+        .iter()
+        .find(|row| row.sap_code == SapModuleCode::Hcm)
+        .expect("HCM row");
+
+    assert!(
+        hcm.oyatie_destinations
+            .contains(&"oya/hr/crates/oya-hr-employment-domain")
+    );
+    assert!(
+        hcm.oyatie_destinations
+            .contains(&"oya/payroll/crates/oya-payroll-run-domain")
+    );
+    assert!(!hcm.cloud_integration_ready);
+    assert!(!hcm.production_runtime_claimed);
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/hr/crates/oya-hr-employment-domain:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/hr/crates/oya-hr-employment-app:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/hr/crates/oya-hr-employment-api:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/payroll/crates/oya-payroll-run-domain:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/payroll/crates/oya-payroll-run-app:backend-parity-tests")
+    );
+    assert!(
+        hcm.evidence_refs
+            .contains(&"root//oya/payroll/crates/oya-payroll-run-api:backend-parity-tests")
+    );
+    assert!(
+        !hcm.evidence_refs
+            .iter()
+            .any(|evidence| evidence.contains("tests/backend_parity.rs::"))
+    );
+    assert!(
+        !hcm.evidence_refs.iter().any(|evidence| evidence.contains(
+            "tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/tests/parity.rs::hcm_row"
+        ))
     );
 }
