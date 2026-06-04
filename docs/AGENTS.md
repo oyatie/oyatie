@@ -59,7 +59,7 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
 
-Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md), and [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md) as active operating-contract doctrine until superseded by a newer ADR. ADR-0349 is historical CI/CD provenance; ADR-0516 is now a GitHub compatibility/shadow bridge record; active CI authority is ADR-0513 plus `/specs/oya-ci-prow-capability-parity.json`.
+Every agent MUST treat ADR-0346, ADR-0347, and ADR-0348 as active operating-contract doctrine until superseded by a newer ADR. Exact decision filenames are provenance and remain discoverable through the decision index. ADR-0349 is historical CI/CD provenance; ADR-0516 is now a GitHub compatibility/shadow bridge record; active CI authority is ADR-0513 plus `/specs/oya-ci-prow-capability-parity.json`.
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
@@ -222,7 +222,8 @@ required_sequence:
   - automated oya-ci-required Prow/Kubernetes-native context + Buck2 evidence + reviewer APPROVE gate merge readiness
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
-  adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
+  policy_registry: specs/retired-external-substrate-registry.json
+  historical_decision: ADR-0363
 <!-- agent-instructions:end -->
 
 ## PR shape
