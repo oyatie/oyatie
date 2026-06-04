@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # bring-up.sh — one command from a bare vfkit Talos cluster to the local Oyatie
-# substrate: Cilium (CNI) -> local-path (storage) -> Forgejo (SCM) -> Jenkins (CI).
+# substrate: Cilium (CNI) -> local-path (storage) -> Forgejo (historical local SCM).
+# GitHub/GitHub Actions is the temporary SCM/CI lane unlocker per ADR-0516; this
+# helper no longer installs retired external CI controllers.
 #
 # Prereq: `infra/talos/local/talos-local.sh up --role single` has produced a
 # kubeconfig at ${OYA_TALOS_WORKDIR:-$HOME/.oya/talos-local}/kubeconfig.
@@ -80,32 +82,18 @@ forgejo() {
   ok "Forgejo: svc forgejo.oya-forge:3000"
 }
 
-# ── 4. Jenkins (CI) ───────────────────────────────────────────────────────────
-jenkins() {
-  log "Jenkins (CI controller, JCasC)"
-  helm repo add jenkins https://charts.jenkins.io >/dev/null 2>&1 || true
-  helm repo update jenkins >/dev/null 2>&1 || true
-  kubectl create namespace oya-ci-jenkins >/dev/null 2>&1 || true
-  helm upgrade --install oya-jenkins jenkins/jenkins -n oya-ci-jenkins \
-    --values "$REPO/infra/ci/jenkins/values-local.yaml" --timeout 8m >/dev/null
-  kubectl rollout status statefulset/oya-jenkins -n oya-ci-jenkins --timeout=300s
-  ok "Jenkins: svc oya-jenkins.oya-ci-jenkins:8080"
-}
-
 # ── access summary + remaining (human-auth) wiring ────────────────────────────
 summary() {
-  log "Local Oyatie substrate is up. Reach the UIs from the host:"
+  log "Local Oyatie substrate is up. Reach the remaining local UI from the host:"
   printf '  kubectl --kubeconfig %s -n oya-forge port-forward svc/forgejo 3000:3000\n' "$KUBECONFIG"
-  printf '  kubectl --kubeconfig %s -n oya-ci-jenkins port-forward svc/oya-jenkins 8080:8080\n' "$KUBECONFIG"
-  printf '  Jenkins admin password: kubectl -n oya-ci-jenkins exec -it svc/oya-jenkins -c jenkins -- cat /run/secrets/additional/chart-admin-password\n'
-  warn "Forgejo<->Jenkins wiring (token + webhook) is operator-authored — see microservices/ci-webhook-gateway/SETUP-RUNBOOK.md"
+  warn "CI/CD is not bootstrapped here: use the temporary GitHub lane unlocker until native oya-ci/release-conveyor manifests are ready."
 }
 
 main() {
   case "${1:-all}" in
-    cni) cni;; storage) storage;; forgejo) forgejo;; jenkins) jenkins;; summary) summary;;
-    all) cni; storage; forgejo; jenkins; summary;;
-    *) die "usage: $0 [all|cni|storage|forgejo|jenkins|summary]";;
+    cni) cni;; storage) storage;; forgejo) forgejo;; summary) summary;;
+    all) cni; storage; forgejo; summary;;
+    *) die "usage: $0 [all|cni|storage|forgejo|summary]";;
   esac
 }
 main "$@"

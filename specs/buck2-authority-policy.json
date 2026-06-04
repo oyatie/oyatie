@@ -6,17 +6,17 @@
     "doc_class": "Machine-Readable-Spec",
     "official_references": [
       {
-        "name": "Cargo Book \u2014 Profiles",
+        "name": "Cargo Book — Profiles",
         "url": "https://doc.rust-lang.org/stable/cargo/reference/profiles.html",
         "used_for": "Release profile knobs and custom profile selection for the narrow production release optimization exception."
       },
       {
-        "name": "rustc Book \u2014 Codegen Options",
+        "name": "rustc Book — Codegen Options",
         "url": "https://doc.rust-lang.org/stable/rustc/codegen-options/",
         "used_for": "opt-level, LTO, codegen-units, panic strategy, split debuginfo, strip, and related release codegen behavior."
       },
       {
-        "name": "rustc Book \u2014 Profile-guided Optimization",
+        "name": "rustc Book — Profile-guided Optimization",
         "url": "https://doc.rust-lang.org/stable/rustc/profile-guided-optimization.html",
         "used_for": "PGO measurement workflow boundaries for the narrow production release optimization exception."
       },
@@ -26,22 +26,22 @@
         "used_for": "Allocator replacement safety constraints and measurement caveats."
       },
       {
-        "name": "Rust Reference \u2014 global_allocator",
+        "name": "Rust Reference — global_allocator",
         "url": "https://doc.rust-lang.org/reference/runtime.html#the-global_allocator-attribute",
         "used_for": "Crate-graph singleton rule and placement for the global allocator attribute."
       },
       {
-        "name": "Buck2 docs \u2014 build command",
+        "name": "Buck2 docs — build command",
         "url": "https://buck2.build/docs/users/commands/build/",
         "used_for": "Buck2 build command authority for build lanes."
       },
       {
-        "name": "Buck2 docs \u2014 test command",
+        "name": "Buck2 docs — test command",
         "url": "https://buck2.build/docs/users/commands/test/",
         "used_for": "Buck2 test command authority for test lanes."
       },
       {
-        "name": "Rustc Book \u2014 Instrumentation-based Code Coverage",
+        "name": "Rustc Book — Instrumentation-based Code Coverage",
         "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
         "used_for": "Records Rust LLVM source-based coverage as the modern coverage direction for AC-0.6 and adjacent Rust gates."
       },
@@ -190,13 +190,7 @@
     "phase0_complete": false
   },
   "command_scan_files": [
-    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
     "infra/ci/buck2-affected-gate.sh",
-    "infra/ci/jenkins/farmwide-seed.groovy",
-    "infra/ci/jenkins/codegen-measure-seed.groovy",
-    "infra/ci/jenkins/parallel-lanes-seed.groovy",
-    "infra/ci/jenkins/smoke-seed.groovy",
-    "infra/ci/jenkins/agent-image/Dockerfile",
     "scripts/branch-protection-apply.sh",
     "scripts/onprem-bring-up.sh",
     "scripts/install-trivy-ci.sh",
@@ -385,7 +379,7 @@
     "cargo-deny",
     "oya-verify"
   ],
-  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Retired service Jenkins entrypoints under cloud/*/ci and oya/*/ci must not exist; active Dockerfile and client-manifest command surfaces are scanned and must be Buck2 artifact/runtime wrappers, not Cargo compile/test/install lanes. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install/chef/leptos/llvm-cov/fuzz/mutants/pgo invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence for binary-size, codegen, linking, PGO, or memory allocator measurements. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
+  "policy_summary": "Buck2 is the only CI/CD/build/script execution authority. Retired external CI entrypoints and infra files must not exist; active Dockerfile, client-manifest, workflow, and script command surfaces are scanned and must be Buck2 artifact/runtime wrappers, not Cargo compile/test/install lanes. Cargo CLI build/test/run/check/fmt/clippy/nextest/bench/deny/cyclonedx/install/chef/leptos/llvm-cov/fuzz/mutants/pgo invocations are forbidden in active lanes. The only executable Cargo exception is production release image/binary optimization and must carry release evidence for binary-size, codegen, linking, PGO, or memory allocator measurements. Cargo metadata/vendor for Buck2/Reindeer graph generation is metadata-only and never build/test/merge authority.",
   "required_adr_amendment_text": "2026-06-02 Buck2 authority amendment",
   "required_anchors": {
     "BUCK": [
@@ -547,10 +541,6 @@
       "Treating local Cargo mutation testing as merge authority",
       "//:rust-llvm-coverage-runner-contract-check",
       "required runner shape"
-    ],
-    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": [
-      "oya-ci-required",
-      "infra/ci/buck2-affected-gate.sh"
     ],
     "scripts/agent-pre-push-validate.sh": [
       "buck2",
@@ -1495,12 +1485,11 @@
   "status_context_scan_files": [
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
-    "infra/ci/jenkins/reported-status-contexts.json",
-    "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
-    "scripts/ci/oya-ci-post.sh",
-    "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
     "scripts/ci/assert-required-status-source.rs",
-    "scripts/tests/phase0_required_status_source_check.rs"
+    "scripts/ci/oya-ci-post.sh",
+    "scripts/tests/phase0_required_status_source_check.rs",
+    "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
+    "specs/github-lane-unlocker-bridge.json"
   ],
   "target_authority": {
     "not_authority": [

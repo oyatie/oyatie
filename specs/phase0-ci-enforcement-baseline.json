@@ -24,7 +24,7 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-PHASE0-CI-ENFORCEMENT-BASELINE",
     "status": "p0_0_red_gap_packet",
-    "updated_at": "2026-06-03T02:53:41Z",
+    "updated_at": "2026-06-04T12:36:37Z",
     "version": "0.1.0"
   },
   "automation_mapping": {
@@ -62,52 +62,52 @@
     ],
     "p0_0_green": false,
     "phase0_complete": false,
-    "reason": "Checked-in branch-protection target and bridge metadata name oya-ci-required, the P0.0 fixture catalog is closed by Buck2 targets, and live GitHub dev required-status contexts include oya-ci-required. P0.0 remains RED because live required_status_checks.checks binds oya-ci-required to app_id=null instead of a trusted cloud-ci/oya-ci source app, live producer evidence does not prove candidate-SHA posting from trusted cloud-ci/oya-ci control state, live Forgejo convergence is unavailable from this environment, and tenant-isolation negative tests are specified as fixtures but not yet run by a live required cloud-ci context."
+    "reason": "ADR-0516 temporary GitHub/GitHub Actions lane unlocker now requires github-lane-unlocker-required on dev. P0.0 remains RED because native oya-ci-required source-bound producer evidence, candidate-SHA posting from trusted cloud-ci/oya-ci control state, and native SCM/merge-queue convergence remain unproven."
   },
   "current_state_evidence": {
     "active_bridge_status_producer": {
-      "classification": "jenkins_service_bridge_feedback_not_merge_authority",
-      "gate_command": "buck2 build //:buck2-authority-policy-check && infra/ci/buck2-affected-gate.sh origin/${CHANGE_TARGET:-dev}",
-      "path": "cloud/*/ci/Jenkinsfile + oya/*/ci/Jenkinsfile + infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+      "classification": "github_actions_bridge_feedback_not_native_authority",
+      "gate_command": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check && infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "path": ".github/workflows/github-lane-unlocker-ci-cd.yml + specs/github-lane-unlocker-bridge.json",
       "posted_contexts": [
-        "oya-ci-required"
+        "github-lane-unlocker-required"
       ],
-      "note": "Bridge lanes are local/static or Jenkins bridge evidence only; protected-branch authority still requires trusted cloud-ci/oya-ci producer evidence."
+      "note": "GitHub Actions bridge lanes are temporary ADR-0516 evidence only; protected-branch native authority still requires trusted cloud-ci/oya-ci producer evidence for oya-ci-required after cutover."
     },
     "checked_in_branch_protection": {
       "classification": "local_shadow_target_not_live_enforcement",
       "path": "infra/branch-protection/dev.json",
       "required_contexts": [
-        "oya-ci-required"
+        "github-lane-unlocker-required"
       ],
       "strict": false
     },
     "checked_in_branch_protection_yaml": {
-      "note": "YAML mirrors the P0.0 target context; live GitHub required-status contexts now match it, but producer/Forgejo evidence remains a gap.",
+      "note": "YAML mirrors the ADR-0516 temporary bridge context; native oya-ci-required remains a future cutover target.",
       "path": ".github/branch-protection.yaml",
       "required_contexts": [
-        "oya-ci-required"
+        "github-lane-unlocker-required"
       ]
     },
     "live_github_branch_protection": {
       "source": "gh api repos/jason931225/oyatie/branches/dev/protection/required_status_checks --jq {strict,contexts}",
       "required_contexts": [
-        "oya-ci-required"
+        "github-lane-unlocker-required"
       ],
       "strict": false,
       "observed_at": "2026-06-02T22:52:00Z",
-      "gap": "required-status context drift closed for GitHub dev; still not a Phase-0 green claim until trusted cloud-ci/oya-ci posts oya-ci-required on candidate SHAs and Forgejo converges.",
+      "gap": "Temporary GitHub required-status context is converged for lane unlock; this is not a Phase-0 green claim until trusted native cloud-ci/oya-ci posts oya-ci-required on candidate SHAs and native SCM/merge queue converges.",
       "checks": [
         {
-          "context": "oya-ci-required",
-          "app_id": null
+          "context": "github-lane-unlocker-required",
+          "app_id": "github_actions"
         }
       ],
       "source_app_binding": {
         "status": "RED",
-        "reason": "missing_required_status_source_app",
-        "required_context": "oya-ci-required",
-        "observed_app_id": null,
+        "reason": "temporary_github_bridge_not_native_oya_ci_source",
+        "required_context": "github-lane-unlocker-required",
+        "observed_app_id": "github_actions",
         "trusted_source_app": "cloud-ci/oya-ci",
         "live_read_artifact": "evidence/multispectrum/platform-readiness-p0-0-required-status-source-live-dev-1780448463.json",
         "checker": "scripts/ci/assert-required-status-source.rs",
@@ -120,12 +120,12 @@
     },
     "observed_at": "2026-06-02T22:52:00Z",
     "reported_status_metadata": {
-      "path": "infra/ci/jenkins/reported-status-contexts.json",
+      "path": "specs/github-lane-unlocker-bridge.json",
       "reported_contexts": [
-        "oya-ci-required"
+        "github-lane-unlocker-required"
       ],
-      "local_target_status": "Checked-in metadata now declares only oya-ci-required; legacy cargo-* and oya-verify contexts are forbidden as required authority by specs/buck2-authority-policy.json.",
-      "gap": "Live GitHub branch protection now requires oya-ci-required only; producer trust and live Forgejo convergence remain RED gaps."
+      "local_target_status": "Checked-in bridge metadata declares github-lane-unlocker-required as temporary and oya-ci-required as native cutover only; legacy cargo-* and oya-verify contexts are forbidden as required authority.",
+      "gap": "Native producer trust remains a RED gap; GitHub bridge is only temporary lane-unlock authority."
     },
     "auto_merge_after_ci_contract": {
       "classification": "checked_in_target_contract_github_required_context_live_not_phase0_green",
@@ -133,12 +133,12 @@
       "forgejo_script": "scripts/ci/arm-auto-merge.sh",
       "github_script": "scripts/trigger-next-queue-automerge.sh",
       "conflict_guard": "scripts/check-sequential-pr-merge-conflicts.sh",
-      "required_context": "oya-ci-required",
+      "required_context": "github-lane-unlocker-required",
       "head_pin_fields": {
         "forgejo": "head_commit_id",
         "github": "--match-head-commit"
       },
-      "gap": "Live GitHub required-status checks now match oya-ci-required and repo auto-merge settings allow squash auto-merge/delete-branch. Live Forgejo auto-merge was not mutated because Forgejo DNS timed out locally; trusted cloud-ci/oya-ci producer evidence remains unproven.",
+      "gap": "Temporary GitHub required-status checks match github-lane-unlocker-required; trusted native oya-ci producer evidence remains unproven.",
       "forgejo_mergeability_guard": "scripts/ci/arm-auto-merge.sh refreshes PR, requires exact head.sha match, and requires mergeable=true before POST /pulls/{index}/merge"
     },
     "required_status_source_binding": {
@@ -430,8 +430,8 @@
       "checked_in_contexts": [
         "oya-ci-required"
       ],
-      "fix_path": "deploy/publish trusted cloud-ci/oya-ci producer evidence for oya-ci-required on candidate SHAs; GitHub dev required-status contexts are already synced to the target.",
-      "local_target_status": "checked-in target branch-protection evidence names oya-ci-required and rejects oya-verify authority; live GitHub dev required-status contexts now match oya-ci-required.",
+      "fix_path": "deploy/publish trusted cloud-ci/oya-ci producer evidence for oya-ci-required on candidate SHAs; keep GitHub dev temporarily requiring github-lane-unlocker-required until native cutover.",
+      "local_target_status": "checked-in temporary GitHub bridge evidence names github-lane-unlocker-required and rejects oya-verify/manual bridge authority; native target remains oya-ci-required.",
       "live_github_contexts": [
         "oya-ci-required"
       ],
@@ -469,14 +469,14 @@
       "status": "GAP"
     },
     "trusted_producer": {
-      "current_bridge": "Jenkins service bridge lanes run Buck2 policy/build/affected checks from candidate checkout and emit oya-ci-required bridge evidence; protected-branch authority still requires trusted cloud-ci/oya-ci controller state.",
+      "current_bridge": "GitHub Actions bridge lanes run Buck2 policy/build/affected checks during ADR-0516 and emit github-lane-unlocker-required temporary evidence; protected-branch native authority still requires trusted cloud-ci/oya-ci controller state for oya-ci-required.",
       "fix_path": "deploy/publish producer evidence showing oya-ci-controller posts oya-ci-required from trusted control state on candidate SHA and candidate bytes cannot alter gate catalog, producer, branch-protection mapping, or runner isolation",
       "local_target_status": "oya-ci-controller kernel/k8s target now uses oya-ci-required metadata; live producer deployment and required-status posting remain unproven.",
       "required_producer": "oya-ci-controller or minimal Rust bridge adapter loading gate definitions from trusted dev/controller state",
       "status": "GAP"
     }
   },
-  "next_required_action": "Deploy/publish trusted cloud-ci/oya-ci producer evidence that posts oya-ci-required on candidate SHAs, converge live Forgejo auto-merge/branch-protection, then rerun T0.0 fixtures. Do not start P0.1 enforcement claims from this RED gap packet.",
+  "next_required_action": "Use GitHub/GitHub Actions temporary lane unlocker while deploying/publishing trusted native cloud-ci/oya-ci producer evidence for oya-ci-required on candidate SHAs, then rerun T0.0 fixtures. Do not start P0.1 enforcement claims from this RED gap packet.",
   "p0_0_requirements": [
     "required cloud-ci-required or oya-ci-required protected branch context",
     "trusted trunk/controller-sourced producer (oya-ci-controller or minimal Rust bridge adapter)",

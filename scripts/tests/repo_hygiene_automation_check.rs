@@ -127,6 +127,39 @@ fn service_jenkinsfiles_are_rejected_as_retired_ci_entrypoints() {
 }
 
 #[test]
+fn retired_active_ci_substrate_paths_are_rejected() {
+    let root = temp_dir("retired-active-ci-substrate");
+    for rel in [
+        "infra/ci/jenkins",
+        "infra/cilium/cell-boundaries",
+        "infra/forge",
+    ] {
+        fs::create_dir_all(root.join(rel)).unwrap_or_else(|error| {
+            panic!("create retired active path fixture {}: {}", rel, error);
+        });
+    }
+    for rel in [
+        "infra/ci/deploy-local.sh",
+        "infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml",
+        "infra/forge/jenkins-forgejo-token.secret.template.yaml",
+    ] {
+        fs::write(root.join(rel), "retired\n").unwrap_or_else(|error| {
+            panic!("write retired active path fixture {}: {}", rel, error);
+        });
+    }
+    let failures = gate::retired_active_path_failures(&root);
+    let _ = fs::remove_dir_all(&root);
+    assert_eq!(failures.len(), 4, "{:?}", failures);
+    assert!(
+        failures
+            .iter()
+            .all(|failure| failure.contains("retired active CI substrate path")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn active_doc_phrase_scanner_rejects_manual_bridge_statuses() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",

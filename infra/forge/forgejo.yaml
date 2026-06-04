@@ -1,9 +1,9 @@
 # Self-hosted Forgejo — the change-coordination substrate per ADR-0363.
 # Forgejo is GPLv3+ (OSI-clean; not BSL/SSPL). Single-replica + SQLite is
 # sufficient for the dogfood farm; the PVC holds repos + db. This is the
-# T1 substrate-realization standup: native PRs, branch protection with
-# required status checks (Jenkins -> Forgejo Commit Status API), webhooks,
-# and auto-merge — which together retire the enforce_admins-toggle seam.
+# T1 substrate-realization standup history: native PRs, branch protection with
+# required status checks, webhooks, and auto-merge. ADR-0516 supersedes this as
+# interim SCM; GitHub is the temporary lane unlocker until native Oyatie SCM.
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -65,7 +65,7 @@ spec:
             - name: FORGEJO__service__DISABLE_REGISTRATION
               value: "true"
             - name: FORGEJO__webhook__ALLOWED_HOST_LIST
-              value: "*.cluster.local,oya-ci-jenkins"
+              value: "*.cluster.local"
           ports:
             - { name: http, containerPort: 3000 }
           securityContext:

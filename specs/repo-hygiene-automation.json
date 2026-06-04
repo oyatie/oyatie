@@ -325,7 +325,7 @@
     {
       "id": "retired_external_substrate_residue",
       "lane": "platform-scm-ci-cd",
-      "action": "Preserve historical ADR provenance but remove active docs/code paths and root/service retired CI entrypoint files that keep retired external SCM/CI/CD substrates as interim authority.",
+      "action": "Preserve historical ADR provenance but remove active docs/code paths, root/service retired CI entrypoint files, and retired CI support manifests that keep retired external SCM/CI/CD substrates as interim authority.",
       "conflict_mitigation": "Use tombstone registry and active exact-name scan instead of repeated whole-repo manual sweeps."
     },
     {

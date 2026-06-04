@@ -2,8 +2,7 @@
 #
 # Restricts ingress to pods in oya-forge (the Forgejo SCM):
 #   - same-namespace pod-to-pod.
-#   - oya-ci (CI webhook gateway + Jenkins posting commit-status via /api/v1).
-#   - oya-ci-jenkins (Jenkins controller doing the cpsScm clone).
+#   - oya-ci (CI webhook gateway posting commit-status via /api/v1).
 #   - argocd (sync of the Forgejo Deployment).
 #
 # Forgejo is the SCM front-door for the gated CI loop (ADR-0363). External
@@ -31,9 +30,6 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: oya-ci
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: oya-ci-jenkins
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: argocd

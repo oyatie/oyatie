@@ -1,40 +1,43 @@
-# Self-hosted Forgejo substrate (T1 — ADR-0363)
+# Self-hosted Forgejo substrate history (T1 — ADR-0363)
 
-The change-coordination substrate per ADR-0363: **git + required status checks +
-self-hosted Forgejo**. This directory is IaC for the Forgejo forge and its wiring
-to the CI bridge. Cargo-named contexts are historical and must not be required.
+ADR-0516 supersedes this directory for interim development-lane unlock. The
+current temporary SCM/CI path is GitHub + GitHub Actions; native cutover targets
+Oyatie SCM and oya-ci/release-conveyor seams. Files here are historical local
+substrate reference only until a separate native-SCM lane rewrites or removes
+them. Cargo-named contexts are historical and must not be required.
 
 ## Why
 
-Branch protection on `dev` requires the target `oya-ci-required` context. During
-cutover, Jenkins or another trusted bridge may post that context; Phase-0 exit
-target is cloud-ci/oya-ci posting it from trusted controller/trunk state. No admin
-override is branch-protection authority.
+During the GitHub bridge, `dev` requires `github-lane-unlocker-required`.
+`oya-ci-required` remains the native cutover destination after trusted
+controller/trunk evidence exists. No retired external SCM/CI/CD substrate bridge
+is interim branch-protection authority.
 
 ## Contents
 
 - `forgejo.yaml` — Forgejo Deployment/Service/PVC, rootless image, hardened
   (non-root, dropped caps, seccomp, `INSTALL_LOCK`), SQLite.
-- `forgejo-argocd-app.yaml` — ArgoCD Application that reconciles `forgejo.yaml`.
-- `jenkins-forgejo-token.secret.template.yaml` — template for the bridge status
-  token (real token created via kubectl; never committed).
+- `forgejo-argocd-app.yaml` — historical ArgoCD Application reference retained
+  for provenance until the native-SCM cleanup lane removes or rewrites it.
 
 ## Commit-status wiring
 
-`infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy` posts `oya-ci-required`
-(`pending` → `success`/`failure`) using the Forgejo API. The canonical target list
-is `infra/ci/jenkins/reported-status-contexts.json` and `infra/branch-protection/dev.json`.
+Historical retired CI-to-local-SCM commit-status wiring is retired. The active bridge
+context is recorded in `specs/github-lane-unlocker-bridge.json`,
+`.github/branch-protection.yaml`, and `infra/branch-protection/dev.json`.
 
 ## Verified locally / target evidence
 
 - Forgejo substrate manifests exist under this directory.
-- Target status context is `oya-ci-required`.
+- Temporary target status context is `github-lane-unlocker-required`; native
+  cutover target remains `oya-ci-required`.
 - Buck2 authority policy forbids legacy tool-specific status contexts in the active
   branch-protection and CI inventory.
 
 ## Remaining
 
-1. Create the live bridge token in the cluster.
-2. Cut over the trusted cloud-ci/oya-ci producer for `oya-ci-required`.
+1. Remove or rewrite the remaining Forgejo/ArgoCD historical local-substrate
+   manifests in dedicated cleanup lanes.
+2. Cut over the trusted native oya-ci producer for `oya-ci-required`.
 3. End-to-end PR: Buck2 authority policy + affected Buck2 build/test pass, status
    posts on the candidate SHA, and the merge queue admits only that green context.

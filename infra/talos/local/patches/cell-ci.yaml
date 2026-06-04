@@ -1,7 +1,6 @@
 # ADR-0381 D2 — CI specialty cell patch.
 #
 # Applied to the 1 CI specialty worker (ci-0) hosting:
-#   - Jenkins agent pods (oya-ci-jenkins; ADR-0380 D2 rust-ci template).
 #   - buildkitd Deployment (oya-ci; ADR-0381 D1).
 #   - ci-webhook-gateway (oya-ci; ADR-0374) — small enough to co-locate.
 #
@@ -9,7 +8,7 @@
 #   - `oya.cell/ci=true` label (scheduling selector for ADR-0083 Tier-3 batch).
 #   - `dedicated=ci:NoSchedule` taint — only pods with the matching toleration
 #     land here. The taint protects this node from being commandeered by tenant
-#     workloads (which would starve cargo builds of CPU + memory).
+#     workloads (which would starve Buck2 builds of CPU + memory).
 #
 # Apply with:
 #   talosctl apply-config --insecure --nodes $IP \

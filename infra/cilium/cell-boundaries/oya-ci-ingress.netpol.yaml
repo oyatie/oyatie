@@ -3,7 +3,6 @@
 # Restricts ingress to pods in oya-ci (BuildKit daemon + ci-webhook-gateway +
 # any future CI specialty workload):
 #   - same-namespace pod-to-pod (BuildKit Job consumes buildkitd daemon).
-#   - oya-ci-jenkins (Jenkins agents that drive builds + status posts).
 #   - oya-forge (Forgejo webhook delivery to ci-webhook-gateway).
 #   - argocd (sync + drift detection).
 #
@@ -28,9 +27,6 @@ spec:
     - from:
         - podSelector: {}
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: oya-ci-jenkins
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: oya-forge
