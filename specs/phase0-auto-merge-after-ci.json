@@ -21,26 +21,26 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-PHASE0-AUTO-MERGE-AFTER-CI",
     "status": "p0_0_target_contract_not_live_green",
-    "updated_at": "2026-06-04T11:05:00Z",
-    "version": "0.1.2"
+    "updated_at": "2026-06-04T13:34:00Z",
+    "version": "0.2.0"
   },
-  "description": "P0.0 executable target contract for Forgejo and GitHub bootstrap auto-merge after CI. This file is not a live enforcement claim; it defines the script/spec/test chain that prevents regressions to stale contexts, Cargo authority, unpinned PR heads, or operator-only auto-merge procedure.",
+  "description": "P0.0 executable target contract for GitHub bootstrap auto-merge after CI and the native Oyatie SCM/Oya CI cutover. Retired external SCM/CI/CD substrates are not active interim authorities; their runnable shell bridge surfaces are retired from the checked-in gate chain.",
   "required_context": "github-lane-unlocker-required",
   "p0_0_green": false,
   "phase0_complete": false,
   "claim_boundary": {
-    "allowed_language_now": "target contract / local Buck2-enforced scanner / bridge script dry-run evidence",
+    "allowed_language_now": "target contract / local Buck2-enforced scanner / GitHub bridge dry-run evidence",
     "forbidden_claims": [
-      "Forgejo live auto-merge is green",
+      "Native Oya CI auto-merge is green",
       "GitHub protected branch is converged",
       "Phase 0 complete",
       "P0.0 green",
       "mechanically enforced by live branch protection"
     ],
-    "reason": "The checked-in scripts/specs/tests enforce the target contract locally. During the temporary GitHub/GitHub Actions lane-unlocker phase, GitHub dev required-status checks require github-lane-unlocker-required from the GitHub Actions aggregate workflow so no manual oya-ci-required bridge is needed. Native cutover still targets trusted cloud-ci/oya-ci posting oya-ci-required on candidate SHAs after cloud SCM/CI is ready."
+    "reason": "The checked-in scripts/specs/tests enforce the target contract locally. During the temporary GitHub/GitHub Actions lane-unlocker phase, GitHub dev required-status checks require github-lane-unlocker-required from the GitHub Actions aggregate workflow so no manual oya-ci-required bridge is needed. Native cutover targets trusted Oya CI posting oya-ci-required on candidate SHAs after native SCM/CI is ready."
   },
   "github": {
-    "forge_role": "bootstrap_mirror_until_forgejo_live_cutover",
+    "forge_role": "temporary_scm_publication_and_pr_bridge_until_native_scm_cutover",
     "repository_setting": "allow_auto_merge=true",
     "required_context_source": "infra/branch-protection/dev.json.required_status_checks.contexts",
     "required_context": "github-lane-unlocker-required",
@@ -64,7 +64,7 @@
       "github-lane-unlocker-required"
     ],
     "fetch_remote_option": "--fetch-remote",
-    "bootstrap_split_fetch_remote": "github-mirror when origin is Forgejo, otherwise GITHUB_FETCH_REMOTE/origin",
+    "bootstrap_split_fetch_remote": "github-mirror when origin is not GitHub, otherwise GITHUB_FETCH_REMOTE/origin",
     "script_rejects_missing_conflict_guard_fetch_remote": true,
     "conflict_guard_order": "after live branch-protection/review/head checks and before gh pr merge --auto",
     "script_rejects_conflict_before_auto_merge": true,
@@ -90,64 +90,51 @@
     "script_rejects_untrusted_required_context_producer": true,
     "required_context_rollup_live_read_artifact": "evidence/multispectrum/platform-readiness-p0-0-required-context-rollup-live-pr455-1780447662.json"
   },
-  "forgejo": {
-    "forge_role": "target_forge_of_record",
-    "branch_protection_script": "scripts/ci/arm-auto-merge.sh",
+  "native_scm_cutover": {
+    "scm_target": "pure-Rust Sapling-inspired Oyatie SCM",
+    "github_adapter_required": true,
+    "git_protocol_adapter_required": true,
     "required_context": "oya-ci-required",
-    "branch_protection_fields": {
-      "enable_status_check": true,
-      "status_check_contexts": [
-        "oya-ci-required"
-      ]
-    },
-    "merge_endpoint": "POST /api/v1/repos/{owner}/{repo}/pulls/{index}/merge",
-    "schedule_field": "merge_when_checks_succeed",
-    "schedule_value": true,
-    "head_pin_field": "head_commit_id",
-    "delete_branch_after_merge": true,
+    "required_context_source": "trusted Oya CI controller state on the candidate SHA",
+    "tide_admission_shape": "Prow/Tide-inspired batch admission with Buck2 authority and source-bound statuses",
     "merge_method": "squash",
-    "script_requires_head_commit": true,
-    "tide_code_paths": [
-      "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs",
-      "oya/ci-tide/crates/oya-ci-tide-app/src/lib.rs",
-      "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs"
-    ],
     "allowed_merge_methods": [
       "squash"
     ],
-    "script_requires_mergeability_guard": true,
-    "head_commit_required_lengths": [
-      40,
-      64
-    ],
-    "pr_refresh_before_schedule": {
-      "endpoint": "GET /api/v1/repos/{owner}/{repo}/pulls/{index}",
-      "head_comparison": "head.sha must exactly equal provided --head-commit",
-      "mergeability": "mergeable must be true; false/null fail closed before POST /merge"
-    },
-    "delete_branch_after_merge_locked": true,
-    "tide_required_context_hard_pinned": true,
-    "tide_merge_method_hard_pinned": "squash",
-    "tide_head_pin_full_sha_guard": true
+    "head_pin_full_sha_guard": true,
+    "no_retired_external_scm_ci_cd_interim": true,
+    "cutover_blockers": [
+      "native SCM GitHub adapter evidence",
+      "trusted Oya CI status producer binding",
+      "release conveyor progressive delivery evidence",
+      "protected branch source-binding enforcement"
+    ]
+  },
+  "retired_external_scm_bridge": {
+    "status": "retired_no_interim_authority",
+    "retired_script_path": "scripts/ci/arm-auto-merge.sh",
+    "retired_shell_test_path": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+    "retired_doc_path": "docs/ci/forge-of-record.md",
+    "replacement_now": "GitHub/GitHub Actions temporary lane unlocker under Buck2 authority",
+    "native_destination": "pure-Rust Sapling-inspired Oyatie SCM with GitHub and git-protocol adapters",
+    "retired_surface_guard": "//:repo-hygiene-automation-check",
+    "no_retired_external_scm_ci_cd_interim": true
   },
   "buck2_enforcement": {
     "contract_check": "//:phase0-auto-merge-after-ci-contract-check",
-    "forgejo_dry_run_test": "//:forgejo-auto-merge-after-ci-check",
-    "tide_payload_tests": [
-      "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests",
-      "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests"
-    ],
     "authority_policy_check": "//:buck2-authority-policy-check",
     "github_bootstrap_test": "//:github-auto-merge-after-ci-check",
     "github_conflict_guard_test": "//:github-auto-merge-after-ci-check",
-    "github_required_context_rollup_test": "//:github-auto-merge-after-ci-check"
+    "github_required_context_rollup_test": "//:github-auto-merge-after-ci-check",
+    "retired_bridge_surface_guard": "//:repo-hygiene-automation-check"
   },
   "non_authority_surfaces": [
     "local oya verify output",
     "local oya gate output",
     "Cargo-named status contexts",
     "Buck2 affected-only advisory output",
-    "operator memory or manual checklist"
+    "operator memory or manual checklist",
+    "retired external SCM/CI/CD substrates"
   ],
   "expected_verdict": "TARGET_CONTRACT_LOCAL_PASS_LIVE_GAP_REMAINS"
 }

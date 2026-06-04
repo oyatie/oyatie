@@ -339,6 +339,12 @@
       "lane": "platform-release-conveyor",
       "action": "Evaluate and retire or rewrite remaining retired external CD/CAPI/GitOps fleet bootstrap surfaces into native Oyatie release-conveyor/control-plane seams; do not treat retired external CD controllers as interim deployment authority.",
       "conflict_mitigation": "Handle infra/gitops, infra/capi/crs, and deployment-ops specs in a dedicated lane so product and SCM/CI cleanup lanes do not contend on broad deployment docs."
+    },
+    {
+      "id": "retired_external_scm_adapter_retirement",
+      "lane": "platform-scm-ci-cd",
+      "action": "Evaluate remaining adapter crates, historical ADR cross-references, and policy markers for retired external SCM/CI/CD substrates; preserve only reusable Prow/Tide or Git protocol patterns, then rewrite native seams toward the pure-Rust Sapling-inspired Oyatie SCM with GitHub adapters.",
+      "conflict_mitigation": "Keep adapter retirement in its own lane after runnable bridge scripts are gone so product and GitHub bridge lanes do not contend on native SCM code."
     }
   ],
   "security_backlog_validation": {

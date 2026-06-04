@@ -141,7 +141,6 @@
     "//:buck2-cargo-target-coverage-check",
     "buck2 test //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
     "//:phase0-auto-merge-after-ci-contract-check",
-    "//:forgejo-auto-merge-after-ci-check",
     "//:github-auto-merge-after-ci-check",
     "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:oya-ci-tide-forgejo-adapter-tests",
     "cloud-ci/oya-ci oya-ci-required required context after live producer cutover",
@@ -224,17 +223,14 @@
     "oya/ci-webhook-gateway/Dockerfile",
     "oya/governance/iac/build/Dockerfile.distroless-rust",
     "oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json",
-    "scripts/ci/arm-auto-merge.sh",
     "scripts/trigger-next-queue-automerge.sh",
     "scripts/check-sequential-pr-merge-conflicts.sh",
     "scripts/check-sequential-pr-merge-conflicts.rs",
     "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
     "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
     "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
-    "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
     "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
     "docs/ci/auto-merge-flow.md",
-    "docs/ci/forge-of-record.md",
     "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
     "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
     "specs/phase0-auto-merge-after-ci.json",
@@ -579,16 +575,6 @@
       "buck2 run root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
       "buck2 build root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype"
     ],
-    "scripts/ci/arm-auto-merge.sh": [
-      "--delete-branch-after-merge is fixed to true",
-      "--head-commit is required with --pr-index",
-      "--merge-method is fixed to squash",
-      "REQUIRED_CONTEXT is fixed to oya-ci-required",
-      "REQUIRED_CONTEXT=\"oya-ci-required\"",
-      "head_commit_id",
-      "merge_when_checks_succeed",
-      "validate_pr_ready_for_auto_merge"
-    ],
     "scripts/trigger-next-queue-automerge.sh": [
       "--auto --match-head-commit",
       "--merge-method is fixed to squash",
@@ -608,32 +594,25 @@
       "sequential PR merge simulation",
       "--fetch-remote <remote>",
       "fetch_remote={}",
-      "pass --fetch-remote for the GitHub mirror when origin is Forgejo"
+      "pass --fetch-remote for the GitHub mirror when origin is not GitHub"
     ],
     "docs/ci/auto-merge-flow.md": [
       "github-lane-unlocker-required",
       "oya-ci-required",
       "--match-head-commit",
-      "head_commit_id",
       "--fetch-remote github-mirror",
-      "GITHUB_FETCH_REMOTE"
-    ],
-    "docs/ci/forge-of-record.md": [
-      "github-lane-unlocker-required",
-      "oya-ci-required",
-      "Legacy Cargo-named contexts",
-      "head_commit_id",
-      "--fetch-remote github-mirror",
-      "GITHUB_FETCH_REMOTE"
+      "GITHUB_FETCH_REMOTE",
+      "pure-Rust, Sapling-inspired Oyatie SCM",
+      "retired external SCM/CI/CD substrates"
     ],
     "specs/phase0-auto-merge-after-ci.json": [
       "--match-head-commit",
       "//:github-auto-merge-after-ci-check",
-      "merge_when_checks_succeed",
       "github-lane-unlocker-required",
       "oya-ci-required",
       "--fetch-remote",
-      "github-mirror"
+      "github-mirror",
+      "pure-Rust Sapling-inspired Oyatie SCM"
     ],
     "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md": [
       "2026-06-02 Phase-0 Tide/admission amendment",
@@ -649,11 +628,6 @@
       "--merge-method is fixed to squash",
       "live branch-protection required contexts drift",
       "github-lane-unlocker-required"
-    ],
-    "scripts/tests/forgejo_auto_merge_after_ci.test.sh": [
-      "--merge-method is fixed to squash",
-      "--delete-branch-after-merge is fixed to true",
-      "PR #455 head and mergeability guard passed"
     ],
     "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs": [
       "let required_status_context = DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned();",
@@ -675,7 +649,7 @@
     "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs": [
       "--fetch-remote github-mirror",
       "failed to fetch PR #455 head from remote origin",
-      "default origin fetch should fail when origin is non-GitHub Forgejo remote"
+      "default origin fetch should fail when origin is not GitHub"
     ],
     "scripts/ci/assert-pr-required-context.rs": [
       "github-lane-unlocker-required",
@@ -1508,7 +1482,7 @@
     "docs": "https://docs.prow.k8s.io/docs/",
     "architecture_docs": "https://docs.prow.k8s.io/docs/overview/architecture/",
     "tide_docs": "https://docs.prow.k8s.io/docs/components/core/tide/",
-    "contract": "cloud-ci/oya-ci is a Rust reimplementation and improvement of upstream Kubernetes Prow/Tide, not a greenfield CI invention; we adopt the proven Prow component/capability model while replacing GitHub/GCS/Groovy coupling with Forgejo-native, Buck2-native, self-hosted Rust services."
+    "contract": "cloud-ci/oya-ci is a Rust reimplementation and improvement of upstream Kubernetes Prow/Tide, not a greenfield CI invention; we adopt the proven Prow component/capability model while replacing GitHub/GCS/Groovy coupling with native Oyatie SCM, GitHub-adapter, Buck2-native, self-hosted Rust services."
   },
   "github_lane_unlocker_bridge": {
     "spec": "specs/github-lane-unlocker-bridge.json",

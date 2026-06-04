@@ -144,14 +144,26 @@ fn retired_active_ci_substrate_paths_are_rejected() {
         "infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml",
         "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
         "infra/forge/jenkins-forgejo-token.secret.template.yaml",
+        "scripts/ci/arm-auto-merge.sh",
+        "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+        "docs/ci/forge-of-record.md",
     ] {
+        if let Some(parent) = root.join(rel).parent() {
+            fs::create_dir_all(parent).unwrap_or_else(|error| {
+                panic!(
+                    "create retired active file parent {}: {}",
+                    parent.display(),
+                    error
+                );
+            });
+        }
         fs::write(root.join(rel), "retired\n").unwrap_or_else(|error| {
             panic!("write retired active path fixture {}: {}", rel, error);
         });
     }
     let failures = gate::retired_active_path_failures(&root);
     let _ = fs::remove_dir_all(&root);
-    assert_eq!(failures.len(), 7, "{:?}", failures);
+    assert_eq!(failures.len(), 10, "{:?}", failures);
     assert!(
         failures
             .iter()
