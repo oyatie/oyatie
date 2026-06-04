@@ -24,6 +24,7 @@ const CLAUDE_PATH: &str = "CLAUDE.md";
 const DOC_AGENTS_PATH: &str = "docs/AGENTS.md";
 const DOC_CATALOG_PATH: &str = "docs/DOC-CATALOG.md";
 const PROCEDURE_PATH: &str = "docs/ci/github-actions-lane-unlocker.md";
+const AUTO_MERGE_FLOW_PATH: &str = "docs/ci/auto-merge-flow.md";
 const WORKFLOW_PATH: &str = ".github/workflows/github-lane-unlocker-ci-cd.yml";
 const BUCK_PATH: &str = "BUCK";
 const DOC_STALENESS_MAIN: &str = "tools/oya-doc-staleness-inventory-app/src/main.rs";
@@ -225,6 +226,7 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "oya gate is merge authority",
     "oya verify is CI authority",
     "oya gate` / `oya verify` governance evidence",
+    "Local `oya verify`, local `oya gate`",
     "oya-dev-cli:oya -- gate validate planning-closure",
 ];
 
@@ -241,6 +243,7 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "dev requires github-lane-unlocker-required",
     "oya gate is merge authority",
     "oya verify is CI authority",
+    "Local `oya verify`, local `oya gate`",
 ];
 
 const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
@@ -249,6 +252,7 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     README_PATH,
     DOC_AGENTS_PATH,
     PROCEDURE_PATH,
+    AUTO_MERGE_FLOW_PATH,
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
@@ -263,6 +267,7 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     DOC_CATALOG_PATH,
     "docs/MASTERPLAN.md",
     PROCEDURE_PATH,
+    AUTO_MERGE_FLOW_PATH,
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
     "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
     ".github/branch-protection.yaml",
@@ -385,9 +390,10 @@ fn require_contains(text: &str, needle: &str, failures: &mut Vec<String>, label:
 }
 
 pub fn active_doc_phrase_failures(label: &str, text: &str) -> Vec<String> {
+    let lowered_text = text.to_ascii_lowercase();
     FORBIDDEN_ACTIVE_DOC_PHRASES
         .iter()
-        .filter(|phrase| text.contains(**phrase))
+        .filter(|phrase| lowered_text.contains(&phrase.to_ascii_lowercase()))
         .map(|phrase| format!("{label}: stale active authority phrase present: {phrase:?}"))
         .collect()
 }
