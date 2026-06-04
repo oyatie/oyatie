@@ -129,8 +129,7 @@
     "retired_bridge_surface_guard": "//:repo-hygiene-automation-check"
   },
   "non_authority_surfaces": [
-    "local oya verify output",
-    "local oya gate output",
+    "retired local Oya CLI mirror output",
     "Cargo-named status contexts",
     "Buck2 affected-only advisory output",
     "operator memory or manual checklist",
