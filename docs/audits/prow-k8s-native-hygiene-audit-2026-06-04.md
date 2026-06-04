@@ -55,7 +55,7 @@ Official/source references recorded in repo specs include:
 
 1. **P00 native SCM/CI/CD fit propagation** — keep root docs, root hub, masterplan, canonical primitives, ADR-0513, ADR-0516, and repo-hygiene automation aligned on native SCM service + `oya-ci-required` + release-conveyor-like CD.
 2. **P00 active exact-name guard** — keep active root/spec/ADR guidance free of retired substrate names; repo-wide residue remains large in historical ADRs, generated evidence, and retired code, so archive/delete tranches must be isolated PRs.
-3. **P00 Prow job registry generation** — create Rust/Buck2 generator for desired ProwJob graph so vertical lanes edit disjoint registry shards instead of one shared workflow.
+3. **P00 Prow job registry generation** — seed Rust/Buck2 generator for desired ProwJob graph so vertical lanes edit disjoint `specs/ci/prow-jobs` registry shards instead of one shared workflow; next tranches extend it from desired aggregate to native controller config.
 4. **P00 retire CLI authority** — convert remaining retired CLI authority rows to Rust libraries, Buck2 targets, and Prow jobs; keep any CLI invocations as historical/local migration inputs only.
 5. **P00 TypeScript/pnpm retirement review** — audit stale frontend surfaces against current Rust/Leptos/product decisions before deletion; likely candidates include app-shell and workspace-studio remnants plus pnpm quality rows.
 6. **P00 Python/shell migration** — rewrite active Python/shell gate/tool surfaces in Rust with Buck2 targets. Keep only one-time bootstrap or host-prelude glue with deletion criteria.

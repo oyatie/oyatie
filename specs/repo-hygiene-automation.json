@@ -152,6 +152,7 @@
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+    "buck2 build //:oya-ci-prowjob-registry-check",
     "buck2 build //:buck2-authority-policy-check"
   ],
   "official_sources": [
@@ -330,8 +331,9 @@
     "mechanical_resolution": {
       "required": true,
       "pattern": "registry_owned_desired_ci_graph_to_generated_consolidation",
-      "future_tooling": "Rust/Buck2 generator emits canonical workflow or aggregate manifest; CI checks generated output matches registry.",
-      "claim_boundary": "not implemented as generator in this PR; recorded as P00 backlog to reduce shared-file conflicts."
+      "seed_tooling": "buck2 build //:oya-ci-prowjob-registry-check validates specs/oya-ci-prowjob-registry.json, lane-owned specs/ci/prow-jobs shards, and the generated aggregate manifest.",
+      "future_tooling": "Extend the Rust/Buck2 generator from desired ProwJob aggregate manifest to native controller config and, only if still useful, a generated GitHub Actions shadow workflow.",
+      "claim_boundary": "seed generated registry implemented; native Prow controller config emission and live Kubernetes application remain future work."
     },
     "options_considered": [
       {
@@ -425,8 +427,10 @@
     {
       "id": "prow_job_registry_generation",
       "lane": "platform-scm-ci-cd",
-      "action": "Create a registry-owned desired ProwJob graph and Rust/Buck2 generator so vertical lanes edit disjoint job shards instead of a single shared CI file.",
-      "conflict_mitigation": "Generated aggregate output becomes mechanical; source-of-truth rows live in lane-owned shards."
+      "action": "Maintain the registry-owned desired ProwJob graph and Rust/Buck2 generator so vertical lanes edit disjoint job shards instead of a single shared CI file.",
+      "conflict_mitigation": "Generated aggregate output is mechanical; source-of-truth rows live in lane-owned specs/ci/prow-jobs shards.",
+      "seed_check": "buck2 build //:oya-ci-prowjob-registry-check",
+      "seed_registry": "specs/oya-ci-prowjob-registry.json"
     },
     {
       "id": "python_shell_to_rust_buck2_migration",

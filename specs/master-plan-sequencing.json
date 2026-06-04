@@ -2008,7 +2008,14 @@
       "decision": "rust_prow_kubernetes_native_oya_ci",
       "consumes": "trusted native SCM/controller state",
       "runs": "Buck2 ProwJob-style workloads",
-      "posts": "oya-ci-required"
+      "posts": "oya-ci-required",
+      "prowjob_registry": {
+        "spec": "/specs/oya-ci-prowjob-registry.json",
+        "generated_projection": "/specs/generated/oya-ci-prowjob-registry.generated.yaml",
+        "check": "buck2 build //:oya-ci-prowjob-registry-check",
+        "shard_rule": "vertical lanes edit disjoint specs/ci/prow-jobs shards; generated aggregate is mechanical",
+        "claim_boundary": "local/static desired graph only; no live Kubernetes mutation or full Prow parity claim"
+      }
     },
     "cd": {
       "decision": "release_conveyor_like_native_cd",
