@@ -423,7 +423,7 @@
       "current_status": "phase0_contract",
       "parity_scope": "improved_reimplementation",
       "repo_artifacts": [
-        "scripts/tests/phase0_tenant_isolation_fixture_check.test.sh",
+        "scripts/tests/phase0_tenant_isolation_fixture_check.rs",
         "specs/toolchain-tenant-isolation-fixtures.json",
         "oya/ci-controller/iac/k8s/runtimeclass-gvisor-fallback.yaml"
       ],

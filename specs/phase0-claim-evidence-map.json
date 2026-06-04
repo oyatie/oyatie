@@ -198,7 +198,7 @@
         "tenant isolation contract and BAD fixture requirements specified",
         "T0.0 requires tenant-pipeline isolation baseline before enforcement claims",
         "specs/toolchain-tenant-isolation-fixtures.json specifies T-ISOLATION-0 RED/GREEN fixture contract",
-        "scripts/ci/assert-tenant-pipeline-isolation.py and //:phase0-tenant-isolation-fixture-check execute the local RED/GREEN tenant fixture contract with p0_0_green=false/phase0_complete=false"
+        "scripts/ci/assert-tenant-pipeline-isolation.rs and //:phase0-tenant-isolation-fixture-check execute the local RED/GREEN tenant fixture contract with p0_0_green=false/phase0_complete=false"
       ],
       "id": "CLAIM-P0-tenant-isolation",
       "missing_for_next_tier": [
