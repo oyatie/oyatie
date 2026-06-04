@@ -17,8 +17,8 @@
       "Heavy diet. Make sure everything has a purpose."
     ],
     "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file.",
-    "last_audited": "2026-06-03",
-    "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349.; ADR-0516 GitHub lane-unlocker pointer coverage."
+    "last_audited": "2026-06-04",
+    "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349.; ADR-0516 GitHub lane-unlocker pointer coverage.; repo hygiene automation + retired external substrate tombstone registry + GitHub publication adapter pointers."
   },
   "entry_points": {
     "_retired_constitutional_authority": {
@@ -64,7 +64,7 @@
       "current_path": "docs/AGENTS.md",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git PR/Jenkins governance transitions, multispectrum evidence, legacy-tool retirement notes)."
+      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git PR/retired external CI substrate governance transitions, multispectrum evidence, legacy-tool retirement notes)."
     },
     "agent_durable_goal": {
       "kind": "goal_prompt",
@@ -73,7 +73,7 @@
       "archive_manifest": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
       "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Current long-running goal prompt for planning closure and FD-001 implementation. It supersedes the older 2026-05-16 durable-goal spec and old implement-masterplan prompts by making /specs/masterplan.json, /specs/planning-closure-contract.json, plain-git PR/Jenkins governance, vertical delivery ordering, Tenant RBAC view + Tenant RBAC view first delivery, canonical base, Korea localization pack, and stale-document archival the live execution contract."
+      "purpose": "Current long-running goal prompt for planning closure and FD-001 implementation. It supersedes the older 2026-05-16 durable-goal spec and old implement-masterplan prompts by making /specs/masterplan.json, /specs/planning-closure-contract.json, plain-git PR/retired external CI substrate governance, vertical delivery ordering, Tenant RBAC view + Tenant RBAC view first delivery, canonical base, Korea localization pack, and stale-document archival the live execution contract."
     },
     "score_cards": {
       "kind": "spec",
@@ -101,7 +101,7 @@
       "current_path": "/specs/deployment-ops-contract.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Deployment entrypoint contract (per ADR-0375): OpenTofu owns only the Cloudflare edge; the cluster fleet is provisioned by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD; root Makefile owns operator entry; no manual SSH troubleshooting."
+      "purpose": "Deployment entrypoint contract (per ADR-0375): OpenTofu owns only the Cloudflare edge; the cluster fleet is provisioned by Cluster API + Talos (installation-media zero-touch) + per-cell retired external CD substrate; root Makefile owns operator entry; no manual SSH troubleshooting."
     },
     "ci_fix_loop_context_bundle": {
       "kind": "spec",
@@ -276,7 +276,7 @@
       "current_path": "/specs/master-plan-sequencing.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Forbidden-primitive list + plain-git PR/Jenkins governance protocol + ledger-required-fields + execution sequence. Also carries Wave 15-ZF doctrine propagation pointers for ADR-0346, ADR-0347, ADR-0348, and ADR-0349, including the canonical purpose excerpts and enforced_by lane lists consumed by downstream artifact slots."
+      "purpose": "Forbidden-primitive list + plain-git PR/retired external CI substrate governance protocol + ledger-required-fields + execution sequence. Also carries Wave 15-ZF doctrine propagation pointers for ADR-0346, ADR-0347, ADR-0348, and ADR-0349, including the canonical purpose excerpts and enforced_by lane lists consumed by downstream artifact slots."
     },
     "hyperscaler_gates": {
       "kind": "spec",
@@ -676,7 +676,7 @@
       "status_ledger": "/specs/planning-closure-status-closure-ledger.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant RBAC view + Tenant RBAC view full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, plain-git PR/Jenkins governance sequencing, and no false planning-green claims."
+      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant RBAC view + Tenant RBAC view full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, plain-git PR/retired external CI substrate governance sequencing, and no false planning-green claims."
     },
     "adr_0217_vertical_rollout_order": {
       "kind": "decision",
@@ -715,7 +715,7 @@
       "target_path_after_md_retirement": "same until ADR projection retirement",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
-      "purpose": "ADR-0349 authority for Jenkins LTS plus ArgoCD as the canonical self-hostable CI/CD substrate, with cosign-verified sync, tenant namespace isolation, JCasC-only controller state, and deploy audit-chain emission. AMENDED by ADR-0359/ADR-0361: Jenkins is the SOLE CI orchestrator and GitHub Actions is retired (no Jenkins/GitHub-Actions parity surface remains); the parity lane is replaced by oya-governance-jenkins-canonical-no-gha-residue."
+      "purpose": "Historical ADR-0349 provenance for a retired external CI/CD substrate. Superseded for interim execution by ADR-0516; active docs must route to the GitHub lane-unlocker bridge, Buck2 authority, and the retired external substrate registry."
     },
     "wave_15_zf_doctrine_propagation_adr_0346_0349": {
       "kind": "batch-control",
@@ -767,7 +767,7 @@
       "kind": "spec",
       "current_path": "/specs/agentic-slo-gated-promotion.json",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the Jenkins promotion jobs."
+      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the retired external CI substrate promotion jobs."
     },
     "spec_api_surface_separation": {
       "kind": "spec",
@@ -1030,7 +1030,7 @@
       "current_path": "/specs/ci-farm-substrate-canonical.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "wave-3-consolidation",
-      "purpose": "Self-hostable distributed CI farm substrate (Jenkins+ArgoCD, ephemeral agents, sccache->SeaweedFS remote cache, per-microservice lane fanout, merge-queue fan-in). Authored under ADR-0349; honest-foundation."
+      "purpose": "Self-hostable distributed CI farm substrate (retired external CI/CD substrate, ephemeral agents, sccache->SeaweedFS remote cache, per-microservice lane fanout, merge-queue fan-in). Authored under ADR-0349; honest-foundation."
     },
     "design_spec_maturity_deferred_surfaces": {
       "kind": "registry",
@@ -1044,7 +1044,7 @@
       "current_path": "/specs/cloud-control-plane-canonical.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-target",
-      "purpose": "Cloud Control Plane canonical target architecture (P-TARGET): resource model (Org->...->Resource), ORN, API Gateway->Resource Registry->Operation Ledger->Workflow/Reconciler->OpenTofu/operators/Argo, per-resource quota/billing/audit contract, durable long-running operations, nine control-plane facets. Target spec; no runtime claimed."
+      "purpose": "Cloud Control Plane canonical target architecture (P-TARGET): resource model (Org->...->Resource), ORN, API Gateway->Resource Registry->Operation Ledger->Workflow/Reconciler->OpenTofu/operators/native reconcilers, per-resource quota/billing/audit contract, durable long-running operations, nine control-plane facets. Target spec; no runtime claimed."
     },
     "api_contract_ssot_canonical": {
       "kind": "spec",
@@ -1072,7 +1072,7 @@
       "current_path": "/specs/cloud-resource-catalog-target.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-target",
-      "purpose": "Cloud resource catalog target (P-TARGET): per-resource-type architecture for all cloud-* services (IAM/KMS/Secrets/Compute/Storage/Network/Data/Billing/Capacity), each instantiating the control-plane per-resource contract (quota/billing/audit/lifecycle/slo/retention), Cedar-gated + OTel-instrumented + actuated via OpenTofu/operator/Argo. Target spec; metadata-only until P-STRANGLE."
+      "purpose": "Cloud resource catalog target (P-TARGET): per-resource-type architecture for all cloud-* services (IAM/KMS/Secrets/Compute/Storage/Network/Data/Billing/Capacity), each instantiating the control-plane per-resource contract (quota/billing/audit/lifecycle/slo/retention), Cedar-gated + OTel-instrumented + actuated via OpenTofu/operator/native reconciler. Target spec; metadata-only until P-STRANGLE."
     },
     "cloud_production_quality_kits_target": {
       "kind": "spec",
@@ -1093,7 +1093,7 @@
       "current_path": "/specs/cloud-toolchain-target.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-toolchain",
-      "purpose": "Cloud toolchain target (P-TOOLCHAIN): Bazel rules_rust build graph (crate_universe SSOT, RBE, affected-targets) + Jenkins sole CI (ADR-0359, JCasC, ephemeral agents, GitHub App statuses) + nextest sharding/machete/deny/bacon + oya governance overlay delegating to bazel + merge-queue speculative + ArgoCD progressive delivery. Target spec; no adoption/runtime claimed."
+      "purpose": "Cloud toolchain target (P-TOOLCHAIN): Bazel rules_rust build graph (crate_universe SSOT, RBE, affected-targets) + retired external CI substrate sole CI (ADR-0359, JCasC, ephemeral agents, GitHub App statuses) + nextest sharding/machete/deny/bacon + oya governance overlay delegating to bazel + merge-queue speculative + retired external CD substrate progressive delivery. Target spec; no adoption/runtime claimed."
     },
     "phase0_ci_enforcement_baseline": {
       "kind": "spec",
@@ -1282,21 +1282,21 @@
       "current_path": "/specs/oya-ci-prow-capability-parity.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-p0.0-buck2-authority",
-      "purpose": "Enforceable upstream Kubernetes Prow feature/capability parity and improvement registry for the Rust, Forgejo-native oya-ci reimplementation; records full target parity, explicit superseded/out-of-scope upstream components, and non-claim boundaries until trusted cloud-ci/oya-ci posts source-bound oya-ci-required."
+      "purpose": "Enforceable upstream Kubernetes Prow feature/capability parity and improvement registry for the Rust, retired external SCM substrate-native oya-ci reimplementation; records full target parity, explicit superseded/out-of-scope upstream components, and non-claim boundaries until trusted cloud-ci/oya-ci posts source-bound oya-ci-required."
     },
     "github_lane_unlocker_bridge": {
       "kind": "spec",
       "current_path": "/specs/github-lane-unlocker-bridge.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "P00-imminent",
-      "purpose": "Temporary GitHub/GitHub Actions lane-unlocker for highly parallel dev work while native cloud-native/Kubernetes-native/hyperscaler-native SCM/CI/CD seams mature under Buck2 authority."
+      "purpose": "Temporary GitHub/GitHub Actions lane-unlocker plus GitHub public/private publication bridge while native cloud-native/Kubernetes-native/hyperscaler-native SCM/CI/CD seams mature under Buck2 authority."
     },
     "adr_0516_github_actions_interim_lane_unlocker": {
       "kind": "adr",
       "current_path": "/docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
       "target_path_after_md_retirement": "adr registry successor",
       "migration_phase": "P00-imminent",
-      "purpose": "Decision record for GitHub/GitHub Actions temporary bridge, no Jenkins/Forgejo/ArgoCD interim, Buck2 authority, and native cutover boundaries."
+      "purpose": "Decision record for GitHub/GitHub Actions temporary bridge, no retired external SCM/CI/CD substrates interim, Buck2 authority, and native cutover boundaries."
     },
     "github_actions_lane_unlocker_procedure": {
       "kind": "procedure",
@@ -1304,6 +1304,20 @@
       "target_path_after_md_retirement": "procedure registry successor",
       "migration_phase": "P00-imminent",
       "purpose": "Operator/agent procedure for parallel dev-lane unlock with GitHub Actions matrix/concurrency and Buck2 verification."
+    },
+    "repo_hygiene_automation": {
+      "kind": "spec",
+      "current_path": "/specs/repo-hygiene-automation.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "P00-imminent",
+      "purpose": "Automation contract for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene, native SCM GitHub adapters, and shared-surface reduction."
+    },
+    "retired_external_substrate_registry": {
+      "kind": "spec",
+      "current_path": "/specs/retired-external-substrate-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "P00-imminent",
+      "purpose": "Tombstone registry for retired external SCM/CI/CD substrate names so active docs can use generic wording and avoid confusing agents."
     }
   },
   "by_kind": {
@@ -1320,10 +1334,10 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + Jenkins CI + `oya gate` (ADR-0363): work on an isolated worktree branch, push, open a PR against dev; Jenkins + `oya gate run-all` + reviewer APPROVE gate merge. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
+    "step_3_oya_vcs_state_transition": "Canonical interim path is plain `git` + an isolated worktree branch + PR against `dev` + the ADR-0516 temporary GitHub Actions required context + Buck2/oya governance evidence + reviewer approval. Retired external SCM/CI/CD substrates are tombstoned in /specs/retired-external-substrate-registry.json and are not active interim authorities.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate (`oya gate run-all`, locally and in Jenkins CI). The legacy 'ChangeBundle promotion / Oya VCS admission' framing is provenance-only per ADR-0363.",
-    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, honor /specs/gitops-vcs-replacement.json as a HISTORICAL contract: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and merge-queue mechanisms are RETIRED per ADR-0363 (which supersedes ADR-0110/0112/0113). The live substrate is plain git + Jenkins CI + `oya gate` + reviewer APPROVE; merge-queue is deferred (auto-merge + required checks suffice per ADR-0363 §3)."
+    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate (`oya gate run-all`, locally and in the ADR-0516 GitHub Actions bridge). The legacy ChangeBundle/Oya VCS admission framing is provenance-only per ADR-0363.",
+    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, use /specs/github-lane-unlocker-bridge.json and /specs/repo-hygiene-automation.json as the P00 live bridge. Historical gitops/vcs replacement docs are provenance unless explicitly reactivated by a newer ADR."
   },
   "specs_directory_audit_2026_05_20": {
     "top_level_specs_count": 63,
@@ -1346,6 +1360,9 @@
   "pointers": {
     "buck2_authority_policy": "specs/buck2-authority-policy.json",
     "generated_artifact_registry": "specs/generated-artifact-registry.json",
-    "oya_ci_prow_capability_parity": "specs/oya-ci-prow-capability-parity.json"
+    "oya_ci_prow_capability_parity": "specs/oya-ci-prow-capability-parity.json",
+    "github_lane_unlocker_bridge": "specs/github-lane-unlocker-bridge.json",
+    "repo_hygiene_automation": "specs/repo-hygiene-automation.json",
+    "retired_external_substrate_registry": "specs/retired-external-substrate-registry.json"
   }
 }

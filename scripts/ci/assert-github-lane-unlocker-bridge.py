@@ -116,14 +116,12 @@ def main() -> int:
     require(js_runtime.get("unsecure_node20_opt_out_allowed") is False, failures, "github_bridge.javascript_action_runtime.unsecure_node20_opt_out_allowed must be false")
     require(cd_bridge.get("mode") == "github_actions_cd_bridge_until_release_conveyor_cutover", failures, "github_actions_cd_bridge.mode must be temporary GitHub Actions CD bridge")
     require(cd_bridge.get("live_deployments_enabled") is False, failures, "github_actions_cd_bridge.live_deployments_enabled must be false")
-    require(cd_bridge.get("deploys_via_jenkins") is False, failures, "github_actions_cd_bridge.deploys_via_jenkins must be false")
-    require(cd_bridge.get("deploys_via_argocd") is False, failures, "github_actions_cd_bridge.deploys_via_argocd must be false")
+    require(cd_bridge.get("deploys_via_retired_external_substrate") is False or (cd_bridge.get("deploys_via_jenkins") is False and cd_bridge.get("deploys_via_argocd") is False), failures, "github_actions_cd_bridge must not deploy through retired external SCM/CI/CD substrates")
     require(cd_bridge.get("cutover_destination") == "release_conveyor_cd", failures, "github_actions_cd_bridge.cutover_destination must be release_conveyor_cd")
 
     for forbidden, value in non_interim.items():
         require(value is False, failures, f"not_interim_authorities.{forbidden} must be false")
-    for required_key in ["jenkins", "forgejo", "argocd"]:
-        require(required_key in non_interim, failures, f"not_interim_authorities missing {required_key}")
+    require(non_interim.get("retired_external_scm_ci_cd_substrates") is False or all(non_interim.get(required_key) is False for required_key in ["jenkins", "forgejo", "argocd"]), failures, "not_interim_authorities must reject retired external SCM/CI/CD substrates")
 
     for seam in [
         "oyatie_scm",
@@ -179,7 +177,7 @@ def main() -> int:
 
     for family in ["product", "cloud_platform", "scm_ci_cd", "governance"]:
         require(family in lane_graph.get("families", {}), failures, f"lane_graph.families missing {family}")
-    require(lane_graph.get("product_lanes_must_not_depend_on") == ["github", "forgejo", "cloud-ci internals", "workspace substrate internals"], failures, "lane_graph.product_lanes_must_not_depend_on must keep product lanes platform-agnostic")
+    require(lane_graph.get("product_lanes_must_not_depend_on") == ["github temporary bridge internals", "retired external SCM bridge internals", "cloud-ci internals", "workspace substrate internals"], failures, "lane_graph.product_lanes_must_not_depend_on must keep product lanes platform-agnostic")
 
     require(boundary.get("p0_0_green") is False, failures, "claim_boundary.p0_0_green must be false")
     require(boundary.get("phase0_complete") is False, failures, "claim_boundary.phase0_complete must be false")
@@ -190,9 +188,7 @@ def main() -> int:
         "GitHub is the permanent SCM",
         "GitHub Actions is the permanent CI authority",
         "GitHub Actions is the permanent CD authority",
-        "Jenkins is the interim CI authority",
-        "Forgejo is the interim SCM authority",
-        "ArgoCD is the interim CD authority",
+        "retired external SCM/CI/CD substrates are interim authorities",
         "P0.0 green",
         "Phase 0 complete",
         "cloud-ci/oya-ci live authority proven",
@@ -307,14 +303,12 @@ def main() -> int:
     require(branch_json.get("required_status_checks", {}).get("contexts") == ["github-lane-unlocker-required"], failures, "infra/branch-protection/dev.json must require automated github-lane-unlocker-required during the temporary bridge")
     require(temp_bridge.get("native_cutover_target_context") == "oya-ci-required", failures, "infra/branch-protection/dev.json must preserve native cutover context")
     require(temp_bridge.get("live_mutation_performed_by_this_file") is False, failures, "infra/branch-protection/dev.json must not claim live mutation")
-    require(temp_bridge.get("jenkins_interim") is False, failures, "infra/branch-protection/dev.json must reject Jenkins as interim")
-    require(temp_bridge.get("forgejo_interim") is False, failures, "infra/branch-protection/dev.json must reject Forgejo as interim")
-    require(temp_bridge.get("argocd_interim") is False, failures, "infra/branch-protection/dev.json must reject ArgoCD as interim")
+    require(temp_bridge.get("retired_external_scm_ci_cd_substrates_interim") is False or (temp_bridge.get("jenkins_interim") is False and temp_bridge.get("forgejo_interim") is False and temp_bridge.get("argocd_interim") is False), failures, "infra/branch-protection/dev.json must reject retired external SCM/CI/CD substrates as interim")
 
     require_contains(branch_yaml, "github-lane-unlocker-required", failures, ".github/branch-protection.yaml")
     require_contains(branch_yaml, "temporary GitHub/GitHub Actions lane-unlocker", failures, ".github/branch-protection.yaml")
     require_contains(branch_yaml, "not the permanent CI/SCM authority", failures, ".github/branch-protection.yaml")
-    require_contains(branch_yaml, "not interim Jenkins, Forgejo, or ArgoCD authority", failures, ".github/branch-protection.yaml")
+    require_contains(branch_yaml, "not interim retired external SCM/CI/CD substrate authority", failures, ".github/branch-protection.yaml")
 
     root_entry = root_hub.get("entry_points", {}).get("github_lane_unlocker_bridge", {}) if isinstance(root_hub, dict) else {}
     require(root_entry.get("current_path") == "/specs/github-lane-unlocker-bridge.json", failures, "root hub must point github_lane_unlocker_bridge to /specs/github-lane-unlocker-bridge.json")
@@ -336,9 +330,8 @@ def main() -> int:
         for needle in [
             "GitHub/GitHub Actions",
             "temporary lane-unlocker",
-            "no Jenkins",
-            "no Forgejo",
-            "no ArgoCD",
+            "no retired external SCM/CI/CD substrates",
+            "retired-external-substrate-registry.json",
             "pure-Rust Sapling-compatible native SCM",
             "best-of-existing hyperscaler patterns",
             "not a wholesale reimplementation",

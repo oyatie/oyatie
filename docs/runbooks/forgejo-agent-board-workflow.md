@@ -118,6 +118,62 @@ runbook treats the token user as the actor for remote mutation and the commit
 author as the code/document author. Neither replaces the claim ref as the
 ownership source of truth.
 
+## Oya-ci weekly parallel-lane overlay
+
+For the 2026-06-01 oya-ci execution week, use this runbook with the
+additional lane boundaries from the accepted RALPLAN. The overlay exists to
+keep Forgejo-native CI and merge-automation work reviewable while several
+agents operate in parallel.
+
+- Lane A owns `oya/ci-tide/**` and must prove pagination, review ordering,
+  stale-review, and dry-run merge-safety behavior before any merge-ready claim.
+- Lane B owns `oya/ci-controller/**`, including controller IAC, and must prove
+  status posting, terminal-failure summaries, restart safety, and idempotent
+  gate-run behavior.
+- Lane C owns `infra/forge/**`, `docs/runbooks/forgejo-*.md`, and
+  `.omx/context/forgejo-ops-*.md`; it documents Forgejo remote/API/token and
+  branch-protection context handling without printing secrets.
+- Lane D is the single writer for `evidence/multispectrum/**` and
+  `.omx/verification/**`; implementation lanes provide command transcripts and
+  blockers as inputs rather than writing final evidence directly.
+- Review/integration work checks the lane boundaries, sequencing, and cutover
+  safety; it does not edit lane-owned source files unless the leader opens an
+  explicit fix scope.
+
+The weekly overlay preserves the standing prohibitions: use plain `git` plus
+Forgejo pull requests against `dev`; do not use `oya git`, `oya vcs`, GitHub
+PR/merge flows, or concurrent `oya gate run-all`; keep Jenkins as the bridge
+until Phase-1 parallel-run evidence and founder/operator approval authorize a
+cutover. Rust verification for affected Rust lanes uses Rust 1.96, edition
+2024 formatting, and Buck2 build/test/check/clippy targets.
+
+Before a lane is marked ready for review, the handoff to the leader should name
+the scoped files, Forgejo PR or access blocker, exact verification commands,
+not-tested gaps, and whether any cross-lane contract changed. Lane D consumes
+that handoff when producing the shared multispectrum and verification records.
+
+Lane C discovery notes should record the Forgejo base URL, repository owner,
+repository name, target branch, protected status contexts, and credential
+variable names only. If a worktree still has a GitHub `origin`, the lane must
+add or select the self-hosted Forgejo remote before pushing or opening a pull
+request, and the handoff must name the remote used without using GitHub PR or
+merge commands. Never paste token values, bearer strings, webhook secrets, or
+raw authorization headers into runbooks, evidence, PR descriptions, or team
+mailbox updates; store redacted transcripts and name the redaction method
+instead.
+
+Because the repository default toolchain may differ from the weekly execution
+contract, Rust lanes must prefix local verification with
+`RUSTUP_TOOLCHAIN=1.96.0` and use edition 2024 formatting. A lane that cannot
+run the affected Buck2 `test`, `build`, `[check]`, or `[clippy.txt]` target must
+report that as a blocker or not-tested gap instead of substituting `cargo` or a
+different Rust edition.
+
+Live actions remain sandbox-only unless the leader explicitly authorizes a
+production mutation after the evidence gates pass. Production `dev` branch
+mutation, Jenkins deletion, or CI cutover is outside the worker-lane default
+scope.
+
 ## Editing and verification discipline
 
 After a successful claim:

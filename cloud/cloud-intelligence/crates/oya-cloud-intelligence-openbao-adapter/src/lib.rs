@@ -405,6 +405,22 @@ impl OpenBaoTransitStore {
         String::from_utf8(plaintext_bytes)
             .map_err(|e| OpenBaoError::Decode(format!("plaintext utf8 decode: {e}")))
     }
+
+    /// Lightweight OpenBao health probe used by `/readyz`.
+    async fn health_async(&self) -> Result<(), OpenBaoError> {
+        let url = format!("{}/v1/sys/health", self.base_url);
+        let resp = self
+            .with_vault_auth(self.http.get(&url))
+            .send()
+            .await
+            .map_err(|e| OpenBaoError::Transport(e.to_string()))?;
+        let status = resp.status().as_u16();
+        if resp.status().is_success() {
+            return Ok(());
+        }
+        let body = resp.text().await.unwrap_or_default();
+        Err(Self::map_error_status(status, body))
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -433,6 +449,13 @@ impl OpenBaoSecretStore for OpenBaoTransitStore {
         }
         tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(self.store_async(handle, plaintext))
+        })
+        .map_err(RestAdapterError::from)
+    }
+
+    fn readiness_probe(&self) -> Result<(), RestAdapterError> {
+        tokio::task::block_in_place(|| {
+            tokio::runtime::Handle::current().block_on(self.health_async())
         })
         .map_err(RestAdapterError::from)
     }

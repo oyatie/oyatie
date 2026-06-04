@@ -105,7 +105,7 @@ path) and lands as a fast-follow when the registry+signer product matures.
   is narrow and ties into the bespoke OCI-registry+signer product. Remains a valid interim if
   speed ever trumps dogfood; not chosen.
 - **sigstore policy-controller / Ratify / Connaisseur:** valid mature options for signing;
-  rejected as destination for the same reason (bespoke-Rust shares product code). 
+  rejected as destination for the same reason (bespoke-Rust shares product code).
 - **Bespoke admission ENGINE in Rust:** rejected — anti-pattern; only a bespoke webhook for the
   narrow residue, never the primary substrate.
 - **Keyless/Fulcio cosign:** rejected for self-hosted — requires Fulcio/Rekor/OIDC infra we do

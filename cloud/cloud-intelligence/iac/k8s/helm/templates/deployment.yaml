@@ -67,6 +67,22 @@ spec:
               value: "0.0.0.0:{{ .Values.service.targetPort }}"
             - name: OYA_CLOUD_INTEL_TENANT_ID
               value: {{ .Values.config.tenantId | quote }}
+            - name: OYA_CLOUD_INTEL_ENVIRONMENT
+              value: {{ .Values.config.environment | quote }}
+            - name: OYA_CLOUD_INTEL_INITIAL_SEATS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.secretName | quote }}
+                  key: initial_seats
+                  optional: true
+            - name: OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.secretName | quote }}
+                  key: tenant_provider_pools
+                  optional: true
+            - name: OYA_CLOUD_INTEL_OPENBAO_URL
+              value: {{ .Values.openbao.url | quote }}
             - name: OYA_MICROSERVICE
               value: {{ .Values.microservice.id | quote }}
             - name: OYA_CARGO_PACKAGE
@@ -82,9 +98,39 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: openbao_token
-          readinessProbe:
+            - name: OYA_CLOUD_INTEL_CLICKHOUSE_URL
+              value: {{ .Values.clickhouse.url | quote }}
+            - name: OYA_CLOUD_INTEL_CLICKHOUSE_USER
+              value: {{ .Values.clickhouse.user | quote }}
+            - name: OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.secretName | quote }}
+                  key: clickhouse_password
+            - name: OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.secretName | quote }}
+                  key: admin_bearer_token
+                  optional: true
+            - name: OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE
+              value: {{ .Values.providerCompliance.anthropic.authMode | quote }}
+            - name: OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS
+              value: {{ .Values.providerCompliance.anthropic.oauthStatus | quote }}
+            - name: OYA_CLOUD_INTEL_CODEX_AUTH_MODE
+              value: {{ .Values.providerCompliance.codex.authMode | quote }}
+            - name: OYA_CLOUD_INTEL_CODEX_OAUTH_STATUS
+              value: {{ .Values.providerCompliance.codex.oauthStatus | quote }}
+          startupProbe:
             httpGet:
               path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /readyz
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10

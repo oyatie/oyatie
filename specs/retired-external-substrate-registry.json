@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/retired-external-substrate-registry.json",
+  "spec_id": "P00-RETIRED-EXTERNAL-SUBSTRATE-REGISTRY",
+  "status": "accepted_tombstone_registry",
+  "updated_at": "2026-06-04T00:00:00Z",
+  "purpose": "Single tombstone registry for external SCM/CI/CD substrate names that are no longer active interim authorities. Active docs should use the generic term to avoid confusing agents; exact names stay here, historical ADR provenance, adapter code awaiting retirement, and archive manifests only.",
+  "active_docs_must_use_generic_term": "retired external SCM/CI/CD substrates",
+  "exact_names_allowed_only_in": [
+    "retired registry",
+    "historical ADR provenance",
+    "adapter code awaiting retirement",
+    "archive manifests"
+  ],
+  "retired_external_substrates": [
+    {
+      "id": "legacy_ci_server",
+      "display_name": "Jenkins",
+      "former_role": "self-hosted CI bridge and status transport",
+      "current_role": "historical provenance and adapter-retirement source only",
+      "interim_authority": false,
+      "permanent_authority": false,
+      "replacement_now": "GitHub Actions temporary lane-unlocker under Buck2 authority",
+      "native_destination": "Rust Oya CI/release conveyor with Kubernetes-native Buck2 execution"
+    },
+    {
+      "id": "legacy_self_hosted_git_forge",
+      "display_name": "Forgejo",
+      "former_role": "self-hosted forge/SCM bridge candidate",
+      "current_role": "historical provenance and adapter-retirement source only",
+      "interim_authority": false,
+      "permanent_authority": false,
+      "replacement_now": "GitHub temporary SCM/publication bridge",
+      "native_destination": "pure-Rust Sapling-inspired Oyatie SCM with GitHub and git-protocol adapters"
+    },
+    {
+      "id": "legacy_gitops_cd_runtime",
+      "display_name": "Argo CD",
+      "former_role": "GitOps CD bridge candidate",
+      "current_role": "historical provenance and native-cutover comparison only",
+      "interim_authority": false,
+      "permanent_authority": false,
+      "replacement_now": "GitHub Actions dry-run CD evidence only",
+      "native_destination": "Oyatie release conveyor with Kubernetes-native progressive delivery, policy, rollback, and audit"
+    },
+    {
+      "id": "legacy_workflow_runtime",
+      "display_name": "Argo Workflows/Rollouts",
+      "former_role": "workflow/progressive-delivery reference candidate",
+      "current_role": "reference pattern or adapter comparison only where explicitly cited",
+      "interim_authority": false,
+      "permanent_authority": false,
+      "replacement_now": "GitHub Actions dry-run evidence plus Buck2 checks",
+      "native_destination": "Oyatie workflow/release conveyor adapters with Kubernetes-native reconciliation"
+    }
+  ],
+  "cleanup_rule": "When preserving value from a retired external substrate, copy the pattern into an Oyatie-owned spec/adapter/test, then archive or delete the old doc/file in a separate evidence-backed PR. Do not leave active instructions that make the retired substrate look runnable.",
+  "automation": {
+    "local_static_check": "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
+    "buck2_target": "buck2 build //:repo-hygiene-automation-check",
+    "live_mutation": false
+  }
+}

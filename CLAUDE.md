@@ -42,5 +42,17 @@ substrate_adrs:
   - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
 <!-- agent-instructions:end -->
 
+## Oyatie tool examples
 
-ADR-0516 temporary GitHub/GitHub Actions lane-unlocker: no Jenkins, no Forgejo, no ArgoCD interim authority; Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now; no shared contract or shared surface until a later rewrite and rewire of Oyatie products to consume the Cloud IdP. Buck2 remains build/test/check authority; native cutover remains cloud native, Kubernetes-native, hyperscaler native.
+```sh
+buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check
+python3 scripts/ci/assert-repo-hygiene-automation.py --json
+buck2 build //:repo-hygiene-automation-check
+infra/ci/buck2-affected-gate.sh origin/dev HEAD
+```
+
+Use `specs/repo-hygiene-automation.json` for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene. Use `/specs/retired-external-substrate-registry.json` for tombstoned external substrate names; active guidance should say "retired external SCM/CI/CD substrates" rather than reintroducing old authorities.
+
+
+
+ADR-0516 temporary GitHub/GitHub Actions lane-unlocker: no retired external SCM/CI/CD substrates interim authority; Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now; no shared contract or shared surface until a later rewrite and rewire of Oyatie products to consume the Cloud IdP. Buck2 remains build/test/check authority; native cutover remains cloud native, Kubernetes-native, hyperscaler native.

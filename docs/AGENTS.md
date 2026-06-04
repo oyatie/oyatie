@@ -47,7 +47,7 @@ doc_status: published
 
 ## ADR-0516 interim lane-unlocker amendment (2026-06-03)
 
-For imminent P00/P0 work, GitHub/GitHub Actions is the temporary lane-unlocker for dev so product, infra, and cloud lanes can run concurrently. There is no Jenkins, no Forgejo, and no ArgoCD interim authority. Buck2 remains build/test/check authority. The native destination remains a cloud native, Kubernetes-native, hyperscaler native Oyatie SCM/CI/CD/cloud workspace substrate that adopts proven Prow/Sapling/Piper/CitC/Buck2 patterns without wholesale reinvention. This amendment is not P0.0 green and does not make GitHub permanent.
+For imminent P00/P0 work, GitHub/GitHub Actions is the temporary lane-unlocker for dev so product, infra, and cloud lanes can run concurrently. There is no retired external SCM/CI/CD substrates interim authority. Buck2 remains build/test/check authority. Exact tombstones for retired external substrate names live in `/specs/retired-external-substrate-registry.json` so active guidance can stay generic. The native destination remains a cloud native, Kubernetes-native, hyperscaler native Oyatie SCM/CI/CD/cloud workspace substrate that adopts proven Prow/Sapling/Piper/CitC/Buck2 patterns without wholesale reinvention. This amendment is not P0.0 green and does not make GitHub permanent.
 
 ## Machine-readable authority — [root hub pointers](..//specs/root-hub-pointers.json)
 
@@ -59,14 +59,26 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
 
-Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine until superseded by a newer ADR.
+Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md), and [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md) as active operating-contract doctrine until superseded by a newer ADR. ADR-0349 is historical CI/CD provenance and is superseded for interim use by ADR-0516 plus `/specs/retired-external-substrate-registry.json`.
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
 | ADR-0346 (amended 2026-06-02) | Local pre-push verification is Buck2-backed shift-left evidence only. It MUST NOT grant protected-branch or Phase-0 exit authority; `oya-ci-required` from trusted cloud-ci/oya-ci remains the target required context. | `specs/buck2-authority-policy.json`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, cloud-ci/oya-ci required-context producer. |
 | ADR-0347 | Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; the rename is name-only and lane invariants remain preserved. | `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`. |
 | ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
-| ADR-0349 (superseded for interim use by ADR-0516) | Historical Jenkins/ArgoCD self-hostable CI/CD planning is not interim authority. ADR-0516 makes GitHub/GitHub Actions the temporary dev lane-unlocker, keeps Buck2 as build/test/check authority, rejects Jenkins/Forgejo/ArgoCD interim authority, and preserves native cloud native/Kubernetes-native/hyperscaler-native cutover. | `//:github-lane-unlocker-bridge-check`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, ADR-0516 claim-boundary evidence lanes. |
+| ADR-0349 (superseded for interim use by ADR-0516) | Historical retired external CI/CD self-hostable CI/CD planning is not interim authority. ADR-0516 makes GitHub/GitHub Actions the temporary dev lane-unlocker, keeps Buck2 as build/test/check authority, rejects retired external SCM/CI/CD substrates interim authority, and preserves native cloud native/Kubernetes-native/hyperscaler-native cutover. | `//:github-lane-unlocker-bridge-check`, `//:buck2-authority-policy-check`, `infra/ci/buck2-affected-gate.sh`, ADR-0516 claim-boundary evidence lanes. |
+
+
+## P00 repo hygiene automation
+
+Git/worktree, branch/merge, repository publication, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene are governed by `/specs/repo-hygiene-automation.json` and checked with:
+
+```sh
+python3 scripts/ci/assert-repo-hygiene-automation.py --json
+buck2 build //:repo-hygiene-automation-check
+```
+
+Shared docs, root indexes, registries, and workflows stay pointer-thin and should route detail to disjoint lane-owned shards. New Markdown defaults to registered/lane-owned or archived; stale docs older than 3 days are audit/archive candidates before deletion.
 
 ## Multispectrum review bar — required on every change
 
@@ -146,7 +158,7 @@ Before any change, every agent and every human MUST complete these items.
 2. **Read the canonical authority for the change class.** Use the §"Canonical doc map" table. *Why:* one-paragraph orientation prevents the most common failure (acting on stale repo memory). *Test:* PR `## Traceability` cites the doc(s) read.
 3. **Confirm Data Use Boundary.** Every new field on a kernel struct MUST carry a `data_class` annotation. *Why:* cross-pillar flows that bypass `data_class` violate the cohesion principle. *Test:* `oya-governance-data-class` lane.
 4. **Confirm autonomy ceiling.** Capability bindings MUST declare T1 / T2 / T3 / T4 in the capability record. Tier uplift MUST land an accompanying Cedar policy + runtime gate. *Why:* config-flag tier uplift bypasses the audit chain. *Test:* `oya-governance-autonomy-ceiling` lane.
-5. **Confirm license posture.** New dependencies MUST clear the Buck2/Jenkins license-policy lane. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* Buck2-invoked license-policy evidence exits 0.
+5. **Confirm license posture.** New dependencies MUST clear the Buck2 license-policy lane. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* Buck2-invoked license-policy evidence exits 0.
 6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Traceability` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
 7. **Identify the per-change-class reviewer agent.** *Why:* the reviewer signs `## Code Review` at merge time; no signature, no merge. *Test:* §"Per-change-class reviewer agents" table below; merge-gate hook validates.
 8. **For cross-axis contract changes:** apply the cross-axis review label per [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
@@ -192,7 +204,7 @@ the governance pipeline:
 ADR-0516 temporary GitHub/GitHub Actions lane-unlocker context + reviewer
 APPROVE gate merge readiness until the native Oyatie SCM/CI/CD substrate cuts
 over. The destination is a pure-Rust, Sapling-compatible Oyatie SCM plus
-cloud-native release conveyor seams, not interim Forgejo/Jenkins/ArgoCD. `oya`
+cloud-native release conveyor seams, not interim retired external SCM/CI/CD substrates. `oya`
 is local/bridge governance evidence only.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.

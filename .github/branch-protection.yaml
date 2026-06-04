@@ -1,6 +1,6 @@
 # ADR-0516 amendment (2026-06-03): temporary GitHub/GitHub Actions lane-unlocker.
 # The temporary required context is github-lane-unlocker-required. This is not the permanent CI/SCM authority,
-# and it is not interim Jenkins, Forgejo, or ArgoCD authority. Buck2 remains build/test/check authority;
+# and it is not interim retired external SCM/CI/CD substrate authority. Buck2 remains build/test/check authority;
 # native cutover keeps oya-ci-required as the destination context after proof; during the bridge, dev requires github-lane-unlocker-required so no manual oya-ci-required status is needed.
 
 # Branch-protection shadow/target record for dev/staging/production.
@@ -20,12 +20,12 @@
 #                signed-commits + linear-history + every required
 #                CI check green. Default branch on github.
 #   - staging    Promotion from dev is deferred to the native release conveyor.
-#                ADR-0516 explicitly prevents Jenkins, Forgejo, or ArgoCD from
+#                ADR-0516 explicitly prevents retired external SCM/CI/CD substrates from
 #                becoming interim CD authority. GitHub Actions may prepare
 #                dry-run evidence only until native cutover.
 #   - production Promotion from staging to production is deferred to the native release
 #                conveyor. ADR-0516 keeps GitHub Actions CD as dry-run bridge
-#                only and rejects Jenkins, Forgejo, or ArgoCD interim authority.
+#                only and rejects retired external SCM/CI/CD substrates interim authority.
 #
 # `main` is RETAINED for read-only legacy compatibility but has NO
 # protection and is not the default branch. PRs targeting `main` are
@@ -57,7 +57,7 @@ branches:
 
   staging:
     # Native release conveyor target. ADR-0516 does not authorize interim
-    # Jenkins/Forgejo/ArgoCD promotion; GitHub Actions may generate dry-run
+    # retired external SCM/CI/CD substrates promotion; GitHub Actions may generate dry-run
     # evidence only. What this shadow file still enforces: the ref must only
     # move forward, commits must be signed, no force-push, no deletion.
     require_pull_request: false
@@ -68,7 +68,7 @@ branches:
 
   production:
     # Native production release conveyor target. ADR-0516 does not authorize
-    # interim Jenkins/Forgejo/ArgoCD production promotion. FULL-rollout
+    # interim retired external SCM/CI/CD substrates production promotion. FULL-rollout
     # requires native evidence, canary/rollback, and signed provenance.
     require_pull_request: false
     require_linear_history: true

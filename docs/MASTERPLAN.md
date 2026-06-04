@@ -45,6 +45,19 @@ The active long-running implementation goal is `/evidence/goals/fd001-planning-c
 
 Historical planning prompts and old `.omc/plans/` root drafts are archived under `.omc/archive/stale-documents/2026-05-19-planning-closure/` and must not be used as sequencing, scope, open-question, or implementation-start authority.
 
+
+## P00 GitHub transition and hygiene unlock
+
+The imminent top priority is P00: use GitHub/GitHub Actions as a temporary lane-unlocker while native SCM/CI/CD/cloud workspace seams mature. Buck2 remains build/test/check authority, and the native destination remains cloud native, Kubernetes-native, and hyperscaler native.
+
+P00 also includes repo hygiene automation: `specs/repo-hygiene-automation.json` governs git/worktree, branch/merge, repository publication, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene. Run:
+
+```bash
+buck2 build //:repo-hygiene-automation-check
+```
+
+The native Sapling-inspired SCM must expose GitHub public/private publication and status adapters, but GitHub is not the durable source of truth. Shared docs, indexes, registries, and workflows stay pointer-thin and route detail to lane-owned shards. Retired external SCM/CI/CD substrate names are tombstoned in `specs/retired-external-substrate-registry.json`.
+
 ## First Deliverable
 
 FD-001 is Tenant RBAC view plus Tenant RBAC view at full production depth. This is not a preview scope and not a reduced launch. The first deliverable exits only when the canonical base and Korea localization pack are both ready with evidence.
@@ -57,7 +70,7 @@ Required FD-001 surfaces:
 - community
 - infra
 - ops dashboard and control center
-- foundry
+- intelligence
 - workflow
 - ontology
 - canonical base
@@ -101,7 +114,7 @@ Execution follows vertical delivery ordering:
 
 1. Lock shared contracts, schemas, architecture rules, policy, bootstrap, deployment, and evidence gates.
 2. Build FD-001 through product-vertical slices that include customer UX, domain logic, APIs, data, policy, telemetry, tests, operations, deployment, and evidence.
-3. Parallelize only after shared contracts are locked. Safe parallel lanes include messenger, mail, community, ops dashboard/control center, foundry, workflow, ontology, infra, and Korea localization pack.
+3. Parallelize only after shared contracts are locked. Safe parallel lanes include messenger, mail, community, ops dashboard/control center, intelligence, workflow, ontology, infra, and Korea localization pack.
 4. Serialize shared data model ownership, root workspace manifest changes, public API compatibility changes, branch protection, and promotion policy changes.
 5. Promote interim dev work only through an isolated plain-git branch, PR against `dev`, the ADR-0516 GitHub/GitHub Actions temporary required context, Buck2 build/test/check evidence, `oya gate` / `oya verify` governance evidence, and reviewer/governance approval. Native promotion returns to the cloud native/Kubernetes-native/hyperscaler-native SCM/CI/CD substrate after cutover evidence.
 

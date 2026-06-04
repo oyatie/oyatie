@@ -57,6 +57,14 @@ genrule(
         "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
         "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
         "docs/ci/github-actions-lane-unlocker.md": "docs/ci/github-actions-lane-unlocker.md",
+        "scripts/ci/assert-repo-hygiene-automation.py": "scripts/ci/assert-repo-hygiene-automation.py",
+        "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
+        "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
+        "docs/DOC-CATALOG.md": "docs/DOC-CATALOG.md",
+        "README.md": "README.md",
+        "AGENTS.md": "AGENTS.md",
+        "CLAUDE.md": "CLAUDE.md",
+        "docs/AGENTS.md": "docs/AGENTS.md",
         "scripts/ci/assert-claim-ceiling.py": "scripts/ci/assert-claim-ceiling.py",
         "scripts/tests/phase0_claim_ceiling_check.test.sh": "scripts/tests/phase0_claim_ceiling_check.test.sh",
         "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
@@ -343,6 +351,38 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+# P00 repo hygiene automation contract. This is local/static evidence for
+# git/worktree, branch/merge, repository publication, disk/workspace,
+# Kubernetes workload, and documentation-sprawl hygiene. It never deletes files,
+# mutates live branch protection, or scales Kubernetes workloads.
+genrule(
+    name = "repo-hygiene-automation-check",
+    srcs = {
+        "scripts/ci/assert-repo-hygiene-automation.py": "scripts/ci/assert-repo-hygiene-automation.py",
+        "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
+        "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
+        "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
+        "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
+        "specs/masterplan.json": "specs/masterplan.json",
+        "specs/master-plan-sequencing.json": "specs/master-plan-sequencing.json",
+        ".github/workflows/github-lane-unlocker-ci-cd.yml": ".github/workflows/github-lane-unlocker-ci-cd.yml",
+        ".github/branch-protection.yaml": ".github/branch-protection.yaml",
+        "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
+        "docs/ci/github-actions-lane-unlocker.md": "docs/ci/github-actions-lane-unlocker.md",
+        "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+        "docs/DOC-CATALOG.md": "docs/DOC-CATALOG.md",
+        "docs/MASTERPLAN.md": "docs/MASTERPLAN.md",
+        "docs/AGENTS.md": "docs/AGENTS.md",
+        "README.md": "README.md",
+        "AGENTS.md": "AGENTS.md",
+        "CLAUDE.md": "CLAUDE.md",
+        "BUCK": "BUCK",
+    },
+    out = "repo-hygiene-automation-check.json",
+    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/ci/assert-repo-hygiene-automation.py --json > $OUT",
+    visibility = ["PUBLIC"],
+)
+
 # P0.0 Buck2-authority parity fixture guard: mutation-style RED/GREEN checks
 # for upstream Prow parity rows, explicit upstream waivers, live-authority
 # boundaries, and root-hub discoverability. Fixture mode narrows broad
@@ -473,7 +513,7 @@ genrule(
         "specs/buck2-cargo-target-coverage.json": "specs/buck2-cargo-target-coverage.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "Cargo.toml": "Cargo.toml",
-    } | {path: path for path in glob(["**/Cargo.toml", "**/BUCK"], exclude = ["buck-out/**", "target/**"])},
+    } | {path: path for path in glob(["**/Cargo.toml", "**/BUCK", "**/src/lib.rs", "**/src/main.rs", "**/src/bin/**/*.rs"], exclude = ["buck-out/**", "target/**"])},
     out = "buck2-cargo-target-coverage-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/buck2_cargo_target_coverage_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-buck2-cargo-target-coverage.py --spec specs/buck2-cargo-target-coverage.json --json > $OUT",
     cacheable = False,

@@ -108,6 +108,7 @@ Per-release tag, the build pipeline:
 
 - Applies to: every crate under `crates/oya-*`, every npm package under web/UI subtrees, every Python package, every Go module, every WASM plugin published to the marketplace.
 - Does not apply to: third-party SaaS Oyatie consumes operationally (e.g. GitHub itself, Slack); per-tenant customer-uploaded artifacts (which carry the customer's license terms).
+- Repository-default license posture: root [`/LICENSE`](../../LICENSE) is proprietary and all rights reserved. This ADR governs dependency acceptance, release SBOM posture, and package/component metadata; it does not grant repository-wide Apache-2.0 or any other open-source rights. Explicit file-level/component-level notices remain scoped exceptions for the identified material only.
 
 ---
 

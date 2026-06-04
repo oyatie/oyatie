@@ -12,6 +12,7 @@
 #   - psm         psm_asm preprocessor_flags per-OS select() (undefined
 #                 rust_psm_stack_pointer at the rust_binary final link, #96/#78)
 #   - aws-lc-sys  DEP_AWS_LC_*_INCLUDE = $(location ...) link env
+#   - aws-lc-sys  musl sysroot $(location ...) env behind platform select
 # (See docs/decisions/ADR-0514 + the per-crate notes in third-party/fixups/*.)
 #
 # This wrapper runs buckify THEN re-applies those hand-edits from a captured patch,
@@ -44,6 +45,9 @@ if ! git apply "$PATCH"; then
   echo "       then re-capture: git diff -R -- third-party/BUCK > $PATCH"
   exit 1
 fi
+
+echo "[regen-third-party] applying idempotent durable hand-edit normalizer ..."
+python3 scripts/ci/apply-third-party-durable-handedits.py
 
 echo "[regen-third-party] done. The per-OS select()s + LDFLAGS + \$(location) DEP env are restored."
 echo "[regen-third-party] Review: git diff third-party/BUCK should reflect ONLY intended dep changes."
