@@ -1,0 +1,83 @@
+{
+  "change_class_id": "CC-6",
+  "change_id": "platform-readiness-p0-0-auto-merge-contract-rust-1780568856",
+  "schema_version": "multispectrum-review.v2.4.0-local-static",
+  "session_id": "omx-1780449440528-15gm8q",
+  "timestamp": "2026-06-04T10:27:36Z",
+  "scope": "Move the P0.0 auto-merge-after-CI contract checker from Python to Rust while preserving Buck2 authority, GitHub temporary lane-unlocker context, and native oya-ci-required cutover boundary.",
+  "claim_boundary": {
+    "github_is_permanent": false,
+    "github_actions_is_permanent_ci_cd": false,
+    "live_auto_merge_executed": false,
+    "live_branch_protection_mutated": false,
+    "live_required_context_execution_proven": false,
+    "native_cutover_target_context": "oya-ci-required",
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "temporary_required_context": "github-lane-unlocker-required"
+  },
+  "implementation_summary": [
+    "Replaced scripts/tests/phase0_auto_merge_after_ci_contract_check.py with scripts/tests/phase0_auto_merge_after_ci_contract_check.rs.",
+    "Updated Buck2 genrules and red/green/Buck2 authority registries to point at the Rust checker and include the new file in the red/green sandbox.",
+    "Amended AC-0.0 wording so temporary GitHub required context and native oya-ci-required cutover boundary are explicit."
+  ],
+  "review_facets": {
+    "F1_correctness": "PASS: Rust checker emits verdict PASS and validates github-lane-unlocker-required plus p0_0_green=false and phase0_complete=false.",
+    "F2_security": "PASS: local/static file and JSON validation only; no secrets, status posting, branch-protection mutation, or live merge action.",
+    "F3_reliability": "PASS: checker unit tests and red/green registry target run inside Buck2 sandbox after explicit source registration.",
+    "F4_operability": "PASS: Buck2 target //:phase0-auto-merge-after-ci-contract-check builds and prints JSON evidence.",
+    "F5_observability": "PASS: output preserves structured PASS JSON with named checks and required_context field.",
+    "F6_maintainability": "PASS: removes active Python checker surface and keeps the contract in Rust/Buck2 authority.",
+    "F7_performance": "PASS: static Rust checker compiles directly with rustc in a Buck2 genrule; no network or heavy runtime dependency.",
+    "F8_architecture": "PASS: reinforces Buck2 as build/test/check authority and keeps GitHub temporary lane-unlocker separate from native cutover authority.",
+    "F9_compliance": "PASS: claim boundary retains non-green/non-production flags and native oya-ci-required cutover statement.",
+    "F10_test_adequacy": "PASS: rustfmt, rustc -D warnings test/binary, JSON assertions, stale-path sweep, diff check, and Buck2 bundle were run fresh.",
+    "F11_documentation": "PASS: automation matrix and red/green registry references updated.",
+    "F12_reserved": "NOT_APPLICABLE: no visual/UI change.",
+    "F13_reviewability": "PASS: narrow migration diff with one retired Python file and one Rust replacement."
+  },
+  "verification": [
+    {
+      "command": "rustfmt --edition 2021 --check scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
+      "evidence": "exit 0",
+      "verdict": "PASS"
+    },
+    {
+      "command": "rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs --test && OYA_REPO_ROOT=$PWD test-binary --nocapture",
+      "evidence": "2 tests passed; 0 failed",
+      "verdict": "PASS"
+    },
+    {
+      "command": "OYA_REPO_ROOT=$PWD scripts/tests/phase0_auto_merge_after_ci_contract_check.rs compiled binary > /tmp/phase0-auto-merge-contract.json && jq assertion",
+      "evidence": "verdict PASS; required_context github-lane-unlocker-required; p0_0_green=false; phase0_complete=false",
+      "verdict": "PASS"
+    },
+    {
+      "command": "jq empty specs/red-green-fixture-contract.json specs/buck2-authority-policy.json specs/phase0-automation-matrix.json specs/phase0-auto-merge-after-ci.json",
+      "evidence": "exit 0",
+      "verdict": "PASS"
+    },
+    {
+      "command": "rg stale phase0_auto_merge_after_ci_contract_check.py/PYTHONDONTWRITEBYTECODE references",
+      "evidence": "no matches",
+      "verdict": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "evidence": "exit 0",
+      "verdict": "PASS"
+    },
+    {
+      "command": "buck2 build //:phase0-auto-merge-after-ci-contract-check //:github-auto-merge-after-ci-check //:phase0-red-green-fixture-contract-check //:buck2-authority-policy-check //:phase0-automation-ratchet-check //:language-discipline-check //:github-lane-unlocker-bridge-check --show-output",
+      "evidence": "BUILD SUCCEEDED; Build ID a0007768-eb5a-447c-9482-34aef64d2481",
+      "verdict": "PASS"
+    },
+    {
+      "command": "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "evidence": "PASS; 7 changed files; affected build succeeded with Build ID f91c3c24-6c8a-4c7b-9492-bc3143590640; affected test Build ID c464ed26-2e93-4d6a-a91b-73d6002a0896; no tests ran for genrule-only target set",
+      "verdict": "PASS"
+    }
+  ],
+  "verdict": "LOCAL_STATIC_PASS_NOT_LIVE_AUTHORITY"
+}
