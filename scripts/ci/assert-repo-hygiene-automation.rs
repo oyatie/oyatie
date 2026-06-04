@@ -16,6 +16,7 @@ const GITHUB_BRIDGE_PATH: &str = "specs/github-lane-unlocker-bridge.json";
 const CANONICAL_PRIMITIVES_PATH: &str = "specs/canonical-primitives.json";
 const AGENT_OPERATING_CONTRACT_PATH: &str = "specs/agent-operating-contract.json";
 const PHASE0_AUTO_MERGE_AFTER_CI_PATH: &str = "specs/phase0-auto-merge-after-ci.json";
+const TENANT_RBAC_SPEC_PATH: &str = "specs/microservices/tenant-rbac.json";
 const MASTERPLAN_PATH: &str = "specs/masterplan.json";
 const SEQUENCING_PATH: &str = "specs/master-plan-sequencing.json";
 const PLANNING_CLOSURE_CONTRACT_PATH: &str = "specs/planning-closure-contract.json";
@@ -242,6 +243,8 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "oya-vcs",
     "oya-vcs-admission",
     "oya-dev-cli:oya -- gate validate planning-closure",
+    "oya gate validate planning-closure",
+    "oya gate validate product-prd-json",
 ];
 
 const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
@@ -269,6 +272,8 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "oya-git",
     "oya-vcs",
     "oya-vcs-admission",
+    "oya gate validate planning-closure",
+    "oya gate validate product-prd-json",
 ];
 
 const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
@@ -283,6 +288,7 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     "infra/branch-protection/dev.json",
     AGENT_OPERATING_CONTRACT_PATH,
     PHASE0_AUTO_MERGE_AFTER_CI_PATH,
+    TENANT_RBAC_SPEC_PATH,
     "docs/MASTERPLAN.md",
 ];
 
