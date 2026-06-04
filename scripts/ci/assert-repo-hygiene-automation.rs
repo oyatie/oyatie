@@ -119,6 +119,8 @@ const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "stale_doc_inventory_followups",
     "retired_external_substrate_residue",
     "temporary_github_bridge_artifacts",
+    "cd_fleet_bootstrap_surface_retirement",
+    "retired_external_scm_adapter_retirement",
 ];
 
 const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
@@ -201,6 +203,9 @@ const RETIRED_ACTIVE_PATHS: &[&str] = &[
     "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
     "infra/forge",
     "infra/forge/jenkins-forgejo-token.secret.template.yaml",
+    "scripts/ci/arm-auto-merge.sh",
+    "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+    "docs/ci/forge-of-record.md",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "evidence_id": "platform-readiness-retire-external-scm-auto-merge-shell-20260604T133945Z",
+  "captured_at": "2026-06-04T13:39:45Z",
+  "change_lane": "platform-scm-ci-cd",
+  "claim_boundary": "local_static_only_no_live_mutation_no_branch_protection_no_kubernetes_no_secret_changes",
+  "intent": "Retire runnable retired external SCM auto-merge shell bridge surfaces and keep GitHub temporary lane-unlocker plus native Oyatie SCM/Oya CI cutover as the active contract.",
+  "retired_surfaces": [
+    "scripts/ci/arm-auto-merge.sh",
+    "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
+    "docs/ci/forge-of-record.md"
+  ],
+  "updated_contracts": [
+    "specs/phase0-auto-merge-after-ci.json",
+    "specs/buck2-authority-policy.json",
+    "specs/repo-hygiene-automation.json",
+    "specs/oya-ci-prow-capability-parity.json",
+    "docs/ci/auto-merge-flow.md"
+  ],
+  "security_backlog_validation": {
+    "requested_item_count": 31,
+    "valid_item_count": 31,
+    "source_of_truth": "specs/repo-hygiene-automation.json.security_hardening_backlog",
+    "local_gate": "//:repo-hygiene-automation-check"
+  },
+  "verification": [
+    {
+      "command": "jq empty specs/phase0-auto-merge-after-ci.json specs/buck2-authority-policy.json specs/phase0-automation-matrix.json specs/phase0-ci-enforcement-baseline.json specs/repo-hygiene-automation.json specs/oya-ci-prow-capability-parity.json",
+      "exit_code": 0,
+      "result": "valid_json"
+    },
+    {
+      "command": "buck2 build //:phase0-auto-merge-after-ci-contract-check //:github-auto-merge-after-ci-check //:repo-hygiene-automation-check //:buck2-authority-policy-check --show-output",
+      "build_id": "f88c6da9-a1f0-4e7c-8873-9988b5e96e90",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED",
+      "key_outputs": {
+        "phase0_auto_merge_after_ci_contract": "verdict=PASS; retired_external_bridge_surfaces_absent=true; required_context=github-lane-unlocker-required",
+        "repo_hygiene_automation": "verdict=PASS; security_hardening_backlog_count=31; live_mutation_performed=false",
+        "buck2_authority_policy": "verdict=PASS; command_scan_files=156; authority_context=oya-ci-required"
+      }
+    },
+    {
+      "command": "buck2 build //:phase0-ci-enforcement-baseline-catalog-check //:phase0-automation-ratchet-check //:phase0-merge-conflict-foundation-check --show-output",
+      "build_id": "2b952c9b-7c89-43d2-8f5a-e2dcfb0ae3bb",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "build_ids": [
+        "ff5f5bb2-4d90-48aa-a1c1-cb021a4b1314",
+        "a8c6269b-6081-431e-9bde-76d2516bfe1a"
+      ],
+      "exit_code": 0,
+      "changed_files": 19,
+      "owning_targets": 9,
+      "affected_targets": 9,
+      "result": "buck2-affected-gate: PASS; affected build succeeded; affected test reported Pass 0 Fail 0"
+    }
+  ],
+  "remaining_risks": [
+    "Historical ADRs and generated board-sync artifacts still contain retired exact names for provenance and need separate archive/regeneration lanes.",
+    "Adapter crates and policy markers for retired external SCM code remain as adapter-retirement backlog, not interim authority.",
+    "Native Oya CI oya-ci-required producer and native Oyatie SCM cutover are still target contracts, not live green claims."
+  ]
+}

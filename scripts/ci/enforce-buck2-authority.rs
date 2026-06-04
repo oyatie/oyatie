@@ -74,7 +74,7 @@ const REQUIRED_PROW_CAPABILITY_IDS: &[&str] = &[
 ];
 const REQUIRED_IMPROVEMENT_IDS: &[&str] = &[
     "rust-memory-safe-single-platform",
-    "forgejo-native-no-github-gcs-coupling",
+    "native-scm-no-github-gcs-coupling",
     "buck2-native-gate-execution",
     "self-hosted-artifact-storage",
     "tenant-isolated-trusted-controller",
@@ -107,7 +107,7 @@ const REQUIRED_EXCLUDED_OR_SUPERSEDED_COMPONENT_IDS: &[&str] = &[
 ];
 const ALLOWED_EXCLUDED_OR_SUPERSEDED_DISPOSITIONS: &[&str] = &[
     "superseded_by_improvement",
-    "out_of_scope_for_forgejo_native",
+    "out_of_scope_for_native_scm",
     "deferred_until_needed_with_waiver",
 ];
 
