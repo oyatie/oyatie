@@ -383,6 +383,38 @@ fn active_doc_phrase_scanner_rejects_retired_agentic_dev_team_gate_refs() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_retired_canonical_prd_ci_cd_refs() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
+        "Agent workflow has Jenkins required checks, `oya gate` / `oya verify`, reviewer/governance approval, and reviewer/governance lifecycle.",
+    );
+    for expected in [
+        "`oya gate` / `oya verify`",
+        "reviewer/governance approval",
+        "reviewer/governance lifecycle",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn retired_exact_name_scanner_rejects_retired_canonical_prd_substrate_names() {
+    let failures = gate::retired_exact_name_failures(
+        "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
+        "CI uses Jenkins LTS and CD uses Argo CD sync.",
+    );
+    assert!(
+        failures.iter().any(|failure| failure
+            .contains("docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md:1: retired exact-name reference")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn active_doc_phrase_scanner_is_case_insensitive() {
     let failures = gate::active_doc_phrase_failures(
         "example.md",
