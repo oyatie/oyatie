@@ -71,7 +71,7 @@
   "planning_closure_contract": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure",
     "master_plan_authority": "/specs/masterplan.json",
     "compatibility_projection": "docs/MASTERPLAN.md",
     "implementation_start_claim_rule": "Implementation may start only after the planning-closure gate proves product scope, architecture/system design, sequencing, acceptance criteria, KR localization, and no-placeholder posture are complete enough to avoid implementation-time invention."

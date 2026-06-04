@@ -178,7 +178,7 @@
     "scripts/ci/assert-who-gates-gates.rs",
     "scripts/tests/who_gates_gates_check.rs",
     "specs/who-gates-gates-registry.json",
-    "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
+    "buck2 build //:repo-hygiene-automation-check",
     "//:repo-hygiene-automation-check"
   ],
   "claim_boundary": {
@@ -341,7 +341,7 @@
     "docs/ci/github-actions-lane-unlocker.md",
     "infra/branch-protection/dev.json",
     ".github/branch-protection.yaml",
-    "scripts/ci/assert-repo-hygiene-automation.py",
+    "scripts/ci/assert-repo-hygiene-automation.rs",
     "specs/repo-hygiene-automation.json",
     "specs/retired-external-substrate-registry.json",
     "docs/DOC-CATALOG.md",
@@ -479,7 +479,7 @@
       "github-lane-unlocker-bridge.json",
       "github-actions-lane-unlocker.md",
       "repo-hygiene-automation-check",
-      "assert-repo-hygiene-automation.py",
+      "assert-repo-hygiene-automation.rs",
       "repo-hygiene-automation.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [

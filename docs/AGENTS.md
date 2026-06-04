@@ -74,7 +74,6 @@ Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci
 Git/worktree, branch/merge, repository publication, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene are governed by `/specs/repo-hygiene-automation.json` and checked with:
 
 ```sh
-python3 scripts/ci/assert-repo-hygiene-automation.py --json
 buck2 build //:repo-hygiene-automation-check
 ```
 

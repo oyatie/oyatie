@@ -122,7 +122,6 @@
     }
   },
   "automation_commands": [
-    "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
     "buck2 build //:repo-hygiene-automation-check",
     "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
@@ -252,7 +251,7 @@
       "infra/branch-protection/dev.json"
     ],
     "purpose": "Make active agent/root/procedure docs mechanically refuse stale interim-authority wording while leaving historical ADR provenance intact.",
-    "forbidden_active_doc_phrase_source": "Exact retired-substrate deny strings are constants in scripts/ci/assert-repo-hygiene-automation.py so this active spec does not reintroduce tombstoned names."
+    "forbidden_active_doc_phrase_source": "Exact retired-substrate deny strings are constants in scripts/ci/assert-repo-hygiene-automation.rs so this active spec does not reintroduce tombstoned names."
   },
   "automation_language_policy": {
     "new_parallel_fanout_automation": "rust_buck2_first",
