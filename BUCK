@@ -673,6 +673,23 @@ genrule(
 )
 
 
+# ADR-0221 governance gate projection: Rust/Buck2 fixture evidence for the four
+# previously shell-backed hook-efficacy lanes. This target intentionally verifies
+# fail/pass fixtures directly instead of invoking advisory hook shell scripts.
+genrule(
+    name = "adr-0221-governance-gates-check",
+    srcs = {
+        "scripts/ci/assert-adr-0221-governance-gates.rs": "scripts/ci/assert-adr-0221-governance-gates.rs",
+    } | {path: path for path in glob(["docs/decisions/ADR-*.md"])},
+    out = "adr-0221-governance-gates-check.json",
+    cmd = "mkdir -p $TMP/adr-0221-governance-gates && rustc --edition=2021 -D warnings scripts/ci/assert-adr-0221-governance-gates.rs --test -o $TMP/adr-0221-governance-gates/adr_0221_governance_gates_check && OYA_REPO_ROOT=$PWD $TMP/adr-0221-governance-gates/adr_0221_governance_gates_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-adr-0221-governance-gates.rs -o $TMP/adr-0221-governance-gates/assert-adr-0221-governance-gates && OYA_REPO_ROOT=$PWD $TMP/adr-0221-governance-gates/assert-adr-0221-governance-gates --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
 # AC-0.5/AC-0.10 D1 seam contract check: Rust/Buck2 local/static evidence that
 # the shape-only A2a/A2b proto3 contracts exist, carry the proto-optional
 # consistency_token seam, require token presence in Phase-0 fixtures, and keep

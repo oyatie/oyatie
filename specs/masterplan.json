@@ -6075,7 +6075,7 @@
           },
           {
             "id": "P-TOOLCHAIN.2",
-            "step": "Port remaining shell/Python gate harnesses and legacy registry/quality command rows into Rust/Buck2 targets; current inventory is tracked in /specs/language-discipline-registry.json#legacy_active_command_surface_backlog (91 check_command rows: 56 Buck2, 31 legacy Cargo-style, 4 shell after the simple-authority quality-lane Buck2 tranche), and Cargo execution stays advisory outside merge authority"
+            "step": "Port remaining shell/Python gate harnesses and legacy registry/quality command rows into Rust/Buck2 targets; current inventory is tracked in /specs/language-discipline-registry.json#legacy_active_command_surface_backlog (91 check_command rows: 60 Buck2, 31 legacy Cargo-style, 0 shell after the ADR-0221 shell-to-Buck2 projection tranche), and Cargo execution stays advisory outside merge authority"
           },
           {
             "id": "P-TOOLCHAIN.3",
