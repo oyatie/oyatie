@@ -68,7 +68,11 @@ fn automation_matrix_row_maps_to_exact_buck2_target() {
 
     let coverage = read_repo_file("specs/phase0-automation-coverage-registry.json");
     let subject = json_object_containing_id(&coverage, "AC-0.4");
-    assert!(subject.contains("//:language-discipline-check"), "{}", subject);
+    assert!(
+        subject.contains("//:language-discipline-check"),
+        "{}",
+        subject
+    );
     assert!(
         subject.contains("\"verification_command\": \"buck2 build //:language-discipline-check\""),
         "{}",
@@ -91,6 +95,7 @@ fn checked_in_registry_and_fixtures_pass() {
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert_eq!(evaluation.fixture_count, 4);
     assert_eq!(evaluation.backlog_offender_count, 7);
+    assert_eq!(evaluation.active_retired_cli_script_count, 8);
     assert!(evaluation.failures.is_empty());
 }
 
@@ -125,6 +130,61 @@ fn registry_rejects_missing_cloud_backlog_offender() {
         "{:?}",
         failures
     );
+}
+
+#[test]
+fn registry_rejects_missing_retired_cli_script_entry() {
+    let mutated = read_repo_file("specs/language-discipline-registry.json").replace(
+        "scripts/branch-protection-apply.sh",
+        "scripts/branch-protection-apply.rs",
+    );
+    let failures = gate::registry_failures(&mutated);
+    assert!(
+        failures.iter().any(|failure| failure
+            == "missing_active_retired_cli_script:scripts/branch-protection-apply.sh"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn active_script_scan_rejects_unregistered_retired_cli_invocation() {
+    let mutated = read_repo_file("specs/language-discipline-registry.json")
+        .replace("scripts/install-trivy-ci.sh", "scripts/install-trivy-ci.rs");
+    let failures = gate::active_retired_cli_script_failures(Path::new(&repo_root()), &mutated);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure == "unregistered_retired_cli_script:scripts/install-trivy-ci.sh"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn script_name_policy_rejects_adr_numbered_active_names() {
+    assert!(gate::adr_numbered_script_name(
+        "scripts/ci/assert-adr-9999-placeholder.rs"
+    ));
+    assert!(gate::adr_numbered_script_name(
+        "tools/governance/adr0221-governance-gates.sh"
+    ));
+    assert!(!gate::adr_numbered_script_name(
+        "scripts/ci/assert-governance-hook-efficacy.rs"
+    ));
+    let failures = gate::active_script_name_failures(Path::new(&repo_root()));
+    assert!(failures.is_empty(), "{:?}", failures);
+}
+
+#[test]
+fn retired_cli_invocation_scan_ignores_tombstone_comments() {
+    let comments = r#"
+# Retired `oya verify`/`oya gate` CLI surfaces must not be invoked here.
+// Mentioning //oya/developer-sdk/crates/oya-dev-cli:oya in docs is a tombstone.
+"#;
+    assert!(gate::retired_cli_invocation_lines(comments).is_empty());
+    let active = "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate x";
+    assert_eq!(gate::retired_cli_invocation_lines(active).len(), 1);
 }
 
 #[test]

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ADR-0221 governance gate harness.
+# Governance hook-efficacy harness.
 #
 # Purpose: CI-owned non-vacuous checks for the guidance hooks introduced by
 # ADR-0221. Each gate creates a local fixture that must trigger the hook and a
@@ -60,8 +60,8 @@ case "$gate" in
         ;;
 
     orphan-citation)
-        fixture_dir="$REPO_ROOT/target/adr-0221-governance-fixtures/$$"
-        fixture_rel="target/adr-0221-governance-fixtures/$$/orphan.md"
+        fixture_dir="$REPO_ROOT/target/governance-hook-efficacy-fixtures/$$"
+        fixture_rel="target/governance-hook-efficacy-fixtures/$$/orphan.md"
         trap 'rm -rf "$fixture_dir"' EXIT
         mkdir -p "$fixture_dir"
         printf 'References missing ADR-7777.\n' > "$REPO_ROOT/$fixture_rel"
@@ -75,8 +75,8 @@ case "$gate" in
         ;;
 
     version-pin)
-        fixture_dir="$REPO_ROOT/target/adr-0221-governance-fixtures/$$"
-        fixture_rel="target/adr-0221-governance-fixtures/$$/contract.yaml"
+        fixture_dir="$REPO_ROOT/target/governance-hook-efficacy-fixtures/$$"
+        fixture_rel="target/governance-hook-efficacy-fixtures/$$/contract.yaml"
         trap 'rm -rf "$fixture_dir"' EXIT
         mkdir -p "$fixture_dir"
         printf 'openapi: 3.1.0\ninfo:\n  title: fixture\n  version: 1.0.0\npaths: {}\n' > "$REPO_ROOT/$fixture_rel"

@@ -10,7 +10,7 @@
     "status": "local_static_language_discipline_seed_not_live_context",
     "owner_team": "platform-toolchain + platform-governance",
     "created_at": "2026-06-03T00:00:00Z",
-    "updated_at": "2026-06-04T15:34:10Z",
+    "updated_at": "2026-06-04T22:35:00Z",
     "related_acceptance_criteria": [
       "AC-0.4"
     ],
@@ -50,6 +50,8 @@
     "new_shell_outside_allowlist_blocked": true,
     "offender_inventory_recorded": true,
     "legacy_active_command_surface_backlog_recorded": true,
+    "active_retired_cli_script_surface_recorded": true,
+    "active_script_names_self_descriptive": true,
     "status_mutation_performed": false,
     "protected_branch_authority_proven": false,
     "live_required_context_execution_proven": false,
@@ -86,6 +88,24 @@
       "coverage_instrumentation": "rustc -C instrument-coverage with LLVM_PROFILE_FILE, llvm-profdata merge, and llvm-cov report/export under Buck2 target evidence",
       "mutation_local_ergonomics": "Dual Cargo.toml + Buck2/Reindeer setup keeps local Cargo mutation testing advisory for developer feedback while Buck2/cloud-ci captured evidence remains merge authority.",
       "hyperscaler_orientation": "Language gates are deterministic, target-addressable, allowlist-driven, non-claiming, and suitable for trusted cloud-ci/oya-ci promotion."
+    },
+    "self_explanatory_script_name_policy": {
+      "checked_roots": [
+        "scripts",
+        "tools"
+      ],
+      "checked_suffixes": [
+        ".sh",
+        ".mjs",
+        ".rs"
+      ],
+      "adr_numbered_active_script_names_allowed": false,
+      "examples": [
+        "scripts/validate-release-image-supply-chain.sh",
+        "scripts/ci/assert-governance-hook-efficacy.rs",
+        "tools/governance/governance-hook-efficacy-harness.sh"
+      ],
+      "reason": "Active automation names should explain the capability directly. ADR numbers belong in decision provenance, not script/check names future agents may treat as live workflow guidance."
     }
   },
   "offender_inventory": {
@@ -138,7 +158,7 @@
   },
   "legacy_active_command_surface_backlog": {
     "captured_at": "2026-06-04T15:34:10Z",
-    "source": "registry/quality/lanes.yaml active check_command inventory after PR-497 moved the documentation/catalog/API-semver subset to Buck2 targets, the foundation tranche moved 17 governance rows to existing Buck2 targets, the target-backed tranche moved 29 additional rows, the simple-authority tranche moved 4 more rows, and this ADR-0221 tranche replaced all 4 shell rows with a Rust/Buck2 fixture projection",
+    "source": "registry/quality/lanes.yaml active check_command inventory after PR-497 moved the documentation/catalog/API-semver subset to Buck2 targets, the foundation tranche moved 17 governance rows to existing Buck2 targets, the target-backed tranche moved 29 additional rows, the simple-authority tranche moved 4 more rows, and this governance-hook-efficacy tranche replaced all 4 shell rows with a Rust/Buck2 fixture projection",
     "valid": true,
     "claim_boundary": "backlog_only_no_live_mutation",
     "inventory_counts": {
@@ -161,6 +181,75 @@
         "priority": "P01",
         "action": "Generate shared registry command projections from per-lane Buck2-owned metadata so high-concurrency lanes do not repeatedly edit registry/quality/lanes.yaml.",
         "validity": "Valid because generated or pointer-thin shared surfaces reduce merge conflict probability while preserving one canonical projection."
+      }
+    ]
+  },
+  "active_retired_cli_script_backlog": {
+    "captured_at": "2026-06-04T22:35:00Z",
+    "source": "Rust/Buck2 language-discipline scan of active scripts for retired oya-dev-cli invocation tokens.",
+    "valid": true,
+    "claim_boundary": "registered_compatibility_shim_backlog_only_no_merge_ci_authority",
+    "detected_script_count": 8,
+    "durable_retired_cli_script_authority_allowed": false,
+    "unregistered_retired_cli_script_invocations_allowed": false,
+    "replacement_language": "Rust",
+    "buck2_owned_replacement_required": true,
+    "entries": [
+      {
+        "path": "scripts/asyncapi-lint.mjs",
+        "kind": "node_compatibility_shim",
+        "active_merge_ci_authority": false,
+        "live_mutation_authority": false,
+        "retirement_action": "Replace with a Rust/Buck2 lint target or direct Rust checker wrapper; keep this script backlog-only until callers move."
+      },
+      {
+        "path": "scripts/proto-lint.mjs",
+        "kind": "node_compatibility_shim",
+        "active_merge_ci_authority": false,
+        "live_mutation_authority": false,
+        "retirement_action": "Replace with a Rust/Buck2 proto lint target or direct Rust checker wrapper; keep this script backlog-only until callers move."
+      },
+      {
+        "path": "scripts/validate-adr-shape.mjs",
+        "kind": "node_compatibility_shim",
+        "active_merge_ci_authority": false,
+        "live_mutation_authority": false,
+        "retirement_action": "Replace with a Rust/Buck2 ADR-shape target; keep this script backlog-only until callers move."
+      },
+      {
+        "path": "scripts/validate-foundry-phase00-evidence.mjs",
+        "kind": "node_compatibility_shim",
+        "active_merge_ci_authority": false,
+        "live_mutation_authority": false,
+        "retirement_action": "Replace with a Rust/Buck2 evidence lint target; keep this script backlog-only until callers move."
+      },
+      {
+        "path": "scripts/branch-protection-apply.sh",
+        "kind": "shell_compatibility_shim",
+        "active_merge_ci_authority": false,
+        "live_mutation_authority": false,
+        "retirement_action": "Replace the retired protection-context validation call with a direct Rust/Buck2 checker before this script can be treated as non-backlog automation."
+      },
+      {
+        "path": "scripts/onprem-bring-up.sh",
+        "kind": "shell_compatibility_shim",
+        "active_merge_ci_authority": false,
+        "live_mutation_authority": false,
+        "retirement_action": "Move on-prem bring-up orchestration to Rust/Buck2/native controller code; keep this script backlog-only until replacement lands."
+      },
+      {
+        "path": "scripts/install-trivy-ci.sh",
+        "kind": "shell_compatibility_shim",
+        "active_merge_ci_authority": false,
+        "live_mutation_authority": false,
+        "retirement_action": "Replace with a Rust/Buck2 supply-chain tool target or generated setup artifact; keep this script backlog-only until callers move."
+      },
+      {
+        "path": "scripts/validate-release-image-supply-chain.sh",
+        "kind": "shell_compatibility_shim",
+        "active_merge_ci_authority": false,
+        "live_mutation_authority": false,
+        "retirement_action": "Replace with a Rust/Buck2 release-image supply-chain check target; keep this script backlog-only until callers move."
       }
     ]
   },

@@ -16,7 +16,7 @@ genrule(
         "scripts/branch-protection-apply.sh": "scripts/branch-protection-apply.sh",
         "scripts/onprem-bring-up.sh": "scripts/onprem-bring-up.sh",
         "scripts/install-trivy-ci.sh": "scripts/install-trivy-ci.sh",
-        "scripts/supply-chain-adr0039.sh": "scripts/supply-chain-adr0039.sh",
+        "scripts/validate-release-image-supply-chain.sh": "scripts/validate-release-image-supply-chain.sh",
         "scripts/hooks/pre-push.sh": "scripts/hooks/pre-push.sh",
         "scripts/ci/enforce-buck2-authority.rs": "scripts/ci/enforce-buck2-authority.rs",
         "scripts/ci/oya-ci-post.sh": "scripts/ci/oya-ci-post.sh",
@@ -782,8 +782,9 @@ genrule(
 
 
 # AC-0.4 language-discipline check: Rust/Buck2 local/static evidence that new
-# candidate-authored .py/.sh test sprawl is blocked outside the allowlist and
-# the T0.4 cloud-check backlog inventory is preserved. This never posts
+# candidate-authored .py/.sh test sprawl is blocked outside the allowlist, the
+# T0.4 cloud-check backlog inventory is preserved, and active scripts cannot
+# introduce unregistered retired oya-dev-cli invocations. This never posts
 # statuses, scans a live PR, or claims Phase-0 completion.
 genrule(
     name = "language-discipline-check",
@@ -793,7 +794,15 @@ genrule(
         "specs/language-discipline-registry.json": "specs/language-discipline-registry.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
-    } | {path: path for path in glob(["specs/fixtures/phase0-language-discipline/*.json"])},
+    } | {path: path for path in glob([
+        "specs/fixtures/phase0-language-discipline/*.json",
+        "scripts/**/*.mjs",
+        "scripts/**/*.rs",
+        "scripts/**/*.sh",
+        "tools/**/*.mjs",
+        "tools/**/*.rs",
+        "tools/**/*.sh",
+    ])},
     out = "language-discipline-check.json",
     cmd = "mkdir -p $TMP/language-discipline && rustc --edition=2024 -D warnings scripts/tests/language_discipline_check.rs --test -o $TMP/language-discipline/language_discipline_check && OYA_REPO_ROOT=$PWD $TMP/language-discipline/language_discipline_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-language-discipline.rs -o $TMP/language-discipline/assert-language-discipline && $TMP/language-discipline/assert-language-discipline --json > $OUT",
     cacheable = False,
@@ -803,16 +812,16 @@ genrule(
 )
 
 
-# ADR-0221 governance gate projection: Rust/Buck2 fixture evidence for the four
+# Governance hook-efficacy projection: Rust/Buck2 fixture evidence for the four
 # previously shell-backed hook-efficacy lanes. This target intentionally verifies
 # fail/pass fixtures directly instead of invoking advisory hook shell scripts.
 genrule(
-    name = "adr-0221-governance-gates-check",
+    name = "governance-hook-efficacy-check",
     srcs = {
-        "scripts/ci/assert-adr-0221-governance-gates.rs": "scripts/ci/assert-adr-0221-governance-gates.rs",
+        "scripts/ci/assert-governance-hook-efficacy.rs": "scripts/ci/assert-governance-hook-efficacy.rs",
     } | {path: path for path in glob(["docs/decisions/ADR-*.md"])},
-    out = "adr-0221-governance-gates-check.json",
-    cmd = "mkdir -p $TMP/adr-0221-governance-gates && rustc --edition=2024 -D warnings scripts/ci/assert-adr-0221-governance-gates.rs --test -o $TMP/adr-0221-governance-gates/adr_0221_governance_gates_check && OYA_REPO_ROOT=$PWD $TMP/adr-0221-governance-gates/adr_0221_governance_gates_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-adr-0221-governance-gates.rs -o $TMP/adr-0221-governance-gates/assert-adr-0221-governance-gates && OYA_REPO_ROOT=$PWD $TMP/adr-0221-governance-gates/assert-adr-0221-governance-gates --json > $OUT",
+    out = "governance-hook-efficacy-check.json",
+    cmd = "mkdir -p $TMP/governance-hook-efficacy && rustc --edition=2024 -D warnings scripts/ci/assert-governance-hook-efficacy.rs --test -o $TMP/governance-hook-efficacy/governance_hook_efficacy_check && OYA_REPO_ROOT=$PWD $TMP/governance-hook-efficacy/governance_hook_efficacy_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-governance-hook-efficacy.rs -o $TMP/governance-hook-efficacy/assert-governance-hook-efficacy && OYA_REPO_ROOT=$PWD $TMP/governance-hook-efficacy/assert-governance-hook-efficacy --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,

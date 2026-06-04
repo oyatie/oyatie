@@ -126,7 +126,7 @@ the PascalCase Codex schema are both up to date.
 
 All four are minimal, commented-with-WHY, and **backward compatible** — they ADD the
 nested `.tool_input.*` keys to the jq extraction while keeping the existing flat keys,
-so the CI governance harness (`tools/governance/adr-0221-governance-gates.sh`, which
+so the CI governance harness (`tools/governance/governance-hook-efficacy-harness.sh`, which
 sets `TOOL_INPUT='{"path":...}'`) keeps passing unchanged.
 
 1. `tools/hooks/spec-version-pin-suggester.sh` — jq filter now
@@ -141,7 +141,7 @@ sets `TOOL_INPUT='{"path":...}'`) keeps passing unchanged.
 - **Real Claude Code stdin shape** (`env -u TOOL_INPUT`, payload nested under
   `tool_input`): all four hooks now fire correctly (previously silent).
 - **Legacy env-var shape** (`TOOL_INPUT='{"path":...}'`): all still fire — no regression.
-- **Existing CI gates** green: `adr-0221-governance-gates.sh` `version-pin`,
+- **Existing CI gates** green: `governance-hook-efficacy-harness.sh` `version-pin`,
   `orphan-citation`, `vacuous-green` all pass.
 - `no-cargo-enforcer.sh` (already correct, reads `.tool_input.command`) still blocks
   `cargo build` with exit 2; `stale-tool-suggester.sh` (already includes

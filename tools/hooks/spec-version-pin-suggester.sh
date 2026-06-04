@@ -19,7 +19,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # JSON object on STDIN with the path nested under tool_input (PostToolUse shape:
 # {"tool_input":{"file_path":"..."}}). The flat .path/.file_path keys are
 # retained for the TOOL_INPUT env path used only by the CI governance harness
-# (tools/governance/adr-0221-governance-gates.sh), so both surfaces keep working.
+# (tools/governance/governance-hook-efficacy-harness.sh), so both surfaces keep working.
 FILE_PATH=""
 if [ -n "${TOOL_INPUT:-}" ]; then
     if command -v jq >/dev/null 2>&1; then
