@@ -67,9 +67,11 @@
     "cloud/*/ci/Jenkinsfile",
     "oya/*/ci/Jenkinsfile",
     "infra/ci/jenkins/**",
+    "infra/ci/argocd/**",
     "infra/ci/deploy-local.sh",
     "infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml",
-    "infra/forge/jenkins-forgejo-token.secret.template.yaml"
+    "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
+    "infra/forge/**"
   ],
   "non_claims": [
     "This supersession record does not deploy native oya-ci, native SCM, cloud workspaces, remote execution/cache, or release conveyor.",
@@ -85,7 +87,9 @@
     "expected_absence_checks": [
       "git ls-files 'cloud/*/ci/Jenkinsfile' 'oya/*/ci/Jenkinsfile'",
       "test ! -e infra/ci/jenkins",
-      "test ! -e infra/ci/deploy-local.sh"
+      "test ! -e infra/ci/argocd",
+      "test ! -e infra/ci/deploy-local.sh",
+      "test ! -e infra/forge"
     ]
   }
 }

@@ -4,7 +4,6 @@
 # legitimate seams:
 #   - same-namespace pod-to-pod (future split master/volume/filer/bucket-api Deployments).
 #   - the CI cell (oya-ci) — BuildKit cache + image registry overlay consumers.
-#   - argocd — sync + drift detection.
 #
 # Anything else is denied (any NetworkPolicy attached to a pod turns on
 # default-deny for that pod's listed policyTypes — here Ingress only).
@@ -48,8 +47,3 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: oya-ci
-    # ArgoCD sync + drift detection.
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: argocd

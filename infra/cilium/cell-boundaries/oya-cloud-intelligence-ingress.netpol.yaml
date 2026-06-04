@@ -2,7 +2,6 @@
 #
 # Restricts ingress to pods in oya-cloud-intelligence (the cloud intelligence reverse proxy):
 #   - same-namespace pod-to-pod.
-#   - argocd (sync + drift detection on the Deployment).
 #   - any namespace that labels itself oya.gateway-client=true (agent-tenant
 #     namespaces, opted-in by the operator at namespace create time).
 #
@@ -27,10 +26,6 @@ spec:
   ingress:
     - from:
         - podSelector: {}
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: argocd
     - from:
         - namespaceSelector:
             matchLabels:

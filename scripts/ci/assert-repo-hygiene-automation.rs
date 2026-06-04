@@ -195,8 +195,11 @@ const RETIRED_ROOT_FILES: &[&str] = &["Jenkinsfile"];
 const RETIRED_SERVICE_CI_ENTRYPOINT_ROOTS: &[&str] = &["cloud", "oya"];
 const RETIRED_ACTIVE_PATHS: &[&str] = &[
     "infra/ci/jenkins",
+    "infra/ci/argocd",
     "infra/ci/deploy-local.sh",
     "infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml",
+    "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
+    "infra/forge",
     "infra/forge/jenkins-forgejo-token.secret.template.yaml",
 ];
 
