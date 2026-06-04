@@ -77,8 +77,8 @@ genrule(
         "scripts/tests/phase0_claim_ceiling_check.test.sh": "scripts/tests/phase0_claim_ceiling_check.test.sh",
         "specs/phase0-claim-evidence-map.json": "specs/phase0-claim-evidence-map.json",
         "specs/hyperscaler-production-readiness-claim-contract.json": "specs/hyperscaler-production-readiness-claim-contract.json",
-        "scripts/ci/assert-phase0-aggregate-exit.py": "scripts/ci/assert-phase0-aggregate-exit.py",
-        "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
+        "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
+        "scripts/tests/phase0_aggregate_exit_check.rs": "scripts/tests/phase0_aggregate_exit_check.rs",
         "scripts/ci/assert-rust-testing-standard.rs": "scripts/ci/assert-rust-testing-standard.rs",
         "scripts/tests/rust_testing_standard_check.rs": "scripts/tests/rust_testing_standard_check.rs",
         "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs": "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs",
@@ -477,13 +477,13 @@ genrule(
 genrule(
     name = "phase0-aggregate-exit-check",
     srcs = {
-        "scripts/ci/assert-phase0-aggregate-exit.py": "scripts/ci/assert-phase0-aggregate-exit.py",
-        "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
+        "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
+        "scripts/tests/phase0_aggregate_exit_check.rs": "scripts/tests/phase0_aggregate_exit_check.rs",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-exit-gate/*.json"])},
     out = "phase0-aggregate-exit-check.txt",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_aggregate_exit_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/phase0-aggregate-exit && rustc --edition=2021 -D warnings scripts/tests/phase0_aggregate_exit_check.rs --test -o $TMP/phase0-aggregate-exit/phase0_aggregate_exit_check && OYA_REPO_ROOT=$PWD $TMP/phase0-aggregate-exit/phase0_aggregate_exit_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-phase0-aggregate-exit.rs -o $TMP/phase0-aggregate-exit/assert-phase0-aggregate-exit && OYA_REPO_ROOT=$PWD $TMP/phase0-aggregate-exit/assert-phase0-aggregate-exit --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -575,6 +575,8 @@ genrule(
         "scripts/ci/assert-red-green-fixture-contract.rs": "scripts/ci/assert-red-green-fixture-contract.rs",
         "scripts/tests/red_green_fixture_contract_check.rs": "scripts/tests/red_green_fixture_contract_check.rs",
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
+        "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
+        "scripts/tests/phase0_aggregate_exit_check.rs": "scripts/tests/phase0_aggregate_exit_check.rs",
         "scripts/ci/assert-buck2-cargo-target-coverage.rs": "scripts/ci/assert-buck2-cargo-target-coverage.rs",
         "scripts/tests/buck2_cargo_target_coverage_check.rs": "scripts/tests/buck2_cargo_target_coverage_check.rs",
         "scripts/ci/assert-phase0-merge-conflict-foundation.rs": "scripts/ci/assert-phase0-merge-conflict-foundation.rs",
