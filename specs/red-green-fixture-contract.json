@@ -153,7 +153,7 @@
       "automation_matrix_row_id": "AC-0.16-automation-ratchet",
       "buck2_target": "//:phase0-automation-ratchet-check",
       "test_paths": [
-        "scripts/tests/phase0_automation_ratchet_check.test.sh"
+        "scripts/tests/phase0_automation_ratchet_check.rs"
       ],
       "green_markers": [
         {
@@ -169,7 +169,7 @@
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-automation-ratchet.py",
+          "path": "scripts/ci/assert-automation-ratchet.rs",
           "contains": "never posts statuses"
         }
       ]

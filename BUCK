@@ -41,8 +41,8 @@ genrule(
         "scripts/tests/phase0_trusted_target_inventory_check.test.sh": "scripts/tests/phase0_trusted_target_inventory_check.test.sh",
         "scripts/ci/assert-result-bundle-output.py": "scripts/ci/assert-result-bundle-output.py",
         "scripts/tests/phase0_result_bundle_output_check.test.sh": "scripts/tests/phase0_result_bundle_output_check.test.sh",
-        "scripts/ci/assert-automation-ratchet.py": "scripts/ci/assert-automation-ratchet.py",
-        "scripts/tests/phase0_automation_ratchet_check.test.sh": "scripts/tests/phase0_automation_ratchet_check.test.sh",
+        "scripts/ci/assert-automation-ratchet.rs": "scripts/ci/assert-automation-ratchet.rs",
+        "scripts/tests/phase0_automation_ratchet_check.rs": "scripts/tests/phase0_automation_ratchet_check.rs",
         "scripts/tests/buck2_authority_policy_check.rs": "scripts/tests/buck2_authority_policy_check.rs",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
@@ -577,6 +577,8 @@ genrule(
         "specs/red-green-fixture-contract.json": "specs/red-green-fixture-contract.json",
         "scripts/ci/assert-phase0-aggregate-exit.rs": "scripts/ci/assert-phase0-aggregate-exit.rs",
         "scripts/tests/phase0_aggregate_exit_check.rs": "scripts/tests/phase0_aggregate_exit_check.rs",
+        "scripts/ci/assert-automation-ratchet.rs": "scripts/ci/assert-automation-ratchet.rs",
+        "scripts/tests/phase0_automation_ratchet_check.rs": "scripts/tests/phase0_automation_ratchet_check.rs",
         "scripts/ci/assert-buck2-cargo-target-coverage.rs": "scripts/ci/assert-buck2-cargo-target-coverage.rs",
         "scripts/tests/buck2_cargo_target_coverage_check.rs": "scripts/tests/buck2_cargo_target_coverage_check.rs",
         "scripts/ci/assert-phase0-merge-conflict-foundation.rs": "scripts/ci/assert-phase0-merge-conflict-foundation.rs",
@@ -890,13 +892,13 @@ genrule(
 genrule(
     name = "phase0-automation-ratchet-check",
     srcs = {
-        "scripts/ci/assert-automation-ratchet.py": "scripts/ci/assert-automation-ratchet.py",
-        "scripts/tests/phase0_automation_ratchet_check.test.sh": "scripts/tests/phase0_automation_ratchet_check.test.sh",
+        "scripts/ci/assert-automation-ratchet.rs": "scripts/ci/assert-automation-ratchet.rs",
+        "scripts/tests/phase0_automation_ratchet_check.rs": "scripts/tests/phase0_automation_ratchet_check.rs",
         "specs/phase0-automation-matrix.json": "specs/phase0-automation-matrix.json",
         "specs/phase0-automation-coverage-registry.json": "specs/phase0-automation-coverage-registry.json",
     } | {path: path for path in glob(["specs/fixtures/phase0-automation-ratchet/*.json"])},
     out = "phase0-automation-ratchet-check.txt",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/phase0_automation_ratchet_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/phase0-automation-ratchet && rustc --edition=2021 -D warnings scripts/tests/phase0_automation_ratchet_check.rs --test -o $TMP/phase0-automation-ratchet/phase0_automation_ratchet_check && OYA_REPO_ROOT=$PWD $TMP/phase0-automation-ratchet/phase0_automation_ratchet_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-automation-ratchet.rs -o $TMP/phase0-automation-ratchet/assert-automation-ratchet && OYA_REPO_ROOT=$PWD $TMP/phase0-automation-ratchet/assert-automation-ratchet --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
