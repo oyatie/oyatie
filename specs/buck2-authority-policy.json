@@ -1519,7 +1519,9 @@
     "temporary_required_context": "github-lane-unlocker-required",
     "native_cutover_target_context": "oya-ci-required",
     "build_test_check_authority": "buck2",
-    "auth_shared_substrate_decoupling": "cloud and Oyatie product auth/shared substrates are separate now; no shared contract/surface; future Cloud IdP rewrite/rewire"
+    "auth_shared_substrate_decoupling": "cloud and Oyatie product auth/shared substrates are separate now; no shared contract/surface; future Cloud IdP rewrite/rewire",
+    "manual_oya_ci_required_bridge_allowed": false,
+    "live_dev_required_context_during_bridge": "github-lane-unlocker-required"
   },
   "expected_command_markers": {
     ".github/workflows/github-lane-unlocker-ci-cd.yml": [

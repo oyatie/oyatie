@@ -92,3 +92,8 @@ The local contract is enforced by:
 
 Live branch-protection mutation and live Kubernetes scale-down are intentionally
 outside this ADR's local static evidence.
+
+
+## Manual bridge avoidance
+
+During the temporary GitHub bridge, `dev` branch protection uses the automated `github-lane-unlocker-required` aggregate check. Agents must not post manual `oya-ci-required` success statuses to merge bridge PRs. `oya-ci-required` remains the native cutover context for the trusted cloud-ci/oya-ci producer only.

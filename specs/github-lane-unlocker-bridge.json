@@ -16,7 +16,7 @@
     "is_destination_cd": false,
     "required_context": "github-lane-unlocker-required",
     "workflow_path": ".github/workflows/github-lane-unlocker-ci-cd.yml",
-    "branch_protection_application": "external_live_change_required_not_performed_by_this_contract",
+    "branch_protection_application": "live_dev_required_context_converged_to_github_lane_unlocker_required_until_native_cutover",
     "native_cutover_target_context": "oya-ci-required",
     "queue_policy": {
       "preferred": "github_merge_queue_when_available",
@@ -46,7 +46,9 @@
       "github_runner_label": "ubuntu-24.04-arm",
       "runner_architecture": "arm64",
       "runner_architecture_reason": "The current Buck2 Rust toolchain defaults to aarch64-unknown-linux-gnu, so the temporary GitHub bridge uses native arm64 runners instead of x64 cross-linking."
-    }
+    },
+    "manual_oya_ci_required_bridge_allowed": false,
+    "required_context_reason": "Temporary GitHub Actions aggregate check is the automated merge gate; manual oya-ci-required statuses are avoided until the trusted native cloud-ci producer exists."
   },
   "github_actions_cd_bridge": {
     "mode": "github_actions_cd_bridge_until_release_conveyor_cutover",

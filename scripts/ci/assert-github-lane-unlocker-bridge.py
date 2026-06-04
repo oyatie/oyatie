@@ -103,7 +103,8 @@ def main() -> int:
     require(required_context == "github-lane-unlocker-required", failures, "github_bridge.required_context must be github-lane-unlocker-required")
     require(required_context != "oya-ci-required", failures, "temporary GitHub bridge must not reuse destination oya-ci-required context")
     require(workflow_path == ".github/workflows/github-lane-unlocker-ci-cd.yml", failures, "github_bridge.workflow_path must point to .github/workflows/github-lane-unlocker-ci-cd.yml")
-    require(bridge.get("branch_protection_application") == "external_live_change_required_not_performed_by_this_contract", failures, "github_bridge.branch_protection_application must mark live mutation as external")
+    require(bridge.get("branch_protection_application") == "live_dev_required_context_converged_to_github_lane_unlocker_required_until_native_cutover", failures, "github_bridge.branch_protection_application must mark the live temporary required context convergence")
+    require(bridge.get("manual_oya_ci_required_bridge_allowed") is False, failures, "manual oya-ci-required bridge must be disabled during the GitHub lane unlocker")
     require(bridge.get("native_cutover_target_context") == "oya-ci-required", failures, "github_bridge.native_cutover_target_context must remain oya-ci-required")
     require(cd_bridge.get("mode") == "github_actions_cd_bridge_until_release_conveyor_cutover", failures, "github_actions_cd_bridge.mode must be temporary GitHub Actions CD bridge")
     require(cd_bridge.get("live_deployments_enabled") is False, failures, "github_actions_cd_bridge.live_deployments_enabled must be false")
@@ -286,6 +287,7 @@ def main() -> int:
     temp_bridge = branch_json.get("temporary_github_lane_unlocker_bridge", {}) if isinstance(branch_json, dict) else {}
     require(temp_bridge.get("status") == "temporary_bridge_not_destination_authority", failures, "infra/branch-protection/dev.json must declare temporary bridge status")
     require(temp_bridge.get("required_context") == "github-lane-unlocker-required", failures, "infra/branch-protection/dev.json temporary bridge context must be github-lane-unlocker-required")
+    require(branch_json.get("required_status_checks", {}).get("contexts") == ["github-lane-unlocker-required"], failures, "infra/branch-protection/dev.json must require automated github-lane-unlocker-required during the temporary bridge")
     require(temp_bridge.get("native_cutover_target_context") == "oya-ci-required", failures, "infra/branch-protection/dev.json must preserve native cutover context")
     require(temp_bridge.get("live_mutation_performed_by_this_file") is False, failures, "infra/branch-protection/dev.json must not claim live mutation")
     require(temp_bridge.get("jenkins_interim") is False, failures, "infra/branch-protection/dev.json must reject Jenkins as interim")

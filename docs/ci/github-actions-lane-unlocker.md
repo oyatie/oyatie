@@ -82,3 +82,8 @@ Cut over from GitHub/GitHub Actions only after the native SCM/CI/CD/cloud
 workspace/release conveyor path proves the required context and operational
 contracts. Until then, this procedure is the temporary lane-unlocker and is not
 P0.0 green.
+
+
+## Manual bridge avoidance
+
+During the temporary GitHub bridge, `dev` branch protection uses the automated `github-lane-unlocker-required` aggregate check. Agents must not post manual `oya-ci-required` success statuses to merge bridge PRs. `oya-ci-required` remains the native cutover context for the trusted cloud-ci/oya-ci producer only.
