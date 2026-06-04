@@ -13,6 +13,13 @@ doc_status: published
 
 Per-axis under [`runbooks/<axis>/<runbook-id>.md`](runbooks/) (inside `docs/`). Cross-axis runbooks under [`runbooks/cross-axis/`](runbooks/cross-axis/). Forty-nine P0 stubs were authored on 2026-05-09 and are listed below; full-procedure authoring lands at the W-Foundation gate per the per-runbook `Status:` field.
 
+Retired external SCM/CI/CD substrate runbooks are not active operator guidance.
+They were archived under `.omc/archive/stale-documents/` with a manifest and
+must not be used as board, claim, webhook, SCM, CI, or implementation-start
+authority. Current lane coordination is isolated `git` worktrees, GitHub PR
+adapter flow, Buck2 evidence, and the trusted Prow/Kubernetes-native
+`oya-ci-required` context while native SCM matures.
+
 ## 2. Critical runbooks (P0 must-have for W-Foundation gate)
 
 ### Agentic pipeline
