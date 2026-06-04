@@ -280,7 +280,7 @@ lanes:
     purpose: every docs/machine-readable JSON file parses before merge
     source: DOC-CATALOG.md
     runtime_budget_seconds: 60
-    check_command: cargo run -p oya-dev-cli -- gate validate active-artifact-contract
+    check_command: buck2 build //libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract
   - id: cargo-machete
     stage: per-pr
     status: active
@@ -328,7 +328,7 @@ lanes:
     purpose: PR template carries the 5 mandatory traceability H2 sections
     source: STANDARDS-AND-TEMPLATES.md
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate pr-traceability
+    check_command: buck2 build //libs/oya-check-pr-traceability:oya-check-pr-traceability
   - id: oya-governance-api-semver
     stage: per-pr
     status: active
@@ -352,7 +352,7 @@ lanes:
     purpose: oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml)
     source: AGENTS.md D12
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate pre-push-contract
+    check_command: buck2 build //libs/oya-check-pre-push:oya-check-pre-push
   - id: oya-governance-loop-recovery-patterns
     stage: per-pr
     status: active
@@ -376,7 +376,7 @@ lanes:
     purpose: no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record)
     source: feedback_no_silent_regression + feedback_no_exceptions_canonical
     runtime_budget_seconds: 60
-    check_command: cargo run -p oya-dev-cli -- gate validate retired-vocabulary
+    check_command: buck2 build //libs/oya-check-retired-vocabulary:oya-check-retired-vocabulary
   - id: oya-governance-protection-context-match
     stage: per-pr
     status: active
@@ -384,7 +384,7 @@ lanes:
     purpose: every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts)
     source: feedback_no_silent_regression + 2026-05-15 PR #3 merge-block incident
     runtime_budget_seconds: 30
-    check_command: cargo run -p oya-dev-cli -- gate validate protection-context-match
+    check_command: buck2 build //libs/oya-check-protection-context-match:oya-check-protection-context-match
   - id: oya-governance-vacuous-green
     stage: per-pr
     status: active
@@ -456,7 +456,7 @@ lanes:
     purpose: per ADR-0051
     source: ADR-0051
     runtime_budget_seconds: 1800
-    check_command: cargo run -p oya-dev-cli -- gate validate mobile-native
+    check_command: buck2 build //libs/oya-check-mobile-native:oya-check-mobile-native
   - id: release-supply-chain
     stage: per-release
     status: active
@@ -472,7 +472,7 @@ lanes:
     purpose: per-regulator evidence regen per COMPLIANCE-MATRIX
     source: COMPLIANCE-MATRIX.md
     runtime_budget_seconds: 3600
-    check_command: cargo run -p oya-dev-cli -- gate validate release-evidence-pack
+    check_command: buck2 build //libs/oya-check-release-pack:oya-check-release-pack
   - id: release-runbook-freshness
     stage: per-release
     status: active
@@ -480,7 +480,7 @@ lanes:
     purpose: freshness SLA per RUNBOOKS-INDEX §3
     source: RUNBOOKS-INDEX.md
     runtime_budget_seconds: 900
-    check_command: cargo run -p oya-dev-cli -- gate validate runbook-freshness
+    check_command: buck2 build //libs/oya-check-runbook-freshness:oya-check-runbook-freshness
   # LEAN-A1..A4: flipped from report-only to BLOCKER at M01-P05 (2026-05-13)
   - id: lean-a1-architecture
     stage: per-pr
@@ -499,7 +499,7 @@ lanes:
     purpose: microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override)
     source: ADR-0056
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage
+    check_command: buck2 build //libs/oya-check-cedar-fragment-coverage:oya-check-cedar-fragment-coverage
   - id: lean-a3-supply-chain
     stage: per-pr
     status: active
@@ -577,7 +577,7 @@ lanes:
     owner_team: council-architecture
     purpose: every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from `oya gate run-all`; emits evidence + graph-edges artifacts on every run
     source: ADR-0089
-    check_command: cargo run -p oya-dev-cli -- gate validate active-artifact-contract
+    check_command: buck2 build //libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract
     runtime_budget_seconds: 60
   - id: lean-a-cedar-fragment-coverage
     stage: per-pr
@@ -586,7 +586,7 @@ lanes:
     owner_team: council-architecture
     purpose: enforces invariants C01..C04 from /registry/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all`
     source: cedar-fragments-registry (commit f00ec87)
-    check_command: cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage
+    check_command: buck2 build //libs/oya-check-cedar-fragment-coverage:oya-check-cedar-fragment-coverage
     runtime_budget_seconds: 30
   - id: lean-a-openapi-rest-route-parity
     stage: per-pr
@@ -595,7 +595,7 @@ lanes:
     owner_team: council-architecture
     purpose: enforces 1:1 parity between `pub const *_ROUTE` constants in crates/oya-ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags
     source: slice-J (commit pending)
-    check_command: cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity
+    check_command: buck2 build //libs/oya-check-openapi-rest-route-parity:oya-check-openapi-rest-route-parity
     runtime_budget_seconds: 30
   - id: oya-governance-merge-queue-ref-hygiene
     stage: nightly
@@ -614,7 +614,7 @@ lanes:
     owner_team: council-architecture
     purpose: enforces that every µservice declaring a high-risk "refused at Cedar layer" claim in `capabilities/T2-auto.yaml` has a matching `forbid` rule in `policy/tenant-scope.cedar` gating on employment-context (SEC-MAJ-02).
     source: ADR-0144
-    check_command: cargo run -p oya-dev-cli -- gate validate high-risk-auto-decision-refusal
+    check_command: buck2 build //libs/oya-check-high-risk-auto-decision-refusal:oya-check-high-risk-auto-decision-refusal
     runtime_budget_seconds: 60
   # PR #143 Fix-D — SLSA L3 evidence grounding.
   - id: oya-governance-slsa-l3-evidence-grounded
@@ -624,7 +624,7 @@ lanes:
     owner_team: ops-security
     purpose: "enforces that every scorecard claiming `slsa_l3: green` cites real `.github/workflows/<file>.yml` files that declare SLSA-relevant primitives (signed provenance, hermetic build, two-party review) (SEC-MAJ-01)."
     source: ADR-0133
-    check_command: cargo run -p oya-dev-cli -- gate validate slsa-l3-evidence-grounded
+    check_command: buck2 build //libs/oya-check-slsa-l3-evidence-grounded:oya-check-slsa-l3-evidence-grounded
     runtime_budget_seconds: 60
   # PR #143 ADR-0145 enforcement lanes (advisory / deferred mode).
   # Skeleton crates ship; strict-mode promotion tracked under
@@ -636,7 +636,7 @@ lanes:
     owner_team: ops-sre-reliability
     purpose: validates that per-µservice gRPC client adapters propagate W3C traceparent per ADR-0145 Invariant 2. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-otel-propagation-validator.
     source: ADR-0145
-    check_command: cargo run -p oya-dev-cli -- gate validate otel-trace-propagation
+    check_command: buck2 build //libs/oya-check-otel-trace-propagation:oya-check-otel-trace-propagation
     runtime_budget_seconds: 30
   - id: oya-governance-ontology-projection-coverage
     stage: per-pr
@@ -654,7 +654,7 @@ lanes:
     owner_team: platform-audit-evidence
     purpose: validates that µservices with `audit_chain.enabled=true` declare seal events per ADR-0145 Invariant 1. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-audit-chain-seal-validator.
     source: ADR-0145
-    check_command: cargo run -p oya-dev-cli -- gate validate audit-chain-seal-coverage
+    check_command: buck2 build //libs/oya-check-audit-chain-seal-coverage:oya-check-audit-chain-seal-coverage
     runtime_budget_seconds: 30
   # ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 / ADR-0185 layered architecture
   # discipline lanes (authored 2026-05-18).
@@ -665,7 +665,7 @@ lanes:
     owner_team: council-architecture
     purpose: enforces zero feature overlap across the layered hyperscaler architecture — Cilium L3/L4 vs Istio Ambient L7 (ADR-0148); gateway vs mesh (ADR-0182); Cedar vs Kyverno (ADR-0183); Valkey vs Memcached (ADR-0184). Rejects any µservice manifest declaring conflicting layer ownerships or under-claimed mesh tiers.
     source: ADR-0148, ADR-0182, ADR-0183, ADR-0184
-    check_command: cargo run -p oya-dev-cli -- gate validate layered-architecture-discipline
+    check_command: buck2 build //libs/oya-check-layered-architecture-discipline:oya-check-layered-architecture-discipline
     runtime_budget_seconds: 60
   - id: oya-governance-client-stack-discipline
     stage: per-pr
@@ -674,7 +674,7 @@ lanes:
     owner_team: axis-workspace
     purpose: enforces ADR-0185 native-per-platform client stack — SvelteKit (Phase 1) → Leptos (Phase 2) on web (sequential not parallel); Swift+SwiftUI on Apple (no KMP klib imports); Kotlin+Compose+KMP on Android (Android-scope only); WinUI 3 on Windows; gtk4-rs + libadwaita on Linux. Rejects React/Vue/Flutter/Electron/Cordova/Tauri/Avalonia/MAUI references.
     source: ADR-0185
-    check_command: cargo run -p oya-dev-cli -- gate validate client-stack-discipline
+    check_command: buck2 build //libs/oya-check-client-stack-discipline:oya-check-client-stack-discipline
     runtime_budget_seconds: 60
   # PR #143 Fix-M/N/R/S/T/U batches — 1 strict + 11 advisory lanes (close-out 2026-05-18).
   - id: oya-governance-vendor-lockin-discipline
@@ -684,7 +684,7 @@ lanes:
     owner_team: council-architecture
     purpose: enforces ADR-0173 tiered vendor classification — Tier I OWNED with license+steward; Tier II VENDOR-SEAMED with replacement_path, replacement_readiness_gate, seam_adapter_trait, and ≥1 seam_adapter_impls; Tier III FORBIDDEN with refusal rationale + replacement path.
     source: ADR-0173
-    check_command: cargo run -p oya-dev-cli -- gate validate vendor-lockin-discipline
+    check_command: buck2 build //libs/oya-check-vendor-lockin-discipline:oya-check-vendor-lockin-discipline
     runtime_budget_seconds: 60
   - id: oya-governance-authz-tier-discipline
     stage: per-pr
@@ -702,7 +702,7 @@ lanes:
     owner_team: ops-finops
     purpose: advisory presence check for mandatory tenant cost labels per ADR-0199 D-1 (oya.io/tenant-id + oya.io/cost-center + oya.io/workload-class + oya.io/regulatory-pack) on every rendered Helm manifest under microservices/*/iac/helm/*/rendered/*.yaml.
     source: ADR-0199
-    check_command: cargo run -p oya-dev-cli -- gate validate tenant-cost-labels-coverage
+    check_command: buck2 build //libs/oya-check-tenant-cost-labels-coverage:oya-check-tenant-cost-labels-coverage
     runtime_budget_seconds: 60
   - id: oya-governance-backup-retention-discipline
     stage: per-pr
@@ -711,7 +711,7 @@ lanes:
     owner_team: ops-sre-reliability
     purpose: advisory per-µservice backup retention validation per ADR-0197 D-5 (tier-driven RPO/RTO floor; storage.backup.tier ∈ {app, batch, gpu, regulatory}; storage.backup.retention_days set).
     source: ADR-0197
-    check_command: cargo run -p oya-dev-cli -- gate validate backup-retention-discipline
+    check_command: buck2 build //libs/oya-check-backup-retention-discipline:oya-check-backup-retention-discipline
     runtime_budget_seconds: 60
   - id: oya-governance-vector-store-discipline
     stage: per-pr
@@ -720,7 +720,7 @@ lanes:
     owner_team: axis-foundry
     purpose: advisory enforcement of Milvus-canonical vector store tier per ADR-0192 (collection schema, index_type, metric, data_classes). Advisory until per-µservice manifests populate data.vector_store.* namespace.
     source: ADR-0192
-    check_command: cargo run -p oya-dev-cli -- gate validate vector-store-discipline
+    check_command: buck2 build //libs/oya-check-vector-store-discipline:oya-check-vector-store-discipline
     runtime_budget_seconds: 60
   - id: oya-governance-olap-tier-discipline
     stage: per-pr
@@ -729,7 +729,7 @@ lanes:
     owner_team: axis-ads-analytics
     purpose: advisory enforcement of ClickHouse-canonical OLAP tier per ADR-0193 (no rogue analytics queries against OLTP postgres). Advisory until per-µservice manifests populate data.olap_client.* namespace.
     source: ADR-0193
-    check_command: cargo run -p oya-dev-cli -- gate validate olap-tier-discipline
+    check_command: buck2 build //libs/oya-check-olap-tier-discipline:oya-check-olap-tier-discipline
     runtime_budget_seconds: 60
   - id: oya-governance-wasm-runtime-discipline
     stage: per-pr
@@ -738,7 +738,7 @@ lanes:
     owner_team: axis-foundry
     purpose: advisory enforcement of wasmtime-canonical WASM substrate per ADR-0200 (sandbox classes envoy-filter, workflow-studio-node, or foundry-tool). Promotion target T+60d after ADR-0200 land; flip to blocker.
     source: ADR-0200
-    check_command: cargo run -p oya-dev-cli -- gate validate wasm-runtime-discipline
+    check_command: buck2 build //libs/oya-check-wasm-runtime-discipline:oya-check-wasm-runtime-discipline
     runtime_budget_seconds: 30
     promotion_target: T+60d after ADR-0200 land; flip to blocker
   - id: oya-governance-iac-tier-discipline
@@ -748,7 +748,7 @@ lanes:
     owner_team: ops-sre-reliability
     purpose: advisory enforcement of OpenTofu-canonical IaC tier per ADR-0202; Terraform path supported only during 90-day migration window. Promotion target T+90d after ADR-0202 land; flip to blocker (forbids new .tf files).
     source: ADR-0202
-    check_command: cargo run -p oya-dev-cli -- gate validate iac-tier-discipline
+    check_command: buck2 build //libs/oya-check-iac-tier-discipline:oya-check-iac-tier-discipline
     runtime_budget_seconds: 30
     promotion_target: T+90d after ADR-0202 land; flip to blocker
   - id: oya-governance-a11y-discipline
@@ -758,7 +758,7 @@ lanes:
     owner_team: axis-workspace
     purpose: advisory WCAG 2.2 AA coverage per ADR-0207 (axe + pa11y runners declared per client surface in manifest.json#a11y).
     source: ADR-0207
-    check_command: cargo run -p oya-dev-cli -- gate validate a11y-discipline
+    check_command: buck2 build //libs/oya-check-a11y-discipline:oya-check-a11y-discipline
     runtime_budget_seconds: 60
   - id: oya-governance-i18n-coverage
     stage: per-pr
@@ -767,7 +767,7 @@ lanes:
     owner_team: axis-workspace
     purpose: advisory Fluent ICU locale coverage per ADR-0206 (default_locale + required_locales + rtl_support + min_coverage_bps).
     source: ADR-0206
-    check_command: cargo run -p oya-dev-cli -- gate validate i18n-coverage
+    check_command: buck2 build //libs/oya-check-i18n-coverage:oya-check-i18n-coverage
     runtime_budget_seconds: 60
   - id: oya-governance-compliance-evidence-coverage
     stage: per-pr
@@ -776,7 +776,7 @@ lanes:
     owner_team: ops-compliance
     purpose: advisory compliance evidence collector declaration per ADR-0209 (audit_chain_seal_required + tamper_evidence_algorithm + evidence_collectors[]).
     source: ADR-0209
-    check_command: cargo run -p oya-dev-cli -- gate validate compliance-evidence-coverage
+    check_command: buck2 build //libs/oya-check-compliance-evidence-coverage:oya-check-compliance-evidence-coverage
     runtime_budget_seconds: 60
   - id: oya-governance-realtime-transport-tier
     stage: per-pr
@@ -785,7 +785,7 @@ lanes:
     owner_team: axis-workspace
     purpose: advisory real-time transport tier validation per ADR-0208 (sse vs websocket vs grpc-streaming; payload_budget_bytes per tier).
     source: ADR-0208
-    check_command: cargo run -p oya-dev-cli -- gate validate realtime-transport-tier
+    check_command: buck2 build //libs/oya-check-realtime-transport-tier:oya-check-realtime-transport-tier
     runtime_budget_seconds: 30
   - id: oya-governance-adr-planning-completeness
     stage: per-pr
