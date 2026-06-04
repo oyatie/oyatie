@@ -27,7 +27,15 @@ lane-unlocker. It is not P0.0 green and it does not make GitHub permanent.
 
 The workflow `.github/workflows/github-lane-unlocker-ci-cd.yml` fans out with a
 matrix and `max-parallel`, cancels stale runs with `concurrency`, and aggregates a
-single required check named `github-lane-unlocker-required`. Every job first runs
+single required check named `github-lane-unlocker-required`. Every job runs on `ubuntu-24.04-arm` because the current Buck2 Rust toolchain
+defaults to `aarch64-unknown-linux-gnu`; this keeps the temporary bridge native
+arm64 instead of cross-linking on x64. Every job opts GitHub JavaScript actions into the Node 24 runtime with
+`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` and uses `actions/checkout@v6`
+(the stable v6 major; latest verified release v6.0.3 on 2026-06-04). Node 26
+is not used as the JavaScript action runtime because GitHub's migration target
+for actions is Node 24; Node 26 remains available only for explicit
+`actions/setup-node` application jobs, which this Buck2/Rust bridge does not
+need. Every job first runs
 `scripts/ci/github-actions-lane-unlocker-bootstrap.sh`, which serializes rustup
 setup before Buck2 fanout, pins Rust through `rust-toolchain.toml`, installs
 `llvm-tools-preview`, installs the Linux targets Buck2 probes, then installs
@@ -80,3 +88,8 @@ Cut over from GitHub/GitHub Actions only after the native SCM/CI/CD/cloud
 workspace/release conveyor path proves the required context and operational
 contracts. Until then, this procedure is the temporary lane-unlocker and is not
 P0.0 green.
+
+
+## Manual bridge avoidance
+
+During the temporary GitHub bridge, `dev` branch protection uses the automated `github-lane-unlocker-required` aggregate check. Agents must not post manual `oya-ci-required` success statuses to merge bridge PRs. `oya-ci-required` remains the native cutover context for the trusted cloud-ci/oya-ci producer only.

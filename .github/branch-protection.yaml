@@ -1,7 +1,7 @@
 # ADR-0516 amendment (2026-06-03): temporary GitHub/GitHub Actions lane-unlocker.
 # The temporary required context is github-lane-unlocker-required. This is not the permanent CI/SCM authority,
 # and it is not interim Jenkins, Forgejo, or ArgoCD authority. Buck2 remains build/test/check authority;
-# native cutover keeps oya-ci-required as the destination context after proof.
+# native cutover keeps oya-ci-required as the destination context after proof; during the bridge, dev requires github-lane-unlocker-required so no manual oya-ci-required status is needed.
 
 # Branch-protection shadow/target record for dev/staging/production.
 # As of the P0.0 gap packet, live GitHub dev protection does not reflect
@@ -43,17 +43,17 @@ branches:
     # reviews are not merge authority; `oya-pr-review` is future reviewer
     # evidence only until its producer is live and explicitly required.
     required_approving_reviews: 0
-    # P0.0 local target: one required context posted by trusted
-    # cloud-ci/oya-ci control state. This file is not a live-enforcement
-    # claim until the ruleset is applied and oya-ci-controller posts the
-    # candidate-SHA status. Legacy tool-specific lanes are historical feedback only, not
+    # ADR-0516 temporary target: one automated GitHub Actions aggregate
+    # context. Native cutover will replace this with oya-ci-required once
+    # oya-ci-controller posts trusted candidate-SHA status from cloud-ci
+    # control state. Legacy tool-specific lanes are historical feedback only, not
     # protected-branch merge or Phase-0 exit authority.
     # NOTE: oya-pr-review is intentionally ABSENT from required checks.
     # Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet
     # shipped); requiring it would deadlock every PR. It can return only after
     # the reviewer-agent endpoint is live and explicitly classified.
     required_status_checks:
-      - oya-ci-required
+      - github-lane-unlocker-required
 
   staging:
     # Native release conveyor target. ADR-0516 does not authorize interim
