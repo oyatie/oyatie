@@ -691,7 +691,7 @@
       "target_path_after_md_retirement": "same until ADR projection retirement",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZA-oya-verify-full-ci-mirror",
-      "purpose": "ADR-0346 authority after the Buck2 transition: `./bin/oya verify --ci-required` is local shift-left evidence only, Buck2 owns build/test/check authority, `github-lane-unlocker-required` gates dev during ADR-0516, and native `oya-ci-required` returns only after source-bound cloud-ci/oya-ci cutover evidence."
+      "purpose": "ADR-0346 authority after the Buck2/Prow transition: retired `oya verify` CLI invocations are historical/local-shift-left provenance only, Buck2 owns build/test/check evidence, GitHub Actions remains compatibility/shadow evidence, and the trusted `oya-ci-required` context is produced by the Rust/Prow/Kubernetes-native controller path."
     },
     "adr_0347_foundry_fitness_governance_bulk_rename": {
       "kind": "decision",
@@ -1288,9 +1288,10 @@
       "kind": "spec",
       "current_path": "/specs/oya-ci-prowjob-registry.json",
       "generated_projection": "/specs/generated/oya-ci-prowjob-registry.generated.yaml",
+      "generated_controller_config_projection": "/specs/generated/oya-ci-controller-config.generated.yaml",
       "target_path_after_md_retirement": "same",
       "migration_phase": "P00-generated-registry-seed",
-      "purpose": "Lane-owned desired ProwJob graph for Rust/Prow/Kubernetes-native oya-ci. Vertical lanes edit disjoint specs/ci/prow-jobs shards; buck2 build //:oya-ci-prowjob-registry-check validates the generated aggregate and keeps shared CI surfaces mechanical."
+      "purpose": "Lane-owned desired ProwJob graph and generated native controller config for Rust/Prow/Kubernetes-native oya-ci. Vertical lanes edit disjoint specs/ci/prow-jobs shards; buck2 build //:oya-ci-prowjob-registry-check validates the generated aggregate/controller outputs and keeps shared CI surfaces mechanical."
     },
     "github_lane_unlocker_bridge": {
       "kind": "spec",
@@ -1372,6 +1373,7 @@
     "generated_artifact_registry": "specs/generated-artifact-registry.json",
     "oya_ci_prow_capability_parity": "specs/oya-ci-prow-capability-parity.json",
     "oya_ci_prowjob_registry": "specs/oya-ci-prowjob-registry.json",
+    "oya_ci_controller_config_generated": "specs/generated/oya-ci-controller-config.generated.yaml",
     "github_lane_unlocker_bridge": "specs/github-lane-unlocker-bridge.json",
     "repo_hygiene_automation": "specs/repo-hygiene-automation.json",
     "retired_external_substrate_registry": "specs/retired-external-substrate-registry.json"
