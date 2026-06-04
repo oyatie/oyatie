@@ -213,7 +213,7 @@ fn validate_spec(spec: &BTreeMap<String, Json>, failures: &mut Vec<String>) {
     require_string(
         github,
         "trigger_conflict_guard_test",
-        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+        "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
         "github.trigger_conflict_guard_test must name the trigger-level conflict guard test",
         failures,
     );
@@ -516,13 +516,13 @@ fn validate_text_surfaces(root: &Path, failures: &mut Vec<String>) {
 
     let github_conflict_test = read(
         root,
-        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+        "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
     );
     for needle in [
         "sequential PR merge simulation passed: 1 PRs modeled",
         "dry-run: gh pr merge 455 --squash --auto --match-head-commit",
         "Local sequencing regression guard",
-        "clean_real_work=",
+        "let clean_real_work =",
         "guard_marker=guard passed:",
         "pr merge 455 --squash --auto --match-head-commit",
         "::error::sequential merge conflict at PR #455",
@@ -576,7 +576,7 @@ fn validate_policy(root: &Path, failures: &mut Vec<String>) {
         "scripts/check-sequential-pr-merge-conflicts.rs",
         "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
-        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+        "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
         "scripts/tests/phase0_required_context_rollup_check.rs",
         "scripts/ci/assert-pr-required-context.rs",
