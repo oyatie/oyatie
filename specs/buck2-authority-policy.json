@@ -119,7 +119,7 @@
     }
   ],
   "automated_chain": [
-    "scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
+    "buck2 build //:buck2-authority-policy-check",
     "buck2 build //:buck2-authority-policy-check",
     "//:phase0-ci-enforcement-baseline-catalog-check",
     "//:phase0-aggregate-exit-check",
@@ -203,7 +203,7 @@
     "scripts/install-trivy-ci.sh",
     "scripts/supply-chain-adr0039.sh",
     "scripts/hooks/pre-push.sh",
-    "scripts/ci/enforce-buck2-authority.py",
+    "scripts/ci/enforce-buck2-authority.rs",
     "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.py",
     "scripts/ci/oya-ci-post.sh",
     "scripts/tests/phase0_required_context_rollup_check.test.sh",
@@ -393,8 +393,7 @@
   "required_anchors": {
     ".github/workflows/backbone-microservices-ci.yml": [
       "buck2",
-      "infra/ci/buck2-affected-gate.sh",
-      "scripts/ci/enforce-buck2-authority.py"
+      "infra/ci/buck2-affected-gate.sh"
     ],
     "BUCK": [
       "buck2-authority-policy-check",
@@ -560,13 +559,11 @@
     ],
     "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy": [
       "oya-ci-required",
-      "infra/ci/buck2-affected-gate.sh",
-      "scripts/ci/enforce-buck2-authority.py"
+      "infra/ci/buck2-affected-gate.sh"
     ],
     "scripts/agent-pre-push-validate.sh": [
       "buck2",
-      "infra/ci/buck2-affected-gate.sh",
-      "scripts/ci/enforce-buck2-authority.py"
+      "infra/ci/buck2-affected-gate.sh"
     ],
     "scripts/build/build-and-push-cloud-intelligence.sh": [
       "buck2",
@@ -575,8 +572,7 @@
     ],
     "scripts/ci/oya-ci-post.sh": [
       "oya-ci-required",
-      "infra/ci/buck2-affected-gate.sh",
-      "scripts/ci/enforce-buck2-authority.py"
+      "infra/ci/buck2-affected-gate.sh"
     ],
     "cloud/cloud-intelligence/Dockerfile": [
       "buck2 build root//cloud/cloud-intelligence/iac/oci:cloud-intelligence-oci",
@@ -1501,7 +1497,6 @@
   "required_glob_anchors": [
     {
       "anchors": [
-        "scripts/ci/enforce-buck2-authority.py",
         "buck2 build //:buck2-authority-policy-check",
         "infra/ci/buck2-affected-gate.sh",
         "bridge_only_not_branch_protection_authority",
@@ -1511,7 +1506,6 @@
     },
     {
       "anchors": [
-        "scripts/ci/enforce-buck2-authority.py",
         "buck2 build //:buck2-authority-policy-check",
         "infra/ci/buck2-affected-gate.sh",
         "bridge_only_not_branch_protection_authority",
