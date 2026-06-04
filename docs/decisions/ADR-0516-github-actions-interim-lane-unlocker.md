@@ -10,8 +10,8 @@ sequential workflow slows product development when infra/cloud substrate work is
 still in progress. The interim path must be GitHub/GitHub Actions because that is
 the available bridge that can unlock dev work now.
 
-This is a temporary lane-unlocker: no Jenkins, no Forgejo, and no ArgoCD are
-interim authorities for SCM, CI, or CD. GitHub/GitHub Actions is also not the
+This is a temporary lane-unlocker: no retired external SCM/CI/CD substrates are
+interim authorities for SCM, CI, or CD. Exact tombstones for those retired names live in `/specs/retired-external-substrate-registry.json` so active guidance can stay generic. GitHub/GitHub Actions is also not the
 permanent destination. The permanent destination remains a cloud native,
 Kubernetes-native, hyperscaler native Oyatie developer substrate.
 

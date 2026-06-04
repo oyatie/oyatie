@@ -1209,36 +1209,63 @@ buildscript_run(
     name = "aws-lc-sys-0.41-build-script-main-run",
     package_name = "aws-lc-sys",
     buildscript_rule = ":aws-lc-sys-0.41-build-script-main",
-    env = {
-        "CARGO_MANIFEST_LINKS": "aws_lc_0_41_0",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "41",
-        "CARGO_PKG_VERSION_PATCH": "0",
-        "CARGO_PKG_VERSION_PRE": "",
-        "DEBUG": "false",
-        # aws-lc-sys's cc_builder compiler feature-test (memcmp_invalid_stripped_check)
-        # LINKS an executable via $CC. Under buck2 the build-script $CC is the prelude
-        # cc-shim `clang --ld-path=__ld_shim.sh`, and __ld_shim re-invokes clang as the
-        # link driver — which RE-ADDS the C-runtime startfiles (Scrt1.o/crti.o/crtbeginS.o)
-        # on top of the complete ld line the outer clang already passed → `ld.lld: error:
-        # duplicate symbol: _start/_init/...` on aarch64-linux (darwin ld64 tolerates it).
-        # aws-lc-sys explicitly respects LDFLAGS for this probe (cc_builder.rs ~745, "brings
-        # us back to parity with CMake" for custom-linker setups), so -nostartfiles makes the
-        # OUTER clang omit its CRT; the inner __ld_shim clang adds exactly one set → links
-        # clean and the probe still runs. Scoped to this build script only (compile steps are
-        # -c, where -nostartfiles is ignored). Verified on the rust-ci image (clang 19.1.7).
-        # The durable class-wide fix is a prelude patch (-nostartfiles on the __ld_shim clang);
-        # this targeted fixup unblocks aws-lc-sys (and thus all aws-lc-rs Linux binaries) now.
-        "LDFLAGS": "-nostartfiles",
-        "OPT_LEVEL": "3",
-        "PROFILE": "release",
-        # musl-static (#83 musl lane): compile bcm.c against MUSL headers. -nostdlibinc
-        # drops glibc /usr/include (whose stdlib.h redirects strtol->__isoc23_strtol, a
-        # glibc-2.38 symbol undefined when linking musl). cc-crate target-suffixed env =>
-        # only applies to aarch64-musl builds; gnu/darwin builds unaffected.
-        "CC_aarch64_unknown_linux_musl": "clang",
-        "CFLAGS_aarch64_unknown_linux_musl": "--target=aarch64-unknown-linux-musl -nostdlibinc -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
-    },
+    env = select({
+        "root//platforms:libc_musl": {
+            # aws-lc-sys's cc_builder compiler feature-test (memcmp_invalid_stripped_check)
+            # LINKS an executable via $CC. Under buck2 the build-script $CC is the prelude
+            # cc-shim `clang --ld-path=__ld_shim.sh`, and __ld_shim re-invokes clang as the
+            # link driver — which RE-ADDS the C-runtime startfiles (Scrt1.o/crti.o/crtbeginS.o)
+            # on top of the complete ld line the outer clang already passed → `ld.lld: error:
+            # duplicate symbol: _start/_init/...` on aarch64-linux (darwin ld64 tolerates it).
+            # aws-lc-sys explicitly respects LDFLAGS for this probe (cc_builder.rs ~745, "brings
+            # us back to parity with CMake" for custom-linker setups), so -nostartfiles makes the
+            # OUTER clang omit its CRT; the inner __ld_shim clang adds exactly one set → links
+            # clean and the probe still runs. Scoped to this build script only (compile steps are
+            # -c, where -nostartfiles is ignored). Verified on the rust-ci image (clang 19.1.7).
+            # The durable class-wide fix is a prelude patch (-nostartfiles on the __ld_shim clang);
+            # this targeted fixup unblocks aws-lc-sys (and thus all aws-lc-rs Linux binaries) now.
+            "CARGO_MANIFEST_LINKS": "aws_lc_0_41_0",
+            "CARGO_PKG_VERSION_MAJOR": "0",
+            "CARGO_PKG_VERSION_MINOR": "41",
+            "CARGO_PKG_VERSION_PATCH": "0",
+            "CARGO_PKG_VERSION_PRE": "",
+            "DEBUG": "false",
+            "LDFLAGS": "-nostartfiles",
+            "OPT_LEVEL": "3",
+            "PROFILE": "release",
+            # musl-static (#83 musl lane): compile bcm.c against MUSL headers. -nostdlibinc
+            # drops glibc /usr/include (whose stdlib.h redirects strtol->__isoc23_strtol, a
+            # glibc-2.38 symbol undefined when linking musl). Keep the $(location) sysroot
+            # hidden dep behind the musl platform select so default GitHub affected builds
+            # do not materialize optional external toolchain proof archives.
+            "CC_aarch64_unknown_linux_musl": "clang",
+            "CFLAGS_aarch64_unknown_linux_musl": "--target=aarch64-unknown-linux-musl -nostdlibinc -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include -isystem $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)/aarch64-linux-musl/include/linux",
+        },
+        "DEFAULT": {
+            # aws-lc-sys's cc_builder compiler feature-test (memcmp_invalid_stripped_check)
+            # LINKS an executable via $CC. Under buck2 the build-script $CC is the prelude
+            # cc-shim `clang --ld-path=__ld_shim.sh`, and __ld_shim re-invokes clang as the
+            # link driver — which RE-ADDS the C-runtime startfiles (Scrt1.o/crti.o/crtbeginS.o)
+            # on top of the complete ld line the outer clang already passed → `ld.lld: error:
+            # duplicate symbol: _start/_init/...` on aarch64-linux (darwin ld64 tolerates it).
+            # aws-lc-sys explicitly respects LDFLAGS for this probe (cc_builder.rs ~745, "brings
+            # us back to parity with CMake" for custom-linker setups), so -nostartfiles makes the
+            # OUTER clang omit its CRT; the inner __ld_shim clang adds exactly one set → links
+            # clean and the probe still runs. Scoped to this build script only (compile steps are
+            # -c, where -nostartfiles is ignored). Verified on the rust-ci image (clang 19.1.7).
+            # The durable class-wide fix is a prelude patch (-nostartfiles on the __ld_shim clang);
+            # this targeted fixup unblocks aws-lc-sys (and thus all aws-lc-rs Linux binaries) now.
+            "CARGO_MANIFEST_LINKS": "aws_lc_0_41_0",
+            "CARGO_PKG_VERSION_MAJOR": "0",
+            "CARGO_PKG_VERSION_MINOR": "41",
+            "CARGO_PKG_VERSION_PATCH": "0",
+            "CARGO_PKG_VERSION_PRE": "",
+            "DEBUG": "false",
+            "LDFLAGS": "-nostartfiles",
+            "OPT_LEVEL": "3",
+            "PROFILE": "release",
+        },
+    }),
     features = ["prebuilt-nasm"],
     rustc_link_lib = True,
     rustc_link_search = True,

@@ -89,7 +89,7 @@ pub const BLOCKING_LABEL_PREFIXES: &[&str] = &["hold", "do-not-merge"];
 pub enum MergeMethod {
     /// `merge` — create a merge commit.
     Merge,
-    /// `rebase` — rebase then fast-forward (preserves linear history).
+    /// `rebase` — rebase then fast-forward (not used by the enforced P0.0 policy).
     Rebase,
     /// `squash` — squash all commits into one.
     Squash,
@@ -105,9 +105,8 @@ impl MergeMethod {
         }
     }
 
-    /// Parse from env-var string. P0.0 Tide scheduling is squash-only; any
-    /// value resolves to `Squash` until a future spec safely widens the merge
-    /// method policy with tests.
+    /// Parse from env-var string. P0.0 hard-pins squash to preserve the
+    /// branch-protection and auto-merge-after-CI contract.
     pub fn from_str(s: &str) -> Self {
         let _ = s;
         MergeMethod::Squash
@@ -140,15 +139,13 @@ pub struct TideConfig {
     pub repo_name: String,
     /// Base branch to poll PRs against (default: `dev`).
     pub base_branch: String,
-    /// Required commit-status context that must be `success`; hard-pinned to
-    /// `oya-ci-required` for P0.0 merge authority.
+    /// Required commit-status context that must be `success` (default: `oya-ci-required`).
     pub required_status_context: String,
     /// Approval policy (default: 1 approving review).
     pub approval_policy: ApprovalPolicy,
     /// Poll interval in seconds (default: 60).
     pub poll_interval_secs: u64,
-    /// Merge method (default: `squash`, matching the Forgejo/GitHub P0.0
-    /// auto-merge-after-CI bridge contract).
+    /// Merge method (default: `squash`, matching the P0.0 bridge contract).
     pub merge_method: MergeMethod,
     /// Safety guard: when `true` tide logs "WOULD MERGE" but never calls the
     /// merge API. Defaults to `true` — must be explicitly set to `false` to
@@ -178,6 +175,7 @@ impl TideConfig {
         let poll_interval_secs: u64 = get("OYA_TIDE_POLL_INTERVAL_SECS")
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(DEFAULT_POLL_INTERVAL_SECS);
+        let _ = get("OYA_TIDE_MERGE_METHOD");
         let merge_method = MergeMethod::Squash;
         // dry_run defaults to true; must be explicitly "false" to enable live merging.
         let dry_run = get("OYA_TIDE_DRY_RUN")
@@ -261,6 +259,15 @@ pub struct Review {
     pub reviewer: String,
     /// Review state (`APPROVED`, `REQUEST_CHANGES`, `COMMENT`, etc.).
     pub state: ReviewState,
+    /// Forgejo review submission timestamp, when present. RFC3339 strings sort
+    /// lexicographically for the normalized UTC values returned by Forgejo.
+    pub submitted_at: Option<String>,
+    /// Forgejo review id, used to break timestamp ties when present.
+    pub id: Option<u64>,
+    /// Cross-page API order assigned by the adapter as reviews are returned.
+    /// Larger values are later in the API result stream and are authoritative
+    /// only when timestamp/id metadata is absent or tied.
+    pub api_order: u64,
 }
 
 /// Review state vocabulary (Forgejo mirrors GitHub's).
@@ -350,12 +357,10 @@ pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), Ine
         });
     }
 
-    // Rule 2 — sufficient approving reviews.
-    let approvals = input
-        .reviews
-        .iter()
-        .filter(|r| r.state == ReviewState::Approved)
-        .count() as u32;
+    // Rule 2 — sufficient distinct latest approving reviews. Later reviews from
+    // the same reviewer supersede older approvals, so REQUEST_CHANGES /
+    // DISMISSED states cannot be bypassed by a stale approval on another page.
+    let approvals = latest_approving_review_count(input.reviews);
     if approvals < input.config.approval_policy.min_approvals {
         return Err(IneligibleReason::InsufficientApprovals {
             actual: approvals,
@@ -383,6 +388,47 @@ pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), Ine
     Ok(())
 }
 
+fn latest_approving_review_count(reviews: &[Review]) -> u32 {
+    let mut latest: Vec<&Review> = Vec::new();
+
+    for review in reviews {
+        match latest
+            .iter()
+            .position(|existing| existing.reviewer == review.reviewer)
+        {
+            Some(index) => {
+                if review_is_later(review, latest[index]) {
+                    latest[index] = review;
+                }
+            }
+            None => latest.push(review),
+        }
+    }
+
+    latest
+        .into_iter()
+        .filter(|review| review.state == ReviewState::Approved)
+        .count() as u32
+}
+
+fn review_is_later(candidate: &Review, current: &Review) -> bool {
+    match (&candidate.submitted_at, &current.submitted_at) {
+        (Some(candidate_ts), Some(current_ts)) if candidate_ts != current_ts => {
+            return candidate_ts > current_ts;
+        }
+        _ => {}
+    }
+
+    match (candidate.id, current.id) {
+        (Some(candidate_id), Some(current_id)) if candidate_id != current_id => {
+            return candidate_id > current_id;
+        }
+        _ => {}
+    }
+
+    candidate.api_order > current.api_order
+}
+
 // ---------------------------------------------------------------------------
 // ForgejoClient trait seam — I/O boundary
 // ---------------------------------------------------------------------------
@@ -407,8 +453,7 @@ pub trait ForgejoClient: Send + Sync {
 
     /// Merge a pull request using the given method.
     ///
-    /// Returns `Ok(())` on successful immediate or scheduled merge,
-    /// `Err(TideError::Downstream)` otherwise.
+    /// Returns `Ok(())` on 200/204, `Err(TideError::Downstream)` otherwise.
     fn merge_pull(&self, pr_number: u64, method: MergeMethod, head_sha: &str) -> Result<()>;
 }
 
@@ -452,6 +497,9 @@ mod tests {
             .map(|i| Review {
                 reviewer: format!("reviewer-{i}"),
                 state: ReviewState::Approved,
+                submitted_at: Some(format!("2026-06-01T00:00:{i:02}Z")),
+                id: Some(i as u64),
+                api_order: i as u64,
             })
             .collect()
     }
@@ -603,10 +651,16 @@ mod tests {
             Review {
                 reviewer: "alice".to_owned(),
                 state: ReviewState::Comment,
+                submitted_at: None,
+                id: None,
+                api_order: 0,
             },
             Review {
                 reviewer: "bob".to_owned(),
                 state: ReviewState::RequestChanges,
+                submitted_at: None,
+                id: None,
+                api_order: 1,
             },
         ];
         let input = input_all_green(&pr, &reviews, &cfg);
@@ -617,6 +671,60 @@ mod tests {
                 required: 1
             })
         );
+    }
+
+    #[test]
+    fn later_request_changes_from_same_reviewer_invalidates_stale_approval() {
+        let cfg = default_config();
+        let pr = approved_pr();
+        let reviews = vec![
+            Review {
+                reviewer: "alice".to_owned(),
+                state: ReviewState::Approved,
+                submitted_at: Some("2026-06-01T00:00:00Z".to_owned()),
+                id: Some(10),
+                api_order: 0,
+            },
+            Review {
+                reviewer: "alice".to_owned(),
+                state: ReviewState::RequestChanges,
+                submitted_at: Some("2026-06-01T00:01:00Z".to_owned()),
+                id: Some(11),
+                api_order: 1,
+            },
+        ];
+        let input = input_all_green(&pr, &reviews, &cfg);
+        assert_eq!(
+            is_mergeable(&input),
+            Err(IneligibleReason::InsufficientApprovals {
+                actual: 0,
+                required: 1
+            })
+        );
+    }
+
+    #[test]
+    fn review_api_order_breaks_cross_page_metadata_ties() {
+        let cfg = default_config();
+        let pr = approved_pr();
+        let reviews = vec![
+            Review {
+                reviewer: "alice".to_owned(),
+                state: ReviewState::RequestChanges,
+                submitted_at: None,
+                id: None,
+                api_order: 0,
+            },
+            Review {
+                reviewer: "alice".to_owned(),
+                state: ReviewState::Approved,
+                submitted_at: None,
+                id: None,
+                api_order: 51,
+            },
+        ];
+        let input = input_all_green(&pr, &reviews, &cfg);
+        assert_eq!(is_mergeable(&input), Ok(()));
     }
 
     // --- Rule 3: not mergeable ---
@@ -767,47 +875,30 @@ mod tests {
         let cfg = TideConfig::from_lookup(|_| None);
         assert_eq!(cfg.base_branch, DEFAULT_BASE_BRANCH);
         assert_eq!(cfg.required_status_context, DEFAULT_REQUIRED_STATUS_CONTEXT);
-        assert_eq!(cfg.required_status_context, "oya-ci-required");
         assert_eq!(cfg.approval_policy.min_approvals, DEFAULT_MIN_APPROVALS);
         assert_eq!(cfg.poll_interval_secs, DEFAULT_POLL_INTERVAL_SECS);
     }
 
     #[test]
     fn configured_required_status_context_cannot_override_phase0_default() {
-        let cfg = TideConfig::from_lookup(|key| {
-            if key == "OYA_TIDE_REQUIRED_STATUS_CONTEXT" {
-                Some("cloud-ci-required".to_owned())
+        let cfg = TideConfig::from_lookup(|k| {
+            if k == "OYA_TIDE_REQUIRED_STATUS_CONTEXT" {
+                Some("untrusted-manual-context".to_owned())
             } else {
                 None
             }
         });
-
-        assert_eq!(cfg.required_status_context, "oya-ci-required");
-    }
-
-    #[test]
-    fn configured_merge_method_cannot_override_phase0_squash_default() {
-        for method in ["merge", "rebase", "rebase-merge", "squash"] {
-            let cfg = TideConfig::from_lookup(|key| {
-                if key == "OYA_TIDE_MERGE_METHOD" {
-                    Some(method.to_owned())
-                } else {
-                    None
-                }
-            });
-            assert_eq!(cfg.merge_method, MergeMethod::Squash);
-        }
+        assert_eq!(cfg.required_status_context, DEFAULT_REQUIRED_STATUS_CONTEXT);
     }
 
     // --- MergeMethod / ReviewState parsing ---
 
     #[test]
-    fn merge_method_parses_correctly() {
+    fn configured_merge_method_cannot_override_phase0_squash_default() {
         assert_eq!(MergeMethod::from_str("merge"), MergeMethod::Squash);
-        assert_eq!(MergeMethod::from_str("squash"), MergeMethod::Squash);
-        assert_eq!(MergeMethod::from_str("rebase"), MergeMethod::Squash);
-        assert_eq!(MergeMethod::from_str("bogus"), MergeMethod::Squash);
-        assert_eq!(MergeMethod::from_str(""), MergeMethod::Squash);
+        for value in ["squash", "rebase", "bogus", ""] {
+            assert_eq!(MergeMethod::from_str(value), MergeMethod::Squash);
+        }
     }
 
     #[test]

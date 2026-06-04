@@ -6,7 +6,7 @@
 //! - [`AnthropicAdapter`] — D3 Anthropic OAuth refresh + async reqwest proxy.
 //! - [`ProxyRequest`] / [`ProxyResponse`] — D2 axum reverse-proxy wire types.
 //! - [`build_router`] — axum router wiring POST /v1/messages, GET /healthz,
-//!   GET /metrics.
+//!   GET /livez, GET /readyz, GET /metrics.
 //!
 //! Stage-6 changes (Item 1 + Item 2):
 //! - `AnthropicAdapter` migrated from `reqwest::blocking` to async `reqwest::Client`.
@@ -38,9 +38,10 @@ use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+use axum::Json;
 use axum::Router;
 use axum::body::Body;
-use axum::extract::{DefaultBodyLimit, State};
+use axum::extract::{DefaultBodyLimit, Path, State};
 use axum::http::{HeaderMap, HeaderName, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
@@ -54,8 +55,9 @@ use tracing::{debug, warn};
 pub type BoxStream<T> = Pin<Box<dyn Stream<Item = T> + Send + 'static>>;
 
 pub use oya_cloud_intelligence_kernel::{
-    AgentId, AuthzGate, EventSink, LlmGatewayEvent, Provider, SeatId, SeatLease, SeatOutcome,
-    SubscriptionPool, SubscriptionPoolError, TenantId,
+    AgentId, AuthzGate, CredentialMode, EventSink, LlmGatewayEvent, OAuthSubscription, Provider,
+    SeatId, SeatLease, SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool,
+    SubscriptionPoolError, SubscriptionState, TenantId, is_secret_handle_reference, looks_like_jwt,
 };
 
 // ---------------------------------------------------------------------------
@@ -121,6 +123,12 @@ pub trait OpenBaoSecretStore: Send + Sync {
 
     /// Envelope-encrypt `plaintext` and store it under `handle`.
     fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError>;
+
+    /// Lightweight health probe for readiness. In-memory test stores are ready
+    /// by default; production stores override this to touch OpenBao.
+    fn readiness_probe(&self) -> Result<(), RestAdapterError> {
+        Ok(())
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -213,6 +221,23 @@ pub struct ProxyResponse {
     pub status: u16,                       // data_class: INTERNAL_ONLY
     pub headers: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
     pub body: Vec<u8>,                     // data_class: INTERNAL_ONLY
+}
+
+/// Collect the lowercased set of header names nominated by a `Connection`
+/// header on caller-supplied request headers.
+///
+/// Caller headers arrive in a `BTreeMap` keyed by the caller's original casing,
+/// so an exact `get("connection")` misses `Connection:` (capital C) and any
+/// mixed-case variant — leaking the nominated headers upstream. Iterate every
+/// key with a case-insensitive match instead.
+fn connection_tokens(headers: &BTreeMap<String, String>) -> std::collections::HashSet<String> {
+    let mut tokens = std::collections::HashSet::new();
+    for (k, v) in headers {
+        if k.eq_ignore_ascii_case("connection") {
+            tokens.extend(v.split(',').map(|t| t.trim().to_lowercase()));
+        }
+    }
+    tokens
 }
 
 // ---------------------------------------------------------------------------
@@ -522,11 +547,7 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
         .collect();
 
         // Collect connection-header-nominated tokens from the request.
-        let connection_tokens: std::collections::HashSet<String> = request
-            .headers
-            .get("connection")
-            .map(|v| v.split(',').map(|t| t.trim().to_lowercase()).collect())
-            .unwrap_or_default();
+        let connection_tokens = connection_tokens(&request.headers);
 
         let mut req_builder = http_client
             .post(&url)
@@ -600,6 +621,104 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
         })
     }
 
+    /// Forward `request` to the Anthropic API using a provider API key.
+    ///
+    /// API-key mode is the documented direct provider path: it injects
+    /// `x-api-key` plus the canonical `anthropic-version` and explicitly avoids
+    /// OAuth-only `Authorization` and `anthropic-beta` headers.
+    pub async fn proxy_with_api_key(
+        &self,
+        http_client: &reqwest::Client,
+        request: &ProxyRequest,
+        api_key: &str,
+    ) -> Result<ProxyResponse, RestAdapterError> {
+        let url = format!("{}{}", self.base_url, request.path);
+        let hop_by_hop: std::collections::HashSet<&str> = [
+            "connection",
+            "keep-alive",
+            "proxy-authenticate",
+            "proxy-authorization",
+            "te",
+            "trailers",
+            "transfer-encoding",
+            "upgrade",
+        ]
+        .iter()
+        .copied()
+        .collect();
+        let connection_tokens = connection_tokens(&request.headers);
+
+        let mut req_builder = http_client
+            .post(&url)
+            .header("x-api-key", api_key)
+            .header("anthropic-version", ANTHROPIC_VERSION)
+            .body(request.body.clone());
+
+        for (k, v) in &request.headers {
+            let key_lower = k.to_lowercase();
+            if matches!(
+                key_lower.as_str(),
+                "authorization"
+                    | "x-api-key"
+                    | "host"
+                    | "content-length"
+                    | "anthropic-version"
+                    | "anthropic-beta"
+            ) {
+                continue;
+            }
+            if hop_by_hop.contains(key_lower.as_str()) {
+                continue;
+            }
+            if connection_tokens.contains(&key_lower) {
+                continue;
+            }
+            req_builder = req_builder.header(k.as_str(), v.as_str());
+        }
+
+        let resp = req_builder
+            .send()
+            .await
+            .map_err(|e| RestAdapterError::UpstreamError {
+                status: 502,
+                body: e.to_string(),
+            })?;
+        let status = resp.status().as_u16();
+        let response_connection_tokens: std::collections::HashSet<String> = resp
+            .headers()
+            .get("connection")
+            .and_then(|v| v.to_str().ok())
+            .map(|v| v.split(',').map(|t| t.trim().to_lowercase()).collect())
+            .unwrap_or_default();
+        let mut headers = BTreeMap::new();
+        for (k, v) in resp.headers() {
+            let key_lower = k.as_str().to_lowercase();
+            if hop_by_hop.contains(key_lower.as_str()) {
+                continue;
+            }
+            if response_connection_tokens.contains(&key_lower) {
+                continue;
+            }
+            if let Ok(val) = v.to_str() {
+                headers.insert(k.as_str().to_string(), val.to_string());
+            }
+        }
+        let body = resp
+            .bytes()
+            .await
+            .map_err(|e| RestAdapterError::UpstreamError {
+                status: 502,
+                body: e.to_string(),
+            })?
+            .to_vec();
+
+        Ok(ProxyResponse {
+            status,
+            headers,
+            body,
+        })
+    }
+
     /// Forward `request` to the Anthropic API as an SSE stream.
     ///
     /// Detects streaming intent via `Accept: text/event-stream` in `request.headers`.
@@ -637,11 +756,7 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
         .copied()
         .collect();
 
-        let connection_tokens: std::collections::HashSet<String> = request
-            .headers
-            .get("connection")
-            .map(|v| v.split(',').map(|t| t.trim().to_lowercase()).collect())
-            .unwrap_or_default();
+        let connection_tokens = connection_tokens(&request.headers);
 
         let mut req_builder = http_client
             .post(&url)
@@ -680,6 +795,81 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
         let status = resp.status().as_u16();
 
         // Map the reqwest byte stream errors to RestAdapterError.
+        use futures::StreamExt as _;
+        let byte_stream: BoxStream<Result<Bytes, RestAdapterError>> =
+            Box::pin(resp.bytes_stream().map(|r| {
+                r.map_err(|e| RestAdapterError::UpstreamError {
+                    status: 502,
+                    body: e.to_string(),
+                })
+            }));
+
+        Ok((status, byte_stream))
+    }
+
+    /// Forward `request` to the Anthropic API using a provider API key and
+    /// return a raw SSE byte stream.
+    pub async fn proxy_stream_with_api_key(
+        &self,
+        http_client: &reqwest::Client,
+        api_key: &str,
+        request: ProxyRequest,
+    ) -> Result<(u16, BoxStream<Result<Bytes, RestAdapterError>>), RestAdapterError> {
+        let url = format!("{}{}", self.base_url, request.path);
+        let hop_by_hop: std::collections::HashSet<&str> = [
+            "connection",
+            "keep-alive",
+            "proxy-authenticate",
+            "proxy-authorization",
+            "te",
+            "trailers",
+            "transfer-encoding",
+            "upgrade",
+        ]
+        .iter()
+        .copied()
+        .collect();
+        let connection_tokens = connection_tokens(&request.headers);
+
+        let mut req_builder = http_client
+            .post(&url)
+            .header("x-api-key", api_key)
+            .header("anthropic-version", ANTHROPIC_VERSION)
+            .header("Accept", "text/event-stream")
+            .body(request.body);
+
+        for (k, v) in &request.headers {
+            let key_lower = k.to_lowercase();
+            if matches!(
+                key_lower.as_str(),
+                "authorization"
+                    | "x-api-key"
+                    | "host"
+                    | "content-length"
+                    | "anthropic-version"
+                    | "anthropic-beta"
+                    | "accept"
+            ) {
+                continue;
+            }
+            if hop_by_hop.contains(key_lower.as_str()) {
+                continue;
+            }
+            if connection_tokens.contains(&key_lower) {
+                continue;
+            }
+            req_builder = req_builder.header(k.as_str(), v.as_str());
+        }
+
+        let resp = req_builder
+            .send()
+            .await
+            .map_err(|e| RestAdapterError::UpstreamError {
+                status: 502,
+                body: e.to_string(),
+            })?;
+        let status = resp.status().as_u16();
+
         use futures::StreamExt as _;
         let byte_stream: BoxStream<Result<Bytes, RestAdapterError>> =
             Box::pin(resp.bytes_stream().map(|r| {
@@ -858,15 +1048,145 @@ impl Default for TokenRefreshSingleflight {
     }
 }
 
+/// Registry of static or dynamically registered tenant/provider pools.
+///
+/// The v1 proxy path still uses `AppState::pool` as the default Anthropic
+/// data-plane pool, but admin/readiness paths use this registry so a single
+/// process can expose multiple tenant/provider pools without cross-tenant
+/// credential leakage.
+#[derive(Clone)]
+pub struct PoolRegistry {
+    pools: Arc<Mutex<HashMap<PoolKey, Arc<Mutex<SubscriptionPool>>>>>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+struct PoolKey {
+    tenant_id: TenantId, // data_class: INTERNAL_ONLY
+    provider: Provider,  // data_class: INTERNAL_ONLY
+}
+
+/// Secret-redacted pool status returned by tenant-scoped admin routes.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct PoolStatus {
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub provider: String,  // data_class: INTERNAL_ONLY
+    pub total_seats: usize,
+    pub ready: bool,
+}
+
+impl PoolRegistry {
+    pub fn new() -> Self {
+        Self {
+            pools: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    pub fn insert_pool(
+        &self,
+        tenant_id: TenantId,
+        provider: Provider,
+        pool: Arc<Mutex<SubscriptionPool>>,
+    ) {
+        if let Ok(mut pools) = self.pools.lock() {
+            pools.insert(
+                PoolKey {
+                    tenant_id,
+                    provider,
+                },
+                pool,
+            );
+        }
+    }
+
+    pub fn get_pool(
+        &self,
+        tenant_id: &TenantId,
+        provider: Provider,
+    ) -> Option<Arc<Mutex<SubscriptionPool>>> {
+        self.pools
+            .lock()
+            .ok()?
+            .get(&PoolKey {
+                tenant_id: tenant_id.clone(),
+                provider,
+            })
+            .cloned()
+    }
+
+    pub fn pool_count(&self) -> usize {
+        self.pools.lock().map(|pools| pools.len()).unwrap_or(0)
+    }
+
+    pub fn pool_status(&self, tenant_id: &TenantId, provider: Provider) -> Option<PoolStatus> {
+        let pool = self.get_pool(tenant_id, provider)?;
+        let pool = pool.lock().ok()?;
+        Some(PoolStatus {
+            tenant_id: tenant_id.as_str().to_string(),
+            provider: provider.to_string(),
+            total_seats: pool.seat_count(),
+            ready: pool.has_eligible_seat(Instant::now()),
+        })
+    }
+
+    pub fn register_subscription(
+        &self,
+        tenant_id: TenantId,
+        provider: Provider,
+        subscription: OAuthSubscription,
+        strategy: SelectionStrategy,
+    ) -> Result<PoolStatus, SubscriptionPoolError> {
+        let key = PoolKey {
+            tenant_id: tenant_id.clone(),
+            provider,
+        };
+        let pool = {
+            let mut pools = self
+                .pools
+                .lock()
+                .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
+            Arc::clone(pools.entry(key).or_insert_with(|| {
+                Arc::new(Mutex::new(SubscriptionPool::new(
+                    tenant_id.clone(),
+                    provider,
+                    strategy,
+                )))
+            }))
+        };
+
+        pool.lock()
+            .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?
+            .add_seat(subscription)?;
+
+        self.pool_status(&tenant_id, provider)
+            .ok_or(SubscriptionPoolError::NoEligibleSeat)
+    }
+}
+
+impl Default for PoolRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Shared application state threaded through the axum router handlers.
 pub struct AppState {
     /// Pool is Arc<Mutex<...>> so SeatLease can hold a weak back-reference.
     pub pool: Arc<Mutex<SubscriptionPool>>, // data_class: INTERNAL_ONLY
+    pub pool_registry: PoolRegistry, // data_class: INTERNAL_ONLY
     pub gate: Arc<dyn AuthzGate + Send + Sync>, // data_class: INTERNAL_ONLY
     pub sink: Arc<dyn EventSink + Send + Sync>, // data_class: INTERNAL_ONLY
     pub secret_store: Arc<dyn OpenBaoSecretStore>, // data_class: INTERNAL_ONLY
-    pub anthropic_base_url: String,             // data_class: INTERNAL_ONLY
-    pub tenant_id: TenantId,                    // data_class: INTERNAL_ONLY
+    pub anthropic_base_url: String,  // data_class: INTERNAL_ONLY
+    pub tenant_id: TenantId,         // data_class: INTERNAL_ONLY
+    pub admin_bearer_token: Option<String>, // data_class: SECRET
+    /// Runtime environment string (e.g. `production`). Production enforces the
+    /// provider OAuth-compliance fail-closed gate on the dynamic admin path,
+    /// mirroring the boot-time gate in the app crate.
+    pub environment: String, // data_class: INTERNAL_ONLY
+    /// Providers whose OAuth-subscription compliance status is `APPROVED`.
+    /// In production, runtime admin registration of an OAuth-subscription seat
+    /// is rejected unless the provider is present here.
+    pub oauth_approved_providers: std::collections::HashSet<Provider>, // data_class: INTERNAL_ONLY
     /// D3 singleflight coalescer (sync, legacy). Kept for test compat.
     pub token_singleflight: Arc<TokenRefreshSingleflight>, // data_class: INTERNAL_ONLY
     /// Shared async reqwest::Client — amortizes TLS handshakes + keep-alive
@@ -884,6 +1204,36 @@ impl AppState {
         anthropic_base_url: String,
         tenant_id: TenantId,
     ) -> Result<Self, reqwest::Error> {
+        let pool_registry = PoolRegistry::new();
+        pool_registry.insert_pool(tenant_id.clone(), Provider::Anthropic, Arc::clone(&pool));
+        Self::new_with_pool_registry(
+            pool,
+            pool_registry,
+            gate,
+            sink,
+            secret_store,
+            anthropic_base_url,
+            tenant_id,
+            None,
+            "development".to_string(),
+            std::collections::HashSet::new(),
+        )
+    }
+
+    /// Build an `AppState` with an explicit tenant/provider pool registry.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_with_pool_registry(
+        pool: Arc<Mutex<SubscriptionPool>>,
+        pool_registry: PoolRegistry,
+        gate: Arc<dyn AuthzGate + Send + Sync>,
+        sink: Arc<dyn EventSink + Send + Sync>,
+        secret_store: Arc<dyn OpenBaoSecretStore>,
+        anthropic_base_url: String,
+        tenant_id: TenantId,
+        admin_bearer_token: Option<String>,
+        environment: String,
+        oauth_approved_providers: std::collections::HashSet<Provider>,
+    ) -> Result<Self, reqwest::Error> {
         let http_client = Arc::new(
             reqwest::Client::builder()
                 .timeout(Duration::from_secs(30))
@@ -891,14 +1241,28 @@ impl AppState {
         );
         Ok(Self {
             pool,
+            pool_registry,
             gate,
             sink,
             secret_store,
             anthropic_base_url,
             tenant_id,
+            admin_bearer_token,
+            environment,
+            oauth_approved_providers,
             token_singleflight: Arc::new(TokenRefreshSingleflight::new()),
             http_client,
         })
+    }
+
+    /// True when the runtime environment is `production` (case-insensitive).
+    pub fn is_production(&self) -> bool {
+        self.environment.eq_ignore_ascii_case("production")
+    }
+
+    /// True when `provider`'s OAuth-subscription compliance status is APPROVED.
+    pub fn is_oauth_approved(&self, provider: Provider) -> bool {
+        self.oauth_approved_providers.contains(&provider)
     }
 }
 
@@ -910,12 +1274,24 @@ const MAX_BODY_BYTES: usize = 1024 * 1024; // 1 MiB
 ///
 /// Routes:
 /// - `POST /v1/messages` — OAuth-gated reverse proxy to Anthropic API.
-/// - `GET  /healthz`     — liveness probe.
+/// - `GET  /healthz`     — lightweight health probe.
+/// - `GET  /livez`       — Kubernetes liveness probe.
+/// - `GET  /readyz`      — readiness probe (pool lock is reachable).
 /// - `GET  /metrics`     — placeholder Prometheus text exposition.
 pub fn build_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/v1/messages", post(handle_proxy))
+        .route(
+            "/admin/v1/tenants/{tenant_id}/providers/{provider}/pool",
+            get(handle_admin_pool_status),
+        )
+        .route(
+            "/admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions",
+            post(handle_admin_register_subscription),
+        )
         .route("/healthz", get(handle_healthz))
+        .route("/livez", get(handle_livez))
+        .route("/readyz", get(handle_readyz))
         .route("/metrics", get(handle_metrics))
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .with_state(state)
@@ -979,8 +1355,20 @@ async fn handle_proxy(
         tenant_id: state.tenant_id.clone(),
     };
 
-    // Convention: handle = "<tenant_id>/<seat_id>".
-    let refresh_handle = format!("{}/{}", state.tenant_id.as_str(), seat_id.as_str());
+    // Resolve the leased seat's opaque credential handle AND its transport mode
+    // in a single lock so OAuth-subscription vs API-key seats route to the
+    // correct upstream path (API-key seats must NEVER trigger OAuth refresh).
+    let (credential_handle, credential_mode) = match state.pool.lock().ok().and_then(|pool| {
+        let handle = pool.credential_secret_handle_for_seat(&seat_id)?;
+        let mode = pool.credential_mode_for_seat(&seat_id)?;
+        Some((handle, mode))
+    }) {
+        Some((handle, mode)) => (handle, mode),
+        None => {
+            let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
 
     // Build the async adapter (no spawn_blocking — Item 1).
     let adapter = AnthropicAdapter::with_base_url(
@@ -999,22 +1387,40 @@ async fn handle_proxy(
 
     if wants_sse {
         // --- SSE streaming path ---
-        // Obtain access token first (refresh may fail before we stream anything).
-        let access_token = match adapter
-            .refresh_token(&state.http_client, &refresh_handle)
-            .await
-        {
-            Ok(t) => t,
-            Err(_) => {
-                let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
-                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        let stream_result = match credential_mode {
+            CredentialMode::OAuthSubscription => {
+                // Obtain access token first (refresh may fail before we stream).
+                let access_token = match adapter
+                    .refresh_token(&state.http_client, &credential_handle)
+                    .await
+                {
+                    Ok(t) => t,
+                    Err(_) => {
+                        let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+                        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                    }
+                };
+                adapter
+                    .proxy_stream(&state.http_client, &access_token, proxy_request)
+                    .await
+            }
+            CredentialMode::ApiKey => {
+                // API-key seats resolve the provider key from the opaque handle
+                // and MUST NOT trigger an OAuth refresh.
+                let api_key = match state.secret_store.fetch_refresh_token(&credential_handle) {
+                    Ok(key) => key,
+                    Err(_) => {
+                        let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+                        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                    }
+                };
+                adapter
+                    .proxy_stream_with_api_key(&state.http_client, &api_key, proxy_request)
+                    .await
             }
         };
 
-        match adapter
-            .proxy_stream(&state.http_client, &access_token, proxy_request)
-            .await
-        {
+        match stream_result {
             Ok((upstream_status, byte_stream)) => {
                 // Wrap the stream with the lease so the seat is held until the
                 // response body is fully consumed (or client disconnects).
@@ -1039,10 +1445,29 @@ async fn handle_proxy(
             }
         }
     } else {
-        // --- Non-streaming (one-shot JSON) path — unchanged from Stage-6 ---
-        let result = adapter
-            .proxy(&state.http_client, &proxy_request, &refresh_handle)
-            .await;
+        // --- Non-streaming (one-shot JSON) path ---
+        let result = match credential_mode {
+            CredentialMode::OAuthSubscription => {
+                adapter
+                    .proxy(&state.http_client, &proxy_request, &credential_handle)
+                    .await
+            }
+            CredentialMode::ApiKey => {
+                // API-key seats resolve the provider key from the opaque handle
+                // and MUST NOT trigger an OAuth refresh.
+                match state.secret_store.fetch_refresh_token(&credential_handle) {
+                    Ok(api_key) => {
+                        adapter
+                            .proxy_with_api_key(&state.http_client, &proxy_request, &api_key)
+                            .await
+                    }
+                    Err(_) => {
+                        let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+                        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                    }
+                }
+            }
+        };
 
         match result {
             Ok(resp) => {
@@ -1111,8 +1536,231 @@ async fn handle_proxy(
     }
 }
 
+#[derive(Deserialize)]
+struct AdminRegisterSubscriptionRequest {
+    seat_id: String,
+    subscription_id: String,
+    credential_mode: String,
+    secret_handle: String,
+}
+
+#[derive(Serialize)]
+struct AdminRegisterSubscriptionResponse {
+    tenant_id: String,
+    provider: String,
+    seat_id: String,
+    status: String,
+}
+
+/// GET /admin/v1/tenants/{tenant_id}/providers/{provider}/pool
+async fn handle_admin_pool_status(
+    State(state): State<Arc<AppState>>,
+    Path((tenant_id_raw, provider_raw)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !admin_tenant_allowed(&headers, &tenant_id_raw) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let tenant_id = match TenantId::new(tenant_id_raw) {
+        Ok(tenant_id) => tenant_id,
+        Err(_) => return (StatusCode::BAD_REQUEST, "invalid tenant_id").into_response(),
+    };
+    let provider = match parse_provider(&provider_raw) {
+        Some(provider) => provider,
+        None => return (StatusCode::BAD_REQUEST, "invalid provider").into_response(),
+    };
+
+    match state.pool_registry.pool_status(&tenant_id, provider) {
+        Some(status) => Json(status).into_response(),
+        None => StatusCode::NOT_FOUND.into_response(),
+    }
+}
+
+/// POST /admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions
+async fn handle_admin_register_subscription(
+    State(state): State<Arc<AppState>>,
+    Path((tenant_id_raw, provider_raw)): Path<(String, String)>,
+    headers: HeaderMap,
+    Json(request): Json<AdminRegisterSubscriptionRequest>,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !admin_tenant_allowed(&headers, &tenant_id_raw) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    if !has_valid_idempotency_key(&headers) {
+        return (
+            StatusCode::BAD_REQUEST,
+            "missing or invalid idempotency-key",
+        )
+            .into_response();
+    }
+    let tenant_id = match TenantId::new(tenant_id_raw.clone()) {
+        Ok(tenant_id) => tenant_id,
+        Err(_) => return (StatusCode::BAD_REQUEST, "invalid tenant_id").into_response(),
+    };
+    let provider = match parse_provider(&provider_raw) {
+        Some(provider) => provider,
+        None => return (StatusCode::BAD_REQUEST, "invalid provider").into_response(),
+    };
+    let seat_id = match SeatId::new(request.seat_id.clone()) {
+        Ok(seat_id) => seat_id,
+        Err(_) => return (StatusCode::BAD_REQUEST, "invalid seat_id").into_response(),
+    };
+    let subscription_id = match SubscriptionId::new(request.subscription_id) {
+        Ok(subscription_id) => subscription_id,
+        Err(_) => return (StatusCode::BAD_REQUEST, "invalid subscription_id").into_response(),
+    };
+    let credential_mode = match parse_credential_mode(&request.credential_mode) {
+        Some(credential_mode) => credential_mode,
+        None => return (StatusCode::BAD_REQUEST, "invalid credential_mode").into_response(),
+    };
+    // Production fail-closed gate (mirrors the boot-time `validate_provider_compliance`
+    // gate in the app crate): runtime registration of an OAuth-subscription seat is
+    // rejected unless the provider's OAuth compliance status is APPROVED.
+    if state.is_production()
+        && credential_mode == CredentialMode::OAuthSubscription
+        && !state.is_oauth_approved(provider)
+    {
+        return (
+            StatusCode::FORBIDDEN,
+            "provider compliance not approved for oauth_subscription mode",
+        )
+            .into_response();
+    }
+    if !is_secret_handle_reference(&request.secret_handle) {
+        return (StatusCode::BAD_REQUEST, "invalid secret handle").into_response();
+    }
+
+    let subscription = OAuthSubscription::new(
+        tenant_id.clone(),
+        seat_id.clone(),
+        subscription_id,
+        provider,
+        SubscriptionState::Active,
+        request.secret_handle,
+        0,
+    )
+    .with_credential_mode(credential_mode);
+
+    match state.pool_registry.register_subscription(
+        tenant_id.clone(),
+        provider,
+        subscription,
+        SelectionStrategy::RoundRobin,
+    ) {
+        Ok(_) => (
+            StatusCode::CREATED,
+            Json(AdminRegisterSubscriptionResponse {
+                tenant_id: tenant_id.as_str().to_string(),
+                provider: provider.to_string(),
+                seat_id: seat_id.as_str().to_string(),
+                status: "registered".to_string(),
+            }),
+        )
+            .into_response(),
+        Err(SubscriptionPoolError::ForbiddenByPolicy) => StatusCode::FORBIDDEN.into_response(),
+        Err(SubscriptionPoolError::DuplicateSeat) => StatusCode::CONFLICT.into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
+}
+
+fn parse_provider(raw: &str) -> Option<Provider> {
+    match raw.trim().to_ascii_lowercase().as_str() {
+        "anthropic" | "claude" => Some(Provider::Anthropic),
+        "codex" | "openai" => Some(Provider::Codex),
+        _ => None,
+    }
+}
+
+fn parse_credential_mode(raw: &str) -> Option<CredentialMode> {
+    match raw.trim().to_ascii_lowercase().as_str() {
+        "oauth_subscription" | "oauth-subscription" | "oauth" => {
+            Some(CredentialMode::OAuthSubscription)
+        }
+        "api_key" | "api-key" | "apikey" => Some(CredentialMode::ApiKey),
+        _ => None,
+    }
+}
+
+fn admin_tenant_allowed(headers: &HeaderMap, tenant_id: &str) -> bool {
+    headers
+        .get("x-oya-admin-tenant")
+        .and_then(|value| value.to_str().ok())
+        .map(|header_tenant| header_tenant == tenant_id)
+        .unwrap_or(true)
+}
+
+fn admin_bearer_allowed(headers: &HeaderMap, configured_token: Option<&str>) -> bool {
+    let Some(configured_token) = configured_token else {
+        return false;
+    };
+    if configured_token.is_empty() {
+        return false;
+    }
+    let Some(presented) = headers
+        .get("authorization")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.strip_prefix("Bearer "))
+    else {
+        return false;
+    };
+
+    constant_time_eq(presented.as_bytes(), configured_token.as_bytes())
+}
+
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    let max_len = a.len().max(b.len());
+    let mut diff = a.len() ^ b.len();
+    for index in 0..max_len {
+        let left = a.get(index).copied().unwrap_or(0);
+        let right = b.get(index).copied().unwrap_or(0);
+        diff |= (left ^ right) as usize;
+    }
+    diff == 0
+}
+
+fn has_valid_idempotency_key(headers: &HeaderMap) -> bool {
+    let Some(value) = headers
+        .get("idempotency-key")
+        .and_then(|value| value.to_str().ok())
+    else {
+        return false;
+    };
+    let value = value.trim();
+    !value.is_empty()
+        && value.len() <= 128
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
+}
+
 /// GET /healthz handler — liveness probe.
 async fn handle_healthz() -> impl IntoResponse {
+    StatusCode::OK
+}
+
+/// GET /livez handler — Kubernetes liveness probe.
+async fn handle_livez() -> impl IntoResponse {
+    StatusCode::OK
+}
+
+/// GET /readyz handler — readiness probe.
+async fn handle_readyz(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let has_default_data_plane_pool = match state.pool.lock() {
+        Ok(pool) => pool.has_eligible_seat(Instant::now()),
+        Err(_) => return StatusCode::SERVICE_UNAVAILABLE,
+    };
+    if !has_default_data_plane_pool {
+        return StatusCode::SERVICE_UNAVAILABLE;
+    }
+    if state.secret_store.readiness_probe().is_err() {
+        return StatusCode::SERVICE_UNAVAILABLE;
+    }
     StatusCode::OK
 }
 
@@ -1145,5 +1793,823 @@ impl OpenBaoSecretStore for ArcSecretStore {
 
     fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError> {
         self.inner.store_refresh_token(handle, plaintext)
+    }
+
+    fn readiness_probe(&self) -> Result<(), RestAdapterError> {
+        self.inner.readiness_probe()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::Body;
+    use axum::http::Request;
+    use http_body_util::BodyExt as _;
+    use oya_cloud_intelligence_kernel::{
+        AuthzDecision, OAuthSubscription, SelectionStrategy, SubscriptionId, SubscriptionState,
+    };
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tower::ServiceExt;
+
+    struct AllowGate;
+
+    impl AuthzGate for AllowGate {
+        fn decide(
+            &self,
+            _request: &oya_cloud_intelligence_kernel::AuthzRequest<'_>,
+        ) -> AuthzDecision {
+            AuthzDecision::Allow
+        }
+    }
+
+    struct NoopSink;
+
+    impl EventSink for NoopSink {
+        fn emit(&self, _event: LlmGatewayEvent) {}
+    }
+
+    struct MemorySecretStore {
+        ready: bool,
+    }
+
+    impl OpenBaoSecretStore for MemorySecretStore {
+        fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
+            Ok("test-refresh-token".to_string())
+        }
+
+        fn store_refresh_token(
+            &self,
+            _handle: &str,
+            _plaintext: &str,
+        ) -> Result<(), RestAdapterError> {
+            Ok(())
+        }
+
+        fn readiness_probe(&self) -> Result<(), RestAdapterError> {
+            if self.ready {
+                Ok(())
+            } else {
+                Err(RestAdapterError::SecretStoreUnavailable(
+                    "test secret store unavailable".to_string(),
+                ))
+            }
+        }
+    }
+
+    struct RecordingSecretStore {
+        handles: Arc<Mutex<Vec<String>>>,
+    }
+
+    impl OpenBaoSecretStore for RecordingSecretStore {
+        fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
+            self.handles.lock().unwrap().push(handle.to_string());
+            Ok("test-refresh-token".to_string())
+        }
+
+        fn store_refresh_token(
+            &self,
+            _handle: &str,
+            _plaintext: &str,
+        ) -> Result<(), RestAdapterError> {
+            Ok(())
+        }
+    }
+
+    fn test_state(has_seat: bool, secret_store_ready: bool) -> Arc<AppState> {
+        test_state_with_secret_store(
+            has_seat,
+            Arc::new(MemorySecretStore {
+                ready: secret_store_ready,
+            }),
+            "tenant-a/seat-a",
+        )
+    }
+
+    fn test_state_with_secret_store(
+        has_seat: bool,
+        secret_store: Arc<dyn OpenBaoSecretStore>,
+        secret_handle: &str,
+    ) -> Arc<AppState> {
+        let tenant_id = TenantId::new("tenant-a").unwrap();
+        let seat_id = SeatId::new("seat-a").unwrap();
+        let mut pool = SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        );
+        if has_seat {
+            pool.add_seat(OAuthSubscription::new(
+                tenant_id.clone(),
+                seat_id.clone(),
+                SubscriptionId::new("sub-a").unwrap(),
+                Provider::Anthropic,
+                SubscriptionState::Active,
+                secret_handle.to_string(),
+                0,
+            ))
+            .unwrap();
+        }
+
+        let pool = Arc::new(Mutex::new(pool));
+        let registry = PoolRegistry::new();
+        registry.insert_pool(tenant_id.clone(), Provider::Anthropic, Arc::clone(&pool));
+        Arc::new(
+            AppState::new_with_pool_registry(
+                pool,
+                registry,
+                Arc::new(AllowGate),
+                Arc::new(NoopSink),
+                secret_store,
+                "http://127.0.0.1:1".to_string(),
+                tenant_id,
+                Some("admin-token".to_string()),
+                "development".to_string(),
+                std::collections::HashSet::new(),
+            )
+            .unwrap(),
+        )
+    }
+
+    async fn one_shot_http_server(
+        response: &'static str,
+    ) -> (String, tokio::task::JoinHandle<String>) {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind fake provider");
+        let addr = listener.local_addr().expect("fake provider addr");
+        let handle = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.expect("accept fake provider");
+            let mut buf = vec![0_u8; 16 * 1024];
+            let n = socket.read(&mut buf).await.expect("read fake request");
+            let request = String::from_utf8_lossy(&buf[..n]).to_string();
+            socket
+                .write_all(response.as_bytes())
+                .await
+                .expect("write fake response");
+            request
+        });
+        (format!("http://{addr}"), handle)
+    }
+
+    fn assert_header(request: &str, header: &str, value: &str) {
+        let needle = format!("{header}: {value}");
+        assert!(
+            request
+                .lines()
+                .any(|line| line.eq_ignore_ascii_case(&needle)),
+            "missing header `{needle}` in request:\n{request}"
+        );
+    }
+
+    #[tokio::test]
+    async fn anthropic_api_key_proxy_injects_x_api_key_without_oauth_beta() {
+        let (base_url, upstream_request) = one_shot_http_server(
+            "HTTP/1.1 200 OK\r\n\
+             Content-Type: application/json\r\n\
+             Connection: x-upstream-hop\r\n\
+             X-Upstream-Hop: remove-me\r\n\
+             Content-Length: 11\r\n\
+             \r\n\
+             {\"ok\":true}",
+        )
+        .await;
+        let adapter = AnthropicAdapter::with_base_url(MemorySecretStore { ready: true }, base_url);
+        let mut headers = BTreeMap::new();
+        headers.insert(
+            "authorization".to_string(),
+            "Bearer caller-token".to_string(),
+        );
+        headers.insert("anthropic-beta".to_string(), "oauth-2025-04-20".to_string());
+        headers.insert("connection".to_string(), "x-drop-me".to_string());
+        headers.insert("x-drop-me".to_string(), "must-not-forward".to_string());
+
+        let response = adapter
+            .proxy_with_api_key(
+                &reqwest::Client::new(),
+                &ProxyRequest {
+                    method: "POST".to_string(),
+                    path: "/v1/messages".to_string(),
+                    headers,
+                    body: br#"{"model":"claude-test","messages":[]}"#.to_vec(),
+                    tenant_id: TenantId::new("tenant-a").unwrap(),
+                },
+                "sk-ant-provider",
+            )
+            .await
+            .expect("api-key proxy succeeds");
+
+        assert_eq!(response.status, 200);
+        assert_eq!(response.body, br#"{"ok":true}"#);
+        assert!(!response.headers.contains_key("connection"));
+        assert!(!response.headers.contains_key("x-upstream-hop"));
+
+        let request = upstream_request.await.expect("fake provider request");
+        assert!(request.starts_with("POST /v1/messages "));
+        assert_header(&request, "x-api-key", "sk-ant-provider");
+        assert_header(&request, "anthropic-version", ANTHROPIC_VERSION);
+        assert!(!request.contains("Bearer caller-token"));
+        assert!(!request.to_ascii_lowercase().contains("anthropic-beta:"));
+        assert!(!request.contains("must-not-forward"));
+    }
+
+    #[tokio::test]
+    async fn anthropic_api_key_stream_forces_sse_accept_without_oauth_headers() {
+        let (base_url, upstream_request) = one_shot_http_server(
+            "HTTP/1.1 200 OK\r\n\
+             Content-Type: text/event-stream\r\n\
+             Content-Length: 10\r\n\
+             \r\n\
+             data: hi\n\n",
+        )
+        .await;
+        let adapter = AnthropicAdapter::with_base_url(MemorySecretStore { ready: true }, base_url);
+        let mut headers = BTreeMap::new();
+        headers.insert("accept".to_string(), "application/json".to_string());
+        headers.insert(
+            "authorization".to_string(),
+            "Bearer caller-token".to_string(),
+        );
+        headers.insert("connection".to_string(), "x-drop-me".to_string());
+        headers.insert("x-drop-me".to_string(), "must-not-forward".to_string());
+
+        let (status, stream) = adapter
+            .proxy_stream_with_api_key(
+                &reqwest::Client::new(),
+                "sk-ant-provider",
+                ProxyRequest {
+                    method: "POST".to_string(),
+                    path: "/v1/messages".to_string(),
+                    headers,
+                    body: br#"{"model":"claude-test","stream":true}"#.to_vec(),
+                    tenant_id: TenantId::new("tenant-a").unwrap(),
+                },
+            )
+            .await
+            .expect("api-key stream opens");
+
+        assert_eq!(status, 200);
+        use futures::StreamExt as _;
+        let body = stream
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .map(|chunk| chunk.expect("stream chunk"))
+            .fold(Vec::new(), |mut acc, bytes| {
+                acc.extend_from_slice(&bytes);
+                acc
+            });
+        assert_eq!(body, b"data: hi\n\n");
+
+        let request = upstream_request.await.expect("fake provider request");
+        assert_header(&request, "x-api-key", "sk-ant-provider");
+        assert_header(&request, "anthropic-version", ANTHROPIC_VERSION);
+        assert_header(&request, "accept", "text/event-stream");
+        assert!(!request.contains("application/json"));
+        assert!(!request.contains("Bearer caller-token"));
+        assert!(!request.to_ascii_lowercase().contains("anthropic-beta:"));
+        assert!(!request.contains("must-not-forward"));
+    }
+
+    #[tokio::test]
+    async fn health_liveness_and_readiness_routes_are_implemented() {
+        let router = build_router(test_state(true, true));
+        for path in ["/healthz", "/livez", "/readyz"] {
+            let response = router
+                .clone()
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(
+                response.status(),
+                StatusCode::OK,
+                "expected {path} to be implemented"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn readiness_requires_configured_pool() {
+        let response = build_router(test_state(false, true))
+            .oneshot(
+                Request::builder()
+                    .uri("/readyz")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn readiness_requires_secret_store_health() {
+        let response = build_router(test_state(true, false))
+            .oneshot(
+                Request::builder()
+                    .uri("/readyz")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn readiness_requires_default_data_plane_pool_not_only_other_registry_pool() {
+        let tenant_a = TenantId::new("tenant-a").unwrap();
+        let tenant_b = TenantId::new("tenant-b").unwrap();
+        let default_pool = Arc::new(Mutex::new(SubscriptionPool::new(
+            tenant_a.clone(),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        )));
+
+        let registry = PoolRegistry::new();
+        let mut codex_pool = SubscriptionPool::new(
+            tenant_b.clone(),
+            Provider::Codex,
+            SelectionStrategy::RoundRobin,
+        );
+        codex_pool
+            .add_seat(OAuthSubscription::new(
+                tenant_b.clone(),
+                SeatId::new("seat-b").unwrap(),
+                SubscriptionId::new("sub-b").unwrap(),
+                Provider::Codex,
+                SubscriptionState::Active,
+                "vault://tenant-b/codex/seat-b",
+                0,
+            ))
+            .unwrap();
+        registry.insert_pool(tenant_b, Provider::Codex, Arc::new(Mutex::new(codex_pool)));
+
+        let state = AppState::new_with_pool_registry(
+            default_pool,
+            registry,
+            Arc::new(AllowGate),
+            Arc::new(NoopSink),
+            Arc::new(MemorySecretStore { ready: true }),
+            "http://127.0.0.1:1".to_string(),
+            tenant_a,
+            Some("admin-token".to_string()),
+            "development".to_string(),
+            std::collections::HashSet::new(),
+        )
+        .unwrap();
+
+        let response = build_router(Arc::new(state))
+            .oneshot(
+                Request::builder()
+                    .uri("/readyz")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn proxy_uses_registered_secret_handle_not_derived_convention() {
+        let handles = Arc::new(Mutex::new(Vec::new()));
+        let state = test_state_with_secret_store(
+            true,
+            Arc::new(RecordingSecretStore {
+                handles: Arc::clone(&handles),
+            }),
+            "vault://tenant-a/anthropic/seat-a",
+        );
+
+        let _ = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/messages")
+                    .header("x-agent-id", "agent-a")
+                    .body(Body::from(r#"{"model":"claude-test","messages":[]}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(
+            handles.lock().unwrap().as_slice(),
+            ["vault://tenant-a/anthropic/seat-a"]
+        );
+    }
+
+    /// Fake upstream that records every request line it receives across N
+    /// connections, so a test can assert which upstream paths the proxy hit
+    /// (e.g. the OAuth token endpoint vs `/v1/messages`).
+    fn recording_multi_request_server(
+        responses: Vec<&'static str>,
+    ) -> (String, Arc<Mutex<Vec<String>>>, tokio::task::JoinHandle<()>) {
+        let received = Arc::new(Mutex::new(Vec::new()));
+        let received_for_task = Arc::clone(&received);
+        let std_listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind fake provider");
+        std_listener
+            .set_nonblocking(true)
+            .expect("nonblocking listener");
+        let addr = std_listener.local_addr().expect("fake provider addr");
+        let handle = tokio::spawn(async move {
+            let listener = tokio::net::TcpListener::from_std(std_listener).expect("tokio listener");
+            for response in responses {
+                let (mut socket, _) = listener.accept().await.expect("accept fake provider");
+                let mut buf = vec![0_u8; 16 * 1024];
+                let n = socket.read(&mut buf).await.expect("read fake request");
+                let request = String::from_utf8_lossy(&buf[..n]).to_string();
+                received_for_task.lock().unwrap().push(request);
+                socket
+                    .write_all(response.as_bytes())
+                    .await
+                    .expect("write fake response");
+            }
+        });
+        (format!("http://{addr}"), received, handle)
+    }
+
+    fn proxy_state_with_seat_mode(
+        base_url: String,
+        credential_mode: CredentialMode,
+        secret_handle: &str,
+    ) -> Arc<AppState> {
+        let tenant_id = TenantId::new("tenant-a").unwrap();
+        let seat_id = SeatId::new("seat-a").unwrap();
+        let mut pool = SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        );
+        pool.add_seat(
+            OAuthSubscription::new(
+                tenant_id.clone(),
+                seat_id,
+                SubscriptionId::new("sub-a").unwrap(),
+                Provider::Anthropic,
+                SubscriptionState::Active,
+                secret_handle.to_string(),
+                0,
+            )
+            .with_credential_mode(credential_mode),
+        )
+        .unwrap();
+
+        let pool = Arc::new(Mutex::new(pool));
+        let registry = PoolRegistry::new();
+        registry.insert_pool(tenant_id.clone(), Provider::Anthropic, Arc::clone(&pool));
+        Arc::new(
+            AppState::new_with_pool_registry(
+                pool,
+                registry,
+                Arc::new(AllowGate),
+                Arc::new(NoopSink),
+                Arc::new(MemorySecretStore { ready: true }),
+                base_url,
+                tenant_id,
+                Some("admin-token".to_string()),
+                "development".to_string(),
+                std::collections::HashSet::new(),
+            )
+            .unwrap(),
+        )
+    }
+
+    /// Build an admin-test `AppState` for a given environment + OAuth approval
+    /// set. The default Anthropic pool starts empty so admin registration drives
+    /// the seat count.
+    fn admin_state(
+        environment: &str,
+        oauth_approved_providers: std::collections::HashSet<Provider>,
+    ) -> Arc<AppState> {
+        let tenant_id = TenantId::new("tenant-a").unwrap();
+        let pool = Arc::new(Mutex::new(SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        )));
+        let registry = PoolRegistry::new();
+        registry.insert_pool(tenant_id.clone(), Provider::Anthropic, Arc::clone(&pool));
+        Arc::new(
+            AppState::new_with_pool_registry(
+                pool,
+                registry,
+                Arc::new(AllowGate),
+                Arc::new(NoopSink),
+                Arc::new(MemorySecretStore { ready: true }),
+                "http://127.0.0.1:1".to_string(),
+                tenant_id,
+                Some("admin-token".to_string()),
+                environment.to_string(),
+                oauth_approved_providers,
+            )
+            .unwrap(),
+        )
+    }
+
+    fn admin_register_request(credential_mode: &str) -> Request<Body> {
+        Request::builder()
+            .method("POST")
+            .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
+            .header("authorization", "Bearer admin-token")
+            .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
+            .header("content-type", "application/json")
+            .body(Body::from(format!(
+                r#"{{"seat_id":"seat-x","subscription_id":"sub-x","credential_mode":"{credential_mode}","secret_handle":"vault://tenant-a/anthropic/seat-x"}}"#
+            )))
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn production_admin_register_oauth_rejected_when_provider_pending() {
+        let response = build_router(admin_state("production", std::collections::HashSet::new()))
+            .oneshot(admin_register_request("oauth_subscription"))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn production_admin_register_oauth_accepted_when_provider_approved() {
+        let approved = std::collections::HashSet::from([Provider::Anthropic]);
+        let response = build_router(admin_state("production", approved))
+            .oneshot(admin_register_request("oauth_subscription"))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::CREATED);
+    }
+
+    #[tokio::test]
+    async fn production_admin_register_api_key_accepted_without_oauth_approval() {
+        let response = build_router(admin_state("production", std::collections::HashSet::new()))
+            .oneshot(admin_register_request("api_key"))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::CREATED);
+    }
+
+    #[tokio::test]
+    async fn non_production_admin_register_oauth_accepted_without_oauth_approval() {
+        let response = build_router(admin_state("development", std::collections::HashSet::new()))
+            .oneshot(admin_register_request("oauth_subscription"))
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::CREATED);
+    }
+
+    #[tokio::test]
+    async fn proxy_api_key_seat_sends_x_api_key_and_skips_oauth_refresh() {
+        // Single upstream request expected: the direct `/v1/messages` call.
+        let (base_url, received, _server) = recording_multi_request_server(vec![
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 11\r\n\r\n{\"ok\":true}",
+        ]);
+        let state = proxy_state_with_seat_mode(
+            base_url,
+            CredentialMode::ApiKey,
+            "vault://tenant-a/anthropic/seat-a",
+        );
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/messages")
+                    .header("x-agent-id", "agent-a")
+                    .body(Body::from(r#"{"model":"claude-test","messages":[]}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(
+            requests.len(),
+            1,
+            "api-key path must make exactly one upstream call"
+        );
+        let req = &requests[0];
+        assert!(
+            req.starts_with("POST /v1/messages "),
+            "unexpected upstream path:\n{req}"
+        );
+        assert!(
+            req.to_ascii_lowercase()
+                .contains("x-api-key: test-refresh-token"),
+            "api-key path must send x-api-key:\n{req}"
+        );
+        assert!(
+            !req.contains("/v1/oauth/token"),
+            "api-key path must not call the OAuth token endpoint"
+        );
+        assert!(
+            !req.to_ascii_lowercase().contains("authorization: bearer"),
+            "api-key path must not forward an OAuth bearer token"
+        );
+    }
+
+    #[tokio::test]
+    async fn proxy_oauth_seat_uses_oauth_refresh_then_bearer() {
+        // Two upstream requests: the OAuth token refresh, then `/v1/messages`.
+        let (base_url, received, _server) = recording_multi_request_server(vec![
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 70\r\n\r\n{\"access_token\":\"acc-tok\",\"refresh_token\":\"new-ref\",\"expires_in\":3600}",
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 11\r\n\r\n{\"ok\":true}",
+        ]);
+        let state = proxy_state_with_seat_mode(
+            base_url,
+            CredentialMode::OAuthSubscription,
+            "vault://tenant-a/anthropic/seat-a",
+        );
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/messages")
+                    .header("x-agent-id", "agent-a")
+                    .body(Body::from(r#"{"model":"claude-test","messages":[]}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(requests.len(), 2, "OAuth path must refresh then proxy");
+        assert!(
+            requests[0].starts_with("POST /v1/oauth/token "),
+            "first OAuth-path call must hit the token endpoint:\n{}",
+            requests[0]
+        );
+        let messages_req = &requests[1];
+        assert!(
+            messages_req.starts_with("POST /v1/messages "),
+            "second OAuth-path call must hit /v1/messages:\n{messages_req}"
+        );
+        assert!(
+            messages_req
+                .to_ascii_lowercase()
+                .contains("authorization: bearer acc-tok"),
+            "OAuth path must forward the refreshed bearer token:\n{messages_req}"
+        );
+        assert!(
+            !messages_req.to_ascii_lowercase().contains("x-api-key:"),
+            "OAuth path must not send x-api-key"
+        );
+    }
+
+    #[tokio::test]
+    async fn tenant_scoped_admin_pool_route_requires_admin_bearer() {
+        let response = build_router(test_state(true, true))
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn tenant_scoped_admin_pool_route_returns_status_without_secret_handles() {
+        let response = build_router(test_state(true, true))
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("\"tenant_id\":\"tenant-a\""));
+        assert!(body.contains("\"provider\":\"anthropic\""));
+        assert!(body.contains("\"total_seats\":1"));
+        assert!(!body.contains("tenant-a/seat-a"));
+        assert!(!body.contains("test-refresh-token"));
+    }
+
+    #[tokio::test]
+    async fn tenant_scoped_admin_pool_route_forbids_cross_tenant_header() {
+        let response = build_router(test_state(true, true))
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
+                    .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-b")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn tenant_scoped_admin_subscription_registration_adds_seat_without_echoing_secret() {
+        let router = build_router(test_state(true, true));
+        let response = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
+                    .header("authorization", "Bearer admin-token")
+                    .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"vault://tenant-a/anthropic/seat-b"}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("\"seat_id\":\"seat-b\""));
+        assert!(!body.contains("vault://tenant-a/anthropic/seat-b"));
+
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("\"total_seats\":2"));
+    }
+
+    #[tokio::test]
+    async fn tenant_scoped_admin_subscription_registration_requires_idempotency_key() {
+        let response = build_router(test_state(true, true))
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
+                    .header("authorization", "Bearer admin-token")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"vault://tenant-a/anthropic/seat-b"}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn tenant_scoped_admin_subscription_registration_rejects_duplicate_seat() {
+        let router = build_router(test_state(true, true));
+        let request_body = r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"vault://tenant-a/anthropic/seat-b"}"#;
+
+        let first = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
+                    .header("authorization", "Bearer admin-token")
+                    .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(first.status(), StatusCode::CREATED);
+
+        let duplicate = router
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
+                    .header("authorization", "Bearer admin-token")
+                    .header("idempotency-key", "22222222-2222-4222-8222-222222222222")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(duplicate.status(), StatusCode::CONFLICT);
     }
 }

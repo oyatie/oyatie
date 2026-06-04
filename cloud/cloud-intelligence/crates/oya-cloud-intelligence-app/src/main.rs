@@ -11,6 +11,7 @@
 //! - `OYA_CLOUD_INTEL_TENANT_ID`           — tenant ID (required)
 //! - `OYA_CLOUD_INTEL_ANTHROPIC_URL`       — Anthropic base URL (default: production)
 //! - `OYA_CLOUD_INTEL_INITIAL_SEATS`       — comma-separated seat_id:handle pairs
+//! - `OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS` — semicolon-separated tenant/provider handle pools
 //! - `OYA_CLOUD_INTEL_OPENBAO_URL`         — OpenBao base URL (required)
 //! - `OYA_CLOUD_INTEL_OPENBAO_TOKEN`       — OpenBao vault token (required)
 //! - `OYA_CLOUD_INTEL_TRANSIT_KEY_NAME`    — Transit key name (default: cloud-intelligence-rt)
@@ -18,6 +19,12 @@
 //! - `OYA_CLOUD_INTEL_CLICKHOUSE_USER`     — ClickHouse user (default: default)
 //! - `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD` — ClickHouse password (required)
 //! - `OYA_CLOUD_INTEL_VALKEY_URL`          — Valkey URL (default: redis://valkey.infra.svc:6379)
+//! - `OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN`  — optional admin-route bearer token (unset = fail closed)
+//! - `OYA_CLOUD_INTEL_ENVIRONMENT`         — environment name (production enforces compliance)
+//! - `OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE` — api_key | oauth_subscription
+//! - `OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS` — APPROVED | API_ONLY | BLOCKED | PENDING
+//! - `OYA_CLOUD_INTEL_CODEX_AUTH_MODE`     — api_key | oauth_subscription
+//! - `OYA_CLOUD_INTEL_CODEX_OAUTH_STATUS`  — APPROVED | API_ONLY | BLOCKED | PENDING
 
 use oya_cloud_intelligence_app::{AppConfig, build_app};
 use oya_cloud_intelligence_rest::build_router;

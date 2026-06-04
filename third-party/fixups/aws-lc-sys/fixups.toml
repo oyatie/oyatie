@@ -39,7 +39,8 @@ env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release", LDFLAGS = "-nosta
 # they require $(location toolchains//cxx/clang_hermetic:aarch64-musl-sysroot)
 # which is a Buck2 macro only valid inside third-party/BUCK rule attributes.
 # They must be injected into aws-lc-sys-0.41-build-script-main-run via the
-# hand-edit patch (scripts/ci/third-party-buckify-handedits.patch).
+# durable hand-edit normalizer (scripts/ci/apply-third-party-durable-handedits.py),
+# after the captured patch (scripts/ci/third-party-buckify-handedits.patch) applies.
 #
 # Intended env additions in aws-lc-sys-0.41-build-script-main-run:
 #   select({"//platforms:libc_musl": {

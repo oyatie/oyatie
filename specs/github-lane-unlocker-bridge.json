@@ -59,20 +59,33 @@
       "node26_action_runtime_reason": "GitHub JavaScript action runtime migration is Node24; Node26 is available through actions/node-versions for explicit setup-node jobs, but these Buck2/Rust bridge workflows do not run Node application tests.",
       "unsecure_node20_opt_out_allowed": false,
       "stability_policy": "Use the stable v6 major tag for checkout and fail closed if GitHub Actions requires a newer JavaScript action runtime."
+    },
+    "publication_bridge": {
+      "public_private_repo_publication": true,
+      "private_by_default": true,
+      "public_exports_manifest_driven": true,
+      "native_scm_remains_authority": true,
+      "github_roles": [
+        "temporary PR/merge surface",
+        "public/private repository publication adapter",
+        "status/check visibility bridge"
+      ],
+      "non_roles": [
+        "permanent source-of-truth SCM",
+        "permanent CI authority",
+        "permanent CD authority"
+      ]
     }
   },
   "github_actions_cd_bridge": {
     "mode": "github_actions_cd_bridge_until_release_conveyor_cutover",
     "live_deployments_enabled": false,
-    "deploys_via_jenkins": false,
-    "deploys_via_argocd": false,
     "cutover_destination": "release_conveyor_cd",
-    "scope": "dry-run and artifact/evidence preparation only until the native release conveyor proves Kubernetes-native promotion and rollback."
+    "scope": "dry-run and artifact/evidence preparation only until the native release conveyor proves Kubernetes-native promotion and rollback.",
+    "deploys_via_retired_external_substrate": false
   },
   "not_interim_authorities": {
-    "jenkins": false,
-    "forgejo": false,
-    "argocd": false
+    "retired_external_scm_ci_cd_substrates": false
   },
   "build_test_check_authority": {
     "authority": "buck2",
@@ -83,7 +96,8 @@
       "//:github-lane-unlocker-bridge-check",
       "//:buck2-authority-policy-check",
       "//:rust-llvm-coverage-runner-contract-check",
-      "//:rust-llvm-coverage-smoke-check"
+      "//:rust-llvm-coverage-smoke-check",
+      "//:repo-hygiene-automation-check"
     ]
   },
   "pattern_adoption_strategy": {
@@ -105,7 +119,12 @@
       "required_status_rollup",
       "affected_builds",
       "kubernetes_native_job_execution",
-      "source_based_coverage"
+      "source_based_coverage",
+      "public_private_repo_publication_adapters",
+      "path_based_ownership",
+      "merge_queue_or_projected_state",
+      "thin_reusable_workflows",
+      "repo_hygiene_automation"
     ],
     "rationale": "Use proven hyperscaler patterns as reference architecture inputs. Do not copy an upstream product wholesale when the durable Oyatie seam needs Rust-first SCM, Buck2 graph authority, Kubernetes-native execution, cloud workspace resources, and decoupled microservices."
   },
@@ -126,7 +145,24 @@
         "permanent Python control plane",
         "permanent C++ durable core",
         "wholesale upstream fork authority"
-      ]
+      ],
+      "adapters": {
+        "github_public_private_publication": {
+          "required": true,
+          "role": "Publish and mirror selected public/private repositories, PRs, checks, releases, CODEOWNERS/rulesets, and statuses to GitHub while the native SCM owns durable graph authority.",
+          "private_by_default": true,
+          "public_exports_manifest_driven": true,
+          "public_mirrors_are_generated_not_hand_edited": true
+        },
+        "git_protocol": {
+          "required": true,
+          "role": "Interoperate with ordinary git clients, GitHub remotes, emergency plain-git workflows, and branch protection checks."
+        },
+        "github_actions_status_bridge": {
+          "temporary": true,
+          "role": "Expose temporary GitHub Actions required-context evidence until native Oya CI is trusted."
+        }
+      }
     },
     "cloud_workspace_service": {
       "role": "Kubernetes-native cloud workspace/resource kernel seam that makes infra/cloud/product lanes independent without leaking workspace internals into product services.",
@@ -301,8 +337,8 @@
     "families": {
       "product": {
         "decoupled_from": [
-          "github",
-          "forgejo",
+          "github temporary bridge internals",
+          "retired external SCM bridge internals",
           "cloud-ci internals",
           "workspace substrate internals"
         ]
@@ -326,8 +362,8 @@
       }
     },
     "product_lanes_must_not_depend_on": [
-      "github",
-      "forgejo",
+      "github temporary bridge internals",
+      "retired external SCM bridge internals",
       "cloud-ci internals",
       "workspace substrate internals"
     ]
@@ -352,6 +388,16 @@
       "id": "build_from_scratch_ignoring_proven_patterns",
       "counterargument": "Maximal control, but high reinvention risk and likely misses Prow/Tide/Piper/CitC/Sapling lessons.",
       "decision": "reject"
+    },
+    {
+      "id": "native_scm_without_github_adapter",
+      "counterargument": "A pure native SCM without GitHub adapters maximizes control but blocks public/private publication, open collaboration, temporary PR interop, and migration safety.",
+      "decision": "reject_require_github_publication_and_status_adapters"
+    },
+    {
+      "id": "docs_hygiene_by_manual_sweeps_only",
+      "counterargument": "Manual stale-doc sweeps do not scale in a large monorepo and leave confusing active context for agents.",
+      "decision": "reject_add_repo_hygiene_automation_check"
     }
   ],
   "claim_boundary": {
@@ -363,12 +409,10 @@
       "GitHub is the permanent SCM",
       "GitHub Actions is the permanent CI authority",
       "GitHub Actions is the permanent CD authority",
-      "Jenkins is the interim CI authority",
-      "Forgejo is the interim SCM authority",
-      "ArgoCD is the interim CD authority",
       "P0.0 green",
       "Phase 0 complete",
-      "cloud-ci/oya-ci live authority proven"
+      "cloud-ci/oya-ci live authority proven",
+      "retired external SCM/CI/CD substrates are interim authorities"
     ]
   },
   "official_sources": [
@@ -377,7 +421,7 @@
       "establishes": "Workflow syntax, strategy matrix, fail-fast, max-parallel, permissions, and job structure."
     },
     {
-      "name": "GitHub Docs \u2014 GitHub-hosted runners reference",
+      "name": "GitHub Docs — GitHub-hosted runners reference",
       "url": "https://docs.github.com/en/actions/reference/github-hosted-runners-reference",
       "used_for": "ubuntu-24.04-arm standard GitHub-hosted runner label and arm64 architecture availability."
     },
@@ -452,18 +496,34 @@
     {
       "url": "https://nodejs.org/en/about/previous-releases",
       "establishes": "Node 26 is Current before its October 2026 LTS transition; Node 24 remains the active LTS line for conservative workflow runtime posture."
+    },
+    {
+      "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories",
+      "establishes": "GitHub repository visibility/public-private publication bridge."
+    },
+    {
+      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
+      "establishes": "CODEOWNERS path ownership for merge-conflict reduction."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/sharing-automations/reusing-workflows",
+      "establishes": "Reusable workflows reduce duplicated shared CI YAML."
     }
   ],
   "cleanup_policy": {
     "safe_now": [
       "delete local untracked __pycache__ artifacts",
-      "mark legacy Jenkins/Forgejo/ArgoCD docs as superseded for interim use",
+      "mark legacy retired external SCM/CI/CD substrates docs as superseded for interim use",
       "keep native cutover context separate from GitHub temporary context"
     ],
     "defer": [
       "delete tracked legacy bridge scripts only after native or GitHub bridge replacement has green evidence",
       "mutate live branch protection only through an explicit external-change step",
       "scale down Kubernetes pods only after namespace/workload scope is explicit"
-    ]
-  }
+    ],
+    "automated_hygiene": "python3 scripts/ci/assert-repo-hygiene-automation.py --json and buck2 build //:repo-hygiene-automation-check",
+    "doc_sprawl_policy": "root docs stay pointer-thin; stale docs older than 3 days are audit/archive candidates; exact retired-substrate names are centralized in /specs/retired-external-substrate-registry.json."
+  },
+  "repo_hygiene_automation_ref": "/specs/repo-hygiene-automation.json",
+  "retired_external_substrate_registry_ref": "/specs/retired-external-substrate-registry.json"
 }

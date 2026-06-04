@@ -12,6 +12,20 @@ doc_status: published
 
 ---
 
+
+## P00 doc-sprawl automation amendment (2026-06-04)
+
+Documentation sprawl is now governed by [`/specs/repo-hygiene-automation.json`](../specs/repo-hygiene-automation.json) and the tombstone registry [`/specs/retired-external-substrate-registry.json`](../specs/retired-external-substrate-registry.json). Run:
+
+```sh
+python3 scripts/ci/assert-repo-hygiene-automation.py --json
+buck2 build //:repo-hygiene-automation-check
+```
+
+Shared docs, indexes, registries, and workflows should stay pointer-thin and route detail to lane-owned shards. New Markdown defaults to rejected unless registered, lane-owned, or archived. Docs stale for more than 3 days on GitHub are audit candidates; archive before deletion unless a generated/cache artifact is explicitly safe to delete.
+
+---
+
 ## 0. Reading guide
 
 Each doc has a row in §2 with these columns:

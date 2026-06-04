@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
+  "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
+  "status": "p00_active_automation_contract",
+  "updated_at": "2026-06-04T00:00:00Z",
+  "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for the temporary GitHub lane-unlocker and native SCM/CI/CD cutover prep.",
+  "local_static_only": true,
+  "live_mutation_performed": false,
+  "buck2_authority": true,
+  "github_bridge_temporary": true,
+  "native_scm_requires_github_adapter": true,
+  "domains": [
+    {
+      "id": "git_worktree_hygiene",
+      "owner": "platform-scm-ci-cd",
+      "policy": "one isolated worktree branch per lane; no shared branch edits; branch owners record PR, disposition, and cleanup state",
+      "automation": "git worktree list --porcelain inventory plus future oya-scm worktree lease registry; local static check is repo-hygiene-automation-check",
+      "claim_boundary": "does not delete worktrees or branches by default",
+      "live_mutation": false
+    },
+    {
+      "id": "branch_merge_hygiene",
+      "owner": "platform-scm-ci-cd",
+      "policy": "short-lived branches, required GitHub lane-unlocker context, protected dev shadow config, squash/head-SHA pinning, and merge-queue/admission equivalence",
+      "automation": "GitHub Actions required check plus branch-protection shadow validation and future native SCM queue adapter tests",
+      "claim_boundary": "does not mutate live branch protection from local check",
+      "live_mutation": false
+    },
+    {
+      "id": "repository_publication_hygiene",
+      "owner": "platform-scm-ci-cd",
+      "policy": "GitHub is temporary collaboration/publication bridge; native SCM owns durable commit graph and exposes GitHub public/private publication adapters",
+      "automation": "GitHub adapter contract tracks visibility, CODEOWNERS/rulesets, status publishing, PR mirror, and public/private split metadata",
+      "claim_boundary": "does not claim GitHub is permanent SCM",
+      "live_mutation": false
+    },
+    {
+      "id": "disk_workspace_hygiene",
+      "owner": "platform-governance",
+      "policy": "inventory-by-default for build artifacts, caches, temp files, and worktree residue; cleanup requires explicit safe flag or separate PR",
+      "automation": "specs/workspace-hygiene.json plus repo-hygiene-automation-check and future session-close inventory evidence",
+      "claim_boundary": "does not delete tracked files or external temp roots by default",
+      "live_mutation": false
+    },
+    {
+      "id": "kubernetes_workload_hygiene",
+      "owner": "platform-cloud",
+      "policy": "controller-oriented scale-to-zero/pause/drain; never blind pod deletion; record namespace, workload kind/name, desired replicas, and rollback command",
+      "automation": "static policy now; future kubectl dry-run/inventory job and native cloud workspace controller action",
+      "claim_boundary": "does not scale or delete live Kubernetes workloads from local check",
+      "live_mutation": false
+    },
+    {
+      "id": "documentation_sprawl_hygiene",
+      "owner": "council-architecture",
+      "policy": "root docs stay pointer-thin; new docs are rejected unless registered, lane-owned, or archived; stale docs older than 3 days on GitHub are audit candidates",
+      "automation": "root markdown allowlist, root-hub pointer validation, doc-catalog stale marker, retired substrate tombstone registry, and future doc archive planner",
+      "claim_boundary": "does not bulk-delete historical ADRs or archives without evidence-backed migration",
+      "live_mutation": false
+    }
+  ],
+  "documentation_sprawl": {
+    "root_markdown_allowlist": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "README.md"
+    ],
+    "new_markdown_default": "reject_unless_registered_or_lane_owned",
+    "stale_doc_scan_cutoff_days": 3,
+    "thin_pointer_shared_docs": true,
+    "archive_before_delete": true,
+    "shared_surface_rule": "Shared docs/indexes/registries should point to disjoint lane-owned shards instead of becoming large mutable collaboration surfaces.",
+    "automation_targets": [
+      "root markdown allowlist",
+      "root hub pointer presence",
+      "doc catalog stale status",
+      "ADR index regeneration backlog",
+      "machine-readable mirror freshness",
+      "retired substrate exact-name tombstones"
+    ],
+    "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance."
+  },
+  "native_scm_adapter_contract": {
+    "scm_core": "pure-Rust Sapling-inspired Oyatie SCM owns durable commit graph, stacked changes, workspace leases, branch/merge state, and policy evaluation",
+    "github_public_private_publication_adapter": {
+      "required": true,
+      "role": "publish/mirror selected public and private repos, PRs, checks, releases, CODEOWNERS/rulesets, and statuses to GitHub while native SCM remains authoritative",
+      "visibility_modes": [
+        "public",
+        "private",
+        "internal_when_enterprise_available"
+      ],
+      "private_source_policy": "private-by-default unless an explicit release/publication manifest selects public export",
+      "public_source_policy": "public mirrors are generated/published from native SCM export manifests; do not hand-edit divergent public repositories"
+    },
+    "git_protocol_adapter": {
+      "required": true,
+      "role": "interoperate with ordinary git clients, GitHub remotes, and emergency plain-git workflows"
+    },
+    "github_actions_status_bridge": {
+      "temporary": true,
+      "role": "consume/post temporary GitHub Actions statuses until native Oya CI is trusted"
+    }
+  },
+  "automation_commands": [
+    "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
+    "buck2 build //:repo-hygiene-automation-check",
+    "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
+    "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check"
+  ],
+  "official_sources": [
+    {
+      "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories",
+      "establishes": "Repository visibility and repository-management concepts for GitHub publication bridges."
+    },
+    {
+      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
+      "establishes": "CODEOWNERS as path-based ownership/review routing."
+    },
+    {
+      "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue",
+      "establishes": "Merge queue as GitHub high-concurrency merge serialization surface."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/sharing-automations/reusing-workflows",
+      "establishes": "Reusable workflows for reducing workflow duplication and merge conflicts."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs",
+      "establishes": "Matrix fanout for parallel CI lanes."
+    },
+    {
+      "url": "https://sapling-scm.com/docs/introduction/",
+      "establishes": "Sapling user-facing stacked-change and monorepo ergonomics reference."
+    },
+    {
+      "url": "https://sapling-scm.com/docs/scale/overview/",
+      "establishes": "Sapling scale patterns reference for large repositories."
+    },
+    {
+      "url": "https://architecture.cncf.io/",
+      "establishes": "CNCF Cloud Native Reference Architecture properties for Kubernetes-native systems."
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/run-application/scale-deployment/",
+      "establishes": "Controller-oriented scaling for putting workloads down."
+    }
+  ],
+  "claim_boundary": {
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "github_is_permanent": false,
+    "native_scm_complete": false,
+    "live_kubernetes_mutated": false,
+    "docs_sprawl_fully_removed": false
+  }
+}

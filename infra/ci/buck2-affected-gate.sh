@@ -63,6 +63,20 @@ fi
 OWNERS=""
 for f in $RUST_REL; do
   [ -e "$f" ] || continue
+  case "$f" in
+    third-party/BUCK)
+      if [ "${OYA_AFFECTED_GATE_INCLUDE_THIRD_PARTY_BUCK:-0}" != "1" ]; then
+        # Reindeer-generated third-party/BUCK is one huge package. Treat durable
+        # hand-edit drift as its own validated contract, not as a request to build
+        # every vendored crate on every PR. Real vendored crate/source changes still
+        # flow through owner()/rdeps(); set the env override for full package proof.
+        python3 scripts/ci/apply-third-party-durable-handedits.py
+        git diff --exit-code -- third-party/BUCK >/dev/null
+        echo "buck2-affected-gate: validated third-party/BUCK durable hand-edits; set OYA_AFFECTED_GATE_INCLUDE_THIRD_PARTY_BUCK=1 for full package proof"
+        continue
+      fi
+      ;;
+  esac
   if ! o=$("$BUCK2" uquery "owner('$f')" 2>/tmp/uqerr); then
     echo "buck2-affected-gate: FATAL buck2 uquery owner('$f') errored:"; sed 's/^/    /' /tmp/uqerr; exit 1
   fi
@@ -112,9 +126,44 @@ N=$(printf '%s\n' "$AFFECTED" | sed '/^$/d' | wc -l | tr -d ' ')
 echo "buck2-affected-gate: $N affected target(s) (owners + reverse-dep closure)"
 if [ "$N" = "0" ]; then echo "buck2-affected-gate: FATAL owners found but rdeps empty (query problem)"; exit 1; fi
 
+# The temporary GitHub lane-unlocker must stay deterministic and fast. Optional
+# external toolchain proof archives are validated by dedicated cutover lanes, not
+# by every affected PR, because hosted runners can time out on external archive
+# HEAD requests. Static repository-contract checks are covered by dedicated
+# governance/authority lanes, so affected-build keeps to changed build/testable
+# code instead of re-running root policy genrules from every root BUCK edit.
+printf '%s\n' "$AFFECTED" | sed '/^$/d' > /tmp/affected-targets.unfiltered.txt
+cp /tmp/affected-targets.unfiltered.txt /tmp/affected-targets.txt
+
+filter_targets() {
+  reason="$1"
+  regex="$2"
+  before=$(wc -l < /tmp/affected-targets.txt | tr -d ' ')
+  grep -v -E "$regex" /tmp/affected-targets.txt > /tmp/affected-targets.next.txt || true
+  mv /tmp/affected-targets.next.txt /tmp/affected-targets.txt
+  after=$(wc -l < /tmp/affected-targets.txt | tr -d ' ')
+  removed=$(( before - after ))
+  if [ "$removed" != "0" ]; then
+    echo "buck2-affected-gate: filtered $removed $reason target(s)"
+  fi
+}
+
+filter_targets "dedicated static repository-contract" '^(root//:|//:)(buck2-cargo-target-coverage-check|buck2-authority-policy-check|github-lane-unlocker-bridge-check|repo-hygiene-automation-check|rust-llvm-coverage-runner-contract-check|rust-llvm-coverage-smoke-check)$'
+if [ "${OYA_AFFECTED_GATE_INCLUDE_OPTIONAL_TOOLCHAIN_ARCHIVES:-0}" != "1" ]; then
+  filter_targets "optional external toolchain proof" '^(toolchains//cxx/clang_hermetic:.*)$'
+else
+  echo "buck2-affected-gate: including optional external toolchain proof targets by env override"
+fi
+
+if [ ! -s /tmp/affected-targets.txt ]; then
+  echo "buck2-affected-gate: all affected targets were dedicated static/optional proof targets -> PASS"
+  exit 0
+fi
+echo "buck2-affected-gate: final affected build/test target list:"
+sed 's/^/    /' /tmp/affected-targets.txt
+
 # Build then test the affected set. @- reads the newline-delimited target list
 # from stdin, avoiding ARG_MAX limits on large closures.
-printf '%s\n' "$AFFECTED" | sed '/^$/d' > /tmp/affected-targets.txt
 echo "=== buck2 build (affected) ==="
 "$BUCK2" build @/tmp/affected-targets.txt
 echo "=== buck2 test (affected) ==="

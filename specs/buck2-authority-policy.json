@@ -70,7 +70,7 @@
     "spec_id": "EXE-BUCK2-AUTHORITY-POLICY",
     "status": "p0_0_static_policy_target_not_live_required_context",
     "version": "0.1.0",
-    "updated_at": "2026-06-03T00:00:00Z"
+    "updated_at": "2026-06-04T00:00:00Z"
   },
   "adr_amendment_files": [
     "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
@@ -177,7 +177,9 @@
     "//:who-gates-gates-check",
     "scripts/ci/assert-who-gates-gates.rs",
     "scripts/tests/who_gates_gates_check.rs",
-    "specs/who-gates-gates-registry.json"
+    "specs/who-gates-gates-registry.json",
+    "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
+    "//:repo-hygiene-automation-check"
   ],
   "claim_boundary": {
     "note": "This policy and its local/static checks are enforcement design plus local evidence. They are not live branch-protected cloud-ci proof until oya-ci-required is posted by trusted cloud-ci/oya-ci and required on dev.",
@@ -338,7 +340,15 @@
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
     "docs/ci/github-actions-lane-unlocker.md",
     "infra/branch-protection/dev.json",
-    ".github/branch-protection.yaml"
+    ".github/branch-protection.yaml",
+    "scripts/ci/assert-repo-hygiene-automation.py",
+    "specs/repo-hygiene-automation.json",
+    "specs/retired-external-substrate-registry.json",
+    "docs/DOC-CATALOG.md",
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/AGENTS.md"
   ],
   "command_scan_globs": [
     "cloud/*/ci/Jenkinsfile",
@@ -467,7 +477,10 @@
       "github-lane-unlocker-bridge-check",
       "assert-github-lane-unlocker-bridge.py",
       "github-lane-unlocker-bridge.json",
-      "github-actions-lane-unlocker.md"
+      "github-actions-lane-unlocker.md",
+      "repo-hygiene-automation-check",
+      "assert-repo-hygiene-automation.py",
+      "repo-hygiene-automation.json"
     ],
     "cloud/cloud-intelligence/iac/oci/BUCK": [
       "oci_image(",
@@ -1443,9 +1456,6 @@
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": [
       "GitHub/GitHub Actions",
       "temporary lane-unlocker",
-      "no Jenkins",
-      "no Forgejo",
-      "no ArgoCD",
       "Buck2",
       "LLVM source-based coverage",
       "not P0.0 green",
@@ -1453,14 +1463,13 @@
       "no shared contract or shared surface",
       "rewrite and rewire Oyatie products to consume the Cloud IdP",
       "actions/checkout@v6",
-      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24"
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24",
+      "no retired external SCM/CI/CD substrates",
+      "retired-external-substrate-registry.json"
     ],
     "docs/ci/github-actions-lane-unlocker.md": [
       "github-lane-unlocker-required",
       "GitHub/GitHub Actions",
-      "no Jenkins",
-      "no Forgejo",
-      "no ArgoCD",
       "Buck2",
       "loosely coupled",
       "scale the owning Deployment/StatefulSet/controller to zero",
@@ -1468,7 +1477,15 @@
       "no shared contract or shared surface",
       "rewrite and rewire Oyatie products to consume the Cloud IdP",
       "actions/checkout@v6",
-      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24"
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24",
+      "no retired external SCM/CI/CD substrates",
+      "retired-external-substrate-registry.json"
+    ],
+    "specs/repo-hygiene-automation.json": [
+      "native_scm_requires_github_adapter",
+      "documentation_sprawl_hygiene",
+      "kubernetes_workload_hygiene",
+      "buck2 build //:repo-hygiene-automation-check"
     ]
   },
   "required_glob_anchors": [

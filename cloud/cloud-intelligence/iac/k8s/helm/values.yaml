@@ -35,6 +35,23 @@ config:
   tenantId: oyatie-dogfood
   imagePromotionPolicy: cosign-required
 
+openbao:
+  url: https://openbao.cloud-secrets.svc.cluster.local:8200
+
+clickhouse:
+  url: http://clickhouse.analytics.svc:8123
+  user: default
+
+providerCompliance:
+  anthropic:
+    authMode: oauth_subscription
+    # Production OAuth subscription proxying remains fail-closed until source
+    # review/legal/provider evidence records APPROVED.
+    oauthStatus: PENDING
+  codex:
+    authMode: api_key
+    oauthStatus: API_ONLY
+
 secret:
   openbaoPath: secret/oya/cloud-intelligence
   secretName: cloud-intelligence-secrets

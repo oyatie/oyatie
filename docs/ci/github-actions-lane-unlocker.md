@@ -5,8 +5,11 @@ lane-unlocker. It is not P0.0 green and it does not make GitHub permanent.
 
 ## Operating boundary
 
+Exact tombstones for retired external substrate names live in `/specs/retired-external-substrate-registry.json` so active guidance can stay generic.
+
+
 - Use GitHub/GitHub Actions as the temporary lane-unlocker for dev.
-- Use no Jenkins, no Forgejo, and no ArgoCD as interim SCM/CI/CD authorities.
+- Use no retired external SCM/CI/CD substrates as interim SCM/CI/CD authorities.
 - Keep Buck2 as build/test/check authority.
 - Keep native cutover separate: cloud native, Kubernetes-native, hyperscaler native SCM/CI/CD and cloud workspace seams remain the destination.
 - Use the pure-Rust Sapling-compatible native SCM direction as the durable SCM
@@ -81,6 +84,18 @@ After the Cloud IdP stabilizes, create a deliberate migration lane to rewrite an
 - Add future Buck2 equivalence tests before rewiring products to Cloud IdP.
 - Rewire through adapters/facades so product services do not absorb Cloud IdP internals.
 - Retire product-local auth/shared only after rollback, audit, and migration evidence passes.
+
+
+## Hygiene automation
+
+The bridge runs repo hygiene as local/static evidence:
+
+```bash
+python3 scripts/ci/assert-repo-hygiene-automation.py --json
+buck2 build //:repo-hygiene-automation-check
+```
+
+This covers git/worktree, branch/merge, repository publication, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene. It inventories by default and does not delete tracked files, mutate live branch protection, or scale Kubernetes workloads.
 
 ## Cutover
 

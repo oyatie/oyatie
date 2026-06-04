@@ -28,12 +28,10 @@
     "required_context": "github-lane-unlocker-required",
     "native_cutover_target_context": "oya-ci-required",
     "live_mutation_performed_by_this_file": false,
-    "jenkins_interim": false,
-    "forgejo_interim": false,
-    "argocd_interim": false,
     "scm": "github",
     "ci": "github_actions",
     "cd": "github_actions_dry_run_bridge",
-    "cutover_condition": "native SCM/CI/CD/cloud workspace/release conveyor seams prove their required context and operational contracts"
+    "cutover_condition": "native SCM/CI/CD/cloud workspace/release conveyor seams prove their required context and operational contracts",
+    "retired_external_scm_ci_cd_substrates_interim": false
   }
 }
