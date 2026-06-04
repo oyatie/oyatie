@@ -629,7 +629,7 @@
     "scripts/tests/trigger_next_queue_automerge_required_contexts.rs": [
       "--merge-method is fixed to squash",
       "live branch-protection required contexts drift",
-      "github-lane-unlocker-required"
+      "oya-ci-required"
     ],
     "oya/ci-tide/crates/oya-ci-tide-kernel/src/lib.rs": [
       "let required_status_context = DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned();",
@@ -1499,7 +1499,7 @@
     "build_test_check_authority": "buck2",
     "auth_shared_substrate_decoupling": "cloud and Oyatie product auth/shared substrates are separate now; no shared contract/surface; future Cloud IdP rewrite/rewire",
     "manual_oya_ci_required_bridge_allowed": false,
-    "live_dev_required_context_during_bridge": "github-lane-unlocker-required"
+    "live_dev_required_context_during_bridge": "oya-ci-required"
   },
   "expected_command_markers": {
     ".github/workflows/github-lane-unlocker-ci-cd.yml": [

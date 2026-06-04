@@ -195,11 +195,7 @@ fn required_context_drift_and_permissions_fail_closed_before_automerge() {
         "missing stderr",
     );
     assert_contains(&missing.stderr, "missing_from_live=", "missing stderr");
-    assert_contains(
-        &missing.stderr,
-        "github-lane-unlocker-required",
-        "missing stderr",
-    );
+    assert_contains(&missing.stderr, "oya-ci-required", "missing stderr");
 
     let forbidden = run_trigger(&root, &fake_bin, "forbidden", &live_missing, &[]);
     assert!(

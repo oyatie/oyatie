@@ -464,7 +464,7 @@ fn trigger_runs_sequential_conflict_guard_before_automerge() {
         r#"{
   "strict": false,
   "contexts": [
-    "github-lane-unlocker-required"
+    "oya-ci-required"
   ]
 }
 "#,

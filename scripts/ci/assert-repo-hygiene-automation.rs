@@ -15,6 +15,7 @@ const ROOT_HUB_PATH: &str = "specs/root-hub-pointers.json";
 const GITHUB_BRIDGE_PATH: &str = "specs/github-lane-unlocker-bridge.json";
 const CANONICAL_PRIMITIVES_PATH: &str = "specs/canonical-primitives.json";
 const AGENT_OPERATING_CONTRACT_PATH: &str = "specs/agent-operating-contract.json";
+const PHASE0_AUTO_MERGE_AFTER_CI_PATH: &str = "specs/phase0-auto-merge-after-ci.json";
 const MASTERPLAN_PATH: &str = "specs/masterplan.json";
 const SEQUENCING_PATH: &str = "specs/master-plan-sequencing.json";
 const PLANNING_CLOSURE_CONTRACT_PATH: &str = "specs/planning-closure-contract.json";
@@ -229,6 +230,8 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "oya verify is CI authority",
     "oya gate` / `oya verify` governance evidence",
     "Local `oya verify`, local `oya gate`",
+    "local oya verify output",
+    "local oya gate output",
     "retired `oya gate` / `oya verify`",
     "the `oya git`, `oya vcs`, `oya gate`, and `oya verify` CLI surfaces",
     "claim with oya vcs before edits",
@@ -255,6 +258,8 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "oya gate is merge authority",
     "oya verify is CI authority",
     "Local `oya verify`, local `oya gate`",
+    "local oya verify output",
+    "local oya gate output",
     "retired `oya gate` / `oya verify`",
     "the `oya git`, `oya vcs`, `oya gate`, and `oya verify` CLI surfaces",
     "claim with oya vcs before edits",
@@ -277,6 +282,7 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
     AGENT_OPERATING_CONTRACT_PATH,
+    PHASE0_AUTO_MERGE_AFTER_CI_PATH,
     "docs/MASTERPLAN.md",
 ];
 

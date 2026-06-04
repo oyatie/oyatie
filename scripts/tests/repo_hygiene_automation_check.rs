@@ -267,6 +267,20 @@ fn active_doc_phrase_scanner_rejects_retired_local_oya_cli_mirror_wording() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_retired_local_oya_cli_output_labels() {
+    let failures = gate::active_doc_phrase_failures(
+        "specs/phase0-auto-merge-after-ci.json",
+        r#"{"non_authority_surfaces":["local oya verify output","local oya gate output"]}"#,
+    );
+    for expected in ["local oya verify output", "local oya gate output"] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn active_doc_phrase_scanner_rejects_exact_retired_oya_cli_pair() {
     let failures = gate::active_doc_phrase_failures(
         "docs/AGENTS.md",
