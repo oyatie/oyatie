@@ -74,6 +74,52 @@ fn spec_rejects_missing_security_hardening_backlog_item() {
 }
 
 #[test]
+fn spec_rejects_pnpm_or_typescript_as_repo_authority() {
+    let spec = read_repo_file("specs/repo-hygiene-automation.json")
+        .replace(
+            "\"pnpm_or_package_json_repo_authority\": false",
+            "\"pnpm_or_package_json_repo_authority\": true",
+        )
+        .replace(
+            "\"typescript_runtime_merge_authority\": false",
+            "\"typescript_runtime_merge_authority\": true",
+        );
+    let failures = gate::spec_failures(&spec);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("pnpm/package metadata must not be repo authority")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure
+                .contains("TypeScript runtime surfaces must not be merge authority")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn spec_rejects_python_shell_as_durable_gate_authority() {
+    let spec = read_repo_file("specs/repo-hygiene-automation.json").replace(
+        "\"python_shell_durable_gate_authority\": false",
+        "\"python_shell_durable_gate_authority\": true",
+    );
+    let failures = gate::spec_failures(&spec);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure
+                .contains("Python/shell surfaces must not be durable gate authority")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn checked_in_masterplan_surfaces_do_not_recommend_retired_cargo_gate() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert!(
