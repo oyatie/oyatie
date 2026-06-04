@@ -45,6 +45,8 @@ jobs:
             governance)
               python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
               python3 scripts/ci/assert-repo-hygiene-automation.py --json
+              buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
+              buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
               python3 scripts/ci/apply-third-party-durable-handedits.py
               git diff --exit-code -- third-party/BUCK
               buck2 build //:repo-hygiene-automation-check
@@ -77,6 +79,8 @@ jobs:
         run: |
           python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
           python3 scripts/ci/assert-repo-hygiene-automation.py --json
+          buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
+          buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
           buck2 build //:github-lane-unlocker-bridge-check //:repo-hygiene-automation-check
 
   github-lane-unlocker-cd-dry-run:
@@ -94,5 +98,7 @@ jobs:
         run: |
           python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json
           python3 scripts/ci/assert-repo-hygiene-automation.py --json
+          buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests
+          buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json
           buck2 build //:github-lane-unlocker-bridge-check //:repo-hygiene-automation-check
           echo "dry-run bridge only; native release conveyor cutover remains separate"

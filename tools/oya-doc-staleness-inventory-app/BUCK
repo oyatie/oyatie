@@ -1,0 +1,65 @@
+export_file(
+    name = "BUCK",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "cargo-manifest",
+    src = "Cargo.toml",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "lib-src",
+    src = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "main-src",
+    src = "src/main.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "oya-doc-staleness-inventory-app-lib",
+    srcs = glob(["src/**/*.rs", "Cargo.toml"]),
+    crate = "oya_doc_staleness_inventory_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "oya-doc-staleness-inventory-app-bin-src",
+    srcs = glob(["src/**/*.rs", "Cargo.toml"]),
+    crate = "oya_doc_staleness_inventory_app_bin",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-doc-staleness-inventory-app-lib",
+    ],
+)
+
+genrule(
+    name = "doc-staleness-inventory-unit-tests",
+    srcs = {
+        "src/lib.rs": "src/lib.rs",
+    },
+    out = "doc-staleness-inventory-unit-tests.txt",
+    cmd = "mkdir -p $TMP/oya-doc-staleness-inventory-app && rustc --edition=2024 -D warnings tools/oya-doc-staleness-inventory-app/src/lib.rs --test -o $TMP/oya-doc-staleness-inventory-app/oya-doc-staleness-inventory-tests && $TMP/oya-doc-staleness-inventory-app/oya-doc-staleness-inventory-tests > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+genrule(
+    name = "doc-staleness-inventory-json",
+    srcs = glob(["src/**/*.rs", "Cargo.toml"]),
+    out = "doc-staleness-inventory.json",
+    cmd = "mkdir -p $TMP/oya-doc-staleness-inventory-app && rustc --edition=2024 -D warnings --crate-name oya_doc_staleness_inventory_app --crate-type=lib tools/oya-doc-staleness-inventory-app/src/lib.rs -o $TMP/oya-doc-staleness-inventory-app/liboya_doc_staleness_inventory_app.rlib && rustc --edition=2024 -D warnings tools/oya-doc-staleness-inventory-app/src/main.rs --extern oya_doc_staleness_inventory_app=$TMP/oya-doc-staleness-inventory-app/liboya_doc_staleness_inventory_app.rlib -L $TMP/oya-doc-staleness-inventory-app -o $TMP/oya-doc-staleness-inventory-app/oya-doc-staleness-inventory-app && $TMP/oya-doc-staleness-inventory-app/oya-doc-staleness-inventory-app --json --cutoff-days 3 --limit 25 > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)

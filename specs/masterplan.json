@@ -7,7 +7,7 @@
     "version": "1.1.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-06-04T00:00:00Z",
+    "updated_at": "2026-06-04T04:10:00Z",
     "owner_team": "council-architecture",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
@@ -504,13 +504,16 @@
         "Remove local generated caches and stale untracked artifacts immediately.",
         "Mark retired external SCM/CI/CD substrates interim-authority docs as superseded instead of deleting historical ADR provenance.",
         "Retire or delete tracked legacy bridge files only in later PRs after replacement checks prove no contract dependency remains.",
-        "Automate git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene through repo-hygiene-automation-check."
+        "Automate git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene through repo-hygiene-automation-check.",
+        "Port active legacy Python/shell gate surfaces to Rust/Buck2-owned tools where they remain authoritative; keep remaining scripts as explicit migration backlog or bootstrap exceptions only."
       ],
       "prep_and_unlocks": [
         "GitHub Actions matrix/concurrency workflow fans out governance, Buck2 authority, Rust LLVM coverage, and affected-build lanes.",
         "Buck2 remains build/test/check authority for all interim and native lanes.",
         "Product, infra, cloud, SCM/CI/CD, and governance can each fan out into multiple worktrees/PRs with single-writer discipline for shared files.",
-        "Use reusable workflow and registry-backed checks so shared docs/workflows stay thin and lanes own disjoint shards."
+        "Use reusable workflow and registry-backed checks so shared docs/workflows stay thin and lanes own disjoint shards.",
+        "Mitigate shared CI/config/doc surfaces through pointer-thin canonical files, vertical-owned reusable shards, generated consolidation, and Rust/Buck2 verification instead of repeated hand edits.",
+        "Treat valid zero-trust, ABAC, microsegmentation, workload identity, pod/runtime isolation, CI secret isolation, and multi-account guardrails as P00/P01 backlog under repo-hygiene-automation security_hardening_backlog."
       ],
       "non_goals": [
         "No live Kubernetes pod scale-down without explicit workload scope.",
@@ -525,7 +528,9 @@
       "stale_reference_sweep": "active operating docs no longer present retired external SCM/CI/CD substrates as interim authorities",
       "masterplan_reflects_all_work": "planning_migration_cleanup_prep_work present in imminent_work_p00",
       "repo_hygiene_automation_green": "buck2 build //:repo-hygiene-automation-check",
-      "documentation_sprawl_reduced": "root docs stay pointer-thin; doc sprawl is registered, archived, or lane-owned via repo hygiene automation"
+      "documentation_sprawl_reduced": "root docs stay pointer-thin; doc sprawl is registered, archived, or lane-owned via repo hygiene automation",
+      "stale_doc_inventory_green": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests && buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+      "security_backlog_recorded": "/specs/repo-hygiene-automation.json#security_hardening_backlog contains valid zero-trust, CI/CD, Kubernetes runtime, and multi-account guardrail backlog items"
     },
     "repo_hygiene_automation": {
       "spec": "/specs/repo-hygiene-automation.json",
@@ -541,7 +546,10 @@
       ],
       "github_publication_adapter": "native Sapling-inspired SCM must expose GitHub public/private publication and status adapters while keeping native SCM authoritative",
       "doc_sprawl_rule": "new docs default to reject unless registered/lane-owned; stale docs older than 3 days are audit/archive candidates; root docs remain pointer-thin",
-      "live_mutation": false
+      "live_mutation": false,
+      "shared_surface_mitigation": "/specs/repo-hygiene-automation.json#shared_surface_mitigation",
+      "security_hardening_backlog": "/specs/repo-hygiene-automation.json#security_hardening_backlog",
+      "automation_language_policy": "/specs/repo-hygiene-automation.json#automation_language_policy"
     }
   },
   "planning_closure": {

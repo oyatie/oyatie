@@ -30,6 +30,9 @@ DOC_CATALOG_PATH = REPO_ROOT / "docs/DOC-CATALOG.md"
 LANE_UNLOCKER_PROCEDURE_PATH = REPO_ROOT / "docs/ci/github-actions-lane-unlocker.md"
 WORKFLOW_PATH = REPO_ROOT / ".github/workflows/github-lane-unlocker-ci-cd.yml"
 BUCK_PATH = REPO_ROOT / "BUCK"
+REPORT_DOC_STALENESS_PATH = REPO_ROOT / "tools/oya-doc-staleness-inventory-app/src/main.rs"
+STALE_DOC_INVENTORY_COMMAND = "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+STALE_DOC_INVENTORY_TEST_COMMAND = "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests"
 ACTIVE_EXACT_NAME_SCAN_PATHS = [
     REPO_ROOT / "AGENTS.md",
     REPO_ROOT / "CLAUDE.md",
@@ -71,6 +74,8 @@ REQUIRED_AUTOMATION_COMMANDS = {
     "buck2 build //:repo-hygiene-automation-check",
     "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
+    STALE_DOC_INVENTORY_COMMAND,
+    STALE_DOC_INVENTORY_TEST_COMMAND,
 }
 
 REQUIRED_SOURCE_URLS = {
@@ -83,6 +88,51 @@ REQUIRED_SOURCE_URLS = {
     "https://sapling-scm.com/docs/scale/overview/",
     "https://architecture.cncf.io/",
     "https://kubernetes.io/docs/tasks/run-application/scale-deployment/",
+    "https://www.nist.gov/publications/zero-trust-architecture",
+    "https://csrc.nist.gov/pubs/sp/800/162/upd2/final",
+    "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+    "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+    "https://kubernetes.io/docs/concepts/containers/runtime-class/",
+    "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+    "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/",
+    "https://docs.github.com/en/actions/concepts/security/openid-connect",
+    "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions",
+    "https://slsa.dev/spec/v1.2/requirements",
+    "https://istio.io/latest/docs/concepts/security/",
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+}
+REQUIRED_SECURITY_BACKLOG_IDS = {
+    "zero_trust_architecture",
+    "privileged_identity_management",
+    "abac_beyond_rbac",
+    "network_microsegmentation",
+    "silo_apis_integrations",
+    "silo_ai_automation",
+    "encrypt_sensitive_data",
+    "purge_redundant_obsolete_data",
+    "data_layer_rate_limiting",
+    "automated_session_revocation",
+    "dual_attribution_audit_logging",
+    "isolate_ci_cd_pipelines",
+    "tightly_scope_pipeline_secrets",
+    "pin_dependencies_private_registries",
+    "honeytokens_tripwires",
+    "host_based_microsegmentation",
+    "hardware_enforced_isolation",
+    "multi_account_cloud_strategy",
+    "service_control_policies",
+    "enforce_workload_identity",
+    "block_node_metadata_access",
+    "pod_level_runtime_isolation",
+    "restrict_container_privileges",
+    "immutable_container_filesystems",
+    "drop_linux_capabilities",
+    "default_deny_network_policies",
+    "service_mesh_mtls",
+    "disable_default_service_account_token_mounting",
+    "cluster_architecture_blast_walls",
+    "separate_control_planes",
+    "sandboxed_runtimes",
 }
 
 ROOT_MARKDOWN_ALLOWLIST = {"README.md", "AGENTS.md", "CLAUDE.md"}
@@ -217,6 +267,38 @@ def main() -> int:
     require(doc_sprawl.get("stale_doc_scan_cutoff_days") == 3, failures, "documentation_sprawl.stale_doc_scan_cutoff_days must be 3")
     require(doc_sprawl.get("archive_before_delete") is True, failures, "documentation_sprawl.archive_before_delete must be true")
     require(doc_sprawl.get("thin_pointer_shared_docs") is True, failures, "documentation_sprawl.thin_pointer_shared_docs must be true")
+    stale_inventory = doc_sprawl.get("stale_doc_inventory", {})
+    require(stale_inventory.get("command") == STALE_DOC_INVENTORY_COMMAND, failures, "documentation_sprawl.stale_doc_inventory.command must match the CI command")
+    require(stale_inventory.get("cutoff_days") == 3, failures, "documentation_sprawl.stale_doc_inventory.cutoff_days must be 3")
+    require(stale_inventory.get("live_mutation") is False, failures, "documentation_sprawl.stale_doc_inventory must not mutate files")
+    require(stale_inventory.get("claim_boundary") == "inventory_only_no_deletion_no_archive_no_live_mutation", failures, "documentation_sprawl.stale_doc_inventory claim boundary must stay inventory-only")
+    require("git-backed stale documentation inventory" in doc_sprawl.get("automation_targets", []), failures, "documentation_sprawl automation_targets must include git-backed stale documentation inventory")
+    require(REPORT_DOC_STALENESS_PATH.exists(), failures, "tools/oya-doc-staleness-inventory-app/src/main.rs must exist")
+
+    language_policy = spec.get("automation_language_policy", {})
+    require(language_policy.get("new_parallel_fanout_automation") == "rust_buck2_first", failures, "automation_language_policy must make new fanout automation Rust/Buck2-first")
+    require(language_policy.get("new_python_or_shell_gate_surface") == "deny_unless_explicit_bootstrap_exception", failures, "automation_language_policy must deny new Python/shell gate surfaces by default")
+    require(language_policy.get("legacy_python_shell_migration_backlog") is True, failures, "automation_language_policy must record legacy Python/shell migration backlog")
+
+    shared_surface = spec.get("shared_surface_mitigation", {})
+    require("vertical" in str(shared_surface.get("decision", "")).lower(), failures, "shared_surface_mitigation.decision must include vertical ownership")
+    require(shared_surface.get("mechanical_resolution", {}).get("required") is True, failures, "shared_surface_mitigation must require mechanical resolution")
+    require("generated_consolidation" in json.dumps(shared_surface), failures, "shared_surface_mitigation must include generated consolidation")
+
+    cleanup_ids = {item.get("id") for item in spec.get("cleanup_candidate_backlog", []) if isinstance(item, dict)}
+    for cleanup_id in ["legacy_python_shell_gate_surfaces", "shared_ci_workflow_surface", "stale_doc_inventory_followups", "retired_external_substrate_residue"]:
+        require(cleanup_id in cleanup_ids, failures, f"cleanup_candidate_backlog missing {cleanup_id}")
+
+    security_ids = {item.get("id") for item in spec.get("security_hardening_backlog", []) if isinstance(item, dict)}
+    missing_security_ids = sorted(REQUIRED_SECURITY_BACKLOG_IDS - security_ids)
+    require(not missing_security_ids, failures, f"security_hardening_backlog missing: {', '.join(missing_security_ids)}")
+    for item in spec.get("security_hardening_backlog", []):
+        if not isinstance(item, dict):
+            failures.append("security_hardening_backlog entries must be objects")
+            continue
+        require(item.get("valid") is True, failures, f"security_hardening_backlog.{item.get('id', '<missing-id>')}: valid must be true")
+        require(bool(item.get("lane")), failures, f"security_hardening_backlog.{item.get('id', '<missing-id>')}: lane must be set")
+        require(bool(item.get("backlog_action")), failures, f"security_hardening_backlog.{item.get('id', '<missing-id>')}: backlog_action must be set")
 
     root_markdown = {path.name for path in REPO_ROOT.glob("*.md") if path.is_file()}
     require(root_markdown <= ROOT_MARKDOWN_ALLOWLIST, failures, f"root markdown sprawl: {sorted(root_markdown - ROOT_MARKDOWN_ALLOWLIST)}")
@@ -278,6 +360,7 @@ def main() -> int:
         "assert-repo-hygiene-automation.py",
         "repo-hygiene-automation.json",
         "retired-external-substrate-registry.json",
+        "oya-doc-staleness-inventory-app",
     ]:
         require_contains(buck, needle, failures, "BUCK")
 
@@ -297,6 +380,8 @@ def main() -> int:
     for needle in [
         "python3 scripts/ci/assert-repo-hygiene-automation.py --json",
         "buck2 build //:repo-hygiene-automation-check",
+        STALE_DOC_INVENTORY_COMMAND,
+        STALE_DOC_INVENTORY_TEST_COMMAND,
     ]:
         require_contains(workflow, needle, failures, "github-lane-unlocker workflow")
 
@@ -309,6 +394,9 @@ def main() -> int:
         "live_mutation_performed": False,
         "retired_exact_name_scan_files": len(ACTIVE_EXACT_NAME_SCAN_PATHS),
         "active_context_scan_files": len(ACTIVE_CONTEXT_SCAN_TEXTS),
+        "stale_doc_inventory_command": STALE_DOC_INVENTORY_COMMAND,
+        "stale_doc_inventory_test_command": STALE_DOC_INVENTORY_TEST_COMMAND,
+        "security_hardening_backlog_count": len(security_ids),
         "failures": failures,
     }
     if args.json or not failures:
