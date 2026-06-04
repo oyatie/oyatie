@@ -50,7 +50,7 @@ fn registry_rejects_phase0_green_claim() {
 #[test]
 fn actual_gate_surface_requires_self_mutations() {
     let red_green = read_repo_file("specs/red-green-fixture-contract.json");
-    let harness = read_repo_file("scripts/tests/red_green_fixture_contract_check.test.sh");
+    let harness = read_repo_file("scripts/tests/red_green_fixture_contract_check.rs");
     let buck = read_repo_file("BUCK");
     assert!(gate::actual_gate_surface_failures(&red_green, &harness, &buck).is_empty());
     let failures = gate::actual_gate_surface_failures(
