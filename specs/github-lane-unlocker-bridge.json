@@ -29,7 +29,7 @@
       "fail_closed": "rustup toolchain/components/targets, llvm-profdata/llvm-cov, buck2 --version, and Buck2 targets must pass before the shadow evidence succeeds",
       "bootstrap_script": "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
       "serialized_before_buck2_fanout": true,
-      "rust_toolchain": "1.95.0",
+      "rust_toolchain": "1.96.0",
       "rust_components": [
         "rustfmt",
         "clippy",

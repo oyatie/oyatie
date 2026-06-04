@@ -49,7 +49,7 @@ fi
 echo "[regen-third-party] applying idempotent durable hand-edit normalizer ..."
 NORMALIZER="${TMPDIR:-/tmp}/assert-third-party-durable-handedits.$$"
 trap 'rm -f "$NORMALIZER"' EXIT
-rustc --edition=2021 -D warnings scripts/ci/assert-third-party-durable-handedits.rs -o "$NORMALIZER"
+rustc --edition=2024 -D warnings scripts/ci/assert-third-party-durable-handedits.rs -o "$NORMALIZER"
 "$NORMALIZER" --write
 
 echo "[regen-third-party] done. The per-OS select()s + LDFLAGS + \$(location) DEP env are restored."

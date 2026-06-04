@@ -40,6 +40,7 @@ remains retired-agentic-VCS provenance; ADR-0392 keeps Buck2 as build/test/check
 - **CI fit:** `oya-ci` consumes trusted SCM/controller state, not candidate-authored gate definitions. It creates ProwJob-style Kubernetes workloads that run Buck2 build/test/check targets, then posts `oya-ci-required`.
 - **CD fit:** the CD destination is release-conveyor-like. It consumes signed build/evidence/release-ledger outputs after `oya-ci` and handles progressive delivery, rollback, policy, and audit. GitHub Actions CD artifacts remain dry-run/shadow compatibility.
 - **Governance fit:** `oya gate` and `oya verify` CLI invocations are retired as CI/merge authority. Preserve useful checks only as Rust kernels, Buck2 targets, and Prow/Kubernetes-native jobs.
+- **Stateless compute / cached cloud I/O fit:** `oya-ci` jobs follow `trigger -> fetch remote state -> compute/validate -> export artifacts -> destroy ephemeral workspace`. The job pod is disposable compute; durable state belongs in trusted SCM/controller refs, Buck2 remote execution/CAS/cache, immutable object artifacts, status, and audit ledgers. Cache is allowed and required for hyperscaler performance, but it is not correctness authority: it must be content-addressed, regional/cell-local for hot-path I/O, trust-domain separated, quarantined for untrusted PR writes, promoted by trusted postsubmit/periodic jobs, and covered by cold-cache probes.
 
 ## Date
 
@@ -94,6 +95,16 @@ controller inputs, not as candidate-owned shell or retired external CI authority
 | sinker (GC) | K8s `ttlSecondsAfterFinished` + GC loop | K8s-native |
 | plugins (ChatOps + governance) | `oya-ci-plugins` on the gateway | governance pipeline; reviewer-agent (ADR-0116) |
 | pod-utils → GCS artifacts | `kubectl logs` + SeaweedFS-S3 | no GCS coupling (self-host lens) |
+
+**Cloud I/O and performance doctrine.** Stateless does not mean cacheless. The recommended
+cloud-native/hyperscaler pattern is ephemeral compute with externalized, immutable, measured state:
+SCM refs for source truth, Buck2 remote execution/CAS/cache for build acceleration, object storage
+for logs/coverage/SBOM/build artifacts, and a status/audit ledger for merge truth. Hot-path cache and
+artifact reads should stay regional/cell-local to avoid egress and latency; cross-region replication is
+asynchronous. Untrusted PR jobs may read approved cache namespaces and write only quarantined cache
+entries; trusted postsubmit/periodic lanes promote warmed entries. Every lane must remain correct on a
+cold cache, and CI pods must declare ephemeral-storage requests/limits plus cache-hit, CAS byte,
+artifact-upload-latency, and eviction metrics.
 
 **Security (trunk-sourcing).** The controller runs a K8s Job that executes the **trunk (`dev`)** gate
 script + affected-detection against the PR ref; the PR's code is built as untrusted data. A PR cannot

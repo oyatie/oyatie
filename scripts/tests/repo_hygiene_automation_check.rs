@@ -137,6 +137,104 @@ fn spec_rejects_python_shell_as_durable_gate_authority() {
 }
 
 #[test]
+fn spec_rejects_missing_rust_and_buck2_pin_policy() {
+    let spec = read_repo_file("specs/repo-hygiene-automation.json")
+        .replace(
+            "\"required_rust_stable\": \"1.96.0\"",
+            "\"required_rust_stable\": \"1.95.0\"",
+        )
+        .replace(
+            "\"required_buck2_release\": \"2026-06-01\"",
+            "\"required_buck2_release\": \"2026-05-18\"",
+        );
+    let failures = gate::spec_failures(&spec);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("latest stable Rust pin")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("current Buck2 release pin")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn rust_toolchain_policy_rejects_stale_stable_or_edition() {
+    let failures = gate::rust_toolchain_policy_failures(
+        "channel = \"1.95.0\"",
+        "[workspace.package]\nedition = \"2021\"\nrust-version = \"1.95.0\"\n",
+        "rustc --edition=2021 example.rs",
+        "{\"rust_toolchain\":\"1.95.0\"}",
+        "channel = \"1.95.0\"",
+        "Rust 1.95.0 edition 2021",
+        "Rust 1.95.0 edition 2021",
+        "Rust 1.95.0 edition 2021",
+        "Rust 1.95.0 edition 2021",
+    );
+    for expected in [
+        "rust-toolchain.toml",
+        "Cargo.toml",
+        "BUCK must not compile Rust checks with edition 2021",
+        "specs/github-lane-unlocker-bridge.json",
+        "specs/buck2-authority-policy.json",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn dependency_registry_policy_rejects_untracked_workspace_dependency() {
+    let cargo =
+        "[workspace.dependencies]\nserde = \"1\"\nfake-external = \"0.1\"\n[workspace.lints]\n";
+    let rationales = r#"{"entries":{"serde":{}},"_meta":{"version_policy":"latest_upstream_stable_or_lts","tracking_policy":"all_workspace_dependencies_tracked","exception_policy":"explicit_waiver_required_for_non_latest_or_non_in_house_dependency","library_posture":"in_house_first_oya_rust_libraries"}}"#;
+    let allowlist = r#"{"blessed":{"serde":{}},"_meta":{"version_policy":"latest_upstream_stable_or_lts","tracking_policy":"all_workspace_dependencies_tracked","exception_policy":"explicit_waiver_required_for_non_latest_or_non_in_house_dependency","library_posture":"in_house_first_oya_rust_libraries"}}"#;
+    let failures = gate::dependency_registry_policy_failures(
+        cargo,
+        rationales,
+        allowlist,
+        "in-house latest registry/dependency-rationales.json",
+        "in-house latest registry/dependency-rationales.json",
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("missing workspace dependency fake-external")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn buck2_release_policy_rejects_stale_release_pin() {
+    let failures = gate::buck2_release_policy_failures(
+        "{\"required_buck2_release\":\"2026-05-18\"}",
+        "env:\n  BUCK2_RELEASE: \"2026-05-18\"\n",
+        ": \"${BUCK2_RELEASE:=2026-05-18}\"",
+        "https://github.com/facebook/buck2.git",
+        "genrule(name=\"latest-toolchain-pin-updater-check\")",
+    );
+    for expected in [
+        "specs/repo-hygiene-automation.json",
+        ".github/workflows/github-lane-unlocker-ci-cd.yml",
+        "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn checked_in_masterplan_surfaces_do_not_recommend_retired_cargo_gate() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert!(
@@ -444,6 +542,67 @@ fn active_doc_phrase_scanner_rejects_retired_ci_lanes_local_cli_refs() {
             "missing {expected:?} in {failures:?}"
         );
     }
+}
+
+#[test]
+fn active_doc_phrase_scanner_rejects_standalone_local_tool_loops() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/QA-TEST-STRATEGY.md",
+        "Use bacon for feedback and cargo-machete for dependency sweeps before PRs.",
+    );
+    for expected in ["bacon", "cargo-machete"] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn active_doc_phrase_scanner_rejects_retired_active_process_doc_refs() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/AGENTS-OPERATING-CONTRACT.md",
+        "Run ./bin/oya verify --ci-required and oya gate run-all before asking for reviewer/governance approval.",
+    );
+    for expected in [
+        "./bin/oya verify --ci-required",
+        "oya gate run-all",
+        "reviewer/governance approval",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn active_doc_phrase_scanner_rejects_retired_vendor_and_raci_gate_refs() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/VENDOR-PARTNER-LEDGER.md",
+        "Use oya gate validate vendor-contract-recency and oya verify command output.",
+    );
+    for expected in ["oya gate validate", "oya verify command"] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn retired_exact_name_scanner_rejects_retired_release_substrate_names() {
+    let failures = gate::retired_exact_name_failures(
+        "docs/RELEASE-MANAGEMENT.md",
+        "Coordinate through Jenkins and Argo CD for active release authority.",
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("retired exact-name reference")),
+        "{:?}",
+        failures
+    );
 }
 
 #[test]

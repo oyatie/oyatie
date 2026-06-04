@@ -7,7 +7,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 BUCK2="${BUCK2:-buck2}"
-RUSTFMT_BIN="${RUSTFMT_BIN:-${HOME}/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin/rustfmt}"
+RUSTFMT_BIN="${RUSTFMT_BIN:-${HOME}/.rustup/toolchains/1.96.0-aarch64-apple-darwin/bin/rustfmt}"
 EDITION="${RUST_EDITION:-2024}"
 BASE_REF="${OYA_CI_BASE_REF:-origin/dev}"
 ALLOW_DEPS=0

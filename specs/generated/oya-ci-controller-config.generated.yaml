@@ -27,6 +27,46 @@ spec:
     requiredContext: "oya-ci-required"
     owner: "trusted-controller"
     candidateOwnedTruthAllowed: false
+  executionLifecycle:
+    statelessJobPods: true
+    sequence:
+      - "trigger"
+      - "fetch_remote_state"
+      - "compute_validate"
+      - "export_artifacts"
+      - "destroy_ephemeral_workspace"
+    podLocalStateAuthority: false
+    durableStateStores:
+      - "native_scm_or_github_adapter_refs"
+      - "buck2_remote_execution_cache_or_content_addressed_cache"
+      - "immutable_object_artifact_store"
+      - "status_and_audit_ledger"
+    workspaceDestructionRequired: true
+  remoteCachePolicy:
+    remoteCacheAllowed: true
+    localDiskCachePersistsAfterPod: false
+    cacheAuthoritativeForCorrectness: false
+    contentAddressedOnly: true
+    trustDomainSeparated: true
+    untrustedWritesQuarantined: true
+    trustedPostsubmitPromotionRequired: true
+    coldCacheProbeRequired: true
+    periodicCacheWarmersAllowed: true
+  cloudIoPerformancePolicy:
+    cacheTopology: "regional-cell-local-remote-cache"
+    artifactStore: "immutable-object-store"
+    hotPathCrossRegionIoAllowed: false
+    asynchronousCrossRegionReplicationAllowed: true
+    ephemeralStorageRequestsLimitsRequired: true
+    remoteExecutionCasRequired: true
+    cacheWarmersTrustDomain: "trusted-periodic-or-postsubmit-only"
+    cachePoisoningControls: "content-addressed-trust-domain-separated-quarantined-untrusted-writes-cold-cache-probes"
+    requiredMetrics:
+      - "cache_hit_ratio"
+      - "cas_download_bytes"
+      - "cas_upload_bytes"
+      - "artifact_upload_latency_ms"
+      - "ephemeral_storage_evictions"
   kubernetesSecurityDefaults:
     workloadIdentityRequired: true
     nodeMetadataAccess: "blocked"

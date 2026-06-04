@@ -6,6 +6,7 @@
   "updated_at": "2026-06-04T18:25:00Z",
   "purpose": "Lane-owned desired ProwJob graph and native controller config for Rust/Prow/Kubernetes-native oya-ci. This reduces shared CI workflow edits by making vertical lanes edit disjoint JSON shards and a Rust/Buck2 generator verify checked-in aggregate/controller outputs.",
   "upstream_sources": [
+    "https://docs.prow.k8s.io/docs/life-of-a-prow-job/",
     "https://docs.prow.k8s.io/docs/jobs/",
     "https://docs.prow.k8s.io/docs/components/core/tide/",
     "https://docs.prow.k8s.io/docs/components/core/crier/",
@@ -31,6 +32,56 @@
     "generated_controller_config": "specs/generated/oya-ci-controller-config.generated.yaml",
     "vertical_lane_rule": "Each lane owns one shard under specs/ci/prow-jobs and must not hand-edit the generated aggregate.",
     "canonical_workflow_rule": "GitHub Actions remains shadow compatibility; durable oya-ci jobs come from this registry and native SCM/controller state."
+  },
+  "stateless_execution_lifecycle": {
+    "sequence": [
+      "trigger",
+      "fetch_remote_state",
+      "compute_validate",
+      "export_artifacts",
+      "destroy_ephemeral_workspace"
+    ],
+    "state_boundary": "ProwJob pods are disposable compute. They may read and write through approved remote services, but no local workspace, local disk cache, or pod filesystem state is authoritative after completion.",
+    "durable_state_locations": [
+      "native_scm_or_github_adapter_refs",
+      "buck2_remote_execution_cache_or_content_addressed_cache",
+      "immutable_object_artifact_store",
+      "status_and_audit_ledger"
+    ],
+    "remote_cache_policy": {
+      "remote_cache_allowed": true,
+      "local_disk_cache_persists_after_pod": false,
+      "cache_authoritative_for_correctness": false,
+      "content_addressed_only": true,
+      "trust_domain_separated": true,
+      "untrusted_writes_quarantined": true,
+      "trusted_postsubmit_promotion_required": true,
+      "cold_cache_probe_required": true,
+      "periodic_cache_warmers_allowed": true
+    },
+    "io_performance_policy": {
+      "cache_topology": "regional_cell_local_remote_cache",
+      "artifact_store": "immutable_object_store",
+      "hot_path_cross_region_io_allowed": false,
+      "asynchronous_cross_region_replication_allowed": true,
+      "ephemeral_storage_requests_limits_required": true,
+      "remote_execution_cas_required": true,
+      "cache_warmers_trust_domain": "trusted_periodic_or_postsubmit_only",
+      "cache_poisoning_controls": [
+        "content_addressed_keys",
+        "trust_domain_separation",
+        "quarantine_untrusted_writes",
+        "trusted_postsubmit_promotion",
+        "cold_cache_probe"
+      ],
+      "required_metrics": [
+        "cache_hit_ratio",
+        "cas_download_bytes",
+        "cas_upload_bytes",
+        "artifact_upload_latency_ms",
+        "ephemeral_storage_evictions"
+      ]
+    }
   },
   "registry_shards": [
     "specs/ci/prow-jobs/platform-governance.json",
@@ -61,6 +112,13 @@
     "blind_kubectl_delete_pods",
     "new_python_or_shell_gate_sprawl",
     "github_actions_as_durable_ci_authority",
-    "cargo_or_tarpaulin_as_monorepo_authority_over_buck2"
+    "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
+    "stateful_runner_workspace_pool",
+    "pod_local_cache_as_correctness_or_state_authority",
+    "cross_trust_cache_poisoning",
+    "cross_region_hot_path_ci_io",
+    "mutable_or_overwritten_ci_artifacts",
+    "unbounded_ephemeral_storage",
+    "privileged_dind_or_host_socket_runner"
   ]
 }

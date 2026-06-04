@@ -431,7 +431,7 @@ fn validate_text_surfaces(root: &Path, failures: &mut Vec<String>) {
     for needle in [
         "Compatibility entrypoint only",
         "scripts/check-sequential-pr-merge-conflicts.rs",
-        "rustc --edition=2021 -D warnings",
+        "rustc --edition=2024 -D warnings",
     ] {
         require_contains(
             &conflict_guard_shim,

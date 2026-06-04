@@ -41,6 +41,13 @@ const REQUIRED_REJECTED_ANTI_PATTERNS: &[&str] = &[
     "new_python_or_shell_gate_sprawl",
     "github_actions_as_durable_ci_authority",
     "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
+    "stateful_runner_workspace_pool",
+    "pod_local_cache_as_correctness_or_state_authority",
+    "cross_trust_cache_poisoning",
+    "cross_region_hot_path_ci_io",
+    "mutable_or_overwritten_ci_artifacts",
+    "unbounded_ephemeral_storage",
+    "privileged_dind_or_host_socket_runner",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -320,8 +327,77 @@ pub fn registry_text_failures(registry: &str) -> Vec<String> {
             "\"github_actions_shadow_only\": true",
             "registry claim boundary must keep GitHub Actions shadow-only",
         ),
+        (
+            "https://docs.prow.k8s.io/docs/life-of-a-prow-job/",
+            "registry must cite upstream Prow job lifecycle evidence",
+        ),
+        (
+            "\"stateless_execution_lifecycle\"",
+            "registry must define stateless execution lifecycle",
+        ),
+        (
+            "\"state_boundary\": \"ProwJob pods are disposable compute.",
+            "registry must distinguish disposable job pods from durable remote state",
+        ),
+        (
+            "\"remote_cache_allowed\": true",
+            "registry must allow remote cache as the performance mechanism",
+        ),
+        (
+            "\"local_disk_cache_persists_after_pod\": false",
+            "registry must forbid persistent pod-local disk cache",
+        ),
+        (
+            "\"cache_authoritative_for_correctness\": false",
+            "registry must keep cache non-authoritative for correctness",
+        ),
+        (
+            "\"content_addressed_only\": true",
+            "registry cache policy must require content-addressed cache keys",
+        ),
+        (
+            "\"trusted_postsubmit_promotion_required\": true",
+            "registry cache policy must require trusted cache promotion",
+        ),
+        (
+            "\"cold_cache_probe_required\": true",
+            "registry cache policy must require cold-cache probes",
+        ),
+        (
+            "\"io_performance_policy\"",
+            "registry must define cloud I/O and performance policy",
+        ),
+        (
+            "\"cache_topology\": \"regional_cell_local_remote_cache\"",
+            "registry must keep cache close to cloud compute cells",
+        ),
+        (
+            "\"hot_path_cross_region_io_allowed\": false",
+            "registry must reject cross-region hot-path I/O",
+        ),
+        (
+            "\"ephemeral_storage_requests_limits_required\": true",
+            "registry must require ephemeral storage requests/limits",
+        ),
+        (
+            "\"remote_execution_cas_required\": true",
+            "registry must require Buck2 remote execution/CAS path",
+        ),
     ] {
         require(registry.contains(needle), &mut failures, message);
+    }
+    for stage in [
+        "trigger",
+        "fetch_remote_state",
+        "compute_validate",
+        "export_artifacts",
+        "destroy_ephemeral_workspace",
+    ] {
+        require(
+            contains_json_string(registry, stage),
+            &mut failures,
+            format!("registry stateless lifecycle missing stage {stage}"),
+        );
     }
     for kind in REQUIRED_JOB_KINDS {
         require(
@@ -639,6 +715,46 @@ fn render_controller_config_yaml(jobs: &[Job]) -> String {
     out.push_str(&format!("    requiredContext: \"{}\"\n", REQUIRED_CONTEXT));
     out.push_str("    owner: \"trusted-controller\"\n");
     out.push_str("    candidateOwnedTruthAllowed: false\n");
+    out.push_str("  executionLifecycle:\n");
+    out.push_str("    statelessJobPods: true\n");
+    out.push_str("    sequence:\n");
+    out.push_str("      - \"trigger\"\n");
+    out.push_str("      - \"fetch_remote_state\"\n");
+    out.push_str("      - \"compute_validate\"\n");
+    out.push_str("      - \"export_artifacts\"\n");
+    out.push_str("      - \"destroy_ephemeral_workspace\"\n");
+    out.push_str("    podLocalStateAuthority: false\n");
+    out.push_str("    durableStateStores:\n");
+    out.push_str("      - \"native_scm_or_github_adapter_refs\"\n");
+    out.push_str("      - \"buck2_remote_execution_cache_or_content_addressed_cache\"\n");
+    out.push_str("      - \"immutable_object_artifact_store\"\n");
+    out.push_str("      - \"status_and_audit_ledger\"\n");
+    out.push_str("    workspaceDestructionRequired: true\n");
+    out.push_str("  remoteCachePolicy:\n");
+    out.push_str("    remoteCacheAllowed: true\n");
+    out.push_str("    localDiskCachePersistsAfterPod: false\n");
+    out.push_str("    cacheAuthoritativeForCorrectness: false\n");
+    out.push_str("    contentAddressedOnly: true\n");
+    out.push_str("    trustDomainSeparated: true\n");
+    out.push_str("    untrustedWritesQuarantined: true\n");
+    out.push_str("    trustedPostsubmitPromotionRequired: true\n");
+    out.push_str("    coldCacheProbeRequired: true\n");
+    out.push_str("    periodicCacheWarmersAllowed: true\n");
+    out.push_str("  cloudIoPerformancePolicy:\n");
+    out.push_str("    cacheTopology: \"regional-cell-local-remote-cache\"\n");
+    out.push_str("    artifactStore: \"immutable-object-store\"\n");
+    out.push_str("    hotPathCrossRegionIoAllowed: false\n");
+    out.push_str("    asynchronousCrossRegionReplicationAllowed: true\n");
+    out.push_str("    ephemeralStorageRequestsLimitsRequired: true\n");
+    out.push_str("    remoteExecutionCasRequired: true\n");
+    out.push_str("    cacheWarmersTrustDomain: \"trusted-periodic-or-postsubmit-only\"\n");
+    out.push_str("    cachePoisoningControls: \"content-addressed-trust-domain-separated-quarantined-untrusted-writes-cold-cache-probes\"\n");
+    out.push_str("    requiredMetrics:\n");
+    out.push_str("      - \"cache_hit_ratio\"\n");
+    out.push_str("      - \"cas_download_bytes\"\n");
+    out.push_str("      - \"cas_upload_bytes\"\n");
+    out.push_str("      - \"artifact_upload_latency_ms\"\n");
+    out.push_str("      - \"ephemeral_storage_evictions\"\n");
     out.push_str("  kubernetesSecurityDefaults:\n");
     out.push_str("    workloadIdentityRequired: true\n");
     out.push_str("    nodeMetadataAccess: \"blocked\"\n");
@@ -857,6 +973,82 @@ pub fn evaluate(root: &Path) -> Evaluation {
         (
             "candidateOwnedTruthAllowed: false",
             "controller config must reject candidate-owned merge truth",
+        ),
+        (
+            "statelessJobPods: true",
+            "controller config must make ProwJob pods stateless disposable compute",
+        ),
+        (
+            "podLocalStateAuthority: false",
+            "controller config must reject pod-local state authority",
+        ),
+        (
+            "workspaceDestructionRequired: true",
+            "controller config must require workspace destruction",
+        ),
+        (
+            "remoteCacheAllowed: true",
+            "controller config must preserve remote cache performance path",
+        ),
+        (
+            "localDiskCachePersistsAfterPod: false",
+            "controller config must forbid persistent pod-local cache",
+        ),
+        (
+            "cacheAuthoritativeForCorrectness: false",
+            "controller config must keep caches non-authoritative for correctness",
+        ),
+        (
+            "contentAddressedOnly: true",
+            "controller config must require content-addressed cache",
+        ),
+        (
+            "trustDomainSeparated: true",
+            "controller config must separate cache trust domains",
+        ),
+        (
+            "untrustedWritesQuarantined: true",
+            "controller config must quarantine untrusted cache writes",
+        ),
+        (
+            "trustedPostsubmitPromotionRequired: true",
+            "controller config must require trusted cache promotion",
+        ),
+        (
+            "coldCacheProbeRequired: true",
+            "controller config must require cold-cache probes",
+        ),
+        (
+            "cacheTopology: \"regional-cell-local-remote-cache\"",
+            "controller config must keep cache close to cloud compute cells",
+        ),
+        (
+            "artifactStore: \"immutable-object-store\"",
+            "controller config must publish immutable artifact store",
+        ),
+        (
+            "hotPathCrossRegionIoAllowed: false",
+            "controller config must reject cross-region hot-path I/O",
+        ),
+        (
+            "asynchronousCrossRegionReplicationAllowed: true",
+            "controller config must allow async cross-region artifact/cache replication",
+        ),
+        (
+            "ephemeralStorageRequestsLimitsRequired: true",
+            "controller config must require ephemeral-storage requests/limits",
+        ),
+        (
+            "remoteExecutionCasRequired: true",
+            "controller config must require Buck2 remote execution/CAS",
+        ),
+        (
+            "cacheWarmersTrustDomain: \"trusted-periodic-or-postsubmit-only\"",
+            "controller config must restrict cache warmers to trusted jobs",
+        ),
+        (
+            "cachePoisoningControls: \"content-addressed-trust-domain-separated-quarantined-untrusted-writes-cold-cache-probes\"",
+            "controller config must declare cache poisoning controls",
         ),
         (
             "shadowOnly: true",

@@ -150,7 +150,7 @@ const REQUIRED_BOOTSTRAP_NEEDLES: &[&str] = &[
 ];
 
 const REQUIRED_RUST_TOOLCHAIN_NEEDLES: &[&str] = &[
-    "channel = \"1.95.0\"",
+    "channel = \"1.96.0\"",
     "components = [\"rustfmt\", \"clippy\", \"llvm-tools-preview\"]",
     "targets = [\"x86_64-unknown-linux-gnu\", \"aarch64-unknown-linux-gnu\"]",
     "profile = \"minimal\"",
@@ -733,8 +733,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         );
     }
     require(
-        compact_json_text(&branch_json)
-            .contains("\"contexts\":[\"oya-ci-required\"]"),
+        compact_json_text(&branch_json).contains("\"contexts\":[\"oya-ci-required\"]"),
         &mut failures,
         "infra/branch-protection/dev.json must target oya-ci-required as the required check",
     );

@@ -589,7 +589,7 @@
     "scripts/check-sequential-pr-merge-conflicts.sh": [
       "Compatibility entrypoint only",
       "scripts/check-sequential-pr-merge-conflicts.rs",
-      "rustc --edition=2021 -D warnings"
+      "rustc --edition=2024 -D warnings"
     ],
     "scripts/check-sequential-pr-merge-conflicts.rs": [
       "git merge-tree --write-tree",
@@ -1528,7 +1528,7 @@
       "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-${buck2_arch}.zst"
     ],
     "rust-toolchain.toml": [
-      "channel = \"1.95.0\"",
+      "channel = \"1.96.0\"",
       "llvm-tools-preview",
       "aarch64-unknown-linux-gnu",
       "profile = \"minimal\""

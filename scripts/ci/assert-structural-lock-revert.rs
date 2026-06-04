@@ -364,7 +364,7 @@ pub fn buck_failures(text: &str) -> Vec<String> {
         "scripts/tests/structural_lock_revert_check.rs",
         "specs/structural-lock-revert-registry.json",
         "specs/fixtures/phase0-structural-lock-revert/*.json",
-        "rustc --edition=2021 -D warnings",
+        "rustc --edition=2024 -D warnings",
     ] {
         if !text.contains(required) {
             failures.push(format!("buck_missing_anchor_{required}"));

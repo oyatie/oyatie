@@ -8,5 +8,5 @@ src="$repo_root/scripts/check-sequential-pr-merge-conflicts.rs"
 bin="${TMPDIR:-/tmp}/oyatie-check-sequential-pr-merge-conflicts-$$"
 trap 'rm -f "$bin"' EXIT
 
-rustc --edition=2021 -D warnings "$src" -o "$bin"
+rustc --edition=2024 -D warnings "$src" -o "$bin"
 exec "$bin" "$@"

@@ -84,6 +84,45 @@ fn registry_requires_controller_owned_required_context() {
 }
 
 #[test]
+fn registry_requires_stateless_lifecycle_with_non_authoritative_remote_cache() {
+    let registry = read_repo_file("specs/oya-ci-prowjob-registry.json")
+        .replace(
+            "\"local_disk_cache_persists_after_pod\": false",
+            "\"local_disk_cache_persists_after_pod\": true",
+        )
+        .replace(
+            "\"cache_authoritative_for_correctness\": false",
+            "\"cache_authoritative_for_correctness\": true",
+        )
+        .replace(
+            "\"hot_path_cross_region_io_allowed\": false",
+            "\"hot_path_cross_region_io_allowed\": true",
+        );
+    let failures = gate::registry_text_failures(&registry);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("persistent pod-local disk cache")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("non-authoritative for correctness")),
+        "{:?}",
+        failures
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("cross-region hot-path I/O")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn shard_rejects_non_buck2_durable_job_command() {
     let mut failures = Vec::new();
     let shard = read_repo_file("specs/ci/prow-jobs/platform-governance.json").replace(

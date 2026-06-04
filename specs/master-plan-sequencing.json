@@ -1989,6 +1989,8 @@
     "security_backlog_validation_ref": "/specs/repo-hygiene-automation.json#security_backlog_validation",
     "security_hardening_backlog_ref": "/specs/repo-hygiene-automation.json#security_hardening_backlog",
     "automation_language_policy_ref": "/specs/repo-hygiene-automation.json#automation_language_policy",
+    "toolchain_pin_policy_ref": "/specs/repo-hygiene-automation.json#toolchain_pin_policy",
+    "dependency_registry_policy_ref": "/specs/repo-hygiene-automation.json#dependency_registry_policy",
     "required_stale_doc_inventory": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
   },
   "p00_native_scm_prow_kubernetes_lane_unlocker": {
