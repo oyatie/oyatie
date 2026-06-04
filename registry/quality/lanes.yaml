@@ -8,7 +8,7 @@ lanes:
     purpose: authority-chain declarations in AGENTS, README, and MASTERPLAN stay identical and avoid retired prescribed authorities
     source: root-hub-pointers.json / docs/AGENTS.md / ADR-0116
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate authority-cohesion
+    check_command: buck2 build //libs/oya-check-authority-cohesion:oya-check-authority-cohesion
   - id: oya-governance-claim-ceiling
     stage: foundation
     status: active
@@ -16,7 +16,7 @@ lanes:
     purpose: prevent unshipped stability, security, and supply-chain claims above foundation evidence
     source: ADR-0037 / registry/catalog
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate claim-ceiling
+    check_command: buck2 build //libs/oya-check-claim-ceiling:oya-check-claim-ceiling
   - id: oya-governance-codeowners-mirror
     stage: foundation
     status: active
@@ -24,7 +24,7 @@ lanes:
     purpose: RACI per-surface owner matches CODEOWNERS team ownership
     source: RACI-OWNERSHIP.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate codeowners-mirror
+    check_command: buck2 build //libs/oya-check-codeowners-mirror:oya-check-codeowners-mirror
   - id: oya-governance-cohesion
     stage: foundation
     status: active
@@ -32,7 +32,7 @@ lanes:
     purpose: cross-axis contract review-class label
     source: ADR-0011
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate cohesion
+    check_command: buck2 build //libs/oya-check-cohesion:oya-check-cohesion
   - id: oya-governance-data-class
     stage: foundation
     status: active
@@ -40,7 +40,7 @@ lanes:
     purpose: enforce ADR-0008 data-class annotation
     source: ADR-0008
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate data-class
+    check_command: buck2 build //libs/oya-check-data-class:oya-check-data-class
   - id: oya-governance-doc-catalog
     stage: foundation
     status: active
@@ -64,7 +64,7 @@ lanes:
     purpose: registry/quality/lanes.yaml and this CI-lanes doc mirror stay in sync
     source: standards/ci-lanes.md
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate quality-lanes
+    check_command: buck2 build //libs/oya-check-quality-lane:oya-check-quality-lane
   - id: oya-governance-honest-claims
     stage: foundation
     status: active
@@ -72,7 +72,7 @@ lanes:
     purpose: scan authoritative docs/specs/ADRs for deferred active claims and validate ImplementationPlan ChangeSet graph integrity
     source: ADR-0129 / specs/plan-schema.json / specs/masterplan.json
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate honest-claims
+    check_command: buck2 build //libs/oya-check-honest-claims:oya-check-honest-claims
   - id: oya-governance-aspirational-enforcement
     stage: foundation
     status: active
@@ -80,7 +80,7 @@ lanes:
     purpose: block active required enforcement claims that reference missing check crates, workflows, or branch-protection contexts
     source: ADR-0135 / ADR-0133
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate aspirational-enforcement
+    check_command: buck2 build //libs/oya-check-aspirational-enforcement:oya-check-aspirational-enforcement
   - id: oya-governance-banned-primitives
     stage: foundation
     status: active
@@ -128,7 +128,7 @@ lanes:
     purpose: every glossary term appears outside GLOSSARY when active
     source: GLOSSARY.md §11 / ADR-0018
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- gate validate glossary-cross-doc-coverage
+    check_command: buck2 build //libs/oya-check-glossary-coverage:oya-check-glossary-coverage
   - id: oya-governance-glossary-vocabulary
     stage: foundation
     status: active
@@ -136,7 +136,7 @@ lanes:
     purpose: retired-vocab hard-fail plus casing/acronym warning baseline ratchet
     source: GLOSSARY.md §11 / ADR-0018
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- gate validate glossary-vocabulary
+    check_command: buck2 build //libs/oya-check-glossary-vocabulary:oya-check-glossary-vocabulary
   - id: oya-governance-placeholder-debt
     stage: foundation
     status: active
@@ -144,7 +144,7 @@ lanes:
     purpose: fail-closed `TODO` / `TBD` registry so placeholder cleanup is tracked outside glossary acronym warnings
     source: AGENTS.md Done-Definition / MISTAKES doctrine
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- gate validate placeholder-debt
+    check_command: buck2 build //libs/oya-check-placeholder-debt:oya-check-placeholder-debt
   - id: oya-governance-dependency-seam
     stage: foundation
     status: active
@@ -168,7 +168,7 @@ lanes:
     purpose: every team charter has RACI and CODEOWNERS coverage
     source: RACI-OWNERSHIP.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate raci-team-coverage
+    check_command: buck2 build //libs/oya-check-raci-coverage:oya-check-raci-coverage
   - id: oya-governance-readme-doc-coverage
     stage: foundation
     status: active
@@ -176,7 +176,7 @@ lanes:
     purpose: every root doc has catalog and README discoverability
     source: README.md / DOC-CATALOG.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate readme-doc-coverage
+    check_command: buck2 build //libs/oya-check-readme-coverage:oya-check-readme-coverage
   - id: oya-governance-runbook-index-resolves
     stage: foundation
     status: active
@@ -184,7 +184,7 @@ lanes:
     purpose: every RUNBOOKS-INDEX entry is a real file
     source: RUNBOOKS-INDEX.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate runbook-index-resolves
+    check_command: buck2 build //libs/oya-check-runbook-index:oya-check-runbook-index
   - id: oya-governance-slo-coverage
     stage: foundation
     status: active
@@ -192,7 +192,7 @@ lanes:
     purpose: every catalog record carries SLO coverage
     source: SLO-CATALOG.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate slo-coverage
+    check_command: buck2 build //libs/oya-check-slo-coverage:oya-check-slo-coverage
   - id: oya-governance-catalog-records
     stage: foundation
     status: active
@@ -216,7 +216,7 @@ lanes:
     purpose: only-new-pack-citations check
     source: ADR-LEGACY-REGRESSION-MAPPING
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate adr-citation
+    check_command: buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation
   - id: oya-governance-brand-residue
     stage: foundation
     status: active
@@ -224,7 +224,7 @@ lanes:
     purpose: tautological brand transition check
     source: ADR-0017 / MFL-0011
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate brand-residue
+    check_command: buck2 build //libs/oya-check-brand-residue:oya-check-brand-residue
   - id: cargo-fmt
     stage: per-pr
     status: active
