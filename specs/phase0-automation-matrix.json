@@ -259,9 +259,9 @@
       "verification_command": "buck2 build //:service-root-classifier-check"
     },
     {
-      "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/ + scripts/tests/phase0_claim_ceiling_check.test.sh",
+      "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/ + scripts/tests/phase0_claim_ceiling_check.rs",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/hyperscaler-production-readiness-claim-contract.json + specs/phase0-claim-evidence-map.json + scripts/ci/assert-claim-ceiling.py + scripts/tests/phase0_claim_ceiling_check.test.sh + //:phase0-claim-ceiling-check",
+      "evidence_path": "specs/hyperscaler-production-readiness-claim-contract.json + specs/phase0-claim-evidence-map.json + scripts/ci/assert-claim-ceiling.rs + scripts/tests/phase0_claim_ceiling_check.rs + //:phase0-claim-ceiling-check",
       "id": "AC-0.17-claim-ceiling",
       "no_new_oya_cli_surface": true,
       "owner": "platform-sre + platform-security + platform-toolchain",
@@ -273,9 +273,9 @@
       "verification_command": "buck2 build //:phase0-claim-ceiling-check"
     },
     {
-      "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json + scripts/tests/phase0_claim_ceiling_check.test.sh",
+      "blocking_fixture": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json + scripts/tests/phase0_claim_ceiling_check.rs",
       "classification": "automated_blocking_now",
-      "evidence_path": "specs/hyperscaler-production-readiness-claim-contract.json#PERF-CAPACITY + specs/phase0-claim-evidence-map.json + scripts/ci/assert-claim-ceiling.py + //:phase0-claim-ceiling-check",
+      "evidence_path": "specs/hyperscaler-production-readiness-claim-contract.json#PERF-CAPACITY + specs/phase0-claim-evidence-map.json + scripts/ci/assert-claim-ceiling.rs + //:phase0-claim-ceiling-check",
       "id": "AC-0.17-performance-budget-claim",
       "no_new_oya_cli_surface": true,
       "owner": "platform-sre + platform-toolchain",

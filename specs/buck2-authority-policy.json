@@ -263,8 +263,8 @@
     "scripts/tests/phase0_automation_ratchet_check.rs",
     "specs/phase0-automation-matrix.json",
     "specs/phase0-automation-coverage-registry.json",
-    "scripts/ci/assert-claim-ceiling.py",
-    "scripts/tests/phase0_claim_ceiling_check.test.sh",
+    "scripts/ci/assert-claim-ceiling.rs",
+    "scripts/tests/phase0_claim_ceiling_check.rs",
     "specs/phase0-claim-evidence-map.json",
     "specs/hyperscaler-production-readiness-claim-contract.json",
     "scripts/ci/assert-rust-testing-standard.rs",
@@ -420,8 +420,8 @@
       "assert-automation-ratchet.rs",
       "phase0-automation-coverage-registry.json",
       "phase0-claim-ceiling-check",
-      "phase0_claim_ceiling_check.test.sh",
-      "assert-claim-ceiling.py",
+      "phase0_claim_ceiling_check.rs",
+      "assert-claim-ceiling.rs",
       "phase0-claim-evidence-map.json",
       "hyperscaler-production-readiness-claim-contract.json",
       "rust-testing-standard-check",
@@ -891,7 +891,7 @@
       "consistency_token",
       "buck2 build //:d1-seam-contracts-check"
     ],
-    "scripts/ci/assert-claim-ceiling.py": [
+    "scripts/ci/assert-claim-ceiling.rs": [
       "claim-ceiling local/static fixture evidence only",
       "regulated_vocabulary_without_claim_row",
       "unknown_claim_tier",
@@ -906,19 +906,20 @@
       "budget_only_entries",
       "measured_result_only_entries"
     ],
-    "scripts/tests/phase0_claim_ceiling_check.test.sh": [
-      "bad-missing-claim-row.json",
-      "bad-unknown-tier-missing-owner.json",
-      "bad-mechanical-local-oya.json",
-      "bad-performance-no-budget.json",
-      "bad-performance-domain-only.json",
-      "bad-production-ready-tier-only.json",
-      "bad-hyperscaler-tier-only.json",
-      "bad-capacity-breakpoint-only.json",
-      "bad-performance-combined-entry.json",
-      "bad-unknown-regulated-term.json",
-      "bad-red-fixture-made-good.json",
-      "phase0 claim-ceiling fixture checks passed"
+    "scripts/tests/phase0_claim_ceiling_check.rs": [
+      "matrix_and_coverage_preserve_claim_ceiling_contract",
+      "good_claim_map_and_fixtures_pass_without_live_claims",
+      "missing_claim_row_fails_closed",
+      "unknown_tier_and_missing_owner_fail_closed",
+      "mechanical_local_oya_evidence_fails_closed",
+      "production_ready_without_budget_or_result_fails_closed",
+      "production_ready_budget_only_fails_closed",
+      "production_ready_domain_only_fails_closed",
+      "hyperscaler_tier_only_fails_closed",
+      "capacity_breakpoint_only_fails_closed",
+      "combined_budget_and_result_entry_fails_closed",
+      "unknown_regulated_term_fails_closed",
+      "red_fixture_made_good_fails_closed"
     ],
     "specs/phase0-claim-evidence-map.json": [
       "AC-0.17",
