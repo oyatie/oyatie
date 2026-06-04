@@ -216,7 +216,7 @@ genrule(
         "infra/ci/jenkins/reported-status-contexts.json": "infra/ci/jenkins/reported-status-contexts.json",
         "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs": "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",
         "scripts/tests/trigger_next_queue_automerge_required_contexts.rs": "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
-        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+        "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs": "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
         "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
         "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
@@ -1074,7 +1074,7 @@ genrule(
     name = "github-auto-merge-after-ci-check",
     srcs = {
         "scripts/tests/trigger_next_queue_automerge_required_contexts.rs": "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
-        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+        "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs": "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
         "scripts/tests/phase0_required_context_rollup_check.rs": "scripts/tests/phase0_required_context_rollup_check.rs",
         "scripts/ci/assert-pr-required-context.rs": "scripts/ci/assert-pr-required-context.rs",
@@ -1093,7 +1093,7 @@ genrule(
         "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
     },
     out = "github-auto-merge-after-ci-check.txt",
-    cmd = "(mkdir -p $TMP/github-auto-merge $TMP/required-context-rollup && rustc --edition=2021 -D warnings scripts/tests/trigger_next_queue_automerge_required_contexts.rs --test -o $TMP/github-auto-merge/trigger_next_queue_automerge_required_contexts && OYA_REPO_ROOT=$PWD $TMP/github-auto-merge/trigger_next_queue_automerge_required_contexts > /dev/null && bash scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh && rustc --edition=2021 -D warnings scripts/check-sequential-pr-merge-conflicts.rs -o $TMP/github-auto-merge/check-sequential-pr-merge-conflicts && rustc --edition=2021 -D warnings scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs --test -o $TMP/github-auto-merge/check_sequential_pr_merge_conflicts_fetch_remote && OYA_REPO_ROOT=$PWD OYA_SEQ_CONFLICT_CHECKER_BIN=$TMP/github-auto-merge/check-sequential-pr-merge-conflicts $TMP/github-auto-merge/check_sequential_pr_merge_conflicts_fetch_remote > /dev/null && rustc --edition=2021 -D warnings scripts/tests/phase0_required_context_rollup_check.rs --test -o $TMP/required-context-rollup/phase0_required_context_rollup_check && OYA_REPO_ROOT=$PWD $TMP/required-context-rollup/phase0_required_context_rollup_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-pr-required-context.rs -o $TMP/required-context-rollup/assert-pr-required-context && $TMP/required-context-rollup/assert-pr-required-context --input specs/fixtures/phase0-required-context-rollup/good-github-lane-unlocker-required-success.json --json > /dev/null) > $OUT",
+    cmd = "(mkdir -p $TMP/github-auto-merge $TMP/required-context-rollup && rustc --edition=2021 -D warnings scripts/tests/trigger_next_queue_automerge_required_contexts.rs --test -o $TMP/github-auto-merge/trigger_next_queue_automerge_required_contexts && OYA_REPO_ROOT=$PWD $TMP/github-auto-merge/trigger_next_queue_automerge_required_contexts > /dev/null && rustc --edition=2021 -D warnings scripts/tests/trigger_next_queue_automerge_conflict_guard.rs --test -o $TMP/github-auto-merge/trigger_next_queue_automerge_conflict_guard && OYA_REPO_ROOT=$PWD $TMP/github-auto-merge/trigger_next_queue_automerge_conflict_guard > /dev/null && rustc --edition=2021 -D warnings scripts/check-sequential-pr-merge-conflicts.rs -o $TMP/github-auto-merge/check-sequential-pr-merge-conflicts && rustc --edition=2021 -D warnings scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs --test -o $TMP/github-auto-merge/check_sequential_pr_merge_conflicts_fetch_remote && OYA_REPO_ROOT=$PWD OYA_SEQ_CONFLICT_CHECKER_BIN=$TMP/github-auto-merge/check-sequential-pr-merge-conflicts $TMP/github-auto-merge/check_sequential_pr_merge_conflicts_fetch_remote > /dev/null && rustc --edition=2021 -D warnings scripts/tests/phase0_required_context_rollup_check.rs --test -o $TMP/required-context-rollup/phase0_required_context_rollup_check && OYA_REPO_ROOT=$PWD $TMP/required-context-rollup/phase0_required_context_rollup_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-pr-required-context.rs -o $TMP/required-context-rollup/assert-pr-required-context && $TMP/required-context-rollup/assert-pr-required-context --input specs/fixtures/phase0-required-context-rollup/good-github-lane-unlocker-required-success.json --json > /dev/null) > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -1111,7 +1111,7 @@ genrule(
         "scripts/check-sequential-pr-merge-conflicts.rs": "scripts/check-sequential-pr-merge-conflicts.rs",
         "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "scripts/tests/trigger_next_queue_automerge_required_contexts.rs": "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
-        "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+        "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs": "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
         "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs": "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
         "scripts/tests/phase0_required_context_rollup_check.rs": "scripts/tests/phase0_required_context_rollup_check.rs",
         "scripts/ci/assert-pr-required-context.rs": "scripts/ci/assert-pr-required-context.rs",

@@ -70,7 +70,7 @@
     "script_rejects_conflict_before_auto_merge": true,
     "trigger_non_dry_run_merge_path_tested": true,
     "trigger_non_dry_run_merge_path_evidence_scope": "local_sequencing_regression_guard_not_live_authority_proof",
-    "trigger_conflict_guard_test": "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+    "trigger_conflict_guard_test": "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
     "required_context_rollup_check": "scripts/ci/assert-pr-required-context.rs",
     "required_context_rollup_test": "scripts/tests/phase0_required_context_rollup_check.rs",
     "required_context_rollup_fixtures": [

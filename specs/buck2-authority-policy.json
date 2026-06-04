@@ -236,7 +236,7 @@
     "scripts/check-sequential-pr-merge-conflicts.sh",
     "scripts/check-sequential-pr-merge-conflicts.rs",
     "scripts/tests/trigger_next_queue_automerge_required_contexts.rs",
-    "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
+    "scripts/tests/trigger_next_queue_automerge_conflict_guard.rs",
     "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.rs",
     "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
     "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",

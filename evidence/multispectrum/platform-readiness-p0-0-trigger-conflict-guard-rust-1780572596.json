@@ -1,0 +1,83 @@
+{
+  "schema_version": "multispectrum-review.v2.4.0-local-static",
+  "change_id": "platform-readiness-p0-0-trigger-conflict-guard-rust-1780572596",
+  "change_class_id": "CC-6",
+  "timestamp": "2026-06-04T07:29:56-0400",
+  "scope": "GitHub auto-merge trigger sequential conflict-guard harness moved from shell to Rust",
+  "verdict": "LOCAL_STATIC_PASS_NOT_NATIVE_CI_AUTHORITY",
+  "claim_boundary": {
+    "github_actions_is_permanent_ci_cd": false,
+    "github_is_permanent": false,
+    "live_branch_protection_mutated": false,
+    "live_kubernetes_mutated": false,
+    "live_required_context_execution_proven": false,
+    "native_ci_authority_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false
+  },
+  "implementation_summary": [
+    "Deleted scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh.",
+    "Added scripts/tests/trigger_next_queue_automerge_conflict_guard.rs with a compiled Rust fake gh binary and a compiled guard-wrapper binary named at the legacy compatibility path inside the temporary fixture repository.",
+    "Preserved clean dry-run, clean non-dry-run, and merge-conflict scenarios while ensuring the non-dry-run fake merge refuses to record a merge unless the sequential guard marker exists.",
+    "Updated BUCK so //:github-auto-merge-after-ci-check compiles and runs the Rust conflict-guard harness instead of invoking bash for the retired shell test.",
+    "Updated specs/phase0-auto-merge-after-ci.json, specs/buck2-authority-policy.json, and scripts/tests/phase0_auto_merge_after_ci_contract_check.rs to require the Rust harness path and reject stale shell-test restoration."
+  ],
+  "checks": [
+    {
+      "name": "rustfmt",
+      "command": "rustfmt --edition 2021 --check scripts/tests/trigger_next_queue_automerge_conflict_guard.rs scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
+      "verdict": "PASS",
+      "evidence": "format check exited 0"
+    },
+    {
+      "name": "trigger_conflict_guard_rust_harness",
+      "command": "rustc --edition=2021 -D warnings scripts/tests/trigger_next_queue_automerge_conflict_guard.rs --test -o /tmp/trigger_next_queue_automerge_conflict_guard && OYA_REPO_ROOT=$PWD /tmp/trigger_next_queue_automerge_conflict_guard --nocapture",
+      "verdict": "PASS",
+      "evidence": "1 passed; 0 failed"
+    },
+    {
+      "name": "phase0_auto_merge_contract_tests",
+      "command": "rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs --test -o /tmp/phase0_auto_merge_after_ci_contract_check && OYA_REPO_ROOT=$PWD /tmp/phase0_auto_merge_after_ci_contract_check --nocapture",
+      "verdict": "PASS",
+      "evidence": "2 passed; 0 failed"
+    },
+    {
+      "name": "phase0_auto_merge_json_contract",
+      "command": "rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs -o /tmp/phase0_auto_merge_after_ci_contract_check_bin && OYA_REPO_ROOT=$PWD /tmp/phase0_auto_merge_after_ci_contract_check_bin > /tmp/phase0-auto-merge-contract.json && jq -e '.verdict == \"PASS\" and .checks.p0_0_green == false and .checks.phase0_complete == false' /tmp/phase0-auto-merge-contract.json",
+      "verdict": "PASS",
+      "evidence": "jq assertion returned true"
+    },
+    {
+      "name": "retired_shell_test_sweep",
+      "command": "rg -n 'trigger-next-queue-automerge-conflict-guard\\.test\\.sh|bash scripts/tests/trigger-next-queue-automerge-conflict-guard' BUCK specs scripts docs --glob '!target'",
+      "verdict": "PASS_NO_MATCHES",
+      "evidence": "no active references to the retired conflict-guard shell test or bash invocation remain in BUCK/specs/scripts/docs"
+    },
+    {
+      "name": "json_syntax",
+      "command": "jq empty specs/phase0-auto-merge-after-ci.json specs/buck2-authority-policy.json",
+      "verdict": "PASS",
+      "evidence": "changed JSON parsed"
+    },
+    {
+      "name": "diff_hygiene",
+      "command": "git diff --check",
+      "verdict": "PASS",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "name": "buck2_targets",
+      "command": "buck2 build //:github-auto-merge-after-ci-check //:phase0-auto-merge-after-ci-contract-check //:buck2-authority-policy-check //:language-discipline-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID 398ddb38-944a-4ff8-b461-4b25b1e4e4fe"
+    }
+  ],
+  "known_gaps": [
+    "scripts/trigger-next-queue-automerge.sh remains a shell implementation for a later Rust/Buck2 lane.",
+    "scripts/ci/arm-auto-merge.sh and scripts/tests/forgejo_auto_merge_after_ci.test.sh remain shell surfaces for later cleanup/cutover lanes.",
+    "This change does not mutate live GitHub branch protection, Kubernetes, cloud resources, secrets, required-status producers, or merge state."
+  ]
+}
