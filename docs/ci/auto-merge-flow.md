@@ -20,7 +20,7 @@ Auto-merge may be armed only when all of the following are true:
    sequential merge-conflict guards before arming auto-merge.
 5. The merge method is linear-history compatible; the bridge fixes `squash` and
    rejects merge/rebase drift.
-6. Local `oya verify`, local `oya gate`, Buck2 affected-only output, Cargo, and
+6. Retired Oya CLI local mirror output, Buck2 affected-only output, Cargo, and
    operator memory are not protected-branch or Phase-0 exit authority.
 
 ## GitHub temporary bridge path
