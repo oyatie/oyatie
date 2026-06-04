@@ -23,9 +23,16 @@ The required temporary context is `github-lane-unlocker-required`; the native
 cutover context remains separate as `oya-ci-required` and cannot be impersonated
 by the GitHub bridge. The temporary workflow runs on GitHub-hosted `ubuntu-24.04-arm` runners to
 match the current Buck2 `aarch64-unknown-linux-gnu` Rust toolchain, pins
-`BUCK2_RELEASE=2026-06-01`, and runs
+`BUCK2_RELEASE=2026-06-01`, opts GitHub JavaScript actions into the Node 24
+runtime with `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`, uses
+`actions/checkout@v6` (stable v6 major; latest verified release v6.0.3 on
+2026-06-04), and runs
 `scripts/ci/github-actions-lane-unlocker-bootstrap.sh` before any Buck2 fanout.
-That bootstrap serializes rustup setup, pins Rust through `rust-toolchain.toml`,
+Node 26 is not used as the JavaScript action runtime because GitHub's
+action-runtime migration target is Node 24; Node 26 remains available only for
+explicit `actions/setup-node` application jobs, which this Buck2/Rust bridge
+does not need. That bootstrap serializes rustup setup, pins Rust through
+`rust-toolchain.toml`,
 installs `llvm-tools-preview`, installs the Linux targets Buck2 probes, then
 installs Buck2 if the runner image lacks it. GitHub-hosted and self-hosted
 runners both fail closed on the same Rust/Buck2 authority instead of lazily

@@ -106,6 +106,14 @@ def main() -> int:
     require(bridge.get("branch_protection_application") == "live_dev_required_context_converged_to_github_lane_unlocker_required_until_native_cutover", failures, "github_bridge.branch_protection_application must mark the live temporary required context convergence")
     require(bridge.get("manual_oya_ci_required_bridge_allowed") is False, failures, "manual oya-ci-required bridge must be disabled during the GitHub lane unlocker")
     require(bridge.get("native_cutover_target_context") == "oya-ci-required", failures, "github_bridge.native_cutover_target_context must remain oya-ci-required")
+
+    js_runtime = bridge.get("javascript_action_runtime", {}) if isinstance(bridge.get("javascript_action_runtime"), dict) else {}
+    require(js_runtime.get("checkout_action_ref") == "actions/checkout@v6", failures, "github_bridge.javascript_action_runtime.checkout_action_ref must use actions/checkout@v6")
+    require(js_runtime.get("latest_checkout_release_verified") == "v6.0.3", failures, "github_bridge.javascript_action_runtime.latest_checkout_release_verified must record the verified v6 latest release")
+    require(js_runtime.get("force_node24_runtime") is True, failures, "github_bridge.javascript_action_runtime.force_node24_runtime must be true")
+    require(js_runtime.get("force_node24_env") == "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24", failures, "github_bridge.javascript_action_runtime.force_node24_env must name the GitHub Actions Node24 opt-in")
+    require(js_runtime.get("node26_action_runtime_used") is False, failures, "github_bridge.javascript_action_runtime.node26_action_runtime_used must remain false for JavaScript action runtime")
+    require(js_runtime.get("unsecure_node20_opt_out_allowed") is False, failures, "github_bridge.javascript_action_runtime.unsecure_node20_opt_out_allowed must be false")
     require(cd_bridge.get("mode") == "github_actions_cd_bridge_until_release_conveyor_cutover", failures, "github_actions_cd_bridge.mode must be temporary GitHub Actions CD bridge")
     require(cd_bridge.get("live_deployments_enabled") is False, failures, "github_actions_cd_bridge.live_deployments_enabled must be false")
     require(cd_bridge.get("deploys_via_jenkins") is False, failures, "github_actions_cd_bridge.deploys_via_jenkins must be false")
@@ -210,6 +218,8 @@ def main() -> int:
         "https://kubernetes.io/docs/tasks/run-application/scale-deployment/",
         "https://github.com/cncf/toc/blob/main/DEFINITION.md",
         "https://architecture.cncf.io/",
+        "https://github.com/actions/checkout/releases/tag/v6.0.3",
+        "https://nodejs.org/en/about/previous-releases",
     ]:
         require(url in source_urls, failures, f"official_sources missing {url}")
 
@@ -235,7 +245,8 @@ def main() -> int:
             "matrix:",
             "lane: [governance, buck2-authority, rust-llvm-coverage, affected-build]",
             "name: github-lane-unlocker-required",
-            "uses: actions/checkout@v4",
+            "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: \"true\"",
+            "uses: actions/checkout@v6",
             "fetch-depth: 0",
             "python3 scripts/ci/assert-github-lane-unlocker-bridge.py --json",
             "python3 scripts/ci/enforce-buck2-authority.py --policy specs/buck2-authority-policy.json",
@@ -246,6 +257,12 @@ def main() -> int:
             "buck2 build //:github-lane-unlocker-bridge-check",
         ]:
             require_contains(workflow, needle, failures, "lane unlocker workflow")
+
+        legacy_checkout = "actions/checkout@" + "v4"
+        insecure_node_runtime_env = "ACTIONS_ALLOW_USE_UNSECURE_NODE" + "_VERSION"
+        require(legacy_checkout not in workflow, failures, "lane unlocker workflow must not use the legacy checkout v4 action")
+        require(insecure_node_runtime_env not in workflow, failures, "lane unlocker workflow must not opt out to an unsecure JavaScript action runtime")
+        require("FORCE_JAVASCRIPT_ACTIONS_TO_NODE24" in workflow, failures, "lane unlocker workflow must opt into the GitHub Actions Node24 JavaScript runtime")
         require("cargo tarpaulin" not in workflow.lower(), failures, "lane unlocker workflow must not use Tarpaulin")
         require("github-lane-unlocker-required" in workflow, failures, "lane unlocker workflow must expose the temporary required context")
         require(workflow.count("scripts/ci/github-actions-lane-unlocker-bootstrap.sh") == 3, failures, "lane unlocker workflow must bootstrap Rust and Buck2 in fanout, aggregator, and dry-run jobs")

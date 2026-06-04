@@ -1407,6 +1407,8 @@
     ],
     ".github/workflows/github-lane-unlocker-ci-cd.yml": [
       "github-lane-unlocker-required",
+      "uses: actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: \"true\"",
       "strategy:",
       "max-parallel: 4",
       "matrix:",
@@ -1422,7 +1424,9 @@
       "cloud_native_hyperscaler_fit",
       "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
       "auth_shared_substrate_decoupling",
-      "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes"
+      "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes",
+      "actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24"
     ],
     "specs/github-lane-unlocker-bridge.json": [
       "temporary_github_actions_scm_cicd_lane_unlocker_not_native_authority",
@@ -1432,7 +1436,9 @@
       "scale_controllers_to_zero_not_delete_pods_blindly",
       "cloud_and_oyatie_auth_shared_substrates_decoupled_now",
       "no_shared_contract_or_surface_now",
-      "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes"
+      "rewrite_and_rewire_oyatie_products_to_consume_cloud_idp_after_cloud_substrate_stabilizes",
+      "actions/checkout@v6",
+      "node26_action_runtime_used"
     ],
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": [
       "GitHub/GitHub Actions",
@@ -1445,7 +1451,9 @@
       "not P0.0 green",
       "Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now",
       "no shared contract or shared surface",
-      "rewrite and rewire Oyatie products to consume the Cloud IdP"
+      "rewrite and rewire Oyatie products to consume the Cloud IdP",
+      "actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24"
     ],
     "docs/ci/github-actions-lane-unlocker.md": [
       "github-lane-unlocker-required",
@@ -1458,7 +1466,9 @@
       "scale the owning Deployment/StatefulSet/controller to zero",
       "Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now",
       "no shared contract or shared surface",
-      "rewrite and rewire Oyatie products to consume the Cloud IdP"
+      "rewrite and rewire Oyatie products to consume the Cloud IdP",
+      "actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24"
     ]
   },
   "required_glob_anchors": [
@@ -1526,6 +1536,8 @@
   "expected_command_markers": {
     ".github/workflows/github-lane-unlocker-ci-cd.yml": [
       "github-lane-unlocker-required",
+      "uses: actions/checkout@v6",
+      "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: \"true\"",
       "runs-on: ubuntu-24.04-arm",
       "strategy:",
       "max-parallel: 4",

@@ -13,6 +13,7 @@ permissions:
 
 env:
   BUCK2_RELEASE: "2026-06-01"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.run_id }}
@@ -28,7 +29,7 @@ jobs:
       matrix:
         lane: [governance, buck2-authority, rust-llvm-coverage, affected-build]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Prepare dev base
@@ -61,7 +62,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     needs: lane-unlocker-fanout
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Bootstrap Rust and Buck2 toolchains
@@ -77,7 +78,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     needs: github-lane-unlocker-required
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Bootstrap Rust and Buck2 toolchains
