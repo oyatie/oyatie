@@ -81,11 +81,11 @@ genrule(
         "scripts/tests/phase0_aggregate_exit_check.test.sh": "scripts/tests/phase0_aggregate_exit_check.test.sh",
         "scripts/ci/assert-rust-testing-standard.py": "scripts/ci/assert-rust-testing-standard.py",
         "scripts/tests/rust_testing_standard_check.test.sh": "scripts/tests/rust_testing_standard_check.test.sh",
-        "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
-        "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh": "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+        "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs": "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs",
+        "scripts/tests/rust_llvm_coverage_runner_contract_check.rs": "scripts/tests/rust_llvm_coverage_runner_contract_check.rs",
         "specs/rust-llvm-coverage-runner-contract.json": "specs/rust-llvm-coverage-runner-contract.json",
-        "scripts/ci/run-rust-llvm-coverage-smoke.py": "scripts/ci/run-rust-llvm-coverage-smoke.py",
-        "scripts/tests/rust_llvm_coverage_smoke_check.test.sh": "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+        "scripts/ci/run-rust-llvm-coverage-smoke.rs": "scripts/ci/run-rust-llvm-coverage-smoke.rs",
+        "scripts/tests/rust_llvm_coverage_smoke_check.rs": "scripts/tests/rust_llvm_coverage_smoke_check.rs",
         "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
         "scripts/ci/assert-buck2-cargo-target-coverage.rs": "scripts/ci/assert-buck2-cargo-target-coverage.rs",
         "scripts/tests/buck2_cargo_target_coverage_check.rs": "scripts/tests/buck2_cargo_target_coverage_check.rs",
@@ -514,12 +514,12 @@ genrule(
 genrule(
     name = "rust-llvm-coverage-runner-contract-check",
     srcs = {
-        "scripts/ci/assert-rust-llvm-coverage-runner-contract.py": "scripts/ci/assert-rust-llvm-coverage-runner-contract.py",
-        "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh": "scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh",
+        "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs": "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs",
+        "scripts/tests/rust_llvm_coverage_runner_contract_check.rs": "scripts/tests/rust_llvm_coverage_runner_contract_check.rs",
         "specs/rust-llvm-coverage-runner-contract.json": "specs/rust-llvm-coverage-runner-contract.json",
     },
     out = "rust-llvm-coverage-runner-contract-check.txt",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_llvm_coverage_runner_contract_check.test.sh > $OUT",
+    cmd = "mkdir -p $TMP/rust-llvm-coverage-runner-contract && rustc --edition=2021 -D warnings scripts/tests/rust_llvm_coverage_runner_contract_check.rs --test -o $TMP/rust-llvm-coverage-runner-contract/rust_llvm_coverage_runner_contract_check && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-runner-contract/rust_llvm_coverage_runner_contract_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/assert-rust-llvm-coverage-runner-contract.rs -o $TMP/rust-llvm-coverage-runner-contract/assert-rust-llvm-coverage-runner-contract && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-runner-contract/assert-rust-llvm-coverage-runner-contract --spec specs/rust-llvm-coverage-runner-contract.json --json > $OUT",
     visibility = ["PUBLIC"],
 )
 
@@ -532,12 +532,12 @@ genrule(
 genrule(
     name = "rust-llvm-coverage-smoke-check",
     srcs = {
-        "scripts/ci/run-rust-llvm-coverage-smoke.py": "scripts/ci/run-rust-llvm-coverage-smoke.py",
-        "scripts/tests/rust_llvm_coverage_smoke_check.test.sh": "scripts/tests/rust_llvm_coverage_smoke_check.test.sh",
+        "scripts/ci/run-rust-llvm-coverage-smoke.rs": "scripts/ci/run-rust-llvm-coverage-smoke.rs",
+        "scripts/tests/rust_llvm_coverage_smoke_check.rs": "scripts/tests/rust_llvm_coverage_smoke_check.rs",
         "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
     },
     out = "rust-llvm-coverage-smoke-check.json",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/rust_llvm_coverage_smoke_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/run-rust-llvm-coverage-smoke.py --out $OUT > /dev/null",
+    cmd = "mkdir -p $TMP/rust-llvm-coverage-smoke && rustc --edition=2021 -D warnings scripts/tests/rust_llvm_coverage_smoke_check.rs --test -o $TMP/rust-llvm-coverage-smoke/rust_llvm_coverage_smoke_check && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-smoke/rust_llvm_coverage_smoke_check > /dev/null && rustc --edition=2021 -D warnings scripts/ci/run-rust-llvm-coverage-smoke.rs -o $TMP/rust-llvm-coverage-smoke/run-rust-llvm-coverage-smoke && OYA_REPO_ROOT=$PWD $TMP/rust-llvm-coverage-smoke/run-rust-llvm-coverage-smoke --out $OUT > /dev/null",
     visibility = ["PUBLIC"],
 )
 
@@ -602,9 +602,13 @@ genrule(
         "scripts/tests/d1_read_your_writes_xfail_check.rs": "scripts/tests/d1_read_your_writes_xfail_check.rs",
         "scripts/ci/assert-who-gates-gates.rs": "scripts/ci/assert-who-gates-gates.rs",
         "scripts/tests/who_gates_gates_check.rs": "scripts/tests/who_gates_gates_check.rs",
+        "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs": "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs",
+        "scripts/tests/rust_llvm_coverage_runner_contract_check.rs": "scripts/tests/rust_llvm_coverage_runner_contract_check.rs",
+        "scripts/ci/run-rust-llvm-coverage-smoke.rs": "scripts/ci/run-rust-llvm-coverage-smoke.rs",
+        "scripts/tests/rust_llvm_coverage_smoke_check.rs": "scripts/tests/rust_llvm_coverage_smoke_check.rs",
         "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto": "contracts/proto/d1/a2a/mutation/v1/entity_mutation.proto",
         "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto": "contracts/proto/d1/a2b/workflow/v1/workflow_ai_step_invocation.proto",
-    } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/ci/run-rust-llvm-coverage-smoke.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
+    } | {path: path for path in glob(["scripts/ci/assert-*.py", "scripts/tests/*.test.sh", "scripts/tests/*.py", "specs/fixtures/**/*.json", "specs/fixtures/**/*.rs", "specs/*.json"])},
     out = "phase0-red-green-fixture-contract-check.json",
     cmd = "PYTHONDONTWRITEBYTECODE=1 bash scripts/tests/red_green_fixture_contract_check.test.sh > /dev/null && PYTHONDONTWRITEBYTECODE=1 python3 scripts/ci/assert-red-green-fixture-contract.py --spec specs/red-green-fixture-contract.json --json > $OUT",
     visibility = ["PUBLIC"],

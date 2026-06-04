@@ -104,7 +104,7 @@
     },
     "smoke_coverage": {
       "buck2_smoke_target": "//:rust-llvm-coverage-smoke-check",
-      "smoke_script": "scripts/ci/run-rust-llvm-coverage-smoke.py",
+      "smoke_script": "scripts/ci/run-rust-llvm-coverage-smoke.rs",
       "fixture": "specs/fixtures/rust-llvm-coverage-smoke/branchy.rs",
       "fixture_report_generated": true,
       "production_coverage_report_generated": false,
@@ -113,7 +113,7 @@
     }
   },
   "automated_chain": [
-    "scripts/ci/assert-rust-llvm-coverage-runner-contract.py --spec specs/rust-llvm-coverage-runner-contract.json --json",
+    "scripts/ci/assert-rust-llvm-coverage-runner-contract.rs --spec specs/rust-llvm-coverage-runner-contract.json --json",
     "buck2 build //:rust-llvm-coverage-runner-contract-check",
     "buck2 build //:rust-llvm-coverage-smoke-check"
   ]
