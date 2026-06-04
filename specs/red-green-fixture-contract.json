@@ -410,23 +410,23 @@
       "automation_matrix_row_id": "AC-0.0-auto-merge-after-ci",
       "buck2_target": "//:phase0-auto-merge-after-ci-contract-check",
       "test_paths": [
-        "scripts/tests/phase0_auto_merge_after_ci_contract_check.py"
+        "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs"
       ],
       "green_markers": [
         {
           "path": "specs/phase0-auto-merge-after-ci.json",
-          "contains": "\"required_context\": \"oya-ci-required\""
+          "contains": "\"required_context\": \"github-lane-unlocker-required\""
         }
       ],
       "red_markers": [
         {
-          "path": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+          "path": "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
           "contains": "bad-no-checks-reported.json"
         }
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+          "path": "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
           "contains": "spec must retain p0_0_green=false and phase0_complete=false"
         }
       ]

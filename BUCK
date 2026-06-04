@@ -222,7 +222,7 @@ genrule(
         "scripts/trigger-next-queue-automerge.sh": "scripts/trigger-next-queue-automerge.sh",
         "scripts/check-sequential-pr-merge-conflicts.sh": "scripts/check-sequential-pr-merge-conflicts.sh",
         "scripts/tests/forgejo_auto_merge_after_ci.test.sh": "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
-        "scripts/tests/phase0_auto_merge_after_ci_contract_check.py": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+        "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs": "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
         "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
         "docs/ci/forge-of-record.md": "docs/ci/forge-of-record.md",
         "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
@@ -603,6 +603,7 @@ genrule(
         "scripts/tests/service_root_classifier_check.rs": "scripts/tests/service_root_classifier_check.rs",
         "scripts/ci/assert-status-enum-drift.rs": "scripts/ci/assert-status-enum-drift.rs",
         "scripts/tests/status_enum_drift_check.rs": "scripts/tests/status_enum_drift_check.rs",
+        "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs": "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
         "specs/generated-artifact-registry.json": "specs/generated-artifact-registry.json",
         "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-good-clean-merge-tree-generated-registry.json",
         "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json": "specs/fixtures/phase0-merge-conflict-foundation/tc-0.15-bad-path-overlap.json",
@@ -1096,7 +1097,7 @@ genrule(
 genrule(
     name = "phase0-auto-merge-after-ci-contract-check",
     srcs = {
-        "scripts/tests/phase0_auto_merge_after_ci_contract_check.py": "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+        "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs": "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
         "specs/phase0-auto-merge-after-ci.json": "specs/phase0-auto-merge-after-ci.json",
         "specs/buck2-authority-policy.json": "specs/buck2-authority-policy.json",
         "scripts/ci/arm-auto-merge.sh": "scripts/ci/arm-auto-merge.sh",
@@ -1124,6 +1125,6 @@ genrule(
         "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter/src/lib.rs": "//oya/ci-tide/crates/oya-ci-tide-forgejo-adapter:lib-src",
     },
     out = "phase0-auto-merge-after-ci-contract-check.json",
-    cmd = "PYTHONDONTWRITEBYTECODE=1 OYA_REPO_ROOT=$PWD python3 scripts/tests/phase0_auto_merge_after_ci_contract_check.py > $OUT",
+    cmd = "mkdir -p $TMP/phase0-auto-merge-after-ci-contract && rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs --test -o $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check_tests && OYA_REPO_ROOT=$PWD $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check_tests > /dev/null && rustc --edition=2021 -D warnings scripts/tests/phase0_auto_merge_after_ci_contract_check.rs -o $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check && OYA_REPO_ROOT=$PWD $TMP/phase0-auto-merge-after-ci-contract/phase0_auto_merge_after_ci_contract_check > $OUT",
     visibility = ["PUBLIC"],
 )

@@ -238,7 +238,7 @@
     "scripts/tests/trigger-next-queue-automerge-conflict-guard.test.sh",
     "scripts/tests/check_sequential_pr_merge_conflicts_fetch_remote.test.sh",
     "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
-    "scripts/tests/phase0_auto_merge_after_ci_contract_check.py",
+    "scripts/tests/phase0_auto_merge_after_ci_contract_check.rs",
     "docs/ci/auto-merge-flow.md",
     "docs/ci/forge-of-record.md",
     "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
