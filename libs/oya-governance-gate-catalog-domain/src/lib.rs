@@ -212,9 +212,9 @@ pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] =
 /// 3. The architecture-boundaries Rust port (now `gate validate
 ///    architecture-boundaries`, mirrored here for downstream lookups).
 /// 4. The `repoctl pre-push --verify-contract` contract check.
-/// 5. The doc-pipeline subcommands the documentation-system gate must
+/// 5. The Buck2-owned doc-pipeline targets the documentation-system gate must
 ///    confirm are wired.
-/// 6. The catalog-validate subcommand the doc-pipeline lint step needs.
+/// 6. The catalog-validation target the doc-pipeline lint step needs.
 /// 7. The typescript-workspace lanes (typecheck + test) the master gate
 ///    expects to be wired even though they're not under `gate run-all`.
 /// 8. The retired-but-canonical-in-body `cargo audit` / `cargo deny check`
@@ -224,10 +224,10 @@ pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] =
 /// against `AGGREGATED_VALIDATE_LANES` — every entry that the legacy
 /// script body emitted but that is NOT a `gate validate` subcommand.
 ///
-/// Strings are preserved with their full `cargo run -p oya-dev-cli -- …`
-/// prefix so the downstream content-validation gates (which historically
-/// did `check_script.contains(<canonical_command>)`) keep matching their
-/// expected patterns against the unified catalog.
+/// Current documentation-pipeline strings intentionally use Buck2 targets so
+/// active documentation governance no longer advertises Cargo execution as
+/// merge authority. Some legacy non-doc entries still carry historical Cargo
+/// tokens for compatibility with separately-tracked migration lanes.
 pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     // Toolchain primitives.
     "cargo fmt --all -- --check",
@@ -237,14 +237,15 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "cargo audit",
     "cargo nextest run --workspace --no-fail-fast",
     "cargo deny check",
-    // Demo and catalog.
+    // Demo and legacy catalog compatibility.
     "cargo run -p oya-dev-cli -- demo",
     "cargo run -p oya-dev-cli -- catalog validate",
-    // Doc pipeline (active steps in registry/docs/pipeline.tsv).
-    "cargo run -p oya-dev-cli -- doc mdbook",
-    "cargo run -p oya-dev-cli -- doc openapi",
-    "cargo run -p oya-dev-cli -- doc rustdoc",
-    "cargo run -p oya-dev-cli -- doc adr-index",
+    // Doc pipeline (active checks in registry/docs/pipeline.tsv).
+    "buck2 build //oya/intelligence/crates/oya-intelligence-openapi-domain:oya-intelligence-openapi-domain",
+    "buck2 build //oya/intelligence/crates/oya-intelligence-mdbook-domain:oya-intelligence-mdbook-domain //libs/oya-check-documentation-system:oya-check-documentation-system",
+    "buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation",
+    "buck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain",
+    "buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog",
     // TypeScript workspace lanes (parameterized; not under run-all).
     "cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane typecheck",
     "cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane test",
@@ -779,17 +780,21 @@ mod tests {
 
     #[test]
     fn rendered_form_contains_doc_pipeline_canonical_commands() {
-        // documentation-system kernel checks for `cargo run -p oya-dev-cli -- doc <step>`
-        // commands per registry/docs/pipeline.tsv.
+        // documentation-system kernel checks for Buck2-owned active checks
+        // per registry/docs/pipeline.tsv.
         let rendered = all_canonical_commands_rendered();
-        for step in ["mdbook", "openapi", "rustdoc", "adr-index"] {
-            let expected = format!("cargo run -p oya-dev-cli -- doc {step}");
+        for expected in [
+            "buck2 build //oya/intelligence/crates/oya-intelligence-openapi-domain:oya-intelligence-openapi-domain",
+            "buck2 build //oya/intelligence/crates/oya-intelligence-mdbook-domain:oya-intelligence-mdbook-domain //libs/oya-check-documentation-system:oya-check-documentation-system",
+            "buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation",
+            "buck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain",
+            "buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog",
+        ] {
             assert!(
-                rendered.contains(&expected),
-                "rendered catalog must wire doc step `{step}`"
+                rendered.contains(expected),
+                "rendered catalog must wire doc pipeline check `{expected}`"
             );
         }
-        assert!(rendered.contains("cargo run -p oya-dev-cli -- catalog validate"));
     }
 
     #[test]

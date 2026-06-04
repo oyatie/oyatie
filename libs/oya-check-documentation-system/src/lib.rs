@@ -272,7 +272,7 @@ mod tests {
             validate_documentation_system(evidence(records)),
             Err(DocumentationSystemError::UnwiredPipelineCommand {
                 step_id: "openapi".into(),
-                command: "cargo run -p oya-dev-cli -- gate validate api-semver".into(),
+                command: "buck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain".into(),
             })
         );
     }
@@ -314,7 +314,9 @@ mod tests {
             record(
                 "openapi",
                 DocumentationPipelineState::AdoptionGuard,
-                Some("cargo run -p oya-dev-cli -- gate validate api-semver"),
+                Some(
+                    "buck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain",
+                ),
                 true,
                 "contracts",
                 false,
@@ -323,7 +325,9 @@ mod tests {
             record(
                 "mdbook",
                 DocumentationPipelineState::AdoptionGuard,
-                Some("cargo run -p oya-dev-cli -- gate validate documentation-system"),
+                Some(
+                    "buck2 build //oya/intelligence/crates/oya-intelligence-mdbook-domain:oya-intelligence-mdbook-domain //libs/oya-check-documentation-system:oya-check-documentation-system",
+                ),
                 true,
                 "docs/site",
                 false,
@@ -332,7 +336,7 @@ mod tests {
             record(
                 "adr-index",
                 DocumentationPipelineState::AdoptionGuard,
-                Some("cargo run -p oya-dev-cli -- gate validate adr-citation"),
+                Some("buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation"),
                 true,
                 "docs/decisions",
                 true,
@@ -341,7 +345,9 @@ mod tests {
             record(
                 "catalog",
                 DocumentationPipelineState::Active,
-                Some("cargo run -p oya-dev-cli -- catalog validate"),
+                Some(
+                    "buck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain",
+                ),
                 true,
                 "registry/catalog",
                 true,
@@ -350,7 +356,7 @@ mod tests {
             record(
                 "lint",
                 DocumentationPipelineState::Active,
-                Some("cargo run -p oya-dev-cli -- gate validate doc-catalog"),
+                Some("buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog"),
                 true,
                 "docs",
                 true,

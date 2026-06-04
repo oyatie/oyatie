@@ -48,7 +48,7 @@ lanes:
     purpose: every consolidated doc has a DOC-CATALOG row
     source: DOC-CATALOG.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate doc-catalog
+    check_command: buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog
   - id: oya-governance-docs
     stage: foundation
     status: active
@@ -56,7 +56,7 @@ lanes:
     purpose: documentation-system pipeline registry and wiki quickref stay grounded
     source: DOCUMENTATION.md / registry/docs/pipeline.tsv
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate documentation-system
+    check_command: buck2 build //libs/oya-check-documentation-system:oya-check-documentation-system
   - id: oya-governance-quality-lanes
     stage: foundation
     status: active
@@ -200,7 +200,7 @@ lanes:
     purpose: every Cargo workspace member has a catalog record
     source: ADR-0015 / registry/catalog
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- catalog validate
+    check_command: buck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain
   - id: oya-governance-product-index
     stage: foundation
     status: active
@@ -336,7 +336,7 @@ lanes:
     purpose: public-API stability tier per ADR-0037
     source: ADR-0037
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- gate validate api-semver
+    check_command: buck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain
   - id: oya-governance-cargo-prefix
     stage: per-pr
     status: active
@@ -517,7 +517,7 @@ lanes:
     purpose: API semver stability tier per ADR-0037
     source: ADR-0037
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- gate validate api-semver
+    check_command: buck2 build //oya/intelligence/crates/oya-intelligence-api-semver-domain:oya-intelligence-api-semver-domain
   - id: lean-a5-documentation
     stage: per-pr
     # crate oya-shared-documentation-check-cli is report-only until M02-P22.
@@ -527,7 +527,7 @@ lanes:
     purpose: documentation set coverage — every µservice has full canonical + per-pack documentation set per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22
     source: ADR-0063
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-dev-cli -- gate validate documentation-system
+    check_command: buck2 build //libs/oya-check-documentation-system:oya-check-documentation-system
   - id: lean-a10-regression
     stage: per-pr
     # crate oya-check-regression is planned in M02-P21 IP-005.
