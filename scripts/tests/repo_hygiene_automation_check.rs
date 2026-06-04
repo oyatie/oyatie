@@ -235,6 +235,36 @@ fn active_doc_phrase_scanner_rejects_manual_bridge_statuses() {
 }
 
 #[test]
+fn active_doc_phrase_scanner_rejects_retired_local_oya_cli_mirror_wording() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/ci/auto-merge-flow.md",
+        "Local `oya verify`, local `oya gate`, Buck2 affected-only output, Cargo, and operator memory are not protected-branch authority.",
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("Local `oya verify`, local `oya gate`")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn active_doc_phrase_scanner_is_case_insensitive() {
+    let failures = gate::active_doc_phrase_failures(
+        "example.md",
+        "DEV REQUIRES GITHUB-LANE-UNLOCKER-REQUIRED before every merge.",
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("dev requires github-lane-unlocker-required")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn retired_exact_name_scanner_requires_generic_active_doc_term() {
     let failures = gate::retired_exact_name_failures(
         "docs/live-procedure.md",

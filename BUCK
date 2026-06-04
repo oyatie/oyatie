@@ -314,6 +314,7 @@ genrule(
         ".github/branch-protection.yaml": ".github/branch-protection.yaml",
         "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
         "docs/ci/github-actions-lane-unlocker.md": "docs/ci/github-actions-lane-unlocker.md",
+        "docs/ci/auto-merge-flow.md": "docs/ci/auto-merge-flow.md",
         "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md": "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
         "docs/DOC-CATALOG.md": "docs/DOC-CATALOG.md",
         "docs/MASTERPLAN.md": "docs/MASTERPLAN.md",

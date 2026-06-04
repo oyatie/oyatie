@@ -302,6 +302,7 @@
       "oya gate is merge authority",
       "oya verify is CI authority",
       "oya gate` / `oya verify` governance evidence",
+      "Local `oya verify`, local `oya gate`",
       "oya-dev-cli:oya -- gate validate planning-closure"
     ],
     "scan_scope": [
@@ -311,6 +312,7 @@
       "docs/AGENTS.md",
       "docs/MASTERPLAN.md",
       "docs/ci/github-actions-lane-unlocker.md",
+      "docs/ci/auto-merge-flow.md",
       "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
       "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
       ".github/branch-protection.yaml",
