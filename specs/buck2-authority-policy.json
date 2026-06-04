@@ -281,8 +281,8 @@
     "scripts/ci/assert-red-green-fixture-contract.rs",
     "scripts/tests/red_green_fixture_contract_check.rs",
     "specs/red-green-fixture-contract.json",
-    "scripts/ci/assert-phase0-merge-conflict-foundation.py",
-    "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+    "scripts/ci/assert-phase0-merge-conflict-foundation.rs",
+    "scripts/tests/phase0_merge_conflict_foundation_check.rs",
     "specs/generated-artifact-registry.json",
     "scripts/ci/assert-service-root-classifier.py",
     "scripts/tests/service_root_classifier_check.test.sh",
@@ -444,8 +444,8 @@
       "red_green_fixture_contract_check.rs",
       "red-green-fixture-contract.json",
       "phase0-merge-conflict-foundation-check",
-      "assert-phase0-merge-conflict-foundation.py",
-      "phase0_merge_conflict_foundation_check.test.sh",
+      "assert-phase0-merge-conflict-foundation.rs",
+      "phase0_merge_conflict_foundation_check.rs",
       "generated-artifact-registry.json",
       "service-root-classifier-check",
       "assert-service-root-classifier.py",
@@ -1119,7 +1119,7 @@
       "p0_0_green",
       "phase0-merge-conflict-foundation",
       "//:phase0-merge-conflict-foundation-check",
-      "phase0_merge_conflict_foundation_check.test.sh",
+      "phase0_merge_conflict_foundation_check.rs",
       "language-discipline",
       "//:language-discipline-check",
       "new_python_outside_allowlist",
@@ -1145,14 +1145,14 @@
       "full_repo_generated_artifact_coverage_proven",
       "p0_0_green"
     ],
-    "scripts/ci/assert-phase0-merge-conflict-foundation.py": [
+    "scripts/ci/assert-phase0-merge-conflict-foundation.rs": [
       "generated_artifact_registry_published",
       "path_overlap_without_review",
       "generated_artifact_missing_registry",
       "phase1_tide_batched_projection_overclaim",
       "full_repo_generated_artifact_coverage_proven"
     ],
-    "scripts/tests/phase0_merge_conflict_foundation_check.test.sh": [
+    "scripts/tests/phase0_merge_conflict_foundation_check.rs": [
       "TC-0.15-BAD-path-overlap",
       "path_overlap_without_review",
       "generated_artifact_missing_registry",

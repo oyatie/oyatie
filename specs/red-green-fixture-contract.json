@@ -436,7 +436,7 @@
       "automation_matrix_row_id": "AC-0.15-merge-conflict-foundation",
       "buck2_target": "//:phase0-merge-conflict-foundation-check",
       "test_paths": [
-        "scripts/tests/phase0_merge_conflict_foundation_check.test.sh"
+        "scripts/tests/phase0_merge_conflict_foundation_check.rs"
       ],
       "green_markers": [
         {
@@ -446,13 +446,13 @@
       ],
       "red_markers": [
         {
-          "path": "scripts/tests/phase0_merge_conflict_foundation_check.test.sh",
+          "path": "scripts/tests/phase0_merge_conflict_foundation_check.rs",
           "contains": "path_overlap_without_review"
         }
       ],
       "non_claim_markers": [
         {
-          "path": "scripts/ci/assert-phase0-merge-conflict-foundation.py",
+          "path": "scripts/ci/assert-phase0-merge-conflict-foundation.rs",
           "contains": "phase1_tide_batching_claimed"
         }
       ]
