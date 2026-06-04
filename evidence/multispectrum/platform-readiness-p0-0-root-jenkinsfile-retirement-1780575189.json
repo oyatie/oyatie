@@ -1,0 +1,55 @@
+{
+  "evidence_id": "platform-readiness-p0-0-root-jenkinsfile-retirement-1780575189",
+  "captured_at": "2026-06-04T12:13:09Z",
+  "change_lane": "chore-remove-root-jenkinsfile-20260604T121129Z",
+  "claim_boundary": "local_static_only_no_live_github_kubernetes_cloud_or_secret_mutation",
+  "purpose": "Retire the root Jenkinsfile active CI entrypoint so GitHub/GitHub Actions remains the only temporary bridge and Buck2 remains the active build/test/check authority until native oya-ci cutover.",
+  "retired_file": "Jenkinsfile",
+  "mechanical_guard_added": {
+    "target": "//:repo-hygiene-automation-check",
+    "checker": "scripts/ci/assert-repo-hygiene-automation.rs",
+    "fixture_test": "root_jenkinsfile_is_rejected_as_retired_ci_entrypoint",
+    "reason": "The root Jenkinsfile claimed to replace GitHub Actions and to report stale status contexts; the Rust/Buck2 hygiene gate now rejects reintroduction of that root CI entrypoint."
+  },
+  "verification": [
+    {
+      "command": "rustfmt --edition 2021 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "result": "pass",
+      "build_id": "ce2c9383-93fc-4d82-8866-e3c5d53f93fb"
+    },
+    {
+      "command": "if [ -e Jenkinsfile ]; then echo 'root Jenkinsfile still exists'; exit 1; fi",
+      "result": "pass",
+      "observed": "root Jenkinsfile absent from the working tree after deletion"
+    },
+    {
+      "command": "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "result": "pass",
+      "build_id": "6ba683b2-21be-4b43-9fe4-e8fcd0c77f74"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check --show-output",
+      "result": "pass",
+      "build_id": "79397f1f-f56d-4d7c-b7f1-0a509756c348"
+    },
+    {
+      "command": "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD",
+      "result": "pass",
+      "observed": "4 changed files; 2 owning targets; 2 affected targets; all affected targets were dedicated static/optional proof targets -> PASS."
+    }
+  ],
+  "non_claims": [
+    "No live GitHub branch protection was mutated.",
+    "No Kubernetes pods or cloud resources were mutated.",
+    "No historical ADR/provenance files were rewritten.",
+    "This does not retire per-service Jenkinsfile or infra/ci/jenkins artifacts; those need separate preservation and retirement lanes."
+  ]
+}
