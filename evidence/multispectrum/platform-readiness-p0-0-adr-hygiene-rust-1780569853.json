@@ -1,0 +1,103 @@
+{
+  "schema_version": "multispectrum-review.v2.4.0-local-static",
+  "change_id": "platform-readiness-p0-0-adr-hygiene-rust-1780569853",
+  "change_class_id": "CC-6",
+  "timestamp": "2026-06-04T06:44:13-0400",
+  "scope": "ADR hygiene checker and regression harness moved from Python and shell into Rust under Buck2 authority",
+  "verdict": "LOCAL_STATIC_PASS_NOT_PHASE0_OR_PRODUCTION_AUTHORITY",
+  "claim_boundary": {
+    "adr_hygiene_registry_published": true,
+    "adr_hygiene_fixture_contract_measured": true,
+    "github_actions_is_permanent_ci_cd": false,
+    "github_is_permanent": false,
+    "full_adr_index_regenerated": false,
+    "hyperscaler_grade": false,
+    "live_branch_protection_mutated": false,
+    "live_kubernetes_mutated": false,
+    "live_required_context_execution_proven": false,
+    "native_ci_authority_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "protected_branch_authority_proven": false,
+    "status_mutation_performed": false
+  },
+  "implementation_summary": [
+    "Deleted scripts/ci/assert-adr-hygiene.py and scripts/tests/adr_hygiene_check.test.sh.",
+    "Added scripts/ci/assert-adr-hygiene.rs with local/static ADR frontmatter parsing, duplicate-id checks, ADR-0377 renumbering checks, ADR-0511-to-ADR-0513 supersession checks, active-doc stale-reference checks, fixture validation, and compact JSON output.",
+    "Added scripts/tests/adr_hygiene_check.rs with checked-in pass coverage and adversarial red/green fixture mutations.",
+    "Updated BUCK, specs/adr-hygiene-registry.json, specs/red-green-fixture-contract.json, and specs/buck2-authority-policy.json so Buck2 remains the build/test/check authority for this gate."
+  ],
+  "checks": [
+    {
+      "name": "rustfmt",
+      "command": "rustfmt --edition 2021 --check scripts/ci/assert-adr-hygiene.rs scripts/tests/adr_hygiene_check.rs",
+      "verdict": "PASS",
+      "evidence": "format check exited 0"
+    },
+    {
+      "name": "rust_test_compile",
+      "command": "rustc --edition=2021 -D warnings scripts/tests/adr_hygiene_check.rs --test -o /tmp/adr_hygiene_check_tests",
+      "verdict": "PASS",
+      "evidence": "test harness compiled with warnings denied"
+    },
+    {
+      "name": "rust_unit_and_fixture_tests",
+      "command": "OYA_REPO_ROOT=$PWD /tmp/adr_hygiene_check_tests --nocapture",
+      "verdict": "PASS",
+      "evidence": "7 passed; 0 failed"
+    },
+    {
+      "name": "rust_checker_compile",
+      "command": "rustc --edition=2021 -D warnings scripts/ci/assert-adr-hygiene.rs -o /tmp/assert-adr-hygiene",
+      "verdict": "PASS",
+      "evidence": "checker compiled with warnings denied"
+    },
+    {
+      "name": "adr_hygiene_json_contract",
+      "command": "OYA_REPO_ROOT=$PWD /tmp/assert-adr-hygiene --registry specs/adr-hygiene-registry.json --json > /tmp/adr-hygiene.json && jq -e '.verdict == \"PASS\" and .adr_hygiene_registry_published == true and .adr_hygiene_fixture_contract_measured == true and .fixture_count == 4 and .expected_green_fixture_count == 1 and .expected_red_fixture_count == 3 and .p0_0_green == false and .phase0_complete == false and .full_adr_index_regenerated == false and .failures == []' /tmp/adr-hygiene.json",
+      "verdict": "PASS",
+      "evidence": "jq assertion returned true"
+    },
+    {
+      "name": "stale_retired_surface_sweep",
+      "command": "rg retired ADR hygiene Python/shell filenames and command invocations in BUCK specs scripts docs registry",
+      "verdict": "PASS_NO_MATCHES",
+      "evidence": "no active references to assert-adr-hygiene.py, adr_hygiene_check.test.sh, Python ADR checker invocation, shell ADR harness invocation, or ADR-specific PYTHONDONTWRITEBYTECODE remain"
+    },
+    {
+      "name": "json_syntax",
+      "command": "jq empty specs/adr-hygiene-registry.json specs/red-green-fixture-contract.json specs/buck2-authority-policy.json",
+      "verdict": "PASS",
+      "evidence": "changed JSON specs parsed"
+    },
+    {
+      "name": "diff_hygiene",
+      "command": "git diff --check",
+      "verdict": "PASS",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "name": "buck2_adr_hygiene_and_dependent_policy_targets",
+      "command": "buck2 build //:adr-hygiene-check //:phase0-red-green-fixture-contract-check //:buck2-authority-policy-check //:phase0-automation-ratchet-check //:language-discipline-check --show-output",
+      "verdict": "PASS",
+      "evidence": "BUILD SUCCEEDED; Build ID 579eb4cc-6acb-4478-8c16-37251f9fe932"
+    }
+  ],
+  "code_review": {
+    "mode": "local_leader_review",
+    "subagent_status": "thread_limit_prevented_independent_code_reviewer_spawn",
+    "finding_count": 0,
+    "focus": [
+      "claim-boundary false flags remain explicit",
+      "manual stale-reference matchers remain bounded to registry-declared patterns",
+      "fixture red/green mutations guard false positives and false negatives",
+      "no new dependency, Python, or shell test surface added"
+    ]
+  },
+  "known_gaps": [
+    "This is local/static gate evidence only; it does not regenerate the full ADR index.",
+    "This change does not mutate live branch protection, Kubernetes, cloud resources, secrets, or required-status producers.",
+    "GitHub Actions remains a temporary lane-unlocker, not permanent native CI/CD authority."
+  ]
+}
