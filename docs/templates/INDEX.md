@@ -46,12 +46,12 @@ doc_status: published
 
 | ID | File | Purpose | Owner | Verification path |
 |---|---|---|---|---|
-| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D18 with per-change-class variants. | `axis-foundry` + `council-architecture` | `guard-pr-merge-review.mjs` + per-lane CI status |
+| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D18 with per-change-class variants. | `axis-foundry` + `council-architecture` | Buck2 PR-review evidence + `oya-ci-required` |
 | CHK-PRE | `pre-flight-checklist.md` | Per-change-class preconditions. | `council-architecture` | `oya-governance-pr-shape` |
 | CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-DOCFRESH | `doc-freshness-checklist.md` | Per-doc-class staleness budget + auto-update path. | `council-architecture` | `oya-governance-doc-freshness` |
-| CHK-PRREV | `pr-review-checklist.md` | Reviewer agent's per-change-class verification. | `axis-foundry` + per change-class team | `guard-pr-merge-review.mjs` |
+| CHK-PRREV | `pr-review-checklist.md` | Reviewer agent's per-change-class verification. | `axis-foundry` + per change-class team | Buck2 PR-review evidence target |
 | CHK-REL | `release-readiness-checklist.md` | Milestone-level release gate (wave-gate alignment). | `ops-sre-reliability` + `council-architecture` | `oya-governance-release-readiness` |
 | CHK-INV | `inventory-update-checklist.md` | Every cutover/migration phase inventory ledger update (ADR-0052). | `axis-foundry` | `oya-governance-inventory-tracker` |
 | CHK-XAXIS | `cross-axis-contract-change-checklist.md` | Cross-axis contract change cascade. | `council-architecture` | `oya-governance-cross-axis-notify` |

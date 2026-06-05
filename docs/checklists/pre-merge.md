@@ -4,18 +4,17 @@ doc_status: published
 
 # Checklist: Pre-merge
 
-> **When:** Before `gh pr merge`. After all CI lanes green + reviewer-agent verdict.
+> **When:** Before `gh pr merge`. After required CI lanes are green and review evidence is present.
 > **Owner:** PR author + reviewer.
-> **Validator:** `oya gate validate` + `guard-pr-merge-review.mjs`.
+> **Validator:** Prow/Kubernetes-native `oya-ci-required` context plus Buck2 evidence. GitHub Actions is the temporary adapter/shadow runner.
 
 ---
 
-1. ☐ All CI lanes green per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md):
-   - cargo-fmt / cargo-clippy / cargo-nextest --all-features / cargo check --all-features
-   - cargo-deny licenses / `oya gate validate architecture-boundaries`
-   - oya catalog validate / oya gate validate (claim-ceiling, foundation-bypass, plane-class)
-   - Trivy / Cosign / SBOM
-   - oya-governance-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius}
+1. ☐ All required CI lanes green per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md):
+   - Buck2 affected build/test/check targets, including Rust 2024 formatting/lint/test wrappers where applicable
+   - Buck2 authority, architecture-boundary, language-discipline, and dependency-policy targets
+   - Supply-chain scans, image attestations, SBOM, and provenance evidence for emitted artifacts
+   - `oya-ci-required` as the merge-authority context; GitHub adapter checks may mirror but not replace it
 2. ☐ PR has 5 mandatory H2s: `## Issue / Summary / Verification / Traceability / Evidence`
 3. ☐ `## Verification` lists every check from CI + outcome (no hand-wave)
 4. ☐ `## Traceability` lists flat-crates targets touched + cross-axis contract impact
@@ -38,7 +37,7 @@ doc_status: published
 
 ## After merge
 
-16. ☐ Post-merge `cargo check --workspace --all-features` on `main` green within 5 min
+16. ☐ Post-merge Buck2 affected build/test/check evidence on the protected branch is green within 5 min.
 17. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
 18. ☐ Per-affected-team Slack ping (auto)
 19. ☐ Per-changelog auto-emit (Foundry capability `pr.changelog.row`)
@@ -51,4 +50,4 @@ doc_status: published
 - Citing legacy ADR-#### — replace with new pack ADR-0001..0051 per [ADR-CONSOLIDATION-PLAN.md](../ADR-CONSOLIDATION-PLAN.md)
 
 ## Sources
-CLAUDE.md PR rules; `scripts/hooks/guard-pr-merge-review.mjs`; [RELEASE-MANAGEMENT.md](../RELEASE-MANAGEMENT.md); [standards/code-review.md](../standards/code-review.md).
+CLAUDE.md PR rules; Buck2 PR-review evidence target; [RELEASE-MANAGEMENT.md](../RELEASE-MANAGEMENT.md); [standards/code-review.md](../standards/code-review.md).

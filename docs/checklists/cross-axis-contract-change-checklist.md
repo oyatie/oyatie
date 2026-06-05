@@ -43,7 +43,7 @@ doc_status: published
 
 ## Approval (blast-radius reviewers per `docs/DESIGN.md §3.0.5.3`)
 
-- [ ] **X8** **All affected consumer-axis teams** approve the PR. *Lane:* `guard-pr-merge-review.mjs` (cross-axis review verdict).
+- [ ] **X8** **All affected consumer-axis teams** approve the PR. *Lane:* Buck2 PR-review evidence target (cross-axis review verdict).
 - [ ] **X9** **council-architecture** approves (R+A for new cross-axis contract per `docs/RACI-OWNERSHIP.md §2`).
 - [ ] **X10** If data-class impact: **council-privacy** approves.
 - [ ] **X11** If regulatory impact: **ops-compliance** approves.
@@ -53,8 +53,8 @@ doc_status: published
 
 - [ ] **X13** Contract file (`contracts/<surface>.<openapi|proto|asyncapi>.yaml`) updated; lints clean. *Lane:* `oya-governance-contracts-lint`.
 - [ ] **X14** Provider-neutral interface preserved: provider-specific code remains in `oya-<context>-adapter-<provider>-*` crates only. *Lane:* `oya-governance-provider-coupling`.
-- [ ] **X15** `cargo-semver-checks` PASS on every consumer crate. *Command:* `cargo semver-checks check-release -p <crate>`.
-- [ ] **X16** `cargo public-api --diff` reflects the change accurately on producer crate. *Command:* `cargo public-api --diff`.
+- [ ] **X15** Buck2 public-contract compatibility target PASSes for every consumer crate; direct Cargo semver tooling is advisory unless wrapped by Buck2.
+- [ ] **X16** Buck2 public-API diff target captures the producer crate change accurately; direct Cargo public-API tooling is advisory unless wrapped by Buck2.
 - [ ] **X17** Schema migration (if state) ships up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
 - [ ] **X18** Feature-flag wired for breaking changes; canary rollout planned per `docs/RELEASE-MANAGEMENT.md`. *Lane:* `oya-governance-release-readiness`.
 

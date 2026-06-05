@@ -29,7 +29,7 @@ doc_status: published
 ## Engineering bar
 
 - [ ] **PH5** All hyperscaler practices enumerated in milestone INDEX `§Inherited hyperscaler practices` for this phase have evidence captured (e.g., postmortem on Sev-1/2 events; design doc accepted; PRFAQ archived). *(advisory)*
-- [ ] **PH6** `cargo nextest run --workspace --all-features --no-fail-fast` green on the phase-final merge commit. *Verification:* command output.
+- [ ] **PH6** Phase-owned Buck2 build/test/check target set green on the phase-final merge commit; Cargo-only output is local dual-build evidence, not phase authority. *Verification:* Buck2/Prow command output.
 - [ ] **PH7** Distroless image build (if phase ships binaries) passes image-size budget. *Lane:* `oya-governance-image-discipline`.
 - [ ] **PH8** Supply-chain attestation: Cosign + Syft SBOM + SLSA provenance for every artifact emitted in this phase. *Lane:* `oya-governance-supply-chain`.
 

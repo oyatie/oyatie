@@ -138,11 +138,11 @@ Cross-product rule: this µservice MUST NOT import any other product µservice
 crate at any layer. All cross-product flows go through Workflow (events) or
 Ontology (entity reads/writes). LEAN-A2 CI lane enforces.
 
-CI lanes that must green:
-- `oya gate validate lean-a1 --ms <µservice>` — dependency-direction
-- `oya gate validate lean-a2 --ms <µservice>` — cross-product-refusal
-- `oya gate validate port-location --ms <µservice>` — ports in kernel
-- `oya gate validate layer-correctness --ms <µservice>` — layer enum match
+CI lanes that must green under Buck2/Prow:
+- `dependency-direction` — layer ordering and allowed imports
+- `cross-product-refusal` — no direct product-to-product dependencies
+- `port-location` — ports live in the kernel boundary
+- `layer-correctness` — layer enum and crate placement match
 
 ---
 
