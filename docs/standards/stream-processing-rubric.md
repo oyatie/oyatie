@@ -84,7 +84,7 @@ Reality (per ADR-0195 §"Materialize — DEFERRED"): re-evaluate at v1.0 GA + Ap
 
 1. Demonstrate which Q1-Q5 trigger MV-insufficiency for the workload.
 2. Author an ADR amendment to ADR-0195 listing `(µservice, workload, Flink job)`.
-3. Author the Flink cluster Helm chart at `microservices/<ms>/iac/helm/flink/`.
+3. Author the Flink cluster desired state in the service-owned CUE `iac/cue/flink.cue` package and export generated KRM manifests under `iac/generated/k8s/`; create a Helm adapter only when external chart compatibility is required.
 4. Wire OpenSLO + runbook per ADR-0186 Stage 5 + per-µservice runbooks/.
 5. Capacity model entry for the new Flink cluster.
 

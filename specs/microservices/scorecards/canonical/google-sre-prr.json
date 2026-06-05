@@ -8,7 +8,7 @@
   "overlay_consumers": "microservices/<ms>/scorecards/overrides.json#google_sre_prr",
   "_placeholders": {
     "<ms>": "microservice slug",
-    "<chart>": "Helm chart subdirectory name (defaults to <ms>)"
+    "<desired_state_package>": "service-owned CUE package with generated KRM manifests; Helm adapters are generated compatibility outputs only"
   },
   "checklist": {
     "slos_defined": {
@@ -17,7 +17,7 @@
     },
     "error_budget_policy": {
       "status": "green",
-      "evidence_pattern": "microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x; microservices/<ms>/iac/helm/<chart>/templates/prometheusrule.yaml (per-SLO burn-rate alerts)"
+      "evidence_pattern": "observability/iac/cue/hyperscaler-invariants.cue + observability/iac/generated/k8s/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x; <service>/iac/cue/slo.cue + <service>/iac/generated/k8s/prometheusrule.yaml (per-SLO burn-rate alerts)"
     },
     "runbooks_complete": {
       "status": "green",
@@ -49,7 +49,7 @@
     },
     "deployment_strategy_documented": {
       "status": "green",
-      "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml (rolling update + HPA); .github/workflows/promote-dev-to-staging.yml + promote-staging-to-production.yml"
+      "evidence_pattern": "<service>/iac/cue/rollout.cue + <service>/iac/cue/scale.cue + <service>/iac/generated/k8s/; native release-conveyor promotion evidence"
     },
     "multi_region_strategy_documented": {
       "status": "green",

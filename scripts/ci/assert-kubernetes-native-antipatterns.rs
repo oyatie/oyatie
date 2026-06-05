@@ -28,6 +28,36 @@ const DOCS_README_PATH: &str = "docs/README.md";
 const STANDARDS_INDEX_PATH: &str = "docs/standards/INDEX.md";
 const CHECK_COMMAND: &str = "buck2 build //:kubernetes-native-anti-pattern-check";
 
+const FIRST_PARTY_HELM_EVIDENCE_CLEAN_FILES: &[&str] = &[
+    "docs/standards/hyperscaler-invariant-conformance.md",
+    "docs/standards/image-signing-canonical.md",
+    "docs/standards/regulatory-pack-authzpolicy-overlays.md",
+    "docs/standards/stream-processing-rubric.md",
+    "docs/standards/timescaledb-adoption.md",
+    "specs/csi-storage-class-canonical.json",
+    "specs/microservices/scorecards/canonical/aws-well-architected.json",
+    "specs/microservices/scorecards/canonical/cis-k8s-benchmark.json",
+    "specs/microservices/scorecards/canonical/google-sre-prr.json",
+    "specs/per-microservice-flat-layout.json",
+];
+
+const FIRST_PARTY_HELM_EVIDENCE_FORBIDDEN_PHRASES: &[&str] = &[
+    "microservices/<ms>/iac/helm",
+    "microservices/observability/iac/helm",
+    "microservices/cloud-k8s/iac/helm",
+    "microservices/*/iac/helm",
+    "iac/helm/",
+    "Helm chart subdirectory",
+    "IaC-as-code (Helm",
+    "Helm post-install hook",
+    "Helm chart consumption",
+    "standard Helm chart",
+    "Per-µservice Helm templates",
+    "Helm templates reference",
+    "Author the Flink cluster Helm chart",
+    "every µservice Helm chart",
+];
+
 const OFFICIAL_SOURCES: &[&str] = &[
     "https://architecture.cncf.io/",
     "https://kubernetes.io/docs/concepts/architecture/controller/",
@@ -61,6 +91,9 @@ const OFFICIAL_SOURCES: &[&str] = &[
     "https://kubernetes.io/docs/concepts/configuration/secret/#information-security-for-secrets",
     "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
     "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+    "https://cuelang.org/docs/reference/spec/",
+    "https://cuelang.org/docs/concept/using-the-cue-export-command/",
+    "https://cuelang.org/docs/reference/modules/",
     "https://helm.sh/docs/topics/charts/",
 ];
 
@@ -76,6 +109,7 @@ const REQUIRED_PATTERNS: &[&str] = &[
     "pointer_thin_or_generated_shared_surfaces",
     "cue_first_cell_pod_config_authority",
     "helm_adapter_compatibility_wrapper",
+    "rust_cue_compatible_desired_state_engine_conformance_lane",
     "scale_to_zero_eligibility_gate",
     "shadow_adapters_not_authority",
     "native_scm_ci_cd_service_seams",
@@ -150,6 +184,7 @@ pub struct Evaluation {
     pub required_patterns: usize,
     pub forbidden_anti_patterns: usize,
     pub official_sources: usize,
+    pub first_party_helm_evidence_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -495,10 +530,16 @@ pub fn desired_state_authority_failures(
         "Do not",
         CHECK_COMMAND,
         "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+        "https://cuelang.org/docs/reference/spec/",
+        "https://cuelang.org/docs/concept/using-the-cue-export-command/",
+        "https://cuelang.org/docs/reference/modules/",
         "https://helm.sh/docs/topics/charts/",
         "https://architecture.cncf.io/",
         "https://kubernetes.io/docs/concepts/architecture/controller/",
         "Existing `iac/helm` paths are compatibility scaffolding",
+        "## Rust-native engine seam",
+        "not first-party authority until conformance is proven",
+        "golden tests comparing Rust output to upstream CUE",
     ] {
         require_contains(
             standard,
@@ -575,6 +616,35 @@ pub fn desired_state_authority_failures(
     failures
 }
 
+pub fn first_party_helm_evidence_text_failures(label: &str, text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in FIRST_PARTY_HELM_EVIDENCE_FORBIDDEN_PHRASES {
+        require_not_contains(text, phrase, &mut failures, label);
+    }
+    require_contains(text, "CUE", &mut failures, label);
+    require_contains(text, "generated KRM", &mut failures, label);
+
+    failures
+}
+
+pub fn first_party_helm_evidence_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in FIRST_PARTY_HELM_EVIDENCE_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        failures.extend(first_party_helm_evidence_text_failures(clean_file, &text));
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
     let contract = read(root, CONTRACT_PATH, &mut failures);
@@ -610,6 +680,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &docs_readme,
         &standards_index,
     ));
+    failures.extend(first_party_helm_evidence_failures(root));
 
     for needle in [
         "\"kubernetes_native_anti_patterns\"",
@@ -633,6 +704,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "lease_based_controller_coordination",
         "topology_spread_and_dedicated_node_pools",
         "cluster_admin_or_wildcard_rbac_for_runners",
+        "rust_cue_compatible_engine_backlog_recorded",
+        "Rust-native CUE-compatible desired-state engine as future native seam",
     ] {
         require_contains(&masterplan, needle, &mut failures, MASTERPLAN_PATH);
     }
@@ -700,6 +773,9 @@ pub fn evaluate(root: &Path) -> Evaluation {
     ] {
         require_contains(&buck, needle, &mut failures, BUCK_PATH);
     }
+    for clean_file in FIRST_PARTY_HELM_EVIDENCE_CLEAN_FILES {
+        require_contains(&buck, clean_file, &mut failures, BUCK_PATH);
+    }
 
     Evaluation {
         verdict: if failures.is_empty() { "PASS" } else { "FAIL" }.to_owned(),
@@ -707,6 +783,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         required_patterns: REQUIRED_PATTERNS.len(),
         forbidden_anti_patterns: FORBIDDEN_ANTI_PATTERNS.len(),
         official_sources: OFFICIAL_SOURCES.len(),
+        first_party_helm_evidence_clean_files: FIRST_PARTY_HELM_EVIDENCE_CLEAN_FILES.len(),
     }
 }
 
@@ -718,13 +795,14 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"contract\":\"{}\",\"buck2_check\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"required_patterns\":{},\"forbidden_anti_patterns\":{},\"official_sources\":{},\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"contract\":\"{}\",\"buck2_check\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"required_patterns\":{},\"forbidden_anti_patterns\":{},\"official_sources\":{},\"first_party_helm_evidence_clean_files\":{},\"failures\":[{}]}}",
         evaluation.verdict,
         CONTRACT_PATH,
         CHECK_COMMAND,
         evaluation.required_patterns,
         evaluation.forbidden_anti_patterns,
         evaluation.official_sources,
+        evaluation.first_party_helm_evidence_clean_files,
         failures
     )
 }
