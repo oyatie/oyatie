@@ -53,8 +53,11 @@ Only `oya-identity-zitadel-instance-controller-*` crates read or migrate Zitadel
 
 CI lane `lean-a18-identity-vendor-isolation` (advisory-mode initially; blocker after 60 days clean) runs:
 
-- `cargo tree -p <crate>` for every workspace crate; refuses Zitadel transitive deps outside the allowlist.
-- `grep -r 'zitadel' microservices/*/iac` outside `microservices/identity/iac/helm/zitadel/`.
+- Buck2/Prow dependency-graph target for every workspace crate; refuses
+  Zitadel transitive deps outside the allowlist while treating Cargo metadata as
+  graph input only.
+- Buck2/Prow IaC reference scan target over identity-owned KRM/CUE surfaces;
+  retired `microservices/*/iac` Helm path checks are not the active authority.
 
 ## Phase-2 swap protocol
 

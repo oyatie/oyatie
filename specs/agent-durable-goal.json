@@ -205,14 +205,14 @@
           {
             "id": "I-4",
             "step": "fast_check",
-            "verb": "cargo check -p <crate> — fastest feedback that the green-step code still type-checks",
+            "verb": "Buck2 affected Rust type-check/build target for the touched crate graph — fastest feedback that the green-step code still type-checks",
             "exit_when": "exit 0",
             "on_fail": "fix; return to I-3"
           },
           {
             "id": "I-5",
             "step": "focused_test",
-            "verb": "cargo nextest -p <crate> -- <test_filter> — narrowest run including the new test + any neighbour tests",
+            "verb": "Buck2 focused test target or affected-test shard including the new test plus neighbouring tests",
             "exit_when": "0 failures",
             "on_fail": "diagnose; return to I-3"
           },
@@ -225,7 +225,7 @@
           {
             "id": "I-7",
             "step": "broad_test",
-            "verb": "cargo nextest --workspace — full platform (regression check)",
+            "verb": "Buck2 broad affected-platform test fanout through the Prow/Kubernetes-native lane",
             "exit_when": "0 failures",
             "on_fail": "regression introduced; return to I-3 or I-6"
           },
@@ -476,7 +476,7 @@
     {
       "id": "OP-09",
       "name": "plain_primitives_only",
-      "rule": "External agent-coordination tooling (grit, rtk, icm, vox) is RETIRED per ADR-0116 (2026-05-16). Use plain git, gh, cargo, jq, sed only. Foundry pipeline (M01-P18) is the canonical agentic workflow substrate.",
+      "rule": "External agent-coordination tooling (grit, rtk, icm, vox) is RETIRED per ADR-0116 (2026-05-16). Use plain git and GitHub PR adapter operations for source control; use Buck2/Prow evidence for build, test, check, and coverage authority. Cargo manifests are compatibility metadata, not CI or merge authority.",
       "supersedes_directives": [
         "AGENTIC PIPELINE HARDENING RULE 2026-05-12 (grit-only)",
         "grit-claim-state-on-stop hook"
@@ -671,12 +671,12 @@
     }
   },
   "score_cards": {
-    "description": "Deterministic checks computed mechanically (jq / regex / cargo lane / git command). LLM has NO role in pass/fail — only in triage WHY a failure occurred and proposing a fix. Same input → same output. No prompt drift = no false signals from scoring.",
+    "description": "Deterministic checks computed mechanically (jq / regex / Buck2 target / git query). LLM has NO role in pass/fail — only in triage WHY a failure occurred and proposing a fix. Same input → same output. No prompt drift = no false signals from scoring.",
     "design_principle": "LLM-judgment forbidden in pass/fail decision. If a check's pass/fail is subjective, it's not in the score card — it lives in a subagent facet (T1+).",
     "check_schema": {
       "id": "string — globally unique, stable",
       "facet": "string — F1..F13 / M1..M2 / A1..A7 OR 'pipeline'",
-      "query": "deterministic command — jq filter / regex / cargo nextest -p ... / oya gate validate ...",
+      "query": "deterministic query — jq filter / regex / Buck2 target / git query",
       "pass_criterion": "string — e.g. 'exit 0', 'count==0', 'jq returns true'",
       "score": "integer 0-10 — how much weight this check carries in the facet aggregate",
       "severity_tier": "enum {INFO, MINOR, MAJOR, CRITICAL, BLOCKER}",
@@ -776,7 +776,7 @@
       "unit": "kernel layer — pure functions, no IO; runs in <100ms per test",
       "integration": "domain + usecase layer — exercises adapters with real fixtures; runs in <2s per test",
       "contract": "api/worker boundary — pinned against contracts/*.yaml schemas",
-      "e2e": "full pipeline — branch-pipeline rehearsal under cargo nextest e2e profile",
+      "e2e": "full pipeline — branch-pipeline rehearsal under Buck2/Prow e2e target profile",
       "fitness": "oya-governance-* lanes — CI-only structural checks"
     },
     "coverage_floor": "Per crate: 100% of new public API + 80% of internal branches. No floor on auto-generated code.",
@@ -796,14 +796,14 @@
         "fail_policy": "fail-fast (cancel sibling lanes once one fails — no point spending compute)",
         "parallelism": "all in parallel",
         "lanes": [
-          "cargo-check",
-          "cargo-fmt",
-          "cargo-clippy",
-          "cargo-nextest",
-          "oya-vcs-admission",
-          "oya-governance-supply-chain",
-          "oya-governance-api-semver",
-          "oya-governance-cohesion"
+          "buck2-rust-typecheck",
+          "buck2-rust-format",
+          "buck2-rust-lint",
+          "buck2-rust-test",
+          "native-scm-admission",
+          "buck2-governance-supply-chain",
+          "buck2-governance-api-semver",
+          "buck2-governance-cohesion"
         ]
       },
       "pre_merge_advisory": {
@@ -1521,13 +1521,13 @@
     "checks": [
       {
         "id": "V-01",
-        "check": "cargo check --workspace --locked",
+        "check": "Buck2 affected Rust type-check/build target for the changed graph",
         "must_satisfy": "exit 0",
         "skip_if": "no rust source touched"
       },
       {
         "id": "V-02",
-        "check": "cargo nextest run --workspace --locked --no-fail-fast",
+        "check": "Buck2 affected Rust test fanout plus required Prow/Kubernetes-native lane evidence",
         "must_satisfy": "0 failures",
         "skip_if": "no rust source touched"
       },
@@ -1541,8 +1541,8 @@
         "check": "per-lane validators for affected domain",
         "must_satisfy": "all SUCCESS",
         "examples": [
-          "oya doc adr-index --write",
-          "oya gate validate <lane>"
+          "buck2 build //:repo-hygiene-automation-check",
+          "Prow/Kubernetes-native oya-ci-required reports SUCCESS"
         ]
       },
       {
@@ -1582,7 +1582,7 @@
     "steps": [
       "git worktree add -b <branch> /tmp/<work> origin/dev",
       "Edit; ensure ADR (if new doctrine), evidence file, audit-chain row",
-      "cargo check && cargo nextest run (verify locally if toolchain present)",
+      "Run affected Buck2 check/test targets and collect Prow/Kubernetes-native evidence where required",
       "git push -u origin <branch>",
       "gh pr create --base dev --title '<class>(<scope>): <one-line>' --body '<cites evidence + verification + test plan>'",
       "Address review comments; resolve threads via GraphQL resolveReviewThread mutation once fixed",

@@ -75,6 +75,13 @@ const QUALITY_LANE_KERNEL_PATH: &str = "libs/oya-check-quality-lane/src/lib.rs";
 const M02_EXIT_GATE_VALIDATORS_PATH: &str = "docs/standards/m02-exit-gate-validators.md";
 const CLEAN_ARCHITECTURE_STANDARD_PATH: &str = "docs/standards/clean-architecture.md";
 const CLAUDE_CODE_HARNESS_STANDARD_PATH: &str = "docs/standards/claude-code-harness.md";
+const CARGO_BUCK2_AUTHORITY_BOUNDARY_CLEAN_FILES: &[&str] = &[
+    "docs/standards/multispectrum-review.md",
+    "docs/standards/ontology-projection-substrate.md",
+    "docs/standards/hyperscaler-best-practices.md",
+    "docs/standards/identity-vendor-isolation.md",
+    "specs/agent-durable-goal.json",
+];
 const STANDARDS_RETIRED_COMMAND_CLEAN_FILES: &[&str] = &[
     "docs/standards/anti-patterns.md",
     "docs/standards/api-design.md",
@@ -314,6 +321,23 @@ const CLEAN_ARCHITECTURE_STALE_PORT_OWNERSHIP_PHRASES: &[&str] = &[
 ];
 const CLAUDE_CODE_HARNESS_RAW_CARGO_EVIDENCE_PHRASES: &[&str] =
     &["cargo nextest run", "cargo deny check", "AGENTS.md D9–D11"];
+const CARGO_BUCK2_AUTHORITY_BOUNDARY_FORBIDDEN_PHRASES: &[&str] = &[
+    "cargo run -p oya-check-dependency-seam",
+    "cargo run -p oya-projection-rebuild",
+    "cargo check -p <crate>",
+    "cargo nextest -p <crate>",
+    "cargo nextest --workspace",
+    "cargo check --workspace --locked",
+    "cargo nextest run --workspace",
+    "cargo tree -p <crate>",
+    "cargo-only CI",
+    "Cargo workspace is sufficient",
+    "Oyatie already mandates it",
+    "\"cargo-check\"",
+    "\"cargo-fmt\"",
+    "\"cargo-clippy\"",
+    "\"cargo-nextest\"",
+];
 const ONBOARDING_RETIRED_DEV_CLI_PHRASES: &[&str] = &["cargo run -p oya-dev-cli", "oya-dev-cli"];
 const OBSERVABILITY_ONBOARDING_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "cargo run -p oya-dev-cli",
@@ -1369,6 +1393,7 @@ pub struct Evaluation {
     pub clean_architecture_buck2_test_posture_files: usize,
     pub clean_architecture_port_ownership_files: usize,
     pub claude_code_harness_buck2_evidence_files: usize,
+    pub cargo_buck2_authority_boundary_clean_files: usize,
     pub standards_retired_command_clean_files: usize,
     pub standards_external_substrate_clean_files: usize,
     pub microservice_spec_authority_clean_files: usize,
@@ -2801,6 +2826,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the Claude Code harness Buck2 evidence guard",
         ),
         (
+            "\"Cargo/Buck2 authority boundary active-doc scan\"",
+            "documentation sprawl automation targets must include the Cargo/Buck2 authority boundary scan",
+        ),
+        (
+            "\"cargo_buck2_authority_boundary_scan\"",
+            "documentation sprawl policy must record the Cargo/Buck2 authority boundary guard",
+        ),
+        (
             "\"standards retired external substrate name scan\"",
             "documentation sprawl automation targets must include the standards retired external substrate scan",
         ),
@@ -3728,6 +3761,62 @@ pub fn claude_code_harness_buck2_evidence_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn cargo_buck2_authority_boundary_text_failures(clean_file: &str, text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in CARGO_BUCK2_AUTHORITY_BOUNDARY_FORBIDDEN_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{clean_file}: Cargo/Buck2 boundary doc contains stale Cargo-as-authority phrase {phrase:?}; use Buck2/Prow target evidence and Cargo-metadata/advisory wording"
+            ));
+        }
+    }
+    let retired_fast_check = ["car", "go check"].concat();
+    let retired_broad_test = [" && car", "go nextest run"].concat();
+    let retired_compound_local_check =
+        [retired_fast_check.as_str(), retired_broad_test.as_str()].concat();
+    if text.contains(&retired_compound_local_check) {
+        failures.push(format!(
+            "{clean_file}: Cargo/Buck2 boundary doc contains stale Cargo-as-authority phrase {retired_compound_local_check:?}; use Buck2/Prow target evidence and Cargo-metadata/advisory wording"
+        ));
+    }
+
+    let lowered = text.to_ascii_lowercase();
+    require(
+        lowered.contains("buck2") && lowered.contains("prow"),
+        &mut failures,
+        format!(
+            "{clean_file}: Cargo/Buck2 boundary doc must name Buck2 and Prow evidence authority"
+        ),
+    );
+    require(
+        lowered.contains("cargo") && (lowered.contains("metadata") || lowered.contains("advisory")),
+        &mut failures,
+        format!("{clean_file}: Cargo/Buck2 boundary doc must keep Cargo as metadata/advisory only"),
+    );
+
+    failures
+}
+
+pub fn cargo_buck2_authority_boundary_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in CARGO_BUCK2_AUTHORITY_BOUNDARY_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        failures.extend(cargo_buck2_authority_boundary_text_failures(
+            clean_file, &text,
+        ));
+    }
+
+    failures
+}
+
 pub fn onboarding_retired_dev_cli_text_failures(clean_file: &str, text: &str) -> Vec<String> {
     let mut failures = Vec::new();
 
@@ -4202,6 +4291,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(clean_architecture_raw_cargo_testing_failures(root));
     failures.extend(clean_architecture_kernel_owned_port_failures(root));
     failures.extend(claude_code_harness_buck2_evidence_failures(root));
+    failures.extend(cargo_buck2_authority_boundary_failures(root));
     failures.extend(standards_retired_external_substrate_failures(root));
     failures.extend(microservice_spec_authority_failures(root));
     failures.extend(design_system_spec_authority_failures(root));
@@ -4592,6 +4682,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         clean_architecture_buck2_test_posture_files: 1,
         clean_architecture_port_ownership_files: 1,
         claude_code_harness_buck2_evidence_files: 1,
+        cargo_buck2_authority_boundary_clean_files: CARGO_BUCK2_AUTHORITY_BOUNDARY_CLEAN_FILES
+            .len(),
         standards_retired_command_clean_files: STANDARDS_RETIRED_COMMAND_CLEAN_FILES.len(),
         standards_external_substrate_clean_files: STANDARDS_EXTERNAL_SUBSTRATE_CLEAN_FILES.len(),
         microservice_spec_authority_clean_files: MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES.len(),
@@ -4615,7 +4707,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"claude_code_harness_buck2_evidence_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"observability_onboarding_authority_clean_files\":{},\"onboarding_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"claude_code_harness_buck2_evidence_files\":{},\"cargo_buck2_authority_boundary_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"observability_onboarding_authority_clean_files\":{},\"onboarding_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -4633,6 +4725,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.clean_architecture_buck2_test_posture_files,
         evaluation.clean_architecture_port_ownership_files,
         evaluation.claude_code_harness_buck2_evidence_files,
+        evaluation.cargo_buck2_authority_boundary_clean_files,
         evaluation.standards_retired_command_clean_files,
         evaluation.standards_external_substrate_clean_files,
         evaluation.microservice_spec_authority_clean_files,

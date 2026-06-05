@@ -156,6 +156,7 @@
       "clean architecture raw Cargo testing posture scan",
       "clean architecture kernel-owned port posture scan",
       "Claude Code harness Buck2 evidence posture scan",
+      "Cargo/Buck2 authority boundary active-doc scan",
       "standards retired external substrate name scan",
       "microservice spec retired CI/CD and local gate authority scan",
       "design-system spec retired local validator authority scan",
@@ -358,6 +359,19 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental Claude Code harness evidence-posture guard only; broader OMC/OMX hook contract cleanup remains a separate backlog slice"
+    },
+    "cargo_buck2_authority_boundary_scan": {
+      "clean_files": [
+        "docs/standards/multispectrum-review.md",
+        "docs/standards/ontology-projection-substrate.md",
+        "docs/standards/hyperscaler-best-practices.md",
+        "docs/standards/identity-vendor-isolation.md",
+        "specs/agent-durable-goal.json"
+      ],
+      "policy": "Active standards/spec guidance must answer Cargo vs Buck2 consistently: Buck2/Prow owns build, test, check, coverage, affected-target fanout, and protected-branch evidence; Cargo.toml/Cargo.lock and Cargo ecosystem tools may remain compatibility metadata, dependency graph inputs, release-optimization exceptions, or local advisory ergonomics only.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental active-doc boundary guard only; broader Cargo ecosystem policy projection remains dependency-policy scope"
     },
     "standards_retired_external_substrate_scan": {
       "clean_files": [

@@ -51,6 +51,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.clean_architecture_buck2_test_posture_files, 1);
     assert_eq!(evaluation.clean_architecture_port_ownership_files, 1);
     assert_eq!(evaluation.claude_code_harness_buck2_evidence_files, 1);
+    assert_eq!(evaluation.cargo_buck2_authority_boundary_clean_files, 5);
     assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
     assert_eq!(evaluation.design_system_spec_authority_clean_files, 17);
     assert_eq!(evaluation.schema_registry_spec_authority_clean_files, 9);
@@ -1706,6 +1707,28 @@ fn active_doc_phrase_scanner_rejects_raw_cargo_hyperscaler_evidence() {
         "mandatory `cargo nextest`",
         "CI enforces `cargo clippy",
         "Tests (`cargo nextest",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn cargo_buck2_authority_boundary_scan_rejects_raw_cargo_authority() {
+    let failures = gate::cargo_buck2_authority_boundary_text_failures(
+        "docs/standards/multispectrum-review.md",
+        "Run cargo run -p oya-check-dependency-seam, then cargo check -p <crate>, cargo nextest -p <crate>, and cargo nextest --workspace. Buck2 exists but Cargo workspace is sufficient.",
+    );
+    for expected in [
+        "cargo run -p oya-check-dependency-seam",
+        "cargo check -p <crate>",
+        "cargo nextest -p <crate>",
+        "cargo nextest --workspace",
+        "Cargo workspace is sufficient",
+        "Prow evidence authority",
+        "metadata/advisory",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
