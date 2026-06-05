@@ -154,10 +154,13 @@ fn validate_record(record: &DocumentationPipelineRecord) -> Result<(), Documenta
             reason: "step_id must be lowercase alphanumeric plus hyphen".into(),
         });
     }
-    if !record.documented_command.starts_with("oya doc ") {
+    if !record
+        .documented_command
+        .starts_with("documentation capability: ")
+    {
         return Err(DocumentationSystemError::InvalidPipelineRecord {
             step_id: record.step_id.clone(),
-            reason: "documented_command must name an oya doc subcommand".into(),
+            reason: "documented_command must name a documentation capability".into(),
         });
     }
     if record.scope_path.trim().is_empty() || record.scope_path.contains('\t') {
@@ -376,7 +379,7 @@ mod tests {
     ) -> DocumentationPipelineRecord {
         DocumentationPipelineRecord {
             step_id: step_id.into(),
-            documented_command: format!("oya doc {step_id}"),
+            documented_command: format!("documentation capability: {step_id}"),
             state,
             check_command: check_command.map(str::to_string),
             check_command_wired,

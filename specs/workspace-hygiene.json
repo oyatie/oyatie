@@ -11,13 +11,11 @@
     "specs/hyperscaler-gates.json"
   ],
   "gate": {
-    "command": "oya gate validate workspace-hygiene",
+    "command": "buck2 build //:repo-hygiene-automation-check",
     "default_mode": "audit",
     "strict_mode": "release_or_hyperscaler_claim",
-    "cleanup_commands": [
-      "oya gate validate workspace-hygiene --clean-build-artifacts",
-      "oya gate validate workspace-hygiene --clean-temp-artifacts"
-    ],
+    "cleanup_commands": [],
+    "cleanup_automation": "future Rust/Buck2/Prow workspace hygiene job emits a cleanup plan; live cleanup remains explicit operator/substrate action, not retired local CLI authority",
     "side_effect_policy": "inventory_by_default_cleanup_requires_explicit_flag",
     "evidence_path_template": "evidence/workspace-hygiene/{change_id}.json"
   },

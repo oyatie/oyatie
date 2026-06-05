@@ -61,6 +61,13 @@ const LTS_VERSIONS_VERIFIED_PATH: &str = "docs/standards/lts-versions-verified.m
 const OBSERVABILITY_SLO_PATH: &str = "docs/standards/observability-slo.md";
 const DOC_STALENESS_MAIN: &str = "tools/oya-doc-staleness-inventory-app/src/main.rs";
 const TOOLCHAIN_PIN_UPDATER_PATH: &str = "scripts/ci/sync-latest-toolchain-pins.rs";
+const WORKSPACE_HYGIENE_SPEC_PATH: &str = "specs/workspace-hygiene.json";
+const FEATURE_FLAG_SUBSTRATE_PATH: &str = "specs/feature-flag-substrate-canonical.json";
+const MULTI_REGION_DISPOSITION_PATH: &str = "specs/multi-region-disposition-canonical.json";
+const MICROSERVICE_MIGRATION_TOOLING_PATH: &str = "specs/microservice-migration-tooling.json";
+const RETIRED_VOCABULARY_PATH: &str = "registry/vocabulary/retired.yaml";
+const DOCS_PIPELINE_REGISTRY_PATH: &str = "registry/docs/pipeline.tsv";
+const DOCUMENTATION_SYSTEM_KERNEL_PATH: &str = "libs/oya-check-documentation-system/src/lib.rs";
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
@@ -422,6 +429,7 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "oya gate validate",
     "oya gate run-all",
     "oya-dev-cli",
+    "oya doc ",
     "oya verify command",
     "`oya gate` / `oya verify`",
     "reviewer/governance approval",
@@ -464,6 +472,7 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "oya gate validate",
     "oya gate run-all",
     "oya-dev-cli",
+    "oya doc ",
     "oya verify command",
     "`oya gate` / `oya verify`",
     "reviewer/governance approval",
@@ -1179,6 +1188,125 @@ fn retired_oya_dev_cli_active_gate_command_failure(label: &str, text: &str) -> O
     }
 }
 
+fn require_absent(text: &str, needle: &str, failures: &mut Vec<String>, label: &str) {
+    require(
+        !text.contains(needle),
+        failures,
+        format!("{label}: stale retired CLI authority present: {needle:?}"),
+    );
+}
+
+pub fn retired_cli_registry_spec_failures(
+    workspace_hygiene: &str,
+    feature_flag: &str,
+    multi_region: &str,
+    microservice_migration: &str,
+    retired_vocabulary: &str,
+    docs_pipeline: &str,
+    documentation_system_kernel: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    require_contains(
+        workspace_hygiene,
+        "\"command\": \"buck2 build //:repo-hygiene-automation-check\"",
+        &mut failures,
+        WORKSPACE_HYGIENE_SPEC_PATH,
+    );
+    require(
+        compact_json_text(workspace_hygiene).contains("\"cleanup_commands\":[]"),
+        &mut failures,
+        format!(
+            "{WORKSPACE_HYGIENE_SPEC_PATH}: cleanup commands must stay empty until a Rust/Buck2/Prow cleanup job owns side effects"
+        ),
+    );
+    require_contains(
+        feature_flag,
+        "planned Rust/Buck2/Prow validator",
+        &mut failures,
+        FEATURE_FLAG_SUBSTRATE_PATH,
+    );
+    require_contains(
+        multi_region,
+        "planned Rust/Buck2/Prow validator: multi-region-disposition",
+        &mut failures,
+        MULTI_REGION_DISPOSITION_PATH,
+    );
+    require_contains(
+        multi_region,
+        "planned Rust/Buck2/Prow validator: sovereign-tenant-pin",
+        &mut failures,
+        MULTI_REGION_DISPOSITION_PATH,
+    );
+    require_contains(
+        microservice_migration,
+        "future Rust/Buck2/Prow migration job",
+        &mut failures,
+        MICROSERVICE_MIGRATION_TOOLING_PATH,
+    );
+    require_contains(
+        retired_vocabulary,
+        "retired CLI remains tombstone/provenance only",
+        &mut failures,
+        RETIRED_VOCABULARY_PATH,
+    );
+    require_contains(
+        docs_pipeline,
+        "documentation capability: openapi",
+        &mut failures,
+        DOCS_PIPELINE_REGISTRY_PATH,
+    );
+    require_contains(
+        documentation_system_kernel,
+        "documentation capability: ",
+        &mut failures,
+        DOCUMENTATION_SYSTEM_KERNEL_PATH,
+    );
+
+    for (label, text, needle) in [
+        (
+            WORKSPACE_HYGIENE_SPEC_PATH,
+            workspace_hygiene,
+            "oya gate validate workspace-hygiene",
+        ),
+        (
+            FEATURE_FLAG_SUBSTRATE_PATH,
+            feature_flag,
+            "oya gate validate feature-flag-lifecycle",
+        ),
+        (
+            MULTI_REGION_DISPOSITION_PATH,
+            multi_region,
+            "oya gate validate multi-region-disposition",
+        ),
+        (
+            MULTI_REGION_DISPOSITION_PATH,
+            multi_region,
+            "oya gate validate sovereign-tenant-pin",
+        ),
+        (
+            MICROSERVICE_MIGRATION_TOOLING_PATH,
+            microservice_migration,
+            "oya dev migrate-microservice --rollback",
+        ),
+        (
+            RETIRED_VOCABULARY_PATH,
+            retired_vocabulary,
+            "do not revive oya vcs",
+        ),
+        (DOCS_PIPELINE_REGISTRY_PATH, docs_pipeline, "\toya doc "),
+        (
+            DOCUMENTATION_SYSTEM_KERNEL_PATH,
+            documentation_system_kernel,
+            "documented_command must name an oya doc subcommand",
+        ),
+    ] {
+        require_absent(text, needle, &mut failures, label);
+    }
+
+    failures
+}
+
 pub fn spec_failures(spec: &str) -> Vec<String> {
     let mut failures = Vec::new();
 
@@ -1712,8 +1840,24 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let observability_slo = read(root, OBSERVABILITY_SLO_PATH, &mut failures);
     let github_actions_bootstrap = read(root, GITHUB_ACTIONS_BOOTSTRAP_PATH, &mut failures);
     let toolchain_updater = read(root, TOOLCHAIN_PIN_UPDATER_PATH, &mut failures);
+    let workspace_hygiene = read(root, WORKSPACE_HYGIENE_SPEC_PATH, &mut failures);
+    let feature_flag = read(root, FEATURE_FLAG_SUBSTRATE_PATH, &mut failures);
+    let multi_region = read(root, MULTI_REGION_DISPOSITION_PATH, &mut failures);
+    let microservice_migration = read(root, MICROSERVICE_MIGRATION_TOOLING_PATH, &mut failures);
+    let retired_vocabulary = read(root, RETIRED_VOCABULARY_PATH, &mut failures);
+    let docs_pipeline = read(root, DOCS_PIPELINE_REGISTRY_PATH, &mut failures);
+    let documentation_system_kernel = read(root, DOCUMENTATION_SYSTEM_KERNEL_PATH, &mut failures);
 
     failures.extend(spec_failures(&spec));
+    failures.extend(retired_cli_registry_spec_failures(
+        &workspace_hygiene,
+        &feature_flag,
+        &multi_region,
+        &microservice_migration,
+        &retired_vocabulary,
+        &docs_pipeline,
+        &documentation_system_kernel,
+    ));
     failures.extend(tenant_rbac_packaging_failures(&tenant_rbac_packaging));
     failures.extend(rust_toolchain_policy_failures(
         &rust_toolchain,

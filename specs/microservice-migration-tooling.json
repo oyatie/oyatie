@@ -9,11 +9,11 @@
     "created_at": "2026-05-17",
     "owner_team": "axis-foundry + council-architecture",
     "adr": "ADR-0131",
-    "purpose": "Historical migration-tooling contract retained as pattern registry for future Rust/Buck2/native-SCM migration automation; not an active oya CLI command contract.",
-    "updated_at": "2026-06-04T17:10:00Z",
-    "retirement_note": "The oya dev migrate-microservice and oya vcs claim/done surfaces are retired as agent/CI authorities. Preserve the structured migration planning pattern by rewriting it as Rust libraries, Buck2 targets, and native SCM service/Prow jobs; do not revive an oya vcs CLI."
+    "purpose": "Historical migration-tooling contract retained as pattern registry for future Rust/Buck2/native-SCM migration automation; not an active local CLI command contract.",
+    "updated_at": "2026-06-05T08:58:00Z",
+    "retirement_note": "The historical local dev migration and VCS claim/done surfaces are retired as agent/CI authorities. Preserve the structured migration planning pattern by rewriting it as Rust libraries, Buck2 targets, and native SCM service/Prow jobs; do not restore retired local VCS CLI authority."
   },
-  "command": "retired; future surface is Rust library + Buck2 target + native SCM service job, not oya dev CLI",
+  "command": "retired; future surface is Rust library + Buck2 target + native SCM service job, not local dev CLI",
   "implemented_by": "retired CLI provenance; future implementation must be Rust/Buck2/native-SCM/Prow-owned",
   "synopsis": "retired; no sanctioned oya CLI synopsis",
   "arguments": {
@@ -182,7 +182,7 @@
     }
   ],
   "rollback": {
-    "trigger": "Verification phase failure OR explicit `oya dev migrate-microservice --rollback --microservice <ms>` invocation",
+    "trigger": "Verification phase failure OR explicit native SCM migration rollback request through the future Rust/Buck2/Prow migration job",
     "procedure": [
       "git revert the migration commit(s)",
       "Restore Cargo.toml [workspace.members] from pre-migration state",
