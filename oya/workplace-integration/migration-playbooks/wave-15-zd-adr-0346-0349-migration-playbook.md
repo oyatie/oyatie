@@ -37,11 +37,11 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 The lane names below are retained as historical provenance only. Do not implement them as retired CLI gate authority.
 
-- `oya-governance-oya-verify-ci-mirror-coverage` - refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis.
-- `oya-governance-oya-verify-ci-step-exit-semantics` - refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps.
-- `oya-governance-oya-verify-skip-flag-allowlist` - refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8.
-- `oya-governance-oya-submit-calls-verify` - refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10.
-- `oya-governance-oya-verify-exit-code-contract` - refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11.
+- `oya-governance-oya-verify-ci-mirror-coverage` - superseded local-verifier lane provenance; preserve useful checks as Rust/Buck2/Prow jobs only.
+- `oya-governance-oya-verify-ci-step-exit-semantics` - superseded local-verifier exit-semantics provenance; active status comes from required Prow contexts.
+- `oya-governance-oya-verify-skip-flag-allowlist` - superseded local skip-flag provenance; active scoping belongs to Buck2 targets and Prow jobs.
+- `oya-governance-oya-submit-calls-verify` - superseded submit/verify-chain provenance; do not revive submit or verify CLI authority.
+- `oya-governance-oya-verify-exit-code-contract` - superseded local exit-code provenance; required-context status is the active contract.
 
 ## ADR-0347 enforcement lanes
 
@@ -62,11 +62,11 @@ The lane names below are retained as historical provenance only. Do not implemen
 
 The lane names below are retained as historical provenance only. Do not implement them as Jenkins/ArgoCD interim authority.
 
-- `oya-governance-jenkins-github-actions-parity` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
-- `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
-- `oya-governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
-- `oya-governance-jenkins-jcasc-only` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
-- `oya-governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
+- `oya-governance-jenkins-github-actions-parity` - superseded parity-lane provenance; GitHub Actions is a temporary shadow adapter and must not require Jenkinsfile parity.
+- `oya-governance-argocd-application-cosign-verified` - superseded ArgoCD-lane provenance; keep cosign verification in native admission/promotion checks.
+- `oya-governance-argocd-tenant-namespace-isolation` - superseded ArgoCD-lane provenance; keep tenant isolation in Cedar/admission/promotion checks.
+- `oya-governance-jenkins-jcasc-only` - superseded Jenkins-lane provenance; do not author Jenkins controller state.
+- `oya-governance-deploy-audit-chain-emit` - superseded ArgoCD sync provenance; keep deploy audit-chain emission in native promotion checks.
 
 ## Phase 0 - Inventory
 

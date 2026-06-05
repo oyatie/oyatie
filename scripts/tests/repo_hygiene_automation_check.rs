@@ -1197,3 +1197,38 @@ fn retired_exact_name_scanner_preserves_historical_adr_provenance() {
     );
     assert!(failures.is_empty(), "{:?}", failures);
 }
+
+#[test]
+fn workplace_integration_authority_scan_rejects_retired_cli_and_helm_authority() {
+    let root = temp_dir("workplace-integration-authority");
+    let runbook_dir = root.join("oya/workplace-integration/runbooks");
+    let helm_dir = root.join("oya/workplace-integration/iac/k8s/helm/templates");
+    std::fs::create_dir_all(&runbook_dir).unwrap();
+    std::fs::create_dir_all(&helm_dir).unwrap();
+    std::fs::write(
+        runbook_dir.join("stale.md"),
+        "Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workplace --production-snapshot` exits non-zero.\n",
+    )
+    .unwrap();
+    std::fs::write(
+        helm_dir.join("deployment.yaml"),
+        "metadata:\n  labels:\n    app.kubernetes.io/managed-by: Helm\n",
+    )
+    .unwrap();
+
+    let failures = gate::workplace_integration_authority_failures(&root);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("cargo run -p oya-dev-cli -- gate validate")),
+        "{failures:?}"
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("first-party Helm chart directory must not exist")),
+        "{failures:?}"
+    );
+
+    std::fs::remove_dir_all(root).ok();
+}

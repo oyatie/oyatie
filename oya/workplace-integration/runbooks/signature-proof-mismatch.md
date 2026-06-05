@@ -33,7 +33,7 @@ doc_status: published
 - Open sev1 if `oya_workplace_integration_signature_proof_mismatch_total` exceeds the threshold documented in `microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
 - Open sev1 if `oya_workplace_integration_signature_proof_mismatch_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `workplace-integration.signature-proof-mismatch.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workplace-integration-signature-proof-mismatch --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when the trusted Rust/Prow `oya-ci-required` controller reports a non-zero production-snapshot validation for `workplace-integration-signature-proof-mismatch` against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/signature-proof-mismatch?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/workplace-integration/dashboards/audit-evidence.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/signature-proof-mismatch?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/workplace-integration/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workplace-integration",runbook="signature-proof-mismatch"}`.
@@ -85,7 +85,7 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workplace-integration-ops/signature-proof-mismatch?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKPLACE_INTEGRATION_SIGNATURE_PROOF_MISMATCH_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops workplace-integration signature-proof-mismatch status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate workplace-integration-signature-proof-mismatch --production-snapshot --cell $CELL`.
+15. Confirm production-snapshot evidence for `workplace-integration-signature-proof-mismatch` in `$CELL` through the trusted Rust/Prow `oya-ci-required` controller and attach the Buck2 artifact reference.
 16. Run crate smoke test: `cargo test -p WorkplaceAgreement domain signature_proof_mismatch -- --nocapture`.
 17. Check API contract smoke: `curl -s https://workplace-integration.internal.oyatie.dev/v1/workplace-integration/signature-proof-mismatch/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/workplace-integration/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/workplace-integration/iac/kustomize/base/kustomization.yaml`.
@@ -167,12 +167,12 @@ Signature Proof Mismatch incident decision tree
 4. Patch policy: `edit microservices/workplace-integration/policies/esign-initiate.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/workplace-integration/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p WorkplaceAgreement domain signature_proof_mismatch_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate workplace-integration-signature-proof-mismatch --fixture incident-signature-proof-mismatch.json`.
+7. Attach Buck2/Prow fixture evidence for `workplace-integration-signature-proof-mismatch` using `incident-signature-proof-mismatch.json` in the `oya-ci-required` evidence bundle.
 8. Add SLO assertion: `update microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml with alert SignatureProofMismatchCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/workplace-integration/dashboards/audit-evidence.json with oya_workplace_integration_signature_proof_mismatch_error_ratio, oya_workplace_integration_signature_proof_mismatch_lag_seconds, and oya_workplace_integration_signature_proof_mismatch_total`.
 10. Rebuild affected crate: `cargo check -p WorkplaceAgreement domain --all-targets`.
 11. Run targeted tests: `cargo test -p WorkplaceAgreement domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate workplace-integration-policy --microservice workplace-integration`.
+12. Confirm the `workplace-integration-policy` Buck2/Prow check is included in the `oya-ci-required` evidence bundle for `workplace-integration`.
 13. Deploy canary: `oya deploy canary --microservice workplace-integration --component workplace-integration-signature-proof-mismatch-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_workplace_integration_signature_proof_mismatch_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close workplace-integration-signature-proof-mismatch-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
@@ -310,4 +310,4 @@ evidence_hash: <sha256>
 ## Checkpoint Closure Criteria
 - The runbook remains current when `SignatureProofMismatchCritical`, `SignatureProofMismatchSloBurn`, `oya_workplace_integration_signature_proof_mismatch_total`, `oya.workplace-integration.signature_proof_mismatch.incident_hold`, and `workplace-integration-signature-proof-mismatch-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when the PR carries Buck2 evidence and the trusted Rust/Prow `oya-ci-required` context is green for the target runbook scopes.
