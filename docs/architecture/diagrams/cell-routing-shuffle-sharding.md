@@ -170,7 +170,7 @@ stateDiagram-v2
 - Service: [microservices/marketplace/](../../../microservices/marketplace/)
 - Service: [microservices/analytics/](../../../microservices/analytics/)
 - Service: [microservices/ops-dashboard-control-center/](../../../microservices/ops-dashboard-control-center/)
-- Standard: [GitOps IaC Cluster Tier Boundaries](../../standards/gitops-iac-cluster-tier-boundaries.md)
+- Standard: [KRM IaC Cluster Tier Boundaries](../../standards/krm-iac-cluster-tier-boundaries.md)
 - Standard: [Sovereign Cloud Overlay](../../standards/sovereign-cloud-overlay.md)
 - Standard: [DR Business Continuity](../../standards/dr-business-continuity.md)
 - Standard: [Brownout Degradation Signal](../../standards/brownout-degradation-signal.md)

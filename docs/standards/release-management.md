@@ -100,8 +100,9 @@ Default rollout shape for an `oya-*-runtime-*` deploy:
 
 Rails:
 
-- **Argo Rollouts** or **Flagger** for k8s-native progressive delivery
-  (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 2).
+- Native release-conveyor canary rails or a Flagger-compatible adapter for
+  k8s-native progressive delivery (per
+  `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 2).
 - The canary controller subscribes to the metric backend (per
   [`observability.md`](observability.md)) and computes burn rate per
   stage.
@@ -227,7 +228,7 @@ Per the hyperscaler-quality CI gate set (per
 - [Trunk Based Development](https://trunkbaseddevelopment.com/continuous-review/).
 - [DORA — Trunk-Based Development](https://dora.dev/capabilities/trunk-based-development/).
 - [Google SRE Workbook — Error Budget Policy](https://sre.google/workbook/error-budget-policy/).
-- [Argo Rollouts](https://argoproj.github.io/argo-rollouts/), [Flagger](https://flagger.app/).
+- [Flagger](https://flagger.app/) and Kubernetes-native progressive delivery controller patterns.
 - [SLSA Provenance v0.1](https://slsa.dev/spec/v0.1/provenance).
 - [Chainguard — Sign SBOM with Cosign](https://edu.chainguard.dev/open-source/sigstore/cosign/how-to-sign-an-sbom-with-cosign/).
 - [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
