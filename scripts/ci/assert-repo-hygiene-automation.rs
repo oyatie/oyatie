@@ -78,6 +78,16 @@ const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 0;
 const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 37;
 const PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS: &[&str] =
     &["oya/forms/runbooks", "oya/sheets/runbooks"];
+const PRODUCT_OPERATION_DOC_CLEAN_FILES: &[&str] = &[
+    "oya/forms/benchmarks/forms-vs-google-forms-vs-typeform-vs-jotform-vs-surveymonkey.md",
+    "oya/forms/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+    "oya/forms/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+    "oya/sheets/backfill-replay.md",
+    "oya/sheets/benchmarks/sheets-vs-google-sheets-vs-excel-web-vs-airtable.md",
+    "oya/sheets/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+    "oya/sheets/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+    "oya/sheets/PHASE-01-SHEETS-FOUNDATION.md",
+];
 const PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES: &[&str] = &[
     "cargo run -p oya-dev-cli",
     "oya-dev-cli",
@@ -860,6 +870,7 @@ pub struct Evaluation {
     pub active_template_scan_files: usize,
     pub retired_exact_name_scan_files: usize,
     pub product_operation_runbook_clean_paths: usize,
+    pub product_operation_doc_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2677,6 +2688,29 @@ pub fn product_operation_runbook_retired_authority_failures(root: &Path) -> Vec<
     failures
 }
 
+pub fn product_operation_doc_retired_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in PRODUCT_OPERATION_DOC_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        for phrase in PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES {
+            if text.contains(phrase) {
+                failures.push(format!(
+                    "{clean_file}: product-operation doc contains retired authority phrase {phrase:?}; use product control-plane operation, Buck2/Prow evidence, and CUE/KRM desired-state wording"
+                ));
+            }
+        }
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -2776,6 +2810,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(retired_service_ci_entrypoint_failures(root));
     failures.extend(retired_active_path_failures(root));
     failures.extend(product_operation_runbook_retired_authority_failures(root));
+    failures.extend(product_operation_doc_retired_authority_failures(root));
     let (tracked_typescript_pnpm_mjs_count, typescript_pnpm_surface_failures) =
         typescript_pnpm_surface_failures(root, &typescript_pnpm_inventory);
     failures.extend(typescript_pnpm_surface_failures);
@@ -3131,6 +3166,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         active_template_scan_files: ACTIVE_TEMPLATE_SCAN_PATHS.len(),
         retired_exact_name_scan_files: ACTIVE_EXACT_NAME_SCAN_PATHS.len(),
         product_operation_runbook_clean_paths: PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS.len(),
+        product_operation_doc_clean_files: PRODUCT_OPERATION_DOC_CLEAN_FILES.len(),
     }
 }
 
@@ -3142,7 +3178,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -3153,6 +3189,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.active_template_scan_files,
         evaluation.retired_exact_name_scan_files,
         evaluation.product_operation_runbook_clean_paths,
+        evaluation.product_operation_doc_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures

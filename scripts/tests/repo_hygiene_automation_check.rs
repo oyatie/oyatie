@@ -44,6 +44,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.active_template_scan_files, 30);
     assert_eq!(evaluation.retired_exact_name_scan_files, 36);
     assert_eq!(evaluation.product_operation_runbook_clean_paths, 2);
+    assert_eq!(evaluation.product_operation_doc_clean_files, 8);
 }
 
 #[test]
@@ -994,6 +995,34 @@ fn product_operation_runbooks_reject_retired_cli_and_bridge_authority() {
         "oya verify",
         "ArgoCD",
     ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn product_operation_docs_reject_retired_cli_and_bridge_authority() {
+    let root = temp_dir("product-operation-doc-retired-authority");
+    let doc = root.join(
+        "oya/forms/benchmarks/forms-vs-google-forms-vs-typeform-vs-jotform-vs-surveymonkey.md",
+    );
+    fs::create_dir_all(doc.parent().unwrap()).unwrap_or_else(|error| {
+        panic!(
+            "create forms benchmark fixture {}: {}",
+            doc.parent().unwrap().display(),
+            error
+        );
+    });
+    fs::write(
+        &doc,
+        "Run `cargo run -p oya-dev-cli -- benchmarks forms`; Jenkins owns parity.\n",
+    )
+    .unwrap();
+
+    let failures = gate::product_operation_doc_retired_authority_failures(&root);
+    for expected in ["cargo run -p oya-dev-cli", "Jenkins"] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
             "missing {expected:?} in {failures:?}"
