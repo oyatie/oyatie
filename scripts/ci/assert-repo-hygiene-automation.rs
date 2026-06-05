@@ -73,6 +73,7 @@ const DOCUMENTATION_SYSTEM_KERNEL_PATH: &str = "libs/oya-check-documentation-sys
 const GATE_CATALOG_DOMAIN_PATH: &str = "libs/oya-governance-gate-catalog-domain/src/lib.rs";
 const QUALITY_LANE_KERNEL_PATH: &str = "libs/oya-check-quality-lane/src/lib.rs";
 const M02_EXIT_GATE_VALIDATORS_PATH: &str = "docs/standards/m02-exit-gate-validators.md";
+const CLEAN_ARCHITECTURE_STANDARD_PATH: &str = "docs/standards/clean-architecture.md";
 const STANDARDS_RETIRED_COMMAND_CLEAN_FILES: &[&str] = &[
     "docs/standards/anti-patterns.md",
     "docs/standards/api-design.md",
@@ -271,6 +272,15 @@ const PRODUCT_OPERATION_DOC_RETIRED_PHRASES: &[&str] = &[
 ];
 const MARKETPLACE_RUNBOOK_RETIRED_CHECKPOINT_PHRASES: &[&str] =
     &["./bin/oya vcs", "oya vcs verify"];
+const CLEAN_ARCHITECTURE_RAW_CARGO_TESTING_PHRASES: &[&str] = &[
+    "cargo nextest run -p <kernel-crate>",
+    "cargo nextest run -p <domain-crate>",
+    "cargo nextest run -p <app-crate>",
+    "cargo nextest run -p <api-crate>",
+    "cargo nextest run -p <adapter-crate>",
+    "cargo run --bin <name>",
+    "cargo nextest run -p <runtime-crate>",
+];
 const MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
     "Jenkins LTS",
     "static Jenkins lane scan",
@@ -1310,6 +1320,7 @@ pub struct Evaluation {
     pub product_operation_doc_clean_files: usize,
     pub intelligence_doc_retired_dev_cli_clean_files: usize,
     pub governance_doc_retired_dev_cli_clean_files: usize,
+    pub clean_architecture_buck2_test_posture_files: usize,
     pub standards_retired_command_clean_files: usize,
     pub standards_external_substrate_clean_files: usize,
     pub microservice_spec_authority_clean_files: usize,
@@ -2716,6 +2727,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the standards retired local command guard",
         ),
         (
+            "\"clean architecture raw Cargo testing posture scan\"",
+            "documentation sprawl automation targets must include the clean architecture raw Cargo testing posture scan",
+        ),
+        (
+            "\"clean_architecture_raw_cargo_testing_posture_scan\"",
+            "documentation sprawl policy must record the clean architecture Buck2 testing posture guard",
+        ),
+        (
             "\"standards retired external substrate name scan\"",
             "documentation sprawl automation targets must include the standards retired external substrate scan",
         ),
@@ -3479,6 +3498,55 @@ pub fn m02_exit_gate_validator_hygiene_failures(text: &str) -> Vec<String> {
     failures
 }
 
+pub fn clean_architecture_raw_cargo_testing_text_failures(text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in CLEAN_ARCHITECTURE_RAW_CARGO_TESTING_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{CLEAN_ARCHITECTURE_STANDARD_PATH}: clean architecture testing posture contains raw Cargo runner phrase {phrase:?}; use Buck2 target-class wording plus Prow/oya-ci-required evidence"
+            ));
+        }
+    }
+
+    for required in [
+        "Buck2 unit-test target",
+        "Buck2 domain test target",
+        "Buck2 app integration target",
+        "Buck2 contract target",
+        "Buck2 integration target",
+        "Buck2 runtime smoke target",
+        "Prow/Kubernetes-native `oya-ci-required` job",
+        "Buck2 Build ID",
+        "raw Cargo runner strings are not merge, coverage, or protected-branch authority",
+    ] {
+        require_contains(
+            text,
+            required,
+            &mut failures,
+            CLEAN_ARCHITECTURE_STANDARD_PATH,
+        );
+    }
+
+    failures
+}
+
+pub fn clean_architecture_raw_cargo_testing_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let text = match fs::read_to_string(root.join(CLEAN_ARCHITECTURE_STANDARD_PATH)) {
+        Ok(text) => text,
+        Err(error) => {
+            failures.push(format!(
+                "{CLEAN_ARCHITECTURE_STANDARD_PATH}: read failed: {error}"
+            ));
+            return failures;
+        }
+    };
+
+    failures.extend(clean_architecture_raw_cargo_testing_text_failures(&text));
+    failures
+}
+
 pub fn standards_retired_local_command_text_failures(clean_file: &str, text: &str) -> Vec<String> {
     let mut failures = Vec::new();
     let lowered_text = text.to_ascii_lowercase();
@@ -3866,6 +3934,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &m02_exit_gate_validators,
     ));
     failures.extend(standards_retired_local_command_failures(root));
+    failures.extend(clean_architecture_raw_cargo_testing_failures(root));
     failures.extend(standards_retired_external_substrate_failures(root));
     failures.extend(microservice_spec_authority_failures(root));
     failures.extend(design_system_spec_authority_failures(root));
@@ -4251,6 +4320,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
             .len(),
         governance_doc_retired_dev_cli_clean_files: GOVERNANCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES
             .len(),
+        clean_architecture_buck2_test_posture_files: 1,
         standards_retired_command_clean_files: STANDARDS_RETIRED_COMMAND_CLEAN_FILES.len(),
         standards_external_substrate_clean_files: STANDARDS_EXTERNAL_SUBSTRATE_CLEAN_FILES.len(),
         microservice_spec_authority_clean_files: MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES.len(),
@@ -4272,7 +4342,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -4287,6 +4357,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.product_operation_doc_clean_files,
         evaluation.intelligence_doc_retired_dev_cli_clean_files,
         evaluation.governance_doc_retired_dev_cli_clean_files,
+        evaluation.clean_architecture_buck2_test_posture_files,
         evaluation.standards_retired_command_clean_files,
         evaluation.standards_external_substrate_clean_files,
         evaluation.microservice_spec_authority_clean_files,

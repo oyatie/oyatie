@@ -153,6 +153,7 @@
       "cloud-tenancy retired CLI/Cargo/external CI authority scan",
       "M02 exit-gate validator retired CLI/Cargo/pnpm authority scan",
       "standards retired local gate/doc/vcs command scan",
+      "clean architecture raw Cargo testing posture scan",
       "standards retired external substrate name scan",
       "microservice spec retired CI/CD and local gate authority scan",
       "design-system spec retired local validator authority scan",
@@ -332,6 +333,13 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental standards command cleanup only; remaining Cargo-deny/LTS policy wording and retired external substrate references are separate backlog slices"
+    },
+    "clean_architecture_raw_cargo_testing_posture_scan": {
+      "clean_file": "docs/standards/clean-architecture.md",
+      "policy": "Clean architecture layer testing posture must describe Buck2 target classes plus Prow/Kubernetes-native oya-ci-required and Buck2 Build ID evidence. Cargo manifests remain ecosystem compatibility metadata; raw Cargo runner strings are not merge, coverage, or protected-branch authority.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental clean-architecture test-posture guard only; Cargo-deny policy projection wording remains compatibility metadata and separate dependency-policy scope"
     },
     "standards_retired_external_substrate_scan": {
       "clean_files": [

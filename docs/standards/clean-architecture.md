@@ -279,18 +279,23 @@ remains synchronous — async is forbidden in kernel.
 
 | Layer | Test kind | Toolchain | What is verified |
 |---|---|---|---|
-| `kernel` | Pure unit | `cargo nextest run -p <kernel-crate>`; no `tokio` | Invariants on value types; property tests via `proptest` / `quickcheck` |
-| `domain` | Trait-mock + property | `cargo nextest run -p <domain-crate>`; `mockall` or hand-rolled in-mem adapter | Port-contract assertions; property tests on workflow invariants |
-| `app` | Integration with in-mem adapters | `cargo nextest run -p <app-crate>`; in-memory adapter implementations live in the app's `tests/` dir | Use-case happy-path + failure-path coverage |
-| `api` | Contract test against OpenAPI/AsyncAPI | `cargo nextest run -p <api-crate>` + `oya-foundry-openapi-kernel` validation | Request/response schema; auth-extraction; error-rendering |
-| `worker` | Contract test against queue schema | Same as api | Message schema + idempotency proofs |
-| `adapter` | Integration against real backing service | `cargo nextest run -p <adapter-crate> --features integration`; `testcontainers` for dockerable services; local OpenBao for secrets adapter | Backend semantics + boundary error translation |
-| `runtime` | Smoke test | `cargo run --bin <name> -- --help`; `cargo nextest run -p <runtime-crate>` for startup-config tests | Binary builds, DI wiring resolves, `--help` exits 0 |
+| `kernel` | Pure unit | Buck2 unit-test target; no `tokio` | Invariants on value types; property tests via `proptest` / `quickcheck` |
+| `domain` | Trait-mock + property | Buck2 domain test target; `mockall` or hand-rolled in-mem adapter | Port-contract assertions; property tests on workflow invariants |
+| `app` | Integration with in-mem adapters | Buck2 app integration target; in-memory adapter implementations live in the app's `tests/` dir | Use-case happy-path + failure-path coverage |
+| `api` | Contract test against OpenAPI/AsyncAPI | Buck2 contract target plus `oya-foundry-openapi-kernel` validation target | Request/response schema; auth-extraction; error-rendering |
+| `worker` | Contract test against queue schema | Same Buck2 contract target class as `api` | Message schema + idempotency proofs |
+| `adapter` | Integration against real backing service | Buck2 integration target with the integration configuration selected by target; `testcontainers` for dockerable services; local OpenBao-backed adapter | Backend semantics + boundary error translation |
+| `runtime` | Smoke test | Buck2 runtime smoke target; `--help` behavior is covered by the smoke target, and startup-config checks are Buck2 test targets | Binary builds, DI wiring resolves, `--help` exits 0 |
 
 These rules are advisory inside crates but are checked at lane time as
 a per-crate **test-presence** signal: a kernel crate with `tokio` in
 dev-dependencies is flagged AMBER; a runtime crate without a
 `--help`-style smoke test is flagged AMBER.
+
+Cargo manifests remain Rust ecosystem compatibility metadata for
+rust-analyzer, crate publication shape, dependency-policy projection, and
+local advisory workflows. PR and wave evidence MUST name the Buck2 target,
+the Prow/Kubernetes-native `oya-ci-required` job, and the Buck2 Build ID; raw Cargo runner strings are not merge, coverage, or protected-branch authority.
 
 ## 6. Naming alignment with crate-naming-convention
 
