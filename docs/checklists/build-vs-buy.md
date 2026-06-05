@@ -4,7 +4,7 @@ doc_status: published
 
 # Checklist: Build-vs-Buy Decision
 
-> **When:** New external dependency considered for adoption (Cargo crate / npm package / container image / managed service / SaaS as system-of-record).
+> **When:** New external dependency considered for adoption (Rust crate / container image / managed service / SaaS as system-of-record / explicitly registered strict-TypeScript tooling exception).
 > **Owner:** Owning axis + `council-architecture` review + `ops-security` for licensing.
 > **Validator:** `oya-governance-build-vs-buy` lane + ADR-0014 enforcement.
 
@@ -22,7 +22,7 @@ doc_status: published
 
 ## 2. License gate (per ADR-0013)
 
-5. ☐ Identify license (cargo-deny / pnpm audit / SBOM scan)
+5. ☐ Identify license from registry metadata, SBOM scan, and the Buck2 dependency-policy evidence.
 6. ☐ Allowed: Apache-2 / MIT / BSD-2/3 / ISC / 0BSD / MPL-2 — proceed
 7. ☐ Forbidden: AGPL / GPL — STOP unless dev-only carve-out
 8. ☐ Requires-review: LGPL / SSPL / BUSL / Elastic / RSAL / TSL / Confluent / AWS-FSL / Commons Clause — open ADR + legal review
@@ -58,8 +58,8 @@ doc_status: published
 
 ## 8. CI gate
 
-19. ☐ `cargo deny check` passes
-20. ☐ `cargo machete` confirms no orphan deps newly created
+19. ☐ Buck2 dependency-policy target passes, including license, provenance, version pin, and current stable/LTS assertions.
+20. ☐ Buck2 unused-dependency check confirms no orphan dependencies newly created; direct Cargo machete output is advisory unless wrapped by Buck2.
 21. ☐ Trivy / SBOM updated
 22. ☐ `oya-governance-build-vs-buy` lane passes
 

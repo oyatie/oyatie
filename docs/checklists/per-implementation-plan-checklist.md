@@ -32,7 +32,7 @@ doc_status: published
 
 ## Dependency + supply chain
 
-- [ ] **IP8** Every entry in IP `§Dependency additions` cleared `cargo deny check` and is current LTS (or has ADR-tracked exception). *Lane:* `oya-governance-lts-dependency`.
+- [ ] **IP8** Every entry in IP `§Dependency additions` is registered, pinned to latest stable/LTS, covered by the Buck2 dependency-policy target, and has an explicit exception record if it cannot be current. *Lane:* `dependency-policy`.
 - [ ] **IP9** If IP ships a deployed binary: distroless image built, image-size budget met. *Lane:* `oya-governance-image-discipline`.
 - [ ] **IP10** If IP ships a deployed binary: Cosign signature + Syft SBOM + SLSA L2+ provenance attested. *Lane:* `oya-governance-supply-chain`.
 
@@ -47,4 +47,3 @@ doc_status: published
 - [ ] **IP15** `§Next IP pointer` resolves to a real file. *Lane:* `oya-governance-plan-hierarchy`.
 - [ ] **IP16** Parent phase INDEX `§Implementation Plans` row updated to `merged`. *Lane:* `oya-governance-plan-hierarchy`.
 - [ ] **IP17** IP frontmatter `status: merged` flipped in same PR. *Lane:* `oya-governance-plan-hierarchy`.
-

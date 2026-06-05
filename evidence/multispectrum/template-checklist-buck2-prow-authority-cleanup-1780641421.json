@@ -1,0 +1,68 @@
+{
+  "change_class_id": "CC-2",
+  "git_sha": "651b43b41b81",
+  "freshness_unix": 1780641421,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Replaced repeated command-level Cargo and retired local gate boilerplate with lane-owned Buck2/Prow authority, reducing future shared edits to target registration instead of template rewrites.",
+        "Kept templates as pointer-thin contracts where possible instead of adding another explanatory layer."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "PR, phase, IP, wave, and checklist surfaces now point at Buck2 target sets and oya-ci-required rather than workstation-local command folklore.",
+        "CUE-owned Kubernetes desired-state is reflected in IP boilerplate; Helm is adapter output only when required."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "Hook-safe rg pattern-file scans reject retired Cargo, local oya gate/verify, Node package-manager, and stale .mjs review-validator authority in docs/templates and docs/checklists.",
+      "findings": [
+        "Templates previously could cause new agents to paste Cargo or retired local gate commands into fresh plans and checklists.",
+        "Shared checklist rows previously named a non-live JavaScript review guard as authority."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 5,
+      "findings": [
+        "Authors now see one direction: register and run Buck2 lane targets, then cite Prow/oya-ci-required evidence.",
+        "Dual-build Cargo remains possible as advisory local evidence without being copied into canonical checklist rows."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Verification plan includes JSON parsing, stale-command scans, whitespace checks, and Buck2 policy/documentation hygiene targets."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Delete the older templates outright",
+        "Keep exact per-tool commands and add caveats",
+        "Use lane-owned Buck2 target wording with adapter-only caveats"
+      ],
+      "selected_rationale": "Lane-owned Buck2 target wording minimizes shared-surface churn while preserving concrete verification expectations.",
+      "rejected_reasons": [
+        "Deleting templates would break existing pointers and reduce onboarding context.",
+        "Keeping exact retired commands with caveats leaves copy-paste hazards for agents."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": false,
+      "findings": [
+        "Documentation/template cleanup only; no credentials, tenant data, runtime paths, or deployment manifests are modified."
+      ]
+    }
+  }
+}

@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Reviewer agent's verification list per change class. Walked by the reviewer agent named in `docs/AGENTS.md §Per-change-class reviewer agents` before signing `## Code Review` at merge.
-enforcing_fitness_lane: guard-pr-merge-review.mjs
+enforcing_fitness_lane: buck2-pr-review-evidence
 owner_team: axis-foundry + per change-class team
 related:
   - docs/AGENTS.md
@@ -26,7 +26,7 @@ doc_status: published
 
 ## Universal review (every PR)
 
-- [ ] **R1** PR body has all 5 canonical H2s: `## Issue / Summary / Verification / Traceability / Evidence`. *Lane:* `traceability-validator`.
+- [ ] **R1** PR body has all 5 canonical H2s: `## Issue / Summary / Verification / Traceability / Evidence`. *Lane:* Buck2 PR-shape/traceability target.
 - [ ] **R2** `## Issue` names the change class on a single line.
 - [ ] **R3** `## Summary` states *why*, not only *what*.
 - [ ] **R4** `## Verification` pastes actual command output (not hand-waves). Every required check has a `PASS` token.
@@ -47,7 +47,7 @@ doc_status: published
 - [ ] `thiserror` in libraries / `anyhow|eyre` at the edge (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 3 error handling`).
 
 ### `*.ts` / `*.tsx` / `*.js` / `*.jsx` (typescript-reviewer)
-- [ ] File exists only under an explicit strict-TypeScript tooling exception; product/frontend TypeScript and pnpm authority remain disallowed.
+- [ ] File exists only under an explicit strict-TypeScript tooling exception; product/frontend TypeScript and Node package-manager authority remain disallowed.
 - [ ] Tooling exception is pinned, registered, and governed by Buck2 evidence.
 - [ ] Types narrow; no `any` (or with explicit exception rationale).
 

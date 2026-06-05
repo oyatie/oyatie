@@ -135,8 +135,8 @@ A BC is considered validly registered when ALL of the following are true:
 3. Each crate carries `[package.metadata.oya]` with `microservice`, `bc`, and `layer` fields.
 4. Naming justification block present in this registration AND in each crate's
    `[package.metadata.oya]` or associated ADR.
-5. `oya gate validate lean-a3 --bc <bc-name>` exits 0 (BC boundary check).
-6. `oya gate validate lean-a4 --bc <bc-name>` exits 0 (naming conformance).
+5. Registered Buck2 BC-boundary check exits 0 for `<bc-name>`.
+6. Registered Buck2 naming-conformance check exits 0 for `<bc-name>`.
 7. Ontology Object Types registered in Ontology type registry.
 8. Workflow event types registered in Workflow event registry.
 
