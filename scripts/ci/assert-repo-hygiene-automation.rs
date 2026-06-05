@@ -19,6 +19,7 @@ const PHASE0_AUTO_MERGE_AFTER_CI_PATH: &str = "specs/phase0-auto-merge-after-ci.
 const TENANT_RBAC_SPEC_PATH: &str = "specs/microservices/tenant-rbac.json";
 const MASTERPLAN_PATH: &str = "specs/masterplan.json";
 const SEQUENCING_PATH: &str = "specs/master-plan-sequencing.json";
+const DOC_MASTERPLAN_PATH: &str = "docs/MASTERPLAN.md";
 const PLANNING_CLOSURE_CONTRACT_PATH: &str = "specs/planning-closure-contract.json";
 const PLANNING_CLOSURE_LEDGER_PATH: &str = "specs/planning-closure-status-closure-ledger.json";
 const README_PATH: &str = "README.md";
@@ -50,6 +51,8 @@ const DEPENDENCY_RATIONALES_PATH: &str = "registry/dependency-rationales.json";
 const DEPENDENCY_BLESSED_ALLOWLIST_PATH: &str = "registry/dependency-blessed-allowlist.json";
 const TYPESCRIPT_PNPM_SURFACE_INVENTORY_PATH: &str =
     "registry/repo-hygiene/typescript-pnpm-surface-inventory.json";
+const PYTHON_SHELL_SURFACE_INVENTORY_PATH: &str =
+    "registry/repo-hygiene/python-shell-surface-inventory.json";
 const CODE_STYLE_RUST_PATH: &str = "docs/standards/code-style-rust.md";
 const DEPENDENCY_POLICY_PATH: &str = "docs/standards/dependency-policy.md";
 const LTS_VERSIONS_VERIFIED_PATH: &str = "docs/standards/lts-versions-verified.md";
@@ -61,6 +64,7 @@ const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
 const REQUIRED_BUCK2_RELEASE: &str = "2026-06-01";
 const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 28;
+const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 55;
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
@@ -117,11 +121,13 @@ const REQUIRED_SOURCE_URLS: &[&str] = &[
     "https://kubernetes.io/docs/tasks/run-application/scale-deployment/",
     "https://www.nist.gov/publications/zero-trust-architecture",
     "https://csrc.nist.gov/pubs/sp/800/162/upd2/final",
+    "https://csrc.nist.gov/glossary/term/policy_based_access_control",
     "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
     "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
     "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
     "https://kubernetes.io/docs/concepts/containers/runtime-class/",
     "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+    "https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/",
     "https://cloud.google.com/kubernetes-engine/docs/concepts/workload-identity",
     "https://docs.aws.amazon.com/eks/latest/best-practices/identity-and-access-management.html",
     "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/",
@@ -130,12 +136,27 @@ const REQUIRED_SOURCE_URLS: &[&str] = &[
     "https://slsa.dev/spec/v1.2/requirements",
     "https://istio.io/latest/docs/concepts/security/",
     "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+    "https://www.nist.gov/publications/nist-definition-cloud-computing",
+    "https://www.openpolicyagent.org/docs/latest/",
+    "https://github.com/ComplianceAsCode/content",
+    "https://kubernetes.io/docs/concepts/security/multi-tenancy/",
+    "https://docs.cedarpolicy.com/",
+    "https://openfga.dev/docs/modeling",
 ];
 
 const REQUIRED_SECURITY_BACKLOG_IDS: &[&str] = &[
     "zero_trust_architecture",
     "privileged_identity_management",
     "abac_beyond_rbac",
+    "pbac_policy_based_access_control",
+    "mature_policy_engine",
+    "policy_as_code_service_productization",
+    "compliance_as_code_service_productization",
+    "policy_as_a_service_productization",
+    "platform_as_a_service_productization",
+    "containers_as_a_service_productization",
+    "compliance_as_a_service_productization",
+    "oyatie_dogfood_tenant",
     "network_microsegmentation",
     "silo_apis_integrations",
     "silo_ai_automation",
@@ -188,8 +209,16 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
         "non-Rust surface inventory must record the filesystem count source",
     ),
     (
+        "\"python_shell_surface_inventory\": \"registry/repo-hygiene/python-shell-surface-inventory.json\"",
+        "non-Rust surface inventory must point to the disjoint Python/shell surface inventory",
+    ),
+    (
         "\"tracked_nonvendored_python_shell_count\": 55",
         "non-Rust surface inventory must record the audited non-vendored Python/shell count",
+    ),
+    (
+        "\"python_shell_count_source\": \"filesystem_scan_excluding_vendored_surfaces\"",
+        "non-Rust surface inventory must record the Python/shell filesystem count source",
     ),
     (
         "\"pnpm_or_package_json_repo_authority\": false",
@@ -514,6 +543,7 @@ pub struct Evaluation {
     pub domains_checked: usize,
     pub security_backlog_count: usize,
     pub tracked_typescript_pnpm_mjs_count: usize,
+    pub tracked_nonvendored_python_shell_count: usize,
     pub active_context_scan_files: usize,
     pub retired_exact_name_scan_files: usize,
 }
@@ -705,8 +735,10 @@ fn is_excluded_typescript_pnpm_dir(rel: &Path) -> bool {
     let Some(file_name) = rel.file_name().and_then(|name| name.to_str()) else {
         return false;
     };
-    matches!(file_name, ".git" | "buck-out" | "node_modules" | "target")
-        || rel_string == "tools/agent-skills"
+    matches!(
+        file_name,
+        ".git" | "buck-out" | "node_modules" | "target" | "third-party" | "vendor"
+    ) || rel_string == "tools/agent-skills"
         || rel_string.starts_with("tools/agent-skills/")
 }
 
@@ -795,6 +827,117 @@ pub fn typescript_pnpm_surface_failures(root: &Path, inventory: &str) -> (usize,
             failures.push(format!(
                 "{} missing tracked TypeScript/pnpm surface {}",
                 TYPESCRIPT_PNPM_SURFACE_INVENTORY_PATH, path
+            ));
+        }
+    }
+
+    (files.len(), failures)
+}
+
+fn is_python_shell_surface_file(path: &Path) -> bool {
+    matches!(
+        path.extension().and_then(|extension| extension.to_str()),
+        Some("py" | "sh" | "bash" | "zsh")
+    )
+}
+
+fn is_excluded_python_shell_dir(rel: &Path) -> bool {
+    let rel_string = path_to_repo_string(rel);
+    let Some(file_name) = rel.file_name().and_then(|name| name.to_str()) else {
+        return false;
+    };
+    matches!(
+        file_name,
+        ".git" | "buck-out" | "node_modules" | "target" | "third-party" | "vendor"
+    ) || rel_string == "tools/agent-skills"
+        || rel_string.starts_with("tools/agent-skills/")
+}
+
+fn collect_python_shell_surfaces(
+    root: &Path,
+    rel: &Path,
+    output: &mut Vec<String>,
+) -> Result<(), String> {
+    if is_excluded_python_shell_dir(rel) {
+        return Ok(());
+    }
+    let dir = root.join(rel);
+    for entry in
+        fs::read_dir(&dir).map_err(|error| format!("read dir {}: {}", dir.display(), error))?
+    {
+        let entry =
+            entry.map_err(|error| format!("read dir entry {}: {}", dir.display(), error))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|error| format!("file type {}: {}", entry.path().display(), error))?;
+        let entry_rel = rel.join(entry.file_name());
+        if file_type.is_dir() {
+            collect_python_shell_surfaces(root, &entry_rel, output)?;
+        } else if file_type.is_file() && is_python_shell_surface_file(&entry.path()) {
+            output.push(path_to_repo_string(&entry_rel));
+        }
+    }
+    Ok(())
+}
+
+pub fn tracked_python_shell_files(root: &Path) -> Result<Vec<String>, String> {
+    let mut files = Vec::new();
+    collect_python_shell_surfaces(root, Path::new(""), &mut files)?;
+    files.sort();
+    files.dedup();
+    Ok(files)
+}
+
+pub fn python_shell_surface_failures(root: &Path, inventory: &str) -> (usize, Vec<String>) {
+    let mut failures = Vec::new();
+    let files = match tracked_python_shell_files(root) {
+        Ok(files) => files,
+        Err(error) => {
+            failures.push(format!("Python/shell surface scan failed: {error}"));
+            Vec::new()
+        }
+    };
+
+    if files.len() != EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT {
+        failures.push(format!(
+            "Python/shell surface count drift: expected {}, found {}",
+            EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT,
+            files.len()
+        ));
+    }
+
+    if !compact_json_text(inventory).contains(&format!(
+        "\"tracked_file_count\":{}",
+        EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT
+    )) {
+        failures.push(format!(
+            "{} must record tracked_file_count {}",
+            PYTHON_SHELL_SURFACE_INVENTORY_PATH, EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT
+        ));
+    }
+
+    for needle in [
+        "\"status\": \"classified_no_durable_authority\"",
+        "\"count_source\": \"filesystem_scan_excluding_vendored_surfaces\"",
+        "\"python_shell_durable_gate_authority\": false",
+        "\"new_python_or_shell_gate_surface\": \"deny_unless_explicit_bootstrap_exception\"",
+        "\"rewrite_active_gate_surfaces_to_rust_buck2\": true",
+        "\"buck2_remains_build_test_check_authority\": true",
+        "\"tools/agent-skills/\"",
+    ] {
+        if !inventory.contains(needle) {
+            failures.push(format!(
+                "{} missing required anchor {}",
+                PYTHON_SHELL_SURFACE_INVENTORY_PATH, needle
+            ));
+        }
+    }
+
+    for path in &files {
+        if !inventory.contains(path) {
+            failures.push(format!(
+                "{} missing tracked Python/shell surface {}",
+                PYTHON_SHELL_SURFACE_INVENTORY_PATH, path
             ));
         }
     }
@@ -1327,6 +1470,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let agent_operating_contract = read(root, AGENT_OPERATING_CONTRACT_PATH, &mut failures);
     let masterplan = read(root, MASTERPLAN_PATH, &mut failures);
     let sequencing = read(root, SEQUENCING_PATH, &mut failures);
+    let doc_masterplan = read(root, DOC_MASTERPLAN_PATH, &mut failures);
     let planning_contract = read(root, PLANNING_CLOSURE_CONTRACT_PATH, &mut failures);
     let planning_ledger = read(root, PLANNING_CLOSURE_LEDGER_PATH, &mut failures);
     let readme = read(root, README_PATH, &mut failures);
@@ -1345,6 +1489,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let blessed_allowlist = read(root, DEPENDENCY_BLESSED_ALLOWLIST_PATH, &mut failures);
     let typescript_pnpm_inventory =
         read(root, TYPESCRIPT_PNPM_SURFACE_INVENTORY_PATH, &mut failures);
+    let python_shell_inventory = read(root, PYTHON_SHELL_SURFACE_INVENTORY_PATH, &mut failures);
     let code_style = read(root, CODE_STYLE_RUST_PATH, &mut failures);
     let dependency_policy = read(root, DEPENDENCY_POLICY_PATH, &mut failures);
     let lts_versions = read(root, LTS_VERSIONS_VERIFIED_PATH, &mut failures);
@@ -1385,6 +1530,9 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let (tracked_typescript_pnpm_mjs_count, typescript_pnpm_surface_failures) =
         typescript_pnpm_surface_failures(root, &typescript_pnpm_inventory);
     failures.extend(typescript_pnpm_surface_failures);
+    let (tracked_nonvendored_python_shell_count, python_shell_surface_failures) =
+        python_shell_surface_failures(root, &python_shell_inventory);
+    failures.extend(python_shell_surface_failures);
 
     for item_id in [
         "legacy_ci_server",
@@ -1446,6 +1594,30 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &mut failures,
         MASTERPLAN_PATH,
     );
+    for needle in [
+        "\"policy_compliance_productization\"",
+        "policy_as_code_service_productization",
+        "compliance_as_code_service_productization",
+        "policy_as_a_service_productization",
+        "platform_as_a_service_productization",
+        "containers_as_a_service_productization",
+        "compliance_as_a_service_productization",
+        "oyatie_dogfood_tenant",
+        "Adopt proven hyperscaler patterns first",
+    ] {
+        require_contains(&masterplan, needle, &mut failures, MASTERPLAN_PATH);
+    }
+    for needle in [
+        "Policy/Compliance-as-a-Service productization",
+        "PaC, CaC, PBAC",
+        "Containers-as-a-Service",
+        "Compliance-as-a-Service",
+        "Oyatie-as-tenant dogfood",
+        "The rule is to adopt proven",
+        "reimplement in Rust/Oyatie-native seams only",
+    ] {
+        require_contains(&doc_masterplan, needle, &mut failures, DOC_MASTERPLAN_PATH);
+    }
     require(
         !masterplan.contains(RETIRED_PLANNING_CLOSURE_COMMAND),
         &mut failures,
@@ -1628,6 +1800,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "dependency-rationales.json",
         "dependency-blessed-allowlist.json",
         "typescript-pnpm-surface-inventory.json",
+        "python-shell-surface-inventory.json",
         "oya-ci-prowjob-registry.json",
         "oya-ci-controller-config-contract.json",
         "kubernetes-native-anti-patterns.json",
@@ -1667,6 +1840,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         domains_checked: REQUIRED_DOMAINS.len(),
         security_backlog_count: REQUIRED_SECURITY_BACKLOG_IDS.len(),
         tracked_typescript_pnpm_mjs_count,
+        tracked_nonvendored_python_shell_count,
         active_context_scan_files: ACTIVE_CONTEXT_SCAN_PATHS.len(),
         retired_exact_name_scan_files: ACTIVE_EXACT_NAME_SCAN_PATHS.len(),
     }
@@ -1680,12 +1854,13 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"active_context_scan_files\":{},\"retired_exact_name_scan_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"retired_exact_name_scan_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
         evaluation.security_backlog_count,
         evaluation.tracked_typescript_pnpm_mjs_count,
+        evaluation.tracked_nonvendored_python_shell_count,
         evaluation.active_context_scan_files,
         evaluation.retired_exact_name_scan_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),

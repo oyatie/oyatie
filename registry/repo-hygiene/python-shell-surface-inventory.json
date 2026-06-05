@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/registry/repo-hygiene/python-shell-surface-inventory.json",
+  "registry_id": "python-shell-surface-inventory",
+  "status": "classified_no_durable_authority",
+  "updated_at": "2026-06-04T23:59:00Z",
+  "count_source": "filesystem_scan_excluding_vendored_surfaces",
+  "tracked_file_count": 55,
+  "authority": {
+    "python_shell_durable_gate_authority": false,
+    "new_python_or_shell_gate_surface": "deny_unless_explicit_bootstrap_exception",
+    "rewrite_active_gate_surfaces_to_rust_buck2": true,
+    "buck2_remains_build_test_check_authority": true
+  },
+  "deletion_rule": "Do not delete bootstrap, security, or product-support scripts blindly. Classify consumers first, preserve or port useful behavior into Rust/Buck2/native product code, then delete or archive in a separate evidence-backed PR.",
+  "groups": [
+    {
+      "id": "bootstrap_host_prelude",
+      "disposition": "one-time host, cluster, and local bootstrap/prelude helpers only; allowed as transition seams but not durable CI, merge, or product authority",
+      "paths": [
+        "infra/capi/crs/render.sh",
+        "infra/capi/init.sh",
+        "infra/talos/bare-metal/up.sh",
+        "infra/talos/installation-media/gen-media.sh",
+        "infra/talos/local/bring-up.sh",
+        "infra/talos/local/talos-local.sh",
+        "infra/talos/smoke-kata.sh",
+        "scripts/build/build-and-push-cloud-intelligence.sh",
+        "scripts/install-trivy-ci.sh",
+        "scripts/onprem-bring-up.sh",
+        "scripts/onprem-host-decommission.sh",
+        "tools/hook-bootstrap/install.sh",
+        "tools/hook-bootstrap/uninstall.sh"
+      ]
+    },
+    {
+      "id": "github_adapter_and_queue_shims",
+      "disposition": "temporary GitHub adapter, branch-protection, and sequential queue compatibility helpers; Prow/Kubernetes-native oya-ci-required remains CI authority",
+      "paths": [
+        "infra/ci/buck2-affected-gate.sh",
+        "scripts/branch-protection-apply.sh",
+        "scripts/check-sequential-pr-merge-conflicts.sh",
+        "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
+        "scripts/ci/oya-ci-post.sh",
+        "scripts/github-actions-required-secrets-check.sh",
+        "scripts/pr-review-workflow-pr-head-check.sh",
+        "scripts/repair-sequential-pr-queue.sh",
+        "scripts/tests/github-actions-required-secrets-check.test.sh",
+        "scripts/tests/pr-review-workflow-pr-head-check.test.sh",
+        "scripts/trigger-next-queue-automerge.sh"
+      ]
+    },
+    {
+      "id": "rust_backed_wrappers",
+      "disposition": "thin wrappers around Rust/Buck2 checks or hook dispatch; replacement target is direct Rust/Buck2 invocation or native controller integration",
+      "paths": [
+        "scripts/agent-pre-push-validate.sh",
+        "scripts/ci/regen-third-party.sh",
+        "scripts/hooks/pre-push.sh",
+        "tools/governance/governance-hook-efficacy-harness.sh"
+      ]
+    },
+    {
+      "id": "security_and_policy_advisory_checks",
+      "disposition": "advisory security/policy checks pending Rust/Buck2 rewrite before any durable gate-authority role",
+      "paths": [
+        "oya/intelligence/iac/cedar/guardrails-build.sh",
+        "scripts/evidence-secret-scan.sh",
+        "scripts/reject-placeholder-digests.sh",
+        "scripts/reject-public-dev-domains.sh",
+        "scripts/reject-retired-grouping-wording.sh",
+        "scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh",
+        "scripts/tests/reject-placeholder-digests.test.sh",
+        "scripts/tests/reject-public-dev-domains.test.sh",
+        "scripts/tests/reject-retired-grouping-wording.test.sh",
+        "scripts/validate-release-image-supply-chain.sh",
+        "tools/hooks/injection-content-scanner.sh",
+        "tools/hooks/no-cargo-enforcer.sh",
+        "tools/hooks/vacuous-green-gate-detect.sh"
+      ]
+    },
+    {
+      "id": "pending_rust_buck2_rewrite",
+      "disposition": "not merge authority until rewritten or rehosted as Rust libraries, Buck2 targets, or Kubernetes-native controller actions",
+      "paths": [
+        "oya/ci-controller/iac/oci/push-and-sign.sh",
+        "registry/stub-audit/2026-05-17/generate_findings.py",
+        "scripts/emit_rust_tests.py",
+        "scripts/gen_first_party_buck.py",
+        "tools/anchor-sweep/inject_anchors.py",
+        "tools/buck/apply-thirdparty-patches.py",
+        "tools/hooks/adr-orphan-detect.sh",
+        "tools/hooks/pre-dispatch-guide.sh",
+        "tools/hooks/session-start-context-inject.sh",
+        "tools/hooks/spec-version-pin-suggester.sh",
+        "tools/hooks/stop-did-you-forget-suggester.sh",
+        "tools/oci/pull-oci-base.py",
+        "tools/oci/push-oci-image.py"
+      ]
+    },
+    {
+      "id": "reference_clients",
+      "disposition": "reference client only; not platform, CI, or monorepo authority",
+      "paths": [
+        "oya/feature-flags/reference-implementations/python-asyncio-client.py"
+      ]
+    }
+  ],
+  "excluded_prefixes": [
+    {
+      "path_prefix": "tools/agent-skills/",
+      "reason": "vendored upstream agent-skills content; tracked by vendor/subtree policy, not Oyatie product or merge-authority Python/shell inventory"
+    },
+    {
+      "path_prefix": "third-party/",
+      "reason": "vendored dependency substrate; tracked by third-party/vendor policy, not first-party Python/shell migration backlog"
+    },
+    {
+      "path_prefix": "vendor/",
+      "reason": "vendored dependency substrate; tracked by third-party/vendor policy, not first-party Python/shell migration backlog"
+    }
+  ]
+}
