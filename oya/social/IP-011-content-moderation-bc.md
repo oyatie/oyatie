@@ -40,7 +40,7 @@ Implement the cataloged content-moderation kernel and ClamAV/OPSWAT adapters plu
 - `cargo nextest run -p oya-community-social-content-moderation-kernel` passes.
 - ClamAV and OPSWAT adapter tests pass.
 - `slos/moderation-classifier-latency.openslo.yaml` and `slos/content-policy-enforcement-correctness.openslo.yaml` resolve.
-- `cargo run -p oya-dev-cli -- gate validate content-policy --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=content-policy --microservice social` passes.
 - `runbooks/content-moderation-rollback.md` remains current.
 
 ## F. Evidence

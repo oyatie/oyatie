@@ -56,7 +56,7 @@ impl ReleasePointerStore for OctocrabGitRefsStore {
 
 ```bash
 cargo nextest run -p oya-observability-slo-engine-adapter --test release_pointer
-cargo run -p oya-dev-cli -- gate validate protection-context-match
+buck2 build //:quality-lane-registry-authority-check # lane=protection-context-match
 # Git-provider required-check validation:
 git ls-remote --heads origin "release/*"
 ```

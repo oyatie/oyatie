@@ -67,8 +67,8 @@ spec:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate openslo-conformance --microservice foundry-supervisor
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims # registers HG-FND-SUP
+buck2 build //:quality-lane-registry-authority-check # lane=openslo-conformance --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims # registers HG-FND-SUP
 ```
 
 ## Halt Conditions

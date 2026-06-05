@@ -132,7 +132,7 @@ Per `cost-budget.md`:
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region --microservice foundry-eval` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=multi-region --microservice foundry-eval` exits 0.
 - Quarterly DR drill report in `evidence/dr-drills/`.
 - Per-tenant residency log review (sample 100 records / quarter).
 

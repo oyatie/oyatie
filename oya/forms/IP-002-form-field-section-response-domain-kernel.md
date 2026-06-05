@@ -64,8 +64,8 @@ impl FormSpecV1 {
 cargo test -p oya-forms-domain
 cargo fmt -p oya-forms-domain -- --check
 cargo clippy -p oya-forms-domain -- -D warnings
-cargo run -p oya-dev-cli -- gate validate canonical-form-byte-equality --microservice forms
-cargo run -p oya-dev-cli -- gate validate form-schema-conformance --microservice forms
+buck2 build //:quality-lane-registry-authority-check # lane=canonical-form-byte-equality --microservice forms
+buck2 build //:quality-lane-registry-authority-check # lane=form-schema-conformance --microservice forms
 ```
 
 ## Test Plan

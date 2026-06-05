@@ -40,8 +40,8 @@ cargo nextest run -p oya-docs-export-import-adapter-pandoc -- ooxml_roundtrip  #
 cargo nextest run -p oya-docs-export-import-adapter-pandoc -- gvisor_escape_blocked  # AC-09
 cargo nextest run -p oya-docs-export-import-adapter-weasyprint -- pdfa_validation  # AC-10
 cargo nextest run -p oya-docs-export-import-worker -- per_job_tmpfs_isolation
-cargo run -p oya-dev-cli -- gate validate export-sandbox-conformance --microservice docs
-cargo run -p oya-dev-cli -- gate validate ooxml-import-fidelity --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=export-sandbox-conformance --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=ooxml-import-fidelity --microservice docs
 ```
 
 ## References

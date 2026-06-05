@@ -40,7 +40,7 @@ Register the social hyperscaler gate as a required check over repo-local evidenc
 ## E. Acceptance
 - `jq -e . microservices/social/manifest.json` passes.
 - `jq -e . microservices/social/scorecards/overrides.json` passes.
-- `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity --microservice social` passes.
 - Required checks cover contracts, policies, SLOs, dashboards, parity, and doc links.
 - Branch-protection dry run blocks a missing social policy path.
 

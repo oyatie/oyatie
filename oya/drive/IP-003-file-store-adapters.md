@@ -35,7 +35,7 @@ cargo build -p oya-drive-file-store-adapter-{postgres,s3,garage,seaweedfs}
 cargo nextest run -p oya-drive-file-store-adapter-postgres -- rls_per_tenant
 cargo nextest run -p oya-drive-file-store-adapter-garage -- s3_tests_corpus
 cargo nextest run -p oya-drive-file-store-adapter-seaweedfs -- s3_tests_corpus
-cargo run -p oya-dev-cli -- gate validate object-store-backend-conformance --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=object-store-backend-conformance --microservice drive
 ```
 
 ## References

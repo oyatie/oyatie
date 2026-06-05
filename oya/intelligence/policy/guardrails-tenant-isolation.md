@@ -175,12 +175,12 @@ Per-pack overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-gua
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate postgres-rls-enforced --microservice foundry-guardrails` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate no-raw-sql --microservice foundry-guardrails` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate pg-pool-tenancy-reset --microservice foundry-guardrails` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice foundry-guardrails` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate statelessness --microservice foundry-guardrails` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate classifier-model-cosign-signed` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=postgres-rls-enforced --microservice foundry-guardrails` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=no-raw-sql --microservice foundry-guardrails` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=pg-pool-tenancy-reset --microservice foundry-guardrails` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice foundry-guardrails` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=statelessness --microservice foundry-guardrails` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=classifier-model-cosign-signed` — exit 0.
 - Annual pen-test against tenant boundary.
 - Quarterly chaos drill: induce cross-tenant rule-store query attempt + cross-tenant Cedar overlay load attempt; verify rejection + alerting.
 

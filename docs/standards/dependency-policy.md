@@ -303,7 +303,7 @@ CI/CD-platform dependency in §8 — MUST be classified into one of three
 ### 11.2 Floor enumeration (per ADR-0345 §D-3 / §D-4 / §D-5)
 
 **Maintainer-class floor:** every `oya-*` crate (~200+); `oya-shuffle-sharding`
-(ADR-0333 substrate); retired `oya-dev-cli` logic only after preservation as
+(ADR-0333 substrate); retired developer-CLI logic only after preservation as
 Rust libraries/Buck2 targets/Prow jobs, not as CLI authority;
 `oya-shared-policy-engine-client` (Cedar wrapper);
 `oya-shared-workflow-engine`; `oya-shared-ontology-projection`; registered

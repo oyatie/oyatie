@@ -42,7 +42,7 @@ pub fn evaluate_range_acl(
 ```bash
 cargo check -p oya-sheets-sharing-acl-kernel ... -p oya-sheets-named-ranges-adapter
 cargo nextest run -p oya-sheets-sharing-acl-domain --test test_per_range_acl_hides_pii
-cargo run -p oya-dev-cli -- gate validate sheets-range-acl-cedar-required --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=sheets-range-acl-cedar-required --microservice sheets
 ```
 
 ## Test Plan

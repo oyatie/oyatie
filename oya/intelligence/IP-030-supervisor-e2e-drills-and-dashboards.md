@@ -38,14 +38,14 @@ Wire all AC-01..AC-10 acceptance criteria via e2e tests + Grafana dashboards. Va
 cargo nextest run --workspace --test '*e2e*' --all-features
 
 # Dashboards deployed + load
-cargo run -p oya-dev-cli -- gate validate dashboard-coverage --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=dashboard-coverage --microservice foundry-supervisor
 
 # Runbook coverage check (every FM-ID has matching runbook)
-cargo run -p oya-dev-cli -- gate validate runbook-coverage --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=runbook-coverage --microservice foundry-supervisor
 
 # Full phase exit gate validation
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-supervisor
-cargo run -p oya-dev-cli -- gate validate authority-cohesion # HG-FND-SUP registers green
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion # HG-FND-SUP registers green
 ```
 
 ## Drills

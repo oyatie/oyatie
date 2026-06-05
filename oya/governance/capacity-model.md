@@ -151,7 +151,7 @@ Verify-at-deploy: peak factors assume working-hours bias of 4× over avg.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-model --microservice governance` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-model --microservice governance` — exit 0.
 - Quarterly capacity-model review by ops-sre-reliability + ops-finops.
 - Game-day load test: simulate L-tier PR rate against XS cell; record degradation curve.
 

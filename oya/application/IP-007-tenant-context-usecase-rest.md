@@ -55,7 +55,7 @@ impl<R, B> ResolveTenantContextUseCase<R, B> where R: TenantResolver, B: TenantB
 cargo nextest run -p oya-application-tenant-context-usecase --all-features
 cargo nextest run -p oya-application-tenant-context-adapter --all-features
 cargo nextest run -p oya-application-tenant-context-rest --all-features
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice application
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice application
 ```
 
 ## Test Plan

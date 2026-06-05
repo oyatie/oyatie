@@ -71,8 +71,8 @@ pub async fn search(req: SearchRequest, principal: &Principal, ports: &Ports)
 
 ```bash
 cargo nextest run -p oya-mail-search-index-domain
-cargo run -p oya-dev-cli -- gate validate search-index-context-partition --microservice mail
-cargo run -p oya-dev-cli -- gate validate encrypted-token-conformance --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=search-index-context-partition --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=encrypted-token-conformance --microservice mail
 ```
 
 ## Test Plan

@@ -106,9 +106,9 @@ ADR-0204 fixes Phase 2 trigger at "Leptos web ships per ADR-0185" **AND** ">5k n
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps-leptos
-cargo run -p oya-dev-cli -- gate validate a11y-axe-zero-violations --target canvas-leptos
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=perf-canvas-60fps-leptos
+buck2 build //:quality-lane-registry-authority-check # lane=a11y-axe-zero-violations --target canvas-leptos
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-workflow-studio-canvas-leptos --tests
 ```
 

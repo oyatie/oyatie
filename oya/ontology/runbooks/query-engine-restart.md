@@ -32,7 +32,7 @@ doc_status: published
 - Open a sev1 if `oya_ontology_query_engine_restart_correctness_ratio < 0.9999` and the affected label set includes `tenant_id`, `cell_id`, or `principal_id`.
 - Open a sev1 if `oya_ontology_query_engine_restart_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `ontology.query-engine-restart.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate ontology-query-engine-restart --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=ontology-query-engine-restart --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/ontology-substrate/query-engine-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/ontology-substrate/query-engine-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="ontology",runbook="query-engine-restart"}`.
@@ -72,7 +72,7 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/ontology-substrate/query-engine-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_ONTOLOGY_QUERY_ENGINE_RESTART_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops ontology query-engine-restart status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate ontology-query-engine-restart --production-snapshot --cell $CELL`.
+15. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=ontology-query-engine-restart --production-snapshot --cell $CELL`.
 16. Run crate smoke test: `cargo test -p oya-ontology-domain query_engine_restart -- --nocapture`.
 17. Check API contract smoke: `curl -s https://ontology.internal.oyatie.dev/v1/ontology/query-engine-restart/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/ontology/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/ontology/iac/kustomize/base/kustomization.yaml`.
@@ -154,12 +154,12 @@ Query Engine Restart incident decision tree
 4. Patch policy: `edit microservices/ontology/policy/cross-tenant-refusal.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/ontology/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-ontology-domain query_engine_restart_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate ontology-query-engine-restart --fixture incident-query-engine-restart.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=ontology-query-engine-restart --fixture incident-query-engine-restart.json`.
 8. Add SLO assertion: `update microservices/ontology/slos/function-read-latency.openslo.yaml with alert OntologyQueryEngineRestartCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/ontology/dashboards/type-registry-health.json with oya_ontology_query_engine_restart_error_ratio, oya_ontology_query_engine_restart_lag_seconds, and oya_ontology_query_engine_restart_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-ontology-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-ontology-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate ontology-policy --microservice ontology`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=ontology-policy --microservice ontology`.
 13. Deploy canary: `oya deploy canary --microservice ontology --component ontology-query-engine-restart-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_ontology_query_engine_restart_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close ontology-query-engine-restart-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

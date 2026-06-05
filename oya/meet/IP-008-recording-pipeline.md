@@ -107,8 +107,8 @@ spec:
 cargo nextest run -p oya-meet-recording-adapter-s3
 cargo nextest run -p oya-meet-recording-adapter-ffmpeg
 cargo nextest run --test recording_pipeline_e2e
-cargo run -p oya-dev-cli -- gate validate gvisor-policy --microservice meet
-cargo run -p oya-dev-cli -- gate validate s3-object-lock --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=gvisor-policy --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=s3-object-lock --microservice meet
 ```
 
 ## Test Plan

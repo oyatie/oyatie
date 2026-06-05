@@ -168,7 +168,7 @@ When the tenant's `jurisdiction_code` is `EU` and the workload classification is
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate residency-conformance --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=residency-conformance --microservice foundry-providers` exits 0.
 - Per-pack negative-test: `tests/integration/residency_deny_<pack>.rs` validates that a forbidden tuple deterministically denies.
 - Quarterly review: this matrix is refreshed with vendor-region updates.
 

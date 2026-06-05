@@ -138,7 +138,7 @@ Per `compliance.md`:
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate dr-readiness --microservice foundry-guardrails --pack <pack>` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=dr-readiness --microservice foundry-guardrails --pack <pack>` — exit 0.
 - Quarterly drill: scripted; success criteria documented in `runbooks/dr-failover-drill.md`.
 - Annual auditor review of BC posture.
 

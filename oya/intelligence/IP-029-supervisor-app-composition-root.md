@@ -81,7 +81,7 @@ async fn main() -> anyhow::Result<()> {
 
 ```bash
 cargo check / build / clippy / nextest per app crate
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-supervisor
 ```
 
 ## Test Plan

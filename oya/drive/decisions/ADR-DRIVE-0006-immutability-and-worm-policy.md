@@ -189,7 +189,7 @@ Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law":
 - [ ] WORM refuses tenant-root purge — `cargo nextest run --test worm_refuses_tenant_root`.
 - [ ] Retention floor monotonic — `cargo nextest run --test worm_retention_monotonic`.
 - [ ] Legal hold preserves past retention — `cargo nextest run --test legal_hold_preserves`.
-- [ ] Integrity scan delta = 0 — `cargo run -p oya-dev-cli -- gate validate worm-integrity-scan --microservice drive`.
+- [ ] Integrity scan delta = 0 — `buck2 build //:quality-lane-registry-authority-check # lane=worm-integrity-scan --microservice drive`.
 - [ ] AC-09 + AC-10 + AC-14 — full E2E suite.
 
 ## References

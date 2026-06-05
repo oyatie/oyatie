@@ -111,11 +111,11 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 ## Verification
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice translate
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate credential-isolation --microservice translate
-cargo run -p oya-dev-cli -- gate validate data-residency-correctness --microservice translate
-cargo run -p oya-dev-cli -- gate validate eu-ai-act-disclosure --microservice translate
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice translate
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion
+buck2 build //:quality-lane-registry-authority-check # lane=credential-isolation --microservice translate
+buck2 build //:quality-lane-registry-authority-check # lane=data-residency-correctness --microservice translate
+buck2 build //:quality-lane-registry-authority-check # lane=eu-ai-act-disclosure --microservice translate
 ```
 
 All exit 0.

@@ -114,9 +114,9 @@ Minimum 5 integration tests required (8 specified above; threshold met with cush
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate a11y-at-spi --shell gtk4 --crate clients/gtk4/workflow-studio
-cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps --shell gtk4 --window 30s
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=a11y-at-spi --shell gtk4 --crate clients/gtk4/workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=perf-canvas-60fps --shell gtk4 --window 30s
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-workflow-studio-gtk4 --tests
 ```
 

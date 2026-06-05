@@ -18,7 +18,7 @@ CI-fitness substrate. Bundles all ~50 `oya-check-*` crates per ADR-0131 §"gover
 cargo run -p oya-dev-cli -- gate run --all
 
 # Run a single lane
-cargo run -p oya-dev-cli -- gate validate <lane-name> --microservice <ms>
+buck2 build //:quality-lane-registry-authority-check # lane=<lane-name> --microservice <ms>
 
 # Regenerate aggregation indices
 cargo run -p oya-dev-cli -- aggregation-index regenerate

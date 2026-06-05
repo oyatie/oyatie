@@ -77,9 +77,9 @@ spec:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate openslo-conformance --microservice observability
-cargo run -p oya-dev-cli -- gate validate openslo-promql-feasibility --microservice observability
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice observability
+buck2 build //:quality-lane-registry-authority-check # lane=openslo-conformance --microservice observability
+buck2 build //:quality-lane-registry-authority-check # lane=openslo-promql-feasibility --microservice observability
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice observability
 ```
 
 ## Test Plan

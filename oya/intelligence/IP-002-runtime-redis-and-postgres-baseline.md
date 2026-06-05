@@ -44,8 +44,8 @@ All paths under `microservices/intelligence/iac/helm/{redis,postgres}/` + `iac/p
 helm lint microservices/intelligence/iac/helm/redis/
 helm lint microservices/intelligence/iac/helm/postgres/
 psql --dry-run -f microservices/intelligence/iac/postgres-schema/001-capability-mirror.sql
-cargo run -p oya-dev-cli -- gate validate postgres-rls-coverage --microservice foundry-runtime
-cargo run -p oya-dev-cli -- gate validate session-prefix-isolation --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=postgres-rls-coverage --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=session-prefix-isolation --microservice foundry-runtime
 ```
 
 ## Test Plan
@@ -101,7 +101,7 @@ Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbi
 - Contract parity for `microservices/intelligence/contracts/openapi/runtime-foundry-runtime.yaml` and `microservices/intelligence/contracts/proto/runtime-foundry-runtime.proto` when DTOs or handlers change.
 - Policy resolution against `microservices/intelligence/policy/runtime-tenant-scope.cedar`, `microservices/intelligence/policy/runtime-runtime-isolation.md`, `microservices/intelligence/policy/runtime-ci-scope.cedar`, including a tenant mismatch denial and a CI/synthetic principal allowance where applicable.
 - SLO or dashboard linkage against `microservices/intelligence/slos/runtime-latency.openslo.yaml`, `microservices/intelligence/slos/runtime-availability.openslo.yaml`, `microservices/intelligence/slos/runtime-freshness.openslo.yaml`; no acceptance by line count alone.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
 
 ### F. Evidence anchors
 - `microservices/intelligence/PRD.md` FR-X1..FR-X7 for the supervisor-runtime-guardrails-providers-evidence chain.

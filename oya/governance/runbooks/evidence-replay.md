@@ -31,7 +31,7 @@ doc_status: published
 - Open a sev0 if `oya_governance_evidence_replay_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
 - Open a sev1 if `oya_governance_evidence_replay_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `governance.evidence-replay.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate governance-evidence-replay --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=governance-evidence-replay --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=207`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="governance",runbook="evidence-replay"}`.
@@ -67,7 +67,7 @@ doc_status: published
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=207&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops governance evidence-replay status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate governance-evidence-replay --production-snapshot --cell $CELL`.
+14. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=governance-evidence-replay --production-snapshot --cell $CELL`.
 15. Check Cargo owner crate: `cargo test -p oya-governance-domain evidence_replay -- --nocapture`.
 16. Check API contract smoke: `curl -s https://governance.internal.oyatie.dev/v1/governance/evidence-replay/incident-handoff -H "x-oya-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n governance get configmap governance-evidence-replay-config -o yaml`.
@@ -148,12 +148,12 @@ Evidence Replay incident decision tree
 4. Patch policy: `edit microservices/governance/policy/lane-execution.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/governance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-governance-domain evidence_replay_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate governance-evidence-replay --fixture incident-evidence-replay.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=governance-evidence-replay --fixture incident-evidence-replay.json`.
 8. Add SLO assertion: `update microservices/governance/slos/* with alert GovernanceEvidenceReplayCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/governance/dashboards/lane-pass-rate.json with oya_governance_evidence_replay_error_ratio, oya_governance_evidence_replay_lag_seconds, and oya_governance_evidence_replay_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-governance-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-governance-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate governance-policy --microservice governance`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=governance-policy --microservice governance`.
 13. Deploy canary: `oya deploy canary --microservice governance --component evidence-replay-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_governance_evidence_replay_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close governance-evidence-replay-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

@@ -107,8 +107,8 @@ cargo build --workspace --target wasm32-unknown-unknown \
   -p oya-workflow-studio-visual-canvas-adapter-leptos-wasm
 cargo build --release -p oya-workflow-studio-visual-canvas-app
 cargo nextest run --workspace --tests
-cargo run -p oya-dev-cli -- gate validate wasm-bundle-sri --microservice workflow-studio
-cargo run -p oya-dev-cli -- gate validate xss-vector-scan --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=wasm-bundle-sri --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=xss-vector-scan --microservice workflow-studio
 helm lint microservices/workflow-studio/iac/helm/visual-canvas-rest
 ```
 

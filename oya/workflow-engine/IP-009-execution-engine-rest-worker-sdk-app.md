@@ -55,7 +55,7 @@ It also does not add workflow authoring UI; Studio remains the product surface.
 - `cargo nextest run -p oya-workflow-engine-execution-engine-worker --all-features`
 - `cargo nextest run -p oya-workflow-engine-execution-engine-sdk --all-features`
 - `cargo nextest run -p oya-workflow-engine-execution-engine-app --all-features`
-- `cargo run -p oya-dev-cli -- gate validate openapi-conformance --crate oya-workflow-engine-execution-engine-rest`
+- `buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --crate oya-workflow-engine-execution-engine-rest`
 - Required tests: `start_run_pins_spec_version`, `cancel_production_requires_two_signatures`, `signal_wrong_tenant_denied`, `pod_eviction_resumes_on_new_worker`, `resume_throttle_caps_cold_start`, `sla_timer_emits_pause_or_escalation`, and `sdk_start_idempotency_returns_existing_run`.
 
 ## §F Evidence

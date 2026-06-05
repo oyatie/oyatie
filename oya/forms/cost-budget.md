@@ -69,7 +69,7 @@ Per-cost-tag emitted to FinOps:
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate forms-cost-tag-conformance` exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=forms-cost-tag-conformance` exit 0.
 - Monthly FinOps review.
 
 ## References

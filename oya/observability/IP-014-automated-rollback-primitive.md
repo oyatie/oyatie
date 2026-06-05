@@ -49,7 +49,7 @@ pub async fn watch(deps: WatcherDeps) -> anyhow::Result<()> {
 ```bash
 cargo nextest run -p oya-observability-slo-engine-worker --test rollback_watcher
 git switch -c rollback/observability-<incident-id> dev
-cargo run -p oya-dev-cli -- gate run-all --ci-required
+buck2 build //:repo-hygiene-automation-check --ci-required
 ```
 
 ## Test Plan

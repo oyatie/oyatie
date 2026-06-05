@@ -114,9 +114,9 @@ Minimum 6 required; 8 specified.
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate crdt-correctness-no-silent-loss --crate oya-collab-loro
-cargo run -p oya-dev-cli -- gate validate perf-loro-merge-latency --crate oya-collab-loro
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=crdt-correctness-no-silent-loss --crate oya-collab-loro
+buck2 build //:quality-lane-registry-authority-check # lane=perf-loro-merge-latency --crate oya-collab-loro
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-collab-loro --tests
 ```
 

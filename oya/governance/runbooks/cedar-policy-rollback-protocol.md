@@ -31,7 +31,7 @@ doc_status: published
 - Open a sev0 if `oya_governance_cedar_policy_rollback_protocol_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
 - Open a sev1 if `oya_governance_cedar_policy_rollback_protocol_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `governance.cedar-policy-rollback-protocol.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate governance-cedar-policy-rollback-protocol --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=governance-cedar-policy-rollback-protocol --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/governance-substrate/cedar-policy-rollback-protocol?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=114`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/governance-substrate/cedar-policy-rollback-protocol?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="governance",runbook="cedar-policy-rollback-protocol"}`.
@@ -67,7 +67,7 @@ doc_status: published
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/governance-substrate/cedar-policy-rollback-protocol?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-GOVERNANCE-CEDAR_POLICY_ROLLBACK_PROTOCOL-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops governance cedar-policy-rollback-protocol status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate governance-cedar-policy-rollback-protocol --production-snapshot --cell $CELL`.
+14. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=governance-cedar-policy-rollback-protocol --production-snapshot --cell $CELL`.
 15. Check Cargo owner crate: `cargo test -p oya-governance-domain cedar_policy_rollback_protocol -- --nocapture`.
 16. Check API contract smoke: `curl -s https://governance.internal.oyatie.dev/v1/governance/cedar-policy-rollback-protocol/incident-handoff -H "x-oya-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n governance get configmap governance-cedar-policy-rollback-protocol-config -o yaml`.
@@ -148,12 +148,12 @@ Cedar Policy Rollback Protocol incident decision tree
 4. Patch policy: `edit microservices/governance/policy/lane-execution.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/governance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-governance-domain cedar_policy_rollback_protocol_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate governance-cedar-policy-rollback-protocol --fixture incident-cedar-policy-rollback-protocol.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=governance-cedar-policy-rollback-protocol --fixture incident-cedar-policy-rollback-protocol.json`.
 8. Add SLO assertion: `update microservices/governance/slos/* with alert GovernanceCedarPolicyRollbackProtocolCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/governance/dashboards/lane-pass-rate.json with oya_governance_cedar_policy_rollback_protocol_error_ratio, oya_governance_cedar_policy_rollback_protocol_lag_seconds, and oya_governance_cedar_policy_rollback_protocol_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-governance-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-governance-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate governance-policy --microservice governance`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=governance-policy --microservice governance`.
 13. Deploy canary: `oya deploy canary --microservice governance --component cedar-policy-rollback-protocol-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_governance_cedar_policy_rollback_protocol_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close governance-cedar-policy-rollback-protocol-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

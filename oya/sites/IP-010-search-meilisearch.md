@@ -28,7 +28,7 @@ Author the `search` BC per ADR-SITES-0005. Per-tenant Meilisearch 0.10.0 index. 
 cargo nextest run -p oya-sites-search-adapter-meilisearch -- per_tenant_index_isolation
 cargo nextest run -p oya-sites-search-adapter-meilisearch -- query_p95_lt_300ms
 cargo nextest run -p oya-sites-search-worker -- reindex_on_publish
-cargo run -p oya-dev-cli -- gate validate search-tenant-scope --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=search-tenant-scope --microservice sites
 ```
 
 ## Test Plan

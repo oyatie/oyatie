@@ -62,9 +62,9 @@ n/a — modifies existing task-store crates + Cedar policies.
 ```bash
 cargo test -p oya-tasks-task-store-domain eu_ai_act_auto_assign_refusal
 cargo test -p oya-tasks-task-store-usecase auto_assign
-cargo run -p oya-dev-cli -- gate validate auto-assign-fairness --microservice tasks
-cargo run -p oya-dev-cli -- gate validate regulated-ai-refusal-grounding --microservice tasks
-cargo run -p oya-dev-cli -- gate validate cedar-policy-syntax --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=auto-assign-fairness --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=regulated-ai-refusal-grounding --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-policy-syntax --microservice tasks
 ```
 
 ## Test Plan

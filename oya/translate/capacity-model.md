@@ -166,7 +166,7 @@ See `cost-budget.md` for $-per-MAU and $-per-translation reference figures.
 ## Verification
 
 - `tests/load/` directory contains per-component k6/wrk load drivers replaying the reference workload mix.
-- `cargo run -p oya-dev-cli -- gate validate capacity --microservice translate` (when implemented) validates Helm requests/limits against this model.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity --microservice translate` (when implemented) validates Helm requests/limits against this model.
 
 ## References
 

@@ -154,10 +154,10 @@ cargo clippy -p oya-mail-mailbox-store-kernel --all-features -- -D warnings
 cargo nextest run -p oya-mail-mailbox-store-kernel --all-features
 cargo deny check
 cargo doc -p oya-mail-mailbox-store-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-mail-mailbox-store-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-mail-mailbox-store-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-mail-mailbox-store-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-mail-mailbox-store-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-mail-mailbox-store-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-mail-mailbox-store-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-mail-mailbox-store-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-mail-mailbox-store-kernel
 ```
 
 ## Test Plan

@@ -37,7 +37,7 @@ Implement cross-µservice embed resolution to workflow-studio (canvases) + sheet
 cargo nextest run -p oya-docs-embed-resolver-domain -- cycle_detection
 cargo nextest run -p oya-docs-embed-resolver-domain -- stale_fallback  # AC-15
 cargo nextest run -p oya-docs-embed-resolver-domain -- acl_passthrough_source_side
-cargo run -p oya-dev-cli -- gate validate embed-resolver-acl-passthrough --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=embed-resolver-acl-passthrough --microservice docs
 ```
 
 ## References

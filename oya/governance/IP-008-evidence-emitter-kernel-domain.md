@@ -78,7 +78,7 @@ pub fn compose_root(leaves: &[[u8; 32]]) -> [u8; 32] {
 cargo check -p oya-governance-evidence-emitter-{kernel,domain}
 cargo nextest run -p oya-governance-evidence-emitter-kernel
 cargo nextest run -p oya-governance-evidence-emitter-domain
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-governance-evidence-emitter-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-governance-evidence-emitter-kernel
 ```
 
 ## Test Plan

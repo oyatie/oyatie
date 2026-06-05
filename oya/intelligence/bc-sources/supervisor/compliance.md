@@ -212,8 +212,8 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance-evidence-recency --microservice foundry-supervisor` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate authority-cohesion` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=compliance-evidence-recency --microservice foundry-supervisor` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` — exit 0.
 - Annual SOC 2 Type 2 + ISO 27001:2022 + EU AI Act notified-body (when applicable) audits.
 
 ## References

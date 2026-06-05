@@ -104,10 +104,10 @@ Wire the workflow-engine µservice into the platform's governance + hyperscaler-
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice workflow-engine
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-engine
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice workflow-engine
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-engine
 ```
 
 ## Halt conditions

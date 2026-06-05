@@ -165,7 +165,7 @@ checklist applies at umbrella scope:
 - [ ] **Replacement is production-proven and covers all critical use cases.**
   All 8 sub-µservices HG-<MS> green at p99 SLO sustained 30d. Verified by:
   ```bash
-  cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
+  buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims
   # expect: HG-MAIL, HG-MESSENGER, HG-CALENDAR, HG-COMMUNITY, HG-SOCIAL,
   #         HG-SHORTS, HG-NETWORK, HG-ANONYMOUS all green
   ```
@@ -182,7 +182,7 @@ checklist applies at umbrella scope:
   ```
 - [ ] **All active consumers have been migrated.**
   ```bash
-  cargo run -p oya-dev-cli -- gate validate connect-legacy-symbol-zero-usage
+  buck2 build //:quality-lane-registry-authority-check # lane=connect-legacy-symbol-zero-usage
   # expect: exit 0; lane BLOCKER green
   ```
 - [ ] **Old code, tests, documentation, configuration are fully removed.**

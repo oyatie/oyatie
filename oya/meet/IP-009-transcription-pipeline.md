@@ -75,7 +75,7 @@ spec:
 cargo nextest run -p oya-meet-transcription-adapter-whisper
 cargo nextest run -p oya-meet-transcription-adapter-meilisearch
 cargo nextest run --test transcription_pipeline_e2e
-cargo run -p oya-dev-cli -- gate validate gpu-node-selector --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=gpu-node-selector --microservice meet
 # Live-caption p99 ≤ 500ms; batch transcript p95 ≤ 60s for 60min meeting; BLEU vs baseline ≥ baseline-0.05
 ```
 

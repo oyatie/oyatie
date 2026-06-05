@@ -180,7 +180,7 @@ CI lane `oya-translate-sdk-codegen` regenerates clients on every contract change
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate sdk-codegen --microservice translate` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=sdk-codegen --microservice translate` exits 0.
 - Quickstart examples in `examples/` directory tested against staging per release.
 - Per-SDK npm/PyPI/crates.io publish gated on lane green.
 

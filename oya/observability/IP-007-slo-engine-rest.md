@@ -64,7 +64,7 @@ pub fn build_router(deps: AppDeps) -> Router {
 cargo check -p oya-observability-slo-engine-rest --all-features
 cargo nextest run -p oya-observability-slo-engine-rest --all-features
 # OpenAPI conformance: schemathesis OR oapi-codegen+pact
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --spec microservices/observability/contracts/openapi/slo-engine.yaml
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --spec microservices/observability/contracts/openapi/slo-engine.yaml
 ```
 
 ## Test Plan

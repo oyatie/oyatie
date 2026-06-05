@@ -155,10 +155,10 @@ cargo clippy -p oya-foundry-runtime-capability-executor-kernel --all-features --
 cargo nextest run -p oya-foundry-runtime-capability-executor-kernel --all-features
 cargo deny check
 cargo doc -p oya-foundry-runtime-capability-executor-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-foundry-runtime-capability-executor-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-foundry-runtime-capability-executor-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-foundry-runtime-capability-executor-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-foundry-runtime-capability-executor-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-foundry-runtime-capability-executor-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-foundry-runtime-capability-executor-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-foundry-runtime-capability-executor-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-foundry-runtime-capability-executor-kernel
 ```
 
 ## Test Plan

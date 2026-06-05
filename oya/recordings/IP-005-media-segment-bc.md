@@ -27,7 +27,7 @@ shared `oya-recordings-video-encode-ladder-*` + `oya-recordings-audio-loudness-*
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice recordings
 # HLS conformance fixture
 cargo test -p oya-recordings-media-segment-adapter-ffmpeg -- hls_rfc8216_conformance
 ```

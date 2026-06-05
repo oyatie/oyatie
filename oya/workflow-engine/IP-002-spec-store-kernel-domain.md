@@ -90,9 +90,9 @@ cargo clippy -p oya-workflow-engine-spec-store-kernel --all-features -- -D warni
 cargo clippy -p oya-workflow-engine-spec-store-domain --all-features -- -D warnings
 cargo nextest run -p oya-workflow-engine-spec-store-kernel --all-features
 cargo nextest run -p oya-workflow-engine-spec-store-domain --all-features
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-workflow-engine-spec-store-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-workflow-engine-spec-store-domain
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-workflow-engine-spec-store-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-workflow-engine-spec-store-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-workflow-engine-spec-store-domain
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-workflow-engine-spec-store-kernel
 ```
 
 ## Test Plan

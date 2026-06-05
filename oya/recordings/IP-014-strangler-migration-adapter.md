@@ -29,7 +29,7 @@ legacy `oya-recordings-domain` symbol surface to the new
 ```bash
 cargo build -p oya-recordings-migration-adapter
 cargo nextest run -p oya-recordings-migration-adapter -- byte_compat
-cargo run -p oya-dev-cli -- gate validate strangler-conformance --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=strangler-conformance --microservice recordings
 ```
 
 ## Phase mapping

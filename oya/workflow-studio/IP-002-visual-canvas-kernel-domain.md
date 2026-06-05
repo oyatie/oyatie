@@ -148,10 +148,10 @@ pub fn layout_layered(canvas: &Canvas) -> Vec<(NodeId, (f64, f64))> {
 cargo check -p oya-workflow-studio-visual-canvas-kernel -p oya-workflow-studio-visual-canvas-domain
 cargo clippy -p oya-workflow-studio-visual-canvas-kernel -p oya-workflow-studio-visual-canvas-domain -- -D warnings
 cargo nextest run -p oya-workflow-studio-visual-canvas-kernel -p oya-workflow-studio-visual-canvas-domain
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice workflow-studio
-cargo run -p oya-dev-cli -- gate validate port-location --microservice workflow-studio
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workflow-studio
-cargo run -p oya-dev-cli -- gate validate data-class-annotations --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=data-class-annotations --microservice workflow-studio
 ```
 
 ## Test Plan

@@ -70,7 +70,7 @@ pub struct SlopScore {
 cargo check -p oya-foundry-guardrails-ai-slop-detector-kernel --all-features
 cargo nextest run -p oya-foundry-guardrails-ai-slop-detector-domain --all-features
 cargo nextest run -p oya-foundry-guardrails-ai-slop-detector-usecase --all-features --test catalogue_coverage
-cargo run -p oya-dev-cli -- gate validate aislop-catalogue-coverage --threshold 1.0
+buck2 build //:quality-lane-registry-authority-check # lane=aislop-catalogue-coverage --threshold 1.0
 ```
 
 ## Test Plan

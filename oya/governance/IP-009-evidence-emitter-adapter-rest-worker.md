@@ -90,7 +90,7 @@ async fn main() -> anyhow::Result<()> {
 ```bash
 cargo check -p oya-governance-evidence-emitter-{usecase,adapter,rest,worker,sdk,app}
 cargo nextest run --workspace
-cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-rest-route-parity --microservice governance
 ```
 
 ## Test Plan

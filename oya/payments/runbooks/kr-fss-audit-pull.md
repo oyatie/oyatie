@@ -32,7 +32,7 @@ doc_status: published
 - Open a sev1 if `oya_payments_kr_fss_audit_pull_correctness_ratio < 0.9999` and the affected label set includes `tenant_id`, `cell_id`, or `principal_id`.
 - Open a sev1 if `oya_payments_kr_fss_audit_pull_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `payments.kr-fss-audit-pull.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate payments-kr-fss-audit-pull --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=payments-kr-fss-audit-pull --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/payments-substrate/kr-fss-audit-pull?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/payments-substrate/kr-fss-audit-pull?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="payments",runbook="kr-fss-audit-pull"}`.
@@ -72,8 +72,8 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/payments-substrate/kr-fss-audit-pull?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_PAYMENTS_KR_FSS_AUDIT_PULL_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops payments kr-fss-audit-pull status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate payments-kr-fss-audit-pull --production-snapshot --cell $CELL`.
-16. Run payments contract smoke: `cargo run -p oya-dev-cli -- gate validate payments-contract --microservice payments --scenario kr-fss-audit-pull`.
+15. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=payments-kr-fss-audit-pull --production-snapshot --cell $CELL`.
+16. Run payments contract smoke: `buck2 build //:quality-lane-registry-authority-check # lane=payments-contract --microservice payments --scenario kr-fss-audit-pull`.
 17. Check API contract smoke: `curl -s https://payments.internal.oyatie.dev/v1/payments/kr-fss-audit-pull/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/payments/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/payments/iac/kustomize/base/kustomization.yaml`.
 19. Inspect feature flags: `oya flags get oya.payments.kr_fss_audit_pull.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
@@ -153,13 +153,13 @@ Kr FSS Audit Pull incident decision tree
 3. Patch API guard: `edit microservices/payments/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit microservices/payments/policy/charge-authorization.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/payments/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
-6. Add regression gate: `cargo run -p oya-dev-cli -- gate validate payments-contract --fixture incident-kr-fss-audit-pull.json`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate payments-kr-fss-audit-pull --fixture incident-kr-fss-audit-pull.json`.
+6. Add regression gate: `buck2 build //:quality-lane-registry-authority-check # lane=payments-contract --fixture incident-kr-fss-audit-pull.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=payments-kr-fss-audit-pull --fixture incident-kr-fss-audit-pull.json`.
 8. Add SLO assertion: `update microservices/payments/slos/charge-api-availability.openslo.yaml with alert PaymentsKrFSSAuditPullCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/payments/dashboards/psp-routing.json with oya_payments_kr_fss_audit_pull_error_ratio, oya_payments_kr_fss_audit_pull_lag_seconds, and oya_payments_kr_fss_audit_pull_queue_depth`.
 10. Rebuild validation CLI: `cargo check -p oya-dev-cli --all-targets`.
-11. Run targeted validation: `cargo run -p oya-dev-cli -- gate validate payments-policy --microservice payments`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate payments-policy --microservice payments`.
+11. Run targeted validation: `buck2 build //:quality-lane-registry-authority-check # lane=payments-policy --microservice payments`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=payments-policy --microservice payments`.
 13. Deploy canary: `oya deploy canary --microservice payments --component payments-kr-fss-audit-pull-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_payments_kr_fss_audit_pull_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close payments-kr-fss-audit-pull-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

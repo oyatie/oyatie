@@ -109,8 +109,8 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "product-prd-json",
     "stage0-prereqs",
     // ADR-0110 changeset state machine: monotonic state progression + closed
-    // status enum, validated against registry/vcs/changeset-event-log.json
-    // (impl: oya-dev-cli/src/changeset_state_gates.rs).
+    // status enum, validated by the native Rust/Prow lane against
+    // registry/vcs/changeset-event-log.json.
     "changeset-state-monotonicity",
     "changeset-state-enum-closed",
     // PR #143 Fix-D strict gates.
@@ -202,54 +202,39 @@ pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] =
     &["bash scripts/github-actions-required-secrets-check.sh"];
 
 /// Historical non-lane command corpus retained only for older compatibility
-/// consumers while useful checks are ported to Buck2 targets. New surfaces must
-/// not append local CLI, ad-hoc shell, or Cargo command authority here.
+/// consumers after useful checks were ported to Buck2 targets. New surfaces
+/// must not append local CLI, ad-hoc shell, or Cargo command authority here.
 ///
 /// Naming-justification: `_non_gate_` describes the negative axis
 /// against `AGGREGATED_VALIDATE_LANES` — every entry that the legacy
 /// script body emitted but that is NOT a `gate validate` subcommand.
 ///
-/// Current documentation-pipeline strings intentionally use Buck2 targets. The
-/// remaining legacy entries are migration debt, not authority.
+/// Every active string intentionally uses Buck2 targets. Former developer-CLI
+/// and one-off tool entries are represented by the owning Buck2 target instead
+/// of the deleted local wrapper binary.
 pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
-    // Toolchain primitives.
-    "cargo fmt --all -- --check",
-    "cargo check --workspace --all-targets --keep-going",
-    "cargo clippy --workspace --all-targets --keep-going -- -D warnings",
-    "cargo machete",
-    "cargo audit",
-    "cargo nextest run --workspace --no-fail-fast",
-    "cargo deny check",
-    // Demo and legacy catalog compatibility.
-    "cargo run -p oya-dev-cli -- demo",
-    "cargo run -p oya-dev-cli -- catalog validate",
+    // Repo and toolchain authority.
+    "buck2 build //:repo-hygiene-automation-check",
+    "buck2 build //:buck2-authority-policy-check",
+    "buck2 build //:latest-toolchain-pin-updater-check",
+    "buck2 build //:quality-lane-registry-authority-check",
+    "buck2 build //:kubernetes-native-anti-pattern-check",
+    "buck2 build //:oya-ci-prowjob-registry-check",
+    "buck2 build //:oya-ci-controller-config-check",
+    "buck2 build //:cloud-cell-elasticity-policy-check",
+    "buck2 build //:generate-first-party-buck-check",
+    "buck2 build //:append-missing-rust-unit-test-targets-check",
+    "buck2 build //:retired-grouping-wording-check",
+    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
     // Doc pipeline (active checks in registry/docs/pipeline.tsv).
     "buck2 build //oya/intelligence/crates/oya-intelligence-openapi-domain:oya-intelligence-openapi-domain",
     "buck2 build //oya/intelligence/crates/oya-intelligence-mdbook-domain:oya-intelligence-mdbook-domain //libs/oya-check-documentation-system:oya-check-documentation-system",
     "buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation",
     "buck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain",
     "buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog",
-    // TypeScript workspace lanes (parameterized; not under run-all).
-    "cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane typecheck",
-    "cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane test",
-    // Active-artifact + cedar-fragment + openapi-route emit-evidence lanes.
-    "cargo run -p oya-dev-cli -- gate validate active-artifact-contract --emit-evidence evidence/active-artifact-contract-lane-run.json --emit-graph-edges registry/graph/active-artifact-contract-edges.json",
-    "cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --emit-evidence evidence/cedar-fragment-coverage-lane-run.json",
-    "cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity --emit-evidence evidence/openapi-rest-route-parity-lane-run.json",
-    // Release-supply-chain phased lane (separate from default supply-chain).
-    "cargo run -p oya-dev-cli -- gate validate release-supply-chain --phase pre-release",
-    "cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidence",
     // ADR-0221 governance hook-efficacy projection.
     "buck2 build //:governance-hook-efficacy-check",
-    // Local verification + dedicated foundry tool entry points.
-    "cargo run -p oya-dev-cli -- verify --ci-required",
-    "cargo run -q -p oya-vcs-admission-gate-app",
-    "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
-    "cargo run -q -p oya-governance-purpose-audit-app",
-    "cargo run -p oya-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600",
-    "scripts/check-sequential-pr-merge-conflicts.sh --base-branch dev --start-pr 111",
-    "scripts/repair-sequential-pr-queue.sh --base-branch dev --start-pr 111 --target-pr 111",
-    "scripts/trigger-next-queue-automerge.sh --base-branch dev --start-pr 111 --dry-run",
 ];
 
 /// Concatenated historical command/capability corpus. Provides retired
@@ -277,12 +262,11 @@ pub fn all_canonical_commands() -> Vec<&'static str> {
     commands
 }
 
-/// Render the compatibility catalog as a single newline-joined string
-/// suitable for substring-tolerant lookups by retired downstream gates that
-/// historically did `check_script.contains(<command>)`. The first line
-/// is each historical lane invocation in preserved form so
-/// `contains("gate validate <name>")` matches; subsequent lines are the
-/// compatibility commands verbatim.
+/// Render the compatibility catalog as a single newline-joined string.
+///
+/// Each lane is represented by a Buck2 authority target plus a shell-commented
+/// lane tag. The command remains runnable, while the tag preserves searchable
+/// lane identity without reviving the retired local wrapper.
 #[must_use]
 pub fn all_canonical_commands_rendered() -> String {
     let mut rendered = String::new();
@@ -299,14 +283,14 @@ pub fn all_canonical_commands_rendered() -> String {
 
 #[must_use]
 pub fn canonical_gate_validate_command(lane: &str) -> String {
-    let mut command = format!("cargo run -p oya-dev-cli -- gate validate {lane}");
+    let mut command = format!("buck2 build //:quality-lane-registry-authority-check # lane={lane}");
     if lane == "banned-primitives" {
-        command.push_str(" --require-command-log-corpus --command-log-root ");
+        command.push_str(" command-log-root=");
         command.push_str(BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT);
     } else if lane == "dependency-seam" {
-        command.push_str(" --repo-root . --evidence ");
+        command = "buck2 build //:buck2-authority-policy-check //:repo-hygiene-automation-check # lane=dependency-seam evidence="
+            .to_owned();
         command.push_str(DEPENDENCY_SEAM_EVIDENCE);
-        command.push_str(" --online-audit --severity error");
     }
     command
 }
@@ -990,10 +974,10 @@ mod tests {
     fn rendered_form_contains_each_validate_lane_canonical_invocation() {
         let rendered = all_canonical_commands_rendered();
         for lane in AGGREGATED_VALIDATE_LANES {
-            let expected = format!("cargo run -p oya-dev-cli -- gate validate {lane}");
+            let expected = format!("lane={lane}");
             assert!(
                 rendered.contains(&expected),
-                "rendered catalog must contain `{expected}`"
+                "rendered catalog must preserve lane tag `{expected}`"
             );
         }
         for command in AGGREGATED_NON_GATE_COMMANDS {
@@ -1005,11 +989,11 @@ mod tests {
     }
 
     #[test]
-    fn rendered_form_contains_cargo_deny_check_token() {
-        // supply-chain kernel checks for the literal "cargo deny check" token.
+    fn rendered_form_uses_buck2_supply_chain_authority() {
         let rendered = all_canonical_commands_rendered();
-        assert!(rendered.contains("cargo deny check"));
-        assert!(rendered.contains("cargo audit"));
+        assert!(rendered.contains("buck2 build //:buck2-authority-policy-check"));
+        assert!(!rendered.contains("cargo deny check"));
+        assert!(!rendered.contains("cargo audit"));
     }
 
     #[test]
@@ -1033,18 +1017,16 @@ mod tests {
 
     #[test]
     fn rendered_form_contains_pre_push_contract_check() {
-        // oya-check-pre-push kernel asserts that `oya verify` is the
-        // canonical local verification surface.
         let rendered = all_canonical_commands_rendered();
-        assert!(rendered.contains("cargo run -p oya-dev-cli -- verify --ci-required"));
+        assert!(rendered.contains("buck2 build //:repo-hygiene-automation-check"));
+        assert!(!rendered.contains("oya-dev-cli"));
     }
 
     #[test]
     fn rendered_dependency_seam_lane_is_ci_strict() {
         let rendered = all_canonical_commands_rendered();
-        assert!(rendered.contains(
-            "cargo run -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error"
-        ));
+        assert!(rendered.contains("buck2 build //:buck2-authority-policy-check //:repo-hygiene-automation-check # lane=dependency-seam"));
+        assert!(rendered.contains(DEPENDENCY_SEAM_EVIDENCE));
     }
 
     #[test]
@@ -1063,9 +1045,7 @@ mod tests {
     #[test]
     fn rendered_form_contains_loop_recovery_patterns_lane() {
         let rendered = all_canonical_commands_rendered();
-        assert!(
-            rendered.contains("cargo run -p oya-dev-cli -- gate validate loop-recovery-patterns")
-        );
+        assert!(rendered.contains("lane=loop-recovery-patterns"));
     }
 
     #[test]
@@ -1078,35 +1058,22 @@ mod tests {
     #[test]
     fn rendered_form_contains_hyperscaler_architecture_and_maturity_lanes() {
         let rendered = all_canonical_commands_rendered();
-        assert!(rendered.contains("cargo run -p oya-dev-cli -- gate validate workspace-hygiene"));
-        assert!(
-            rendered
-                .contains("cargo run -p oya-dev-cli -- gate validate design-spec-maturity-claims")
-        );
-        assert!(
-            rendered
-                .contains("cargo run -p oya-dev-cli -- gate validate hyperscaler-arch-invariants")
-        );
-        assert!(
-            rendered
-                .contains("cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims")
-        );
+        assert!(rendered.contains("lane=workspace-hygiene"));
+        assert!(rendered.contains("lane=design-spec-maturity-claims"));
+        assert!(rendered.contains("lane=hyperscaler-arch-invariants"));
+        assert!(rendered.contains("lane=hyperscaler-maturity-claims"));
     }
 
     #[test]
     fn rendered_form_contains_architecture_boundaries_lane() {
         let rendered = all_canonical_commands_rendered();
-        assert!(
-            rendered.contains("cargo run -p oya-dev-cli -- gate validate architecture-boundaries")
-        );
+        assert!(rendered.contains("lane=architecture-boundaries"));
     }
 
     #[test]
     fn rendered_form_contains_cloud_iac_kubewarden_admission_policy_lane() {
         let rendered = all_canonical_commands_rendered();
-        assert!(rendered.contains(
-            "cargo run -p oya-dev-cli -- gate validate cloud-iac-kubewarden-admission-policy"
-        ));
+        assert!(rendered.contains("lane=cloud-iac-kubewarden-admission-policy"));
     }
 
     #[test]

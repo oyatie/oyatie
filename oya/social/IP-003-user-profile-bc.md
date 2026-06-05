@@ -40,7 +40,7 @@ Implement the manifest/catalog-named user-profile crates from kernel through RES
 - `cargo nextest run -p oya-community-social-user-profile-kernel` passes.
 - `cargo nextest run -p oya-community-social-user-profile-domain` passes.
 - `cargo nextest run -p oya-community-social-user-profile-adapter-postgres` passes.
-- `cargo run -p oya-dev-cli -- gate validate dual-context-correctness --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=dual-context-correctness --microservice social` passes.
 - `slos/profile-render-availability.openslo.yaml` resolves.
 
 ## F. Evidence

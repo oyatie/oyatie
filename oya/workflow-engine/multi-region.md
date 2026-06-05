@@ -179,7 +179,7 @@ Per-pack BCDR specifics live at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region-conformance` — exit 0; deployed topology matches this document for every active pack.
+- `buck2 build //:quality-lane-registry-authority-check # lane=multi-region-conformance` — exit 0; deployed topology matches this document for every active pack.
 - Quarterly DR-failover drill audit log: success vs failure rate trend.
 - Annual third-party BCDR audit: alignment with ISO 22301 / NIST SP 800-34 / DORA.
 

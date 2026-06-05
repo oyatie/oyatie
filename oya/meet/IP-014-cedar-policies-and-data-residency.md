@@ -46,8 +46,8 @@ Data residency contract: per-pack pinning; cross-pack replication forbidden.
 
 ```bash
 cedar validate --policies policy/*.cedar --schema policy/schema.cedarschema
-cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice meet
-cargo run -p oya-dev-cli -- gate validate pack-residency --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-coverage --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=pack-residency --microservice meet
 ```
 
 ## Test Plan

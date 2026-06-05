@@ -46,7 +46,7 @@ Pro video understanding. Ensure guardrails apply to non-text modalities.
 
 ```bash
 cargo nextest run -p oya-intelligence-model-routing-domain -- modality
-cargo run -p oya-dev-cli -- gate validate multimodal-guardrail-coverage --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=multimodal-guardrail-coverage --microservice intelligence
 ```
 
 ## References

@@ -54,8 +54,8 @@ Non-goals are explicit: this IP does not introduce new lifecycle event names, do
 - `cargo nextest run -p oya-workflow-engine-event-bus-worker --all-features`
 - `cargo nextest run -p oya-workflow-engine-event-bus-sdk --all-features`
 - `cargo nextest run -p oya-workflow-engine-event-bus-app --all-features`
-- `cargo run -p oya-dev-cli -- gate validate openapi-conformance --crate oya-workflow-engine-event-bus-rest`
-- `cargo run -p oya-dev-cli -- gate validate asyncapi-conformance --microservice workflow-engine`
+- `buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --crate oya-workflow-engine-event-bus-rest`
+- `buck2 build //:quality-lane-registry-authority-check # lane=asyncapi-conformance --microservice workflow-engine`
 - Required tests: `publish_server_stamps_tenant_id`, `subscribe_cross_tenant_denied`, `outbox_relay_resumes_after_crash`, `replay_from_offset_is_idempotent`, `sdk_rejects_unknown_event_type`, and `poison_message_quarantines_without_blocking_tenant_topic`.
 
 ## §F Evidence

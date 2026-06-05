@@ -51,8 +51,8 @@ helm lint microservices/messenger/iac/helm/messenger
 kubectl --dry-run=client apply -k microservices/messenger/iac/kustomize/overlays/pack-kr
 kubectl --dry-run=client apply -k microservices/messenger/iac/kustomize/overlays/pack-us-healthcare
 terraform -chdir=microservices/messenger/iac/tofu validate
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice messenger
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

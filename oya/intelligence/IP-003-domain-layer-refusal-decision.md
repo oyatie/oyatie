@@ -79,7 +79,7 @@ pub enum RefusalReason {
 cargo check  -p oya-intelligence-guardrails-domain
 cargo clippy -p oya-intelligence-guardrails-domain -- -D warnings
 cargo nextest run -p oya-intelligence-guardrails-domain
-cargo run -p oya-dev-cli -- gate validate refusal-reason-coverage --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=refusal-reason-coverage --microservice intelligence
 ```
 
 ## Test plan

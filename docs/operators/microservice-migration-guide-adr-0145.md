@@ -128,13 +128,13 @@ cargo build -p oya-<ms>-app
 cargo nextest run -p oya-<ms>-app
 
 # Validate manifest
-cargo run -p oya-dev-cli -- gate validate ontology-projection-coverage
+buck2 build //:repo-hygiene-automation-check
 
 # Validate audit-chain coverage
-cargo run -p oya-dev-cli -- gate validate audit-chain-seal-coverage
+buck2 build //:repo-hygiene-automation-check
 
 # Validate trace propagation
-cargo run -p oya-dev-cli -- gate validate otel-trace-propagation
+buck2 build //:repo-hygiene-automation-check
 ```
 
 All three gates run in DEFERRED (advisory) mode during the skeleton phase; they will surface findings without failing the gate run-all.

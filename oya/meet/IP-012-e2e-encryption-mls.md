@@ -71,7 +71,7 @@ when {
 ```bash
 cargo nextest run -p oya-meet-e2e-encryption-adapter-mls
 cargo nextest run --test e2e_handshake_e2e
-cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-coverage --microservice meet
 ```
 
 ## Test Plan

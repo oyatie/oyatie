@@ -90,9 +90,9 @@ Three files updated + evidence emission:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice workflow-studio
 cargo nextest run --workspace --all-features  # full workspace passes
 ```
 

@@ -106,8 +106,8 @@ helm lint microservices/sheets/iac/helm/sheets-waf
 helm lint microservices/sheets/iac/helm/clamav-sidecar
 helm lint microservices/sheets/iac/helm/opswat-sidecar
 kubectl --dry-run=client apply -k microservices/sheets/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice sheets
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

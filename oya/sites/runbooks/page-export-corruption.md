@@ -159,7 +159,7 @@ cargo run -p oya-dev-cli -- vcs page-export-validate \
   --page <page_id>
 
 # seo-meta-correctness SLO
-cargo run -p oya-dev-cli -- gate validate slo --microservice sites --slo seo-meta-correctness
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice sites --slo seo-meta-correctness
 ```
 
 ## Post-incident

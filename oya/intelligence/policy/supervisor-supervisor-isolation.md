@@ -273,9 +273,9 @@ Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate postgres-rls-enforced --microservice foundry-supervisor` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate operator-rbac-conformance --microservice foundry-supervisor` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice foundry-supervisor` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=postgres-rls-enforced --microservice foundry-supervisor` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=operator-rbac-conformance --microservice foundry-supervisor` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice foundry-supervisor` — exit 0.
 - Annual pen-test of tenant-boundary; documented in `runbooks/tenant-boundary-pentest.md`.
 - Quarterly chaos drill: induce reserved-tenant write + cross-tenant query attempt; verify rejection + alerting.
 

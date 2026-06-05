@@ -173,7 +173,7 @@ Storage cost at OCI rates → ~$2,415 compute + $630 storage per pack region per
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice foundry-runtime` — exit 0; deployed replica counts ≥ formula minimums.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-conformance --microservice foundry-runtime` — exit 0; deployed replica counts ≥ formula minimums.
 - Quarterly capacity review: actual vs forecast; recalibrate inputs.
 - Annual reference-architecture refresh.
 

@@ -37,8 +37,8 @@ integrity over (body | ciphertext).
 ```bash
 cargo nextest run -p oya-messenger-message-stream-kernel
 cargo nextest run -p oya-messenger-message-stream-domain
-cargo run -p oya-dev-cli -- gate validate port-location --microservice messenger
-cargo run -p oya-dev-cli -- gate validate statelessness --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=statelessness --microservice messenger
 ```
 
 ## Test Plan

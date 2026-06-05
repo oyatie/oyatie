@@ -110,7 +110,7 @@ Three outcomes per skill `dlp-quarantine-release.md`:
 cargo run -p oya-dev-cli -- vcs query --microservice drive --metric dlp_quarantine_pending_review_total
 
 # DLP-correctness SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo dlp-scan-correctness
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice drive --slo dlp-scan-correctness
 ```
 
 ## Post-incident

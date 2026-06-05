@@ -42,8 +42,8 @@ Use service-local OpenSLO files, `dashboards/slo-and-error-budget.json`, `dashbo
 
 ## E. Acceptance
 
-- `cargo run -p oya-dev-cli -- gate validate slo-gated-promotion --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate slo-catalog --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=slo-gated-promotion --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=slo-catalog --microservice marketing-automation`
 - Manual evidence: each SLO has an owning runbook and dashboard panel.
 
 ## F. Evidence

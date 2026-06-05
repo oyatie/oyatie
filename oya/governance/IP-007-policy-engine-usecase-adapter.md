@@ -70,8 +70,8 @@ impl BaselineDiffClient for HttpsBaselineDiffClient {
 ```bash
 cargo check -p oya-governance-policy-engine-{usecase,adapter,rest,worker,sdk,app}
 cargo nextest run --workspace
-cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity --microservice governance
-cargo run -p oya-dev-cli -- gate validate composition-root-only --crate oya-governance-policy-engine-app
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-rest-route-parity --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=composition-root-only --crate oya-governance-policy-engine-app
 ```
 
 ## Test Plan

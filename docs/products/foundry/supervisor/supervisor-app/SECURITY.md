@@ -96,7 +96,7 @@ To verify audit chain integrity:
 
 ```bash
 # Replay and verify hashes
-cargo run -p oya-dev-cli -- audit verify-chain \
+native-audit-chain-verify \
   --input evidence/audit-chain.jsonl \
   --expected-events 'foundry_supervisor_*'
 

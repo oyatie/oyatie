@@ -99,8 +99,8 @@ pub async fn cedar_authorize<B>(
 ```bash
 cargo check -p oya-foundry-runtime-capability-executor-{api,rest}
 cargo nextest run -p oya-foundry-runtime-capability-executor-rest --features integration-tests
-cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice foundry-runtime
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --microservice foundry-runtime
 ```
 
 ## Test Plan

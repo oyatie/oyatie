@@ -86,7 +86,7 @@ cargo check -p oya-slides-presentation-kernel -p oya-slides-presentation-domain 
   -p oya-slides-slide-kernel -p oya-slides-slide-domain
 cargo nextest run -p oya-slides-presentation-domain --test lifecycle
 cargo nextest run -p oya-slides-slide-domain --test ordering
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice slides
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice slides
 ```
 
 ## Test Plan

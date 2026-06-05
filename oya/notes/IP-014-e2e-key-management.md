@@ -34,7 +34,7 @@ Land `oya-notes-e2e-key-management-{kernel,domain,usecase,api,adapter,adapter-ml
 ```bash
 cargo check -p oya-notes-e2e-key-management-kernel
 cargo check -p oya-notes-e2e-key-management-adapter-mls
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Next IP

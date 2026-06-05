@@ -41,7 +41,7 @@ Implement the manifest/catalog-named ics import/export adapters for iCalendar, R
 - `cargo nextest run -p oya-calendar-ics-import-export-adapter-icalendar` passes.
 - `cargo nextest run -p oya-calendar-ics-import-export-adapter-caldav-radicale` passes.
 - `cargo nextest run -p oya-calendar-ics-import-export-adapter-caldav-sabredav` passes.
-- `cargo run -p oya-dev-cli -- gate validate rfc-4791-conformance --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=rfc-4791-conformance --microservice calendar` passes.
 - SLOs resolve for `caldav-availability` and `ics-import-throughput`.
 
 ## F. Evidence

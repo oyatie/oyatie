@@ -25,7 +25,7 @@ kernel + REST surface for list / get / metadata-update.
 
 ```bash
 cargo nextest run -p oya-recordings-recording-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice recordings
 ```
 
 ## ChangeSet metadata

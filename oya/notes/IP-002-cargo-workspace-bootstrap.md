@@ -53,8 +53,8 @@ Total: 111 crates.
 
 ```bash
 cargo check --workspace
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice notes
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Halt Conditions

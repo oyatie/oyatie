@@ -18,7 +18,7 @@ canonical_paths:
   - docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md
   - docs/standards/clean-architecture.md
   - docs/standards/crate-naming-convention.md
-  - crates/oya-dev-cli/src/layered_architecture_gates.rs
+  - libs/oya-check-layered-architecture-discipline/src/lib.rs
 ---
 
 # ADR-0105 Layer Enum Standard
@@ -473,7 +473,7 @@ Suppressing a layer finding without an ADR is an anti-pattern.
 
 `registry/catalog/` records machine-readable crate ownership.
 
-`crates/oya-dev-cli/src/layered_architecture_gates.rs` is the local checker path.
+`libs/oya-check-layered-architecture-discipline/src/lib.rs` is the local checker path.
 
 ## Substance Bar Compliance Checklist
 

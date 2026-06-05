@@ -73,9 +73,9 @@ helm lint microservices/forms/iac/helm/response-collector-rest
 helm lint microservices/forms/iac/helm/export-worker
 helm lint microservices/forms/iac/helm/bulk-distribute-worker
 kubectl --dry-run=client apply -k microservices/forms/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice forms
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
-cargo run -p oya-dev-cli -- gate validate forms-recaptcha-forbidden-pack-eu-kr-us-hc
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice forms
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=forms-recaptcha-forbidden-pack-eu-kr-us-hc
 ```
 
 ## Test Plan

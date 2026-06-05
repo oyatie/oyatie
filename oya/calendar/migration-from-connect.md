@@ -374,7 +374,7 @@ satisfy these checks. Each is gated by a concrete command:
 
 - [ ] **Replacement is production-proven and covers all critical use cases.**
   ```bash
-  cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice calendar
+  buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice calendar
   # expect: HG-CALENDAR accepts at p99 SLOs sustained 30d
   ```
 - [ ] **Migration guide exists with concrete steps and examples.**

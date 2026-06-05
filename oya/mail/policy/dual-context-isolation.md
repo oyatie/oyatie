@@ -265,12 +265,12 @@ Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/mail-dua
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate dual-context-cross-boundary --microservice mail` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate mail-context-immutability --microservice mail` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate personal-pillar-kms-scope` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate personal-pillar-hold-forbidden` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate search-index-context-partition --microservice mail` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate migration-context-tagging --microservice mail` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=dual-context-cross-boundary --microservice mail` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=mail-context-immutability --microservice mail` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=personal-pillar-kms-scope` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=personal-pillar-hold-forbidden` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=search-index-context-partition --microservice mail` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=migration-context-tagging --microservice mail` — exit 0.
 - Annual pen-test against pillar boundary: documented in `runbooks/pillar-boundary-pentest.md`.
 - Quarterly chaos drill: induce cross-context routing attempt + personal-pillar hold attempt; verify rejection + alerting.
 

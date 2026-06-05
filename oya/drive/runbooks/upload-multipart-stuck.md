@@ -124,7 +124,7 @@ kubectl -n drive exec deploy/oya-drive-upload-rest -- \
   grep oya_drive_upload_session_pending_count
 
 # Multipart SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo upload-multipart-throughput
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice drive --slo upload-multipart-throughput
 ```
 
 ## Post-incident

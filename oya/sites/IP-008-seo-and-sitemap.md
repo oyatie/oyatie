@@ -30,8 +30,8 @@ cargo nextest run -p oya-sites-seo-domain -- jsonld_context_validate
 cargo nextest run -p oya-sites-seo-domain -- open_graph_well_formed
 cargo nextest run -p oya-sites-seo-domain -- twitter_cards_well_formed
 cargo nextest run -p oya-sites-seo-domain -- robots_txt_parse
-cargo run -p oya-dev-cli -- gate validate sitemap-xml-conformance --microservice sites
-cargo run -p oya-dev-cli -- gate validate schema-org-jsonld-conformance --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=sitemap-xml-conformance --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=schema-org-jsonld-conformance --microservice sites
 ```
 
 ## Test Plan

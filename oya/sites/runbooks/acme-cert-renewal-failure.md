@@ -134,7 +134,7 @@ echo | openssl s_client -servername <domain> -connect <domain>:443 2>/dev/null |
   openssl x509 -noout -dates
 
 # acme-renew-latency SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice sites --slo acme-renew-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice sites --slo acme-renew-latency
 ```
 
 ## Post-incident

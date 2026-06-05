@@ -42,8 +42,8 @@ Use `dpia.md`, `compliance.md`, `policy/data-residency.md`, and local Cedar poli
 
 ## E. Acceptance
 
-- `cargo run -p oya-dev-cli -- gate validate dpia --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate privacy --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=dpia --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=privacy --microservice marketing-automation`
 - Manual evidence: each high-risk flow has a DPIA row, policy hook, audit event, and runbook reference.
 
 ## F. Evidence

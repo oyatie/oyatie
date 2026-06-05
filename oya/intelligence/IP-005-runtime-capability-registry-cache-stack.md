@@ -97,7 +97,7 @@ impl<M: RegistryMirror, C: CacheStore> HotReloadWorker<M, C> {
 cargo check -p oya-foundry-runtime-capability-registry-cache-{kernel,usecase,api,adapter,adapter-postgres,worker,app}
 cargo nextest run -p oya-foundry-runtime-capability-registry-cache-{kernel,domain,usecase}
 cargo nextest run -p oya-foundry-runtime-capability-registry-cache-adapter-postgres --features testcontainers
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-runtime
 ```
 
 ## Test Plan

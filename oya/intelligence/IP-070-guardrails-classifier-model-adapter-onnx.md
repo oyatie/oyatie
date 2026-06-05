@@ -71,7 +71,7 @@ impl ClassifierModelServer for ClassifierModelClient {
 ```bash
 cargo check -p oya-foundry-guardrails-prompt-classifier-adapter-classifier-model --all-features
 cargo nextest run -p ...adapter-classifier-model --all-features --test onnx_integration
-cargo run -p oya-dev-cli -- gate validate classifier-model-cosign-signed
+buck2 build //:quality-lane-registry-authority-check # lane=classifier-model-cosign-signed
 ```
 
 ## Test Plan

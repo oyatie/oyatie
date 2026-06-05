@@ -38,7 +38,7 @@ Helm chart for Valkey Cluster (3 shards × 2 replicas per pack region); kill-swi
 ```bash
 helm lint microservices/intelligence/iac/helm/redis
 helm install --dry-run --debug -n foundry-supervisor redis microservices/intelligence/iac/helm/redis
-cargo run -p oya-dev-cli -- gate validate redis-acl-enforced --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=redis-acl-enforced --microservice foundry-supervisor
 ```
 
 ## Test Plan
@@ -94,7 +94,7 @@ Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbi
 - Contract parity for `microservices/intelligence/contracts/openapi/supervisor-foundry-supervisor.yaml` and `microservices/intelligence/contracts/proto/supervisor-foundry-supervisor.proto` when DTOs or handlers change.
 - Policy resolution against `microservices/intelligence/policy/supervisor-tenant-scope.cedar`, `microservices/intelligence/policy/supervisor-supervisor-isolation.md`, `microservices/intelligence/policy/supervisor-ci-scope.cedar`, including a tenant mismatch denial and a CI/synthetic principal allowance where applicable.
 - SLO or dashboard linkage against `microservices/intelligence/slos/supervisor-command-propagation.openslo.yaml`, `microservices/intelligence/slos/supervisor-fleet-state-freshness.openslo.yaml`; no acceptance by line count alone.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
 
 ### F. Evidence anchors
 - `microservices/intelligence/PRD.md` FR-X1..FR-X7 for the supervisor-runtime-guardrails-providers-evidence chain.

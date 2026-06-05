@@ -45,7 +45,7 @@ on default path.
 ```bash
 vitest run packages/oya-intelligence-brand-ux-surface-sdk-ts
 playwright test --project=a11y packages/oya-intelligence-brand-ux-surface-sdk-ts
-cargo run -p oya-dev-cli -- gate validate brand-ux-surface-wcag-aa
+buck2 build //:quality-lane-registry-authority-check # lane=brand-ux-surface-wcag-aa
 ```
 
 ## References

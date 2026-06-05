@@ -62,7 +62,7 @@ impl ProviderCatalog {
 
 ```bash
 cargo nextest run -p oya-intelligence-model-routing-domain
-cargo run -p oya-dev-cli -- gate validate provider-catalog-pack-coverage --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=provider-catalog-pack-coverage --microservice intelligence
 ```
 
 ## Test plan

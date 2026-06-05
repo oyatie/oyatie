@@ -40,8 +40,8 @@ Implement `oya-calendar-event-store-domain` and `oya-calendar-event-store-usecas
 ## E. Acceptance
 - `cargo nextest run -p oya-calendar-event-store-domain` passes.
 - `cargo nextest run -p oya-calendar-event-store-usecase` passes.
-- `cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice calendar` passes.
-- `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice calendar` passes.
 - Legal-hold behavior matches `policy/data-residency.md` and `compliance.md`.
 
 ## F. Evidence

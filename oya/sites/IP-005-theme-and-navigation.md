@@ -28,7 +28,7 @@ Author the `theme` and `navigation` bounded contexts. Theme system uses CSS-in-r
 cargo build -p oya-sites-theme-kernel .. -p oya-sites-navigation-app
 cargo nextest run -p oya-sites-theme-domain -- wcag22_contrast_4_5_to_1
 cargo nextest run -p oya-sites-navigation-domain -- no_nav_loops
-cargo run -p oya-dev-cli -- gate validate wcag-2-2-aa-conformance --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=wcag-2-2-aa-conformance --microservice sites
 ```
 
 ## Test Plan

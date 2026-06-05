@@ -40,7 +40,7 @@ Implement the manifest-named `oya-calendar-recurrence-engine-kernel` and `oya-ca
 ## E. Acceptance
 - `cargo nextest run -p oya-calendar-recurrence-engine-kernel` passes.
 - `cargo nextest run -p oya-calendar-recurrence-engine-adapter` passes.
-- `cargo run -p oya-dev-cli -- gate validate rfc-5545-conformance --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=rfc-5545-conformance --microservice calendar` passes.
 - Recurrence-storm tests align with `runbooks/recurrence-storm.md`.
 - Performance targets align with `performance-benchmark-numbers-2026-05-20.md`.
 

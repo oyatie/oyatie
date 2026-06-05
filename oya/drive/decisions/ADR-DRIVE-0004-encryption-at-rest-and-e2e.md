@@ -205,7 +205,7 @@ Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law":
 - [ ] DEK rotation `rewrap` — `cargo nextest run -p oya-drive-file-store-domain -- dek_rotation_rewrap`.
 - [ ] libsodium secretstream KAT — `cargo nextest run -p oya-drive-file-store-domain -- libsodium_kat`.
 - [ ] E2E end-to-end flow — `cargo nextest run --test e2e_e2e_personal_pillar`.
-- [ ] FIPS 140-3 conformance verification — `cargo run -p oya-dev-cli -- gate validate fips-140-3 --microservice drive`.
+- [ ] FIPS 140-3 conformance verification — `buck2 build //:quality-lane-registry-authority-check # lane=fips-140-3 --microservice drive`.
 
 ## References
 

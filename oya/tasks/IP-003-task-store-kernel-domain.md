@@ -59,9 +59,9 @@ ADR-0056 v4.1 BNF.
 ```bash
 cargo test -p oya-tasks-task-store-kernel
 cargo test -p oya-tasks-task-store-domain
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice tasks
-cargo run -p oya-dev-cli -- gate validate port-location --microservice tasks
-cargo run -p oya-dev-cli -- gate validate task-state-machine-correctness --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=task-state-machine-correctness --microservice tasks
 ```
 
 ## Test Plan

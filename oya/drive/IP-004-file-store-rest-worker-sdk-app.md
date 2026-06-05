@@ -32,7 +32,7 @@ Compose the file-store REST handler, background workers (retention sweep, versio
 ```bash
 cargo build -p oya-drive-file-store-{rest,worker,sdk,app}
 cargo nextest run --test e2e_file_lifecycle
-cargo run -p oya-dev-cli -- gate validate audit-emission-coverage --microservice drive --bc file-store
+buck2 build //:quality-lane-registry-authority-check # lane=audit-emission-coverage --microservice drive --bc file-store
 ```
 
 ## ChangeSet metadata
@@ -52,7 +52,7 @@ acceptance_status: ga
 | AC-01 | REST handler maps every domain usecase 1:1 (zero handler-only logic) | `cargo nextest run -p oya-drive-file-store-rest -- handler_purity` |
 | AC-02 | Retention sweeper purges expired versions; WORM-protected objects skipped | `cargo nextest run -p oya-drive-file-store-worker -- retention_sweep` |
 | AC-03 | SDK round-trips full file lifecycle (upload, list, download, delete, restore) | `cargo nextest run --test e2e_file_lifecycle` |
-| AC-04 | Audit-chain emission covers every state transition | `cargo run -p oya-dev-cli -- gate validate audit-emission-coverage --microservice drive --bc file-store` |
+| AC-04 | Audit-chain emission covers every state transition | `buck2 build //:quality-lane-registry-authority-check # lane=audit-emission-coverage --microservice drive --bc file-store` |
 
 ## Build Sequence
 

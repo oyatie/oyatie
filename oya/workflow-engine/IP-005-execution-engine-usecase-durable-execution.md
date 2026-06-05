@@ -93,7 +93,7 @@ impl<RS, ES, TE, IV, EB, AC> RunLifecycleOrchestrator<RS, ES, TE, IV, EB, AC> {
 cargo nextest run -p oya-workflow-engine-execution-engine-usecase --all-features
 cargo nextest run -p oya-workflow-engine-execution-engine-adapter-postgres --all-features
 cargo nextest run -p oya-workflow-engine-execution-engine-adapter-valkey --all-features
-cargo run -p oya-dev-cli -- gate validate deterministic-replay --crate oya-workflow-engine-execution-engine-usecase
+buck2 build //:quality-lane-registry-authority-check # lane=deterministic-replay --crate oya-workflow-engine-execution-engine-usecase
 ```
 
 ## Test Plan

@@ -56,8 +56,8 @@ per ADR-0056 v4.1 + ADR-0105 Amendment 3 backend-qualification.
 ```bash
 cargo test -p oya-tasks-view-engine-domain rerank_determinism
 cargo test -p oya-tasks-view-engine-usecase crdt_merge
-cargo run -p oya-dev-cli -- gate validate board-rerank-determinism --microservice tasks
-cargo run -p oya-dev-cli -- gate validate crdt-merge-correctness --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=board-rerank-determinism --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=crdt-merge-correctness --microservice tasks
 ```
 
 ## Test Plan

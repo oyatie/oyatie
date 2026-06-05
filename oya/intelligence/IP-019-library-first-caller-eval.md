@@ -58,8 +58,8 @@ impl IntelligenceClient {
 
 ```bash
 cargo nextest run -p oya-intelligence-dispatch-sdk-rs
-cargo run -p oya-dev-cli -- gate validate library-first-dispatch-invariant --microservice intelligence
-cargo run -p oya-dev-cli -- gate validate audience-tag-required --sdk oya-intelligence-dispatch-sdk-rs
+buck2 build //:quality-lane-registry-authority-check # lane=library-first-dispatch-invariant --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=audience-tag-required --sdk oya-intelligence-dispatch-sdk-rs
 ```
 
 ## Test plan

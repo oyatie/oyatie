@@ -45,7 +45,7 @@ US/EU providers. Per ADR-0251 CN-PIPL pack + CN Generative AI Provisions 2023.
 
 ```bash
 cargo nextest run -p oya-intelligence-model-routing-kernel -- cn_pack_gate
-cargo run -p oya-dev-cli -- gate validate cn-pipl-provider-isolation --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=cn-pipl-provider-isolation --microservice intelligence
 ```
 
 ## References

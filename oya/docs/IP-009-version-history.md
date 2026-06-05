@@ -35,7 +35,7 @@ Implement Merkle-chained version snapshots + revert + CRDT op-log compaction per
 ```bash
 cargo nextest run -p oya-docs-version-history-domain -- merkle_chain_continuity
 cargo nextest run -p oya-docs-version-history-domain -- compaction_byte_equality  # AC-02
-cargo run -p oya-dev-cli -- gate validate merkle-chain-continuity --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=merkle-chain-continuity --microservice docs
 ```
 
 ## References

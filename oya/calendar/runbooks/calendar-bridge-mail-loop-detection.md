@@ -179,8 +179,8 @@ kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
   grep <invitation_id_substring>
 
 # Notification-delivery-freshness + rsvp-fanout-latency SLOs recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo notification-delivery-freshness
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo rsvp-fanout-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice calendar --slo notification-delivery-freshness
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice calendar --slo rsvp-fanout-latency
 ```
 
 ## Post-incident

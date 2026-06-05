@@ -242,7 +242,7 @@ Per `docs/templates/incident-postmortem-template.md`:
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice sheets` — exit 0; every FM-ID has matching runbook.
+- `buck2 build //:quality-lane-registry-authority-check # lane=incident-runbook-coverage --microservice sheets` — exit 0; every FM-ID has matching runbook.
 - Quarterly DR failover drill validates the response chain end-to-end.
 - Annual tabletop exercise simulates Sev-1 regional outage; comms + regulatory notification chain rehearsed.
 

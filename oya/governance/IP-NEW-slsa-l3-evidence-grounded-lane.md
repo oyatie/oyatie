@@ -128,9 +128,9 @@ pub(crate) fn validate_slsa_l3_evidence_grounded_gate(
 ```bash
 cargo check -p oya-dev-cli
 cargo nextest run -p oya-check-slsa-l3-evidence-grounded
-cargo run -p oya-dev-cli -- gate validate slsa-l3-evidence-grounded \
+buck2 build //:quality-lane-registry-authority-check # lane=slsa-l3-evidence-grounded \
     --microservices-dir microservices --workflows-dir .github/workflows
-cargo run -p oya-dev-cli -- gate run-all
+buck2 build //:repo-hygiene-automation-check
 ```
 
 ## Halt conditions

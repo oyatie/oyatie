@@ -55,7 +55,7 @@ the `type-coercion-strictness` lane.
 ```bash
 cargo test -p oya-tasks-project-list-domain custom_field
 cargo test -p oya-tasks-task-store-domain custom_field
-cargo run -p oya-dev-cli -- gate validate type-coercion-strictness --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=type-coercion-strictness --microservice tasks
 ```
 
 ## Test Plan

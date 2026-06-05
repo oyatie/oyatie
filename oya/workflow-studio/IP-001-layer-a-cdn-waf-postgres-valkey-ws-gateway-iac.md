@@ -126,8 +126,8 @@ helm lint microservices/workflow-studio/iac/helm/license-gate-cedar
 helm lint microservices/workflow-studio/iac/helm/studio-cdn
 helm lint microservices/workflow-studio/iac/helm/studio-waf
 kubectl --dry-run=client apply -k microservices/workflow-studio/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice workflow-studio
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

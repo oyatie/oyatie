@@ -61,8 +61,8 @@ pub trait MeetingRoomRepository: Send + Sync {
 ```bash
 cargo nextest run -p oya-meet-meeting-room-kernel
 cargo nextest run -p oya-meet-meeting-room-domain
-cargo run -p oya-dev-cli -- gate validate port-location --microservice meet
-cargo run -p oya-dev-cli -- gate validate data-class --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --microservice meet
 ```
 
 ## Test Plan

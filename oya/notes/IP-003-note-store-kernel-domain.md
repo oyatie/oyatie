@@ -50,9 +50,9 @@ pub trait AuditChainClient {
 cargo check -p oya-notes-note-store-kernel
 cargo check -p oya-notes-note-store-domain
 cargo test  -p oya-notes-note-store-domain --lib
-cargo run -p oya-dev-cli -- gate validate port-location --microservice notes
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice notes
-cargo run -p oya-dev-cli -- gate validate dual-context-isolation --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=dual-context-isolation --microservice notes
 ```
 
 ## Test Plan

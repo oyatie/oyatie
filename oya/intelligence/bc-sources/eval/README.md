@@ -64,7 +64,7 @@ cargo build --workspace -p 'oya-foundry-eval-*'
 cargo nextest run -p oya-foundry-eval-eval-runner-kernel
 
 # Validate layout
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-eval
 
 # Deploy Layer-A (kind cluster)
 helm install gpu-runner-pool microservices/intelligence-eval/iac/helm/gpu-runner-pool/

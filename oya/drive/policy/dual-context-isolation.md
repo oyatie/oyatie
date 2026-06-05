@@ -98,7 +98,7 @@ Per the Strangler migration in ADR-0134, the legacy `oya-drive-domain` dual-cont
 
 ```bash
 # Build-time
-cargo run -p oya-dev-cli -- gate validate context-isolation --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=context-isolation --microservice drive
 
 # Cedar policy unit tests
 cargo nextest run -p oya-drive-permissions-domain -- cedar_dual_context_refusal

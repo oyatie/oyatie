@@ -93,10 +93,10 @@ pub trait SecretLeakDetector: Send + Sync + Sealed {
 ```bash
 cargo check -p oya-foundry-guardrails-output-validator-kernel --all-features
 cargo nextest run -p oya-foundry-guardrails-output-validator-kernel --all-features
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-foundry-guardrails-output-validator-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-foundry-guardrails-output-validator-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-foundry-guardrails-output-validator-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-foundry-guardrails-output-validator-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-foundry-guardrails-output-validator-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-foundry-guardrails-output-validator-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-foundry-guardrails-output-validator-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-foundry-guardrails-output-validator-kernel
 ```
 
 ## Test Plan

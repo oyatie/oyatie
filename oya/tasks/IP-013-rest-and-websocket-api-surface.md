@@ -61,7 +61,7 @@ npx @apidevtools/swagger-cli validate microservices/tasks/contracts/openapi/task
 npx @asyncapi/cli validate microservices/tasks/contracts/asyncapi/tasks-events.yaml
 protoc --proto_path=microservices/tasks/contracts/proto --rust_out=/tmp microservices/tasks/contracts/proto/tasks.proto
 cargo test -p oya-tasks-task-store-rest
-cargo run -p oya-dev-cli -- gate validate contract-coverage --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=contract-coverage --microservice tasks
 ```
 
 ## Test Plan

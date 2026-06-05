@@ -39,7 +39,7 @@ stage('Promote eligible microservice') {
     }
   }
   steps {
-    sh 'cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha "$SOURCE_SHA" --env "$TARGET_ENV"'
+    sh 'buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --sha "$SOURCE_SHA" --env "$TARGET_ENV"'
     sh '''
 set -eu
 cargo run -p oya-dev-cli -- promotion advance-release-pointer \

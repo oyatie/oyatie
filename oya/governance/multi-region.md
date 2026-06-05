@@ -187,7 +187,7 @@ Before a pack accepts production traffic:
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region --microservice governance` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=multi-region --microservice governance` — exit 0.
 - Quarterly DR drill per pack; record at `evidence/audits/dr-drill/<quarter>/<pack>.json`.
 - Cross-pack consistency check: pack-A's Postgres data does NOT appear in pack-B Postgres replicas.
 

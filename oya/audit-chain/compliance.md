@@ -172,8 +172,8 @@ External auditors receive a frozen evidence pack scoped to (tenant, framework, e
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance-evidence-recency --microservice audit-chain` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate authority-cohesion` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=compliance-evidence-recency --microservice audit-chain` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` — exit 0.
 - Annual SOC 2 Type 2 + ISO 27001:2022 audit results in `evidence/audits/`.
 
 ## References

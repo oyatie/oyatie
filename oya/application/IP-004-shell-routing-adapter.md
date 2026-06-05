@@ -68,8 +68,8 @@ impl RouteRegistry for PostgresRouteRegistry {
 ```bash
 cargo nextest run -p oya-application-shell-routing-adapter --all-features
 cargo sqlx prepare --check
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-application-shell-routing-adapter
-cargo run -p oya-dev-cli -- gate validate rls-pin --crate oya-application-shell-routing-adapter
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-application-shell-routing-adapter
+buck2 build //:quality-lane-registry-authority-check # lane=rls-pin --crate oya-application-shell-routing-adapter
 ```
 
 ## Test Plan

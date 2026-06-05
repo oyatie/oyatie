@@ -31,7 +31,7 @@ doc_status: published
 - Open a sev0 if `oya_observability_trace_sampling_loss_investigation_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
 - Open a sev1 if `oya_observability_trace_sampling_loss_investigation_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `observability.trace-sampling-loss-investigation.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate observability-trace-sampling-loss-investigation --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=observability-trace-sampling-loss-investigation --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="observability",runbook="trace-sampling-loss-investigation"}`.
@@ -67,7 +67,7 @@ doc_status: published
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops observability trace-sampling-loss-investigation status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate observability-trace-sampling-loss-investigation --production-snapshot --cell $CELL`.
+14. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=observability-trace-sampling-loss-investigation --production-snapshot --cell $CELL`.
 15. Check Cargo owner crate: `cargo test -p oya-observability-domain trace_sampling_loss_investigation -- --nocapture`.
 16. Check API contract smoke: `curl -s https://observability.internal.oyatie.dev/v1/observability/trace-sampling-loss-investigation/incident-handoff -H "x-oya-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n observability get configmap observability-trace-sampling-loss-investigation-config -o yaml`.
@@ -148,12 +148,12 @@ Trace Sampling Loss Investigation incident decision tree
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/observability/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-observability-domain trace_sampling_loss_investigation_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate observability-trace-sampling-loss-investigation --fixture incident-trace-sampling-loss-investigation.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=observability-trace-sampling-loss-investigation --fixture incident-trace-sampling-loss-investigation.json`.
 8. Add SLO assertion: `update microservices/observability/slos/* with alert ObservabilityTraceSamplingLossInvestigationCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/observability/dashboards/clickhouse-ingest-throughput.json with oya_observability_trace_sampling_loss_investigation_error_ratio, oya_observability_trace_sampling_loss_investigation_lag_seconds, and oya_observability_trace_sampling_loss_investigation_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-observability-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-observability-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate observability-policy --microservice observability`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=observability-policy --microservice observability`.
 13. Deploy canary: `oya deploy canary --microservice observability --component trace-sampling-loss-investigation-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_observability_trace_sampling_loss_investigation_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close observability-trace-sampling-loss-investigation-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

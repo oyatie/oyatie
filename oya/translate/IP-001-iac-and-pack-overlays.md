@@ -123,7 +123,7 @@ kustomize build iac/kustomize/overlays/pack-eu
 kustomize build iac/kustomize/overlays/pack-jp
 kustomize build iac/kustomize/overlays/pack-cn-stub
 tofu validate iac/terraform/
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice translate
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice translate
 ```
 
 ## Test Plan

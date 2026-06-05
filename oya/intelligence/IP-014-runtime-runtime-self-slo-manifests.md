@@ -44,10 +44,10 @@ for slo in microservices/intelligence/slos/*.openslo.yaml; do
 done
 
 # Verify slo-engine evaluator picks them up within hot-reload window
-cargo run -p oya-dev-cli -- gate validate openslo-conformance --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=openslo-conformance --microservice foundry-runtime
 
 # Verify initial verdict at staging tier
-cargo run -p oya-dev-cli -- gate validate vcs-promotion-readiness --sha <head-sha> --env staging --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=vcs-promotion-readiness --sha <head-sha> --env staging --microservice foundry-runtime
 ```
 
 ## Test Plan
@@ -104,7 +104,7 @@ Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbi
 - Contract parity for `microservices/intelligence/contracts/openapi/runtime-foundry-runtime.yaml` and `microservices/intelligence/contracts/proto/runtime-foundry-runtime.proto` when DTOs or handlers change.
 - Policy resolution against `microservices/intelligence/policy/runtime-tenant-scope.cedar`, `microservices/intelligence/policy/runtime-runtime-isolation.md`, `microservices/intelligence/policy/runtime-ci-scope.cedar`, including a tenant mismatch denial and a CI/synthetic principal allowance where applicable.
 - SLO or dashboard linkage against `microservices/intelligence/slos/runtime-latency.openslo.yaml`, `microservices/intelligence/slos/runtime-availability.openslo.yaml`, `microservices/intelligence/slos/runtime-freshness.openslo.yaml`; no acceptance by line count alone.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
 
 ### F. Evidence anchors
 - `microservices/intelligence/PRD.md` FR-X1..FR-X7 for the supervisor-runtime-guardrails-providers-evidence chain.

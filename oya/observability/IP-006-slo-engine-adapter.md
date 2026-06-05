@@ -79,7 +79,7 @@ cargo nextest run -p oya-observability-slo-engine-adapter --all-features
 cargo nextest run -p oya-observability-slo-engine-adapter-mimir --all-features
 # Integration against Mimir test container:
 cargo nextest run -p oya-observability-slo-engine-adapter-mimir --test mimir_integration
-cargo run -p oya-dev-cli -- gate validate mimir-tenancy-enforced
+buck2 build //:quality-lane-registry-authority-check # lane=mimir-tenancy-enforced
 ```
 
 ## Test Plan

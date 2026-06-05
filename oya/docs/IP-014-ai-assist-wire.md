@@ -37,7 +37,7 @@ Capabilities surface crates: shared AI-assist port + per-capability adapters und
 ```bash
 cargo nextest run -p oya-docs-ai-assist-shared -- prompt_envelope_tenant_dek_wrapped
 cargo nextest run -p oya-docs-ai-assist-shared -- reversibility_window_audit_emit
-cargo run -p oya-dev-cli -- gate validate ai-act-conformance --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=ai-act-conformance --microservice docs
 ```
 
 ## References

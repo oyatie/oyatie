@@ -43,8 +43,8 @@ Use the existing OpenBao sidecar posture referenced by Cedar (`provider_credenti
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app credential`
-- `cargo run -p oya-dev-cli -- gate validate secret-bindings --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate bypass --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=secret-bindings --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=bypass --microservice marketing-automation`
 - Manual evidence: no `secret`, `api_key`, or provider token field appears in persisted Marketing Automation command receipts.
 
 ## F. Evidence

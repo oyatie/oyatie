@@ -39,8 +39,8 @@ Use AsyncAPI events and Ontology object/link writes as the only handoff surfaces
 
 ## E. Acceptance
 - AsyncAPI validation passes for `contracts/asyncapi/calendar-events.yaml`.
-- `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice calendar` passes.
-- `cargo run -p oya-dev-cli -- gate validate ontology-link-consistency --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=ontology-link-consistency --microservice calendar` passes.
 - Replay instructions in `backfill-replay.md` cover idempotent lifecycle events.
 - Mail-loop detection runbook remains linked.
 

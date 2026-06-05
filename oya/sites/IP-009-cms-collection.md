@@ -28,7 +28,7 @@ Author the `cms-collection` BC per ADR-SITES-0005 (hybrid portable-text + relati
 cargo nextest run -p oya-sites-cms-collection-domain -- schema_version_monotonic
 cargo nextest run -p oya-sites-cms-collection-domain -- field_definition_validation
 cargo nextest run -p oya-sites-cms-collection-adapter-postgres -- query_1000
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice sites
 ```
 
 ## Test Plan

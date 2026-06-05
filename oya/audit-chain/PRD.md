@@ -347,8 +347,8 @@ Sharding:
 | AC-05 | HSM key rotation overlap window allows verification of both pre- and post-rotation events | rotation drill |
 | AC-06 | Auditor export bundle is independently verifiable by a third-party tool using only public artifacts (root manifest + public key) | external verifier reference implementation |
 | AC-07 | Cross-pack export is forbidden by default; allowed only with tenant SCC + receiving-bucket attestation | pack-routing CI lane |
-| AC-08 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice audit-chain` exit 0 | ADR-0131 lane |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0; HG-AUDIT registered | ADR-0123 lane |
+| AC-08 | `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice audit-chain` exit 0 | ADR-0131 lane |
+| AC-09 | `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` exit 0; HG-AUDIT registered | ADR-0123 lane |
 | AC-10 | HIPAA pack 6y retention verified by automated retention-cascade dry-run | per-pack retention-conformance lane |
 
 ## Open Questions

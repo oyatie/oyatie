@@ -39,8 +39,8 @@ Implement `oya-calendar-event-store-adapter-postgres` as the only Postgres-backe
 ## E. Acceptance
 - `cargo nextest run -p oya-calendar-event-store-adapter-postgres` passes.
 - SQL migration tests prove cross-tenant reads and writes are denied.
-- `cargo run -p oya-dev-cli -- gate validate data-residency --microservice calendar` passes.
-- `cargo run -p oya-dev-cli -- gate validate statelessness --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=data-residency --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=statelessness --microservice calendar` passes.
 - Restore behavior remains compatible with `runbooks/calendar-restore.md`.
 
 ## F. Evidence

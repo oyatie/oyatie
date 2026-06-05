@@ -28,7 +28,7 @@ Acceptance: you can sketch the WebAuthn registration ceremony: client → `/v1/i
 ## Day 2 — demo_trial cell bootstrap + first passkey registration
 
 ```sh
-cargo run -p oya-dev-cli -- identity bootstrap \
+identity-bootstrap-api-request \
     --profile demo_trial \
     --cell drill-syd-1 \
     --postgres-endpoint postgres://drill-pg-syd-1:5432/identity \

@@ -309,9 +309,9 @@ VERIFY-009: Static read confirms `plant-maintenance` ARCH has an `ADR-0339 integ
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: `buck2 build //:quality-lane-registry-authority-check # lane=adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
+VERIFY-014: `buck2 build //:quality-lane-registry-authority-check # lane=cohesion` must pass before commit.
+VERIFY-015: `buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json --write` must refresh machine-readable inventory before commit.
 ACCEPT-016: `plant-maintenance` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `plant-maintenance` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `plant-maintenance` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.

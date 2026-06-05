@@ -109,9 +109,9 @@ branches:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate branch-protection-conformance
-cargo run -p oya-dev-cli -- gate validate hyperscaler-gates-registry
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
+buck2 build //:quality-lane-registry-authority-check # lane=branch-protection-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-gates-registry
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion
 ```
 
 ## Test Plan

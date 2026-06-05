@@ -39,7 +39,7 @@ Implement the cataloged follow-graph kernel and Postgres adapter plus planned do
 ## E. Acceptance
 - `cargo nextest run -p oya-community-social-follow-graph-kernel` passes.
 - `cargo nextest run -p oya-community-social-follow-graph-adapter-postgres` passes.
-- `cargo run -p oya-dev-cli -- gate validate data-residency --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=data-residency --microservice social` passes.
 - `slos/follow-action-latency.openslo.yaml` resolves.
 - `runbooks/follow-graph-corruption.md` covers rebuild and audit reconciliation.
 

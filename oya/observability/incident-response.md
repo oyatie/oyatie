@@ -253,7 +253,7 @@ On-call compensation + handoff procedure per `runbooks/oncall-rotation.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice observability` — exit 0; every FM-ID has a matching runbook.
+- `buck2 build //:quality-lane-registry-authority-check # lane=incident-runbook-coverage --microservice observability` — exit 0; every FM-ID has a matching runbook.
 - Quarterly DR failover drill validates the response chain end-to-end (per `multi-region.md`).
 - Annual tabletop exercise simulates a Sev-1 regional outage; comms + regulatory notification chain rehearsed.
 

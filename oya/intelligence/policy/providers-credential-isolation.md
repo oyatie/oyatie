@@ -115,7 +115,7 @@ The OpenBao policy that issues tokens to foundry-providers pods is in `microserv
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate credential-isolation --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=credential-isolation --microservice foundry-providers` exits 0.
 - Per-adapter test `tests/integration/<vendor>_no_credential_leak.rs` passes.
 - Quarterly rotation drill: `evidence/runbook-drills/rotation/<unix_ts>.json` present.
 

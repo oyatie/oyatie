@@ -33,7 +33,7 @@ doc_status: published
 - Open sev2 if `oya_community_verified_anonymous_deanonymization_total` exceeds the threshold documented in `microservices/community/slos/audit-chain-seal-latency.openslo.yaml`.
 - Open sev2 if `oya_community_verified_anonymous_deanonymization_incident_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `community.verified-anonymous-deanonymization-incident.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate community-verified-anonymous-deanonymization-incident --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=community-verified-anonymous-deanonymization-incident --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/community-ops/verified-anonymous-deanonymization-incident?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/community/dashboards/moderation-queue-depth.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/community-ops/verified-anonymous-deanonymization-incident?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/community/dashboards/post-throughput.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="community",runbook="verified-anonymous-deanonymization-incident"}`.
@@ -85,7 +85,7 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/community-ops/verified-anonymous-deanonymization-incident?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_COMMUNITY_VERIFIED_ANONYMOUS_DEANONYMIZATION_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops community verified-anonymous-deanonymization-incident status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate community-verified-anonymous-deanonymization-incident --production-snapshot --cell $CELL`.
+15. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=community-verified-anonymous-deanonymization-incident --production-snapshot --cell $CELL`.
 16. Run crate smoke test: `cargo test -p oya-community-moderation-queue-domain verified_anonymous_deanonymization_incident -- --nocapture`.
 17. Check API contract smoke: `curl -s https://community.internal.oyatie.dev/v1/community/verified-anonymous-deanonymization-incident/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/community/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/community/iac/kustomize/base/kustomization.yaml`.
@@ -167,12 +167,12 @@ Verified Anonymous Deanonymization Incident decision tree
 4. Patch policy: `edit microservices/community/policy/community-isolation.md with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/community/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-community-moderation-queue-domain verified_anonymous_deanonymization_incident_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate community-verified-anonymous-deanonymization-incident --fixture incident-verified-anonymous-deanonymization-incident.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=community-verified-anonymous-deanonymization-incident --fixture incident-verified-anonymous-deanonymization-incident.json`.
 8. Add SLO assertion: `update microservices/community/slos/audit-chain-seal-latency.openslo.yaml with alert VerifiedAnonymousDeanonymizationIncidentCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/community/dashboards/moderation-queue-depth.json with oya_community_verified_anonymous_deanonymization_incident_error_ratio, oya_community_verified_anonymous_deanonymization_incident_lag_seconds, and oya_community_verified_anonymous_deanonymization_total`.
 10. Rebuild affected crate: `cargo check -p oya-community-moderation-queue-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-community-moderation-queue-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate community-policy --microservice community`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=community-policy --microservice community`.
 13. Deploy canary: `oya deploy canary --microservice community --component community-verified-anonymous-deanonymization-incident-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_community_verified_anonymous_deanonymization_incident_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close community-verified-anonymous-deanonymization-incident-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

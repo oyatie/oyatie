@@ -28,7 +28,7 @@ Stand up `oya-drive-dlp-virus-scan-*` BC. ClamAV primary + OPSWAT secondary (pac
 cargo nextest run -p oya-drive-dlp-virus-scan-domain -- eicar_quarantine
 cargo nextest run -p oya-drive-dlp-virus-scan-domain -- dlp_blocks_share
 cargo nextest run -p oya-drive-dlp-virus-scan-adapter-clamav -- signature_kat
-cargo run -p oya-dev-cli -- gate validate scan-correctness-zero-tolerance --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=scan-correctness-zero-tolerance --microservice drive
 ```
 
 ## ChangeSet metadata
@@ -48,7 +48,7 @@ acceptance_status: ga
 | AC-01 | EICAR test signature quarantined; never reaches durable bucket | `cargo nextest run -p oya-drive-dlp-virus-scan-domain -- eicar_quarantine` |
 | AC-02 | DLP rule (PCI Primary Account Number, US SSN, EU IBAN) blocks share-out | `cargo nextest run -p oya-drive-dlp-virus-scan-domain -- dlp_blocks_share` |
 | AC-03 | ClamAV signature KAT passes (known signature fixture set) | `cargo nextest run -p oya-drive-dlp-virus-scan-adapter-clamav -- signature_kat` |
-| AC-04 | Zero-tolerance correctness lane green (100% scan coverage on uploads) | `cargo run -p oya-dev-cli -- gate validate scan-correctness-zero-tolerance --microservice drive` |
+| AC-04 | Zero-tolerance correctness lane green (100% scan coverage on uploads) | `buck2 build //:quality-lane-registry-authority-check # lane=scan-correctness-zero-tolerance --microservice drive` |
 
 ## Build Sequence
 

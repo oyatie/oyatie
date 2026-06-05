@@ -61,7 +61,7 @@ async fn main() -> anyhow::Result<()> {
 ```bash
 cargo build -p oya-observability-slo-engine-app --release
 cargo nextest run -p oya-observability-slo-engine-app
-cargo run -p oya-dev-cli -- gate validate composition-root-only --crate oya-observability-slo-engine-app
+buck2 build //:quality-lane-registry-authority-check # lane=composition-root-only --crate oya-observability-slo-engine-app
 ```
 
 ## Test Plan

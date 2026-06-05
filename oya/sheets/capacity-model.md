@@ -270,7 +270,7 @@ Total Sheets storage (XS, M03 launch):
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice sheets` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-conformance --microservice sheets` — exit 0.
 - Quarterly capacity review: actual usage vs forecast; recalibrate per-tenant averages.
 - Annual reference-architecture refresh.
 

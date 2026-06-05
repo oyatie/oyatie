@@ -56,8 +56,8 @@ qualified adapter pattern.
 
 ```bash
 cargo test -p oya-tasks-task-store-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate amendment-3-backend-qualified-adapter --crate oya-tasks-task-store-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate encryption-at-rest --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=amendment-3-backend-qualified-adapter --crate oya-tasks-task-store-adapter-postgres
+buck2 build //:quality-lane-registry-authority-check # lane=encryption-at-rest --microservice tasks
 ```
 
 ## Test Plan

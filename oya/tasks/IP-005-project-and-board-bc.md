@@ -58,7 +58,7 @@ postgres,rest,app}` + `oya-tasks-view-engine-{kernel,domain}` per ADR-
 cargo test -p oya-tasks-project-list-domain
 cargo test -p oya-tasks-project-list-usecase
 cargo test -p oya-tasks-view-engine-domain
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice tasks
 ```
 
 ## Test Plan

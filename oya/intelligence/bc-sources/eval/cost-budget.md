@@ -118,7 +118,7 @@ Per ADR-0024 §"Resolved 4" (per-capability eval token budget split):
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice foundry-eval` — exit 0; spend within 110%.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cost-budget --microservice foundry-eval` — exit 0; spend within 110%.
 - Monthly FinOps review: actual vs forecast; lever decisions logged.
 - Quarterly: capacity-model + cost-budget refresh.
 

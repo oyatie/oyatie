@@ -43,7 +43,7 @@ Use `capacity-model.md`, local HPA/PDB IaC, SLO files, and dashboards to define 
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app capacity`
-- `cargo run -p oya-dev-cli -- gate validate capacity-model --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-model --microservice marketing-automation`
 - `kubectl apply --dry-run=server -f microservices/marketing-automation/iac/local-hpa.yaml`
 - Manual evidence: every bursty work class has a token, SLO, and runbook recovery path.
 

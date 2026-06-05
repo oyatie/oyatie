@@ -102,9 +102,9 @@ The `oya-check-chaos-engineering-catalog` kernel:
 ```bash
 cargo check -p oya-dev-cli
 cargo nextest run -p oya-check-chaos-engineering-catalog
-cargo run -p oya-dev-cli -- gate validate chaos-engineering-catalog \
+buck2 build //:quality-lane-registry-authority-check # lane=chaos-engineering-catalog \
     --microservices-dir microservices
-cargo run -p oya-dev-cli -- gate run-all
+buck2 build //:repo-hygiene-automation-check
 ```
 
 ## Halt conditions

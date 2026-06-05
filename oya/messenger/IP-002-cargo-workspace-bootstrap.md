@@ -47,8 +47,8 @@ Per ADR-0056 v4.1: `oya-messenger-<bc>-<layer>` with optional
 ```bash
 cargo build -p messenger --workspace
 cargo clippy -p messenger --workspace --all-targets -- -D warnings
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice messenger
-cargo run -p oya-dev-cli -- gate validate bnf-v4-1 --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=bnf-v4-1 --microservice messenger
 ```
 
 ## Test Plan

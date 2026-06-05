@@ -85,7 +85,7 @@ arc:
         "slsa-build-source-l3": "SLSA v1.0",
         "self-application": "Invariant 10 per policy/lane-execution.md"
       },
-      "verification": "cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice governance",
+      "verification": "buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice governance",
       "added_in_adr": "ADR-0123 + ADR-0133",
       "registered_at": "2026-05-17"
     }
@@ -96,10 +96,10 @@ arc:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate runbook-index --microservice governance
-cargo run -p oya-dev-cli -- gate validate runbook-freshness --microservice governance
-cargo run -p oya-dev-cli -- gate validate authority-cohesion       # HG-GOV registered
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=runbook-index --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=runbook-freshness --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion       # HG-GOV registered
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice governance
 # IaC smoke test
 helm lint iac/helm/lane-runner-pool
 helm lint iac/helm/postgres
@@ -107,8 +107,8 @@ helm lint iac/helm/evidence-store
 kubectl apply -k iac/kustomize/overlays/pack-kr/ --dry-run=client
 # Phase exit:
 cargo nextest run --workspace --all-features
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice governance
-cargo run -p oya-dev-cli -- gate validate industry-best-practice-conformance --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=industry-best-practice-conformance --microservice governance
 ```
 
 ## Test Plan

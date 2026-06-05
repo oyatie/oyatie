@@ -109,8 +109,8 @@ helm lint microservices/mail/iac/helm/postgres
 helm lint microservices/mail/iac/helm/tantivy
 helm lint microservices/mail/iac/helm/rspamd
 kubectl --dry-run=client apply -k microservices/mail/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice mail
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

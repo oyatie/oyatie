@@ -118,9 +118,9 @@ Minimum 8 required; 14 specified.
 
 ```bash
 cargo nextest run -p oya-foundry-eval-eval-runner-adapter
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-foundry-eval-eval-runner-adapter
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-foundry-eval-eval-runner-adapter
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice foundry
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-foundry-eval-eval-runner-adapter
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-foundry-eval-eval-runner-adapter
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice foundry
 ```
 
 ## Halt conditions

@@ -13,7 +13,7 @@ doc_status: published
 ### Validate Template Structure
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate settings-template \
+buck2 build //:quality-lane-registry-authority-check # lane=settings-template \
   --template templates/foundry-supervisor/claude.toml
 
 # Expected: pass if:
@@ -60,7 +60,7 @@ cat .omc/state/settings-template-manifest.json
 echo '"extra_field": true' >> ~/.claude/settings.json
 
 # Verify detects drift
-cargo run -p oya-dev-cli -- gate validate settings-drift \
+buck2 build //:quality-lane-registry-authority-check # lane=settings-drift \
   --templates-root templates/foundry-supervisor \
   --accounts-root registry/accounts
 

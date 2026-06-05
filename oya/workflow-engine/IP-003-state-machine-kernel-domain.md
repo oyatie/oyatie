@@ -57,8 +57,8 @@ The transition evaluator consumes only a current `StateCheckpoint`, a typed work
 - `cargo nextest run -p oya-workflow-engine-state-machine-domain --all-features`
 - `cargo nextest run -p oya-workflow-engine-state-machine-usecase --all-features`
 - `cargo nextest run -p oya-workflow-engine-state-machine-adapter-postgres --all-features`
-- `cargo run -p oya-dev-cli -- gate validate port-location --crate oya-workflow-engine-state-machine-kernel`
-- `cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-workflow-engine-state-machine-domain`
+- `buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-workflow-engine-state-machine-kernel`
+- `buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-workflow-engine-state-machine-domain`
 - Required tests: `transition_eval_replays_identically`, `terminal_state_refuses_late_event`, `tenant_mismatch_refused_before_store`, `checkpoint_append_conflict_detected`, and `pause_resume_signal_sequence_preserved`.
 
 ## §F Evidence

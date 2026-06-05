@@ -110,7 +110,7 @@ Match audit-chain major.minor; SDK patch independent. Compatibility matrix verif
 ## Verification
 
 - Per-SDK CI lane.
-- Cross-SDK signature-equivalence: `cargo run -p oya-dev-cli -- gate validate audit-chain-sdk-equivalence` — exit 0; every generated SDK's emit + verify produces identical wire outputs for the same input set.
+- Cross-SDK signature-equivalence: `buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-sdk-equivalence` — exit 0; every generated SDK's emit + verify produces identical wire outputs for the same input set.
 - Annual SDK telemetry review.
 
 ## References

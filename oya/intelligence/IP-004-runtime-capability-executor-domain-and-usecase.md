@@ -131,7 +131,7 @@ cargo nextest run -p oya-foundry-runtime-capability-executor-domain --all-featur
 cargo check -p oya-foundry-runtime-capability-executor-usecase --all-features
 cargo nextest run -p oya-foundry-runtime-capability-executor-usecase --all-features
 cargo clippy -p oya-foundry-runtime-capability-executor-usecase -- -D warnings
-cargo run -p oya-dev-cli -- gate validate autonomy-gate-presence --crate oya-foundry-runtime-capability-executor-usecase
+buck2 build //:quality-lane-registry-authority-check # lane=autonomy-gate-presence --crate oya-foundry-runtime-capability-executor-usecase
 ```
 
 ## Test Plan

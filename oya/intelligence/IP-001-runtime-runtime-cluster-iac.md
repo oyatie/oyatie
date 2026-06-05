@@ -44,7 +44,7 @@ helm lint microservices/intelligence/iac/helm/runtime-pool/
 helm template microservices/intelligence/iac/helm/runtime-pool/ --values microservices/intelligence/iac/helm/runtime-pool/values.yaml > /tmp/runtime-pool-rendered.yaml
 kubectl apply --dry-run=server -f /tmp/runtime-pool-rendered.yaml
 kustomize build microservices/intelligence/iac/kustomize/overlays/pack-kr/
-cargo run -p oya-dev-cli -- gate validate foundry-runtime-iac-smoke
+buck2 build //:quality-lane-registry-authority-check # lane=foundry-runtime-iac-smoke
 ```
 
 End-to-end kind smoke: deploy charts to ephemeral kind cluster; verify pods Ready ≤2min; verify mTLS handshake via Istio; verify NetworkPolicy refuses non-sibling egress.
@@ -102,7 +102,7 @@ Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbi
 - Contract parity for `microservices/intelligence/contracts/openapi/runtime-foundry-runtime.yaml` and `microservices/intelligence/contracts/proto/runtime-foundry-runtime.proto` when DTOs or handlers change.
 - Policy resolution against `microservices/intelligence/policy/runtime-tenant-scope.cedar`, `microservices/intelligence/policy/runtime-runtime-isolation.md`, `microservices/intelligence/policy/runtime-ci-scope.cedar`, including a tenant mismatch denial and a CI/synthetic principal allowance where applicable.
 - SLO or dashboard linkage against `microservices/intelligence/slos/runtime-latency.openslo.yaml`, `microservices/intelligence/slos/runtime-availability.openslo.yaml`, `microservices/intelligence/slos/runtime-freshness.openslo.yaml`; no acceptance by line count alone.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
 
 ### F. Evidence anchors
 - `microservices/intelligence/PRD.md` FR-X1..FR-X7 for the supervisor-runtime-guardrails-providers-evidence chain.

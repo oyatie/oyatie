@@ -69,7 +69,7 @@ pub async fn create_handoff(req: HandoffRequest, principal: &Principal, p: &Port
 
 ```bash
 cargo nextest run -p oya-mail-mailbox-store-usecase --test workflow_handoff
-cargo run -p oya-dev-cli -- gate validate workflow-event-registry --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=workflow-event-registry --microservice mail
 bash microservices/mail/tests/e2e/workflow-handoff.sh
 ```
 

@@ -40,8 +40,8 @@ required status checks on `dev` + `staging` per `.github/branch-protection.yaml`
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice messenger
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice messenger
 oya gate validate branch-protection-config
 ```
 

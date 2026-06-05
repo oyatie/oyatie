@@ -53,7 +53,7 @@ pub async fn sse_dispatch_handler(
 
 ```bash
 cargo nextest run -p oya-intelligence-model-routing-rest -- sse
-cargo run -p oya-dev-cli -- gate validate streaming-sse-high-fidelity --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=streaming-sse-high-fidelity --microservice intelligence
 ```
 
 ## References

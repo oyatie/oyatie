@@ -155,7 +155,7 @@ Verify-at-deploy: every vendor pricing page must be reconfirmed; vendor prices c
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cost-budget --microservice foundry-providers` exits 0.
 - Monthly FinOps review: actual vs forecast; per-vendor unit-economic drift documented.
 - Quarterly: capacity-model + cost-budget refresh with current vendor rate cards.
 

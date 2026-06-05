@@ -329,7 +329,6 @@ members = [
   "oya/data-pipeline/crates/oya-data-pipeline-lineage-replay-service",
   "oya/data-warehouse/crates/oya-data-warehouse-tenant-olap-service",
   "oya/design-collaboration/crates/oya-design-collaboration-creative-artifact-service",
-  "oya/developer-sdk/crates/oya-dev-cli",
   "oya/docs/crates/oya-docs-domain",
   "oya/drive/crates/oya-drive-domain",
   "oya/eventing/crates/oya-eventing-domain",

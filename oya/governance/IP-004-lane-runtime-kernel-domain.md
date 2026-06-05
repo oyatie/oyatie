@@ -115,10 +115,10 @@ cargo build -p oya-governance-lane-runtime-domain --all-features
 cargo clippy --workspace --all-features -- -D warnings
 cargo nextest run -p oya-governance-lane-runtime-kernel
 cargo nextest run -p oya-governance-lane-runtime-domain
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-governance-lane-runtime-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-governance-lane-runtime-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-governance-lane-runtime-domain
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-governance-lane-runtime-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-governance-lane-runtime-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-governance-lane-runtime-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-governance-lane-runtime-domain
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-governance-lane-runtime-kernel
 ```
 
 ## Test Plan

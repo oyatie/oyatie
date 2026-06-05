@@ -85,8 +85,8 @@ cargo check -p oya-workflow-studio-dsl-emitter-usecase -p oya-workflow-studio-ds
   -p oya-workflow-studio-dsl-loader-usecase -p oya-workflow-studio-dsl-loader-api \
   -p oya-workflow-studio-dsl-loader-adapter -p oya-workflow-studio-dsl-loader-sdk
 cargo nextest run --workspace --tests
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workflow-studio
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice workflow-studio
 ```
 
 ## Test Plan

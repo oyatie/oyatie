@@ -55,8 +55,8 @@ n/a — modifies existing task-store crates.
 ```bash
 cargo test -p oya-tasks-task-store-usecase transition
 cargo test -p oya-tasks-task-store-worker event_emitter
-cargo run -p oya-dev-cli -- gate validate task-state-machine-correctness --microservice tasks
-cargo run -p oya-dev-cli -- gate validate cross-product-isolation --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=task-state-machine-correctness --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=cross-product-isolation --microservice tasks
 ```
 
 ## Test Plan

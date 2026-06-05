@@ -110,9 +110,9 @@ cargo check -p oya-governance-lane-runtime-{usecase,adapter,rest,worker,sdk,app}
 cargo build --workspace --all-features
 cargo clippy --workspace --all-features -- -D warnings
 cargo nextest run --workspace
-cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity --microservice governance
-cargo run -p oya-dev-cli -- gate validate composition-root-only --crate oya-governance-lane-runtime-app
-cargo run -p oya-dev-cli -- gate validate sdk-kernel-only --crate oya-governance-lane-runtime-sdk
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-rest-route-parity --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=composition-root-only --crate oya-governance-lane-runtime-app
+buck2 build //:quality-lane-registry-authority-check # lane=sdk-kernel-only --crate oya-governance-lane-runtime-sdk
 ```
 
 ## Test Plan

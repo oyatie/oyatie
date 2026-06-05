@@ -33,7 +33,7 @@ doc_status: published
 - Open sev1 if `oya_marketplace_buyer_order_double_submit_total` exceeds the threshold documented in `microservices/marketplace/slos/deal-accept-latency.openslo.yaml`.
 - Open sev1 if `oya_marketplace_buyer_order_double_submit_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `marketplace.buyer-order-double-submit.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate marketplace-buyer-order-double-submit --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=marketplace-buyer-order-double-submit --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/marketplace-ops/buyer-order-double-submit?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/marketplace/dashboards/audit-evidence.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/marketplace-ops/buyer-order-double-submit?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/marketplace/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="marketplace",runbook="buyer-order-double-submit"}`.
@@ -85,7 +85,7 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/marketplace-ops/buyer-order-double-submit?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_MARKETPLACE_BUYER_ORDER_DOUBLE_SUBMIT_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops marketplace buyer-order-double-submit status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate marketplace-buyer-order-double-submit --production-snapshot --cell $CELL`.
+15. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=marketplace-buyer-order-double-submit --production-snapshot --cell $CELL`.
 16. Run crate smoke test: `cargo test -p oya-cloud-marketplace-domain buyer_order_double_submit -- --nocapture`.
 17. Check API contract smoke: `curl -s https://marketplace.internal.oyatie.dev/v1/marketplace/buyer-order-double-submit/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/marketplace/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/marketplace/iac/kustomize/base/kustomization.yaml`.
@@ -167,12 +167,12 @@ Buyer Order Double Submit incident decision tree
 4. Patch policy: `edit microservices/marketplace/policies/deal-accept.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/marketplace/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-cloud-marketplace-domain buyer_order_double_submit_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate marketplace-buyer-order-double-submit --fixture incident-buyer-order-double-submit.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=marketplace-buyer-order-double-submit --fixture incident-buyer-order-double-submit.json`.
 8. Add SLO assertion: `update microservices/marketplace/slos/deal-accept-latency.openslo.yaml with alert BuyerOrderDoubleSubmitCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/marketplace/dashboards/audit-evidence.json with oya_marketplace_buyer_order_double_submit_error_ratio, oya_marketplace_buyer_order_double_submit_lag_seconds, and oya_marketplace_buyer_order_double_submit_total`.
 10. Rebuild affected crate: `cargo check -p oya-cloud-marketplace-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-cloud-marketplace-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate marketplace-policy --microservice marketplace`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=marketplace-policy --microservice marketplace`.
 13. Deploy canary: `oya deploy canary --microservice marketplace --component marketplace-buyer-order-double-submit-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_marketplace_buyer_order_double_submit_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close marketplace-buyer-order-double-submit-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

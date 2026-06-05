@@ -81,8 +81,8 @@ spec:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate openslo-conformance --microservice workflow-engine
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice workflow-engine
+buck2 build //:quality-lane-registry-authority-check # lane=openslo-conformance --microservice workflow-engine
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice workflow-engine
 ```
 
 ## Test Plan

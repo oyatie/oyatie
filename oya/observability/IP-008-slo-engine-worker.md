@@ -67,8 +67,8 @@ pub async fn run(deps: WorkerDeps) -> anyhow::Result<()> {
 ```bash
 cargo check -p oya-observability-slo-engine-worker --all-features
 cargo nextest run -p oya-observability-slo-engine-worker --all-features
-cargo run -p oya-dev-cli -- gate validate statelessness --crate oya-observability-slo-engine-worker
-cargo run -p oya-dev-cli -- gate validate shardability --crate oya-observability-slo-engine-worker
+buck2 build //:quality-lane-registry-authority-check # lane=statelessness --crate oya-observability-slo-engine-worker
+buck2 build //:quality-lane-registry-authority-check # lane=shardability --crate oya-observability-slo-engine-worker
 ```
 
 ## Test Plan

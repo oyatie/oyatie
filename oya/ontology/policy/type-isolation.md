@@ -307,10 +307,10 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/type-isola
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate ontology-tenancy-isolation` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate ontology-tier-enforcement` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice ontology` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate no-raw-sql-cross-tenant --microservice ontology` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=ontology-tenancy-isolation` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=ontology-tier-enforcement` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cedar-coverage --microservice ontology` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=no-raw-sql-cross-tenant --microservice ontology` — exit 0.
 - Annual pen-test against tenant boundary + pillar boundary: `runbooks/type-isolation-pentest.md`.
 - Quarterly chaos drill: induce reserved-principal misuse + cross-tenant link attempt + cross-pillar grant abuse; verify rejection + alerting.
 

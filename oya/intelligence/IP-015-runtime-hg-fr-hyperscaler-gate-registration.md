@@ -106,8 +106,8 @@ Edit `/specs/hyperscaler-gates.json` to add the HG-FR entry. Update `registry/ar
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims
 jq '.["HG-FR"]' /specs/hyperscaler-gates.json | wc -l   # expect > 30 lines
 ```
 

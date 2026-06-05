@@ -43,7 +43,7 @@ Use `backfill-replay.md` as the operating contract and bind it to `MarketingAuto
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app replay`
-- `cargo run -p oya-dev-cli -- gate validate replay-freshness --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=replay-freshness --microservice marketing-automation`
 - Manual evidence: replay output includes input cursor, policy bundle, ontology snapshot, and deterministic drift flag.
 
 ## F. Evidence

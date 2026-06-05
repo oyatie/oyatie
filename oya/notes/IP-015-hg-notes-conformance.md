@@ -53,7 +53,7 @@ Register the `HG-NOTES` hyperscaler-grade conformance gate per ADR-0133. The gat
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate hg-notes
+buck2 build //:quality-lane-registry-authority-check # lane=hg-notes
 # expected: all lanes green
 ```
 

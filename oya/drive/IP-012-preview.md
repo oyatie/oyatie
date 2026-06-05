@@ -28,7 +28,7 @@ Stand up `oya-drive-preview-*` BC per ADR-DRIVE-0005. Per-renderer sandbox + per
 cargo nextest run --test e2e_preview_sandbox_egress_denied
 cargo nextest run --test e2e_preview_sandbox_host_fs_denied
 cargo nextest run --test e2e_preview_sandbox_malicious_macro
-cargo run -p oya-dev-cli -- gate validate cis-k8s --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=cis-k8s --microservice drive
 ```
 
 ## ChangeSet metadata

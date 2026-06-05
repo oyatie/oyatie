@@ -40,10 +40,10 @@ Stand up the `oya-drive-file-store-{kernel,domain,usecase,api}` crates. Define p
 cargo build -p oya-drive-file-store-kernel -p oya-drive-file-store-domain -p oya-drive-file-store-usecase -p oya-drive-file-store-api
 cargo nextest run -p oya-drive-file-store-domain
 cargo nextest run -p oya-drive-file-store-usecase
-cargo run -p oya-dev-cli -- gate validate data-class --microservice drive --bc file-store
-cargo run -p oya-dev-cli -- gate validate context-isolation --microservice drive --bc file-store
-cargo run -p oya-dev-cli -- gate validate port-location --microservice drive --bc file-store
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice drive --bc file-store
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --microservice drive --bc file-store
+buck2 build //:quality-lane-registry-authority-check # lane=context-isolation --microservice drive --bc file-store
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice drive --bc file-store
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice drive --bc file-store
 ```
 
 ## Next IP

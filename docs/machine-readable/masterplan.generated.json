@@ -980,35 +980,35 @@
               "exit_criteria": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md states both tiers, names hosted-as-default + dedicated-as-premium, and the tier-selection rule; the ADR index lists ADR-0376 as Accepted.",
               "id": "ADR-0376-D1",
               "status": "declared",
-              "verified_by": "cargo run -p oya-dev-cli -- gate validate adr-index"
+              "verified_by": "buck2 build //:quality-lane-registry-authority-check # lane=adr-index"
             },
             {
               "description": "Adopt Kamaji (github.com/clastix/kamaji) as a SECOND, ADDITIVE clusterctl-compliant Cluster API control-plane provider alongside the existing Talos control plane from ADR-0375. The management cluster runs both control-plane providers; hosted-tier tenant control planes are Kamaji-managed pods, dedicated-tier tenant control planes stay Talos CABPT/CACPPT spokes. Provider integration is BUILT in a later lane.",
               "exit_criteria": "the ADR cites Kamaji as a clusterctl-compliant CAPI control-plane provider (verified against the upstream CAPI provider list) and frames it as additive to ADR-0375's Talos control-plane provider, version-agnostic (no invented version pin).",
               "id": "ADR-0376-D2",
               "status": "declared",
-              "verified_by": "cargo run -p oya-dev-cli -- gate validate adr-index"
+              "verified_by": "buck2 build //:quality-lane-registry-authority-check # lane=adr-index"
             },
             {
               "description": "Dogfood-first scope: the build target is the milestone where Oyatie provisions its OWN clusters via the cluster-CRUD API as tenant-zero (oyatie-dogfood-tenancy), with NO internal bypass of the tenant model. Billing, public SLA, DPIA, and external multi-tenant GA are explicitly DEFERRED to a follow-on ADR named as future work here, not designed in this ADR.",
               "exit_criteria": "the ADR states the dogfood-first build target + tenant-zero/no-bypass invariant and lists billing/SLA/DPIA/external-GA as deferred future-work legs with a named follow-on ADR placeholder.",
               "id": "ADR-0376-D3",
               "status": "declared",
-              "verified_by": "cargo run -p oya-dev-cli -- gate validate adr-index"
+              "verified_by": "buck2 build //:quality-lane-registry-authority-check # lane=adr-index"
             },
             {
               "description": "Name the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no platform/bundle).",
               "exit_criteria": "the ADR names all four microservices, asserts flat single-concern layout per ADR-0131/0132, and explicitly marks them as future-lane work.",
               "id": "ADR-0376-D4",
               "status": "declared",
-              "verified_by": "cargo run -p oya-dev-cli -- gate validate adr-index"
+              "verified_by": "buck2 build //:quality-lane-registry-authority-check # lane=adr-index"
             },
             {
               "description": "Resolve the placeholder-debt token `adr-0375-managed-k8s-product-surface`: repoint the registry/placeholder-debt/adr-follow-ups.yaml entry and the ADR-0375 back-reference at ADR-0376, since the product surface now has its own ADR.",
               "exit_criteria": "grep -rn \\\"adr-0375-managed-k8s-product-surface\\\" resolves to the repointed entry only; the follow-up entry's adr_when_landed cites ADR-0376; ADR-0375's Product-framing back-reference points at ADR-0376.",
               "id": "ADR-0376-D5",
               "status": "declared",
-              "verified_by": "cargo run -p oya-dev-cli -- gate run-all"
+              "verified_by": "buck2 build //:repo-hygiene-automation-check"
             }
           ],
           "depends_on": [
@@ -1029,7 +1029,7 @@
               "exit_criteria": "docs/decisions/ADR-0378-*.md names vfkit+Talos as the single canonical local substrate, names colima as retired, and states the upstream-k8s-parity rationale; the ADR index lists ADR-0378 as Accepted.",
               "id": "ADR-0378-D1",
               "status": "declared",
-              "verified_by": "cargo run -p oya-dev-cli -- gate validate adr-index"
+              "verified_by": "buck2 build //:quality-lane-registry-authority-check # lane=adr-index"
             },
             {
               "description": "Canonicalize cluster access: config home ~/.oya/talos-local/ (talosconfig/kubeconfig/controlplane.yaml); kube context admin@oya-local merged into ~/.kube/config as the DEFAULT so kubectl targets the Talos cluster (not the near-empty colima context that previously caused wrong-cluster checks). Manage the single node directly via talosctl.",
@@ -1050,7 +1050,7 @@
               "exit_criteria": "the ADR names CI-loop closure (Forgejo->Jenkins commit-status) as the deliverable that retires the admin-merge seam, with a follow-on lane reference.",
               "id": "ADR-0378-D4",
               "status": "declared",
-              "verified_by": "cargo run -p oya-dev-cli -- gate validate adr-index"
+              "verified_by": "buck2 build //:quality-lane-registry-authority-check # lane=adr-index"
             }
           ],
           "depends_on": [

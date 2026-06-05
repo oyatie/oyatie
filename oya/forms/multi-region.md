@@ -92,7 +92,7 @@ A new pack activation requires:
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate forms-pack-routing-conformance`
+- `buck2 build //:quality-lane-registry-authority-check # lane=forms-pack-routing-conformance`
 - Quarterly chaos drill ledger
 - Annual DR audit
 

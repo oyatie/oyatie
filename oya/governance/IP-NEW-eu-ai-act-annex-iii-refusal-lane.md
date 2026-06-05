@@ -120,8 +120,8 @@ pub(crate) fn validate_annex_iii_refusal_gate(
 ```bash
 cargo check -p oya-dev-cli
 cargo nextest run -p oya-check-eu-ai-act-annex-iii-refusal
-cargo run -p oya-dev-cli -- gate validate regulated-ai-refusal-grounding
-cargo run -p oya-dev-cli -- gate run-all   # aggregated lane includes new gate
+buck2 build //:quality-lane-registry-authority-check # lane=regulated-ai-refusal-grounding
+buck2 build //:repo-hygiene-automation-check   # aggregated lane includes new gate
 ```
 
 ## Halt conditions

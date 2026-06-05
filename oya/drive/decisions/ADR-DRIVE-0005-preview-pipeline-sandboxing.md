@@ -180,7 +180,7 @@ The drive µservice ships:
 - [ ] Network egress denied — `cargo nextest run --test e2e_preview_sandbox_egress_denied`.
 - [ ] Host filesystem access denied — `cargo nextest run --test e2e_preview_sandbox_host_fs_denied`.
 - [ ] Malicious Office file rendered to PNG without macro execution — `cargo nextest run --test e2e_preview_sandbox_malicious_macro`.
-- [ ] CIS K8s 1.9.0 §4.6 + §5.2.5 + §5.3 — `cargo run -p oya-dev-cli -- gate validate cis-k8s --microservice drive`.
+- [ ] CIS K8s 1.9.0 §4.6 + §5.2.5 + §5.3 — `buck2 build //:quality-lane-registry-authority-check # lane=cis-k8s --microservice drive`.
 
 ## References
 

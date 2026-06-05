@@ -241,7 +241,7 @@ On-call compensation + handoff per `runbooks/oncall-rotation.md` (cross-referenc
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice foundry-runtime` — exit 0; every FM-ID has matching runbook.
+- `buck2 build //:quality-lane-registry-authority-check # lane=incident-runbook-coverage --microservice foundry-runtime` — exit 0; every FM-ID has matching runbook.
 - Quarterly DR failover drill.
 - Annual tabletop exercise.
 

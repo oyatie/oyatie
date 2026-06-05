@@ -130,8 +130,8 @@ Failback procedure: reverse-apply once primary region is restored + audit-chain 
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate pack-routing-conformance --microservice intelligence` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cross-pack-transfer-allowed-only-with-scc` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=pack-routing-conformance --microservice intelligence` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cross-pack-transfer-allowed-only-with-scc` — exit 0.
 - Annual residency audit per pack.
 - Quarterly chaos drill: induce cross-pack dispatch attempt; verify refusal.
 

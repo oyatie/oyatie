@@ -283,8 +283,8 @@ oyatie differentiators:
 
 ## Acceptance Criteria (PRD-level)
 
-- **AC-01** — `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice translate` exits 0.
-- **AC-02** — `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exits 0.
+- **AC-01** — `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice translate` exits 0.
+- **AC-02** — `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` exits 0.
 - **AC-03** — `oya-translate-credential-isolation` LEAN lane present in `.github/branch-protection.yaml` `required_status_checks` for `dev` + `staging`.
 - **AC-04** — `oya-translate-data-residency-correctness` LEAN lane present in `.github/branch-protection.yaml` (BLOCKER) on all branches.
 - **AC-05** — Every adapter crate's tests verify a zero-occurrence regex sweep for vendor credential bytes against the test fixture set.

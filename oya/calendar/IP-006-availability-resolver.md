@@ -40,7 +40,7 @@ Implement the manifest-named availability resolver kernel plus Valkey adapter as
 ## E. Acceptance
 - `cargo nextest run -p oya-calendar-availability-resolver-kernel` passes.
 - `cargo nextest run -p oya-calendar-availability-resolver-adapter-valkey` passes.
-- `cargo run -p oya-dev-cli -- gate validate dual-context-correctness --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=dual-context-correctness --microservice calendar` passes.
 - SLO check resolves `slos/freebusy-query-latency.openslo.yaml`.
 - Runbook closure uses `runbooks/availability-cache-rebuild.md` and `runbooks/shared-cal-permission-drift.md`.
 

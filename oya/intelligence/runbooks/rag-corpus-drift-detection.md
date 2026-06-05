@@ -166,7 +166,7 @@ doc_status: published
 8. Add regression fixture for adversarial RAG instruction chunk.
 9. Run RAG tests: `cargo test -p oya-intelligence-rag-api rag_corpus -- --nocapture`.
 10. Run eval tests: `cargo test -p oya-governance-eval-domain rag_retrieval -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-rag-corpus --production-snapshot --cell $CELL`.
+11. Run production gate: `buck2 build //:quality-lane-registry-authority-check # lane=intelligence-rag-corpus --production-snapshot --cell $CELL`.
 12. Verify retrieval eval: `oya ops intelligence eval run --pack $PACK --suite rag-retrieval-quality --tenant $TENANT --expect pass`.
 13. Release answer hold: `oya flags set oya.intelligence.rag.answer_hold=false --tenant $TENANT --pack $PACK --reason resolved-$INCIDENT_ID`.
 14. Unhold deploys: recovery PR against `dev` (plain `git`; `oya-ci-required` + Buck2 evidence required).

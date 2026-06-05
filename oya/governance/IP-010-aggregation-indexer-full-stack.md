@@ -88,8 +88,8 @@ async fn main() -> anyhow::Result<()> {
 ```bash
 cargo check -p oya-governance-aggregation-indexer-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}
 cargo nextest run --workspace
-cargo run -p oya-dev-cli -- gate validate aggregation-index-generation
-cargo run -p oya-dev-cli -- gate validate composition-root-only --crate oya-governance-aggregation-indexer-app
+buck2 build //:quality-lane-registry-authority-check # lane=aggregation-index-generation
+buck2 build //:quality-lane-registry-authority-check # lane=composition-root-only --crate oya-governance-aggregation-indexer-app
 ```
 
 ## Test Plan

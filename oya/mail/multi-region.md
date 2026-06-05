@@ -148,7 +148,7 @@ Annual full pack DR drill: full failover to DR region; validate ≤ 30 min RTO.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region-conformance --microservice mail` — exit 0; replication configs match this spec.
+- `buck2 build //:quality-lane-registry-authority-check # lane=multi-region-conformance --microservice mail` — exit 0; replication configs match this spec.
 - Quarterly chaos drill: `runbooks/dr-failover.md`.
 - Annual full DR exercise: documented in `evidence/dr-drills/<pack>-<year>.json`.
 

@@ -40,8 +40,8 @@ Validate and complete the existing calendar policy corpus without introducing cr
 
 ## E. Acceptance
 - Cedar parser/test command passes for all files under `microservices/calendar/policy/`.
-- `cargo run -p oya-dev-cli -- gate validate data-residency --microservice calendar` passes.
-- `cargo run -p oya-dev-cli -- gate validate dual-context-correctness --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=data-residency --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=dual-context-correctness --microservice calendar` passes.
 - Public read tests expose only allowed free/busy/projection fields.
 - Compliance references in `compliance.md` and `dpia.md` remain consistent.
 

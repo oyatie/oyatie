@@ -89,7 +89,7 @@ Scales sub-linearly with response volume due to Citus + streaming-export design.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate forms-capacity-model-conformance` (asserts manifests match this doc).
+- `buck2 build //:quality-lane-registry-authority-check # lane=forms-capacity-model-conformance` (asserts manifests match this doc).
 - Quarterly load test via k6: F1+F2+F4+F5+F7 synthetic burst to forecast Q+1.
 - Quarterly chaos drill: induce Postgres primary failover, verify recovery ≤ 2min.
 

@@ -43,7 +43,7 @@ Use `cost-budget.md`, `manifest.json` `paid_billing_components.per_usage_meter_c
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app budget`
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=cost-budget --microservice marketing-automation`
 - Manual evidence: every paid per_usage meter in `manifest.json` has an admission or emission point.
 
 ## F. Evidence

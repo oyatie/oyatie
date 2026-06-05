@@ -95,8 +95,8 @@ cargo check -p oya-foundry-guardrails-content-safety-rule-engine-kernel --all-fe
 cargo check -p oya-foundry-guardrails-content-safety-rule-engine-adapter-postgres --all-features
 cargo nextest run -p oya-foundry-guardrails-content-safety-rule-engine-kernel --all-features
 cargo nextest run -p oya-foundry-guardrails-content-safety-rule-engine-adapter-postgres --all-features --test postgres_integration
-cargo run -p oya-dev-cli -- gate validate rule-store-migrations-up-to-date
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-foundry-guardrails-content-safety-rule-engine-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=rule-store-migrations-up-to-date
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-foundry-guardrails-content-safety-rule-engine-kernel
 ```
 
 ## Test Plan

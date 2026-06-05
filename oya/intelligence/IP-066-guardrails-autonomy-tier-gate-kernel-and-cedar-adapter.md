@@ -113,8 +113,8 @@ cargo check -p oya-foundry-guardrails-autonomy-ceiling-gate-kernel --all-feature
 cargo check -p oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar --all-features
 cargo nextest run -p oya-foundry-guardrails-autonomy-ceiling-gate-kernel --all-features
 cargo nextest run -p oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar --all-features
-cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice foundry-guardrails
-cargo run -p oya-dev-cli -- gate validate cedar-default-deny-enforced
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice foundry-guardrails
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-default-deny-enforced
 ```
 
 ## Test Plan

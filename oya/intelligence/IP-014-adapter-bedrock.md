@@ -37,7 +37,7 @@ through sidecar.
 
 ```bash
 cargo nextest run -p oya-intelligence-providers-adapter-bedrock
-cargo run -p oya-dev-cli -- gate validate provider-adapter-fedramp --provider bedrock
+buck2 build //:quality-lane-registry-authority-check # lane=provider-adapter-fedramp --provider bedrock
 ```
 
 ## References

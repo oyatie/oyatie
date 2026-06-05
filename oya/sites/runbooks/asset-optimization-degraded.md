@@ -139,7 +139,7 @@ kubectl -n sites exec deploy/oya-sites-cdn-delivery-worker -- \
   grep 'oya_sites_image_optimize_queue_depth'
 
 # image-optimize-latency SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice sites --slo image-optimize-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice sites --slo image-optimize-latency
 ```
 
 ## Post-incident

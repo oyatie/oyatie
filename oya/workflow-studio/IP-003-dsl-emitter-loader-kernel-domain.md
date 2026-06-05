@@ -114,7 +114,7 @@ fn test_load_emit_byte_equal_over_corpus() {
 cargo check -p oya-workflow-studio-dsl-emitter-kernel -p oya-workflow-studio-dsl-emitter-domain \
   -p oya-workflow-studio-dsl-loader-kernel -p oya-workflow-studio-dsl-loader-domain
 cargo nextest run -p oya-workflow-studio-dsl-loader-domain --test round_trip_byte_equal
-cargo run -p oya-dev-cli -- gate validate workflow-spec-roundtrip --microservice workflow-studio \
+buck2 build //:quality-lane-registry-authority-check # lane=workflow-spec-roundtrip --microservice workflow-studio \
   --spec-corpus microservices/workflow-studio/capabilities/eval/round-trip-reference-corpus.jsonl
 ```
 

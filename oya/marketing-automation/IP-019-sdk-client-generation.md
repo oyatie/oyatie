@@ -43,8 +43,8 @@ Use `sdk-plan.md`, `contracts/openapi-v1.yaml`, `contracts/marketing-automation-
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app scaffold_declares_expected_contracts`
-- `cargo run -p oya-dev-cli -- gate validate openapi-contract-binding --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate sdk-plan --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=openapi-contract-binding --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=sdk-plan --microservice marketing-automation`
 - Manual evidence: SDK examples compile against the current OpenAPI/proto schemas.
 
 ## F. Evidence

@@ -182,7 +182,7 @@ See `policy/data-residency.md` for full per-pack transfer matrix. Per-pack DPAs 
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance --microservice governance` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=compliance --microservice governance` — exit 0.
 - Quarterly compliance review by ops-compliance + council-privacy.
 - Annual external audit per the table above.
 

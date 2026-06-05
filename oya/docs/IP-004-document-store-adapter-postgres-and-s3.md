@@ -40,7 +40,7 @@ Implement DocumentRepository + AclRepository + LegalHoldStore against Postgres 1
 cargo nextest run -p oya-docs-document-store-adapter-postgres -- rls_per_tenant_isolation
 cargo nextest run -p oya-docs-document-store-adapter-postgres -- rls_per_block_acl
 cargo nextest run -p oya-docs-document-store-adapter-s3 -- object_lock_on_legal_hold
-cargo run -p oya-dev-cli -- gate validate rls-coverage --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=rls-coverage --microservice docs
 ```
 
 ## References

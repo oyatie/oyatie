@@ -115,7 +115,7 @@ cargo check -p oya-workflow-studio-jurisdiction-overlay-renderer-kernel \
   -p oya-workflow-studio-jurisdiction-overlay-renderer-adapter
 cargo nextest run -p oya-workflow-studio-jurisdiction-overlay-renderer-domain --test base_reachable_invariant
 cargo nextest run -p oya-workflow-studio-jurisdiction-overlay-renderer-domain --test jurisdiction_view_switch
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice workflow-studio
 ```
 
 ## Test Plan

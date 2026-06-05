@@ -145,7 +145,7 @@ Quarterly per pack:
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region --microservice translate` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=multi-region --microservice translate` exits 0.
 - Quarterly DR drill evidence under `evidence/dr-drills/translate-<pack>-<unix_ts>.json`.
 
 ## References

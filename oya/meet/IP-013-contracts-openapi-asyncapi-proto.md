@@ -38,7 +38,7 @@ These are the SDK-generation source-of-truth + tenant-facing schema documentatio
 spectral lint contracts/openapi/meet.yaml --ruleset .spectral.yaml
 asyncapi-validator contracts/asyncapi/meet-events.yaml
 buf lint contracts/proto/meet.proto
-cargo run -p oya-dev-cli -- gate validate contract-stability --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=contract-stability --microservice meet
 ```
 
 ## Test Plan

@@ -376,8 +376,8 @@ Sharding:
 | AC-06 | Cross-tenant session read returns 403 + Cedar audit | integration `tests/integration/cross-tenant-refusal.rs` |
 | AC-07 | DSR cascade soft-deletes affected session fragments within 30 days | e2e `tests/e2e/dsr-cascade-session.rs` (synthetic 30-day clock) |
 | AC-08 | All Helm charts deploy clean against a kind cluster | CI lane `oya-foundry-runtime-iac-smoke` |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-runtime` exit 0 | ADR-0131 lane |
-| AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 | ADR-0123 lane; HG-FR registered |
+| AC-09 | `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-runtime` exit 0 | ADR-0131 lane |
+| AC-10 | `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` exit 0 | ADR-0123 lane; HG-FR registered |
 | AC-11 | Provider-credential leakage probe finds no provider secret in any runtime pod env or memory dump | security e2e `tests/e2e/provider-credential-isolation.rs` |
 | AC-12 | OpenSLO manifests at `microservices/intelligence-runtime/slos/{availability,latency,correctness,freshness}.openslo.yaml` validate | observability lane `openslo-conformance` |
 

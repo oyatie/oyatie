@@ -45,8 +45,8 @@ MUST pass through regardless of age tier. Parental-consent wall is forbidden on 
 
 ```bash
 cargo nextest run -p oya-intelligence-guardrails-kernel -- minor_protection
-cargo run -p oya-dev-cli -- gate validate minor-protection-refusal-coverage --microservice intelligence
-cargo run -p oya-dev-cli -- gate validate minor-crisis-line-bypass --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=minor-protection-refusal-coverage --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=minor-crisis-line-bypass --microservice intelligence
 ```
 
 ## References

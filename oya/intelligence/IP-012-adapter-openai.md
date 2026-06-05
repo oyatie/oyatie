@@ -54,7 +54,7 @@ impl ProviderAdapterPort for OpenAiAdapter {
 
 ```bash
 cargo nextest run -p oya-intelligence-providers-adapter-openai
-cargo run -p oya-dev-cli -- gate validate provider-adapter-byok --provider openai
+buck2 build //:quality-lane-registry-authority-check # lane=provider-adapter-byok --provider openai
 ```
 
 ## References

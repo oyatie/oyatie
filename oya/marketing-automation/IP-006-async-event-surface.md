@@ -44,7 +44,7 @@ Promote the Rust channel registry in `src/adapter/asyncapi.rs` into a versioned 
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app asyncapi`
 - `cargo test -p oya-marketing-automation-campaign-journey-app adapter_registry_contains_three_contract_surfaces`
-- `cargo run -p oya-dev-cli -- gate validate openapi-contract-binding --microservice marketing-automation --contract asyncapi`
+- `buck2 build //:quality-lane-registry-authority-check # lane=openapi-contract-binding --microservice marketing-automation --contract asyncapi`
 - Manual evidence: no channel in `src/adapter/asyncapi.rs` is absent from `contracts/asyncapi-v1.yaml`.
 
 ## F. Evidence

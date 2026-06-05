@@ -45,7 +45,7 @@ Per-installation token rotation 90d. MV3 isolated-world execution. Minimum-permi
 cargo check -p oya-notes-web-clipper-bridge-kernel
 npm run lint --prefix extensions/chrome
 npm run test --prefix extensions/chrome
-cargo run -p oya-dev-cli -- gate validate web-extension-security
+buck2 build //:quality-lane-registry-authority-check # lane=web-extension-security
 ```
 
 ## Halt Conditions

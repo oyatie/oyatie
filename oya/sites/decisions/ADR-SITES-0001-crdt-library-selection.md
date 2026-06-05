@@ -208,7 +208,7 @@ Concrete bindings:
 - [ ] **Per-tenant log isolation** —
   `cargo nextest run -p oya-sites-block-adapter-loro -- crdt_tenant_scope`.
 - [ ] **Cross-µservice version pin alignment** —
-  `cargo run -p oya-dev-cli -- gate validate crdt-version-alignment`
+  `buck2 build //:quality-lane-registry-authority-check # lane=crdt-version-alignment`
   (compares Loro pin across sites/docs/sheets/slides/workflow-studio).
 
 ## References

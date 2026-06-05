@@ -47,7 +47,7 @@ without restarting the intelligence pod. Zero downtime. Per `runbooks/byok-rotat
 
 ```bash
 cargo nextest run -p oya-intelligence-credential-resolver-usecase -- rotation
-cargo run -p oya-dev-cli -- gate validate byok-zero-downtime-rotation --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=byok-zero-downtime-rotation --microservice intelligence
 ```
 
 ## References

@@ -40,7 +40,7 @@ Promote the existing Helm/Kustomize/IaC artifacts as the deployable substrate fo
 - `helm lint microservices/social/iac/helm/social` passes.
 - `kubectl --dry-run=client apply -k microservices/social/iac/kustomize/overlays/pack-kr` passes.
 - `kubectl --dry-run=client apply -k microservices/social/iac/kustomize/overlays/pack-us-healthcare` passes.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice social` passes.
 - SLO paths under `microservices/social/slos/` resolve from the PrometheusRule template.
 
 ## F. Evidence

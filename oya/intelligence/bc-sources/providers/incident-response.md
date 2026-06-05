@@ -164,7 +164,7 @@ Evidence recorded at `evidence/runbook-drills/`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-response --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=incident-response --microservice foundry-providers` exits 0.
 - Quarterly drill evidence committed.
 - Per-Sev-1 postmortem published within window.
 

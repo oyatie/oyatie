@@ -28,7 +28,7 @@ Stand up `oya-drive-search-index-*` BC. Per-tenant Meilisearch index + Apache Ti
 cargo nextest run -p oya-drive-search-index-domain -- per_tenant_index
 cargo nextest run -p oya-drive-search-index-domain -- cross_tenant_refused
 cargo nextest run -p oya-drive-search-index-adapter-meilisearch -- query_1m
-cargo run -p oya-dev-cli -- gate validate search-tenant-scoped --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=search-tenant-scoped --microservice drive
 ```
 
 ## ChangeSet metadata

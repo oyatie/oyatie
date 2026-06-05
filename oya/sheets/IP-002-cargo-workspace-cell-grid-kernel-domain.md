@@ -79,8 +79,8 @@ pub struct Range {
 ```bash
 cargo check -p oya-sheets-cell-grid-kernel -p oya-sheets-cell-grid-domain
 cargo nextest run -p oya-sheets-cell-grid-domain
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice sheets
-cargo run -p oya-dev-cli -- gate validate port-location --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice sheets
 ```
 
 ## Test Plan

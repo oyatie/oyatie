@@ -71,7 +71,7 @@ impl ApproveLobbyMember {
 cargo nextest run -p oya-meet-participant-adapter-valkey
 cargo nextest run -p oya-meet-participant-rest
 cargo nextest run --test lobby_gate_e2e
-cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-coverage --microservice meet
 ```
 
 ## Test Plan

@@ -25,7 +25,7 @@ with audit-chain seal.
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate recordings-redaction-overlay-immutability
+buck2 build //:quality-lane-registry-authority-check # lane=recordings-redaction-overlay-immutability
 # No UPDATE statements on redaction_overlay table
 rg "UPDATE\s+redaction_overlay" microservices/recordings/src   # expect zero
 ```
@@ -57,7 +57,7 @@ load_bearing: true
 2. Domain: `OverlayRow` (insert-only), `RedactionType` (audio/video/transcript), `Justification`.
 3. Usecase: `EmitAutoPii`, `ApplyManualRedaction`, `ResolveOverlayAtPlayback`.
 4. Adapter: `-adapter-postgres` enforcing insert-only via trigger + RLS.
-5. `cargo run -p oya-dev-cli -- gate validate recordings-redaction-overlay-immutability`.
+5. `buck2 build //:quality-lane-registry-authority-check # lane=recordings-redaction-overlay-immutability`.
 
 ## Traceability
 
