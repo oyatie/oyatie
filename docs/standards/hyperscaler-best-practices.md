@@ -133,7 +133,11 @@ Runbook discipline: every alert resolves to a runbook URL; every runbook is exec
 
 ### Test runner
 
-`cargo-nextest` is the modern default — parallel by default, junit/json output, retries, slow-test detection. Used by AWS, Microsoft, Discord, etc. Oyatie already mandates it.
+Nextest remains a strong Rust test executor because it is parallel by default
+and emits machine-readable output, but Oyatie does not expose it as a raw
+developer or CI command surface. Buck2 owns test target selection, affected
+graph fanout, cache keys, and Prow evidence; Nextest-style execution is valid
+only when projected behind Buck2/Prow targets.
 
 ### Error handling
 
@@ -153,7 +157,11 @@ AWS-pioneered pattern: every `unsafe` block carries a `// SAFETY:` comment docum
 
 ### Build performance
 
-`sccache` (compiler cache, S3-backed in CI), `cargo-chef` (Docker-layer dependency cache), `cargo-zigbuild` (cross-compile via zig as linker; *not* compatible with static crt). For static distroless: `muslrust` → scratch or `distroless-static` or `chainguard/static`. ([Somethings Blog — Turbocharge Rust CI](https://www.somethingsblog.com/2025/05/26/turbocharge-your-rust-projects-faster-ci-cd-pipelines-and-builds/); [muslrust](https://github.com/clux/muslrust); [cargo-zigbuild](https://github.com/rust-cross/cargo-zigbuild); [cargo-chef](https://github.com/LukeMathWalker/cargo-chef); [LogRocket — Optimizing CI/CD Rust](https://blog.logrocket.com/optimizing-ci-cd-pipelines-rust-projects/))
+`sccache`-class compiler caching, remote execution/cache, reproducible OCI
+layers, and static distroless outputs are the useful optimization primitives.
+Cargo ecosystem helpers can inform local experiments, but durable build-image,
+release, and cache authority lives in Buck2/Prow plus the native release
+conveyor. ([Somethings Blog — Turbocharge Rust CI](https://www.somethingsblog.com/2025/05/26/turbocharge-your-rust-projects-faster-ci-cd-pipelines-and-builds/); [muslrust](https://github.com/clux/muslrust); [cargo-zigbuild](https://github.com/rust-cross/cargo-zigbuild); [cargo-chef](https://github.com/LukeMathWalker/cargo-chef); [LogRocket — Optimizing CI/CD Rust](https://blog.logrocket.com/optimizing-ci-cd-pipelines-rust-projects/))
 
 ### Semver
 
@@ -179,8 +187,14 @@ AWS-pioneered pattern: every `unsafe` block carries a `// SAFETY:` comment docum
 ### Build systems
 
 - **Bazel** (Google, Java; bzlmod 2024+) — polyglot, deterministic, remote-cache + remote-execution.
-- **Buck2** (Meta, Rust-rewrite) — modern UX, faster, but no native Cargo dep support (requires `reindeer`).
-- **Cargo workspace + cargo-make / just** — sufficient for single-language Rust monorepos.
+- **Buck2** (Meta, Rust-rewrite) — selected Oyatie authority for monorepo
+  build/test/check/coverage because it supports affected-target fanout,
+  cacheable graph evaluation, and remote/hybrid execution. Cargo metadata can
+  feed generated Buck2 structures through Reindeer-style projection, but Cargo
+  does not own protected-branch evidence.
+- **Cargo workspace + task-runner wrappers** — useful for small Rust-only
+  repositories, but rejected as Oyatie authority because it does not give the
+  same hyperscaler-scale graph, cache, and lane isolation semantics.
 
 ([Buck2 docs](https://buck2.build/docs/about/why/); [Tweag — Tour Around Buck2](https://www.tweag.io/blog/2023-07-06-buck2/); [Bazel Remote Execution](https://bazel.build/remote/rbe); [Better Programming — Blaze to Buck2](https://medium.com/better-programming/from-blaze-to-buck2-a-brief-history-of-modern-monorepo-build-systems-563becbcb987))
 
@@ -249,7 +263,7 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 | # | Practice | Effort | Impact |
 |---|---|---|---|
 | 1 | **Small-CL discipline + reviewer-agent latency target** — explicit median-review-latency SLO (target: 24h), surface in `code-review.md` | low | high |
-| 2 | **Coverage-guided fuzzing on parser / serializer / FFI surfaces** — `cargo-fuzz` + libFuzzer on every public-input boundary; nightly job emits regressions to MISTAKES-LEDGER | medium | high |
+| 2 | **Coverage-guided fuzzing on parser / serializer / FFI surfaces** — Buck2/Prow-owned libFuzzer targets on every public-input boundary; nightly job emits regressions to MISTAKES-LEDGER | medium | high |
 | 3 | **Feature flags + canary rail** — add `flags/` crate or adopt Unleash; mandate every behavior-changing PR ships behind a flag with explicit retire-by date (flag-debt SLO 30d) | high | high |
 | 4 | **Trunk-based with short-lived branches** — already implicit; codify 7-day-max branch SLO + auto-stale-detection lane | low | medium |
 | 5 | **Diátaxis-typed docs** — formalize the four content types in `standards/doc-style.md` (oyatie has doc-class taxonomy; merge it with Diátaxis to get external readability) | low | medium |
@@ -286,7 +300,13 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 
 - **Amazon's "no author attribution on docs"** — oyatie has a strict audit-chain doctrine; doc authorship is provenance and must be captured.
 - **Two-pizza headcount heuristic** — superseded by Single-Threaded Leader at Amazon itself; adopt the STL semantics, ignore the pizza math.
-- **Bazel or Buck2 as the build system** — Cargo workspace is sufficient for a single-language Rust core; the cost of a polyglot monorepo build system is not justified at oyatie's scale. Reassess if/when JS/Python critical-path code lands.
+- **Bazel as the primary build system** — Buck2 is the selected monorepo
+  authority; adopting Bazel as a peer would split graph ownership and increase
+  integration cost.
+- **Cargo-only CI or task-runner wrappers as authority** — sufficient for small
+  Rust repositories, but rejected for Oyatie because parallel lane work,
+  Prow/Kubernetes-native evidence, source-based coverage, and remote cache/RE
+  need Buck2-owned graph semantics.
 - **`async-std`, `smol`** — Tokio is the monoculture; multi-runtime pluralism is now a maintenance tax with no upside.
 - **Microsoft 1ES "one Azure DevOps instance" pattern** — oyatie's no-cloud-lockin principle forbids this; GitHub Actions + a self-hosted Buildkite-style runner pool is the cloud-portable analog.
 - **AWS-specific Bar Raiser hiring** — adopt the *principle* (every hire raises the average; cross-team interviewer with veto), skip the AWS-specific cultural overlay that requires institutional inertia oyatie does not have.

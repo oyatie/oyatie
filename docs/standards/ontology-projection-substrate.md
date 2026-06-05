@@ -564,7 +564,8 @@ fields:
     data_class: internal
     source: TenantCapabilityTierChangedV1.tier
 rebuild:
-  command: cargo run -p oya-projection-rebuild -- tenant-access-context-v1
+  authority: Buck2/Prow projection rebuild target plus controller operation-ledger evidence
+  advisory_input: Cargo metadata may feed generated Buck2 Rust target metadata only
   checkpoint_store: projections.tenant_access_context_checkpoint
   replay_order: event_time_then_sequence
 ```
