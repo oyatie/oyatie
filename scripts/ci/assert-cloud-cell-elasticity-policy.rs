@@ -148,8 +148,8 @@ pub fn contract_failures(spec: &str) -> Vec<String> {
             "first-party desired state must be CUE",
         ),
         (
-            "\"helm_role\": \"external_chart_or_temporary_compatibility_adapter_only\"",
-            "Helm must be adapter-only",
+            "\"helm_role\": \"third_party_chart_ecosystem_or_temporary_compatibility_adapter_when_hyperscaler_fit_passes\"",
+            "Helm must remain a hyperscaler-fit third-party ecosystem or compatibility adapter boundary",
         ),
         (
             "\"buck2_check\": \"buck2 build //:cloud-cell-elasticity-policy-check\"",

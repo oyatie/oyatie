@@ -863,6 +863,30 @@ fn dependency_registry_policy_rejects_untracked_workspace_dependency() {
 }
 
 #[test]
+fn hyperscaler_adoption_fitness_rejects_missing_universal_scope() {
+    let standard = read_repo_file("docs/standards/hyperscaler-adoption-fitness.md").replace(
+        "Every Oyatie methodology, reasoning pattern",
+        "Every Oyatie pattern",
+    );
+    let failures = gate::hyperscaler_adoption_fitness_failures(
+        &standard,
+        &read_repo_file("docs/standards/INDEX.md"),
+        &read_repo_file("docs/README.md"),
+        &read_repo_file("docs/standards/dependency-policy.md"),
+        &read_repo_file("specs/masterplan.json"),
+        &read_repo_file("specs/repo-hygiene-automation.json"),
+        &read_repo_file("specs/kubernetes-native-anti-patterns.json"),
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("methodology")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn buck2_release_policy_rejects_stale_release_pin() {
     let failures = gate::buck2_release_policy_failures(
         "{\"required_buck2_release\":\"2026-05-18\"}",

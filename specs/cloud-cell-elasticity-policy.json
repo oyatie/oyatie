@@ -17,13 +17,13 @@
     "first_party_desired_state": "cue",
     "first_party_manifest_validation": "cue_constraints_plus_rust_buck2_policy_check",
     "first_party_manifest_export": "cue_export_to_canonical_kubernetes_yaml_or_json_before_controller_admission",
-    "helm_role": "external_chart_or_temporary_compatibility_adapter_only",
+    "helm_role": "third_party_chart_ecosystem_or_temporary_compatibility_adapter_when_hyperscaler_fit_passes",
     "helm_adapter_only": true,
     "first_party_helm_template_authority": false,
     "kustomize_role": "optional low-level patch adapter after CUE export, never canonical policy composition authority",
     "reasoning": [
       "CUE gives typed unification, validation, and composable constraints for multi-cell, multi-tenant, multi-region overlays.",
-      "Helm is valuable as a package ecosystem and external chart adapter, but Go-template chart authoring is a weak canonical substrate for policy-heavy first-party cell contracts.",
+      "Helm is valuable as a package ecosystem and external chart adapter when a chart passes hyperscaler-fit review, but Go-template chart authoring is a weak canonical substrate for policy-heavy first-party cell contracts.",
       "CUE-first lane-owned packages plus generated aggregates reduce shared YAML/Helm merge conflicts and make invalid states unrepresentable before Buck2/Prow admission."
     ]
   },
@@ -160,7 +160,7 @@
     {
       "id": "helm_adapter_compatibility_wrapper",
       "lane": "platform-cloud",
-      "action": "Keep Helm only for third-party charts or temporary compatibility wrappers generated from CUE-owned source where needed.",
+      "action": "Keep Helm for third-party charts or temporary compatibility wrappers generated from CUE-owned source where hyperscaler-fit, license, security, provenance, and scalability review justify it.",
       "conflict_mitigation": "Helm templates are not hand-edited as first-party policy authority."
     },
     {

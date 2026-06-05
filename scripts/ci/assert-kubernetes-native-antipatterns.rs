@@ -95,6 +95,11 @@ const OFFICIAL_SOURCES: &[&str] = &[
     "https://cuelang.org/docs/concept/using-the-cue-export-command/",
     "https://cuelang.org/docs/reference/modules/",
     "https://helm.sh/docs/topics/charts/",
+    "https://sre.google/sre-book/release-engineering/",
+    "https://sre.google/sre-book/eliminating-toil/",
+    "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/",
+    "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+    "https://learn.microsoft.com/en-us/azure/architecture/patterns/deployment-stamp",
 ];
 
 const REQUIRED_PATTERNS: &[&str] = &[
@@ -111,6 +116,7 @@ const REQUIRED_PATTERNS: &[&str] = &[
     "helm_adapter_compatibility_wrapper",
     "rust_cue_compatible_desired_state_engine_conformance_lane",
     "scale_to_zero_eligibility_gate",
+    "hyperscaler_adoption_fitness_for_everything",
     "shadow_adapters_not_authority",
     "native_scm_ci_cd_service_seams",
     "cloud_auth_product_auth_decoupled_until_rewire",
@@ -147,6 +153,7 @@ const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
     "oya_cli_revival",
     "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
     "first_party_helm_template_authority",
+    "non_hyperscaler_fit_decision_or_cargo_cult_tooling",
     "node_metadata_access_enabled",
     "default_service_account_token_mount",
     "privileged_or_mutable_container_defaults",
@@ -525,7 +532,8 @@ pub fn desired_state_authority_failures(
         "# CUE/Kubernetes desired-state authority",
         "CUE packages are the first-party source of truth",
         "Generated Kubernetes manifests are build artifacts",
-        "Helm is adapter compatibility only",
+        "third-party charts may be adopted or wrapped",
+        "hyperscaler adoption fitness",
         "hand-authored first-party Helm templates",
         "Do not",
         CHECK_COMMAND,

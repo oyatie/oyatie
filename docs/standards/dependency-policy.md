@@ -65,14 +65,19 @@ control-plane seams, provider abstractions, protocol glue, and policy kernels.
 External crates are exceptions, not defaults. A new external direct dependency
 is allowed only when it is a standards implementation, cryptographic/runtime
 primitive, Kubernetes/CNCF/hyperscaler API client, or audited productivity
-dependency whose risk is lower than an in-house rewrite. Every exception MUST
-record:
+dependency whose risk is lower than an in-house rewrite and whose adoption
+passes the [hyperscaler adoption fitness](hyperscaler-adoption-fitness.md)
+standard. This applies to methodology, reasoning, technology, operation,
+approach, dependency, vendored tool, runtime, architecture, and build-vs-buy
+choices as well as Rust crates. Every exception MUST record:
 
 - owner team and layer seam;
 - why an in-house `oya-*` crate is not the right immediate default;
 - replacement or wrapper strategy that moves business semantics back into
   first-party Rust libraries;
 - latest upstream stable/LTS pin and upgrade cadence.
+- hyperscaler-fit classification: `adopt`, `wrap`, `shadow`, `self_write`,
+  `reject`, or `historical`.
 
 Do not cargo-cult hyperscaler tools. Adopt their patterns, keep the dependency
 surface minimal, and build Oyatie-owned libraries where that reduces supply-chain
@@ -246,13 +251,19 @@ imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
 | Document | PostgreSQL JSONB | MongoDB (SSPLv1) |
 | Embedded | SQLite 3.53+ | n/a |
 
-## 8. CI/CD platform
+## 8. CI/CD and build authority
 
-Per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4: the
-default platform is **GitHub Actions**. Self-hosted runners under the
-Buildkite control plane are the cloud-portable analog for high-volume.
-Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
-`cargo-make`/`just` is sufficient).
+Buck2/Prow is the durable build/test/check/coverage authority. GitHub Actions is
+temporary shadow compatibility for the GitHub lane-unlocker and MUST NOT become
+durable CI/CD authority. Cargo manifests remain ecosystem metadata and local
+dual-build compatibility only; Cargo commands are not merge evidence unless
+projected into Buck2/Prow targets.
+
+Any CI/CD, SCM, release, build, package, or deployment tool that enters the
+repo—GitHub Actions, Prow, Sapling-like SCM, CUE, Timoni, Helm, Kubernetes,
+Talos, or a future Oyatie-native Rust implementation—must pass the
+hyperscaler-fit classification in §1.0 and record whether it is adopted,
+wrapped, shadow-only, self-written, rejected, or historical.
 
 ## 9. Anti-patterns
 
@@ -266,6 +277,10 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
 5. **Adopting Vault, Redis ≥ 8, MongoDB, or Elasticsearch ≥ 7.11.** All
    forbidden per §2.1.
 6. **`latest` tags** anywhere. See [`image-discipline.md`](image-discipline.md).
+7. **Adding any tool, method, runtime, package, or operating approach without a
+   hyperscaler-fit classification.** If Google, AWS, Azure, or a comparable
+   hyperscaler would not plausibly operate it at cloud-provider scale, it is
+   `reject`, `shadow`, `wrap`, or `self_write` backlog—not durable architecture.
 
 ## 10. Sources scanned
 

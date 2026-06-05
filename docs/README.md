@@ -927,6 +927,7 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§2 Decisions]
 44. [graceful-shutdown-canonical.md](standards/graceful-shutdown-canonical.md) - Graceful Shutdown Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
 45. [kubernetes-desired-state-authority.md](standards/kubernetes-desired-state-authority.md) - CUE/Kubernetes Desired-State Authority: first-party CUE packages, generated Kubernetes manifests, and Helm adapter-only boundaries.
 46. [hyperscaler-best-practices.md](standards/hyperscaler-best-practices.md) - Hyperscaler Best Practices: normative rule shelf for implementation, docs, operations, or governance discipline.
+46a. [hyperscaler-adoption-fitness.md](standards/hyperscaler-adoption-fitness.md) - Hyperscaler Adoption Fitness: Google/AWS/Azure-style gate for methodology, reasoning, technology, operations, dependencies, vendored tools, and self-write/adopt choices.
 47. [hyperscaler-invariant-conformance.md](standards/hyperscaler-invariant-conformance.md) - Hyperscaler Invariant Conformance: normative rule shelf for implementation, docs, operations, or governance discipline.
 48. [i18n-canonical.md](standards/i18n-canonical.md) - I18N Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
 49. [idempotency-keys-canonical.md](standards/idempotency-keys-canonical.md) - Idempotency Keys Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
