@@ -112,7 +112,7 @@ Per ADR-0221 (Agentic Development Pipeline Hardening — landed in PR-143):
 |---|---|---|
 | `oya-governance-vacuous-green` | Detect lanes that pass on empty input | Crate exists at `tools/hooks/vacuous-green-gate-detect.sh`; needs CI wiring |
 | `oya-governance-adr-orphan-citation` | Catch ADR-NNNN refs without files on disk (would catch ADR-0173 collision) | Hook at `tools/hooks/adr-orphan-detect.sh`; needs CI wiring |
-| `oya-governance-version-pin-source-citation` | Every version pin cites WebSearch/Context7/upstream URL | Hook at `tools/hooks/spec-version-pin-suggester.sh`; needs CI wiring |
+| `oya-governance-version-pin-source-citation` | Every version pin cites WebSearch/Context7/upstream URL | Rust/Buck2 target `//tools/hooks:spec-version-pin-suggester`; runtime shell hook retired |
 | `oya-governance-buildability-line-count` | µservice docs ≥50 lines (ADR-0212 buildability bar) | Hook at `tools/hooks/buildability-line-count.sh`; needs CI wiring |
 
 (NOTE: per the fitness→governance rename, prefix is `oya-governance-*` not `oya-governance-*` for these NEW lanes.)

@@ -30,9 +30,12 @@ tools/hooks/
 ├── session-start-context-inject.sh        # SessionStart — primary orientation
 ├── no-cargo-enforcer.sh                   # PreToolUse(Bash) — Buck2/no-cargo guidance
 ├── injection-content-scanner.sh           # PostToolUse(Bash|Web*) — prompt-injection scan
-├── spec-version-pin-suggester.sh          # PostToolUse(Edit|Write contracts/) — version
 ├── adr-orphan-detect.sh                   # PostToolUse(Edit|Write .md|.json) — ADR refs
 └── vacuous-green-gate-detect.sh           # PostToolUse(Edit|Write lanes|check) — gate honesty
+
+tools/hooks/spec-version-pin-suggester/src/main.rs
+└── Rust/Buck2 version-pin check; not installed as a runtime hook on Darwin
+    until the Buck2 host Rust toolchain target is fixed.
 
 tools/agent-skills/                       # Vendored lifecycle skills (addyosmani/agent-skills)
 ```
@@ -41,7 +44,11 @@ tools/agent-skills/                       # Vendored lifecycle skills (addyosman
 
 ## How to add a new hook
 
-1. Create the script at `tools/hooks/<name>.sh` with:
+1. Prefer a Rust/Buck2 hook command at `tools/hooks/<name>/src/main.rs` with a
+   `tools/hooks:...` Buck target. Use shell only for narrow bootstrap/prelude
+   compatibility.
+
+2. If a shell hook is unavoidable, create the script at `tools/hooks/<name>.sh` with:
    - Shebang: `#!/usr/bin/env bash`
    - `set -euo pipefail`
    - Top-of-file comment: trigger, purpose, behavior, non-blocking guarantee
@@ -50,11 +57,12 @@ tools/agent-skills/                       # Vendored lifecycle skills (addyosman
    - No network calls, no project-state mutation, and no agent recursion
      (`codex exec`, `claude`, `gemini`, etc.). Runtime hooks emit guidance only.
 
-2. Add the hook entry to the first-class Codex/Gemini hook configs:
+3. Add the hook entry to the first-class Codex/Gemini hook configs only when
+   the command is host-portable for local agents:
    ```json
    {
      "type": "command",
-     "command": "tools/hooks/<name>.sh",
+     "command": "buck2 run //tools/hooks:<name> --",
      "matcher": "<ToolName>",
      "description": "...",
      "managed_by": "tools/hook-bootstrap/install.sh",
@@ -64,14 +72,14 @@ tools/agent-skills/                       # Vendored lifecycle skills (addyosman
    Do **not** add project runtime hooks to `.claude/settings.json`; Claude hook
    orchestration is owned by OMC so `omc doctor conflicts` stays clean.
 
-3. Add the script filename to the `HOOK_SCRIPTS` array in `install.sh` (for executable
-   verification on bootstrap).
+4. Add shell hook filenames to `HOOK_SCRIPTS` in `install.sh`.
 
-4. Update `specs/agent-hook-runtime-manifest.json` when the runtime hook set or
+5. Update `specs/agent-hook-runtime-manifest.json` when the runtime hook set or
    platform mappings change. Update `specs/canonical-primitives.json` if the hook references new canonical
    primitives.
 
-5. Run `shellcheck tools/hooks/<name>.sh` and fix all warnings.
+6. Run `buck2 build //tools/hooks:<name>-tests` for Rust checks, or
+   `shellcheck tools/hooks/<name>.sh` for shell compatibility hooks.
 
 ---
 
@@ -81,8 +89,8 @@ tools/agent-skills/                       # Vendored lifecycle skills (addyosman
 # Test session-start hook
 bash tools/hooks/session-start-context-inject.sh
 
-# Test spec version suggester on a real file
-TOOL_INPUT='{"path":"contracts/example.yaml"}' bash tools/hooks/spec-version-pin-suggester.sh
+# Test the Rust version-pin check in Linux Buck2/Prow lanes
+TOOL_INPUT='{"path":"contracts/example.yaml"}' buck2 run //tools/hooks:spec-version-pin-suggester --
 
 # Test install dry-run
 ./tools/hook-bootstrap/install.sh --dry-run

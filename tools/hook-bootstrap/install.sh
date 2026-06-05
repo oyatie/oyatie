@@ -71,7 +71,6 @@ HOOK_SCRIPTS=(
     session-start-context-inject.sh
     no-cargo-enforcer.sh
     injection-content-scanner.sh
-    spec-version-pin-suggester.sh
     adr-orphan-detect.sh
     vacuous-green-gate-detect.sh
 )
@@ -189,7 +188,6 @@ if $CODEX_DETECTED; then
       {
         "matcher": "Edit|MultiEdit|Write",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh" },
           { "type": "command", "command": "tools/hooks/adr-orphan-detect.sh" },
           { "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh" }
         ]
@@ -266,7 +264,6 @@ if $GEMINI_DETECTED; then
       {
         "matcher": "write_file|replace|edit|write|Edit|Write",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "project-spec-version" },
           { "type": "command", "command": "tools/hooks/adr-orphan-detect.sh", "name": "project-adr-orphan" },
           { "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh", "name": "project-vacuous-green" }
         ]

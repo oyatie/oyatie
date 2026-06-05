@@ -25,6 +25,12 @@ run_hook() {
     TOOL_INPUT="{\"path\":\"$path\"}" bash "$REPO_ROOT/$script" 2>&1
 }
 
+run_buck2_hook() {
+    local target="$1"
+    local path="$2"
+    (cd "$REPO_ROOT" && TOOL_INPUT="{\"path\":\"$path\"}" buck2 run "$target" -- 2>&1)
+}
+
 require_contains() {
     local output="$1"
     local needle="$2"
@@ -80,15 +86,15 @@ case "$gate" in
         trap 'rm -rf "$fixture_dir"' EXIT
         mkdir -p "$fixture_dir"
         printf 'openapi: 3.1.0\ninfo:\n  title: fixture\n  version: 1.0.0\npaths: {}\n' > "$REPO_ROOT/$fixture_rel"
-        output="$(run_hook tools/hooks/spec-version-pin-suggester.sh "$fixture_rel")"
+        output="$(run_buck2_hook //tools/hooks:spec-version-pin-suggester "$fixture_rel")"
         require_contains "$output" "canonical version is 3.2.0" "oya-governance-version-pin-source-citation"
 
         printf 'asyncapi: 3.0.0\ninfo:\n  title: fixture\n  version: 1.0.0\nchannels: {}\n' > "$REPO_ROOT/$fixture_rel"
-        output="$(run_hook tools/hooks/spec-version-pin-suggester.sh "$fixture_rel")"
+        output="$(run_buck2_hook //tools/hooks:spec-version-pin-suggester "$fixture_rel")"
         require_contains "$output" "canonical version is 3.1.0" "oya-governance-version-pin-source-citation"
 
         printf 'openapi: 3.2.0\ninfo:\n  title: fixture\n  version: 1.0.0\npaths: {}\n' > "$REPO_ROOT/$fixture_rel"
-        output="$(run_hook tools/hooks/spec-version-pin-suggester.sh "$fixture_rel")"
+        output="$(run_buck2_hook //tools/hooks:spec-version-pin-suggester "$fixture_rel")"
         require_not_contains "$output" "Detected openapi" "oya-governance-version-pin-source-citation"
         echo "oya-governance-version-pin-source-citation passed"
         ;;

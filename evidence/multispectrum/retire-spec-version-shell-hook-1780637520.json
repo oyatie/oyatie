@@ -1,0 +1,66 @@
+{
+  "change_class_id": "CC-2",
+  "git_sha": "6e06d1353",
+  "freshness_unix": 1780637520,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Deleted the version-pin advisory shell hook instead of adding another wrapper around it.",
+        "Kept a single Rust/Buck2 target for OpenAPI and AsyncAPI version-pin checks."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Moved the check from local shell runtime hook authority toward the CI/Prow-compatible Buck2 graph.",
+        "Kept local agent hook configs host-portable by omitting the Buck2 Rust hook from Darwin runtime configs until the host toolchain target is fixed."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "repo-hygiene-automation-check now asserts the non-vendored Python/shell inventory count is 42 and rejects stale registry drift.",
+      "findings": [
+        "Reference cleanup removes the retired shell hook from active Codex/Gemini hook configs, bootstrap generation, and runtime manifest declarations."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 5,
+      "findings": [
+        "Hook bootstrap docs now state the Rust-first pattern and explain why this specific check is not installed as a local runtime hook yet."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Fresh verification plan covers rustfmt, Rust unit tests, JSON syntax/count checks, retired-reference scans, Buck2 policy gates, and remote GitHub Linux checks before merge."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Keep the shell hook until every hook is rewritten",
+        "Install buck2 run directly in local Codex/Gemini hook configs",
+        "Retire the shell runtime hook and keep the Rust/Buck2 target for CI/Prow lanes"
+      ],
+      "selected_rationale": "Retiring the shell runtime hook reduces non-Rust surface immediately without installing a locally fragile Buck2 Rust binary path on Darwin.",
+      "rejected_reasons": [
+        "Keeping the shell hook preserves ad-hoc jq/bash logic as an active advisory surface.",
+        "Direct local Buck2 runtime invocation fails on the current Darwin Buck2 Rust toolchain target and would disturb agent editing."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": false,
+      "findings": [
+        "The retired hook handled file paths only; no secrets or tenant data are touched by this cleanup."
+      ]
+    }
+  }
+}
