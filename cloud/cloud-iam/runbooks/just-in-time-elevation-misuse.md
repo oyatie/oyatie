@@ -147,7 +147,7 @@ doc_status: published
 10. Enable session recording hold: `oya iam session recording hold --tenant $TENANT --principal $PRINCIPAL --incident $INCIDENT_ID`.
 11. Quarantine workload principal: `oya iam workload quarantine --tenant $TENANT --principal $PRINCIPAL --ttl 60m --reason $INCIDENT_ID`.
 12. Pause Foundry principal if implicated: `oya foundry principal pause --principal $PRINCIPAL --reason $INCIDENT_ID`.
-13. Hold cloud-iam promotions: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+13. Hold cloud-iam promotions: incident hold PR against `dev` (plain `git`; Buck2 evidence plus `oya-ci-required` required).
 14. Notify affected service owners: `oya notify service-owner --incident $INCIDENT_ID --microservice cloud-iam`.
 15. Notify tenant admin through security copy: `oya notify tenant-admin --tenant $TENANT --incident $INCIDENT_ID --template jit-elevation-contained`.
 16. Preserve evidence: `oya evidence freeze --incident $INCIDENT_ID --paths evidence/incidents/$INCIDENT_ID.json`.
@@ -166,9 +166,9 @@ doc_status: published
 7. Add regression for expired grant still permitting provider target access.
 8. Add regression for missing reviewer id.
 9. Add regression for paid tenant_class PIV signature requirement.
-10. Run domain tests: `cargo test -p oya-cloud-iam-domain elevation -- --nocapture`.
-11. Run API tests: `cargo test -p oya-cloud-iam-api elevation -- --nocapture`.
-12. Run policy gate: `cargo run -p oya-dev-cli -- gate validate cloud-iam-elevation-policy --production-snapshot --cell $CELL`.
+10. Run Buck2 domain target evidence for elevation regression coverage and attach the Prow result.
+11. Run Buck2 API target evidence for elevation regression coverage and attach the Prow result.
+12. Collect oya-ci/Prow production snapshot evidence for cloud-iam elevation policy once the native lane lands and attach the evidence bundle.
 13. Verify no active grants: `oya iam elevation list --tenant $TENANT --active --expect none`.
 14. Verify no provider residue: `oya iam target temporary-roles list --tenant $TENANT --principal $PRINCIPAL --provider all --expect none`.
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_IAM_JIT_ELEVATION_MISUSE_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.

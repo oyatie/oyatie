@@ -142,8 +142,12 @@ async fn main() -> Result<()> {
 ## Run it
 
 ```bash
-cargo run --release
+buck2 run //cloud/cloud-iam:issue-scoped-token-rust-sdk
 ```
+
+If the example is still reference text rather than a checked Buck2 target, first
+promote it into a service-owned Buck2 target; do not use ad-hoc Cargo execution
+as merge or release evidence.
 
 Expected output (trimmed):
 ```
@@ -170,8 +174,11 @@ INFO  audit-chain anchor verified chain_root=blake3-256:… signed_by=hsm-key-08
 ## Tests
 
 ```bash
-cargo test --features hermetic
+buck2 test //cloud/cloud-iam:issue-scoped-token-rust-sdk-hermetic
 ```
+
+The `hermetic` behavior belongs in the Buck2 target configuration so Prow can
+run the same evidence path.
 
 The `hermetic` feature uses `oya_cloud_iam_sdk::testkit::Hermetic` to spin a single-process loopback `cloud-iam` cell with an
 in-memory Cedar entity store; tests finish in ≤ 30 s.
