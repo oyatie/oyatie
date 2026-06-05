@@ -128,15 +128,15 @@ pub enum QualityLaneError {
 }
 
 /// Validate the quality-lane registry against its markdown mirror and
-/// the canonical wired-commands catalog.
+/// the retired compatibility wired-commands corpus.
 ///
 /// `wired_commands` is the substring-tolerant catalog of canonical
-/// commands the gate aggregator wires (sourced from
+/// historical commands/capabilities the retired compatibility corpus exposes
+/// (sourced from
 /// `oya-governance-gate-catalog-domain::all_canonical_commands_rendered`).
 /// This replaces the legacy `check_script_contents: &str` parameter
-/// which read `scripts/check.sh`'s body verbatim — the canonical
-/// catalog crate now owns that data per the `.sh-removal` chain IP-C
-/// (audit `evidence/audits/shell-python-replacement-audit-2026-05-15.md`).
+/// which read `scripts/check.sh`'s body verbatim. Active merge authority is
+/// Buck2/Prow/Kubernetes-native; this corpus is compatibility/provenance only.
 pub fn validate_quality_lanes<R, D, O>(
     registry_records: R,
     markdown_rows: D,
