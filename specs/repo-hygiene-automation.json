@@ -155,6 +155,7 @@
       "standards retired local gate/doc/vcs command scan",
       "clean architecture raw Cargo testing posture scan",
       "clean architecture kernel-owned port posture scan",
+      "Claude Code harness Buck2 evidence posture scan",
       "standards retired external substrate name scan",
       "microservice spec retired CI/CD and local gate authority scan",
       "design-system spec retired local validator authority scan",
@@ -348,6 +349,13 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental clean-architecture port-ownership guard only; crate graph enforcement remains the architecture-conventions lane"
+    },
+    "claude_code_harness_buck2_evidence_scan": {
+      "clean_file": "docs/standards/claude-code-harness.md",
+      "policy": "Claude Code harness evidence posture must use Buck2 target evidence plus Prow/Kubernetes-native oya-ci-required output. Cargo manifests remain compatibility metadata; raw Cargo runners and local cargo-deny green claims are not merge, coverage, or protected-branch authority.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental Claude Code harness evidence-posture guard only; broader OMC/OMX hook contract cleanup remains a separate backlog slice"
     },
     "standards_retired_external_substrate_scan": {
       "clean_files": [
