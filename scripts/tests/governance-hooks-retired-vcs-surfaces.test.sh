@@ -68,6 +68,10 @@ allowed_hooks = {
     entry["path"]
     for entry in manifest["runtime_hooks"]
 }
+allowed_commands = {
+    entry.get("command", entry["path"])
+    for entry in manifest["runtime_hooks"]
+}
 pre_errors = []
 missing = []
 unlisted = []
@@ -85,12 +89,21 @@ if claude_settings.is_file():
 def walk(value):
     if isinstance(value, dict):
         command = value.get("command")
-        if isinstance(command, str) and command.startswith("tools/hooks/"):
+        if isinstance(command, str) and (
+            command.startswith("tools/hooks/")
+            or command.startswith("buck2 run //tools/hooks:")
+        ):
             referenced.add(command)
-            target = repo / command
-            if not target.is_file():
+            if command.startswith("tools/hooks/"):
+                target = repo / command
+            else:
+                target_name = command.split("//tools/hooks:", 1)[1].split()[0]
+                target = repo / "tools/hooks" / target_name / "src/main.rs"
+            if command.startswith("tools/hooks/") and not target.is_file():
                 missing.append(f"{command} referenced by active hook config")
-            if command not in allowed_hooks:
+            if command.startswith("buck2 run //tools/hooks:") and not target.is_file():
+                missing.append(f"{command} referenced by active hook config without Rust source")
+            if command not in allowed_commands:
                 unlisted.append(f"{command} referenced by active hook config but absent from {manifest_path.name}")
         for child in value.values():
             walk(child)
@@ -107,10 +120,11 @@ for config in config_paths:
         pre_errors.append("Gemini BeforeAgent hook is intentionally disabled; SessionStart carries canonical context")
     walk(data)
 
-unreferenced = sorted(allowed_hooks - referenced)
+unreferenced = sorted(allowed_commands - referenced)
 non_executable = sorted(
     path for path in allowed_hooks
     if (repo / path).is_file() and not (repo / path).stat().st_mode & 0o111
+    and path.endswith(".sh")
 )
 forbidden_patterns = [
     (re.compile(r"\b(?:curl|wget|gh|ssh|scp|nc)\b"), "network/remote command"),

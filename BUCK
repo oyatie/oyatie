@@ -189,7 +189,7 @@ genrule(
         "scripts/agent-pre-push-validate.sh": "scripts/agent-pre-push-validate.sh",
         "scripts/build/build-and-push-cloud-intelligence.sh": "scripts/build/build-and-push-cloud-intelligence.sh",
         "cloud/cloud-intelligence/iac/oci/BUCK": "//cloud/cloud-intelligence/iac/oci:BUCK",
-        "tools/hooks/no-cargo-enforcer.sh": "tools/hooks/no-cargo-enforcer.sh",
+        "tools/hooks/no-cargo-enforcer.sh": "//tools/hooks:no-cargo-enforcer-sh",
         "Makefile": "Makefile",
         "docs/TOOLCHAIN.md": "docs/TOOLCHAIN.md",
         "docs/standards/code-style.md": "docs/standards/code-style.md",

@@ -43,11 +43,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tools/hooks/spec-version-pin-suggester.sh",
-            "name": "project-spec-version"
-          },
-          {
-            "type": "command",
             "command": "tools/hooks/adr-orphan-detect.sh",
             "name": "project-adr-orphan"
           },

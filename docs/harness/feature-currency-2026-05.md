@@ -113,7 +113,7 @@ the PascalCase Codex schema are both up to date.
 
 | # | Gap | Severity | Disposition |
 |---|-----|----------|-------------|
-| G1 | **3 PostToolUse hooks silently no-op under real Claude Code.** `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh` extract the file path with `jq '.path // .file_path'` against the **top-level** stdin object, but Claude Code nests it at `.tool_input.file_path`. So the advisory never fires in production. The CI governance harness only passes because it drives them via a `TOOL_INPUT` env var with a flat `{"path":...}` — a path real Claude Code never uses. | High (dead guidance) | **APPLIED** |
+| G1 | **3 PostToolUse advisories silently no-op under real Claude Code.** The former version-pin shell advisory, `adr-orphan-detect.sh`, and `vacuous-green-gate-detect.sh` extracted the file path with `jq '.path // .file_path'` against the **top-level** stdin object, but Claude Code nests it at `.tool_input.file_path`. The version-pin advisory is now a Rust/Buck2 check target, and the surviving runtime shell advisories keep nested-path extraction with the flat `{"path":...}` fallback used by the CI governance harness. | High (dead guidance) | **APPLIED** |
 | G2 | `pre-dispatch-guide.sh` (PreToolUse:Task) reads `.prompt` top-level; real Task input nests at `.tool_input.prompt`, so dispatch guidance never fires. | Medium | **RETIRED 2026-06-05** — AGENTS.md/native subagent routing replaced this advisory shell hook. |
 | G3 | Misleading `$TOOL_INPUT` env-var reads across 5 hooks imply Claude Code sets that env var. It does not (docs: "no env var carries event data"). Harmless (stdin fallback covers it) but a latent footgun. | Low | **APPLIED-partial** (kept as documented fallback for the CI harness; comments now state stdin is the real source) |
 | G4 | Pre-existing broken test: `scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh:43` calls `tools/hooks/retired-vcs-surface-inventory.sh`, which commit `451987f24` deleted. Test exits 127. Unrelated to harness currency. | Medium (red test) | **RECOMMENDATION** (out of scope; fixing risks parent's CI work) |
@@ -131,7 +131,8 @@ while retaining flat-key fallback for the CI governance harness
 (`tools/governance/governance-hook-efficacy-harness.sh`, which sets
 `TOOL_INPUT='{"path":...}'`). The former Task dispatch hook is retired.
 
-1. `tools/hooks/spec-version-pin-suggester.sh` — jq filter now
+1. `//tools/hooks:spec-version-pin-suggester` — Rust/Buck2 replacement keeps
+   the nested-path extraction behavior covered outside local runtime hooks
    `.tool_input.file_path // .tool_input.path // .path // .file_path`.
 2. `tools/hooks/adr-orphan-detect.sh` — same nested-first filter.
 3. `tools/hooks/vacuous-green-gate-detect.sh` — same nested-first filter.
