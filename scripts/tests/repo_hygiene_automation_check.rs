@@ -40,7 +40,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 0);
     assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 37);
-    assert_eq!(evaluation.active_context_scan_files, 26);
+    assert_eq!(evaluation.active_context_scan_files, 28);
     assert_eq!(evaluation.active_template_scan_files, 30);
     assert_eq!(evaluation.retired_exact_name_scan_files, 36);
     assert_eq!(evaluation.product_operation_runbook_clean_paths, 2);
@@ -1665,6 +1665,24 @@ fn active_doc_phrase_scanner_rejects_retired_brief_template_lifecycle() {
         "Jenkins governance lifecycle",
         "./bin/oya verify --ci-required",
         "./bin/oya gate run-all",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn active_doc_phrase_scanner_rejects_cargo_as_backend_build_authority() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/standards/brief-template.md",
+        "CANONICAL_BACKEND_BUILD: cargo build --workspace --release --all-features --locked\nUse a Python helper to validate modules before cargo build.\nRequired audit evidence: Cargo/workspace evidence.",
+    );
+    for expected in [
+        "CANONICAL_BACKEND_BUILD: cargo build",
+        "Use a Python helper to validate modules before cargo build",
+        "Cargo/workspace evidence",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),

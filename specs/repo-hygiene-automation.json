@@ -727,6 +727,8 @@
       "docs/standards/brief-template.md",
       "docs/standards/agentic-dev-team-optimization.md",
       "docs/standards/ci-lanes.md",
+      "docs/standards/code-style.md",
+      "docs/standards/testing.md",
       "docs/ci/github-actions-lane-unlocker.md",
       "docs/ci/auto-merge-flow.md",
       "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
@@ -746,7 +748,10 @@
     "legacy_shadow_context_role": "GitHub Actions compatibility/shadow evidence only; not durable merge authority.",
     "forbidden_phrases": [
       "The required temporary context is `github-lane-unlocker-required`",
-      "dev requires github-lane-unlocker-required"
+      "dev requires github-lane-unlocker-required",
+      "CANONICAL_BACKEND_BUILD: cargo build",
+      "Use a Python helper to validate modules before cargo build",
+      "Cargo/workspace evidence"
     ]
   },
   "automation_language_policy": {
