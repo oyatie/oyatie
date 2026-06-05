@@ -79,27 +79,48 @@ Narrow the toolchain to its **differentiated core**:
 
 ## Consequences
 
+### Current-state amendment (2026-06-05)
+
+This ADR is provenance for retiring `oya vcs` / `oya git` wrappers; its
+Forgejo/Jenkins migration details are superseded by the Prow/Kubernetes-native
+`oya-ci-required` direction and GitHub PR/publication adapter documented in
+`docs/AGENTS.md`, `specs/root-hub-pointers.json`, and
+`specs/agent-hook-runtime-manifest.json`. The deleted
+`tools/hooks/_canonical-primitives.md` cheat sheet and the retired
+`tools/hooks/session-start-context-inject.sh` SessionStart renderer are not
+active coordination surfaces.
+
 ### Positive
-- One less bespoke subsystem to maintain; coordination rides standard, OSI-clean, self-hostable tooling (git + Forgejo GPLv3+ + Jenkins).
+- One less bespoke subsystem to maintain; coordination rides plain `git` plus
+  the active Prow/Kubernetes-native `oya-ci-required` path, with GitHub as the
+  temporary PR/publication adapter.
 - `oya`'s value is sharpened to what only it can do (governance-as-code / AI-slop-defense).
 - Intelligence becomes the single coherent home for the AI-agent platform; Governance's independence is principled (layering).
 
 ### Negative / risk
-- **High-blast-radius rewire**: `oya vcs`/`oya git` are the *current* canonical coordination surface (CLAUDE.md, `tools/hooks/_canonical-primitives.md`, SessionStart hooks all inject "use `oya git`/`oya vcs`"). Retiring them flips the agent operating contract to plain `git`. This is mechanical but wide → staged PR with its own review (PR-3 below).
-- The 2 admission/provider gate-apps currently shell out to `oya vcs` — their rework must preserve the actual checks (prereq audit).
+- **High-blast-radius rewire**: `oya vcs`/`oya git` were the canonical
+  coordination surface when this ADR was authored. Retiring them flipped the
+  agent operating contract to plain `git`; later amendments removed the
+  hand-maintained canonical-primitives markdown and SessionStart renderer.
+- At authoring time, 2 admission/provider gate-apps shelled out to `oya vcs`;
+  their rework had to preserve the actual checks as Rust/Buck2/Prow evidence.
 - No merge queue → at high concurrency, semantic conflicts between concurrently-merged PRs aren't caught; accepted at current scale, revisit per §3.
 
-### Migration (staged, each its own verified PR)
+### Historical migration (superseded by current root guidance)
 1. **PR-1** — absorb `microservices/foundry/` → `microservices/intelligence/` (doc/contract reconciliation; build unaffected). (task #44)
 2. **PR-2** — delete the ~13 dormant orchestration crates; supersede ADR-0110/0112/0113; freeze the changeset-event-log. (task #45)
-3. **PR-3** — retire `oya vcs` + `oya git`; rework the 2 gates → Governance as Jenkins-posted Forgejo required checks; flip CLAUDE.md / `_canonical-primitives.md` / SessionStart hooks / `registry/vcs/` to plain `git`. (task #46)
+3. **PR-3** — retire `oya vcs` + `oya git`; later superseded by the
+   Prow/Kubernetes-native `oya-ci-required` direction and by deletion of the
+   `_canonical-primitives.md` / SessionStart renderer surfaces.
 4. **Deferred** — ADR-0357 vertical-slice crate nesting (task #10), and the GitHub→Forgejo host migration (ADR-0247 post-bootstrap), are separate efforts.
 
 ## Verification
-- After each PR: `cargo build --workspace` green, `cargo fmt --check` clean, `oya gate run-all` green (uncontended; rebuild `oya` first).
-- `oya gate validate architecture-boundaries` green (catalog records move with crates).
-- `oya gate validate aspirational-enforcement` green (no binding claim references a retired lane/command).
-- No residual `oya vcs` / `oya git` invocations in CLAUDE.md, hooks, `_canonical-primitives.md`, or gate code after PR-3.
+- Historical verification used Cargo and retired `oya gate` commands. Current
+  verification is Buck2/Prow-native: `//:repo-hygiene-automation-check`,
+  `//:governance-hook-efficacy-check`, `//:buck2-authority-policy-check`, and
+  the trusted `oya-ci-required` context.
+- No residual `oya vcs` / `oya git` active guidance in root AGENTS/CLAUDE,
+  runtime hooks, or canonical-primitives authority.
 
 ## References
 - ADR-0110 / 0112 / 0113 — agentic-VCS (superseded here).

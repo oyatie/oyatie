@@ -150,7 +150,7 @@
       "current_path": "/specs/canonical-primitives.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Machine-readable source of truth for the canonical-primitives session-context payload rendered by tools/hooks/session-start-context-inject.sh; supersedes the retired hand-maintained markdown cheat sheet."
+      "purpose": "Machine-readable source of truth for canonical primitives read through root AGENTS/CLAUDE guidance; supersedes the retired hand-maintained markdown cheat sheet and retired SessionStart renderer."
     },
     "agent_hook_runtime_manifest": {
       "kind": "spec",
@@ -354,7 +354,7 @@
       "current_version": "2.1.0",
       "human_companion_path": "docs/standards/multispectrum-review.md",
       "migration_phase": "complete",
-      "purpose": "Multispectrum review bar — 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
+      "purpose": "Multispectrum review bar — 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and discovered through this root pointer registry."
     },
     "pre_pr_multispectrum_checklist": {
       "kind": "template",

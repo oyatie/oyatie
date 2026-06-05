@@ -29,7 +29,7 @@
       "PR review CODEOWNERS or reviewer-agent evidence (manual sign-off where required)",
       "active-artifact-contract evidence bundle (ADR-0069)",
       "native SCM/Prow/Kubernetes-native oya-ci flow with ADR-0054/grit/Oya VCS history as provenance only; do not revive an oya vcs CLI",
-      "SessionStart hook in agents/settings/claude.settings.json"
+      "root-hub-pointers.json multispectrum_review entry plus AGENTS/CLAUDE authority-first read"
     ],
     "planned_enforcement_refs": [
       "oya-check-dependency-seam (sub-check: multispectrum-evidence-attached)",
@@ -1361,11 +1361,10 @@
       "severity_day_8": "error"
     }
   },
-  "session_start_hook_contract": {
-    "description": "Every session reads docs/standards/multispectrum-review.md + this JSON at start so the bar is durable across sessions, not session-scoped to a particular agent's memory.",
-    "hook_event": "SessionStart",
-    "implementation_path": "agents/settings/claude.settings.json — hook 'multispectrum-bar-on-session-start' injects a one-line reminder citing this spec.",
-    "fallback": "If SessionStart hook missing or stale, root-hub-pointers.json carries the multispectrum_review pointer so any agent discovers it on the authority-first read."
+  "authority_first_read_contract": {
+    "description": "Every session reads AGENTS/CLAUDE root guidance and root-hub-pointers.json first so the bar is durable across sessions, not session-scoped to a particular agent's memory.",
+    "implementation_path": "specs/root-hub-pointers.json carries the multispectrum_review pointer; docs/AGENTS.md and root AGENTS.md require authority-first reading.",
+    "retired_hook_event": "SessionStart"
   },
   "facet_roster": {
     "_description": "v2.4.0 canonical 21-facet roster. Closed for F-family (max 12, 10 active: F1-F9+F10+F11+F13); open for A-family. Every changeset evidence bundle MUST enumerate all applicable facets by id.",

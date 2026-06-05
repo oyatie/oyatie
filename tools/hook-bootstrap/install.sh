@@ -68,7 +68,6 @@ echo ""
 
 HOOKS_DIR="$REPO_ROOT/tools/hooks"
 HOOK_SCRIPTS=(
-    session-start-context-inject.sh
     no-cargo-enforcer.sh
     injection-content-scanner.sh
     vacuous-green-gate-detect.sh
@@ -168,13 +167,6 @@ if $CODEX_DETECTED; then
   "_marker": "'"$MARKER"'",
   "_note": "Project-scoped Codex hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security redesign: removed exfil-guard + no-secret-leak (bypassable regex — security theater); OS sandbox is the real gate. Removed 4 dead hooks. PascalCase event keys per current Codex schema. Recommended ~/.codex/config.toml: sandbox_mode=workspace-write, approval_policy=on-request.",
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/session-start-context-inject.sh" }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -236,14 +228,6 @@ if $GEMINI_DETECTED; then
   "_marker": "'"$MARKER"'",
   "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh. Hooks use the current settings.json event/group schema and avoid retired wrapper command hints; OS sandbox + permissions deny rules are the real gate; injection-content-scanner retained (advisory only).",
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "project-session-context" }
-        ]
-      }
-    ],
     "BeforeTool": [
       {
         "matcher": "run_shell_command|bash|Bash",
