@@ -9,6 +9,18 @@ export_file(
     visibility = ["PUBLIC"],
 )
 
+export_file(
+    name = "vacuous-green-gate-detect-sh",
+    src = "vacuous-green-gate-detect.sh",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "injection-content-scanner-sh",
+    src = "injection-content-scanner.sh",
+    visibility = ["PUBLIC"],
+)
+
 rust_binary(
     name = "spec-version-pin-suggester",
     srcs = ["spec-version-pin-suggester/src/main.rs"],

@@ -10,7 +10,9 @@
     "owner_team": "council-architecture",
     "updated_at": "2026-06-05",
     "scope": "First-class non-OMC/non-OMX project hook runtime for Codex and Gemini. Claude Code hook orchestration is owned by OMC; project .claude/settings.json intentionally carries no runtime hook commands.",
-    "purpose": "Declare the only runtime hooks that project Codex/Gemini configs may reference, their side-effect envelope, and the bootstrap exception boundary so stale/missing hook references are removed rather than silently tolerated. Canonical primitives now live as direct machine-readable authority at specs/canonical-primitives.json instead of a SessionStart runtime hook."
+    "purpose": "Declare the only runtime hooks that project Codex/Gemini configs may reference, their side-effect envelope, and the bootstrap exception boundary so stale/missing hook references are removed rather than silently tolerated. Canonical primitives now live as direct machine-readable authority at specs/canonical-primitives.json instead of a SessionStart runtime hook.",
+    "checker_target": "//:agent-hook-runtime-manifest-check",
+    "checker_kind": "rust_buck2_manifest_config_drift_checker"
   },
   "config_files": [
     {
