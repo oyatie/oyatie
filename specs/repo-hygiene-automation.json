@@ -516,6 +516,11 @@
         "specs"
       ],
       "source": "git history in full-fetch GitHub/worktree contexts",
+      "root_documentation_drift_output": {
+        "adr_index": "reports decision file count, max ADR, expected next ADR, ADR-INDEX declared total/next, decisions.json declared total/next, and retired oya doc adr-index wording count",
+        "doc_catalog": "reports DOC-CATALOG table path count, missing path samples, root-hub doc_catalog target existence, and docs/machine-readable/catalog.json presence",
+        "current_scope": "inventory evidence only; full ADR index regeneration, doc-catalog migration, and root-hub target cutover remain separate evidence-backed PRs"
+      },
       "default_action": "inventory_only_then_separate_evidence_backed_update_archive_or_delete_pr",
       "live_mutation": false,
       "claim_boundary": "inventory_only_no_deletion_no_archive_no_live_mutation",
@@ -1029,6 +1034,12 @@
       "lane": "council-architecture",
       "action": "Use the Rust stale-doc inventory output to open separate evidence-backed update/archive/delete PRs.",
       "conflict_mitigation": "Do not bulk-delete historical ADRs; archive/update/delete by owner lane."
+    },
+    {
+      "id": "root_documentation_drift_followups",
+      "lane": "council-architecture",
+      "action": "Use the Rust root_documentation_drift inventory output to regenerate ADR-INDEX.md and docs/machine-readable/decisions.json, remove retired oya doc adr-index wording, and decide the DOC-CATALOG machine-readable cutover path with root-hub/markdown-retirement-policy consistency.",
+      "conflict_mitigation": "Do not hand-edit generated ADR tables; use a dedicated generator/regeneration PR so root indexes remain mechanically produced and low-conflict."
     },
     {
       "id": "retired_external_substrate_residue",
