@@ -10,7 +10,9 @@
     "owner_team": "council-architecture",
     "created_at": "2026-05-18T00:00:00Z",
     "binding_adr": "ADR-0179",
-    "purpose": "Per-regional-pack sovereign cloud overlay schema. Each pack declares primary + secondary provider with certifications, sovereign-data-class bind, prohibited egress, audit cadence."
+    "purpose": "Cloud-IaC-owned sovereign cloud overlay schema. Each pack declares primary + secondary provider with certifications, sovereign-data-class bind, prohibited egress, audit cadence. Overlay files live under cloud/cloud-iac/sovereign-cloud-overlays/<pack-id>/ and are discovered through registry/sovereign-cloud/per-pack-overlay-status.tsv so root-level shared surfaces do not become edit bottlenecks.",
+    "artifact_layout": "cloud/cloud-iac/sovereign-cloud-overlays/<pack-id>/sovereign-cloud-overlay.yaml",
+    "overlay_registry": "registry/sovereign-cloud/per-pack-overlay-status.tsv"
   },
   "title": "Sovereign cloud overlays canonical schema",
   "type": "object",

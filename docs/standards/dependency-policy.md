@@ -303,9 +303,13 @@ CI/CD-platform dependency in §8 — MUST be classified into one of three
 ### 11.2 Floor enumeration (per ADR-0345 §D-3 / §D-4 / §D-5)
 
 **Maintainer-class floor:** every `oya-*` crate (~200+); `oya-shuffle-sharding`
-(ADR-0333 substrate); `oya-dev-cli` (ADR-0218); `oya-shared-policy-engine-client`
-(Cedar wrapper); `oya-shared-workflow-engine`; `oya-shared-ontology-projection`;
-internal hooks + tools under `tools/` + `bin/`.
+(ADR-0333 substrate); retired `oya-dev-cli` logic only after preservation as
+Rust libraries/Buck2 targets/Prow jobs, not as CLI authority;
+`oya-shared-policy-engine-client` (Cedar wrapper);
+`oya-shared-workflow-engine`; `oya-shared-ontology-projection`; registered
+Rust/Buck2 tool apps and vendored agent skills under `tools/`. Repo-root `bin/`
+wrappers are retired and MUST NOT be reintroduced as dependency or gate
+authority.
 
 **Contributor-class floor (11 upstreams):** Cilium (ADR-0148, CNI/ClusterMesh);
 Istio (ADR-0044, Ambient Mesh); Valkey (ADR-0336, in-memory KV substitute for

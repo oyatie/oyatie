@@ -138,7 +138,7 @@ Per-pack overlay enforcement:
 | pack-ae | UAE PDPL | Cross-border via SCC-equivalent |
 | pack-ksa | KSA PDPL | NCA notification; processor registration |
 
-Each pack ships an overlay file at `regional-packs/<pack>/forms-compliance-overlay.md` (mirroring sheets / workflow-studio convention).
+Each pack ships an overlay file at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/forms-compliance-overlay.md` (mirroring sheets / workflow-studio convention).
 
 ## 9. SOC 2 Type 2 + ISO 27001:2022
 

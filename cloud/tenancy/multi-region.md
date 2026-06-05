@@ -166,7 +166,7 @@ Per `incident-response.md` §"Tenant communications":
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics at `regional-packs/<pack>/tenancy-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements when oyatie has EU financial-services tenants in scope; pack-kr financial-services tenants engage KR-FSS BCDR guidance with stricter RTO.
+Per-pack BCDR specifics at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenancy-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements when oyatie has EU financial-services tenants in scope; pack-kr financial-services tenants engage KR-FSS BCDR guidance with stricter RTO.
 
 ## Verification
 
@@ -181,7 +181,7 @@ Per-pack BCDR specifics at `regional-packs/<pack>/tenancy-multi-region-overlay.m
 - `microservices/tenancy/cost-budget.md`.
 - `microservices/tenancy/failure-modes.md`.
 - `microservices/tenancy/incident-response.md`.
-- `regional-packs/<pack>/tenancy-multi-region-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenancy-multi-region-overlay.md`.
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
 - Patroni HA documentation — `patroni.readthedocs.io`.
 - Citus operational guide — `docs.citusdata.com`.

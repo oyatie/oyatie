@@ -488,7 +488,7 @@ every mutation + quarterly chaos drill.
 
 ### pack-au / pack-jp / pack-sg / pack-in / pack-br / pack-ae / pack-ksa
 
-Each pack's overlay at `regional-packs/<pack>/intelligence-overlay.md` carries the local AI
+Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/intelligence-overlay.md` carries the local AI
 regulator's refusal floor and dispatch routing constraint.
 
 ## Verification

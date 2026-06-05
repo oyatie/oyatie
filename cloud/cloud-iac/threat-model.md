@@ -395,7 +395,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: M (engineering discipline gap) / Impact: M (could expose internal architecture details) / Risk: **M**
 - Mitigations:
   - Repo is private by default; per-tenant overlay files marked `INTERNAL_ONLY` data-class.
-  - LEAN check `oya-check-tenant-config-not-in-public-overlay` (NEW) — refuses tenant-bound config in `regional-packs/*` global overlays.
+  - LEAN check `oya-check-tenant-config-not-in-public-overlay` (NEW) — refuses tenant-bound config in `cloud/cloud-iac/sovereign-cloud-overlays/*` global overlays.
   - Sensitive values referenced via OpenBao; not embedded in manifest text.
   - Open-source-of-charts decision scheduled-for-distinct-tracked-work (per PRD §"SDK Plan" parallel pattern); default closed-source.
 - Owner: ops-security
@@ -641,7 +641,7 @@ Additional considerations:
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlay sections in `regional-packs/<pack>/cloud-iac-overlay.md`; each follows this document's structure mapped to the local PII law + cybersecurity framework.
+Per-pack overlay sections in `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-iac-overlay.md`; each follows this document's structure mapped to the local PII law + cybersecurity framework.
 
 ## Compliance Cross-Mapping (Globally Enforced)
 

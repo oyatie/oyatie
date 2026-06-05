@@ -545,7 +545,7 @@ Sign-off (RW until council sign-off):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlay sections at `regional-packs/<pack>/foundry-guardrails-overlay.md`.
+Per-pack overlay sections at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-guardrails-overlay.md`.
 
 ## Compliance Cross-Mapping
 

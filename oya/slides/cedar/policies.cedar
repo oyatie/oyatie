@@ -1,13 +1,6 @@
 // Cedar policy fragments for slides.
-// Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
-// ADR-0346 purpose: ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
-// ADR-0346 enforced_by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics; oya-governance-oya-verify-skip-flag-allowlist; oya-governance-oya-submit-calls-verify; oya-governance-oya-verify-exit-code-contract.
-// ADR-0347 purpose: every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
-// ADR-0347 enforced_by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence.
-// ADR-0348 purpose: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; tenant migration honors residency + compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243; every automation event MUST emit per ADR-0263.
-// ADR-0348 enforced_by: oya-governance-sharding-automation-coverage; oya-governance-autosharding-manual-mode-refusal; oya-governance-auto-rebalance-residency-honored; oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility.
-// ADR-0349 purpose: Jenkins is the canonical CI orchestrator for air-gap + on-prem + colo + oyatie-as-cloud-provider contexts where GitHub Actions runners are not available; ArgoCD is the canonical GitOps CD orchestrator; ArgoCD REPLACES manual kubectl apply and Helm CLI deploys across all contexts.
-// ADR-0349 enforced_by: oya-governance-jenkins-github-actions-parity; oya-governance-argocd-application-cosign-verified; oya-governance-argocd-tenant-namespace-isolation; oya-governance-jenkins-jcasc-only; oya-governance-deploy-audit-chain-emit.
+// Active doctrine fields are capability-named; decision-record IDs stay in docs/decisions.
+// Native oya-ci/Prow and release-conveyor seams own durable CI/CD.
 
 permit(
   principal == ServicePrincipal::"oyatie.foundry.cell-orchestrator",
@@ -15,7 +8,7 @@ permit(
   resource is ShardingAutomation
 ) when {
   resource.microservice == "slides" &&
-  context.doctrine.adr_0348 == true &&
+  context.doctrine.autosharding_residency_reversible_audit_emission == true &&
   context.autosharding_mode == "control_plane_driven" &&
   context.honors_residency == true &&
   context.compliance_pack_check_result == "pass" &&
@@ -49,55 +42,55 @@ forbid(
 };
 
 permit(
-  principal == ServicePrincipal::"oyatie.jenkins.ci",
-  action == Action::"RunCiMirror",
+  principal == ServicePrincipal::"oyatie.prow.oya-ci",
+  action == Action::"RunBuck2Verification",
   resource is ServiceCiSurface
 ) when {
   resource.microservice == "slides" &&
-  context.doctrine.adr_0346 == true &&
-  context.oya_verify_ci_required == true &&
-  context.steps.cargo_fmt_all_check == true &&
-  context.steps.cargo_check_workspace_all_targets == true &&
-  context.steps.cargo_clippy_workspace_all_targets_d_warnings == true &&
-  context.steps.cargo_nextest_workspace_no_fail_fast == true &&
-  context.steps.oya_gate_run_all_ci_required == true &&
+  context.doctrine.buck2_prow_ci_authority == true &&
+  context.buck2_evidence_collected == true &&
+  context.steps.rustfmt_check == true &&
+  context.steps.buck2_build_check == true &&
+  context.steps.rust_lint_check == true &&
+  context.steps.buck2_test_check == true &&
+  context.steps.buck2_policy_check == true &&
   context.step_exit_semantics == "block_on_exit_0_each_step" &&
   context.exit_code_contract in [0, 1, 2]
 };
 
 permit(
-  principal == ServicePrincipal::"oyatie.jenkins.ci",
-  action == Action::"RunSelfHostedCi",
+  principal == ServicePrincipal::"oyatie.prow.oya-ci",
+  action == Action::"RunProwJob",
   resource is ServiceCiSurface
 ) when {
   resource.microservice == "slides" &&
-  context.doctrine.adr_0349 == true &&
-  context.github_actions_parity_ok == true &&
-  context.jcasc_declared == true &&
+  context.doctrine.buck2_prow_ci_authority == true &&
+  context.github_shadow_evidence_ok == true &&
+  context.prow_job_evidence_ok == true &&
   context.lane_prefix in ["oya-governance", "oya-check"] &&
   context.audit_chain_emit == true
 };
 
 forbid(
-  principal == ServicePrincipal::"oyatie.jenkins.ci",
-  action in [Action::"RunCiMirror", Action::"RunSelfHostedCi"],
+  principal == ServicePrincipal::"oyatie.prow.oya-ci",
+  action in [Action::"RunBuck2Verification", Action::"RunProwJob"],
   resource is ServiceCiSurface
 ) when {
   resource.microservice == "slides" &&
   (
-    context.github_actions_parity_ok == false ||
-    context.jcasc_declared == false ||
+    context.github_shadow_evidence_ok == false ||
+    context.prow_job_evidence_ok == false ||
     context.lane_id.matches("^oya-governance-.*$")
   )
 };
 
 permit(
-  principal == ServicePrincipal::"oyatie.argocd.gitops",
-  action == Action::"SyncApplication",
-  resource is GitOpsApplication
+  principal == ServicePrincipal::"oyatie.release-conveyor.controller",
+  action == Action::"SyncRelease",
+  resource is ReleaseConveyorApplication
 ) when {
   resource.microservice == "slides" &&
-  context.doctrine.adr_0349 == true &&
+  context.doctrine.release_conveyor_cd_authority == true &&
   context.cosign_signature_verified == true &&
   context.tenant_namespace_isolated == true &&
   context.cedar_policy_gate_granted == true &&
@@ -105,9 +98,9 @@ permit(
 };
 
 forbid(
-  principal == ServicePrincipal::"oyatie.argocd.gitops",
-  action == Action::"SyncApplication",
-  resource is GitOpsApplication
+  principal == ServicePrincipal::"oyatie.release-conveyor.controller",
+  action == Action::"SyncRelease",
+  resource is ReleaseConveyorApplication
 ) when {
   resource.microservice == "slides" &&
   (
@@ -123,7 +116,7 @@ forbid(
   resource is ServiceCiSurface
 ) when {
   resource.microservice == "slides" &&
-  context.doctrine.adr_0347 == true &&
+  context.doctrine.retired_governance_lane_prefix_block == true &&
   context.lane_id.matches("^oya-governance-.*$") &&
   context.historical_reference != true
 };

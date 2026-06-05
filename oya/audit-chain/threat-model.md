@@ -599,7 +599,7 @@ Compliance frameworks: KR-ISMS-P + KR PIPA + KR 전자문서법.
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/audit-chain-overlay.md`; each maps the local audit-trail-retention + integrity-of-electronic-records laws to T-T-01..T-T-06 + T-I-01..T-I-05.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/audit-chain-overlay.md`; each maps the local audit-trail-retention + integrity-of-electronic-records laws to T-T-01..T-T-06 + T-I-01..T-I-05.
 
 ## Re-review Triggers
 

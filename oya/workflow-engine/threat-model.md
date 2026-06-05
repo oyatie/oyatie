@@ -587,7 +587,7 @@ Sign-off (this document is RW until council sign-off captured):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Pack-overlay sections at `regional-packs/<pack>/workflow-engine-overlay.md`; each follows the same structure with local PII law's articles + local cybersecurity-framework controls; maps to this document's threat IDs via cross-mapping in `compliance.md`.
+Pack-overlay sections at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/workflow-engine-overlay.md`; each follows the same structure with local PII law's articles + local cybersecurity-framework controls; maps to this document's threat IDs via cross-mapping in `compliance.md`.
 
 ## Compliance Cross-Mapping
 

@@ -597,7 +597,7 @@ Sign-off:
 
 ### pack-jp (APPI), pack-sg (PDPA), pack-au (Privacy Act), pack-in (DPDPA), pack-br (LGPD), pack-ae (UAE PDPL), pack-ksa (KSA PDPL)
 
-Per-pack overlays at `regional-packs/<pack>/drive-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/drive-overlay.md`.
 
 ## Re-review Triggers
 

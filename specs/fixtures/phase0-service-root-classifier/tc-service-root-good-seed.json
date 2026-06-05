@@ -56,7 +56,7 @@
         "cloud/",
         "libs/",
         "packs/",
-        "regional-packs/"
+        "cloud/cloud-iac/sovereign-cloud-overlays/"
       ],
       "depends_on": [
         "AC-0.1-service-inventory"
@@ -129,7 +129,7 @@
       "source_paths": [
         "libs/",
         "packs/",
-        "regional-packs/",
+        "cloud/cloud-iac/sovereign-cloud-overlays/",
         "specs/service-inventory.json"
       ],
       "target_paths": [
@@ -138,13 +138,13 @@
       "structural_path_set": [
         "libs/*",
         "packs/*",
-        "regional-packs/*"
+        "cloud/cloud-iac/sovereign-cloud-overlays/*"
       ],
       "depends_on": [
         "P0.6a-GC-root-inventory-seed"
       ],
       "max_scope": "classification only; no pack or library movement",
-      "acceptance": "libs/ entries use target_tree=libs; packs and regional-packs remain authorized shared pack roots, not service roots.",
+      "acceptance": "libs/ entries use target_tree=libs; packs remain authorized shared localization-pack roots, while sovereign-cloud overlays are cloud-iac-owned and not service roots.",
       "verification_commands": [
         "buck2 build //:service-root-classifier-check"
       ],

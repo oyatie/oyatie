@@ -91,7 +91,7 @@ doc_status: published
 
 ### pack-update (regional pack)
 - [ ] Regulator-watch impact named per pack. *Lane:* `oya-governance-compliance-matrix`.
-- [ ] `regional-packs/<pack>/` updated. *Lane:* `oya-governance-pack-coverage`.
+- [ ] `docs/regional-packs/<pack>/` documentation updated and any sovereign overlay artifact registered in `registry/sovereign-cloud/per-pack-overlay-status.tsv`. *Lane:* `oya-governance-pack-coverage`.
 
 ## Loop-cancellation re-walk
 

@@ -87,7 +87,7 @@ related:
 
 ### pack-update (regional pack)
 - [ ] Regulator-watch impact named per pack. *Lane:* `oya-governance-compliance-matrix`.
-- [ ] `regional-packs/<pack>/` updated. *Lane:* `oya-governance-pack-coverage`.
+- [ ] `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/` updated. *Lane:* `oya-governance-pack-coverage`.
 
 ## Loop-cancellation re-walk
 

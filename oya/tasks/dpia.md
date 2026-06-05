@@ -236,7 +236,7 @@ This document is the GDPR Art. 35 DPIA for EU tenant processing **and the EU AI 
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/tasks-dpia-overlay.md`.
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tasks-dpia-overlay.md`.
 
 ## Re-review Triggers
 

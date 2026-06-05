@@ -651,7 +651,7 @@ Sign-off:
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/ontology-overlay.md` carry the local PII law's articles + cybersecurity-framework controls. Each maps to T-*-NN via this document's cross-mapping in `microservices/ontology/compliance.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/ontology-overlay.md` carry the local PII law's articles + cybersecurity-framework controls. Each maps to T-*-NN via this document's cross-mapping in `microservices/ontology/compliance.md`.
 
 ## Compliance Cross-Mapping (Globally Enforced)
 

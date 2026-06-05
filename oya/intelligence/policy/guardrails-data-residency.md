@@ -150,7 +150,7 @@ CI lane `oya-governance-retention-conformance` validates retention configs.
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlay at `regional-packs/<pack>/foundry-guardrails-data-residency-overlay.md`.
+Per-pack overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-guardrails-data-residency-overlay.md`.
 
 ## Verification
 

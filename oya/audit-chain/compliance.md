@@ -139,7 +139,7 @@ Canonical control-to-framework mapping for audit-chain. Because this µservice i
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/audit-chain-compliance-overlay.md`. Structure mirrors above:
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/audit-chain-compliance-overlay.md`. Structure mirrors above:
 - pack-sg: PDPA + MAS Notice 644 (finance ≥ 5y retention).
 - pack-au: Privacy Act APP + APRA-CPS 234 (finance ≥ 7y retention).
 - pack-in: DPDPA 2023 + RBI Master Direction (finance ≥ 7y retention).

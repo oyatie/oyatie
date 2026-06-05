@@ -162,7 +162,7 @@ Tenants are notified at failover initiation per the comms template in `incident-
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics (region capabilities, local-regulator BCDR requirements) live at `regional-packs/<pack>/multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements for EU financial-services tenants.
+Per-pack BCDR specifics (region capabilities, local-regulator BCDR requirements) live at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements for EU financial-services tenants.
 
 ## Verification
 
@@ -177,7 +177,7 @@ Per-pack BCDR specifics (region capabilities, local-regulator BCDR requirements)
 - `microservices/ontology/cost-budget.md`.
 - `microservices/ontology/failure-modes.md`.
 - `microservices/ontology/incident-response.md`.
-- `regional-packs/<pack>/multi-region-overlay.md` (per-pack).
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/multi-region-overlay.md` (per-pack).
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
 - Postgres + Citus HA — `docs.citusdata.com`.
 - ClickHouse ReplicatedMergeTree + S3 — `clickhouse.com/docs/en/engines/table-engines/mergetree-family/replication`.

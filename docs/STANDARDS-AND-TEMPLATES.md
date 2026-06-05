@@ -184,7 +184,7 @@ This doc is the catalog OF the catalogs. The other catalogs are:
 | Crate catalog | `registry/catalog/<crate>.yaml` | every flat-crate |
 | Capability catalog | `registry/capability-templates/*.yaml` | every Foundry capability |
 | Contract catalog | `contracts/` + `machine-readable/contracts.json` | every cross-axis contract |
-| Regulatory pack catalog | `regional-packs/<pack>/PACK.md` + `machine-readable/regional-packs.json` | every regional pack |
+| Regulatory pack catalog | `docs/regional-packs/<pack>/PACK.md` + `machine-readable/regional-packs.json`; sovereign overlays indexed by `registry/sovereign-cloud/per-pack-overlay-status.tsv` | every regional pack |
 | Risk register | [RISK-REGISTER.md](RISK-REGISTER.md) + `machine-readable/risks.json` | every risk |
 | Compliance matrix | [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md) + `machine-readable/compliance.json` | every regulator × control |
 | Contradiction ledger | [CONTRADICTION-LEDGER.md](CONTRADICTION-LEDGER.md) + `machine-readable/contradictions.json` | every contradiction |

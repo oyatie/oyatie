@@ -392,7 +392,7 @@ Sign-off:
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per pack overlay at `regional-packs/<pack>/messenger-overlay.md`; cross-mapped via compliance.md.
+Per pack overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/messenger-overlay.md`; cross-mapped via compliance.md.
 
 ## Compliance Cross-Mapping
 

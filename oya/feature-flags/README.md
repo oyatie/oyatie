@@ -29,7 +29,7 @@ Hyperscaler precedents: LaunchDarkly relay-proxy model, Statsig server-side eval
 | Question | Answer |
 |---|---|
 | What does it do? | Runtime flag evaluation + experiment design + kill-switch with per-tenant Cedar targeting |
-| Who calls it? | Every µservice via `oya-feature-flags-sdk`; SDKs in Rust, TypeScript, Python |
+| Who calls it? | Every µservice via the Rust `oya-feature-flags-sdk`; non-Rust OpenFeature compatibility SDKs are generated/registered products only, not checked-in pnpm or ad-hoc Python surfaces |
 | Latency target | ≤1ms p99 (cell-local evaluation) |
 | Availability target | ≥99.99% |
 | Service role | **Substrate** — consumed by all 46+ µservices |

@@ -253,7 +253,7 @@ APPI does not mandate DPIA-equivalent but encourages voluntary risk assessment.
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md` carry pack-specific legal-citation depth:
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/dpia-overlay.md` carry pack-specific legal-citation depth:
 
 - **pack-sg (PDPA 2012)**: PDPA Part III + IV; MAS Notice 644.
 - **pack-au (Privacy Act 1988 APP)**: APP 1–13; APP 8 + APP 11 + APP 12; APRA-CPS 234.

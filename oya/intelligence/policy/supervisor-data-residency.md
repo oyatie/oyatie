@@ -156,7 +156,7 @@ Limitations:
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Pack overlays at `regional-packs/<pack>/foundry-supervisor-residency-overlay.md`.
+Pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-supervisor-residency-overlay.md`.
 
 ## Verification
 

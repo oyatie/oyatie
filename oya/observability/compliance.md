@@ -226,7 +226,7 @@ The canonical control-to-framework mapping for the observability µservice. Tell
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/compliance-overlay.md` carry the full local-law citation matrix. Each overlay follows this document's structure:
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/compliance-overlay.md` carry the full local-law citation matrix. Each overlay follows this document's structure:
 - pack-sg: PDPA 2012 (Singapore PDPC + MAS Notice 644 for finance)
 - pack-au: Privacy Act 1988 APP 1–13 + APRA-CPS 234 (for finance)
 - pack-in: DPDPA 2023 + RBI Master Direction on IT Outsourcing 2023

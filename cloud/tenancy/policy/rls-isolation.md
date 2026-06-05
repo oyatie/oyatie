@@ -333,7 +333,7 @@ The audit log itself stored in audit-chain µservice (Merkle-sealed) + replicate
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Each pack's overlay at `regional-packs/<pack>/tenancy-rls-overlay.md` maps the local PII law's confidentiality + integrity requirements to RLS-01..RLS-08.
+Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenancy-rls-overlay.md` maps the local PII law's confidentiality + integrity requirements to RLS-01..RLS-08.
 
 ## Verification
 

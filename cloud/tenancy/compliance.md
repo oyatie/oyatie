@@ -219,7 +219,7 @@ The canonical control-to-framework mapping for the tenancy µservice. Tells an e
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/tenancy-compliance-overlay.md` carry full local-law citation matrix:
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenancy-compliance-overlay.md` carry full local-law citation matrix:
 - pack-sg: PDPA 2012 + MAS Notice 644.
 - pack-au: Privacy Act 1988 APP 1–13 + APRA-CPS 234 + OAIC NDB.
 - pack-in: DPDPA 2023 + RBI Master Direction on IT Outsourcing 2023.

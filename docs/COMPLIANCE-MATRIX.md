@@ -117,11 +117,11 @@ The full set Oyatie binds to via regional packs (initial v0.1 — expands as pac
 | Article | Title | Implementing surface | Evidence | Cadence | Owner | Status |
 |---|---|---|---|---|---|---|
 | Art 15 | Lawful basis for collection | `oya-platform-tenant-kernel` consent receipts; Data Use Boundary class taxonomy | Consent receipt audit-chain emission (per onboarding); class-annotation lint exit | continuous + per-onboarding | `council-privacy` + `axis-saas` | in-design |
-| Art 17 | Cross-border transfer | `oya-platform-tenant-kernel.residency`; cross-region replication policy | Per-tenant residency-binding evidence; regional-pack residency contract | continuous | `regional-packs/oya-pack-kr` + `council-privacy` | in-design |
+| Art 17 | Cross-border transfer | `oya-platform-tenant-kernel.residency`; cross-region replication policy | Per-tenant residency-binding evidence; regional-pack residency contract | continuous | `docs/regional-packs/oya-pack-kr` + `council-privacy` | in-design |
 | Art 22 | Purpose-bound consent + granular controls | PRIVACY-PROGRAM §2.2.2 consent ladder; UI surfaces per regional pack | Consent-receipt audit; UI-screenshot attestation | continuous + monthly | `council-privacy` | in-design |
 | Art 22-2 | Children under 14 | PRIVACY-PROGRAM §2.2.1 class 13 hard-deny; tenant-class override | Class-annotation lint; tenant onboarding declaration | continuous | `council-privacy` | in-design |
 | Art 23 | Sensitive data | PRIVACY-PROGRAM class 12; HARD_DENY for ad targeting | Class-annotation lint; runtime guard | continuous | `council-privacy` | in-design |
-| Art 28-8 | Cross-border transfer evidence | `oya-pack-kr` residency contract; per-export audit-chain emission | Per-export audit; quarterly review | per-event + quarterly | `regional-packs/oya-pack-kr` + `council-privacy` | in-design |
+| Art 28-8 | Cross-border transfer evidence | `oya-pack-kr` residency contract; per-export audit-chain emission | Per-export audit; quarterly review | per-event + quarterly | `docs/regional-packs/oya-pack-kr` + `council-privacy` | in-design |
 | Art 29 | Security measures | SECURITY-PROGRAM controls; KMS envelope encryption per ADR-0043; OpenBao per ADR-0043 | KMS audit-chain; OpenBao audit log; Trivy report | daily + per-incident | `ops-security` | in-design |
 | Art 34 | Breach notification | INCIDENT-MANAGEMENT.md severity taxonomy; 72-hour PIPC notification | Incident postmortem; PIPC notification artifact | per-incident | `ops-sre-reliability` + `council-privacy` | in-design |
 | Art 39-7 | DSR / withdrawal cascade | PRIVACY-PROGRAM §2.2.9 cascade; 30-day SLA | Proof-of-erasure record; DSR queue dashboard | per-DSR + monthly | `council-privacy` | in-design |
@@ -132,7 +132,7 @@ The full set Oyatie binds to via regional packs (initial v0.1 — expands as pac
 |---|---|---|---|---|---|---|
 | Art 5 | Principles (lawful, fair, purpose-limited, minimization, accuracy, storage limitation, integrity, accountability) | Cross-cutting | Per-axis principle-mapping doc; audit-chain | continuous | `council-privacy` | in-design |
 | Art 6 | Lawful basis | `oya-platform-tenant-kernel.consent` | Consent receipt | continuous + per-onboarding | `council-privacy` | in-design |
-| Art 7 | Conditions for consent | UI surfaces per regional pack | UI screenshot attestation | continuous + monthly | `regional-packs/oya-pack-eu` | in-design |
+| Art 7 | Conditions for consent | UI surfaces per regional pack | UI screenshot attestation | continuous + monthly | `docs/regional-packs/oya-pack-eu` | in-design |
 | Art 9 | Special categories (health, biometric, genetic, sex life, religion, political views) | Class 12 hard-deny | Lint + runtime guard | continuous | `council-privacy` | in-design |
 | Art 17 | Right to erasure | DSR cascade | Proof-of-erasure | per-DSR | `council-privacy` | in-design |
 | Art 22 | Automated decision-making | Foundry autonomy ceiling per ADR-0022; per-decision evidence | Audit-chain per agent step | continuous | `axis-foundry` + `council-privacy` | in-design |
@@ -214,7 +214,7 @@ All evidence flows into `trust.oyatie.com` (per [DOCUMENTATION.md §3](DOCUMENTA
 |---|---|---|
 | Per-capability invocation | Audit-chain emission with regulatory_packs_consumed | `oya-platform-audit-chain` |
 | Per-tenant DSR queue | Cascade SLA + proof-of-erasure | DSR dashboard |
-| Per-pack regulatory drift | Per-pack regulator-watch lane | `regional-packs/<pack>/regulatory-watch.log` |
+| Per-pack regulatory drift | Per-pack regulator-watch lane | `docs/regional-packs/<pack>/regulatory-watch.log` |
 | Per-control test | Continuous control monitoring per #954 | trust.oyatie.com |
 | Per-incident notification window | 24-72 hour gate per regulator | INCIDENT-MANAGEMENT |
 | Per-vendor risk | Quarterly review per VENDOR-PARTNER-LEDGER | vendor portal |

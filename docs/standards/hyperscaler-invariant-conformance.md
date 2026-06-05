@@ -176,33 +176,20 @@ aggregate canonical alerts compute a meaningful burn rate.
 
 ## Verification
 
+Verification is Rust/Buck2-owned. Do not add ad-hoc shell/Python snippets or
+retired `oya-dev-cli` gate invocations as durable evidence. The local/static
+checks are:
+
 ```bash
-# 1. Canonical PrometheusRule exists and declares all four INVs
-test -f microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml
-grep -q "INV-CIRCUIT-BREAKER-BULKHEAD" microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml
-grep -q "INV-SHUFFLE-SHARDING"         microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml
-grep -q "INV-FOUR-GOLDEN-SIGNALS"      microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml
-grep -q "INV-SLO-ERROR-BUDGET"         microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml
-
-# 2. No per-microservice prometheusrule re-declares the four INV groups
-test -z "$(grep -rln 'inv: INV-' microservices/*/iac/helm/*/templates/prometheusrule.yaml microservices/*/iac/helm/templates/prometheusrule.yaml 2>/dev/null)"
-
-# 3. Every manifest.json#hyperscaler_inv_coverage cites the canonical alert names
-python3 -c "
-import json, glob
-ok = True
-for m in glob.glob('microservices/*/manifest.json'):
-    j = json.load(open(m))
-    cov = j['hyperscaler_inv_coverage']
-    needed = ['OyaCapabilityCircuitOpen','OyaTenantRateLimit429Surge','OyaSaturationCpuOver70pct','OyaErrorBudgetFastBurn1h14x']
-    for fld, alert in zip(['circuit_breaker','tenant_rate_limit','golden_signals','error_budget_burn'], needed):
-        if alert not in cov[fld]:
-            print(f'{m}: {fld} missing canonical alert {alert}'); ok = False
-print('ok' if ok else 'FAIL')"
-
-# 4. Per-microservice HG gate registration
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
+buck2 build //:kubernetes-native-anti-pattern-check
+buck2 build //:repo-hygiene-automation-check
 ```
+
+Service-specific invariant checks SHOULD be registered as lane-owned Buck2
+targets that validate the canonical PrometheusRule, deny duplicate per-service
+INV group declarations, and confirm each manifest's `hyperscaler_inv_coverage`
+cites the canonical alert names. Branch-protected claims require trusted
+Prow/Kubernetes-native `oya-ci-required` evidence.
 
 ## Authority
 

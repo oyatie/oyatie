@@ -163,7 +163,7 @@ This DPIA is required because:
 
 ### 4.7 Other packs
 
-Pack-specific compliance overlays at `regional-packs/<pack>/cloud-secrets-overlay.md` (per pack onboarding):
+Pack-specific compliance overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-secrets-overlay.md` (per pack onboarding):
 
 - pack-jp APPI Art. 23
 - pack-sg PDPA §24 + MAS-TRM §9

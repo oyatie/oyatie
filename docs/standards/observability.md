@@ -177,8 +177,7 @@ histograms on hot paths emit exemplars.
 | Logs | 14 days | 365 days cold | per privacy program (PII auto-redacted) |
 | Audit chain (`EVT-*`) | indefinite | indefinite | hash-chained; immutable |
 
-Regional packs (e.g., Korea per `regional-packs/` ) may override per
-PIPC / MFDS / KCC retention rules.
+Regional pack docs (for example, Korea under `docs/regional-packs/`) and registered sovereign overlays may override per PIPC / MFDS / KCC retention rules.
 
 ## 7. SLO derivation
 

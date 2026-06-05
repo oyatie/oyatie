@@ -199,7 +199,7 @@ Business Associate Agreement at `microservices/workflow-engine/legal/baa-templat
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/workflow-engine-overlay.md` with full citations.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/workflow-engine-overlay.md` with full citations.
 
 ## Continuous-Compliance Evidence
 

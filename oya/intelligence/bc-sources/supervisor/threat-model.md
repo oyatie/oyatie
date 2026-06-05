@@ -466,7 +466,7 @@ Sign-off (RW until council captures):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Pack-overlay sections in `regional-packs/<pack>/foundry-supervisor-overlay.md` carry pack-specific legal-citation depth.
+Pack-overlay sections in `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-supervisor-overlay.md` carry pack-specific legal-citation depth.
 
 ## Re-review Triggers
 

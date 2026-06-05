@@ -10,7 +10,7 @@
     "status": "local_static_language_discipline_seed_not_live_context",
     "owner_team": "platform-toolchain + platform-governance",
     "created_at": "2026-06-03T00:00:00Z",
-    "updated_at": "2026-06-04T22:35:00Z",
+    "updated_at": "2026-06-05T01:55:00Z",
     "related_acceptance_criteria": [
       "AC-0.4"
     ],
@@ -105,7 +105,7 @@
         "scripts/ci/assert-governance-hook-efficacy.rs",
         "tools/governance/governance-hook-efficacy-harness.sh"
       ],
-      "reason": "Active automation names should explain the capability directly. ADR numbers belong in decision provenance, not script/check names future agents may treat as live workflow guidance."
+      "reason": "Active automation names should explain the capability directly. ADR/PRD/PHASE/IP tokens belong in actual decision/product/phase/implementation-plan documentation paths only; active script/check/runtime names such as context.doctrine.* fields must be capability-named so future agents do not treat provenance IDs as live workflow guidance."
     }
   },
   "offender_inventory": {
@@ -189,40 +189,12 @@
     "source": "Rust/Buck2 language-discipline scan of active scripts for retired oya-dev-cli invocation tokens.",
     "valid": true,
     "claim_boundary": "registered_compatibility_shim_backlog_only_no_merge_ci_authority",
-    "detected_script_count": 8,
+    "detected_script_count": 4,
     "durable_retired_cli_script_authority_allowed": false,
     "unregistered_retired_cli_script_invocations_allowed": false,
     "replacement_language": "Rust",
     "buck2_owned_replacement_required": true,
     "entries": [
-      {
-        "path": "scripts/asyncapi-lint.mjs",
-        "kind": "node_compatibility_shim",
-        "active_merge_ci_authority": false,
-        "live_mutation_authority": false,
-        "retirement_action": "Replace with a Rust/Buck2 lint target or direct Rust checker wrapper; keep this script backlog-only until callers move."
-      },
-      {
-        "path": "scripts/proto-lint.mjs",
-        "kind": "node_compatibility_shim",
-        "active_merge_ci_authority": false,
-        "live_mutation_authority": false,
-        "retirement_action": "Replace with a Rust/Buck2 proto lint target or direct Rust checker wrapper; keep this script backlog-only until callers move."
-      },
-      {
-        "path": "scripts/validate-adr-shape.mjs",
-        "kind": "node_compatibility_shim",
-        "active_merge_ci_authority": false,
-        "live_mutation_authority": false,
-        "retirement_action": "Replace with a Rust/Buck2 ADR-shape target; keep this script backlog-only until callers move."
-      },
-      {
-        "path": "scripts/validate-foundry-phase00-evidence.mjs",
-        "kind": "node_compatibility_shim",
-        "active_merge_ci_authority": false,
-        "live_mutation_authority": false,
-        "retirement_action": "Replace with a Rust/Buck2 evidence lint target; keep this script backlog-only until callers move."
-      },
       {
         "path": "scripts/branch-protection-apply.sh",
         "kind": "shell_compatibility_shim",

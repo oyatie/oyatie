@@ -254,7 +254,7 @@ APPI Arts. 17–27 cover most processing rules; APPI does not mandate a DPIA-equ
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md` carry the pack-specific legal-citation depth. Each pack's overlay follows this document's 7-step structure with the local PII law's articles substituted in:
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/dpia-overlay.md` carry the pack-specific legal-citation depth. Each pack's overlay follows this document's 7-step structure with the local PII law's articles substituted in:
 
 - **pack-sg (PDPA 2012)**: PDPA Part III + IV; MAS Notice 644 for financial-services tenants.
 - **pack-au (Privacy Act 1988 APP)**: APP 1–13; APP 8 + APP 11 + APP 12 most relevant; APRA-CPS 234 for financial-services tenants.

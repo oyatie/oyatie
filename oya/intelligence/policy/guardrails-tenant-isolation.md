@@ -171,7 +171,7 @@ Audit log replicated to audit-chain µservice for Merkle sealing.
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlay at `regional-packs/<pack>/foundry-guardrails-tenant-isolation-overlay.md`.
+Per-pack overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-guardrails-tenant-isolation-overlay.md`.
 
 ## Verification
 

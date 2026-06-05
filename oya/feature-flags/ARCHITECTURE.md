@@ -262,7 +262,7 @@ Substrate consumers (all µservices call the feature-flags SDK):
 - `microservices/payments/` — payment-method experiment flags.
 - `microservices/intelligence/` — AI feature rollout flags.
 - `microservices/observability/` — SLO evaluation flag gates.
-- All 46+ µservices consume via `oya-feature-flags-sdk` (Rust + TypeScript + Python providers).
+- All 46+ µservices consume via the canonical Rust `oya-feature-flags-sdk`. Non-Rust OpenFeature providers are generated compatibility products only when registered and pinned by their owning lane.
 
 Substrate dependencies of feature-flags:
 - `microservices/tenancy/` — tenant resolution.

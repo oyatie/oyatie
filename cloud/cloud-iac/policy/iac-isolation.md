@@ -225,7 +225,7 @@ The audit log is itself stored in iac-state-index + Mimir under `tenant:oya-clou
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/cloud-iac-isolation-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-iac-isolation-overlay.md`.
 
 ## Verification
 
