@@ -1142,6 +1142,10 @@
         "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
         "https://architecture.cncf.io/"
       ],
+      "implemented_checks": [
+        "//:agent-hook-runtime-manifest-check"
+      ],
+      "implementation_status": "first Rust/Buck2 manifest/config drift checker landed; runtime hooks remain advisory/read-only and remaining hook-router hardening stays backlog-only until separately verified",
       "claim_boundary": "backlog_only_no_live_mutation"
     },
     {

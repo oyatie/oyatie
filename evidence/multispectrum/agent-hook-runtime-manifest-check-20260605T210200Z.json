@@ -1,0 +1,40 @@
+{
+  "schema": "multispectrum-review.v2.4.0",
+  "change_id": "agent-hook-runtime-manifest-check-20260605T210200Z",
+  "change_class_id": "CC-7",
+  "claim_boundary": "local_static_buck2_evidence_only_no_live_mutation",
+  "summary": "Adds a Rust/Buck2 read-only checker for agent hook runtime manifest/config drift and removes embedded Python manifest validation from the shell hook harness.",
+  "facets": {
+    "F1_scope": "P00 read-only hook enhancement backlog slice; no runtime hook behavior mutation beyond checker evidence wiring.",
+    "F2_source_authority": "specs/root-hub-pointers.json, docs/AGENTS.md, specs/agent-hook-runtime-manifest.json, specs/repo-hygiene-automation.json, specs/masterplan.json",
+    "F3_tests": [
+      "rustc --edition=2024 -D warnings scripts/tests/agent_hook_runtime_manifest_check.rs --test; 8 passed; 0 failed",
+      "bash scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh; governance hook retired VCS/wrapper surface tests passed",
+      "buck2 build //:agent-hook-runtime-manifest-check //:repo-hygiene-automation-check; BUILD SUCCEEDED",
+      "buck2 build //:buck2-authority-policy-check; BUILD SUCCEEDED"
+    ],
+    "F4_security": "Checker rejects runtime network/remote command tokens, agent recursion, git push, destructive cleanup, OMC/OMX coupling, retired canonical primitive markdown, and retired Oya wrapper guidance in active runtime hooks.",
+    "F5_privacy": "No tenant/user data touched; checker reads repo-local configs and hook source only.",
+    "F6_reliability": "Buck2 target fails closed on manifest/config drift, unreferenced hooks, unmanifested config commands, non-executable shell hooks, and Claude project runtime hook reintroduction.",
+    "F7_operability": "Runtime hooks remain advisory/read-only; enforcement authority is Buck2/Prow repo-hygiene evidence.",
+    "F8_performance": "Small rustc-only checker; no network calls or live service dependency.",
+    "F9_maintainability": "Moves JSON manifest validation out of embedded Python into named Rust source with unit tests.",
+    "F10_compatibility": "Preserves existing Codex/Gemini hook commands and Claude/OMC boundary.",
+    "F11_supply_chain": "No new dependencies; standard-library Rust only.",
+    "F13_traceability": "Masterplan P00 success criteria and repo-hygiene backlog now name //:agent-hook-runtime-manifest-check."
+  },
+  "verification": {
+    "agent_hook_runtime_manifest_check_json": {
+      "verdict": "PASS",
+      "runtime_hook_count": 3,
+      "config_reference_count": 6,
+      "retired_surface_count": 13,
+      "failures": []
+    },
+    "buck2_build_ids": [
+      "98f30ae5-9ab4-45eb-bcbf-850f351d3364",
+      "ecf89616-381d-449a-8156-94a791df8f9f",
+      "2ae48497-ea37-48a6-97a5-c6575d5c8fc1"
+    ]
+  }
+}

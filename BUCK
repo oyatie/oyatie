@@ -285,6 +285,29 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+# Read-only agent hook runtime manifest/config drift check. Runtime hooks remain
+# advisory only; this Buck2/Prow target is the enforceable evidence path.
+genrule(
+    name = "agent-hook-runtime-manifest-check",
+    srcs = {
+        "scripts/ci/assert-agent-hook-runtime-manifest.rs": "scripts/ci/assert-agent-hook-runtime-manifest.rs",
+        "scripts/tests/agent_hook_runtime_manifest_check.rs": "scripts/tests/agent_hook_runtime_manifest_check.rs",
+        "specs/agent-hook-runtime-manifest.json": "specs/agent-hook-runtime-manifest.json",
+        ".codex/hooks.json": ".codex/hooks.json",
+        ".claude/settings.json": ".claude/settings.json",
+        ".gemini/settings.json": ".gemini/settings.json",
+        "tools/hooks/no-cargo-enforcer.sh": "//tools/hooks:no-cargo-enforcer-sh",
+        "tools/hooks/vacuous-green-gate-detect.sh": "//tools/hooks:vacuous-green-gate-detect-sh",
+        "tools/hooks/injection-content-scanner.sh": "//tools/hooks:injection-content-scanner-sh",
+    },
+    out = "agent-hook-runtime-manifest-check.json",
+    cmd = "mkdir -p $TMP/agent-hook-runtime-manifest && rustc --edition=2024 -D warnings scripts/tests/agent_hook_runtime_manifest_check.rs --test -o $TMP/agent-hook-runtime-manifest/agent_hook_runtime_manifest_check && OYA_REPO_ROOT=$PWD $TMP/agent-hook-runtime-manifest/agent_hook_runtime_manifest_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-agent-hook-runtime-manifest.rs -o $TMP/agent-hook-runtime-manifest/assert-agent-hook-runtime-manifest && OYA_REPO_ROOT=$PWD $TMP/agent-hook-runtime-manifest/assert-agent-hook-runtime-manifest --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
 # P00 repo hygiene automation contract. This is local/static evidence for
 # git/worktree, branch/merge, repository publication, disk/workspace,
 # Kubernetes workload, and documentation-sprawl hygiene. It never deletes files,
@@ -293,14 +316,17 @@ genrule(
     name = "repo-hygiene-automation-check",
     srcs = {
         "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
+        "scripts/ci/assert-agent-hook-runtime-manifest.rs": "scripts/ci/assert-agent-hook-runtime-manifest.rs",
         "scripts/ci/assert-retired-grouping-wording.rs": "scripts/ci/assert-retired-grouping-wording.rs",
         "scripts/ci/assert-quality-lane-registry-authority.rs": "scripts/ci/assert-quality-lane-registry-authority.rs",
         "scripts/ci/github-actions-lane-unlocker-bootstrap.sh": "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
         "scripts/ci/sync-latest-toolchain-pins.rs": "scripts/ci/sync-latest-toolchain-pins.rs",
         "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
+        "scripts/tests/agent_hook_runtime_manifest_check.rs": "scripts/tests/agent_hook_runtime_manifest_check.rs",
         "scripts/tests/retired_grouping_wording_check.rs": "scripts/tests/retired_grouping_wording_check.rs",
         "scripts/tests/quality_lane_registry_authority_check.rs": "scripts/tests/quality_lane_registry_authority_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
+        "specs/agent-hook-runtime-manifest.json": "specs/agent-hook-runtime-manifest.json",
         "specs/tenant-rbac-packaging.json": "specs/tenant-rbac-packaging.json",
         "specs/workspace-hygiene.json": "specs/workspace-hygiene.json",
         "specs/feature-flag-substrate-canonical.json": "specs/feature-flag-substrate-canonical.json",
@@ -324,6 +350,12 @@ genrule(
         "registry/claim-matrix/ops-portal.json": "registry/claim-matrix/ops-portal.json",
         "registry/vocabulary/retired.yaml": "registry/vocabulary/retired.yaml",
         "registry/docs/pipeline.tsv": "registry/docs/pipeline.tsv",
+        ".codex/hooks.json": ".codex/hooks.json",
+        ".claude/settings.json": ".claude/settings.json",
+        ".gemini/settings.json": ".gemini/settings.json",
+        "tools/hooks/no-cargo-enforcer.sh": "//tools/hooks:no-cargo-enforcer-sh",
+        "tools/hooks/vacuous-green-gate-detect.sh": "//tools/hooks:vacuous-green-gate-detect-sh",
+        "tools/hooks/injection-content-scanner.sh": "//tools/hooks:injection-content-scanner-sh",
         "libs/oya-check-documentation-system/src/lib.rs": "//libs/oya-check-documentation-system:lib-src",
         "libs/oya-governance-gate-catalog-domain/src/lib.rs": "//libs/oya-governance-gate-catalog-domain:lib-src",
         "libs/oya-check-quality-lane/src/lib.rs": "//libs/oya-check-quality-lane:lib-src",
@@ -403,7 +435,7 @@ genrule(
         "BUCK": "BUCK",
     },
     out = "repo-hygiene-automation-check.json",
-    cmd = "mkdir -p $TMP/repo-hygiene-automation && rustc --edition=2024 -D warnings scripts/ci/sync-latest-toolchain-pins.rs -o $TMP/repo-hygiene-automation/sync-latest-toolchain-pins && $TMP/repo-hygiene-automation/sync-latest-toolchain-pins --version > /dev/null && rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o $TMP/repo-hygiene-automation/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/repo_hygiene_automation_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o $TMP/repo-hygiene-automation/assert-repo-hygiene-automation && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-repo-hygiene-automation --json > $OUT",
+    cmd = "mkdir -p $TMP/repo-hygiene-automation && rustc --edition=2024 -D warnings scripts/ci/sync-latest-toolchain-pins.rs -o $TMP/repo-hygiene-automation/sync-latest-toolchain-pins && $TMP/repo-hygiene-automation/sync-latest-toolchain-pins --version > /dev/null && rustc --edition=2024 -D warnings scripts/tests/agent_hook_runtime_manifest_check.rs --test -o $TMP/repo-hygiene-automation/agent_hook_runtime_manifest_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/agent_hook_runtime_manifest_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-agent-hook-runtime-manifest.rs -o $TMP/repo-hygiene-automation/assert-agent-hook-runtime-manifest && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-agent-hook-runtime-manifest --json > /dev/null && rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o $TMP/repo-hygiene-automation/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/repo_hygiene_automation_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o $TMP/repo-hygiene-automation/assert-repo-hygiene-automation && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-repo-hygiene-automation --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
