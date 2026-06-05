@@ -101,8 +101,10 @@ const STANDARDS_EXTERNAL_SUBSTRATE_CLEAN_FILES: &[&str] = &[
 ];
 const MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES: &[&str] = &[
     "specs/microservices/accounting.json",
+    "specs/microservices/calendar.json",
     "specs/microservices/hr.json",
     "specs/microservices/payroll.json",
+    "specs/microservices/plant-maintenance.json",
 ];
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
@@ -211,6 +213,11 @@ const MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
     "cargo-nextest",
     "oya gate validate",
     "Rust oya gates",
+    "OpenTofu-owned infrastructure",
+    "root Makefile",
+    "Makefile/oya ops",
+    "Makefile targets",
+    "oya ops surfaces",
     "microservices/accounting/ci/Jenkinsfile",
     "microservices/hr/ci/Jenkinsfile",
     "microservices/payroll/ci/Jenkinsfile",
@@ -220,7 +227,6 @@ const MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
 const MICROSERVICE_SPEC_REQUIRED_AUTHORITY_PHRASES: &[&str] = &[
     "Buck2/Prow oya-ci-required",
     "native SCM/PR admission",
-    "Buck2/Prow api-semver lane",
     "Buck2/Prow lane",
     "CUE/KRM desired-state",
     "native release-conveyor/KRM",

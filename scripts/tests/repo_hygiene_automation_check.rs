@@ -47,7 +47,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.product_operation_doc_clean_files, 8);
     assert_eq!(evaluation.intelligence_doc_retired_dev_cli_clean_files, 34);
     assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
-    assert_eq!(evaluation.microservice_spec_authority_clean_files, 3);
+    assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
 }
 
 #[test]

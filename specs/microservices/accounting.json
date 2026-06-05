@@ -25,7 +25,7 @@
       "oya-accounting-journal-app",
       "oya-accounting-journal-rest"
     ],
-    "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"
+    "ops_surface": "managed through CUE/KRM desired-state, native release-conveyor/KRM operations, Buck2/Prow oya-ci-required evidence, and native SCM/PR admission; no manual SSH troubleshooting path"
   },
   "inherits": {
     "bominal_adrs": [
