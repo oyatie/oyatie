@@ -6,7 +6,7 @@ date: 2026-05-20
 owner_team: axis-marketplace
 primary_adr: ADR-0314
 related_adrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0263, ADR-0249, ADR-0314]
-companion_docs: [microservices/marketplace/README.md, docs/standards/documentation-rigor.md]
+companion_docs: [oya/marketplace/README.md, docs/standards/documentation-rigor.md]
 planned_enforcement_ref: oya-governance-marketplace-doc-set
 naming_justifications: BNF v4 service_action_resource grammar and 13-layer-enum conformance are declared inline in this document
 line_floor: 1000
@@ -27,21 +27,21 @@ The service ships with day-one readiness for SOC 2, ISO 27001, SOX 404 evidence,
 ## C. Journey compliance map
 | Journey | Concept | Compliance impact |
 |---|---|---|
-| j101 | Deal Settlement Ledger | microservices/marketplace/IP-journey-j101-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
-| j102 | Deal Settlement Ledger | microservices/marketplace/IP-journey-j102-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
-| j103 | Deal Settlement Ledger | microservices/marketplace/IP-journey-j103-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
-| j107 | Deal Settlement Ledger | microservices/marketplace/IP-journey-j107-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
-| j108 | Deal Settlement Ledger | microservices/marketplace/IP-journey-j108-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
-| j112 | Deal Settlement Ledger | microservices/marketplace/IP-journey-j112-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
-| j146 | Seller Flow And Escrow | microservices/marketplace/IP-journey-j146-seller-flow-and-escrow.md | DealSet and SettlementLedger coverage |
-| j23 | Seller Listing | microservices/marketplace/IP-journey-j23-seller-listing.md | DealSet and SettlementLedger coverage |
-| j24 | Buyer Order | microservices/marketplace/IP-journey-j24-buyer-order.md | DealSet and SettlementLedger coverage |
-| j29 | Sale Event Emitter | microservices/marketplace/IP-journey-j29-sale-event-emitter.md | DealSet and SettlementLedger coverage |
-| j52 | Order Ledger | microservices/marketplace/IP-journey-j52-order-ledger.md | DealSet and SettlementLedger coverage |
-| j55 | Seller Buyer Mediation | microservices/marketplace/IP-journey-j55-seller-buyer-mediation.md | DealSet and SettlementLedger coverage |
-| j65 | Order Export | microservices/marketplace/IP-journey-j65-order-export.md | DealSet and SettlementLedger coverage |
-| j69 | Appointment And Service Commitments | microservices/marketplace/IP-journey-j69-appointment-and-service-commitments.md | DealSet and SettlementLedger coverage |
-| j73 | Revenue Share | microservices/marketplace/IP-journey-j73-revenue-share.md | DealSet and SettlementLedger coverage |
+| j101 | Deal Settlement Ledger | oya/marketplace/IP-journey-j101-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
+| j102 | Deal Settlement Ledger | oya/marketplace/IP-journey-j102-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
+| j103 | Deal Settlement Ledger | oya/marketplace/IP-journey-j103-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
+| j107 | Deal Settlement Ledger | oya/marketplace/IP-journey-j107-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
+| j108 | Deal Settlement Ledger | oya/marketplace/IP-journey-j108-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
+| j112 | Deal Settlement Ledger | oya/marketplace/IP-journey-j112-deal-settlement-ledger.md | DealSet and SettlementLedger coverage |
+| j146 | Seller Flow And Escrow | oya/marketplace/IP-journey-j146-seller-flow-and-escrow.md | DealSet and SettlementLedger coverage |
+| j23 | Seller Listing | oya/marketplace/IP-journey-j23-seller-listing.md | DealSet and SettlementLedger coverage |
+| j24 | Buyer Order | oya/marketplace/IP-journey-j24-buyer-order.md | DealSet and SettlementLedger coverage |
+| j29 | Sale Event Emitter | oya/marketplace/IP-journey-j29-sale-event-emitter.md | DealSet and SettlementLedger coverage |
+| j52 | Order Ledger | oya/marketplace/IP-journey-j52-order-ledger.md | DealSet and SettlementLedger coverage |
+| j55 | Seller Buyer Mediation | oya/marketplace/IP-journey-j55-seller-buyer-mediation.md | DealSet and SettlementLedger coverage |
+| j65 | Order Export | oya/marketplace/IP-journey-j65-order-export.md | DealSet and SettlementLedger coverage |
+| j69 | Appointment And Service Commitments | oya/marketplace/IP-journey-j69-appointment-and-service-commitments.md | DealSet and SettlementLedger coverage |
+| j73 | Revenue Share | oya/marketplace/IP-journey-j73-revenue-share.md | DealSet and SettlementLedger coverage |
 
 ## D. Control planes
 - Tenant scope: every row, event, file, cache key, dashboard, trace, and runbook action is tenant-scoped.
@@ -54,7 +54,8 @@ The service ships with day-one readiness for SOC 2, ISO 27001, SOX 404 evidence,
 The service is implementation-ready for pack-specific certification evidence because the docs name controls, events, rollback, retention, residency, and SLO evidence before product code lands.
 
 ## F. Self-modification and agent controls
-Marketplace does not self-modify runtime code. Agent-authored changes must use Oya VCS claim, verify, done, and promote. Generated artifacts are static docs and scaffolds subject to review.
+Marketplace does not self-modify runtime code. Agent-authored changes use isolated git worktree branches, PR review, Buck2 evidence, and trusted
+Prow/Kubernetes-native `oya-ci-required` before merge. Generated artifacts are static docs and scaffolds subject to review.
 
 ## Naming justifications: BNF v4 and 13-layer enum conformance
 
@@ -1022,4 +1023,3 @@ The secondary primitive `SettlementLedger` is retained because it names the audi
 - Sovereign handling: KR-CSAP, EU-sovereign, CN-PIPL, IL5/6, FedRAMP High, MAS, APRA, LGPD, and DPDPA overlays can narrow access without changing the public contract.
 - Failure handling: deny, defer, quarantine, replay, revoke, and compensate are named outcomes with sealed evidence.
 - Review cadence: control owner axis-marketplace reviews policy, catalog, SLO, and runbook evidence each release train.
-

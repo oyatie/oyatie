@@ -149,14 +149,19 @@ const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 37;
 const PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS: &[&str] =
     &["oya/forms/runbooks", "oya/sheets/runbooks"];
 const PRODUCT_OPERATION_DOC_CLEAN_FILES: &[&str] = &[
+    "oya/application/onboarding/platform-engineer-first-week.md",
+    "oya/developer-sdk/onboarding/sdk-engineer-first-week.md",
     "oya/forms/benchmarks/forms-vs-google-forms-vs-typeform-vs-jotform-vs-surveymonkey.md",
     "oya/forms/IPs/IP-WAVE-15-ZD-sharding-automation.md",
     "oya/forms/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+    "oya/marketplace/compliance.md",
+    "oya/marketplace/onboarding/marketplace-engineer-first-week.md",
     "oya/sheets/backfill-replay.md",
     "oya/sheets/benchmarks/sheets-vs-google-sheets-vs-excel-web-vs-airtable.md",
     "oya/sheets/IPs/IP-WAVE-15-ZD-sharding-automation.md",
     "oya/sheets/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
     "oya/sheets/PHASE-01-SHEETS-FOUNDATION.md",
+    "oya/workplace-integration/compliance.md",
 ];
 const INTELLIGENCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES: &[&str] = &[
     "oya/intelligence/IP-012-runtime-autonomy-tier-gate.md",
@@ -227,6 +232,30 @@ const GOVERNANCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES: &[&str] = &[
 ];
 const PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES: &[&str] = &[
     "cargo run -p oya-dev-cli",
+    "oya-dev-cli",
+    "`oya ",
+    "oya vcs",
+    "oya gate",
+    "oya verify",
+    "Jenkins",
+    "ArgoCD",
+    "argocd",
+    "JCasC",
+];
+const PRODUCT_OPERATION_DOC_RETIRED_PHRASES: &[&str] = &[
+    "./bin/oya",
+    "cargo run -p oya-dev-cli",
+    "cargo test -p",
+    "cargo build",
+    "cargo run",
+    "make dev-cell",
+    "make dev-tenant",
+    "microservices/application",
+    "microservices/developer-sdk",
+    "microservices/marketplace",
+    ".foundry",
+    "Foundry",
+    "foundry",
     "oya-dev-cli",
     "`oya ",
     "oya vcs",
@@ -2606,6 +2635,18 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl automation targets must include product-operation runbook retired authority scan",
         ),
         (
+            "\"product-operation doc retired authority scan\"",
+            "documentation sprawl automation targets must include product-operation doc retired authority scan",
+        ),
+        (
+            "\"product_operation_doc_retired_authority_scan\"",
+            "documentation sprawl policy must record the product-operation retired authority clean-file guard",
+        ),
+        (
+            "Cargo manifests remain compatibility metadata only; Cargo commands, local Oya CLI wrappers, Foundry-era instructions, stale microservices/<service> paths, and retired external CI/CD names are not merge evidence.",
+            "product onboarding/compliance guard must record Buck2 authority over Cargo/local CLI wrappers and stale microservice paths",
+        ),
+        (
             "\"governance markdown retired local dev CLI and external substrate scan\"",
             "documentation sprawl automation targets must include Governance retired local dev CLI and external substrate scan",
         ),
@@ -3214,7 +3255,7 @@ pub fn product_operation_doc_retired_authority_failures(root: &Path) -> Vec<Stri
                 continue;
             }
         };
-        for phrase in PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES {
+        for phrase in PRODUCT_OPERATION_DOC_RETIRED_PHRASES {
             if text.contains(phrase) {
                 failures.push(format!(
                     "{clean_file}: product-operation doc contains retired authority phrase {phrase:?}; use product control-plane operation, Buck2/Prow evidence, and CUE/KRM desired-state wording"

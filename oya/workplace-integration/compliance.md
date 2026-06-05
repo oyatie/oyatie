@@ -55,7 +55,8 @@ The service ships with day-one readiness for SOC 2, ISO 27001, SOX 404 evidence,
 The service is implementation-ready for pack-specific certification evidence because the docs name controls, events, rollback, retention, residency, and SLO evidence before product code lands.
 
 ## F. Self-modification and agent controls
-Workplace Integration does not self-modify runtime code. Agent-authored changes must use Oya VCS claim, verify, done, and promote. Generated artifacts are static docs and scaffolds subject to review.
+Workplace Integration does not self-modify runtime code. Agent-authored changes use isolated git worktree branches, PR review, Buck2 evidence, and
+trusted Prow/Kubernetes-native `oya-ci-required` before merge. Generated artifacts are static docs and scaffolds subject to review.
 
 ## Naming justifications: BNF v4 and 12-layer enum conformance
 
@@ -1023,4 +1024,3 @@ The secondary primitive `ESignSession` is retained because it names the audit-ba
 - Sovereign handling: KR-CSAP, EU-sovereign, CN-PIPL, IL5/6, FedRAMP High, MAS, APRA, LGPD, and DPDPA overlays can narrow access without changing the public contract.
 - Failure handling: deny, defer, quarantine, replay, revoke, and compensate are named outcomes with sealed evidence.
 - Review cadence: control owner axis-workplace-integration reviews policy, catalog, SLO, and runbook evidence each release train.
-

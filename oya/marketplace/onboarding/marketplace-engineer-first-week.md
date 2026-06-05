@@ -6,64 +6,46 @@ Audience: an engineer with payments / marketplace / Stripe / Shopify experience 
 
 - `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md` — what the marketplace is.
 - `docs/decisions/ADR-0314-universal-deal-settlement.md` — one settlement ledger across categories.
-- `microservices/marketplace/REMEDIATION-NOTES-2026-05-21.md#tenant-class-behavior` — tenant_class and billing_components surface.
-- `microservices/payments/` — sibling µservice that handles raw card processing (marketplace builds on payments).
+- `oya/marketplace/REMEDIATION-NOTES-2026-05-21.md#tenant-class-behavior` — tenant_class and billing_components surface.
+- `oya/payments/` — sibling service that handles raw card processing (marketplace builds on payments) when present in the lane manifest.
 - IRS DAC7 + MTR documentation (US sales tax for marketplace facilitators) — you'll be wiring tax engines.
 - EU DSA (Digital Services Act) Article 30 — marketplace traceability obligations.
 
 Clone:
 ```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-marketplace-week1 .worktrees/$USER-marketplace-week1
+git fetch origin dev
+git worktree add -b onboarding/$USER-marketplace-week1 .worktrees/$USER-marketplace-week1 origin/dev
 ```
 
 ## Day 2 — walk the listing lifecycle
 
-```bash
-make dev-cell.up CELL=marketplace-loopback-1 PROFILE=marketplace-dev
-make dev-tenant.create T=oyatie.b2c.indie.alice TENANT_CLASS=demo_trial
-make dev-tenant.create T=oyatie.b2c.indie.bob TENANT_CLASS=demo_trial
-```
+Bring up the `marketplace-loopback-1` dev cell through the registered Buck2/Prow dev-cell harness with `PROFILE=marketplace-dev`. Seed demo
+tenants `oyatie.b2c.indie.alice` and `oyatie.b2c.indie.bob` through the lane-owned Rust fixture, not ad hoc shell targets.
 
 Alice publishes; Bob buys:
-```bash
-./bin/oya marketplace listing create \
-  --tenant oyatie.b2c.indie.alice \
-  --category workflow \
-  --title "Daily Standup Summarizer" \
-  --pricing one-time-usd-1900 \
-  --region-availability "US,CA,GB,EU,KR,JP,AU"
-
-LISTING_ID=$(jq -r .id last-listing.json)
-
-./bin/oya marketplace purchase \
-  --tenant oyatie.b2c.indie.bob \
-  --listing $LISTING_ID \
-  --payment-method test-card-visa
-```
+Use the marketplace control-plane API or its registered Rust harness to create a workflow listing for tenant
+`oyatie.b2c.indie.alice`, buy it as `oyatie.b2c.indie.bob`, and capture the returned listing id in PR evidence. Do not add local CLI wrapper
+commands to the repo.
 
 Inspect the settlement ledger:
-```bash
-./bin/oya marketplace ledger show \
-  --tenant oyatie.b2c.indie.alice \
-  --since 1h
-```
+Use the registered ledger read harness for tenant `oyatie.b2c.indie.alice` with a one-hour window.
 
 You'll see escrow, platform-fee, and net-to-seller rows.
 
 ## Day 3 — read the code
 
 Walk:
-1. `crates/oya-marketplace-domain/src/listing.rs` — closed `ListingCategory` enum.
-2. `crates/oya-marketplace-domain/src/settlement.rs` — the universal ledger model.
-3. `crates/oya-marketplace-kernel/src/escrow.rs` — escrow state machine (Pending → Held → Released | Refunded | Disputed).
-4. `crates/oya-marketplace-port-payments/src/lib.rs` — outbound to `payments`.
-5. `crates/oya-marketplace-port-tax/src/lib.rs` — outbound to tax engine (Avalara / TaxJar / Stripe Tax / direct).
-6. `crates/oya-marketplace-app/src/listing_api.rs` — REST + gRPC surface.
+1. `oya/marketplace/contracts/` — REST/gRPC/listing contracts.
+2. `oya/marketplace/capabilities/` — category and settlement capability declarations.
+3. `oya/marketplace/policies/` — Cedar policies for category, escrow, mediation, and revenue-share decisions.
+4. `oya/marketplace/catalog/` — service component catalog rows.
+5. `oya/marketplace/reference-implementations/` — executable pattern references for publish/purchase flows.
+6. `oya/marketplace/crates/oya-marketplace-doc-set-scaffold/` — current checked-in Rust shard for doc-set scaffolding.
 
 ## Day 4 — author a dispute resolution policy
 
-Pick a starter task from `microservices/marketplace/backlog/starter-disputes.md`. Implement the policy under
-`crates/oya-marketplace-rules-disputes/`:
+Pick a starter task from `oya/marketplace/IPs/` or `oya/marketplace/migration-playbooks/`. Implement the policy in the lane-owned Rust shard or
+`oya/marketplace/policies/` path named by that task:
 
 ```rust
 use oya_marketplace_rules::prelude::*;
@@ -91,19 +73,13 @@ impl DisputeRule for AutoRefundLowValueUndelivered {
 
 Hermetic tests against the dispute simulator:
 ```bash
-cargo test -p oya-marketplace-rules-disputes
+buck2 test <registered-marketplace-dispute-rules-target>
 ```
 
 ## Day 5 — ship a real listing-category change
 
-```bash
-./bin/oya vcs claim \
-  --agent marketplace-eng-$USER \
-  --intent marketplace-add-dataset-licence-clauses \
-  crates/oya-marketplace-domain microservices/marketplace
-```
-
-Implement + verify + done + PR. Foundry handles admission.
+Implement the listing-category change in your isolated worktree, run the registered Buck2 targets, and open a PR against `dev`. Merge readiness
+comes from reviewer approval plus trusted Prow/Kubernetes-native `oya-ci-required`; GitHub Actions is shadow compatibility only.
 
 ## Done with week 1
 
