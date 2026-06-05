@@ -427,6 +427,7 @@
       "oya gate validate",
       "oya gate run-all",
       "oya-dev-cli",
+      "oya doc ",
       "oya verify command",
       "`oya gate` / `oya verify`",
       "reviewer/governance approval",

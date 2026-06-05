@@ -1,0 +1,51 @@
+{
+  "change_id": "retired-cli-registry-hygiene-20260605T090200Z",
+  "captured_at": "2026-06-05T09:02:00Z",
+  "lane": "retired-cli-registry-spec-command-hygiene",
+  "claims": [
+    "workspace, feature-flag, multi-region, microservice-migration, retired-vocabulary, and documentation-pipeline registries no longer advertise retired local CLI command authority in active fields",
+    "documentation-system pipeline accepts capability-named documentation records instead of local CLI command strings",
+    "repo-hygiene automation now fails if the retired command authority strings return to those registries/specs or active docs"
+  ],
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs libs/oya-check-documentation-system/src/lib.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test && OYA_REPO_ROOT=$PWD repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "summary": "49 tests passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs && OYA_REPO_ROOT=$PWD assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "summary": "verdict PASS; failures []"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings libs/oya-check-documentation-system/src/lib.rs --test && oya_check_documentation_system_tests --nocapture",
+      "exit_code": 0,
+      "summary": "6 tests passed; 0 failed"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //libs/oya-check-documentation-system:oya-check-documentation-system //libs/oya-check-retired-vocabulary:oya-check-retired-vocabulary //:quality-lane-registry-authority-check //:buck2-authority-policy-check --show-output",
+      "exit_code": 0,
+      "summary": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "targeted active-doc and patched-data stale command scans",
+      "exit_code": 0,
+      "summary": "no matches outside intentional guard/test deny-list fixtures"
+    }
+  ],
+  "local_static_only": true,
+  "live_mutation_performed": false,
+  "notes": [
+    "GitHub/GitHub Actions remain temporary adapters; Buck2/Prow/Rust checks remain authority.",
+    "Historical generated docs and archived decision records still contain retired terms; this evidence covers the active registries/specs and documentation surfaces patched in this lane."
+  ]
+}
