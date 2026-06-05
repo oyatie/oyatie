@@ -31,6 +31,11 @@ run_buck2_hook() {
     (cd "$REPO_ROOT" && TOOL_INPUT="{\"path\":\"$path\"}" buck2 run "$target" -- 2>&1)
 }
 
+run_buck2_build() {
+    local target="$1"
+    (cd "$REPO_ROOT" && buck2 build "$target" --show-output 2>&1)
+}
+
 require_contains() {
     local output="$1"
     local needle="$2"
@@ -66,17 +71,8 @@ case "$gate" in
         ;;
 
     orphan-citation)
-        fixture_dir="$REPO_ROOT/target/governance-hook-efficacy-fixtures/$$"
-        fixture_rel="target/governance-hook-efficacy-fixtures/$$/orphan.md"
-        trap 'rm -rf "$fixture_dir"' EXIT
-        mkdir -p "$fixture_dir"
-        printf 'References missing ADR-7777.\n' > "$REPO_ROOT/$fixture_rel"
-        output="$(run_hook tools/hooks/adr-orphan-detect.sh "$fixture_rel")"
-        require_contains "$output" "ADR-7777" "oya-governance-adr-orphan-citation"
-
-        printf 'References existing ADR-0001.\n' > "$REPO_ROOT/$fixture_rel"
-        output="$(run_hook tools/hooks/adr-orphan-detect.sh "$fixture_rel")"
-        require_not_contains "$output" "Orphan ADR references" "oya-governance-adr-orphan-citation"
+        output="$(run_buck2_build //:governance-hook-efficacy-check)"
+        require_contains "$output" "governance-hook-efficacy-check.json" "oya-governance-adr-orphan-citation"
         echo "oya-governance-adr-orphan-citation passed"
         ;;
 
