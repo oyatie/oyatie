@@ -44,7 +44,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.active_template_scan_files, 30);
     assert_eq!(evaluation.retired_exact_name_scan_files, 36);
     assert_eq!(evaluation.product_operation_runbook_clean_paths, 2);
-    assert_eq!(evaluation.product_operation_doc_clean_files, 8);
+    assert_eq!(evaluation.product_operation_doc_clean_files, 13);
     assert_eq!(evaluation.intelligence_doc_retired_dev_cli_clean_files, 34);
     assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
     assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
@@ -1353,9 +1353,28 @@ fn product_operation_docs_reject_retired_cli_and_bridge_authority() {
         "Run `cargo run -p oya-dev-cli -- benchmarks forms`; Jenkins owns parity.\n",
     )
     .unwrap();
+    let onboarding = root.join("oya/application/onboarding/platform-engineer-first-week.md");
+    fs::create_dir_all(onboarding.parent().unwrap()).unwrap_or_else(|error| {
+        panic!(
+            "create application onboarding fixture {}: {}",
+            onboarding.parent().unwrap().display(),
+            error
+        );
+    });
+    fs::write(
+        &onboarding,
+        "Run ./bin/oya vcs claim, then let Foundry admit microservices/application.\n",
+    )
+    .unwrap();
 
     let failures = gate::product_operation_doc_retired_authority_failures(&root);
-    for expected in ["cargo run -p oya-dev-cli", "Jenkins"] {
+    for expected in [
+        "cargo run -p oya-dev-cli",
+        "Jenkins",
+        "./bin/oya",
+        "Foundry",
+        "microservices/application",
+    ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
             "missing {expected:?} in {failures:?}"
