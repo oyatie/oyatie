@@ -72,7 +72,6 @@ HOOK_SCRIPTS=(
     stop-did-you-forget-suggester.sh
     no-cargo-enforcer.sh
     injection-content-scanner.sh
-    pre-dispatch-guide.sh
     spec-version-pin-suggester.sh
     adr-orphan-detect.sh
     vacuous-green-gate-detect.sh
@@ -192,12 +191,6 @@ if $CODEX_DETECTED; then
         "hooks": [
           { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" }
         ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh" }
-        ]
       }
     ],
     "PostToolUse": [
@@ -277,12 +270,6 @@ if $GEMINI_DETECTED; then
         "matcher": "run_shell_command|bash|Bash",
         "hooks": [
           { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh", "name": "project-no-cargo" }
-        ]
-      },
-      {
-        "matcher": "agent|Task",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh", "name": "project-pre-dispatch" }
         ]
       }
     ],

@@ -32,15 +32,6 @@
             "command": "tools/hooks/no-cargo-enforcer.sh"
           }
         ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "tools/hooks/pre-dispatch-guide.sh"
-          }
-        ]
       }
     ],
     "PostToolUse": [

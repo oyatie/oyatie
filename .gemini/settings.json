@@ -37,16 +37,6 @@
             "name": "project-no-cargo"
           }
         ]
-      },
-      {
-        "matcher": "agent|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "tools/hooks/pre-dispatch-guide.sh",
-            "name": "project-pre-dispatch"
-          }
-        ]
       }
     ],
     "AfterTool": [

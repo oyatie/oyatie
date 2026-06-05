@@ -31,7 +31,6 @@ tools/hooks/
 ├── stop-did-you-forget-suggester.sh       # Stop — incomplete-work check
 ├── no-cargo-enforcer.sh                   # PreToolUse(Bash) — Buck2/no-cargo guidance
 ├── injection-content-scanner.sh           # PostToolUse(Bash|Web*) — prompt-injection scan
-├── pre-dispatch-guide.sh                  # PreToolUse(Task) — dispatch quality guide
 ├── spec-version-pin-suggester.sh          # PostToolUse(Edit|Write contracts/) — version
 ├── adr-orphan-detect.sh                   # PostToolUse(Edit|Write .md|.json) — ADR refs
 └── vacuous-green-gate-detect.sh           # PostToolUse(Edit|Write lanes|check) — gate honesty
