@@ -170,6 +170,64 @@ fn retired_cli_registry_specs_require_buck2_prow_replacements() {
 }
 
 #[test]
+fn retired_compatibility_catalog_rejects_active_authority_wording() {
+    let gate_catalog = read_repo_file("libs/oya-governance-gate-catalog-domain/src/lib.rs")
+        .replace(
+            "Retired Foundry gate-catalog compatibility domain",
+            "Foundry gate-catalog canonical domain — single source of truth",
+        )
+        .replace(
+            "historical lift: the catalog below mirrors the retired",
+            "source-of-truth lift: the catalog below mirrors the retired",
+        )
+        .replace(
+            "Active CI/CD and merge readiness are Buck2/Prow/Kubernetes-native; this list\n/// is not part of merge gating.",
+            "This list is the required merge substrate.",
+        );
+    let quality_lane = read_repo_file("libs/oya-check-quality-lane/src/lib.rs").replace(
+        "retired compatibility wired-commands corpus",
+        "canonical wired-commands catalog",
+    );
+    let failures = gate::retired_compatibility_catalog_failures(&gate_catalog, &quality_lane);
+
+    for expected in [
+        "Foundry gate-catalog canonical domain",
+        "single source of truth",
+        "required merge substrate",
+        "canonical wired-commands catalog",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn retired_compatibility_catalog_requires_status_and_notice() {
+    let gate_catalog = read_repo_file("libs/oya-governance-gate-catalog-domain/src/lib.rs")
+        .replace("retired_compatibility_catalog", "active_catalog")
+        .replace(
+            "historical compatibility only; not CI/merge authority",
+            "active authority",
+        );
+    let quality_lane = read_repo_file("libs/oya-check-quality-lane/src/lib.rs")
+        .replace("compatibility/provenance only", "active authority");
+    let failures = gate::retired_compatibility_catalog_failures(&gate_catalog, &quality_lane);
+
+    for expected in [
+        "retired_compatibility_catalog",
+        "historical compatibility only; not CI/merge authority",
+        "compatibility/provenance only",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn spec_rejects_reintroduced_python_hygiene_command() {
     let mut spec = read_repo_file("specs/repo-hygiene-automation.json");
     spec = spec.replace(

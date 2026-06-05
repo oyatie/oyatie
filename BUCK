@@ -324,6 +324,8 @@ genrule(
         "registry/vocabulary/retired.yaml": "registry/vocabulary/retired.yaml",
         "registry/docs/pipeline.tsv": "registry/docs/pipeline.tsv",
         "libs/oya-check-documentation-system/src/lib.rs": "//libs/oya-check-documentation-system:lib-src",
+        "libs/oya-governance-gate-catalog-domain/src/lib.rs": "//libs/oya-governance-gate-catalog-domain:lib-src",
+        "libs/oya-check-quality-lane/src/lib.rs": "//libs/oya-check-quality-lane:lib-src",
         "tools/oya-doc-staleness-inventory-app/BUCK": "//tools/oya-doc-staleness-inventory-app:BUCK",
         "tools/oya-doc-staleness-inventory-app/Cargo.toml": "//tools/oya-doc-staleness-inventory-app:cargo-manifest",
         "tools/oya-doc-staleness-inventory-app/src/lib.rs": "//tools/oya-doc-staleness-inventory-app:lib-src",

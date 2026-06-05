@@ -1,7 +1,9 @@
-//! Foundry gate-catalog canonical domain — single source of truth for the
-//! `oya gate ...` command catalog that the downstream content-validation
-//! gates (quality-lane, documentation-system, supply-chain) read as their
-//! input data.
+//! Retired Foundry gate-catalog compatibility domain.
+//!
+//! This crate preserves the historical local CLI command corpus strictly as
+//! provenance/compatibility input for retired developer-CLI consumers. It is
+//! not CI, SCM, merge, or governance authority. Active authority belongs to
+//! Rust libraries, Buck2 targets, and Prow/Kubernetes-native jobs.
 //!
 //! Naming justification:
 //! - Crate id `oya-governance-gate-catalog-domain` — `oya-` brand prefix
@@ -23,12 +25,10 @@
 //! - audit `evidence/audits/shell-python-replacement-audit-2026-05-15.md`
 //!   rows B-1, B-2, B-12 (the three transitional `.sh` files whose body is
 //!   the content-validation input data being canonicalized here).
-//! - source-of-truth lift: the catalog below mirrors
-//!   `scripts/check.sh`'s ~50-command enumeration verbatim (order
-//!   preserved for diff-readability) and the architecture-boundaries +
-//!   pre-push contract surface; once landed, `scripts/check.sh` and the
-//!   two sibling `.sh` wrappers become deletable (audit row B-12 follow-up,
-//!   the `.sh-removal` chain IP-E).
+//! - historical lift: the catalog below mirrors the retired
+//!   `scripts/check.sh` enumeration (order preserved for diff-readability)
+//!   and related local verification surfaces only so older parser tests can
+//!   be ported without re-reading deleted shell files.
 //!
 //! Tier 1 (kernel-tier) per ADR-0083: pure data + small validators; no
 //! filesystem, no subprocess, no network, no panics outside `cfg(test)`.
@@ -39,14 +39,17 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
-/// Catalog of `oya gate validate <name>` subcommand names invoked by the
-/// pre-merge gate aggregator (`oya gate run-all`). Each name is invoked
-/// with NO extra arguments (defaults). Mirrors the ~50-line block in the
-/// legacy `scripts/check.sh` whose body the downstream content-validation
-/// gates read as their input data.
+/// Machine-readable lifecycle status for this compatibility corpus.
+pub const CATALOG_STATUS: &str = "retired_compatibility_catalog";
+
+/// Human-readable authority notice that every active caller must preserve.
+pub const CATALOG_AUTHORITY_NOTICE: &str = "historical compatibility only; not CI/merge authority";
+
+/// Historical lane names from the retired local gate aggregator. These names
+/// are capability identifiers, not a sanctioned local CLI invocation surface.
 ///
-/// Order is preserved from the legacy script so a human diff against the
-/// shell version stays readable during the `.sh-removal` chain landing.
+/// Order is preserved so migration diffs against the removed shell corpus stay
+/// reviewable while useful kernels are moved to Rust/Buck2/Prow-owned targets.
 pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "codeview-read-surface",
     "active-artifact-contract",
@@ -190,44 +193,24 @@ pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
 pub const DEPENDENCY_SEAM_EVIDENCE: &str =
     "evidence/multispectrum/cs-p13-dependency-seam-1779166052.json";
 
-/// Required non-cargo hosted-status preflight commands that are not pure
-/// `oya gate validate <name>` lanes.
+/// Required hosted-status preflight proofs retained for historical parser
+/// compatibility.
 ///
-/// `oya verify --ci-required` owns the cargo required checks (fmt/check/clippy/
-/// nextest) before invoking `gate run-all`, so this list deliberately contains
-/// only the remaining non-cargo protection proof. That avoids replaying the
-/// expensive workspace cargo mirror twice in one local CI-required run.
-///
-/// ADR-0363 retired the oya-vcs admission/provider-execution checks from the
-/// required merge substrate; governance now rides plain git plus oya gate/verify
-/// and the `oya-pr-review` context. Keep this list aligned with the live dev
-/// branch-protection contexts to avoid local CI replaying retired checks.
+/// Active CI/CD and merge readiness are Buck2/Prow/Kubernetes-native; this list
+/// is not part of merge gating.
 pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] =
     &["bash scripts/github-actions-required-secrets-check.sh"];
 
-/// Catalog of non-`gate validate` commands the legacy `scripts/check.sh`
-/// wired into the pre-merge gate sequence. These cover:
-/// 1. Cargo toolchain commands (fmt/check/clippy/audit/deny/machete/nextest).
-/// 2. Specialty `cargo run -p <tool>` invocations that aren't `gate validate`.
-/// 3. The architecture-boundaries Rust port (now `gate validate
-///    architecture-boundaries`, mirrored here for downstream lookups).
-/// 4. The `repoctl pre-push --verify-contract` contract check.
-/// 5. The Buck2-owned doc-pipeline targets the documentation-system gate must
-///    confirm are wired.
-/// 6. The catalog-validation target the doc-pipeline lint step needs.
-/// 7. The typescript-workspace lanes (typecheck + test) the master gate
-///    expects to be wired even though they're not under `gate run-all`.
-/// 8. The retired-but-canonical-in-body `cargo audit` / `cargo deny check`
-///    tokens required by `oya-check-supply-chain` evidence detection.
+/// Historical non-lane command corpus retained only for older compatibility
+/// consumers while useful checks are ported to Buck2 targets. New surfaces must
+/// not append local CLI, ad-hoc shell, or Cargo command authority here.
 ///
 /// Naming-justification: `_non_gate_` describes the negative axis
 /// against `AGGREGATED_VALIDATE_LANES` — every entry that the legacy
 /// script body emitted but that is NOT a `gate validate` subcommand.
 ///
-/// Current documentation-pipeline strings intentionally use Buck2 targets so
-/// active documentation governance no longer advertises Cargo execution as
-/// merge authority. Some legacy non-doc entries still carry historical Cargo
-/// tokens for compatibility with separately-tracked migration lanes.
+/// Current documentation-pipeline strings intentionally use Buck2 targets. The
+/// remaining legacy entries are migration debt, not authority.
 pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     // Toolchain primitives.
     "cargo fmt --all -- --check",
@@ -269,15 +252,15 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "scripts/trigger-next-queue-automerge.sh --base-branch dev --start-pr 111 --dry-run",
 ];
 
-/// Concatenated canonical command catalog. Provides downstream gates a
-/// single authoritative input vector that replaces the file-body read of
-/// `scripts/check.sh`.
+/// Concatenated historical command/capability corpus. Provides retired
+/// developer-CLI consumers a compatibility input vector that replaces the
+/// deleted file-body read of `scripts/check.sh`.
 ///
 /// Lookup semantics: each downstream content-validation gate
 /// (`oya-check-supply-chain`, `oya-check-documentation-system`,
 /// `oya-check-quality-lane`) previously did
 /// `check_script_contents.contains(<command>)`. With this catalog, the
-/// canonical lookup becomes `wired_commands.iter().any(|wired|
+/// compatibility lookup becomes `wired_commands.iter().any(|wired|
 /// wired.contains(<command>))` — preserving the substring-tolerant
 /// matching the original gates use so partial / parameterized commands
 /// (e.g. trailing `--require-adr0039-evidence`) still match.
@@ -294,12 +277,12 @@ pub fn all_canonical_commands() -> Vec<&'static str> {
     commands
 }
 
-/// Render the canonical catalog as a single newline-joined string
-/// suitable for substring-tolerant lookups by downstream gates that
+/// Render the compatibility catalog as a single newline-joined string
+/// suitable for substring-tolerant lookups by retired downstream gates that
 /// historically did `check_script.contains(<command>)`. The first line
-/// is each `gate validate <name>` invocation in canonical form so
+/// is each historical lane invocation in preserved form so
 /// `contains("gate validate <name>")` matches; subsequent lines are the
-/// non-gate commands verbatim.
+/// compatibility commands verbatim.
 #[must_use]
 pub fn all_canonical_commands_rendered() -> String {
     let mut rendered = String::new();
@@ -435,10 +418,7 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
         "adr-supersession-consistency",
         LaneInputs::Globs(&["docs/decisions/**"]),
     ),
-    (
-        "adr-lifecycle",
-        LaneInputs::Globs(&["docs/decisions/**"]),
-    ),
+    ("adr-lifecycle", LaneInputs::Globs(&["docs/decisions/**"])),
     (
         "adr-planning-completeness",
         LaneInputs::Globs(&["docs/decisions/**", "specs/**"]),
@@ -450,82 +430,229 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     // ── Supply-chain / licensing ─────────────────────────────────────────────
     ("supply-chain", LaneInputs::Global),
     ("license-policy", LaneInputs::Global),
-    ("dependency-seam", LaneInputs::Globs(&["Cargo.toml", "Cargo.lock", "crates/**"])),
+    (
+        "dependency-seam",
+        LaneInputs::Globs(&["Cargo.toml", "Cargo.lock", "crates/**"]),
+    ),
     // ── Cargo / workspace hygiene ────────────────────────────────────────────
-    ("cargo-prefix", LaneInputs::Globs(&["crates/**", "microservices/**", "Cargo.toml"])),
-    ("workspace-hygiene", LaneInputs::Globs(&["Cargo.toml", "Cargo.lock", "crates/**", "microservices/**"])),
+    (
+        "cargo-prefix",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "Cargo.toml"]),
+    ),
+    (
+        "workspace-hygiene",
+        LaneInputs::Globs(&["Cargo.toml", "Cargo.lock", "crates/**", "microservices/**"]),
+    ),
     ("banned-primitives", LaneInputs::Global),
     // ── Documentation ────────────────────────────────────────────────────────
     (
         "documentation-system",
         LaneInputs::Globs(&["docs/**", "registry/docs/**", "*.md"]),
     ),
-    ("doc-catalog", LaneInputs::Globs(&["docs/**", "registry/docs/**"])),
+    (
+        "doc-catalog",
+        LaneInputs::Globs(&["docs/**", "registry/docs/**"]),
+    ),
     ("doc-axis", LaneInputs::Globs(&["docs/**", "*.md"])),
-    ("readme-doc-coverage", LaneInputs::Globs(&["*.md", "crates/**", "microservices/**"])),
-    ("runbook-index-resolves", LaneInputs::Globs(&["docs/**", "registry/**"])),
+    (
+        "readme-doc-coverage",
+        LaneInputs::Globs(&["*.md", "crates/**", "microservices/**"]),
+    ),
+    (
+        "runbook-index-resolves",
+        LaneInputs::Globs(&["docs/**", "registry/**"]),
+    ),
     ("runbook-freshness", LaneInputs::Globs(&["docs/**"])),
-    ("glossary-cross-doc-coverage", LaneInputs::Globs(&["docs/**", "*.md"])),
-    ("glossary-vocabulary", LaneInputs::Globs(&["docs/**", "*.md"])),
+    (
+        "glossary-cross-doc-coverage",
+        LaneInputs::Globs(&["docs/**", "*.md"]),
+    ),
+    (
+        "glossary-vocabulary",
+        LaneInputs::Globs(&["docs/**", "*.md"]),
+    ),
     // ── OpenAPI / API surface ────────────────────────────────────────────────
     (
         "openapi-rest-route-parity",
         LaneInputs::Globs(&["contracts/**", "crates/**", "microservices/**"]),
     ),
-    ("api-semver", LaneInputs::Globs(&["contracts/**", "crates/**"])),
-    ("active-artifact-contract", LaneInputs::Globs(&["contracts/**", "registry/**"])),
+    (
+        "api-semver",
+        LaneInputs::Globs(&["contracts/**", "crates/**"]),
+    ),
+    (
+        "active-artifact-contract",
+        LaneInputs::Globs(&["contracts/**", "registry/**"]),
+    ),
     // ── Cloud / IaC ──────────────────────────────────────────────────────────
-    ("cloud-iac-module-catalog", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
-    ("cloud-iac-gitops-evidence", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
-    ("cloud-iac-helm-chart-signed-image-wiring", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
-    ("cloud-iac-kubewarden-admission-policy", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
+    (
+        "cloud-iac-module-catalog",
+        LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"]),
+    ),
+    (
+        "cloud-iac-gitops-evidence",
+        LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"]),
+    ),
+    (
+        "cloud-iac-helm-chart-signed-image-wiring",
+        LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"]),
+    ),
+    (
+        "cloud-iac-kubewarden-admission-policy",
+        LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"]),
+    ),
     ("cloud-iac-cell-topology", LaneInputs::Globs(&["infra/**"])),
-    ("cloud-iac-opentofu-validation", LaneInputs::Globs(&["infra/**"])),
-    ("cloud-iac-module-provenance", LaneInputs::Globs(&["infra/**"])),
-    ("cloud-iac-module-provider-requirements", LaneInputs::Globs(&["infra/**"])),
-    ("cloud-iac-module-release-index", LaneInputs::Globs(&["infra/**", "registry/**"])),
+    (
+        "cloud-iac-opentofu-validation",
+        LaneInputs::Globs(&["infra/**"]),
+    ),
+    (
+        "cloud-iac-module-provenance",
+        LaneInputs::Globs(&["infra/**"]),
+    ),
+    (
+        "cloud-iac-module-provider-requirements",
+        LaneInputs::Globs(&["infra/**"]),
+    ),
+    (
+        "cloud-iac-module-release-index",
+        LaneInputs::Globs(&["infra/**", "registry/**"]),
+    ),
     ("cloud-iac-module-archive", LaneInputs::Globs(&["infra/**"])),
-    ("cloud-iac-module-registry-protocol", LaneInputs::Globs(&["infra/**", "registry/**"])),
-    ("cloud-iac-provider-readiness", LaneInputs::Globs(&["infra/**"])),
-    ("cloud-iac-provider-lockfile", LaneInputs::Globs(&["infra/**"])),
-    ("cloud-iac-provider-signature-review", LaneInputs::Globs(&["infra/**"])),
-    ("iac-tier-discipline", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
+    (
+        "cloud-iac-module-registry-protocol",
+        LaneInputs::Globs(&["infra/**", "registry/**"]),
+    ),
+    (
+        "cloud-iac-provider-readiness",
+        LaneInputs::Globs(&["infra/**"]),
+    ),
+    (
+        "cloud-iac-provider-lockfile",
+        LaneInputs::Globs(&["infra/**"]),
+    ),
+    (
+        "cloud-iac-provider-signature-review",
+        LaneInputs::Globs(&["infra/**"]),
+    ),
+    (
+        "iac-tier-discipline",
+        LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"]),
+    ),
     // ── SLO / observability ──────────────────────────────────────────────────
-    ("slo-coverage", LaneInputs::Globs(&["**/*.openslo.yaml", "microservices/**"])),
+    (
+        "slo-coverage",
+        LaneInputs::Globs(&["**/*.openslo.yaml", "microservices/**"]),
+    ),
     // ── Security / Cedar / authz ─────────────────────────────────────────────
     (
         "cedar-fragment-coverage",
         LaneInputs::Globs(&["registry/cedar/**", "crates/**", "microservices/**"]),
     ),
-    ("authz-tier-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    (
+        "authz-tier-discipline",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
     ("cross-tenant-access-fuzz", LaneInputs::Global),
     ("high-risk-auto-decision-refusal", LaneInputs::Global),
-    ("slsa-l3-evidence-grounded", LaneInputs::Globs(&["evidence/**", "registry/**"])),
-    ("image-signing-discipline", LaneInputs::Globs(&["infra/**", "microservices/**"])),
+    (
+        "slsa-l3-evidence-grounded",
+        LaneInputs::Globs(&["evidence/**", "registry/**"]),
+    ),
+    (
+        "image-signing-discipline",
+        LaneInputs::Globs(&["infra/**", "microservices/**"]),
+    ),
     // ── Microservice / hyperscaler patterns ──────────────────────────────────
-    ("hyperscaler-arch-invariants", LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"])),
-    ("hyperscaler-maturity-claims", LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"])),
-    ("platform-substrate-defaults", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("layered-architecture-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("client-stack-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("idempotency-key-coverage", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("cursor-pagination-coverage", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("rpo-rto-coverage", LaneInputs::Globs(&["crates/**", "microservices/**", "infra/**"])),
-    ("metric-cardinality", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("event-schema-versioning", LaneInputs::Globs(&["crates/**", "microservices/**", "contracts/**"])),
-    ("id-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("loop-recovery-patterns", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("http-stack", LaneInputs::Globs(&["crates/**", "microservices/**", "Cargo.toml"])),
+    (
+        "hyperscaler-arch-invariants",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"]),
+    ),
+    (
+        "hyperscaler-maturity-claims",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"]),
+    ),
+    (
+        "platform-substrate-defaults",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "layered-architecture-discipline",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "client-stack-discipline",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "idempotency-key-coverage",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "cursor-pagination-coverage",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "rpo-rto-coverage",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "infra/**"]),
+    ),
+    (
+        "metric-cardinality",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "event-schema-versioning",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "contracts/**"]),
+    ),
+    (
+        "id-discipline",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "loop-recovery-patterns",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "http-stack",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "Cargo.toml"]),
+    ),
     // ── Data / governance policy ─────────────────────────────────────────────
-    ("data-class", LaneInputs::Globs(&["crates/**", "microservices/**", "registry/**"])),
-    ("plane-class", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("cohesion", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("authority-cohesion", LaneInputs::Globs(&["docs/decisions/**", "crates/**", "microservices/**"])),
-    ("claim-ceiling", LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"])),
-    ("codeview-read-surface", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("honest-claims", LaneInputs::Globs(&["crates/**", "microservices/**", "docs/**"])),
-    ("aspirational-enforcement", LaneInputs::Globs(&["docs/**", "specs/**", "crates/**"])),
-    ("design-spec-maturity-claims", LaneInputs::Globs(&["docs/**", "specs/**"])),
+    (
+        "data-class",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "registry/**"]),
+    ),
+    (
+        "plane-class",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "cohesion",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "authority-cohesion",
+        LaneInputs::Globs(&["docs/decisions/**", "crates/**", "microservices/**"]),
+    ),
+    (
+        "claim-ceiling",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"]),
+    ),
+    (
+        "codeview-read-surface",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "honest-claims",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/**"]),
+    ),
+    (
+        "aspirational-enforcement",
+        LaneInputs::Globs(&["docs/**", "specs/**", "crates/**"]),
+    ),
+    (
+        "design-spec-maturity-claims",
+        LaneInputs::Globs(&["docs/**", "specs/**"]),
+    ),
     ("no-grouping", LaneInputs::Global),
     ("brand-residue", LaneInputs::Global),
     ("retired-vocabulary", LaneInputs::Global),
@@ -540,43 +667,130 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
         "changeset-state-enum-closed",
         LaneInputs::Globs(&["registry/vcs/changeset-event-log.json"]),
     ),
-    ("release-evidence-pack", LaneInputs::Globs(&["evidence/**", "registry/**"])),
-    ("vendor-contract-recency", LaneInputs::Globs(&["registry/**", "Cargo.lock"])),
+    (
+        "release-evidence-pack",
+        LaneInputs::Globs(&["evidence/**", "registry/**"]),
+    ),
+    (
+        "vendor-contract-recency",
+        LaneInputs::Globs(&["registry/**", "Cargo.lock"]),
+    ),
     // ── Quality / CI ─────────────────────────────────────────────────────────
-    ("quality-lanes", LaneInputs::Globs(&["registry/quality/**", "crates/**"])),
+    (
+        "quality-lanes",
+        LaneInputs::Globs(&["registry/quality/**", "crates/**"]),
+    ),
     ("pre-push-contract", LaneInputs::Global),
-    ("codeowners-mirror", LaneInputs::Globs(&["CODEOWNERS", ".github/**", "crates/**", "microservices/**"])),
+    (
+        "codeowners-mirror",
+        LaneInputs::Globs(&["CODEOWNERS", ".github/**", "crates/**", "microservices/**"]),
+    ),
     ("stage0-prereqs", LaneInputs::Global),
-    ("master-plan-completion", LaneInputs::Globs(&["docs/decisions/**", "specs/**", "goal.json"])),
-    ("product-index", LaneInputs::Globs(&["docs/**", "specs/**", "registry/**"])),
-    ("product-prd-json", LaneInputs::Globs(&["docs/**", "specs/**"])),
-    ("raci-team-coverage", LaneInputs::Globs(&["docs/**", "registry/**"])),
+    (
+        "master-plan-completion",
+        LaneInputs::Globs(&["docs/decisions/**", "specs/**", "goal.json"]),
+    ),
+    (
+        "product-index",
+        LaneInputs::Globs(&["docs/**", "specs/**", "registry/**"]),
+    ),
+    (
+        "product-prd-json",
+        LaneInputs::Globs(&["docs/**", "specs/**"]),
+    ),
+    (
+        "raci-team-coverage",
+        LaneInputs::Globs(&["docs/**", "registry/**"]),
+    ),
     // ── OTel / audit ─────────────────────────────────────────────────────────
-    ("otel-trace-propagation", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("ontology-projection-coverage", LaneInputs::Globs(&["registry/**", "docs/**"])),
-    ("audit-chain-replay", LaneInputs::Globs(&["evidence/**", "registry/**"])),
-    ("audit-chain-seal-coverage", LaneInputs::Globs(&["evidence/**", "registry/**"])),
-    ("foundry-capability-schema", LaneInputs::Globs(&["registry/**", "specs/**"])),
-    ("foundry-eval", LaneInputs::Globs(&["registry/**", "specs/**"])),
+    (
+        "otel-trace-propagation",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "ontology-projection-coverage",
+        LaneInputs::Globs(&["registry/**", "docs/**"]),
+    ),
+    (
+        "audit-chain-replay",
+        LaneInputs::Globs(&["evidence/**", "registry/**"]),
+    ),
+    (
+        "audit-chain-seal-coverage",
+        LaneInputs::Globs(&["evidence/**", "registry/**"]),
+    ),
+    (
+        "foundry-capability-schema",
+        LaneInputs::Globs(&["registry/**", "specs/**"]),
+    ),
+    (
+        "foundry-eval",
+        LaneInputs::Globs(&["registry/**", "specs/**"]),
+    ),
     // ── Specialty discipline ─────────────────────────────────────────────────
     ("vendor-lockin-discipline", LaneInputs::Global),
-    ("tenant-cost-labels-coverage", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("backup-retention-discipline", LaneInputs::Globs(&["infra/**", "docs/**"])),
-    ("vector-store-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("olap-tier-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("wasm-runtime-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("a11y-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("i18n-coverage", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("compliance-evidence-coverage", LaneInputs::Globs(&["evidence/**", "registry/**"])),
-    ("realtime-transport-tier", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("mobile-native", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("protection-context-match", LaneInputs::Globs(&["crates/**", "microservices/**", "registry/cedar/**"])),
+    (
+        "tenant-cost-labels-coverage",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "backup-retention-discipline",
+        LaneInputs::Globs(&["infra/**", "docs/**"]),
+    ),
+    (
+        "vector-store-discipline",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "olap-tier-discipline",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "wasm-runtime-discipline",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "a11y-discipline",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "i18n-coverage",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "compliance-evidence-coverage",
+        LaneInputs::Globs(&["evidence/**", "registry/**"]),
+    ),
+    (
+        "realtime-transport-tier",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "mobile-native",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "protection-context-match",
+        LaneInputs::Globs(&["crates/**", "microservices/**", "registry/cedar/**"]),
+    ),
     ("foundation-bypass", LaneInputs::Global),
     // ── M02b/P22 quality lanes (statelessness / shardability / perf-budget / benchmark) ──
-    ("statelessness", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("shardability", LaneInputs::Globs(&["crates/**", "microservices/**"])),
-    ("perf-budget", LaneInputs::Globs(&["docs/**", "specs/**", "crates/**", "microservices/**"])),
-    ("benchmark", LaneInputs::Globs(&["docs/**", "specs/**", "crates/**", "microservices/**"])),
+    (
+        "statelessness",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "shardability",
+        LaneInputs::Globs(&["crates/**", "microservices/**"]),
+    ),
+    (
+        "perf-budget",
+        LaneInputs::Globs(&["docs/**", "specs/**", "crates/**", "microservices/**"]),
+    ),
+    (
+        "benchmark",
+        LaneInputs::Globs(&["docs/**", "specs/**", "crates/**", "microservices/**"]),
+    ),
 ];
 
 /// Returns the subset of `AGGREGATED_VALIDATE_LANES` that should be run given
@@ -716,6 +930,29 @@ mod tests {
     fn aggregated_non_gate_commands_is_non_empty() {
         assert!(!AGGREGATED_NON_GATE_COMMANDS.is_empty());
         assert!(AGGREGATED_NON_GATE_COMMANDS.len() >= 15);
+    }
+
+    #[test]
+    fn catalog_declares_retired_compatibility_only_status() {
+        assert_eq!(CATALOG_STATUS, "retired_compatibility_catalog");
+        assert!(CATALOG_AUTHORITY_NOTICE.contains("not CI/merge authority"));
+    }
+
+    #[test]
+    fn compatibility_notice_rejects_canonical_authority_wording() {
+        let active_notice = format!("{CATALOG_STATUS}\n{CATALOG_AUTHORITY_NOTICE}");
+        for forbidden in [
+            ["single", " source of truth"].concat(),
+            ["required", " merge substrate"].concat(),
+            ["canonical", " authority"].concat(),
+        ] {
+            assert!(
+                !active_notice
+                    .to_ascii_lowercase()
+                    .contains(forbidden.as_str()),
+                "compatibility notice must not claim active authority via {forbidden:?}"
+            );
+        }
     }
 
     #[test]
@@ -934,7 +1171,10 @@ mod tests {
 
     #[test]
     fn path_glob_matches_dir_double_star_does_not_match_sibling_directory() {
-        assert!(!path_glob_matches("crates/foo/src/lib.rs", "microservices/**"));
+        assert!(!path_glob_matches(
+            "crates/foo/src/lib.rs",
+            "microservices/**"
+        ));
     }
 
     #[test]
@@ -1064,9 +1304,7 @@ mod tests {
         //     path truly does not hit slo-coverage's globs before asserting).
         let slo_globs: &[&str] = &["**/*.openslo.yaml", "microservices/**"];
         assert!(
-            !slo_globs
-                .iter()
-                .any(|g| path_glob_matches(changed[0], g)),
+            !slo_globs.iter().any(|g| path_glob_matches(changed[0], g)),
             "fixture invariant: chosen path must not match slo-coverage globs"
         );
         assert!(
@@ -1150,7 +1388,8 @@ mod tests {
 
     #[test]
     fn lanes_for_changed_output_is_duplicate_free() {
-        let result = lanes_for_changed(&["Cargo.lock", "microservices/obs/slos/latency.openslo.yaml"]);
+        let result =
+            lanes_for_changed(&["Cargo.lock", "microservices/obs/slos/latency.openslo.yaml"]);
         let mut seen = std::collections::BTreeSet::new();
         for lane in &result {
             assert!(

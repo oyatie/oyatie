@@ -68,6 +68,8 @@ const MICROSERVICE_MIGRATION_TOOLING_PATH: &str = "specs/microservice-migration-
 const RETIRED_VOCABULARY_PATH: &str = "registry/vocabulary/retired.yaml";
 const DOCS_PIPELINE_REGISTRY_PATH: &str = "registry/docs/pipeline.tsv";
 const DOCUMENTATION_SYSTEM_KERNEL_PATH: &str = "libs/oya-check-documentation-system/src/lib.rs";
+const GATE_CATALOG_DOMAIN_PATH: &str = "libs/oya-governance-gate-catalog-domain/src/lib.rs";
+const QUALITY_LANE_KERNEL_PATH: &str = "libs/oya-check-quality-lane/src/lib.rs";
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
@@ -1307,6 +1309,70 @@ pub fn retired_cli_registry_spec_failures(
     failures
 }
 
+pub fn retired_compatibility_catalog_failures(
+    gate_catalog_domain: &str,
+    quality_lane_kernel: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for needle in [
+        "pub const CATALOG_STATUS: &str = \"retired_compatibility_catalog\";",
+        "historical compatibility only; not CI/merge authority",
+        "not CI, SCM, merge, or governance authority",
+    ] {
+        require_contains(
+            gate_catalog_domain,
+            needle,
+            &mut failures,
+            GATE_CATALOG_DOMAIN_PATH,
+        );
+    }
+
+    for needle in [
+        "retired compatibility wired-commands corpus",
+        "compatibility/provenance only",
+    ] {
+        require_contains(
+            quality_lane_kernel,
+            needle,
+            &mut failures,
+            QUALITY_LANE_KERNEL_PATH,
+        );
+    }
+
+    for (label, text, needle) in [
+        (
+            GATE_CATALOG_DOMAIN_PATH,
+            gate_catalog_domain,
+            "Foundry gate-catalog canonical domain",
+        ),
+        (
+            GATE_CATALOG_DOMAIN_PATH,
+            gate_catalog_domain,
+            "single source of truth",
+        ),
+        (
+            GATE_CATALOG_DOMAIN_PATH,
+            gate_catalog_domain,
+            "required merge substrate",
+        ),
+        (
+            GATE_CATALOG_DOMAIN_PATH,
+            gate_catalog_domain,
+            "governance now rides plain git plus oya gate/verify",
+        ),
+        (
+            QUALITY_LANE_KERNEL_PATH,
+            quality_lane_kernel,
+            "canonical wired-commands catalog",
+        ),
+    ] {
+        require_absent(text, needle, &mut failures, label);
+    }
+
+    failures
+}
+
 pub fn spec_failures(spec: &str) -> Vec<String> {
     let mut failures = Vec::new();
 
@@ -1847,6 +1913,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let retired_vocabulary = read(root, RETIRED_VOCABULARY_PATH, &mut failures);
     let docs_pipeline = read(root, DOCS_PIPELINE_REGISTRY_PATH, &mut failures);
     let documentation_system_kernel = read(root, DOCUMENTATION_SYSTEM_KERNEL_PATH, &mut failures);
+    let gate_catalog_domain = read(root, GATE_CATALOG_DOMAIN_PATH, &mut failures);
+    let quality_lane_kernel = read(root, QUALITY_LANE_KERNEL_PATH, &mut failures);
 
     failures.extend(spec_failures(&spec));
     failures.extend(retired_cli_registry_spec_failures(
@@ -1857,6 +1925,10 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &retired_vocabulary,
         &docs_pipeline,
         &documentation_system_kernel,
+    ));
+    failures.extend(retired_compatibility_catalog_failures(
+        &gate_catalog_domain,
+        &quality_lane_kernel,
     ));
     failures.extend(tenant_rbac_packaging_failures(&tenant_rbac_packaging));
     failures.extend(rust_toolchain_policy_failures(
