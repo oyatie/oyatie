@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-05T12:54:00Z",
+  "updated_at": "2026-06-05T13:18:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -145,7 +145,8 @@
       "rust-buck2 stale documentation inventory test target",
       "product-operation runbook retired CLI/bridge authority scan",
       "Forms/Sheets product-operation doc retired authority scan",
-      "Intelligence markdown retired local dev CLI scan"
+      "Intelligence markdown retired local dev CLI scan",
+      "governance markdown retired local dev CLI and external substrate scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -214,6 +215,43 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental markdown clean-file guard only; Intelligence Rust crates and historical JSON audit excerpts are separate backlog slices"
+    },
+    "governance_doc_retired_dev_cli_scan": {
+      "clean_files": [
+        "oya/governance/IP-NEW-chaos-engineering-substrate.md",
+        "oya/governance/IP-NEW-eu-ai-act-annex-iii-refusal-lane.md",
+        "oya/governance/IP-NEW-slsa-l3-evidence-grounded-lane.md",
+        "oya/governance/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+        "oya/governance/PHASE-01-CI-FITNESS-CONSOLIDATION.md",
+        "oya/governance/PRD.md",
+        "oya/governance/README.md",
+        "oya/governance/backfill-replay.md",
+        "oya/governance/benchmarks/drata-vanta-onetrust-vs-oyatie.md",
+        "oya/governance/capacity-model.md",
+        "oya/governance/compliance.md",
+        "oya/governance/dpia.md",
+        "oya/governance/incident-response.md",
+        "oya/governance/manifest.json",
+        "oya/governance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+        "oya/governance/onboarding/governance-engineer-first-week.md",
+        "oya/governance/policy/data-residency.md",
+        "oya/governance/runbooks/aggregation-rebuild.md",
+        "oya/governance/runbooks/audit-event-emission-stall.md",
+        "oya/governance/runbooks/cedar-policy-rollback-protocol.md",
+        "oya/governance/runbooks/consent-collection-pipeline-failure.md",
+        "oya/governance/runbooks/envoy-wasm-filter-rollback.md",
+        "oya/governance/runbooks/evidence-replay.md",
+        "oya/governance/runbooks/industry-baseline-refresh.md",
+        "oya/governance/runbooks/lane-bypass-emergency.md",
+        "oya/governance/runbooks/lane-failure-triage.md",
+        "oya/governance/runbooks/migration-execution.md",
+        "oya/governance/runbooks/wasm-filter-bytecode-quarantine.md",
+        "oya/governance/tutorials/configure-retention-policy-and-resolve-conflict.md"
+      ],
+      "policy": "Cleaned Governance markdown and manifest records use Buck2/Prow evidence, Governance control-plane operation wording, native oya-ci authority, and temporary GitHub shadow compatibility instead of retired local development CLI or retired external CI/CD substrate authority.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental Governance clean-file guard only; remaining Governance plain oya-command docs and historical ADR provenance are separate backlog slices"
     },
     "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
     "stale_doc_inventory": {

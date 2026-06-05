@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: ops-security + council-architecture
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, slsa-l3-evidence-grounded]
+acceptance_lanes: [buck2-build, buck2-rust-unit-tests, buck2-rust-lint, slsa-l3-evidence-grounded]
 related_adrs:
   - ADR-0064
   - ADR-0133
@@ -18,13 +18,13 @@ related_crates:
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md -->
 
-# IP-NEW: wire `oya-check-slsa-l3-evidence-grounded` into oya-dev-cli gate validate
+# IP-NEW: register `oya-check-slsa-l3-evidence-grounded` as a Buck2/Prow quality lane
 
 ## Intent
 
 Activate the `oya-check-slsa-l3-evidence-grounded` kernel (authored
-2026-05-18 at `crates/oya-check-slsa-l3-evidence-grounded/`) as a
-fitness lane `oya gate validate slsa-l3-evidence-grounded`. The lane
+2026-05-18 at `libs/oya-check-slsa-l3-evidence-grounded/`) as a
+Buck2/Prow quality lane `slsa-l3-evidence-grounded`. The lane
 reads every `microservices/<ms>/scorecards/overrides.json` and refuses
 the build when a scorecard claims `slsa_l3: green` but its citation
 chain does not resolve to existing `.github/workflows/<file>.yml`
@@ -43,29 +43,28 @@ without simultaneously downgrading the scorecard.
 
 ## ChangeSet boundary
 
-- Add `oya-check-slsa-l3-evidence-grounded` as a workspace dep of
-  `oya-dev-cli`.
-- Author `crates/oya-dev-cli/src/slsa_l3_evidence_grounded_gate.rs`.
-- Wire the new subcommand into `commands/gate/mod.rs`.
-- Register in `AGGREGATED_VALIDATE_LANES`.
+- Add Buck2 targets and Rust package metadata for `oya-check-slsa-l3-evidence-grounded`; Cargo manifests remain compatibility metadata only.
+- Author the quality-lane runner adapter.
+- Register in the Buck2/Prow quality-lane registry.
 - Register in branch protection.
 
 ## Concrete file targets
 
 | Path | Action |
 |---|---|
-| `crates/oya-dev-cli/Cargo.toml` | edit — add dep |
-| `crates/oya-dev-cli/src/slsa_l3_evidence_grounded_gate.rs` | create — file-reading runner |
-| `crates/oya-dev-cli/src/lib.rs` | edit — declare module |
-| `crates/oya-dev-cli/src/commands/gate/mod.rs` | edit — add match arm |
-| `crates/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"slsa-l3-evidence-grounded"` |
+| `libs/oya-check-slsa-l3-evidence-grounded/BUCK` | update |
+| `libs/oya-check-slsa-l3-evidence-grounded/Cargo.toml` | update as Rust ecosystem metadata only |
+| `libs/oya-governance-quality-lane-kernel/src/slsa_l3_evidence_grounded.rs` | create — file-reading runner |
+| `libs/oya-governance-quality-lane-kernel/src/lib.rs` | edit — declare lane module |
+| `libs/oya-check-quality-lane/src/lib.rs` | edit — add registry evidence |
+| `libs/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"slsa-l3-evidence-grounded"` |
 | `.github/branch-protection.yaml` | edit — add to dev's required-status-checks |
 | `microservices/governance/catalog/oya-check-slsa-l3-evidence-grounded.yaml` | create — catalog entry |
 
 ## Code shape
 
 ```rust
-// crates/oya-dev-cli/src/slsa_l3_evidence_grounded_gate.rs
+// libs/oya-governance-quality-lane-kernel/src/slsa_l3_evidence_grounded.rs
 use std::fs;
 use std::path::PathBuf;
 
@@ -126,11 +125,10 @@ pub(crate) fn validate_slsa_l3_evidence_grounded_gate(
 ## Acceptance gates
 
 ```bash
-cargo check -p oya-dev-cli
-cargo nextest run -p oya-check-slsa-l3-evidence-grounded
 buck2 build //:quality-lane-registry-authority-check # lane=slsa-l3-evidence-grounded \
     --microservices-dir microservices --workflows-dir .github/workflows
 buck2 build //:repo-hygiene-automation-check
+buck2 build //:oya-ci-prowjob-registry-check
 ```
 
 ## Halt conditions
@@ -146,7 +144,7 @@ buck2 build //:repo-hygiene-automation-check
 - SLSA v1.0 spec (slsa.dev/spec/v1.0).
 - Sigstore documentation (docs.sigstore.dev).
 - `.github/workflows/{slsa,cosign,sbom}.yml`.
-- `crates/oya-check-slsa-l3-evidence-grounded`.
+- `libs/oya-check-slsa-l3-evidence-grounded`.
 
 ## Wave 15 counterpart verification note
 

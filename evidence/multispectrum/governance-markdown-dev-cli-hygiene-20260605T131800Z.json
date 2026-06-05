@@ -1,0 +1,87 @@
+{
+  "evidence_id": "governance-markdown-dev-cli-hygiene-20260605T131800Z",
+  "created_at": "2026-06-05T13:18:00Z",
+  "lane": "chore/governance-doc-cli-hygiene-20260605T130000Z",
+  "scope": "incremental Governance documentation hygiene",
+  "decision": "Buck2 is canonical build/test/check/coverage authority; Cargo manifests remain Rust ecosystem compatibility metadata only. Governance docs must use Buck2/Prow evidence, Governance control-plane operations, native oya-ci, and temporary GitHub shadow compatibility instead of retired local development CLI or retired external CI/CD substrate authority.",
+  "clean_files": [
+    "oya/governance/IP-NEW-chaos-engineering-substrate.md",
+    "oya/governance/IP-NEW-eu-ai-act-annex-iii-refusal-lane.md",
+    "oya/governance/IP-NEW-slsa-l3-evidence-grounded-lane.md",
+    "oya/governance/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+    "oya/governance/PHASE-01-CI-FITNESS-CONSOLIDATION.md",
+    "oya/governance/PRD.md",
+    "oya/governance/README.md",
+    "oya/governance/backfill-replay.md",
+    "oya/governance/benchmarks/drata-vanta-onetrust-vs-oyatie.md",
+    "oya/governance/capacity-model.md",
+    "oya/governance/compliance.md",
+    "oya/governance/dpia.md",
+    "oya/governance/incident-response.md",
+    "oya/governance/manifest.json",
+    "oya/governance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+    "oya/governance/onboarding/governance-engineer-first-week.md",
+    "oya/governance/policy/data-residency.md",
+    "oya/governance/runbooks/aggregation-rebuild.md",
+    "oya/governance/runbooks/audit-event-emission-stall.md",
+    "oya/governance/runbooks/cedar-policy-rollback-protocol.md",
+    "oya/governance/runbooks/consent-collection-pipeline-failure.md",
+    "oya/governance/runbooks/envoy-wasm-filter-rollback.md",
+    "oya/governance/runbooks/evidence-replay.md",
+    "oya/governance/runbooks/industry-baseline-refresh.md",
+    "oya/governance/runbooks/lane-bypass-emergency.md",
+    "oya/governance/runbooks/lane-failure-triage.md",
+    "oya/governance/runbooks/migration-execution.md",
+    "oya/governance/runbooks/wasm-filter-bytecode-quarantine.md",
+    "oya/governance/tutorials/configure-retention-policy-and-resolve-conflict.md"
+  ],
+  "new_guard": {
+    "rust_checker": "scripts/ci/assert-repo-hygiene-automation.rs::governance_doc_retired_dev_cli_failures",
+    "buck2_target": "//:repo-hygiene-automation-check",
+    "spec": "specs/repo-hygiene-automation.json#documentation_sprawl.governance_doc_retired_dev_cli_scan"
+  },
+  "verification_plan": [
+    "exact retired CLI/external substrate scan over cleaned Governance files",
+    "rustfmt --edition 2024 --check on changed Rust checker/test files",
+    "rustc --edition=2024 -D warnings for checker and tests",
+    "repo-hygiene checker --json",
+    "buck2 build //:repo-hygiene-automation-check",
+    "git diff --check"
+  ],
+  "verification_results": [
+    {
+      "command": "targeted rg scan for retired local dev CLI and retired external CI/CD substrate phrases across 29 Governance clean files",
+      "exit_code": 1,
+      "interpretation": "ripgrep returned no matches"
+    },
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test ... && OYA_REPO_ROOT=$PWD ... --nocapture",
+      "exit_code": 0,
+      "summary": "66 tests passed; 0 failed"
+    },
+    {
+      "command": "OYA_REPO_ROOT=$PWD assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "summary": "verdict PASS; failures=[]; governance_doc_retired_dev_cli_clean_files=29"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "exit_code": 0,
+      "build_id": "a64532fd-048a-4936-844a-9aff2df3a128"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "changed-file credential-shaped scan",
+      "exit_code": 1,
+      "interpretation": "ripgrep returned no matches"
+    }
+  ],
+  "claim_boundary": "No live mutation, no deletion of historical ADRs, and no claim that all plain oya-command docs are cleaned. This slice guards cleaned Governance files against retired local development CLI and external CI/CD substrate authority residue."
+}

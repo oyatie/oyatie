@@ -165,7 +165,7 @@ WASM Filter Bytecode Quarantine incident decision tree
 
 ### Code Paths To Inspect First
 - `oya-governance-domain`: inspect for wasm_filter_bytecode_quarantine invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
-- `oya-dev-cli`: inspect for wasm_filter_bytecode_quarantine invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- Governance control-plane evidence: inspect wasm_filter_bytecode_quarantine invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-policy-cedar-domain`: inspect for wasm_filter_bytecode_quarantine invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/governance/contracts/`: verify this surface only when the incident evidence points there.
 - `microservices/governance/dashboards/finding-rate.json`: verify this surface only when the incident evidence points there.

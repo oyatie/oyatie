@@ -59,10 +59,9 @@ Author a backfill plan document at `microservices/governance/audit/backfill-<id>
 ### Step 2 — Provision
 
 ```bash
-# Create a separate backfill workspace (logical Postgres schema)
-cargo run -p oya-dev-cli -- governance backfill init \
-  --id <backfill-id> \
-  --plan-path microservices/governance/audit/backfill-<backfill-id>.md
+# Create a separate backfill workspace through the governance control plane.
+# Inputs: backfill_id=<backfill-id>, plan_path=microservices/governance/audit/backfill-<backfill-id>.md
+# Verification: Buck2/Prow evidence records the backfill workspace id.
 ```
 
 Provisions:
@@ -73,12 +72,9 @@ Provisions:
 ### Step 3 — Dispatch
 
 ```bash
-cargo run -p oya-dev-cli -- governance backfill dispatch \
-  --id <backfill-id> \
-  --lanes <lane-list> \
-  --sha-range <git-range> \
-  --microservices <ms-list> \
-  --concurrency 10
+# Dispatch through the governance control plane.
+# Inputs: backfill_id=<backfill-id>, lanes=<lane-list>, sha_range=<git-range>,
+# microservices=<ms-list>, concurrency=10
 ```
 
 Behaviour:
@@ -89,7 +85,7 @@ Behaviour:
 ### Step 4 — Monitor
 
 ```bash
-cargo run -p oya-dev-cli -- governance backfill status --id <backfill-id>
+# Query control-plane backfill status for backfill_id=<backfill-id>.
 ```
 
 Outputs:
@@ -102,8 +98,8 @@ Grafana dashboard `governance-backfill-<id>` is auto-created.
 ### Step 5 — Analyse
 
 ```bash
-cargo run -p oya-dev-cli -- governance backfill analyze --id <backfill-id> \
-  --output /tmp/backfill-<id>-analysis.json
+# Export the signed analysis artifact from the governance control plane.
+# Output: evidence/multispectrum/backfill-<id>-analysis.json
 ```
 
 Surfaces:
@@ -120,7 +116,7 @@ Per-IP scope: close ONE retroactive violation pattern across the affected µserv
 ### Step 7 — Decommission
 
 ```bash
-cargo run -p oya-dev-cli -- governance backfill close --id <backfill-id>
+# Close backfill_id=<backfill-id> after the Buck2/Prow evidence bundle is archived.
 ```
 
 Outcomes:

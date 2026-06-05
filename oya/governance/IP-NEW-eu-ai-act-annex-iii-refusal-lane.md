@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: council-privacy + council-architecture
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, regulated-ai-refusal-grounding]
+acceptance_lanes: [buck2-build, buck2-rust-unit-tests, buck2-rust-lint, regulated-ai-refusal-grounding]
 related_adrs:
   - ADR-0064
   - ADR-0133
@@ -26,21 +26,19 @@ related_crates:
 
 Activate the `oya-check-eu-ai-act-annex-iii-refusal` kernel
 (authored 2026-05-18 at
-`crates/oya-check-eu-ai-act-annex-iii-refusal/`) as the governance lane
-`oya gate validate regulated-ai-refusal-grounding`. The lane reads every
+`libs/oya-check-eu-ai-act-annex-iii-refusal/`) as the governance Buck2/Prow lane
+`regulated-ai-refusal-grounding`. The lane reads every
 `microservices/<ms>/capabilities/T2-auto.yaml` and every
 `microservices/<ms>/policy/*.cedar` and refuses the build when a
 declared Annex III refusal claim has no matching `forbid` rule.
 
 ## ChangeSet boundary
 
-- Add `oya-check-eu-ai-act-annex-iii-refusal` as a workspace dep of
-  `oya-dev-cli`.
-- Author `crates/oya-dev-cli/src/eu_ai_act_annex_iii_refusal_gate.rs`
-  with the runner that reads files and forwards to the kernel.
-- Wire the new subcommand into `crates/oya-dev-cli/src/commands/gate/mod.rs`.
-- Register the lane in `AGGREGATED_VALIDATE_LANES` in
-  `crates/oya-governance-gate-catalog-domain/src/lib.rs`.
+- Add Buck2 targets and Rust package metadata for `oya-check-eu-ai-act-annex-iii-refusal`; Cargo manifests remain compatibility metadata only.
+- Author a quality-lane runner adapter that reads files and forwards to the kernel.
+- Wire the lane through the Buck2/Prow quality-lane registry.
+- Register the lane in the governance quality-lane catalog in
+  `libs/oya-governance-gate-catalog-domain/src/lib.rs`.
 - Register the lane in `.github/branch-protection.yaml` as a required
   status check on `dev`.
 
@@ -48,18 +46,19 @@ declared Annex III refusal claim has no matching `forbid` rule.
 
 | Path | Action |
 |---|---|
-| `crates/oya-dev-cli/Cargo.toml` | edit — add dep on `oya-check-eu-ai-act-annex-iii-refusal` |
-| `crates/oya-dev-cli/src/eu_ai_act_annex_iii_refusal_gate.rs` | create — file-reading runner |
-| `crates/oya-dev-cli/src/lib.rs` | edit — declare module |
-| `crates/oya-dev-cli/src/commands/gate/mod.rs` | edit — add `(Some("validate"), Some("regulated-ai-refusal-grounding"))` arm |
-| `crates/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"regulated-ai-refusal-grounding"` to `AGGREGATED_VALIDATE_LANES` |
+| `libs/oya-check-eu-ai-act-annex-iii-refusal/BUCK` | create or update |
+| `libs/oya-check-eu-ai-act-annex-iii-refusal/Cargo.toml` | create or update as Rust ecosystem metadata only |
+| `libs/oya-governance-quality-lane-kernel/src/regulated_ai_refusal_grounding.rs` | create — file-reading runner |
+| `libs/oya-governance-quality-lane-kernel/src/lib.rs` | edit — declare lane module |
+| `libs/oya-check-quality-lane/src/lib.rs` | edit — add `regulated-ai-refusal-grounding` registry evidence |
+| `libs/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"regulated-ai-refusal-grounding"` to the quality-lane catalog |
 | `.github/branch-protection.yaml` | edit — add to dev's `required_status_checks` |
 | `microservices/governance/catalog/oya-check-eu-ai-act-annex-iii-refusal.yaml` | create — catalog entry |
 
 ## Code shape
 
 ```rust
-// crates/oya-dev-cli/src/eu_ai_act_annex_iii_refusal_gate.rs
+// libs/oya-governance-quality-lane-kernel/src/regulated_ai_refusal_grounding.rs
 use std::fs;
 use std::path::PathBuf;
 
@@ -118,10 +117,9 @@ pub(crate) fn validate_annex_iii_refusal_gate(
 ## Acceptance gates
 
 ```bash
-cargo check -p oya-dev-cli
-cargo nextest run -p oya-check-eu-ai-act-annex-iii-refusal
 buck2 build //:quality-lane-registry-authority-check # lane=regulated-ai-refusal-grounding
 buck2 build //:repo-hygiene-automation-check   # aggregated lane includes new gate
+buck2 build //:oya-ci-prowjob-registry-check
 ```
 
 ## Halt conditions
@@ -137,7 +135,7 @@ buck2 build //:repo-hygiene-automation-check   # aggregated lane includes new ga
 - ADR-0140 — Cedar policy enforcement substrate.
 - ADR-0144 — EU AI Act graduated risk-tier model (generalisation target).
 - EU AI Act Regulation (EU) 2024/1689 Annex III.
-- `crates/oya-check-eu-ai-act-annex-iii-refusal`.
+- `libs/oya-check-eu-ai-act-annex-iii-refusal`.
 
 ## Wave 15 counterpart verification note
 

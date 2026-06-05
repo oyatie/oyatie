@@ -7,9 +7,9 @@ date: 2026-05-21
 doc_status: published
 ---
 
-# Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `governance`
+# Migration Playbook - Wave 15-ZD doctrine reconciliation for `governance`
 
-Audience: an Oyatie operator or migration owner preparing `governance` for the Wave 15-ZD doctrine surface before implementation waves author runtime code, manifests, Jenkinsfiles, ArgoCD applications, or sharding bodies.
+Audience: an Oyatie operator or migration owner reconciling `governance` with the current ADR-0513/ADR-0516 CI/CD authority before implementation waves author runtime code, manifests, or sharding bodies.
 
 Outcome: `governance` has a documented migration path for the four doctrine decisions, with no runtime mutation and no manifest mutation.
 
@@ -17,9 +17,9 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Doctrine purpose bindings
 
-1. ADR-0346: Establish that `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
-2. ADR-0346: The verifier invokes `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, `oya gate run-all --ci-required`, `oya doc adr-index --write`, and `oya lint adr-shape`.
-3. ADR-0346: The verifier MUST block on exit-0 of EACH step before returning success to the caller.
+1. ADR-0513: Establish that Buck2 is canonical build/test/check authority and Prow/Kubernetes-native oya-ci publishes trusted required evidence.
+2. ADR-0516: GitHub Actions is temporary lane-unlocker/shadow evidence only; it does not replace native oya-ci.
+3. ADR-0513: Rust package manifests are compatibility metadata for ecosystem tooling and local mutation-test adapters; they do not outrank Buck2 targets.
 4. ADR-0347: Declare that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
 5. ADR-0347: The rename surface includes workflow names, lane records, catalog records, Rust check-family crates, ADR cross-citations, docs/standards references, .omc/state references, master-plan sub-wave entries, canonical primitives, branch-protection checks, and per-microservice manifest `governance_lanes` arrays.
 6. ADR-0347: Governance is the actual owning team per ADR-0132 + axis-governance, and the bulk rename collapses 34 per-lane migration IPs into one Wave 15-ZB codex-bucket fan-out PR.
@@ -27,17 +27,16 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 8. ADR-0348: AUTOSHARDING computes tenant->cell/shard placement automatically with no human operator picking placement.
 9. ADR-0348: AUTO-REBALANCE migrates tenants from hot cells to cooler cells, honors residency and compliance pack constraints, requires Cedar permits for cross-jurisdiction migration, and remains observable, reversible, and audit-chain-emit per ADR-0263.
 10. ADR-0348: DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT and COLD-MERGE thresholds, and both operations are atomic plus audit-emit.
-11. ADR-0349: Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-12. ADR-0349: Jenkins augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
-13. ADR-0349: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/` per ADR-0339.
+11. ADR-0513: Native Rust/Prow/Kubernetes oya-ci is the durable self-hostable CI/CD direction for the Oyatie corpus.
+12. ADR-0516: GitHub Actions remains a temporary adapter to unlock parallel PR lanes while native SCM/CI/CD seams mature.
+13. ADR-0513: CD handoff consumes signed Buck2/Prow evidence and release-conveyor records; manual cluster mutation is not an authority path.
 
 ## ADR-0346 enforcement lanes
 
-- `oya-governance-oya-verify-ci-mirror-coverage` - refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis.
-- `oya-governance-oya-verify-ci-step-exit-semantics` - refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps.
-- `oya-governance-oya-verify-skip-flag-allowlist` - refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8.
-- `oya-governance-oya-submit-calls-verify` - refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10.
-- `oya-governance-oya-verify-exit-code-contract` - refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11.
+- `buck2-authority-policy-check` - refuses guidance that makes package-manager commands merge authority.
+- `repo-hygiene-automation-check` - refuses retired local CLI and external CI/CD substrate command authority in cleaned surfaces.
+- `quality-lane-registry-authority-check` - keeps governance lane registry authority in Buck2/Prow.
+- `rust-llvm-coverage-runner-contract-check` + `rust-llvm-coverage-smoke-check` - preserve Buck2-native LLVM source-based coverage posture.
 
 ## ADR-0347 enforcement lanes
 
@@ -54,13 +53,12 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 - `oya-governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
 - `oya-governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
 
-## ADR-0349 enforcement lanes
+## ADR-0513/ADR-0516 CI/CD enforcement lanes
 
-- `oya-governance-jenkins-github-actions-parity` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
-- `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
-- `oya-governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
-- `oya-governance-jenkins-jcasc-only` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
-- `oya-governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
+- `oya-ci-prowjob-registry-check` - keeps Prow/Kubernetes-native oya-ci job definitions registered and reviewable.
+- `github-lane-unlocker-bridge-check` - keeps GitHub Actions as a temporary shadow adapter rather than durable CI/CD authority.
+- `buck2-authority-policy-check` - refuses non-Buck2 build/test/check authority in active guidance.
+- `repo-hygiene-automation-check` - refuses retired external substrate residue in cleaned docs and specs.
 
 ## Phase 0 - Inventory
 
@@ -70,13 +68,13 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 4. Record current references to ADR-0346, ADR-0347, ADR-0348, and ADR-0349. Absence is acceptable at this scaffold stage; downstream artifacts own their own propagation lanes.
 5. Do not mutate runtime manifests or source code in this playbook pass.
 
-## Phase 1 - ADR-0346 verification migration
+## Phase 1 - ADR-0513 verification migration
 
-1. Treat `oya verify --ci-required` as the local rehearsal for `governance` changes before push.
-2. Do not claim this microservice is push-ready unless the full mirror contract can pass or a documented skip flag from the closed allowlist is intentionally used during incremental development.
-3. When `governance` changes touch Rust, contracts, manifests, generated docs, or governance lanes, run the verifier before handoff.
-4. Preserve the exit-code contract: 0 means all passed, 1 means at least one failed, and 2 means invalid arguments.
-5. Preserve `oya submit` as the path that calls `oya verify --ci-required` before push.
+1. Treat Buck2 targets as the local rehearsal and CI substrate for `governance` changes before push.
+2. Do not claim this microservice is push-ready unless the relevant Buck2/Prow target set can pass or an explicit evidence gap is documented.
+3. When `governance` changes touch Rust, contracts, manifests, generated docs, or governance lanes, run the relevant Buck2 targets before handoff.
+4. Preserve structured result semantics in evidence bundles rather than relying on local CLI exit-code folklore.
+5. Preserve native SCM/CI/CD adapters as services and controllers; do not revive a local VCS/development CLI.
 
 ## Phase 2 - ADR-0347 governance lane rename migration
 
@@ -96,15 +94,15 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 6. Auto-rebalance and dynamic-sharding automation events must set audit-chain emission expectations per ADR-0263.
 7. The implementation IP must document `rollback_path` for automation-event-driven tenant migration.
 
-## Phase 4 - ADR-0349 self-hostable CI/CD migration
+## Phase 4 - ADR-0513/ADR-0516 self-hostable CI/CD migration
 
-1. Treat Jenkins LTS as the self-hostable CI substrate for `governance` when GitHub Actions runners are unavailable.
-2. Keep GitHub Actions as the hosted PR review surface; Jenkins augments rather than replaces it.
-3. Treat ArgoCD as the GitOps CD orchestrator for this microservice once deployment artifacts exist.
-4. Do not author manual `kubectl apply` or Helm CLI deployment paths as canonical deployment procedure.
-5. Future Jenkinsfile parity must mirror the GitHub Actions CI steps for `governance`.
-6. Future ArgoCD Application sources must attach cosign verification policy and preserve tenant namespace isolation.
-7. Every ArgoCD sync transition must emit an audit-chain deploy event.
+1. Treat Prow/Kubernetes-native oya-ci as the self-hostable CI substrate for `governance`.
+2. Keep GitHub Actions as hosted PR lane-unlocker/shadow evidence until native SCM/CI/CD cutover.
+3. Treat release-conveyor-style native CD as the durable orchestrator after signed Buck2/Prow evidence is available.
+4. Do not author manual `kubectl apply` or first-party Helm CLI deployment paths as canonical deployment procedure.
+5. Future GitHub Actions compatibility must mirror the native Prow/Buck2 lane set without becoming authority.
+6. Future deployment sources must attach signature verification policy and preserve tenant namespace isolation.
+7. Every native CD transition must emit an audit-chain deploy event.
 
 ## Phase 5 - Cutover preparation
 
@@ -119,7 +117,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. Wave 15-ZA owns verifier implementation, not this playbook.
 2. Wave 15-ZB owns lane rename implementation, not this playbook.
 3. Wave 15-ZD owns sharding automation implementation and manifest body work, not this playbook.
-4. Wave 15-ZE owns Jenkins/ArgoCD substrate rollout, not this playbook.
+4. Wave 15-ZE owns native CI/CD substrate rollout and GitHub shadow compatibility, not this playbook.
 5. This file is the `governance` migration scaffold that those implementation lanes can cite.
 
 ## Phase 7 - Rollback and reversibility
@@ -127,7 +125,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. Verification migration rollback: restore prior verifier behavior only through an ADR-backed amendment; do not bypass the full mirror with ad-hoc scripts.
 2. Governance rename rollback: reverse through the rename inventory and branch-protection status checks, preserving lane semantics.
 3. Sharding automation rollback: use the `rollback_path` from the implementation IP and audit-chain trail for tenant movement reversal.
-4. CI/CD rollback: pause ArgoCD sync, preserve signed artifact provenance, and return to the last verified Git revision rather than manual cluster mutation.
+4. CI/CD rollback: pause native release-conveyor promotion, preserve signed artifact provenance, and return to the last verified Git revision rather than manual cluster mutation.
 5. Any rollback that changes tenant placement must preserve residency, compliance packs, and Cedar authorization.
 
 ## Phase 8 - Acceptance checks
@@ -144,7 +142,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 - Local verifier transcript for `governance` once Wave 15-ZA lands.
 - Rename inventory diff for `governance` once Wave 15-ZB lands.
 - `sharding_automation` manifest excerpt and rollback_path IP link once Wave 15-ZD lands.
-- Jenkinsfile parity evidence and ArgoCD Application policy evidence once Wave 15-ZE lands.
+- Native oya-ci/Prow evidence and GitHub shadow compatibility evidence once Wave 15-ZE lands.
 - ADR citation gate result proving this playbook resolves ADR IDs against `docs/decisions`.
 
 ## Stop condition
