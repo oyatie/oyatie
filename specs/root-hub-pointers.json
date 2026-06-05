@@ -1365,12 +1365,12 @@
     "regional-pack": "Regional policy, regulatory, operational, and market-specific pack authority."
   },
   "agent_quick_start_protocol": {
-    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .oya_ci_prow_capability_parity + .oya_ci_controller_config_contract + .kubernetes_native_anti_patterns + .repo_hygiene_automation. Historical gitops_vcs_replacement is pattern provenance only and does not revive a retired `oya vcs` CLI.",
+    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .oya_ci_prow_capability_parity + .oya_ci_controller_config_contract + .kubernetes_native_anti_patterns + .repo_hygiene_automation. Historical native SCM replacement planning is pattern provenance only and does not revive a retired local VCS CLI.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + an isolated worktree branch + PR against `dev` + Buck2 evidence + reviewer approval + trusted Prow/Kubernetes-native `oya-ci-required` context. GitHub remains PR/publication adapter; GitHub Actions is shadow compatibility only. Do not use or recreate an `oya vcs` CLI.",
+    "step_3_native_scm_pr_state_transition": "Canonical path is plain `git` + an isolated worktree branch + PR against `dev` + Buck2 evidence + reviewer approval + trusted Prow/Kubernetes-native `oya-ci-required` context. GitHub remains PR/publication adapter; GitHub Actions is shadow compatibility only. Do not create command-wrapper shortcuts around retired local VCS flows.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks Rust/Buck2/Prow governance jobs. Retired `oya gate` / `oya verify` CLI authority and legacy ChangeBundle/native SCM admission framing are provenance-only per ADR-0363.",
-    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, use /specs/repo-hygiene-automation.json and /specs/oya-ci-prow-capability-parity.json as the P00 live direction. /specs/github-lane-unlocker-bridge.json remains shadow compatibility and adapter evidence only."
+    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks Rust/Buck2/Prow governance jobs. Retired local gate/verify CLI authority and legacy ChangeBundle/native SCM admission framing are provenance-only per ADR-0363.",
+    "step_6_p00_live_direction": "Before broad multi-agent fan-out, use /specs/repo-hygiene-automation.json and /specs/oya-ci-prow-capability-parity.json as the P00 live direction. /specs/github-lane-unlocker-bridge.json remains shadow compatibility and adapter evidence only."
   },
   "specs_directory_audit_2026_05_20": {
     "top_level_specs_count": 63,

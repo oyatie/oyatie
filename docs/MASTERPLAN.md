@@ -41,7 +41,7 @@ commands are retired as merge/CI authority and must not be revived.
 Cargo manifests remain compatibility metadata for the Rust ecosystem,
 reindeer/vendor inputs, IDEs, and explicitly local advisory workflows. Buck2 is
 the build/test/check/coverage authority, and coverage evidence is LLVM
-source-based through Buck2/Prow rather than Tarpaulin or Cargo-only gates.
+source-based through Buck2/Prow; Cargo manifests stay compatibility metadata.
 
 ```bash
 buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check

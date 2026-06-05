@@ -2462,6 +2462,12 @@ pub fn active_foundry_shared_surface_failures(
             "\"owner_team\": \"council-architecture + platform-governance\"",
         ),
         (
+            ROOT_HUB_PATH,
+            root_hub,
+            "\"step_3_native_scm_pr_state_transition\"",
+        ),
+        (ROOT_HUB_PATH, root_hub, "\"step_6_p00_live_direction\""),
+        (
             SEQUENCING_PATH,
             sequencing,
             "\"owner_team\": \"council-architecture + platform-governance\"",
@@ -2490,6 +2496,23 @@ pub fn active_foundry_shared_surface_failures(
             ROOT_HUB_PATH,
             root_hub,
             "\"owner_team\": \"council-architecture + axis-foundry\"",
+        ),
+        (
+            ROOT_HUB_PATH,
+            root_hub,
+            "\"step_3_oya_vcs_state_transition\"",
+        ),
+        (ROOT_HUB_PATH, root_hub, "\"step_6_gitops_vcs_replacement\""),
+        (ROOT_HUB_PATH, root_hub, "retired `oya vcs` CLI"),
+        (
+            ROOT_HUB_PATH,
+            root_hub,
+            "Do not use or recreate an `oya vcs` CLI.",
+        ),
+        (
+            ROOT_HUB_PATH,
+            root_hub,
+            "Retired `oya gate` / `oya verify` CLI authority",
         ),
         (
             SEQUENCING_PATH,
@@ -2658,8 +2681,16 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl automation targets must include the agent durable goal retired deployment authority scan",
         ),
         (
+            "\"root quick-start native authority scan\"",
+            "documentation sprawl automation targets must include the root quick-start native authority scan",
+        ),
+        (
             "\"agent_durable_goal_deployment_authority_scan\"",
             "documentation sprawl policy must record the agent durable goal native deployment authority guard",
+        ),
+        (
+            "\"root_quick_start_native_authority_scan\"",
+            "documentation sprawl policy must record the root quick-start native authority guard",
         ),
         (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",

@@ -742,7 +742,7 @@
           "purpose_excerpt": "Historical self-hostable CI/CD substrate proposal retained only for provenance. ADR-0516 supersedes ADR-0349/ADR-0359/ADR-0361 for interim execution: GitHub/GitHub Actions is the temporary dev lane-unlocker, Buck2 remains the build/test/check authority, and the destination remains native Oyatie SCM/CI/CD/cloud workspace/release-conveyor seams.",
           "enforced_by": [
             "//:github-lane-unlocker-bridge-check (temporary bridge contract; refuses permanent-GitHub and interim-retired external SCM/CI/CD substrates claims)",
-            "//:buck2-authority-policy-check (Buck2 remains build/test/check authority; Cargo-only or Tarpaulin coverage claims are advisory/invalid)",
+            "//:buck2-authority-policy-check (Buck2 remains build/test/check/coverage authority; coverage evidence uses LLVM source-based coverage through Buck2/Prow, while Cargo manifests remain compatibility metadata)",
             "infra/ci/buck2-affected-gate.sh (affected-target fanout evidence for high-parallel PR lanes)",
             "ADR-0516 claim-boundary evidence lanes (preserve native cutover without declaring P0.0 green)"
           ]
