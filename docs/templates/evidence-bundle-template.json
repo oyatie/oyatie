@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/schemas/evidence-bundle.schema.json",
   "title": "EvidenceBundle",
-  "description": "Canonical evidence-bundle shape. Lifts the Phase-00 evidence shape from .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md \u00a7D. Every Foundry capability invocation, runbook execution, and IP merge emits a bundle conforming to this schema. CI-validatable via `oya gate validate evidence-bundle <path>`.",
+  "description": "Canonical evidence-bundle shape. Lifts the Phase-00 evidence shape from .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md \u00a7D. Every capability invocation, runbook execution, and IP merge emits a bundle conforming to this schema. CI-validatable through the registered Buck2 evidence-bundle target under oya-ci-required.",
   "type": "object",
   "_meta": {
     "doc_class": "Template",

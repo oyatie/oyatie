@@ -4,18 +4,18 @@ doc_status: published
 
 # Checklist: Pre-push
 
-> **When:** Before every `git push`. Mechanically enforced by `.git/hooks/pre-push`. Never skip with `--no-verify`.
+> **When:** Before every `git push`. Mechanically enforced by the registered Rust/Buck2 pre-push surface when installed. Never skip with `--no-verify`.
 > **Owner:** Author of the change.
-> **Validator:** `oya verify`
+> **Validator:** Buck2 affected build/test/check targets plus repository policy targets; protected-branch authority is `oya-ci-required`.
 
 ---
 
 1. ☐ **Workspace clean** — no untracked files surprise; `git status` matches expectations.
-2. ☐ **Affected-set tested** — `cargo nextest run --workspace --all-features` passes (or scoped subset for fast iteration; full pass before push).
-3. ☐ **Format clean** — `cargo fmt --check` passes (no diff).
-4. ☐ **Lint clean** — `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes.
-5. ☐ **Architecture boundaries** — `cargo run -q -p oya-dev-cli -- gate validate architecture-boundaries` passes (PARTS A-G hard-fail per ADR-0015; replaces the retired `oya gate validate architecture-boundaries` per audit row B-2).
-6. ☐ **License gate** — `cargo deny check` passes; no new dependency without ledger entry.
+2. ☐ **Affected-set tested** — lane-owned Buck2 test target passes (or scoped Buck2 subset for fast iteration; required target set before push).
+3. ☐ **Format clean** — Buck2/Rust formatting target passes; direct `rustfmt --edition 2024 --check` is acceptable for the touched Rust files.
+4. ☐ **Lint clean** — Buck2 lint/static-analysis target passes for touched crates and downstream consumers.
+5. ☐ **Architecture boundaries** — Buck2 architecture-boundary target passes for the affected graph.
+6. ☐ **License gate** — Buck2 dependency-policy target passes; no new dependency without registry and stable/LTS evidence.
 7. ☐ **Schema-class annotations** — every new struct field in a kernel crate has a `data_class` per [PRIVACY-PROGRAM §2.2.1](../PRIVACY-PROGRAM.md).
 8. ☐ **YAML date integrity** — every YAML date is quoted (per mistakes-and-fixes-ledger).
 9. ☐ **Forward-reference discipline** — no markdown link to a path not yet on `origin/main` (per Issue #1433).
@@ -29,7 +29,7 @@ doc_status: published
 17. ☐ **Migration ledger** — if this is a flat-crates move PR (per ADR-0015), `registry/migrations/2026-flat-crate-migration/` entry added.
 18. ☐ **Rebrand check** — no new `Oyatie` brand string in product code (per ADR-0017); repo path / GitHub slug exception OK.
 19. ☐ **License-tier residue** — no new AGPL/GPL/SSPL/BUSL dependency in product code (per drafted License Policy ADR).
-20. ☐ **Run** `oya verify` — final mechanical verification.
+20. ☐ **Run the lane-owned Buck2 verification set** — final mechanical verification before push.
 
 ---
 

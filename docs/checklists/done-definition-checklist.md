@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Extends `docs/AGENTS.md §Done-Definition checklist` D1-D18 with per-change-class variants. Walked before every PR is declared "ready to merge" and re-walked at the loop-cancellation boundary per `docs/AGENTS.md §Long-running loop rule`.
-enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
+enforcing_fitness_lane: buck2-pr-review-evidence + oya-ci-required
 owner_team: axis-foundry + council-architecture
 related:
   - docs/AGENTS.md
@@ -31,14 +31,14 @@ doc_status: published
 - [ ] **D5** New capabilities (if any) ship record + eval set + autonomy tier + audit topic + Cosign signing. *Lane:* `oya-governance-capability-publish`.
 - [ ] **D6** New schemas carry `data_class` per field. *Lane:* `oya-governance-data-class`.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Verification:* CI status check.
-- [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Lane:* `guard-pr-merge-review.mjs`.
+- [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Lane:* Buck2 PR-review evidence target.
 - [ ] **D9** Buck2 test evidence passes for touched/full target set. *Verification:* output in `## Verification`.
 - [ ] **D10** Buck2 build/lint/static evidence passes with warnings treated as failures where applicable. *Verification:* output.
 - [ ] **D11** Dependency/license/SBOM policy evidence passes through the current Buck2 policy target or registry-backed lane. *Verification:* output.
 - [ ] **D12** `oya-ci-required` target context is green before merge; GitHub Actions bridge checks are shadow/compatibility evidence. *Verification:* required-context evidence.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
-- [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.
+- [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* Buck2 PR-shape/traceability target.
 - [ ] **D16** Audit-chain emission `EVT-*` ID in `## Evidence`. *Lane:* `oya-governance-audit-emission`.
 - [ ] **D17** `docs/MISTAKES-LEDGER.md` row added if mechanical prevention shipped. *Lane:* `oya-governance-mistakes-ledger-cite`.
 - [ ] **D18** `docs/CHANGELOG.md` row added if canonical doc touched. *Lane:* `oya-governance-changelog-row`.
@@ -65,7 +65,7 @@ doc_status: published
 
 ### docs
 - [ ] `docs/DOC-CATALOG.md` trigger event named in PR `## Issue`. *Lane:* `oya-governance-doc-catalog`.
-- [ ] `doc-style-reviewer` agent verdict captured. *Lane:* `guard-pr-merge-review.mjs`.
+- [ ] `doc-style-reviewer` agent verdict captured. *Lane:* Buck2 PR-review evidence target.
 
 ### chore
 - [ ] No production behavior change. *(advisory)*

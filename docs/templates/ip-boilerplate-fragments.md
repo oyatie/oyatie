@@ -49,15 +49,17 @@ Per-µservice IPs add: µservice-specific halt conditions (e.g.
 
 Every IP author runs ALL of these BEFORE marking the IP complete:
 
-1. `cargo build --workspace` exits 0
-2. `cargo test --workspace` exits 0
-3. `cargo clippy --workspace -- -D warnings` exits 0
-4. `cargo fmt --check` exits 0
-5. `cargo run -p oya-dev-cli -- gate validate` exits 0 with all acceptance
-   lanes from frontmatter listed green
+1. Lane-owned Buck2 build target exits 0.
+2. Lane-owned Buck2 test target exits 0.
+3. Lane-owned Buck2 lint/static-analysis target exits 0.
+4. Buck2/Rust formatting check exits 0; direct `rustfmt --edition 2024 --check`
+   is acceptable for touched Rust files.
+5. Registered Buck2 policy targets exit 0 with all acceptance lanes from
+   frontmatter listed green.
 6. New / modified files match canonical schemas:
    - `*.cedar` → `specs/policy/cedar-scope-schema.md`
-   - `iac/helm/*/Chart.yaml` → depends on `_oya-helpers`
+   - `iac/cue/**` → exports deterministic Kubernetes manifests through Buck2
+   - generated Helm adapters, if any → trace back to CUE source and are not first-party authority
    - `iac/kustomize/*/kustomization.yaml` → composes canonical component
    - `*.openslo.yaml` → `specs/openslo/canonical-envelope-schema.json`
    - `capabilities/*.yaml` → `specs/capabilities/canonical-tier-schema.json`

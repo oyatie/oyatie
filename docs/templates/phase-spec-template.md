@@ -30,7 +30,7 @@ status: Proposed | Active | Complete
 entry_gate: |
   Exact condition that must be true before this phase begins.
   Name the prior phase and its exit criterion, or "none" for P01.
-  Example: "M03/P00 complete; oya-tenancy-kernel ships; cargo check clean."
+  Example: "M03/P00 complete; tenancy kernel ships; Buck2 affected checks green."
 exit_gate: |
   Exact condition that declares this phase complete.
 depends_on:
@@ -93,33 +93,28 @@ Ordered list. Each IP is an executable plan file under this phase directory.
 All gates must pass before `exit_gate` is declared. Each row is a runnable
 command + expected exit code.
 
-### Cargo / CI gates (exit 0 required)
+### Buck2 / Prow gates (exit 0 required)
 
 ```bash
-cargo check --workspace --all-features               # exit 0
-cargo build --workspace --all-features               # exit 0
-cargo clippy --workspace --all-features -- -D warnings  # exit 0
-cargo nextest run --workspace --all-features         # exit 0; 0 failures
-cargo deny check                                     # exit 0
-cargo doc --workspace --no-deps                      # exit 0; 0 warnings
+buck2 build //:<phase>-affected-build //:<phase>-policy-check --show-output     # exit 0
+buck2 test //:<phase>-affected-tests                                             # exit 0; 0 failures
+buck2 build //:<phase>-dependency-policy-check //:<phase>-docs-check --show-output  # exit 0
 ```
 
 ### Fitness lane gates
 
 ```bash
-oya gate validate lean-a1 --phase P0Y-<slug>   # LEAN-A1: layer ordering
-oya gate validate lean-a2 --phase P0Y-<slug>   # LEAN-A2: cross-vertical refusal
-oya gate validate lean-a3 --phase P0Y-<slug>   # LEAN-A3: BC boundary
-oya gate validate lean-a4 --phase P0Y-<slug>   # LEAN-A4: naming conformance
+buck2 build //:<phase>-lean-a1-check //:<phase>-lean-a2-check --show-output  # layer ordering + cross-vertical refusal
+buck2 build //:<phase>-lean-a3-check //:<phase>-lean-a4-check --show-output  # BC boundary + naming conformance
 ```
 
 ### Workflow + Ontology integration gates
 
 ```bash
 # Verify typed events registered in Workflow
-oya gate validate workflow-event-registry --phase P0Y-<slug>
+buck2 build //:<phase>-workflow-event-registry-check --show-output
 # Verify Ontology object types registered
-oya gate validate ontology-type-registry --phase P0Y-<slug>
+buck2 build //:<phase>-ontology-type-registry-check --show-output
 ```
 
 ---
@@ -158,12 +153,12 @@ pub trait <ServiceTrait>: Send + Sync {
 
 | Lane | Command | Expected |
 |---|---|---|
-| `dependency-direction` | `oya gate validate lean-a1 --phase P0Y-<slug>` | exit 0 |
-| `cross-product-refusal` | `oya gate validate lean-a2 --phase P0Y-<slug>` | exit 0 |
-| `port-location` | `oya gate validate port-location --phase P0Y-<slug>` | exit 0 |
-| `layer-correctness` | `oya gate validate layer-correctness --phase P0Y-<slug>` | exit 0 |
-| `statelessness` | `oya gate validate statelessness --phase P0Y-<slug>` | exit 0 |
-| `shardability` | `oya gate validate shardability --phase P0Y-<slug>` | exit 0 |
+| `dependency-direction` | Buck2 `lean-a1` target for `P0Y-<slug>` | exit 0 |
+| `cross-product-refusal` | Buck2 `lean-a2` target for `P0Y-<slug>` | exit 0 |
+| `port-location` | Buck2 `port-location` target for `P0Y-<slug>` | exit 0 |
+| `layer-correctness` | Buck2 `layer-correctness` target for `P0Y-<slug>` | exit 0 |
+| `statelessness` | Buck2 `statelessness` target for `P0Y-<slug>` | exit 0 |
+| `shardability` | Buck2 `shardability` target for `P0Y-<slug>` | exit 0 |
 
 ### New BCs registered in this phase
 

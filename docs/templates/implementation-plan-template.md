@@ -76,17 +76,19 @@ contracts/<surface>.openapi.yaml::<operationId>
 5. Read `docs/CONSTITUTION.md §Decision principles + §Prohibitions`.
 <!-- agent-instructions:end -->
 
-**Human path:** read the same files; run `oya gate validate plan-hierarchy --ip IP-NNN-<slug>` to confirm parent pointers resolve and frontmatter is well-formed.
+**Human path:** read the same files; run the registered Buck2 plan-hierarchy
+target for `IP-NNN-<slug>` to confirm parent pointers resolve and frontmatter
+is well-formed.
 
 ## Acceptance test commands
 
 Each row is a runnable command + expected pass token. CI replays these on every PR that touches this IP.
 
 ```
-$ cargo nextest run -p oya-<crate> --all-features            # expect: PASS, 0 failures
-$ cargo clippy -p oya-<crate> --all-features -- -D warnings  # expect: PASS, 0 warnings
-$ cargo deny check                                            # expect: PASS
-$ oya gate validate <lane-name>                               # expect: PASS
+$ buck2 test //:<crate>-affected-tests                         # expect: PASS, 0 failures
+$ buck2 build //:<crate>-lint-check --show-output              # expect: PASS, 0 warnings
+$ buck2 build //:<crate>-dependency-policy-check --show-output # expect: PASS
+$ buck2 build //:<lane-name> --show-output                     # expect: PASS
 $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <captured shape>
 ```
 
@@ -94,7 +96,7 @@ $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <capture
 
 - [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked (see `docs/checklists/done-definition-checklist.md`).
 - [ ] All acceptance commands PASS; outputs captured in PR `## Verification`.
-- [ ] Dependency additions cleared `cargo deny check` and named in PR `## Traceability`.
+- [ ] Dependency additions cleared the Buck2 dependency-policy target and are named in PR `## Traceability`.
 - [ ] Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Evidence`.
 - [ ] Phase INDEX `§Implementation Plans` row updated to `merged`.
 - [ ] Inventory ledger row added if migration-class (per ADR-0052).

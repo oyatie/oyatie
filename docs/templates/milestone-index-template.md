@@ -95,7 +95,7 @@ The first symbol/file a fresh agent **MUST** read after this INDEX to enter the 
 - Blameless Postmortem — every Sev-1/Sev-2 in milestone scope.
 - Trunk-Based Development + Feature Flags + Canary — release strategy per `docs/RELEASE-MANAGEMENT.md`.
 - SLSA L2 + Cosign keyless OIDC + Syft SBOM — supply-chain (M01-P15).
-- `cargo-vet` + `cargo-deny` + `cargo-audit` triad — Rust supply chain.
+- Buck2 dependency-policy + SBOM/audit triad — Rust supply chain.
 - Distroless / Chainguard images — runtime image policy.
 
 ## Risk register (milestone-scoped slice)
