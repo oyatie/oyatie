@@ -39,6 +39,8 @@ const VENDOR_PARTNER_LEDGER_PATH: &str = "docs/VENDOR-PARTNER-LEDGER.md";
 const BRIEF_TEMPLATE_PATH: &str = "docs/standards/brief-template.md";
 const AGENTIC_DEV_TEAM_STANDARD_PATH: &str = "docs/standards/agentic-dev-team-optimization.md";
 const CI_LANES_STANDARD_PATH: &str = "docs/standards/ci-lanes.md";
+const CODE_STYLE_STANDARD_PATH: &str = "docs/standards/code-style.md";
+const TESTING_STANDARD_PATH: &str = "docs/standards/testing.md";
 const TOOLS_AGENT_SKILLS_AGENTS_PATH: &str = "tools/agent-skills/AGENTS.md";
 const PROCEDURE_PATH: &str = "docs/ci/github-actions-lane-unlocker.md";
 const AUTO_MERGE_FLOW_PATH: &str = "docs/ci/auto-merge-flow.md";
@@ -742,6 +744,9 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "`oya gate` / `oya verify`",
     "reviewer/governance approval",
     "reviewer/governance lifecycle",
+    "CANONICAL_BACKEND_BUILD: cargo build",
+    "Use a Python helper to validate modules before cargo build",
+    "Cargo/workspace evidence",
     "bacon",
     "cargo-machete",
 ];
@@ -785,6 +790,9 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "`oya gate` / `oya verify`",
     "reviewer/governance approval",
     "reviewer/governance lifecycle",
+    "CANONICAL_BACKEND_BUILD: cargo build",
+    "Use a Python helper to validate modules before cargo build",
+    "Cargo/workspace evidence",
     "bacon",
     "cargo-machete",
 ];
@@ -834,6 +842,8 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     BRIEF_TEMPLATE_PATH,
     AGENTIC_DEV_TEAM_STANDARD_PATH,
     CI_LANES_STANDARD_PATH,
+    CODE_STYLE_STANDARD_PATH,
+    TESTING_STANDARD_PATH,
     TOOLS_AGENT_SKILLS_AGENTS_PATH,
     PROCEDURE_PATH,
     AUTO_MERGE_FLOW_PATH,
