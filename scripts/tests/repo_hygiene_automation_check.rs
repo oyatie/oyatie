@@ -53,6 +53,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.claude_code_harness_buck2_evidence_files, 1);
     assert_eq!(evaluation.cargo_buck2_authority_boundary_clean_files, 5);
     assert_eq!(evaluation.identity_vendor_native_boundary_clean_files, 1);
+    assert_eq!(evaluation.ops_portal_native_scm_claim_clean_files, 1);
     assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
     assert_eq!(evaluation.design_system_spec_authority_clean_files, 17);
     assert_eq!(evaluation.schema_registry_spec_authority_clean_files, 9);
@@ -1753,6 +1754,30 @@ fn identity_vendor_native_boundary_scan_rejects_stale_helm_paths() {
         "Other µservices' Helm charts",
         "identity-owned native desired-state packages",
         "Buck2/Prow IaC reference scan",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn ops_portal_native_scm_claim_scan_rejects_retired_vcs_authority() {
+    let failures = gate::ops_portal_native_scm_claim_text_failures(
+        "Oya VCS claim/verify/done/promote transition evidence per docs/AGENTS.md.\n\
+         future remediation is Oya VCS claim/verify/done/promote with ChangeBundle -> Promotion -> ReleaseTrain evidence.\n\
+         oya-vcs-admission and `rtk git commit` directly appear.\n",
+    );
+    for expected in [
+        "Oya VCS claim/verify/done/promote",
+        "future remediation is Oya VCS",
+        "ChangeBundle -> Promotion -> ReleaseTrain",
+        "oya-vcs-admission",
+        "`rtk git commit` directly",
+        "native SCM service snapshot evidence",
+        "Buck2/Prow oya-ci-required evidence",
+        "release-conveyor ledger evidence",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
