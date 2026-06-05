@@ -1,0 +1,29 @@
+{
+  "id": "forms-sheets-product-doc-cli-hygiene-20260605T123700Z",
+  "created_utc": "20260605T123700Z",
+  "branch": "chore/forms-sheets-doc-cli-hygiene-20260605T123120Z",
+  "base": "4e2a78d796e442bbb8f3a79f84946760c8b101bc",
+  "scope": "Forms/Sheets non-runbook product docs plus repo-hygiene Rust guard",
+  "changes": [
+    "Rewrote Forms and Sheets Wave 15-ZD migration playbooks as ADR-0513 current-authority overlays using Buck2/Prow/Kubernetes-native oya-ci-required, GitHub temporary shadow posture, CUE/KRM desired state, and product control-plane operations.",
+    "Rewrote Forms and Sheets sharding IPs to current product operation, PBAC/ABAC, runtime hardening, and evidence posture.",
+    "Rewrote the Sheets foundation plan away from retired local CLI/gate procedures into Buck2/Prow/KRM/control-plane lane boundaries.",
+    "Replaced retired local benchmark and replay command examples with Buck2-owned benchmark/replay evidence requirements and control-plane operation wording.",
+    "Extended the repo-hygiene Rust gate from Forms/Sheets runbooks to eight cleaned Forms/Sheets non-runbook docs."
+  ],
+  "verification": {
+    "targeted_clean_docs_scan": "eight Forms/Sheets non-runbook docs returned no retired local CLI or bridge authority matches",
+    "forms_sheets_residual_dev_cli_scan": "oya/forms and oya/sheets markdown outside runbooks returned no retired local dev CLI matches",
+    "rustfmt": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs; ok",
+    "repo_hygiene_tests": "OYA_REPO_ROOT=$PWD /tmp/oyatie-forms-sheets-doc-cli-hygiene-verify/repo_hygiene_automation_check --nocapture; 64 passed, 0 failed",
+    "repo_hygiene_json": "OYA_REPO_ROOT=$PWD /tmp/oyatie-forms-sheets-doc-cli-hygiene-verify/assert-repo-hygiene-automation --json; verdict PASS, failures []",
+    "buck2": "buck2 build //:repo-hygiene-automation-check --show-output; BUILD SUCCEEDED, latest Build ID 94d864af-f813-41e0-91a9-26e36e3d5af7",
+    "diff_check": "git diff --check passed",
+    "changed_file_secret_scan": "changed-file credential-shaped scan completed with no matches"
+  },
+  "non_claims": [
+    "No live GitHub, Kubernetes, branch-protection, deployment, or secret state was mutated by this evidence record.",
+    "This is an incremental Forms/Sheets clean-file slice; other product directories still require separate cleanup and guards.",
+    "This does not claim full repository stale-authority purge or full product documentation cleanup."
+  ]
+}

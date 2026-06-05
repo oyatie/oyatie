@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-05T12:23:00Z",
+  "updated_at": "2026-06-05T12:36:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -143,7 +143,8 @@
       "retired substrate exact-name tombstones",
       "git-backed stale documentation inventory",
       "rust-buck2 stale documentation inventory test target",
-      "product-operation runbook retired CLI/bridge authority scan"
+      "product-operation runbook retired CLI/bridge authority scan",
+      "Forms/Sheets product-operation doc retired authority scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -154,6 +155,22 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental clean-path guard only; remaining product docs are separate backlog slices"
+    },
+    "forms_sheets_product_operation_doc_retired_authority_scan": {
+      "clean_files": [
+        "oya/forms/benchmarks/forms-vs-google-forms-vs-typeform-vs-jotform-vs-surveymonkey.md",
+        "oya/forms/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+        "oya/forms/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+        "oya/sheets/backfill-replay.md",
+        "oya/sheets/benchmarks/sheets-vs-google-sheets-vs-excel-web-vs-airtable.md",
+        "oya/sheets/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+        "oya/sheets/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+        "oya/sheets/PHASE-01-SHEETS-FOUNDATION.md"
+      ],
+      "policy": "Cleaned Forms/Sheets product docs use product control-plane operations, operation-ledger evidence, Buck2/Prow verification, and CUE/KRM desired-state wording. Exact retired substrate names stay in historical registries or ADR provenance, not active product guidance.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental clean-file guard only; remaining product directories are separate backlog slices"
     },
     "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
     "stale_doc_inventory": {
