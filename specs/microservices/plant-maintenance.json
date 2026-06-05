@@ -20,6 +20,11 @@
     "product_id": "plant-maintenance",
     "owning_axis": "axis-enterprise"
   },
+  "promotion_evidence": {
+    "authority": "Buck2/Prow oya-ci-required plus native SCM/PR admission",
+    "lane_model": "Buck2/Prow lane evidence for domain tests, architecture boundaries, lint, and promotion readiness",
+    "delivery_surface": "CUE/KRM desired-state and native release-conveyor/KRM operations when this metadata-only foundation later gains deployable runtime adapters"
+  },
   "goals": {
     "scalability": "Independent horizontal scaling per ADR-0348 (autosharding/auto-rebalance); tenant- and cell-scoped writes with no shared mutable global state. Foundation scope: metadata-only, no measured scaling evidence.",
     "security": "Default-deny tenant isolation via Cedar (ADR-0243) and tenant-as-scope (ADR-0244); no raw credential/PII/secret bytes in the domain. Foundation scope: no runtime authentication.",
@@ -224,16 +229,16 @@
       "name": "domain-test-green",
       "targets": {
         "preview": "RED/GREEN domain tests pass",
-        "stable": "clippy -D warnings + nextest green"
+        "stable": "Buck2/Prow oya-ci-required lint and test lanes pass"
       },
-      "lane_ref": "cargo nextest run"
+      "lane_ref": "Buck2/Prow lane: plant-maintenance-domain-tests"
     },
     {
       "name": "architecture-boundary-conformance",
       "targets": {
         "preview": "0 forbidden dependency edges"
       },
-      "lane_ref": "oya gate validate architecture-boundaries"
+      "lane_ref": "Buck2/Prow lane: architecture-boundaries"
     }
   ]
 }

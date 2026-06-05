@@ -323,13 +323,15 @@
     "microservice_spec_authority_scan": {
       "clean_files": [
         "specs/microservices/accounting.json",
+        "specs/microservices/calendar.json",
         "specs/microservices/hr.json",
-        "specs/microservices/payroll.json"
+        "specs/microservices/payroll.json",
+        "specs/microservices/plant-maintenance.json"
       ],
-      "policy": "Cleaned active microservice specs use Buck2/Prow oya-ci-required, native SCM/PR admission, Buck2/Prow api-semver lanes, CUE/KRM desired-state, and native release-conveyor/KRM wording. Retired external CI/CD substrate names, retired local gate authority, direct Cargo command authority, and per-service CI entrypoint paths must not appear as active promotion evidence.",
+      "policy": "Cleaned active microservice specs use Buck2/Prow oya-ci-required, native SCM/PR admission, Buck2/Prow contract/test/lint/performance lanes, CUE/KRM desired-state, and native release-conveyor/KRM wording. Retired external CI/CD substrate names, retired local gate authority, direct Cargo command authority, and per-service CI entrypoint paths must not appear as active promotion evidence.",
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
-      "claim_boundary": "incremental accounting/hr/payroll spec guard only; remaining microservice specs and historical ADR provenance are separate backlog slices"
+      "claim_boundary": "incremental accounting/calendar/hr/payroll/plant-maintenance spec guard only; remaining microservice specs and historical ADR provenance are separate backlog slices"
     },
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
