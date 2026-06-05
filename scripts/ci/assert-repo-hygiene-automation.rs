@@ -281,6 +281,18 @@ const CLEAN_ARCHITECTURE_RAW_CARGO_TESTING_PHRASES: &[&str] = &[
     "cargo run --bin <name>",
     "cargo nextest run -p <runtime-crate>",
 ];
+const CLEAN_ARCHITECTURE_STALE_PORT_OWNERSHIP_PHRASES: &[&str] = &[
+    "workflow + ports",
+    "port traits exported\n  by `domain`",
+    "// in domain layer\n  pub trait EvidenceStore",
+    "Domain ports define request/response types",
+    "Domain ports declare `async fn`",
+    "domain's error enum",
+    "Result<EvidenceId, DomainError>",
+    "Depends on kernel(s) + domain ports",
+    "Depends on kernel + domain (port traits)",
+    "helper into `domain` (as a port + helper",
+];
 const MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
     "Jenkins LTS",
     "static Jenkins lane scan",
@@ -1321,6 +1333,7 @@ pub struct Evaluation {
     pub intelligence_doc_retired_dev_cli_clean_files: usize,
     pub governance_doc_retired_dev_cli_clean_files: usize,
     pub clean_architecture_buck2_test_posture_files: usize,
+    pub clean_architecture_port_ownership_files: usize,
     pub standards_retired_command_clean_files: usize,
     pub standards_external_substrate_clean_files: usize,
     pub microservice_spec_authority_clean_files: usize,
@@ -2735,6 +2748,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the clean architecture Buck2 testing posture guard",
         ),
         (
+            "\"clean architecture kernel-owned port posture scan\"",
+            "documentation sprawl automation targets must include the clean architecture kernel-owned port posture scan",
+        ),
+        (
+            "\"clean_architecture_kernel_owned_port_posture_scan\"",
+            "documentation sprawl policy must record the clean architecture kernel-owned port posture guard",
+        ),
+        (
             "\"standards retired external substrate name scan\"",
             "documentation sprawl automation targets must include the standards retired external substrate scan",
         ),
@@ -3547,6 +3568,58 @@ pub fn clean_architecture_raw_cargo_testing_failures(root: &Path) -> Vec<String>
     failures
 }
 
+pub fn clean_architecture_kernel_owned_port_text_failures(text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in CLEAN_ARCHITECTURE_STALE_PORT_OWNERSHIP_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{CLEAN_ARCHITECTURE_STANDARD_PATH}: clean architecture port posture contains stale domain-owned port phrase {phrase:?}; port trait declarations live in kernel and adapters implement kernel-owned ports"
+            ));
+        }
+    }
+
+    for required in [
+        "workflow + port usage",
+        "Port trait declarations live in `kernel`,",
+        "kernel-owned port traits",
+        "// in kernel layer",
+        "Kernel ports define request/response types",
+        "Domain workflows call through those kernel-owned ports.",
+        "EvidenceStoreError",
+        "kernel-owned port error enum",
+        "Kernel port traits declare `async fn`",
+        "Depends on kernel(s) + calls kernel-owned ports",
+        "implements kernel-owned port traits",
+        "lift the helper into `kernel` as a port/helper type",
+    ] {
+        require_contains(
+            text,
+            required,
+            &mut failures,
+            CLEAN_ARCHITECTURE_STANDARD_PATH,
+        );
+    }
+
+    failures
+}
+
+pub fn clean_architecture_kernel_owned_port_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let text = match fs::read_to_string(root.join(CLEAN_ARCHITECTURE_STANDARD_PATH)) {
+        Ok(text) => text,
+        Err(error) => {
+            failures.push(format!(
+                "{CLEAN_ARCHITECTURE_STANDARD_PATH}: read failed: {error}"
+            ));
+            return failures;
+        }
+    };
+
+    failures.extend(clean_architecture_kernel_owned_port_text_failures(&text));
+    failures
+}
+
 pub fn standards_retired_local_command_text_failures(clean_file: &str, text: &str) -> Vec<String> {
     let mut failures = Vec::new();
     let lowered_text = text.to_ascii_lowercase();
@@ -3935,6 +4008,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     ));
     failures.extend(standards_retired_local_command_failures(root));
     failures.extend(clean_architecture_raw_cargo_testing_failures(root));
+    failures.extend(clean_architecture_kernel_owned_port_failures(root));
     failures.extend(standards_retired_external_substrate_failures(root));
     failures.extend(microservice_spec_authority_failures(root));
     failures.extend(design_system_spec_authority_failures(root));
@@ -4321,6 +4395,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         governance_doc_retired_dev_cli_clean_files: GOVERNANCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES
             .len(),
         clean_architecture_buck2_test_posture_files: 1,
+        clean_architecture_port_ownership_files: 1,
         standards_retired_command_clean_files: STANDARDS_RETIRED_COMMAND_CLEAN_FILES.len(),
         standards_external_substrate_clean_files: STANDARDS_EXTERNAL_SUBSTRATE_CLEAN_FILES.len(),
         microservice_spec_authority_clean_files: MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES.len(),
@@ -4342,7 +4417,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -4358,6 +4433,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.intelligence_doc_retired_dev_cli_clean_files,
         evaluation.governance_doc_retired_dev_cli_clean_files,
         evaluation.clean_architecture_buck2_test_posture_files,
+        evaluation.clean_architecture_port_ownership_files,
         evaluation.standards_retired_command_clean_files,
         evaluation.standards_external_substrate_clean_files,
         evaluation.microservice_spec_authority_clean_files,
