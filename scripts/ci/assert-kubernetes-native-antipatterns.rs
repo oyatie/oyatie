@@ -21,6 +21,11 @@ const BUCK_PATH: &str = "BUCK";
 const VCS_REGISTRY_README_PATH: &str = "registry/vcs/README.md";
 const VCS_EVENT_ROUTER_PATH: &str = "registry/vcs/event-router.yaml";
 const VCS_CONCURRENT_SAFE_PATHS_PATH: &str = "registry/vcs/concurrent-safe-paths.yaml";
+const KUBERNETES_DESIRED_STATE_AUTHORITY_PATH: &str =
+    "docs/standards/kubernetes-desired-state-authority.md";
+const HELM_CHART_CONVENTION_REDIRECT_PATH: &str = "docs/standards/helm-chart-convention.md";
+const DOCS_README_PATH: &str = "docs/README.md";
+const STANDARDS_INDEX_PATH: &str = "docs/standards/INDEX.md";
 const CHECK_COMMAND: &str = "buck2 build //:kubernetes-native-anti-pattern-check";
 
 const OFFICIAL_SOURCES: &[&str] = &[
@@ -473,6 +478,103 @@ pub fn vcs_registry_tombstone_failures(
     failures
 }
 
+pub fn desired_state_authority_failures(
+    standard: &str,
+    helm_redirect: &str,
+    docs_readme: &str,
+    standards_index: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for needle in [
+        "# CUE/Kubernetes desired-state authority",
+        "CUE packages are the first-party source of truth",
+        "Generated Kubernetes manifests are build artifacts",
+        "Helm is adapter compatibility only",
+        "hand-authored first-party Helm templates",
+        "Do not",
+        CHECK_COMMAND,
+        "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+        "https://helm.sh/docs/topics/charts/",
+        "https://architecture.cncf.io/",
+        "https://kubernetes.io/docs/concepts/architecture/controller/",
+        "Existing `iac/helm` paths are compatibility scaffolding",
+    ] {
+        require_contains(
+            standard,
+            needle,
+            &mut failures,
+            KUBERNETES_DESIRED_STATE_AUTHORITY_PATH,
+        );
+    }
+
+    for forbidden in [
+        "Helm chart convention (canonical)",
+        "Every µservice depends on",
+        "oya gate helm-structural-validator",
+        "helm dep update",
+        "helm install",
+    ] {
+        require_not_contains(
+            standard,
+            forbidden,
+            &mut failures,
+            KUBERNETES_DESIRED_STATE_AUTHORITY_PATH,
+        );
+    }
+
+    for needle in [
+        "Retired redirect",
+        "not use this file as current implementation guidance",
+        "kubernetes-desired-state-authority.md",
+        "Helm is adapter compatibility only",
+    ] {
+        require_contains(
+            helm_redirect,
+            needle,
+            &mut failures,
+            HELM_CHART_CONVENTION_REDIRECT_PATH,
+        );
+    }
+
+    for forbidden in [
+        "Helm chart convention (canonical)",
+        "Every µservice depends on",
+        "oya gate",
+    ] {
+        require_not_contains(
+            helm_redirect,
+            forbidden,
+            &mut failures,
+            HELM_CHART_CONVENTION_REDIRECT_PATH,
+        );
+    }
+
+    for needle in [
+        "kubernetes-desired-state-authority.md",
+        "CUE/Kubernetes Desired-State Authority",
+    ] {
+        require_contains(docs_readme, needle, &mut failures, DOCS_README_PATH);
+    }
+
+    for forbidden in [
+        "standards/helm-chart-convention.md",
+        "Helm Chart Convention",
+    ] {
+        require_not_contains(docs_readme, forbidden, &mut failures, DOCS_README_PATH);
+    }
+
+    for needle in [
+        "kubernetes-desired-state-authority.md",
+        "CUE-first Kubernetes desired state",
+        CHECK_COMMAND,
+    ] {
+        require_contains(standards_index, needle, &mut failures, STANDARDS_INDEX_PATH);
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
     let contract = read(root, CONTRACT_PATH, &mut failures);
@@ -488,6 +590,11 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let vcs_readme = read(root, VCS_REGISTRY_README_PATH, &mut failures);
     let vcs_event_router = read(root, VCS_EVENT_ROUTER_PATH, &mut failures);
     let vcs_concurrent_safe_paths = read(root, VCS_CONCURRENT_SAFE_PATHS_PATH, &mut failures);
+    let desired_state_authority =
+        read(root, KUBERNETES_DESIRED_STATE_AUTHORITY_PATH, &mut failures);
+    let helm_chart_redirect = read(root, HELM_CHART_CONVENTION_REDIRECT_PATH, &mut failures);
+    let docs_readme = read(root, DOCS_README_PATH, &mut failures);
+    let standards_index = read(root, STANDARDS_INDEX_PATH, &mut failures);
 
     failures.extend(contract_failures(&contract));
     failures.extend(controller_config_failures(&controller_config));
@@ -496,6 +603,12 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &vcs_readme,
         &vcs_event_router,
         &vcs_concurrent_safe_paths,
+    ));
+    failures.extend(desired_state_authority_failures(
+        &desired_state_authority,
+        &helm_chart_redirect,
+        &docs_readme,
+        &standards_index,
     ));
 
     for needle in [
@@ -580,6 +693,10 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "registry/vcs/README.md",
         "registry/vcs/event-router.yaml",
         "registry/vcs/concurrent-safe-paths.yaml",
+        "docs/standards/kubernetes-desired-state-authority.md",
+        "docs/standards/helm-chart-convention.md",
+        "docs/README.md",
+        "docs/standards/INDEX.md",
     ] {
         require_contains(&buck, needle, &mut failures, BUCK_PATH);
     }

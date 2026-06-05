@@ -925,7 +925,7 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§2 Decisions]
 42. [git-workflow.md](standards/git-workflow.md) - Git Workflow: normative rule shelf for implementation, docs, operations, or governance discipline.
 43. [gitops-iac-cluster-tier-boundaries.md](standards/gitops-iac-cluster-tier-boundaries.md) - Gitops Iac Cluster Tier Boundaries: normative rule shelf for implementation, docs, operations, or governance discipline.
 44. [graceful-shutdown-canonical.md](standards/graceful-shutdown-canonical.md) - Graceful Shutdown Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-45. [helm-chart-convention.md](standards/helm-chart-convention.md) - Helm Chart Convention: normative rule shelf for implementation, docs, operations, or governance discipline.
+45. [kubernetes-desired-state-authority.md](standards/kubernetes-desired-state-authority.md) - CUE/Kubernetes Desired-State Authority: first-party CUE packages, generated Kubernetes manifests, and Helm adapter-only boundaries.
 46. [hyperscaler-best-practices.md](standards/hyperscaler-best-practices.md) - Hyperscaler Best Practices: normative rule shelf for implementation, docs, operations, or governance discipline.
 47. [hyperscaler-invariant-conformance.md](standards/hyperscaler-invariant-conformance.md) - Hyperscaler Invariant Conformance: normative rule shelf for implementation, docs, operations, or governance discipline.
 48. [i18n-canonical.md](standards/i18n-canonical.md) - I18N Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.

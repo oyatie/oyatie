@@ -1,0 +1,68 @@
+{
+  "verdict": "PASS",
+  "timestamp_utc": "2026-06-05T08:31:00Z",
+  "lane": "cue-kubernetes-packaging-hygiene",
+  "branch": "chore/cue-k8s-packaging-hygiene-20260605T082350Z",
+  "scope": [
+    "docs/standards/kubernetes-desired-state-authority.md",
+    "docs/standards/helm-chart-convention.md",
+    "docs/README.md",
+    "docs/standards/INDEX.md",
+    "scripts/ci/assert-kubernetes-native-antipatterns.rs",
+    "scripts/tests/kubernetes_native_antipatterns_check.rs",
+    "BUCK"
+  ],
+  "decision": "CUE packages are first-party Kubernetes desired-state authority; generated Kubernetes manifests are Buck2/Prow-checked artifacts; Helm is adapter compatibility only for third-party charts, generated wrappers, or temporary migration seams.",
+  "official_sources": [
+    "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+    "https://helm.sh/docs/topics/charts/",
+    "https://architecture.cncf.io/",
+    "https://kubernetes.io/docs/concepts/architecture/controller/"
+  ],
+  "local_verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-kubernetes-native-antipatterns.rs scripts/tests/kubernetes_native_antipatterns_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/kubernetes_native_antipatterns_check.rs --test",
+      "exit_code": 0,
+      "result": "19 passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-kubernetes-native-antipatterns.rs && OYA_REPO_ROOT=$PWD assert-kubernetes-native-antipatterns --json",
+      "exit_code": 0,
+      "result": {
+        "verdict": "PASS",
+        "required_patterns": 36,
+        "forbidden_anti_patterns": 37,
+        "official_sources": 33,
+        "failures": []
+      }
+    },
+    {
+      "command": "buck2 build //:kubernetes-native-anti-pattern-check //:repo-hygiene-automation-check //:buck2-authority-policy-check --show-output",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "targeted stale Helm-authority wording scan over docs/standards/helm-chart-convention.md docs/standards/kubernetes-desired-state-authority.md docs/README.md docs/standards/INDEX.md",
+      "exit_code": 0,
+      "result": "no matches"
+    },
+    {
+      "command": "git diff --check && git diff --cached --check",
+      "exit_code": 0
+    }
+  ],
+  "buck2_outputs": {
+    "kubernetes_native_anti_pattern_check": "PASS",
+    "repo_hygiene_automation_check": "PASS",
+    "buck2_authority_policy_check": "PASS"
+  },
+  "non_goals": [
+    "No live Kubernetes mutation",
+    "No Helm adapter migration for individual services in this slice",
+    "No durable Python or shell automation added"
+  ]
+}
