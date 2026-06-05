@@ -48,6 +48,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.product_operation_doc_clean_files, 13);
     assert_eq!(evaluation.intelligence_doc_retired_dev_cli_clean_files, 34);
     assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
+    assert_eq!(evaluation.clean_architecture_buck2_test_posture_files, 1);
     assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
     assert_eq!(evaluation.design_system_spec_authority_clean_files, 17);
     assert_eq!(evaluation.schema_registry_spec_authority_clean_files, 9);
@@ -1701,6 +1702,34 @@ fn active_doc_phrase_scanner_rejects_raw_cargo_hyperscaler_evidence() {
         "mandatory `cargo nextest`",
         "CI enforces `cargo clippy",
         "Tests (`cargo nextest",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn clean_architecture_scan_rejects_raw_cargo_test_posture_examples() {
+    let failures = gate::clean_architecture_raw_cargo_testing_text_failures(
+        "| `kernel` | Pure unit | `cargo nextest run -p <kernel-crate>`; no `tokio` |\n\
+         | `domain` | Trait-mock + property | `cargo nextest run -p <domain-crate>` |\n\
+         | `app` | Integration | `cargo nextest run -p <app-crate>` |\n\
+         | `api` | Contract | `cargo nextest run -p <api-crate>` |\n\
+         | `adapter` | Integration | `cargo nextest run -p <adapter-crate> --features integration` |\n\
+         | `runtime` | Smoke | `cargo run --bin <name> -- --help`; `cargo nextest run -p <runtime-crate>` |\n",
+    );
+    for expected in [
+        "cargo nextest run -p <kernel-crate>",
+        "cargo nextest run -p <domain-crate>",
+        "cargo nextest run -p <app-crate>",
+        "cargo nextest run -p <api-crate>",
+        "cargo nextest run -p <adapter-crate>",
+        "cargo run --bin <name>",
+        "cargo nextest run -p <runtime-crate>",
+        "Buck2 unit-test target",
+        "Buck2 Build ID",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
