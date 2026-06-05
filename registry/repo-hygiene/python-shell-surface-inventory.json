@@ -3,9 +3,9 @@
   "$id": "https://docs.oyatie.com/registry/repo-hygiene/python-shell-surface-inventory.json",
   "registry_id": "python-shell-surface-inventory",
   "status": "classified_no_durable_authority",
-  "updated_at": "2026-06-05T03:05:00Z",
+  "updated_at": "2026-06-05T03:35:00Z",
   "count_source": "filesystem_scan_excluding_vendored_surfaces",
-  "tracked_file_count": 51,
+  "tracked_file_count": 50,
   "authority": {
     "python_shell_durable_gate_authority": false,
     "new_python_or_shell_gate_surface": "deny_unless_explicit_bootstrap_exception",
@@ -83,7 +83,6 @@
       "paths": [
         "oya/ci-controller/iac/oci/push-and-sign.sh",
         "registry/stub-audit/2026-05-17/generate_findings.py",
-        "scripts/emit_rust_tests.py",
         "scripts/gen_first_party_buck.py",
         "tools/hooks/adr-orphan-detect.sh",
         "tools/hooks/pre-dispatch-guide.sh",
