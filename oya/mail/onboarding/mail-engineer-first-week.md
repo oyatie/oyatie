@@ -26,19 +26,13 @@ Acceptance: you can sketch the outbound path: tenant compose API → DKIM signin
 
 ## Day 2 — demo_trial drill-cell bootstrap + domain verification
 
-```sh
-cargo run -p oya-dev-cli -- mail bootstrap \
-    --tenant-class demo_trial \
-    --cell drill-syd-1 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/mail \
-    --seaweed-s3-endpoint http://drill-seaweed-syd-1:8333 \
-    --opensearch-endpoint http://drill-opensearch-syd-1:9200 \
-    --postfix-cluster-endpoint smtp://drill-postfix-syd-1:25 \
-    --rspamd-endpoint http://drill-rspamd-syd-1:11334 \
-    --openbao-endpoint https://drill-openbao-syd-1:8200 \
-    --openbao-mount mail \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: mail bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 15 min. Verify:

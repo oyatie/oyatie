@@ -23,15 +23,13 @@ Acceptance: you can sketch on a whiteboard the seal path: emitter µservice → 
 
 ## Day 2 — demo_trial audit-chain cell bootstrap
 
-```sh
-cargo run -p oya-dev-cli -- audit-chain bootstrap \
-    --tenant-class demo_trial \
-    --cell drill-syd-1 \
-    --pulsar-endpoint pulsar://drill-pulsar-syd-1:6650 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/audit_chain \
-    --seaweed-s3-endpoint http://drill-seaweed-syd-1:8333 \
-    --signing-key-mode sealed-secret \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: audit-chain bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 15 min. Watch the bootstrap log for the phases (in order):
@@ -49,7 +47,8 @@ After bootstrap, verify:
 kubectl -n audit-chain get pods
 # Expected: audit-chain-ingest-{0,1,2}, audit-chain-sealer-{0,1}, audit-chain-verifier-0
 
-cargo run -p oya-dev-cli -- audit-chain head --cell drill-syd-1
+# Read audit-chain head through the native audit-chain query operation.
+# Evidence: operation ledger id + Buck2 target output + Prow/Kubernetes-native `oya-ci-required` job URL.
 # Expected output:
 # chain_head_seq=0 root_hash=sha256:c2c7d553b16112a279535b2f012840cf21ed851372a7bef12070e16e40365619 sealed_at=<bootstrap timestamp> signature_ed25519=...
 ```

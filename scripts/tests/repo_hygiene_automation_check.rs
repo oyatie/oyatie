@@ -59,6 +59,7 @@ fn checked_in_repo_hygiene_contract_passes() {
         evaluation.agent_durable_goal_deployment_authority_clean_files,
         1
     );
+    assert_eq!(evaluation.onboarding_retired_dev_cli_clean_files, 15);
 }
 
 #[test]
@@ -1791,6 +1792,26 @@ fn claude_code_harness_scan_rejects_raw_cargo_evidence_posture() {
         "Buck2 Build ID",
         "Prow/Kubernetes-native `oya-ci-required` evidence",
         "Raw Cargo runner strings are not merge, coverage, or protected-branch",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn onboarding_retired_dev_cli_scan_rejects_raw_bootstrap_authority() {
+    let failures = gate::onboarding_retired_dev_cli_text_failures(
+        "oya/calendar/onboarding/calendar-engineer-first-week.md",
+        "```sh\ncargo run -p oya-dev-cli -- calendar bootstrap \\\n    --cell drill-syd-1\n```\n",
+    );
+    for expected in [
+        "cargo run -p oya-dev-cli",
+        "oya-dev-cli",
+        "Buck2",
+        "Prow/Kubernetes-native `oya-ci-required`",
+        "operation ledger",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),

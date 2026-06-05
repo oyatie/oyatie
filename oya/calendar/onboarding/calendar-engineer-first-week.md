@@ -26,16 +26,13 @@ Acceptance: you can sketch the FREEBUSY query path: requester → calendar-api �
 
 ## Day 2 — demo_trial cell bootstrap + first event
 
-```sh
-cargo run -p oya-dev-cli -- calendar bootstrap \
-    --profile demo_trial \
-    --cell drill-syd-1 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/calendar \
-    --valkey-endpoint valkey://drill-valkey-syd-1:6379 \
-    --kafka-endpoint kafka://drill-kafka-syd-1:9092 \
-    --radicale-endpoint http://drill-radicale-syd-1:5232 \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: calendar bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 12 min. Verify:

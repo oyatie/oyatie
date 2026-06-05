@@ -161,7 +161,8 @@
       "design-system spec retired local validator authority scan",
       "schema/registry spec retired local validator authority scan",
       "deployment-ops contract retired external substrate authority scan",
-      "agent-durable-goal retired deployment authority scan"
+      "agent-durable-goal retired deployment authority scan",
+      "active onboarding retired dev CLI/Cargo bootstrap scan"
     ],
     "root_quick_start_native_authority_scan": {
       "policy": "Root quick-start guidance must name native SCM/PR state transition, Buck2 evidence, and Prow/Kubernetes-native oya-ci-required authority without copyable retired local VCS/gate/verify CLI examples.",
@@ -442,6 +443,29 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental agent-durable-goal deployment-authority cleanup only; historical ADRs, old changelog provenance outside active instructions, and generated mirrors remain separate archive/regeneration slices"
+    },
+    "onboarding_retired_dev_cli_scan": {
+      "clean_files": [
+        "oya/analytics/onboarding/data-engineer-first-week.md",
+        "oya/audit-chain/onboarding/compliance-officer-first-week.md",
+        "oya/calendar/onboarding/calendar-engineer-first-week.md",
+        "oya/community/onboarding/community-engineer-first-week.md",
+        "oya/compliance/onboarding/compliance-engineer-first-week.md",
+        "oya/detection/onboarding/detection-engineer-first-week.md",
+        "oya/drive/onboarding/drive-engineer-first-week.md",
+        "oya/feature-flags/onboarding/engineer-first-week.md",
+        "oya/finops-portal/onboarding/finops-engineer-first-week.md",
+        "oya/mail/onboarding/mail-engineer-first-week.md",
+        "oya/messenger/onboarding/messenger-engineer-first-week.md",
+        "oya/ontology/onboarding/ontology-engineer-first-week.md",
+        "oya/payments/onboarding/payments-engineer-first-week.md",
+        "oya/workflow-engine/onboarding/workflow-engineer-first-week.md",
+        "oya/workflow-studio/onboarding/no-code-builder-first-week.md"
+      ],
+      "policy": "Active first-week onboarding docs must not teach retired dev CLI/raw Cargo bootstrap commands as authority. Bootstrap, tenant-onboard, retire, deploy, and chain-head walkthroughs use native operation-ledger wording plus Buck2 target evidence and Prow/Kubernetes-native oya-ci-required output.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental first-week onboarding dev CLI cleanup only; observability, docs, intelligence, workplace CLI surfaces remain separate backlog slices"
     },
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",

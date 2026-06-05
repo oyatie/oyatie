@@ -26,18 +26,13 @@ Acceptance: you can sketch the send path: client encrypts under MLS group epoch 
 
 ## Day 2 — demo_trial cell bootstrap + first MLS key delivery
 
-```sh
-cargo run -p oya-dev-cli -- messenger bootstrap \
-    --profile demo_trial \
-    --cell drill-syd-1 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/messenger \
-    --scylla-endpoint scylla://drill-scylla-syd-1:9042 \
-    --pulsar-endpoint pulsar://drill-pulsar-syd-1:6650 \
-    --openbao-endpoint https://drill-openbao-syd-1:8200 \
-    --openbao-mount messenger \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --tantivy-index-dir /var/lib/messenger-index \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: messenger bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 14 min. Verify:

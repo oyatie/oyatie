@@ -144,6 +144,23 @@ const DEPLOYMENT_OPS_CONTRACT_AUTHORITY_CLEAN_FILES: &[&str] =
     &["specs/deployment-ops-contract.json"];
 const AGENT_DURABLE_GOAL_DEPLOYMENT_AUTHORITY_CLEAN_FILES: &[&str] =
     &["specs/agent-durable-goal.json"];
+const ONBOARDING_RETIRED_DEV_CLI_CLEAN_FILES: &[&str] = &[
+    "oya/analytics/onboarding/data-engineer-first-week.md",
+    "oya/audit-chain/onboarding/compliance-officer-first-week.md",
+    "oya/calendar/onboarding/calendar-engineer-first-week.md",
+    "oya/community/onboarding/community-engineer-first-week.md",
+    "oya/compliance/onboarding/compliance-engineer-first-week.md",
+    "oya/detection/onboarding/detection-engineer-first-week.md",
+    "oya/drive/onboarding/drive-engineer-first-week.md",
+    "oya/feature-flags/onboarding/engineer-first-week.md",
+    "oya/finops-portal/onboarding/finops-engineer-first-week.md",
+    "oya/mail/onboarding/mail-engineer-first-week.md",
+    "oya/messenger/onboarding/messenger-engineer-first-week.md",
+    "oya/ontology/onboarding/ontology-engineer-first-week.md",
+    "oya/payments/onboarding/payments-engineer-first-week.md",
+    "oya/workflow-engine/onboarding/workflow-engineer-first-week.md",
+    "oya/workflow-studio/onboarding/no-code-builder-first-week.md",
+];
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
@@ -296,6 +313,7 @@ const CLEAN_ARCHITECTURE_STALE_PORT_OWNERSHIP_PHRASES: &[&str] = &[
 ];
 const CLAUDE_CODE_HARNESS_RAW_CARGO_EVIDENCE_PHRASES: &[&str] =
     &["cargo nextest run", "cargo deny check", "AGENTS.md D9–D11"];
+const ONBOARDING_RETIRED_DEV_CLI_PHRASES: &[&str] = &["cargo run -p oya-dev-cli", "oya-dev-cli"];
 const MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
     "Jenkins LTS",
     "static Jenkins lane scan",
@@ -1345,6 +1363,7 @@ pub struct Evaluation {
     pub schema_registry_spec_authority_clean_files: usize,
     pub deployment_ops_contract_authority_clean_files: usize,
     pub agent_durable_goal_deployment_authority_clean_files: usize,
+    pub onboarding_retired_dev_cli_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2820,6 +2839,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the agent durable goal native deployment authority guard",
         ),
         (
+            "\"active onboarding retired dev CLI/Cargo bootstrap scan\"",
+            "documentation sprawl automation targets must include the active onboarding retired dev CLI scan",
+        ),
+        (
+            "\"onboarding_retired_dev_cli_scan\"",
+            "documentation sprawl policy must record the active onboarding retired dev CLI clean-file guard",
+        ),
+        (
             "\"root_quick_start_native_authority_scan\"",
             "documentation sprawl policy must record the root quick-start native authority guard",
         ),
@@ -3679,6 +3706,45 @@ pub fn claude_code_harness_buck2_evidence_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn onboarding_retired_dev_cli_text_failures(clean_file: &str, text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in ONBOARDING_RETIRED_DEV_CLI_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{clean_file}: onboarding doc contains retired dev CLI/Cargo bootstrap phrase {phrase:?}; use native operation-ledger wording plus Buck2/Prow evidence"
+            ));
+        }
+    }
+
+    for required in [
+        "Buck2",
+        "Prow/Kubernetes-native `oya-ci-required`",
+        "operation ledger",
+    ] {
+        require_contains(text, required, &mut failures, clean_file);
+    }
+
+    failures
+}
+
+pub fn onboarding_retired_dev_cli_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in ONBOARDING_RETIRED_DEV_CLI_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        failures.extend(onboarding_retired_dev_cli_text_failures(clean_file, &text));
+    }
+
+    failures
+}
+
 pub fn standards_retired_local_command_text_failures(clean_file: &str, text: &str) -> Vec<String> {
     let mut failures = Vec::new();
     let lowered_text = text.to_ascii_lowercase();
@@ -4075,6 +4141,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(schema_registry_spec_authority_failures(root));
     failures.extend(deployment_ops_contract_authority_failures(root));
     failures.extend(agent_durable_goal_deployment_authority_failures(root));
+    failures.extend(onboarding_retired_dev_cli_failures(root));
     failures.extend(buck2_release_policy_failures(
         &spec,
         &workflow,
@@ -4467,6 +4534,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
             DEPLOYMENT_OPS_CONTRACT_AUTHORITY_CLEAN_FILES.len(),
         agent_durable_goal_deployment_authority_clean_files:
             AGENT_DURABLE_GOAL_DEPLOYMENT_AUTHORITY_CLEAN_FILES.len(),
+        onboarding_retired_dev_cli_clean_files: ONBOARDING_RETIRED_DEV_CLI_CLEAN_FILES.len(),
     }
 }
 
@@ -4478,7 +4546,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"claude_code_harness_buck2_evidence_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"claude_code_harness_buck2_evidence_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"onboarding_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -4503,6 +4571,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.schema_registry_spec_authority_clean_files,
         evaluation.deployment_ops_contract_authority_clean_files,
         evaluation.agent_durable_goal_deployment_authority_clean_files,
+        evaluation.onboarding_retired_dev_cli_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures

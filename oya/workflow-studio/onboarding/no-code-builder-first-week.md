@@ -28,14 +28,13 @@ Acceptance: you can sketch the publish path: studio canvas → save → workflow
 
 ## Day 2 — demo_trial studio cell bootstrap + first workflow
 
-```sh
-cargo run -p oya-dev-cli -- workflow-studio bootstrap \
-    --tenant-class demo_trial \
-    --cell drill-syd-1 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/workflow_engine \
-    --valkey-endpoint valkey://drill-valkey-syd-1:6379 \
-    --workflow-engine-endpoint http://drill-workflow-engine-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: workflow-studio bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 8 min. Verify:
@@ -86,11 +85,13 @@ Acceptance: studio bootstrap; visual workflow authoring; publish + execute round
 
 Real-time collab uses paid tenant_class capacity policy; demo_trial keeps last-write-wins. Set up a paid tenant_class shadow:
 
-```sh
-cargo run -p oya-dev-cli -- workflow-studio bootstrap \
-    --tenant-class paid \
-    --profile shadow \
-    --cell drill-syd-1
+```text
+Native operation: workflow-studio bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Open the studio in TWO browser tabs (or with a peer). Both load the same workflow. Each cursor + selection appears live in the other tab.

@@ -23,14 +23,13 @@ Acceptance: you can sketch the query path: tenant API → Cedar gate → query p
 
 ## Day 2 — demo_trial tenant_class ontology cell bootstrap + first schema
 
-```sh
-cargo run -p oya-dev-cli -- ontology bootstrap \
-    --tenant-class demo_trial \
-    --cell drill-syd-1 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/ontology \
-    --valkey-endpoint valkey://drill-valkey-syd-1:6379 \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: ontology bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 10 min. Verify:

@@ -22,13 +22,13 @@ Acceptance: you can articulate the 8 detection families + the per-family mitigat
 
 ## Day 2 — Deploy a streaming detection job
 
-```sh
-cargo run -p oya-dev-cli -- detection deploy \
-    --family payment-fraud \
-    --cell drill-syd-1 \
-    --shape streaming \
-    --rule-set rules/payment-fraud-baseline.cedar \
-    --model-card model-cards/payment-fraud-v0.json
+```text
+Native operation: detection deploy
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 The deploy controller:

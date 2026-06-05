@@ -26,16 +26,13 @@ Acceptance: you can sketch the effective-policy computation path: tenant subscri
 
 ## Day 2 — demo_trial cell bootstrap + first pack overlay
 
-```sh
-cargo run -p oya-dev-cli -- compliance bootstrap \
-    --profile demo-trial \
-    --cell drill-syd-1 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/compliance \
-    --clickhouse-endpoint http://drill-clickhouse-syd-1:8123 \
-    --kafka-endpoint kafka://drill-kafka-syd-1:9092 \
-    --valkey-endpoint valkey://drill-valkey-syd-1:6379 \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: compliance bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 14 min. Verify:
