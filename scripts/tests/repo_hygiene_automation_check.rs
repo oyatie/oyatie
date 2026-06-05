@@ -40,7 +40,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 0);
     assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 37);
-    assert_eq!(evaluation.active_context_scan_files, 28);
+    assert_eq!(evaluation.active_context_scan_files, 29);
     assert_eq!(evaluation.active_template_scan_files, 30);
     assert_eq!(evaluation.retired_exact_name_scan_files, 36);
     assert_eq!(evaluation.product_operation_runbook_clean_paths, 2);
@@ -1683,6 +1683,24 @@ fn active_doc_phrase_scanner_rejects_cargo_as_backend_build_authority() {
         "CANONICAL_BACKEND_BUILD: cargo build",
         "Use a Python helper to validate modules before cargo build",
         "Cargo/workspace evidence",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn active_doc_phrase_scanner_rejects_raw_cargo_hyperscaler_evidence() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/standards/hyperscaler-best-practices.md",
+        "mandatory `cargo nextest` + `cargo clippy -D warnings` evidence gates. CI enforces `cargo clippy -- -D warnings`. Tests (`cargo nextest run --no-fail-fast`).",
+    );
+    for expected in [
+        "mandatory `cargo nextest`",
+        "CI enforces `cargo clippy",
+        "Tests (`cargo nextest",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
