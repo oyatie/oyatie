@@ -411,6 +411,50 @@ fn cloud_network_authority_scan_rejects_retired_cli_cargo_and_helm_authority() {
 }
 
 #[test]
+fn cell_rebalancer_authority_scan_rejects_retired_cli_cargo_and_helm_authority() {
+    let root = temp_dir("cell-rebalancer-authority");
+    let service_dir = root.join("cloud/cell-rebalancer");
+    fs::create_dir_all(service_dir.join("iac/k8s/helm")).unwrap_or_else(|error| {
+        panic!("create {}: {}", service_dir.display(), error);
+    });
+
+    fs::write(
+        service_dir.join("README.md"),
+        "The canonical local pre-push verifier is still active.\n\
+         Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates.\n\
+         cargo fmt and cargo nextest remain release evidence.\n\
+         app.kubernetes.io/managed-by: Helm.\n",
+    )
+    .unwrap_or_else(|error| panic!("write stale cell-rebalancer doc: {error}"));
+    fs::write(
+        service_dir.join("clean.md"),
+        "ADR-0513 Buck2/Prow `oya-ci-required` evidence plus CUE/KRM desired state and native release-conveyor seams are active.\n",
+    )
+    .unwrap_or_else(|error| panic!("write clean cell-rebalancer doc: {error}"));
+
+    let failures = gate::cell_rebalancer_authority_failures(&root);
+
+    for expected in [
+        "README.md",
+        "canonical local pre-push verifier",
+        "Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates",
+        "cargo fmt",
+        "cargo nextest",
+        "app.kubernetes.io/managed-by: Helm",
+        "cloud/cell-rebalancer/iac/k8s/helm",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+    assert!(
+        failures.iter().all(|failure| !failure.contains("clean.md")),
+        "{failures:?}"
+    );
+}
+
+#[test]
 fn spec_rejects_missing_security_hardening_backlog_item() {
     let spec = read_repo_file("specs/repo-hygiene-automation.json").replace(
         "\"id\": \"service_mesh_mtls\"",
