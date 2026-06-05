@@ -89,7 +89,7 @@ session:
   ↓
 <perform edits>          # via Read / Edit / Write tools
   ↓
-cargo nextest run …      # evidence per testing.md §2
+buck2 test <claimed-target>  # local evidence; CI/Prow repeats the lane
   ↓
   ↓
 ```
@@ -99,8 +99,13 @@ Rules:
 1. Every IP (Implementation Plan) under `.omc/plans/milestones/**` names
    the symbol an agent claims as a real `file::Identifier`
    (per MASTERPLAN §6 dual-audience contract).
-   + `cargo deny check` are green locally (per AGENTS.md D9–D11).
-   dangling lease.
+2. Every edited lane records the Buck2 test target(s), Buck2 Build ID, and
+   Prow/Kubernetes-native `oya-ci-required` evidence used for merge readiness.
+3. Cargo manifests remain compatibility metadata and local advisory inputs.
+   Raw Cargo runner strings are not merge, coverage, or protected-branch
+   authority; supply-chain policy evidence must be projected through
+   registered Buck2/Prow checks.
+4. Dangling leases are resolved by the active worktree/PR owner before handoff.
 
 
 
