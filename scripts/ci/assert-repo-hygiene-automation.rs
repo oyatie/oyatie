@@ -82,6 +82,7 @@ const CARGO_BUCK2_AUTHORITY_BOUNDARY_CLEAN_FILES: &[&str] = &[
     "docs/standards/identity-vendor-isolation.md",
     "specs/agent-durable-goal.json",
 ];
+const IDENTITY_VENDOR_ISOLATION_STANDARD_PATH: &str = "docs/standards/identity-vendor-isolation.md";
 const STANDARDS_RETIRED_COMMAND_CLEAN_FILES: &[&str] = &[
     "docs/standards/anti-patterns.md",
     "docs/standards/api-design.md",
@@ -337,6 +338,14 @@ const CARGO_BUCK2_AUTHORITY_BOUNDARY_FORBIDDEN_PHRASES: &[&str] = &[
     "\"cargo-fmt\"",
     "\"cargo-clippy\"",
     "\"cargo-nextest\"",
+];
+const IDENTITY_VENDOR_NATIVE_BOUNDARY_FORBIDDEN_PHRASES: &[&str] = &[
+    "## Forbidden Helm references",
+    "microservices/identity/iac/helm/zitadel/",
+    "microservices/*/iac",
+    "Other µservices' Helm charts",
+    "Helm chart",
+    "Helm charts",
 ];
 const ONBOARDING_RETIRED_DEV_CLI_PHRASES: &[&str] = &["cargo run -p oya-dev-cli", "oya-dev-cli"];
 const OBSERVABILITY_ONBOARDING_STALE_AUTHORITY_PHRASES: &[&str] = &[
@@ -1394,6 +1403,7 @@ pub struct Evaluation {
     pub clean_architecture_port_ownership_files: usize,
     pub claude_code_harness_buck2_evidence_files: usize,
     pub cargo_buck2_authority_boundary_clean_files: usize,
+    pub identity_vendor_native_boundary_clean_files: usize,
     pub standards_retired_command_clean_files: usize,
     pub standards_external_substrate_clean_files: usize,
     pub microservice_spec_authority_clean_files: usize,
@@ -2834,6 +2844,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the Cargo/Buck2 authority boundary guard",
         ),
         (
+            "\"identity vendor native desired-state boundary scan\"",
+            "documentation sprawl automation targets must include the identity vendor native boundary scan",
+        ),
+        (
+            "\"identity_vendor_native_boundary_scan\"",
+            "documentation sprawl policy must record the identity vendor native boundary guard",
+        ),
+        (
             "\"standards retired external substrate name scan\"",
             "documentation sprawl automation targets must include the standards retired external substrate scan",
         ),
@@ -3817,6 +3835,50 @@ pub fn cargo_buck2_authority_boundary_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn identity_vendor_native_boundary_text_failures(text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in IDENTITY_VENDOR_NATIVE_BOUNDARY_FORBIDDEN_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{IDENTITY_VENDOR_ISOLATION_STANDARD_PATH}: identity vendor isolation standard contains stale shared-path or chart authority phrase {phrase:?}; use identity-owned native desired-state package wording plus Buck2/Prow evidence"
+            ));
+        }
+    }
+    for required in [
+        "identity-owned native desired-state packages",
+        "service-owned KRM/CUE package",
+        "Buck2/Prow IaC reference scan",
+        "native controller operation ledger",
+        "legacy shared-path chart checks are\nhistorical provenance",
+    ] {
+        require_contains(
+            text,
+            required,
+            &mut failures,
+            IDENTITY_VENDOR_ISOLATION_STANDARD_PATH,
+        );
+    }
+
+    failures
+}
+
+pub fn identity_vendor_native_boundary_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let text = match fs::read_to_string(root.join(IDENTITY_VENDOR_ISOLATION_STANDARD_PATH)) {
+        Ok(text) => text,
+        Err(error) => {
+            failures.push(format!(
+                "{IDENTITY_VENDOR_ISOLATION_STANDARD_PATH}: read failed: {error}"
+            ));
+            return failures;
+        }
+    };
+
+    failures.extend(identity_vendor_native_boundary_text_failures(&text));
+    failures
+}
+
 pub fn onboarding_retired_dev_cli_text_failures(clean_file: &str, text: &str) -> Vec<String> {
     let mut failures = Vec::new();
 
@@ -4292,6 +4354,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(clean_architecture_kernel_owned_port_failures(root));
     failures.extend(claude_code_harness_buck2_evidence_failures(root));
     failures.extend(cargo_buck2_authority_boundary_failures(root));
+    failures.extend(identity_vendor_native_boundary_failures(root));
     failures.extend(standards_retired_external_substrate_failures(root));
     failures.extend(microservice_spec_authority_failures(root));
     failures.extend(design_system_spec_authority_failures(root));
@@ -4684,6 +4747,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         claude_code_harness_buck2_evidence_files: 1,
         cargo_buck2_authority_boundary_clean_files: CARGO_BUCK2_AUTHORITY_BOUNDARY_CLEAN_FILES
             .len(),
+        identity_vendor_native_boundary_clean_files: 1,
         standards_retired_command_clean_files: STANDARDS_RETIRED_COMMAND_CLEAN_FILES.len(),
         standards_external_substrate_clean_files: STANDARDS_EXTERNAL_SUBSTRATE_CLEAN_FILES.len(),
         microservice_spec_authority_clean_files: MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES.len(),
@@ -4707,7 +4771,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"claude_code_harness_buck2_evidence_files\":{},\"cargo_buck2_authority_boundary_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"observability_onboarding_authority_clean_files\":{},\"onboarding_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"claude_code_harness_buck2_evidence_files\":{},\"cargo_buck2_authority_boundary_clean_files\":{},\"identity_vendor_native_boundary_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"observability_onboarding_authority_clean_files\":{},\"onboarding_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -4726,6 +4790,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.clean_architecture_port_ownership_files,
         evaluation.claude_code_harness_buck2_evidence_files,
         evaluation.cargo_buck2_authority_boundary_clean_files,
+        evaluation.identity_vendor_native_boundary_clean_files,
         evaluation.standards_retired_command_clean_files,
         evaluation.standards_external_substrate_clean_files,
         evaluation.microservice_spec_authority_clean_files,

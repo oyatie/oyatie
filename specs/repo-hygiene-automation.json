@@ -157,6 +157,7 @@
       "clean architecture kernel-owned port posture scan",
       "Claude Code harness Buck2 evidence posture scan",
       "Cargo/Buck2 authority boundary active-doc scan",
+      "identity vendor native desired-state boundary scan",
       "standards retired external substrate name scan",
       "microservice spec retired CI/CD and local gate authority scan",
       "design-system spec retired local validator authority scan",
@@ -372,6 +373,13 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental active-doc boundary guard only; broader Cargo ecosystem policy projection remains dependency-policy scope"
+    },
+    "identity_vendor_native_boundary_scan": {
+      "clean_file": "docs/standards/identity-vendor-isolation.md",
+      "policy": "Identity vendor isolation guidance must point to identity-owned native desired-state packages, service-owned KRM/CUE package checks, Buck2/Prow IaC reference scans, and native controller operation-ledger evidence. It must not point agents at stale shared microservices Helm paths as active authority.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental identity-vendor active-standard guard only; physical removal or migration of legacy identity IaC directories remains a separate backlog slice"
     },
     "standards_retired_external_substrate_scan": {
       "clean_files": [
