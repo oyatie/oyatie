@@ -5,7 +5,7 @@ doc_status: published
 
 # Oyatie — Commit Message Standard
 
-> **Owner:** `council-architecture`. Validator: `oya verify` pre-push hook + per-PR CI lane.
+> **Owner:** `council-architecture`. Validator: Buck2/Prow commit-message evidence lane reporting through `oya-ci-required`; local hooks are advisory only.
 
 ## 1. Format (Conventional Commits)
 

@@ -361,21 +361,17 @@ It must produce deterministic diagnostics.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane bundle, not retired local CLI commands:
 
-```bash
-oya gate validate layered-architecture --scope crates
-```
+- Primary lane: `layered-architecture`.
+- Companion lanes: `naming-convention`, `flat-crates`, and
+  `catalog-id-discipline`.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
-Additional commands:
-
-```bash
-oya gate validate naming-convention --scope crates
-oya gate validate flat-crates --scope crates
-oya gate validate catalog-id-discipline --scope registry
-```
-
-The layer checker MUST parse `cargo metadata --no-deps`.
+The layer checker MUST parse Buck2 target metadata and the canonical package
+registry. Cargo metadata remains compatibility input only when a Buck2-owned
+adapter explicitly consumes it.
 
 The layer checker MUST parse `[package.metadata.oya]`.
 

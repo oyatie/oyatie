@@ -268,19 +268,14 @@ This passes because tier, audit, and authorization are explicit.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI/doc command:
 
-```bash
-oya gate validate openapi-3-2-authoring --scope contracts
-```
-
-Companion commands:
-
-```bash
-oya gate validate openapi-rest-route-parity --scope crates
-oya gate validate api-versioning --scope contracts
-oya doc openapi
-```
+- Primary lane: `openapi-3-2-authoring`.
+- Companion lanes: `openapi-rest-route-parity` and `api-versioning`.
+- Documentation generation evidence: Buck2-owned OpenAPI contract emitter or
+  parity checker output.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST parse all OpenAPI files.
 

@@ -257,11 +257,11 @@ This passes because ontology dependency is explicit.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI command:
 
-```bash
-oya gate validate asyncapi-3-1-authoring --scope microservices
-```
+- Primary lane: `asyncapi-3-1-authoring`.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST parse all `*.asyncapi.yaml`.
 

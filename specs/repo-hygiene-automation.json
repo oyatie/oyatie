@@ -149,7 +149,8 @@
       "Intelligence markdown retired local dev CLI scan",
       "governance markdown retired local dev CLI and external substrate scan",
       "cloud-tenancy retired CLI/Cargo/external CI authority scan",
-      "M02 exit-gate validator retired CLI/Cargo/pnpm authority scan"
+      "M02 exit-gate validator retired CLI/Cargo/pnpm authority scan",
+      "standards retired local gate/doc/vcs command scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -276,6 +277,33 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental standards-doc guard only; remaining standards command examples are separate backlog slices"
+    },
+    "standards_retired_local_command_scan": {
+      "clean_files": [
+        "docs/standards/anti-patterns.md",
+        "docs/standards/api-design.md",
+        "docs/standards/asyncapi-3-1-authoring.md",
+        "docs/standards/cedar-policy-authoring.md",
+        "docs/standards/cedar-policy-discipline.md",
+        "docs/standards/clean-architecture.md",
+        "docs/standards/commit-message.md",
+        "docs/standards/fips-hsm-substrate-root-signing.md",
+        "docs/standards/layer-enum-adr-0105.md",
+        "docs/standards/mls-rfc-9420-conformance.md",
+        "docs/standards/naming-convention-bnf-v4.md",
+        "docs/standards/observability-slo.md",
+        "docs/standards/ontology-projection-substrate.md",
+        "docs/standards/openapi-3-2-authoring.md",
+        "docs/standards/openslo-authoring.md",
+        "docs/standards/proto3-authoring.md",
+        "docs/standards/regulatory-pack-authzpolicy-overlays.md",
+        "docs/standards/twelve-factor-adoption.md",
+        "docs/standards/workflow-substrate-engine.md"
+      ],
+      "policy": "Cleaned standards docs must describe validator evidence as Buck2-owned Rust kernels/targets plus Prow/Kubernetes-native oya-ci-required output. Retired local oya gate, oya doc, oya verify, oya vcs, and direct Cargo command examples must not appear as active standards guidance.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental standards command cleanup only; remaining Cargo-deny/LTS policy wording and retired external substrate references are separate backlog slices"
     },
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
