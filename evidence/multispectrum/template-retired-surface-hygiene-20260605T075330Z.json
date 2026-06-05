@@ -1,0 +1,66 @@
+{
+  "evidence_id": "template-retired-surface-hygiene-20260605T075330Z",
+  "captured_at": "20260605T075330Z",
+  "lane": "chore/template-retired-surface-hygiene-20260605T073717Z",
+  "base_commit": "16af4abbbce5c693212ed762bed876750318f053",
+  "claim_boundary": {
+    "local_static_only": true,
+    "live_mutation_performed": false,
+    "shared_template_surface_reduced": true,
+    "remote_checks_pending": true
+  },
+  "change_summary": [
+    "rewrote active templates away from retired local VCS/governance wrappers, pnpm/Node20, and Cargo-as-merge-authority command examples",
+    "reframed template workflows around isolated git worktrees, GitHub PR lanes, Buck2/Prow evidence, and evidence bundles",
+    "added a Rust/Buck2 repo-hygiene template drift scan so shared templates cannot reintroduce those stale phrases"
+  ],
+  "local_verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test ... && OYA_REPO_ROOT=$PWD <test-binary>",
+      "exit_code": 0,
+      "observed": "44 passed; 0 failed"
+    },
+    {
+      "command": "jq empty templates/evidence-bundle-template.json templates/checklists/pre-pr-multispectrum.json",
+      "exit_code": 0
+    },
+    {
+      "command": "rg stale retired shared-template phrases under templates",
+      "exit_code": 0,
+      "observed": "no matches"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check --show-output",
+      "exit_code": 0,
+      "outputs": {
+        "repo_hygiene_automation": "buck-out/v2/art/root/39893c7e49283da4/__repo-hygiene-automation-check__/out/repo-hygiene-automation-check.json",
+        "buck2_authority_policy": "buck-out/v2/art/root/39893c7e49283da4/__buck2-authority-policy-check__/out/buck2-authority-policy-check.json"
+      }
+    },
+    {
+      "command": "git diff --check && git diff --cached --check",
+      "exit_code": 0
+    }
+  ],
+  "policy_outputs": {
+    "repo_hygiene_automation": {
+      "verdict": "PASS",
+      "domains_checked": 6,
+      "security_hardening_backlog_count": 40,
+      "tracked_typescript_pnpm_mjs_count": 0,
+      "tracked_nonvendored_python_shell_count": 37,
+      "active_context_scan_files": 25,
+      "active_template_scan_files": 30,
+      "failures": []
+    },
+    "buck2_authority_policy": {
+      "verdict": "PASS",
+      "authority_context": "oya-ci-required",
+      "command_scan_files": 149
+    }
+  }
+}

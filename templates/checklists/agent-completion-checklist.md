@@ -3,9 +3,9 @@ doc_class: Checklist
 checklist_id: CHK-COMPLETE
 status: pending approval
 purpose: |
-  The agent's last 5 actions before `grit done`. Closes the agentic-navigation contract. Walked at the end of every agent session that modified the repo.
+  The agent's last 5 actions before marking a PR lane ready. Closes the agentic-navigation contract. Walked at the end of every agent session that modified the repo.
 lift_target: oyatie/docs/checklists/agent-completion.md
-enforcing_fitness_lane: oya-governance-banned-primitives + oya-governance-audit-emission
+enforcing_fitness_lane: repo-hygiene-automation-check + oya-governance-audit-emission
 owner_team: axis-foundry
 related:
   - .omc/plans/MASTERPLAN.md
@@ -17,37 +17,30 @@ related:
 
 # Agent Completion Checklist
 
-> The last 5 actions every agent **MUST** complete before `grit done`. Mirrors `agent-kickoff-checklist.md` (symmetry by design).
+> The last 5 actions every agent **MUST** complete before marking a PR lane ready. Mirrors `agent-kickoff-checklist.md` (symmetry by design).
 
 <!-- agent-instructions:start -->
 
 ## C1. Verify acceptance criteria
 
-Run every command from IP `§Acceptance test commands`. Capture stdout via `oya-tooling-agent-read run-evidence <cmd>`. Paste outputs into the PR body `## Verification` section.
+Run every command from IP `§Acceptance test commands`. Capture stdout/stderr directly from Buck2 and remote-check commands. Paste outputs into the PR body `## Verification` section.
 
 If any command fails, **do not** proceed. Re-walk the work, or halt and emit `BLOCKED_ON_HUMAN_ORCHESTRATOR` per `/templates/checklists/escalation-checklist.md`.
 
-## C2. ICM store (durable memory)
+## C2. Evidence bundle
 
-Emit the IP's `§Icm-store-payload` **verbatim** (do not paraphrase):
+Emit the IP's `§Evidence-bundle payload` **verbatim** (do not paraphrase) under `/evidence/multispectrum/`:
 
-```
-icm store \
-  -t context-<project> \
-  -c "IP-NNN-<slug> merged at <changebundle-id>; grit symbols released: <list>; acceptance lanes green: <list>; next IP: <pointer>" \
-  -i high \
-  -k "M0N,P0N,IP-NNN,<axis>"
+```json
+{
+  "change_id": "IP-NNN-<slug>",
+  "branch": "<short-lived-branch>",
+  "acceptance_lanes_green": ["<buck2-target-or-remote-context>"],
+  "next_ip": "<pointer>"
+}
 ```
 
-If the IP shipped a mechanical prevention for a prior failure, **also** emit:
-
-```
-icm store \
-  -t errors-resolved \
-  -c "<failure mode description> prevented by <mechanical prevention name>" \
-  -i high \
-  -k "MFL-NNNN,<prevention-name>"
-```
+If the IP shipped a mechanical prevention for a prior failure, include the failure-mode row and prevention target in the evidence bundle.
 
 ## C3. Update inventory ledger (if migration-class)
 
@@ -57,26 +50,27 @@ Per `/templates/checklists/inventory-update-checklist.md` — append a row to th
 
 Confirm:
 - `EVT-IP-MERGED` emitted with IP ID + merge SHA + symbol list.
-- `EVT-GRIT-DONE` emitted on `grit done`.
+- PR remote checks and required evidence contexts are attached to the merge commit.
 - (If capability publish) `oya.foundry.capability.invoked` topic registered.
 - (If runbook author) `oya.ops.runbook.invoked` topic resolvable.
 
 Paste the `EVT-*` IDs into PR `## Evidence`. *Lane:* `oya-governance-audit-emission`.
 
-## C5. Grit done
+## C5. Mark PR lane ready
 
 ```
-grit done --ip IP-NNN-<slug> --symbols <symbol-1> <symbol-2> …
+gh pr ready <pr-number>
+gh pr checks <pr-number>
 ```
 
-Releases all claimed symbols. Emits `EVT-GRIT-DONE` automatically. Confirm via `oya-tooling-agent-read audit-tail --last 1`.
+Confirms the short-lived PR lane has evidence attached and is ready for review/merge sequencing.
 
 <!-- agent-instructions:end -->
 
 ## Hard rules
 
-- **No `git push` from agent.** PR creation is via `oya-tooling-agent-read pr-create` (read-only adapter wraps `gh pr create` behind a controlled verb, audit-emitting). If unavailable, halt and emit `BLOCKED_ON_HUMAN_ORCHESTRATOR`.
-- **No `grit done` before all symbols' work is committed.** Half-done releases corrupt the merge queue.
+- **Use plain `git`, `gh`, and Buck2.** Retired local VCS/governance wrappers are not SCM or CI authority.
+- **No PR-ready label before all lane-owned paths are committed and verified.** Half-done lanes corrupt the merge queue.
 - **No silent loop exit.** If running inside Ralph / autopilot / ultrawork / team loop, re-walk the `done-definition-checklist.md` before cancelling (per `docs/AGENTS.md §Long-running loop rule`).
 
 ## Loop-cancellation
@@ -85,9 +79,9 @@ Cancel via `/oh-my-claudecode:cancel` **only** when (a) the change is complete a
 
 ## Stop conditions
 
-- Any IP `§Acceptance test commands` row produced FAIL → halt, do not `grit done`.
-- Audit-chain emission failed → halt, do not `grit done`; emit `BLOCKED_ON_HUMAN_ORCHESTRATOR`.
-- `icm store` failed → retry once with explicit `icm store -t errors-resolved` row recording the prior failure; if still failing, halt.
+- Any IP `§Acceptance test commands` row produced FAIL → halt, do not mark the PR ready.
+- Audit-chain emission failed → halt, do not mark the PR ready; emit `BLOCKED_ON_HUMAN_ORCHESTRATOR`.
+- Evidence bundle creation or secret-scan failed → fix evidence and re-run verification before marking ready.
 
 ## Human path (junior developer)
 

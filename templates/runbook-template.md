@@ -66,7 +66,7 @@ If any pre-check fails, **STOP** and route to a different runbook (cite which) o
 
 <!-- agent-instructions:start -->
 **Agent path** (Foundry runbook-execution capability):
-- Every diagnostic step **MUST** be invoked via `oya-tooling-agent-read run-evidence <cmd>`; raw stdout is captured to the audit chain.
+- Every diagnostic step **MUST** capture raw stdout/stderr in the evidence bundle or incident bridge; do not rely on retired wrapper tools.
 - After step completion, emit `EVT-RUNBOOK-STEP-<n>` with step ID + outcome + timestamp.
 - Halt and emit `BLOCKED_ON_HUMAN_ORCHESTRATOR` per `/templates/checklists/escalation-checklist.md` if an unexpected outcome appears at any step.
 <!-- agent-instructions:end -->
@@ -74,15 +74,15 @@ If any pre-check fails, **STOP** and route to a different runbook (cite which) o
 **Human path:** the same commands; paste output to incident bridge.
 
 ```
-1. Verify the affected surface — `oya ops surface inspect <id>`
+1. Verify the affected surface — `<read-only Kubernetes or observability query>`
    Expected: <output shape>
    If differs: route to RB-<other>; do not proceed.
 
-2. Inspect recent deploys — `oya-tooling-agent-read deploy-log --last 1h`
+2. Inspect recent deploys — `<read-only deployment history query>`
    Expected: <output shape>
    If differs: suspect deploy; jump to Mitigation step M2.
 
-3. Inspect audit chain — `oya admin audit-chain replay --topic <topic> --last 10m`
+3. Inspect audit chain — `<read-only audit-chain replay query for topic <topic> over the last 10m>`
    Expected: per-tenant emission cadence steady.
 ```
 

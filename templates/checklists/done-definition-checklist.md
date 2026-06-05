@@ -28,10 +28,10 @@ related:
 - [ ] **D6** New schemas carry `data_class` per field. *Lane:* `oya-governance-data-class`.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Verification:* CI status check.
 - [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Lane:* `guard-pr-merge-review.mjs`.
-- [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Verification:* output in `## Verification`.
-- [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Verification:* output.
-- [ ] **D11** `cargo deny check` passes. *Verification:* output.
-- [ ] **D12** `oya verify` passes. *Verification:* output.
+- [ ] **D9** Lane-owned Buck2 build/test targets for touched code pass. *Verification:* output in `## Verification`.
+- [ ] **D10** Lane-owned Buck2 lint/format/static-analysis targets pass. *Verification:* output.
+- [ ] **D11** Dependency additions are current stable/LTS or explicitly waived in the dependency registries. *Verification:* Buck2 dependency-policy output.
+- [ ] **D12** PR evidence includes the required Prow/GitHub adapter checks with no manual bridge status. *Verification:* remote check output or explicit blocker.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
 - [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.
@@ -51,8 +51,8 @@ related:
 - [ ] `MFL-NNNN` row added if class of bug is recurrence-prone. *Lane:* `oya-governance-mistakes-ledger-cite`.
 
 ### refactor
-- [ ] Public API surface unchanged (per `cargo public-api`). *Command:* `cargo public-api --diff`.
-- [ ] `cargo-semver-checks` clean. *Command:* `cargo semver-checks check-release`.
+- [ ] Public API surface unchanged or intentionally migrated. *Command:* lane-owned Buck2 public API diff target.
+- [ ] Semver compatibility remains clean or a breaking-change migration plan is cited. *Command:* lane-owned Buck2 semver target.
 - [ ] Linus good-taste audit row in `## Code Review`. *(advisory)*
 
 ### migration

@@ -26,7 +26,7 @@ related:
 | `MasterPlan` | 1 quarter | Manual; council-architecture | `oya-governance-plan-hierarchy` |
 | `MilestoneIndex` | 2 weeks | Status auto-recomputed from phase INDEX rollup | `oya-governance-plan-hierarchy` |
 | `PhaseIndex` | 1 week | Status auto-recomputed from IP rollup | `oya-governance-plan-hierarchy` |
-| `ImplementationPlan` | per-PR | Author-emitted; agent re-emits on `grit done` | `oya-governance-plan-hierarchy` |
+| `ImplementationPlan` | per-PR | Author-emitted; agent refreshes when marking the PR lane ready | `oya-governance-plan-hierarchy` |
 | `PRD` | 1 quarter (EVT-AXIS-SCOPE-CHANGE, EVT-PRICING-CHANGE, EVT-VERTICAL-ADDED) | Council-only | `prd-internal-consistency` |
 | `Design` (docs/DESIGN.md) | 1 month | Council-only | `design-contracts-mirror` |
 | `Spec` (docs/SPEC.md) | 1 week | Agent auto-PR for additions; manual for deletions | `spec-contract-mirror` |

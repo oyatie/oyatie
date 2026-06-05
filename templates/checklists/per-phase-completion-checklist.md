@@ -3,7 +3,7 @@ doc_class: Checklist
 checklist_id: CHK-PHASE
 status: pending approval
 purpose: |
-  Phase-internal verification. Walked before flipping a phase INDEX `status:` from `in-progress` to `merged` and before emitting the phase-handoff icm event.
+  Phase-internal verification. Walked before flipping a phase INDEX `status:` from `in-progress` to `merged` and before emitting the phase-handoff evidence bundle.
 lift_target: oyatie/docs/checklists/per-phase-completion.md
 enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
@@ -21,13 +21,13 @@ related:
 
 - [ ] **PH1** All IPs under `phases/P0N-<slug>/` have `status: merged` in their frontmatter. *Lane:* `oya-governance-plan-hierarchy`.
 - [ ] **PH2** Phase INDEX `§Acceptance` criteria all met (each row has a lane / command / advisory; all PASS). *Verification:* per-row evidence captured in PR.
-- [ ] **PH3** Phase INDEX `§Symbols touched (high level)` reconciled — no orphan symbols claimed-but-not-released via `grit`. *Command:* `oya-tooling-agent-read grit-status --phase P0N-<slug> --orphans`.
+- [ ] **PH3** Phase INDEX `§Symbols touched (high level)` reconciled against merged PR diffs; no lane-owned path remains orphaned or unmerged. *Verification:* `git log --name-only` / PR list evidence.
 - [ ] **PH4** No `<!-- forward-reference: wave-1 -->` markers remain pointing at artifacts the phase was supposed to ship. *Lane:* `oya-governance-forward-reference`.
 
 ## Engineering bar
 
 - [ ] **PH5** All hyperscaler practices enumerated in milestone INDEX `§Inherited hyperscaler practices` for this phase have evidence captured (e.g., postmortem on Sev-1/2 events; design doc accepted; PRFAQ archived). *(advisory)*
-- [ ] **PH6** `cargo nextest run --workspace --all-features --no-fail-fast` green on the phase-final merge commit. *Verification:* command output.
+- [ ] **PH6** Lane-owned Buck2 build/test targets are green on the phase-final merge commit. *Verification:* command output.
 - [ ] **PH7** Distroless image build (if phase ships binaries) passes image-size budget. *Lane:* `oya-governance-image-discipline`.
 - [ ] **PH8** Supply-chain attestation: Cosign + Syft SBOM + SLSA provenance for every artifact emitted in this phase. *Lane:* `oya-governance-supply-chain`.
 
@@ -41,7 +41,7 @@ related:
 ## Audit-chain + handoff
 
 - [ ] **PH13** Audit-chain emits `EVT-PHASE-COMPLETED` with phase ID + merge SHA + IP list. *Lane:* `oya-governance-audit-emission`.
-- [ ] **PH14** Phase-handoff icm event emitted (verbatim from phase INDEX `§Agent-handoff`). *Command:* `icm store -t phase-handoff …`.
+- [ ] **PH14** Phase-handoff evidence bundle emitted (verbatim from phase INDEX `§Agent-handoff evidence`). *Verification:* `/evidence/multispectrum/` bundle path.
 - [ ] **PH15** Next-phase INDEX `gates_on:` row marks this phase `merged`. *Lane:* `oya-governance-plan-hierarchy`.
 - [ ] **PH16** Status reporting row added to `docs/status-reports/YYYY-Www.md` per `MASTERPLAN.md §11 cadence`. *(advisory)*
 
