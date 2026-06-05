@@ -59,6 +59,7 @@ fn checked_in_repo_hygiene_contract_passes() {
         evaluation.agent_durable_goal_deployment_authority_clean_files,
         1
     );
+    assert_eq!(evaluation.observability_onboarding_authority_clean_files, 1);
     assert_eq!(evaluation.onboarding_retired_dev_cli_clean_files, 15);
 }
 
@@ -1812,6 +1813,34 @@ fn onboarding_retired_dev_cli_scan_rejects_raw_bootstrap_authority() {
         "Buck2",
         "Prow/Kubernetes-native `oya-ci-required`",
         "operation ledger",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn observability_onboarding_scan_rejects_retired_cli_and_microservices_paths() {
+    let failures = gate::observability_onboarding_authority_text_failures(
+        "Install the `oya` CLI per `bin/oya --version`.\n\
+         Run `cargo run -p oya-dev-cli -- observability validate-recipe microservices/<your-ms>/observability/sample-recipe.yaml`.\n\
+         Verify locally: `cargo run -p oya-<your-ms>-app -- --otel-endpoint http://localhost:4317`.\n\
+         Copy from `microservices/identity/observability/sample-recipe.yaml` and read `microservices/observability/ARCHITECTURE.md`.\n",
+    );
+    for expected in [
+        "bin/oya --version",
+        "cargo run -p oya-dev-cli",
+        "cargo run -p oya-<your-ms>-app",
+        "microservices/<your-ms>",
+        "microservices/identity",
+        "microservices/observability",
+        "GitHub is the temporary mirror/PR adapter",
+        "oya/<service>/observability/sample-recipe.yaml",
+        "service-owned Buck2 OTel smoke target",
+        "native KRM/CUE desired-state PR",
+        ".github/CODEOWNERS",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),

@@ -144,6 +144,7 @@ const DEPLOYMENT_OPS_CONTRACT_AUTHORITY_CLEAN_FILES: &[&str] =
     &["specs/deployment-ops-contract.json"];
 const AGENT_DURABLE_GOAL_DEPLOYMENT_AUTHORITY_CLEAN_FILES: &[&str] =
     &["specs/agent-durable-goal.json"];
+const OBSERVABILITY_ONBOARDING_PATH: &str = "oya/observability/onboarding/sre-lead-first-week.md";
 const ONBOARDING_RETIRED_DEV_CLI_CLEAN_FILES: &[&str] = &[
     "oya/analytics/onboarding/data-engineer-first-week.md",
     "oya/audit-chain/onboarding/compliance-officer-first-week.md",
@@ -314,6 +315,18 @@ const CLEAN_ARCHITECTURE_STALE_PORT_OWNERSHIP_PHRASES: &[&str] = &[
 const CLAUDE_CODE_HARNESS_RAW_CARGO_EVIDENCE_PHRASES: &[&str] =
     &["cargo nextest run", "cargo deny check", "AGENTS.md D9–D11"];
 const ONBOARDING_RETIRED_DEV_CLI_PHRASES: &[&str] = &["cargo run -p oya-dev-cli", "oya-dev-cli"];
+const OBSERVABILITY_ONBOARDING_STALE_AUTHORITY_PHRASES: &[&str] = &[
+    "cargo run -p oya-dev-cli",
+    "cargo run -p oya-<your-ms>-app",
+    "oya-dev-cli",
+    "bin/oya --version",
+    "oya CLI",
+    "microservices/<your-ms>",
+    "microservices/<ms>",
+    "microservices/identity",
+    "microservices/observability",
+    "microservices/observability/CODEOWNERS",
+];
 const MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
     "Jenkins LTS",
     "static Jenkins lane scan",
@@ -1363,6 +1376,7 @@ pub struct Evaluation {
     pub schema_registry_spec_authority_clean_files: usize,
     pub deployment_ops_contract_authority_clean_files: usize,
     pub agent_durable_goal_deployment_authority_clean_files: usize,
+    pub observability_onboarding_authority_clean_files: usize,
     pub onboarding_retired_dev_cli_clean_files: usize,
 }
 
@@ -2839,6 +2853,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the agent durable goal native deployment authority guard",
         ),
         (
+            "\"observability onboarding retired CLI/Cargo/microservices path scan\"",
+            "documentation sprawl automation targets must include the observability onboarding authority scan",
+        ),
+        (
+            "\"observability_onboarding_authority_scan\"",
+            "documentation sprawl policy must record the observability onboarding authority guard",
+        ),
+        (
             "\"active onboarding retired dev CLI/Cargo bootstrap scan\"",
             "documentation sprawl automation targets must include the active onboarding retired dev CLI scan",
         ),
@@ -3745,6 +3767,51 @@ pub fn onboarding_retired_dev_cli_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn observability_onboarding_authority_text_failures(text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in OBSERVABILITY_ONBOARDING_STALE_AUTHORITY_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{OBSERVABILITY_ONBOARDING_PATH}: observability onboarding contains stale CLI/Cargo/microservices authority phrase {phrase:?}; use oya/<service> shards plus native operation-ledger and Buck2/Prow evidence"
+            ));
+        }
+    }
+
+    for required in [
+        "GitHub is the temporary mirror/PR adapter",
+        "native operation ledgers remain the authority",
+        "oya/<service>/observability/sample-recipe.yaml",
+        "service-owned Buck2 OTel smoke target",
+        "oya/<service>/slos/",
+        "native KRM/CUE desired-state PR",
+        "oya/<service>/runbooks/",
+        "Prow/Kubernetes-native `oya-ci-required`",
+        "native operation ledger id",
+        ".github/CODEOWNERS",
+    ] {
+        require_contains(text, required, &mut failures, OBSERVABILITY_ONBOARDING_PATH);
+    }
+
+    failures
+}
+
+pub fn observability_onboarding_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let text = match fs::read_to_string(root.join(OBSERVABILITY_ONBOARDING_PATH)) {
+        Ok(text) => text,
+        Err(error) => {
+            failures.push(format!(
+                "{OBSERVABILITY_ONBOARDING_PATH}: read failed: {error}"
+            ));
+            return failures;
+        }
+    };
+
+    failures.extend(observability_onboarding_authority_text_failures(&text));
+    failures
+}
+
 pub fn standards_retired_local_command_text_failures(clean_file: &str, text: &str) -> Vec<String> {
     let mut failures = Vec::new();
     let lowered_text = text.to_ascii_lowercase();
@@ -4141,6 +4208,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(schema_registry_spec_authority_failures(root));
     failures.extend(deployment_ops_contract_authority_failures(root));
     failures.extend(agent_durable_goal_deployment_authority_failures(root));
+    failures.extend(observability_onboarding_authority_failures(root));
     failures.extend(onboarding_retired_dev_cli_failures(root));
     failures.extend(buck2_release_policy_failures(
         &spec,
@@ -4534,6 +4602,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
             DEPLOYMENT_OPS_CONTRACT_AUTHORITY_CLEAN_FILES.len(),
         agent_durable_goal_deployment_authority_clean_files:
             AGENT_DURABLE_GOAL_DEPLOYMENT_AUTHORITY_CLEAN_FILES.len(),
+        observability_onboarding_authority_clean_files: 1,
         onboarding_retired_dev_cli_clean_files: ONBOARDING_RETIRED_DEV_CLI_CLEAN_FILES.len(),
     }
 }
@@ -4546,7 +4615,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"claude_code_harness_buck2_evidence_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"onboarding_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"clean_architecture_buck2_test_posture_files\":{},\"clean_architecture_port_ownership_files\":{},\"claude_code_harness_buck2_evidence_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"observability_onboarding_authority_clean_files\":{},\"onboarding_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -4571,6 +4640,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.schema_registry_spec_authority_clean_files,
         evaluation.deployment_ops_contract_authority_clean_files,
         evaluation.agent_durable_goal_deployment_authority_clean_files,
+        evaluation.observability_onboarding_authority_clean_files,
         evaluation.onboarding_retired_dev_cli_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
