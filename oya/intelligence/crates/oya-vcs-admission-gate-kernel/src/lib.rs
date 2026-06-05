@@ -548,22 +548,19 @@ fn check_pr_tests_workflow(text: &str, violations: &mut Vec<AdmissionViolation>)
             "pr-tests workflow must expose the oya-vcs-admission job invoking oya-vcs-admission-gate-app",
         );
     }
-    let invokes_legacy_script = text.contains("scripts/install-trivy-ci.sh");
     let invokes_rust_installer = text.contains("supply-chain install-trivy");
-    if !invokes_legacy_script && !invokes_rust_installer {
+    if !invokes_rust_installer {
         push(
             violations,
             "PR_TESTS_WORKFLOW_MISSING_TRIVY_INSTALL",
-            "pr-tests workflow must install Trivy before Oya VCS admission via the Rust supply-chain installer or compatibility shim",
+            "pr-tests workflow must install Trivy before Oya VCS admission via the Rust supply-chain installer",
         );
     }
 }
 
 fn check_supply_chain_workflow(text: &str, violations: &mut Vec<AdmissionViolation>) {
     // The required job ID is the branch-protection contract surface. The
-    // body of the job may invoke either the legacy script or the Wave 3
-    // Rust app (the script removal lands atomically with the workflow
-    // body switch in commit 2 of the Wave 3 fan-out).
+    // body of the job must route through Rust/Buck2-owned evidence surfaces.
     if !text.contains("oya-vcs-provider-execution") {
         push(
             violations,

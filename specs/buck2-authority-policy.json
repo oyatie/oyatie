@@ -191,9 +191,6 @@
   "command_scan_files": [
     "infra/ci/buck2-affected-gate.sh",
     "scripts/branch-protection-apply.sh",
-    "scripts/onprem-bring-up.sh",
-    "scripts/install-trivy-ci.sh",
-    "scripts/validate-release-image-supply-chain.sh",
     "scripts/hooks/pre-push.sh",
     "scripts/ci/enforce-buck2-authority.rs",
     "scripts/tests/phase0_ci_enforcement_baseline_catalog_check.rs",

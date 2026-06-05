@@ -3,9 +3,9 @@
   "$id": "https://docs.oyatie.com/registry/repo-hygiene/python-shell-surface-inventory.json",
   "registry_id": "python-shell-surface-inventory",
   "status": "classified_no_durable_authority",
-  "updated_at": "2026-06-05T06:00:00Z",
+  "updated_at": "2026-06-05T07:02:00Z",
   "count_source": "filesystem_scan_excluding_vendored_surfaces",
-  "tracked_file_count": 40,
+  "tracked_file_count": 37,
   "authority": {
     "python_shell_durable_gate_authority": false,
     "new_python_or_shell_gate_surface": "deny_unless_explicit_bootstrap_exception",
@@ -26,8 +26,6 @@
         "infra/talos/local/talos-local.sh",
         "infra/talos/smoke-kata.sh",
         "scripts/build/build-and-push-cloud-intelligence.sh",
-        "scripts/install-trivy-ci.sh",
-        "scripts/onprem-bring-up.sh",
         "scripts/onprem-host-decommission.sh",
         "tools/hook-bootstrap/install.sh",
         "tools/hook-bootstrap/uninstall.sh"
@@ -71,7 +69,6 @@
         "scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh",
         "scripts/tests/reject-placeholder-digests.test.sh",
         "scripts/tests/reject-public-dev-domains.test.sh",
-        "scripts/validate-release-image-supply-chain.sh",
         "tools/hooks/injection-content-scanner.sh",
         "tools/hooks/no-cargo-enforcer.sh",
         "tools/hooks/vacuous-green-gate-detect.sh"
