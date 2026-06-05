@@ -49,6 +49,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.intelligence_doc_retired_dev_cli_clean_files, 34);
     assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
     assert_eq!(evaluation.clean_architecture_buck2_test_posture_files, 1);
+    assert_eq!(evaluation.clean_architecture_port_ownership_files, 1);
     assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
     assert_eq!(evaluation.design_system_spec_authority_clean_files, 17);
     assert_eq!(evaluation.schema_registry_spec_authority_clean_files, 9);
@@ -1730,6 +1731,43 @@ fn clean_architecture_scan_rejects_raw_cargo_test_posture_examples() {
         "cargo nextest run -p <runtime-crate>",
         "Buck2 unit-test target",
         "Buck2 Build ID",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn clean_architecture_scan_rejects_domain_owned_port_posture() {
+    let failures = gate::clean_architecture_kernel_owned_port_text_failures(
+        "domain[\"domain<br/>(workflow + ports)\"]\n\
+         Depends on `kernel` and `domain` only (specifically: the port traits exported\n  by `domain`).\n\
+         // in domain layer\n  pub trait EvidenceStore: Send + Sync {}\n\
+         Domain ports define request/response types **via kernel** types only.\n\
+         Domain ports declare `async fn` in trait.\n\
+         The adapter translates errors into the domain's error enum.\n\
+         async fn put(&self, evidence: Evidence) -> Result<EvidenceId, DomainError>;\n\
+         | Depends on kernel(s) + domain ports; library-only | `domain` |\n\
+         | Depends on kernel + domain (port traits); imports a backend SDK | `adapter` |\n\
+         a helper SHOULD lift the helper into `domain` (as a port + helper type).\n",
+    );
+    for expected in [
+        "workflow + ports",
+        "port traits exported",
+        "// in domain layer",
+        "Domain ports define request/response types",
+        "Domain ports declare `async fn`",
+        "domain's error enum",
+        "Result<EvidenceId, DomainError>",
+        "Depends on kernel(s) + domain ports",
+        "Depends on kernel + domain (port traits)",
+        "helper into `domain` (as a port + helper",
+        "workflow + port usage",
+        "EvidenceStoreError",
+        "Kernel port traits declare `async fn`",
+        "implements kernel-owned port traits",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
