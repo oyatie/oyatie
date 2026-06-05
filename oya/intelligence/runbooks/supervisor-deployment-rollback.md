@@ -40,7 +40,7 @@ ONE of:
 |---|---|---|
 | 1 | Open `#inc-<id>` Slack; assign IC; declare severity | ≤ 5 min |
 | 2 | Confirm pre-checks | ≤ 2 min |
-| 3 | Invoke rollback: `cargo run -p oya-dev-cli -- supervisor rollback-deployment --capability <id> --to-version <sha> --reason "<enum>"`. CLI: (a) signs the rollback; (b) updates `AgentDeployment` CRD to prior version; (c) Operator reconciles → foundry-runtime workers swap; (d) emits `DeploymentRolledBack` event Ed25519-signed | ≤ 1 min |
+| 3 | Invoke rollback: `Intelligence control-plane operation: supervisor rollback-deployment --capability <id> --to-version <sha> --reason "<enum>"`. The control-plane operation: (a) signs the rollback; (b) updates `AgentDeployment` CRD to prior version; (c) Operator reconciles → foundry-runtime workers swap; (d) emits `DeploymentRolledBack` event Ed25519-signed | ≤ 1 min |
 | 4 | Verify CRD reflects prior version: `kubectl get agentdeployment <id> -n foundry-tenant-<hashed-id> -o yaml` | ≤ 1 min |
 | 5 | Verify foundry-runtime workers reconciled (drain old + spin up prior) | ≤ 5 min |
 | 6 | Verify SLI returns to green (burn-rate alert clears within ≤ 15 min) | ≤ 15 min |
@@ -54,7 +54,7 @@ ONE of:
 |---|---|
 | 1 | Inspect `Deployment` row + phase + age |
 | 2 | Confirm observability `EligibilityChanged` events present for the capability |
-| 3 | Option A — advance: if eligibility green, manually advance `cargo run -p oya-dev-cli -- supervisor advance-phase --capability <id>` |
+| 3 | Option A — advance: if eligibility green, manually advance `Intelligence control-plane operation: supervisor advance-phase --capability <id>` |
 | 4 | Option B — rollback: invoke standard rollback (above) |
 | 5 | If neither: escalate to axis-foundry-control-plane SME |
 

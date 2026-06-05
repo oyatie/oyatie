@@ -42,8 +42,8 @@ ONE of:
 |---|---|---|
 | 1 | If Sev-1: open `#inc-<id>`; IC + OpsLead + axis-foundry SME | ≤ 5 min |
 | 2 | Confirm pre-checks above | ≤ 5 min |
-| 3 | Demote in-house in the router for affected tenants: `cargo run -p oya-dev-cli -- providers demote --vendor in-house --pack <p> --duration 1h --reason "<id>"`. Router routes affected tenants to next-best vendor per `policy/data-residency.md` | ≤ 1 min |
-| 4 | If a prior in-house version is warm + capability-fit: redirect canary traffic back to prior version via `cargo run -p oya-dev-cli -- providers in-house-rollback --pack <p> --to-version <prior-version> --reason "<id>"` | ≤ 5 min |
+| 3 | Demote in-house in the router for affected tenants: `Intelligence control-plane operation: providers demote --vendor in-house --pack <p> --duration 1h --reason "<id>"`. Router routes affected tenants to next-best vendor per `policy/data-residency.md` | ≤ 1 min |
+| 4 | If a prior in-house version is warm + capability-fit: redirect canary traffic back to prior version via `Intelligence control-plane operation: providers in-house-rollback --pack <p> --to-version <prior-version> --reason "<id>"` | ≤ 5 min |
 | 5 | If prior version cold or unavailable: route entirely to alternate vendor for the duration (per `runbooks/provider-outage-failover.md`) | ≤ 5 min |
 | 6 | Verify quality score recovers: `oya_foundry_providers_provider_quality_score` returns above threshold within 10 min | ≤ 10 min |
 | 7 | Notify tenant operators of the in-house demote per `incident-response.md` template | ≤ 30 min |

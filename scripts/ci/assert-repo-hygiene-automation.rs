@@ -88,6 +88,42 @@ const PRODUCT_OPERATION_DOC_CLEAN_FILES: &[&str] = &[
     "oya/sheets/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
     "oya/sheets/PHASE-01-SHEETS-FOUNDATION.md",
 ];
+const INTELLIGENCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES: &[&str] = &[
+    "oya/intelligence/IP-012-runtime-autonomy-tier-gate.md",
+    "oya/intelligence/IP-073-guardrails-runtime-guardrails-coupling-lane.md",
+    "oya/intelligence/IP-074-guardrails-shadow-mode-rollout-and-false-positive-budget.md",
+    "oya/intelligence/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+    "oya/intelligence/_legacy-foundry/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+    "oya/intelligence/backfill-replay.md",
+    "oya/intelligence/bc-sources/guardrails/PHASE-01-GUARDRAILS-SAFETY-AND-POLICY-ENFORCEMENT.md",
+    "oya/intelligence/bc-sources/providers/backfill-replay.md",
+    "oya/intelligence/bc-sources/providers/multi-region.md",
+    "oya/intelligence/bc-sources/runtime/PHASE-01-AGENT-RUNTIME-AND-CAPABILITY-EXECUTION.md",
+    "oya/intelligence/bc-sources/runtime/backfill-replay.md",
+    "oya/intelligence/bc-sources/supervisor/PHASE-01-CONTROL-PLANE-LANDING.md",
+    "oya/intelligence/bc-sources/supervisor/backfill-replay.md",
+    "oya/intelligence/benchmarks/openai-anthropic-vertex-vs-oyatie.md",
+    "oya/intelligence/compliance.md",
+    "oya/intelligence/dashboards/prompt-injection-detection.md",
+    "oya/intelligence/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+    "oya/intelligence/onboarding/ai-platform-engineer-first-week.md",
+    "oya/intelligence/runbooks/eval-eval-set-rollback.md",
+    "oya/intelligence/runbooks/evidence-evidence-pack-rebuild.md",
+    "oya/intelligence/runbooks/providers-adapter-version-pin.md",
+    "oya/intelligence/runbooks/providers-credential-rotation.md",
+    "oya/intelligence/runbooks/providers-in-house-model-rollback.md",
+    "oya/intelligence/runbooks/providers-provider-credentials-revoke.md",
+    "oya/intelligence/runbooks/providers-provider-outage-failover.md",
+    "oya/intelligence/runbooks/providers-rate-limit-cascade-recovery.md",
+    "oya/intelligence/runbooks/runtime-emergency-runtime-drain.md",
+    "oya/intelligence/runbooks/supervisor-autonomy-violation.md",
+    "oya/intelligence/runbooks/supervisor-deployment-rollback.md",
+    "oya/intelligence/runbooks/supervisor-fleet-state-recovery.md",
+    "oya/intelligence/runbooks/supervisor-kill-switch-engage.md",
+    "oya/intelligence/runbooks/supervisor-kubernetes-operator-restart.md",
+    "oya/intelligence/runbooks/supervisor-supervision-bus-replay.md",
+    "oya/intelligence/tutorials/build-rag-augmented-chat.md",
+];
 const PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES: &[&str] = &[
     "cargo run -p oya-dev-cli",
     "oya-dev-cli",
@@ -857,6 +893,11 @@ const CLOUD_IAM_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "app.kubernetes.io/managed-by: Helm",
     "oyatie.com/adr-0349: argocd-managed",
 ];
+const INTELLIGENCE_DOC_RETIRED_DEV_CLI_PHRASES: &[&str] = &[
+    "cargo run -p oya-dev-cli",
+    "oya-dev-cli",
+    "control-plane operation: vcs",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -871,6 +912,7 @@ pub struct Evaluation {
     pub retired_exact_name_scan_files: usize,
     pub product_operation_runbook_clean_paths: usize,
     pub product_operation_doc_clean_files: usize,
+    pub intelligence_doc_retired_dev_cli_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2711,6 +2753,29 @@ pub fn product_operation_doc_retired_authority_failures(root: &Path) -> Vec<Stri
     failures
 }
 
+pub fn intelligence_doc_retired_dev_cli_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in INTELLIGENCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        for phrase in INTELLIGENCE_DOC_RETIRED_DEV_CLI_PHRASES {
+            if text.contains(phrase) {
+                failures.push(format!(
+                    "{clean_file}: Intelligence doc contains retired local dev CLI phrase {phrase:?}; use Buck2/Prow evidence and Intelligence control-plane operation wording"
+                ));
+            }
+        }
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -2811,6 +2876,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(retired_active_path_failures(root));
     failures.extend(product_operation_runbook_retired_authority_failures(root));
     failures.extend(product_operation_doc_retired_authority_failures(root));
+    failures.extend(intelligence_doc_retired_dev_cli_failures(root));
     let (tracked_typescript_pnpm_mjs_count, typescript_pnpm_surface_failures) =
         typescript_pnpm_surface_failures(root, &typescript_pnpm_inventory);
     failures.extend(typescript_pnpm_surface_failures);
@@ -3167,6 +3233,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         retired_exact_name_scan_files: ACTIVE_EXACT_NAME_SCAN_PATHS.len(),
         product_operation_runbook_clean_paths: PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS.len(),
         product_operation_doc_clean_files: PRODUCT_OPERATION_DOC_CLEAN_FILES.len(),
+        intelligence_doc_retired_dev_cli_clean_files: INTELLIGENCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES
+            .len(),
     }
 }
 
@@ -3178,7 +3246,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -3190,6 +3258,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.retired_exact_name_scan_files,
         evaluation.product_operation_runbook_clean_paths,
         evaluation.product_operation_doc_clean_files,
+        evaluation.intelligence_doc_retired_dev_cli_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures

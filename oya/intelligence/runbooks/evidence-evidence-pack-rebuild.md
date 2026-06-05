@@ -42,10 +42,7 @@ Per `policy/evidence-pack-integrity.md` EPI-11, rebuilds NEVER write to historic
 1. Declare Sev-2 (or Sev-1 per trigger); open `#inc-<id>` Slack.
 2. Engage IC (axis-foundry-evidence on-call) + ops-security SME + council-privacy if regulator-engaged.
 3. Halt any in-flight `regulator-export` workflows that scope the original pack:
-   ```
-   cargo run -p oya-dev-cli -- foundry-evidence regulator-export pause \
-     --invocation-id <id> --reason "rebuild-in-flight"
-   ```
+   Open an Intelligence evidence control-plane operation to pause regulator export for invocation `<id>` with reason `rebuild-in-flight`; attach the operation-ledger id before reconstructing the pack.
 4. Mark the original pack as `superseded_pending=true` in Postgres via the retention-cascade RPC (Cedar-gated; requires 2-person rule).
 
 ### Phase 2: Reconstruct (≤ 1 h)

@@ -90,7 +90,7 @@ Patroni `postgres_master_unreachable`, OR PgBouncer connection failures spike.
 
 | Step | Action |
 |---|---|
-| 1 | Force-reload signing key: `cargo run -p oya-dev-cli -- supervisor reload-signing-key --source openbao` |
+| 1 | Force-reload signing key: `Intelligence control-plane operation: supervisor reload-signing-key --source openbao` |
 | 2 | Verify new key materialized: `kubectl exec -n foundry-supervisor supervisor-rest-0 -- /usr/local/bin/foundry-supervisor signing-key info` |
 | 3 | Test signature: emit a synthetic event; verify audit-chain validates |
 | 4 | If old key compromise-suspected: engage ops-security; rotate immediately; revoke old key in OpenBao |

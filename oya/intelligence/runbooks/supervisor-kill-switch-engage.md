@@ -42,7 +42,7 @@ ONE of:
 |---|---|---|
 | 1 | Open `#inc-<id>` Slack channel; assign IC; declare severity | ≤ 5 min |
 | 2 | Confirm pre-checks (if manual fleet-wide); both signatures captured | ≤ 2 min |
-| 3 | Invoke engage: `cargo run -p oya-dev-cli -- supervisor engage-kill-switch --scope <scope> --target <id> --reason "<enum>" --signature-bundle <openbao-jit-token>`. CLI: (a) verifies both signatures (fleet-wide); (b) writes `KillSwitch` CRD via Operator; (c) writes Valkey state (cache + propagation); (d) emits `KillSwitchEngaged` event Ed25519-signed; (e) audit-chain seal | ≤ 1 s engage p99 |
+| 3 | Invoke engage: `Intelligence control-plane operation: supervisor engage-kill-switch --scope <scope> --target <id> --reason "<enum>" --signature-bundle <openbao-jit-token>`. The control-plane operation: (a) verifies both signatures (fleet-wide); (b) writes `KillSwitch` CRD via Operator; (c) writes Valkey state (cache + propagation); (d) emits `KillSwitchEngaged` event Ed25519-signed; (e) audit-chain seal | ≤ 1 s engage p99 |
 | 4 | Verify foundry-runtime workers refusing new invocations within p99 ≤ 1 s (CRD watch fan-out + Valkey pub-sub redundant channels) | ≤ 1 s p99 verified end-to-end |
 | 5 | Verify `oya_supervisor_kill_switch_engaged{scope=<>, target=<>, reason=<>} == 1` in Mimir | ≤ 30 s |
 | 6 | OnCall page received in two-channel corroboration | ≤ 60 s |
@@ -55,7 +55,7 @@ ONE of:
 | Step | Action |
 |---|---|
 | 1 | Confirm cause cleared (autonomy violation root-caused + fixed; cost runaway mitigated; etc.) |
-| 2 | Invoke disengage: `cargo run -p oya-dev-cli -- supervisor disengage-kill-switch --scope <scope> --target <id> --reason "cause-cleared" --signature-bundle <openbao-jit-token>`. For fleet-wide, 2-person rule applies. |
+| 2 | Invoke disengage: `Intelligence control-plane operation: supervisor disengage-kill-switch --scope <scope> --target <id> --reason "cause-cleared" --signature-bundle <openbao-jit-token>`. For fleet-wide, 2-person rule applies. |
 | 3 | Verify Valkey state cleared + CRD updated + workers resume accepting invocations |
 | 4 | Audit-chain emits `KillSwitchDisengaged` |
 

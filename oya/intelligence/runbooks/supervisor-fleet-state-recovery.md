@@ -38,10 +38,10 @@ ONE of:
 |---|---|---|
 | 1 | Open `#inc-<id>` Slack; assign IC; declare severity | ≤ 5 min |
 | 2 | Inspect divergence scope: `kubectl get agentdeployment -A` vs `SELECT * FROM deployment_history WHERE ...` | ≤ 5 min |
-| 3 | Block writes via REST circuit-breaker: `cargo run -p oya-dev-cli -- supervisor circuit-breaker open --reason "fleet-state-recovery"` | ≤ 1 min |
-| 4 | Trigger reconcile replay: `cargo run -p oya-dev-cli -- supervisor reconcile --scope <ns-pattern> --source crd` (replays all CRD events through Operator → Postgres) | ≤ 30 min depending on fleet size |
+| 3 | Block writes via REST circuit-breaker: `Intelligence control-plane operation: supervisor circuit-breaker open --reason "fleet-state-recovery"` | ≤ 1 min |
+| 4 | Trigger reconcile replay: `Intelligence control-plane operation: supervisor reconcile --scope <ns-pattern> --source crd` (replays all CRD events through Operator → Postgres) | ≤ 30 min depending on fleet size |
 | 5 | Verify divergence cleared: drift detector returns 0 | ≤ 5 min |
-| 6 | Close REST circuit-breaker: `cargo run -p oya-dev-cli -- supervisor circuit-breaker close` | ≤ 1 min |
+| 6 | Close REST circuit-breaker: `Intelligence control-plane operation: supervisor circuit-breaker close` | ≤ 1 min |
 | 7 | Verify normal traffic: REST QPS recovers; reconcile lag returns to baseline | ≤ 10 min |
 | 8 | If divergence pattern suggests Postgres corruption: engage ops-security; consider WAL replay | escalation |
 | 9 | Postmortem within 5 business days | – |
@@ -54,7 +54,7 @@ ONE of:
 | 2 | Identify hung agents: `kubectl get pods -n foundry-tenant-<id> -l drain-state=in-flight` |
 | 3 | Engage tenant DPO (their workload is hung; they may have visibility) |
 | 4 | Wait grace period (default 30 min); if no completion, proceed |
-| 5 | Force-terminate: `cargo run -p oya-dev-cli -- supervisor force-drain --fleet <id> --reason "drain-stuck-grace-period-exceeded"`. Emits `AgentEvicted{reason=force_drain}` for each. |
+| 5 | Force-terminate: `Intelligence control-plane operation: supervisor force-drain --fleet <id> --reason "drain-stuck-grace-period-exceeded"`. Emits `AgentEvicted{reason=force_drain}` for each. |
 | 6 | Verify drain completes; `DrainHandle.in_flight_count == 0` |
 | 7 | Audit-chain seal + per-changeset evidence |
 

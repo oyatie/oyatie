@@ -45,7 +45,7 @@ ONE of:
 | 2 | Identify offending tenant scope from metric labels | ≤ 5 min |
 | 3 | If recent Cedar change: rollback Helm release for `policy/` ConfigMap; verify denials clear | ≤ 15 min |
 | 4 | If OpenBao stale entitlements: force-refresh tenant-resolver cache; verify entitlements current | ≤ 10 min |
-| 5 | If tenant-specific (legitimate operation refused): apply manual override with 2-person rule for the affected scope: `cargo run -p oya-dev-cli -- supervisor autonomy-override --tenant <id> --capability <id> --tier <T> --reason "<rfc>" --duration 1h --signature-bundle <openbao-jit-token>` | ≤ 1 h |
+| 5 | If tenant-specific (legitimate operation refused): apply manual override with 2-person rule for the affected scope: `Intelligence control-plane operation: supervisor autonomy-override --tenant <id> --capability <id> --tier <T> --reason "<rfc>" --duration 1h --signature-bundle <openbao-jit-token>` | ≤ 1 h |
 | 6 | Audit-chain emission for override; tenant notified | ≤ 30 min |
 | 7 | Root-cause: was Cedar correct + tenant config wrong? | varies |
 | 8 | Postmortem within 5 business days | – |

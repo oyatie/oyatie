@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-05T12:36:00Z",
+  "updated_at": "2026-06-05T12:54:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -144,7 +144,8 @@
       "git-backed stale documentation inventory",
       "rust-buck2 stale documentation inventory test target",
       "product-operation runbook retired CLI/bridge authority scan",
-      "Forms/Sheets product-operation doc retired authority scan"
+      "Forms/Sheets product-operation doc retired authority scan",
+      "Intelligence markdown retired local dev CLI scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -171,6 +172,48 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental clean-file guard only; remaining product directories are separate backlog slices"
+    },
+    "intelligence_doc_retired_dev_cli_scan": {
+      "clean_files": [
+        "oya/intelligence/IP-012-runtime-autonomy-tier-gate.md",
+        "oya/intelligence/IP-073-guardrails-runtime-guardrails-coupling-lane.md",
+        "oya/intelligence/IP-074-guardrails-shadow-mode-rollout-and-false-positive-budget.md",
+        "oya/intelligence/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+        "oya/intelligence/_legacy-foundry/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+        "oya/intelligence/backfill-replay.md",
+        "oya/intelligence/bc-sources/guardrails/PHASE-01-GUARDRAILS-SAFETY-AND-POLICY-ENFORCEMENT.md",
+        "oya/intelligence/bc-sources/providers/backfill-replay.md",
+        "oya/intelligence/bc-sources/providers/multi-region.md",
+        "oya/intelligence/bc-sources/runtime/PHASE-01-AGENT-RUNTIME-AND-CAPABILITY-EXECUTION.md",
+        "oya/intelligence/bc-sources/runtime/backfill-replay.md",
+        "oya/intelligence/bc-sources/supervisor/PHASE-01-CONTROL-PLANE-LANDING.md",
+        "oya/intelligence/bc-sources/supervisor/backfill-replay.md",
+        "oya/intelligence/benchmarks/openai-anthropic-vertex-vs-oyatie.md",
+        "oya/intelligence/compliance.md",
+        "oya/intelligence/dashboards/prompt-injection-detection.md",
+        "oya/intelligence/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+        "oya/intelligence/onboarding/ai-platform-engineer-first-week.md",
+        "oya/intelligence/runbooks/eval-eval-set-rollback.md",
+        "oya/intelligence/runbooks/evidence-evidence-pack-rebuild.md",
+        "oya/intelligence/runbooks/providers-adapter-version-pin.md",
+        "oya/intelligence/runbooks/providers-credential-rotation.md",
+        "oya/intelligence/runbooks/providers-in-house-model-rollback.md",
+        "oya/intelligence/runbooks/providers-provider-credentials-revoke.md",
+        "oya/intelligence/runbooks/providers-provider-outage-failover.md",
+        "oya/intelligence/runbooks/providers-rate-limit-cascade-recovery.md",
+        "oya/intelligence/runbooks/runtime-emergency-runtime-drain.md",
+        "oya/intelligence/runbooks/supervisor-autonomy-violation.md",
+        "oya/intelligence/runbooks/supervisor-deployment-rollback.md",
+        "oya/intelligence/runbooks/supervisor-fleet-state-recovery.md",
+        "oya/intelligence/runbooks/supervisor-kill-switch-engage.md",
+        "oya/intelligence/runbooks/supervisor-kubernetes-operator-restart.md",
+        "oya/intelligence/runbooks/supervisor-supervision-bus-replay.md",
+        "oya/intelligence/tutorials/build-rag-augmented-chat.md"
+      ],
+      "policy": "Cleaned Intelligence markdown uses Buck2/Prow evidence and Intelligence control-plane operation wording instead of retired local development CLI authority. Code-surface references and historical audit excerpts are separate backlog slices.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental markdown clean-file guard only; Intelligence Rust crates and historical JSON audit excerpts are separate backlog slices"
     },
     "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
     "stale_doc_inventory": {

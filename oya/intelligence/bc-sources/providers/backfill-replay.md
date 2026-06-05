@@ -34,7 +34,7 @@ These scenarios are deliberately constrained because both touch sensitive materi
 Backfill of `ProviderInvoked` events is allowed only under strict conditions:
 
 1. **Source**: the events must exist in the foundry-evidence audit-chain (which is the authoritative store); foundry-providers does not store ProviderInvoked events itself beyond an emission buffer.
-2. **Trigger**: an authorised operator runs `cargo run -p oya-dev-cli -- providers backfill --from <ts> --to <ts> --tenant <t> --consumer <consumer-id> --reason "<id>" --approver <p1> --approver <p2>` (2-person signed).
+2. **Trigger**: an authorised operator runs `Intelligence control-plane operation: providers backfill --from <ts> --to <ts> --tenant <t> --consumer <consumer-id> --reason "<id>" --approver <p1> --approver <p2>` (2-person signed).
 3. **Path**: foundry-providers reads the historical events from foundry-evidence, re-publishes them to the requested consumer's NATS subject with a `backfilled=true` label.
 4. **Bound**: per-tenant per-day backfill bandwidth is capped (default 10⁵ events / day) to prevent abuse.
 

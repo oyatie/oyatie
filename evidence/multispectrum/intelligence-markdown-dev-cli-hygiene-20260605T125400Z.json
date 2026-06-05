@@ -1,0 +1,29 @@
+{
+  "id": "intelligence-markdown-dev-cli-hygiene-20260605T125400Z",
+  "created_utc": "20260605T125400Z",
+  "branch": "chore/intelligence-doc-cli-hygiene-20260605T124500Z",
+  "base": "33e35d809a946d7f1afd9bcc01fb2f2ffbe51811",
+  "scope": "Intelligence markdown retired local dev CLI cleanup plus repo-hygiene Rust guard",
+  "changes": [
+    "Rewrote Intelligence Wave 15-ZD migration and sharding guidance as ADR-0513 current-authority overlays using Buck2/Prow/Kubernetes-native oya-ci-required, GitHub temporary shadow posture, CUE/KRM desired state, and Intelligence control-plane operations.",
+    "Replaced retired local dev CLI examples across 34 Intelligence markdown files with Intelligence control-plane operation, operation-ledger, Buck2/Prow, and evidence wording.",
+    "Replaced retired local VCS symbol-lock sections in Intelligence runtime, guardrails, and supervisor phase docs with isolated git worktree plus PR plus Buck2/Prow evidence lane ownership.",
+    "Extended the repo-hygiene Rust gate to enforce the cleaned Intelligence markdown file set."
+  ],
+  "verification": {
+    "modified_markdown_scan": "changed markdown files returned no retired local dev CLI exact matches",
+    "intelligence_markdown_scan": "oya/intelligence markdown returned no retired local dev CLI exact matches",
+    "rustfmt": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs; ok",
+    "json": "jq -e . specs/repo-hygiene-automation.json evidence/multispectrum/intelligence-markdown-dev-cli-hygiene-20260605T125400Z.json; ok",
+    "repo_hygiene_tests": "OYA_REPO_ROOT=$PWD /tmp/oyatie-intelligence-doc-cli-hygiene-verify/repo_hygiene_automation_check --nocapture; 65 passed, 0 failed",
+    "repo_hygiene_json": "OYA_REPO_ROOT=$PWD /tmp/oyatie-intelligence-doc-cli-hygiene-verify/assert-repo-hygiene-automation --json; verdict PASS, failures []",
+    "buck2": "buck2 build //:repo-hygiene-automation-check --show-output; BUILD SUCCEEDED, latest Build ID ee536eb8-707e-48ac-97b0-92587d40dd6d",
+    "diff_check": "git diff --check passed",
+    "changed_file_secret_scan": "changed-file credential-shaped scan completed with no matches"
+  },
+  "non_claims": [
+    "No live GitHub, Kubernetes, branch-protection, deployment, or secret state was mutated by this evidence record.",
+    "This is an incremental Intelligence markdown clean-file slice; Intelligence Rust crate references and historical JSON audit excerpts remain separate backlog items.",
+    "This does not claim full repository stale-authority purge or full Intelligence documentation cleanup."
+  ]
+}

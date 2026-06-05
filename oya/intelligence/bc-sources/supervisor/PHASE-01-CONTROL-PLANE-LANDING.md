@@ -157,18 +157,9 @@ Each IP emits a ChangeSet per ADR-0110 at `microservices/intelligence-supervisor
 | app | composition smoke | 0 | 1 startup+shutdown | 60 % line |
 | IaC IPs | n/a | helm-install + helm-test smoke per chart | 1 against kind | n/a |
 
-## Oya VCS Symbol Locks
+## Parallel lane ownership
 
-```bash
-cargo run -p oya-dev-cli -- vcs claim \
-  --agent <agent-id> \
-  --intent "<IP-NNN-slug>: <one-line intent>" \
-  --paths "microservices/intelligence-supervisor/src/crates/<crate>/**"
-
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs done   --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
-```
+Use an isolated git worktree branch, open a PR against `dev`, attach Buck2 evidence, and let Prow/Kubernetes-native oya-ci-required consume that evidence. Do not use retired local VCS wrappers or shared manual symbol-lock files for this phase.
 
 ## References
 

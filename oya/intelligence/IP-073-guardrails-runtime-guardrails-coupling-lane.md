@@ -21,15 +21,15 @@ New BLOCKER CI lane that asserts every foundry-runtime dispatch path round-trips
 
 ## ChangeSet boundary
 
-Adds to `crates/oya-dev-cli/src/foundation_audit_gates.rs` a new validator + companion test fixtures + branch-protection entry in `.github/branch-protection.yaml` per PHASE-01 §"branch-protection.yaml diff preview".
+Adds to `Buck2/Prow repo-hygiene gate registry` a new validator + companion test fixtures + branch-protection entry in `.github/branch-protection.yaml` per PHASE-01 §"branch-protection.yaml diff preview".
 
 ## Concrete File Targets
 
 | Path | Action | Description |
 |---|---|---|
-| `crates/oya-dev-cli/src/foundation_audit_gates.rs` | update | add `validate_runtime_guardrails_coupling()` function |
-| `crates/oya-dev-cli/src/commands/gate/mod.rs` | update | wire new validator |
-| `crates/oya-dev-cli/tests/runtime_guardrails_coupling.rs` | create | static + runtime test fixtures |
+| `Buck2/Prow repo-hygiene gate registry` | update | add `validate_runtime_guardrails_coupling()` function |
+| `Buck2/Prow gate wiring` | update | wire new validator |
+| `Buck2-backed runtime guardrails coupling test fixture` | create | static + runtime test fixtures |
 | `.github/branch-protection.yaml` | update | add `oya-governance-runtime-guardrails-coupling` to dev + staging required_status_checks |
 | `/specs/hyperscaler-gates.json` | update | register HG-FGUARD gate per ADR-0123 |
 
@@ -65,8 +65,8 @@ pub fn validate_runtime_guardrails_coupling(repo: &Path) -> Result<(), GateError
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-dev-cli --all-features
-cargo nextest run -p oya-dev-cli --test runtime_guardrails_coupling
+buck2 build //:repo-hygiene-automation-check
+buck2 build //:repo-hygiene-automation-check
 buck2 build //:quality-lane-registry-authority-check # lane=runtime-guardrails-coupling --sha HEAD
 ```
 

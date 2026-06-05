@@ -42,7 +42,7 @@ ONE of:
 | 1 | If Sev-1: open `#inc-<id>`; IC + PrivacyLead + ops-security + axis-foundry | ≤ 5 min |
 | 2 | Verify 2-person approval | ≤ 2 min |
 | 3 | Revoke at the vendor: log in to vendor console; revoke the key/cookie; verify revocation via vendor's audit log (Anthropic: console → API keys → revoke; OpenAI: dashboard → API keys → revoke; Google: console → IAM → API keys → revoke) | ≤ 5 min |
-| 4 | Remove the credential from OpenBao: `cargo run -p oya-dev-cli -- providers credential-revoke --tenant <t> --vendor <v> --credential <name> --reason "<id>" --approver <p1> --approver <p2>` (2-person signed; audit-emitted). The CLI: (a) marks the SecretReference path as REVOKED in OpenBao, (b) flushes lease cache in affected pods, (c) emits `CredentialRevoked` event | ≤ 3 min |
+| 4 | Remove the credential from OpenBao: `Intelligence control-plane operation: providers credential-revoke --tenant <t> --vendor <v> --credential <name> --reason "<id>" --approver <p1> --approver <p2>` (2-person signed; audit-emitted). The control-plane operation: (a) marks the SecretReference path as REVOKED in OpenBao, (b) flushes lease cache in affected pods, (c) emits `CredentialRevoked` event | ≤ 3 min |
 | 5 | Confirm adapter pods no longer hold a live lease: `kubectl exec <adapter-pod> -- curl -s localhost:9090/internal/credential-state | jq '.[] | select(.path | contains("<credential-name>"))'` returns empty | ≤ 30 s |
 | 6 | Issue a replacement credential per `runbooks/credential-rotation.md` (mark as Sev-1-derived rotation) | ≤ 10 min |
 | 7 | Notify tenant operator: credential compromised + revoked + replaced; data-class-touched summary if applicable | ≤ 30 min |

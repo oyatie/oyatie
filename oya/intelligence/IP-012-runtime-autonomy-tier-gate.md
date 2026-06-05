@@ -38,7 +38,7 @@ Modifications to `capability-executor-adapter` (AutonomyGate impl + tenancy clie
 | `src/crates/oya-foundry-runtime-capability-executor-usecase/src/violation_emitter.rs` | create |
 | `crates/oya-governance-check-autonomy-gate-presence/Cargo.toml` | create |
 | `.../src/lib.rs` | create (AST-based grep for AutonomyGate.check before ProviderInvoker.invoke) |
-| `crates/oya-dev-cli/src/governance_gates.rs` | modify (register lane) |
+| `Buck2/Prow governance gate registry` | modify (register lane) |
 | `/specs/quality/lanes.yaml` | modify (register lane) |
 
 ## Crate Naming

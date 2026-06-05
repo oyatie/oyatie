@@ -98,8 +98,8 @@ For DR-pair packs:
 
 1. Primary-region health degraded (multiple AZs affected); declare Sev-1.
 2. CommsLead notifies tenants of DR cutover in ≤ 30 min.
-3. OpsLead executes: `cargo run -p oya-dev-cli -- vcs region-failover --pack <p> --to-region <dr-region> --reason "<id>"`.
-4. The CLI: (a) updates DNS to point to DR region; (b) promotes DR Postgres replica to primary; (c) DR Valkey takes over; (d) DR OpenBao instance is queried by DR adapter pods; (e) emit `RegionFailover` audit-chain event.
+3. OpsLead executes: signed cloud cell failover operation for pack `<p>` to `<dr-region>` with reason `<id>`.
+4. The control-plane operation: (a) updates DNS to point to DR region; (b) promotes DR Postgres replica to primary; (c) DR Valkey takes over; (d) DR OpenBao instance is queried by DR adapter pods; (e) emit `RegionFailover` audit-chain event.
 5. Verify tenant invocations resume; observability shows `provider-router` qps recovering.
 6. Postmortem; re-establish replication from new primary back to recovered region; eventually fail back if desired.
 

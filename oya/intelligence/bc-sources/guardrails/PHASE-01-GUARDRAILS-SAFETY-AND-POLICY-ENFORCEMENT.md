@@ -225,20 +225,9 @@ branches:
       - oya-governance-runtime-guardrails-coupling
 ```
 
-## Oya VCS Symbol Locks
+## Parallel lane ownership
 
-Per ADR-0116 + the 2026-05-16 reversal (`oya vcs canonical`), this phase uses `oya vcs` primitives exclusively.
-
-```bash
-cargo run -p oya-dev-cli -- vcs claim \
-  --agent <agent-id> \
-  --intent "<IP-NNN-slug>: <one-line intent>" \
-  --paths "microservices/intelligence-guardrails/src/crates/<crate>/**"
-
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs done --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
-```
+Use an isolated git worktree branch, open a PR against `dev`, attach Buck2 evidence, and let Prow/Kubernetes-native oya-ci-required consume that evidence. Do not use retired local VCS wrappers or shared manual symbol-lock files for this phase.
 
 Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservices/intelligence-guardrails/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0; F13_safety facet added for this µservice's safety-bearing posture.
 
