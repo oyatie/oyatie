@@ -198,7 +198,7 @@ Cost projections per scale tier in `cost-budget.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice cloud-iac` — exit 0; deployed replica counts ≥ formula minimums.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
 - Quarterly capacity review: actual usage vs forecast; recalibrate `C_concurrent_applies` averages.
 - Annual reference-architecture refresh: re-verify against current ArgoCD / Flux / OpenTofu published sizing guides.
 

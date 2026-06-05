@@ -15,19 +15,19 @@ this service.
 
 | Path | Role |
 |---|---|
-| `microservices/cloud-iac/iac/helm/argocd/Chart.yaml` | ArgoCD chart wrapper |
-| `microservices/cloud-iac/iac/helm/argocd/values.yaml` | ArgoCD HA and policy values |
-| `microservices/cloud-iac/iac/helm/helm-controller/Chart.yaml` | Flux Helm-controller chart wrapper |
-| `microservices/cloud-iac/iac/helm/helm-controller/values.yaml` | Helm-controller deployment values |
-| `microservices/cloud-iac/iac/helm/kustomize-controller/Chart.yaml` | Flux Kustomize-controller chart wrapper |
-| `microservices/cloud-iac/iac/helm/kustomize-controller/values.yaml` | Kustomize-controller deployment values |
+| `microservices/cloud-iac/iac/cue-krm-packages/argocd/Chart.yaml` | ArgoCD chart wrapper |
+| `microservices/cloud-iac/iac/cue-krm-packages/argocd/values.yaml` | ArgoCD HA and policy values |
+| `microservices/cloud-iac/iac/cue-krm-packages/helm-controller/Chart.yaml` | Flux Helm-controller chart wrapper |
+| `microservices/cloud-iac/iac/cue-krm-packages/helm-controller/values.yaml` | Helm-controller deployment values |
+| `microservices/cloud-iac/iac/cue-krm-packages/kustomize-controller/Chart.yaml` | Flux Kustomize-controller chart wrapper |
+| `microservices/cloud-iac/iac/cue-krm-packages/kustomize-controller/values.yaml` | Kustomize-controller deployment values |
 | `microservices/cloud-iac/iac/kustomize/base/kustomization.yaml` | shared reconciler base |
 | `microservices/cloud-iac/iac/kustomize/overlays/pack-kr/kustomization.yaml` | active pack overlay |
 
 ## Implementation contract
 
 1. The pack overlay is the first composition root. It may reference the
-   cloud-iac Helm chart wrappers already present in `iac/helm/`.
+   cloud-iac CUE/KRM package wrappers already present in `iac/cue-krm-packages/`.
 2. New ArgoCD `Application` or `ApplicationSet` manifests must land under an
    existing cloud-iac IaC root, or this IP must first add that root explicitly.
 3. The composition root must keep render/apply ownership inside cloud-iac:
@@ -55,9 +55,9 @@ this service.
 ## Validation commands
 
 ```bash
-helm lint microservices/cloud-iac/iac/helm/argocd
-helm lint microservices/cloud-iac/iac/helm/helm-controller
-helm lint microservices/cloud-iac/iac/helm/kustomize-controller
+helm lint microservices/cloud-iac/iac/cue-krm-packages/argocd
+helm lint microservices/cloud-iac/iac/cue-krm-packages/helm-controller
+helm lint microservices/cloud-iac/iac/cue-krm-packages/kustomize-controller
 kubectl --dry-run=client apply -k microservices/cloud-iac/iac/kustomize/overlays/pack-kr
 ```
 

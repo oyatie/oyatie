@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-per-microservice-layout]
+acceptance_lanes: [buck2-build, buck2-build, buck2-authority, buck2-tests, supply-chain-policy, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-per-microservice-layout]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -122,16 +122,16 @@ pub trait RenderEventEmitter: Send + Sync + Sealed {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-iac-iac-renderer-kernel --all-features
-cargo build -p oya-cloud-iac-iac-renderer-kernel --all-features
-cargo clippy -p oya-cloud-iac-iac-renderer-kernel --all-features -- -D warnings
-cargo nextest run -p oya-cloud-iac-iac-renderer-kernel --all-features
-cargo deny check
-cargo doc -p oya-cloud-iac-iac-renderer-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-cloud-iac-iac-renderer-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-cloud-iac-iac-renderer-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-cloud-iac-iac-renderer-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-cloud-iac-iac-renderer-kernel
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for lean-a1 --crate oya-cloud-iac-iac-renderer-kernel
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for port-location --crate oya-cloud-iac-iac-renderer-kernel
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for layer-correctness --crate oya-cloud-iac-iac-renderer-kernel
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for data-class --crate oya-cloud-iac-iac-renderer-kernel
 ```
 
 ## Test Plan

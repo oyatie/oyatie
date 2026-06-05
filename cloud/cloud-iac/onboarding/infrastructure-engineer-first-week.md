@@ -13,7 +13,7 @@ Goal: by Friday EOD you can author + apply a new module, detect drift, and run a
 
 Clone:
 ```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-iac-week1 .worktrees/$USER-iac-week1
+git worktree add --base dev --branch onboarding/$USER-iac-week1 .worktrees/$USER-iac-week1
 cd .worktrees/$USER-iac-week1
 ```
 
@@ -26,7 +26,7 @@ make dev-cell.up CELL=iac-loopback-1 PROFILE=cloud-iac-dev
 
 Run the canonical sample plan:
 ```bash
-./bin/oya iac plan \
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
   --tenant oyatie.community.dev-sample \
   --module-set oya-iac-modules-demo-trial-v1 \
   --inputs samples/demo-trial/minimal.yaml
@@ -37,7 +37,7 @@ showing 7 individual `cloud_iac::Action::Plan` permits.
 
 Apply (still loopback):
 ```bash
-./bin/oya iac apply --plan-id $(jq -r .plan_id last-plan.json)
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 
 ## Day 3 — author your first module
@@ -68,13 +68,13 @@ pub struct CloudflareZoneModule {
 Add the corresponding Cedar permit in `policies/demo-trial/cloudflare-zone.cedar`. Add a substance test in
 `crates/oya-iac-modules-demo-trial/tests/cloudflare_zone.rs`. Run:
 ```bash
-cargo test -p oya-iac-modules-demo-trial --features dev-cell
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
 ```
 
 ## Day 4 — claim and ship the module
 
 ```bash
-./bin/oya vcs claim \
+open a protected GitHub PR lane \
   --agent infra-eng-$USER \
   --intent cloud-iac-module-cloudflare-zone \
   crates/oya-iac-modules-demo-trial microservices/cloud-iac
@@ -92,7 +92,7 @@ module), and `lean-a3-tenant-trace` (every action carries `tenant_id`).
 
 Manually induce drift in your loopback cloud account (mock provider):
 ```bash
-./bin/oya iac mock provider-mutate \
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
   --resource cloudflare_zone.example_com \
   --field plan \
   --new-value "pro"
@@ -100,12 +100,12 @@ Manually induce drift in your loopback cloud account (mock provider):
 
 Run drift detection:
 ```bash
-./bin/oya iac drift --tenant oyatie.community.dev-sample
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 
 Expected output: 1 drifted resource, with the diff and a remediation plan. Apply remediation:
 ```bash
-./bin/oya iac remediate-drift --tenant oyatie.community.dev-sample --resource cloudflare_zone.example_com
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 
 The remediation is a fresh `cloud_iac::Action::RemediateDrift` Cedar permit — different from `Apply`.

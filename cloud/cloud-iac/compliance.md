@@ -52,7 +52,7 @@ Canonical control-to-framework mapping for cloud-iac. Tells external auditors (S
 | CC6.3 | Adds/removes access | OpenBao access lifecycle + audit | OpenBao audit log |
 | CC6.6 | Logical access control | Apply-scope isolation + reserved scopes | `policy/iac-isolation.md` ISO-01..ISO-07 |
 | CC6.7 | Information transmission + disposal | mTLS in transit + SSE-KMS at rest + soft-delete | `policy/data-residency.md` §"DSR Cascade" |
-| CC6.8 | Vulnerability management | `cargo deny` + Trivy + Grype + supply-chain LEAN; weekly CVE scan | `/specs/supply-chain.json` |
+| CC6.8 | Vulnerability management | Buck2-owned dependency/supply-chain policy plus Trivy + Grype + supply-chain LEAN; weekly CVE scan | `/specs/supply-chain.json` |
 | CC7.1 | System operations | HA + per-µservice rate limits + auto-scaling | `capacity-model.md` |
 | CC7.2 | Monitoring system inputs | Self-observability metrics + OnCall alerts | `failure-modes.md` |
 | CC7.3 | Anomaly evaluation | Apply-success-rate alerts + drift-coverage alerts | `/specs/hyperscaler-gates.json` |
@@ -112,7 +112,7 @@ Canonical control-to-framework mapping for cloud-iac. Tells external auditors (S
 | A.8.25 | Secure development life cycle | LEAN lanes + PR review + spec-driven-development | `docs/standards/*` |
 | A.8.26 | Application security requirements | OpenAPI schema enforcement + Cedar policy + LEAN | `contracts/openapi/cloud-iac.yaml` |
 | A.8.27 | Secure system architecture | Clean architecture (ADR-0056 + ADR-0105) | ADR-0056 + ADR-0105 |
-| A.8.28 | Secure coding | Cedar fuzz-testing + `cargo clippy` + `cargo deny` | LEAN lanes |
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
 | A.8.32 | Change management | PR review + LEAN gates | `branch-protection.yaml` |
 | A.8.33 | Test information | Synthetic test data only in dev/staging; no prod-data in non-prod | `docs/standards/testing.md` |
 | A.8.34 | Protection of information systems during audit testing | Auditor JIT tokens + scoped reads | `policy/auditor-scope.cedar` |
@@ -254,8 +254,8 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance-evidence-recency` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate authority-cohesion` — exit 0.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
 - Annual SOC 2 Type 2 audit: external auditor sign-off at `evidence/audits/soc2/<year>-type2-report.pdf`.
 - Annual ISO 27001:2022 audit: recorded analogously.
 - Annual SLSA L3 attestation chain audit: alignment with OpenSSF requirements.
@@ -793,7 +793,7 @@ This anchor is closed for `cloud-iac` against documentation-rigor.md §3.2.4 Dom
 - `cloud-iac` uses algorithm policy from sidecar/config; domain code never hard-codes cipher or signature choices.
 - Current floor: TLS 1.3, AEAD-only suites, X25519, hybrid X25519MLKEM768 where supported, Ed25519 plus ML-DSA-65 for new platform-rooted chains.
 - Forbidden: SHA-1, MD5, RSA-1024/2048 for new signatures, static DH, CBC-only TLS, self-signed production certs, and bespoke crypto.
-- Affected surfaces: `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`, `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`, `microservices/cloud-iac/contracts/proto/cloud-iac.proto`, `microservices/cloud-iac/iac/helm/argocd/Chart.yaml`, `microservices/cloud-iac/iac/helm/argocd/templates/.gitkeep`, `microservices/cloud-iac/iac/helm/argocd/values.yaml`; +9 more.
+- Affected surfaces: `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`, `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`, `microservices/cloud-iac/contracts/proto/cloud-iac.proto`, `microservices/cloud-iac/iac/cue-krm-packages/argocd/Chart.yaml`, `microservices/cloud-iac/iac/cue-krm-packages/argocd/templates/.gitkeep`, `microservices/cloud-iac/iac/cue-krm-packages/argocd/values.yaml`; +9 more.
 - Migration trigger: NIST/IETF/browser deprecation notice, active exploit, pack regulator requirement, or platform crypto policy update.
 - Migration window: 90 days for normal deprecation, 24h emergency block for actively exploited algorithms, with compatibility fallback only when safe.
 - Example: `iac-apply` accepts classical TLS during PQC migration but prefers hybrid when both peers support it and records negotiated group in telemetry.
@@ -853,7 +853,7 @@ This anchor is closed for `cloud-iac` against documentation-rigor.md §3.2.4 Dom
 
 ### Service-specific answer
 - `cloud-iac` is in annual full-scope pentest and every major `iac-apply` launch adds targeted test scope before production promotion.
-- In-scope assets: `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`, `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`, `microservices/cloud-iac/contracts/proto/cloud-iac.proto`, `microservices/cloud-iac/iac/helm/argocd/Chart.yaml`, `microservices/cloud-iac/iac/helm/argocd/templates/.gitkeep`, `microservices/cloud-iac/iac/helm/argocd/values.yaml`; +15 more.
+- In-scope assets: `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`, `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`, `microservices/cloud-iac/contracts/proto/cloud-iac.proto`, `microservices/cloud-iac/iac/cue-krm-packages/argocd/Chart.yaml`, `microservices/cloud-iac/iac/cue-krm-packages/argocd/templates/.gitkeep`, `microservices/cloud-iac/iac/cue-krm-packages/argocd/values.yaml`; +15 more.
 - Bug bounty intake accepts auth, tenant-isolation, policy bypass, data exposure, abuse-defence false positive/negative, supply-chain, and crypto findings.
 - Critical findings block promotion; remediation SLO is 24h containment, 7d fix for critical/high, 30d medium unless regulator pack is stricter.
 - Example: a researcher bypassing `cloud-iac` tenant scoping gets safe-harbor handling and an investigation case, not abuse-defence friction by default.
@@ -1157,4 +1157,3 @@ This anchor is closed for `cloud-iac` against documentation-rigor.md §3.2.4 Dom
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
-

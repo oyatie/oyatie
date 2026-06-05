@@ -326,9 +326,9 @@ VERIFY-009: Static read confirms `cloud-iac` ARCH has an `ADR-0339 integration` 
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+VERIFY-015: Buck2-owned docs inventory generation/check evidence must refresh machine-readable inventory before merge.
 ACCEPT-016: `cloud-iac` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `cloud-iac` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `cloud-iac` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.

@@ -55,7 +55,7 @@ encrypted at rest with the tenant's KMS key. Cedar enforces that one tenant's pr
 **Q7. What happens if a plan-apply takes longer than the SLO?**
 
 The runner emits a `cloud_iac.apply.slo_breached` event to `observability`, the on-call dashboard alerts at the tenant's SLO
-breach budget, and the plan can be canceled via `./bin/oya iac cancel --plan-id <id>`. Cancel is itself Cedar-gated.
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 
 ---
 
@@ -158,6 +158,6 @@ no `Destroy`, no `EmergencyApply`, no `ImportExistingResource`.
 
 **Q20. How do I roll back a bad apply?**
 
-If the apply succeeded but produced bad outcomes: `./bin/oya iac rollback --apply-id <id>` reverses the last apply by computing
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 the inverse plan. Rollback is Cedar-gated and itself audit-logged. If the apply failed mid-flight: the runner auto-rollbacks within
 the same plan transaction (Terraform state lock + provider rollback hooks).

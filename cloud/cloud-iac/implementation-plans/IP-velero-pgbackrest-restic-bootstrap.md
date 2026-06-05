@@ -17,7 +17,7 @@ schedules + sigil schedules + restore-drill cadence.
 
 ## Acceptance criteria
 
-1. Velero 1.18 chart at `microservices/cloud-iac/iac/helm/velero/`
+1. Velero 1.18 chart at `microservices/cloud-iac/iac/cue-krm-packages/velero/`
    deployed; backup schedules render per
    `values.yaml#configuration.schedules`.
 2. pgBackRest 2.58 sidecar chart deployed alongside the canonical
@@ -35,7 +35,7 @@ schedules + sigil schedules + restore-drill cadence.
 
 ## File-level work plan
 
-1. Helm charts (DONE this batch).
+1. CUE/KRM packages (DONE this batch).
 2. age key generation + OpenBao seeding (FOLLOW-UP).
 3. ArgoCD ApplicationSet entries (FOLLOW-UP).
 4. Chaos-substrate restore-drill scheduler wiring (FOLLOW-UP per
