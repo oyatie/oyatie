@@ -1,0 +1,112 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/multispectrum-evidence.schema.json",
+  "change_id": "script-migration-retired-grouping-wording-1780620767",
+  "change_class_id": "CC-7",
+  "captured_at": "2026-06-05T01:07:35Z",
+  "change_lane": "platform-governance",
+  "summary": "Replace the retired grouping-wording shell/Python gate with a Rust/Buck2 checker, wire tenant/RBAC packaging verification to Buck2, and reduce the audited non-vendored Python/shell surface from 55 to 53.",
+  "scope": [
+    "BUCK",
+    "libs/oya-check-no-grouping/BUCK",
+    "scripts/ci/assert-retired-grouping-wording.rs",
+    "scripts/tests/retired_grouping_wording_check.rs",
+    "scripts/ci/assert-repo-hygiene-automation.rs",
+    "scripts/tests/repo_hygiene_automation_check.rs",
+    "registry/repo-hygiene/python-shell-surface-inventory.json",
+    "specs/repo-hygiene-automation.json",
+    "specs/tenant-rbac-packaging.json",
+    "evidence/multispectrum/pr-289-taxonomy-domain-hardening-1780005414.json",
+    "evidence/multispectrum/script-migration-retired-grouping-wording-1780620767.json"
+  ],
+  "retired_surfaces": [
+    "retired grouping-wording shell gate",
+    "retired grouping-wording shell test wrapper"
+  ],
+  "claim_boundary": "Local/static repository hygiene only. No GitHub, branch-protection, Kubernetes, secret, deployment, or live CI/CD state was mutated.",
+  "facets": {
+    "F1_simplicity": "One focused gate moved from shell plus embedded Python into one Rust checker plus one Rust test harness; old runnable script files were deleted.",
+    "F2_hyperscaler": "The Buck2 target uses a small active-surface manifest instead of an unbounded worktree walk or giant Buck2 source environment, preserving stable launch surfaces for parallel lanes.",
+    "F3_adversarial": "Fixture tests cover allowed connector/platform language and rejected suite/platform/module/product wrapper wording.",
+    "F4_api_contract": "No product API changed; tenant/RBAC packaging static_gates now point to Buck2 targets.",
+    "F5_quality": "Rust 2024, rustfmt, -D warnings, JSON validation, diff hygiene, and repo-hygiene checks were run fresh.",
+    "F6_operations": "The audited Python/shell inventory count now matches the filesystem count of 53 excluding vendored surfaces.",
+    "F7_security_privacy": "Secret-shape scans over changed files found no credential-shaped tokens; no secrets or live credentials were introduced.",
+    "F8_supply_chain": "No new dependencies were added; implementation uses the standard library and existing Buck2/rustc genrule pattern.",
+    "F9_testing": "Verification includes direct Rust tests, Buck2 genrule targets, repo-hygiene, Buck2 authority, language discipline, and Kubernetes anti-pattern checks.",
+    "F10_ci_cd": "CI authority remains Buck2/Prow/Kubernetes-native; this change removes a local shell/Python advisory gate and adds Buck2 evidence targets.",
+    "F11_observability": "Buck2 output artifacts report JSON verdicts for the retired-wording and no-grouping checks.",
+    "F13_reversibility": "Rollback is isolated to restoring two deleted shell files and reverting the new Buck2/Rust targets plus inventory count updates."
+  },
+  "verification": [
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/retired_grouping_wording_check.rs --test ... && retired_grouping_wording_check --nocapture",
+      "exit_code": 0,
+      "result": "3 tests passed"
+    },
+    {
+      "command": "scripts/ci/assert-retired-grouping-wording.rs --root $PWD --json",
+      "exit_code": 0,
+      "result": "PASS; files_scanned=21228; matches=[]"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test ... && repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "result": "41 tests passed"
+    },
+    {
+      "command": "buck2 build //:retired-grouping-wording-check --show-output",
+      "build_id": "bbb2ad9d-0e82-46bd-8283-4bf2d846fd4a",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED; verdict=PASS; files_scanned=27; matches=[]"
+    },
+    {
+      "command": "buck2 build //libs/oya-check-no-grouping:no-grouping-kernel-check --show-output",
+      "build_id": "bbb2ad9d-0e82-46bd-8283-4bf2d846fd4a",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED; verdict=PASS"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "build_id": "bbb2ad9d-0e82-46bd-8283-4bf2d846fd4a",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED; verdict=PASS; tracked_nonvendored_python_shell_count=53; failures=[]"
+    },
+    {
+      "command": "buck2 build //:buck2-authority-policy-check --show-output",
+      "build_id": "bbb2ad9d-0e82-46bd-8283-4bf2d846fd4a",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "buck2 build //:language-discipline-check --show-output",
+      "build_id": "bbb2ad9d-0e82-46bd-8283-4bf2d846fd4a",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "buck2 build //:kubernetes-native-anti-pattern-check --show-output",
+      "build_id": "bbb2ad9d-0e82-46bd-8283-4bf2d846fd4a",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "git diff --check && jq empty changed JSON artifacts",
+      "exit_code": 0,
+      "result": "whitespace and JSON validation passed"
+    },
+    {
+      "command": "scripts/evidence-secret-scan.sh changed files + regex secret sweep",
+      "exit_code": 0,
+      "result": "helper PASS across 8 targets; regex sweep had no credential-shape hits"
+    }
+  ],
+  "non_claims": [
+    "No live Prow, GitHub, Kubernetes, branch protection, deployment, or secret state was changed.",
+    "No full repository stale-doc archival is claimed by this slice.",
+    "No production CI authority cutover is claimed; this is local/static Buck2 evidence only."
+  ],
+  "remaining_risks": [
+    "Other Python/shell surfaces remain in the tracked migration backlog.",
+    "Draft task/spec documents under docs/specs and tasks still require separate stale-doc archival/rewrite lanes."
+  ]
+}
