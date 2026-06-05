@@ -51,6 +51,10 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.design_system_spec_authority_clean_files, 17);
     assert_eq!(evaluation.schema_registry_spec_authority_clean_files, 9);
     assert_eq!(evaluation.deployment_ops_contract_authority_clean_files, 1);
+    assert_eq!(
+        evaluation.agent_durable_goal_deployment_authority_clean_files,
+        1
+    );
 }
 
 #[test]
@@ -1114,6 +1118,37 @@ fn deployment_ops_contract_authority_scan_rejects_retired_external_substrates() 
         "make verify",
         "manual SSH",
         "oya ops",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn checked_in_agent_durable_goal_uses_native_deployment_authority_wording() {
+    let failures = gate::agent_durable_goal_deployment_authority_failures(Path::new(&repo_root()));
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn agent_durable_goal_deployment_authority_scan_rejects_retired_surfaces() {
+    let failures = gate::agent_durable_goal_deployment_authority_text_failures(
+        "specs/agent-durable-goal.json",
+        "deploy via OpenTofu and Argo rollback; root Makefile make install; \
+         Argo selfHeal, Helm, Cloudflare edge, OpenTofu/ops convergence, manual SSH.\n",
+    );
+    for expected in [
+        "OpenTofu",
+        "Argo rollback",
+        "Makefile",
+        "make install",
+        "Argo selfHeal",
+        "Helm",
+        "Cloudflare edge",
+        "OpenTofu/ops",
+        "manual SSH",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),

@@ -138,6 +138,8 @@ const SCHEMA_REGISTRY_SPEC_AUTHORITY_CLEAN_FILES: &[&str] = &[
 ];
 const DEPLOYMENT_OPS_CONTRACT_AUTHORITY_CLEAN_FILES: &[&str] =
     &["specs/deployment-ops-contract.json"];
+const AGENT_DURABLE_GOAL_DEPLOYMENT_AUTHORITY_CLEAN_FILES: &[&str] =
+    &["specs/agent-durable-goal.json"];
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
@@ -322,6 +324,31 @@ const DEPLOYMENT_OPS_CONTRACT_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
     "Cloudflare edge",
     "provider-specific CLI",
     "root command-wrapper",
+];
+const AGENT_DURABLE_GOAL_RETIRED_DEPLOYMENT_AUTHORITY_PHRASES: &[&str] = &[
+    "OpenTofu",
+    "opentofu",
+    "tofu",
+    "Argo CD",
+    "ArgoCD",
+    "Argo:",
+    "Argo rollback",
+    "Argo revision",
+    "Argo selfHeal",
+    "Helm",
+    "Jenkins",
+    "Makefile",
+    "make install",
+    "make fleet",
+    "make ops",
+    "make verify",
+    "manual SSH",
+    "manually SSH",
+    "Cloudflare edge",
+    "oya ops",
+    "ops/OpenTofu",
+    "OpenTofu/ops",
+    "gitops/OpenTofu",
 ];
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
@@ -1230,6 +1257,7 @@ pub struct Evaluation {
     pub design_system_spec_authority_clean_files: usize,
     pub schema_registry_spec_authority_clean_files: usize,
     pub deployment_ops_contract_authority_clean_files: usize,
+    pub agent_durable_goal_deployment_authority_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2626,6 +2654,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the deployment-ops native authority guard",
         ),
         (
+            "\"agent-durable-goal retired deployment authority scan\"",
+            "documentation sprawl automation targets must include the agent durable goal retired deployment authority scan",
+        ),
+        (
+            "\"agent_durable_goal_deployment_authority_scan\"",
+            "documentation sprawl policy must record the agent durable goal native deployment authority guard",
+        ),
+        (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
             "product-operation runbook guard must state its incremental clean-path boundary",
         ),
@@ -3539,6 +3575,55 @@ pub fn deployment_ops_contract_authority_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn agent_durable_goal_deployment_authority_text_failures(
+    clean_file: &str,
+    text: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in AGENT_DURABLE_GOAL_RETIRED_DEPLOYMENT_AUTHORITY_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{clean_file}: agent durable goal contains retired deployment authority phrase {phrase:?}; use native release-conveyor/KRM, Buck2/Prow, and controller-reconciliation wording"
+            ));
+        }
+    }
+    for phrase in [
+        "native release-conveyor",
+        "KRM/CUE",
+        "Buck2/Prow",
+        "controller reconciliation",
+        "specs/deployment-ops-contract.json",
+    ] {
+        if !text.contains(phrase) {
+            failures.push(format!(
+                "{clean_file}: agent durable goal missing required native deployment authority phrase {phrase:?}"
+            ));
+        }
+    }
+
+    failures
+}
+
+pub fn agent_durable_goal_deployment_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in AGENT_DURABLE_GOAL_DEPLOYMENT_AUTHORITY_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        failures.extend(agent_durable_goal_deployment_authority_text_failures(
+            clean_file, &text,
+        ));
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -3642,6 +3727,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(design_system_spec_authority_failures(root));
     failures.extend(schema_registry_spec_authority_failures(root));
     failures.extend(deployment_ops_contract_authority_failures(root));
+    failures.extend(agent_durable_goal_deployment_authority_failures(root));
     failures.extend(buck2_release_policy_failures(
         &spec,
         &workflow,
@@ -4026,6 +4112,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
             .len(),
         deployment_ops_contract_authority_clean_files:
             DEPLOYMENT_OPS_CONTRACT_AUTHORITY_CLEAN_FILES.len(),
+        agent_durable_goal_deployment_authority_clean_files:
+            AGENT_DURABLE_GOAL_DEPLOYMENT_AUTHORITY_CLEAN_FILES.len(),
     }
 }
 
@@ -4037,7 +4125,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -4057,6 +4145,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.design_system_spec_authority_clean_files,
         evaluation.schema_registry_spec_authority_clean_files,
         evaluation.deployment_ops_contract_authority_clean_files,
+        evaluation.agent_durable_goal_deployment_authority_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures
