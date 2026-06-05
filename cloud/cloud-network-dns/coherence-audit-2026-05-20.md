@@ -5,7 +5,7 @@ AGENT SLUG: codex-cloud-network-dns-audit
 MODE: audit-only
 BUNDLE: cloud-network-dns-coherence-audit-2026-05-20
 SCOPE: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/`
-VCS CLAIM: `./bin/oya vcs claim --agent codex-cloud-network-dns-audit --intent "cloud-network-dns ownership coherence audit" microservices/cloud-network-dns::coherence-audit-2026-05-20` accepted.
+HISTORICAL COORDINATION CLAIM: a retired `oya vcs claim` was accepted during this 2026-05-20 audit; do not reuse it for active coordination. Current work uses isolated git worktrees, PRs, Buck2 evidence, and the Rust/Prow `oya-ci-required` path.
 
 ## Header citation anchors
 

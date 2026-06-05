@@ -306,9 +306,9 @@ VERIFY-009: Static read confirms `cloud-network-dns` ARCH has an `ADR-0339 integ
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: `buck2 build //:repo-hygiene-automation-check` must pass before commit.
+VERIFY-014: ADR citation and cohesion evidence must come from Rust/Buck2/Prow-owned checks when available; retired oya-dev-cli gate commands are historical only.
+VERIFY-015: Documentation inventory refresh must be emitted by the documentation capability/Buck2 target, not retired oya-dev-cli commands.
 ACCEPT-016: `cloud-network-dns` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `cloud-network-dns` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `cloud-network-dns` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.
