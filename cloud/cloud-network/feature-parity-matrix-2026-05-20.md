@@ -396,7 +396,7 @@
 | Benchmark evidence | Replace unverified measured prose with signed target/measured split. | `benchmarks/evidence-index.md`. | Existing benchmark doc lines 3-101 |
 | Cost model | Convert TCO claims into per-tenant_class/per-context budget math. | `cost-budget.md`. | Existing benchmark TCO table |
 | Compliance | Bind FIPS, packet capture, tenant logs, DPIA, and residency. | `compliance.md` and `dpia.md`. | tenant_class adoption matrix paid/paid claims |
-| Rust build lane | Publish canonical Cargo and Oya gate commands. | `README.md §build-and-test`. | ADR-0328 §D-18 |
+| Rust build lane | Publish canonical Buck2 targets and Prow required-context evidence. | `README.md §build-and-test`. | ADR-0328 §D-18 |
 | API idempotency | Document idempotency ledger behavior and error states. | `ARCHITECTURE.md §idempotency`. | VPC/LB/DNS API crates |
 | Authorization binding | Document authorization decision ID, allowed surfaces, tenant/principal checks. | `ARCHITECTURE.md §authorization`. | VPC/LB/DNS API structs |
 | Data classification | Document public/internal-only field boundaries. | `compliance.md §data-classes`. | API crate data_class comments |
