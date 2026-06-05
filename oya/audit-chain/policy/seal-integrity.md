@@ -248,11 +248,11 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/audit-chai
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate audit-chain-merkle-shape` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate audit-chain-root-chaining` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate audit-chain-hsm-iam-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate audit-chain-key-publication` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate audit-chain-cross-channel-match` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-merkle-shape` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-root-chaining` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-hsm-iam-conformance` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-key-publication` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-cross-channel-match` — exit 0.
 - Quarterly key-rotation drill: rotate pack-kr key; verify pre- and post-rotation events both verifiable.
 - Annual pen-test against the verification correctness boundary.
 

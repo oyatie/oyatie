@@ -88,12 +88,12 @@ cargo clippy -p oya-developer-sdk-api-contracts-registry-kernel --all-features -
 cargo nextest run -p oya-developer-sdk-api-contracts-registry-kernel --all-features
 cargo deny check --hide-inclusion-graph
 cargo doc -p oya-developer-sdk-api-contracts-registry-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice developer-sdk
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice developer-sdk
-cargo run -p oya-dev-cli -- gate validate port-location --microservice developer-sdk
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice developer-sdk
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice developer-sdk
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice developer-sdk
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice developer-sdk
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice developer-sdk
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice developer-sdk
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice developer-sdk
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion
 ```
 
 Domain-specific gates introduced or exercised by this IP:

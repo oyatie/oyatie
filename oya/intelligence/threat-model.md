@@ -493,9 +493,9 @@ regulator's refusal floor and dispatch routing constraint.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice intelligence` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate eu-ai-act-annex-iii-refusal --microservice intelligence` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate audit-tap-emit --microservice intelligence` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice intelligence` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=eu-ai-act-annex-iii-refusal --microservice intelligence` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=audit-tap-emit --microservice intelligence` — exit 0.
 - Quarterly chaos drill: induce a prompt-injection success + cross-tenant context leak attempt;
   verify rejection + alerting.
 - Annual pen-test against dispatch + credential-resolver path: scheduled Q4 of each calendar year.

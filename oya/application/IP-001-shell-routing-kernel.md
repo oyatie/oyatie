@@ -117,10 +117,10 @@ cargo clippy -p oya-application-shell-routing-kernel --all-features -- -D warnin
 cargo nextest run -p oya-application-shell-routing-kernel --all-features
 cargo deny check
 cargo doc -p oya-application-shell-routing-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-application-shell-routing-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-application-shell-routing-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-application-shell-routing-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-application-shell-routing-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-application-shell-routing-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-application-shell-routing-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-application-shell-routing-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-application-shell-routing-kernel
 ```
 
 ## Test Plan

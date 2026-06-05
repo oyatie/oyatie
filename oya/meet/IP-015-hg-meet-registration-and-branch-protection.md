@@ -38,8 +38,8 @@ Register `HG-MEET` in `/specs/hyperscaler-gates.json` and the authority-cohesion
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice meet
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice meet
 oya gate validate branch-protection-config
 ```
 

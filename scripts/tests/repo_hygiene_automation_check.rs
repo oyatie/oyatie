@@ -901,6 +901,7 @@ fn retired_active_ci_substrate_paths_are_rejected() {
         "infra/ci/argocd",
         "infra/cilium/cell-boundaries",
         "infra/forge",
+        "oya/developer-sdk/crates/oya-dev-cli",
     ] {
         fs::create_dir_all(root.join(rel)).unwrap_or_else(|error| {
             panic!("create retired active path fixture {}: {}", rel, error);
@@ -930,7 +931,7 @@ fn retired_active_ci_substrate_paths_are_rejected() {
     }
     let failures = gate::retired_active_path_failures(&root);
     let _ = fs::remove_dir_all(&root);
-    assert_eq!(failures.len(), 10, "{:?}", failures);
+    assert_eq!(failures.len(), 11, "{:?}", failures);
     assert!(
         failures
             .iter()

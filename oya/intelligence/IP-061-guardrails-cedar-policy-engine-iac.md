@@ -91,9 +91,9 @@ forbid (
 ```bash
 helm lint microservices/intelligence/iac/helm/cedar-engine
 kubectl --dry-run=client apply -k microservices/intelligence/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-guardrails
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
-cargo run -p oya-dev-cli -- gate validate cedar-default-deny-enforced
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-guardrails
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-default-deny-enforced
 bash microservices/intelligence/iac/cedar/build.sh microservices/intelligence/policy
 ```
 

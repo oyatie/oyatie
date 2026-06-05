@@ -38,7 +38,7 @@ Bind the HG-CALENDAR claim to repo-local evidence only. The authority chain star
 7. Record accepted gaps and rejected marketing claims in the changeset.
 
 ## E. Acceptance
-- `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity --microservice calendar` passes.
 - Doc-link resolution passes for every cited local file.
 - Manifest JSON parses and every listed IP file exists.
 - No parity claim contradicts `competitor-parity-matrix.md`.

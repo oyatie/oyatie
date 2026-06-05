@@ -253,7 +253,7 @@ On-call compensation + handoff per `runbooks/audit-chain-restart.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice audit-chain` — exit 0; every FM-ID has a matching runbook.
+- `buck2 build //:quality-lane-registry-authority-check # lane=incident-runbook-coverage --microservice audit-chain` — exit 0; every FM-ID has a matching runbook.
 - Quarterly DR failover drill validates response chain.
 - Annual tabletop simulates Sev-1 regional + chain-integrity-suspect scenario.
 

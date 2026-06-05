@@ -107,7 +107,7 @@ async fn main() -> anyhow::Result<()> {
 cargo check -p oya-foundry-runtime-capability-executor-app
 cargo build -p oya-foundry-runtime-capability-executor-app --release
 cargo nextest run -p oya-foundry-runtime-capability-executor-app --test smoke
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-runtime
 ```
 
 ## Test Plan

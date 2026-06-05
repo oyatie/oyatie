@@ -210,9 +210,9 @@ Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/mail-res
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate retention-floor-conformance --microservice mail` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate pack-routing-conformance --microservice mail` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cross-region-transfer-allowed-only-with-scc --microservice mail` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=retention-floor-conformance --microservice mail` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=pack-routing-conformance --microservice mail` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cross-region-transfer-allowed-only-with-scc --microservice mail` — exit 0.
 - Annual residency audit: confirm each tenant's data location matches assigned pack.
 - Quarterly chaos drill: induce cross-pack write attempt; verify rejection + alerting.
 

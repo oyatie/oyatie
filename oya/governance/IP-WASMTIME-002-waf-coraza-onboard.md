@@ -101,9 +101,9 @@ Minimum 4 required; 8 specified.
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate waf-correctness --target coraza
-cargo run -p oya-dev-cli -- gate validate perf-edge-p99 --component waf-coraza
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=waf-correctness --target coraza
+buck2 build //:quality-lane-registry-authority-check # lane=perf-edge-p99 --component waf-coraza
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice governance
 cargo test -p oya-governance-waf-coraza --tests
 ```
 

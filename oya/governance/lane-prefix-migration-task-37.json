@@ -71,8 +71,8 @@
     "docs/standards/ci-lanes.md mirrors the same id, purpose, and source",
     "any .github workflow name, job name, branch-protection context, and dependent workflow reference are migrated together",
     "catalog rows or historical docs that intentionally keep the old id are marked compatibility-only",
-    "cargo run -q -p oya-dev-cli -- gate validate quality-lanes exits 0",
-    "cargo run -q -p oya-dev-cli -- gate validate retired-vocabulary exits 0",
+    "buck2 build //:quality-lane-registry-authority-check # lane=quality-lanes exits 0",
+    "buck2 build //:quality-lane-registry-authority-check # lane=retired-vocabulary exits 0",
     "git diff --check exits 0"
   ]
 }

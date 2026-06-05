@@ -57,8 +57,8 @@ per ADR-0105 Amendment 3 backend-qualification.
 cargo test -p oya-tasks-search-index-domain
 cargo test -p oya-tasks-search-index-adapter-meilisearch
 cargo bench -p oya-tasks-search-index-worker rebuild
-cargo run -p oya-dev-cli -- gate validate search-degraded-fallback --microservice tasks
-cargo run -p oya-dev-cli -- gate validate amendment-3-backend-qualified-adapter --crate oya-tasks-search-index-adapter-meilisearch
+buck2 build //:quality-lane-registry-authority-check # lane=search-degraded-fallback --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=amendment-3-backend-qualified-adapter --crate oya-tasks-search-index-adapter-meilisearch
 ```
 
 ## Test Plan

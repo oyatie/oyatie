@@ -34,7 +34,7 @@ Land `oya-notes-search-index-*` (Meilisearch 0.10.0 LTS Professional-tier per AD
 cargo check -p oya-notes-search-index-kernel
 cargo check -p oya-notes-search-index-adapter-meilisearch
 cargo check -p oya-notes-graph-view-data-kernel
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## ChangeSet metadata

@@ -60,7 +60,7 @@ pub async fn advance_canary_phase(
 
 ```bash
 cargo check / build / clippy / nextest per crate
-cargo run -p oya-dev-cli -- gate validate capability-yaml-conformance --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=capability-yaml-conformance --microservice foundry-supervisor
 ```
 
 ## Test Plan

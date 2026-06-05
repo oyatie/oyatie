@@ -45,8 +45,8 @@ helm lint microservices/meet/iac/helm/meet
 kubectl --dry-run=client apply -k microservices/meet/iac/kustomize/overlays/pack-kr
 kubectl --dry-run=client apply -k microservices/meet/iac/kustomize/overlays/pack-eu
 terraform -chdir=microservices/meet/iac/tofu validate
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice meet
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

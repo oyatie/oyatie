@@ -104,9 +104,9 @@ Minimum 5 required; 9 specified.
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate lsp-bridge-correctness --crate oya-workflow-studio-lsp-bridge
-cargo run -p oya-dev-cli -- gate validate lsp-tenant-isolation --crate oya-workflow-studio-lsp-bridge
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=lsp-bridge-correctness --crate oya-workflow-studio-lsp-bridge
+buck2 build //:quality-lane-registry-authority-check # lane=lsp-tenant-isolation --crate oya-workflow-studio-lsp-bridge
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-workflow-studio-lsp-bridge --tests
 ```
 

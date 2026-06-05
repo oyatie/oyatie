@@ -66,8 +66,8 @@ async fn classify_prompt(
 ```bash
 cargo check -p oya-foundry-guardrails-<bc>-rest (× 6) --all-features
 cargo nextest run -p oya-foundry-guardrails-<bc>-rest (× 6) --all-features
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --microservice foundry-guardrails
-cargo run -p oya-dev-cli -- gate validate grpc-conformance --microservice foundry-guardrails
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --microservice foundry-guardrails
+buck2 build //:quality-lane-registry-authority-check # lane=grpc-conformance --microservice foundry-guardrails
 ```
 
 ## Test Plan

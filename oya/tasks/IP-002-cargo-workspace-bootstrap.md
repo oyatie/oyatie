@@ -59,9 +59,9 @@ asana`, `-adapter-trello`, `-adapter-linear`, `-adapter-todoist`.
 
 ```bash
 cargo build --workspace --manifest-path microservices/tasks/src/Cargo.toml
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice tasks
-cargo run -p oya-dev-cli -- gate validate naming-justification --microservice tasks
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=naming-justification --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice tasks
 ```
 
 ## Test Plan

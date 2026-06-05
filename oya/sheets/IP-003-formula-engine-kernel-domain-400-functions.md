@@ -61,7 +61,7 @@ cargo check -p oya-sheets-formula-engine-kernel -p oya-sheets-formula-engine-dom
   -p oya-sheets-formula-engine-usecase -p oya-sheets-formula-engine-api \
   -p oya-sheets-formula-engine-adapter -p oya-sheets-formula-engine-sdk
 cargo nextest run -p oya-sheets-formula-engine-domain --test excel_reference_corpus
-cargo run -p oya-dev-cli -- gate validate sheets-formula-engine-correctness --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=sheets-formula-engine-correctness --microservice sheets
 ```
 
 ## Test Plan

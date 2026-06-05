@@ -71,8 +71,8 @@ match method {
 ```bash
 cargo nextest run -p oya-mail-imap-frontend-domain
 cargo nextest run -p oya-mail-imap-frontend-usecase
-cargo run -p oya-dev-cli -- gate validate imap-conformance --microservice mail
-cargo run -p oya-dev-cli -- gate validate jmap-conformance --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=imap-conformance --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=jmap-conformance --microservice mail
 bash microservices/mail/tests/e2e/imap-fetch.sh
 ```
 

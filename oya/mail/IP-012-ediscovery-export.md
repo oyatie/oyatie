@@ -64,7 +64,7 @@ Re-derivable digest: a verifier reads `manifest.json`, recomputes the sha256 for
 ```bash
 cargo run -p oya-mail-ediscovery-verifier -- verify --bundle <path>   # exit 0
 cargo nextest run -p oya-mail-legal-hold-domain --test ediscovery
-cargo run -p oya-dev-cli -- gate validate ediscovery-chain-of-custody --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=ediscovery-chain-of-custody --microservice mail
 bash microservices/mail/tests/e2e/ediscovery-export.sh
 ```
 

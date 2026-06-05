@@ -42,7 +42,7 @@ Bind `PolicyPort::authorize()` to caller-side Cedar evaluation using the existin
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app cedar_policy_denies_cross_tenant_journey_launch`
-- `cargo run -p oya-dev-cli -- gate validate policy-authorization --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=policy-authorization --microservice marketing-automation`
 - `cedar validate` or the repo Cedar validation lane over `policy/*.cedar` and `policies/*.cedar`.
 - Manual evidence: every `MarketingAutomationCommand` variant maps to exactly one Cedar action.
 

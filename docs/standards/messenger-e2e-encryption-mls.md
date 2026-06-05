@@ -2697,8 +2697,8 @@ storage, not the message store directly.
 Acceptance criteria (must run green in CI per Messenger PRD AC matrix):
 
 - `cargo nextest run -p oya-messenger-e2e-mls-*` exits 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice messenger` exits 0.
-- `cargo run -p oya-dev-cli -- gate validate mls-conformance --microservice messenger` exits 0 (new lane; checks against IETF MLS interop matrix).
+- `buck2 build //:repo-hygiene-automation-check` and the messenger-owned policy-conformance Prow lane pass before promotion.
+- The messenger-owned MLS conformance Prow lane checks the IETF MLS interop matrix before promotion.
 
 ---
 

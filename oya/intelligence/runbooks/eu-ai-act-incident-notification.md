@@ -32,7 +32,7 @@ doc_status: published
 - Open a sev1 if `oya_intelligence_eu_ai_act_incident_notification_correctness_ratio < 0.9999` and the affected label set includes `tenant_id`, `cell_id`, or `principal_id`.
 - Open a sev1 if `oya_intelligence_eu_ai_act_incident_notification_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `intelligence.eu-ai-act-incident-notification.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate intelligence-eu-ai-act-incident-notification --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=intelligence-eu-ai-act-incident-notification --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/intelligence-substrate/eu-ai-act-incident-notification?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/intelligence-substrate/eu-ai-act-incident-notification?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="intelligence",runbook="eu-ai-act-incident-notification"}`.
@@ -72,7 +72,7 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/intelligence-substrate/eu-ai-act-incident-notification?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_INTELLIGENCE_EU_AI_ACT_INCIDENT_NOTIFICATION_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops intelligence eu-ai-act-incident-notification status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate intelligence-eu-ai-act-incident-notification --production-snapshot --cell $CELL`.
+15. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=intelligence-eu-ai-act-incident-notification --production-snapshot --cell $CELL`.
 16. Run crate smoke test: `cargo test -p oya-intelligence-adapter-openai-api-kernel eu_ai_act_incident_notification -- --nocapture`.
 17. Check API contract smoke: `curl -s https://intelligence.internal.oyatie.dev/v1/intelligence/eu-ai-act-incident-notification/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/intelligence/iac/k8s/deployment.yaml && sed -n '1,180p' microservices/intelligence/iac/k8s/deployment.yaml`.
@@ -154,12 +154,12 @@ EU Ai Act Incident Notification incident decision tree
 4. Patch policy: `edit microservices/intelligence/policy/provider-routing.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/intelligence/iac/k8s/deployment.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-intelligence-adapter-openai-api-kernel eu_ai_act_incident_notification_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate intelligence-eu-ai-act-incident-notification --fixture incident-eu-ai-act-incident-notification.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=intelligence-eu-ai-act-incident-notification --fixture incident-eu-ai-act-incident-notification.json`.
 8. Add SLO assertion: `update microservices/intelligence/slos/dispatch-api-availability.openslo.yaml with alert IntelligenceEUAiActIncidentNotificationCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/intelligence/dashboards/provider-latency-heatmap.json with oya_intelligence_eu_ai_act_incident_notification_error_ratio, oya_intelligence_eu_ai_act_incident_notification_lag_seconds, and oya_intelligence_eu_ai_act_incident_notification_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-intelligence-adapter-openai-api-kernel --all-targets`.
 11. Run targeted tests: `cargo test -p oya-intelligence-adapter-openai-api-kernel --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate intelligence-policy --microservice intelligence`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=intelligence-policy --microservice intelligence`.
 13. Deploy canary: `oya deploy canary --microservice intelligence --component intelligence-eu-ai-act-incident-notification-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_intelligence_eu_ai_act_incident_notification_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close intelligence-eu-ai-act-incident-notification-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

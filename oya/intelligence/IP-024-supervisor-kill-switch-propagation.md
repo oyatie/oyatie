@@ -54,7 +54,7 @@ pub async fn propagate_engage_event(
 ```bash
 # Drill: 100k workers; engage; verify p99 ≤ 1 s
 cargo nextest run -p oya-foundry-supervisor-kill-switch-circuit-breaker-worker --test kill_switch_latency_at_scale
-cargo run -p oya-dev-cli -- gate validate kill-switch-latency-p99 --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=kill-switch-latency-p99 --microservice foundry-supervisor
 ```
 
 ## Test Plan

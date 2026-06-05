@@ -43,8 +43,8 @@ Register the current campaign-journey crate family and capability surfaces throu
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app scaffold_declares_adr_0105_layers`
-- `cargo run -p oya-dev-cli -- gate validate catalog-layer-registration --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=catalog-layer-registration --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice marketing-automation`
 - Manual evidence: every catalog path exists or is explicitly marked planned.
 
 ## F. Evidence

@@ -28,7 +28,7 @@ Author contracts/openapi/sites.yaml, contracts/asyncapi/sites-events.yaml, contr
 spectral lint microservices/sites/contracts/openapi/sites.yaml --ruleset spectral:oas
 spectral lint microservices/sites/contracts/asyncapi/sites-events.yaml --ruleset spectral:asyncapi
 buf lint microservices/sites/contracts/proto/sites.proto
-cargo run -p oya-dev-cli -- gate validate tenant-class-lint --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=tenant-class-lint --microservice sites
 ```
 
 ## ChangeSet metadata
@@ -48,7 +48,7 @@ acceptance_status: ga
 | AC-01 | OpenAPI 3.1 spec lints clean against `spectral:oas` ruleset | `spectral lint microservices/sites/contracts/openapi/sites.yaml --ruleset spectral:oas` |
 | AC-02 | AsyncAPI 3.0 spec lints clean against `spectral:asyncapi` | `spectral lint microservices/sites/contracts/asyncapi/sites-events.yaml --ruleset spectral:asyncapi` |
 | AC-03 | Protobuf lints clean (`buf lint`) and breaking-change check passes | `buf lint microservices/sites/contracts/proto/sites.proto` |
-| AC-04 | T0/T1/T2 capability YAMLs declare EU AI Act risk class per ADR-SITES-0006 | `cargo run -p oya-dev-cli -- gate validate tenant-class-lint --microservice sites` |
+| AC-04 | T0/T1/T2 capability YAMLs declare EU AI Act risk class per ADR-SITES-0006 | `buck2 build //:quality-lane-registry-authority-check # lane=tenant-class-lint --microservice sites` |
 | AC-05 | T2 ai-page-build capability marked REFUSED for legal/medical/employment overlays | `cargo nextest run --test capability_t2_refusal_overlays` |
 
 ## Build Sequence

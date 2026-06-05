@@ -167,7 +167,7 @@ doc_status: published
 8. Add regression fixture for fallback loop.
 9. Run model routing tests: `cargo test -p oya-intelligence-route-policy-kernel model_router -- --nocapture`.
 10. Run eval tests: `cargo test -p oya-governance-eval-domain eval_gate -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-model-router --production-snapshot --cell $CELL`.
+11. Run production gate: `buck2 build //:quality-lane-registry-authority-check # lane=intelligence-model-router --production-snapshot --cell $CELL`.
 12. Verify route explain: `oya ops intelligence model-router explain --tenant $TENANT --pack $PACK --task assist-draft --expect safe-candidate`.
 13. Close breaker: `oya ops breaker close intelligence-model-router --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 14. Unhold deploys: recovery PR against `dev` (plain `git`; `oya-ci-required` + Buck2 evidence required).

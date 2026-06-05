@@ -113,9 +113,9 @@ Minimum 5 required; 8 specified.
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate a11y-uia-conformance --shell winui3 --proj clients/winui3/WorkflowStudio
-cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps --shell winui3 --window 30s
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=a11y-uia-conformance --shell winui3 --proj clients/winui3/WorkflowStudio
+buck2 build //:quality-lane-registry-authority-check # lane=perf-canvas-60fps --shell winui3 --window 30s
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 dotnet test clients/winui3/WorkflowStudio/Tests
 ```
 

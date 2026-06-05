@@ -29,7 +29,7 @@ cargo build -p oya-sites-block-kernel ..  -p oya-sites-block-adapter-loro
 cargo nextest run -p oya-sites-block-adapter-loro -- crdt_converge
 cargo nextest run -p oya-sites-block-adapter-loro -- crdt_spoof_refuse
 cargo nextest run -p oya-sites-block-adapter-loro -- crdt_tenant_scope
-cargo run -p oya-dev-cli -- gate validate crdt-tenant-scope --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=crdt-tenant-scope --microservice sites
 ```
 
 ## Test Plan

@@ -27,8 +27,8 @@ canonical load-bearing CI lanes go green here.
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate retention-policy-correctness --microservice recordings
-cargo run -p oya-dev-cli -- gate validate legal-hold-chain-of-custody-correctness --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=retention-policy-correctness --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=legal-hold-chain-of-custody-correctness --microservice recordings
 cargo nextest run -p oya-recordings-legal-hold-kernel -- engagement_latency_p99
 ```
 

@@ -25,7 +25,7 @@ events (no direct call per LEAN-A2). Translation request → translate
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice recordings   # cross-product through Workflow
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice recordings   # cross-product through Workflow
 ```
 
 ## ChangeSet metadata
@@ -42,7 +42,7 @@ acceptance_status: ga
 
 | AC-ID | Criterion | Verification |
 |---|---|---|
-| AC-01 | Translation request emitted via Workflow event (no direct cross-product call) | `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice recordings` |
+| AC-01 | Translation request emitted via Workflow event (no direct cross-product call) | `buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice recordings` |
 | AC-02 | Translated transcript stored alongside source with language tag (BCP 47) | `cargo nextest run -p oya-recordings-translation-domain -- bcp47_tag` |
 | AC-03 | Translation cancellation propagates if source transcript revoked | `cargo nextest run -p oya-recordings-translation-usecase -- cancel_on_revoke` |
 | AC-04 | EU AI Act risk class declared (medium-risk per ADR-MEET-0006 analogue) | capability YAML declares risk class |
@@ -53,7 +53,7 @@ acceptance_status: ga
 2. Domain: `TranslationRequest`, `TranslatedTranscript`, `BCP47LanguageTag`.
 3. Usecase: `RequestTranslation`, `IngestTranslation`, `CancelTranslation`.
 4. Workflow event subscriber for `translate.translation.v1.completed`.
-5. `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice recordings`.
+5. `buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice recordings`.
 
 ## Traceability
 

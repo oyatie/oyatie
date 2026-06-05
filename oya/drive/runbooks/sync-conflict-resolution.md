@@ -102,7 +102,7 @@ cargo run -p oya-dev-cli -- vcs query \
 
 ```bash
 # Conflict rate back to baseline
-cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo sync-delta-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice drive --slo sync-delta-latency
 
 # Tie-break determinism preserved
 cargo nextest run -p oya-drive-sync-domain -- tie_break_determinism

@@ -68,8 +68,8 @@ pub fn require_mfa(route: MfaFactor, principal: MfaFactor) -> bool {
 ```bash
 cargo check -p oya-application-shell-routing-domain --all-features
 cargo nextest run -p oya-application-shell-routing-domain --all-features
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-application-shell-routing-domain
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-application-shell-routing-domain
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-application-shell-routing-domain
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-application-shell-routing-domain
 ```
 
 ## Test Plan

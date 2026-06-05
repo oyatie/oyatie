@@ -43,7 +43,7 @@ Shared crate `oya-notes-wikilink-parser` (used by both server worker + Wasm-boun
 ```bash
 cargo check -p oya-notes-backlink-graph-kernel
 cargo test  -p oya-notes-wikilink-parser  # shared parser tests
-cargo run -p oya-dev-cli -- gate validate port-location --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice notes
 ```
 
 ## Next IP

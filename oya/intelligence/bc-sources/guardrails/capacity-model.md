@@ -177,7 +177,7 @@ Cost projections in `cost-budget.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice foundry-guardrails` — exit 0; deployed replica counts ≥ formula minimums.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-conformance --microservice foundry-guardrails` — exit 0; deployed replica counts ≥ formula minimums.
 - Quarterly capacity review: actual usage vs forecast; recalibrate `I_inv_per_sec_per_tenant` averages.
 - Annual classifier-model benchmark refresh: re-verify ONNX-runtime baseline against current models.
 

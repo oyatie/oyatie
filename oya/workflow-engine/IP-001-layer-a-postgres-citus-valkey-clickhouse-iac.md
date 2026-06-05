@@ -77,8 +77,8 @@ helm lint microservices/workflow-engine/iac/helm/valkey
 helm lint microservices/workflow-engine/iac/helm/clickhouse
 helm lint microservices/workflow-engine/iac/helm/workflow-runtime
 kubectl --dry-run=client apply -k microservices/workflow-engine/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice workflow-engine
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice workflow-engine
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

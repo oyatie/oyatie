@@ -52,8 +52,8 @@ kubectl --dry-run=client apply -k microservices/recordings/iac/kustomize/overlay
 kubectl --dry-run=client apply -k microservices/recordings/iac/kustomize/overlays/pack-us-healthcare
 kubectl --dry-run=client apply -k microservices/recordings/iac/kustomize/overlays/pack-us-financial
 terraform -chdir=microservices/recordings/iac/tofu validate
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice recordings
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Next IP

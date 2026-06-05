@@ -190,7 +190,7 @@ Cost projections per scale tier in `cost-budget.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance` — exit 0; deployed replica counts ≥ formula minimums.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-conformance` — exit 0; deployed replica counts ≥ formula minimums.
 - Quarterly capacity review: actual usage vs forecast; recalibrate per-tenant averages.
 - Annual reference-architecture refresh: re-verify against current Postgres / Citus / ClickHouse sizing guides.
 

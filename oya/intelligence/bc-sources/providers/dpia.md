@@ -166,7 +166,7 @@ This is the **central DPIA concern** for foundry-providers: provider calls send 
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate dpia --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=dpia --microservice foundry-providers` exits 0.
 - Per-pack DPIA review committed to `evidence/dpia/<pack>/` at first-tenant onboarding.
 
 ## References

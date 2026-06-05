@@ -24,8 +24,8 @@ per-tenant index sharded; Cedar-policy server-side filter.
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate shardability --microservice recordings
-cargo run -p oya-dev-cli -- gate validate statelessness --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=shardability --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=statelessness --microservice recordings
 ```
 
 ## ChangeSet metadata

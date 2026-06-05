@@ -40,7 +40,7 @@ Implement the cataloged post-composition kernel and adapters for Postgres, S3, I
 - `cargo nextest run -p oya-community-social-post-composition-kernel` passes.
 - Adapter tests pass for Postgres, S3, ImageMagick, and ffmpeg crates.
 - `slos/post-create-latency.openslo.yaml` resolves.
-- `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice social` passes.
 - Media policy is compatible with `policy/content-policy.cedar`.
 
 ## F. Evidence

@@ -36,8 +36,8 @@ Implement the CRDT substrate per ADR-DOCS-0001 (Loro 1.x). Cross-µservice consi
 ```bash
 cargo nextest run -p oya-docs-collab-crdt-domain -- never_silent_loss  # AC-06
 cargo nextest run -p oya-docs-collab-crdt-domain -- round_trip_byte_equality  # AC-02
-cargo run -p oya-dev-cli -- gate validate crdt-no-silent-loss --microservice docs
-cargo run -p oya-dev-cli -- gate validate crdt-cross-microservice-consistency
+buck2 build //:quality-lane-registry-authority-check # lane=crdt-no-silent-loss --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=crdt-cross-microservice-consistency
 ```
 
 ## References

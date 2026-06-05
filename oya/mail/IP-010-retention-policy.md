@@ -78,7 +78,7 @@ pub async fn sweep(p: &Ports, batch: ExpiryBatch) -> Result<(), RetentionError> 
 ```bash
 cargo nextest run -p oya-mail-retention-policy-domain
 cargo nextest run -p oya-mail-retention-policy-usecase
-cargo run -p oya-dev-cli -- gate validate retention-floor-conformance --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=retention-floor-conformance --microservice mail
 ```
 
 ## Test Plan

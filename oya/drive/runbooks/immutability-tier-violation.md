@@ -124,7 +124,7 @@ Restoration emits audit-chain seal documenting the restore as a recovery action,
 
 ```bash
 # Immutability-correctness SLO at 100%
-cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo immutability-tier-correctness
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice drive --slo immutability-tier-correctness
 
 # Integrity-scan delta = 0
 cargo run -p oya-dev-cli -- vcs query --microservice drive --query "immutability-integrity-scan-delta-total" # expect 0

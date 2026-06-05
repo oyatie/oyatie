@@ -184,9 +184,9 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-ru
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate retention-conformance --microservice foundry-runtime` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate pack-routing-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cross-region-transfer-allowed-only-with-scc` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=retention-conformance --microservice foundry-runtime` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=pack-routing-conformance` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cross-region-transfer-allowed-only-with-scc` — exit 0.
 - Annual residency audit.
 - Quarterly chaos drill: induce cross-pack write attempt; verify rejection + alerting.
 

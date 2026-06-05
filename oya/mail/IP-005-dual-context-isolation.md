@@ -83,12 +83,12 @@ impl ContextBoundaryGuard for DefaultContextBoundaryGuard {
 ```bash
 cargo nextest run -p oya-mail-dual-context-isolation-domain
 cargo nextest run -p oya-mail-dual-context-isolation-usecase
-cargo run -p oya-dev-cli -- gate validate dual-context-cross-boundary --microservice mail
-cargo run -p oya-dev-cli -- gate validate mail-context-immutability --microservice mail
-cargo run -p oya-dev-cli -- gate validate personal-pillar-kms-scope
-cargo run -p oya-dev-cli -- gate validate personal-pillar-hold-forbidden
-cargo run -p oya-dev-cli -- gate validate search-index-context-partition --microservice mail
-cargo run -p oya-dev-cli -- gate validate migration-context-tagging --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=dual-context-cross-boundary --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=mail-context-immutability --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=personal-pillar-kms-scope
+buck2 build //:quality-lane-registry-authority-check # lane=personal-pillar-hold-forbidden
+buck2 build //:quality-lane-registry-authority-check # lane=search-index-context-partition --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=migration-context-tagging --microservice mail
 ```
 
 ## Test Plan

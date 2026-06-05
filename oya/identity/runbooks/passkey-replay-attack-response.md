@@ -31,7 +31,7 @@ doc_status: published
 - Open a sev0 if `oya_identity_passkey_replay_attack_response_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
 - Open a sev1 if `oya_identity_passkey_replay_attack_response_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `identity.passkey-replay-attack-response.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate identity-passkey-replay-attack-response --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=identity-passkey-replay-attack-response --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/identity-substrate/passkey-replay-attack-response?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=114`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/identity-substrate/passkey-replay-attack-response?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="identity",runbook="passkey-replay-attack-response"}`.
@@ -67,7 +67,7 @@ doc_status: published
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/identity-substrate/passkey-replay-attack-response?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-IDENTITY-PASSKEY_REPLAY_ATTACK_RESPONSE-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops identity passkey-replay-attack-response status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate identity-passkey-replay-attack-response --production-snapshot --cell $CELL`.
+14. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=identity-passkey-replay-attack-response --production-snapshot --cell $CELL`.
 15. Check Cargo owner crate: `cargo test -p oya-identity-domain passkey_replay_attack_response -- --nocapture`.
 16. Check API contract smoke: `curl -s https://identity.internal.oyatie.dev/v1/identity/passkey-replay-attack-response/incident-handoff -H "x-oya-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n identity get configmap identity-passkey-replay-attack-response-config -o yaml`.
@@ -148,12 +148,12 @@ Passkey Replay Attack Response incident decision tree
 4. Patch policy: `edit microservices/identity/policy/operator-recovery.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/identity/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-identity-domain passkey_replay_attack_response_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate identity-passkey-replay-attack-response --fixture incident-passkey-replay-attack-response.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=identity-passkey-replay-attack-response --fixture incident-passkey-replay-attack-response.json`.
 8. Add SLO assertion: `update microservices/identity/slos/* with alert IdentityPasskeyReplayAttackResponseCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/identity/dashboards/identity-overview.json with oya_identity_passkey_replay_attack_response_error_ratio, oya_identity_passkey_replay_attack_response_lag_seconds, and oya_identity_passkey_replay_attack_response_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-identity-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-identity-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate identity-policy --microservice identity`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=identity-policy --microservice identity`.
 13. Deploy canary: `oya deploy canary --microservice identity --component passkey-replay-attack-response-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_identity_passkey_replay_attack_response_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close identity-passkey-replay-attack-response-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

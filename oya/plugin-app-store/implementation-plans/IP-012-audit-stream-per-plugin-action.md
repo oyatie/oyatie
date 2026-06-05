@@ -78,12 +78,12 @@ cargo clippy -p oya-plugin-app-store-audit-stream-kernel --all-features -- -D wa
 cargo nextest run -p oya-plugin-app-store-audit-stream-kernel --all-features
 cargo deny check --hide-inclusion-graph
 cargo doc -p oya-plugin-app-store-audit-stream-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate port-location --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion
 ```
 
 Domain-specific gates introduced or exercised by this IP:

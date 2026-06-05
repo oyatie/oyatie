@@ -60,9 +60,9 @@ pub trait ChannelRepository: Send + Sync {
 ```bash
 cargo nextest run -p oya-messenger-channel-store-kernel
 cargo nextest run -p oya-messenger-channel-store-domain
-cargo run -p oya-dev-cli -- gate validate port-location --microservice messenger
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice messenger
-cargo run -p oya-dev-cli -- gate validate dual-context-isolation --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=dual-context-isolation --microservice messenger
 ```
 
 ## Test Plan

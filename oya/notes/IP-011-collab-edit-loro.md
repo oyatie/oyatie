@@ -32,8 +32,8 @@ Land `oya-notes-collab-edit-{kernel,domain,usecase,api,adapter,adapter-loro,work
 cargo check -p oya-notes-collab-edit-kernel
 cargo check -p oya-notes-collab-edit-adapter-loro
 cargo test --test loro-collab-convergence
-cargo run -p oya-dev-cli -- gate validate dual-context-isolation --microservice notes
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=dual-context-isolation --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## ChangeSet metadata
@@ -63,7 +63,7 @@ acceptance_status: ga
 3. Adapter: `-adapter-loro` pinned to Loro 1.x LTS (ADR-NOTES-0003).
 4. Worker: idle compaction at 1h; snapshot to Postgres `loro_op` table.
 5. `cargo test --test loro-collab-convergence`.
-6. `cargo run -p oya-dev-cli -- gate validate dual-context-isolation --microservice notes`.
+6. `buck2 build //:quality-lane-registry-authority-check # lane=dual-context-isolation --microservice notes`.
 
 ## Traceability
 

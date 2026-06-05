@@ -28,7 +28,7 @@ Stand up `oya-drive-permissions-*` BC. 4-level access (read/comment/edit/manage)
 cargo nextest run -p oya-drive-permissions-domain -- inheritance_5levels
 cargo nextest run -p oya-drive-permissions-domain -- per_file_override
 cargo nextest run -p oya-drive-permissions-domain -- ownership_transfer_ceremony
-cargo run -p oya-dev-cli -- gate validate cedar-policy-coverage --microservice drive --bc permissions
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-policy-coverage --microservice drive --bc permissions
 ```
 
 ## ChangeSet metadata

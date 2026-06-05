@@ -56,7 +56,7 @@ proptest! {
 cargo check -p oya-sheets-collab-crdt-kernel ... -p oya-sheets-collab-crdt-worker
 cargo nextest run -p oya-sheets-collab-crdt-domain --test no_silent_overwrite
 cargo nextest run -p oya-sheets-collab-crdt-adapter-valkey --test valkey_integration -- --include-ignored
-cargo run -p oya-dev-cli -- gate validate sheets-crdt-no-silent-loss --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=sheets-crdt-no-silent-loss --microservice sheets
 ```
 
 ## Test Plan

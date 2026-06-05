@@ -50,7 +50,7 @@ Domain layer wraps `rrule-rs 0.13` behind a bounded-horizon façade.
 ```bash
 cargo test -p oya-tasks-recurrence-domain
 cargo test -p oya-tasks-recurrence-usecase rrule_corpus
-cargo run -p oya-dev-cli -- gate validate rrule-conformance --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=rrule-conformance --microservice tasks
 ```
 
 ## Test Plan

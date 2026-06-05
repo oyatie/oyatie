@@ -29,9 +29,9 @@ cedar validate microservices/sites/policy/tenant-scope.cedar
 cedar validate microservices/sites/policy/ci-scope.cedar
 cedar validate microservices/sites/policy/auditor-scope.cedar
 cedar validate microservices/sites/policy/public-read.cedar
-cargo run -p oya-dev-cli -- gate validate cedar-enforcement --microservice sites
-cargo run -p oya-dev-cli -- gate validate dpia-completeness --microservice sites
-cargo run -p oya-dev-cli -- gate validate threat-model-completeness --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-enforcement --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=dpia-completeness --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=threat-model-completeness --microservice sites
 ```
 
 ## ChangeSet metadata
@@ -50,8 +50,8 @@ acceptance_status: ga
 |---|---|---|
 | AC-01 | `tenant-scope.cedar` validates and refuses unguarded action surface | `cedar validate microservices/sites/policy/tenant-scope.cedar` |
 | AC-02 | `ci-scope.cedar` / `auditor-scope.cedar` / `public-read.cedar` validate | `cedar validate` on each |
-| AC-03 | DPIA covers all 11 BCs + 11 packs + rights-of-data-subject sections | `cargo run -p oya-dev-cli -- gate validate dpia-completeness --microservice sites` |
-| AC-04 | Threat-model enumerates STRIDE per BC + each mitigation cross-referenced | `cargo run -p oya-dev-cli -- gate validate threat-model-completeness --microservice sites` |
+| AC-03 | DPIA covers all 11 BCs + 11 packs + rights-of-data-subject sections | `buck2 build //:quality-lane-registry-authority-check # lane=dpia-completeness --microservice sites` |
+| AC-04 | Threat-model enumerates STRIDE per BC + each mitigation cross-referenced | `buck2 build //:quality-lane-registry-authority-check # lane=threat-model-completeness --microservice sites` |
 | AC-05 | Council-privacy + ops-security sign-off recorded in audit-chain | manual + audit-chain seal |
 
 ## Build Sequence

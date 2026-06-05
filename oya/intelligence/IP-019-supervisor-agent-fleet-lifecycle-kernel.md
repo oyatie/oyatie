@@ -87,9 +87,9 @@ cargo check -p oya-foundry-supervisor-agent-fleet-lifecycle-kernel --all-feature
 cargo build -p oya-foundry-supervisor-agent-fleet-lifecycle-kernel --all-features
 cargo clippy -p oya-foundry-supervisor-agent-fleet-lifecycle-kernel --all-features -- -D warnings
 cargo nextest run -p oya-foundry-supervisor-agent-fleet-lifecycle-kernel --all-features
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-foundry-supervisor-agent-fleet-lifecycle-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-foundry-supervisor-agent-fleet-lifecycle-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-foundry-supervisor-agent-fleet-lifecycle-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-foundry-supervisor-agent-fleet-lifecycle-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-foundry-supervisor-agent-fleet-lifecycle-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-foundry-supervisor-agent-fleet-lifecycle-kernel
 ```
 
 ## Test Plan

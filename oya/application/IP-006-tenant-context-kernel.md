@@ -58,8 +58,8 @@ pub trait TenantResolver: Send + Sync + Sealed {
 
 ```bash
 cargo nextest run -p oya-application-tenant-context-kernel --all-features
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-application-tenant-context-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-application-tenant-context-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-application-tenant-context-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-application-tenant-context-kernel
 ```
 
 ## Test Plan

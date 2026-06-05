@@ -62,8 +62,8 @@ pub async fn import_xlsx(job: ImportJob) -> Result<ImportAck> {
 cargo check -p oya-sheets-import-export-kernel ... -p oya-sheets-import-export-worker
 cargo nextest run -p oya-sheets-import-export-domain --test xlsx_best_effort_roundtrip
 cargo nextest run -p oya-sheets-import-export-adapter-clamav --test test_avscan_required
-cargo run -p oya-dev-cli -- gate validate sheets-xlsx-roundtrip-best-effort --microservice sheets
-cargo run -p oya-dev-cli -- gate validate sheets-import-sandboxed-and-avscan-required --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=sheets-xlsx-roundtrip-best-effort --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=sheets-import-sandboxed-and-avscan-required --microservice sheets
 ```
 
 ## Test Plan

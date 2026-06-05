@@ -157,10 +157,10 @@ cargo clippy -p oya-observability-slo-engine-kernel --all-features -- -D warning
 cargo nextest run -p oya-observability-slo-engine-kernel --all-features
 cargo deny check
 cargo doc -p oya-observability-slo-engine-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-observability-slo-engine-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-observability-slo-engine-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-observability-slo-engine-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-observability-slo-engine-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-observability-slo-engine-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-observability-slo-engine-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-observability-slo-engine-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-observability-slo-engine-kernel
 ```
 
 ## Test Plan

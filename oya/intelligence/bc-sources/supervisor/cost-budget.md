@@ -105,7 +105,7 @@ For DR-pair packs (pack-eu, pack-us, pack-au, pack-in, pack-br, pack-ae, pack-ks
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice foundry-supervisor` — exit 0; current spend within 110%.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cost-budget --microservice foundry-supervisor` — exit 0; current spend within 110%.
 - Monthly FinOps review.
 - Quarterly capacity-model + cost-budget refresh.
 

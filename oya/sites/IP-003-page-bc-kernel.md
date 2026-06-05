@@ -29,7 +29,7 @@ cargo build -p oya-sites-page-kernel -p oya-sites-page-domain -p oya-sites-page-
 cargo build -p oya-sites-page-adapter -p oya-sites-page-adapter-postgres -p oya-sites-page-rest -p oya-sites-page-worker -p oya-sites-page-sdk -p oya-sites-page-app
 cargo nextest run -p oya-sites-page-domain -- redirect_signature_stability
 cargo nextest run -p oya-sites-page-usecase -- ai_page_build_refusal_hr
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice sites
 ```
 
 ## Test Plan

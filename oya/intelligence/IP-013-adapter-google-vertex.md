@@ -56,8 +56,8 @@ impl ProviderAdapterPort for GoogleVertexAdapter {
 
 ```bash
 cargo nextest run -p oya-intelligence-providers-adapter-google
-cargo run -p oya-dev-cli -- gate validate provider-adapter-byok --provider google
-cargo run -p oya-dev-cli -- gate validate provider-adapter-video-modality --provider google
+buck2 build //:quality-lane-registry-authority-check # lane=provider-adapter-byok --provider google
+buck2 build //:quality-lane-registry-authority-check # lane=provider-adapter-video-modality --provider google
 ```
 
 ## References

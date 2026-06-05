@@ -40,7 +40,7 @@ Implement the cataloged feed-timeline kernel and Valkey adapter plus planned dom
 - `cargo nextest run -p oya-community-social-feed-timeline-kernel` passes.
 - `cargo nextest run -p oya-community-social-feed-timeline-adapter-valkey` passes.
 - `slos/feed-render-latency.openslo.yaml` resolves.
-- `cargo run -p oya-dev-cli -- gate validate content-policy --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=content-policy --microservice social` passes.
 - `runbooks/feed-cache-rebuild.md` covers rebuild and degradation behavior.
 
 ## F. Evidence

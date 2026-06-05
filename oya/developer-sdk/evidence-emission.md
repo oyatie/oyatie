@@ -63,5 +63,5 @@ Daily audit-chain integrity verification emits to `microservices/<ms>/evidence/c
 
 ## Verification
 
-`cargo run -p oya-dev-cli -- gate validate evidence-emission --microservice <ms>` exits 0 only if every evidence schema is present + populated.
+`buck2 build //:quality-lane-registry-authority-check # lane=evidence-emission --microservice <ms>` exits 0 only if every evidence schema is present + populated.
 

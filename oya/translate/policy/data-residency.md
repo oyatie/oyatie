@@ -186,7 +186,7 @@ Citations: CN Cybersecurity Law (2017) + Data Security Law (2021) + PIPL Arts. 3
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate data-residency-correctness --microservice translate` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=data-residency-correctness --microservice translate` exits 0.
 - `tests/integration/e2e/per_pack_engine_whitelist.rs` validates each row.
 - Pack overlay's `residency.engineWhitelist` matches this matrix; drift detected by `oya-translate-data-residency-correctness` BLOCKER lane.
 - Quarterly chaos drill: simulated cross-region routing attempt rejected at all 5 layers (per ADR-TRANSLATE-0004 defense-in-depth).

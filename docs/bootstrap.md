@@ -27,7 +27,7 @@ Options:
 | Hook entries | `.claude/settings.json` | 12 encouragement hooks for Claude Code |
 | Codex hooks (if detected) | `.codex/hooks.json` | Same hooks for Codex CLI |
 | Gemini hooks (if detected) | `.gemini/settings.json` | Same hooks for Gemini CLI (event names: SessionStart/BeforeAgent/AfterAgent/BeforeTool/AfterTool) |
-| CLI wrapper | `bin/oya` | `oya <subcommand>` → `cargo run -p oya-dev-cli` |
+| Retired local CLI wrapper | none | The former `bin/oya`/`oya-dev-cli` developer wrapper is retired; use Buck2/Prow-native checks and substrate-owned APIs instead. |
 | Shell completions | `tools/completions/{bash,zsh,fish}` | Tab-completion for all subcommands |
 | Lifecycle skills | `tools/agent-skills/` | 23 vendored skills from addyosmani/agent-skills |
 | Slash commands (Claude) | `.claude/commands/*.md` symlinks | 7 commands: `/spec /plan /build /test /review /code-simplify /ship` |

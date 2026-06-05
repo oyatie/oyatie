@@ -62,7 +62,7 @@ impl StartLiveStreamEgress {
 ```bash
 cargo nextest run -p oya-meet-live-stream-egress-adapter-srs
 cargo nextest run --test rtmp_egress_e2e
-cargo run -p oya-dev-cli -- gate validate egress-allow-list --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=egress-allow-list --microservice meet
 ```
 
 ## Test Plan

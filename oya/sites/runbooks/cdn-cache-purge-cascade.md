@@ -156,7 +156,7 @@ kubectl -n sites exec deploy/oya-sites-cdn-delivery-rest -- \
   grep 'oya_sites_cdn_cache_hit_ratio'
 
 # page-render-latency SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice sites --slo page-render-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice sites --slo page-render-latency
 ```
 
 ## Post-incident

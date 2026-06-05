@@ -28,7 +28,7 @@ Author the `domain-binding` BC per ADR-SITES-0004. Implements `Domain`, `DnsVeri
 cargo nextest run -p oya-sites-domain-binding-adapter-acme -- dns01_wildcard
 cargo nextest run -p oya-sites-domain-binding-adapter-acme -- http01_root
 cargo nextest run -p oya-sites-domain-binding-adapter-acme -- rate_limit_account_rotate
-cargo run -p oya-dev-cli -- gate validate rfc-8555-conformance --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=rfc-8555-conformance --microservice sites
 ```
 
 ## Test Plan

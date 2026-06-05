@@ -166,7 +166,7 @@ doc_status: published
 8. Add model-route-specific eval case.
 9. Run guardrail tests: `cargo test -p oya-governance-eval-domain prompt_fence -- --nocapture`.
 10. Run routing safety tests: `cargo test -p oya-intelligence-route-policy-kernel prompt_fence -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-prompt-fence --production-snapshot --cell $CELL`.
+11. Run production gate: `buck2 build //:quality-lane-registry-authority-check # lane=intelligence-prompt-fence --production-snapshot --cell $CELL`.
 12. Verify eval set: `oya ops intelligence eval run --pack $PACK --suite prompt-fence-critical --expect pass`.
 13. Remove temporary deny only after permanent policy lands: `oya ops intelligence tool-policy deny-fragment remove --tenant $TENANT --tool <tool> --reason resolved-$INCIDENT_ID`.
 14. Unhold deploys: recovery PR against `dev` (plain `git`; `oya-ci-required` + Buck2 evidence required).

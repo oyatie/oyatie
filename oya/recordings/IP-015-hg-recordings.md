@@ -33,7 +33,7 @@ eligibility ledger.
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion --microservice recordings
 # Should accept at p99 SLOs sustained 30d before HG-RECORDINGS goes green
 ```
 
@@ -57,7 +57,7 @@ load_bearing: true
 
 | AC-ID | Criterion | Verification |
 |---|---|---|
-| AC-01 | HG-RECORDINGS registered in `registry/artifact-capabilities-registry.json` with 10 SLO refs + 2 load-bearing correctness refs | `cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice recordings` |
+| AC-01 | HG-RECORDINGS registered in `registry/artifact-capabilities-registry.json` with 10 SLO refs + 2 load-bearing correctness refs | `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion --microservice recordings` |
 | AC-02 | All 10 OpenSLO objectives green over 30d in dev cluster | ADR-0139 ledger query |
 | AC-03 | Retention-policy-correctness + legal-hold-chain-of-custody-correctness both green | governance lanes |
 | AC-04 | Prometheus burn-rate alerts wired to promotion ledger via Helm template | `kubectl apply --dry-run` + `promtool check rules` |
@@ -69,7 +69,7 @@ load_bearing: true
 2. Register in `crates/oya-governance-gate-catalog-domain`.
 3. Author `microservices/recordings/iac/helm/recordings/templates/prometheusrule.yaml`.
 4. Update `.github/branch-protection.yaml` to require HG-RECORDINGS on `dev`.
-5. Run `cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice recordings`.
+5. Run `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion --microservice recordings`.
 
 ## Traceability
 

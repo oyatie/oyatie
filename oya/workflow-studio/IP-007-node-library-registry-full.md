@@ -98,8 +98,8 @@ cargo check -p oya-workflow-studio-node-library-registry-kernel \
   -p oya-workflow-studio-node-library-registry-app
 cargo nextest run -p oya-workflow-studio-node-library-registry-domain --test determinism
 cargo nextest run -p oya-workflow-studio-node-library-registry-domain --test signature
-cargo run -p oya-dev-cli -- gate validate node-library-signature-verification --microservice workflow-studio
-cargo run -p oya-dev-cli -- gate validate node-library-determinism --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=node-library-signature-verification --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=node-library-determinism --microservice workflow-studio
 helm lint microservices/workflow-studio/iac/helm/node-library-registry-rest
 ```
 

@@ -39,8 +39,8 @@ Create the per-microservice flat Cargo workspace and only the crate paths alread
 ## E. Acceptance
 - `cargo check --workspace` scoped to social packages passes.
 - `cargo nextest run --workspace` scoped to social packages passes for bootstrap tests.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice social` passes.
-- `cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice social` passes.
 - Manifest and catalog crate names match workspace members.
 
 ## F. Evidence

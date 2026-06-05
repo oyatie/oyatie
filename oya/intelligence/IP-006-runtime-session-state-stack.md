@@ -98,8 +98,8 @@ cargo check -p oya-foundry-runtime-session-state-{kernel,domain,usecase,api,adap
 cargo nextest run -p oya-foundry-runtime-session-state-{kernel,domain,usecase}
 cargo nextest run -p oya-foundry-runtime-session-state-adapter-redis --features testcontainers
 cargo nextest run -p oya-foundry-runtime-session-state-adapter-postgres --features testcontainers
-cargo run -p oya-dev-cli -- gate validate session-prefix-isolation --microservice foundry-runtime
-cargo run -p oya-dev-cli -- gate validate postgres-rls-coverage --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=session-prefix-isolation --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=postgres-rls-coverage --microservice foundry-runtime
 ```
 
 ## Test Plan

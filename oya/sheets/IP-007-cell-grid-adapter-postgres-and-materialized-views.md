@@ -71,7 +71,7 @@ CREATE MATERIALIZED VIEW workbook_hot_range_cache AS
 ```bash
 cargo check -p oya-sheets-cell-grid-adapter-postgres
 cargo nextest run -p oya-sheets-cell-grid-adapter-postgres --test postgres_integration -- --include-ignored
-cargo run -p oya-dev-cli -- gate validate citus-rls-enforced --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=citus-rls-enforced --microservice sheets
 ```
 
 ## Test Plan

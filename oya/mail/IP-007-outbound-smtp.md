@@ -80,8 +80,8 @@ pub async fn submit(env: OutboundEnvelope, principal: &Principal, ports: &Ports)
 ```bash
 cargo nextest run -p oya-mail-outbound-smtp-domain
 cargo nextest run -p oya-mail-outbound-smtp-usecase
-cargo run -p oya-dev-cli -- gate validate dkim-key-rotation-conformance --microservice mail
-cargo run -p oya-dev-cli -- gate validate mta-sts-conformance --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=dkim-key-rotation-conformance --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=mta-sts-conformance --microservice mail
 bash microservices/mail/tests/e2e/outbound-smtp.sh
 ```
 

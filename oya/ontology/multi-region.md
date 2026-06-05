@@ -166,7 +166,7 @@ Per-pack BCDR specifics (region capabilities, local-regulator BCDR requirements)
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region-conformance --microservice ontology` — exit 0; deployed topology matches this document.
+- `buck2 build //:quality-lane-registry-authority-check # lane=multi-region-conformance --microservice ontology` — exit 0; deployed topology matches this document.
 - Quarterly DR-failover drill audit log: success vs failure rate.
 - Annual third-party BCDR audit: alignment with ISO 22301 / NIST SP 800-34 / DORA.
 

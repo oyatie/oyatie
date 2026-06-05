@@ -184,8 +184,8 @@ oyatie differentiators:
 
 ## Acceptance Criteria (PRD-level)
 
-- **AC-01** — `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-providers` exits 0.
-- **AC-02** — `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exits 0.
+- **AC-01** — `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-providers` exits 0.
+- **AC-02** — `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` exits 0.
 - **AC-03** — `oya-foundry-providers-credential-isolation` LEAN lane present in `.github/branch-protection.yaml` `required_status_checks`.
 - **AC-04** — Every adapter crate's tests verify a zero-occurrence regex sweep for credential bytes against the test fixture set.
 - **AC-05** — Provider-router decision p99 (in-process, no upstream) ≤ 5 ms verified by `tests/load/router_decision.rs`.

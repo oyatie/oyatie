@@ -48,9 +48,9 @@ cargo build --target wasm32-unknown-unknown -p oya-sheets-cell-grid-adapter-lept
 cargo check -p oya-sheets-cell-grid-rest -p oya-sheets-cell-grid-sdk -p oya-sheets-cell-grid-app \
   -p oya-sheets-license-gate-cedar-kernel ... -p oya-sheets-license-gate-cedar-sdk
 cargo nextest run -p oya-sheets-license-gate-cedar-domain --test test_per_seat_cedar
-cargo run -p oya-dev-cli -- gate validate cedar-preview-required --microservice sheets
-cargo run -p oya-dev-cli -- gate validate editor-execution-forbidden --microservice sheets
-cargo run -p oya-dev-cli -- gate validate wasm-bundle-sri --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-preview-required --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=editor-execution-forbidden --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=wasm-bundle-sri --microservice sheets
 ```
 
 ## Test Plan

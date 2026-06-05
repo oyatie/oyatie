@@ -160,7 +160,7 @@
     }
   ],
   "verification_commands": [
-    "cargo run -p oya-dev-cli -- gate validate deployment-ops-contract",
+    "buck2 build //:quality-lane-registry-authority-check # lane=deployment-ops-contract",
     "make help",
     "make fleet",
     "make verify-deploy-contract",

@@ -40,7 +40,7 @@ Implement the block-type system per ADR-DOCS-0002 (block-based per Notion). Defi
 cargo nextest run -p oya-docs-block-types-domain -- heading_hierarchy
 cargo nextest run -p oya-docs-block-types-domain -- alt_text_required
 cargo nextest run -p oya-docs-block-types-domain -- ammonia_sanitiser_fuzz
-cargo run -p oya-dev-cli -- gate validate wcag-22-aa-conformance --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=wcag-22-aa-conformance --microservice docs
 ```
 
 ## References

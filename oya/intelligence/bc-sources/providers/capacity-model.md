@@ -141,7 +141,7 @@ See `cost-budget.md` for the full tier-by-tier cost table.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-model --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-model --microservice foundry-providers` exits 0.
 - Quarterly capacity refresh: actual qps + p99 latency vs forecast.
 - Load-test (`tests/load/router_decision.rs`) demonstrates router throughput per replica matches the formula.
 

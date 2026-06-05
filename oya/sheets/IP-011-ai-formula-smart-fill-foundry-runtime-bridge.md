@@ -71,7 +71,7 @@ pub async fn draft_formula(req: AiFormulaDraftRequest) -> Result<AiFormulaDraftR
 ```bash
 cargo check -p oya-sheets-ai-formula-kernel ... -p oya-sheets-ai-formula-sdk
 cargo nextest run -p oya-sheets-ai-formula-domain --test test_smart_fill_corpus
-cargo run -p oya-dev-cli -- gate validate ai-formula-validation-required --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=ai-formula-validation-required --microservice sheets
 ```
 
 ## Test Plan

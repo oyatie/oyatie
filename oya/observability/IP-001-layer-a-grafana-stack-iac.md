@@ -82,8 +82,8 @@ helm lint microservices/observability/iac/helm/mimir
 helm lint microservices/observability/iac/helm/loki
 # ... 7 more helm lints
 kubectl --dry-run=client apply -k microservices/observability/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice observability
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice observability
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

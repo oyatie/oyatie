@@ -41,7 +41,7 @@ pub trait TagRepository {
 ```bash
 cargo check -p oya-notes-tag-graph-kernel
 cargo check -p oya-notes-tag-graph-domain
-cargo run -p oya-dev-cli -- gate validate port-location --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice notes
 ```
 
 ## Next IP

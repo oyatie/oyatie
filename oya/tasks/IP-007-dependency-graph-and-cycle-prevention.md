@@ -55,7 +55,7 @@ edge inserts + cycle detection (per PRD §"Bounded Contexts" note).
 ```bash
 cargo test -p oya-tasks-dependency-graph-domain
 cargo test -p oya-tasks-dependency-graph-usecase
-cargo run -p oya-dev-cli -- gate validate dependency-graph-cycle-prevention --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=dependency-graph-cycle-prevention --microservice tasks
 ```
 
 ## Test Plan

@@ -100,7 +100,7 @@ async fn handle_socket(
 cargo build -p oya-workflow-studio-collab-crdt-worker --release
 cargo nextest run -p oya-workflow-studio-collab-crdt-worker --test e2e_10_user_collab
 helm lint microservices/workflow-studio/iac/helm/collab-crdt-worker
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice workflow-studio
 ```
 
 ## Test Plan

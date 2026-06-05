@@ -116,7 +116,7 @@ kubectl -n drive exec deploy/oya-drive-dlp-virus-scan-worker -- \
   curl -s localhost:9090/metrics | grep oya_drive_virus_scan_verdict_total
 
 # DLP-correctness SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo dlp-scan-correctness
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice drive --slo dlp-scan-correctness
 
 # EICAR test signature still triggers (sanity)
 echo 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*' |

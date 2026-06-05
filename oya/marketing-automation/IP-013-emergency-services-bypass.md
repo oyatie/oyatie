@@ -43,7 +43,7 @@ Use `policy/emergency-services-bypass.cedar` and the existing emergency permit c
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app emergency`
-- `cargo run -p oya-dev-cli -- gate validate policy-authorization --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=policy-authorization --microservice marketing-automation`
 - Manual policy review confirms no `permit(principal, action, resource)` emergency clause lacks audit-event and attestation predicates.
 
 ## F. Evidence

@@ -207,11 +207,11 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-ru
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate session-prefix-isolation` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate postgres-rls-coverage` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate autonomy-gate-presence` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice foundry-runtime` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate no-wildcard-tenant-query --microservice foundry-runtime` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=session-prefix-isolation` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=postgres-rls-coverage` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=autonomy-gate-presence` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice foundry-runtime` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=no-wildcard-tenant-query --microservice foundry-runtime` — exit 0.
 - Annual pen-test against tenant boundary.
 - Quarterly chaos drill: induce reserved-tenant spoofing + autonomy ceiling bypass attempt; verify rejection + alerting.
 

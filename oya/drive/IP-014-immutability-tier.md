@@ -29,8 +29,8 @@ cargo nextest run --test worm_refuses_purge
 cargo nextest run --test worm_refuses_tenant_root
 cargo nextest run --test worm_retention_monotonic
 cargo nextest run --test legal_hold_preserves
-cargo run -p oya-dev-cli -- gate validate worm-integrity-scan --microservice drive
-cargo run -p oya-dev-cli -- gate validate worm-enforcement-multi-layer --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=worm-integrity-scan --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=worm-enforcement-multi-layer --microservice drive
 ```
 
 ## ChangeSet metadata
@@ -52,8 +52,8 @@ load_bearing: true
 | AC-02 | Tenant-root cannot release WORM ahead of retention floor | `cargo nextest run --test worm_refuses_tenant_root` |
 | AC-03 | Retention is monotonic — cannot be shortened after applied | `cargo nextest run --test worm_retention_monotonic` |
 | AC-04 | Legal-hold preserves object + versions past retention expiry | `cargo nextest run --test legal_hold_preserves` |
-| AC-05 | Hourly integrity scan detects + alerts any WORM-bypass attempt | `cargo run -p oya-dev-cli -- gate validate worm-integrity-scan --microservice drive` |
-| AC-06 | Multi-layer enforcement gate green (app + DB + object-store) | `cargo run -p oya-dev-cli -- gate validate worm-enforcement-multi-layer --microservice drive` |
+| AC-05 | Hourly integrity scan detects + alerts any WORM-bypass attempt | `buck2 build //:quality-lane-registry-authority-check # lane=worm-integrity-scan --microservice drive` |
+| AC-06 | Multi-layer enforcement gate green (app + DB + object-store) | `buck2 build //:quality-lane-registry-authority-check # lane=worm-enforcement-multi-layer --microservice drive` |
 
 ## Build Sequence
 

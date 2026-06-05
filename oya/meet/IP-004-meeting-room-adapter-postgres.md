@@ -58,7 +58,7 @@ CREATE INDEX idx_meet_meeting_room_tenant_created ON meet_meeting_room (tenant_i
 
 ```bash
 cargo nextest run -p oya-meet-meeting-room-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate postgres-rls-coverage --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=postgres-rls-coverage --microservice meet
 ```
 
 ## Test Plan

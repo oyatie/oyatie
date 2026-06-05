@@ -116,8 +116,8 @@ cargo check -p oya-mail-mailbox-store-adapter-postgres
 cargo build -p oya-mail-mailbox-store-adapter-postgres
 cargo clippy -p oya-mail-mailbox-store-adapter-postgres -- -D warnings
 cargo nextest run -p oya-mail-mailbox-store-adapter-postgres --features integration-test
-cargo run -p oya-dev-cli -- gate validate shardability --crate oya-mail-mailbox-store-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate rls-conformance --crate oya-mail-mailbox-store-adapter-postgres
+buck2 build //:quality-lane-registry-authority-check # lane=shardability --crate oya-mail-mailbox-store-adapter-postgres
+buck2 build //:quality-lane-registry-authority-check # lane=rls-conformance --crate oya-mail-mailbox-store-adapter-postgres
 ```
 
 ## Test Plan

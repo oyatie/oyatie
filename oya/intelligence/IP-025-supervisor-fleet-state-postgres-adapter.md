@@ -79,8 +79,8 @@ CREATE POLICY tenant_isolation ON fleet_state
 
 ```bash
 cargo check / build / clippy / nextest
-cargo run -p oya-dev-cli -- gate validate postgres-rls-enforced --microservice foundry-supervisor
-cargo run -p oya-dev-cli -- gate validate shardability --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=postgres-rls-enforced --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=shardability --microservice foundry-supervisor
 ```
 
 ## Test Plan

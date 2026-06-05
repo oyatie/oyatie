@@ -91,24 +91,24 @@ cargo clippy --workspace -- -D warnings
 cargo nextest run --workspace
 cargo deny check
 cargo doc --workspace --no-deps
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-eval
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice foundry-eval
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice foundry-eval
-cargo run -p oya-dev-cli -- gate validate port-location --microservice foundry-eval
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice foundry-eval
-cargo run -p oya-dev-cli -- gate validate data-class --microservice foundry-eval
-cargo run -p oya-dev-cli -- gate validate statelessness --microservice foundry-eval
-cargo run -p oya-dev-cli -- gate validate shardability --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=statelessness --microservice foundry-eval
+buck2 build //:quality-lane-registry-authority-check # lane=shardability --microservice foundry-eval
 ```
 
 Phase-complete additionally requires:
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate foundry-eval-coverage
-cargo run -p oya-dev-cli -- gate validate foundry-eval-adversarial-coverage
-cargo run -p oya-dev-cli -- gate validate foundry-eval-linguistic-coverage
-cargo run -p oya-dev-cli -- gate validate foundry-eval-replay-determinism
-cargo run -p oya-dev-cli -- gate validate authority-cohesion  # HG-FE registered
+buck2 build //:quality-lane-registry-authority-check # lane=foundry-eval-coverage
+buck2 build //:quality-lane-registry-authority-check # lane=foundry-eval-adversarial-coverage
+buck2 build //:quality-lane-registry-authority-check # lane=foundry-eval-linguistic-coverage
+buck2 build //:quality-lane-registry-authority-check # lane=foundry-eval-replay-determinism
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion  # HG-FE registered
 ```
 
 Per ADR-0139 SLO gate: `release/foundry-eval/staging` advances only when SLI burn-rate is green; `release/foundry-eval/production` advances only after staging burn-rate clean for 24h.

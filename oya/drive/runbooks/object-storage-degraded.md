@@ -113,8 +113,8 @@ kubectl -n drive exec sts/oya-drive-garage-0 -- garage status
 kubectl -n drive exec sts/oya-drive-garage-0 -- garage stats | grep pending
 
 # SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo download-first-byte-latency
-cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo upload-multipart-throughput
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice drive --slo download-first-byte-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice drive --slo upload-multipart-throughput
 ```
 
 ## Post-incident

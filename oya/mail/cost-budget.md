@@ -126,7 +126,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice mail` — exit 0; current spend within 110%.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cost-budget --microservice mail` — exit 0; current spend within 110%.
 - Monthly FinOps review: actual vs forecast.
 - Quarterly: capacity-model + cost-budget refresh.
 

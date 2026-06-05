@@ -37,7 +37,7 @@ Implement pure document-invariant math (block-tree ordering validation, ACL cove
 cargo nextest run -p oya-docs-document-store-domain -- context_isolation
 cargo nextest run -p oya-docs-document-store-domain -- per_block_acl
 cargo nextest run -p oya-docs-document-store-domain -- legal_hold
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice docs
 ```
 
 ## References

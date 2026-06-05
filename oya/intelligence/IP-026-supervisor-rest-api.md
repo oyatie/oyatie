@@ -73,8 +73,8 @@ pub async fn engage_kill_switch(
 
 ```bash
 cargo check / build / clippy / nextest per crate
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --microservice foundry-supervisor
-cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice foundry-supervisor
 ```
 
 ## Test Plan

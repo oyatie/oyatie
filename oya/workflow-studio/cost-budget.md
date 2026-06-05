@@ -136,7 +136,7 @@ XS tier is uneconomic on per-seat basis (HA minimums dominate); GA target ≤ $5
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice workflow-studio` — exit 0; current spend within 110%.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cost-budget --microservice workflow-studio` — exit 0; current spend within 110%.
 - Monthly FinOps review.
 - Quarterly: capacity-model + cost-budget refresh.
 

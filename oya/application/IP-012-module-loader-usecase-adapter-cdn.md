@@ -74,7 +74,7 @@ cargo nextest run -p oya-application-module-loader-adapter --all-features
 cargo nextest run -p oya-application-module-loader-adapter-cdn --all-features
 cargo nextest run -p oya-application-module-loader-rest --all-features
 cargo nextest run -p oya-application-module-loader-sdk --all-features
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --crate oya-application-module-loader-rest
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --crate oya-application-module-loader-rest
 ```
 
 ## Test Plan

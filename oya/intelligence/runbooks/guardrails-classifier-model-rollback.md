@@ -74,7 +74,7 @@ If the rollback target itself is bad (rare; indicates regression debt):
 Promoting a new classifier from shadow to enforce uses this runbook in reverse:
 1. Verify shadow phase ≥ 7d (≥ 14d for pack-us-healthcare PHI models).
 2. Verify shadow-vs-enforce delta acceptable (< 5% absolute decision change OR signed-off as intentional).
-3. Verify `cargo run -p oya-dev-cli -- gate validate shadow-enforce-promotion-readiness --model <m>` exit 0.
+3. Verify `buck2 build //:quality-lane-registry-authority-check # lane=shadow-enforce-promotion-readiness --model <m>` exit 0.
 4. Update Helm values: `status: enforce`; `image.tag=<new-sha>`.
 5. ArgoCD rolling-restart; same verification steps as rollback (4-6).
 

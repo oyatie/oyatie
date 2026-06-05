@@ -43,8 +43,8 @@ Bind `src/usecase/mod.rs` `AuditPort::append()` to a per-event audit catalog and
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app audit`
-- `cargo run -p oya-dev-cli -- gate validate audit-emission --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate slo-catalog --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=audit-emission --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=slo-catalog --microservice marketing-automation`
 - Manual evidence: no event in `MarketingAutomationEvent` lacks a dashboard or SLO reference.
 
 ## F. Evidence

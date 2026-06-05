@@ -34,8 +34,8 @@ Implement per-doc + per-block ACL + share-link issuance (Ed25519-signed tokens) 
 ```bash
 cargo nextest run -p oya-docs-sharing-and-permissions-domain -- per_block_acl  # AC-04
 cargo nextest run -p oya-docs-sharing-and-permissions-domain -- share_link_constant_time_verify
-cargo run -p oya-dev-cli -- gate validate per-block-acl --microservice docs
-cargo run -p oya-dev-cli -- gate validate acl-enforcement-correctness --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=per-block-acl --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=acl-enforcement-correctness --microservice docs
 ```
 
 ## References

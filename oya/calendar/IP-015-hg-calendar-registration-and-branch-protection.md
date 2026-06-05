@@ -39,7 +39,7 @@ Register HG-CALENDAR as a required governance check backed by manifest, contract
 
 ## E. Acceptance
 - `jq -e . microservices/calendar/manifest.json` passes.
-- `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity --microservice calendar` passes.
 - Required check registration includes contract, policy, SLO, and doc-link lanes.
 - `scorecards/overrides.json` parses and contains no silent pass for missing IP evidence.
 - Branch-protection dry run blocks a missing calendar contract path.

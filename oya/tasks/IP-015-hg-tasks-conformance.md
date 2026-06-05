@@ -49,10 +49,10 @@ n/a.
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate microservice-registration --microservice tasks
-cargo run -p oya-dev-cli -- gate validate slo-coverage --microservice tasks
-cargo run -p oya-dev-cli -- gate validate branch-protection --microservice tasks
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=microservice-registration --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=slo-coverage --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=branch-protection --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity --microservice tasks
 ```
 
 ## Test Plan

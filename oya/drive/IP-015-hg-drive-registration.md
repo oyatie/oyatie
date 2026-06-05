@@ -30,10 +30,10 @@ Register HG-DRIVE hyperscaler-maturity claim per ADR-0123 + ADR-0133. Wire SLO e
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice drive
-cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice drive
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice drive
-cargo run -p oya-dev-cli -- gate validate aggregation-index-generation
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=aggregation-index-generation
 ```
 
 ## Phase exit

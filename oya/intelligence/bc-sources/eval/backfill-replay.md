@@ -110,7 +110,7 @@ Per `cost-budget.md`:
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate backfill-replay --microservice foundry-eval` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=backfill-replay --microservice foundry-eval` exits 0.
 - Per-quarter backfill report in `evidence/backfill/<year>/<quarter>.md`.
 - DSR cascade re-derivation count tracked in dashboard.
 

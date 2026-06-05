@@ -101,9 +101,9 @@ Minimum 5 required; 7 specified.
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate presence-correctness
-cargo run -p oya-dev-cli -- gate validate presence-isolation
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=presence-correctness
+buck2 build //:quality-lane-registry-authority-check # lane=presence-isolation
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-collab-presence --tests
 ```
 

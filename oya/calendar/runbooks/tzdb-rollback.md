@@ -156,7 +156,7 @@ kubectl -n calendar exec deploy/oya-calendar-event-store-app -- \
 # expect: prior LTS release
 
 # 2. Corpus + edge-case matrix green
-cargo run -p oya-dev-cli -- gate validate rfc-5545-conformance --microservice calendar
+buck2 build //:quality-lane-registry-authority-check # lane=rfc-5545-conformance --microservice calendar
 
 # 3. Cross-tenant divergence rate returning to baseline
 kubectl -n calendar exec deploy/oya-calendar-event-store-app -- \
@@ -164,7 +164,7 @@ kubectl -n calendar exec deploy/oya-calendar-event-store-app -- \
   grep 'oya_calendar_tzdb_cross_tenant_divergence_total'
 
 # 4. Staleness SLO (REPORT-ONLY tracking the rollback)
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo tzdb-staleness-bound
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice calendar --slo tzdb-staleness-bound
 ```
 
 ## Post-incident

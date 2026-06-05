@@ -96,7 +96,7 @@ impl DsrHardDeleteScheduler {
 ```bash
 cargo nextest run -p oya-foundry-runtime-session-state-usecase --test dsr_cascade
 cargo nextest run -p oya-foundry-runtime-session-state-app --test dsr_cascade_worker --features testcontainers
-cargo run -p oya-dev-cli -- gate validate dsr-cascade-coverage --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=dsr-cascade-coverage --microservice foundry-runtime
 ```
 
 ## Test Plan

@@ -49,8 +49,8 @@ pub fn build_router(deps: AppDeps) -> Router {
 
 ```bash
 cargo nextest run -p oya-application-shell-routing-rest --all-features
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --crate oya-application-shell-routing-rest
-cargo run -p oya-dev-cli -- gate validate cedar-policy-compiles --crate oya-application-shell-routing-rest
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --crate oya-application-shell-routing-rest
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-policy-compiles --crate oya-application-shell-routing-rest
 ```
 
 ## Test Plan

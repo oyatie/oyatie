@@ -93,7 +93,7 @@ tenant_id (envelope use) = "tenant:" + hashed_tenant_id
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate intelligence-tenant-isolation` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=intelligence-tenant-isolation` — exit 0.
 - Quarterly chaos drill: induce cross-tenant dispatch attempt; verify refusal.
 - Annual pen-test against tenant boundary.
 

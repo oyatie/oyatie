@@ -228,7 +228,7 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-gu
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance-evidence-recency --microservice foundry-guardrails` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=compliance-evidence-recency --microservice foundry-guardrails` — exit 0.
 - Annual external SOC 2 audit; biennial ISO 27001 surveillance.
 - pack-eu activation triggers EU AI Act notified-body assessment.
 - pack-us-healthcare activation triggers HIPAA risk-analysis fresh sign-off.

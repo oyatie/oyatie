@@ -64,8 +64,8 @@ n/a — IaC only.
 ```bash
 helm lint microservices/sites/iac/helm
 kubectl --dry-run=client apply -k microservices/sites/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice sites
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

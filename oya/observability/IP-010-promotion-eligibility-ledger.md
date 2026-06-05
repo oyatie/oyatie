@@ -46,8 +46,8 @@ groups:
 
 ```bash
 cargo nextest run -p oya-observability-slo-engine-adapter-mimir --test ledger_round_trip
-cargo run -p oya-dev-cli -- gate validate mimir-recording-rule-conformance
-cargo run -p oya-dev-cli -- gate validate mimir-tenancy-enforced
+buck2 build //:quality-lane-registry-authority-check # lane=mimir-recording-rule-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=mimir-tenancy-enforced
 # Mimir promtool rule check:
 promtool check rules microservices/observability/iac/helm/mimir/recording-rules.yaml
 ```

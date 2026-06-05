@@ -315,7 +315,7 @@ Per the agent-skills documentation-and-adrs SKILL.md §"Verification":
 - [ ] **CalDAV E2E suite passes against both backends** —
   `cargo nextest run -p tests --test e2e_caldav_clients`.
 - [ ] **Helm chart versions pinned** —
-  `cargo run -p oya-dev-cli -- gate validate version-pinning-conformance --microservice calendar`.
+  `buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance --microservice calendar`.
 
 ## References
 

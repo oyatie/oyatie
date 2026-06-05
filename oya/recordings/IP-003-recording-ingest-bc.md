@@ -44,9 +44,9 @@ idempotency + ordering + backpressure protocol.
 
 ```bash
 cargo nextest run -p oya-recordings-recording-ingest-kernel
-cargo run -p oya-dev-cli -- gate validate ingest-contract-conformance
-cargo run -p oya-dev-cli -- gate validate port-location --microservice recordings
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=ingest-contract-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice recordings
 ```
 
 ## Next IP
