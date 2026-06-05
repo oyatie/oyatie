@@ -280,6 +280,40 @@ fn active_promotion_spec_rejects_retired_substrate_authority() {
 }
 
 #[test]
+fn vcs_registry_tombstone_rejects_stale_bridge_wording() {
+    let mut readme = read_repo_file("registry/vcs/README.md");
+    readme.push_str("\nretired in favour of git + Jenkins + self-hosted Forgejo\n");
+    let failures = gate::vcs_registry_tombstone_failures(
+        &readme,
+        &read_repo_file("registry/vcs/event-router.yaml"),
+        &read_repo_file("registry/vcs/concurrent-safe-paths.yaml"),
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("git + Jenkins + self-hosted Forgejo")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn vcs_registry_tombstone_rejects_active_loader_language() {
+    let mut safe_paths = read_repo_file("registry/vcs/concurrent-safe-paths.yaml");
+    safe_paths.push_str("\n# Loader: retired-app/src/projected_merge_state.rs\n");
+    let failures = gate::vcs_registry_tombstone_failures(
+        &read_repo_file("registry/vcs/README.md"),
+        &read_repo_file("registry/vcs/event-router.yaml"),
+        &safe_paths,
+    );
+    assert!(
+        failures.iter().any(|failure| failure.contains("Loader:")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn root_hub_and_masterplan_pointer_are_required() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert!(
