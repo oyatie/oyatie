@@ -55,6 +55,59 @@ fn workflow_rejects_legacy_checkout_v4() {
 }
 
 #[test]
+fn workflow_rejects_checkout_credentials_persistence() {
+    let workflow = read_repo_file(".github/workflows/github-lane-unlocker-ci-cd.yml")
+        .replace("\n          persist-credentials: false", "");
+    let failures = gate::workflow_failures(&workflow);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("must disable persisted checkout credentials")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn workflow_rejects_broad_or_write_permissions() {
+    let workflow = read_repo_file(".github/workflows/github-lane-unlocker-ci-cd.yml")
+        .replace("contents: read", "contents: write");
+    let failures = gate::workflow_failures(&workflow);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("must not request broad or write token permissions")),
+        "{:?}",
+        failures
+    );
+
+    let mut workflow = read_repo_file(".github/workflows/github-lane-unlocker-ci-cd.yml");
+    workflow.push_str("\npermissions: write-all\n");
+    let failures = gate::workflow_failures(&workflow);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("must not request broad or write token permissions")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn workflow_rejects_long_lived_secret_consumption() {
+    let mut workflow = read_repo_file(".github/workflows/github-lane-unlocker-ci-cd.yml");
+    workflow.push_str("\n      - run: echo '${{ secrets.PERMANENT_TOKEN }}'\n");
+    let failures = gate::workflow_failures(&workflow);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("long-lived GitHub secrets")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn spec_rejects_permanent_github_authority_claim() {
     let spec = read_repo_file("specs/github-lane-unlocker-bridge.json").replace(
         "\"github_is_permanent\": false",

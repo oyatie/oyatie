@@ -1,0 +1,45 @@
+{
+  "schema": "multispectrum-review.v2.4.0",
+  "change_id": "github-actions-hardening-advisor-20260605T214801Z",
+  "change_class_id": "CC-7",
+  "claim_boundary": "temporary_github_actions_shadow_bridge_only_no_native_authority_claim",
+  "summary": "Tightens the temporary GitHub Actions lane-unlocker bridge with read-only Rust/Buck2 checks for least-privilege token permissions, no long-lived GitHub secrets, and disabled checkout credential persistence.",
+  "facets": {
+    "F1_scope": "P00 GitHub Actions shadow bridge hardening; workflow checkout settings, Rust bridge checker, tests, bridge spec, repo-hygiene backlog status, and audit evidence changed.",
+    "F2_source_authority": "specs/github-lane-unlocker-bridge.json, specs/repo-hygiene-automation.json, GitHub Actions security hardening, automatic token authentication, actions/checkout, and Buck2/Prow authority posture.",
+    "F3_tests": [
+      "RED: rustc --edition=2024 -D warnings scripts/tests/github_lane_unlocker_bridge_check.rs --test ... failed before guard with workflow_rejects_checkout_credentials_persistence and workflow_rejects_broad_or_write_permissions",
+      "rustfmt --edition 2024 scripts/ci/assert-github-lane-unlocker-bridge.rs scripts/tests/github_lane_unlocker_bridge_check.rs; exit 0",
+      "jq empty specs/github-lane-unlocker-bridge.json specs/repo-hygiene-automation.json; exit 0",
+      "rustc --edition=2024 -D warnings scripts/tests/github_lane_unlocker_bridge_check.rs --test ...; 8 passed",
+      "buck2 build //:github-lane-unlocker-bridge-check //:repo-hygiene-automation-check //:buck2-authority-policy-check; BUILD SUCCEEDED, Build ID 99f0f3e1-e0e7-41d1-87a0-c1e125eb3ab7"
+    ],
+    "F4_security": "Workflow now disables checkout credential persistence and the Rust checker rejects broad/write token permissions plus long-lived GitHub secret consumption in the temporary bridge workflow.",
+    "F5_privacy": "No new secret or data collection surface; the workflow explicitly rejects secrets.* use.",
+    "F6_reliability": "New regression tests cover missing checkout credential hardening, write-all/content-write token escalation, and long-lived secret use.",
+    "F7_operability": "GitHub Actions remains shadow/temporary; no live branch protection, Kubernetes, or native oya-ci authority mutation is claimed.",
+    "F8_performance": "No extra runtime jobs or fanout load; checks run in the existing Rust/Buck2 bridge gate.",
+    "F9_maintainability": "Centralizes workflow hardening policy in assert-github-lane-unlocker-bridge.rs and records source-backed spec fields rather than scattering ad-hoc shell checks.",
+    "F10_compatibility": "Preserves actions/checkout@v6, Node24 opt-in, Buck2 fanout lanes, required shadow context, and dry-run CD bridge shape.",
+    "F11_supply_chain": "No new dependencies; reduces credential exposure in checkout steps.",
+    "F13_traceability": "Implements candidate_read_only_checks.github_actions_permissions_and_pinning_advisor under /specs/repo-hygiene-automation.json."
+  },
+  "official_sources": [
+    "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions",
+    "https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication",
+    "https://github.com/actions/checkout"
+  ],
+  "verification": {
+    "buck2_build_id": "99f0f3e1-e0e7-41d1-87a0-c1e125eb3ab7",
+    "unit_test_count": 8,
+    "workflow_hardening": {
+      "checkout_persist_credentials_false_count": 3,
+      "write_permissions_allowed": false,
+      "broad_permissions_allowed": false,
+      "long_lived_github_secrets_allowed": false,
+      "force_node24_runtime": true,
+      "checkout_action_ref": "actions/checkout@v6"
+    },
+    "live_mutation": false
+  }
+}
