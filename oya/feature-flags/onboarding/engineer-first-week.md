@@ -58,6 +58,6 @@ Acceptance: the dashboard shows the expected 5 → 10 → 25 → 50 % traffic sp
 
 Declare `sunset_at: 2026-09-01` in the flag definition. The lane `oya-governance-feature-flag-sunset` now treats the flag as time-bound; on the sunset date the lane will BLOCKER any code path that still reads the flag.
 
-Open a follow-up issue `tracking-flag-sunset/yourµservice.beta.dashboard_v2` referencing the eventual `cargo run -p oya-dev-cli -- ff retire <flag-key>` invocation.
+Open a follow-up issue `tracking-flag-sunset/yourµservice.beta.dashboard_v2` referencing the native feature-flag lifecycle operation ledger entry, with Buck2 target evidence and the Prow/Kubernetes-native `oya-ci-required` job URL attached.
 
 Acceptance: `sunset_at` set; follow-up issue filed; you can explain the difference between a `kill_switch` (no sunset; lives until the underlying feature is amputated) and a `release_toggle` (sunset within ≤ 90 days of GA).

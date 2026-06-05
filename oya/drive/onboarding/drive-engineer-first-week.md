@@ -26,20 +26,13 @@ Acceptance: you can sketch the upload path: client → drive-api → DLP scan (p
 
 ## Day 2 — demo_trial cell bootstrap + first encrypted upload
 
-```sh
-cargo run -p oya-dev-cli -- drive bootstrap \
-    --profile demo_trial \
-    --cell drill-syd-1 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/drive \
-    --seaweed-endpoint http://drill-seaweed-syd-1:8333 \
-    --seaweed-master-endpoint http://drill-seaweed-syd-1:9333 \
-    --opensearch-endpoint http://drill-opensearch-syd-1:9200 \
-    --openbao-endpoint https://drill-openbao-syd-1:8200 \
-    --openbao-mount drive \
-    --clamav-endpoint http://drill-clamav-syd-1:3310 \
-    --preview-sandbox-cluster cloud-hypervisor://drill-preview-syd-1 \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: drive bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 18 min. Verify:
