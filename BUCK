@@ -185,7 +185,7 @@ genrule(
         "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-missing-producer.json": "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-missing-producer.json",
         "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-untrusted-producer.json": "specs/fixtures/phase0-required-context-rollup/bad-github-lane-unlocker-required-success-untrusted-producer.json",
         "scripts/ci/regen-third-party.sh": "scripts/ci/regen-third-party.sh",
-        "scripts/gen_first_party_buck.py": "scripts/gen_first_party_buck.py",
+        "scripts/ci/generate-first-party-buck.rs": "scripts/ci/generate-first-party-buck.rs",
         "scripts/agent-pre-push-validate.sh": "scripts/agent-pre-push-validate.sh",
         "scripts/build/build-and-push-cloud-intelligence.sh": "scripts/build/build-and-push-cloud-intelligence.sh",
         "cloud/cloud-intelligence/iac/oci/BUCK": "//cloud/cloud-intelligence/iac/oci:BUCK",
@@ -371,6 +371,23 @@ genrule(
     },
     out = "append-missing-rust-unit-test-targets-check.json",
     cmd = "mkdir -p $TMP/append-missing-rust-unit-test-targets && rustc --edition=2024 -D warnings scripts/tests/append_missing_rust_unit_test_targets_check.rs --test -o $TMP/append-missing-rust-unit-test-targets/append_missing_rust_unit_test_targets_check && OYA_REPO_ROOT=$PWD $TMP/append-missing-rust-unit-test-targets/append_missing_rust_unit_test_targets_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/append-missing-rust-unit-test-targets.rs -o $TMP/append-missing-rust-unit-test-targets/append-missing-rust-unit-test-targets && $TMP/append-missing-rust-unit-test-targets/append-missing-rust-unit-test-targets --version > /dev/null && echo '{\"verdict\":\"PASS\",\"checker\":\"scripts/ci/append-missing-rust-unit-test-targets.rs\",\"retired_python_surface_deleted\":true}' > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+# Rust/Buck2 replacement for first-party BUCK generation from local Cargo
+# manifests. Existing BUCK files remain protected unless callers opt into
+# `--force`; this target compiles the generator and its unit tests.
+genrule(
+    name = "generate-first-party-buck-check",
+    srcs = {
+        "scripts/ci/generate-first-party-buck.rs": "scripts/ci/generate-first-party-buck.rs",
+        "scripts/tests/generate_first_party_buck_check.rs": "scripts/tests/generate_first_party_buck_check.rs",
+    },
+    out = "generate-first-party-buck-check.json",
+    cmd = "mkdir -p $TMP/generate-first-party-buck && rustc --edition=2024 -D warnings scripts/tests/generate_first_party_buck_check.rs --test -o $TMP/generate-first-party-buck/generate_first_party_buck_check && OYA_REPO_ROOT=$PWD $TMP/generate-first-party-buck/generate_first_party_buck_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/generate-first-party-buck.rs -o $TMP/generate-first-party-buck/generate-first-party-buck && $TMP/generate-first-party-buck/generate-first-party-buck --version > /dev/null && echo '{\"verdict\":\"PASS\",\"checker\":\"scripts/ci/generate-first-party-buck.rs\",\"retired_python_surface_deleted\":true}' > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,

@@ -5,6 +5,7 @@
 # previous hand-written rust_library/rust_binary targets globbed non-existent
 # crates/**/*.rs, which fails `buck2 build` with "crate has no srcs".
 #
-# When the implementations land, the generator (scripts/gen_first_party_buck.py)
-# emits the real rust_library/rust_binary targets from cargo metadata, as for every
-# other crate. Until then this package intentionally declares no targets.
+# When the implementations land, the Rust generator
+# (scripts/ci/generate-first-party-buck.rs) emits the real rust_library/rust_binary
+# targets from cargo metadata, as for every other crate. Until then this package
+# intentionally declares no targets.

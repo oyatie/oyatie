@@ -65,7 +65,7 @@ const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
 const REQUIRED_BUCK2_RELEASE: &str = "2026-06-01";
 const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 0;
-const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 50;
+const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 49;
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
@@ -82,6 +82,7 @@ const TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND: &str =
     "buck2 build //:latest-toolchain-pin-updater-check";
 const APPEND_MISSING_RUST_UNIT_TEST_TARGETS_COMMAND: &str =
     "buck2 build //:append-missing-rust-unit-test-targets-check";
+const GENERATE_FIRST_PARTY_BUCK_COMMAND: &str = "buck2 build //:generate-first-party-buck-check";
 const RETIRED_GROUPING_WORDING_COMMAND: &str = "buck2 build //:retired-grouping-wording-check";
 const NO_GROUPING_KERNEL_CHECK_COMMAND: &str =
     "buck2 build //libs/oya-check-no-grouping:no-grouping-kernel-check";
@@ -113,6 +114,7 @@ const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     CLOUD_CELL_ELASTICITY_POLICY_COMMAND,
     TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND,
     APPEND_MISSING_RUST_UNIT_TEST_TARGETS_COMMAND,
+    GENERATE_FIRST_PARTY_BUCK_COMMAND,
     RETIRED_GROUPING_WORDING_COMMAND,
     NO_GROUPING_KERNEL_CHECK_COMMAND,
 ];
@@ -231,7 +233,7 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
         "non-Rust surface inventory must point to the disjoint Python/shell surface inventory",
     ),
     (
-        "\"tracked_nonvendored_python_shell_count\": 50",
+        "\"tracked_nonvendored_python_shell_count\": 49",
         "non-Rust surface inventory must record the audited non-vendored Python/shell count",
     ),
     (
