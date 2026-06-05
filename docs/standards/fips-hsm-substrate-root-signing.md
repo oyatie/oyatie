@@ -300,11 +300,10 @@ cosign verify \
   <test-image-digest> | jq '.[] | .optional.Bundle.Payload.logIndex'
 # Expected: a valid logIndex > 0
 
-# 4. Verify Cedar genesis fragment signature
-oya gate verify cedar-genesis-fragment \
-  --root-cert ceremony-output/org-root-pub.pem \
-  --fragment microservices/policy-engine/fragments/bootstrap/genesis.cedar
-# Expected: signature valid; certificate chain valid
+# 4. Verify Cedar genesis fragment signature with the Buck2-owned
+# cedar-genesis-fragment checker and record its Prow/Kubernetes-native
+# evidence in the PR.
+# Expected: signature valid; certificate chain valid; oya-ci-required green
 ```
 
 ### §4.5. Emergency Rotation
@@ -603,11 +602,9 @@ kubectl -n policy-engine get pod -l app=cedar-signing-service \
   -o jsonpath='{.items[0].metadata.annotations.spiffe-svid-expiry}'
 # Expected: a timestamp in the future
 
-# Verify the SPIFFE SVID matches the expected trust domain
-oya gate validate spiffe-svid \
-  --workload cedar-signing-service \
-  --expected-trust-domain spiffe://oyatie.internal
-# Expected: PASS
+# Verify the SPIFFE SVID matches the expected trust domain by running the
+# Buck2-owned spiffe-svid checker against the cedar-signing-service workload.
+# Expected: PASS; evidence is attached to the Prow/Kubernetes-native lane
 
 # Verify HSM attestation (CloudHSM example)
 aws cloudhsm describe-clusters --region us-east-1 \
@@ -633,34 +630,28 @@ openssl x509 -in ceremony-output/org-baseline-intermediate-cert.pem \
 ### Step 3: Verify the Cedar root-signing gate fragment is active
 
 ```bash
-# Check the fragment is in the policy-engine registry
-oya policy get-fragment \
-  --fragment-id substrate/root-signing-gate \
-  --status
+# Check the fragment is in the policy-engine registry through the policy-engine
+# control-plane read model or operation-ledger query.
 # Expected: status: ACTIVE; tier: substrate
 
-# Verify the fragment's signature against the org root cert
-oya gate verify cedar-fragment-signature \
-  --fragment-id substrate/root-signing-gate \
-  --cert ceremony-output/org-baseline-intermediate-cert.pem
-# Expected: PASS
+# Verify the fragment's signature against the org root cert with the Buck2-owned
+# cedar-fragment-signature checker.
+# Expected: PASS; evidence is attached to the Prow/Kubernetes-native lane
 ```
 
 ### Step 4: Verify the CI lane passes
 
 ```bash
-# Run the FIPS/HSM CI lane in advisory mode
-oya gate run fips-hsm-substrate-root --advisory
-# Expected: All checks PASS; any warnings shown but not blocking
+# Run the FIPS/HSM CI lane through Buck2/Prow evidence.
+# Expected: All checks PASS through oya-ci-required; any warnings shown but not
+# blocking are recorded as explicit advisory evidence.
 ```
 
 ### Step 5: Verify a sovereign-cell HSM region (KR-CSAP example)
 
 ```bash
-# For a KR-CSAP cell, verify the HSM cluster is KR-resident
-oya gate validate sovereign-cell-hsm-region \
-  --cell kr-csap-seoul-1 \
-  --expected-region ap-northeast-2
+# For a KR-CSAP cell, verify the HSM cluster is KR-resident with the
+# Buck2-owned sovereign-cell-hsm-region checker.
 # Expected: PASS — HSM cluster in ap-northeast-2 (Seoul)
 ```
 
@@ -673,7 +664,7 @@ or escalate to `ops-compliance` + `council-security`.
 
 | Anti-pattern | Why it fails | Fix |
 |---|---|---|
-| Using `cosign sign --key file://key.pem` in CI | Private key material in file system; not HSM-protected; FIPS non-compliant; CI lane will FAIL | Route all cosign signing through the Tier 1 signing service (`oya signing-service sign`) which holds the key in the HSM |
+| Using `cosign sign --key file://key.pem` in CI | Private key material in file system; not HSM-protected; FIPS non-compliant; CI lane will FAIL | Route all cosign signing through the Tier 1 signing service API, which holds the key in the HSM |
 | Single-jurisdiction Shamir shares | Single government can compel all shares via one legal process | Distribute shares across ≥3 jurisdictions; minimum per §4.1 |
 | Using the same org root key for all certification levels | IL6 requires NSA Type 1 module; Ed25519 org root is not IL6-acceptable | Maintain separate cert chains per certification level for IL5/IL6 (§6.3) |
 | Air-gap cell using keyless cosign (Fulcio + Rekor) | Air-gap has no OIDC/Rekor network path; cosign verify fails without Rekor reachability | Use KMS-backed cosign (Tier 1 long-lived key) for air-gap; embed trust-bundle in `.oab` |

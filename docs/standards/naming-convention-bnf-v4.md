@@ -24,7 +24,7 @@ canonical_paths:
 # Naming Convention BNF v4 Standard
 
 This standard is the canonical authoring rule for names that must be parsed by
-agents, Oya VCS, CI lanes, catalog validators, and future automation. It expands
+agents, native SCM/PR lanes, CI lanes, catalog validators, and future automation. It expands
 the older crate-specific grammar in `docs/standards/crate-naming-convention.md`
 into a cross-artifact BNF v4 discipline for crates, capability records, contract
 files, policies, events, SLOs, runbooks, dashboards, and implementation plans.
@@ -392,13 +392,12 @@ The naming checker MUST fail on newly introduced invalid names.
 
 The naming checker MAY remain advisory for legacy names only when a migration ledger row exists.
 
-Verification command:
+Merge evidence is a Buck2/Prow lane bundle, not retired local CLI commands:
 
-```bash
-oya gate validate naming-convention --scope repo
-oya gate validate layered-architecture --scope crates
-oya gate validate catalog-id-discipline --scope registry
-```
+- Primary lane: `naming-convention`.
+- Companion lanes: `layered-architecture` and `catalog-id-discipline`.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 CI evidence MUST include the count of scanned artifacts.
 

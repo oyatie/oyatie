@@ -259,11 +259,12 @@ The action is policy-gated, workflow-backed, and auditable.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI command:
 
-```bash
-oya gate validate ontology-projection-pin --scope microservices
-```
+- Primary lane: `ontology-projection-pin`.
+- Scope: microservice ontology projection manifests.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST parse `specs/products/ontology.json`.
 

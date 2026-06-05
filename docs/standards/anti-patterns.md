@@ -67,7 +67,7 @@ depending on fragile memory.
 
 This document covers Markdown, JSON specs, ADRs, PRDs, microservice docs,
 implementation plans, policy fragments, generated-adjacent artifacts,
-review-thread handling, and Oya VCS lifecycle work.
+review-thread handling, and native SCM/PR lifecycle work.
 
 It does not replace documentation-rigor.md.
 
@@ -178,7 +178,7 @@ CI lanes MUST report the exact anti-pattern ID when possible.
 
 Review comments SHOULD use the same IDs.
 
-Oya VCS evidence SHOULD include the number of pattern IDs checked when a
+Native SCM/PR evidence SHOULD include the number of pattern IDs checked when a
 change claims this standard.
 
 ### §1.5 Catalogue Entry Shape
@@ -211,7 +211,7 @@ Reviewers MUST check a canonical doc change against §2 and §5.
 
 Reviewers MUST check architecture and microservice changes against §3.
 
-Reviewers MUST check Oya VCS, PR, evidence, and lifecycle work against §4.
+Reviewers MUST check native SCM, PR, evidence, and lifecycle work against §4.
 
 Reviewers SHOULD quote the pattern ID in review comments.
 
@@ -859,7 +859,7 @@ stated.
 
 CI candidate: length-cap exception requires maintenance section.
 
-Review cue: ask who edits this when ADR-0145 or Oya VCS changes.
+Review cue: ask who edits this when ADR-0145 or the native SCM/PR lifecycle changes.
 
 Safer replacement: add clear owner, enforcement lane, update protocol, and
 cross-reference set.
@@ -1056,7 +1056,8 @@ mapping drifts.
 Detection: `audit_event_class` values not present in registry or ADR-0263
 reverse references.
 
-CI candidate: `oya gate validate audit-event-class-registered`.
+CI candidate: Buck2/Prow `audit-event-class-registered` lane reporting through
+`oya-ci-required`.
 
 Review cue: ask where schema, retention, cardinality, and emission target are
 registered.
@@ -1669,7 +1670,7 @@ leader.
 
 Anchor: docs/AGENTS.md scaffold_protocol.
 
-### AP-C07 Oya VCS CLI Parser Nuance Drift
+### AP-C07 Retired Local SCM CLI Parser Nuance Drift
 
 Pattern ID: AP-C07.
 
@@ -1713,8 +1714,8 @@ CI candidate: forbidden primitive string scan with allowed prose exceptions.
 Review cue: ask whether the primitive changes repo state or merely provides
 read/provenance context.
 
-Safer replacement: oya vcs for claim/verify/done/promote; oya git for git
-drop-in surface.
+Safer replacement: plain git worktree + PR lifecycle, Buck2 evidence, and
+Prow/Kubernetes-native `oya-ci-required` promotion evidence.
 
 Anchor: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md.
 
@@ -1737,7 +1738,7 @@ Review cue: ask which validation ran before the transition.
 
 Safer replacement: collect evidence, verify, done, then promote.
 
-Anchor: Oya VCS required sequence in docs/AGENTS.md.
+Anchor: native SCM/PR required sequence in docs/AGENTS.md.
 
 ### AP-C10 Writer And Reviewer Lens Collapse
 
@@ -1783,7 +1784,7 @@ Safer replacement: claim the narrowest scope that protects the edit.
 Boundary: a standards-directory claim can be appropriate when the command
 requires `docs/standards` and the edit is a new standard file.
 
-Anchor: Oya VCS claim lifecycle.
+Anchor: native SCM/PR claim lifecycle.
 
 ### AP-C12 Status Transition Without Bundle
 
@@ -1806,26 +1807,27 @@ Safer replacement: include `--bundle`, `--environment`, and evidence in promote.
 
 Anchor: user-specified promote command shape for this catalogue.
 
-### AP-C13 Direct Git/GitHub Transition Bypass
+### AP-C13 Unverified Git/GitHub Transition Bypass
 
 Pattern ID: AP-C13.
 
 Severity: P0 when used for repo state transition.
 
-Failure: direct git or gh commands are used as the authoritative state
-transition while Oya VCS owns that lifecycle.
+Failure: direct git or gh commands change repo state without the isolated
+worktree, PR, Buck2/Prow evidence, and protected-branch lifecycle.
 
-Why it harms Oyatie: admission, evidence, claim locks, and promotion metadata
-are bypassed.
+Why it harms Oyatie: admission, evidence, isolation, and promotion metadata are
+bypassed.
 
-Detection: branch/PR/merge state changes without Oya VCS ledger events.
+Detection: branch/PR/merge state changes without linked PR evidence and
+`oya-ci-required` checks.
 
 CI candidate: admission gate checks changeset evidence.
 
 Review cue: distinguish local inspection from authoritative transition.
 
-Safer replacement: Oya VCS lifecycle first; git commands only inside sanctioned
-or drop-in surfaces.
+Safer replacement: plain git worktree + PR lifecycle, Buck2 evidence, and
+Prow/Kubernetes-native `oya-ci-required` promotion evidence.
 
 Anchor: ADR-0116.
 
@@ -1917,7 +1919,7 @@ Review cue: ask whether any filesystem or external state changed.
 Safer replacement: call it audit-only only when no writes occur; otherwise
 claim scope and run lifecycle.
 
-Anchor: Oya VCS transition rules.
+Anchor: native SCM/PR transition rules.
 
 ### AP-C18 Destructive Cleanup Of User Changes
 
@@ -2072,7 +2074,8 @@ CI candidate: command-block primitive lint.
 
 Review cue: distinguish prose history from current instruction.
 
-Safer replacement: `oya vcs` for lifecycle; `oya git` for git drop-in.
+Safer replacement: plain git worktree + PR lifecycle, Buck2 evidence, and
+Prow/Kubernetes-native `oya-ci-required` promotion evidence.
 
 Anchor: ADR-0116.
 
@@ -2146,8 +2149,8 @@ Pattern ID: AP-L10.
 
 Severity: P1; P0 for lifecycle closeout.
 
-Failure: "done" is used without saying whether code, docs, tests, Oya VCS
-done, or promotion is meant.
+Failure: "done" is used without saying whether code, docs, tests, PR evidence,
+or promotion is meant.
 
 Why it harms Oyatie: the word done spans local edit state and official
 changeset state.
@@ -2158,10 +2161,10 @@ CI candidate: final evidence schema.
 
 Review cue: ask "done in which state machine?"
 
-Safer replacement: say "file authored", "tests passed", "oya vcs done
-accepted", or "promoted to dev."
+Safer replacement: say "file authored", "tests passed with Buck2 evidence", or
+"promoted to dev after `oya-ci-required` passed."
 
-Anchor: Oya VCS lifecycle contract.
+Anchor: native SCM/PR lifecycle contract.
 
 ### AP-L11 Optional Language In Mandatory Lane
 
@@ -2775,7 +2778,7 @@ Question 7: Does it mention multi-region or global state?
 
 If yes, check AP-R07, AP-R20, and AP-R21.
 
-Question 8: Does it use Oya VCS or repo lifecycle commands?
+Question 8: Does it use native SCM/PR lifecycle commands?
 
 If yes, check AP-C01, AP-C02, AP-C06, AP-C07, AP-C08, AP-C09, AP-C12, and
 AP-C13.
@@ -2950,6 +2953,6 @@ The file includes detection and CI enforcement guidance.
 
 The file includes a quick-reference decision tree.
 
-The Oya VCS claim, verify, done, and promote lifecycle closes with evidence.
+The native SCM/PR lifecycle closes with Buck2/Prow evidence.
 
 No other canonical standards file is modified by this changeset.

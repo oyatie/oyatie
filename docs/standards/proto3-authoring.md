@@ -248,18 +248,12 @@ This fails because money must not use floating point.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI command:
 
-```bash
-oya gate validate proto3-authoring --scope microservices
-```
-
-Companion commands:
-
-```bash
-oya gate validate grpc-contract-compatibility --scope microservices
-oya gate validate sdk-generation --scope microservices
-```
+- Primary lane: `proto3-authoring`.
+- Companion lanes: `grpc-contract-compatibility` and `sdk-generation`.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST parse every proto file.
 

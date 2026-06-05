@@ -248,11 +248,12 @@ This passes because only ciphertext is stored.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI command:
 
-```bash
-oya gate validate mls-rfc-9420-conformance --microservice messenger
-```
+- Primary lane: `mls-rfc-9420-conformance`.
+- Scope: `messenger` microservice MLS surfaces.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST run RFC 9420 positive vectors.
 

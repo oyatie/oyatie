@@ -923,6 +923,36 @@ fn m02_exit_gate_validator_hygiene_rejects_retired_local_cli_and_tool_rows() {
 }
 
 #[test]
+fn checked_in_standards_docs_do_not_reintroduce_retired_local_commands() {
+    let failures = gate::standards_retired_local_command_failures(Path::new(&repo_root()));
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn standards_retired_local_command_scan_rejects_local_gate_doc_vcs_examples() {
+    let failures = gate::standards_retired_local_command_text_failures(
+        "docs/standards/example.md",
+        "Primary command:\n\
+         oya gate validate proto3-authoring --scope microservices\n\
+         oya doc openapi\n\
+         Safer replacement: oya vcs for lifecycle\n\
+         cargo fmt --check\n",
+    );
+    for expected in [
+        "oya gate validate",
+        "oya doc ",
+        "oya vcs",
+        "cargo fmt --check",
+        "Buck2 plus Prow/oya-ci-required",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn root_jenkinsfile_is_rejected_as_retired_ci_entrypoint() {
     let root = temp_dir("root-jenkinsfile");
     fs::write(root.join("Jenkinsfile"), "pipeline {}\n").unwrap_or_else(|error| {
