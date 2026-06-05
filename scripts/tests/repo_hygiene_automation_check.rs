@@ -47,6 +47,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.product_operation_doc_clean_files, 8);
     assert_eq!(evaluation.intelligence_doc_retired_dev_cli_clean_files, 34);
     assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
+    assert_eq!(evaluation.microservice_spec_authority_clean_files, 3);
 }
 
 #[test]
@@ -971,6 +972,45 @@ fn standards_external_substrate_scan_rejects_retired_first_class_names() {
         "Jenkins",
         "Forgejo",
         "gitops-iac-cluster-tier-boundaries",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn checked_in_microservice_specs_use_buck2_prow_authority_wording() {
+    let failures = gate::microservice_spec_authority_failures(Path::new(&repo_root()));
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn microservice_spec_authority_scan_rejects_retired_ci_cd_and_local_gate_authority() {
+    let failures = gate::microservice_spec_authority_text_failures(
+        "specs/microservices/example.json",
+        "Jenkins LTS runs fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission. \
+         test_ref: microservices/accounting/ci/Jenkinsfile; static Jenkins lane scan; \
+         cargo fmt/test/clippy; cargo nextest; cargo bench; lane_ref: cargo-nextest; \
+         oya gate validate api-semver; ArgoCD and Helm deploy; \
+         deployment authority belongs to Rust oya gates.\n",
+    );
+    for expected in [
+        "Jenkins LTS",
+        "Oya VCS admission",
+        "microservices/accounting/ci/Jenkinsfile",
+        "static Jenkins lane scan",
+        "cargo fmt/test/clippy",
+        "cargo nextest",
+        "cargo bench",
+        "cargo-nextest",
+        "oya gate validate",
+        "ArgoCD",
+        "Helm",
+        "Rust oya gates",
+        "Buck2/Prow oya-ci-required",
+        "native release-conveyor/KRM",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
