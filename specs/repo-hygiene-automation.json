@@ -162,6 +162,7 @@
       "schema/registry spec retired local validator authority scan",
       "deployment-ops contract retired external substrate authority scan",
       "agent-durable-goal retired deployment authority scan",
+      "observability onboarding retired CLI/Cargo/microservices path scan",
       "active onboarding retired dev CLI/Cargo bootstrap scan"
     ],
     "root_quick_start_native_authority_scan": {
@@ -443,6 +444,13 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental agent-durable-goal deployment-authority cleanup only; historical ADRs, old changelog provenance outside active instructions, and generated mirrors remain separate archive/regeneration slices"
+    },
+    "observability_onboarding_authority_scan": {
+      "clean_file": "oya/observability/onboarding/sre-lead-first-week.md",
+      "policy": "Observability SRE onboarding must use service-owned `oya/<service>` shards, native observability operation-ledger actions, Buck2 target evidence, and Prow/Kubernetes-native oya-ci-required output. It must not teach retired local CLI/raw Cargo commands or stale `microservices/<service>` paths as active authority.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental observability onboarding cleanup only; broader historical observability IP path residue remains a separate archive/regeneration backlog slice"
     },
     "onboarding_retired_dev_cli_scan": {
       "clean_files": [
