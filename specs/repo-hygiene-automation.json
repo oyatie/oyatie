@@ -1156,7 +1156,9 @@
         {
           "id": "github_actions_permissions_and_pinning_advisor",
           "purpose": "Read-only scan for workflow token permissions, long-lived secret usage, mutable action refs, Node runtime deprecation risk, and reusable-workflow drift while GitHub Actions remains a temporary adapter.",
-          "authority_boundary": "advisory only; protected branch/Prow/Buck2 decide merge readiness"
+          "authority_boundary": "advisory only; protected branch/Prow/Buck2 decide merge readiness",
+          "implemented_by": "//:github-lane-unlocker-bridge-check",
+          "status": "least_privilege_credentials_guard_landed"
         },
         {
           "id": "artifact_attestation_and_slsa_advisor",
@@ -1180,9 +1182,10 @@
         }
       ],
       "implemented_checks": [
-        "//:agent-hook-runtime-manifest-check"
+        "//:agent-hook-runtime-manifest-check",
+        "//:github-lane-unlocker-bridge-check"
       ],
-      "implementation_status": "first Rust/Buck2 manifest/config drift checker landed; manifest checker rejects unpinned host interpreters in runtime hook text; injection-content scanner behavior is covered by governance hook tests; runtime hooks remain advisory/read-only and remaining hook-router hardening stays backlog-only until separately verified",
+      "implementation_status": "first Rust/Buck2 manifest/config drift checker landed; manifest checker rejects unpinned host interpreters in runtime hook text; GitHub lane-unlocker bridge checker rejects broad/write permissions, long-lived GitHub secrets, and persisted checkout credentials; injection-content scanner behavior is covered by governance hook tests; runtime hooks remain advisory/read-only and remaining hook-router hardening stays backlog-only until separately verified",
       "claim_boundary": "backlog_only_no_live_mutation"
     },
     {

@@ -85,6 +85,9 @@ const REQUIRED_OFFICIAL_SOURCE_URLS: &[&str] = &[
     "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations",
     "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
     "https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations",
+    "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions",
+    "https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication",
+    "https://github.com/actions/checkout",
     "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
     "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request-with-a-merge-queue",
     "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request",
@@ -125,6 +128,7 @@ const REQUIRED_WORKFLOW_NEEDLES: &[&str] = &[
     "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: \"true\"",
     "uses: actions/checkout@v6",
     "fetch-depth: 0",
+    "persist-credentials: false",
     THIRD_PARTY_HAND_EDITS_BUCK2_COMMAND,
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check",
     "buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check",
@@ -314,6 +318,31 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "github_bridge.javascript_action_runtime.unsecure_node20_opt_out_allowed must be false",
         ),
         (
+            "write_permissions_allowed",
+            false,
+            "github_bridge.workflow_security.token_permissions.write_permissions_allowed must be false",
+        ),
+        (
+            "broad_permissions_allowed",
+            false,
+            "github_bridge.workflow_security.token_permissions.broad_permissions_allowed must be false",
+        ),
+        (
+            "id_token_write_allowed_before_oidc_lane",
+            false,
+            "github_bridge.workflow_security.token_permissions.id_token_write_allowed_before_oidc_lane must be false",
+        ),
+        (
+            "checkout_persist_credentials",
+            false,
+            "github_bridge.workflow_security.checkout_persist_credentials must be false",
+        ),
+        (
+            "long_lived_github_secrets_allowed",
+            false,
+            "github_bridge.workflow_security.long_lived_github_secrets_allowed must be false",
+        ),
+        (
             "live_deployments_enabled",
             false,
             "github_actions_cd_bridge.live_deployments_enabled must be false",
@@ -468,6 +497,21 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "github_bridge.javascript_action_runtime.force_node24_env must name the GitHub Actions Node24 opt-in",
         ),
         (
+            "contents",
+            "read",
+            "github_bridge.workflow_security.token_permissions.contents must be read",
+        ),
+        (
+            "pull_requests",
+            "read",
+            "github_bridge.workflow_security.token_permissions.pull_requests must be read",
+        ),
+        (
+            "credential_persistence_policy",
+            "checkout_persist_credentials_false_oidc_lane_required_for_future_cloud_credentials",
+            "github_bridge.workflow_security.credential_persistence_policy must require checkout credential persistence to stay disabled",
+        ),
+        (
             "mode",
             "github_actions_cd_shadow_until_release_conveyor_cutover",
             "github_actions_cd_bridge.mode must be GitHub Actions CD shadow",
@@ -614,6 +658,24 @@ pub fn workflow_failures(workflow: &str) -> Vec<String> {
     for needle in REQUIRED_WORKFLOW_NEEDLES {
         require_contains(workflow, needle, &mut failures, "lane unlocker workflow");
     }
+    let checkout_count = workflow.matches("uses: actions/checkout@v6").count();
+    let persisted_credential_disabled_count =
+        workflow.matches("persist-credentials: false").count();
+    require(
+        checkout_count > 0 && checkout_count == persisted_credential_disabled_count,
+        &mut failures,
+        "lane unlocker workflow must disable persisted checkout credentials for every checkout step",
+    );
+    require(
+        !workflow_requests_broad_or_write_permissions(workflow),
+        &mut failures,
+        "lane unlocker workflow must not request broad or write token permissions",
+    );
+    require(
+        !workflow.contains("secrets."),
+        &mut failures,
+        "lane unlocker workflow must not consume long-lived GitHub secrets",
+    );
     require(
         !workflow.contains(RETIRED_PYTHON_BRIDGE_COMMAND),
         &mut failures,
@@ -664,6 +726,17 @@ pub fn workflow_failures(workflow: &str) -> Vec<String> {
         "lane unlocker workflow must use arm64 Ubuntu runners for the repo default aarch64 Buck2 Rust toolchain",
     );
     failures
+}
+
+fn workflow_requests_broad_or_write_permissions(workflow: &str) -> bool {
+    workflow.lines().any(|line| {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#') {
+            return false;
+        }
+        matches!(trimmed, "permissions: write-all" | "permissions: read-all")
+            || trimmed.ends_with(": write")
+    })
 }
 
 pub fn evaluate(root: &Path) -> Evaluation {
