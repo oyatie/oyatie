@@ -9,7 +9,7 @@ target is wired into push/deploy; it migrates separately.
 
 | Target | Description |
 |---|---|
-| `root//oya/ci-webhook-gateway/iac/oci:distroless-base` | genrule: pulls the base OCI layout via the OCI distribution API (`tools/oci/pull-oci-base.py`, pinned arm64 manifest digest) |
+| `root//oya/ci-webhook-gateway/iac/oci:distroless-base` | genrule: pulls the base OCI layout via the OCI distribution API (`//tools/oci:oya-oci-pull-base`, pinned arm64 manifest digest) |
 | `root//oya/ci-webhook-gateway/iac/oci:gateway-layer` | genrule: packages the buck2-built binary as a reproducible tar.gz layer |
 | `root//oya/ci-webhook-gateway/iac/oci:gateway-oci` | oci_image: assembles the final OCI Image Layout directory |
 
@@ -66,7 +66,7 @@ compiled with `aarch64-unknown-linux-musl` + `-Clink-self-contained=yes`.
 ## Base digest bump procedure
 
 The `sha256:` in `BUCK` is the **immutable arm64 manifest digest** passed to
-`tools/oci/pull-oci-base.py`.  The puller verifies
+`//tools/oci:oya-oci-pull-base`.  The puller verifies
 `sha256(manifest_bytes) == DIGEST`, so a stale or wrong digest fails the build
 deterministically.
 

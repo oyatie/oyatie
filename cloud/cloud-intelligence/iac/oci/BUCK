@@ -8,7 +8,7 @@ export_file(
 genrule(
     name = "distroless-base",
     out = "oci-layout",
-    cmd = "python3 $(location //tools/oci:pull-oci-base.py) gcr.io distroless/static-debian12 sha256:82043e1cb4913437a9e90c2425b164d96031469894edc6011eed045001ba7181 $OUT",
+    cmd = "$(location //tools/oci:oya-oci-pull-base) gcr.io distroless/static-debian12 sha256:82043e1cb4913437a9e90c2425b164d96031469894edc6011eed045001ba7181 $OUT",
     visibility = ["PUBLIC"],
 )
 

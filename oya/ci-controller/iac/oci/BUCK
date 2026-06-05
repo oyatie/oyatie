@@ -9,7 +9,7 @@
 #
 # Targets:
 #   :distroless-base       — genrule pulling the base OCI layout via the OCI
-#                            distribution API (tools/oci/pull-oci-base.py)
+#                            distribution API (//tools/oci:oya-oci-pull-base)
 #   :controller-layer      — genrule packaging the musl-static binary as a layer
 #   :controller-oci        — oci_image assembling the final image layout
 #
@@ -36,7 +36,7 @@
 #   gcr.io/distroless/static-debian12  (ADR-0146 canonical; founder decision
 #   2026-05-31).  The static variant carries no libc/libgcc — correct for a fully-
 #   static musl binary.  Pinned by the immutable arm64 manifest DIGEST passed to
-#   tools/oci/pull-oci-base.py (see the :distroless-base genrule below).  Bump
+#   //tools/oci:oya-oci-pull-base (see the :distroless-base genrule below). Bump
 #   the digest when Google publishes a new CVE-patched weekly rebuild.
 #
 # Push target: see push-and-sign.sh (linux CI only).
@@ -58,8 +58,8 @@ load("//tools/oci:defs.bzl", "oci_image")
 # The puller verifies sha256(manifest_bytes) == DIGEST, so a stale or wrong
 # digest fails the build deterministically.
 #
-# The base layout is pulled at build time by the stdlib-only python3 puller
-# tools/oci/pull-oci-base.py, which speaks the OCI distribution API directly
+# The base layout is pulled at build time by the Rust Buck2 puller
+# //tools/oci:oya-oci-pull-base, which speaks the OCI distribution API directly
 # (anon bearer token → manifest-by-digest → config + layer blobs) and writes
 # the oci-layout / index.json / blobs/sha256 tree that oya-oci-assemble reads
 # via find_oci_root().  The arm64 manifest digest is pinned (immutable); the
@@ -70,7 +70,7 @@ load("//tools/oci:defs.bzl", "oci_image")
 genrule(
     name = "distroless-base",
     out = "oci-layout",
-    cmd = "python3 $(location //tools/oci:pull-oci-base.py) gcr.io distroless/static-debian12 sha256:82043e1cb4913437a9e90c2425b164d96031469894edc6011eed045001ba7181 $OUT",
+    cmd = "$(location //tools/oci:oya-oci-pull-base) gcr.io distroless/static-debian12 sha256:82043e1cb4913437a9e90c2425b164d96031469894edc6011eed045001ba7181 $OUT",
     visibility = ["PUBLIC"],
 )
 

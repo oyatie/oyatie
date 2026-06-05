@@ -1,6 +1,7 @@
 # tools/oci/BUCK
 #
-# Build-host OCI tooling for buck2-native OCI image assembly and registry push.
+# Build-host OCI tooling for buck2-native OCI base pull, image assembly, and
+# registry push.
 #
 # oya-oci-assemble: Rust binary that reads a base OCI-layout tarball + one or
 # more application layer tar.gz files and emits a complete OCI Image Layout
@@ -12,18 +13,11 @@
 # uploads referenced blobs through the OCI Distribution API, and publishes the
 # manifest tag without docker/crane/skopeo. Runs in Buck2/Prow lanes.
 #
-# ADDITIVE: the gateway Dockerfile/BuildKit path is untouched.
+# oya-oci-pull-base: Rust binary that fetches a pinned single-arch base image
+# manifest plus config/layer blobs through the OCI Distribution API and writes
+# the OCI Image Layout tree consumed by oya-oci-assemble.
 #
-# pull-oci-base.py: stdlib-only python3 puller that fetches a pinned distroless
-# base image from an OCI distribution registry and writes an OCI Image Layout
-# directory (oci-layout + index.json + blobs/sha256/) that oya-oci-assemble
-# consumes via find_oci_root().  Exposed as an export_file so genrules can
-# reference it via $(location //tools/oci:pull-oci-base.py).
-
-export_file(
-    name = "pull-oci-base.py",
-    visibility = ["PUBLIC"],
-)
+# ADDITIVE: the gateway Dockerfile/BuildKit path is untouched.
 
 rust_binary(
     name = "oya-oci-assemble",
@@ -51,6 +45,34 @@ rust_binary(
         "third-party//:clap",
         "third-party//:reqwest",
         "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-oci-pull-base",
+    srcs = glob(["crates/oya-oci-pull-base-app/src/**/*.rs"]),
+    crate_root = "crates/oya-oci-pull-base-app/src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow",
+        "third-party//:clap",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "oya-oci-pull-base-tests",
+    srcs = glob(["crates/oya-oci-pull-base-app/src/**/*.rs"]),
+    crate_root = "crates/oya-oci-pull-base-app/src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow",
+        "third-party//:clap",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
 

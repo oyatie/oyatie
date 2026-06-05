@@ -74,8 +74,10 @@ crane push distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar \
 
 **Important:** use `crane pull --format oci`, not `crane export`.
 `crane export` produces a flat merged rootfs tarball with no `index.json` or
-`blobs/sha256/` tree.  The assembler (`oya-oci-assemble`) strictly requires an
-OCI Image Layout and will bail with a clear error if `index.json` is missing.
+`blobs/sha256/` tree.  The Rust puller (`oya-oci-pull-base`) verifies the
+pinned manifest/config/layer digests, and the assembler (`oya-oci-assemble`)
+requires an OCI Image Layout and will bail with a clear error if `index.json`
+is missing.
 
 ## Reproducible layers
 

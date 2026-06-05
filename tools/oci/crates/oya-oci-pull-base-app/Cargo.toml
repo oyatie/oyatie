@@ -1,0 +1,25 @@
+[package]
+name = "oya-oci-pull-base-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Build-host tool: pulls a pinned single-arch base image manifest and blobs from
+# an OCI Distribution registry into an OCI Image Layout directory for
+# oya-oci-assemble. Buck2 remains the build authority.
+
+[[bin]]
+name = "oya-oci-pull-base"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true
