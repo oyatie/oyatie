@@ -3,18 +3,6 @@
   "_marker": "oya-bootstrap-v1",
   "_note": "Project-scoped Gemini hooks. Never edit manually \u2014 managed by install.sh/uninstall.sh. Hooks use the current settings.json event/group schema and avoid retired wrapper command hints; OS sandbox + permissions deny rules are the real gate; injection-content-scanner retained (advisory only).",
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "tools/hooks/session-start-context-inject.sh",
-            "name": "project-session-context"
-          }
-        ]
-      }
-    ],
     "BeforeTool": [
       {
         "matcher": "run_shell_command|bash|Bash",
