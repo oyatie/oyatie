@@ -128,7 +128,7 @@ Each failure carries:
 | Recovery runbook | `runbooks/security-incident.md` §"Sigstore upstream outage" |
 | Postmortem owner | ops-security + axis-cloud-iac |
 
-## FM-08: Helm chart upstream-dep tampered (supply-chain attack)
+## FM-08: CUE/KRM package upstream-dep tampered (supply-chain attack)
 
 | Field | Value |
 |---|---|
@@ -223,7 +223,7 @@ Each failure carries:
 
 | Field | Value |
 |---|---|
-| Trigger | Helm chart references current timestamp; environment-variable interpolation; non-deterministic value source |
+| Trigger | CUE/KRM package references current timestamp; environment-variable interpolation; non-deterministic value source |
 | Detection | LEAN check `oya-cloud-iac-render-determinism` fails OR runtime content-digest mismatch on re-render |
 | Tenant impact | Render cache invalidated unnecessarily; apply-state index may drift |
 | Severity | Sev-3 |

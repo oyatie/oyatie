@@ -1,0 +1,100 @@
+{
+  "schema": "oyatie.multispectrum.evidence.v1",
+  "slice": "cloud-iac-authority-hygiene",
+  "recorded_at_utc": "2026-06-05T11:46:19Z",
+  "branch": "chore/cloud-iac-authority-hygiene-20260605T113427Z",
+  "base": "github-mirror/dev@6f622d96e67547de254ab57af028080bab62b411",
+  "authority_decision": {
+    "build_test_check_authority": "Buck2",
+    "coverage_authority": "Buck2 LLVM source-based coverage",
+    "scm_ci_adapter": "GitHub/GitHub Actions temporary adapter until native Rust/Prow/Kubernetes seams cut over",
+    "first_party_delivery_authority": "native release-conveyor with CUE/KRM desired state",
+    "cargo_role": "metadata and dual-build compatibility only; not CI, merge, release, or coverage authority",
+    "retired_active_surfaces": [
+      "developer local CLI SCM/gate authority",
+      "Jenkins bridge modules",
+      "ArgoCD bridge modules",
+      "first-party Helm chart authority"
+    ]
+  },
+  "changed_surface": {
+    "docs_rewritten": "cloud/cloud-iac active architecture, IP, runbook, compliance, policy, tutorial, SLO, and manifest docs now point at Buck2/Prow/CUE-KRM/native release-conveyor authority.",
+    "removed_directories": [
+      "cloud/cloud-iac/iac/helm",
+      "cloud/cloud-iac/iac/k8s/helm",
+      "cloud/cloud-iac/iac/aws-guest/argocd",
+      "cloud/cloud-iac/iac/aws-guest/jenkins",
+      "cloud/cloud-iac/iac/colo/argocd",
+      "cloud/cloud-iac/iac/colo/jenkins",
+      "cloud/cloud-iac/iac/oci-guest/argocd",
+      "cloud/cloud-iac/iac/oci-guest/jenkins",
+      "cloud/cloud-iac/iac/on-prem/argocd",
+      "cloud/cloud-iac/iac/on-prem/jenkins",
+      "cloud/cloud-iac/iac/oyatie-cloud-provider/argocd",
+      "cloud/cloud-iac/iac/oyatie-cloud-provider/jenkins"
+    ],
+    "new_pointers": [
+      "cloud/cloud-iac/iac/README.md",
+      "cloud/cloud-iac/iac/k8s/README.md"
+    ],
+    "permanent_guard_added": [
+      "scripts/ci/assert-repo-hygiene-automation.rs::cloud_iac_authority_failures",
+      "scripts/tests/repo_hygiene_automation_check.rs::cloud_iac_authority_scan_rejects_retired_cli_cargo_and_bridge_dirs"
+    ]
+  },
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o /tmp/oyatie-verify-cloud-iac/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD /tmp/oyatie-verify-cloud-iac/repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "result": "62 passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o /tmp/oyatie-verify-cloud-iac/assert-repo-hygiene-automation && /tmp/oyatie-verify-cloud-iac/assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "result": "verdict PASS; failures=[]"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "exit_code": 0,
+      "build_id": "5901b601-48b2-4ed6-a0f7-f32ee00ba0ec",
+      "result": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "cloud-iac targeted retired authority and retired command scans",
+      "exit_code": 0,
+      "result": "no matching active references found"
+    },
+    {
+      "command": "find cloud/cloud-iac/iac for retired helm/argocd/jenkins paths",
+      "exit_code": 0,
+      "result": "no paths found"
+    },
+    {
+      "command": "jq . cloud/cloud-iac/manifest.json",
+      "exit_code": 0
+    },
+    {
+      "command": "changed-surviving YAML parse with Ruby YAML.load_file",
+      "exit_code": 0,
+      "result": "changed yaml ok: 4"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "known_gaps": [
+    "Live Kubernetes apply/reconcile not run from this local PR lane.",
+    "Native release-conveyor runtime not exercised in this local PR lane.",
+    "Future CUE/KRM package materialization and reference target materialization are not yet implemented by this cleanup slice.",
+    "Broad cloud/cloud-iac YAML parse is not claimed because an existing unmodified catalog YAML file has syntax debt outside this PR's changed surviving YAML files."
+  ],
+  "risk_notes": [
+    "Large deletion is intentionally limited to retired first-party bridge authority directories under cloud/cloud-iac/iac.",
+    "GitHub/GitHub Actions remain temporary adapter surfaces; durable direction remains native Rust/Prow/Kubernetes authority with Buck2 gates."
+  ]
+}

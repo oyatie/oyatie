@@ -113,7 +113,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm at deploy time. Buffer 15% for 
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice cloud-iac` — exit 0; current spend within 110%.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
 - Monthly FinOps review: actual vs forecast; lever decisions logged.
 - Quarterly: capacity-model + cost-budget refresh; re-run formulas with current data.
 

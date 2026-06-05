@@ -40,7 +40,7 @@ modules:
 ## Step 2 — plan
 
 ```bash
-./bin/oya iac plan \
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
   --tenant oyatie.b2b.smb.acme-software \
   --inputs samples/paid/acme-website-stack.yaml \
   --module-set oya-iac-modules-paid-per-usage-v1
@@ -66,7 +66,7 @@ jq '.diff[] | {address, action, provider}' last-plan.json
 ## Step 3 — wait for reviewer-agent verdict
 
 ```bash
-./bin/oya iac review-status --plan-id plan-2026-05-20-acme-001
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 Expect (within ~30 s on loopback):
 ```
@@ -77,7 +77,7 @@ multispectrum_facets_passed: 11/11
 ## Step 4 — apply
 
 ```bash
-./bin/oya iac apply --plan-id plan-2026-05-20-acme-001
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 
 Watch the structured progress:
@@ -94,7 +94,7 @@ audit_chain_event_id: ce-2026-05-20T08:21:13.214Z-…
 ## Step 5 — induce drift via mock provider
 
 ```bash
-./bin/oya iac mock provider-mutate \
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
   --resource cloudflare_record.www_acme_software_io \
   --field proxied \
   --new-value false
@@ -103,7 +103,7 @@ audit_chain_event_id: ce-2026-05-20T08:21:13.214Z-…
 ## Step 6 — detect drift
 
 ```bash
-./bin/oya iac drift --tenant oyatie.b2b.smb.acme-software
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 Expected:
 ```
@@ -118,7 +118,7 @@ recommended_action: RemediateDrift
 ## Step 7 — remediate
 
 ```bash
-./bin/oya iac remediate-drift \
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
   --tenant oyatie.b2b.smb.acme-software \
   --resource cloudflare_record.www_acme_software_io
 ```
@@ -134,14 +134,14 @@ audit_chain_event_id: ce-2026-05-20T08:23:01.117Z-…
 ## Step 8 — verify state is clean
 
 ```bash
-./bin/oya iac drift --tenant oyatie.b2b.smb.acme-software
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 Expect `drift_detected: 0 resources`.
 
 ## Step 9 — cleanup (optional)
 
 ```bash
-./bin/oya iac destroy \
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
   --tenant oyatie.b2b.smb.acme-software \
   --inputs samples/paid/acme-website-stack.yaml
 ```

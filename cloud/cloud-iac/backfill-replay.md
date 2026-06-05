@@ -63,7 +63,7 @@ Replay re-executes a specific apply for a (microservice, sha, pack, environment)
 
 ### Procedure
 
-1. Operator invokes: `cargo run -p oya-dev-cli -- iac replay --microservice <ms> --sha <sha> --pack <pack> --env <env> --dry-run <true|false> --reason "<rfc>"`.
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 2. CLI requires 2-person rule + ops-security approval (replay can re-execute against current cluster state; must be audit-trail-bounded).
 3. iac-renderer re-renders the manifest set from the source SHA.
 4. iac-validator re-plans against current live state.

@@ -237,7 +237,7 @@ Inherits observability on-call structure; cloud-iac adds a dedicated axis-cloud-
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice cloud-iac` — exit 0; every FM-ID has matching runbook.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
 - Quarterly DR-failover drill validates response chain end-to-end (per `multi-region.md`).
 - Annual tabletop exercise simulates Sev-1 regional outage; comms + regulatory notification chain rehearsed.
 

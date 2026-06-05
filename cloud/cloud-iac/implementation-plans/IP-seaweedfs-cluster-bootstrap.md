@@ -18,7 +18,7 @@ contract.
 
 ## Acceptance criteria
 
-1. Helm chart at `microservices/cloud-iac/iac/helm/seaweedfs/` deploys
+1. CUE/KRM package at `microservices/cloud-iac/iac/cue-krm-packages/seaweedfs/` deploys
    to `dev` and produces:
    - 3-master raft quorum healthy.
    - 6 volume servers (M tier) reporting to master.
@@ -35,9 +35,9 @@ contract.
 
 ## File-level work plan
 
-1. `microservices/cloud-iac/iac/helm/seaweedfs/Chart.yaml` (DONE this
+1. `microservices/cloud-iac/iac/cue-krm-packages/seaweedfs/Chart.yaml` (DONE this
    batch).
-2. `microservices/cloud-iac/iac/helm/seaweedfs/values.yaml` (DONE this
+2. `microservices/cloud-iac/iac/cue-krm-packages/seaweedfs/values.yaml` (DONE this
    batch).
 3. `templates/` for service/networkpolicy/servicemonitor (FOLLOW-UP).
 4. Per-pack overlay: `values-kr.yaml`, `values-eu.yaml`, `values-us-

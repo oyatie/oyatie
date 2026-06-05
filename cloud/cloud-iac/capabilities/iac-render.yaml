@@ -4,7 +4,7 @@ name: iac-render
 namespace: cloud-iac
 display_name: Render IaC Manifests
 description: |
-  Deterministically render a µservice's IaC sources (Helm charts + Kustomize overlays +
+  Deterministically render a µservice's IaC sources (CUE/KRM packages + Kustomize overlays +
   Terraform/OpenTofu plans) into a content-addressable manifest set. The render output
   is purely a function of the input sources; re-running on the same input yields an
   identical content digest. Used by the iac-validator at plan-preview time and by the

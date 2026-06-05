@@ -142,7 +142,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
-| IaC manifest text (Helm charts, OpenTofu modules, Kustomize overlays) | `INTERNAL_ONLY` | Medium | git history append-only | git + `microservices/<ms>/iac/` |
+| IaC manifest text (CUE/KRM packages, OpenTofu modules, Kustomize overlays) | `INTERNAL_ONLY` | Medium | git history append-only | git + `microservices/<ms>/iac/` |
 | Rendered manifest output (post-template-resolve) | `INTERNAL_ONLY` + transient | Low | not persisted; content-addressable digest stored in registry | iac-registry (digest only) |
 | Apply state index (per-µservice, per-pack, per-env current-SHA + applied-at) | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | High | append-only Postgres; backed up to S3 per pack; ≥6y for HIPAA pack, ≥3y for KR pack, ≥2y universal | Postgres + S3 |
 | Terraform/OpenTofu state files | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `SECRET` (state can contain secret values; we redact + encrypt) | High | per-pack object storage; SSE-KMS; versioned | S3 per pack |
@@ -244,8 +244,8 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 
 ### Tampering (T)
 
-**T-T-01 — Supply-chain attack on Helm chart at upstream-source (chart-name typosquat, dep-confusion, etc.)**
-- Asset: upstream Helm dependencies declared in `microservices/<ms>/iac/helm/<chart>/Chart.yaml`
+**T-T-01 — Supply-chain attack on CUE/KRM package at upstream-source (chart-name typosquat, dep-confusion, etc.)**
+- Asset: upstream Helm dependencies declared in `microservices/<ms>/iac/cue-krm-packages/<chart>/Chart.yaml`
 - Likelihood: M / Impact: H / Risk: **H**
 - Mitigations:
   - LEAN check `oya-check-helm-chart-allowlist` (NEW) — per-µservice declared dependencies must appear in `/specs/iac-chart-allowlist.json`; non-allowlisted dependencies refused at PR.
@@ -561,7 +561,7 @@ Cross-cuts STRIDE + LINDDUN. Each mitigation appears in at least one threat row 
 | Mitigation | Type | Owner | Verification |
 |---|---|---|---|
 | Cosign verify + SLSA L3 attestation chain | Preventive | ops-security + axis-cloud-iac | `oya-cloud-iac-provenance-slsa-l3` lane |
-| Helm chart allowlist per /specs/iac-chart-allowlist.json | Preventive | ops-security | `oya-check-helm-chart-allowlist` lane |
+| CUE/KRM package allowlist per /specs/iac-chart-allowlist.json | Preventive | ops-security | `oya-check-helm-chart-allowlist` lane |
 | Cedar policy enforcement of apply-scope | Preventive | axis-cloud-iac | `oya-check-iac-apply-scope` lane + Cedar fuzz |
 | Drift detector ≤1h cycle per cluster | Detective | axis-cloud-iac | `oya-cloud-iac-drift-detection-coverage` lane |
 | State file secret-pattern scanning | Detective + Preventive | ops-security + cloud-secrets | `oya-check-iac-state-secret-scan` lane |
