@@ -45,22 +45,13 @@ Total per-pod drain: ≤60s typical; ≤90s max grace.
 
 ## Triggering a per-pod drain (operational)
 
-```bash
-cargo run -p oya-dev-cli -- foundry-runtime drain \
-  --pod <pod-name> \
-  --reason "<rfc>"
-```
+Open a runtime drain control-plane operation for pod `<pod-name>` with reason `<rfc>`; record the operation-ledger id before traffic movement.
 
 Audit-chain seal: every drain emits `RuntimePodDrained{pod, reason, in_flight_at_start, parked_count, drained_at}`.
 
 ## Cluster-wide drain (extreme; 2-person rule required)
 
-```bash
-cargo run -p oya-dev-cli -- foundry-runtime drain-cluster \
-  --pack <pack> \
-  --reason "<rfc>" \
-  --approver <second-operator>
-```
+Open a runtime drain-cluster control-plane operation for pack `<pack>` with reason `<rfc>` and second-operator approval; require release-conveyor and audit-chain evidence before execution.
 
 2-person rule + OpenBao JIT elevation + ExecSponsor approval. Cluster-wide drain takes ≥10min; during drain, new invocations 503 until pool re-warms.
 

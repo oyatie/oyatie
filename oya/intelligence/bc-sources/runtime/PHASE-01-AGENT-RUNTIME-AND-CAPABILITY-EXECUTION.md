@@ -168,7 +168,7 @@ CI lanes that must green before phase exit gate: same as §"Fitness lane gates" 
 
 ## ChangeSet Contract per IP
 
-Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + promotable). The minimum ChangeSet payload per IP, written at `microservices/intelligence-runtime/evidence/multispectrum/<change_id>-<unix_ts>.json` on `oya vcs done`:
+Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + promotable). The minimum ChangeSet payload per IP, written at `microservices/intelligence-runtime/evidence/multispectrum/<change_id>-<unix_ts>.json` when the lane evidence bundle is finalized:
 
 ```json
 {
@@ -207,19 +207,9 @@ Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + 
 
 Enforced by `cargo nextest run --workspace` + `cargo llvm-cov --workspace --fail-under-lines <threshold>`.
 
-## Oya VCS Symbol Locks
+## Parallel lane ownership
 
-Per ADR-0116 (read-then-reverted by `feedback_oya_vcs_canonical_2026_05_16`), this phase uses `oya vcs` primitives exclusively via `cargo run -p oya-dev-cli -- vcs ...`. Grit / ICM are explicitly NOT used.
-
-```bash
-cargo run -p oya-dev-cli -- vcs claim \
-  --agent <agent-id> \
-  --intent "<IP-NNN-slug>: <one-line intent>" \
-  --paths "microservices/intelligence-runtime/src/crates/<crate>/**"
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs done --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
-```
+Use an isolated git worktree branch, open a PR against `dev`, attach Buck2 evidence, and let Prow/Kubernetes-native oya-ci-required consume that evidence. Do not use retired local VCS wrappers or shared manual symbol-lock files for this phase.
 
 Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservices/intelligence-runtime/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0.
 

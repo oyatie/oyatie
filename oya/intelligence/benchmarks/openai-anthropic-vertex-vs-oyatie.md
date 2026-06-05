@@ -102,11 +102,6 @@ Caveats:
 
 The benchmark harness lives at `benchmarks/intelligencebench/`. Run with:
 
-```sh
-cargo run -p oya-dev-cli -- benchmarks intelligence \
-    --workload chat-completion-200-token \
-    --providers oyatie-self-hosted,anthropic,openai,vertex \
-    --output ./benchmark-results.json
-```
+Benchmark reproduction is valid only through a Buck2-owned Intelligence benchmark target that emits a multispectrum evidence bundle. The benchmark inputs are workload `chat-completion-200-token`, providers `oyatie-self-hosted`, `anthropic`, `openai`, and `vertex`, and a checked-in benchmark result artifact.
 
 Hosted-provider runs require valid API keys for each provider. Results live at `benchmarks/results/intelligence/<date>.csv` and are re-run monthly to detect drift in either direction.

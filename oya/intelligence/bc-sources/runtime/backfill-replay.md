@@ -30,7 +30,7 @@ Specify how the runtime handles two scenarios:
 
 When a downstream consumer (foundry-evidence; observability; tenant invocation history) needs to re-receive historical lifecycle events, the runtime re-emits them through the same AsyncAPI bus topics:
 
-1. Trigger: `cargo run -p oya-dev-cli -- foundry-runtime backfill --from <ISO8601> --to <ISO8601> --tenant <id> --reason "<rfc>"`.
+1. Trigger: `Intelligence control-plane operation: foundry-runtime backfill --from <ISO8601> --to <ISO8601> --tenant <id> --reason "<rfc>"`.
 2. Authority: 2-person rule + OpenBao JIT elevation (backfill can flood downstream + carries audit semantics; controlled access).
 3. The orchestrator-worker reads invocation_lifecycle Postgres rows in the time window matching the tenant scope.
 4. For each row, re-emits the original event (`InvocationStarted` / `Completed` / `Failed` / `Cancelled`) with `backfilled=true` label so downstream can distinguish backfill from live.
@@ -60,8 +60,8 @@ Replay re-executes the runtime portion of an invocation (capability dispatch + p
 
 ### Procedure
 
-1. Operator invokes: `cargo run -p oya-dev-cli -- foundry-runtime replay --invocation-id <id> --reason "<rfc>"`.
-2. CLI requires 2-person rule + ops-security approval (replay invokes real providers; cost-bound + audit-bound).
+1. Operator invokes: `Intelligence control-plane operation: foundry-runtime replay --invocation-id <id> --reason "<rfc>"`.
+2. The control-plane operation requires 2-person rule + ops-security approval (replay invokes real providers; cost-bound + audit-bound).
 3. Runtime re-executes the invocation against current descriptor (NOT the descriptor at original invocation time, unless `--descriptor-version <orig>` is passed; that variant lets analysts test "the fixed version").
 4. Emits `InvocationStarted{replayed=true, original_invocation_id=<orig>}` + downstream lifecycle events.
 5. Audit-chain seal: replay is itself sealed; original invocation remains sealed; chain is reconstructable.

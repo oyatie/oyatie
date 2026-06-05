@@ -28,7 +28,7 @@ Add `shadow_mode` field to `RuleDefinition`; add shadow-runner orchestrator in `
 | Path | Action |
 |---|---|
 | `src/crates/oya-foundry-guardrails-content-safety-rule-engine-usecase/src/{shadow_runner.rs,fp_budget.rs}` | create |
-| `crates/oya-dev-cli/src/foundation_audit_gates.rs` | update — `validate_shadow_enforce_promotion_readiness()` |
+| `Buck2/Prow repo-hygiene gate registry` | update — `validate_shadow_enforce_promotion_readiness()` |
 | `dashboards/shadow-vs-enforce-delta.json` | create |
 | `dashboards/false-positive-rate.json` | already in dashboards list; populate via this IP |
 | `policy/guardrail-enforcement.md` | update — shadow-mode duration default + FP budget tiers |

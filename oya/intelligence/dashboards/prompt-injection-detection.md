@@ -57,10 +57,7 @@ sum(rate(oya_intelligence_prompt_injection_classifier_score_bucket[1h])) by (le)
 For every detected event:
 1. Audit-tap record emitted with `PromptInjectionDetected` schema (see asyncapi-intelligence-events-v1.yaml).
 2. Forensic export available via:
-   ```bash
-   cargo run -p oya-dev-cli -- intelligence audit-tap-export \
-     --window 24h --filter prompt-injection-detected
-   ```
+   Request an Intelligence audit-tap export operation for a 24h window filtered to `prompt-injection-detected`; attach the operation-ledger id and audit-chain seal to the incident evidence.
 3. Engage runbook `runbooks/prompt-injection-detected.md`.
 
 ## References

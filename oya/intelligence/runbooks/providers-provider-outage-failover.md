@@ -44,7 +44,7 @@ ONE of:
 | 1 | If Sev-1 or Sev-2: open `#inc-<id>` Slack channel; assign IC; declare severity | ≤ 5 min |
 | 2 | Confirm pre-checks above | ≤ 2 min |
 | 3 | Verify alternate-vendor capacity headroom (per-tenant rate limit ≥ 2× current load) | ≤ 3 min |
-| 4 | If alternate-vendor capacity insufficient: temporarily raise per-tenant rate limit via `cargo run -p oya-dev-cli -- providers raise-rate-limit --tenant <t> --vendor <alt-v> --multiplier 1.5 --duration 1h --reason "<id>"` (signed; audit-emitted) | ≤ 5 min |
+| 4 | If alternate-vendor capacity insufficient: temporarily raise per-tenant rate limit via `Intelligence control-plane operation: providers raise-rate-limit --tenant <t> --vendor <alt-v> --multiplier 1.5 --duration 1h --reason "<id>"` (signed; audit-emitted) | ≤ 5 min |
 | 5 | Verify per-tenant cost projection still under ceiling; if not, engage tenant operator + FinOps | ≤ 10 min |
 | 6 | Tenant communication: status page update via CommsLead per `incident-response.md` template | ≤ 30 min |
 | 7 | Monitor for vendor recovery: `oya_foundry_providers_provider_availability{vendor="<v>"}` returns ≥ 0.99 over 5 min | ongoing |

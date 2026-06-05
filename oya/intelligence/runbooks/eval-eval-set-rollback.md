@@ -41,8 +41,8 @@ ONE of:
 |---|---|---|
 | 1 | Open `#inc-<id>` Slack channel; assign IC; declare severity | ≤ 5 min |
 | 2 | Confirm pre-checks above | ≤ 2 min |
-| 3 | Invoke rollback: `cargo run -p oya-dev-cli -- foundry-eval rollback --capability <cap> --to-version <prior-version> --reason "<rfc>"`. The CLI: (a) verifies Cosign + Rekor inclusion; (b) emits 2-person-rule approval flow per `policy/two-person-admin-ops.md` if `--mass-rollback` set; (c) updates eval-set-registry Postgres row to point capability latest at prior-version; (d) re-runs publish-gate against prior-version; (e) emits `EvalSetRolledBack` event to foundry-evidence. | ≤ 3 min |
-| 4 | Verify registry advance: `cargo run -p oya-dev-cli -- foundry-eval show --capability <cap>` returns `<prior-version>` | ≤ 1 min |
+| 3 | Invoke rollback: `Intelligence control-plane operation: foundry-eval rollback --capability <cap> --to-version <prior-version> --reason "<rfc>"`. The control-plane operation: (a) verifies Cosign + Rekor inclusion; (b) emits 2-person-rule approval flow per `policy/two-person-admin-ops.md` if `--mass-rollback` set; (c) updates eval-set-registry Postgres row to point capability latest at prior-version; (d) re-runs publish-gate against prior-version; (e) emits `EvalSetRolledBack` event to foundry-evidence. | ≤ 3 min |
+| 4 | Verify registry advance: `Intelligence control-plane operation: foundry-eval show --capability <cap>` returns `<prior-version>` | ≤ 1 min |
 | 5 | Trigger an ad-hoc eval-run against prior-version to confirm pass-rate restored | ≤ 15 min |
 | 6 | Verify nightly cadence picks up new version on next tick | ≤ 24 h (wait for nightly OR force-trigger) |
 | 7 | If automated: file Issue for regressed-version root-cause analysis (over-fit? contamination? miscalibrated rubric?) | per priority |

@@ -63,7 +63,7 @@ time-boxed engagements only.
 
 ## Replay tooling
 
-- `cargo run -p oya-dev-cli -- intelligence replay --tenant <id> --from <ts> --to <ts>` — operator-side
+- `Intelligence control-plane operation: intelligence replay --tenant <id> --from <ts> --to <ts>` — operator-side
   replay manifest export; requires JIT elevation per OpenBao policy.
 - `oya-intelligence-eval-worker` periodically replays a sampled subset for canonicalen-set continuity;
   read-only; no provider re-dispatch.
