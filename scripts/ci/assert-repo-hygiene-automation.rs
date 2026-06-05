@@ -978,6 +978,47 @@ const CLOUD_TENANCY_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "oya-governance-oya-submit",
     "verify.rs",
 ];
+const MASTERPLAN_NATIVE_SCM_REQUIRED_PHRASES: &[(&str, &str)] = &[
+    (
+        MASTERPLAN_PATH,
+        "\"current_capability_name\": \"Native SCM control-plane and Prow lane-unlocker\"",
+    ),
+    (
+        MASTERPLAN_PATH,
+        "\"cargo\": \"compatibility metadata and local advisory tooling only; not CI, merge, coverage, or protected-branch authority\"",
+    ),
+    (MASTERPLAN_PATH, "\"masterplan_native_scm_name_hygiene\""),
+    (MASTERPLAN_PATH, "\"native_scm_control_plane\""),
+    (
+        MASTERPLAN_PATH,
+        "Cargo.toml/Cargo.lock remain Rust ecosystem compatibility metadata",
+    ),
+    (
+        SEQUENCING_PATH,
+        "\"id\": \"M01-P07-native-scm-control-plane\"",
+    ),
+    (
+        SEQUENCING_PATH,
+        "\"current_name\": \"Native SCM control-plane and GitHub adapter transition\"",
+    ),
+    (SPEC_PATH, "\"masterplan_native_scm_name_scan\""),
+    (
+        DOC_MASTERPLAN_PATH,
+        "Cargo manifests remain compatibility metadata",
+    ),
+    (DOC_MASTERPLAN_PATH, "build/test/check/coverage authority"),
+];
+const MASTERPLAN_NATIVE_SCM_FORBIDDEN_PHRASES: &[(&str, &str)] = &[
+    (
+        MASTERPLAN_PATH,
+        "\"title\": \"Polyglot GitOps-capable VCS replacement\"",
+    ),
+    (MASTERPLAN_PATH, "Grit-compatible CLI aliases"),
+    (
+        SEQUENCING_PATH,
+        "\"id\": \"M01-P07-gitops-vcs-replacement\"",
+    ),
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -2326,6 +2367,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl automation targets must include cloud-tenancy authority scan",
         ),
         (
+            "\"masterplan native SCM naming and Buck2/Cargo authority scan\"",
+            "documentation sprawl automation targets must include masterplan native SCM naming and Buck2/Cargo authority scan",
+        ),
+        (
+            "\"masterplan_native_scm_name_scan\"",
+            "documentation sprawl policy must record the masterplan native SCM naming guard",
+        ),
+        (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
             "product-operation runbook guard must state its incremental clean-path boundary",
         ),
@@ -2929,6 +2978,49 @@ pub fn cloud_tenancy_authority_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn masterplan_native_scm_hygiene_failures(
+    masterplan: &str,
+    sequencing: &str,
+    doc_masterplan: &str,
+    spec: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for (label, phrase) in MASTERPLAN_NATIVE_SCM_REQUIRED_PHRASES {
+        let text = match *label {
+            MASTERPLAN_PATH => masterplan,
+            SEQUENCING_PATH => sequencing,
+            DOC_MASTERPLAN_PATH => doc_masterplan,
+            SPEC_PATH => spec,
+            _ => "",
+        };
+        require_contains(text, phrase, &mut failures, label);
+    }
+
+    for (label, phrase) in MASTERPLAN_NATIVE_SCM_FORBIDDEN_PHRASES {
+        let text = match *label {
+            MASTERPLAN_PATH => masterplan,
+            SEQUENCING_PATH => sequencing,
+            DOC_MASTERPLAN_PATH => doc_masterplan,
+            SPEC_PATH => spec,
+            _ => "",
+        };
+        let phrase_present = text.contains(phrase)
+            || (*label == SEQUENCING_PATH
+                && *phrase == "\"id\": \"M01-P07-gitops-vcs-replacement\""
+                && compact_json_text(text).contains("\"id\":\"M01-P07-gitops-vcs-replacement\""));
+        require(
+            !phrase_present,
+            &mut failures,
+            format!(
+                "{label}: stale native SCM/Cargo authority wording present: {phrase:?}; use Native SCM control-plane, Git/GitHub adapter, Buck2/Prow oya-ci, and Cargo-compatibility wording"
+            ),
+        );
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -3015,6 +3107,12 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &blessed_allowlist,
         &dependency_policy,
         &masterplan,
+    ));
+    failures.extend(masterplan_native_scm_hygiene_failures(
+        &masterplan,
+        &sequencing,
+        &doc_masterplan,
+        &spec,
     ));
     failures.extend(buck2_release_policy_failures(
         &spec,
