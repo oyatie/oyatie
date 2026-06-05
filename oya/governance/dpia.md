@@ -85,7 +85,7 @@ Less-intrusive alternatives considered + rejected:
 
 ### Right of access (Art. 15)
 
-- Internal engineers / agents: query via `cargo run -p oya-dev-cli -- governance evidence query --author <subject>`.
+- Internal engineers / agents: query via the governance evidence-query control-plane operation for `author=<subject>`.
 - Tenant operators: read via Application Shell self-service.
 - External auditors: read via JIT-scoped API.
 - ETA: ≤1 working day; pack-eu / pack-kr 30-day statutory ceiling.
@@ -109,7 +109,7 @@ Less-intrusive alternatives considered + rejected:
 
 ### Right to data portability (Art. 20)
 
-- Internal engineers / agents: receive Findings + evidence as JSON via `cargo run -p oya-dev-cli -- governance evidence export --author <subject>`.
+- Internal engineers / agents: receive Findings + evidence as JSON via the governance evidence-export control-plane operation for `author=<subject>`.
 - Format: canonical-JSON + signed bundle.
 - ETA: ≤1 working day.
 

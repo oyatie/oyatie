@@ -169,7 +169,7 @@ On-call schedule managed in Grafana OnCall per `microservices/observability/iac/
 | Grafana dashboards | Real-time observation |
 | GitHub Issues | Postmortem + successor-IP IP tracking |
 | audit-chain CLI | Forensic seal verification |
-| `oya-dev-cli governance` | Lane status + Finding query |
+| Governance control-plane API | Lane status + Finding query |
 
 ## Verification
 

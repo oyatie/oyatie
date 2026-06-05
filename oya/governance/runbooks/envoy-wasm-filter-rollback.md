@@ -165,7 +165,7 @@ Envoy WASM Filter Rollback incident decision tree
 
 ### Code Paths To Inspect First
 - `oya-governance-domain`: inspect for envoy_wasm_filter_rollback invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
-- `oya-dev-cli`: inspect for envoy_wasm_filter_rollback invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- Governance control-plane evidence: inspect envoy_wasm_filter_rollback invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-policy-cedar-domain`: inspect for envoy_wasm_filter_rollback invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/governance/contracts/`: verify this surface only when the incident evidence points there.
 - `microservices/governance/dashboards/finding-rate.json`: verify this surface only when the incident evidence points there.

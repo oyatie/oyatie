@@ -142,7 +142,7 @@ Implementation: `iac/kustomize/overlays/pack-kr/kustomization.yaml` pins:
 ## Verification
 
 - Per-pack deploy includes `microservices/governance/tests/integration/residency-<pack>.rs`.
-- Quarterly: `cargo run -p oya-dev-cli -- governance residency-audit --pack <pack>`.
+- Quarterly: run the governance residency-audit control-plane operation for `<pack>` and attach Buck2/Prow evidence.
 - On new-pack onboarding: residency policy review by council-privacy + ops-security; sign-off required before pack accepts traffic.
 
 ## References

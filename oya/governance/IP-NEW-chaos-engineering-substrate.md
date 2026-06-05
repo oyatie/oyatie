@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: ops-sre-reliability + council-architecture
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, chaos-engineering-catalog]
+acceptance_lanes: [buck2-build, buck2-rust-unit-tests, buck2-rust-lint, chaos-engineering-catalog]
 related_adrs:
   - ADR-0114
   - ADR-0121
@@ -26,13 +26,13 @@ related_crates:
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md -->
 
-# IP-NEW: wire `oya-check-chaos-engineering-catalog` into oya-dev-cli gate validate
+# IP-NEW: register `oya-check-chaos-engineering-catalog` as a Buck2/Prow quality lane
 
 ## Intent
 
 Activate the `oya-check-chaos-engineering-catalog` kernel (to be authored
-at `crates/oya-check-chaos-engineering-catalog/`) as a fitness lane
-`oya gate validate chaos-engineering-catalog`. The lane reads every
+at `libs/oya-check-chaos-engineering-catalog/`) as a Buck2/Prow quality lane
+`chaos-engineering-catalog`. The lane reads every
 `microservices/<ms>/chaos/scenarios/*.yaml` and refuses the build when
 a µservice that declares production SLOs lacks the minimum scenario set
 required by ADR-0165 (pod-kill / network-delay-100ms / dependency-failure
@@ -46,33 +46,30 @@ circuit-breaker invariants).
 
 ## ChangeSet boundary
 
-- Author `crates/oya-check-chaos-engineering-catalog/` kernel.
-- Add as workspace dep of `oya-dev-cli`.
-- Author `crates/oya-dev-cli/src/chaos_engineering_catalog_gate.rs`.
-- Wire subcommand into `commands/gate/mod.rs`.
-- Register in `AGGREGATED_VALIDATE_LANES`.
-- Register in branch protection.
-- Ship Chaos Mesh 2.x Helm chart skeleton at `microservices/cloud-iac/iac/helm/chaos-mesh/Chart.yaml`.
-- Ship `.github/workflows/chaos-nightly.yml` workflow.
+- Author `libs/oya-check-chaos-engineering-catalog/` kernel.
+- Add Buck2 targets and Rust package metadata for the kernel; Cargo manifests remain compatibility metadata only.
+- Register the lane in `libs/oya-governance-gate-catalog-domain/src/lib.rs` and `libs/oya-check-quality-lane/src/lib.rs`.
+- Register the ProwJob and GitHub Actions shadow status through the lane-unlocker bridge.
+- Ship Chaos Mesh 2.x desired state as CUE/KRM package data under the cloud substrate; Helm is not first-party template authority.
+- Ship a native Prow nightly drill job plus GitHub Actions shadow workflow only if required for the temporary bridge.
 - Ship per-µservice minimum scenarios for the first 5 µservices (audit-chain,
-  tenancy, api-gateway, cloud-k8s, foundry) as exemplar.
+  tenancy, api-gateway, cloud-k8s, intelligence) as exemplar.
 
 ## Concrete file targets
 
 | Path | Action |
 |---|---|
-| `crates/oya-check-chaos-engineering-catalog/Cargo.toml` | create |
-| `crates/oya-check-chaos-engineering-catalog/src/lib.rs` | create — kernel + validator |
-| `crates/oya-check-chaos-engineering-catalog/tests/catalog_validation.rs` | create — integration tests |
-| `crates/oya-dev-cli/Cargo.toml` | edit — add dep |
-| `crates/oya-dev-cli/src/chaos_engineering_catalog_gate.rs` | create — file-reading runner |
-| `crates/oya-dev-cli/src/lib.rs` | edit — declare module |
-| `crates/oya-dev-cli/src/commands/gate/mod.rs` | edit — add match arm |
-| `crates/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"chaos-engineering-catalog"` |
+| `libs/oya-check-chaos-engineering-catalog/BUCK` | create |
+| `libs/oya-check-chaos-engineering-catalog/Cargo.toml` | create as Rust ecosystem metadata only |
+| `libs/oya-check-chaos-engineering-catalog/src/lib.rs` | create — kernel + validator |
+| `libs/oya-check-chaos-engineering-catalog/tests/catalog_validation.rs` | create — integration tests |
+| `libs/oya-governance-quality-lane-kernel/src/lib.rs` | edit — expose lane contract if required |
+| `libs/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"chaos-engineering-catalog"` |
+| `libs/oya-check-quality-lane/src/lib.rs` | edit — append quality-lane registry evidence |
 | `.github/branch-protection.yaml` | edit — add to dev required-status-checks |
 | `microservices/governance/catalog/oya-check-chaos-engineering-catalog.yaml` | create — catalog entry |
-| `microservices/cloud-iac/iac/helm/chaos-mesh/Chart.yaml` | create — Helm chart skeleton |
-| `.github/workflows/chaos-nightly.yml` | create — nightly drill workflow |
+| `cloud/cloud-intelligence/policy/chaos-mesh.cue` | create — CUE/KRM desired-state package |
+| `.github/workflows/chaos-nightly.yml` | create — temporary shadow workflow only when bridge evidence requires it |
 | `microservices/audit-chain/chaos/scenarios/pod-kill.yaml` | create — exemplar |
 | `microservices/tenancy/chaos/scenarios/pod-kill.yaml` | create — exemplar |
 | `microservices/api-gateway/chaos/scenarios/network-delay-100ms.yaml` | create — exemplar |
@@ -100,11 +97,10 @@ The `oya-check-chaos-engineering-catalog` kernel:
 ## Acceptance gates
 
 ```bash
-cargo check -p oya-dev-cli
-cargo nextest run -p oya-check-chaos-engineering-catalog
-buck2 build //:quality-lane-registry-authority-check # lane=chaos-engineering-catalog \
-    --microservices-dir microservices
+buck2 build //:quality-lane-registry-authority-check
 buck2 build //:repo-hygiene-automation-check
+buck2 build //:oya-ci-prowjob-registry-check
+buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check
 ```
 
 ## Halt conditions
@@ -112,10 +108,10 @@ buck2 build //:repo-hygiene-automation-check
 - Lane fires on existing µservices that have production SLOs but no chaos
   catalog → author the minimum scenario set before flipping the lane to
   BLOCKER. Order of operations:
-  1. Land kernel + CLI gate as YELLOW (warn-only).
+  1. Land kernel + Buck2/Prow lane as YELLOW (warn-only).
   2. Land exemplar scenarios across the 5 first µservices.
-  3. Land Chaos Mesh Helm chart + per-cell installation.
-  4. Land nightly workflow.
+  3. Land Chaos Mesh CUE/KRM package + per-cell installation.
+  4. Land native Prow nightly drill job and any required GitHub shadow workflow.
   5. Burn-in 30 days.
   6. Flip lane to BLOCKER once every µservice with production SLOs has the
      minimum scenario set.
@@ -127,7 +123,7 @@ buck2 build //:repo-hygiene-automation-check
 - Netflix Simian Army — https://netflixtechblog.com/the-netflix-simian-army-16e57fbab116
 - Google SRE Workbook Chapter 17 — Testing for Reliability.
 - Principles of Chaos Engineering — https://principlesofchaos.org/
-- `crates/oya-check-chaos-engineering-catalog` (to author).
+- `libs/oya-check-chaos-engineering-catalog` (to author).
 
 ## Wave 15 counterpart verification note
 

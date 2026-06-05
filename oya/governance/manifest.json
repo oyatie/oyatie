@@ -208,19 +208,19 @@
     },
     {
       "id": "IP-NEW-chaos-engineering-substrate",
-      "title": "IP-NEW: wire `oya-check-chaos-engineering-catalog` into oya-dev-cli gate validate",
+      "title": "IP-NEW: register `oya-check-chaos-engineering-catalog` as a Buck2/Prow quality lane",
       "acceptance_status": "ga",
       "file": "microservices/governance/IP-NEW-chaos-engineering-substrate.md"
     },
     {
       "id": "IP-NEW-high-risk-auto-decision-refusal-lane",
-      "title": "IP-NEW: wire `oya-check-high-risk-auto-decision-refusal` into oya-dev-cli gate validate",
+      "title": "IP-NEW: register `oya-check-high-risk-auto-decision-refusal` as a Buck2/Prow quality lane",
       "acceptance_status": "ga",
       "file": "microservices/governance/IP-NEW-high-risk-auto-decision-refusal-lane.md"
     },
     {
       "id": "IP-NEW-slsa-l3-evidence-grounded-lane",
-      "title": "IP-NEW: wire `oya-check-slsa-l3-evidence-grounded` into oya-dev-cli gate validate",
+      "title": "IP-NEW: register `oya-check-slsa-l3-evidence-grounded` as a Buck2/Prow quality lane",
       "acceptance_status": "ga",
       "file": "microservices/governance/IP-NEW-slsa-l3-evidence-grounded-lane.md"
     }
