@@ -74,7 +74,7 @@ Cause: tenant reports cell edits disappeared; OR `silent_loss_attempt_total > 0`
 | 1 | Declare Sev-2; engage axis-sheets on-call + ops-security. |
 | 2 | Reconstruct CRDT op stream from Postgres cell-edit-seal-deltas + Valkey ephemeral state: `cargo run -p oya-sheets-collab-crdt-domain --bin reconstruct -- --tenant <h> --workbook <w>`. |
 | 3 | If reconstructed stream shows the user's ops present + ack'd by server BUT not in final workbook state: confirmed silent loss → Sev-1. |
-| 4 | If Sev-1: **stop all save-paths for the affected (tenant, workbook)**: `cargo run -p oya-dev-cli -- vcs override-paths --microservice sheets --halt-saves --tenant <h> --workbook <w>` (requires 2-person rule). |
+| 4 | If Sev-1: **stop all save-paths for the affected (tenant, workbook)** with operation `sheets.save_paths_freeze(tenant=<h>, workbook=<w>)` through the native SCM/control-plane operations ledger (requires 2-person rule). |
 | 5 | Forensic analysis: which CRDT op was dropped? Loro adapter bug? |
 | 6 | Author hotfix; deploy via emergency-merge sign-off; verify with synthetic test. |
 | 7 | Tenant notification per `incident-response.md`. |

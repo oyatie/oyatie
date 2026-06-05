@@ -47,7 +47,7 @@ ONE of:
 
 | Step | Action |
 |---|---|
-| 1 | Restore named-range from version-history: `cargo run -p oya-dev-cli -- sheets named-range restore --tenant <h> --workbook <w> --name <name> --from-version <version_sha>`. |
+| 1 | Restore named-range from version-history with operation `sheets.named_range_restore(tenant=<h>, workbook=<w>, name=<name>, from_version=<version_sha>)`. |
 | 2 | Verify formula re-evaluation: dependent cells show non-error values. |
 | 3 | Tenant notification: "named range '<name>' was restored from version <sha>". |
 
@@ -77,7 +77,7 @@ Cause: post-release, named-range parser regression; all tenant formulas broken o
 
 Per `backfill-replay.md`:
 - Affected workbooks may have cached `#NAME?` results.
-- Run targeted replay on affected workbooks: `cargo run -p oya-dev-cli -- sheets replay --workbook <w> --reason "named-range restored"`.
+- Run targeted replay on affected workbooks with operation `sheets.replay(workbook=<w>, reason="named-range restored")`.
 
 ## Verification
 

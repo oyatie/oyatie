@@ -65,7 +65,7 @@ Cause: new release of rust_xlsxwriter introduced bug; XLSX export fidelity tier 
 
 | Step | Action |
 |---|---|
-| 1 | Run XLSX best-effort round-trip corpus: `cargo run -p oya-dev-cli -- sheets corpus run --kind xlsx-roundtrip`. |
+| 1 | Run XLSX best-effort round-trip corpus through the Buck2-owned Sheets corpus target or operation `sheets.corpus_run(kind=xlsx-roundtrip)`. |
 | 2 | If corpus fails: roll back xlsx-export-worker to prior known-good release per `runbooks/formula-engine-rollback.md` pattern (same release-rollback flow). |
 | 3 | Tenant notification: "XLSX export issue corrected; please retry". |
 

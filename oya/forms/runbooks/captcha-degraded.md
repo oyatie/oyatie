@@ -51,7 +51,7 @@ ONE of:
 
 | Step | Action | Time |
 |---|---|---|
-| 1 | Switch pack to fallback: `cargo run -p oya-dev-cli -- forms captcha-provider --pack <pack> --provider <fallback>`. | ≤ 5 min |
+| 1 | Switch pack to fallback with control-plane operation `forms.captcha_provider(pack=<pack>, provider=<fallback>)`. | ≤ 5 min |
 | 2 | Verify submitter UX: render test-form; complete fallback challenge. | ≤ 5 min |
 | 3 | Per-tenant comms: notify tenants in pack of provider switch (no action required). | per priority |
 | 4 | Monitor: `oya_forms_captcha_verify_latency_seconds{provider=<fallback>}` healthy; submit rate normalises. | – |
@@ -62,7 +62,7 @@ ONE of:
 | Step | Action |
 |---|---|
 | 1 | Declare Sev-1; engage ops-security + ops-sre-reliability + axis-forms. |
-| 2 | Activate manual-review queue: `cargo run -p oya-dev-cli -- forms captcha-mode --manual-review --duration 4h`. |
+| 2 | Activate manual-review queue with control-plane operation `forms.captcha_mode(manual_review=true, duration=4h)`. |
 | 3 | Submitter UX: "your submission is queued for review; tenant will follow up". |
 | 4 | Tenant comms: per-tenant notification; tenant decides whether to disable form during outage. |
 | 5 | Manual-review queue staffed by gtm-customer-success + tenant operators for affected tenants. |

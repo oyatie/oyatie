@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-05T04:28:00Z",
+  "updated_at": "2026-06-05T12:23:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -142,8 +142,19 @@
       "machine-readable mirror freshness",
       "retired substrate exact-name tombstones",
       "git-backed stale documentation inventory",
-      "rust-buck2 stale documentation inventory test target"
+      "rust-buck2 stale documentation inventory test target",
+      "product-operation runbook retired CLI/bridge authority scan"
     ],
+    "product_operation_runbook_retired_cli_scan": {
+      "clean_paths": [
+        "oya/forms/runbooks",
+        "oya/sheets/runbooks"
+      ],
+      "policy": "Product runbooks use product control-plane operations, operation-ledger evidence, Buck2/Prow verification, and CUE/KRM desired-state wording. They must not revive retired local CLI authority or retired external CI/CD bridge authority; exact tombstones stay in the Rust checker and retired substrate registry, not active guidance.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental clean-path guard only; remaining product docs are separate backlog slices"
+    },
     "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",

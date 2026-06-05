@@ -54,7 +54,7 @@ Sev-1 (P0). Privacy team always paged; legal-compliance always paged.
 
 1. **Declare Sev-1.** Page: ops-sre + ops-security + council-privacy + council-legal-compliance + axis-forms.
 2. **Identify scope**: which tenants, which subjects, which data classes?
-3. **Quarantine**: lock affected forms (`cargo run -p oya-dev-cli -- forms publish-block --form <id> --reason p0`); revoke active export tokens (`cargo run -p oya-dev-cli -- forms export-token-revoke --tenant <id> --all`).
+3. **Quarantine**: lock affected forms with operation `forms.publish_block(form=<id>, reason=p0)`; revoke active export tokens with operation `forms.export_token_revoke(tenant=<id>, all=true)`.
 4. **Preserve evidence**: Postgres + audit-chain + logs snapshot before any restoration.
 5. **Status page**: internal incident channel only at this stage; NO public statement yet.
 

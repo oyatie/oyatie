@@ -1,0 +1,28 @@
+{
+  "id": "product-operation-runbook-cli-hygiene-20260605T122300Z",
+  "created_utc": "20260605T122300Z",
+  "branch": "chore/product-cli-doc-hygiene-20260605T121336Z",
+  "base": "1831bf73a36a9c2ede52cea7db523869423d9bbc",
+  "scope": "oya/forms/runbooks, oya/sheets/runbooks, and repo-hygiene Rust guard",
+  "changes": [
+    "Replaced Forms and Sheets runbook retired local CLI examples with product control-plane operation notation and operation-ledger evidence wording.",
+    "Replaced retired bridge authority wording with Buck2/Prow/Kubernetes-native oya-ci-required evidence and CUE/KRM desired-state reconciliation wording.",
+    "Added a repo-hygiene Rust clean-path guard for oya/forms/runbooks and oya/sheets/runbooks so retired local CLI and bridge authority cannot re-enter those runbook surfaces.",
+    "Registered the incremental product-operation runbook retired-authority scan in specs/repo-hygiene-automation.json."
+  ],
+  "verification": {
+    "rustfmt": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+    "json": "jq -e . specs/repo-hygiene-automation.json evidence/multispectrum/product-operation-runbook-cli-hygiene-20260605T122300Z.json",
+    "targeted_scan": "Forms/Sheets runbook retired local CLI and bridge authority scan returned no matches",
+    "repo_hygiene_tests": "OYA_REPO_ROOT=$PWD /tmp/oyatie-product-cli-doc-hygiene-verify/repo_hygiene_automation_check --nocapture; 63 passed, 0 failed",
+    "repo_hygiene_json": "OYA_REPO_ROOT=$PWD /tmp/oyatie-product-cli-doc-hygiene-verify/assert-repo-hygiene-automation --json; verdict PASS, failures []",
+    "buck2": "buck2 build //:repo-hygiene-automation-check --show-output; BUILD SUCCEEDED, latest Build ID 54af5599-310b-46c7-a847-82f4b27557fa",
+    "diff_check": "git diff --check passed",
+    "changed_file_secret_scan": "changed-file credential-shaped scan completed with no matches"
+  },
+  "non_claims": [
+    "No live GitHub, Kubernetes, branch-protection, deployment, or secret state was mutated by this evidence record.",
+    "This is an incremental clean-path slice; residual retired oya-dev-cli references remain in active non-gate product docs outside the Forms and Sheets runbook paths.",
+    "This does not claim full repository stale-authority purge or full product documentation cleanup."
+  ]
+}

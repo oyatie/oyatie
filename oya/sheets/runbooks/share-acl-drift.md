@@ -52,8 +52,8 @@ ONE of:
 | Step | Action | Time |
 |---|---|---|
 | 1 | Declare Sev-1; engage ops-security + axis-sheets on-call. | ≤ 5 min |
-| 2 | **Immediately freeze share-ACL changes for affected (tenant, workbook)**: `cargo run -p oya-dev-cli -- vcs override-paths --microservice sheets --halt-share-acl --tenant <h> --workbook <w>`. | ≤ 5 min |
-| 3 | **Force Cedar fragment re-generation from Postgres authoritative state**: `cargo run -p oya-dev-cli -- sheets range-acl re-sync --tenant <h> --workbook <w>`. | ≤ 10 min |
+| 2 | **Immediately freeze share-ACL changes for affected (tenant, workbook)** with operation `sheets.share_acl_freeze(tenant=<h>, workbook=<w>)` through the native SCM/control-plane operations ledger. | ≤ 5 min |
+| 3 | **Force Cedar fragment re-generation from Postgres authoritative state** with operation `sheets.range_acl_resync(tenant=<h>, workbook=<w>)`. | ≤ 10 min |
 | 4 | Verify Cedar evaluator reloaded with corrected fragment. | ≤ 5 min |
 | 5 | Identify whether the drift was exploited: query audit-chain for `range_acl_read` events from non-authorised principals in the drift window. | ≤ 30 min |
 | 6 | If exploited: GDPR Art. 33 + KR PIPA Art. 34 + HIPAA §164.404 etc. notification per `incident-response.md`. | per pack timelines |

@@ -54,7 +54,7 @@ ONE of:
 |---|---|
 | 1 | Scale export-worker HPA: `kubectl -n forms scale deployment/export-worker --replicas 15`. |
 | 2 | Verify object storage write throughput. |
-| 3 | If single-tenant >> others: apply per-tenant export quota: `cargo run -p oya-dev-cli -- forms export-quota --tenant <id> --max-concurrent 3`. |
+| 3 | If single-tenant >> others: apply per-tenant export quota with operation `forms.export_quota(tenant=<id>, max_concurrent=3)`. |
 | 4 | Tenant comms if queue growth sustained. |
 
 ## Recovery Path B — Object storage outage
@@ -62,7 +62,7 @@ ONE of:
 | Step | Action |
 |---|---|
 | 1 | Verify OCI Object Storage status page. |
-| 2 | Switch to fallback bucket (different AD/region within pack): `cargo run -p oya-dev-cli -- forms export-bucket --pack <pack> --fallback`. |
+| 2 | Switch to fallback bucket (different AD/region within pack) with operation `forms.export_bucket(pack=<pack>, fallback=true)`. |
 | 3 | Tenant comms: exports queued; will deliver when storage recovers. |
 | 4 | Monitor; revert to primary when OCI recovers. |
 
