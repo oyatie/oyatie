@@ -14,7 +14,7 @@ and produce a FOCUS 1.1 export.
 
 Clone:
 ```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-billing-week1 .worktrees/$USER-billing-week1
+git worktree add -b onboarding/$USER-billing-week1 .worktrees/$USER-billing-week1 github-mirror/dev
 cd .worktrees/$USER-billing-week1
 ```
 
