@@ -57,7 +57,7 @@ branches:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate protection-context-match
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for protection-context-match
 gh api repos/jason931225/oyatie/branches?protected=true | jq '.[].name'
 ```
 

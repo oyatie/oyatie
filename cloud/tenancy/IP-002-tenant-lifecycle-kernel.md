@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-tenancy
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-per-microservice-layout]
+acceptance_lanes: [buck2-check, buck2-build, buck2-clippy, buck2-test, buck2-dependency-policy, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-per-microservice-layout]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -104,15 +104,15 @@ pub trait TenantContextResolver: Send + Sync + Sealed {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-tenancy-tenant-lifecycle-kernel --all-features
-cargo build -p oya-tenancy-tenant-lifecycle-kernel --all-features
-cargo clippy -p oya-tenancy-tenant-lifecycle-kernel --all-features -- -D warnings
-cargo nextest run -p oya-tenancy-tenant-lifecycle-kernel --all-features
-cargo deny check
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-tenancy-tenant-lifecycle-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-tenancy-tenant-lifecycle-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-tenancy-tenant-lifecycle-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-tenancy-tenant-lifecycle-kernel
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow check evidence for oya-tenancy-tenant-lifecycle-kernel --all-features
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow build evidence for oya-tenancy-tenant-lifecycle-kernel --all-features
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow lint evidence for oya-tenancy-tenant-lifecycle-kernel --all-features -- -D warnings
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-kernel --all-features
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow dependency-policy evidence
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for lean-a1 --crate oya-tenancy-tenant-lifecycle-kernel
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for port-location --crate oya-tenancy-tenant-lifecycle-kernel
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for layer-correctness --crate oya-tenancy-tenant-lifecycle-kernel
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for data-class --crate oya-tenancy-tenant-lifecycle-kernel
 ```
 
 ## Test Plan

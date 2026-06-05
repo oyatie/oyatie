@@ -41,7 +41,7 @@ Create `oya-tenancy-dr-pairing-usecase` to assign a same-jurisdiction home/DR pa
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-dr-pairing-usecase --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-dr-pairing-usecase --all-features`.
 - Same-jurisdiction invariant tested for KR, EU, US-HC, and BR packs.
 - Split-brain test refuses promotion unless quorum and current pair version match.
 - RPO <= 30s and RTO <= 5min remain capability targets, not claimed measured results until drill evidence lands.

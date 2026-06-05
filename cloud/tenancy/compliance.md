@@ -52,7 +52,7 @@ The canonical control-to-framework mapping for the tenancy µservice. Tells an e
 | CC6.3 | Adds/removes access | OpenBao access lifecycle + audit | OpenBao audit log |
 | **CC6.6** | **Logical access control** | **Postgres RLS + JWT + Cedar (the load-bearing trio)** | `policy/rls-isolation.md` |
 | CC6.7 | Information transmission + disposal | mTLS in transit + KMS at rest + DSR cascade for disposal | `policy/data-residency.md` + DSR cascade |
-| CC6.8 | Vulnerability management | `cargo deny` + Trivy + Grype CI lanes; weekly CVE scan | `/specs/supply-chain.json` |
+| CC6.8 | Vulnerability management | `Buck2 dependency-policy check` + Trivy + Grype CI lanes; weekly CVE scan | `/specs/supply-chain.json` |
 | CC7.1 | System operations | Patroni HA + per-tenant rate limits + auto-scaling | `capacity-model.md` |
 | CC7.2 | Monitoring system inputs | Self-observability metrics + OnCall alerts | `failure-modes.md` |
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + cardinality alerts | tenancy self-OpenSLOs |
@@ -112,7 +112,7 @@ The canonical control-to-framework mapping for the tenancy µservice. Tells an e
 | A.8.25 | Secure development life cycle | LEAN lanes + PR review + spec-driven-development | `docs/standards/*` |
 | A.8.26 | Application security requirements | OpenAPI schema enforcement + Cedar policy + LEAN | `contracts/openapi/tenancy.yaml` |
 | A.8.27 | Secure system architecture | Clean architecture (ADR-0056 + ADR-0105) | ADR-0056 + ADR-0105 |
-| A.8.28 | Secure coding | Cedar fuzz-testing + `cargo clippy` + `cargo deny` + SQL parameterisation | LEAN lanes |
+| A.8.28 | Secure coding | Cedar fuzz-testing + `Buck2 lint check` + `Buck2 dependency-policy check` + SQL parameterisation | LEAN lanes |
 | A.8.32 | Change management | PR review + LEAN gates (rls-no-superuser-bypass, rls-force-on-tenant-tables) | branch-protection.yaml |
 | A.8.33 | Test information | Synthetic test data only; no prod-data in non-prod | `docs/standards/testing.md` |
 | A.8.34 | Protection of information systems during audit testing | Auditor JIT tokens + scoped reads | `policy/auditor-scope.cedar` |
@@ -253,8 +253,8 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance-evidence-recency --microservice tenancy` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate authority-cohesion` — exit 0; HG-TEN registered.
+- `Buck2/Prow native gate evidence for compliance-evidence-recency --microservice tenancy` — exit 0.
+- `Buck2/Prow native gate evidence for authority-cohesion` — exit 0; HG-TEN registered.
 - Annual SOC 2 Type 2 audit: `evidence/audits/soc2/<year>-type2-report.pdf`.
 - Annual ISO 27001:2022 audit.
 - Per-pack audit cadences per local law.
@@ -341,7 +341,7 @@ This anchor is closed for `tenancy` against ADR-0250 §D-1: certification-ready 
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -403,7 +403,7 @@ This anchor is closed for `tenancy` against ADR-0251 §D-2: pack activation, ove
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -465,7 +465,7 @@ This anchor is closed for `tenancy` against ADR-0247 §D-3: Foundry-touching sel
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -527,7 +527,7 @@ This anchor is closed for `tenancy` against ADR-0293 §D-1: meta-trust-root chai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -589,7 +589,7 @@ This anchor is closed for `tenancy` against ADR-0295 §D-2: Tier-1 bootstrap SPI
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -651,7 +651,7 @@ This anchor is closed for `tenancy` against ADR-0284 §D-1: platform_owner indir
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -713,7 +713,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.6.A: de
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -775,7 +775,7 @@ This anchor is closed for `tenancy` against ADR-0310 §D-1: detection-to-investi
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -837,7 +837,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -899,7 +899,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -961,7 +961,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -1023,7 +1023,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -1085,7 +1085,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -1147,7 +1147,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -1209,7 +1209,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -1271,7 +1271,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.5: appl
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -1333,7 +1333,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.

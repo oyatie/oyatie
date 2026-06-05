@@ -36,13 +36,12 @@ components:
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+          Establish that ADR-0346 is historical local-verifier doctrine; active evidence is Buck2 target output plus trusted Rust/Prow `oya-ci-required`, and each required check must report exit-0 before success.
         enforced_by:
-          - oya-governance-oya-verify-ci-mirror-coverage
-          - oya-governance-oya-verify-ci-step-exit-semantics
-          - oya-governance-oya-verify-skip-flag-allowlist
-          - oya-governance-oya-submit-calls-verify
-          - oya-governance-oya-verify-exit-code-contract
+          - buck2-target-output
+          - trusted-rust-prow-oya-ci-required
+          - repo-hygiene-automation-check
+          - buck2-authority-policy
       ADR-0347:
         purpose: >-
           Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
@@ -67,12 +66,12 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+          Declare native oya-ci and native release conveyor as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
         enforced_by:
-          - oya-governance-jenkins-github-actions-parity
-          - oya-governance-argocd-application-cosign-verified
-          - oya-governance-argocd-tenant-namespace-isolation
-          - oya-governance-jenkins-jcasc-only
+          - oya-governance-github-shadow-parity
+          - oya-governance-native-release-conveyor-application-cosign-verified
+          - oya-governance-native-release-conveyor-tenant-namespace-isolation
+          - oya-governance-oci-required-controller-state
           - oya-governance-deploy-audit-chain-emit
     consumer_guidance:
       generators: Ignore this x-extension for SDK and server wire generation.

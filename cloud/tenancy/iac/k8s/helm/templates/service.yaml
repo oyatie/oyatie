@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
     app.kubernetes.io/part-of: oyatie-microservices
-    oyatie.com/adr-0349: argocd-managed
+    oyatie.com/adr-0349: native-release-conveyor-managed
 spec:
   type: {{ .Values.service.type | quote }}
   selector:

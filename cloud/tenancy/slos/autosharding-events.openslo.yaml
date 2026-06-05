@@ -10,18 +10,18 @@ metadata:
     adr_0346: oya-verify-must-run-full-ci-mirror
     adr_0347: foundry-fitness-to-governance-bulk-rename
     adr_0348: autosharding-auto-rebalance-dynamic-sharding
-    adr_0349: jenkins-argocd-self-hostable-ci-cd-substrate
+    adr_0349: native-release-conveyor-self-hostable-ci-cd-substrate
     automation_mode: dynamic_sharding
     automation_event: hot_split
     enforced_by: oya-governance-dynamic-sharding-threshold-coverage
   annotations:
     adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
-    adr_0346_purpose: "oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix."
+    adr_0346_purpose: "ADR-0346 is historical local-verifier doctrine; active evidence is Buck2 target output plus trusted Rust/Prow `oya-ci-required`."
     adr_0347_enforced_by: "oya-governance-lane-prefix-vocabulary"
     adr_0348_enforced_by: "oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events"
-    adr_0349_enforced_by: "oya-governance-jenkins-github-actions-parity"
+    adr_0349_enforced_by: "oya-governance-github-shadow-parity"
 spec:
-  description: "ADR-0348 makes DYNAMIC SHARDING split hot shards when shard p99 latency exceeds SLO or utilization exceeds 80%; this SLO bounds tenancy hot-split latency and requires audit-chain emission under ADR-0348, governance lane vocabulary under ADR-0347, local CI mirror validation under ADR-0346, and Jenkins/GitHub Actions parity under ADR-0349."
+  description: "ADR-0348 makes DYNAMIC SHARDING split hot shards when shard p99 latency exceeds SLO or utilization exceeds 80%; this SLO bounds tenancy hot-split latency and requires audit-chain emission under ADR-0348, governance lane vocabulary under ADR-0347, local CI mirror validation under ADR-0346, and oya-ci-required plus temporary GitHub Actions shadow parity under ADR-0349."
   indicator:
     metadata:
       name: tenancy-autosharding-hot-split-latency-indicator
@@ -52,16 +52,16 @@ metadata:
     adr_0346: oya-verify-must-run-full-ci-mirror
     adr_0347: foundry-fitness-to-governance-bulk-rename
     adr_0348: autosharding-auto-rebalance-dynamic-sharding
-    adr_0349: jenkins-argocd-self-hostable-ci-cd-substrate
+    adr_0349: native-release-conveyor-self-hostable-ci-cd-substrate
     automation_mode: auto_rebalance
     automation_event: tenant_migration
     enforced_by: oya-governance-auto-rebalance-residency-honored
   annotations:
     adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
-    adr_0346_enforced_by: "oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics; oya-governance-oya-submit-calls-verify"
+    adr_0346_enforced_by: "buck2-prow-required-matrix-coverage; buck2-prow-required-step-exit-semantics; trusted-pr-submission-requires-oya-ci-required"
     adr_0347_enforced_by: "oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence"
     adr_0348_enforced_by: "oya-governance-auto-rebalance-residency-honored; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility"
-    adr_0349_purpose: "Jenkins augments rather than replaces GitHub Actions; ArgoCD is the canonical GitOps CD orchestrator."
+    adr_0349_purpose: "native oya-ci augments rather than replaces GitHub Actions; native release conveyor is the canonical GitOps CD orchestrator."
 spec:
   description: "ADR-0348 makes AUTO-REBALANCE migrate tenants from hot cells to cooler cells while honoring residency and compliance packs; this SLO bounds tenancy rebalance migration time and requires observable, reversible, audit-chain-emitting automation enforced with ADR-0346, ADR-0347, and ADR-0349 governance lanes."
   indicator:

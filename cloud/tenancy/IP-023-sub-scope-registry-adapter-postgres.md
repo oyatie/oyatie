@@ -40,9 +40,9 @@ Create `oya-tenancy-sub-scope-registry-adapter-postgres` implementing the kernel
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-sub-scope-registry-adapter-postgres --all-features`.
-- `cargo run -p oya-dev-cli -- gate validate tenant-context-setlocal-present`.
-- `cargo run -p oya-dev-cli -- gate validate rls-force-on-tenant-tables`.
+- `Buck2/Prow test evidence for oya-tenancy-sub-scope-registry-adapter-postgres --all-features`.
+- `Buck2/Prow native gate evidence for tenant-context-setlocal-present`.
+- `Buck2/Prow native gate evidence for rls-force-on-tenant-tables`.
 - Tests verify tenant A cannot read tenant B closure rows even with matching sub-scope ids.
 - Closure-table reads support ancestor and descendant lookup without recursive runtime SQL.
 

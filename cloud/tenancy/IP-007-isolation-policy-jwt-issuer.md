@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-007-isolation-policy-jwt-issuer
 status: pending
 owner: axis-tenancy + ops-security
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-jwt-key-fingerprint-advertised]
+acceptance_lanes: [buck2-check, buck2-test, oya-governance-jwt-key-fingerprint-advertised]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -68,9 +68,9 @@ pub async fn rotation_cycle(deps: &Deps) -> anyhow::Result<()> {
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-isolation-policy-adapter --test jwt_verifier
-cargo nextest run -p oya-tenancy-isolation-policy-worker --test jwt_rotation
-cargo run -p oya-dev-cli -- gate validate jwt-key-fingerprint-advertised
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-isolation-policy-adapter --test jwt_verifier
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-isolation-policy-worker --test jwt_rotation
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for jwt-key-fingerprint-advertised
 ```
 
 ## Test Plan

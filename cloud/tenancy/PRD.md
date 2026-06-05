@@ -331,16 +331,16 @@ Cross-product rule: `tenancy` MUST NOT import any other product µservice crate 
 
 CI lanes that must green:
 
-- `oya gate validate lean-a1 --microservice tenancy` — dependency-direction
-- `oya gate validate lean-a2 --microservice tenancy` — cross-product-refusal
-- `oya gate validate port-location --microservice tenancy` — ports in kernel
-- `oya gate validate layer-correctness --microservice tenancy`
-- `oya gate validate per-microservice-layout --microservice tenancy` — ADR-0131 conformance
-- `oya gate validate statelessness --microservice tenancy` (read path; write path uses `postgres` strategy)
-- `oya gate validate shardability --microservice tenancy`
-- `oya gate validate rls-no-superuser-bypass --microservice tenancy` — NEW; refuses superuser-bypass code paths
-- `oya gate validate rls-force-on-tenant-tables --microservice tenancy` — NEW; refuses tenant-bound table migrations without `FORCE ROW LEVEL SECURITY`
-- `oya gate validate jwt-key-fingerprint-advertised --microservice tenancy` — NEW; refuses key rotation without fingerprint Workflow event
+- `Buck2/Prow native gate evidence for lean-a1 --microservice tenancy` — dependency-direction
+- `Buck2/Prow native gate evidence for lean-a2 --microservice tenancy` — cross-product-refusal
+- `Buck2/Prow native gate evidence for port-location --microservice tenancy` — ports in kernel
+- `Buck2/Prow native gate evidence for layer-correctness --microservice tenancy`
+- `Buck2/Prow native gate evidence for per-microservice-layout --microservice tenancy` — ADR-0131 conformance
+- `Buck2/Prow native gate evidence for statelessness --microservice tenancy` (read path; write path uses `postgres` strategy)
+- `Buck2/Prow native gate evidence for shardability --microservice tenancy`
+- `Buck2/Prow native gate evidence for rls-no-superuser-bypass --microservice tenancy` — NEW; refuses superuser-bypass code paths
+- `Buck2/Prow native gate evidence for rls-force-on-tenant-tables --microservice tenancy` — NEW; refuses tenant-bound table migrations without `FORCE ROW LEVEL SECURITY`
+- `Buck2/Prow native gate evidence for jwt-key-fingerprint-advertised --microservice tenancy` — NEW; refuses key rotation without fingerprint Workflow event
 
 ## Integration via Workflow + Ontology
 
@@ -473,19 +473,19 @@ Sharding:
 
 | AC-ID | Criterion | Verification method |
 |---|---|---|
-| AC-01 | Tenant activation completes in ≤ 5 min p99; RLS policy active post-activation; cell assigned; events emitted | `cargo nextest run -p oya-tenancy-tenant-lifecycle-worker --test activation_end_to_end` |
-| AC-02 | Cross-tenant query returns zero rows under RLS (no superuser bypass; no role bypass) | `cargo nextest run -p oya-tenancy-isolation-policy-adapter-postgres --test rls_no_cross_tenant_rows` |
+| AC-01 | Tenant activation completes in ≤ 5 min p99; RLS policy active post-activation; cell assigned; events emitted | `Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-worker --test activation_end_to_end` |
+| AC-02 | Cross-tenant query returns zero rows under RLS (no superuser bypass; no role bypass) | `Buck2/Prow test evidence for oya-tenancy-isolation-policy-adapter-postgres --test rls_no_cross_tenant_rows` |
 | AC-03 | `TenantContext::validate` p99 ≤ 5 ms at 100k RPS sustained (Valkey cache hit) | k6 load test `tests/load/tenant-validate-100krps.js` |
 | AC-04 | `TenantActivated` event delivered + consumed by all enabled µservices within 2 s | integration test `tests/integration/tenant_activated_workflow.rs` |
-| AC-05 | DSR cascade end-to-end: every µservice emits `ErasureReceipt`; `ProofOfErasure` certificate signed; tenant data unreachable | `cargo nextest run -p oya-tenancy-dsr-cascade-worker --test dsr_cascade_proof` |
-| AC-06 | Cell assignment routes new tenant to least-loaded cell in correct jurisdiction; rebalance within 2 s of cell-unhealthy signal | `cargo nextest run -p oya-tenancy-cell-assignment-worker --test rebalance_on_unhealthy` |
-| AC-07 | JWT signing key rotation: `JwtSigningKeyRotated` event delivered; verifier pubkey cache refreshed; old key valid for 30d grace | `cargo nextest run -p oya-tenancy-isolation-policy-worker --test jwt_rotation` |
-| AC-08 | LEAN-A2: tenancy crates import no other product µservice | `oya gate validate lean-a2 --microservice tenancy` exit 0 |
-| AC-09 | RLS lane refuses superuser-bypass code path in any tenancy-adjacent crate | `oya gate validate rls-no-superuser-bypass --microservice tenancy` exit 0 |
-| AC-10 | RLS-force lane refuses tenant-bound table migration without `FORCE ROW LEVEL SECURITY` | `oya gate validate rls-force-on-tenant-tables --microservice tenancy` exit 0 |
-| AC-11 | per-microservice-layout lane green | `oya gate validate per-microservice-layout --microservice tenancy` exit 0 |
-| AC-12 | authority-cohesion lane green; HG-TEN registered | `oya gate validate authority-cohesion` exit 0 |
-| AC-13 | Citus rebalance preserves tenant data integrity (checksum before/after) | `cargo nextest run -p oya-tenancy-cell-assignment-adapter-citus --test rebalance_integrity` |
+| AC-05 | DSR cascade end-to-end: every µservice emits `ErasureReceipt`; `ProofOfErasure` certificate signed; tenant data unreachable | `Buck2/Prow test evidence for oya-tenancy-dsr-cascade-worker --test dsr_cascade_proof` |
+| AC-06 | Cell assignment routes new tenant to least-loaded cell in correct jurisdiction; rebalance within 2 s of cell-unhealthy signal | `Buck2/Prow test evidence for oya-tenancy-cell-assignment-worker --test rebalance_on_unhealthy` |
+| AC-07 | JWT signing key rotation: `JwtSigningKeyRotated` event delivered; verifier pubkey cache refreshed; old key valid for 30d grace | `Buck2/Prow test evidence for oya-tenancy-isolation-policy-worker --test jwt_rotation` |
+| AC-08 | LEAN-A2: tenancy crates import no other product µservice | `Buck2/Prow native gate evidence for lean-a2 --microservice tenancy` exit 0 |
+| AC-09 | RLS lane refuses superuser-bypass code path in any tenancy-adjacent crate | `Buck2/Prow native gate evidence for rls-no-superuser-bypass --microservice tenancy` exit 0 |
+| AC-10 | RLS-force lane refuses tenant-bound table migration without `FORCE ROW LEVEL SECURITY` | `Buck2/Prow native gate evidence for rls-force-on-tenant-tables --microservice tenancy` exit 0 |
+| AC-11 | per-microservice-layout lane green | `Buck2/Prow native gate evidence for per-microservice-layout --microservice tenancy` exit 0 |
+| AC-12 | authority-cohesion lane green; HG-TEN registered | `Buck2/Prow native gate evidence for authority-cohesion` exit 0 |
+| AC-13 | Citus rebalance preserves tenant data integrity (checksum before/after) | `Buck2/Prow test evidence for oya-tenancy-cell-assignment-adapter-citus --test rebalance_integrity` |
 | AC-14 | Patroni HA failover: tenant validate hot path stays available with ≤ 10s blip during primary loss | `tests/load/patroni-failover-availability.sh` |
 
 ## Open Questions
@@ -553,7 +553,7 @@ Operations covered: DSR delete; tenant offboarding; bulk delete > 100 rows; cell
 
 ### CI lane (new)
 
-`oya gate validate tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier` before dispatch, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
+`Buck2/Prow native gate evidence for tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier` before dispatch, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
 
 ### New endpoints (tenancy µservice)
 
@@ -571,10 +571,10 @@ See `multi-region.md` for the full disposition statement and `/specs/multi-regio
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0346 — historical local-verifier doctrine only. Active merge authority for tenancy is Buck2 target output plus the trusted Rust/Prow `oya-ci-required` context; useful checks from the retired local verifier are preserved only as Rust/Buck2/Prow jobs.
 - ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 — native oya-ci and native release conveyor are the canonical self-hostable CI/CD substrates; native oya-ci augments GitHub Actions for self-hostable contexts and native release conveyor replaces manual `kubectl apply` and package CLI deploys, with parity, cosign, tenant namespace, controller-state, and audit-chain enforcement by `oya-governance-github-shadow-parity`, `oya-governance-native-release-conveyor-application-cosign-verified`, `oya-governance-native-release-conveyor-tenant-namespace-isolation`, `oya-governance-oci-required-controller-state`, and `oya-governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `tenancy` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

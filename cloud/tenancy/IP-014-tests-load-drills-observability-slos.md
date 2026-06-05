@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-014-tests-load-drills-observability-slos
 status: pending
 owner: ops-sre-reliability + axis-tenancy
-acceptance_lanes: [cargo-nextest, oya-governance-openslo-conformance]
+acceptance_lanes: [buck2-test, oya-governance-openslo-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -102,8 +102,8 @@ spec:
 ```bash
 k6 run microservices/tenancy/tests/load/tenant-validate-100krps.js
 bash microservices/tenancy/tests/load/patroni-failover-availability.sh
-cargo nextest run -p oya-tenancy-tenant-lifecycle-adapter-postgres --test synthetic_cross_tenant_probe
-cargo run -p oya-dev-cli -- gate validate openslo-conformance --microservice tenancy
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-adapter-postgres --test synthetic_cross_tenant_probe
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for openslo-conformance --microservice tenancy
 ```
 
 ## Test Plan
