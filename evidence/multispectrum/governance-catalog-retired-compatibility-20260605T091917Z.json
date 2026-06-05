@@ -1,0 +1,56 @@
+{
+  "change_id": "governance-catalog-retired-compatibility-20260605T0918Z",
+  "captured_at": "2026-06-05T09:18:37Z",
+  "lane": "governance-catalog-cli-hygiene",
+  "claims": [
+    "the governance gate catalog domain is explicitly marked as a retired compatibility/provenance corpus, not CI, SCM, merge, or governance authority",
+    "quality-lane documentation no longer describes the retired wired command corpus as canonical merge authority",
+    "repo-hygiene automation fails if the retired catalog regains active authority wording"
+  ],
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs libs/oya-governance-gate-catalog-domain/src/lib.rs libs/oya-check-quality-lane/src/lib.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test && OYA_REPO_ROOT=$PWD repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "summary": "51 tests passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs && assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "summary": "verdict PASS; failures []"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings libs/oya-governance-gate-catalog-domain/src/lib.rs --test && oya_governance_gate_catalog_domain_tests --nocapture",
+      "exit_code": 0,
+      "summary": "46 tests passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings libs/oya-check-quality-lane/src/lib.rs --test && oya_check_quality_lane_tests --nocapture",
+      "exit_code": 0,
+      "summary": "8 tests passed; 0 failed"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //libs/oya-governance-gate-catalog-domain:oya-governance-gate-catalog-domain //libs/oya-check-quality-lane:oya-check-quality-lane --show-output",
+      "exit_code": 0,
+      "summary": "BUILD SUCCEEDED; Build ID f9711895-b4ea-4e94-97d7-7b9c56856a4d"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "targeted stale authority wording scan over patched library surfaces",
+      "exit_code": 0,
+      "summary": "no matches for retired active-authority phrases in patched library files"
+    }
+  ],
+  "local_static_only": true,
+  "live_mutation_performed": false,
+  "notes": [
+    "The historical command string corpus remains as compatibility debt for existing Rust consumers; this change prevents it from being treated as first-class CI or SCM authority.",
+    "Durable execution authority remains Rust/Buck2/Prow/Kubernetes-native; GitHub remains a temporary adapter while parallel lanes are unlocked."
+  ]
+}
