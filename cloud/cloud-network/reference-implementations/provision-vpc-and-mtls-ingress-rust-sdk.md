@@ -156,8 +156,12 @@ when {
 ## Run it
 
 ```bash
-cargo run --release
+buck2 run //cloud/cloud-network:provision-vpc-and-mtls-ingress-rust-sdk
 ```
+
+If the example is still reference text rather than a checked Buck2 target, first
+promote it into a service-owned Buck2 target; do not use ad-hoc Cargo execution
+as merge or release evidence.
 
 Expected output (trimmed):
 ```
@@ -184,8 +188,11 @@ INFO  flow log tail complete allow=412 deny=3
 ## Tests
 
 ```bash
-cargo test --features hermetic
+buck2 test //cloud/cloud-network:provision-vpc-and-mtls-ingress-rust-sdk-hermetic
 ```
+
+The `hermetic` behavior belongs in the Buck2 target configuration so Prow can
+run the same evidence path.
 
 The `hermetic` feature uses `oya_cloud_network_sdk::testkit::Hermetic` to spin a single-process loopback cell with Cilium in
 kernel-bypass mode (XDP) and a SoftHSM-backed SPIFFE; tests finish in ≤ 60 s.

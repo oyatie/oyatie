@@ -121,7 +121,7 @@
 - D1-07 The tutorial resolves to the Rust SDK example at the concept level, because both provision VPC, mTLS ingress, Cedar policy, and flow logs (`tutorials/provision-vpc-mtls-and-cedar-policy.md:11-192`; `reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:54-150`).
 - D1-08 The migration playbook resolves to the tenant_class matrix for provider-neutral target concepts only partially, because it maps AWS VPC/Istio concepts into cloud-network but still uses AWS/Crossplane vocabulary (`migration-playbooks/from-aws-vpc-and-istio.md:44-60`).
 - D1-09 The benchmark doc resolves to the tenant_class matrix only partially: both discuss paid/paid throughput, but the benchmark claims measured values without local evidence (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:3-17`).
-- D1-10 The onboarding doc resolves to the tutorial partially: both start a dev cell and create a tenant, but both rely on `make` rather than the D-18 Cargo/OpenTofu canonical build path (`onboarding/network-engineer-first-week.md:21-26`; `tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`).
+- D1-10 The onboarding doc resolves to the tutorial partially: both start a dev cell and create a tenant, but both rely on `make` rather than the D-18 historical Cargo/OpenTofu build path, now superseded by Buck2/Prow authority (`onboarding/network-engineer-first-week.md:21-26`; `tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`).
 - D1-11 Broken internal reference: DDoS runbook cites `microservices/cloud-network/faqs/network-engineer-faq.md`, and the file exists (`runbooks/ddos-mitigation-engagement.md:32-32`).
 - D1-12 Broken internal reference not found: no target-path doc links to `PRD.md`; the absence is a missing anchor rather than a broken link.
 - D1-13 Broken internal reference not found: no target-path doc links to `ARCHITECTURE.md`; the absence is a missing anchor rather than a broken link.
@@ -129,7 +129,7 @@
 - D1-15 Contradiction probe 1: tenant_class matrix demo_trial says shared region VPC on AWS/GCP (`retired tenant_class adoption artifact:12-27`), while ADR-0328 D-19 says OCI demo_trial tenant_class for guest-on-oci must mean Always Free, not just a shared AWS/GCP network profile (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3418-3438`).
 - D1-16 Contradiction probe 2: FAQ says cloud-network wraps and unifies AWS/GCP/Azure network constructs through Crossplane/cloud-iac (`faqs/network-engineer-faq.md:7-11`), while D-15 says cloud-network owns portable VPC-equivalent semantics, not provider route-table vocabulary (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2058-2059`).
 - D1-17 Contradiction probe 3: migration playbook says provisioning creates the underlying AWS VPC through cloud-iac + Crossplane (`migration-playbooks/from-aws-vpc-and-istio.md:44-60`), while D-16 mandates OpenTofu and forbids substituting other IaC engines (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2243-2249`).
-- D1-18 Contradiction probe 4: benchmark reproducibility says `make benchmarks.cloud-network.run` (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`), while D-18 canonical backend invocation is Cargo over Rust crates, not Make as a release/build control surface (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3215-3247`).
+- D1-18 Contradiction probe 4: benchmark reproducibility says `make benchmarks.cloud-network.run` (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`), while D-18 historical backend invocation is superseded by Buck2 over Rust targets, not Make as a release/build control surface (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3215-3247`).
 - D1-19 Contradiction probe 5: onboarding uses `make dev-cell.up` and `make dev-tenant.create` (`onboarding/network-engineer-first-week.md:21-26`), which is not aligned with D-18 canonical build and release invocation (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3215-3247`).
 - D1-20 Contradiction probe 6: tutorial uses `make dev-cell.up` and `kubectl` as the first setup lane (`tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`), but D-16 requires deployment plan/apply to be mediated through OpenTofu and cloud-iac (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2436-2456`).
 - D1-21 Contradiction probe 7: FAQ promises VPC Flow Log style visibility and audit projections (`faqs/network-engineer-faq.md:96-105`), but the target path has no SLO, event contract, dashboard, or observability schema file.
@@ -142,7 +142,7 @@
 - D1-28 Severity for Crossplane/OpenTofu drift is P1 because it directly conflicts with D-16.
 - D1-29 Severity for benchmark evidence absence is P2 because it can mislead planning but does not itself change runtime behavior.
 - D1-30 Severity for Make-based tutorial/onboarding is P2 unless those commands are used as release gates; then it becomes P1.
-- D1-31 The Rust SDK reference is coherent with Rust-strict policy because it uses Rust/Cargo and no forbidden application language (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:6-24`, `reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-191`).
+- D1-31 The Rust SDK reference is coherent with Rust-strict policy because it uses Rust and no forbidden application language; Buck2 must own executable evidence (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:6-24`, `reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-191`).
 - D1-32 The runbooks are coherent with the service purpose because they cover network-specific incidents, not generic on-call prose.
 - D1-33 The migration playbook is useful but too AWS-centered for the new all-context bar.
 - D1-34 The onboarding doc is useful but lacks OS matrix, OpenTofu, and six-context paths.
@@ -265,7 +265,7 @@
 - D3-45 Intern-buildability answer: no, not from current target-path docs alone.
 - D3-46 Intern-buildability answer with broader repo lookup: partial, because contracts and Rust crates exist elsewhere.
 - D3-47 Required remediation: add local docs that connect target folder to contracts, crates, tests, IaC, OS manifest, and CI lanes.
-- D3-48 Required remediation: convert Make-led developer flows into canonical Cargo/OpenTofu/Oya VCS steps or clearly classify them as non-release local convenience.
+- D3-48 Required remediation: convert Make-led developer flows into Buck2/OpenTofu/Prow evidence paths or clearly classify them as non-release local convenience.
 - D3-49 Required remediation: add capacity and cost models with explicit assumptions and benchmark provenance.
 - D3-50 Dimension verdict: P1 for ownership folder buildability.
 
@@ -291,7 +291,7 @@
 - D4-18 OS negative: no Tier-1 OS package/test/CI coverage is declared.
 - D4-19 Rust-strict source: ADR-0328 D-18 requires Rust backend/runtime/CLI/validation/codegen/scripting/CI, with narrow non-Rust exceptions (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3045-3247`).
 - D4-20 Rust-strict status: aligned for files present in target path because only Markdown exists.
-- D4-21 Rust-strict positive: Rust SDK reference uses Rust and Cargo (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:6-24`; `reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-191`).
+- D4-21 Rust-strict positive: Rust SDK reference uses Rust; Buck2 must own executable evidence (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:6-24`; `reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-191`).
 - D4-22 Rust-strict concern: durable docs still use Make as primary setup/benchmark commands.
 - D4-23 OCI Always Free source: ADR-0328 D-19 says guest-on-oci demo_trial means Always Free, not a generic free-trial abstraction (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3418-3438`).
 - D4-24 OCI Always Free status: drifted-fixable because no `iac/guest-on-oci/always-free/` exists and demo_trial tenant_class does not mention OCI Always Free.
@@ -557,9 +557,9 @@
 - D9-19 No WinUI3 frontend exists.
 - D9-20 No unauthorized frontend code exists.
 - D9-21 Reference implementation uses Rust and `tokio` (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:6-24`).
-- D9-22 Reference implementation invocation is `cargo run --release` (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-160`).
-- D9-23 Reference implementation test command is `cargo test --features hermetic` (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:184-191`).
-- D9-24 Runbooks use Cargo commands for resolution gates (`runbooks/ddos-mitigation-engagement.md:167-169`; `runbooks/mtls-handshake-failure-cascade.md:169-171`; `runbooks/cross-cell-routing-stall.md:168-171`).
+- D9-22 Reference implementation invocation was historical local Cargo evidence and is now superseded by Buck2 target execution (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-160`).
+- D9-23 Reference implementation test command was historical local Cargo evidence and is now superseded by Buck2 target execution (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:184-191`).
+- D9-24 Runbooks must use Buck2/Prow evidence for resolution gates (`runbooks/ddos-mitigation-engagement.md:167-169`; `runbooks/mtls-handshake-failure-cascade.md:169-171`; `runbooks/cross-cell-routing-stall.md:168-171`).
 - D9-25 Rust domain crate exists outside target path and is in Rust (`crates/oya-cloud-network-domain/src/lib.rs:1-7`).
 - D9-26 Rust API crates exist outside target path for VPC, LB, and DNS (`crates/oya-cloud-network-vpc-api/src/lib.rs:1-17`; `crates/oya-cloud-network-lb-api/src/lib.rs:1-16`; `crates/oya-cloud-network-dns-api/src/lib.rs:1-16`).
 - D9-27 Concern: benchmark reproducibility uses Make (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`).
@@ -567,7 +567,7 @@
 - D9-29 Concern: tutorial setup uses Make (`tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`).
 - D9-30 Concern: migration playbook uses shell loops and AWS CLI extraction (`migration-playbooks/from-aws-vpc-and-istio.md:10-28`); as migration operator prose it is less severe than a repo-owned script, but it should not become canonical automation.
 - D9-31 Concern: runbooks use shell tools, `kubectl`, `rg`, `curl`, and dashboards; these may be acceptable operational commands but should not replace Rust-owned automation.
-- D9-32 Build invocation per D-20 should cite Cargo workspace commands, OpenTofu plan/apply via cloud-iac, and Oya VCS claim/verify/done/promote gates.
+- D9-32 Build invocation per active doctrine should cite Buck2 targets, OpenTofu plan/apply via cloud-iac, and Prow/native promotion evidence.
 - D9-33 Target path lacks a `build.md` or `README.md` that states canonical build invocation.
 - D9-34 Target path lacks a `tests/` directory with Rust integration tests.
 - D9-35 Target path lacks CI lane docs that prove no forbidden application language can be introduced later.
@@ -584,7 +584,7 @@
 - D9-46 Rust-strict architecture coverage: partial because Rust crates exist but are not indexed locally.
 - D9-47 Severity for forbidden source files: P3 positive, no issue.
 - D9-48 Severity for Make-first command drift: P2.
-- D9-49 Required remediation: replace Make-first docs with Cargo/OpenTofu/Oya command surfaces or explicitly classify Make snippets as historical/non-release convenience.
+- D9-49 Required remediation: replace Make-first docs with Buck2/OpenTofu/Prow command surfaces or explicitly classify Make snippets as historical/non-release convenience.
 - D9-50 Dimension verdict: aligned files, P2 command drift.
 
 ## §4 Findings summary

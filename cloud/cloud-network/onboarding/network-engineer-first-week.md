@@ -14,7 +14,7 @@ investigation.
 
 Clone:
 ```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-network-week1 .worktrees/$USER-network-week1
+git worktree add -b onboarding/$USER-network-week1 .worktrees/$USER-network-week1 github-mirror/dev
 cd .worktrees/$USER-network-week1
 ```
 

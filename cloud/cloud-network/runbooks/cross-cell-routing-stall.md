@@ -135,7 +135,7 @@ doc_status: published
 ```
 
 ## Mitigation
-1. Hold network policy deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+1. Hold network policy deploys: incident hold PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 2. Freeze route automation: `oya flags set oya.cloud_network.routing.auto_promote=false --cell $CELL --reason $INCIDENT_ID`.
 3. Keep residency guard enabled: `oya flags set oya.cloud_network.residency.enforce=true --cell $CELL --reason $INCIDENT_ID`.
 4. Refresh service discovery: `oya network service-discovery refresh --tenant $TENANT --cell $CELL --peer-cell $PEER_CELL --confirm $INCIDENT_ID`.
@@ -165,12 +165,12 @@ doc_status: published
 6. Patch residency policy if a valid route was falsely refused.
 7. Add regression fixture for cross-cell route convergence.
 8. Add regression fixture for stale service endpoint.
-9. Run domain tests: `cargo test -p oya-cloud-network-domain routing -- --nocapture`.
-10. Run VPC API tests: `cargo test -p oya-cloud-network-vpc-api cloud_network_vpc_api -- --nocapture`.
-11. Run LB API tests if ingress changed: `cargo test -p oya-cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
-12. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-network-routing --production-snapshot --cell $CELL`.
+9. Run domain tests: `buck2 test //cloud/cloud-network:oya-cloud-network-domain-routing`.
+10. Run VPC API tests: `buck2 test //cloud/cloud-network:oya-cloud-network-vpc-api`.
+11. Run LB API tests if ingress changed: `buck2 test //cloud/cloud-network:oya-cloud-network-lb-api`.
+12. Run production gate: `buck2 run //cloud/cloud-network:validate-routing-production-snapshot -- --cell $CELL`.
 13. Re-enable route automation: `oya flags set oya.cloud_network.routing.auto_promote=true --cell $CELL --reason resolved-$INCIDENT_ID`.
-14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold deploys: recovery PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_NETWORK_CROSS_CELL_ROUTING_STALL_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

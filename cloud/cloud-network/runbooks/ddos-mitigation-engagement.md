@@ -148,7 +148,7 @@ doc_status: published
 12. Notify support: `oya notify support --incident $INCIDENT_ID --template ddos-active`.
 13. Notify tenant admin: `oya notify tenant-admin --tenant $TENANT --incident $INCIDENT_ID --template ddos-mitigation-active`.
 14. Notify status page owner: `oya statuspage incident update --service cloud-network --tenant $TENANT --message "DDoS mitigation active"`.
-15. Hold risky network deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+15. Hold risky network deploys: incident hold PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 16. Emit mitigation audit: `oya audit-chain emit --event-class EVT_CLOUD_NETWORK_DDOS_MITIGATION_INCIDENT --incident $INCIDENT_ID --field mitigation=provider-engaged`.
 17. Keep mitigation TTLs explicit.
 18. Keep blackhole decision in incident channel.
@@ -164,11 +164,11 @@ doc_status: published
 6. Patch detection if attack was not classified quickly.
 7. Patch rate-limit templates if legitimate traffic was over-throttled.
 8. Patch edge pool isolation if neighboring tenants were impacted.
-9. Run domain tests: `cargo test -p oya-cloud-network-domain ddos -- --nocapture`.
-10. Run LB API tests: `cargo test -p oya-cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-network-ddos --production-snapshot --cell $CELL`.
+9. Run domain tests: `buck2 test //cloud/cloud-network:oya-cloud-network-domain-ddos`.
+10. Run LB API tests: `buck2 test //cloud/cloud-network:oya-cloud-network-lb-api`.
+11. Run production gate: `buck2 run //cloud/cloud-network:validate-ddos-production-snapshot -- --cell $CELL`.
 12. Verify edge SLO: `oya ops watch --metric oya_cloud_network_edge_5xx_ratio --threshold 0.005 --window 30m --tenant $TENANT`.
-13. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+13. Unhold deploys: recovery PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 14. Update status page all-clear: `oya statuspage incident update --service cloud-network --tenant $TENANT --message "DDoS mitigation resolved"`.
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_NETWORK_DDOS_MITIGATION_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 

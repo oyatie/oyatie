@@ -137,7 +137,7 @@ doc_status: published
 
 ## Mitigation
 1. Disable plaintext bypass: `oya flags set oya.cloud_network.mtls.plaintext_bypass=false --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
-2. Hold mTLS policy deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+2. Hold mTLS policy deploys: incident hold PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 3. Freeze cert rollout automation: `oya flags set oya.cloud_network.cert_rollout.auto=false --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
 4. Refresh SVID dry-run: `oya network spiffe svid rotate --tenant $TENANT --service $SERVICE --cell $CELL --dry-run`.
 5. Refresh SVID confirmed: `oya network spiffe svid rotate --tenant $TENANT --service $SERVICE --cell $CELL --confirm $INCIDENT_ID`.
@@ -166,12 +166,12 @@ doc_status: published
 6. Patch Cilium policy projection if mTLS policy drifted.
 7. Add regression fixture for expired SVID fail-closed.
 8. Add regression fixture for stale trust bundle.
-9. Run domain tests: `cargo test -p oya-cloud-network-domain mtls -- --nocapture`.
-10. Run LB API tests: `cargo test -p oya-cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-network-mtls --production-snapshot --cell $CELL`.
+9. Run domain tests: `buck2 test //cloud/cloud-network:oya-cloud-network-domain-mtls`.
+10. Run LB API tests: `buck2 test //cloud/cloud-network:oya-cloud-network-lb-api`.
+11. Run production gate: `buck2 run //cloud/cloud-network:validate-mtls-production-snapshot -- --cell $CELL`.
 12. Verify mTLS canary: `oya ops probe cloud-network mtls --tenant $TENANT --service $SERVICE --cell $CELL --expect healthy`.
 13. Re-enable cert automation: `oya flags set oya.cloud_network.cert_rollout.auto=true --tenant $TENANT --cell $CELL --reason resolved-$INCIDENT_ID`.
-14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold deploys: recovery PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_NETWORK_MTLS_HANDSHAKE_CASCADE_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

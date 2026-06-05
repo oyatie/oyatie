@@ -33,9 +33,9 @@ companion_docs:
 This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349 only. It does not implement Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, or Wave 15-ZE bodies.
 
 ### ADR-0346 Local CI Mirror
-- `oya verify --ci-required` is the canonical local pre-push verifier for this microservice's future architecture changes.
-- The verifier MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH mandatory mirror step before success: cargo fmt, cargo check, cargo clippy, cargo nextest, and `oya gate run-all --ci-required`.
-- Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume the `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, and `oya-governance-oya-submit-calls-verify` lanes protect the local-to-CI contract.
+- Historical local verifier wording is superseded; active architecture changes require Buck2 evidence plus the trusted Rust/Prow `oya-ci-required` context.
+- Active required-context evidence MUST be produced by Buck2 targets and oya-ci/Prow before merge; retired local mirror commands are provenance only.
+- Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume Rust/Buck2/Prow checks protect the local-to-CI contract.
 
 ### ADR-0347 Governance Lane Prefix
 - Governance-owned fitness lanes for this microservice use the `oya-governance-*` prefix. The canonical vocabulary is enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
@@ -48,11 +48,11 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT when shard p99 latency exceeds SLO or utilization exceeds 80 percent, and by COLD-MERGE when adjacent shards both run below 20 percent utilization for more than 24 hours; per-microservice overrides must be explicit.
 - Relevant admission lanes are `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, and `oya-governance-audit-chain-emit-on-automation-events`.
 
-### ADR-0349 Jenkins And ArgoCD CI/CD Context
-- Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates for this microservice across air-gap, on-prem, colo, and Oyatie-as-provider deployment contexts.
-- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
-- ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
-- CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
+### ADR-0349 historical CI/CD context
+- Jenkins LTS and ArgoCD are historical doctrine only and are not active or interim CI/CD authorities for this microservice.
+- GitHub/GitHub Actions remain temporary PR/publication and shadow-evidence adapters while oya-ci/Prow owns the required context.
+- Native release-conveyor-like promotion seams own durable CD; first-party desired state is CUE/KRM, and Helm is adapter compatibility only.
+- CI/CD architecture references must preserve cosign verification, tenant isolation, and audit-chain deploy emission as native Rust/Buck2/Prow and promotion checks.
 
 ## ADR-0339 integration
 - Integration state: PROPOSED for `cloud-network`; ACCEPTED waits for service wrapper implementation and signed module evidence.
@@ -76,4 +76,4 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - Oyatie-as-provider: modules encode cell-zone, shard-cell, tenant namespace, per-cell nodepool, observability, audit-chain, KMS, and Cedar bundle primitives where selected.
 - Contract impact: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 files remain unchanged in this document-stage wave.
 - Review boundary: architecture acceptance requires the IP line floor, manifest field, PRD section, ADR-citation gate, cohesion gate, and refreshed doc inventory.
-- Implementation boundary: no Rust code, crate metadata, OpenTofu body, Helm chart, ArgoCD Application, or live infrastructure apply is part of this propagation.
+- Implementation boundary: no Rust code, crate metadata, OpenTofu body, first-party Helm chart, ArgoCD Application, or live infrastructure apply is part of this propagation; future desired state lands as CUE/KRM plus Buck2/Prow evidence.
