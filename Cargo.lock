@@ -8438,36 +8438,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-vcs-admission-gate-app"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-admission-gate-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-vcs-admission-gate-kernel"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-vcs-provider-execution-gate-app"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-provider-execution-gate-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-vcs-provider-execution-gate-kernel"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "oya-warehouse-fulfillment-app"
 version = "0.1.0"
 dependencies = [
