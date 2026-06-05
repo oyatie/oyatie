@@ -22,9 +22,10 @@ fn checked_in_kubernetes_native_antipattern_contract_passes() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert!(evaluation.failures.is_empty());
-    assert_eq!(evaluation.required_patterns, 36);
+    assert_eq!(evaluation.required_patterns, 37);
     assert_eq!(evaluation.forbidden_anti_patterns, 37);
-    assert_eq!(evaluation.official_sources, 33);
+    assert_eq!(evaluation.official_sources, 36);
+    assert_eq!(evaluation.first_party_helm_evidence_clean_files, 10);
 }
 
 #[test]
@@ -77,6 +78,21 @@ fn contract_rejects_missing_cue_first_cell_pod_config_authority() {
 }
 
 #[test]
+fn contract_rejects_missing_rust_cue_conformance_lane() {
+    let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json").replace(
+        "\"id\": \"rust_cue_compatible_desired_state_engine_conformance_lane\"",
+        "\"id\": \"rust_cue_compatible_desired_state_engine_conformance_lane_removed\"",
+    );
+    let failures = gate::contract_failures(&contract);
+    assert!(
+        failures.iter().any(|failure| failure
+            == "required_patterns missing rust_cue_compatible_desired_state_engine_conformance_lane"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn desired_state_standard_rejects_helm_first_canonical_wording() {
     let mut standard = read_repo_file("docs/standards/kubernetes-desired-state-authority.md");
     standard.push_str("\n# Helm chart convention (canonical)\n");
@@ -114,6 +130,41 @@ fn desired_state_standard_rejects_missing_cue_first_source() {
         "{:?}",
         failures
     );
+}
+
+#[test]
+fn desired_state_standard_rejects_missing_rust_engine_conformance_boundary() {
+    let standard = read_repo_file("docs/standards/kubernetes-desired-state-authority.md").replace(
+        "not first-party authority until conformance is proven",
+        "production authority",
+    );
+    let failures = gate::desired_state_authority_failures(
+        &standard,
+        &read_repo_file("docs/standards/helm-chart-convention.md"),
+        &read_repo_file("docs/README.md"),
+        &read_repo_file("docs/standards/INDEX.md"),
+    );
+    assert!(
+        failures.iter().any(
+            |failure| failure.contains("not first-party authority until conformance is proven")
+        ),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn first_party_helm_evidence_scan_rejects_active_helm_paths() {
+    let failures = gate::first_party_helm_evidence_text_failures(
+        "example-scorecard.json",
+        "evidence_pattern: microservices/<ms>/iac/helm/<chart>/values.yaml",
+    );
+    for expected in ["microservices/<ms>/iac/helm", "CUE", "generated KRM"] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
 }
 
 #[test]

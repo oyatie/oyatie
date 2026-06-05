@@ -69,9 +69,9 @@ oyatie GitHub Actions OIDC identity.
 The `oya-check-image-signing-discipline` gate enforces that:
 
 - Every µservice that publishes a container image has a cosign
-  signature reference in `microservices/<ms>/iac/helm/<chart>/values.yaml`.
+  signature reference in the service-owned CUE `iac/cue/` image policy and generated KRM output.
 - `.github/workflows/cosign.yml` exists, is runnable, and signs
-  every image referenced under `microservices/*/iac/helm/*/values.yaml`.
+  every image referenced by service-owned CUE `iac/cue/` packages and generated KRM manifests.
 - The cosign workflow targets sigstore Fulcio (not a private CA).
 - A Trivy scan step exists in the publish workflow.
 

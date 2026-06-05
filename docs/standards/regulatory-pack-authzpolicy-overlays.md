@@ -26,12 +26,12 @@ Authority: ADR-0148 owns the universal mesh; ADR-0064 owns the canonical-base + 
 A regulated µservice — defined as any µservice whose `manifest.json` lists one or more entries in `regulatory_packs` that intersect with the universally regulated packs (eu, kr, us-healthcare, ksa, uae) — ships the following in addition to the universal mesh shape:
 
 1. **`mesh_layering.ambient_waypoint: true`** in `manifest.json`. Enrolls the µservice in the Tier-3 waypoint.
-2. **`iac/helm/<ms>/templates/istio-waypoint.yaml`** Helm template referencing the central `microservices/governance/iac/helm/istio-ambient-waypoint/` chart. The waypoint Helm release is pinned to Istio Ambient 1.29.2 (per ADR-0148 LTS pin; review on LTS-rotation cadence per ADR-0098).
-3. **`iac/helm/<ms>/templates/regulatory-authpolicy-<pack>.yaml`** per active pack, gated by pack labels. Each file emits an `AuthorizationPolicy` v1 CR that gates a specific regulatory anchor (GDPR Art. 22, EU AI Act Annex III §4, EU DSA Art. 17, HIPAA §164.502, KR PIPA Art. 17, KSA PDPL Arts. 5/29, UAE PDPL Arts. 22-24).
+2. **`iac/cue/mesh.cue`** service-owned CUE fragment referencing the governance-owned waypoint contract. The generated KRM waypoint output is pinned to the current Istio Ambient LTS policy (per ADR-0148 LTS pin; review on LTS-rotation cadence per ADR-0098).
+3. **`iac/cue/regulatory-authpolicy.cue`** per active pack, gated by pack labels. Each generated KRM `AuthorizationPolicy` v1 resource gates a specific regulatory anchor (GDPR Art. 22, EU AI Act Annex III §4, EU DSA Art. 17, HIPAA §164.502, KR PIPA Art. 17, KSA PDPL Arts. 5/29, UAE PDPL Arts. 22-24).
 
 ## Per-pack regulatory anchor → AuthorizationPolicy overlay table
 
-Each row is one AuthorizationPolicy CR fragment that ships as `regulatory-authpolicy-<pack>-<anchor>.yaml` under the µservice's Helm templates, gated by `{{ if .Values.regulatoryPacks.<pack>.enabled }}`.
+Each row is one AuthorizationPolicy CR fragment emitted from the service-owned CUE package into `iac/generated/k8s/regulatory-authpolicy-<pack>-<anchor>.yaml`, gated by typed `regulatoryPacks.<pack>.enabled` data.
 
 | Pack | Regulatory anchor | Waypoint enforcement shape |
 |---|---|---|
@@ -55,7 +55,7 @@ The 7 canonical fragments live at `microservices/governance/iac/kustomize/compon
 - `pack-ksa-pdpl-sovereign-routing.yaml` (KSA PDPL + SAMA-CSF sovereign routing)
 - `pack-uae-pdpl-cybersecurity-council.yaml` (UAE PDPL cross-border + cybersecurity council)
 
-Per-µservice Helm templates reference these fragments via Kustomize component composition; per-pack `values.yaml` overrides supply namespace selectors, replica counts, and µservice-specific allowlist exemptions.
+Service-owned CUE packages reference these fragments through generated KRM component composition; per-pack typed data shards supply namespace selectors, replica counts, and service-specific allowlist exemptions.
 
 ## Concrete µservice × pack waypoint targets (initial)
 

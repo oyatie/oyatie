@@ -159,8 +159,16 @@
       "format": "OpenSLO v1.0"
     },
     {
-      "path": "iac/helm/",
-      "purpose": "Helm charts"
+      "path": "iac/cue/",
+      "purpose": "First-party CUE desired-state packages for generated KRM manifests"
+    },
+    {
+      "path": "iac/generated/k8s/",
+      "purpose": "Generated Kubernetes manifests checked by Buck2/Prow; not hand-authored"
+    },
+    {
+      "path": "iac/adapters/helm/",
+      "purpose": "Generated or imported Helm compatibility adapters only; not first-party policy authority"
     },
     {
       "path": "iac/terraform/",

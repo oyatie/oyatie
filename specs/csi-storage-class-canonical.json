@@ -170,7 +170,7 @@
     "reclaim_policy_cold": "Delete (acceptable for ephemeral backups)"
   },
   "workload_microservice_contract": {
-    "rule": "every µservice Helm chart references canonical StorageClass names only",
+    "rule": "every service-owned CUE desired-state package and generated KRM manifest references canonical StorageClass names only; Helm adapters inherit generated values and are not policy authority",
     "per_pack_binding_path": "microservices/<ms>/iac/kustomize/components/pack-{name}/",
     "no_csi_knowledge_at_workload": "workload µservices NEVER reference cloud-provider-specific volume types directly"
   },

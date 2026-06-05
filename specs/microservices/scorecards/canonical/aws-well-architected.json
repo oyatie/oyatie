@@ -8,7 +8,7 @@
   "overlay_consumers": "microservices/<ms>/scorecards/overrides.json#aws_well_architected",
   "_placeholders": {
     "<ms>": "microservice slug (e.g. 'notes', 'meet', 'workflow-engine')",
-    "<chart>": "Helm chart subdirectory name under iac/helm/ (per-µservice override; defaults to <ms>)"
+    "<desired_state_package>": "service-owned CUE package under iac/cue/ with generated KRM manifests under iac/generated/k8s/; Helm adapters live only under iac/adapters/helm/ when required"
   },
   "pillars": {
     "operational_excellence": {
@@ -34,8 +34,8 @@
         },
         {
           "id": "OPS-04",
-          "name": "IaC-as-code (Helm + Kustomize per ADR-0131)",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/Chart.yaml",
+          "name": "IaC-as-code (CUE-owned desired state plus generated KRM per kubernetes-desired-state-authority.md)",
+          "evidence_pattern": "<service>/iac/cue/package.cue + <service>/iac/generated/k8s/",
           "passing": true
         },
         {
@@ -64,7 +64,7 @@
         {
           "id": "SEC-02",
           "name": "Secrets via OpenBao SecretReference URI (per ADR-0123)",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml#openbao",
+          "evidence_pattern": "<service>/iac/cue/#openbao",
           "passing": true
         },
         {
@@ -76,7 +76,7 @@
         {
           "id": "SEC-04",
           "name": "TLS in-transit (Istio mTLS mesh)",
-          "evidence_pattern": "microservices/cloud-k8s/iac/helm/istio-base/Chart.yaml#mesh-mtls=STRICT",
+          "evidence_pattern": "cloud/cloud-k8s/iac/cue/mesh.cue + cloud/cloud-k8s/iac/generated/k8s/#mesh-mtls=STRICT",
           "passing": true
         },
         {
@@ -123,7 +123,7 @@
         {
           "id": "REL-05",
           "name": "HPA + PDB declared",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml#hpa",
+          "evidence_pattern": "<service>/iac/cue/#hpa",
           "passing": true
         },
         {
@@ -140,13 +140,13 @@
         {
           "id": "PERF-01",
           "name": "Resource requests + limits set",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml#resources",
+          "evidence_pattern": "<service>/iac/cue/#resources",
           "passing": true
         },
         {
           "id": "PERF-02",
           "name": "HPA targets cpu+memory utilization",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml#hpa",
+          "evidence_pattern": "<service>/iac/cue/#hpa",
           "passing": true
         },
         {
@@ -158,7 +158,7 @@
         {
           "id": "PERF-04",
           "name": "Caching tier (Valkey/Redis) declared",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml (caching declared where applicable)",
+          "evidence_pattern": "<service>/iac/cue/ (caching declared where applicable)",
           "passing": true
         },
         {
@@ -187,19 +187,19 @@
         {
           "id": "COST-02",
           "name": "HPA minReplicas right-sized",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml#hpa.minReplicas",
+          "evidence_pattern": "<service>/iac/cue/#hpa.minReplicas",
           "passing": true
         },
         {
           "id": "COST-03",
           "name": "Image pinned by LTS policy (no :latest)",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml#image.tag",
+          "evidence_pattern": "<service>/iac/cue/#image.tag",
           "passing": true
         },
         {
           "id": "COST-04",
           "name": "Shared substrate (postgres-citus, redis, openbao) reused",
-          "evidence_pattern": "microservices/<ms>/iac/helm/ (substrate sibling charts)",
+          "evidence_pattern": "<service>/iac/cue/ (service-owned desired-state shards; generated Helm adapters only when external chart compatibility is required)",
           "passing": true
         },
         {
