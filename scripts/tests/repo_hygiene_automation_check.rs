@@ -267,6 +267,48 @@ fn active_foundry_shared_surface_rejects_retired_root_guidance() {
 }
 
 #[test]
+fn runbook_promotion_gate_scan_rejects_retired_jenkins_oya_gate_authority() {
+    let root = temp_dir("runbook-promotion-gate");
+    let runbook_dir = root.join("oya/example/runbooks");
+    fs::create_dir_all(&runbook_dir).unwrap_or_else(|error| {
+        panic!("create {}: {}", runbook_dir.display(), error);
+    });
+
+    fs::write(
+        runbook_dir.join("stale.md"),
+        "Promotion requires Jenkins + `oya gate run-all --ci-required` required.\n\
+         Comment says green Jenkins CI and `oya gate run-all --ci-required`.\n\
+         Attach Jenkins green, `oya gate run-all --ci-required` and `oya verify --ci-required` evidence attached.\n\
+         We require Jenkins + `oya gate run-all --ci-required` before merge.\n",
+    )
+    .unwrap_or_else(|error| panic!("write stale runbook: {error}"));
+    fs::write(
+        runbook_dir.join("clean.md"),
+        "Promotion requires `oya-ci-required` + Buck2 evidence before merge.\n",
+    )
+    .unwrap_or_else(|error| panic!("write clean runbook: {error}"));
+
+    let failures = gate::runbook_promotion_gate_failures(&root);
+
+    for expected in [
+        "stale.md",
+        "Jenkins + `oya gate run-all --ci-required` required",
+        "green Jenkins CI and `oya gate run-all --ci-required`",
+        "Jenkins green, `oya gate run-all --ci-required` and `oya verify --ci-required` evidence attached",
+        "require Jenkins + `oya gate run-all --ci-required` before merge",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+    assert!(
+        failures.iter().all(|failure| !failure.contains("clean.md")),
+        "{failures:?}"
+    );
+}
+
+#[test]
 fn spec_rejects_reintroduced_python_hygiene_command() {
     let mut spec = read_repo_file("specs/repo-hygiene-automation.json");
     spec = spec.replace(

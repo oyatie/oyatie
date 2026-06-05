@@ -159,7 +159,7 @@ Suggests a backend regression. Roll back to prior LTS:
 ```bash
 git switch -c rollback/calendar-invitation-flow-$INCIDENT_ID dev
 # Reset the release pointer/evidence to the prior LTS pin, commit the rollback PR,
-# and require Jenkins + `oya gate run-all --ci-required` before merge.
+# and require `oya-ci-required` + Buck2 evidence before merge.
 ```
 
 Then file an investigation; the recurrence engine + scheduling

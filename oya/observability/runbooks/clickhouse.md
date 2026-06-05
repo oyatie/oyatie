@@ -158,7 +158,7 @@ ClickHouse incident decision tree
 14. Watch burn rate: `oya ops watch --metric oya_observability_clickhouse_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close observability-clickhouse-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.observability.clickhouse.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-17. Resume promotion: merge only after reviewer approval plus green Jenkins CI and `oya gate run-all --ci-required`; record `resolved-$INCIDENT_ID` in the incident evidence.
+17. Resume promotion: merge only after reviewer approval plus green `oya-ci-required` context and Buck2 evidence; record `resolved-$INCIDENT_ID` in the incident evidence.
 18. Seal resolution audit: `oya audit-chain emit --event-class EVT-OBSERVABILITY-CLICKHOUSE-INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=clickhouse`.
 19. Verify seal: `oya audit-chain verify --event-class EVT-OBSERVABILITY-CLICKHOUSE-INCIDENT --incident $INCIDENT_ID`.
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
