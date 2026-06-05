@@ -17,9 +17,9 @@ name = "oya-mcp-gateway"
 transport = "Stdio"
 command_or_url = "$WORKSPACE_ROOT/target/release/oya-mcp-gateway"
 
-# Stale `Bash(grit *)` permission removed 2026-05-18 — grit pipeline retired per ADR-0116.
-# Canonical git drop-in primitive is `oya git` (feedback_oya_git_canonical_2026_05_18);
-# Oya VCS remains policy-ratchet compatibility for claim / verify / done / promote.
+# Retired VCS wrapper permissions stay absent. Agents use plain git worktrees,
+# GitHub PRs, and Buck2/Prow evidence while the Rust-native SCM substrate is
+# built; no retired wrapper or local governance CLI is merge authority.
 
 [[allowed_tools]]
 name = "Read"

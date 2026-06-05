@@ -24,11 +24,11 @@ related:
 - [ ] **P2** Read the canonical authority for the class (`docs/AGENTS.md §Canonical doc map`). *Verification:* PR `## Traceability` cites the doc(s) read.
 - [ ] **P3** Confirm Data Use Boundary. Every new kernel-struct field carries `data_class`. *Lane:* `oya-governance-data-class`.
 - [ ] **P4** Confirm autonomy ceiling. Capability bindings declare T1/T2/T3/T4. *Lane:* `oya-governance-autonomy-ceiling`.
-- [ ] **P5** Confirm license posture. *Command:* `cargo deny check`.
+- [ ] **P5** Confirm license/dependency posture through the lane-owned Buck2 dependency-policy target and registries.
 - [ ] **P6** Search `docs/MISTAKES-LEDGER.md` for the failure-mode class. *Verification:* PR `## Traceability` cites the `MFL-NNNN` row OR a "no prior row" note.
 - [ ] **P7** Identify the per-change-class reviewer agent (per `docs/AGENTS.md §Per-change-class reviewer agents`). *Lane:* `guard-pr-merge-review.mjs`.
 - [ ] **P8** For cross-axis contract changes: apply cross-axis review label + notify consumer-axis teams. *Lane:* `oya-governance-cross-axis-notify`. Use `/templates/checklists/cross-axis-contract-change-checklist.md`.
-- [ ] **P9** For hook / harness / CLI changes: run the harness self-test first. *Command:* `npm --prefix /Users/home/.codex test` (per harness).
+- [ ] **P9** For hook / harness / CLI changes: run the Rust/Buck2 harness self-test first. *Command:* lane-owned Buck2 check target.
 
 ## Per-change-class additions
 
@@ -42,7 +42,7 @@ related:
 - [ ] Failing regression test written **before** the fix (TDD per `superpowers:test-driven-development`). *Lane:* `oya-governance-qa-coverage`.
 
 ### refactor
-- [ ] No behavior change asserted; public API surface unchanged. *Command:* `cargo public-api --diff`.
+- [ ] No behavior change asserted; public API surface unchanged. *Command:* lane-owned Buck2 public API diff target.
 - [ ] Linus good-taste candidate identified (special case to delete). *(advisory)*
 
 ### migration

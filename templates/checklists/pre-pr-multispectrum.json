@@ -26,8 +26,8 @@
     "step_3_evaluate_facets": "For each of F1..F7, follow rigor from rigor_matrix[change_class_id]. 'deep' requires at least one finding OR explicit null_finding_reason. 'scan' requires considered=true. 'skip' requires considered=false AND not_applicable_reason.",
     "step_4_iterative_fix_loop": "While any required facet is RED, apply iterative-fix-loop.json state machine until all-facets-green. Emit fixtures_added entries; record states_visited.",
     "step_5_mandatory_artifacts": "Per change_classes[change_class_id].mandatory_artifacts, attach the cited paths.",
-    "step_6_submit": "Write filled instance to /evidence/multispectrum/<change_id>-<unix_ts>.json. Run `cargo run -p oya-check-dependency-seam -- --mode=composite --offline`. Lane must exit 0.",
-    "step_7_close_claim": "Only after lane exit 0: `grit done --agent <id>` (closes claim; promotion path per ADR-0054)."
+    "step_6_submit": "Write filled instance to /evidence/multispectrum/<change_id>-<unix_ts>.json. Run the lane-owned Buck2 evidence checker, normally `buck2 build //:repo-hygiene-automation-check` for repo-hygiene work. Lane must exit 0.",
+    "step_7_close_claim": "Only after lane exit 0: mark the isolated GitHub PR lane ready and cite the evidence bundle path."
   },
   "template_instance": {
     "change_id": "<REQUIRED \u2014 e.g., M01-P13-IP-002-PHASE-N>",

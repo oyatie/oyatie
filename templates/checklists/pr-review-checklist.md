@@ -33,21 +33,17 @@ related:
 ## Per-change-class additions
 
 ### `*.rs` (rust-reviewer)
-- [ ] `cargo clippy --workspace --all-features --all-targets -- -D warnings` PASS.
-- [ ] `cargo nextest run --workspace --all-features --no-fail-fast` PASS.
-- [ ] `cargo deny check` PASS.
+- [ ] Lane-owned Buck2 build/test/lint targets for touched Rust crates PASS.
+- [ ] `buck2 build //:buck2-authority-policy-check` PASS when build/test authority, toolchain, or dependency posture changed.
+- [ ] `buck2 build //:repo-hygiene-automation-check` PASS when shared templates, repo hygiene, tooling, or governance surfaces changed.
+- [ ] Dependency additions are registered in `registry/dependency-rationales.json` and `registry/dependency-blessed-allowlist.json`; latest stable/LTS posture or waiver is cited.
 - [ ] `unsafe` blocks (if any) carry `// SAFETY:` comments with invariant docs. *(advisory)*
 - [ ] `thiserror` in libraries / `anyhow|eyre` at the edge (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 3 error handling`).
 
-### `*.ts` / `*.tsx` / `*.js` / `*.jsx` (typescript-reviewer)
-- [ ] `pnpm lint` PASS.
-- [ ] `pnpm test` (Node 20) PASS.
-- [ ] Types narrow; no `any` (or with `// eslint-disable` + justification).
-
-### `*.py` (python-reviewer)
-- [ ] `ruff check` PASS.
-- [ ] `pytest` PASS.
-- [ ] Type hints on public functions.
+### Non-Rust tooling exception
+- [ ] The surface is registered in the repo-hygiene inventory with a deletion owner/date and an explanation for why Rust is not the correct fit.
+- [ ] The verifier is invoked through Buck2 and does not introduce package-manager, runtime, or script authority outside the registered exception.
+- [ ] No product/frontend or durable governance surface is added in a non-Rust runtime.
 
 ### migrations / SQL (database-reviewer)
 - [ ] Up + down + dry-run + per-tenant + per-cell rollback present. *Lane:* `oya-governance-schema-migration`.
@@ -75,7 +71,7 @@ related:
 ### API / contract change (doc-updater)
 - [ ] `contracts/<surface>.<format>` updated.
 - [ ] `docs/SPEC.md` cite refreshed.
-- [ ] `cargo-semver-checks` clean (or major-bump rationale in ADR).
+- [ ] Buck2-projected public API / semver compatibility check is clean, or the breaking-change rationale and migration plan are documented.
 
 ### doc-only (doc-style-reviewer)
 - [ ] `doc-style.md` (length cap, voice, dual-audience) honored. *Lane:* `oya-governance-doc-style`.

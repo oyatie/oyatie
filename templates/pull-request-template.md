@@ -29,8 +29,8 @@ rfc_2119_active: true
 
 <!-- agent-instructions:start -->
 **Agent path** (read this fork if you are a Claude/Codex/Gemini/Foundry agent):
-- Authoring a PR **MUST** use only sanctioned primitives `{grit, icm, oya-tooling-agent-read}` per `.omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md`. Direct VCS/forge invocation requires the documented carve-out **AND** `icm store -t direct-tool-invocations -c "<rationale>" -i high -k "direct-tool,<context>"` BEFORE execution.
-- The `## Verification` block **MUST** paste actual tool output, not a hand-wave. Use `oya-tooling-agent-read run-evidence <cmd>` and paste the captured stdout/stderr.
+- Authoring a PR **MUST** use the current lane primitives: isolated `git worktree`, short-lived `git` branch, `gh pr create --base dev`, and lane-owned Buck2/Prow evidence. Retired local VCS/governance wrappers are not SCM or CI authority.
+- The `## Verification` block **MUST** paste actual tool output, not a hand-wave. Paste the captured stdout/stderr from the Buck2 targets and remote PR checks that prove the claim.
 - The `## Code Review` H2 **MUST NOT** be added by the worker agent; only the lead reviewer agent (per change-class table in `docs/AGENTS.md §Per-change-class reviewer agents`) signs it at merge time. Adding it as a worker is a `guard-pr-merge-review.mjs` violation.
 <!-- agent-instructions:end -->
 
@@ -40,12 +40,12 @@ rfc_2119_active: true
 
 Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and the actual command output excerpt.
 
-- `cargo nextest run --workspace --all-features --no-fail-fast` — `<PASS|FAIL>` — `<excerpt>`
-- `cargo clippy --workspace --all-features --all-targets -- -D warnings` — `<PASS|FAIL>` — `<excerpt>`
-- `cargo deny check` — `<PASS|FAIL>` — `<excerpt>`
-- `oya verify` — `<PASS|FAIL>` — `<excerpt>`
-- `oya gate validate` — `<PASS|FAIL>` — `<excerpt>` (claim-ceiling, foundation-bypass, plane-class)
-- Per-change-class fitness lanes: `<list lanes + PASS|FAIL each>`
+- `buck2 build //:<lane-owned-target>` — `<PASS|FAIL>` — `<excerpt>`
+- `buck2 build //:buck2-authority-policy-check` — `<PASS|FAIL|N/A>` — `<excerpt>`
+- `buck2 build //:repo-hygiene-automation-check` — `<PASS|FAIL|N/A>` — `<excerpt>`
+- `buck2 build //:kubernetes-native-anti-pattern-check` — `<PASS|FAIL|N/A>` — `<excerpt>`
+- Remote PR checks: `<Prow/GitHub adapter contexts + PASS|FAIL each>`
+- Per-change-class fitness lanes: `<list Buck2/Prow lanes + PASS|FAIL each>`
 - Per-change-class reviewer agent: `<agent-name>` — verdict `<APPROVE|REQUEST CHANGES>`
 
 ## Traceability
@@ -56,7 +56,7 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 - `MISTAKES-LEDGER` row referenced (if regression-class): `MFL-NNNN`
 - Cross-axis review label applied (if cross-axis contract change): `<label>` (see `/templates/checklists/cross-axis-contract-change-checklist.md`)
 - Implementation Plan ID (if executing an IP): `IP-NNN-<slug>` from `.omc/plans/milestones/M*/phases/P*/`
-- Grit-claim symbols (agent path): `<file::Identifier list>`
+- Lane-owned paths/symbols (agent path): `<file::Identifier or path list>`
 
 ## Evidence
 
@@ -71,7 +71,7 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 
 ## Code Review _(lead-only — never as worker)_
 
-- Reviewer agent: `<rust-reviewer | typescript-reviewer | python-reviewer | database-reviewer | security-reviewer | privacy-reviewer | tdd-guide | silent-failure-hunter | doc-updater | doc-style-reviewer | capability-reviewer | perf-reviewer>`
+- Reviewer agent: `<rust-reviewer | non-rust-exception-reviewer | database-reviewer | security-reviewer | privacy-reviewer | tdd-guide | silent-failure-hunter | doc-updater | doc-style-reviewer | capability-reviewer | perf-reviewer>`
 - Verdict: `<APPROVE | REQUEST CHANGES>`
 - Resolved items: `<list>`
 - Deferred items: `<list with owners + follow-up issue refs>`

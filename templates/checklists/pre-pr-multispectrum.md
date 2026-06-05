@@ -12,7 +12,7 @@ purpose: |
 
 # Pre-PR Multispectrum Checklist
 
-> **Discipline rule:** No claim of "complete", no PR open, no `grit done`
+> **Discipline rule:** No claim of "complete", no PR open, no PR-ready label
 > until every required facet for the declared `change_class` is GREEN.
 > A facet is GREEN when:
 > - `deep` rigor: at least one finding (or explicit `null_finding_reason`)
@@ -116,7 +116,7 @@ or fixture absent):
 
 1. Pick the RED facet with highest severity (F7 critical > F7 high > F1 > others).
 2. Apply the minimum-correct fix.
-3. Re-run the relevant verification (cargo test, lane fixture, security scan).
+3. Re-run the relevant verification (Buck2 test, lane fixture, security scan).
 4. Re-evaluate the facet. Update evidence.
 5. Loop.
 
@@ -136,7 +136,7 @@ For `CC-2_adapter_or_infrastructure`:
 - [ ] Timeout policy declaration: `<path>:<line>` (if I/O boundary)
 
 For `CC-4_refactor_pure`:
-- [ ] Before/after symbol-set parity: cargo metadata diff or grep result attached.
+- [ ] Before/after symbol-set parity: Buck2 query output, Rust symbol scan, or reviewer-attached diff result attached.
 
 For `CC-6_generated_or_vendored`:
 - [ ] Regeneration source pinned (git_sha + tool version)
@@ -158,7 +158,7 @@ Schema: `/specs/multispectrum-review.json#evidence_schema`.
 ## Step 7 — invoke lane
 
 ```
-cargo run -p oya-check-dependency-seam -- --mode=composite --offline
+buck2 build //:repo-hygiene-automation-check
 ```
 
 Refuses to exit 0 unless:
@@ -173,7 +173,7 @@ Refuses to exit 0 unless:
 Only after the lane exits 0:
 
 ```
-grit done --agent <id>   # closes claim; promotion path per ADR-0054
+gh pr ready <pr-number>  # marks the isolated PR lane ready after verification
 ```
 
 The pre-PR checklist is the **gate**. Skipping it is a process violation

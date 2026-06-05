@@ -9,7 +9,6 @@ enforcing_fitness_lane: oya-governance-inventory-tracker
 owner_team: axis-foundry
 related:
   - .omc/scratch/inventory-draft-oyatie-cutover.md
-  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - /templates/implementation-plan-template.md
 ---
 
@@ -23,7 +22,7 @@ related:
 - Every migration phase (schema, crate-rename, contract-rename, capability-rename).
 - Every archive event (file moved to `archive/` tree).
 - Every retirement event (file removed from active tree).
-- Every bootstrap-window invocation per `.omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md §Cutover bootstrap window`.
+- Every bootstrap-window invocation recorded as a temporary git/gh/Buck2 lane event with deletion criteria.
 
 ## Row schema
 
@@ -35,13 +34,13 @@ related:
   action: keep | move | archive | delete | rename | recreate-forbidden
   source_path: <repo-relative path>
   target_path: <repo-relative path | null>
-  archive_path: archive/pre-grit-cutover-2026-05-12/... | null
+  archive_path: archive/pre-github-lane-unlocker-cutover-2026-06-05/... | null
   tombstone:
     enabled: true | false
     forbid_recreation_lane: oya-governance-legacy-path-recreation
   bootstrap_window: true | false
   invocation:
-    primitive: grit | icm | oya-tooling-agent-read | human-orchestrator-carve-out
+    primitive: git | gh | buck2 | human-orchestrator-carve-out
     command: "<sanctioned command or human-only carve-out description>"
     purpose: "<one-line>"
     actor:
@@ -64,9 +63,9 @@ related:
 ## During action
 
 <!-- agent-instructions:start -->
-- [ ] **I6** Emit `icm store -t direct-tool-invocations -c "<one-line rationale>" -i high -k "<primitive>,<context>"` **BEFORE** invocation (per `MASTERPLAN.md §2 principle 12`).
-- [ ] **I7** Execute the action via the documented primitive (`grit` / `icm` / `oya-tooling-agent-read` for steady-state; documented carve-out commands for bootstrap-window or human-orchestrator).
-- [ ] **I8** Capture stdout via `oya-tooling-agent-read run-evidence <cmd>`.
+- [ ] **I6** Write or update the evidence bundle row naming the primitive, rationale, and rollback before invoking the action.
+- [ ] **I7** Execute the action via the documented primitive (`git` / `gh` / `buck2` for the temporary GitHub lane; human-only carve-out where required).
+- [ ] **I8** Capture stdout/stderr directly and paste the relevant excerpt into PR `## Verification`.
 <!-- agent-instructions:end -->
 
 ## Post-action
@@ -75,7 +74,7 @@ related:
 - [ ] **I10** Verify audit chain emitted `EVT-INV-<ulid>`. *Lane:* `oya-governance-audit-emission`.
 - [ ] **I11** Confirm tombstone: if `action: archive | delete`, `oya-governance-legacy-path-recreation` lane refuses any future recreation at `source_path`.
 - [ ] **I12** Confirm symmetry: if `action: move`, both `source_path` (now absent) and `target_path` (now present) are honored by the appropriate lanes. *Lane:* `oya-governance-inventory-tracker`.
-- [ ] **I13** Update the IP `§Symbols to grit-claim` if grit symbols moved with the file (per ADR-0054-grit-scaffold-claim-pattern).
+- [ ] **I13** Update the IP `§Lane-owned paths / symbols` if the move changes the lane boundary.
 - [ ] **I14** Update `docs/CHANGELOG.md` if a canonical doc was moved/archived/deleted.
 
 ## Sample row (move + archive)
@@ -88,20 +87,20 @@ related:
   action: archive
   source_path: example/legacy/source-ledger.jsonl
   target_path: null
-  archive_path: archive/pre-grit-cutover-2026-05-12/example-source-ledger.jsonl
+  archive_path: archive/pre-github-lane-unlocker-cutover-2026-06-05/example-source-ledger.jsonl
   tombstone:
     enabled: true
     forbid_recreation_lane: oya-governance-legacy-path-recreation
   bootstrap_window: false
   invocation:
-    primitive: oya-tooling-agent-read
-    command: "oya-tooling-agent-read archive --from example/legacy/source-ledger.jsonl --to archive/pre-grit-cutover-2026-05-12/example-source-ledger.jsonl"
-    purpose: "archive legacy ultragoal ledger per ADR-0053"
+    primitive: git
+    command: "git mv example/legacy/source-ledger.jsonl archive/pre-github-lane-unlocker-cutover-2026-06-05/example-source-ledger.jsonl"
+    purpose: "archive legacy ledger under the current GitHub lane unlocker hygiene pass"
     actor:
       kind: agent
       id: planner-agent
   audit_emission_id: EVT-INV-01HX...
-  rollback_path: "oya-tooling-agent-read unarchive --from <archive_path> --to <source_path>"
+  rollback_path: "git mv <archive_path> <source_path>"
 ```
 
 ## Anti-patterns

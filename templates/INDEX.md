@@ -31,7 +31,7 @@ related:
 | TPL-MILE | `milestone-index-template.md` | Milestone INDEX (≤100 lines). | `docs/templates/milestone-index-template.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
 | TPL-RUNBOOK | `runbook-template.md` | Diátaxis-aligned ops runbook, dual-audience. | `docs/templates/runbook-template.md` | `ops-sre-reliability` | `oya-governance-runbook-index-resolves` |
 | TPL-CAP | `capability-record-template.yaml` | Foundry capability record (T1-T4, eval-set, audit topic, Cosign slot). | `docs/templates/capability-record-template.yaml` | `axis-foundry` | `oya-governance-capability-publish` |
-| TPL-EVB | `evidence-bundle-template.json` | Phase-00-shape evidence bundle, CI-validatable. | `docs/templates/evidence-bundle-template.json` | `ops-compliance` + `axis-foundry` | `oya-governance-audit-emission` |
+| TPL-EVB | `evidence-bundle-template.json` | Canonical evidence bundle validated by lane-owned Rust/Buck2 checks. | `docs/templates/evidence-bundle-template.json` | `ops-compliance` + `axis-foundry` | `oya-governance-audit-emission` |
 | TPL-MFL | `mistakes-ledger-row-template.md` | `MFL-NNNN` row with mechanical-prevention field. | `docs/templates/mistakes-ledger-row-template.md` | `council-architecture` | `oya-governance-mistakes-ledger-cite` |
 | TPL-PM | `postmortem-template.md` | Google-SRE blameless postmortem with regulator notification matrix. | `docs/templates/postmortem-template.md` | `ops-sre-reliability` | `oya-governance-postmortem-shape` |
 | TPL-DD | `design-doc-template.md` | Google-style design doc (problem/goals/non-goals/detailed design/alternatives). | `docs/templates/design-doc-template.md` | `council-architecture` | `oya-governance-design-doc-shape` (advisory at draft; lane on lift) |
@@ -46,8 +46,8 @@ related:
 | CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `docs/checklists/per-phase-completion.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `docs/checklists/per-implementation-plan.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-DOCFRESH | `doc-freshness-checklist.md` | Per-doc-class staleness budget + auto-update path. | `docs/checklists/doc-freshness.md` | `council-architecture` | `oya-governance-doc-freshness` |
-| CHK-KICKOFF | `agent-kickoff-checklist.md` | Agent's first 5 actions before any `grit claim`. | `docs/checklists/agent-kickoff.md` | `axis-foundry` | `oya-governance-banned-primitives` |
-| CHK-COMPLETE | `agent-completion-checklist.md` | Agent's last 5 actions before `grit done`. | `docs/checklists/agent-completion.md` | `axis-foundry` | `oya-governance-banned-primitives` + `oya-governance-audit-emission` |
+| CHK-KICKOFF | `agent-kickoff-checklist.md` | Agent's first 5 actions before opening a PR lane. | `docs/checklists/agent-kickoff.md` | `axis-foundry` | `repo-hygiene-automation-check` |
+| CHK-COMPLETE | `agent-completion-checklist.md` | Agent's last 5 actions before marking a PR lane ready. | `docs/checklists/agent-completion.md` | `axis-foundry` | `repo-hygiene-automation-check` + `oya-governance-audit-emission` |
 | CHK-PRREV | `pr-review-checklist.md` | Reviewer agent's per-change-class verification. | `docs/checklists/pr-review.md` | `axis-foundry` + per change-class team | `guard-pr-merge-review.mjs` |
 | CHK-REL | `release-readiness-checklist.md` | Milestone-level release gate (wave-gate alignment). | `docs/checklists/release-readiness.md` | `ops-sre-reliability` + `council-architecture` | `oya-governance-release-readiness` |
 | CHK-INV | `inventory-update-checklist.md` | Every cutover/migration phase inventory ledger update. | `docs/checklists/inventory-update.md` | `axis-foundry` | `oya-governance-inventory-tracker` |
