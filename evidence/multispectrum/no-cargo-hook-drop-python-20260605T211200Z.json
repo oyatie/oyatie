@@ -1,0 +1,34 @@
+{
+  "schema": "multispectrum-review.v2.4.0",
+  "change_id": "no-cargo-hook-drop-python-20260605T211200Z",
+  "change_class_id": "CC-7",
+  "claim_boundary": "local_static_hook_cleanup_only_no_live_mutation",
+  "summary": "Removes Python from the hot-path no-cargo advisory runtime hook while preserving Cargo warning, quoted-search suppression, and direct rustfmt allowance behavior.",
+  "facets": {
+    "F1_scope": "P00 read-only hook enhancement cleanup slice; only no-cargo runtime extraction and its regression tests changed.",
+    "F2_source_authority": "docs/AGENTS.md, specs/agent-hook-runtime-manifest.json, specs/repo-hygiene-automation.json",
+    "F3_tests": [
+      "bash scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh; governance hook retired VCS/wrapper surface tests passed",
+      "buck2 build //:agent-hook-runtime-manifest-check //:repo-hygiene-automation-check //:buck2-authority-policy-check; BUILD SUCCEEDED",
+      "manual hook payload smoke: cargo test warns; escaped quoted cargo search is silent; rustfmt command is silent"
+    ],
+    "F4_security": "Reduces runtime interpreter dependency in advisory PreToolUse hook; no new permissions, network, or mutation path.",
+    "F5_privacy": "Hook reads only stdin payload and emits advisory stderr; no persisted data.",
+    "F6_reliability": "Existing and new regression tests cover non-blocking behavior, cargo fmt guidance, quoted/escaped search false-positive suppression, and rustfmt allowance.",
+    "F7_operability": "Runtime command path remains unchanged for Codex/Gemini configs; only extraction implementation changed.",
+    "F8_performance": "Avoids spawning Python on every Bash pre-tool hook invocation.",
+    "F9_maintainability": "Keeps hook logic small and covered while the Rust/Buck2 manifest checker owns drift evidence.",
+    "F10_compatibility": "Preserves existing hook stdout/stderr contract and exit 0 behavior.",
+    "F11_supply_chain": "No new dependencies.",
+    "F13_traceability": "Follow-up to read_only_hook_enhancement_backlog and //:agent-hook-runtime-manifest-check."
+  },
+  "verification": {
+    "buck2_build_id": "3e046386-1f48-4d52-9e77-f9bcd7a7e29e",
+    "hook_behavior": {
+      "cargo_test_warns": true,
+      "escaped_quoted_cargo_search_silent": true,
+      "direct_rustfmt_silent": true,
+      "python3_invocation_removed": true
+    }
+  }
+}
