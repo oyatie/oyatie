@@ -76,7 +76,7 @@ flowchart RL
     worker["worker<br/>(inbound adapter: queue/timer)"]
     adapter["adapter<br/>(outbound port impl: db, secrets, llm, …)"]
     app["app<br/>(use-case composition)"]
-    domain["domain<br/>(workflow + ports)"]
+    domain["domain<br/>(workflow + port usage)"]
     kernel["kernel<br/>(pure invariants)"]
 
     runtime --> api
@@ -96,7 +96,7 @@ graph MUST topologically match it.
 ### 2.1 Per-layer charter
 
 - **`kernel`** — Pure business invariants. Value types, identity types,
-  invariants encoded as constructors that return `Result<Self, DomainError>`.
+  invariants encoded as constructors that return `Result<Self, KernelError>`.
   Zero I/O, zero async, zero `tokio`, zero provider deps. The only
   dependency tolerated outside `core::*` / `std::*` is **`thiserror`** for
   the local error enum, plus `serde` for serialization derives. No
@@ -139,9 +139,10 @@ graph MUST topologically match it.
 - **`adapter`** — **Outbound** port implementation. One adapter binds one
   port trait to one provider/backend (sqlx ↔ Postgres, reqwest ↔
   llm-provider, opentelemetry ↔ tracing sink, file ↔ filesystem). Depends
-  on `kernel` and `domain` only (specifically: the port traits exported
-  by `domain`). MUST NOT depend on `app`, on `api`/`worker`, on other
-  adapters, or on `runtime`. Crate-naming role: `adapter`. Crate-naming
+  on `kernel` and `domain` only (specifically: kernel-owned port traits
+  plus domain error/workflow types needed for boundary translation). MUST
+  NOT depend on `app`, on `api`/`worker`, on other adapters, or on
+  `runtime`. Crate-naming role: `adapter`. Crate-naming
   capability tail: **REQUIRED** (the capability is the provider/backend
   name: `-adapter-file`, `-adapter-tracing`, `-adapter-postgres`).
 
@@ -213,10 +214,10 @@ are admitted:
   one virtual call per port hop. Example:
 
   ```rust
-  // in domain layer
+  // in kernel layer
   pub trait EvidenceStore: Send + Sync {
-      async fn put(&self, evidence: Evidence) -> Result<EvidenceId, DomainError>;
-      async fn get(&self, id: &EvidenceId) -> Result<Evidence, DomainError>;
+      async fn put(&self, evidence: Evidence) -> Result<EvidenceId, EvidenceStoreError>;
+      async fn get(&self, id: &EvidenceId) -> Result<Evidence, EvidenceStoreError>;
   }
 
   // in app layer
@@ -238,20 +239,21 @@ are admitted:
 Errors crossing a layer boundary MUST be `thiserror`-defined enums.
 Adapter-internal errors (`sqlx::Error`, `reqwest::Error`,
 `tokio::io::Error`) MUST NOT escape the adapter layer; the adapter
-**translates** them into the domain's error enum at the boundary. The
-`anyhow` and `eyre` types are admitted ONLY in `runtime` crates and at
-the outermost `api` handler edge (for response-rendering).
+**translates** them into the kernel-owned port error enum at the boundary;
+domain workflows MAY wrap that error in a domain error at their own boundary.
+The `anyhow` and `eyre` types are admitted ONLY in `runtime` crates and at the
+outermost `api` handler edge (for response-rendering).
 
 The boundary translation is the adapter's responsibility. Example:
 
 ```rust
 // adapter layer (forbidden upward propagation of sqlx::Error)
 impl EvidenceStore for SqlxEvidenceStore {
-    async fn put(&self, evidence: Evidence) -> Result<EvidenceId, DomainError> {
+    async fn put(&self, evidence: Evidence) -> Result<EvidenceId, EvidenceStoreError> {
         sqlx::query!(...)
             .execute(&self.pool)
             .await
-            .map_err(|e| DomainError::Storage {
+            .map_err(|e| EvidenceStoreError::Storage {
                 source: format!("{e}"),
                 retryable: matches!(e, sqlx::Error::PoolTimedOut),
             })?;
@@ -260,10 +262,11 @@ impl EvidenceStore for SqlxEvidenceStore {
 }
 ```
 
-Domain ports define request/response types **via kernel** types only.
-Adapters depend on the external library's types (`sqlx::Row`,
-`reqwest::Response`) and translate at the boundary. The lane validates
-this in two passes: (a) static — `adapter` crates MUST NOT re-export
+Kernel ports define request/response types with **kernel** types only.
+Domain workflows call through those kernel-owned ports. Adapters depend on
+the external library's types (`sqlx::Row`, `reqwest::Response`) and translate
+at the boundary. The lane validates this in two passes: (a) static —
+`adapter` crates MUST NOT re-export
 their backend's error type; (b) dynamic — clippy's `must_use` /
 `disallowed_methods` for `?`-propagation of adapter-internal errors out
 of the trait impl.
@@ -271,9 +274,9 @@ of the trait impl.
 ### 4.3 Async at the boundary
 
 Per [`code-style-rust.md`](code-style-rust.md) §7, **Tokio is the
-workspace monoculture**. Domain ports declare `async fn` in trait
-(edition 2024) and MUST be `Send + Sync` for the dyn case. Kernel code
-remains synchronous — async is forbidden in kernel.
+workspace monoculture**. Kernel port traits declare `async fn` in trait
+(edition 2024) and MUST be `Send + Sync` for the dyn case. Kernel
+invariant code remains synchronous — async is forbidden in kernel.
 
 ## 5. Testing posture per layer
 
@@ -307,11 +310,11 @@ as observed by the lane:
 | Observed dependency pattern | Required role token |
 |---|---|
 | Depends only on data-boundary kernel + kernel peers; library-only | `kernel` |
-| Depends on kernel(s) + domain ports; library-only | `domain` |
+| Depends on kernel(s) + calls kernel-owned ports; library-only | `domain` |
 | Depends on kernel + domain; library-only | `app` |
 | Depends on kernel + domain + app; exposes inbound transport (axum/tonic/etc.) | `api` |
 | Depends on kernel + domain + app; exposes queue/scheduler consumer | `worker` |
-| Depends on kernel + domain (port traits); imports a backend SDK (sqlx/reqwest/opentelemetry) | `adapter` |
+| Depends on kernel + domain; implements kernel-owned port traits and imports a backend SDK (sqlx/reqwest/opentelemetry) | `adapter` |
 | Depends on every layer; produces a bin | `runtime` |
 | Bin-only dev/agent tool | `cli` |
 | Library exposed to external consumers (`publish = true` candidate) | `sdk` |
@@ -363,8 +366,8 @@ unless an external link is given.
 ## 8. Anti-patterns
 
 1. **Adapter-to-adapter dependency.** Two outbound adapters that share
-   a helper SHOULD lift the helper into `domain` (as a port + helper
-   type) or into a shared kernel utility crate. The lane refuses any
+   a helper SHOULD lift the helper into `kernel` as a port/helper type, or
+   into `domain` only when it is pure workflow logic. The lane refuses any
    adapter `[dependencies]` row whose target is another adapter.
 2. **`anyhow` / `eyre` in a library crate.** Libraries return
    `thiserror`-defined enums so callers can pattern-match. `anyhow` is

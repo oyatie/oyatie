@@ -154,6 +154,7 @@
       "M02 exit-gate validator retired CLI/Cargo/pnpm authority scan",
       "standards retired local gate/doc/vcs command scan",
       "clean architecture raw Cargo testing posture scan",
+      "clean architecture kernel-owned port posture scan",
       "standards retired external substrate name scan",
       "microservice spec retired CI/CD and local gate authority scan",
       "design-system spec retired local validator authority scan",
@@ -340,6 +341,13 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental clean-architecture test-posture guard only; Cargo-deny policy projection wording remains compatibility metadata and separate dependency-policy scope"
+    },
+    "clean_architecture_kernel_owned_port_posture_scan": {
+      "clean_file": "docs/standards/clean-architecture.md",
+      "policy": "Clean architecture port declarations and port error enums are kernel-owned. Domain workflows call through kernel-owned ports, and outbound adapters implement kernel-owned port traits while translating provider errors at the boundary. Active standards must not present domain as the port declaration/export owner.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental clean-architecture port-ownership guard only; crate graph enforcement remains the architecture-conventions lane"
     },
     "standards_retired_external_substrate_scan": {
       "clean_files": [
