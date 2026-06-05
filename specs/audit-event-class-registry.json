@@ -114,7 +114,7 @@
         },
         "requires_validator_lane": {
           "type": "string",
-          "const": "oya gate validate audit-event-class-registered"
+          "const": "buck2 build //:repo-hygiene-automation-check # audit-event-class-registered"
         }
       }
     }
@@ -733,7 +733,7 @@
         "requires_payload_schema": true,
         "requires_cardinality_budget": true,
         "requires_retention_class": true,
-        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+        "requires_validator_lane": "buck2 build //:repo-hygiene-automation-check # audit-event-class-registered"
       }
     },
     {
@@ -807,7 +807,7 @@
         "requires_payload_schema": true,
         "requires_cardinality_budget": true,
         "requires_retention_class": true,
-        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+        "requires_validator_lane": "buck2 build //:repo-hygiene-automation-check # audit-event-class-registered"
       }
     },
     {
@@ -881,7 +881,7 @@
         "requires_payload_schema": true,
         "requires_cardinality_budget": true,
         "requires_retention_class": true,
-        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+        "requires_validator_lane": "buck2 build //:repo-hygiene-automation-check # audit-event-class-registered"
       }
     }
   ]

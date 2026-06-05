@@ -153,7 +153,8 @@
       "standards retired local gate/doc/vcs command scan",
       "standards retired external substrate name scan",
       "microservice spec retired CI/CD and local gate authority scan",
-      "design-system spec retired local validator authority scan"
+      "design-system spec retired local validator authority scan",
+      "schema/registry spec retired local validator authority scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -358,6 +359,23 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental design-system/local-validator authority guard only; remaining schema registries and historical provenance specs are separate backlog slices"
+    },
+    "schema_registry_spec_authority_scan": {
+      "clean_files": [
+        "specs/audit-event-class-registry.json",
+        "specs/audit-event-schema.json",
+        "specs/cedar-policy-schema.json",
+        "specs/chaos-engineering-substrate-canonical.json",
+        "specs/ontology-projection-schema.json",
+        "specs/pack-overlay-schema.json",
+        "specs/schema-registry-canonical.json",
+        "specs/score-cards.json",
+        "specs/tenant-environment-tiers-canonical.json"
+      ],
+      "policy": "Cleaned active schema, registry, compliance-pack, ontology-projection, audit-envelope, tenant-tier, chaos, and score-card specs use Buck2/Prow command evidence and native Rust/Prow/Kubernetes seams. Retired local gate/verify commands, direct Cargo command authority, retired dev-cli paths, and external CI/CD substrate names must not appear as active promotion evidence.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental schema/registry authority guard only; deployment-ops contract migration and historical ADR provenance are separate backlog slices"
     },
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",

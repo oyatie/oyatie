@@ -125,6 +125,17 @@ const DESIGN_SYSTEM_SPEC_AUTHORITY_CLEAN_FILES: &[&str] = &[
     "specs/design-system/workflow-replay-timeline.json",
     "specs/iterative-fix-loop.json",
 ];
+const SCHEMA_REGISTRY_SPEC_AUTHORITY_CLEAN_FILES: &[&str] = &[
+    "specs/audit-event-class-registry.json",
+    "specs/audit-event-schema.json",
+    "specs/cedar-policy-schema.json",
+    "specs/chaos-engineering-substrate-canonical.json",
+    "specs/ontology-projection-schema.json",
+    "specs/pack-overlay-schema.json",
+    "specs/schema-registry-canonical.json",
+    "specs/score-cards.json",
+    "specs/tenant-environment-tiers-canonical.json",
+];
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
@@ -268,6 +279,26 @@ const DESIGN_SYSTEM_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
     "Jenkins",
     "ArgoCD",
     "Helm",
+];
+const SCHEMA_REGISTRY_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
+    "target/debug/oya",
+    "oya gate",
+    "oya verify",
+    "oya-dev-cli",
+    "crates/oya-dev-cli",
+    "cargo test",
+    "cargo nextest",
+    "cargo bench",
+    "cargo check",
+    "cargo clippy",
+    "cargo deny",
+    "cargo audit",
+    "Jenkins",
+    "ArgoCD",
+    "Helm",
+    "OpenTofu",
+    "Makefile bootstrap",
+    "oya ops",
 ];
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
@@ -1174,6 +1205,7 @@ pub struct Evaluation {
     pub standards_external_substrate_clean_files: usize,
     pub microservice_spec_authority_clean_files: usize,
     pub design_system_spec_authority_clean_files: usize,
+    pub schema_registry_spec_authority_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2554,6 +2586,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the design-system spec Buck2/Prow authority guard",
         ),
         (
+            "\"schema/registry spec retired local validator authority scan\"",
+            "documentation sprawl automation targets must include the schema/registry retired local validator scan",
+        ),
+        (
+            "\"schema_registry_spec_authority_scan\"",
+            "documentation sprawl policy must record the schema/registry Buck2/Prow authority guard",
+        ),
+        (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
             "product-operation runbook guard must state its incremental clean-path boundary",
         ),
@@ -3380,6 +3420,44 @@ pub fn design_system_spec_authority_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn schema_registry_spec_authority_text_failures(clean_file: &str, text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in SCHEMA_REGISTRY_SPEC_RETIRED_AUTHORITY_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{clean_file}: schema/registry spec contains retired command or substrate authority phrase {phrase:?}; use Buck2/Prow command wording and native Rust/Prow/Kubernetes seams"
+            ));
+        }
+    }
+    if !text.contains("buck2 build //:") {
+        failures.push(format!(
+            "{clean_file}: schema/registry spec missing Buck2 authority command wording"
+        ));
+    }
+
+    failures
+}
+
+pub fn schema_registry_spec_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in SCHEMA_REGISTRY_SPEC_AUTHORITY_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        failures.extend(schema_registry_spec_authority_text_failures(
+            clean_file, &text,
+        ));
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -3481,6 +3559,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(standards_retired_external_substrate_failures(root));
     failures.extend(microservice_spec_authority_failures(root));
     failures.extend(design_system_spec_authority_failures(root));
+    failures.extend(schema_registry_spec_authority_failures(root));
     failures.extend(buck2_release_policy_failures(
         &spec,
         &workflow,
@@ -3861,6 +3940,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         standards_external_substrate_clean_files: STANDARDS_EXTERNAL_SUBSTRATE_CLEAN_FILES.len(),
         microservice_spec_authority_clean_files: MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES.len(),
         design_system_spec_authority_clean_files: DESIGN_SYSTEM_SPEC_AUTHORITY_CLEAN_FILES.len(),
+        schema_registry_spec_authority_clean_files: SCHEMA_REGISTRY_SPEC_AUTHORITY_CLEAN_FILES
+            .len(),
     }
 }
 
@@ -3872,7 +3953,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -3890,6 +3971,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.standards_external_substrate_clean_files,
         evaluation.microservice_spec_authority_clean_files,
         evaluation.design_system_spec_authority_clean_files,
+        evaluation.schema_registry_spec_authority_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures
