@@ -49,6 +49,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
     assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
     assert_eq!(evaluation.design_system_spec_authority_clean_files, 17);
+    assert_eq!(evaluation.schema_registry_spec_authority_clean_files, 9);
 }
 
 #[test]
@@ -1045,6 +1046,40 @@ fn design_system_spec_authority_scan_rejects_retired_local_validators() {
         "OpenTofu",
         "oya ops",
         "Buck2 authority command",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn checked_in_schema_registry_specs_use_buck2_prow_authority_wording() {
+    let failures = gate::schema_registry_spec_authority_failures(Path::new(&repo_root()));
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn schema_registry_spec_authority_scan_rejects_retired_local_validators() {
+    let failures = gate::schema_registry_spec_authority_text_failures(
+        "specs/example-schema.json",
+        "validation: oya gate validate schema-registry-backward-compat; \
+         oya verify pre-push; target/debug/oya gate validate audit-row-envelope; \
+         cargo nextest list --profile ci --workspace; cargo test -p oya-dev-cli; \
+         crates/oya-dev-cli/tests/schema.rs; Jenkins and ArgoCD promotion with Helm.\n",
+    );
+    for expected in [
+        "oya gate",
+        "oya verify",
+        "target/debug/oya",
+        "cargo nextest",
+        "cargo test",
+        "oya-dev-cli",
+        "crates/oya-dev-cli",
+        "Jenkins",
+        "ArgoCD",
+        "Helm",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),

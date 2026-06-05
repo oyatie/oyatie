@@ -127,5 +127,5 @@
     "audit_chain_seal": "ChaosScenarioFailed",
     "on_call_paged": true
   },
-  "ci_lane": "chaos-engineering-catalog (oya gate validate chaos-engineering-catalog)"
+  "ci_lane": "chaos-engineering-catalog (buck2 build //:repo-hygiene-automation-check # chaos-engineering-catalog coverage)"
 }
