@@ -601,6 +601,26 @@
       "establishes": "CNCF Cloud Native Reference Architecture properties for Kubernetes-native systems."
     },
     {
+      "url": "https://sre.google/sre-book/release-engineering/",
+      "establishes": "Google SRE release engineering is a public hyperscaler reference for repeatable, automated, policy-backed release operations."
+    },
+    {
+      "url": "https://sre.google/sre-book/eliminating-toil/",
+      "establishes": "Google SRE toil doctrine is a public hyperscaler reference for replacing repetitive manual operations with engineered automation."
+    },
+    {
+      "url": "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/",
+      "establishes": "Amazon safe hands-off deployments are a public hyperscaler reference for one-box, waves, bake time, metrics monitoring, and auto-rollback."
+    },
+    {
+      "url": "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+      "establishes": "AWS shuffle sharding is a public hyperscaler reference for tenant/workload isolation and blast-radius reduction."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/patterns/deployment-stamp",
+      "establishes": "Azure deployment stamps are a public hyperscaler reference for cell/stamp/scale-unit architecture in multi-tenant systems."
+    },
+    {
       "url": "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
       "establishes": "CUE can validate and export Kubernetes configuration for first-party cloud-cell desired-state authoring."
     },
@@ -989,8 +1009,14 @@
     {
       "id": "helm_adapter_compatibility_wrapper",
       "lane": "platform-cloud",
-      "action": "Retain Helm only for third-party charts or temporary compatibility wrappers generated from CUE-owned source when ecosystem integration requires it.",
-      "conflict_mitigation": "Do not expand first-party Helm templates; migrate policy-critical templates into CUE-owned packages before live cloud-cell claims."
+      "action": "Retain Helm for third-party charts or temporary compatibility wrappers generated from CUE-owned source when ecosystem integration and hyperscaler-fit review justify it.",
+      "conflict_mitigation": "Do not expand first-party Helm templates as policy authority; migrate policy-critical templates into CUE-owned packages before live cloud-cell claims."
+    },
+    {
+      "id": "hyperscaler_adoption_fitness_for_everything",
+      "lane": "council-architecture",
+      "action": "Require every methodology, reasoning pattern, technology, operation, dependency, vendored tool, runtime, build-vs-buy choice, and implementation approach to pass a Google/AWS/Azure-style hyperscaler fitness review before it becomes durable architecture.",
+      "conflict_mitigation": "Classify each choice as adopt, wrap, shadow, self_write, reject, or historical; route exceptions to lane-owned specs and adapters instead of shared root prose."
     },
     {
       "id": "scale_to_zero_eligibility_gate",
@@ -1656,6 +1682,41 @@
     "compile_check": "buck2 build //:latest-toolchain-pin-updater-check",
     "claim_boundary": "static_pin_policy_and_updater_contract_only"
   },
+  "hyperscaler_adoption_fitness_policy": {
+    "standard": "docs/standards/hyperscaler-adoption-fitness.md",
+    "scope": [
+      "methodology",
+      "reasoning",
+      "technology",
+      "operation",
+      "approach",
+      "dependency",
+      "vendored_tool",
+      "runtime",
+      "build_vs_buy",
+      "architecture"
+    ],
+    "required_question": "would_google_aws_azure_or_comparable_hyperscaler_plausibly_operate_this_at_cloud_provider_scale",
+    "classification_required": [
+      "adopt",
+      "wrap",
+      "shadow",
+      "self_write",
+      "reject",
+      "historical"
+    ],
+    "durable_architecture_rule": "no_choice_becomes_durable_architecture_without_hyperscaler_fit_evidence_or_explicit_adapter_self_write_rejection_boundary",
+    "backlog_rule": "choices_that_do_not_yet_pass_but_unblock_parallel_work_enter_backlog_as_shadow_wrap_or_self_write_with_cutover_condition",
+    "evidence_examples": [
+      "https://sre.google/sre-book/release-engineering/",
+      "https://sre.google/sre-book/eliminating-toil/",
+      "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/",
+      "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+      "https://learn.microsoft.com/en-us/azure/architecture/patterns/deployment-stamp"
+    ],
+    "enforced_by": "buck2 build //:repo-hygiene-automation-check",
+    "claim_boundary": "planning_and_static_policy_only_no_live_mutation"
+  },
   "dependency_registry_policy": {
     "workspace_dependency_source": "Cargo.toml [workspace.dependencies]",
     "rationales_registry": "registry/dependency-rationales.json",
@@ -1665,6 +1726,28 @@
     "in_house_policy": "in_house_first_oya_rust_libraries",
     "exception_policy": "explicit_waiver_required_for_non_latest_or_non_in_house_dependency",
     "replacement_strategy_required": true,
+    "hyperscaler_adoption_fitness_required": true,
+    "fitness_standard": "docs/standards/hyperscaler-adoption-fitness.md",
+    "fitness_scope": [
+      "methodology",
+      "reasoning",
+      "technology",
+      "operation",
+      "approach",
+      "dependency",
+      "vendored_tool",
+      "runtime",
+      "build_vs_buy"
+    ],
+    "fitness_classification": [
+      "adopt",
+      "wrap",
+      "shadow",
+      "self_write",
+      "reject",
+      "historical"
+    ],
+    "hyperscaler_reference_rule": "if_google_aws_azure_or_comparable_hyperscaler_would_not_plausibly_operate_it_at_cloud_provider_scale_then_it_is_not_durable_architecture_without_adapter_or_self_write_evidence",
     "private_registry_direction": "prefer_private_or_controlled_registries_when_native_supply_chain_substrate_lands",
     "enforced_by": "buck2 build //:repo-hygiene-automation-check",
     "claim_boundary": "registry_coverage_and_policy_only_no_cargo_update_mutation"

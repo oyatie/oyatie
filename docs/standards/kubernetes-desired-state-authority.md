@@ -18,9 +18,10 @@ CUE packages are the first-party source of truth for Oyatie cloud-cell, pod,
 and Kubernetes workload desired state.
 
 Generated Kubernetes manifests are build artifacts emitted from CUE-owned
-constraints and checked through Buck2/Prow. Helm is adapter compatibility only:
-it may be imported for third-party ecosystem charts or emitted as a generated
-wrapper for temporary consumers, but it is not first-party policy authority.
+constraints and checked through Buck2/Prow. Helm is not rejected as a package
+ecosystem: third-party charts may be adopted or wrapped when they pass
+hyperscaler adoption fitness. Helm CLI flows and hand-authored first-party Helm
+templates are not durable first-party policy authority.
 
 ## Why not Helm as canonical?
 
@@ -67,15 +68,18 @@ point back to the CUE package that owns policy-critical defaults.
 
 ## Allowed Helm use
 
-Helm is allowed only for:
+Helm is allowed for:
 
-1. consuming third-party charts from external ecosystems;
-2. temporary import/export compatibility during a migration;
-3. generated wrappers for customers or operators who require a chart interface;
-4. historical evidence that a legacy chart existed.
+1. consuming third-party charts from external ecosystems when they pass
+   hyperscaler-fit, license, security, provenance, and scalability review;
+2. wrapping third-party charts behind Oyatie-owned CUE/KRM/policy adapters;
+3. temporary import/export compatibility during a migration;
+4. generated wrappers for customers or operators who require a chart interface;
+5. historical evidence that a legacy chart existed.
 
-Each allowed use must state the owning CUE package, migration/removal condition,
-and non-authority boundary.
+Each allowed use must state the owning CUE/KRM or adapter package,
+hyperscaler-fit classification, migration/removal condition, and non-authority
+boundary.
 
 ## Forbidden Helm use
 

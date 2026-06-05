@@ -22,9 +22,9 @@ fn checked_in_kubernetes_native_antipattern_contract_passes() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert!(evaluation.failures.is_empty());
-    assert_eq!(evaluation.required_patterns, 37);
-    assert_eq!(evaluation.forbidden_anti_patterns, 37);
-    assert_eq!(evaluation.official_sources, 36);
+    assert_eq!(evaluation.required_patterns, 38);
+    assert_eq!(evaluation.forbidden_anti_patterns, 38);
+    assert_eq!(evaluation.official_sources, 41);
     assert_eq!(evaluation.first_party_helm_evidence_clean_files, 10);
 }
 
@@ -78,6 +78,21 @@ fn contract_rejects_missing_cue_first_cell_pod_config_authority() {
 }
 
 #[test]
+fn contract_rejects_missing_hyperscaler_adoption_fitness() {
+    let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json").replace(
+        "\"id\": \"hyperscaler_adoption_fitness_for_everything\"",
+        "\"id\": \"hyperscaler_adoption_fitness_for_everything_removed\"",
+    );
+    let failures = gate::contract_failures(&contract);
+    assert!(
+        failures.iter().any(|failure| failure
+            == "required_patterns missing hyperscaler_adoption_fitness_for_everything"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn contract_rejects_missing_rust_cue_conformance_lane() {
     let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json").replace(
         "\"id\": \"rust_cue_compatible_desired_state_engine_conformance_lane\"",
@@ -87,6 +102,21 @@ fn contract_rejects_missing_rust_cue_conformance_lane() {
     assert!(
         failures.iter().any(|failure| failure
             == "required_patterns missing rust_cue_compatible_desired_state_engine_conformance_lane"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn contract_rejects_missing_non_hyperscaler_fit_antipattern() {
+    let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json").replace(
+        "\"id\": \"non_hyperscaler_fit_decision_or_cargo_cult_tooling\"",
+        "\"id\": \"non_hyperscaler_fit_decision_or_cargo_cult_tooling_removed\"",
+    );
+    let failures = gate::contract_failures(&contract);
+    assert!(
+        failures.iter().any(|failure| failure
+            == "forbidden_anti_patterns missing non_hyperscaler_fit_decision_or_cargo_cult_tooling"),
         "{:?}",
         failures
     );

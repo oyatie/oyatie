@@ -157,6 +157,26 @@
     {
       "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
       "establishes": "Taints and tolerations repel workloads from unsuitable nodes and support dedicated-node isolation."
+    },
+    {
+      "url": "https://sre.google/sre-book/release-engineering/",
+      "establishes": "Google SRE release engineering emphasizes repeatable, automated, policy-backed release processes at large scale."
+    },
+    {
+      "url": "https://sre.google/sre-book/eliminating-toil/",
+      "establishes": "Google SRE treats repetitive manual operations as toil that should be removed through engineering and automation."
+    },
+    {
+      "url": "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/",
+      "establishes": "Amazon deployment practice uses pipeline phases, tests, one-box/rolling deployments, metrics monitoring, bake time, and auto-rollback."
+    },
+    {
+      "url": "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+      "establishes": "AWS shuffle sharding is a hyperscaler isolation pattern for reducing correlated customer blast radius."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/patterns/deployment-stamp",
+      "establishes": "Azure deployment stamps/cells deploy independent copies of components and data stores as scale units for multi-tenant workloads."
     }
   ],
   "required_patterns": [
@@ -237,6 +257,12 @@
       "valid": true,
       "applies_to": ["cloud_cells", "kubernetes_workloads", "autoscaling"],
       "implementation_hook": "Scale-to-zero requires workload-class eligibility, trigger source, idempotency, cold-start SLO, backpressure, rollback, and quota/fairness evidence before live use."
+    },
+    {
+      "id": "hyperscaler_adoption_fitness_for_everything",
+      "valid": true,
+      "applies_to": ["methodology", "reasoning", "technology", "operations", "dependencies", "vendored_tools", "architecture"],
+      "implementation_hook": "Every durable choice records whether Google, AWS, Azure, or a comparable hyperscaler would plausibly operate the pattern at cloud-provider scale; otherwise it is classified as wrap, shadow, self_write, reject, or historical backlog with adapter and conformance evidence."
     },
     {
       "id": "shadow_adapters_not_authority",
@@ -428,6 +454,11 @@
       "id": "first_party_helm_template_authority",
       "valid": true,
       "rejects": "Treating hand-authored Helm templates as the first-party cloud-cell/pod configuration authority instead of CUE-owned constraints and generated Kubernetes manifests."
+    },
+    {
+      "id": "non_hyperscaler_fit_decision_or_cargo_cult_tooling",
+      "valid": true,
+      "rejects": "Adopting a methodology, reasoning pattern, technology, operation, dependency, vendored tool, or implementation approach without a Google/AWS/Azure-scale fitness rationale, adapter boundary, and build-vs-buy classification."
     },
     {
       "id": "node_metadata_access_enabled",
