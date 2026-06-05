@@ -331,6 +331,12 @@ genrule(
         "tools/oya-doc-staleness-inventory-app/Cargo.toml": "//tools/oya-doc-staleness-inventory-app:cargo-manifest",
         "tools/oya-doc-staleness-inventory-app/src/lib.rs": "//tools/oya-doc-staleness-inventory-app:lib-src",
         "tools/oya-doc-staleness-inventory-app/src/main.rs": "//tools/oya-doc-staleness-inventory-app:main-src",
+        "tools/oya-adr-index-regenerator-app/BUCK": "//tools/oya-adr-index-regenerator-app:BUCK",
+        "tools/oya-adr-index-regenerator-app/src/lib.rs": "//tools/oya-adr-index-regenerator-app:lib-src",
+        "tools/oya-adr-index-regenerator-app/src/main.rs": "//tools/oya-adr-index-regenerator-app:main-src",
+        "libs/oya-check-adr-index/BUCK": "//libs/oya-check-adr-index:BUCK",
+        "libs/oya-check-adr-index/src/lib.rs": "//libs/oya-check-adr-index:lib-src",
+        "libs/oya-check-adr-index/src/lifecycle.rs": "//libs/oya-check-adr-index:lifecycle-src",
         ".github/workflows/github-lane-unlocker-ci-cd.yml": ".github/workflows/github-lane-unlocker-ci-cd.yml",
         ".github/branch-protection.yaml": ".github/branch-protection.yaml",
         "infra/branch-protection/dev.json": "infra/branch-protection/dev.json",
@@ -932,6 +938,31 @@ genrule(
     } | {path: path for path in glob(["specs/fixtures/phase0-adr-hygiene/*.json", "docs/decisions/ADR-*.md", "docs/standards/*.md", "specs/*.json"])},
     out = "adr-hygiene-check.json",
     cmd = "mkdir -p $TMP/adr-hygiene && rustc --edition=2024 -D warnings scripts/tests/adr_hygiene_check.rs --test -o $TMP/adr-hygiene/adr_hygiene_check && OYA_REPO_ROOT=$PWD $TMP/adr-hygiene/adr_hygiene_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-adr-hygiene.rs -o $TMP/adr-hygiene/assert-adr-hygiene && OYA_REPO_ROOT=$PWD $TMP/adr-hygiene/assert-adr-hygiene --registry specs/adr-hygiene-registry.json --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
+# Derived ADR index regeneration check. This is the Rust/Buck2 replacement for
+# retired local ADR-index CLI paths: docs/decisions is the source of truth, and
+# docs/ADR-INDEX.md plus docs/machine-readable/decisions.json are generated
+# artifacts that must match the committed corpus.
+genrule(
+    name = "adr-index-regeneration-check",
+    srcs = {
+        "libs/oya-check-adr-index/BUCK": "//libs/oya-check-adr-index:BUCK",
+        "libs/oya-check-adr-index/src/lib.rs": "//libs/oya-check-adr-index:lib-src",
+        "libs/oya-check-adr-index/src/lifecycle.rs": "//libs/oya-check-adr-index:lifecycle-src",
+        "tools/oya-adr-index-regenerator-app/BUCK": "//tools/oya-adr-index-regenerator-app:BUCK",
+        "tools/oya-adr-index-regenerator-app/src/lib.rs": "//tools/oya-adr-index-regenerator-app:lib-src",
+        "tools/oya-adr-index-regenerator-app/src/main.rs": "//tools/oya-adr-index-regenerator-app:main-src",
+        "docs/ADR-INDEX.md": "docs/ADR-INDEX.md",
+        "docs/machine-readable/decisions.json": "docs/machine-readable/decisions.json",
+    } | {path: path for path in glob(["docs/decisions/ADR-*.md"])},
+    out = "adr-index-regeneration-check.json",
+    cmd = "mkdir -p $TMP/adr-index-regeneration && rustc --edition=2024 -D warnings --crate-name oya_check_adr_index --crate-type=lib libs/oya-check-adr-index/src/lib.rs -o $TMP/adr-index-regeneration/liboya_check_adr_index.rlib && rustc --edition=2024 -D warnings --crate-name oya_adr_index_regenerator_app --crate-type=lib tools/oya-adr-index-regenerator-app/src/lib.rs --extern oya_check_adr_index=$TMP/adr-index-regeneration/liboya_check_adr_index.rlib -L dependency=$TMP/adr-index-regeneration -o $TMP/adr-index-regeneration/liboya_adr_index_regenerator_app.rlib && rustc --edition=2024 -D warnings tools/oya-adr-index-regenerator-app/src/main.rs --extern oya_check_adr_index=$TMP/adr-index-regeneration/liboya_check_adr_index.rlib --extern oya_adr_index_regenerator_app=$TMP/adr-index-regeneration/liboya_adr_index_regenerator_app.rlib -L dependency=$TMP/adr-index-regeneration -o $TMP/adr-index-regeneration/oya-adr-index-regenerator-app && OYA_REPO_ROOT=$PWD $TMP/adr-index-regeneration/oya-adr-index-regenerator-app --check --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,

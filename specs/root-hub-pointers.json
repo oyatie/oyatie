@@ -1221,7 +1221,7 @@
       "current_path": "/specs/adr-hygiene-registry.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "phase0-ac-0.3-seed",
-      "purpose": "AC-0.3 local/static ADR numbering, supersession, and active-doc superseded-reference hygiene registry validated by //:adr-hygiene-check. Duplicate ADR-0377 is resolved by ADR-0520 renumbering and ADR-0511 is superseded_by ADR-0513; full ADR index regeneration and live required-context authority remain false."
+      "purpose": "AC-0.3 local/static ADR numbering, supersession, and active-doc superseded-reference hygiene registry validated by //:adr-hygiene-check. Duplicate ADR-0377 is resolved by ADR-0520 renumbering and ADR-0511 is superseded_by ADR-0513; full ADR index regeneration is handled separately by //:adr-index-regeneration-check, and live required-context authority remains false."
     },
     "language_discipline_registry": {
       "kind": "spec",

@@ -4,7 +4,7 @@ last_audited: 2026-05-20
 ---
 # ADR Navigation Guide
 
-`docs/decisions/` is the portfolio-wide decision ledger. Open `docs/ADR-INDEX.md` first; it groups every live `ADR-*.md` file by decision cluster and lists the service-local `ADR-MS-*` files that live under `microservices/*/decisions/`.
+`docs/decisions/` is the portfolio-wide decision ledger. Open `docs/ADR-INDEX.md` first; it lists every live `ADR-*.md` file and the generated machine-readable mirror in `docs/machine-readable/decisions.json`.
 
 ## How to Read the ADRs
 
@@ -24,4 +24,4 @@ Every new ADR needs `id`, `status`, `date`, `owners`, `related`, and a one-parag
 
 ## Tooling Notes
 
-`./bin/oya doc adr-index --format json` is the canonical generator path, but as of this audit it halts on an ADR-0246 amendment H1/filename mismatch. Do not patch individual ADRs during index gardening unless that is the explicit task. Record the caveat in `docs/ADR-INDEX.md`, keep coverage complete, and repair source-shape defects in a separate ADR-maintenance change.
+The canonical generator path is Rust/Buck2-owned: use `buck2 build //tools/oya-adr-index-regenerator-app:adr-index-regenerator-unit-tests //:adr-index-regeneration-check` to verify committed output, and use the regenerator app's `--write` mode only inside a dedicated ADR-index regeneration lane. Do not patch individual ADRs during index gardening unless that is the explicit task; normalize legacy metadata when the ADR itself is touched.

@@ -1,0 +1,35 @@
+{
+  "id": "adr-index-regenerator-hook-hardening-20260605T204000Z",
+  "change_id": "adr-index-regenerator-hook-hardening-20260605T204000Z",
+  "created_utc": "20260605T204000Z",
+  "branch": "chore/adr-index-regen-20260605T200623Z",
+  "base": "2261462ba1152512b4eaaaee747a85062ef9f060",
+  "scope": "ADR index regeneration plus surgical cargo/rustfmt hook hardening and read-only hook-enhancement backlog",
+  "changes": [
+    "Added Rust/Buck2 ADR index regenerator and wired //:adr-index-regeneration-check so ADR-INDEX.md and docs/machine-readable/decisions.json are generated rather than hand-edited or driven by retired local CLI wording.",
+    "Hardened no-cargo advisory hook to include cargo fmt, preserve direct pinned rustfmt, and avoid warnings for quoted search/audit strings that mention retired Cargo commands as data.",
+    "Recorded read_only_hook_enhancement_backlog in repo-hygiene automation and P00 masterplan for future read-only workflow hardening hooks/checks without live mutation authority.",
+    "Updated repo-hygiene Rust checker so the new cleanup backlog id is mechanically required."
+  ],
+  "verification": {
+    "cargo_buck2_guard_self_test": "/Users/jasonlee/Developer/kubers/.codex/hooks/cargo_buck2_guard.py --self-test; exited 0",
+    "governance_hook_surface_test": "bash scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh; exited 0",
+    "json_validation": "jq -e . over modified JSON artifacts; exited 0",
+    "rustfmt": "rustfmt --edition 2024 --check --config skip_children=true libs/oya-check-adr-index/src/lib.rs tools/oya-adr-index-regenerator-app/src/lib.rs tools/oya-adr-index-regenerator-app/src/main.rs scripts/ci/assert-repo-hygiene-automation.rs; exited 0",
+    "buck2_build": "buck2 build //:adr-index-regeneration-check //:repo-hygiene-automation-check //:buck2-authority-policy-check; BUILD SUCCEEDED, build id ce3746c8-2cf0-460e-945b-5c95a7d21ad6",
+    "buck2_adr_unit_harness": "buck2 build //tools/oya-adr-index-regenerator-app:adr-index-regenerator-unit-tests --show-output; BUILD SUCCEEDED, build id 1a78250e-9655-45ad-b236-16c9166755eb; generated output reports 2 passed, 0 failed",
+    "adr_regenerator_tests": "direct rustc unit test binary: 2 passed, 0 failed",
+    "repo_hygiene_tests": "direct rustc repo_hygiene_automation_check test binary: 97 passed, 0 failed",
+    "adr_regenerator_check": "--check --json exited 0 with source_file_count=351, records=351, next_adr=ADR-0521, markdown_drift=false, json_drift=false",
+    "diff_check": "git diff --check; exited 0",
+    "known_gap": "buck2 test //tools/hooks:spec-version-pin-suggester-tests still fails on this host because the Darwin linker receives Linux-style flags; unrelated to this changeset and not used as passing evidence."
+  },
+  "authority_boundary": "local/static evidence only; not P0.0 green, not Phase-0 complete, not protected-branch authority, not live Kubernetes mutation, not permanent GitHub authority",
+  "source_research": [
+    "https://git-scm.com/docs/githooks",
+    "https://docs.github.com/en/actions/how-tos/security-for-github-actions",
+    "https://slsa.dev/levels",
+    "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+    "https://architecture.cncf.io/"
+  ]
+}

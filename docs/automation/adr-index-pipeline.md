@@ -6,11 +6,10 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Auto-generate `docs/ADR-INDEX.md` from every `docs/decisions/**/*.md` frontmatter
-  (id, title, status, supersedes, superseded_by, owners, date). Manual edits to
-  ADR-INDEX.md are forbidden after generation. A pre-commit hook verifies index
-  matches the source set; CI re-verifies; out-of-sync rejects.
-planned_enforcement_ref: oya-governance-adr-index
+  Auto-generate `docs/ADR-INDEX.md` and `docs/machine-readable/decisions.json`
+  from every `docs/decisions/ADR-*.md` file. Manual edits to generated rows are
+  forbidden; Buck2 re-verifies the committed output and rejects drift.
+planned_enforcement_ref: //:adr-index-regeneration-check
 extends_crates:
   - oya-foundry-adr-index-kernel
   - oya-foundry-adr-citation-kernel
@@ -26,11 +25,11 @@ doc_status: published
 
 ## 1. Purpose
 
-The ADR pack at `docs/decisions/**/*.md` is the source of truth for every architectural decision. The single-file `docs/ADR-INDEX.md` is a derived view. Today the index is hand-maintained; the lane already runs `oya-foundry-adr-index-kernel` validation, but generation is the next step. This pipeline closes the loop: the ADR-INDEX is emitted from frontmatter; manual edits are rejected.
+The ADR pack at `docs/decisions/ADR-*.md` is the source of truth for every architectural decision. `docs/ADR-INDEX.md` and `docs/machine-readable/decisions.json` are derived views. The Rust/Buck2 regenerator closes the loop: generated artifacts are emitted from the corpus and Buck2 rejects drift.
 
 ## 2. Inputs
 
-Every `docs/decisions/**/*.md` file is required to declare in YAML frontmatter:
+Every new or touched `docs/decisions/ADR-*.md` file should declare YAML frontmatter:
 
 ```yaml
 id: ADR-0042
@@ -53,29 +52,29 @@ tags:
 
 ## 3. Outputs
 
-- `docs/ADR-INDEX.md` — single rendered table grouped by status, then by id descending; supersession graph in Mermaid; per-axis ADR list.
+- `docs/ADR-INDEX.md` — single rendered table sorted by ADR number, plus summary counts, gaps, and source list.
 - `docs/machine-readable/decisions.json` — JSON sidecar for downstream consumption (`oya-foundry-pr-traceability-kernel`, `cross-reference-index-spec.md`).
 
 ## 4. Trigger matrix
 
 | Event | Action |
 |---|---|
-| Pre-commit hook | Re-generate `docs/ADR-INDEX.md`; if `git diff --quiet docs/ADR-INDEX.md` ≠ exit 0, refuse commit with clear "ADR-INDEX is generated, do not edit by hand". |
-| Per-PR | CI re-runs generation; PR fails if generated output differs from committed. |
+| Local regeneration lane | Run the Rust/Buck2 regenerator app in `--write` mode inside a dedicated ADR-index PR. |
+| Per-PR | `buck2 build //:adr-index-regeneration-check` re-runs generation and fails if committed output differs. |
 | Nightly | Sweep for orphan ADRs (file under `decisions/` not in index) and missing supersession targets. |
 
-## 5. Validation gates (`oya-governance-adr-index`)
+## 5. Validation gates (`//:adr-index-regeneration-check`)
 
 1. **No hand edits.** Generated output character-identical to committed file (BLOCKER).
-2. **Frontmatter completeness.** Every ADR has all required fields; missing field → BLOCKER with file path.
+2. **Legacy-shape tolerant parsing.** Historical blockquote, bullet, table, and YAML metadata are parsed; new/touched ADRs should normalize to YAML frontmatter.
 3. **Status-transition validity.** Allowed transitions: `Proposed → Accepted`, `Proposed → Rejected`, `Accepted → Superseded`, `Accepted → Deprecated`. Any other transition → HIGH (requires ADR-amendment).
 4. **Supersession graph closure.** Every `supersedes:` target exists; every `superseded_by:` target exists and references this id back; cycles forbidden.
 5. **Owner-team existence.** Every owner id resolves to a `docs/teams/<id>/CHARTER.md` (cross-validated via `oya-foundry-raci-team-coverage-kernel`).
-6. **ID density.** No gaps > 5 in the id sequence (signals a lost ADR or shadow-numbering).
+6. **ID density.** Gaps are recorded in the generated summary; unexpected future gaps require ADR-number reservation rationale.
 
 ## 6. Manual-edit lockout
 
-The first line of the generated file is `<!-- generated-by: adr-index-pipeline; do not edit -->`. Any commit that modifies `docs/ADR-INDEX.md` without modifying any `docs/decisions/**/*.md` in the same PR is auto-rejected by the lane (HIGH; can be overridden by ADR-tracked exception).
+The generated header says the file comes from the Rust/Buck2 ADR index generator. Any commit that modifies generated artifacts without a matching generator/corpus rationale is rejected by review and `//:adr-index-regeneration-check`.
 
 ## 7. Supersession-graph rendering
 

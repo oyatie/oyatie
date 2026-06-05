@@ -52,6 +52,29 @@ fi
 grep -q 'Cargo executable lanes are retired' "$no_cargo_output"
 grep -q 'advisory only' "$no_cargo_output"
 
+no_cargo_fmt_output="$tmpdir/no-cargo-fmt.out"
+printf '%s\n' '{"tool_input":{"command":"cargo fmt --check"}}' \
+  | bash "$repo_root/tools/hooks/no-cargo-enforcer.sh" >"$no_cargo_fmt_output" 2>&1
+grep -q 'run pinned rustfmt directly' "$no_cargo_fmt_output"
+
+no_cargo_search_output="$tmpdir/no-cargo-search.out"
+printf '%s\n' '{"tool_input":{"command":"rg -n '\''cargo fmt|cargo test'\'' docs specs"}}' \
+  | bash "$repo_root/tools/hooks/no-cargo-enforcer.sh" >"$no_cargo_search_output" 2>&1
+if [ -s "$no_cargo_search_output" ]; then
+  echo "quoted search strings mentioning Cargo must not trigger no-cargo advisory" >&2
+  cat "$no_cargo_search_output" >&2
+  exit 1
+fi
+
+rustfmt_output="$tmpdir/no-cargo-rustfmt.out"
+printf '%s\n' '{"tool_input":{"command":"rustfmt --edition 2024 --check tools/hooks/spec-version-pin-suggester/src/main.rs"}}' \
+  | bash "$repo_root/tools/hooks/no-cargo-enforcer.sh" >"$rustfmt_output" 2>&1
+if [ -s "$rustfmt_output" ]; then
+  echo "direct pinned rustfmt must remain allowed by no-cargo advisory" >&2
+  cat "$rustfmt_output" >&2
+  exit 1
+fi
+
 python3 - "$repo_root" <<'PY'
 import json
 import pathlib

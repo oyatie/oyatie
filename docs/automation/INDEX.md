@@ -28,7 +28,7 @@ doc_status: published
 |---|---|---|---|---|---|
 | `rustdoc` | every workspace `///` comment | per-crate API ref + cross-crate link graph | nightly + per-PR delta | `oya-governance-rustdoc-publish` | `/api/rust/<crate>` |
 | `openapi` | `contracts/openapi/*.yaml` (3.1) | Redoc + Swagger UI + runtime/schema cross-validation | per-PR + nightly | `oya-governance-openapi-publish` | `/api/openapi/<surface>` |
-| `adr-index` | `docs/decisions/*.md` frontmatter | `docs/ADR-INDEX.md` | pre-commit + per-PR | `oya-governance-adr-index` | `/decisions/INDEX` |
+| `adr-index` | `docs/decisions/ADR-*.md` | `docs/ADR-INDEX.md` + `docs/machine-readable/decisions.json` | per-PR Buck2 check | `//:adr-index-regeneration-check` | `/decisions/INDEX` |
 | `runbook-freshness` | `docs/runbooks/**/*.md` `last_verified:` | freshness report + auto-PR | nightly | `oya-governance-runbook-freshness` (extant) | `/operations/runbook-health` |
 | `fitness-lane-reports` | per-lane JSON emitted by CI | rolled-up mdbook chapter per axis | on-merge | `oya-governance-lane-rollup` | `/fitness/<axis>` |
 | `schema-doc` | kernel struct `data_class:` + field doc-comments | data-class catalogue | per-PR + nightly | `oya-governance-data-class` (extant) | `/data/data-class-catalogue` |
