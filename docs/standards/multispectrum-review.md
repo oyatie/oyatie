@@ -42,7 +42,11 @@ A multi-facet review bar applied to every changeset. The lane `oya-check-depende
 1. Declare your change_class (CC-1..CC-7).
 2. Fill the evidence template `/templates/checklists/pre-pr-multispectrum.json`.
 3. Write to `/evidence/multispectrum/<change_id>-<unix_ts>.json`.
-4. Run `cargo run -p oya-check-dependency-seam --quiet`.
+4. Attach the Buck2-built dependency-seam checker output and the
+   Prow/Kubernetes-native `oya-ci-required` status to the PR evidence packet.
+   Cargo manifests are compatibility metadata and may feed the Rust crate
+   graph, but raw Cargo invocations are not merge, coverage, or
+   protected-branch authority.
 
 ## Where each concept lives (canonical homes)
 
