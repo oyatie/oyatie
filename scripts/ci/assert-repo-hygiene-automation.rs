@@ -747,6 +747,9 @@ const REQUIRED_FORBIDDEN_PHRASE_IDS: &[&str] = &[
     "CANONICAL_BACKEND_BUILD: cargo build",
     "Use a Python helper to validate modules before cargo build",
     "Cargo/workspace evidence",
+    "mandatory `cargo nextest`",
+    "CI enforces `cargo clippy",
+    "Tests (`cargo nextest",
     "bacon",
     "cargo-machete",
 ];
@@ -793,6 +796,9 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "CANONICAL_BACKEND_BUILD: cargo build",
     "Use a Python helper to validate modules before cargo build",
     "Cargo/workspace evidence",
+    "mandatory `cargo nextest`",
+    "CI enforces `cargo clippy",
+    "Tests (`cargo nextest",
     "bacon",
     "cargo-machete",
 ];
@@ -844,6 +850,7 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     CI_LANES_STANDARD_PATH,
     CODE_STYLE_STANDARD_PATH,
     TESTING_STANDARD_PATH,
+    "docs/standards/hyperscaler-best-practices.md",
     TOOLS_AGENT_SKILLS_AGENTS_PATH,
     PROCEDURE_PATH,
     AUTO_MERGE_FLOW_PATH,
