@@ -28,7 +28,6 @@ tools/hook-bootstrap/
 
 tools/hooks/
 ├── session-start-context-inject.sh        # SessionStart — primary orientation
-├── stop-did-you-forget-suggester.sh       # Stop — incomplete-work check
 ├── no-cargo-enforcer.sh                   # PreToolUse(Bash) — Buck2/no-cargo guidance
 ├── injection-content-scanner.sh           # PostToolUse(Bash|Web*) — prompt-injection scan
 ├── spec-version-pin-suggester.sh          # PostToolUse(Edit|Write contracts/) — version

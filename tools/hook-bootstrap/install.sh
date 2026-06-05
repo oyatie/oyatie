@@ -69,7 +69,6 @@ echo ""
 HOOKS_DIR="$REPO_ROOT/tools/hooks"
 HOOK_SCRIPTS=(
     session-start-context-inject.sh
-    stop-did-you-forget-suggester.sh
     no-cargo-enforcer.sh
     injection-content-scanner.sh
     spec-version-pin-suggester.sh
@@ -178,13 +177,6 @@ if $CODEX_DETECTED; then
         ]
       }
     ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -241,7 +233,6 @@ if $GEMINI_DETECTED; then
 
     # Event-name mapping (Gemini → equivalent Claude event):
     #   SessionStart   = SessionStart
-    #   AfterAgent     = Stop
     #   BeforeTool     = PreToolUse
     #   AfterTool      = PostToolUse
     GEMINI_CONTENT='{
@@ -254,14 +245,6 @@ if $GEMINI_DETECTED; then
         "matcher": "startup|resume|clear",
         "hooks": [
           { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "project-session-context" }
-        ]
-      }
-    ],
-    "AfterAgent": [
-      {
-        "matcher": "*",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "project-did-you-forget" }
         ]
       }
     ],

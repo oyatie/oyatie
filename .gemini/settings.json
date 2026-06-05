@@ -15,18 +15,6 @@
         ]
       }
     ],
-    "AfterAgent": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "tools/hooks/stop-did-you-forget-suggester.sh",
-            "name": "project-did-you-forget"
-          }
-        ]
-      }
-    ],
     "BeforeTool": [
       {
         "matcher": "run_shell_command|bash|Bash",
