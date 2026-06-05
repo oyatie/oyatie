@@ -51,6 +51,10 @@ if [ "$no_cargo_status" -ne 0 ]; then
 fi
 grep -q 'Cargo executable lanes are retired' "$no_cargo_output"
 grep -q 'advisory only' "$no_cargo_output"
+if grep -q 'python3' "$repo_root/tools/hooks/no-cargo-enforcer.sh"; then
+  echo "no-cargo hook must not invoke Python on the runtime hot path" >&2
+  exit 1
+fi
 
 no_cargo_fmt_output="$tmpdir/no-cargo-fmt.out"
 printf '%s\n' '{"tool_input":{"command":"cargo fmt --check"}}' \
@@ -63,6 +67,15 @@ printf '%s\n' '{"tool_input":{"command":"rg -n '\''cargo fmt|cargo test'\'' docs
 if [ -s "$no_cargo_search_output" ]; then
   echo "quoted search strings mentioning Cargo must not trigger no-cargo advisory" >&2
   cat "$no_cargo_search_output" >&2
+  exit 1
+fi
+
+no_cargo_escaped_search_output="$tmpdir/no-cargo-escaped-search.out"
+printf '%s\n' '{"tool_input":{"command":"rg -n \"cargo fmt\" docs specs"}}' \
+  | bash "$repo_root/tools/hooks/no-cargo-enforcer.sh" >"$no_cargo_escaped_search_output" 2>&1
+if [ -s "$no_cargo_escaped_search_output" ]; then
+  echo "escaped quoted search strings mentioning Cargo must not trigger no-cargo advisory" >&2
+  cat "$no_cargo_escaped_search_output" >&2
   exit 1
 fi
 
