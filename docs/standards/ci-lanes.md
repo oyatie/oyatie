@@ -11,7 +11,7 @@ doc_status: published
 ## 1. Lane catalog
 
 Every CI gate is a named lane. Lanes are catalog-driven: `registry/quality/lanes.yaml` is the source of truth; this doc is the human-readable mirror.
-The registry carries each lane's owner team and `runtime_budget_seconds`; the Buck2/Prow `quality-lanes` target rejects unknown owners, missing budgets, markdown drift, and active commands absent from the native wired-target catalog.
+The registry carries each lane's owner team and `runtime_budget_seconds`; the Buck2/Prow `quality-lanes` target rejects unknown owners, missing budgets, markdown drift, and active commands outside native Buck2/Prow target authority.
 
 ### 1.1 Foundation gate catalog (W-Foundation; active lanes block any merge; planned lanes preserve roadmap contract)
 
@@ -28,21 +28,21 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the Bu
 | `oya-governance-honest-claims` | scan authoritative docs/specs/ADRs for deferred active claims and validate ImplementationPlan ChangeSet graph integrity | ADR-0129 / specs/plan-schema.json / specs/masterplan.json |
 | `oya-governance-aspirational-enforcement` | block active required enforcement claims that reference missing check crates, workflows, or branch-protection contexts | ADR-0135 / ADR-0133 |
 | `oya-governance-banned-primitives` | block banned primitive use inside fenced agent-instruction contracts and the sanitized tracked command-log corpus | specs/master-plan-sequencing.json / F-FORBIDDEN-PRIMITIVES-CI-GUARD |
-| `oya-governance-workspace-hygiene` | inventory temp, home, repo-root, build-artifact, and `oyatie-worktrees` residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions | specs/workspace-hygiene.json / ADR-0123 |
-| `oya-governance-hyperscaler-maturity-claims` | block unsupported hyperscaler maturity claims unless product depth, pipeline, hygiene, UX, safety, guardrail, and competitor evidence are green | specs/hyperscaler-gates.json / ADR-0123 |
-| `oya-governance-design-spec-maturity-claims` | allow only the bounded design/spec maturity claim when every microservice has the required implementation-ready design surfaces, while keeping operational maturity blocked | specs/design-spec-maturity-claims.json / ADR-0123 |
-| `oya-governance-foundation-bypass` | foundation-bypass expiry monitor | ADR-0040 |
+| `oya-governance-workspace-hygiene` | inventory temp, home, repo-root, build-artifact, and oyatie-worktrees residue after projection to a native Buck2/Prow target | specs/workspace-hygiene.json / ADR-0123 |
+| `oya-governance-hyperscaler-maturity-claims` | block unsupported hyperscaler maturity claims after projection to a native Buck2/Prow target | specs/hyperscaler-gates.json / ADR-0123 |
+| `oya-governance-design-spec-maturity-claims` | allow only bounded design/spec maturity claims after projection to a native Buck2/Prow target | specs/design-spec-maturity-claims.json / ADR-0123 |
+| `oya-governance-foundation-bypass` | foundation-bypass expiry monitor after projection to a native Buck2/Prow target | ADR-0040 |
 | `oya-governance-glossary-cross-doc-coverage` | every glossary term appears outside GLOSSARY when active | GLOSSARY.md §11 / ADR-0018 |
 | `oya-governance-glossary-vocabulary` | retired-vocab hard-fail plus casing/acronym warning baseline ratchet | GLOSSARY.md §11 / ADR-0018 |
 | `oya-governance-placeholder-debt` | fail-closed `TODO` / `TBD` registry so placeholder cleanup is tracked outside glossary acronym warnings | AGENTS.md Done-Definition / MISTAKES doctrine |
-| `oya-governance-dependency-seam` | fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, multispectrum evidence, change_class declarations, and online cargo-audit vulnerability checks | ADR-0092 / registry/dependency-rationales.json / evidence/multispectrum/cs-p13-dependency-seam-1779166052.json |
-| `oya-governance-plane-class` | catalog plane-class changes require explicit review | ADR-0004 |
+| `oya-governance-dependency-seam` | fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, multispectrum evidence, and change_class declarations | ADR-0092 / registry/dependency-rationales.json |
+| `oya-governance-plane-class` | catalog plane-class changes require explicit review after projection to a native Buck2/Prow target | ADR-0004 |
 | `oya-governance-raci-team-coverage` | every team charter has RACI and CODEOWNERS coverage | RACI-OWNERSHIP.md |
 | `oya-governance-readme-doc-coverage` | every root doc has catalog and README discoverability | README.md / DOC-CATALOG.md |
 | `oya-governance-runbook-index-resolves` | every RUNBOOKS-INDEX entry is a real file | RUNBOOKS-INDEX.md |
 | `oya-governance-slo-coverage` | every catalog record carries SLO coverage | SLO-CATALOG.md |
 | `oya-governance-catalog-records` | every Cargo workspace member has a catalog record | ADR-0015 / registry/catalog |
-| `oya-governance-product-index` | product README index and machine-readable product catalog stay in sync | products/README.md |
+| `oya-governance-product-index` | product README index and machine-readable product catalog stay in sync after projection to a native Buck2/Prow target | products/README.md |
 | `oya-governance-adr-citation` | only-new-pack-citations check | ADR-LEGACY-REGRESSION-MAPPING |
 | `oya-governance-brand-residue` | tautological brand transition check | ADR-0017 / MFL-0011 |
 
@@ -50,24 +50,22 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the Bu
 
 | Lane | Purpose |
 |---|---|
-| `buck2-rustfmt` | Buck2-invoked formatting target (deletion-tagged bridge while rustfmt is wrapped) |
+| `buck2-rustfmt` | Buck2-invoked formatting target after rustfmt is wrapped as native authority |
 | `buck2-build` | `buck2 build //...` or trusted controller-sourced Buck2 build target inventory |
-| `buck2-clippy` | Buck2-invoked lint/static-analysis target; raw Cargo lint commands are not CI authority |
+| `buck2-clippy` | Buck2-invoked lint/static-analysis target after the raw Cargo lint bridge is removed |
 | `buck2-test` | `buck2 test //...` or trusted controller-sourced Buck2 test target inventory |
-| `buck2-dependency-policy` | Buck2-invoked license + advisory check per ADR-0013 |
-| `oya-foundation-demo-smoke` | `oya demo` foundation smoke path exercises tenant, MCP, audit, run, step, outbox, and secret flows |
+| `buck2-dependency-policy` | Buck2-invoked license + advisory check per ADR-0013 after dependency policy target projection |
+| `oya-foundation-demo-smoke` | foundation smoke path exercises tenant, MCP, audit, run, step, outbox, and secret flows after projection to a native Buck2/Prow target |
 | `machine-readable-json-parse` | every docs/machine-readable JSON file parses before merge |
-| `buck2-unused-deps` | Buck2-invoked unused-dependency policy target |
-| `pnpm-typecheck` | TS workspace typecheck |
-| `pnpm-test` | TS unit + integration |
-| `oya-governance-supply-chain` | Trivy 4-layer + Cosign per ADR-0039 |
+| `buck2-unused-deps` | Buck2-invoked unused-dependency policy target after native target projection |
+| `oya-governance-supply-chain` | Trivy 4-layer + Cosign per ADR-0039 after projection to a native Buck2/Prow target |
 | `oya-governance-supply-chain-bootstrap` | source-only supply-chain guard plus RustSec and deny wiring |
 | `traceability-validator` | PR template carries the 5 mandatory traceability H2 sections |
 | `oya-governance-api-semver` | public-API stability tier per ADR-0037 |
 | `oya-governance-cargo-prefix` | every workspace member starts with `oya-` |
 | `oya-governance-pre-push` | Buck2-backed local verification bundle maps to the protected-branch evidence set; retired local CLI entry points are recorded in registry/vocabulary/retired.yaml as provenance only |
-| `oya-governance-loop-recovery-patterns` | pre-push repeat-mistake blocker joins deterministic score cards, loop-recovery patterns, and mistakes-ledger rows without shell hook expansion |
-| `oya-governance-master-plan-completion` | status-honesty audit — no phase in specs/masterplan.json#live_implementation_index may be Complete while any child IP is stub/planned/pending/blocked/in-flight/probe-green; every complete IP must be referenced by at least one evidence JSON file |
+| `oya-governance-loop-recovery-patterns` | pre-push repeat-mistake blocker joins deterministic score cards, loop-recovery patterns, and mistakes-ledger rows after projection to a native Buck2/Prow target |
+| `oya-governance-master-plan-completion` | status-honesty audit over specs/masterplan.json after projection to a native Buck2/Prow target |
 | `oya-governance-retired-vocabulary` | no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record) |
 | `oya-governance-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
 | `oya-governance-vacuous-green` | ADR-0221 fixture-backed check that vacuous-green hook detection fails on intentionally empty gate evidence |
@@ -83,7 +81,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the Bu
 | `oya-governance-client-stack-discipline` | enforces ADR-0185 native-per-platform client stack — SvelteKit (Phase 1) → Leptos (Phase 2) on web (sequential not parallel); Swift+SwiftUI on Apple (no KMP klib imports); Kotlin+Compose+KMP on Android (Android-scope only); WinUI 3 on Windows; gtk4-rs + libadwaita on Linux. Rejects React/Vue/Flutter/Electron/Cordova/Tauri/Avalonia/MAUI references. |
 | `oya-governance-vendor-lockin-discipline` | enforces ADR-0173 tiered vendor classification — Tier I OWNED with license+steward; Tier II VENDOR-SEAMED with replacement_path, replacement_readiness_gate, seam_adapter_trait, and ≥1 seam_adapter_impls; Tier III FORBIDDEN with refusal rationale + replacement path. |
 | `oya-governance-authz-tier-discipline` | enforces ADR-0191 tier boundary — Cedar policy MUST NOT reference edge concerns (ip/asn/geo/country/rate/waf/bot/ddos); Envoy filter config MUST NOT reference origin concerns (oidc principal claims/acr/tenant identity/residency/purpose/data_class). Advisory until per-microservice Cedar/Envoy assets exist. |
-| `oya-governance-tenant-cost-labels-coverage` | advisory presence check for mandatory tenant cost labels per ADR-0199 D-1 (oya.io/tenant-id + oya.io/cost-center + oya.io/workload-class + oya.io/regulatory-pack) on every rendered Helm manifest under microservices/*/iac/helm/*/rendered/*.yaml. |
+| `oya-governance-tenant-cost-labels-coverage` | advisory presence check for mandatory tenant cost labels per ADR-0199 D-1 on rendered CUE/Kubernetes manifests; Helm import/export remains adapter compatibility only. |
 | `oya-governance-backup-retention-discipline` | advisory per-µservice backup retention validation per ADR-0197 D-5 (tier-driven RPO/RTO floor; storage.backup.tier ∈ {app, batch, gpu, regulatory}; storage.backup.retention_days set). |
 | `oya-governance-vector-store-discipline` | advisory enforcement of Milvus-canonical vector store tier per ADR-0192 (collection schema, index_type, metric, data_classes). Advisory until per-µservice manifests populate data.vector_store.* namespace. |
 | `oya-governance-olap-tier-discipline` | advisory enforcement of ClickHouse-canonical OLAP tier per ADR-0193 (no rogue analytics queries against OLTP postgres). Advisory until per-µservice manifests populate data.olap_client.* namespace. |
@@ -93,10 +91,10 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the Bu
 | `oya-governance-i18n-coverage` | advisory Fluent ICU locale coverage per ADR-0206 (default_locale + required_locales + rtl_support + min_coverage_bps). |
 | `oya-governance-compliance-evidence-coverage` | advisory compliance evidence collector declaration per ADR-0209 (audit_chain_seal_required + tamper_evidence_algorithm + evidence_collectors[]). |
 | `oya-governance-realtime-transport-tier` | advisory real-time transport tier validation per ADR-0208 (sse vs websocket vs grpc-streaming; payload_budget_bytes per tier). |
-| `oya-governance-adr-planning-completeness` | ADR-0364 D2 — every planning_impact ADR that declares deliverables has id/description/exit_criteria/verified_by plus a milestone; ADRs without deliverables are advisory until D7 backfill |
-| `oya-governance-masterplan-drift` | ADR-0364 D4 — the committed docs/machine-readable/masterplan.generated.json equals the projection regenerated from the planning_impact ADR log (wraps `gen masterplan --check`) |
-| `oya-governance-adr-supersession-consistency` | #6b — every ADR supersedes/superseded_by pair is bidirectional; fails on any one-directional link (X supersedes Y but Y does not back-link X, or vice versa) over ADR-to-ADR edges |
-| `lean-a1-architecture` | layer-correctness — no dep-direction violations per ADR-0056 §2.2 |
+| `oya-governance-adr-planning-completeness` | planning-impact decision deliverables completeness after projection to a native Buck2/Prow target |
+| `oya-governance-masterplan-drift` | committed docs/machine-readable/masterplan.generated.json equals the native planning projection after projection to a Buck2/Prow target |
+| `oya-governance-adr-supersession-consistency` | every decision supersedes/superseded_by pair is bidirectional after projection to a native Buck2/Prow target |
+| `lean-a1-architecture` | layer-correctness after projection to a native Buck2/Prow target |
 | `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
 | `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |
 | `lean-a4-semver` | API semver stability tier per ADR-0037 |
@@ -114,10 +112,10 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the Bu
 
 | Lane | Purpose |
 |---|---|
-| `oya-governance-merge-queue-ref-hygiene` | GC merge-queue-staging-i refs older than 1 hour per ADR-0111 §"Consequences"; transient projected-merge-state staging refs must not accumulate after each scheduler tick. Lane is the post-tick hygiene gate referenced by ADR-0111 wave-C. |
-| `foundry-eval-nightly` | per-capability eval set per ADR-0024 |
-| `chain-replay-drill` | per-shard audit-chain integrity per ADR-0003 |
-| `cross-tenant-access-fuzz` | per-cell isolation per ADR-0009 |
+| `oya-governance-merge-queue-ref-hygiene` | GC transient projected-merge-state staging refs after projection to a native Buck2/Prow target |
+| `foundry-eval-nightly` | per-capability eval set per ADR-0024 after projection to a native Buck2/Prow target |
+| `chain-replay-drill` | per-shard audit-chain integrity per ADR-0003 after projection to a native Buck2/Prow target |
+| `cross-tenant-access-fuzz` | per-cell isolation per ADR-0009 after projection to a native Buck2/Prow target |
 | `oya-governance-vendor-contract-recency` | per VENDOR-PARTNER-LEDGER |
 | `oya-governance-mobile-native` | per ADR-0051 |
 
@@ -125,7 +123,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the Bu
 
 | Lane | Purpose |
 |---|---|
-| `release-supply-chain` | Cosign keyless + Rekor + SBOM per ADR-0039 |
+| `release-supply-chain` | Cosign keyless + Rekor + SBOM per ADR-0039 after projection to a native Buck2/Prow target |
 | `release-evidence-pack` | per-regulator evidence regen per COMPLIANCE-MATRIX |
 | `release-runbook-freshness` | freshness SLA per RUNBOOKS-INDEX §3 |
 

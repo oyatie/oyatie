@@ -198,6 +198,7 @@
     "buck2 build //:oya-ci-prowjob-registry-check",
     "buck2 build //:oya-ci-controller-config-check",
     "buck2 build //:kubernetes-native-anti-pattern-check",
+    "buck2 build //:quality-lane-registry-authority-check",
     "buck2 build //:buck2-authority-policy-check",
     "buck2 build //:latest-toolchain-pin-updater-check",
     "buck2 build //:append-missing-rust-unit-test-targets-check",
