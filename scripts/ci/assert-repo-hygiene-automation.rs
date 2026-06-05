@@ -817,6 +817,7 @@ const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "single_file_top_level_root_review",
     "prow_job_registry_generation",
     "python_shell_to_rust_buck2_migration",
+    "read_only_hook_enhancement_backlog",
     "cd_fleet_bootstrap_surface_retirement",
     "retired_external_scm_adapter_retirement",
     "in_house_dependency_library_substitution",
