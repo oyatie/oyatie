@@ -119,6 +119,22 @@
     "provider_live_smoke": false,
     "non_claim": "No infrastructure provisioning is executed or claimed."
   },
+  "configuration_authoring": {
+    "first_party_desired_state": "cue",
+    "first_party_validation": "cue_constraints_plus_rust_buck2_policy_check",
+    "helm_role": "external_chart_or_temporary_compatibility_adapter_only",
+    "helm_adapter_only": true,
+    "first_party_helm_template_authority": false,
+    "policy_spec": "specs/cloud-cell-elasticity-policy.json",
+    "buck2_check": "buck2 build //:cloud-cell-elasticity-policy-check",
+    "backlog_ids": [
+      "cue_first_cell_pod_config_authority",
+      "helm_adapter_compatibility_wrapper",
+      "cue_generated_manifest_buck2_check",
+      "scale_to_zero_eligibility_gate"
+    ],
+    "non_claim": "Existing Helm templates are compatibility scaffolding until first-party cloud-cell and pod desired state is generated from CUE-owned packages."
+  },
   "runtime_data_processing": false,
   "cloud_ops_foundation": {
     "schema_version": 1,
@@ -151,6 +167,18 @@
       "implication": "node autoscaling is runtime infrastructure behavior and is not claimed by this local foundation"
     },
     {
+      "topic": "cue_first_kubernetes_configuration",
+      "source": "CUE Kubernetes guide",
+      "url": "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+      "implication": "first-party cell and pod desired state should be authored as CUE constraints and exported to Kubernetes manifests before admission"
+    },
+    {
+      "topic": "helm_adapter_only",
+      "source": "Helm chart documentation",
+      "url": "https://helm.sh/docs/topics/charts/",
+      "implication": "Helm remains useful for third-party chart packaging and temporary adapters, but is not the first-party configuration authority"
+    },
+    {
       "topic": "finops_focus",
       "source": "FOCUS Specification",
       "url": "https://focus.finops.org/focus-specification/",
@@ -180,6 +208,7 @@
     "no measured SLO SLI burn-rate Prometheus OpenSLO runtime evidence",
     "no active-active DR failover drill backup restore or cross-region replication evidence",
     "no OpenTofu plan/apply provider SDK Kubernetes controller or provider-live operation",
+    "no CUE-to-manifest generation lane or Helm adapter migration completed",
     "no audit-chain writer Merkle seal persistence or external evidence-store runtime",
     "no runtime autoscaling autosharding migration workflow or tenant move execution",
     "no cell promotion drain decommission lifecycle engine",

@@ -19,6 +19,14 @@
       "establishes": "Cloud-native architectures favor loosely coupled, interoperable, observable, resilient services rather than shared mutable bottlenecks."
     },
     {
+      "url": "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+      "establishes": "CUE can validate and export Kubernetes configuration, making it suitable as the first-party typed desired-state authority for cloud-cell manifests."
+    },
+    {
+      "url": "https://helm.sh/docs/topics/charts/",
+      "establishes": "Helm charts package Kubernetes resources and are retained as external chart or temporary compatibility adapters, not first-party policy authority."
+    },
+    {
       "url": "https://kubernetes.io/docs/concepts/architecture/controller/",
       "establishes": "Kubernetes controllers reconcile observed state toward desired state through control loops."
     },
@@ -193,6 +201,24 @@
       "valid": true,
       "applies_to": ["docs", "ci_config", "registries"],
       "implementation_hook": "Shared files stay pointer-thin or generated from lane-owned shards to reduce merge conflicts."
+    },
+    {
+      "id": "cue_first_cell_pod_config_authority",
+      "valid": true,
+      "applies_to": ["cloud_cells", "kubernetes_manifests", "policy_as_code"],
+      "implementation_hook": "First-party cloud-cell and pod desired state is authored as lane-owned CUE packages with generated Kubernetes manifests checked by buck2 build //:cloud-cell-elasticity-policy-check; Helm is adapter compatibility only."
+    },
+    {
+      "id": "helm_adapter_compatibility_wrapper",
+      "valid": true,
+      "applies_to": ["cloud_cells", "third_party_charts", "kubernetes_manifests"],
+      "implementation_hook": "Helm charts can be consumed for external ecosystems or emitted as temporary compatibility wrappers, but hand-authored Helm templates are not first-party policy authority."
+    },
+    {
+      "id": "scale_to_zero_eligibility_gate",
+      "valid": true,
+      "applies_to": ["cloud_cells", "kubernetes_workloads", "autoscaling"],
+      "implementation_hook": "Scale-to-zero requires workload-class eligibility, trigger source, idempotency, cold-start SLO, backpressure, rollback, and quota/fairness evidence before live use."
     },
     {
       "id": "shadow_adapters_not_authority",
@@ -381,6 +407,11 @@
       "rejects": "Letting Cargo, Tarpaulin, or ad-hoc local tools outrank Buck2-native LLVM coverage and Buck2 check authority."
     },
     {
+      "id": "first_party_helm_template_authority",
+      "valid": true,
+      "rejects": "Treating hand-authored Helm templates as the first-party cloud-cell/pod configuration authority instead of CUE-owned constraints and generated Kubernetes manifests."
+    },
+    {
       "id": "node_metadata_access_enabled",
       "valid": true,
       "rejects": "Allowing CI or service pods to reach node metadata APIs for cloud credentials."
@@ -523,6 +554,8 @@
   ],
   "cross_artifact_guards": {
     "root_hub_pointer": "/specs/root-hub-pointers.json#entry_points.kubernetes_native_anti_patterns",
+    "cloud_cell_elasticity_policy": "/specs/cloud-cell-elasticity-policy.json",
+    "cloud_cell_elasticity_check": "buck2 build //:cloud-cell-elasticity-policy-check",
     "masterplan_p00": "/specs/masterplan.json#imminent_work_p00",
     "repo_hygiene_backlink": "/specs/repo-hygiene-automation.json#anti_patterns_guardrails",
     "controller_config_contract": "/specs/oya-ci-controller-config-contract.json",

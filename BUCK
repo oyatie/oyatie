@@ -393,6 +393,32 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+# P00 cloud-cell/pod elasticity policy guard. This is local/static evidence:
+# CUE is the first-party desired-state/validation authority, Helm is adapter
+# compatibility only, and autoscale/auto-heal/rebalance/scale-to-zero
+# semantics are checked before live Kubernetes/provider work can be claimed.
+# Run with: buck2 build //:cloud-cell-elasticity-policy-check
+genrule(
+    name = "cloud-cell-elasticity-policy-check",
+    srcs = {
+        "scripts/ci/assert-cloud-cell-elasticity-policy.rs": "scripts/ci/assert-cloud-cell-elasticity-policy.rs",
+        "scripts/tests/cloud_cell_elasticity_policy_check.rs": "scripts/tests/cloud_cell_elasticity_policy_check.rs",
+        "specs/cloud-cell-elasticity-policy.json": "specs/cloud-cell-elasticity-policy.json",
+        "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
+        "specs/masterplan.json": "specs/masterplan.json",
+        "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
+        "specs/kubernetes-native-anti-patterns.json": "specs/kubernetes-native-anti-patterns.json",
+        "cloud/cell-lifecycle/manifest.json": "cloud/cell-lifecycle/manifest.json",
+        "BUCK": "BUCK",
+    },
+    out = "cloud-cell-elasticity-policy-check.json",
+    cmd = "mkdir -p $TMP/cloud-cell-elasticity-policy && rustc --edition=2024 -D warnings scripts/tests/cloud_cell_elasticity_policy_check.rs --test -o $TMP/cloud-cell-elasticity-policy/cloud_cell_elasticity_policy_check && OYA_REPO_ROOT=$PWD $TMP/cloud-cell-elasticity-policy/cloud_cell_elasticity_policy_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-cloud-cell-elasticity-policy.rs -o $TMP/cloud-cell-elasticity-policy/assert-cloud-cell-elasticity-policy && OYA_REPO_ROOT=$PWD $TMP/cloud-cell-elasticity-policy/assert-cloud-cell-elasticity-policy --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
 # P00 hyperscaler/cloud/Kubernetes-native anti-pattern guard. This is
 # local/static evidence: it validates the anti-pattern contract, generated
 # controller-config security defaults, and root/masterplan/hygiene pointers

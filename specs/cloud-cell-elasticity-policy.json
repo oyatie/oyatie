@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/cloud-cell-elasticity-policy.json",
+  "spec_id": "CLOUD-CELL-ELASTICITY-POLICY",
+  "status": "immediate_planning_contract",
+  "updated_at": "2026-06-05T03:28:00Z",
+  "purpose": "Source-backed policy for Oyatie cloud cells and Kubernetes pods: elasticity, auto-healing, auto-rebalancing, scale-to-zero, workload identity, and first-party desired-state authoring. This is local/static planning evidence only.",
+  "claim_boundary": {
+    "local_static_only": true,
+    "live_kubernetes_mutation_performed": false,
+    "provider_live_validation_performed": false,
+    "production_readiness_claimed": false,
+    "helm_migration_completed": false,
+    "cue_runtime_dependency_introduced": false
+  },
+  "configuration_authority": {
+    "first_party_desired_state": "cue",
+    "first_party_manifest_validation": "cue_constraints_plus_rust_buck2_policy_check",
+    "first_party_manifest_export": "cue_export_to_canonical_kubernetes_yaml_or_json_before_controller_admission",
+    "helm_role": "external_chart_or_temporary_compatibility_adapter_only",
+    "helm_adapter_only": true,
+    "first_party_helm_template_authority": false,
+    "kustomize_role": "optional low-level patch adapter after CUE export, never canonical policy composition authority",
+    "reasoning": [
+      "CUE gives typed unification, validation, and composable constraints for multi-cell, multi-tenant, multi-region overlays.",
+      "Helm is valuable as a package ecosystem and external chart adapter, but Go-template chart authoring is a weak canonical substrate for policy-heavy first-party cell contracts.",
+      "CUE-first lane-owned packages plus generated aggregates reduce shared YAML/Helm merge conflicts and make invalid states unrepresentable before Buck2/Prow admission."
+    ]
+  },
+  "official_sources": [
+    {
+      "url": "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+      "establishes": "CUE can import Kubernetes schemas, validate Kubernetes resource definitions, and export Kubernetes configuration."
+    },
+    {
+      "url": "https://cue.dev/docs/curated-module-kubernetes/",
+      "establishes": "CUE publishes curated Kubernetes modules for typed Kubernetes resource authoring."
+    },
+    {
+      "url": "https://helm.sh/docs/topics/charts/",
+      "establishes": "Helm charts package Kubernetes resources and remain useful as third-party ecosystem packages."
+    },
+    {
+      "url": "https://helm.sh/docs/chart_template_guide/",
+      "establishes": "Helm chart templates use a template language over Kubernetes manifests, so first-party policy-critical state needs an additional typed validation authority if Helm remains in the path."
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/horizontalpodautoscaler",
+      "establishes": "GKE HPA scales workload replicas horizontally from observed metrics."
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/verticalpodautoscaler",
+      "establishes": "GKE VPA recommends or applies CPU and memory request changes for right-sizing workloads."
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/cluster-autoscaler",
+      "establishes": "GKE cluster autoscaler adjusts node-pool capacity and is separate from pod replica autoscaling."
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/workload-identity",
+      "establishes": "GKE Workload Identity Federation binds Kubernetes ServiceAccounts to short-lived cloud identity instead of node credentials."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/best-practices/karpenter.html",
+      "establishes": "AWS recommends Karpenter-style node provisioning from pending pod demand as a scalable cluster capacity pattern."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+      "establishes": "AWS EKS documents Cluster Autoscaler patterns and tradeoffs for node-group scaling."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/best-practices/identity-and-access-management.html",
+      "establishes": "AWS EKS identity guidance covers pod identity, IRSA, and restricting pod access to instance metadata credentials."
+    },
+    {
+      "url": "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+      "establishes": "Shuffle sharding and cell isolation reduce blast radius and noisy-neighbor impact."
+    },
+    {
+      "url": "https://keda.sh/docs/2.18/concepts/scaling-deployments/",
+      "establishes": "KEDA supports event-driven Kubernetes workload scaling, including scale-to-zero patterns when trigger and replica policy permit it."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/autoscaling/",
+      "establishes": "Kubernetes autoscaling separates workload scaling, resource right-sizing, and cluster capacity scaling concerns."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+      "establishes": "Pods are ephemeral; controllers recreate or replace them rather than preserving pod identity."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/",
+      "establishes": "TTL-after-finished supports automatic cleanup for completed Jobs."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "establishes": "Restricted Pod Security is the baseline for least-privilege workload defaults."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "establishes": "NetworkPolicy provides Kubernetes-native pod traffic isolation."
+    },
+    {
+      "url": "https://architecture.cncf.io/",
+      "establishes": "Cloud Native Reference Architecture favors resilient, observable, loosely coupled, automated systems."
+    }
+  ],
+  "elasticity_patterns": [
+    {
+      "id": "hpa_vpa_metric_ownership",
+      "decision": "HPA owns replica count and VPA owns right-sizing. They must not fight over the same resource signal in auto mode; VPA starts recommend-only unless a workload-specific policy proves safe ownership boundaries.",
+      "applies_to": ["request_services", "async_workers", "controllers"],
+      "required_evidence": ["metric_owner", "slo_guard", "rollback_policy", "buck2_policy_check"]
+    },
+    {
+      "id": "node_autoscaler_adapter",
+      "decision": "Node autoscaling is capacity supply, not workload demand policy. The cloud-cell controller may adapt to Karpenter or Cluster Autoscaler patterns, but cell quotas and topology blast walls stay Oyatie-owned.",
+      "applies_to": ["cell_capacity", "ci_cd", "tenant_workloads"],
+      "required_evidence": ["cell_quota", "topology_policy", "provider_adapter", "cold_cache_probe"]
+    },
+    {
+      "id": "scale_to_zero_eligibility_gate",
+      "decision": "Scale-to-zero is valid for stateless, event-driven, preview/dev, batch, or async workloads with explicit trigger, idempotency, cold-start SLO, prewarm policy, and no tenant-critical synchronous path.",
+      "allowed_workload_classes": ["event_driven_worker", "batch_job", "preview_environment", "low_traffic_dev_tenant", "async_noncritical_service"],
+      "forbidden_workload_classes": ["stateful_store", "control_plane", "identity_plane", "security_plane", "ingress_gateway", "tenant_critical_sync_path"],
+      "required_evidence": ["trigger_source", "min_replica_policy", "cold_start_budget", "idempotency_key", "queue_backpressure", "rollback_policy"]
+    },
+    {
+      "id": "auto_healing_slo_guardrails",
+      "decision": "Pods are disposable. Auto-healing uses controllers, readiness/liveness/startup probes, TTL cleanup, node replacement, PDBs, topology spread, and SLO/error-budget guardrails rather than manual pod deletion.",
+      "applies_to": ["service_workloads", "ci_jobs", "controllers"],
+      "required_evidence": ["probe_policy", "pdb_or_exemption", "topology_spread", "owner_reference_or_ttl", "restart_eviction_metrics"]
+    },
+    {
+      "id": "cell_rebalance_capacity_solver",
+      "decision": "Cell rebalancing is a control-plane placement problem. Tenant moves require residency/compliance permits, capacity headroom, audit rows, rollback pointers, and rate limits before any migration executes.",
+      "applies_to": ["cloud_cells", "tenant_placement", "regional_capacity"],
+      "required_evidence": ["residency_check", "compliance_pack_check", "cedar_permit", "capacity_headroom", "rollback_pointer", "audit_event"]
+    },
+    {
+      "id": "workload_identity_metadata_lockdown",
+      "decision": "All cell workloads use short-lived workload identity, disabled default token mounting unless explicitly required, and blocked node metadata access unless a workload-specific exception is approved.",
+      "applies_to": ["cell_workloads", "ci_jobs", "controllers"],
+      "required_evidence": ["service_account_scope", "metadata_access_policy", "secret_source", "rotation_policy"]
+    },
+    {
+      "id": "cell_level_fairness_and_quota",
+      "decision": "Autoscaling must respect tenant, account, project, cell, and trust-tier quotas. High parallelism cannot starve control planes, security workloads, or product lanes.",
+      "applies_to": ["cloud_cells", "parallel_lanes", "tenant_workloads"],
+      "required_evidence": ["resource_quota", "priority_policy", "fairness_budget", "cost_guardrail", "api_priority_fairness"]
+    }
+  ],
+  "configuration_backlog": [
+    {
+      "id": "cue_first_cell_pod_config_authority",
+      "lane": "platform-cloud",
+      "action": "Move first-party cloud-cell and pod desired-state authoring to lane-owned CUE packages with generated Kubernetes manifests checked by Rust/Buck2.",
+      "conflict_mitigation": "Vertical lanes edit CUE packages or data shards; root manifests are generated artifacts."
+    },
+    {
+      "id": "helm_adapter_compatibility_wrapper",
+      "lane": "platform-cloud",
+      "action": "Keep Helm only for third-party charts or temporary compatibility wrappers generated from CUE-owned source where needed.",
+      "conflict_mitigation": "Helm templates are not hand-edited as first-party policy authority."
+    },
+    {
+      "id": "cue_generated_manifest_buck2_check",
+      "lane": "platform-governance",
+      "action": "Add Buck2 targets that validate CUE packages, exported Kubernetes manifests, and policy guardrails before Prow admission.",
+      "conflict_mitigation": "Generated outputs are reproducible and reviewed through diffable artifacts."
+    }
+  ],
+  "forbidden_anti_patterns": [
+    "first_party_helm_template_authority",
+    "hpa_vpa_same_metric_auto_fight",
+    "scale_stateful_or_control_plane_to_zero",
+    "blind_pod_delete_as_healing_strategy",
+    "node_metadata_credentials",
+    "autoscaling_without_quota_or_fairness",
+    "cell_rebalance_without_residency_permit_audit_or_rollback",
+    "pod_local_cache_as_correctness_state",
+    "cross_cell_hot_path_cache_or_artifact_io"
+  ],
+  "buck2_check": "buck2 build //:cloud-cell-elasticity-policy-check"
+}

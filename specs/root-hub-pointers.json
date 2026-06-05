@@ -1310,6 +1310,13 @@
       "migration_phase": "P00-anti-pattern-guard",
       "purpose": "Local/static guardrail for hyperscaler, cloud-native, and Kubernetes-native patterns. buck2 build //:kubernetes-native-anti-pattern-check validates controller reconciliation, trusted oya-ci-required ownership, Buck2 authority, restricted workload defaults, generated shared surfaces, provenance-backed artifacts, policy-as-code admission, quota/fair scheduling, lease-backed controller coordination, TTL cleanup, topology/PDB blast-wall controls, API fairness, RBAC/secret boundaries, progressive delivery, observability-first control loops, and shadow-only adapters without live Kubernetes or GitHub mutation."
     },
+    "cloud_cell_elasticity_policy": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-cell-elasticity-policy.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "P00-cloud-cell-elasticity",
+      "purpose": "Local/static source-backed cloud-cell and pod elasticity policy. buck2 build //:cloud-cell-elasticity-policy-check validates CUE-first desired-state authority, Helm adapter-only posture, HPA/VPA/node autoscaler boundaries, scale-to-zero eligibility, auto-healing guardrails, cell rebalancing permits, workload identity/metadata lockdown, and quota/fairness controls without live Kubernetes or cloud-provider mutation."
+    },
     "github_lane_unlocker_bridge": {
       "kind": "spec",
       "current_path": "/specs/github-lane-unlocker-bridge.json",
@@ -1393,6 +1400,7 @@
     "oya_ci_controller_config_contract": "specs/oya-ci-controller-config-contract.json",
     "oya_ci_controller_config_generated": "specs/generated/oya-ci-controller-config.generated.yaml",
     "kubernetes_native_anti_patterns": "specs/kubernetes-native-anti-patterns.json",
+    "cloud_cell_elasticity_policy": "specs/cloud-cell-elasticity-policy.json",
     "github_lane_unlocker_bridge": "specs/github-lane-unlocker-bridge.json",
     "repo_hygiene_automation": "specs/repo-hygiene-automation.json",
     "retired_external_substrate_registry": "specs/retired-external-substrate-registry.json"

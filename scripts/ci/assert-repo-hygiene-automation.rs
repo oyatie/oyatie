@@ -76,6 +76,8 @@ const PROWJOB_REGISTRY_COMMAND: &str = "buck2 build //:oya-ci-prowjob-registry-c
 const OYA_CI_CONTROLLER_CONFIG_COMMAND: &str = "buck2 build //:oya-ci-controller-config-check";
 const KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND: &str =
     "buck2 build //:kubernetes-native-anti-pattern-check";
+const CLOUD_CELL_ELASTICITY_POLICY_COMMAND: &str =
+    "buck2 build //:cloud-cell-elasticity-policy-check";
 const TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND: &str =
     "buck2 build //:latest-toolchain-pin-updater-check";
 const RETIRED_GROUPING_WORDING_COMMAND: &str = "buck2 build //:retired-grouping-wording-check";
@@ -106,6 +108,7 @@ const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     PROWJOB_REGISTRY_COMMAND,
     OYA_CI_CONTROLLER_CONFIG_COMMAND,
     KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
+    CLOUD_CELL_ELASTICITY_POLICY_COMMAND,
     TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND,
     RETIRED_GROUPING_WORDING_COMMAND,
     NO_GROUPING_KERNEL_CHECK_COMMAND,
@@ -124,6 +127,12 @@ const REQUIRED_SOURCE_URLS: &[&str] = &[
     "https://sapling-scm.com/docs/introduction/",
     "https://sapling-scm.com/docs/scale/overview/",
     "https://architecture.cncf.io/",
+    "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+    "https://helm.sh/docs/topics/charts/",
+    "https://cloud.google.com/kubernetes-engine/docs/concepts/horizontalpodautoscaler",
+    "https://cloud.google.com/kubernetes-engine/docs/concepts/verticalpodautoscaler",
+    "https://docs.aws.amazon.com/eks/latest/best-practices/karpenter.html",
+    "https://keda.sh/docs/2.18/concepts/scaling-deployments/",
     "https://kubernetes.io/docs/tasks/run-application/scale-deployment/",
     "https://www.nist.gov/publications/zero-trust-architecture",
     "https://csrc.nist.gov/pubs/sp/800/162/upd2/final",
@@ -346,6 +355,9 @@ const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "shared_ci_workflow_surface",
     "root_hub_masterplan_shared_docs",
     "shared_surface_substrate_migration_audit",
+    "cue_first_cell_pod_config_authority",
+    "helm_adapter_compatibility_wrapper",
+    "scale_to_zero_eligibility_gate",
     "stale_doc_inventory_followups",
     "retired_external_substrate_residue",
     "temporary_github_bridge_artifacts",
@@ -1255,6 +1267,7 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         "buck2 build //:repo-hygiene-automation-check",
         "buck2 build //:buck2-authority-policy-check",
         KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
+        CLOUD_CELL_ELASTICITY_POLICY_COMMAND,
     ] {
         require(
             contains_json_string(spec, tool_example),
