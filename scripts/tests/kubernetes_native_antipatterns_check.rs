@@ -77,6 +77,84 @@ fn contract_rejects_missing_cue_first_cell_pod_config_authority() {
 }
 
 #[test]
+fn desired_state_standard_rejects_helm_first_canonical_wording() {
+    let mut standard = read_repo_file("docs/standards/kubernetes-desired-state-authority.md");
+    standard.push_str("\n# Helm chart convention (canonical)\n");
+    let failures = gate::desired_state_authority_failures(
+        &standard,
+        &read_repo_file("docs/standards/helm-chart-convention.md"),
+        &read_repo_file("docs/README.md"),
+        &read_repo_file("docs/standards/INDEX.md"),
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("Helm chart convention (canonical)")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn desired_state_standard_rejects_missing_cue_first_source() {
+    let standard = read_repo_file("docs/standards/kubernetes-desired-state-authority.md").replace(
+        "CUE packages are the first-party source of truth",
+        "CUE packages",
+    );
+    let failures = gate::desired_state_authority_failures(
+        &standard,
+        &read_repo_file("docs/standards/helm-chart-convention.md"),
+        &read_repo_file("docs/README.md"),
+        &read_repo_file("docs/standards/INDEX.md"),
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("CUE packages are the first-party source of truth")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn helm_redirect_rejects_current_guidance() {
+    let mut redirect = read_repo_file("docs/standards/helm-chart-convention.md");
+    redirect.push_str("\nEvery µservice depends on a shared helper chart.\n");
+    let failures = gate::desired_state_authority_failures(
+        &read_repo_file("docs/standards/kubernetes-desired-state-authority.md"),
+        &redirect,
+        &read_repo_file("docs/README.md"),
+        &read_repo_file("docs/standards/INDEX.md"),
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("Every µservice depends on")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn docs_readme_rejects_active_helm_standard_pointer() {
+    let mut docs_readme = read_repo_file("docs/README.md");
+    docs_readme.push_str("\n[helm-chart-convention.md](standards/helm-chart-convention.md)\n");
+    let failures = gate::desired_state_authority_failures(
+        &read_repo_file("docs/standards/kubernetes-desired-state-authority.md"),
+        &read_repo_file("docs/standards/helm-chart-convention.md"),
+        &docs_readme,
+        &read_repo_file("docs/standards/INDEX.md"),
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("standards/helm-chart-convention.md")),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
 fn contract_rejects_missing_blind_pod_deletion_antipattern() {
     let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json").replace(
         "\"id\": \"blind_kubectl_delete_pods\"",
