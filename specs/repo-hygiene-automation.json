@@ -137,6 +137,7 @@
     "automation_targets": [
       "root markdown allowlist",
       "root hub pointer presence",
+      "root quick-start native authority scan",
       "masterplan native SCM naming and Buck2/Cargo authority scan",
       "doc catalog stale status",
       "ADR index regeneration backlog",
@@ -158,6 +159,12 @@
       "deployment-ops contract retired external substrate authority scan",
       "agent-durable-goal retired deployment authority scan"
     ],
+    "root_quick_start_native_authority_scan": {
+      "policy": "Root quick-start guidance must name native SCM/PR state transition, Buck2 evidence, and Prow/Kubernetes-native oya-ci-required authority without copyable retired local VCS/gate/verify CLI examples.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "root quick-start key/text guard only; historical ADR slugs and banned-primitive tombstones remain separate provenance surfaces"
+    },
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
         "oya/forms/runbooks",
@@ -850,6 +857,12 @@
       "lane": "council-architecture",
       "action": "Keep README/AGENTS/CLAUDE/root hub/masterplan pointer-thin and route lane details to machine-readable specs.",
       "conflict_mitigation": "Prefer refs and registries over prose expansion in root shared files."
+    },
+    {
+      "id": "stale_oya_vcs_admission_gate_kernel",
+      "lane": "platform-scm-ci-cd",
+      "action": "Retire or rewrite the historical Oya VCS admission-gate kernel into native SCM service/API, Git/GitHub adapter, Buck2 target, and Prow/Kubernetes-native oya-ci validation surfaces without reviving a local VCS CLI.",
+      "conflict_mitigation": "Own the stale crate and its Buck2 target in one lane; keep root quick-start and masterplan edits out of the code-surface retirement PR."
     },
     {
       "id": "shared_surface_substrate_migration_audit",

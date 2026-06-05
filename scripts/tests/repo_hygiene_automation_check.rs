@@ -245,10 +245,28 @@ fn active_foundry_shared_surface_rejects_retired_root_guidance() {
         "SaaS, Workspace, Vertical, Intelligence, Cloud",
         "SaaS, Workspace, Vertical, Foundry, Cloud",
     );
-    let root_hub = read_repo_file("specs/root-hub-pointers.json").replace(
-        "\"owner_team\": \"council-architecture + platform-governance\"",
-        "\"owner_team\": \"council-architecture + axis-foundry\"",
-    );
+    let root_hub = read_repo_file("specs/root-hub-pointers.json")
+        .replace(
+            "\"owner_team\": \"council-architecture + platform-governance\"",
+            "\"owner_team\": \"council-architecture + axis-foundry\"",
+        )
+        .replace(
+            "\"step_3_native_scm_pr_state_transition\"",
+            "\"step_3_oya_vcs_state_transition\"",
+        )
+        .replace(
+            "\"step_6_p00_live_direction\"",
+            "\"step_6_gitops_vcs_replacement\"",
+        )
+        .replace("retired local VCS CLI", "retired `oya vcs` CLI")
+        .replace(
+            "Do not create command-wrapper shortcuts around retired local VCS flows.",
+            "Do not use or recreate an `oya vcs` CLI.",
+        )
+        .replace(
+            "Retired local gate/verify CLI authority",
+            "Retired `oya gate` / `oya verify` CLI authority",
+        );
     let sequencing = read_repo_file("specs/master-plan-sequencing.json").replace(
         "\"owner_team\": \"council-architecture + platform-governance\"",
         "\"owner_team\": \"council-architecture + axis-foundry\"",
@@ -268,6 +286,10 @@ fn active_foundry_shared_surface_rejects_retired_root_guidance() {
     for expected in [
         "Vertical, Foundry, Cloud",
         "axis-foundry",
+        "step_3_oya_vcs_state_transition",
+        "step_6_gitops_vcs_replacement",
+        "retired `oya vcs` CLI",
+        "oya gate",
         "Foundry capabilities",
         "Foundry-consumed",
     ] {
