@@ -1117,7 +1117,7 @@ The Rust SDK reference is Rust 2024 edition. Good.
 RUST-STRICT VERDICT: PASS. Dim 9 finding F-DIM9-01 (P3, soft):
 the existing Makefile target referenced in onboarding (`make
 dev-cell.up CELL=tax-loopback-1 PROFILE=cloud-billing-tax-dev`)
-should bind to `cargo run --bin oya-dev-cli -- dev-cell up`
+should bind to a Buck2/Prow-backed dev-cell lifecycle capability rather than retired local dev-cli command authority
 per the Rust-strict canonical build invocation, with the Makefile
 serving as a thin convenience alias rather than logic.
 

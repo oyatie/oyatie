@@ -1267,3 +1267,38 @@ fn cell_lifecycle_authority_scan_rejects_retired_cli_and_helm_authority() {
 
     std::fs::remove_dir_all(root).ok();
 }
+
+#[test]
+fn cloud_billing_tax_authority_scan_rejects_retired_cli_and_helm_authority() {
+    let root = temp_dir("cloud-billing-tax-authority");
+    let ip_dir = root.join("cloud/cloud-billing-tax/IPs");
+    let helm_dir = root.join("cloud/cloud-billing-tax/iac/k8s/helm/templates");
+    std::fs::create_dir_all(&ip_dir).unwrap();
+    std::fs::create_dir_all(&helm_dir).unwrap();
+    std::fs::write(
+        ip_dir.join("stale.md"),
+        "Citation verification runs `cargo run -q -p oya-dev-cli -- gate validate adr-citation`.\n",
+    )
+    .unwrap();
+    std::fs::write(
+        helm_dir.join("deployment.yaml"),
+        "metadata:\n  labels:\n    app.kubernetes.io/managed-by: Helm\n",
+    )
+    .unwrap();
+
+    let failures = gate::cloud_billing_tax_authority_failures(&root);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("cargo run -q -p oya-dev-cli -- gate validate")),
+        "{failures:?}"
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("first-party Helm chart directory must not exist")),
+        "{failures:?}"
+    );
+
+    std::fs::remove_dir_all(root).ok();
+}
