@@ -297,10 +297,13 @@ genrule(
     name = "repo-hygiene-automation-check",
     srcs = {
         "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
+        "scripts/ci/assert-retired-grouping-wording.rs": "scripts/ci/assert-retired-grouping-wording.rs",
         "scripts/ci/github-actions-lane-unlocker-bootstrap.sh": "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
         "scripts/ci/sync-latest-toolchain-pins.rs": "scripts/ci/sync-latest-toolchain-pins.rs",
         "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
+        "scripts/tests/retired_grouping_wording_check.rs": "scripts/tests/retired_grouping_wording_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
+        "specs/tenant-rbac-packaging.json": "specs/tenant-rbac-packaging.json",
         "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
         "specs/root-hub-pointers.json": "specs/root-hub-pointers.json",
         "specs/github-lane-unlocker-bridge.json": "specs/github-lane-unlocker-bridge.json",
@@ -355,6 +358,23 @@ genrule(
     },
     out = "repo-hygiene-automation-check.json",
     cmd = "mkdir -p $TMP/repo-hygiene-automation && rustc --edition=2024 -D warnings scripts/ci/sync-latest-toolchain-pins.rs -o $TMP/repo-hygiene-automation/sync-latest-toolchain-pins && $TMP/repo-hygiene-automation/sync-latest-toolchain-pins --version > /dev/null && rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o $TMP/repo-hygiene-automation/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/repo_hygiene_automation_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o $TMP/repo-hygiene-automation/assert-repo-hygiene-automation && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-repo-hygiene-automation --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+# Retired grouping-wording check. This Rust/Buck2 target replaces the retired
+# shell+Python scanner and keeps tenant/RBAC packaging as a view over flat
+# services, not a product/suite/platform/module wrapper boundary.
+genrule(
+    name = "retired-grouping-wording-check",
+    srcs = {
+        "scripts/ci/assert-retired-grouping-wording.rs": "scripts/ci/assert-retired-grouping-wording.rs",
+        "scripts/tests/retired_grouping_wording_check.rs": "scripts/tests/retired_grouping_wording_check.rs",
+    },
+    out = "retired-grouping-wording-check.json",
+    cmd = "mkdir -p $TMP/retired-grouping-wording && rustc --edition=2024 -D warnings scripts/tests/retired_grouping_wording_check.rs --test -o $TMP/retired-grouping-wording/retired_grouping_wording_check && OYA_REPO_ROOT=$PWD $TMP/retired-grouping-wording/retired_grouping_wording_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-retired-grouping-wording.rs -o $TMP/retired-grouping-wording/assert-retired-grouping-wording && OYA_REPO_ROOT=$PWD $TMP/retired-grouping-wording/assert-retired-grouping-wording --root $PWD --json > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,

@@ -162,7 +162,7 @@
       "evidence": "/tmp/pr289-final-guards-20260529000752.log"
     },
     {
-      "command": "scripts/tests/reject-retired-grouping-wording.test.sh && scripts/reject-retired-grouping-wording.sh .",
+      "command": "retired grouping-wording shell gate (superseded by buck2 build //:retired-grouping-wording-check)",
       "status": "passed",
       "evidence": "/tmp/pr289-final-guards-20260529000752.log"
     },

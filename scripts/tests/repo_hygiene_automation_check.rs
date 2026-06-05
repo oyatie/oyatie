@@ -39,7 +39,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.domains_checked, 6);
     assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 28);
-    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 55);
+    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 53);
 }
 
 #[test]
@@ -122,6 +122,35 @@ fn spec_rejects_pnpm_or_typescript_as_repo_authority() {
 }
 
 #[test]
+fn tenant_rbac_packaging_rejects_retired_local_grouping_gates() {
+    let packaging = read_repo_file("specs/tenant-rbac-packaging.json")
+        .replace(
+            "\"buck2 build //:retired-grouping-wording-check\"",
+            &format!(
+                "\"{}\"",
+                ["scripts/", "reject-retired-grouping-wording.sh ."].concat()
+            ),
+        )
+        .replace(
+            "\"buck2 build //libs/oya-check-no-grouping:no-grouping-kernel-check\"",
+            &format!(
+                "\"{}\"",
+                ["cargo", " test -p oya-check-no-grouping"].concat()
+            ),
+        );
+    let failures = gate::tenant_rbac_packaging_failures(&packaging);
+    for expected in [
+        "retired shell grouping-wording gate",
+        "Buck2 no-grouping kernel check",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn typescript_pnpm_inventory_matches_checked_in_surface() {
     let inventory = read_repo_file("registry/repo-hygiene/typescript-pnpm-surface-inventory.json");
     let files = gate::tracked_typescript_pnpm_mjs_files(Path::new(&repo_root()))
@@ -177,7 +206,7 @@ fn python_shell_inventory_matches_checked_in_surface() {
     let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json");
     let files = gate::tracked_python_shell_files(Path::new(&repo_root()))
         .expect("Python/shell surface scan should run");
-    assert_eq!(files.len(), 55, "{files:?}");
+    assert_eq!(files.len(), 53, "{files:?}");
     let (_count, failures) =
         gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(failures.is_empty(), "{failures:?}");
