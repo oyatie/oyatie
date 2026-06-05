@@ -33,7 +33,7 @@ doc_status: published
 - Open sev1 if `oya_workplace_integration_clock_geofence_failure_cascade_total` exceeds the threshold documented in `microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
 - Open sev1 if `oya_workplace_integration_clock_in_geofence_failure_cascade_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `workplace-integration.clock-in-geofence-failure-cascade.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workplace-integration-clock-in-geofence-failure-cascade --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when the trusted Rust/Prow `oya-ci-required` controller reports a non-zero production-snapshot validation for `workplace-integration-clock-in-geofence-failure-cascade` against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/clock-in-geofence-failure-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/workplace-integration/dashboards/audit-evidence.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/clock-in-geofence-failure-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/workplace-integration/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workplace-integration",runbook="clock-in-geofence-failure-cascade"}`.
@@ -85,7 +85,7 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workplace-integration-ops/clock-in-geofence-failure-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKPLACE_INTEGRATION_CLOCK_IN_GEOFENCE_FAILURE_CASCADE_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops workplace-integration clock-in-geofence-failure-cascade status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate workplace-integration-clock-in-geofence-failure-cascade --production-snapshot --cell $CELL`.
+15. Confirm production-snapshot evidence for `workplace-integration-clock-in-geofence-failure-cascade` in `$CELL` through the trusted Rust/Prow `oya-ci-required` controller and attach the Buck2 artifact reference.
 16. Run crate smoke test: `cargo test -p WorkplaceAgreement domain clock_in_geofence_failure_cascade -- --nocapture`.
 17. Check API contract smoke: `curl -s https://workplace-integration.internal.oyatie.dev/v1/workplace-integration/clock-in-geofence-failure-cascade/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/workplace-integration/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/workplace-integration/iac/kustomize/base/kustomization.yaml`.
@@ -167,12 +167,12 @@ Clock In Geofence Failure Cascade incident decision tree
 4. Patch policy: `edit microservices/workplace-integration/policies/esign-initiate.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/workplace-integration/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p WorkplaceAgreement domain clock_in_geofence_failure_cascade_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate workplace-integration-clock-in-geofence-failure-cascade --fixture incident-clock-in-geofence-failure-cascade.json`.
+7. Attach Buck2/Prow fixture evidence for `workplace-integration-clock-in-geofence-failure-cascade` using `incident-clock-in-geofence-failure-cascade.json` in the `oya-ci-required` evidence bundle.
 8. Add SLO assertion: `update microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml with alert ClockInGeofenceFailureCascadeCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/workplace-integration/dashboards/audit-evidence.json with oya_workplace_integration_clock_in_geofence_failure_cascade_error_ratio, oya_workplace_integration_clock_in_geofence_failure_cascade_lag_seconds, and oya_workplace_integration_clock_geofence_failure_cascade_total`.
 10. Rebuild affected crate: `cargo check -p WorkplaceAgreement domain --all-targets`.
 11. Run targeted tests: `cargo test -p WorkplaceAgreement domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate workplace-integration-policy --microservice workplace-integration`.
+12. Confirm the `workplace-integration-policy` Buck2/Prow check is included in the `oya-ci-required` evidence bundle for `workplace-integration`.
 13. Deploy canary: `oya deploy canary --microservice workplace-integration --component workplace-integration-clock-in-geofence-failure-cascade-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_workplace_integration_clock_in_geofence_failure_cascade_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close workplace-integration-clock-in-geofence-failure-cascade-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
@@ -310,4 +310,4 @@ evidence_hash: <sha256>
 ## Checkpoint Closure Criteria
 - The runbook remains current when `ClockInGeofenceFailureCascadeCritical`, `ClockInGeofenceFailureCascadeSloBurn`, `oya_workplace_integration_clock_geofence_failure_cascade_total`, `oya.workplace-integration.clock_in_geofence_failure_cascade.incident_hold`, and `workplace-integration-clock-in-geofence-failure-cascade-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when the PR carries Buck2 evidence and the trusted Rust/Prow `oya-ci-required` context is green for the target runbook scopes.

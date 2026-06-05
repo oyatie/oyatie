@@ -14,7 +14,9 @@ joining the `oya-workplace-integration-*` lane.
 
 Clone:
 ```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-workplace-week1 .worktrees/$USER-workplace-week1
+git fetch github-mirror dev
+git worktree add /tmp/oyatie-lane-$USER-workplace-week1 -b onboarding/$USER-workplace-week1 github-mirror/dev
+cd /tmp/oyatie-lane-$USER-workplace-week1
 ```
 
 ## Day 2 — walk an employee lifecycle
@@ -92,12 +94,9 @@ impl StatePayrollRule for CaliforniaPayroll2026 {
 }
 ```
 
-Hermetic tests against IRS+FTB reference scenarios:
-```bash
-cargo test -p oya-workplace-integration-payroll-us-states-ca
-```
+Hermetic tests against IRS+FTB reference scenarios are owned by Buck2 targets; run the narrow service target once it is registered, then let the trusted Rust/Prow `oya-ci-required` controller publish required evidence. Do not use retired Cargo-only loops as merge authority.
 
-## Day 5 — ship through Foundry
+## Day 5 — ship through the GitHub adapter lane
 
 ```bash
 git fetch github-mirror dev
@@ -113,7 +112,7 @@ Open the PR through the temporary GitHub adapter. Merge readiness comes from Buc
 
 - [ ] You walked a full hire → e-sign → onboard cycle end-to-end.
 - [ ] You can name the 4 e-sign levels (eIDAS simple/advanced/qualified, ESIGN Act, FDA 21 CFR Part 11).
-- [ ] You shipped a state-payroll rule through Foundry.
+- [ ] You shipped a state-payroll rule through the GitHub adapter lane with Buck2 evidence and `oya-ci-required` green.
 - [ ] You read ADR-0221 + relevant US/EU/KR regulatory references.
 - [ ] You traced a clock-in event through the audit chain.
 
