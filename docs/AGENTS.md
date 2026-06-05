@@ -93,7 +93,7 @@ Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence f
 
 This applies to **agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at PR-open / gate-run time. Plain `git` + PR + Buck2 evidence + the Prow/Kubernetes-native `oya-ci-required` context is the canonical path; ADR-0363 records the retired bespoke ratchet. It is re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registry/fixuptasks.jsonl`](..//registry/fixuptasks.jsonl) for the bounded-deferral registry.
 
-This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
+This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, intelligence/governance capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
 
 Before changing this repo, read `/specs/root-hub-pointers.json` first, then this contract. The retired Constitution concept is redistributed through the root hub, master-plan specs, RACI ownership, and sanctioned-primitive specs.
 
@@ -275,7 +275,7 @@ If any box is unchecked, the change is not complete. Loop back; do not declare s
 | `infra/`, `scripts/`, `registry/` | Supporting implementation and governance tree; `registry/catalog/` is the live crate catalog. |
 | `modules/`, `services/`, `platform/`, repo-root `bin/` | Retired legacy implementation roots/wrappers; do not recreate. |
 | `tools/` | Retained only for registered Rust/Buck2 tool apps, vendored `tools/agent-skills/`, and temporary hook/bootstrap shims under migration. Rust is the default; TypeScript is allowed only as a strict-typed, pinned, Buck2-governed tooling exception when Rust is a poor fit. No ad-hoc Python/shell/Node or pnpm authority. |
-| `registry/capability-templates/` | Capability records + metering events (Foundry-consumed). |
+| `registry/capability-templates/` | Capability records + metering events consumed by capability runtimes. |
 | `contracts/` | Per-cross-axis contract spec files (OpenAPI, Protobuf, AsyncAPI). |
 | Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`) | Redirect-class discovery files. Non-authoritative. ≤25 lines each. Lane: `oya-governance-redirect-thinness`. |
 

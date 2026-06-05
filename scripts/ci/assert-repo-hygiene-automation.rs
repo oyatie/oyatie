@@ -1373,6 +1373,69 @@ pub fn retired_compatibility_catalog_failures(
     failures
 }
 
+pub fn active_foundry_shared_surface_failures(
+    readme: &str,
+    root_hub: &str,
+    sequencing: &str,
+    doc_agents: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for (label, text, required) in [
+        (
+            README_PATH,
+            readme,
+            "SaaS, Workspace, Vertical, Intelligence, Cloud",
+        ),
+        (
+            ROOT_HUB_PATH,
+            root_hub,
+            "\"owner_team\": \"council-architecture + platform-governance\"",
+        ),
+        (
+            SEQUENCING_PATH,
+            sequencing,
+            "\"owner_team\": \"council-architecture + platform-governance\"",
+        ),
+        (
+            DOC_AGENTS_PATH,
+            doc_agents,
+            "intelligence/governance capabilities",
+        ),
+        (
+            DOC_AGENTS_PATH,
+            doc_agents,
+            "Capability records + metering events consumed by capability runtimes.",
+        ),
+    ] {
+        require_contains(text, required, &mut failures, label);
+    }
+
+    for (label, text, forbidden) in [
+        (
+            README_PATH,
+            readme,
+            "SaaS, Workspace, Vertical, Foundry, Cloud",
+        ),
+        (
+            ROOT_HUB_PATH,
+            root_hub,
+            "\"owner_team\": \"council-architecture + axis-foundry\"",
+        ),
+        (
+            SEQUENCING_PATH,
+            sequencing,
+            "\"owner_team\": \"council-architecture + axis-foundry\"",
+        ),
+        (DOC_AGENTS_PATH, doc_agents, "Foundry capabilities"),
+        (DOC_AGENTS_PATH, doc_agents, "Foundry-consumed"),
+    ] {
+        require_absent(text, forbidden, &mut failures, label);
+    }
+
+    failures
+}
+
 pub fn spec_failures(spec: &str) -> Vec<String> {
     let mut failures = Vec::new();
 
@@ -1929,6 +1992,12 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(retired_compatibility_catalog_failures(
         &gate_catalog_domain,
         &quality_lane_kernel,
+    ));
+    failures.extend(active_foundry_shared_surface_failures(
+        &readme,
+        &root_hub,
+        &sequencing,
+        &doc_agents,
     ));
     failures.extend(tenant_rbac_packaging_failures(&tenant_rbac_packaging));
     failures.extend(rust_toolchain_policy_failures(
