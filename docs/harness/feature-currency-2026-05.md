@@ -96,11 +96,11 @@ The current event list is much larger than the 5 oyatie wires: `SessionStart`,
   `filesystem.denyRead`/`denyWrite` + `network.allowedDomains`; `permissions.deny`
   mirroring credential reads + `Bash(docker *)`; `disableBypassPermissionsMode:
   "disable"`. Current hook authority is `specs/agent-hook-runtime-manifest.json`;
-  the active Codex/Gemini project hooks are `SessionStart`, `Stop`, `PreToolUse`
+  the active Codex/Gemini project hooks are `SessionStart`, `PreToolUse`
   (Bash only), and `PostToolUse` (Edit|MultiEdit|Write, Bash|WebFetch|WebSearch).
-- `.codex/hooks.json`: same 4-event wiring; PascalCase keys; matches the current
+- `.codex/hooks.json`: same 3-event wiring; PascalCase keys; matches the current
   Codex schema exactly.
-- `tools/hooks/`: 7 active advisory shell hooks. `tools/hook-bootstrap/install.sh`
+- `tools/hooks/`: 6 active advisory shell hooks. `tools/hook-bootstrap/install.sh`
   renders checked-in Codex/Gemini configs; `specs/agent-hook-runtime-manifest.json`
   is the hook set/source-of-truth; `docs/security.md` documents the model.
 
