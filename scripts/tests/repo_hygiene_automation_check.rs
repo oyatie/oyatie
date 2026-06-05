@@ -1227,7 +1227,12 @@ fn retired_active_ci_substrate_paths_are_rejected() {
         "infra/ci/argocd",
         "infra/cilium/cell-boundaries",
         "infra/forge",
+        "infra/kyverno/oya-vcs-admission",
+        "oya/intelligence/crates/oya-vcs-admission-gate-kernel",
+        "oya/intelligence/crates/oya-vcs-provider-execution-gate-kernel",
         "oya/developer-sdk/crates/oya-dev-cli",
+        "tools/oya-vcs-admission-gate-app",
+        "tools/oya-vcs-provider-execution-gate-app",
     ] {
         fs::create_dir_all(root.join(rel)).unwrap_or_else(|error| {
             panic!("create retired active path fixture {}: {}", rel, error);
@@ -1238,6 +1243,10 @@ fn retired_active_ci_substrate_paths_are_rejected() {
         "infra/cilium/cell-boundaries/oya-ci-jenkins-ingress.netpol.yaml",
         "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
         "infra/forge/jenkins-forgejo-token.secret.template.yaml",
+        "registry/catalog/oya-vcs-admission-gate-app.yaml",
+        "registry/catalog/oya-vcs-admission-gate-kernel.yaml",
+        "registry/catalog/oya-vcs-provider-execution-gate-app.yaml",
+        "registry/catalog/oya-vcs-provider-execution-gate-kernel.yaml",
         "scripts/ci/arm-auto-merge.sh",
         "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
         "docs/ci/forge-of-record.md",
@@ -1257,7 +1266,7 @@ fn retired_active_ci_substrate_paths_are_rejected() {
     }
     let failures = gate::retired_active_path_failures(&root);
     let _ = fs::remove_dir_all(&root);
-    assert_eq!(failures.len(), 11, "{:?}", failures);
+    assert_eq!(failures.len(), 20, "{:?}", failures);
     assert!(
         failures
             .iter()
