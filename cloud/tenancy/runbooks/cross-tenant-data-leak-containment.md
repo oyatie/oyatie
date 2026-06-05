@@ -31,7 +31,7 @@ doc_status: published
 - Open a sev0 if `oya_tenancy_cross_tenant_data_leak_containment_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
 - Open a sev1 if `oya_tenancy_cross_tenant_data_leak_containment_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `tenancy.cross-tenant-data-leak-containment.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate tenancy-cross-tenant-data-leak-containment --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from Prow when `Buck2/Prow native gate evidence for tenancy-cross-tenant-data-leak-containment --production-snapshot` is non-green against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/tenancy-substrate/cross-tenant-data-leak-containment?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/tenancy-substrate/cross-tenant-data-leak-containment?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=216`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="tenancy",runbook="cross-tenant-data-leak-containment"}`.
@@ -67,8 +67,8 @@ doc_status: published
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/tenancy-substrate/cross-tenant-data-leak-containment?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=216&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-TENANCY-CROSS_TENANT_DATA_LEAK_CONTAINMENT-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops tenancy cross-tenant-data-leak-containment status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate tenancy-cross-tenant-data-leak-containment --production-snapshot --cell $CELL`.
-15. Check Cargo owner crate: `cargo test -p oya-tenancy-domain cross_tenant_data_leak_containment -- --nocapture`.
+14. Verify production snapshot evidence through Prow/Buck2: `Buck2/Prow native gate evidence for tenancy-cross-tenant-data-leak-containment --production-snapshot --cell $CELL`.
+15. Check Buck2 owner target: `Buck2/Prow targeted test evidence for oya-tenancy-domain cross_tenant_data_leak_containment -- --nocapture`.
 16. Check API contract smoke: `curl -s https://tenancy.internal.oyatie.dev/v1/tenancy/cross-tenant-data-leak-containment/incident-handoff -H "x-oya-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n tenancy get configmap tenancy-cross-tenant-data-leak-containment-config -o yaml`.
 18. Inspect feature flags: `oya flags get oya.tenancy.cross_tenant_data_leak_containment.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
@@ -108,7 +108,7 @@ Cross Tenant Data Leak Containment incident decision tree
 4. Enable circuit breaker: `oya ops breaker open tenancy-cross-tenant-data-leak-containment-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
 5. Reduce blast radius: `kubectl -n tenancy scale deploy/tenancy-cross-tenant-data-leak-containment-worker --replicas=1`.
 6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason tenancy-cross-tenant-data-leak-containment --ttl 60m`.
-7. Pause promotion: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+7. Pause promotion: incident hold PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 8. Drain queue safely: `oya ops tenancy cross-tenant-data-leak-containment drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
 9. Execute bounded drain: `oya ops tenancy cross-tenant-data-leak-containment drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
 10. Replay missing audit events: `oya audit-chain replay --event-class EVT-TENANCY-CROSS_TENANT_DATA_LEAK_CONTAINMENT-INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
@@ -147,18 +147,18 @@ Cross Tenant Data Leak Containment incident decision tree
 3. Patch API guard: `edit microservices/tenancy/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/tenancy/policy/rls-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/tenancy/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
-6. Add regression test: `cargo test -p oya-tenancy-domain cross_tenant_data_leak_containment_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate tenancy-cross-tenant-data-leak-containment --fixture incident-cross-tenant-data-leak-containment.json`.
+6. Add regression test: `Buck2/Prow targeted test evidence for oya-tenancy-domain cross_tenant_data_leak_containment_incident_regression -- --nocapture`.
+7. Attach Buck2/Prow fixture evidence: `Buck2/Prow native gate evidence for tenancy-cross-tenant-data-leak-containment --fixture incident-cross-tenant-data-leak-containment.json`.
 8. Add SLO assertion: `update microservices/tenancy/slos/* with alert TenancyCrossTenantDataLeakContainmentCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/tenancy/dashboards/cell-utilization.json with oya_tenancy_cross_tenant_data_leak_containment_error_ratio, oya_tenancy_cross_tenant_data_leak_containment_lag_seconds, and oya_tenancy_cross_tenant_data_leak_containment_queue_depth`.
-10. Rebuild affected crate: `cargo check -p oya-tenancy-domain --all-targets`.
-11. Run targeted tests: `cargo test -p oya-tenancy-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate tenancy-policy --microservice tenancy`.
+10. Rebuild affected crate: `Buck2/Prow check evidence for oya-tenancy-domain --all-targets`.
+11. Run targeted tests: `Buck2/Prow targeted test evidence for oya-tenancy-domain --all-features`.
+12. Attach policy validation evidence through Buck2/Prow: `Buck2/Prow native gate evidence for tenancy-policy --microservice tenancy`.
 13. Deploy canary: `oya deploy canary --microservice tenancy --component cross-tenant-data-leak-containment-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_tenancy_cross_tenant_data_leak_containment_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close tenancy-cross-tenant-data-leak-containment-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.tenancy.cross_tenant_data_leak_containment.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+17. Resume promotion: recovery PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 18. Seal resolution audit: `oya audit-chain emit --event-class EVT-TENANCY-CROSS_TENANT_DATA_LEAK_CONTAINMENT-INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=cross-tenant-data-leak-containment`.
 19. Verify seal: `oya audit-chain verify --event-class EVT-TENANCY-CROSS_TENANT_DATA_LEAK_CONTAINMENT-INCIDENT --incident $INCIDENT_ID`.
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.

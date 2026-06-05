@@ -365,7 +365,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: tenant data rows
 - Likelihood: L / Impact: H (catastrophic; **simultaneous breach of every tenant**) / Risk: **H (CRITICAL)**
 - Mitigations:
-  - LEAN check `oya-governance-rls-no-superuser-bypass` (NEW; PR-time): refuses any code that connects as a superuser to a tenant-bound database OR sets `bypass_rls=true` on a connection. The check uses `cargo-deny` advisory + AST-grep patterns for `SET ROLE postgres`, `SET LOCAL row_security = off`, and direct `bypassrls`-flagged connections.
+  - LEAN check `oya-governance-rls-no-superuser-bypass` (NEW; PR-time): refuses any code that connects as a superuser to a tenant-bound database OR sets `bypass_rls=true` on a connection. The check uses `buck2-dependency-policy` advisory + AST-grep patterns for `SET ROLE postgres`, `SET LOCAL row_security = off`, and direct `bypassrls`-flagged connections.
   - Postgres role design: app role (`tenancy_app`) has no `bypassrls`; only `tenancy-admin-jit` role can, and JIT issuance requires 2-person rule + audit-chain seal.
   - Continuous-compliance scan: weekly Postgres role-attribute audit; any role with `bypassrls=true` in non-JIT state triggers Sev-1.
   - Pen-test: attempt to read cross-tenant rows via every code path; should fail.

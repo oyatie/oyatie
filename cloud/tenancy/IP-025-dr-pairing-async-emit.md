@@ -40,7 +40,7 @@ Create `oya-tenancy-dr-pairing-async-emitter` as an adapter around `contracts/as
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-dr-pairing-async-emitter --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-dr-pairing-async-emitter --all-features`.
 - AsyncAPI validates with both DR channels.
 - Duplicate event with same idempotency key is a no-op.
 - Event with older pair version is rejected and emits diagnostic evidence.

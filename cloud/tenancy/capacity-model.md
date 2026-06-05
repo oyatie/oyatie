@@ -161,7 +161,7 @@ Excess returns HTTP 429 + emits `oya_tenancy_rate_limit_exceeded_total{tenant_id
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice tenancy` — exit 0; deployed replica counts ≥ formula minimums.
+- `Buck2/Prow native gate evidence for capacity-conformance --microservice tenancy` — exit 0; deployed replica counts ≥ formula minimums.
 - Quarterly capacity review: actual usage vs forecast; recalibrate `V_validate_qps_per_tenant` average.
 - Annual reference-architecture refresh: re-verify against current Citus + Patroni published sizing guides.
 

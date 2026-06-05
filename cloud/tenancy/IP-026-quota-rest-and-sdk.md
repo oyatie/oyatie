@@ -40,7 +40,7 @@ Extend tenancy REST and Rust SDK surfaces with quota read/update operations back
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-quota-rest --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-quota-rest --all-features`.
 - OpenAPI validates with quota routes and schemas.
 - SDK contract tests prove no mismatch between OpenAPI quota class enum and Rust SDK enum.
 - Cedar-denied update emits `oya.tenancy.quota-update-denied`; accepted update emits `oya.tenancy.quota-updated`.

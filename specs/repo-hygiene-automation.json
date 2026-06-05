@@ -146,7 +146,8 @@
       "product-operation runbook retired CLI/bridge authority scan",
       "Forms/Sheets product-operation doc retired authority scan",
       "Intelligence markdown retired local dev CLI scan",
-      "governance markdown retired local dev CLI and external substrate scan"
+      "governance markdown retired local dev CLI and external substrate scan",
+      "cloud-tenancy retired CLI/Cargo/external CI authority scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -252,6 +253,13 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental Governance clean-file guard only; remaining Governance plain oya-command docs and historical ADR provenance are separate backlog slices"
+    },
+    "cloud_tenancy_authority_scan": {
+      "scan_root": "cloud/tenancy",
+      "policy": "Cleaned cloud/tenancy docs use Buck2/Prow `oya-ci-required` evidence, tenancy control-plane operation wording, CUE/KRM desired-state direction, and native release-conveyor seams. Cargo manifests remain compatibility metadata only; retired local dev CLI/gate/vcs/verify/submit/doc/lint authority and retired external CI/CD bridge authority must not appear in active tenancy guidance.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental cloud/tenancy markdown/yaml/json authority guard only; first-party Helm-to-CUE migration and remaining historical ADR cleanup are separate backlog slices"
     },
     "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
     "stale_doc_inventory": {

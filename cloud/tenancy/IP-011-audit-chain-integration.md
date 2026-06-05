@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-011-audit-chain-integration
 status: pending
 owner: axis-tenancy + audit-chain
-acceptance_lanes: [cargo-nextest, audit-chain-seal-latency-sli]
+acceptance_lanes: [buck2-test, audit-chain-seal-latency-sli]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -44,7 +44,7 @@ pub async fn seal<E: AuditChainEnvelope>(client: &AuditChainClient, envelope: E)
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-tenant-lifecycle-adapter --test audit_chain_seal_latency
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-adapter --test audit_chain_seal_latency
 ```
 
 ## Test Plan

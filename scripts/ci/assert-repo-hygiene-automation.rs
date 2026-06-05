@@ -941,8 +941,42 @@ const GOVERNANCE_DOC_RETIRED_DEV_CLI_PHRASES: &[&str] = &[
     "./bin/oya verify",
     "Jenkins",
     "jenkins",
+    "JCasC",
     "ArgoCD",
     "argocd",
+];
+const CLOUD_TENANCY_STALE_AUTHORITY_PHRASES: &[&str] = &[
+    "cargo run -p oya-dev-cli",
+    "cargo run -q -p oya-dev-cli",
+    "oya-dev-cli",
+    "crates/oya-dev-cli",
+    "cargo nextest",
+    "cargo check -p",
+    "cargo build -p",
+    "cargo test -p",
+    "cargo clippy",
+    "cargo deny",
+    "cargo run --release",
+    "RUSTC_WRAPPER= cargo test",
+    "oya gate validate",
+    "oya gate run-all",
+    "oya vcs",
+    "oya verify --ci-required",
+    "./bin/oya verify",
+    "oya submit",
+    "oya doc adr-index",
+    "oya lint adr-shape",
+    "Jenkins",
+    "jenkins",
+    "JCasC",
+    "ArgoCD",
+    "argocd",
+    "ADR-0349-native-release-conveyor-self-hostable",
+    "native native oya-ci",
+    "MUST locally mirror the Buck2/Prow merge matrix",
+    "oya-governance-oya-verify",
+    "oya-governance-oya-submit",
+    "verify.rs",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2284,6 +2318,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the Governance retired local dev CLI clean-file guard",
         ),
         (
+            "\"cloud_tenancy_authority_scan\"",
+            "documentation sprawl policy must record the cloud/tenancy retired CLI, Cargo-as-authority, and external CI/CD substrate guard",
+        ),
+        (
+            "\"cloud-tenancy retired CLI/Cargo/external CI authority scan\"",
+            "documentation sprawl automation targets must include cloud-tenancy authority scan",
+        ),
+        (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
             "product-operation runbook guard must state its incremental clean-path boundary",
         ),
@@ -2854,6 +2896,39 @@ pub fn governance_doc_retired_dev_cli_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn cloud_tenancy_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let mut files = Vec::new();
+
+    if let Err(error) =
+        collect_markdown_yaml_json_files(root, Path::new("cloud/tenancy"), &mut files)
+    {
+        failures.push(format!("cloud-tenancy authority scan failed: {error}"));
+    }
+    files.sort();
+    files.dedup();
+
+    for rel in files {
+        let path = root.join(&rel);
+        let text = match fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{rel}: read failed: {error}"));
+                continue;
+            }
+        };
+        for phrase in CLOUD_TENANCY_STALE_AUTHORITY_PHRASES {
+            if text.contains(phrase) {
+                failures.push(format!(
+                    "{rel}: cloud-tenancy doc contains retired local dev CLI, Cargo-as-authority, or external CI/CD substrate phrase {phrase:?}; use Buck2/Prow `oya-ci-required`, tenancy control-plane operation wording, CUE/KRM desired-state direction, and native release-conveyor seams"
+                ));
+            }
+        }
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -2956,6 +3031,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(product_operation_doc_retired_authority_failures(root));
     failures.extend(intelligence_doc_retired_dev_cli_failures(root));
     failures.extend(governance_doc_retired_dev_cli_failures(root));
+    failures.extend(cloud_tenancy_authority_failures(root));
     let (tracked_typescript_pnpm_mjs_count, typescript_pnpm_surface_failures) =
         typescript_pnpm_surface_failures(root, &typescript_pnpm_inventory);
     failures.extend(typescript_pnpm_surface_failures);

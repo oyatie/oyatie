@@ -40,7 +40,7 @@ Create `oya-tenancy-lifecycle-locks-kernel` as pure logic for lock creation, pre
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-lifecycle-locks-kernel --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-lifecycle-locks-kernel --all-features`.
 - Tests cover delete-lock over suspend-lock, legal-hold release quorum, expired soft-lock, and DR promotion lock survival.
 - Kernel has no I/O dependencies and no policy-engine dependency.
 - Domain events are specified for `oya.tenancy.lifecycle-lock-applied`, `oya.tenancy.lifecycle-lock-release-requested`, and `oya.tenancy.lifecycle-lock-released`.

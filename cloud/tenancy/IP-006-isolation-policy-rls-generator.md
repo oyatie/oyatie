@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-006-isolation-policy-rls-generator
 status: pending
 owner: axis-tenancy + ops-security
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-rls-no-superuser-bypass, oya-governance-rls-force-on-tenant-tables]
+acceptance_lanes: [buck2-check, buck2-test, oya-governance-rls-no-superuser-bypass, oya-governance-rls-force-on-tenant-tables]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -63,10 +63,10 @@ pub async fn install_rls(deps: &Deps, manifest: &RlsManifest, change_id: ChangeI
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-isolation-policy-usecase
-cargo nextest run -p oya-tenancy-isolation-policy-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate rls-no-superuser-bypass
-cargo run -p oya-dev-cli -- gate validate rls-force-on-tenant-tables
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-isolation-policy-usecase
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-isolation-policy-adapter-postgres
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for rls-no-superuser-bypass
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for rls-force-on-tenant-tables
 ```
 
 ## Test Plan

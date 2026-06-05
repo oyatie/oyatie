@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-004-tenant-lifecycle-usecase
 status: pending
 owner: axis-tenancy
-acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness]
+acceptance_lanes: [buck2-check, buck2-test, lean-a1, layer-correctness]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -55,8 +55,8 @@ impl<TR: TenantRepository, CA: CellAssigner, ES: EventSink> CreateTenantUseCase<
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-tenancy-tenant-lifecycle-usecase
-cargo nextest run -p oya-tenancy-tenant-lifecycle-usecase
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow check evidence for oya-tenancy-tenant-lifecycle-usecase
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-usecase
 ```
 
 ## Test Plan

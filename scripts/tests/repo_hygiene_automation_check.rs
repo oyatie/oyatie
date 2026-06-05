@@ -1094,6 +1094,55 @@ fn governance_docs_reject_retired_local_dev_cli_and_external_substrates() {
 }
 
 #[test]
+fn cloud_tenancy_authority_scan_rejects_retired_cli_cargo_and_external_ci() {
+    let root = temp_dir("cloud-tenancy-authority");
+    let runbook_dir = root.join("cloud/tenancy/runbooks");
+    fs::create_dir_all(&runbook_dir).unwrap_or_else(|error| {
+        panic!(
+            "create cloud tenancy runbook fixture {}: {}",
+            runbook_dir.display(),
+            error
+        );
+    });
+    fs::write(
+        runbook_dir.join("stale.md"),
+        "Production validation still says cargo run -p oya-dev-cli, cargo nextest, \
+         oya gate validate, oya vcs, oya verify --ci-required, Jenkins, JCasC, ArgoCD, \
+         native native oya-ci, and verify.rs.\n",
+    )
+    .unwrap();
+    fs::write(
+        runbook_dir.join("clean.md"),
+        "Buck2/Prow `oya-ci-required` evidence, tenancy control-plane operations, \
+         CUE/KRM desired state, and native release-conveyor seams are active.\n",
+    )
+    .unwrap();
+
+    let failures = gate::cloud_tenancy_authority_failures(&root);
+    for expected in [
+        "cargo run -p oya-dev-cli",
+        "cargo nextest",
+        "oya gate validate",
+        "oya vcs",
+        "oya verify --ci-required",
+        "Jenkins",
+        "JCasC",
+        "ArgoCD",
+        "native native oya-ci",
+        "verify.rs",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+    assert!(
+        failures.iter().all(|failure| !failure.contains("clean.md")),
+        "{failures:?}"
+    );
+}
+
+#[test]
 fn active_template_phrase_scanner_rejects_retired_shared_template_commands() {
     let failures = gate::active_template_phrase_failures(
         "templates/pull-request-template.md",

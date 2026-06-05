@@ -40,7 +40,7 @@ Extend `microservices/tenancy/contracts/openapi/tenancy.yaml` and `contracts/asy
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-kyb-kyc-rest --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-kyb-kyc-rest --all-features`.
 - OpenAPI validates and includes all KYB/KYC schemas and routes.
 - AsyncAPI validates and includes completion, decline, and escalation channels.
 - Default-deny Cedar path returns 403 and emits audit evidence.

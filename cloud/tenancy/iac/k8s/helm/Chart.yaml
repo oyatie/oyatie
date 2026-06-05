@@ -7,5 +7,5 @@ appVersion: "0.1.0"
 annotations:
   oyatie.com/adr-0181: signed-image-promotion-required
   oyatie.com/adr-0254: kubernetes-everywhere
-  oyatie.com/adr-0349: argocd-application-source
+  oyatie.com/adr-0349: native-release-conveyor-application-source
   oyatie.com/license-class: internal

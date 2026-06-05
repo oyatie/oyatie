@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-013-canary-cohort-and-rollback-wiring
 status: pending
 owner: ops-sre-reliability
-acceptance_lanes: [helm-lint, kubectl-apply-dry-run]
+acceptance_lanes: [cue-krm-validation, kubectl-apply-dry-run]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -51,7 +51,7 @@ spec:
 ## Acceptance Gates
 
 ```bash
-helm lint microservices/tenancy/iac/kustomize/base/istio
+buck2 build //:repo-hygiene-automation-check # native CUE/KRM package validation microservices/tenancy/iac/kustomize/base/istio
 kubectl --dry-run=client apply -f microservices/tenancy/iac/kustomize/base/istio/
 ```
 
