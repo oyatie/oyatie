@@ -70,6 +70,7 @@ const DOCS_PIPELINE_REGISTRY_PATH: &str = "registry/docs/pipeline.tsv";
 const DOCUMENTATION_SYSTEM_KERNEL_PATH: &str = "libs/oya-check-documentation-system/src/lib.rs";
 const GATE_CATALOG_DOMAIN_PATH: &str = "libs/oya-governance-gate-catalog-domain/src/lib.rs";
 const QUALITY_LANE_KERNEL_PATH: &str = "libs/oya-check-quality-lane/src/lib.rs";
+const M02_EXIT_GATE_VALIDATORS_PATH: &str = "docs/standards/m02-exit-gate-validators.md";
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
@@ -977,6 +978,17 @@ const CLOUD_TENANCY_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "oya-governance-oya-verify",
     "oya-governance-oya-submit",
     "verify.rs",
+];
+const M02_EXIT_GATE_STALE_AUTHORITY_PHRASES: &[&str] = &[
+    "oya-dev-cli bindings",
+    "wired in the\n> CLI",
+    "`oya gate validate <lane>` dispatches",
+    "crates/oya-dev-cli/tests/gate_cli.rs",
+    "are callable via `oya gate validate <lane>`",
+    "| `oya gate validate` subcommand |",
+    "`cargo-fmt`, `cargo-check`, `cargo-clippy`, `cargo-nextest`, `cargo-deny`, `cargo-machete`",
+    "`pnpm-typecheck`, `pnpm-test`",
+    "crates/oya-dev-cli/src/scalability_gates.rs",
 ];
 const MASTERPLAN_NATIVE_SCM_REQUIRED_PHRASES: &[(&str, &str)] = &[
     (
@@ -2375,6 +2387,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the masterplan native SCM naming guard",
         ),
         (
+            "\"M02 exit-gate validator retired CLI/Cargo/pnpm authority scan\"",
+            "documentation sprawl automation targets must include the M02 exit-gate retired authority scan",
+        ),
+        (
+            "\"m02_exit_gate_validator_retired_authority_scan\"",
+            "documentation sprawl policy must record the M02 exit-gate retired authority guard",
+        ),
+        (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
             "product-operation runbook guard must state its incremental clean-path boundary",
         ),
@@ -3021,6 +3041,33 @@ pub fn masterplan_native_scm_hygiene_failures(
     failures
 }
 
+pub fn m02_exit_gate_validator_hygiene_failures(text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in M02_EXIT_GATE_STALE_AUTHORITY_PHRASES {
+        require(
+            !text.contains(phrase),
+            &mut failures,
+            format!(
+                "{M02_EXIT_GATE_VALIDATORS_PATH}: stale retired validator authority phrase present: {phrase:?}; use Rust/Buck2/Prow lane evidence wording"
+            ),
+        );
+    }
+
+    for required in [
+        "historical 14 quality/scalability lane inventory, reframed for Buck2/Prow evidence",
+        "Active merge evidence is produced by\n> Rust kernels through Buck2 targets and Prow/Kubernetes-native `oya-ci-required`",
+        "Do not add Cargo, pnpm, Node, or retired local CLI rows to this table.",
+        "Buck2 target and registry entry",
+        "Prow/Kubernetes-native job or generated ProwJob shard",
+        "registry/quality/lanes.yaml",
+    ] {
+        require_contains(text, required, &mut failures, M02_EXIT_GATE_VALIDATORS_PATH);
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -3068,6 +3115,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let documentation_system_kernel = read(root, DOCUMENTATION_SYSTEM_KERNEL_PATH, &mut failures);
     let gate_catalog_domain = read(root, GATE_CATALOG_DOMAIN_PATH, &mut failures);
     let quality_lane_kernel = read(root, QUALITY_LANE_KERNEL_PATH, &mut failures);
+    let m02_exit_gate_validators = read(root, M02_EXIT_GATE_VALIDATORS_PATH, &mut failures);
 
     failures.extend(spec_failures(&spec));
     failures.extend(retired_cli_registry_spec_failures(
@@ -3113,6 +3161,9 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &sequencing,
         &doc_masterplan,
         &spec,
+    ));
+    failures.extend(m02_exit_gate_validator_hygiene_failures(
+        &m02_exit_gate_validators,
     ));
     failures.extend(buck2_release_policy_failures(
         &spec,
