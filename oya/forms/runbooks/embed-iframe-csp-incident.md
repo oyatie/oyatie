@@ -44,7 +44,7 @@ ONE of:
 
 1. CSP report ingest: `dashboards/embed-and-distribution.json` panel "CSP violations top-N".
 2. Identify the form_id + tenant + parent_origin.
-3. Compare parent_origin to tenant's declared allow-list: `cargo run -p oya-dev-cli -- forms embed-allow-list --tenant <id>`.
+3. Compare parent_origin to tenant's declared allow-list with operation `forms.embed_allow_list(tenant=<id>)`.
 4. Check Trusted Types policy violations in `oya_forms_iframe_xss_attempt_total`.
 
 ## Recovery Path A — Legitimate parent origin missing from allow-list
@@ -52,7 +52,7 @@ ONE of:
 | Step | Action |
 |---|---|
 | 1 | Verify tenant intent via gtm-customer-success. |
-| 2 | Add parent_origin to tenant allow-list: `cargo run -p oya-dev-cli -- forms embed-allow-list --tenant <id> --add <origin>`. |
+| 2 | Add parent_origin to tenant allow-list with operation `forms.embed_allow_list_add(tenant=<id>, origin=<origin>)`. |
 | 3 | CSP `frame-ancestors` header re-issued; CDN cache invalidated. |
 | 4 | Embed re-renders successfully (within CDN TTL). |
 | 5 | Tenant comms. |
@@ -64,7 +64,7 @@ Cause: tenant authored a form with a label containing HTML that bypasses sanitis
 | Step | Action |
 |---|---|
 | 1 | Identify the form + offending field. |
-| 2 | Block the form publish: `cargo run -p oya-dev-cli -- forms publish-block --form <id> --reason xss-suspect`. |
+| 2 | Block the form publish with operation `forms.publish_block(form=<id>, reason=xss-suspect)`. |
 | 3 | Tenant comms: their form is paused pending review. |
 | 4 | Reproduce the XSS in staging; verify Trusted Types catches it. |
 | 5 | If sanitiser bug: open hotfix; deploy; lift block; tenant resumes. |

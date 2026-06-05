@@ -53,7 +53,7 @@ ONE of:
 | Step | Action | Time |
 |---|---|---|
 | 1 | Declare Sev-2 (or Sev-1 if broad). Engage axis-sheets on-call. | ≤ 5 min |
-| 2 | Roll back ALL Sheets deployments to prior known-good release: `cargo run -p oya-dev-cli -- release rollback --microservice sheets --to-version <prior-sha>`. | ≤ 10 min |
+| 2 | Roll back ALL Sheets deployments to prior known-good release with release-conveyor operation `release.rollback(service=sheets, to_version=<prior-sha>)`. | ≤ 10 min |
 | 3 | Verify rollback complete: all pods report new image. | ≤ 5 min |
 | 4 | Re-run `oya-governance-sheets-formula-engine-correctness` lane against current production: must exit 0. | ≤ 10 min |
 | 5 | Verify per-tenant synthetic test: load 10-cell test workbook with the affected function; verify result matches LibreOffice Calc reference. | ≤ 5 min |
@@ -83,7 +83,7 @@ If the regression is isolated to 1-2 functions and a hotfix exists:
 
 Per `backfill-replay.md`:
 - Saved workbooks since the regressed-release deploy may carry incorrect cached formula results.
-- Run `cargo run -p oya-dev-cli -- sheets replay --reason "formula-engine rollback <regressed-version>"` to replay all affected workbooks through the corrected formula-engine.
+- Run operation `sheets.replay(reason="formula-engine rollback <regressed-version>")` to replay all affected workbooks through the corrected formula-engine.
 - Audit-chain seal: `WorkbookReplayed{reason="formula-engine-rollback"}`.
 
 ## Verification

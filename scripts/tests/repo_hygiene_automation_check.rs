@@ -43,6 +43,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.active_context_scan_files, 26);
     assert_eq!(evaluation.active_template_scan_files, 30);
     assert_eq!(evaluation.retired_exact_name_scan_files, 36);
+    assert_eq!(evaluation.product_operation_runbook_clean_paths, 2);
 }
 
 #[test]
@@ -954,6 +955,50 @@ fn active_doc_phrase_scanner_rejects_manual_bridge_statuses() {
         "{:?}",
         failures
     );
+}
+
+#[test]
+fn product_operation_runbooks_reject_retired_cli_and_bridge_authority() {
+    let root = temp_dir("product-operation-runbook-retired-authority");
+    let forms = root.join("oya/forms/runbooks");
+    let sheets = root.join("oya/sheets/runbooks");
+    fs::create_dir_all(&forms).unwrap_or_else(|error| {
+        panic!(
+            "create forms runbook fixture {}: {}",
+            forms.display(),
+            error
+        );
+    });
+    fs::create_dir_all(&sheets).unwrap_or_else(|error| {
+        panic!(
+            "create sheets runbook fixture {}: {}",
+            sheets.display(),
+            error
+        );
+    });
+    fs::write(
+        forms.join("bad.md"),
+        "Run `cargo run -p oya-dev-cli -- forms publish-block --form x`; Jenkins owns parity.\n",
+    )
+    .unwrap();
+    fs::write(
+        sheets.join("bad.md"),
+        "Run local `oya verify --ci-required` and wait for ArgoCD.\n",
+    )
+    .unwrap();
+
+    let failures = gate::product_operation_runbook_retired_authority_failures(&root);
+    for expected in [
+        "cargo run -p oya-dev-cli",
+        "Jenkins",
+        "oya verify",
+        "ArgoCD",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
 }
 
 #[test]

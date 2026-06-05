@@ -76,6 +76,20 @@ const REQUIRED_RUST_EDITION: &str = "2024";
 const REQUIRED_BUCK2_RELEASE: &str = "2026-06-01";
 const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 0;
 const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 37;
+const PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS: &[&str] =
+    &["oya/forms/runbooks", "oya/sheets/runbooks"];
+const PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES: &[&str] = &[
+    "cargo run -p oya-dev-cli",
+    "oya-dev-cli",
+    "`oya ",
+    "oya vcs",
+    "oya gate",
+    "oya verify",
+    "Jenkins",
+    "ArgoCD",
+    "argocd",
+    "JCasC",
+];
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
@@ -845,6 +859,7 @@ pub struct Evaluation {
     pub active_context_scan_files: usize,
     pub active_template_scan_files: usize,
     pub retired_exact_name_scan_files: usize,
+    pub product_operation_runbook_clean_paths: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2153,6 +2168,18 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must reject unregistered/laneless docs",
         ),
         (
+            "\"product_operation_runbook_retired_cli_scan\"",
+            "documentation sprawl policy must record the product-operation retired CLI clean-path guard",
+        ),
+        (
+            "\"product-operation runbook retired CLI/bridge authority scan\"",
+            "documentation sprawl automation targets must include product-operation runbook retired authority scan",
+        ),
+        (
+            "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
+            "product-operation runbook guard must state its incremental clean-path boundary",
+        ),
+        (
             "\"claim_boundary\": \"inventory_only_no_deletion_no_archive_no_live_mutation\"",
             "stale-doc inventory must remain inventory-only",
         ),
@@ -2587,6 +2614,69 @@ pub fn retired_active_path_failures(root: &Path) -> Vec<String> {
         .collect()
 }
 
+fn collect_markdown_paths(
+    root: &Path,
+    rel: &Path,
+    output: &mut Vec<PathBuf>,
+) -> Result<(), String> {
+    let dir = root.join(rel);
+    for entry in
+        fs::read_dir(&dir).map_err(|error| format!("read dir {}: {}", dir.display(), error))?
+    {
+        let entry =
+            entry.map_err(|error| format!("read dir entry {}: {}", dir.display(), error))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|error| format!("file type {}: {}", entry.path().display(), error))?;
+        let entry_rel = rel.join(entry.file_name());
+        if file_type.is_dir() {
+            collect_markdown_paths(root, &entry_rel, output)?;
+        } else if file_type.is_file()
+            && entry_rel
+                .extension()
+                .and_then(|extension| extension.to_str())
+                == Some("md")
+        {
+            output.push(entry_rel);
+        }
+    }
+    Ok(())
+}
+
+pub fn product_operation_runbook_retired_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_path in PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS {
+        let mut markdown_paths = Vec::new();
+        if let Err(error) = collect_markdown_paths(root, Path::new(clean_path), &mut markdown_paths)
+        {
+            failures.push(format!(
+                "{clean_path}: product-operation runbook scan failed: {error}"
+            ));
+            continue;
+        }
+        for rel in markdown_paths {
+            let rel_string = path_to_repo_string(&rel);
+            let text = match fs::read_to_string(root.join(&rel)) {
+                Ok(text) => text,
+                Err(error) => {
+                    failures.push(format!("{rel_string}: read failed: {error}"));
+                    continue;
+                }
+            };
+            for phrase in PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES {
+                if text.contains(phrase) {
+                    failures.push(format!(
+                        "{rel_string}: product-operation runbook contains retired authority phrase {phrase:?}; use product control-plane operation, Buck2/Prow evidence, and CUE/KRM desired-state wording"
+                    ));
+                }
+            }
+        }
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -2685,6 +2775,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(retired_root_file_failures(root));
     failures.extend(retired_service_ci_entrypoint_failures(root));
     failures.extend(retired_active_path_failures(root));
+    failures.extend(product_operation_runbook_retired_authority_failures(root));
     let (tracked_typescript_pnpm_mjs_count, typescript_pnpm_surface_failures) =
         typescript_pnpm_surface_failures(root, &typescript_pnpm_inventory);
     failures.extend(typescript_pnpm_surface_failures);
@@ -3039,6 +3130,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         active_context_scan_files: ACTIVE_CONTEXT_SCAN_PATHS.len(),
         active_template_scan_files: ACTIVE_TEMPLATE_SCAN_PATHS.len(),
         retired_exact_name_scan_files: ACTIVE_EXACT_NAME_SCAN_PATHS.len(),
+        product_operation_runbook_clean_paths: PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS.len(),
     }
 }
 
@@ -3050,7 +3142,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -3060,6 +3152,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.active_context_scan_files,
         evaluation.active_template_scan_files,
         evaluation.retired_exact_name_scan_files,
+        evaluation.product_operation_runbook_clean_paths,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures
