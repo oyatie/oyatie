@@ -41,7 +41,7 @@
       {
         "version": "1.5.0",
         "date": "2026-05-16T13:45:00Z",
-        "change": "SHIPPING / LAUNCH MATURITY: added pipeline.slo_breach_playbooks, per-class rollback/triage/learn-loop actions, first-hour canary decision tree, and incident evidence contract. ADR-0114 emergency rewind is constrained by autonomous_foundry + deployment-ops authority: Argo/canonical rollback and OpenTofu/ops convergence are normal paths; pre-authorized autonomous break-glass is the only rewind exception."
+        "change": "SHIPPING / LAUNCH MATURITY: added pipeline.slo_breach_playbooks, per-class rollback/triage/learn-loop actions, first-hour canary decision tree, and incident evidence contract. ADR-0114 emergency rewind is constrained by autonomous_foundry + deployment-ops authority: native release-conveyor rollback and KRM/CUE/controller convergence are normal paths; pre-authorized autonomous break-glass is the only rewind exception."
       }
     ],
     "purpose": "Persistent across-session goal + load-bearing operating principles + lifecycle phase contract + iteration loop semantics + spec contract + TDD contract + CI/CD pipeline contract + confusion-management protocol + verification-before-completion checklist + scope-discipline rule. Single canonical source so every agent — Claude, codex, gemini, future — operates from the same durable contract.",
@@ -142,13 +142,13 @@
       {
         "id": "deploy",
         "canonical_artifacts": [
-          "specs/deployment-ops-contract.json (OpenTofu + Makefile + ops-only deployment contract)",
-          "Makefile (minimal bootstrap/install/plan/apply/ops entrypoint)",
-          "infra/kyverno/<svc>/application.json (Argo Application)",
+          "specs/deployment-ops-contract.json (native release-conveyor/KRM + Buck2/Prow + controller reconciliation contract)",
+          "specs/ci/prow-jobs/platform-release-conveyor.json (release-conveyor lane input)",
+          "infra/kyverno/policies/ (policy-as-code admission and quarantine controls)",
           "infra/talos/installation-media/ (per ADR-0375 — Talos USB zero-touch installer)",
           "infra/capi/ (per ADR-0375 — Cluster API: clusterctl pins + ClusterResourceSet + spoke Cluster CRs)",
-          "infra/gitops/ (per ADR-0375 — per-cell Argo CD app-of-apps, pull model)",
-          "infra/cloudflare/ (tunnel + DNS; OpenTofu owns only the edge per ADR-0375)"
+          "specs/generated/oya-ci-controller-config.generated.yaml (trusted oya-ci/Prow controller config)",
+          "infra/cilium/cell-boundaries/ (cell network policy and service-boundary desired state)"
         ],
         "entry_gate": "Staging-to-production promotion successful + canary observability rollback gate green (per ADR-0114)",
         "exit_gate": "Live workload serving traffic with mTLS strict (per ADR-0044) + telemetry healthy + no production incident open",
@@ -163,8 +163,8 @@
           "primary_onprem": "KR primary cell — bare-metal Talos via Cluster API + Metal3 (per ADR-0375)",
           "cloud_cells": "OCI/AWS spoke cells via Cluster API (CAPOCI/CAPA); future regions per ADR-0009/ADR-0375"
         },
-        "back_edge_production_incident": "If production health degrades OR canary rollback fires → Argo auto-rollback to previous revision (FIRST, before anything else) + file incident in registry/incidents/<id>.json + emit EVT-PRODUCTION-INCIDENT-OPEN audit-chain row. THEN: dispatch autonomous incident-response quorum per autonomous_foundry.roles.incident_responder. Quorum identifies root cause: if code, open autonomous hotfix PR through full pipeline with hotfix-priority lane budget; if infra/config, converge desired state through specs/deployment-ops-contract.json via OpenTofu/ops surfaces; if unknown / first-of-kind, hold service in rolled-back state + open F-INCIDENT-UNKNOWN-ROOT-CAUSE for compounding investigation. NO human page and NO manual SSH troubleshooting.",
-        "back_edge_drift_detected": "If live cluster state drifts from infra/ git (Argo selfHeal would diverge) → emit EVT-GITOPS-DRIFT row; investigate before forcing reconcile.",
+        "back_edge_production_incident": "If production health degrades OR canary rollback fires → native release-conveyor rollback or quarantine executes before analysis + file incident in registry/incidents/<id>.json + emit EVT-PRODUCTION-INCIDENT-OPEN audit-chain row. THEN: dispatch autonomous incident-response quorum per autonomous_foundry.roles.incident_responder. Quorum identifies root cause: if code, open autonomous hotfix PR through full pipeline with hotfix-priority lane budget; if infra/config, converge KRM/CUE desired state through specs/deployment-ops-contract.json and controller reconciliation; if unknown / first-of-kind, hold service in rolled-back state + open F-INCIDENT-UNKNOWN-ROOT-CAUSE for compounding investigation. No human page; emergency host access is break-glass only.",
+        "back_edge_drift_detected": "If live cluster state drifts from reviewed KRM/CUE desired state or controller snapshot → emit EVT-CONTROLLER-DRIFT row; investigate before forcing reconcile.",
         "loop": "iteration_loops.deploy_observability",
         "references": [
           "ADR-0375",
@@ -380,7 +380,7 @@
         {
           "id": "D-3",
           "step": "auto_rollback",
-          "verb": "If canary fires or any security/data-integrity/audit-chain invariant breaches: Argo rollback to previous revision or quarantine; emit EVT-ROLLBACK-EXECUTED audit-chain row"
+          "verb": "If canary fires or any security/data-integrity/audit-chain invariant breaches: native release-conveyor rollback or quarantine; emit EVT-ROLLBACK-EXECUTED audit-chain row"
         },
         {
           "id": "D-4",
@@ -390,7 +390,7 @@
         {
           "id": "D-5",
           "step": "incident_response",
-          "verb": "If incident: auto-rollback first; file in registry/incidents/ using pipeline.slo_breach_playbooks.evidence_contract; route code fixes to ci_cd_feedback via hotfix PR; route infra/config/capacity fixes through specs/deployment-ops-contract.json OpenTofu/ops surfaces; do not manually SSH-troubleshoot"
+          "verb": "If incident: auto-rollback first; file in registry/incidents/ using pipeline.slo_breach_playbooks.evidence_contract; route code fixes to ci_cd_feedback via hotfix PR; route infra/config/capacity fixes through specs/deployment-ops-contract.json KRM/CUE desired-state PRs and controller reconciliation; avoid host access except audited break-glass"
         }
       ],
       "back_edge_to_dev_outer": "Production incident with code root-cause → new dev_outer loop with hotfix-priority claim"
@@ -834,7 +834,7 @@
       },
       "post_deploy_observability": {
         "criticality": "BLOCKER if breached",
-        "fail_policy": "auto-rollback via Argo revision history + autonomous incident-response quorum + ops/OpenTofu convergence; no human page",
+        "fail_policy": "auto-rollback via native release-conveyor history + autonomous incident-response quorum + KRM/CUE/controller convergence; no human page",
         "lanes": [
           "canary error-rate",
           "canary latency p99",
@@ -854,10 +854,10 @@
       "rule": "Rollback is a sanctioned operation, not an emergency hack.",
       "mechanisms": [
         "git: revert the offending merge on dev → auto-propagates through staging on next cadence",
-        "Argo: rollback to previous revision (per ADR-0114 canary-observability-rollback)",
+        "native release-conveyor: rollback to previous healthy release-ledger entry (per ADR-0114 canary-observability-rollback)",
         "infra: kyverno admission policy can quarantine a bad image tag pending investigation",
-        "infra/config/capacity: converge only through specs/deployment-ops-contract.json OpenTofu roots and ops entrypoints",
-        "emergency rewind: allowed only when a pre-authorized autonomous break-glass key policy exists and emits rewind evidence; otherwise ADR-0114 human-signed force-rewind is replaced by canonical rollback PR or Argo rollback"
+        "infra/config/capacity: converge only through specs/deployment-ops-contract.json KRM/CUE desired-state PRs and controller reconciliation",
+        "emergency rewind: allowed only when a pre-authorized autonomous break-glass key policy exists and emits rewind evidence; otherwise ADR-0114 human-signed force-rewind is replaced by canonical rollback PR or native release-conveyor rollback"
       ],
       "evidence_requirement": "Every rollback emits EVT-ROLLBACK-EXECUTED audit-chain row with root-cause + reverted-sha + decision-maker."
     },
@@ -870,9 +870,9 @@
       "trigger": "Production health degraded, canary fires, audit-chain emission halts, or external SLO breach",
       "responder": "autonomous_foundry.roles.incident_responder (agent quorum). NO human page.",
       "file_path": "registry/incidents/<incident-id>.json (per evidence-taxonomy.json Incident class)",
-      "auto_rollback_first": "Argo revision rollback fires BEFORE any analysis; service health is preserved while root-cause is investigated",
+      "auto_rollback_first": "native release-conveyor rollback fires BEFORE any analysis; service health is preserved while root-cause is investigated",
       "root_cause_protocol": "incident_responder quorum dispatches per autonomous_foundry.vendor_disagreement_protocol; result must converge to one of {code-bug, config-drift, dependency-regression, capacity, first-of-kind-unknown}",
-      "post_incident": "Per root-cause: code-bug → autonomous hotfix PR + regression test via tdd_contract.mode_bugfix; config-drift → Argo selfHeal will reconcile + audit; dependency-regression → pin or replace dep via autonomous PR; capacity → emit capacity-event for cloud-capacity-kernel; first-of-kind-unknown → service held in rolled-back state + F-INCIDENT-UNKNOWN-ROOT-CAUSE filed + compounding investigation across subsequent planning rounds. One F-INCIDENT-PREVENTION-NN FixupTask per causative gap regardless of root cause."
+      "post_incident": "Per root-cause: code-bug → autonomous hotfix PR + regression test via tdd_contract.mode_bugfix; config-drift → controller reconciliation restores reviewed desired state + audit; dependency-regression → pin or replace dep via autonomous PR; capacity → emit capacity-event for cloud-capacity-kernel; first-of-kind-unknown → service held in rolled-back state + F-INCIDENT-UNKNOWN-ROOT-CAUSE filed + compounding investigation across subsequent planning rounds. One F-INCIDENT-PREVENTION-NN FixupTask per causative gap regardless of root cause."
     },
     "slo_breach_playbooks": {
       "evidence_path": "evidence/shipping-launch/autonomous-foundry-slo-playbooks.json",
@@ -884,10 +884,10 @@
       "autonomy_constraints": {
         "human_escalation_paths": 0,
         "normal_recovery_surfaces": [
-          "Argo rollback",
+          "native release-conveyor rollback",
           "canonical rollback PR",
           "Kyverno quarantine",
-          "OpenTofu/ops convergence",
+          "KRM/CUE/controller convergence",
           "autonomous hotfix PR"
         ],
         "forbidden_recovery_surfaces": [
@@ -921,7 +921,7 @@
         {
           "when": "canary_threshold_breach_after_grace",
           "verdict": "ROLLBACK",
-          "action": "Argo rollback exposed cells, classify root cause, route code to hotfix PR or infra/config/capacity to OpenTofu/ops convergence"
+          "action": "native release-conveyor rollback exposed cells, classify root cause, route code to hotfix PR or infra/config/capacity to KRM/CUE/controller convergence"
         },
         {
           "when": "yellow_threshold_only_before_max_window",
@@ -960,8 +960,8 @@
             "check dependency/cache spans"
           ],
           "recovery": [
-            "Argo rollback first if user impact",
-            "OpenTofu/ops capacity convergence for capacity",
+            "native release-conveyor rollback first if user impact",
+            "KRM/CUE/controller capacity convergence for capacity",
             "hotfix PR with performance regression test for code"
           ]
         },
@@ -985,7 +985,7 @@
             "compare dependency errors"
           ],
           "recovery": [
-            "Argo rollback",
+            "native release-conveyor rollback",
             "canonical rollback PR",
             "prove-it hotfix regression"
           ]
@@ -1010,7 +1010,7 @@
           ],
           "recovery": [
             "rollback code-induced demand",
-            "OpenTofu/ops capacity convergence",
+            "KRM/CUE/controller capacity convergence",
             "capacity-event for cloud-capacity-kernel"
           ]
         },
@@ -1035,7 +1035,7 @@
           "recovery": [
             "quarantine digest",
             "rollback exposed cells",
-            "policy convergence through gitops/OpenTofu"
+            "policy convergence through KRM/CUE/controller reconciliation"
           ]
         },
         {
@@ -1118,19 +1118,19 @@
           ],
           "signals": [
             "desired/actual infra mismatch",
-            "Argo OutOfSync/Synced mismatch",
-            "OpenTofu plan drift",
+            "controller desired/actual status mismatch",
+            "KRM/CUE desired-state drift",
             "policy or SecretReference drift"
           ],
           "rollback": "when drift causes service impact or policy breach",
           "triage": [
             "diff desired git state against live state",
-            "verify Argo selfHeal",
-            "verify OpenTofu plan convergence"
+            "verify controller reconciliation",
+            "verify KRM/CUE desired-state convergence"
           ],
           "recovery": [
-            "Argo selfHeal for gitops",
-            "OpenTofu/ops convergence for infra",
+            "controller reconciliation for desired state",
+            "KRM/CUE/controller convergence for infra",
             "rollback only when current changeset introduced drift"
           ]
         },
@@ -1183,7 +1183,7 @@
           "root_cause_class assigned",
           "rollback evidence emitted",
           "regression or lane candidate recorded",
-          "OpenTofu/ops convergence evidence for infra/config/capacity fixes"
+          "KRM/CUE/controller convergence evidence for infra/config/capacity fixes"
         ]
       }
     },
@@ -1472,7 +1472,7 @@
         "yolo/off approval modes as autonomy mechanism",
         "agent-managed canonical skill/spec mutation outside PR gates"
       ],
-      "deployment_constraint": "Hermes shell/server patterns are rejected for deployment. Oyatie deployment remains OpenTofu + Makefile bootstrap/install + ops-managed day-2 only per specs/deployment-ops-contract.json; no manual SSH troubleshooting."
+      "deployment_constraint": "Hermes shell/server patterns are rejected for deployment. Oyatie deployment remains native release-conveyor/KRM + Buck2/Prow + controller-managed day-2 only per specs/deployment-ops-contract.json; emergency host access is break-glass only."
     },
     "audit_chain_requirement": "Every autonomous_foundry decision emits one or more audit-chain rows with per-decision distinct session_id + timestamp + role attribution. PR17 anti-pattern (shared session_id) is forbidden per OP-08.",
     "references": [
