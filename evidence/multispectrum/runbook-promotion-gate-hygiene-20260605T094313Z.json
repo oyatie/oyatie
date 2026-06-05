@@ -1,0 +1,49 @@
+{
+  "id": "runbook_promotion_gate_hygiene_20260605T094313Z",
+  "timestamp_utc": "20260605T094313Z",
+  "branch": "chore/runbook-promotion-gate-hygiene-20260605T0938Z",
+  "base_ref": "github-mirror/dev",
+  "claim": "Active Oyatie runbooks no longer reference retired Jenkins/oya-gate promotion authority and the Rust/Buck2 repo-hygiene gate rejects reintroduction.",
+  "changed_runbook_count": 157,
+  "authority": {
+    "ci_context": "oya-ci-required",
+    "build_test_check_authority": "Buck2",
+    "language": "Rust 2024"
+  },
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test; OYA_REPO_ROOT=\/private/tmp/oyatie-runbook-promotion-gate-hygiene-20260605T0938Z repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "observed": "53 passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs; assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "observed": "verdict PASS; failures []"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "exit_code": 0,
+      "observed": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "targeted ripgrep scan for retired Jenkins/oya-gate runbook promotion phrases",
+      "exit_code": 0,
+      "observed": "no stale runbook promotion phrases found"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "stale_phrases_rejected": [
+    "Jenkins + `oya gate run-all --ci-required` required",
+    "Jenkins green, `oya gate run-all --ci-required` and `oya verify --ci-required` evidence attached",
+    "green Jenkins CI and `oya gate run-all --ci-required`",
+    "require Jenkins + `oya gate run-all --ci-required` before merge"
+  ]
+}
