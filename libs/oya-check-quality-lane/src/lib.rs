@@ -327,18 +327,18 @@ mod tests {
     fn accepts_matching_registry_doc_and_check_wiring() {
         let report = validate_quality_lanes(
             [record(
-                "cargo-fmt",
+                "buck2-build",
                 QualityLaneStage::PerPr,
                 QualityLaneStatus::Active,
-                "cargo fmt --all -- --check",
+                "buck2 build //...",
             )],
             [row(
-                "cargo-fmt",
+                "buck2-build",
                 QualityLaneStage::PerPr,
-                "cargo fmt --all -- --check",
+                "buck2 build //...",
             )],
             ["axis-foundry"],
-            "cargo fmt --all -- --check",
+            "buck2 build //...",
         )
         .expect("quality lanes validate");
 
@@ -353,17 +353,17 @@ mod tests {
         assert_eq!(
             validate_quality_lanes(
                 [record(
-                    "cargo-fmt",
+                    "buck2-build",
                     QualityLaneStage::PerPr,
                     QualityLaneStatus::Active,
-                    "cargo fmt --all -- --check",
+                    "buck2 build //...",
                 )],
                 [],
                 ["axis-foundry"],
-                "cargo fmt --all -- --check",
+                "buck2 build //...",
             ),
             Err(QualityLaneError::MissingMarkdownMirror {
-                id: "cargo-fmt".into(),
+                id: "buck2-build".into(),
             })
         );
     }
@@ -373,22 +373,22 @@ mod tests {
         assert_eq!(
             validate_quality_lanes(
                 [record(
-                    "cargo-fmt",
+                    "buck2-build",
                     QualityLaneStage::PerPr,
                     QualityLaneStatus::Active,
-                    "cargo fmt --all -- --check",
+                    "buck2 build //...",
                 )],
                 [row(
-                    "cargo-fmt",
+                    "buck2-build",
                     QualityLaneStage::PerPr,
                     "different purpose"
                 )],
                 ["axis-foundry"],
-                "cargo fmt --all -- --check",
+                "buck2 build //...",
             ),
             Err(QualityLaneError::PurposeDrift {
-                id: "cargo-fmt".into(),
-                expected: "cargo fmt --all -- --check".into(),
+                id: "buck2-build".into(),
+                expected: "buck2 build //...".into(),
                 actual: "different purpose".into(),
             })
         );
@@ -399,21 +399,21 @@ mod tests {
         assert_eq!(
             validate_quality_lanes(
                 [record(
-                    "cargo-fmt",
+                    "buck2-build",
                     QualityLaneStage::PerPr,
                     QualityLaneStatus::Active,
-                    "cargo fmt --all -- --check",
+                    "buck2 build //...",
                 )],
                 [row(
-                    "cargo-fmt",
+                    "buck2-build",
                     QualityLaneStage::Foundation,
-                    "cargo fmt --all -- --check"
+                    "buck2 build //..."
                 )],
                 ["axis-foundry"],
-                "cargo fmt --all -- --check",
+                "buck2 build //...",
             ),
             Err(QualityLaneError::StageDrift {
-                id: "cargo-fmt".into(),
+                id: "buck2-build".into(),
                 expected: "per-pr".into(),
                 actual: "foundation".into(),
             })
@@ -425,22 +425,22 @@ mod tests {
         assert_eq!(
             validate_quality_lanes(
                 [record(
-                    "cargo-fmt",
+                    "buck2-build",
                     QualityLaneStage::PerPr,
                     QualityLaneStatus::Active,
-                    "cargo fmt --all -- --check",
+                    "buck2 build //...",
                 )],
                 [row(
-                    "cargo-fmt",
+                    "buck2-build",
                     QualityLaneStage::PerPr,
-                    "cargo fmt --all -- --check"
+                    "buck2 build //..."
                 )],
                 ["axis-foundry"],
-                "cargo check",
+                "buck2 test //...",
             ),
             Err(QualityLaneError::CheckCommandNotWired {
-                id: "cargo-fmt".into(),
-                command: "cargo fmt --all -- --check".into(),
+                id: "buck2-build".into(),
+                command: "buck2 build //...".into(),
             })
         );
     }
@@ -449,19 +449,19 @@ mod tests {
     fn accepts_planned_lane_without_command() {
         let report = validate_quality_lanes(
             [QualityLaneRecord {
-                id: "pnpm-test".into(),
+                id: "buck2-unused-deps".into(),
                 stage: QualityLaneStage::PerPr,
                 status: QualityLaneStatus::Planned,
                 owner_team: "axis-foundry".into(),
-                purpose: "TS unit + integration".into(),
+                purpose: "unused dependency policy awaits native projection".into(),
                 source: "TOOLCHAIN.md".into(),
                 runtime_budget_seconds: 300,
                 check_command: None,
             }],
             [row(
-                "pnpm-test",
+                "buck2-unused-deps",
                 QualityLaneStage::PerPr,
-                "TS unit + integration",
+                "unused dependency policy awaits native projection",
             )],
             ["axis-foundry"],
             "",
@@ -477,32 +477,32 @@ mod tests {
             validate_quality_lanes(
                 [
                     record(
-                        "cargo-fmt",
+                        "buck2-build",
                         QualityLaneStage::PerPr,
                         QualityLaneStatus::Active,
-                        "cargo fmt"
+                        "buck2 build //..."
                     ),
                     record(
-                        "cargo-fmt",
+                        "buck2-build",
                         QualityLaneStage::PerPr,
                         QualityLaneStatus::Active,
-                        "cargo fmt"
+                        "buck2 build //..."
                     ),
                 ],
                 [row(
-                    "cargo-fmt",
+                    "buck2-build",
                     QualityLaneStage::PerPr,
-                    "cargo fmt --all -- --check"
+                    "buck2 build //..."
                 )],
                 ["axis-foundry"],
-                "cargo fmt",
+                "buck2 build //...",
             ),
             Err(QualityLaneError::DuplicateRegistryLane { .. })
         ));
         assert!(matches!(
             validate_quality_lanes(
                 [QualityLaneRecord {
-                    id: "CargoFmt".into(),
+                    id: "Buck2Build".into(),
                     stage: QualityLaneStage::PerPr,
                     status: QualityLaneStatus::Planned,
                     owner_team: "axis-foundry".into(),
@@ -511,7 +511,7 @@ mod tests {
                     runtime_budget_seconds: 300,
                     check_command: None,
                 }],
-                [row("CargoFmt", QualityLaneStage::PerPr, "format")],
+                [row("Buck2Build", QualityLaneStage::PerPr, "format")],
                 ["axis-foundry"],
                 "",
             ),
@@ -524,39 +524,47 @@ mod tests {
         assert_eq!(
             validate_quality_lanes(
                 [QualityLaneRecord {
-                    id: "cargo-fmt".into(),
+                    id: "buck2-build".into(),
                     stage: QualityLaneStage::PerPr,
                     status: QualityLaneStatus::Active,
                     owner_team: "unknown-team".into(),
-                    purpose: "cargo fmt".into(),
+                    purpose: "buck2 build graph".into(),
                     source: "TOOLCHAIN.md".into(),
                     runtime_budget_seconds: 300,
-                    check_command: Some("cargo fmt".into()),
+                    check_command: Some("buck2 build //...".into()),
                 }],
-                [row("cargo-fmt", QualityLaneStage::PerPr, "cargo fmt")],
+                [row(
+                    "buck2-build",
+                    QualityLaneStage::PerPr,
+                    "buck2 build graph"
+                )],
                 ["axis-foundry"],
-                "cargo fmt",
+                "buck2 build //...",
             ),
             Err(QualityLaneError::UnknownOwnerTeam {
-                id: "cargo-fmt".into(),
+                id: "buck2-build".into(),
                 owner_team: "unknown-team".into(),
             })
         );
         assert!(matches!(
             validate_quality_lanes(
                 [QualityLaneRecord {
-                    id: "cargo-fmt".into(),
+                    id: "buck2-build".into(),
                     stage: QualityLaneStage::PerPr,
                     status: QualityLaneStatus::Active,
                     owner_team: "axis-foundry".into(),
-                    purpose: "cargo fmt".into(),
+                    purpose: "buck2 build graph".into(),
                     source: "TOOLCHAIN.md".into(),
                     runtime_budget_seconds: 0,
-                    check_command: Some("cargo fmt".into()),
+                    check_command: Some("buck2 build //...".into()),
                 }],
-                [row("cargo-fmt", QualityLaneStage::PerPr, "cargo fmt")],
+                [row(
+                    "buck2-build",
+                    QualityLaneStage::PerPr,
+                    "buck2 build graph"
+                )],
                 ["axis-foundry"],
-                "cargo fmt",
+                "buck2 build //...",
             ),
             Err(QualityLaneError::InvalidRegistryLane { .. })
         ));
