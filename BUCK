@@ -339,6 +339,7 @@ genrule(
         "docs/standards/brief-template.md": "docs/standards/brief-template.md",
         "docs/standards/agentic-dev-team-optimization.md": "docs/standards/agentic-dev-team-optimization.md",
         "docs/standards/ci-lanes.md": "docs/standards/ci-lanes.md",
+        "tools/agent-skills/AGENTS.md": "tools/agent-skills/AGENTS.md",
         "registry/quality/lanes.yaml": "registry/quality/lanes.yaml",
         "docs/standards/code-style-rust.md": "docs/standards/code-style-rust.md",
         "docs/standards/dependency-policy.md": "docs/standards/dependency-policy.md",
