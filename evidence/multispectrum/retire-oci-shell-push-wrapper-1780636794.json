@@ -1,0 +1,66 @@
+{
+  "change_class_id": "CC-2",
+  "git_sha": "549b4f4b3",
+  "freshness_unix": 1780636794,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Deleted an uncalled OCI push/sign shell wrapper instead of adding another compatibility layer.",
+        "Kept the Rust Buck2 OCI push target as the single active push surface."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Moved signing and attestation language to the native Prow promotion lane so build, push, sign, and deploy responsibilities remain decoupled.",
+        "Preserved digest-first promotion semantics and avoided local sidecar digest files."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "repo-hygiene-automation-check now asserts the non-vendored Python/shell inventory count is 43 and rejects stale registry drift.",
+      "findings": [
+        "Retired-reference scan found no remaining active push-and-sign/crane/Helm-digest phrases in the touched OCI and hygiene surfaces after cleanup."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 5,
+      "findings": [
+        "OCI READMEs now point contributors at the self-explanatory Buck2 Rust target instead of a service-local shell script."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Fresh local verification: rustfmt, jq, git diff --check, retired-reference scan, Buck2 repo hygiene, language discipline, and Buck2 authority policy gates."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Keep shell wrapper as Linux-only compatibility path",
+        "Rewrite wrapper as a Rust cosign launcher immediately",
+        "Delete wrapper and route push through existing Rust pusher with signing in native promotion lane"
+      ],
+      "selected_rationale": "Deleting the uncalled shell wrapper reduces stale authority and keeps signing separate from OCI assembly/push.",
+      "rejected_reasons": [
+        "Keeping the wrapper preserves crane and Helm-digest side effects in active docs.",
+        "A Rust cosign launcher would expand scope before the native promotion contract is implemented."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": false,
+      "findings": [
+        "Removed shell handling of COSIGN_PASSWORD examples from the service-local path; signing credentials stay with the future native promotion lane."
+      ]
+    }
+  }
+}

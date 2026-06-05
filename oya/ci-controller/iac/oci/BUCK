@@ -30,7 +30,8 @@
 #     (host-arch) — NOT runnable in a Linux container.  The push step is
 #     intentionally gated to Linux CI only.
 #   - On linux (aarch64, CI pod): pass --target-platforms //platforms:linux-aarch64-musl
-#     to get the static ELF.  Run push-and-sign.sh after assembly.
+#     to get the static ELF.  Publish with //tools/oci:oya-oci-push after
+#     assembly; signing and attestation stay in the native promotion lane.
 #
 # Base image:
 #   gcr.io/distroless/static-debian12  (ADR-0146 canonical; founder decision
@@ -39,9 +40,9 @@
 #   //tools/oci:oya-oci-pull-base (see the :distroless-base genrule below). Bump
 #   the digest when Google publishes a new CVE-patched weekly rebuild.
 #
-# Push target: see push-and-sign.sh (linux CI only).
+# Push target: //tools/oci:oya-oci-push (linux CI only).
 #   Registry: registry.oya-registry.svc.cluster.local:5000
-#   Cosign: --key k8s://oya-ci/cosign-key  (ADR-0181 + verify-image-signed.yaml)
+#   Signing: native promotion lane signs the pushed digest before deployment.
 
 load("//tools/oci:defs.bzl", "oci_image")
 
@@ -54,7 +55,8 @@ load("//tools/oci:defs.bzl", "oci_image")
 #
 # To re-pin (bump to a new CVE-patched rebuild), resolve the linux/arm64 child
 # manifest digest of the desired tag and update the DIGEST argument below:
-#   crane digest --platform linux/arm64 gcr.io/distroless/static-debian12:nonroot
+#   Resolve the linux/arm64 child manifest digest from trusted upstream release
+#   evidence, then update DIGEST below.
 # The puller verifies sha256(manifest_bytes) == DIGEST, so a stale or wrong
 # digest fails the build deterministically.
 #

@@ -22,8 +22,9 @@
 # The rule delegates heavy lifting to the host-tool `oya-oci-assemble`
 # (tools/oci/crates/oya-oci-assemble), which is a Rust binary built by buck2.
 # On darwin the assembled layout is inspectable / analysable; the binary is
-# Mach-O and not runnable on Linux.  Push + cosign-sign is handled by the
-# separate push-and-sign.sh script (linux CI only).
+# Mach-O and not runnable on Linux.  Registry push is handled by the Rust
+# //tools/oci:oya-oci-push tool in Prow/Buck2 lanes; signing/attestation is a
+# separate native promotion concern, not this Starlark rule.
 
 def _oci_image_impl(ctx: AnalysisContext) -> list[Provider]:
     # Collect base tarball artifact (from http_archive or genrule).
