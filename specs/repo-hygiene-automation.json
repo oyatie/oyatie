@@ -729,6 +729,7 @@
       "docs/standards/ci-lanes.md",
       "docs/standards/code-style.md",
       "docs/standards/testing.md",
+      "docs/standards/hyperscaler-best-practices.md",
       "docs/ci/github-actions-lane-unlocker.md",
       "docs/ci/auto-merge-flow.md",
       "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
@@ -751,7 +752,10 @@
       "dev requires github-lane-unlocker-required",
       "CANONICAL_BACKEND_BUILD: cargo build",
       "Use a Python helper to validate modules before cargo build",
-      "Cargo/workspace evidence"
+      "Cargo/workspace evidence",
+      "mandatory `cargo nextest`",
+      "CI enforces `cargo clippy",
+      "Tests (`cargo nextest"
     ]
   },
   "automation_language_policy": {
