@@ -9,7 +9,7 @@ enforcing_fitness_lane: guard-pr-merge-review.mjs
 owner_team: axis-foundry + per change-class team
 related:
   - docs/AGENTS.md
-  - docs/templates/pull-request-template-v2.md
+  - docs/templates/pull-request-template.md
   - docs/checklists/done-definition-checklist.md
 adrs_cited:
   - ADR-0052  # inventory ledger (migration-class review)
@@ -19,7 +19,10 @@ doc_status: published
 
 # PR Review Checklist
 
-> The reviewer agent walks this checklist **before** writing `## Code Review`. Verdict is `APPROVE` or `REQUEST CHANGES`. Without a `## Code Review` H2, `guard-pr-merge-review.mjs` refuses the merge.
+> The reviewer walks this checklist before writing `## Code Review`. Verdict is
+> `APPROVE` or `REQUEST CHANGES`. If the reviewer-agent service is not live,
+> use explicit self-review plus local Buck2 evidence and remote PR check
+> evidence; do not claim `oya-pr-review` as merge authority.
 
 ## Universal review (every PR)
 
@@ -30,23 +33,23 @@ doc_status: published
 - [ ] **R5** `## Traceability` cites canonical docs read, ADRs cited (ADR-0052/ADR-0053/ADR-0054 where applicable), cross-axis contracts touched, IP ID (if applicable). Legacy ADR-#### forbidden in active text.
 - [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign signature + SBOM + SLSA level.
 - [ ] **R7** Done-definition rows D1-D18 walked (see `docs/checklists/done-definition-checklist.md`).
-- [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* `oya-governance-bypass` (ADR-0053).
+- [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* bypass policy / Buck2 evidence.
 - [ ] **R9** No untyped values at API boundaries (per `docs/standards/error-handling.md`). *(advisory; per-language reviewer enforces)*
 - [ ] **R10** Linus good-taste audit row present in `## Code Review`. Empty = `REQUEST CHANGES`.
 
 ## Per-change-class additions
 
 ### `*.rs` (rust-reviewer)
-- [ ] `cargo clippy --workspace --all-features --all-targets -- -D warnings` PASS.
-- [ ] `cargo nextest run --workspace --all-features --no-fail-fast` PASS.
-- [ ] `cargo deny check` PASS.
+- [ ] Targeted Buck2 build/test/check evidence PASS for touched Rust targets.
+- [ ] Rust formatting/lint evidence PASS (`rustfmt --edition 2024 --check <files>` and/or Buck2 lint target).
+- [ ] Dependency/license policy evidence PASS through the current Buck2 policy target or registry-backed lane.
 - [ ] `unsafe` blocks (if any) carry `// SAFETY:` comments with invariant docs. *(advisory)*
 - [ ] `thiserror` in libraries / `anyhow|eyre` at the edge (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 3 error handling`).
 
 ### `*.ts` / `*.tsx` / `*.js` / `*.jsx` (typescript-reviewer)
-- [ ] `pnpm lint` PASS.
-- [ ] `pnpm test` (Node 24 LTS by default; Node 26 Current only when the lane explicitly opts in) PASS.
-- [ ] Types narrow; no `any` (or with `// eslint-disable` + justification).
+- [ ] File exists only under an explicit strict-TypeScript tooling exception; product/frontend TypeScript and pnpm authority remain disallowed.
+- [ ] Tooling exception is pinned, registered, and governed by Buck2 evidence.
+- [ ] Types narrow; no `any` (or with explicit exception rationale).
 
 ### `*.py` (python-reviewer)
 - [ ] `ruff check` PASS.
@@ -80,7 +83,7 @@ doc_status: published
 ### API / contract change (doc-updater)
 - [ ] `contracts/<surface>.<format>` updated.
 - [ ] `docs/SPEC.md` cite refreshed.
-- [ ] `cargo-semver-checks` clean (or major-bump rationale in ADR).
+- [ ] Semver/API compatibility evidence is clean through Buck2 or a documented dual-build adapter when required.
 
 ### doc-only (doc-style-reviewer)
 - [ ] `doc-style.md` (length cap, voice, dual-audience) honored. *Lane:* `oya-governance-doc-style`.

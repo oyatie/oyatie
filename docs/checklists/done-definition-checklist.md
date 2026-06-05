@@ -9,7 +9,7 @@ enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
 owner_team: axis-foundry + council-architecture
 related:
   - docs/AGENTS.md
-  - docs/templates/pull-request-template-v2.md
+  - docs/templates/pull-request-template.md
   - docs/checklists/pre-flight-checklist.md
   - docs/checklists/pr-review-checklist.md
 adrs_cited:
@@ -26,16 +26,16 @@ doc_status: published
 
 - [ ] **D1** All `pre-flight-checklist.md` items checked. *Verification:* per-item reviewer audit on PR.
 - [ ] **D2** Affected canonical docs updated in same PR per `docs/DOC-CATALOG.md`. *Lane:* `oya-governance-doc-catalog`.
-- [ ] **D3** New ADRs (if any) authored from `docs/templates/adr-template-v2.md`. *Lane:* `oya-governance-adr-shape`.
+- [ ] **D3** New ADRs (if any) authored from `docs/templates/adr-template.md`. *Lane:* ADR-shape validation.
 - [ ] **D4** New runbooks (if any) authored from `docs/templates/runbook-template-v2.md`; discoverable in `docs/RUNBOOKS-INDEX.md`. *Lane:* `oya-governance-runbook-index-resolves`.
 - [ ] **D5** New capabilities (if any) ship record + eval set + autonomy tier + audit topic + Cosign signing. *Lane:* `oya-governance-capability-publish`.
 - [ ] **D6** New schemas carry `data_class` per field. *Lane:* `oya-governance-data-class`.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Verification:* CI status check.
 - [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Lane:* `guard-pr-merge-review.mjs`.
-- [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Verification:* output in `## Verification`.
-- [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Verification:* output.
-- [ ] **D11** `cargo deny check` passes. *Verification:* output.
-- [ ] **D12** `oya verify --ci-required` passes. *Verification:* output.
+- [ ] **D9** Buck2 test evidence passes for touched/full target set. *Verification:* output in `## Verification`.
+- [ ] **D10** Buck2 build/lint/static evidence passes with warnings treated as failures where applicable. *Verification:* output.
+- [ ] **D11** Dependency/license/SBOM policy evidence passes through the current Buck2 policy target or registry-backed lane. *Verification:* output.
+- [ ] **D12** `oya-ci-required` target context is green before merge; GitHub Actions bridge checks are shadow/compatibility evidence. *Verification:* required-context evidence.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
 - [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.
@@ -55,8 +55,8 @@ doc_status: published
 - [ ] `MFL-NNNN` row added if class of bug is recurrence-prone. *Lane:* `oya-governance-mistakes-ledger-cite`.
 
 ### refactor
-- [ ] Public API surface unchanged (per `cargo public-api`). *Command:* `cargo public-api --diff`.
-- [ ] `cargo-semver-checks` clean. *Command:* `cargo semver-checks check-release`.
+- [ ] Public API surface unchanged. *Command:* lane-owned Buck2 API compatibility target or documented equivalent.
+- [ ] Semver/API compatibility evidence clean through Buck2 or a documented dual-build adapter when required.
 - [ ] Linus good-taste audit row in `## Code Review`. *(advisory)*
 
 ### migration
