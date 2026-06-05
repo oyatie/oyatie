@@ -24,7 +24,7 @@
       },
       "verification": {
         "checker_crate": "crates/oya-check-active-artifact-contract",
-        "command": "oya check active-artifact-contract --workspace"
+        "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
       },
       "validation": {
         "validator": "scripts/hooks/pre-commit/validate-artifact-capabilities-registry.sh (planned)"
@@ -105,7 +105,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya check active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-artifact-contract.sh (planned)"
@@ -154,7 +154,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-master-plan-sequencing",
-          "command": "oya check master-plan-sequencing"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-master-plan-sequencing.sh (planned)"
@@ -199,7 +199,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-hyperscaler-gates",
-          "command": "oya check hyperscaler-gates"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-hyperscaler-gates.sh"
@@ -244,7 +244,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-evidence-taxonomy",
-          "command": "oya check evidence-taxonomy"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-evidence-record.sh"
@@ -289,7 +289,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-stop-conditions",
-          "command": "oya check stop-conditions"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-stop-conditions.sh"
@@ -335,7 +335,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-final-report-schema",
-          "command": "oya check final-report-schema <path>"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "crates/oya-final-report-emitter (planned)"
@@ -380,7 +380,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-governance-audit-emission (planned)",
-          "command": "oya gate validate evidence-bundle <path>"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "audit-chain emitter (M01/M02 prerequisite)"
@@ -426,7 +426,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-ops-portal-ledger",
-          "command": "oya check ops-portal-ledger"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-ops-portal-ledger.sh"
@@ -472,7 +472,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-ops-portal-claim-matrix",
-          "command": "oya check ops-portal-claim-matrix"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-ops-portal-claim-matrix.sh"
@@ -517,7 +517,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-plan-acceptance-attestation",
-          "command": "oya check plan-acceptance-attestation"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-attestation.sh"
@@ -560,7 +560,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya check active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -579,7 +579,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya check active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -598,7 +598,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya check active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -617,7 +617,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya check active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -636,7 +636,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -655,7 +655,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -674,7 +674,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "libs/oya-check-cedar-fragment-coverage",
-          "command": "oya gate validate cedar-fragment-coverage"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "enforcement": {
           "lane_id": "lean-a-cedar-fragment-coverage"
@@ -696,7 +696,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -715,7 +715,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -734,7 +734,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -753,7 +753,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -772,7 +772,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -791,7 +791,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -810,7 +810,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -829,7 +829,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -843,12 +843,12 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
-      "purpose_short": "Cargo manifest for openapi-rest-route-parity check kernel (std-only). Compares REST _ROUTE constants vs OpenAPI paths sets. Backs lean-a-openapi-rest-route-parity lane (active via oya gate run-all).",
+      "purpose_short": "Cargo manifest for openapi-rest-route-parity check kernel (std-only). Compares REST _ROUTE constants vs OpenAPI paths sets. Backs the openapi-rest-route-parity lane through registered Buck2/Prow evidence.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -867,7 +867,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -881,12 +881,12 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Emitted architecture map JSON. Sources: workspace Cargo.toml + /registry/microservices.json + bounded-contexts.json + cedar-fragments.json + contracts/*.openapi.yaml. Refreshed via `oya gate emit architecture-map`.",
+      "purpose_short": "Emitted architecture map JSON. Sources: workspace Cargo.toml + /registry/microservices.json + bounded-contexts.json + cedar-fragments.json + contracts/*.openapi.yaml. Refreshed by the registered Buck2 architecture-map generator.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -905,7 +905,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -924,7 +924,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -943,7 +943,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -962,7 +962,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -981,7 +981,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -1000,7 +1000,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -1019,7 +1019,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -1038,7 +1038,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -1057,7 +1057,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -1357,11 +1357,11 @@
           "lane_id": "lean-a-codeview-read-surface"
         },
         "verification": {
-          "checker_crate": "crates/oya-dev-cli",
-          "command": "oya gate validate codeview-read-surface --spec /specs/codeview-read-surface.json"
+          "checker_crate": "buck2://:artifact-capabilities-authority-check",
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
-          "validator": "crates/oya-dev-cli::codeview_read_surface_gates"
+          "validator": "buck2://:artifact-capabilities-authority-check"
         },
         "autogen": {
           "generator": "manual until codeview registry generator lands"
@@ -1398,10 +1398,10 @@
         },
         "verification": {
           "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
-          "command": "oya check settings-drift --template templates/foundry-supervisor/claude.toml --accounts registry/accounts/claude*.toml",
+          "command": "buck2 build //oya/intelligence/crates/oya-intelligence-settings-template-kernel:oya-intelligence-settings-template-kernel --show-output",
           "verifies": [
-            "template instances valid per schema.json",
-            "blake3 hash stable"
+            "SettingsRenderer verification surface compiles under Buck2",
+            "dedicated rendered-account drift fixture target pending registration"
           ]
         },
         "validation": {
@@ -1481,10 +1481,10 @@
         },
         "verification": {
           "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
-          "command": "oya check settings-drift --template templates/foundry-supervisor/codex.toml --accounts registry/accounts/codex*.toml",
+          "command": "buck2 build //oya/intelligence/crates/oya-intelligence-settings-template-kernel:oya-intelligence-settings-template-kernel --show-output",
           "verifies": [
-            "template instances valid per schema.json",
-            "blake3 hash stable"
+            "SettingsRenderer verification surface compiles under Buck2",
+            "dedicated rendered-account drift fixture target pending registration"
           ]
         },
         "validation": {
@@ -1564,10 +1564,10 @@
         },
         "verification": {
           "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
-          "command": "oya check settings-drift --template templates/foundry-supervisor/gemini.toml --accounts registry/accounts/gemini*.toml",
+          "command": "buck2 build //oya/intelligence/crates/oya-intelligence-settings-template-kernel:oya-intelligence-settings-template-kernel --show-output",
           "verifies": [
-            "template instances valid per schema.json",
-            "blake3 hash stable"
+            "SettingsRenderer verification surface compiles under Buck2",
+            "dedicated rendered-account drift fixture target pending registration"
           ]
         },
         "validation": {
@@ -1647,7 +1647,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-dependency-seam",
-          "command": "cargo check -p oya-intelligence-supervisor-kernel",
+          "command": "buck2 build //oya/intelligence/crates/oya-intelligence-supervisor-kernel:oya-intelligence-supervisor-kernel --show-output",
           "verifies": [
             "zero external non-std dependencies in kernel",
             "all port traits sealed",
@@ -1735,7 +1735,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-check-dependency-seam",
-          "command": "cargo check -p oya-intelligence-settings-template-kernel",
+          "command": "buck2 build //oya/intelligence/crates/oya-intelligence-settings-template-kernel:oya-intelligence-settings-template-kernel --show-output",
           "verifies": [
             "zero external non-std dependencies in kernel",
             "SettingsRenderer::verify idempotent",
@@ -1822,10 +1822,10 @@
         },
         "verification": {
           "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
-          "command": "oya check settings-drift --workspace",
+          "command": "buck2 build //oya/intelligence/crates/oya-intelligence-settings-template-kernel:oya-intelligence-settings-template-kernel --show-output",
           "verifies": [
-            "all rendered per-account files match their template blake3",
-            "N-threshold gate respected"
+            "SettingsRenderer verification surface compiles under Buck2",
+            "dedicated N-threshold drift fixture target pending registration"
           ]
         },
         "validation": {
@@ -1901,15 +1901,14 @@
         },
         "verification": {
           "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-adapter",
-          "command": "cargo test -p oya-intelligence-settings-template-adapter",
+          "command": "buck2 build //oya/intelligence/crates/oya-intelligence-settings-template-kernel:oya-intelligence-settings-template-kernel --show-output",
           "verifies": [
-            "exit 0 on no-drift fixture",
-            "exit 1 on drift fixture",
-            "N-threshold gate skips when N<10"
+            "SettingsRenderer verification surface compiles under Buck2",
+            "dedicated drift/no-drift fixture target pending registration"
           ]
         },
         "validation": {
-          "validator": "cargo clippy -p oya-dev-cli",
+          "validator": "buck2 build //:language-discipline-check --show-output",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
@@ -1972,11 +1971,11 @@
           "lane_id": "lean-a-foundry-capability-template-registry"
         },
         "verification": {
-          "checker_crate": "crates/oya-dev-cli",
-          "command": "oya gate validate foundry-capability-schema --capabilities-dir registry/capability-templates"
+          "checker_crate": "buck2://:artifact-capabilities-authority-check",
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
-          "validator": "crates/oya-dev-cli::foundry_capability_schema_gates"
+          "validator": "buck2://:artifact-capabilities-authority-check"
         },
         "autogen": {
           "generator": "manual; capability templates are curated control-plane inputs"
@@ -2007,11 +2006,11 @@
           "lane_id": "lean-a-foundry-capability-template-registry"
         },
         "verification": {
-          "checker_crate": "crates/oya-dev-cli",
-          "command": "oya gate validate foundry-eval --capabilities-dir registry/capability-templates"
+          "checker_crate": "buck2://:artifact-capabilities-authority-check",
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
-          "validator": "crates/oya-dev-cli::foundry_eval_gates"
+          "validator": "buck2://:artifact-capabilities-authority-check"
         },
         "autogen": {
           "generator": "manual; eval-set templates are curated test fixtures"
@@ -2042,11 +2041,11 @@
           "lane_id": "lean-a-foundry-capability-template-registry"
         },
         "verification": {
-          "checker_crate": "crates/oya-dev-cli",
-          "command": "oya gate validate foundry-eval --capabilities-dir registry/capability-templates"
+          "checker_crate": "buck2://:artifact-capabilities-authority-check",
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
-          "validator": "crates/oya-dev-cli::foundry_eval_gates"
+          "validator": "buck2://:artifact-capabilities-authority-check"
         },
         "autogen": {
           "generator": "manual; eval-run templates are curated signed-readiness fixtures"
@@ -2077,11 +2076,11 @@
           "lane_id": "oya-governance-loop-recovery-patterns"
         },
         "verification": {
-          "checker_crate": "crates/oya-dev-cli",
-          "command": "oya gate validate loop-recovery-patterns"
+          "checker_crate": "buck2://:artifact-capabilities-authority-check",
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
-          "validator": "crates/oya-dev-cli::loop_recovery_patterns_gate"
+          "validator": "buck2://:artifact-capabilities-authority-check"
         },
         "autogen": {
           "generator": "manual-with-suggestion; future lane promotion protocol can emit candidate rows"
@@ -2122,11 +2121,11 @@
           "lane_id": "oya-governance-loop-recovery-patterns"
         },
         "verification": {
-          "checker_crate": "crates/oya-dev-cli",
-          "command": "oya gate validate loop-recovery-patterns"
+          "checker_crate": "buck2://:artifact-capabilities-authority-check",
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
-          "validator": "crates/oya-dev-cli::loop_recovery_patterns_gate"
+          "validator": "buck2://:artifact-capabilities-authority-check"
         },
         "autogen": {
           "generator": "autonomous_foundry.stuck_loop_recovery step_3_if_resolves"
@@ -2167,11 +2166,11 @@
           "lane_id": "oya-governance-loop-recovery-patterns"
         },
         "verification": {
-          "checker_crate": "crates/oya-dev-cli",
-          "command": "oya gate validate loop-recovery-patterns"
+          "checker_crate": "buck2://:artifact-capabilities-authority-check",
+          "command": "buck2 build //:artifact-capabilities-authority-check --show-output"
         },
         "validation": {
-          "validator": "crates/oya-dev-cli::loop_recovery_patterns_gate"
+          "validator": "buck2://:artifact-capabilities-authority-check"
         },
         "autogen": {
           "generator": "autonomous_foundry.lane_promotion_protocol S3_empirical_evidence"

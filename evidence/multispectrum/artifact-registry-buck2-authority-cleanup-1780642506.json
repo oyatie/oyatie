@@ -1,0 +1,57 @@
+{
+  "evidence_id": "artifact-registry-buck2-authority-cleanup",
+  "generated_at_utc": "2026-06-05T06:54:27Z",
+  "scope": "registry/artifact-capabilities-registry.json",
+  "claim_boundary": {
+    "local_static_only": true,
+    "live_status_mutation": false,
+    "remote_pr_checks": false,
+    "production_ready_claim": false
+  },
+  "changes": [
+    "Replaced retired local Oya CLI command authority in the artifact capability registry with Buck2 build/check commands.",
+    "Replaced direct Cargo command authority for Rust kernel evidence with Buck2 target authority.",
+    "Added a Rust 2024 Buck2 genrule that rejects retired Oya CLI and direct Cargo command strings in the artifact capability registry.",
+    "Kept the settings-template adapter row on the buildable settings-template kernel target pending a dedicated rendered-account drift fixture target."
+  ],
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-artifact-capabilities-authority.rs scripts/tests/artifact_capabilities_authority_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "jq -e 'type == \"object\" and has(\"rows\")' registry/artifact-capabilities-registry.json",
+      "exit_code": 0,
+      "output": "true"
+    },
+    {
+      "command": "buck2 build //:artifact-capabilities-authority-check --show-output",
+      "exit_code": 0,
+      "output": "BUILD SUCCEEDED; artifact-capabilities-authority-check.json verdict PASS; forbidden_hit_count 0; required_command_count 4"
+    },
+    {
+      "command": "buck2 build //:language-discipline-check //oya/intelligence/crates/oya-intelligence-supervisor-kernel:oya-intelligence-supervisor-kernel //oya/intelligence/crates/oya-intelligence-settings-template-kernel:oya-intelligence-settings-template-kernel --show-output",
+      "exit_code": 0,
+      "output": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "rg -n 'oya gate|oya check|oya verify|oya-dev-cli|target/debug/oya|cargo check|cargo test|cargo clippy|cargo nextest|cargo deny|cargo machete' registry/artifact-capabilities-registry.json || true",
+      "exit_code": 0,
+      "output": "no matches"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check //:language-discipline-check //:artifact-capabilities-authority-check --show-output",
+      "exit_code": 0,
+      "output": "BUILD SUCCEEDED; repo-hygiene, buck2-authority-policy, language-discipline, artifact-capabilities authority JSON verdicts PASS"
+    },
+    {
+      "command": "git diff --check && git diff --cached --check",
+      "exit_code": 0
+    }
+  ],
+  "known_limits": [
+    "This evidence is local/static and does not claim live Prow required-context mutation.",
+    "Dedicated artifact-specific validators can replace the shared registry authority checker as Rust/Buck2 targets land.",
+    "Remote GitHub checks were not available at evidence creation time before PR publication."
+  ]
+}
