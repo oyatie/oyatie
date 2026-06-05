@@ -32,6 +32,9 @@ Phase-0 exit authority. The canonical workflow is:
   documented production release artifact optimization measurement.
 - Encode any selected release optimization back into the Buck2 toolchain, target
   graph, or Buck2-built OCI path before it becomes standard.
+- Do not standardize Cargo watcher or unused-dependency CLIs as repo workflow.
+  If that feedback is worth preserving, express it as a Rust/Buck2-owned target
+  with Prow evidence.
 - Naming: `snake_case` for functions/vars/modules; `UpperCamelCase` for types/traits; `SCREAMING_SNAKE_CASE` for consts
 - Error type: `thiserror`-derived per crate; never panic at API boundaries; `Result<T, E>` always; `?` propagation preferred over `match`
 - Async: `tokio` + structured concurrency; `JoinHandle`s explicitly awaited or detached with cancellation; never spawn-and-forget without supervision

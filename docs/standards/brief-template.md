@@ -1160,7 +1160,7 @@ Brief field:
 `BACKEND_LANGUAGE: rust`.
 
 Brief field:
-`CANONICAL_BACKEND_BUILD: cargo build --workspace --release --all-features --locked`.
+`CANONICAL_BACKEND_BUILD: buck2 build //... --show-output or the trusted controller-selected Buck2 target inventory`.
 
 Brief field:
 `AUTHORIZED_BACKEND_NON_RUST_EXTENSIONS: [.tf, .cedar, .yaml, .json, .proto, openapi.yaml, asyncapi.yaml, .openslo.yaml, .sql, .md]`.
@@ -1294,15 +1294,16 @@ Example acceptable sentence:
 `cloud-iac orchestration is Rust, its IaC modules are .tf OpenTofu declarations, and any frontend code is outside the backend path.`
 
 Example unacceptable sentence:
-`Use a Python helper to validate modules before cargo build.`
+`Use a non-Rust helper to validate modules before a non-Buck2 backend build.`
 
 Required audit output:
 `New Constraint Dimensions - Dim 9 Rust-strict: PASS | FINDING | N/A`.
 
 Required audit evidence:
-Cargo/workspace evidence, forbidden-language scan result, allowed non-Rust file
-classification, frontend path classification, build invocation, and exception
-ADR references.
+Buck2 Build ID and target evidence, Cargo metadata compatibility evidence when
+dependency manifests change, forbidden-language scan result, allowed non-Rust
+file classification, frontend path classification, build invocation, and
+exception ADR references.
 
 Severity cue:
 P0 for HR/Payroll, ERP, or CRM language violations; P1 for other in-scope

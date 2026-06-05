@@ -172,6 +172,10 @@ Oyatie intentionally maintains a dual-build Rust setup:
 - Local Cargo mutation testing is encouraged for fast kernel/domain feedback,
   but PR merge evidence cites the Buck2 target or cloud-ci/oya-ci lane that
   captured the mutation run.
+- This dual-build exception is limited to ecosystem metadata and local mutation
+  ergonomics; it does not authorize Cargo watcher, lint, test, or
+  unused-dependency CLIs as repo workflow standards unless they are wrapped by
+  Rust/Buck2 targets and surfaced through Prow evidence.
 
 Findings categories:
 
@@ -285,10 +289,11 @@ This standard adds:
 2. **Running raw Cargo test/lint/check commands for CI evidence instead of Buck2 targets.**
 3. **Adding Tarpaulin as the monorepo coverage authority** instead of Buck2-native LLVM source-based coverage.
 4. **Treating local Cargo mutation testing as merge authority** instead of local advisory feedback or Buck2/cloud-ci captured evidence.
-5. **Property test with low case-count to "save CI time"** — use the
+5. **Expanding the Cargo metadata/mutation exception into watcher, lint, test, or unused-dependency merge gates** instead of Buck2/Prow evidence.
+6. **Property test with low case-count to "save CI time"** — use the
    nightly long config instead, not a degraded PR config.
-6. **Adding `unsafe` without a fuzz harness.**
-7. **Integration test hitting a real provider** — use the
+7. **Adding `unsafe` without a fuzz harness.**
+8. **Integration test hitting a real provider** — use the
    `ProviderAdapter` trait + a fake.
 
 ## 12. Sources scanned
