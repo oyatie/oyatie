@@ -135,10 +135,10 @@
     "self_explanatory_active_name_rule": "Active tool, check, runtime, manifest, policy, and context-field names must describe the capability or contract directly. ADR/PRD/PHASE/IP tokens are allowed only in actual decision, product-spec, phase, or implementation-plan documentation paths.",
     "forbidden_active_name_example": "context.doctrine.adr_0513 is forbidden in active Cedar/runtime context; use context.doctrine.buck2_prow_ci_authority instead.",
     "automation_targets": [
-    "root markdown allowlist",
-    "root hub pointer presence",
-    "masterplan native SCM naming and Buck2/Cargo authority scan",
-    "doc catalog stale status",
+      "root markdown allowlist",
+      "root hub pointer presence",
+      "masterplan native SCM naming and Buck2/Cargo authority scan",
+      "doc catalog stale status",
       "ADR index regeneration backlog",
       "machine-readable mirror freshness",
       "retired substrate exact-name tombstones",
@@ -148,7 +148,8 @@
       "Forms/Sheets product-operation doc retired authority scan",
       "Intelligence markdown retired local dev CLI scan",
       "governance markdown retired local dev CLI and external substrate scan",
-      "cloud-tenancy retired CLI/Cargo/external CI authority scan"
+      "cloud-tenancy retired CLI/Cargo/external CI authority scan",
+      "M02 exit-gate validator retired CLI/Cargo/pnpm authority scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -262,14 +263,21 @@
       "live_mutation": false,
       "claim_boundary": "incremental cloud/tenancy markdown/yaml/json authority guard only; first-party Helm-to-CUE migration and remaining historical ADR cleanup are separate backlog slices"
     },
-  "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
-  "masterplan_native_scm_name_scan": {
-    "policy": "Active masterplan and sequencing wording names the capability as Native SCM control-plane/Prow lane-unlocker, treats gitops-vcs/grit labels as compatibility provenance only, keeps Cargo manifests as compatibility metadata/local advisory tooling, and keeps Buck2/Prow as build/test/check/coverage authority.",
-    "check": "buck2 build //:repo-hygiene-automation-check",
-    "live_mutation": false,
-    "claim_boundary": "incremental masterplan/sequencing naming guard only; path renames and historical ADR archival remain separate backlog slices"
-  },
-  "stale_doc_inventory": {
+    "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
+    "masterplan_native_scm_name_scan": {
+      "policy": "Active masterplan and sequencing wording names the capability as Native SCM control-plane/Prow lane-unlocker, treats gitops-vcs/grit labels as compatibility provenance only, keeps Cargo manifests as compatibility metadata/local advisory tooling, and keeps Buck2/Prow as build/test/check/coverage authority.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental masterplan/sequencing naming guard only; path renames and historical ADR archival remain separate backlog slices"
+    },
+    "m02_exit_gate_validator_retired_authority_scan": {
+      "clean_file": "docs/standards/m02-exit-gate-validators.md",
+      "policy": "M02 exit-gate validator documentation is compatibility provenance only. Active validator evidence is Rust kernel/app plus Buck2 target/registry and Prow/Kubernetes-native oya-ci-required output; retired local CLI bindings, Cargo rows, and pnpm rows must not be presented as active authority.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental standards-doc guard only; remaining standards command examples are separate backlog slices"
+    },
+    "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
       "cutoff_days": 3,
       "scanned_paths": [
